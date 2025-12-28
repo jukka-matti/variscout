@@ -13,7 +13,8 @@ import {
     importFromFile,
     debounce,
     SavedProject,
-    AnalysisState
+    AnalysisState,
+    DisplayOptions
 } from '../lib/persistence';
 
 interface DataContextType {
@@ -27,6 +28,7 @@ interface DataContextType {
     stats: StatsResult | null;
     filters: Record<string, any[]>;
     axisSettings: { min?: number; max?: number };
+    displayOptions: DisplayOptions;
     currentProjectId: string | null;
     currentProjectName: string | null;
     hasUnsavedChanges: boolean;
@@ -37,6 +39,7 @@ interface DataContextType {
     setGrades: (grades: { max: number; label: string; color: string }[]) => void;
     setFilters: (filters: Record<string, any[]>) => void;
     setAxisSettings: (settings: { min?: number; max?: number }) => void;
+    setDisplayOptions: (options: DisplayOptions) => void;
     // Persistence methods
     saveProject: (name: string) => Promise<SavedProject>;
     loadProject: (id: string) => Promise<void>;
@@ -59,6 +62,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [grades, setGrades] = useState<{ max: number; label: string; color: string }[]>([]);
     const [filters, setFilters] = useState<Record<string, any[]>>({});
     const [axisSettings, setAxisSettings] = useState<{ min?: number; max?: number }>({});
+    const [displayOptions, setDisplayOptions] = useState<DisplayOptions>({ showCp: false, showCpk: true });
     const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
     const [currentProjectName, setCurrentProjectName] = useState<string | null>(null);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -88,7 +92,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         grades,
         filters,
         axisSettings,
-    }), [rawData, outcome, factors, specs, grades, filters, axisSettings]);
+        displayOptions,
+    }), [rawData, outcome, factors, specs, grades, filters, axisSettings, displayOptions]);
 
     // Debounced auto-save
     const debouncedAutoSave = useMemo(
@@ -108,7 +113,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             debouncedAutoSave(getCurrentState());
         }
         return () => debouncedAutoSave.cancel();
-    }, [rawData, outcome, factors, specs, grades, filters, axisSettings, getCurrentState, debouncedAutoSave]);
+    }, [rawData, outcome, factors, specs, grades, filters, axisSettings, displayOptions, getCurrentState, debouncedAutoSave]);
 
     // Restore from auto-save on mount
     useEffect(() => {
@@ -121,6 +126,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (saved.grades) setGrades(saved.grades);
             if (saved.filters) setFilters(saved.filters);
             if (saved.axisSettings) setAxisSettings(saved.axisSettings);
+            if (saved.displayOptions) setDisplayOptions(saved.displayOptions);
         }
         isInitialized.current = true;
     }, []);
@@ -146,6 +152,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setGrades(state.grades);
             setFilters(state.filters);
             setAxisSettings(state.axisSettings);
+            if (state.displayOptions) setDisplayOptions(state.displayOptions);
             setCurrentProjectId(project.id);
             setCurrentProjectName(project.name);
             setHasUnsavedChanges(false);
@@ -189,6 +196,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (state.grades) setGrades(state.grades);
         if (state.filters) setFilters(state.filters);
         if (state.axisSettings) setAxisSettings(state.axisSettings);
+        if (state.displayOptions) setDisplayOptions(state.displayOptions);
         setCurrentProjectId(null);
         setCurrentProjectName(file.name.replace('.vrs', ''));
         setHasUnsavedChanges(true);
@@ -203,6 +211,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setGrades([]);
         setFilters({});
         setAxisSettings({});
+        setDisplayOptions({ showCp: false, showCpk: true });
         setCurrentProjectId(null);
         setCurrentProjectName(null);
         setHasUnsavedChanges(false);
@@ -221,6 +230,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             stats,
             filters,
             axisSettings,
+            displayOptions,
             currentProjectId,
             currentProjectName,
             hasUnsavedChanges,
@@ -231,6 +241,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setGrades,
             setFilters,
             setAxisSettings,
+            setDisplayOptions,
             saveProject,
             loadProject,
             listProjects,

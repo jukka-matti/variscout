@@ -48,6 +48,8 @@ describe('Dashboard Component - With Data', () => {
             axisSettings: {},
             setAxisSettings: vi.fn(),
             setFilters: vi.fn(),
+            displayOptions: { showCp: false, showCpk: true },
+            setDisplayOptions: vi.fn(),
             // Persistence properties
             currentProjectId: null,
             currentProjectName: null,
@@ -65,7 +67,8 @@ describe('Dashboard Component - With Data', () => {
         render(<Dashboard />);
 
         expect(screen.getByText('I-Chart: Diameter')).toBeInTheDocument();
-        expect(screen.getByText('Analysis Summary')).toBeInTheDocument();
+        expect(screen.getByText('Summary')).toBeInTheDocument(); // Tab button
+        expect(screen.getByText('Histogram')).toBeInTheDocument(); // Tab button
         expect(screen.getByText('5.5%')).toBeInTheDocument();
         expect(screen.getByTestId('i-chart')).toBeInTheDocument();
         expect(screen.getByTestId('boxplot')).toBeInTheDocument();

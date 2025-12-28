@@ -1,5 +1,11 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 
+// Display options for capability metrics
+export interface DisplayOptions {
+  showCp: boolean;
+  showCpk: boolean;
+}
+
 // Types for saved analysis state
 export interface AnalysisState {
   version: string;
@@ -10,6 +16,7 @@ export interface AnalysisState {
   grades: { max: number; label: string; color: string }[];
   filters: Record<string, any[]>;
   axisSettings: { min?: number; max?: number };
+  displayOptions?: DisplayOptions;
 }
 
 export interface SavedProject {

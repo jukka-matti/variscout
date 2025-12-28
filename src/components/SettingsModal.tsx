@@ -15,11 +15,13 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         specs,
         grades,
         axisSettings,
+        displayOptions,
         setOutcome,
         setFactors,
         setSpecs,
         setGrades,
-        setAxisSettings
+        setAxisSettings,
+        setDisplayOptions
     } = useData();
 
     // Local state for form inputs
@@ -28,6 +30,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     const [localSpecs, setLocalSpecs] = useState<{ usl?: string, lsl?: string, target?: string }>({});
     const [localGrades, setLocalGrades] = useState<{ max: number; label: string; color: string }[]>([]);
     const [localAxis, setLocalAxis] = useState<{ min: string, max: string }>({ min: '', max: '' });
+    const [localDisplayOptions, setLocalDisplayOptions] = useState<{ showCp: boolean, showCpk: boolean }>({ showCp: false, showCpk: true });
 
     // Populate local state when modal opens
     useEffect(() => {
@@ -44,8 +47,9 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                 min: axisSettings.min !== undefined ? axisSettings.min.toString() : '',
                 max: axisSettings.max !== undefined ? axisSettings.max.toString() : ''
             });
+            setLocalDisplayOptions(displayOptions);
         }
-    }, [isOpen, outcome, factors, specs, grades, axisSettings]);
+    }, [isOpen, outcome, factors, specs, grades, axisSettings, displayOptions]);
 
     if (!isOpen) return null;
 
@@ -64,6 +68,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             min: localAxis.min ? parseFloat(localAxis.min) : undefined,
             max: localAxis.max ? parseFloat(localAxis.max) : undefined
         });
+        setDisplayOptions(localDisplayOptions);
         onClose();
     };
 
@@ -233,6 +238,36 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                             {/* Section 3: Visualization Settings */}
                             <div>
                                 <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-6">3. Visualization</h3>
+
+                                {/* Display Options */}
+                                <div className="mb-6">
+                                    <h4 className="text-xs font-semibold text-slate-300 mb-2">Capability Metrics Display</h4>
+                                    <div className="space-y-2">
+                                        <label className="flex items-center gap-3 cursor-pointer group">
+                                            <input
+                                                type="checkbox"
+                                                checked={localDisplayOptions.showCp}
+                                                onChange={(e) => setLocalDisplayOptions({ ...localDisplayOptions, showCp: e.target.checked })}
+                                                className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
+                                            />
+                                            <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+                                                Show Cp <span className="text-slate-500 text-xs">(requires both USL and LSL)</span>
+                                            </span>
+                                        </label>
+                                        <label className="flex items-center gap-3 cursor-pointer group">
+                                            <input
+                                                type="checkbox"
+                                                checked={localDisplayOptions.showCpk}
+                                                onChange={(e) => setLocalDisplayOptions({ ...localDisplayOptions, showCpk: e.target.checked })}
+                                                className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
+                                            />
+                                            <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+                                                Show Cpk
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <div className="mb-2">
                                     <h4 className="text-xs font-semibold text-slate-300 mb-2">Y-Axis Scaling (Manual Override)</h4>
                                     <div className="grid grid-cols-2 gap-4">

@@ -3,6 +3,10 @@ import { useData } from '../context/DataContext';
 import { parseCSV, parseExcel, detectColumns } from '../logic/parser';
 import { SampleDataset } from '../data/sampleData';
 
+// Performance thresholds
+const ROW_WARNING_THRESHOLD = 5000;
+const ROW_HARD_LIMIT = 50000;
+
 export const useDataIngestion = () => {
     const { setRawData, setOutcome, setFactors, setSpecs, setGrades, setFilters } = useData();
 
@@ -19,6 +23,18 @@ export const useDataIngestion = () => {
             }
 
             if (data.length > 0) {
+                // Check row limits for performance
+                if (data.length > ROW_HARD_LIMIT) {
+                    alert(`File too large (${data.length.toLocaleString()} rows). Maximum is ${ROW_HARD_LIMIT.toLocaleString()} rows.`);
+                    return;
+                }
+                if (data.length > ROW_WARNING_THRESHOLD) {
+                    const proceed = window.confirm(
+                        `Large dataset (${data.length.toLocaleString()} rows) may slow performance. Continue?`
+                    );
+                    if (!proceed) return;
+                }
+
                 setRawData(data);
                 const detected = detectColumns(data);
                 if (detected.outcome) setOutcome(detected.outcome);

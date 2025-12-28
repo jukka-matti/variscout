@@ -30,6 +30,17 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 - **Large Mode**: Toggle 30% larger fonts for presentations and training sessions
 - **Normal Mode**: Dense information display for analysis work
 
+### Capability Analysis
+- **Cp/Cpk Metrics**: Configurable process capability indices (toggle in Settings → Visualization)
+- **Capability Histogram**: Visual distribution analysis with spec limits overlay (tab in Stats Panel)
+
+### Data Table
+- **View Data**: Excel-like table view of all imported data
+- **Inline Editing**: Click any cell to edit values
+- **Keyboard Navigation**: Tab/Enter to move between cells
+- **Spec Status**: Color-coded pass/fail indicators per row
+- **Row Operations**: Add and delete rows
+
 ### Persistence
 - **Auto-save**: Crash recovery via localStorage
 - **Named Projects**: Save multiple analyses to browser storage (IndexedDB)
@@ -103,7 +114,8 @@ src/
 ├── components/
 │   ├── Dashboard.tsx          # 3-chart layout
 │   ├── ManualEntry.tsx        # Data entry with running stats
-│   └── charts/                # I-Chart, Boxplot, Pareto
+│   ├── StatsPanel.tsx         # Stats display with histogram tab
+│   └── charts/                # I-Chart, Boxplot, Pareto, CapabilityHistogram
 ├── context/
 │   └── DataContext.tsx        # Central state management
 ├── lib/

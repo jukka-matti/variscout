@@ -181,12 +181,37 @@ Works for any multi-tier classification:
 | Metric | Description |
 |--------|-------------|
 | Mean, Std Dev | Central tendency and spread |
-| Cp | Process capability (potential) |
+| Cp | Process capability (potential) — requires both USL and LSL |
 | Cpk | Process capability (actual, considers centering) |
 | % out of spec | Actual failure rate |
 | η² (eta-squared) | Variation explained by factor |
 
 Best for: Process improvement, ongoing monitoring, supplier qualification
+
+**Display Options (Settings → Visualization):**
+- Toggle Cp display (only available when both USL and LSL are defined)
+- Toggle Cpk display
+
+**Capability Histogram (Stats Panel → Histogram tab):**
+```
+┌─────────────────────────────────────┐
+│  HISTOGRAM                          │
+│       LSL         Mean        USL   │
+│        │    ████   │           │    │
+│        │   ██████  │           │    │
+│        │  █████████│███        │    │
+│        │ ███████████████       │    │
+│  ──────┼───────────┼───────────┼──  │
+│   🔴    │    🟢     │     🟢    │ 🔴 │
+│ out of │  within   │   within  │out │
+│  spec  │   spec    │    spec   │    │
+└─────────────────────────────────────┘
+```
+
+- Distribution histogram of outcome values
+- Vertical lines for USL (red dashed), LSL (red dashed), Target (green dashed), Mean (blue solid)
+- Bars colored green (within spec) or red (outside spec)
+- Visual complement to numeric Cp/Cpk values
 
 ```
 ┌─────────────────────────────────────┐
@@ -243,7 +268,37 @@ When configured:
 - Summary shows pass rate OR grade breakdown
 - Boxplot/Pareto filter shows impact on grades
 
-### 5. Save & Load Analysis
+### 5. Data Table (View/Edit Data)
+
+**Access**: Click table icon in header toolbar
+
+**Features:**
+- View all imported data in Excel-like table format
+- Click any cell to edit inline
+- Keyboard navigation (Tab/Enter between cells)
+- Spec status column with color coding (PASS/USL/LSL)
+- Add new rows
+- Delete rows
+- Apply changes to update analysis
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Data Table                                              [X]    │
+├─────────────────────────────────────────────────────────────────┤
+│  50 rows                                       [+ Add Row]      │
+├─────────────────────────────────────────────────────────────────┤
+│  #  │ Farm    │ Batch  │ Weight │ Status │ Actions             │
+│─────┼─────────┼────────┼────────┼────────┼─────────             │
+│  1  │ Farm A  │ B001   │ 12.5   │ ✓ PASS │ [Delete]            │
+│  2  │ Farm A  │ B002   │ 14.2   │ ✗ USL  │ [Delete]            │
+│  3  │ Farm B  │ B003   │ 11.8   │ ✓ PASS │ [Delete]            │
+│  ... (scrollable, click to edit)                                │
+├─────────────────────────────────────────────────────────────────┤
+│                                      [Cancel]  [Apply Changes]  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 6. Save & Load Analysis
 
 **Save Analysis (.vrs file):**
 ```
@@ -312,12 +367,12 @@ When configured:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 6. Export
+### 7. Export
 - PNG (individual charts or dashboard)
 - PDF (one-page summary)
 - Simple PowerPoint (3 slides: charts + stats)
 
-### 7. Branding
+### 8. Branding
 - Configurable watermark (logo or text)
 - Edition name in title bar
 - "Powered by VaRiScout" footer (optional)

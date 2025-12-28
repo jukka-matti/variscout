@@ -12,7 +12,7 @@ export interface ExportOptions {
 /**
  * Determines if a value passes specification limits
  */
-function getSpecStatus(
+export function getSpecStatus(
   value: number,
   specs: { usl?: number; lsl?: number }
 ): 'PASS' | 'FAIL_USL' | 'FAIL_LSL' | 'N/A' {

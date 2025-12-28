@@ -1,10 +1,11 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { Activity, Upload, Settings, Download, Save, FolderOpen, RefreshCw, ArrowRight, BarChart2, HardDrive, FileUp, FileSpreadsheet, Maximize2, Minimize2 } from 'lucide-react';
+import { Activity, Upload, Settings, Download, Save, FolderOpen, RefreshCw, ArrowRight, BarChart2, HardDrive, FileUp, FileSpreadsheet, Maximize2, Minimize2, Table } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { useData } from './context/DataContext';
 import { downloadCSV } from './lib/export';
 import SettingsModal from './components/SettingsModal';
 import SavedProjectsModal from './components/SavedProjectsModal';
+import DataTableModal from './components/DataTableModal';
 import Dashboard from './components/Dashboard';
 import { SAMPLES } from './data/sampleData';
 import { useDataIngestion } from './hooks/useDataIngestion';
@@ -24,6 +25,7 @@ function App() {
     const { handleFileUpload, loadSample, clearData } = useDataIngestion();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isProjectsOpen, setIsProjectsOpen] = useState(false);
+    const [isDataTableOpen, setIsDataTableOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showSaveInput, setShowSaveInput] = useState(false);
     const [saveInputName, setSaveInputName] = useState('');
@@ -155,6 +157,14 @@ function App() {
                                 title="Open Saved Projects"
                             >
                                 <FolderOpen size={18} />
+                            </button>
+                            {/* View Data Table */}
+                            <button
+                                onClick={() => setIsDataTableOpen(true)}
+                                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                                title={`View Data (${rawData.length} rows)`}
+                            >
+                                <Table size={18} />
                             </button>
                             <div className="hidden sm:block h-4 w-px bg-slate-800 mx-1"></div>
                             {/* Download as file */}
@@ -320,6 +330,7 @@ function App() {
 
             <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
             <SavedProjectsModal isOpen={isProjectsOpen} onClose={() => setIsProjectsOpen(false)} />
+            <DataTableModal isOpen={isDataTableOpen} onClose={() => setIsDataTableOpen(false)} />
 
             {/* Footer */}
             <footer className="h-8 border-t border-slate-800 bg-slate-900 flex items-center px-4 sm:px-6 text-[10px] text-slate-500 justify-between">

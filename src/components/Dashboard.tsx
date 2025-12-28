@@ -7,7 +7,7 @@ import { useData } from '../context/DataContext';
 import { Activity } from 'lucide-react';
 
 const Dashboard = () => {
-    const { outcome, factors, stats, specs } = useData();
+    const { outcome, factors, stats, specs, filteredData } = useData();
 
     if (!outcome) return null;
 
@@ -65,7 +65,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Stats Panel */}
-                <StatsPanel stats={stats} specs={specs} />
+                <StatsPanel stats={stats} specs={specs} filteredData={filteredData} outcome={outcome} />
             </div>
         </div>
     );
