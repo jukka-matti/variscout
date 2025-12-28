@@ -6,6 +6,8 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Line } from '@visx/shape';
 import { withParentSize } from '@visx/responsive';
 import { bin } from 'd3-array';
+import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import ChartSignature from './ChartSignature';
 
 interface CapabilityHistogramProps {
     parentWidth: number;
@@ -15,9 +17,15 @@ interface CapabilityHistogramProps {
     mean: number;
 }
 
-const margin = { top: 20, right: 20, bottom: 40, left: 40 };
+const BASE_MARGIN = { top: 20, right: 20, bottom: 40, left: 40 };
 
 const CapabilityHistogram = ({ parentWidth, parentHeight, data, specs, mean }: CapabilityHistogramProps) => {
+    const sourceBarHeight = getSourceBarHeight();
+    const margin = useMemo(() => ({
+        ...BASE_MARGIN,
+        bottom: BASE_MARGIN.bottom + sourceBarHeight
+    }), [sourceBarHeight]);
+
     const width = Math.max(0, parentWidth - margin.left - margin.right);
     const height = Math.max(0, parentHeight - margin.top - margin.bottom);
 
@@ -220,6 +228,19 @@ const CapabilityHistogram = ({ parentWidth, parentHeight, data, specs, mean }: C
                         textAnchor: 'middle',
                         dy: 4,
                     })}
+                />
+
+                {/* Signature (painter-style branding) */}
+                <ChartSignature
+                    x={width - 10}
+                    y={height + BASE_MARGIN.bottom - 36}
+                />
+
+                {/* Source Bar (branding) */}
+                <ChartSourceBar
+                    width={width}
+                    top={height + BASE_MARGIN.bottom - 18}
+                    n={data.length}
                 />
             </Group>
         </svg>

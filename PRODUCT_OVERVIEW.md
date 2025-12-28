@@ -15,6 +15,7 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 - **Boxplot**: Factor comparison (e.g., Farm A vs Farm B)
 - **Pareto**: Frequency analysis for categorical data
 - **Linked Filtering**: Click any chart element to filter all others instantly
+- **Interactive Labels**: Rename axes and categories directly on the chart
 
 ### Data Input
 - **File Import**: Drag-and-drop CSV and Excel (.xlsx)
@@ -31,8 +32,9 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 - **Normal Mode**: Dense information display for analysis work
 
 ### Capability Analysis
-- **Cp/Cpk Metrics**: Configurable process capability indices (toggle in Settings → Visualization)
+- **Cp/Cpk Metrics**: Configurable process capability indices (toggle in Stats Panel)
 - **Capability Histogram**: Visual distribution analysis with spec limits overlay (tab in Stats Panel)
+- **Spec Editor**: Contextual editing of USL/LSL and Multi-Tier Grades directly in the analysis view
 
 ### Data Table
 - **View Data**: Excel-like table view of all imported data

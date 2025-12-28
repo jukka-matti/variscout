@@ -29,6 +29,7 @@ A lightweight, offline variation analysis tool for quality professionals. No AI,
 
 ### 1. Data Import
 - CSV and Excel (.xlsx)
+- **Data Mapping Stage**: Interstitial screen to confirm/select Outcome (Y) and Factors (X) before analysis
 - Auto-detect: numeric columns → outcomes, categorical → factors
 - Date/time column detection for time series
 - Manual override if needed
@@ -92,10 +93,14 @@ Legend:
 - Points colored by grade achieved
 - Enables grade summary calculations
 
-### 3. Linked Filtering
-- Click any boxplot → filters I-Chart and Pareto
-- Click Pareto bar → filters other charts
-- Brush I-Chart range → filters others
+### 3. Interactive Analysis (Multi-Vari)
+- **Outcome Selection**: Switch primary metric (Y) directly from I-Chart header
+- **Factor Selection**: Independently select factors (X) for Boxplot and Pareto
+- **Click-to-Edit Axes**: Click Y-axis to manually set Min/Max or reset to Auto
+- **Linked Filtering**:
+    - Click any boxplot → filters I-Chart and Pareto
+    - Click Pareto bar → filters other charts
+    - Brush I-Chart range → filters others
 - **"What's selected accounts for X% of total variation"**
 
 ### 4. Statistics Panel
@@ -372,10 +377,27 @@ When configured:
 - PDF (one-page summary)
 - Simple PowerPoint (3 slides: charts + stats)
 
-### 8. Branding
-- Configurable watermark (logo or text)
-- Edition name in title bar
-- "Powered by VaRiScout" footer (optional)
+### 8. Branding (Implemented)
+
+**Chart Footer Source Bar:**
+```
+┌─────────────────────────────────────┐
+│  [chart content]                    │
+├─────────────────────────────────────┤
+│ ▌VariScout Lite          n=50      │
+└─────────────────────────────────────┘
+```
+- Blue accent bar (3px) + branding text on left
+- Sample size (n=count) on right
+- Semi-transparent slate background
+- Visible in Community & ITC editions
+- Hidden when Pro edition or valid license key activated
+
+**License Key System:**
+- Format: `VSL-XXXX-XXXX-XXXX` (16 chars with checksum)
+- Offline validation (no server required)
+- Stored in localStorage
+- UI: Settings → License section
 
 ---
 
@@ -428,14 +450,23 @@ NO backend. NO API calls. Works offline after first visit.
 
 ---
 
-## Editions
+## Editions (Implemented)
 
-| Edition | Watermark | Distribution | Cost |
-|---------|-----------|--------------|------|
-| **ITC** | ITC logo | ITC distributes to SMEs | Free (ITC agreement) |
-| **Association** | Configurable | Quality associations (ASQ, etc.) | Partnership |
-| **Community** | "VaRiScout Lite" | Open download | Free |
-| **Pro** | None | variscout.com | Upgrade path to full |
+| Edition | Footer Bar | Distribution | Price |
+|---------|------------|--------------|-------|
+| **Community** | "VariScout Lite" + n= | Public web | Free |
+| **ITC** | "International Trade Centre" + n= | ITC network | Free |
+| **Pro** | None (hidden) | License key activation | €39-49 |
+
+**Build Commands:**
+```bash
+npm run build:community  # Default public release
+npm run build:itc        # ITC-branded build
+npm run build:pro        # Pre-licensed builds
+```
+
+**Runtime Upgrade:**
+Community users can upgrade to Pro by entering a valid license key in Settings.
 
 ---
 

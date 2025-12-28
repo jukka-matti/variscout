@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Key, CheckCircle, AlertCircle } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { getEdition } from '../lib/edition';
+import {
+    hasValidLicense,
+    getStoredLicenseKey,
+    storeLicenseKey,
+    removeLicenseKey,
+    isValidLicenseFormat
+} from '../lib/license';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -12,14 +20,10 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         rawData,
         outcome,
         factors,
-        specs,
-        grades,
         axisSettings,
         displayOptions,
         setOutcome,
         setFactors,
-        setSpecs,
-        setGrades,
         setAxisSettings,
         setDisplayOptions
     } = useData();
@@ -27,29 +31,53 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     // Local state for form inputs
     const [localOutcome, setLocalOutcome] = useState<string>('');
     const [localFactors, setLocalFactors] = useState<string[]>([]);
-    const [localSpecs, setLocalSpecs] = useState<{ usl?: string, lsl?: string, target?: string }>({});
-    const [localGrades, setLocalGrades] = useState<{ max: number; label: string; color: string }[]>([]);
     const [localAxis, setLocalAxis] = useState<{ min: string, max: string }>({ min: '', max: '' });
-    const [localDisplayOptions, setLocalDisplayOptions] = useState<{ showCp: boolean, showCpk: boolean }>({ showCp: false, showCpk: true });
+    const [localDisplayOptions, setLocalDisplayOptions] = useState<{ showCp: boolean, showCpk: boolean, showSpecs?: boolean }>({ showCp: false, showCpk: true, showSpecs: true });
+
+    // License state
+    const [licenseKey, setLicenseKey] = useState('');
+    const [licenseStatus, setLicenseStatus] = useState<'none' | 'valid' | 'invalid'>('none');
+    const [edition, setEdition] = useState<string>('community');
+
+    // Check license status on mount
+    useEffect(() => {
+        const currentEdition = getEdition();
+        setEdition(currentEdition);
+        const storedKey = getStoredLicenseKey();
+        if (storedKey) {
+            setLicenseKey(storedKey);
+            setLicenseStatus(hasValidLicense() ? 'valid' : 'invalid');
+        }
+    }, [isOpen]);
+
+    const handleActivateLicense = () => {
+        if (storeLicenseKey(licenseKey)) {
+            setLicenseStatus('valid');
+            setEdition('pro');
+        } else {
+            setLicenseStatus('invalid');
+        }
+    };
+
+    const handleRemoveLicense = () => {
+        removeLicenseKey();
+        setLicenseKey('');
+        setLicenseStatus('none');
+        setEdition('community');
+    };
 
     // Populate local state when modal opens
     useEffect(() => {
         if (isOpen) {
             setLocalOutcome(outcome || '');
             setLocalFactors(factors || []);
-            setLocalSpecs({
-                usl: specs.usl?.toString() || '',
-                lsl: specs.lsl?.toString() || '',
-                target: specs.target?.toString() || ''
-            });
-            setLocalGrades(grades || []);
             setLocalAxis({
                 min: axisSettings.min !== undefined ? axisSettings.min.toString() : '',
                 max: axisSettings.max !== undefined ? axisSettings.max.toString() : ''
             });
             setLocalDisplayOptions(displayOptions);
         }
-    }, [isOpen, outcome, factors, specs, grades, axisSettings, displayOptions]);
+    }, [isOpen, outcome, factors, axisSettings, displayOptions]);
 
     if (!isOpen) return null;
 
@@ -58,12 +86,6 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     const handleSave = () => {
         setOutcome(localOutcome);
         setFactors(localFactors);
-        setSpecs({
-            usl: localSpecs.usl ? parseFloat(localSpecs.usl) : undefined,
-            lsl: localSpecs.lsl ? parseFloat(localSpecs.lsl) : undefined,
-            target: localSpecs.target ? parseFloat(localSpecs.target) : undefined
-        });
-        setGrades(localGrades.sort((a, b) => a.max - b.max));
         setAxisSettings({
             min: localAxis.min ? parseFloat(localAxis.min) : undefined,
             max: localAxis.max ? parseFloat(localAxis.max) : undefined
@@ -80,20 +102,6 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                 setLocalFactors([...localFactors, col]);
             }
         }
-    };
-
-    const addGrade = () => {
-        setLocalGrades([...localGrades, { max: 0, label: 'New Grade', color: '#cccccc' }]);
-    };
-
-    const updateGrade = (index: number, field: keyof typeof localGrades[0], value: any) => {
-        const newGrades = [...localGrades];
-        newGrades[index] = { ...newGrades[index], [field]: value };
-        setLocalGrades(newGrades);
-    };
-
-    const removeGrade = (index: number) => {
-        setLocalGrades(localGrades.filter((_, i) => i !== index));
     };
 
     return (
@@ -149,158 +157,164 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                         </div>
                     </div>
 
-                    {/* Section 2: Specifications */}
-                    <div className="space-y-6">
-                        <div>
-                            <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4">2. Specifications</h3>
+                    {/* Section 2: Visualization Settings */}
+                    <div>
+                        <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-6">2. Visualization</h3>
 
-                            {/* Standard Limits */}
-                            <div className="mb-6">
-                                <h4 className="text-xs font-semibold text-slate-300 mb-2">Standard Limits (for Cp/Cpk)</h4>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-xs text-slate-400 mb-1">LSL</label>
-                                        <input
-                                            type="number" step="any"
-                                            value={localSpecs.lsl} onChange={(e) => setLocalSpecs({ ...localSpecs, lsl: e.target.value })}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
-                                            placeholder="Min"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-slate-400 mb-1">Target</label>
-                                        <input
-                                            type="number" step="any"
-                                            value={localSpecs.target} onChange={(e) => setLocalSpecs({ ...localSpecs, target: e.target.value })}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
-                                            placeholder="Goal"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-slate-400 mb-1">USL</label>
-                                        <input
-                                            type="number" step="any"
-                                            value={localSpecs.usl} onChange={(e) => setLocalSpecs({ ...localSpecs, usl: e.target.value })}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
-                                            placeholder="Max"
-                                        />
-                                    </div>
+                        {/* Display Options */}
+                        <div className="mb-6">
+                            <h4 className="text-xs font-semibold text-slate-300 mb-2">Capability Metrics Display</h4>
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        checked={localDisplayOptions.showCp}
+                                        onChange={(e) => setLocalDisplayOptions({ ...localDisplayOptions, showCp: e.target.checked })}
+                                        className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
+                                    />
+                                    <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+                                        Show Cp <span className="text-slate-500 text-xs">(requires both USL and LSL)</span>
+                                    </span>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        checked={localDisplayOptions.showCpk}
+                                        onChange={(e) => setLocalDisplayOptions({ ...localDisplayOptions, showCpk: e.target.checked })}
+                                        className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
+                                    />
+                                    <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+                                        Show Cpk
+                                    </span>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        checked={localDisplayOptions.showSpecs !== false}
+                                        onChange={(e) => setLocalDisplayOptions({ ...localDisplayOptions, showSpecs: e.target.checked })}
+                                        className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
+                                    />
+                                    <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+                                        Show Spec Limits (USL/LSL/Target)
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="mb-2">
+                            <h4 className="text-xs font-semibold text-slate-300 mb-2">Y-Axis Scaling (Manual Override)</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs text-slate-400 mb-1">Min Y</label>
+                                    <input
+                                        type="number" step="any"
+                                        value={localAxis.min}
+                                        onChange={(e) => setLocalAxis({ ...localAxis, min: e.target.value })}
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
+                                        placeholder="Auto"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-slate-400 mb-1">Max Y</label>
+                                    <input
+                                        type="number" step="any"
+                                        value={localAxis.max}
+                                        onChange={(e) => setLocalAxis({ ...localAxis, max: e.target.value })}
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
+                                        placeholder="Auto"
+                                    />
                                 </div>
                             </div>
-
-                            {/* Multi-Tier Grading */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <h4 className="text-xs font-semibold text-slate-300">Multi-Tier Grading (e.g., Coffee/Textiles)</h4>
-                                    <button onClick={addGrade} className="text-xs text-blue-400 hover:text-blue-300 font-medium">+ Add Tier</button>
-                                </div>
-                                <p className="text-[10px] text-slate-500 mb-3">Define upper limits for each grade (lower is better). Example: Specialty &lt; 5.</p>
-
-                                <div className="space-y-2">
-                                    {localGrades.map((grade, idx) => (
-                                        <div key={idx} className="flex gap-2 items-center">
-                                            <input
-                                                type="text"
-                                                value={grade.label}
-                                                onChange={(e) => updateGrade(idx, 'label', e.target.value)}
-                                                className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"
-                                                placeholder="Grade Name"
-                                            />
-                                            <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded px-2 py-1">
-                                                <span className="text-xs text-slate-500">≤</span>
-                                                <input
-                                                    type="number"
-                                                    value={grade.max}
-                                                    onChange={(e) => updateGrade(idx, 'max', parseFloat(e.target.value))}
-                                                    className="w-16 bg-transparent border-none text-xs text-white outline-none text-right"
-                                                    placeholder="Max"
-                                                />
-                                            </div>
-                                            <input
-                                                type="color"
-                                                value={grade.color}
-                                                onChange={(e) => updateGrade(idx, 'color', e.target.value)}
-                                                className="w-6 h-6 rounded cursor-pointer border-none bg-transparent"
-                                            />
-                                            <button onClick={() => removeGrade(idx)} className="text-slate-600 hover:text-red-400">
-                                                <X size={14} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {localGrades.length === 0 && (
-                                        <div className="text-center p-3 border border-dashed border-slate-700 rounded-lg text-slate-600 text-xs italic">
-                                            No grades defined. Use USL/LSL for standard pass/fail.
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Section 3: Visualization Settings */}
-                            <div>
-                                <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-6">3. Visualization</h3>
-
-                                {/* Display Options */}
-                                <div className="mb-6">
-                                    <h4 className="text-xs font-semibold text-slate-300 mb-2">Capability Metrics Display</h4>
-                                    <div className="space-y-2">
-                                        <label className="flex items-center gap-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={localDisplayOptions.showCp}
-                                                onChange={(e) => setLocalDisplayOptions({ ...localDisplayOptions, showCp: e.target.checked })}
-                                                className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
-                                            />
-                                            <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
-                                                Show Cp <span className="text-slate-500 text-xs">(requires both USL and LSL)</span>
-                                            </span>
-                                        </label>
-                                        <label className="flex items-center gap-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={localDisplayOptions.showCpk}
-                                                onChange={(e) => setLocalDisplayOptions({ ...localDisplayOptions, showCpk: e.target.checked })}
-                                                className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
-                                            />
-                                            <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
-                                                Show Cpk
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div className="mb-2">
-                                    <h4 className="text-xs font-semibold text-slate-300 mb-2">Y-Axis Scaling (Manual Override)</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs text-slate-400 mb-1">Min Y</label>
-                                            <input
-                                                type="number" step="any"
-                                                value={localAxis.min}
-                                                onChange={(e) => setLocalAxis({ ...localAxis, min: e.target.value })}
-                                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
-                                                placeholder="Auto"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs text-slate-400 mb-1">Max Y</label>
-                                            <input
-                                                type="number" step="any"
-                                                value={localAxis.max}
-                                                onChange={(e) => setLocalAxis({ ...localAxis, max: e.target.value })}
-                                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
-                                                placeholder="Auto"
-                                            />
-                                        </div>
-                                    </div>
-                                    <p className="text-[10px] text-slate-500 mt-2">Leave blank for automatic scaling. Both charts will use these limits.</p>
-                                </div>
-                            </div>
+                            <p className="text-[10px] text-slate-500 mt-2">Leave blank for automatic scaling. Both charts will use these limits.</p>
                         </div>
                     </div>
                 </div>
 
+                {/* Section 4: License */}
+                <div className="border-t border-slate-700 pt-6 px-6 pb-6">
+                    <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4">3. License</h3>
+
+                    <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                        {/* Current Status */}
+                        <div className="flex items-center gap-3 mb-4">
+                            {edition === 'pro' ? (
+                                <>
+                                    <CheckCircle size={20} className="text-green-500" />
+                                    <div>
+                                        <div className="text-white font-medium">VariScout Lite Pro</div>
+                                        <div className="text-xs text-slate-500">Branding removed</div>
+                                    </div>
+                                </>
+                            ) : edition === 'itc' ? (
+                                <>
+                                    <CheckCircle size={20} className="text-blue-500" />
+                                    <div>
+                                        <div className="text-white font-medium">ITC Edition</div>
+                                        <div className="text-xs text-slate-500">International Trade Centre</div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Key size={20} className="text-slate-500" />
+                                    <div>
+                                        <div className="text-white font-medium">Community Edition</div>
+                                        <div className="text-xs text-slate-500">Free with VariScout Lite branding</div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* License Key Input (only for community edition) */}
+                        {edition === 'community' && (
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-xs text-slate-400 mb-1">License Key</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={licenseKey}
+                                            onChange={(e) => {
+                                                setLicenseKey(e.target.value.toUpperCase());
+                                                setLicenseStatus('none');
+                                            }}
+                                            placeholder="VSL-XXXX-XXXX-XXXX"
+                                            className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono outline-none focus:border-blue-500"
+                                        />
+                                        <button
+                                            onClick={handleActivateLicense}
+                                            disabled={!licenseKey || licenseKey.length < 19}
+                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-medium transition-colors"
+                                        >
+                                            Activate
+                                        </button>
+                                    </div>
+                                    {licenseStatus === 'invalid' && (
+                                        <div className="flex items-center gap-1 mt-2 text-red-400 text-xs">
+                                            <AlertCircle size={12} />
+                                            Invalid license key format
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-slate-500">
+                                    Purchase a license to remove chart branding. <a href="#" className="text-blue-400 hover:underline">Get Pro →</a>
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Remove License (only for pro with license) */}
+                        {edition === 'pro' && licenseStatus === 'valid' && (
+                            <button
+                                onClick={handleRemoveLicense}
+                                className="text-xs text-slate-500 hover:text-red-400 transition-colors"
+                            >
+                                Remove license key
+                            </button>
+                        )}
+                    </div>
+                </div>
+
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-700 flex justify-end gap-3">
+                <div className="p-6 border-t border-slate-700 flex justify-end gap-3 rounded-b-2xl bg-slate-800">
                     <button
                         onClick={onClose}
                         className="px-4 py-2 text-slate-400 hover:text-white dark:hover:bg-slate-700 rounded-lg transition-colors font-medium"

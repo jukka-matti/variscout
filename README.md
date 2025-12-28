@@ -28,6 +28,7 @@ A lightweight, offline-first variation analysis tool for quality professionals. 
 - **Boxplot**: Factor comparison (e.g., Shift A vs Shift B)
 - **Pareto**: Defect categorization and frequency analysis
 - **Linked Filtering**: Click any chart element to filter all others instantly
+- **Interactive Labels**: Click axis titles or categories to rename them (Aliasing)
 
 ### Data Input
 - **File Import**: Drag-and-drop CSV and Excel (.xlsx) support
@@ -50,6 +51,16 @@ A lightweight, offline-first variation analysis tool for quality professionals. 
 - **Large Mode**: 30% larger fonts for presentations and training
 - **Mobile Friendly**: Responsive design for factory floor tablets
 - **Offline First**: Works without internet after first visit
+
+### Editions
+
+| Edition | Price | Features |
+|---------|-------|----------|
+| **Community** | Free | Full features, "VariScout Lite" branding on charts |
+| **ITC** | Free | Full features, ITC branding (for ITC network) |
+| **Pro** | €39-49 | Full features, no branding |
+
+Activate Pro by entering a license key in Settings → License.
 
 ## Getting Started
 
@@ -93,7 +104,7 @@ npm test
 ### Quick Start
 1. **Upload data**: Drag a CSV or Excel file onto the upload area
 2. **Select outcome**: Choose the numeric column to analyze (e.g., "Weight")
-3. **Set specs**: Enter USL/LSL in Settings if you have specification limits
+3. **Set specs**: Click "Add Specs" in the Stats Panel to define limits
 4. **Explore**: Click chart elements to filter and investigate
 
 ### Example Workflow: Root Cause Analysis
@@ -152,7 +163,7 @@ After visiting the deployed URL:
 - [x] Cp/Cpk capability analysis
 - [x] Editable data table
 - [x] Capability histogram
-- [ ] Multi-tier grade specifications
+- [x] Multi-tier grade specifications
 - [ ] Custom branding/watermarks
 - [ ] PDF report generation
 - [ ] Batch file processing

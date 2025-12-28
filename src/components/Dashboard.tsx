@@ -7,30 +7,52 @@ import { useData } from '../context/DataContext';
 import { Activity } from 'lucide-react';
 
 const Dashboard = () => {
-    const { outcome, factors, stats, specs, filteredData } = useData();
+    const { outcome, factors, setOutcome, rawData, stats, specs, filteredData } = useData();
+
+    // Local state for chart configuration
+    // Default to first factor for Boxplot, second (or first) for Pareto
+    const [boxplotFactor, setBoxplotFactor] = React.useState<string>('');
+    const [paretoFactor, setParetoFactor] = React.useState<string>('');
+
+    // Derive available numeric outcomes
+    const availableOutcomes = React.useMemo(() => {
+        if (rawData.length === 0) return [];
+        const row = rawData[0];
+        return Object.keys(row).filter(key => typeof row[key] === 'number');
+    }, [rawData]);
+
+    // Initialize/Update defaults when factors change
+    React.useEffect(() => {
+        if (factors.length > 0) {
+            if (!boxplotFactor || !factors.includes(boxplotFactor)) {
+                setBoxplotFactor(factors[0]);
+            }
+            if (!paretoFactor || !factors.includes(paretoFactor)) {
+                setParetoFactor(factors[1] || factors[0]);
+            }
+        }
+    }, [factors, boxplotFactor, paretoFactor]);
 
     if (!outcome) return null;
 
     return (
         <div id="dashboard-export-container" className="flex flex-col h-full overflow-y-auto bg-slate-900 relative">
-            {/* Watermark - Visible but subtle, effectively serves as brand marking */}
-            <div className="absolute top-2 right-4 opacity-50 pointer-events-none z-0 flex items-center gap-2">
-                <div className="text-[10px] text-slate-500 font-semibold tracking-widest uppercase">
-                    International Trade Centre
-                </div>
-                {/* Simple ITC-style geometric logo using SVG */}
-                <svg width="20" height="20" viewBox="0 0 100 100">
-                    <path d="M50 0 L100 25 L100 75 L50 100 L0 75 L0 25 Z" fill="#007FBD" />
-                    <path d="M50 20 L80 35 L80 65 L50 80 L20 65 L20 35 Z" fill="#FF8213" />
-                </svg>
-            </div>
             {/* Top Section: I-Chart */}
             <div className="flex-none lg:flex-1 min-h-[400px] bg-slate-800/50 rounded-xl border border-slate-700 m-4 p-4">
                 <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
-                    <h2 className="text-xl font-bold flex items-center gap-2 text-white">
-                        <Activity className="text-blue-400" />
-                        I-Chart: {outcome}
-                    </h2>
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                            <Activity className="text-blue-400" />
+                            I-Chart:
+                        </h2>
+                        <select
+                            value={outcome}
+                            onChange={(e) => setOutcome(e.target.value)}
+                            className="bg-slate-900 border border-slate-700 text-lg font-bold text-white rounded px-3 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                        >
+                            {availableOutcomes.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                    </div>
                     {stats && (
                         <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
                             <span className="text-slate-400">UCL: <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span></span>
@@ -49,17 +71,35 @@ const Dashboard = () => {
 
                 {/* Secondary Charts Container */}
                 <div className="flex flex-1 flex-col md:flex-row gap-4">
-                    <div className="flex-1 bg-slate-800/50 rounded-xl border border-slate-700 p-4 min-w-[300px]">
-                        <h3 className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">Distribution: {factors[0]}</h3>
-                        <div className="h-48 lg:h-[calc(100%-1.5rem)]">
-                            {factors[0] && <Boxplot factor={factors[0]} />}
+                    <div className="flex-1 bg-slate-800/50 rounded-xl border border-slate-700 p-4 min-w-[300px] flex flex-col">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Distribution</h3>
+                            <select
+                                value={boxplotFactor}
+                                onChange={(e) => setBoxplotFactor(e.target.value)}
+                                className="bg-slate-900 border border-slate-700 text-xs text-white rounded px-2 py-1 outline-none focus:border-blue-500"
+                            >
+                                {factors.map(f => <option key={f} value={f}>{f}</option>)}
+                            </select>
+                        </div>
+                        <div className="flex-1 min-h-0">
+                            {boxplotFactor && <Boxplot factor={boxplotFactor} />}
                         </div>
                     </div>
 
-                    <div className="flex-1 bg-slate-800/50 rounded-xl border border-slate-700 p-4 min-w-[300px]">
-                        <h3 className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">Pareto: {factors[1] || factors[0]}</h3>
-                        <div className="h-48 lg:h-[calc(100%-1.5rem)]">
-                            {(factors[1] || factors[0]) && <ParetoChart factor={factors[1] || factors[0]} />}
+                    <div className="flex-1 bg-slate-800/50 rounded-xl border border-slate-700 p-4 min-w-[300px] flex flex-col">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Pareto</h3>
+                            <select
+                                value={paretoFactor}
+                                onChange={(e) => setParetoFactor(e.target.value)}
+                                className="bg-slate-900 border border-slate-700 text-xs text-white rounded px-2 py-1 outline-none focus:border-blue-500"
+                            >
+                                {factors.map(f => <option key={f} value={f}>{f}</option>)}
+                            </select>
+                        </div>
+                        <div className="flex-1 min-h-0">
+                            {paretoFactor && <ParetoChart factor={paretoFactor} />}
                         </div>
                     </div>
                 </div>

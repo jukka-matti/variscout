@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:community": "VITE_EDITION=community tsc && vite build",
+    "build:itc": "VITE_EDITION=itc tsc && vite build",
+    "build:pro": "VITE_EDITION=pro tsc && vite build",
     "preview": "vite preview",
     "test": "vitest"
   },

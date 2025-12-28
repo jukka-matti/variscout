@@ -6,6 +6,7 @@ import { downloadCSV } from './lib/export';
 import SettingsModal from './components/SettingsModal';
 import SavedProjectsModal from './components/SavedProjectsModal';
 import DataTableModal from './components/DataTableModal';
+import ColumnMapping from './components/ColumnMapping';
 import Dashboard from './components/Dashboard';
 import { SAMPLES } from './data/sampleData';
 import { useDataIngestion } from './hooks/useDataIngestion';
@@ -21,8 +22,12 @@ function App() {
         saveProject,
         exportProject,
         importProject,
+        setOutcome,
+        setFactors,
+        factors,
     } = useData();
-    const { handleFileUpload, loadSample, clearData } = useDataIngestion();
+    const { handleFileUpload: ingestFile, loadSample, clearData } = useDataIngestion();
+    const [isMapping, setIsMapping] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isProjectsOpen, setIsProjectsOpen] = useState(false);
     const [isDataTableOpen, setIsDataTableOpen] = useState(false);
@@ -118,6 +123,27 @@ function App() {
         e.target.value = '';
     }, [importProject]);
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const success = await ingestFile(e);
+        if (success) {
+            setIsMapping(true);
+        }
+        // Input reset is handled in the UI element by clearing ref or value if needed, 
+        // but here we just need to ensuring mapping state
+        e.target.value = '';
+    };
+
+    const handleMappingConfirm = (newOutcome: string, newFactors: string[]) => {
+        setOutcome(newOutcome);
+        setFactors(newFactors);
+        setIsMapping(false);
+    };
+
+    const handleMappingCancel = () => {
+        clearData();
+        setIsMapping(false);
+    };
+
     return (
         <div className="flex flex-col h-screen bg-slate-900 text-slate-200 font-sans selection:bg-blue-500/30">
             {/* Header */}
@@ -195,11 +221,10 @@ function App() {
                             {/* Large Mode toggle */}
                             <button
                                 onClick={() => setIsLargeMode(!isLargeMode)}
-                                className={`p-2 rounded-lg transition-colors ${
-                                    isLargeMode
-                                        ? 'text-blue-400 bg-blue-400/10 hover:bg-blue-400/20'
-                                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                                }`}
+                                className={`p-2 rounded-lg transition-colors ${isLargeMode
+                                    ? 'text-blue-400 bg-blue-400/10 hover:bg-blue-400/20'
+                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                    }`}
                                 title={isLargeMode ? "Exit Large Mode" : "Large Mode (for presentations)"}
                             >
                                 {isLargeMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
@@ -265,8 +290,8 @@ function App() {
             <main className="flex-1 overflow-hidden relative">
                 {rawData.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-500">
+                        {/* ... Upload Content ... */}
                         <div className="max-w-2xl w-full text-center space-y-6 sm:space-y-8">
-
                             <div className="space-y-4">
                                 <div className="inline-flex p-4 bg-slate-800/50 rounded-full border border-slate-700 mb-4">
                                     <BarChart2 size={48} className="text-blue-500" />
@@ -323,6 +348,14 @@ function App() {
                             </div>
                         </div>
                     </div>
+                ) : isMapping ? (
+                    <ColumnMapping
+                        availableColumns={Object.keys(rawData[0])}
+                        initialOutcome={outcome}
+                        initialFactors={factors}
+                        onConfirm={handleMappingConfirm}
+                        onCancel={handleMappingCancel}
+                    />
                 ) : (
                     <Dashboard />
                 )}

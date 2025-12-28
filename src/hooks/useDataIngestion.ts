@@ -10,9 +10,9 @@ const ROW_HARD_LIMIT = 50000;
 export const useDataIngestion = () => {
     const { setRawData, setOutcome, setFactors, setSpecs, setGrades, setFilters } = useData();
 
-    const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>): Promise<boolean> => {
         const file = e.target.files?.[0];
-        if (!file) return;
+        if (!file) return false;
 
         let data: any[] = [];
         try {
@@ -26,23 +26,26 @@ export const useDataIngestion = () => {
                 // Check row limits for performance
                 if (data.length > ROW_HARD_LIMIT) {
                     alert(`File too large (${data.length.toLocaleString()} rows). Maximum is ${ROW_HARD_LIMIT.toLocaleString()} rows.`);
-                    return;
+                    return false;
                 }
                 if (data.length > ROW_WARNING_THRESHOLD) {
                     const proceed = window.confirm(
                         `Large dataset (${data.length.toLocaleString()} rows) may slow performance. Continue?`
                     );
-                    if (!proceed) return;
+                    if (!proceed) return false;
                 }
 
                 setRawData(data);
                 const detected = detectColumns(data);
                 if (detected.outcome) setOutcome(detected.outcome);
                 if (detected.factors.length > 0) setFactors(detected.factors);
+                return true;
             }
+            return false;
         } catch (error) {
             console.error("Error parsing file:", error);
             alert("Error parsing file. Please check format.");
+            return false;
         }
     }, [setRawData, setOutcome, setFactors]);
 

@@ -4,6 +4,7 @@ import { openDB, DBSchema, IDBPDatabase } from 'idb';
 export interface DisplayOptions {
   showCp: boolean;
   showCpk: boolean;
+  showSpecs?: boolean;
 }
 
 // Types for saved analysis state
@@ -16,6 +17,8 @@ export interface AnalysisState {
   grades: { max: number; label: string; color: string }[];
   filters: Record<string, any[]>;
   axisSettings: { min?: number; max?: number };
+  columnAliases?: Record<string, string>;
+  valueLabels?: Record<string, Record<string, string>>;
   displayOptions?: DisplayOptions;
 }
 

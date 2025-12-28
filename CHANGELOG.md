@@ -5,6 +5,15 @@ All notable changes to VariScout Lite will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2024-12-29
+
+### Added
+- **Interactive Axis Editing**: Click any chart axis label to rename it (create alias).
+- **Category Renaming**: Rename boxplot categories (e.g., "M1" -> "Machine 1") directly on the chart.
+- **Contextual Spec Editor**: Moved spec editing to the Stats Panel for faster access.
+- **Spec Visibility Toggle**: Option to hide/show USL/LSL lines in Settings.
+- **Multi-Tier Grading Editor**: define complex grading rules (e.g. for Coffee) directly in the UI.
+
 ## [1.0.0] - 2024-12-28
 
 ### Added

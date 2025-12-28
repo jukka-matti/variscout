@@ -48,6 +48,10 @@ describe('Dashboard Component - With Data', () => {
             axisSettings: {},
             setAxisSettings: vi.fn(),
             setFilters: vi.fn(),
+            columnAliases: {},
+            setColumnAliases: vi.fn(),
+            valueLabels: {},
+            setValueLabels: vi.fn(),
             displayOptions: { showCp: false, showCpk: true },
             setDisplayOptions: vi.fn(),
             // Persistence properties
@@ -66,7 +70,8 @@ describe('Dashboard Component - With Data', () => {
 
         render(<Dashboard />);
 
-        expect(screen.getByText('I-Chart: Diameter')).toBeInTheDocument();
+        // I-Chart label and outcome selector are separate elements now
+        expect(screen.getByText('I-Chart:')).toBeInTheDocument();
         expect(screen.getByText('Summary')).toBeInTheDocument(); // Tab button
         expect(screen.getByText('Histogram')).toBeInTheDocument(); // Tab button
         expect(screen.getByText('5.5%')).toBeInTheDocument();

@@ -9,6 +9,11 @@ npm run dev      # Start development server (http://localhost:5173)
 npm run build    # Production build to dist/
 npm run preview  # Preview production build
 npm test         # Run Vitest tests
+
+# Edition-specific builds
+npm run build:community  # Free with "VariScout Lite" branding
+npm run build:itc        # ITC branding (separate distribution)
+npm run build:pro        # No branding (for pre-licensed builds)
 ```
 
 ## Key Files
@@ -21,6 +26,9 @@ npm test         # Run Vitest tests
 | @src/logic/stats.ts | Statistics calculations (mean, std, Cp, Cpk) |
 | @src/lib/persistence.ts | IndexedDB + localStorage operations |
 | @src/lib/export.ts | CSV generation and spec status |
+| @src/lib/edition.ts | Edition detection (community/itc/pro) |
+| @src/lib/license.ts | License key validation and storage |
+| @src/components/charts/ChartSourceBar.tsx | Chart footer branding component |
 
 ## Architecture
 
@@ -71,6 +79,46 @@ All charts react to all filters:
 ### Statistics
 - **Conformance**: Pass/Fail counts against USL/LSL specs
 - **Capability**: Cp (potential), Cpk (actual) - requires both USL and LSL
+
+## Editions & Licensing
+
+### Three Editions
+
+| Edition | Price | Branding | Distribution |
+|---------|-------|----------|--------------|
+| **Community** | Free | Footer bar: "VariScout Lite" + n= | Public web |
+| **ITC** | Free | Footer bar: "International Trade Centre" | ITC network |
+| **Pro** | €39-49 | No branding | License key activation |
+
+### Chart Footer Source Bar
+All charts display a footer bar (in Community/ITC editions):
+```
+┌─────────────────────────────────────┐
+│  [chart content]                    │
+├─────────────────────────────────────┤
+│ ▌VariScout Lite          n=50      │
+└─────────────────────────────────────┘
+```
+- Blue accent bar + branding text on left
+- Sample size (n=) on right
+- Hidden when Pro edition or valid license key
+
+### License Key System
+- **Format**: `VSL-XXXX-XXXX-XXXX` (alphanumeric with checksum)
+- **Storage**: localStorage (`variscout_license`)
+- **Validation**: Offline checksum verification (no server needed)
+- **UI**: Settings modal → Section 4: License
+
+### Build-time vs Runtime
+- **Build-time**: `VITE_EDITION` env var sets default edition
+- **Runtime**: License key can upgrade Community → Pro
+- Community users can activate Pro by entering valid license key
+
+### Generate Test License Key
+```javascript
+// In browser console:
+import('./lib/license.js').then(m => console.log(m.generateLicenseKey()))
+```
 
 ## Testing
 
