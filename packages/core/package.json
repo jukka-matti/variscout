@@ -1,0 +1,24 @@
+{
+  "name": "@variscout/core",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./stats": "./src/stats.ts",
+    "./parser": "./src/parser.ts",
+    "./license": "./src/license.ts",
+    "./export": "./src/export.ts",
+    "./edition": "./src/edition.ts"
+  },
+  "dependencies": {
+    "d3": "^7.9.0",
+    "papaparse": "^5.4.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/papaparse": "^5.5.2",
+    "typescript": "^5.5.2"
+  }
+}

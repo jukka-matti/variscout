@@ -1,0 +1,32 @@
+{
+  "name": "@variscout/excel-addin",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 3000 --https",
+    "build": "tsc && vite build",
+    "preview": "vite preview --port 3000 --https",
+    "start": "office-addin-debugging start manifest.xml",
+    "stop": "office-addin-debugging stop manifest.xml",
+    "validate": "office-addin-manifest validate manifest.xml"
+  },
+  "dependencies": {
+    "@variscout/core": "workspace:*",
+    "@variscout/charts": "workspace:*",
+    "@fluentui/react-components": "^9.46.0",
+    "@fluentui/react-icons": "^2.0.230",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/office-js": "^1.0.377",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "office-addin-debugging": "^5.0.0",
+    "office-addin-dev-certs": "^1.11.0",
+    "typescript": "^5.5.2",
+    "vite": "^5.4.0"
+  }
+}

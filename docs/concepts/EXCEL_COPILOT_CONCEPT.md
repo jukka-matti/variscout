@@ -218,15 +218,13 @@ I've highlighted these cells in red. Would you like to:
 
 ```typescript
 // Register actions with Copilot
-Office.actions.associate("analyzeControlChart", async (args) => {
+Office.actions.associate('analyzeControlChart', async args => {
   const { dataRange, usl, lsl } = args;
 
-  await Excel.run(async (context) => {
+  await Excel.run(async context => {
     // Get data from specified range
-    const range = context.workbook.worksheets
-      .getActiveWorksheet()
-      .getRange(dataRange);
-    range.load("values");
+    const range = context.workbook.worksheets.getActiveWorksheet().getRange(dataRange);
+    range.load('values');
     await context.sync();
 
     // Use existing VariScout stats engine
@@ -241,7 +239,7 @@ Office.actions.associate("analyzeControlChart", async (args) => {
       lcl: stats.lcl,
       cpk: stats.cpk,
       outOfSpec: stats.outOfSpecPercentage,
-      inControl: detectSpecialCauses(values, stats).length === 0
+      inControl: detectSpecialCauses(values, stats).length === 0,
     };
   });
 });
@@ -263,23 +261,41 @@ Office.actions.associate("analyzeControlChart", async (args) => {
   "developer": { "name": "VariScout" },
   "extensions": {
     "excel": {
-      "runtimes": [{ "id": "runtime", "type": "general", "code": { "page": "taskpane.html" }}],
+      "runtimes": [{ "id": "runtime", "type": "general", "code": { "page": "taskpane.html" } }],
       "actions": [
-        { "id": "analyzeControlChart", "displayName": "Analyze Control Chart", "type": "executeDataFunction" },
-        { "id": "calculateCapability", "displayName": "Calculate Capability", "type": "executeDataFunction" },
-        { "id": "compareByFactor", "displayName": "Compare by Factor", "type": "executeDataFunction" },
+        {
+          "id": "analyzeControlChart",
+          "displayName": "Analyze Control Chart",
+          "type": "executeDataFunction"
+        },
+        {
+          "id": "calculateCapability",
+          "displayName": "Calculate Capability",
+          "type": "executeDataFunction"
+        },
+        {
+          "id": "compareByFactor",
+          "displayName": "Compare by Factor",
+          "type": "executeDataFunction"
+        },
         { "id": "paretoAnalysis", "displayName": "Pareto Analysis", "type": "executeDataFunction" },
-        { "id": "highlightOutOfSpec", "displayName": "Highlight Out of Spec", "type": "executeDataFunction" }
+        {
+          "id": "highlightOutOfSpec",
+          "displayName": "Highlight Out of Spec",
+          "type": "executeDataFunction"
+        }
       ]
     }
   },
   "copilotAgents": {
-    "declarativeAgents": [{
-      "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.0/schema.json",
-      "name": "VariScout",
-      "description": "Quality and variation analysis assistant",
-      "instructions": "You help users analyze data quality. When users ask about variation, control charts, capability (Cp/Cpk), or comparing groups, use the VariScout actions to analyze their Excel data and explain results clearly."
-    }]
+    "declarativeAgents": [
+      {
+        "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.0/schema.json",
+        "name": "VariScout",
+        "description": "Quality and variation analysis assistant",
+        "instructions": "You help users analyze data quality. When users ask about variation, control charts, capability (Cp/Cpk), or comparing groups, use the VariScout actions to analyze their Excel data and explain results clearly."
+      }
+    ]
   }
 }
 ```
@@ -290,13 +306,13 @@ Office.actions.associate("analyzeControlChart", async (args) => {
 
 The Excel add-in can reuse most of the existing VariScout codebase:
 
-| Component | Reuse | Notes |
-|-----------|-------|-------|
-| `src/logic/stats.ts` | ✅ 100% | Core statistics engine |
-| `src/components/charts/*` | ✅ 90% | Visx charts work in task pane |
-| `src/context/DataContext.tsx` | ⚠️ Adapt | Replace with Excel range binding |
-| `src/lib/persistence.ts` | ❌ Replace | Use Excel workbook storage |
-| `src/lib/export.ts` | ⚠️ Adapt | Export to Excel cells instead of files |
+| Component                     | Reuse      | Notes                                  |
+| ----------------------------- | ---------- | -------------------------------------- |
+| `src/logic/stats.ts`          | ✅ 100%    | Core statistics engine                 |
+| `src/components/charts/*`     | ✅ 90%     | Visx charts work in task pane          |
+| `src/context/DataContext.tsx` | ⚠️ Adapt   | Replace with Excel range binding       |
+| `src/lib/persistence.ts`      | ❌ Replace | Use Excel workbook storage             |
+| `src/lib/export.ts`           | ⚠️ Adapt   | Export to Excel cells instead of files |
 
 **Estimated new code:** ~30% (Excel bindings, Copilot actions, manifest)
 
@@ -304,14 +320,14 @@ The Excel add-in can reuse most of the existing VariScout codebase:
 
 ## User Experience Comparison
 
-| Scenario | Traditional Add-in | Copilot-Enabled |
-|----------|-------------------|-----------------|
-| Learn the tool | Open task pane, learn UI | Just ask questions |
-| Select data | Click buttons, configure | "Analyze column B" |
-| Set specs | Find settings, enter values | "My spec is 10-15" |
+| Scenario       | Traditional Add-in          | Copilot-Enabled       |
+| -------------- | --------------------------- | --------------------- |
+| Learn the tool | Open task pane, learn UI    | Just ask questions    |
+| Select data    | Click buttons, configure    | "Analyze column B"    |
+| Set specs      | Find settings, enter values | "My spec is 10-15"    |
 | Compare groups | Find boxplot, select factor | "Compare by supplier" |
-| Get insight | Interpret charts yourself | Copilot explains |
-| Take action | Manual highlighting | "Highlight problems" |
+| Get insight    | Interpret charts yourself   | Copilot explains      |
+| Take action    | Manual highlighting         | "Highlight problems"  |
 
 **Key insight:** Copilot removes the learning curve entirely.
 
@@ -328,12 +344,12 @@ The Excel add-in can reuse most of the existing VariScout codebase:
 
 ### Competitive Advantage
 
-| Competitor | Copilot Integration |
-|------------|---------------------|
-| Minitab | ❌ Standalone desktop app |
-| JMP | ❌ Standalone desktop app |
+| Competitor     | Copilot Integration         |
+| -------------- | --------------------------- |
+| Minitab        | ❌ Standalone desktop app   |
+| JMP            | ❌ Standalone desktop app   |
 | Excel built-in | ⚠️ Basic (no SPC expertise) |
-| **VariScout** | ✅ Native Copilot skill |
+| **VariScout**  | ✅ Native Copilot skill     |
 
 ### Messaging
 
@@ -346,25 +362,25 @@ The Excel add-in can reuse most of the existing VariScout codebase:
 
 ## Technical Requirements
 
-| Requirement | Status | Notes |
-|-------------|--------|-------|
-| Unified Manifest | Required | New manifest format |
-| Office.js | Required | Excel APIs |
-| Copilot license | User needs | M365 Copilot subscription |
-| Mac support | ❌ Not yet | Windows/Web only |
-| Mobile support | ❌ Not yet | Desktop Excel only |
+| Requirement      | Status     | Notes                     |
+| ---------------- | ---------- | ------------------------- |
+| Unified Manifest | Required   | New manifest format       |
+| Office.js        | Required   | Excel APIs                |
+| Copilot license  | User needs | M365 Copilot subscription |
+| Mac support      | ❌ Not yet | Windows/Web only          |
+| Mobile support   | ❌ Not yet | Desktop Excel only        |
 
 ---
 
 ## Effort Estimate
 
-| Phase | Work | Duration |
-|-------|------|----------|
-| 1. Basic Excel add-in | Task pane with charts | 2 weeks |
-| 2. Copilot actions | Register 5 core actions | 1 week |
-| 3. Agent configuration | Instructions, prompts | 1 week |
-| 4. Polish & testing | Edge cases, UX | 1 week |
-| **Total** | | **5 weeks** |
+| Phase                  | Work                    | Duration    |
+| ---------------------- | ----------------------- | ----------- |
+| 1. Basic Excel add-in  | Task pane with charts   | 2 weeks     |
+| 2. Copilot actions     | Register 5 core actions | 1 week      |
+| 3. Agent configuration | Instructions, prompts   | 1 week      |
+| 4. Polish & testing    | Edge cases, UX          | 1 week      |
+| **Total**              |                         | **5 weeks** |
 
 Assumes significant code reuse from existing PWA.
 
@@ -372,12 +388,12 @@ Assumes significant code reuse from existing PWA.
 
 ## Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Copilot adoption still growing | Limited market | Also offer as standalone add-in |
-| Mac not supported | Lost users | PWA continues to work everywhere |
-| Microsoft changes APIs | Rework | Stay close to official samples |
-| Complex queries fail | User frustration | Good fallback to task pane UI |
+| Risk                           | Impact           | Mitigation                       |
+| ------------------------------ | ---------------- | -------------------------------- |
+| Copilot adoption still growing | Limited market   | Also offer as standalone add-in  |
+| Mac not supported              | Lost users       | PWA continues to work everywhere |
+| Microsoft changes APIs         | Rework           | Stay close to official samples   |
+| Complex queries fail           | User frustration | Good fallback to task pane UI    |
 
 ---
 
@@ -393,7 +409,7 @@ Assumes significant code reuse from existing PWA.
 
 3. **Pricing model?**
    - Free with branding (like PWA Community)?
-   - Pro license removes branding?
+   - Licensed removes branding?
    - Enterprise self-hosted option?
 
 ---

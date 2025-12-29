@@ -6,7 +6,7 @@
 
 A lightweight, offline-first variation analysis tool for quality professionals. No AI, no subscriptions, no API keys — just fast, linked charts that reveal hidden variation.
 
-> *"Cut through your watermelons — without the cloud."*
+> _"Cut through your watermelons — without the cloud."_
 
 <!-- Screenshot placeholder - replace with actual screenshot -->
 <!-- ![VariScout Lite Dashboard](docs/screenshot.png) -->
@@ -24,6 +24,7 @@ A lightweight, offline-first variation analysis tool for quality professionals. 
 ## Features
 
 ### Core Dashboard
+
 - **I-Chart**: Time series tracking with auto-calculated control limits (UCL/LCL)
 - **Boxplot**: Factor comparison (e.g., Shift A vs Shift B)
 - **Pareto**: Defect categorization and frequency analysis
@@ -31,23 +32,27 @@ A lightweight, offline-first variation analysis tool for quality professionals. 
 - **Interactive Labels**: Click axis titles or categories to rename them (Aliasing)
 
 ### Data Input
+
 - **File Import**: Drag-and-drop CSV and Excel (.xlsx) support
 - **Manual Entry**: Direct data entry with running statistics and spec compliance feedback
 - **Paste Support**: Tab-separated data from Excel
 
 ### Analysis
+
 - **Conformance**: Pass/Fail statistics against specification limits
 - **Capability**: Cp and Cpk indices (configurable in Settings)
 - **Capability Histogram**: Visual distribution with spec limit overlays
 - **Data Table**: Excel-like view with inline editing
 
 ### Export & Save
+
 - **PNG Export**: Save charts as images for reports
 - **CSV Export**: Excel-compatible data with spec status column
 - **Project Files**: Save/load as `.vrs` files for sharing
 - **Browser Storage**: Auto-save and named projects
 
 ### Display
+
 - **Large Mode**: 30% larger fonts for presentations and training
 - **Mobile Optimized**: Full support for phones (320px+) and tablets with:
   - Tab-based chart navigation with swipe gestures
@@ -58,18 +63,20 @@ A lightweight, offline-first variation analysis tool for quality professionals. 
 
 ### Editions
 
-| Edition | Price | Features |
-|---------|-------|----------|
-| **Community** | Free | Full features, "VariScout Lite" branding on charts |
-| **ITC** | Free | Full features, ITC branding (for ITC network) |
-| **Pro** | €39-49 | Full features, no branding |
+| Edition       | Price | Features                                           |
+| ------------- | ----- | -------------------------------------------------- |
+| **Community** | Free  | Full features, "VariScout Lite" branding on charts |
+| **ITC**       | Free  | Full features, ITC branding (for ITC network)      |
+| **Licensed**  | €39   | Full features, no branding                         |
 
-Activate Pro by entering a license key in Settings → License.
+Activate Licensed edition by entering a license key in Settings → License.
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js v18 or higher
+- pnpm v8 or higher (`npm install -g pnpm`)
 
 ### Installation
 
@@ -79,13 +86,13 @@ git clone https://github.com/your-org/variscout-lite.git
 cd variscout-lite
 
 # Install dependencies
-npm install
+pnpm install
 ```
 
 ### Development
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Open http://localhost:5173 in your browser.
@@ -93,19 +100,29 @@ Open http://localhost:5173 in your browser.
 ### Build
 
 ```bash
-npm run build
-npm run preview  # Preview production build
+pnpm build           # Build all packages
+pnpm build:pwa       # Build PWA only
+pnpm preview         # Preview production build
+```
+
+### Edition-Specific Builds
+
+```bash
+pnpm build:pwa:community    # Free with branding
+pnpm build:pwa:itc          # ITC-branded
+pnpm build:pwa:licensed     # No branding
 ```
 
 ### Test
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## Usage
 
 ### Quick Start
+
 1. **Upload data**: Drag a CSV or Excel file onto the upload area
 2. **Select outcome**: Choose the numeric column to analyze (e.g., "Weight")
 3. **Set specs**: Click "Add Specs" in the Stats Panel to define limits
@@ -121,11 +138,11 @@ npm test
 
 ### Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| `Esc` | Clear all filters |
-| `Tab` | Navigate between cells (Data Table) |
-| `Enter` | Move to next row (Manual Entry) |
+| Key     | Action                              |
+| ------- | ----------------------------------- |
+| `Esc`   | Clear all filters                   |
+| `Tab`   | Navigate between cells (Data Table) |
+| `Enter` | Move to next row (Manual Entry)     |
 
 ## Deployment
 
@@ -140,26 +157,41 @@ Or connect your GitHub repository for automatic deployments.
 ### Manual Deployment
 
 ```bash
-npm run build
-# Deploy the `dist/` folder to any static hosting service
+pnpm build:pwa
+# Deploy the `apps/pwa/dist/` folder to any static hosting service
 ```
 
 ### Install as App
 
 After visiting the deployed URL:
+
 - **Mobile**: Tap "Add to Home Screen" in your browser menu
 - **Desktop**: Click the install icon in the browser address bar
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Runtime | Progressive Web App (Service Worker) |
-| Frontend | React + TypeScript + Vite |
-| Styling | Tailwind CSS |
-| Charts | Visx (D3 primitives) |
-| Storage | IndexedDB + localStorage |
-| Testing | Vitest |
+| Layer           | Technology                           |
+| --------------- | ------------------------------------ |
+| Runtime         | Progressive Web App (Service Worker) |
+| Frontend        | React + TypeScript + Vite            |
+| Styling         | Tailwind CSS                         |
+| Charts          | Visx (D3 primitives)                 |
+| Storage         | IndexedDB + localStorage             |
+| Testing         | Vitest                               |
+| Package Manager | pnpm with workspaces                 |
+
+### Repository Structure
+
+This is a **pnpm workspaces monorepo** supporting multiple applications:
+
+```
+variscout-lite/
+├── packages/core/     # @variscout/core - Shared logic
+├── apps/pwa/          # PWA website (mobile + desktop)
+└── apps/excel-addin/  # Excel Add-in (planned)
+```
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/MONOREPO_ARCHITECTURE.md](docs/MONOREPO_ARCHITECTURE.md) for details.
 
 ## Roadmap
 
@@ -168,7 +200,9 @@ After visiting the deployed URL:
 - [x] Editable data table
 - [x] Capability histogram
 - [x] Multi-tier grade specifications
-- [ ] Custom branding/watermarks
+- [x] Mobile-first responsive design
+- [x] pnpm monorepo architecture
+- [ ] Excel Add-in with Copilot integration
 - [ ] PDF report generation
 - [ ] Batch file processing
 
@@ -186,6 +220,7 @@ See [Specs.md](Specs.md) for detailed feature specifications.
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Quick links:**
+
 - [Product Overview](PRODUCT_OVERVIEW.md) — Philosophy and what we built
 - [Specifications](Specs.md) — Detailed functional requirements
 - [Architecture](ARCHITECTURE.md) — Technical details

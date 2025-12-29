@@ -1,0 +1,38 @@
+{
+  "name": "@variscout/charts",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./IChart": "./src/IChart.tsx",
+    "./Boxplot": "./src/Boxplot.tsx",
+    "./ParetoChart": "./src/ParetoChart.tsx",
+    "./CapabilityHistogram": "./src/CapabilityHistogram.tsx",
+    "./ProbabilityPlot": "./src/ProbabilityPlot.tsx",
+    "./ChartSourceBar": "./src/ChartSourceBar.tsx"
+  },
+  "dependencies": {
+    "@variscout/core": "workspace:*",
+    "@visx/axis": "^3.12.0",
+    "@visx/brush": "^3.12.0",
+    "@visx/grid": "^3.12.0",
+    "@visx/group": "^3.12.0",
+    "@visx/legend": "^3.12.0",
+    "@visx/responsive": "^3.12.0",
+    "@visx/scale": "^3.12.0",
+    "@visx/shape": "^3.12.0",
+    "@visx/stats": "^3.12.0",
+    "@visx/tooltip": "^3.12.0",
+    "d3": "^7.9.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/react": "^18.3.3",
+    "typescript": "^5.5.2"
+  }
+}
