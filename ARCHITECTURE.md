@@ -86,7 +86,31 @@ Users can "install" the app:
 - Mobile: "Add to Home Screen"
 - Desktop: Browser install prompt
 
-## 6. Building & Deployment
+## 6. Responsive Architecture
+
+The app supports screens from 320px to desktop with a comprehensive responsive system:
+
+### Mobile Components
+| Component | File | Purpose |
+|-----------|------|---------|
+| `MobileDashboard` | `src/components/MobileDashboard.tsx` | Tab-based chart view with swipe navigation |
+| `MobileStatsPanel` | `src/components/MobileStatsPanel.tsx` | Full-screen stats with Summary/Histogram/Prob Plot tabs |
+| `MobileMenu` | `src/components/MobileMenu.tsx` | Dropdown menu for overflow toolbar actions |
+
+### Responsive Hooks
+| Hook | File | Purpose |
+|------|------|---------|
+| `useResponsiveChartMargins` | `src/hooks/useResponsiveChartMargins.ts` | Dynamic chart margins based on container width |
+| `useResponsiveChartFonts` | `src/hooks/useResponsiveChartMargins.ts` | Scaled font sizes for chart labels |
+| `useResponsiveTickCount` | `src/hooks/useResponsiveChartMargins.ts` | Optimal tick count for axis length |
+
+### Layout Detection
+Components use `window.innerWidth` with resize listeners to conditionally render:
+- `Dashboard.tsx`: Renders `MobileDashboard` below 640px
+- `SpecEditor.tsx`: Renders as bottom sheet below 640px
+- `AppHeader.tsx`: Shows mobile menu button below 640px
+
+## 7. Building & Deployment
 
 ### Development
 ```bash

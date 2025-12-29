@@ -6,6 +6,10 @@ import { LinePath, Circle } from '@visx/shape';
 import { withParentSize } from '@visx/responsive';
 import { GridRows } from '@visx/grid';
 import { calculateProbabilityPlotData, normalQuantile } from '../../logic/stats';
+import {
+  useResponsiveChartMargins,
+  useResponsiveChartFonts,
+} from '../../hooks/useResponsiveChartMargins';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import ChartSignature from './ChartSignature';
 
@@ -17,8 +21,6 @@ interface ProbabilityPlotProps {
   stdDev: number;
 }
 
-const BASE_MARGIN = { top: 20, right: 20, bottom: 40, left: 50 };
-
 const ProbabilityPlot = ({
   parentWidth,
   parentHeight,
@@ -27,14 +29,8 @@ const ProbabilityPlot = ({
   stdDev,
 }: ProbabilityPlotProps) => {
   const sourceBarHeight = getSourceBarHeight();
-
-  const margin = useMemo(
-    () => ({
-      ...BASE_MARGIN,
-      bottom: BASE_MARGIN.bottom + sourceBarHeight,
-    }),
-    [sourceBarHeight]
-  );
+  const margin = useResponsiveChartMargins(parentWidth, 'probability', sourceBarHeight);
+  const fonts = useResponsiveChartFonts(parentWidth);
 
   const width = Math.max(0, parentWidth - margin.left - margin.right);
   const height = Math.max(0, parentHeight - margin.top - margin.bottom);
@@ -175,19 +171,19 @@ const ProbabilityPlot = ({
           scale={yScale}
           stroke="#64748b"
           tickStroke="#64748b"
-          tickValues={[1, 5, 10, 25, 50, 75, 90, 95, 99]}
+          tickValues={parentWidth < 300 ? [5, 25, 50, 75, 95] : [1, 5, 10, 25, 50, 75, 90, 95, 99]}
           tickLabelProps={() => ({
             fill: '#94a3b8',
-            fontSize: 10,
+            fontSize: fonts.tickLabel,
             textAnchor: 'end',
             dy: '0.33em',
             dx: -4,
           })}
-          label="Percent"
-          labelOffset={36}
+          label={parentWidth > 300 ? 'Percent' : ''}
+          labelOffset={parentWidth < 400 ? 28 : 36}
           labelProps={{
             fill: '#94a3b8',
-            fontSize: 11,
+            fontSize: fonts.axisLabel,
             textAnchor: 'middle',
           }}
         />
@@ -198,20 +194,24 @@ const ProbabilityPlot = ({
           top={height}
           stroke="#64748b"
           tickStroke="#64748b"
-          numTicks={6}
+          numTicks={parentWidth < 300 ? 4 : 6}
           tickLabelProps={() => ({
             fill: '#94a3b8',
-            fontSize: 10,
+            fontSize: fonts.tickLabel,
             textAnchor: 'middle',
             dy: 4,
           })}
         />
 
         {/* Signature (painter-style branding) */}
-        <ChartSignature x={width - 10} y={height + BASE_MARGIN.bottom - 36} />
+        <ChartSignature x={width - 10} y={height + margin.bottom - sourceBarHeight - 18} />
 
         {/* Source Bar (branding) */}
-        <ChartSourceBar width={width} top={height + BASE_MARGIN.bottom - 18} n={data.length} />
+        <ChartSourceBar
+          width={width}
+          top={height + margin.bottom - sourceBarHeight}
+          n={data.length}
+        />
       </Group>
     </svg>
   );

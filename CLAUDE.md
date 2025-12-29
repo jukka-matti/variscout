@@ -21,8 +21,12 @@ npm run build:pro        # No branding (for pre-licensed builds)
 | File | Purpose |
 |------|---------|
 | @src/context/DataContext.tsx | Central state management (rawData, filters, specs) |
-| @src/components/Dashboard.tsx | Main 3-chart layout |
+| @src/components/Dashboard.tsx | Main 3-chart layout (conditionally renders mobile) |
+| @src/components/MobileDashboard.tsx | Tab-based mobile chart navigation with swipe |
+| @src/components/MobileStatsPanel.tsx | Mobile stats with Summary/Histogram/Prob Plot tabs |
+| @src/components/MobileMenu.tsx | Dropdown menu for mobile toolbar overflow |
 | @src/components/StatsPanel.tsx | Statistics display with Summary/Histogram tabs |
+| @src/hooks/useResponsiveChartMargins.ts | Dynamic chart margins, fonts, tick counts |
 | @src/logic/stats.ts | Statistics calculations (mean, std, Cp, Cpk) |
 | @src/lib/persistence.ts | IndexedDB + localStorage operations |
 | @src/lib/export.ts | CSV generation and spec status |

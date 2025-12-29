@@ -49,7 +49,11 @@ A lightweight, offline-first variation analysis tool for quality professionals. 
 
 ### Display
 - **Large Mode**: 30% larger fonts for presentations and training
-- **Mobile Friendly**: Responsive design for factory floor tablets
+- **Mobile Optimized**: Full support for phones (320px+) and tablets with:
+  - Tab-based chart navigation with swipe gestures
+  - 44px touch targets throughout
+  - Bottom sheet modals
+  - Responsive chart margins that scale with screen size
 - **Offline First**: Works without internet after first visit
 
 ### Editions

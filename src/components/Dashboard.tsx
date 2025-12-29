@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
+import MobileDashboard from './MobileDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import { useData } from '../context/DataContext';
 import { Activity } from 'lucide-react';
 
+const MOBILE_BREAKPOINT = 640; // sm breakpoint
+
 const Dashboard = () => {
   const { outcome, factors, setOutcome, rawData, stats, specs, filteredData } = useData();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile/desktop on mount and resize
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Local state for chart configuration
   // Default to first factor for Boxplot, second (or first) for Pareto
@@ -36,6 +48,26 @@ const Dashboard = () => {
 
   if (!outcome) return null;
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <div id="dashboard-export-container" className="h-full">
+        <MobileDashboard
+          outcome={outcome}
+          factors={factors}
+          stats={stats}
+          specs={specs}
+          boxplotFactor={boxplotFactor}
+          paretoFactor={paretoFactor}
+          filteredData={filteredData}
+          onSetBoxplotFactor={setBoxplotFactor}
+          onSetParetoFactor={setParetoFactor}
+        />
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div
       id="dashboard-export-container"

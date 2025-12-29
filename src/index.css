@@ -3,93 +3,189 @@
 @tailwind utilities;
 
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
-    font-weight: 400;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
 
-    color-scheme: dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #0f172a;
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #0f172a;
 
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-    margin: 0;
-    display: flex;
-    place-items: center;
-    min-width: 320px;
-    min-height: 100vh;
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
 }
 
 #root {
-    width: 100%;
+  width: 100%;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #0f172a;
+  background: #0f172a;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 4px;
+  background: #334155;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+  background: #475569;
 }
 
 /* Large Mode for Presentations */
 .large-mode {
-    --text-scale: 1.3;
+  --text-scale: 1.3;
 }
 
 .large-mode .text-xs {
-    font-size: calc(0.75rem * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
 }
 
 .large-mode .text-sm {
-    font-size: calc(0.875rem * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
 }
 
 .large-mode .text-base {
-    font-size: calc(1rem * var(--text-scale));
+  font-size: calc(1rem * var(--text-scale));
 }
 
 .large-mode .text-lg {
-    font-size: calc(1.125rem * var(--text-scale));
+  font-size: calc(1.125rem * var(--text-scale));
 }
 
 .large-mode .text-xl {
-    font-size: calc(1.25rem * var(--text-scale));
+  font-size: calc(1.25rem * var(--text-scale));
 }
 
 .large-mode .text-2xl {
-    font-size: calc(1.5rem * var(--text-scale));
+  font-size: calc(1.5rem * var(--text-scale));
 }
 
 .large-mode .text-3xl {
-    font-size: calc(1.875rem * var(--text-scale));
+  font-size: calc(1.875rem * var(--text-scale));
 }
 
 /* Chart labels and stats in large mode */
 .large-mode svg text {
-    font-size: 14px !important;
+  font-size: 14px !important;
 }
 
 .large-mode .stats-value {
-    font-size: calc(1.5rem * var(--text-scale));
+  font-size: calc(1.5rem * var(--text-scale));
 }
 
 .large-mode .stats-label {
-    font-size: calc(0.875rem * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
+}
+
+/* ========================================
+   Mobile Responsive Styles
+   ======================================== */
+
+/* CSS Custom Properties for responsive chart margins */
+:root {
+  /* Mobile-first (default) values */
+  --chart-margin-top: 20px;
+  --chart-margin-right: 15px;
+  --chart-margin-bottom: 40px;
+  --chart-margin-left: 35px;
+
+  /* Touch target minimum size */
+  --touch-target-min: 44px;
+}
+
+/* Tablet and up */
+@media (min-width: 640px) {
+  :root {
+    --chart-margin-top: 30px;
+    --chart-margin-right: 40px;
+    --chart-margin-bottom: 50px;
+    --chart-margin-left: 55px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  :root {
+    --chart-margin-top: 40px;
+    --chart-margin-right: 60px;
+    --chart-margin-bottom: 60px;
+    --chart-margin-left: 70px;
+  }
+}
+
+/* Touch feedback for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .touch-feedback {
+    transition:
+      transform 0.1s ease-out,
+      background-color 0.1s ease-out;
+  }
+
+  .touch-feedback:active {
+    transform: scale(0.97);
+    background-color: rgba(59, 130, 246, 0.15);
+  }
+}
+
+/* Focus-visible states for accessibility */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+.interactive:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Active states for all devices */
+button:active:not(:disabled),
+.interactive:active {
+  transform: scale(0.98);
+}
+
+/* Safe area support for notched phones */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Mobile-optimized scrolling */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Bottom sheet animation */
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideInFromBottom 0.3s ease-out;
 }

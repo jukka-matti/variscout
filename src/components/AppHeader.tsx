@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Activity,
   Settings,
@@ -11,7 +11,9 @@ import {
   Maximize2,
   Minimize2,
   Table,
+  MoreVertical,
 } from 'lucide-react';
+import MobileMenu from './MobileMenu';
 
 interface AppHeaderProps {
   currentProjectName: string | null;
@@ -50,6 +52,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenSettings,
   onReset,
 }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <header className="h-14 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 bg-slate-900/50 backdrop-blur-md z-10">
       <div className="flex items-center gap-2 sm:gap-3">
@@ -72,85 +76,116 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="flex items-center gap-1 sm:gap-2">
         {hasData && (
           <>
-            {/* Save to browser button */}
+            {/* Save to browser button - always visible */}
             <button
               onClick={onSaveToBrowser}
               disabled={isSaving}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 touch-feedback"
               title="Save to Browser"
+              style={{ minWidth: 44, minHeight: 44 }}
             >
               <HardDrive size={18} />
             </button>
-            {/* Open saved projects */}
-            <button
-              onClick={onOpenProjects}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-              title="Open Saved Projects"
-            >
-              <FolderOpen size={18} />
-            </button>
-            {/* View Data Table */}
+
+            {/* View Data Table - always visible */}
             <button
               onClick={onOpenDataTable}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors touch-feedback"
               title="View Data"
+              style={{ minWidth: 44, minHeight: 44 }}
             >
               <Table size={18} />
             </button>
-            <div className="hidden sm:block h-4 w-px bg-slate-800 mx-1"></div>
-            {/* Download as file */}
+
+            {/* Mobile: More menu button */}
             <button
-              onClick={onDownloadFile}
-              className="hidden sm:flex p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-              title="Download as File"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="sm:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors touch-feedback"
+              title="More options"
+              style={{ minWidth: 44, minHeight: 44 }}
             >
-              <Save size={18} />
+              <MoreVertical size={18} />
             </button>
-            {/* Export as CSV */}
-            <button
-              onClick={onExportCSV}
-              className="hidden sm:flex p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-              title="Export as CSV"
-            >
-              <FileSpreadsheet size={18} />
-            </button>
-            {/* Export image */}
-            <button
-              onClick={onExportImage}
-              className="hidden sm:flex p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-              title="Export as Image"
-            >
-              <Download size={18} />
-            </button>
-            <div className="hidden sm:block h-4 w-px bg-slate-800 mx-1"></div>
-            {/* Large Mode toggle */}
-            <button
-              onClick={onToggleLargeMode}
-              className={`p-2 rounded-lg transition-colors ${
-                isLargeMode
-                  ? 'text-blue-400 bg-blue-400/10 hover:bg-blue-400/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
-              }`}
-              title={isLargeMode ? 'Exit Large Mode' : 'Large Mode (for presentations)'}
-            >
-              {isLargeMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-            </button>
-            {/* Settings */}
-            <button
-              onClick={onOpenSettings}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-              title="Settings"
-            >
-              <Settings size={18} />
-            </button>
-            {/* Reset */}
-            <button
-              onClick={onReset}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-            >
-              <RefreshCw size={14} />
-              <span>Reset</span>
-            </button>
+
+            {/* Desktop: Individual buttons */}
+            <div className="hidden sm:flex items-center gap-1">
+              {/* Open saved projects */}
+              <button
+                onClick={onOpenProjects}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                title="Open Saved Projects"
+              >
+                <FolderOpen size={18} />
+              </button>
+              <div className="h-4 w-px bg-slate-800 mx-1"></div>
+              {/* Download as file */}
+              <button
+                onClick={onDownloadFile}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                title="Download as File"
+              >
+                <Save size={18} />
+              </button>
+              {/* Export as CSV */}
+              <button
+                onClick={onExportCSV}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                title="Export as CSV"
+              >
+                <FileSpreadsheet size={18} />
+              </button>
+              {/* Export image */}
+              <button
+                onClick={onExportImage}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                title="Export as Image"
+              >
+                <Download size={18} />
+              </button>
+              <div className="h-4 w-px bg-slate-800 mx-1"></div>
+              {/* Large Mode toggle */}
+              <button
+                onClick={onToggleLargeMode}
+                className={`p-2 rounded-lg transition-colors ${
+                  isLargeMode
+                    ? 'text-blue-400 bg-blue-400/10 hover:bg-blue-400/20'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+                title={isLargeMode ? 'Exit Large Mode' : 'Large Mode (for presentations)'}
+              >
+                {isLargeMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+              </button>
+              {/* Settings */}
+              <button
+                onClick={onOpenSettings}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                title="Settings"
+              >
+                <Settings size={18} />
+              </button>
+              {/* Reset */}
+              <button
+                onClick={onReset}
+                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+              >
+                <RefreshCw size={14} />
+                <span>Reset</span>
+              </button>
+            </div>
+
+            {/* Mobile Menu */}
+            <MobileMenu
+              isOpen={isMobileMenuOpen}
+              onClose={() => setIsMobileMenuOpen(false)}
+              onOpenProjects={onOpenProjects}
+              onDownloadFile={onDownloadFile}
+              onExportCSV={onExportCSV}
+              onExportImage={onExportImage}
+              onToggleLargeMode={onToggleLargeMode}
+              onOpenSettings={onOpenSettings}
+              onReset={onReset}
+              isLargeMode={isLargeMode}
+            />
           </>
         )}
       </div>
