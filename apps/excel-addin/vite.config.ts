@@ -40,6 +40,7 @@ export default defineConfig(({ mode }) => {
         input: {
           taskpane: path.resolve(__dirname, 'index.html'),
           commands: path.resolve(__dirname, 'commands.html'),
+          content: path.resolve(__dirname, 'content.html'),
         },
       },
     },

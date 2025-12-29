@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   makeStyles,
   tokens,
@@ -84,6 +84,40 @@ interface StatsDisplayProps {
 export const StatsDisplay: React.FC<StatsDisplayProps> = ({ data, specs, onSpecsChange }) => {
   const styles = useStyles();
 
+  // Local state for input values (for responsive typing)
+  const [localUsl, setLocalUsl] = useState(specs.usl?.toString() || '');
+  const [localLsl, setLocalLsl] = useState(specs.lsl?.toString() || '');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync local state when props change (e.g., from loading saved state)
+  useEffect(() => {
+    setLocalUsl(specs.usl?.toString() || '');
+    setLocalLsl(specs.lsl?.toString() || '');
+  }, [specs.usl, specs.lsl]);
+
+  // Debounced spec change propagation
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      const newUsl = localUsl ? Number(localUsl) : undefined;
+      const newLsl = localLsl ? Number(localLsl) : undefined;
+
+      // Only update if values actually changed
+      if (newUsl !== specs.usl || newLsl !== specs.lsl) {
+        onSpecsChange({ usl: newUsl, lsl: newLsl });
+      }
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [localUsl, localLsl, specs.usl, specs.lsl, onSpecsChange]);
+
   // Calculate statistics
   const stats = useMemo(() => {
     return calculateStats(data.values, specs.usl, specs.lsl);
@@ -116,19 +150,11 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ data, specs, onSpecs
   }, [data.values, specs]);
 
   const handleUslChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    onSpecsChange({
-      ...specs,
-      usl: val ? Number(val) : undefined,
-    });
+    setLocalUsl(e.target.value);
   };
 
   const handleLslChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    onSpecsChange({
-      ...specs,
-      lsl: val ? Number(val) : undefined,
-    });
+    setLocalLsl(e.target.value);
   };
 
   const handleHighlight = async () => {
@@ -155,7 +181,7 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ data, specs, onSpecs
             <Input
               id="usl-input"
               type="number"
-              value={specs.usl?.toString() || ''}
+              value={localUsl}
               onChange={handleUslChange}
               placeholder="e.g., 15"
             />
@@ -165,7 +191,7 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({ data, specs, onSpecs
             <Input
               id="lsl-input"
               type="number"
-              value={specs.lsl?.toString() || ''}
+              value={localLsl}
               onChange={handleLslChange}
               placeholder="e.g., 10"
             />
