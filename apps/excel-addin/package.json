@@ -4,12 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3000 --https",
+    "dev": "vite --port 3000",
     "build": "tsc && vite build",
-    "preview": "vite preview --port 3000 --https",
+    "build:prod": "tsc && vite build && node scripts/generate-manifests.js",
+    "preview": "vite preview --port 3000",
     "start": "office-addin-debugging start manifest.xml",
     "stop": "office-addin-debugging stop manifest.xml",
-    "validate": "office-addin-manifest validate manifest.xml"
+    "validate": "office-addin-manifest validate manifest.xml",
+    "generate:manifests": "node scripts/generate-manifests.js"
   },
   "dependencies": {
     "@variscout/core": "workspace:*",

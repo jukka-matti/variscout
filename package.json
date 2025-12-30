@@ -13,6 +13,7 @@
     "build:pwa:itc": "VITE_EDITION=itc pnpm --filter @variscout/pwa build",
     "build:pwa:licensed": "VITE_EDITION=licensed pnpm --filter @variscout/pwa build",
     "build:excel": "pnpm --filter @variscout/excel-addin build",
+    "build:excel:prod": "pnpm --filter @variscout/excel-addin build:prod",
     "preview": "pnpm --filter @variscout/pwa preview",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",

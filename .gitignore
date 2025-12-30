@@ -124,3 +124,6 @@ dist
 
 # AI/LLM
 .gemini_brain
+
+# Generated production manifests (Excel Add-in)
+*.prod.xml
