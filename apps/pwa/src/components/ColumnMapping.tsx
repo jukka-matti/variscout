@@ -53,7 +53,7 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
 
   return (
     <div className="flex flex-col h-full items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
-      <div className="w-full max-w-2xl bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+      <div className="w-full max-w-2xl max-h-[90vh] bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-slate-700 bg-slate-800/50">
           <div className="flex items-center gap-3 mb-2">
@@ -69,7 +69,7 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-8 bg-slate-900/30">
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-900/30">
           {/* Outcome Selection */}
           <div>
             <div className="flex items-center gap-2 mb-3">
