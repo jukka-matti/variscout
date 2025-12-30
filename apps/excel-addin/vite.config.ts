@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      outDir: '../../dist/excel-addin',
+      outDir: 'dist',
       emptyOutDir: true,
       rollupOptions: {
         input: {

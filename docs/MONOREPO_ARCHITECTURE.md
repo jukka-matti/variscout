@@ -13,10 +13,10 @@ variscout-lite/
 │   └── charts/        # @variscout/charts - Props-based Visx chart components
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite + PWA)
+│   │   └── dist/      # PWA build output
 │   └── excel-addin/   # Excel Add-in (Office.js + React + Fluent UI)
-└── dist/
-    ├── pwa/           # PWA build output
-    └── excel-addin/   # Add-in build output
+│       └── dist/      # Add-in build output
+└── docs/              # Documentation
 ```
 
 ## Why pnpm Workspaces?
@@ -26,7 +26,7 @@ variscout-lite/
 | **Code sharing**    | Clean package boundaries (`@variscout/core`, `@variscout/charts`) |
 | **Build isolation** | Separate Vite configs for PWA vs Excel Add-in                     |
 | **Dev experience**  | Hot reload per app, shared code updates propagate                 |
-| **Deployment**      | Separate `dist/` outputs for each target                          |
+| **Deployment**      | Each app has its own `dist/` folder for independent deployment    |
 | **Disk efficiency** | pnpm hard-links shared dependencies                               |
 
 ## Package Structure

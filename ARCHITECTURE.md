@@ -217,7 +217,8 @@ variscout-lite/
 │   │   │   └── main.tsx
 │   │   ├── index.html
 │   │   ├── vite.config.ts
-│   │   └── package.json
+│   │   ├── package.json
+│   │   └── dist/                # PWA build output (gitignored)
 │   │
 │   └── excel-addin/             # @variscout/excel-addin
 │       ├── src/
@@ -233,11 +234,11 @@ variscout-lite/
 │       │   └── commands/        # Excel ribbon commands
 │       ├── manifest.xml         # Office Add-in manifest
 │       ├── vite.config.ts
-│       └── package.json
+│       ├── package.json
+│       └── dist/                # Add-in build output (gitignored)
 │
 ├── docs/                        # Documentation
 │   └── concepts/                # Design concept documents
-├── dist/                        # Build outputs (gitignored)
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json
 └── package.json                 # Root scripts
