@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ContentDashboard from './ContentDashboard';
 import { loadAddInState, type AddInState } from '../lib/stateBridge';
+import { darkTheme } from '../lib/darkTheme';
 
 /**
  * Content Add-in Root Component
@@ -112,21 +113,21 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
-    backgroundColor: '#1e293b',
-    color: '#94a3b8',
+    backgroundColor: darkTheme.colorNeutralBackground1,
+    color: darkTheme.colorNeutralForeground2,
   },
   spinner: {
     width: 24,
     height: 24,
-    border: '2px solid #475569',
-    borderTopColor: '#3b82f6',
-    borderRadius: '50%',
+    border: `2px solid ${darkTheme.colorNeutralStroke1}`,
+    borderTopColor: darkTheme.colorBrandForeground1,
+    borderRadius: darkTheme.borderRadiusCircular,
     animation: 'spin 1s linear infinite',
-    marginBottom: 12,
+    marginBottom: darkTheme.spacingM,
   },
   loadingText: {
-    fontSize: 14,
-    color: '#94a3b8',
+    fontSize: darkTheme.fontSizeBody,
+    color: darkTheme.colorNeutralForeground2,
   },
   errorContainer: {
     display: 'flex',
@@ -134,18 +135,18 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
-    backgroundColor: '#1e293b',
-    padding: 20,
+    backgroundColor: darkTheme.colorNeutralBackground1,
+    padding: darkTheme.spacingL,
     textAlign: 'center',
   },
   errorText: {
-    color: '#ef4444',
-    fontSize: 14,
-    marginBottom: 8,
+    color: darkTheme.colorStatusDangerForeground,
+    fontSize: darkTheme.fontSizeBody,
+    marginBottom: darkTheme.spacingS,
   },
   errorHint: {
-    color: '#94a3b8',
-    fontSize: 12,
+    color: darkTheme.colorNeutralForeground2,
+    fontSize: darkTheme.fontSizeSmall,
   },
   setupPrompt: {
     display: 'flex',
@@ -153,31 +154,31 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
-    backgroundColor: '#1e293b',
-    color: '#f1f5f9',
-    padding: 20,
+    backgroundColor: darkTheme.colorNeutralBackground1,
+    color: darkTheme.colorNeutralForeground1,
+    padding: darkTheme.spacingL,
     textAlign: 'center',
   },
   setupIcon: {
-    color: '#3b82f6',
-    marginBottom: 16,
+    color: darkTheme.colorBrandForeground1,
+    marginBottom: darkTheme.spacingL,
   },
   setupTitle: {
-    fontSize: 18,
-    fontWeight: 600,
-    marginBottom: 8,
+    fontSize: darkTheme.fontSizeHeading,
+    fontWeight: darkTheme.fontWeightSemibold,
+    marginBottom: darkTheme.spacingS,
   },
   setupDescription: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginBottom: 16,
+    fontSize: darkTheme.fontSizeBody,
+    color: darkTheme.colorNeutralForeground2,
+    marginBottom: darkTheme.spacingL,
   },
   setupSteps: {
     textAlign: 'left',
     fontSize: 13,
-    color: '#cbd5e1',
+    color: darkTheme.colorNeutralForeground1,
     lineHeight: 1.8,
-    paddingLeft: 20,
+    paddingLeft: darkTheme.spacingL,
   },
 };
 

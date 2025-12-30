@@ -3,6 +3,7 @@ import { IChartBase, BoxplotBase, calculateBoxplotStats } from '@variscout/chart
 import { calculateStats, groupDataByFactor } from '@variscout/core';
 import type { AddInState } from '../lib/stateBridge';
 import { getFilteredTableData } from '../lib/dataFilter';
+import { darkTheme } from '../lib/darkTheme';
 
 interface ContentDashboardProps {
   state: AddInState;
@@ -31,17 +32,23 @@ class ChartErrorBoundary extends React.Component<
   render(): React.ReactNode {
     if (this.state.hasError) {
       return (
-        <div style={{ color: '#94a3b8', textAlign: 'center', padding: 20 }}>
+        <div
+          style={{
+            color: darkTheme.colorNeutralForeground2,
+            textAlign: 'center',
+            padding: darkTheme.spacingL,
+          }}
+        >
           <p>Chart failed to render</p>
           <button
             onClick={() => this.setState({ hasError: false })}
             style={{
-              marginTop: 8,
-              padding: '4px 12px',
-              backgroundColor: '#475569',
+              marginTop: darkTheme.spacingS,
+              padding: `${darkTheme.spacingXS}px ${darkTheme.spacingM}px`,
+              backgroundColor: darkTheme.colorNeutralBackground3,
               border: 'none',
-              borderRadius: 4,
-              color: '#f1f5f9',
+              borderRadius: darkTheme.borderRadiusS,
+              color: darkTheme.colorNeutralForeground1,
               cursor: 'pointer',
             }}
           >
@@ -193,7 +200,9 @@ const ContentDashboard: React.FC<ContentDashboardProps> = ({ state }) => {
     return (
       <div style={styles.empty}>
         <p>No data visible. This may be due to slicer filters excluding all rows.</p>
-        <p style={{ fontSize: 12, marginTop: 8 }}>Clear your slicer selections to see all data.</p>
+        <p style={{ fontSize: darkTheme.fontSizeSmall, marginTop: darkTheme.spacingS }}>
+          Clear your slicer selections to see all data.
+        </p>
       </div>
     );
   }
@@ -228,7 +237,10 @@ const ContentDashboard: React.FC<ContentDashboardProps> = ({ state }) => {
                     <span
                       style={{
                         ...styles.statValue,
-                        color: stats.cpk >= cpkTarget ? '#22c55e' : '#ef4444',
+                        color:
+                          stats.cpk >= cpkTarget
+                            ? darkTheme.colorStatusSuccessForeground
+                            : darkTheme.colorStatusDangerForeground,
                       }}
                     >
                       {stats.cpk.toFixed(2)}
@@ -287,18 +299,18 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#1e293b',
-    color: '#f1f5f9',
-    padding: 12,
+    backgroundColor: darkTheme.colorNeutralBackground1,
+    color: darkTheme.colorNeutralForeground1,
+    padding: darkTheme.spacingM,
     boxSizing: 'border-box',
   },
   header: {
     display: 'flex',
-    gap: 24,
-    padding: '8px 12px',
-    backgroundColor: '#334155',
-    borderRadius: 8,
-    marginBottom: 12,
+    gap: darkTheme.spacingXL,
+    padding: `${darkTheme.spacingS}px ${darkTheme.spacingM}px`,
+    backgroundColor: darkTheme.colorNeutralBackground2,
+    borderRadius: darkTheme.borderRadiusM,
+    marginBottom: darkTheme.spacingM,
   },
   stat: {
     display: 'flex',
@@ -307,18 +319,18 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'help',
   },
   statLabel: {
-    fontSize: 10,
-    color: '#94a3b8',
+    fontSize: darkTheme.fontSizeCaption,
+    color: darkTheme.colorNeutralForeground2,
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
   },
   statValue: {
-    fontSize: 16,
-    fontWeight: 600,
+    fontSize: darkTheme.fontSizeTitle,
+    fontWeight: darkTheme.fontWeightSemibold,
     fontFamily: 'monospace',
   },
   cpkLabel: {
-    fontSize: 10,
+    fontSize: darkTheme.fontSizeCaption,
     fontWeight: 400,
     fontFamily: 'system-ui, sans-serif',
     opacity: 0.8,
@@ -326,14 +338,14 @@ const styles: Record<string, React.CSSProperties> = {
   chartsRow: {
     flex: 1,
     display: 'flex',
-    gap: 12,
+    gap: darkTheme.spacingM,
     minHeight: 0,
   },
   chartContainer: {
     flex: 1,
-    backgroundColor: '#334155',
-    borderRadius: 8,
-    padding: 8,
+    backgroundColor: darkTheme.colorNeutralBackground2,
+    borderRadius: darkTheme.borderRadiusM,
+    padding: darkTheme.spacingS,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -344,14 +356,14 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
-    color: '#94a3b8',
+    color: darkTheme.colorNeutralForeground2,
   },
   spinner: {
     width: 24,
     height: 24,
-    border: '2px solid #475569',
-    borderTopColor: '#3b82f6',
-    borderRadius: '50%',
+    border: `2px solid ${darkTheme.colorNeutralStroke1}`,
+    borderTopColor: darkTheme.colorBrandForeground1,
+    borderRadius: darkTheme.borderRadiusCircular,
     animation: 'spin 1s linear infinite',
   },
   empty: {
@@ -360,10 +372,10 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
-    color: '#64748b',
+    color: darkTheme.colorNeutralForeground3,
     fontStyle: 'italic',
     textAlign: 'center',
-    padding: 20,
+    padding: darkTheme.spacingL,
   },
   error: {
     display: 'flex',
@@ -371,17 +383,17 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
-    padding: 20,
+    padding: darkTheme.spacingL,
     textAlign: 'center',
   },
   errorText: {
-    color: '#ef4444',
-    fontSize: 14,
-    marginBottom: 8,
+    color: darkTheme.colorStatusDangerForeground,
+    fontSize: darkTheme.fontSizeBody,
+    marginBottom: darkTheme.spacingS,
   },
   errorHint: {
-    color: '#94a3b8',
-    fontSize: 12,
+    color: darkTheme.colorNeutralForeground2,
+    fontSize: darkTheme.fontSizeSmall,
   },
 };
 

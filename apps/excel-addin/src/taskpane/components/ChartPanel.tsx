@@ -3,6 +3,7 @@ import { makeStyles, tokens, Dropdown, Option, Label, Card } from '@fluentui/rea
 import { IChart, Boxplot, calculateBoxplotStats } from '@variscout/charts';
 import { calculateStats } from '@variscout/core';
 import { SelectedData } from '../../lib/excelData';
+import { darkTheme } from '../../lib/darkTheme';
 
 const useStyles = makeStyles({
   container: {
@@ -18,7 +19,7 @@ const useStyles = makeStyles({
   },
   chartContainer: {
     height: '300px',
-    backgroundColor: '#1e293b',
+    backgroundColor: darkTheme.colorNeutralBackground1,
     borderRadius: tokens.borderRadiusMedium,
     overflow: 'hidden',
   },

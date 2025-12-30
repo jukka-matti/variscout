@@ -128,19 +128,63 @@ const useStyles = makeStyles({
 
 ### 3.2 Dark Theme (Content Add-in)
 
-The Content Add-in uses a custom dark palette matching the PWA's Tailwind slate colors:
+The Content Add-in uses a **token-based dark theme** system defined in `apps/excel-addin/src/lib/darkTheme.ts`. This matches the PWA's Tailwind slate palette while providing semantic token names.
 
-| Hex       | Name      | Usage                       |
-| --------- | --------- | --------------------------- |
-| `#1e293b` | slate-800 | Main background             |
-| `#334155` | slate-700 | Card/section backgrounds    |
-| `#475569` | slate-600 | Borders, button backgrounds |
-| `#64748b` | slate-500 | Tertiary text, empty state  |
-| `#94a3b8` | slate-400 | Secondary text, labels      |
-| `#f1f5f9` | slate-100 | Primary text                |
-| `#3b82f6` | blue-500  | Accent, links, focus        |
-| `#22c55e` | green-500 | Success, pass, good metrics |
-| `#ef4444` | red-500   | Error, fail, poor metrics   |
+**Important:** Always use `darkTheme` tokens instead of hardcoded hex values in Content Add-in components.
+
+```tsx
+import { darkTheme } from '../lib/darkTheme';
+
+// ✅ Correct - use tokens
+backgroundColor: darkTheme.colorNeutralBackground1,
+
+// ❌ Incorrect - hardcoded hex
+backgroundColor: '#1e293b',
+```
+
+#### Dark Theme Token Reference
+
+| Token                          | Hex       | Usage                       |
+| ------------------------------ | --------- | --------------------------- |
+| `colorNeutralBackground1`      | `#1e293b` | Main container background   |
+| `colorNeutralBackground2`      | `#334155` | Card/section backgrounds    |
+| `colorNeutralBackground3`      | `#475569` | Interactive/hover states    |
+| `colorNeutralForeground1`      | `#f1f5f9` | Primary text                |
+| `colorNeutralForeground2`      | `#94a3b8` | Secondary text, labels      |
+| `colorNeutralForeground3`      | `#64748b` | Tertiary text, empty state  |
+| `colorNeutralForeground4`      | `#475569` | Disabled text               |
+| `colorNeutralStroke1`          | `#475569` | Primary borders             |
+| `colorNeutralStroke2`          | `#334155` | Subtle borders              |
+| `colorBrandForeground1`        | `#3b82f6` | Accent, links, focus        |
+| `colorBrandForeground2`        | `#60a5fa` | Secondary accent            |
+| `colorStatusSuccessForeground` | `#22c55e` | Success, pass, good metrics |
+| `colorStatusDangerForeground`  | `#ef4444` | Error, fail, poor metrics   |
+| `colorStatusWarningForeground` | `#f59e0b` | Warning states              |
+
+#### Spacing & Layout Tokens
+
+| Token           | Value | Usage                     |
+| --------------- | ----- | ------------------------- |
+| `spacingXS`     | 4px   | Minimal gaps              |
+| `spacingS`      | 8px   | Small spacing, list items |
+| `spacingM`      | 12px  | Standard gaps             |
+| `spacingL`      | 16px  | Card padding              |
+| `spacingXL`     | 24px  | Section gaps              |
+| `borderRadiusS` | 4px   | Small elements            |
+| `borderRadiusM` | 8px   | Cards, containers         |
+| `borderRadiusL` | 12px  | Large panels              |
+
+#### Typography Tokens
+
+| Token                | Value | Usage              |
+| -------------------- | ----- | ------------------ |
+| `fontSizeCaption`    | 10px  | Labels, small text |
+| `fontSizeSmall`      | 12px  | Secondary text     |
+| `fontSizeBody`       | 14px  | Body text          |
+| `fontSizeTitle`      | 16px  | Stat values        |
+| `fontSizeHeading`    | 18px  | Section headings   |
+| `fontWeightSemibold` | 600   | Emphasis           |
+| `fontWeightBold`     | 700   | Strong emphasis    |
 
 ### 3.3 Capability Metrics Color Coding
 
@@ -509,14 +553,16 @@ buttonRow: {
 ### 8.6 Content Add-in Layout
 
 ```tsx
+import { darkTheme } from '../lib/darkTheme';
+
 // Main container
 container: {
   width: '100%',
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  backgroundColor: '#1e293b',
-  padding: 12,
+  backgroundColor: darkTheme.colorNeutralBackground1,
+  padding: darkTheme.spacingM,
   boxSizing: 'border-box',
 }
 
@@ -524,7 +570,7 @@ container: {
 chartsRow: {
   flex: 1,
   display: 'flex',
-  gap: 12,
+  gap: darkTheme.spacingM,
   minHeight: 0,
 }
 ```
@@ -576,9 +622,13 @@ successMessage: {
 ### 9.4 Empty State
 
 ```tsx
-<div className={styles.empty}>
-  <Body1>No data visible</Body1>
-  <Body2>Clear your slicer selections to see all data.</Body2>
+import { darkTheme } from '../lib/darkTheme';
+
+<div style={styles.empty}>
+  <p>No data visible</p>
+  <p style={{ fontSize: darkTheme.fontSizeSmall, marginTop: darkTheme.spacingS }}>
+    Clear your slicer selections to see all data.
+  </p>
 </div>
 
 empty: {
@@ -587,8 +637,9 @@ empty: {
   alignItems: 'center',
   justifyContent: 'center',
   height: '100%',
-  color: '#64748b',  // slate-500
+  color: darkTheme.colorNeutralForeground3,
   textAlign: 'center',
+  padding: darkTheme.spacingL,
 }
 ```
 
@@ -761,24 +812,26 @@ const StatItem: React.FC<{
 ### 11.3 Dark Theme Container (Content Add-in)
 
 ```tsx
+import { darkTheme } from '../lib/darkTheme';
+
 const styles: Record<string, React.CSSProperties> = {
   container: {
     width: '100%',
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#1e293b',
-    color: '#f1f5f9',
-    padding: 12,
+    backgroundColor: darkTheme.colorNeutralBackground1,
+    color: darkTheme.colorNeutralForeground1,
+    padding: darkTheme.spacingM,
     boxSizing: 'border-box',
   },
   header: {
     display: 'flex',
-    gap: 24,
-    padding: '8px 12px',
-    backgroundColor: '#334155',
-    borderRadius: 8,
-    marginBottom: 12,
+    gap: darkTheme.spacingXL,
+    padding: `${darkTheme.spacingS}px ${darkTheme.spacingM}px`,
+    backgroundColor: darkTheme.colorNeutralBackground2,
+    borderRadius: darkTheme.borderRadiusM,
+    marginBottom: darkTheme.spacingM,
   },
   stat: {
     display: 'flex',
@@ -786,27 +839,27 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
   },
   statLabel: {
-    fontSize: 10,
-    color: '#94a3b8',
+    fontSize: darkTheme.fontSizeCaption,
+    color: darkTheme.colorNeutralForeground2,
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
   },
   statValue: {
-    fontSize: 16,
-    fontWeight: 600,
+    fontSize: darkTheme.fontSizeTitle,
+    fontWeight: darkTheme.fontWeightSemibold,
     fontFamily: 'monospace',
   },
   chartsRow: {
     flex: 1,
     display: 'flex',
-    gap: 12,
+    gap: darkTheme.spacingM,
     minHeight: 0,
   },
   chartContainer: {
     flex: 1,
-    backgroundColor: '#334155',
-    borderRadius: 8,
-    padding: 8,
+    backgroundColor: darkTheme.colorNeutralBackground2,
+    borderRadius: darkTheme.borderRadiusM,
+    padding: darkTheme.spacingS,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -834,17 +887,19 @@ const styles: Record<string, React.CSSProperties> = {
 | **Spacing M**      | `spacingVerticalM`                | 16px        |
 | **Spacing L**      | `spacingVerticalL`                | 32px        |
 
-### Dark Theme Hex Values
+### Dark Theme Tokens
 
-| Element        | Color     |
-| -------------- | --------- |
-| Background     | `#1e293b` |
-| Cards          | `#334155` |
-| Primary Text   | `#f1f5f9` |
-| Secondary Text | `#94a3b8` |
-| Accent         | `#3b82f6` |
-| Success        | `#22c55e` |
-| Error          | `#ef4444` |
+Use `darkTheme` from `apps/excel-addin/src/lib/darkTheme.ts` instead of hardcoded hex values:
+
+| Element        | Token                                    | Hex Value |
+| -------------- | ---------------------------------------- | --------- |
+| Background     | `darkTheme.colorNeutralBackground1`      | `#1e293b` |
+| Cards          | `darkTheme.colorNeutralBackground2`      | `#334155` |
+| Primary Text   | `darkTheme.colorNeutralForeground1`      | `#f1f5f9` |
+| Secondary Text | `darkTheme.colorNeutralForeground2`      | `#94a3b8` |
+| Accent         | `darkTheme.colorBrandForeground1`        | `#3b82f6` |
+| Success        | `darkTheme.colorStatusSuccessForeground` | `#22c55e` |
+| Error          | `darkTheme.colorStatusDangerForeground`  | `#ef4444` |
 
 ---
 
