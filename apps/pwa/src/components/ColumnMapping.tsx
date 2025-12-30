@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, BarChart2, CheckSquare, Settings2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckSquare, Settings2 } from 'lucide-react';
 
 interface ColumnMappingProps {
   availableColumns: string[];
@@ -8,6 +8,7 @@ interface ColumnMappingProps {
   datasetName?: string;
   onConfirm: (outcome: string, factors: string[]) => void;
   onCancel: () => void;
+  onBack?: () => void; // Optional: go back without clearing data
 }
 
 const ColumnMapping: React.FC<ColumnMappingProps> = ({
@@ -17,6 +18,7 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
   datasetName = 'Uploaded Dataset',
   onConfirm,
   onCancel,
+  onBack,
 }) => {
   const [outcome, setOutcome] = useState<string>(initialOutcome || '');
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
@@ -175,10 +177,11 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
         {/* Footer */}
         <div className="p-6 border-t border-slate-700 bg-slate-800 flex justify-between items-center">
           <button
-            onClick={onCancel}
-            className="text-slate-400 hover:text-white text-sm font-medium px-4 py-2 hover:bg-slate-700 rounded-lg transition-colors"
+            onClick={onBack || onCancel}
+            className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm font-medium px-4 py-2 hover:bg-slate-700 rounded-lg transition-colors"
           >
-            Cancel
+            <ArrowLeft size={16} />
+            <span>Back</span>
           </button>
 
           <button

@@ -20,9 +20,10 @@ import ChartSignature from './ChartSignature';
 interface IChartProps {
   parentWidth: number;
   parentHeight: number;
+  onPointClick?: (index: number) => void;
 }
 
-const IChart = ({ parentWidth, parentHeight }: IChartProps) => {
+const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
   const sourceBarHeight = getSourceBarHeight();
   const margin = useResponsiveChartMargins(parentWidth, 'ichart', sourceBarHeight);
   const fonts = useResponsiveChartFonts(parentWidth);
@@ -270,6 +271,8 @@ const IChart = ({ parentWidth, parentHeight }: IChartProps) => {
               fill={getPointColor(d.y)}
               stroke="#0f172a"
               strokeWidth={1}
+              className={onPointClick ? 'cursor-pointer' : ''}
+              onClick={() => onPointClick?.(i)}
             />
           ))}
 

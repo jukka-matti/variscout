@@ -19,6 +19,7 @@ interface MobileDashboardProps {
   filteredData: any[];
   onSetBoxplotFactor: (f: string) => void;
   onSetParetoFactor: (f: string) => void;
+  onPointClick?: (index: number) => void;
 }
 
 const MobileDashboard: React.FC<MobileDashboardProps> = ({
@@ -31,6 +32,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   filteredData,
   onSetBoxplotFactor,
   onSetParetoFactor,
+  onPointClick,
 }) => {
   const [activeView, setActiveView] = useState<ChartView>('ichart');
 
@@ -151,7 +153,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       <div className="flex-1 min-h-0 p-2 overflow-hidden">
         <div className="h-full bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
           <ErrorBoundary componentName={views.find(v => v.key === activeView)?.label || ''}>
-            {activeView === 'ichart' && <IChart />}
+            {activeView === 'ichart' && <IChart onPointClick={onPointClick} />}
             {activeView === 'boxplot' && boxplotFactor && <Boxplot factor={boxplotFactor} />}
             {activeView === 'pareto' && paretoFactor && <ParetoChart factor={paretoFactor} />}
             {activeView === 'stats' && (

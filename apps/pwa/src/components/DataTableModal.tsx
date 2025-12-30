@@ -9,9 +9,10 @@ const ROWS_PER_PAGE = 500;
 interface DataTableModalProps {
   isOpen: boolean;
   onClose: () => void;
+  highlightRowIndex?: number; // Row to scroll to and highlight (0-indexed)
 }
 
-const DataTableModal = ({ isOpen, onClose }: DataTableModalProps) => {
+const DataTableModal = ({ isOpen, onClose, highlightRowIndex }: DataTableModalProps) => {
   const { rawData, outcome, specs, setRawData } = useData();
 
   // Local copy of data for editing (don't mutate context until Apply)
@@ -26,6 +27,10 @@ const DataTableModal = ({ isOpen, onClose }: DataTableModalProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const totalPages = Math.ceil(localData.length / ROWS_PER_PAGE);
   const needsPagination = localData.length > ROWS_PER_PAGE;
+
+  // Highlight animation state
+  const [highlightedRow, setHighlightedRow] = useState<number | null>(null);
+  const highlightRowRef = useRef<HTMLTableRowElement>(null);
 
   // Get current page data
   const pageData = useMemo(() => {
@@ -43,9 +48,42 @@ const DataTableModal = ({ isOpen, onClose }: DataTableModalProps) => {
       setLocalData(rawData.map(row => ({ ...row })));
       setHasChanges(false);
       setEditingCell(null);
-      setCurrentPage(0);
+
+      // If highlighting a specific row, navigate to its page
+      if (
+        highlightRowIndex !== undefined &&
+        highlightRowIndex >= 0 &&
+        highlightRowIndex < rawData.length
+      ) {
+        const targetPage = Math.floor(highlightRowIndex / ROWS_PER_PAGE);
+        setCurrentPage(targetPage);
+        setHighlightedRow(highlightRowIndex);
+      } else {
+        setCurrentPage(0);
+        setHighlightedRow(null);
+      }
     }
-  }, [isOpen, rawData]);
+  }, [isOpen, rawData, highlightRowIndex]);
+
+  // Scroll to highlighted row and fade out animation
+  useEffect(() => {
+    if (highlightedRow !== null && highlightRowRef.current) {
+      // Small delay to ensure DOM is ready
+      const scrollTimeout = setTimeout(() => {
+        highlightRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+
+      // Clear highlight after animation
+      const fadeTimeout = setTimeout(() => {
+        setHighlightedRow(null);
+      }, 3000);
+
+      return () => {
+        clearTimeout(scrollTimeout);
+        clearTimeout(fadeTimeout);
+      };
+    }
+  }, [highlightedRow]);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -257,8 +295,15 @@ const DataTableModal = ({ isOpen, onClose }: DataTableModalProps) => {
               <tbody>
                 {pageData.map((row, pageRowIdx) => {
                   const absoluteIdx = toAbsoluteIndex(pageRowIdx);
+                  const isHighlighted = absoluteIdx === highlightedRow;
                   return (
-                    <tr key={absoluteIdx} className="hover:bg-slate-700/30">
+                    <tr
+                      key={absoluteIdx}
+                      ref={isHighlighted ? highlightRowRef : undefined}
+                      className={`hover:bg-slate-700/30 transition-colors duration-1000 ${
+                        isHighlighted ? 'bg-blue-500/30 animate-pulse' : ''
+                      }`}
+                    >
                       <td className="px-3 py-1.5 text-slate-500 border-b border-slate-700/50 font-mono text-xs">
                         {absoluteIdx + 1}
                       </td>

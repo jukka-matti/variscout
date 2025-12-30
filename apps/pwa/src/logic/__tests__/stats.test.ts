@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateStats } from '../stats';
+import { calculateStats } from '@variscout/core';
 
 describe('Stats Engine', () => {
   it('should calculate basic stats for a normal distribution', () => {

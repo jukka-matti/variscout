@@ -5,7 +5,7 @@ import { AxisLeft, AxisBottom } from '@visx/axis';
 import { LinePath, Circle } from '@visx/shape';
 import { withParentSize } from '@visx/responsive';
 import { GridRows } from '@visx/grid';
-import { calculateProbabilityPlotData, normalQuantile } from '../../logic/stats';
+import { calculateProbabilityPlotData, normalQuantile } from '@variscout/core';
 import {
   useResponsiveChartMargins,
   useResponsiveChartFonts,

@@ -1,5 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { AlertCircle, CheckCircle2, TrendingUp, BarChart3, Settings2, Plus } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  TrendingUp,
+  BarChart3,
+  Settings2,
+  Plus,
+  HelpCircle,
+} from 'lucide-react';
 import type { StatsResult } from '@variscout/core';
 import { useData } from '../context/DataContext';
 import CapabilityHistogram from './charts/CapabilityHistogram';
@@ -14,7 +22,7 @@ interface StatsPanelProps {
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = [], outcome }) => {
-  const { displayOptions, setSpecs, setGrades, grades } = useData();
+  const { displayOptions, setDisplayOptions, setSpecs, setGrades, grades } = useData();
   const [activeTab, setActiveTab] = useState<'summary' | 'histogram' | 'normality'>('summary');
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
@@ -30,6 +38,11 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = []
   ) => {
     setSpecs(newSpecs);
     setGrades(newGrades);
+
+    // Auto-enable Cp display when both USL and LSL are set
+    if (newSpecs.usl !== undefined && newSpecs.lsl !== undefined && !displayOptions.showCp) {
+      setDisplayOptions({ ...displayOptions, showCp: true });
+    }
   };
 
   return (
@@ -149,6 +162,16 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = []
                     <div className="flex items-center gap-2 text-slate-300">
                       <BarChart3 size={18} className="text-purple-400" />
                       <span>Cp</span>
+                      <span className="tooltip-wrapper">
+                        <HelpCircle
+                          size={14}
+                          className="text-slate-500 hover:text-slate-300 cursor-help"
+                        />
+                        <span className="tooltip">
+                          Process Capability. Measures how well your process fits within spec
+                          limits. ≥1.33 is good.
+                        </span>
+                      </span>
                     </div>
                     <span
                       className={`text-xl font-bold ${stats.cp < 1.33 ? 'text-yellow-500' : 'text-green-500'}`}
@@ -163,6 +186,16 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = []
                     <div className="flex items-center gap-2 text-slate-300">
                       <TrendingUp size={18} className="text-blue-400" />
                       <span>Cpk</span>
+                      <span className="tooltip-wrapper">
+                        <HelpCircle
+                          size={14}
+                          className="text-slate-500 hover:text-slate-300 cursor-help"
+                        />
+                        <span className="tooltip">
+                          Process Capability Index. Like Cp, but accounts for centering. ≥1.33 is
+                          good.
+                        </span>
+                      </span>
                     </div>
                     <span
                       className={`text-xl font-bold ${stats?.cpk && stats.cpk < 1.33 ? 'text-yellow-500' : 'text-green-500'}`}

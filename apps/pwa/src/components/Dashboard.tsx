@@ -11,7 +11,11 @@ import { toBlob } from 'html-to-image';
 
 const MOBILE_BREAKPOINT = 640; // sm breakpoint
 
-const Dashboard = () => {
+interface DashboardProps {
+  onPointClick?: (index: number) => void;
+}
+
+const Dashboard = ({ onPointClick }: DashboardProps) => {
   const { outcome, factors, setOutcome, rawData, stats, specs, filteredData } = useData();
   const [isMobile, setIsMobile] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
@@ -84,6 +88,7 @@ const Dashboard = () => {
           filteredData={filteredData}
           onSetBoxplotFactor={setBoxplotFactor}
           onSetParetoFactor={setParetoFactor}
+          onPointClick={onPointClick}
         />
       </div>
     );
@@ -145,7 +150,7 @@ const Dashboard = () => {
         </div>
         <div id="ichart-container" className="h-[300px] lg:h-[calc(100%-3rem)] w-full">
           <ErrorBoundary componentName="I-Chart">
-            <IChart />
+            <IChart onPointClick={onPointClick} />
           </ErrorBoundary>
         </div>
       </div>

@@ -10,6 +10,7 @@ import Dashboard from './components/Dashboard';
 import HomeScreen from './components/HomeScreen';
 import AppHeader from './components/AppHeader';
 import AppFooter from './components/AppFooter';
+import FilterBar from './components/FilterBar';
 import { useDataIngestion } from './hooks/useDataIngestion';
 
 function App() {
@@ -32,12 +33,14 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
   const [isDataTableOpen, setIsDataTableOpen] = useState(false);
+  const [highlightRowIndex, setHighlightRowIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [saveInputName, setSaveInputName] = useState('');
   const [isLargeMode, setIsLargeMode] = useState(() => {
     return localStorage.getItem('variscout-large-mode') === 'true';
   });
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Toggle large mode class on root element
   useEffect(() => {
@@ -94,6 +97,55 @@ function App() {
     }
   }, [currentProjectName, saveProject]);
 
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMod = e.metaKey || e.ctrlKey;
+
+      // Escape: close any open modal
+      if (e.key === 'Escape') {
+        if (showSaveInput) setShowSaveInput(false);
+        else if (showResetConfirm) setShowResetConfirm(false);
+        else if (isSettingsOpen) setIsSettingsOpen(false);
+        else if (isProjectsOpen) setIsProjectsOpen(false);
+        else if (isDataTableOpen) setIsDataTableOpen(false);
+        return;
+      }
+
+      // Only trigger shortcuts when not in an input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      // ⌘/Ctrl+S: Save project
+      if (isMod && e.key === 's') {
+        e.preventDefault();
+        if (rawData.length > 0 && !isMapping) {
+          handleSaveToBrowser();
+        }
+      }
+
+      // ⌘/Ctrl+O: Open saved projects
+      if (isMod && e.key === 'o') {
+        e.preventDefault();
+        setIsProjectsOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    showSaveInput,
+    showResetConfirm,
+    isSettingsOpen,
+    isProjectsOpen,
+    isDataTableOpen,
+    rawData.length,
+    isMapping,
+    handleSaveToBrowser,
+  ]);
+
   const handleSaveWithName = useCallback(async () => {
     if (!saveInputName.trim()) return;
     setIsSaving(true);
@@ -148,6 +200,28 @@ function App() {
     setIsMapping(false);
   };
 
+  // Open data table with a specific row highlighted (from chart point click)
+  const openDataTableAtRow = useCallback((index: number) => {
+    setHighlightRowIndex(index);
+    setIsDataTableOpen(true);
+  }, []);
+
+  // Close data table and clear highlight
+  const handleCloseDataTable = useCallback(() => {
+    setIsDataTableOpen(false);
+    setHighlightRowIndex(null);
+  }, []);
+
+  // Reset confirmation handlers
+  const handleResetRequest = useCallback(() => {
+    setShowResetConfirm(true);
+  }, []);
+
+  const handleResetConfirm = useCallback(() => {
+    clearData();
+    setShowResetConfirm(false);
+  }, [clearData]);
+
   return (
     <div className="flex flex-col h-screen bg-slate-900 text-slate-200 font-sans selection:bg-blue-500/30">
       <AppHeader
@@ -158,13 +232,16 @@ function App() {
         isSaving={isSaving}
         onSaveToBrowser={handleSaveToBrowser}
         onOpenProjects={() => setIsProjectsOpen(true)}
-        onOpenDataTable={() => setIsDataTableOpen(true)}
+        onOpenDataTable={() => {
+          setHighlightRowIndex(null); // No highlight when opened from header
+          setIsDataTableOpen(true);
+        }}
         onDownloadFile={handleDownloadFile}
         onExportCSV={handleExportCSV}
         onExportImage={handleExport}
         onToggleLargeMode={() => setIsLargeMode(!isLargeMode)}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onReset={clearData}
+        onReset={handleResetRequest}
       />
 
       {/* Save name input modal */}
@@ -203,6 +280,42 @@ function App() {
         </div>
       )}
 
+      {/* Reset confirmation modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-4 w-full max-w-sm">
+            <h3 className="text-sm font-semibold text-white mb-2">Reset Analysis?</h3>
+            <p className="text-xs text-slate-400 mb-4">
+              {currentProjectName ? (
+                <>
+                  All unsaved changes to{' '}
+                  <strong className="text-slate-300">{currentProjectName}</strong> will be lost.
+                </>
+              ) : (
+                <>All data will be cleared. This cannot be undone.</>
+              )}
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleResetConfirm}
+                className="px-3 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filter Context Bar - shows active filters when Dashboard is visible */}
+      {rawData.length > 0 && !isMapping && <FilterBar />}
+
       {/* Main Content */}
       <main className="flex-1 overflow-hidden relative">
         {rawData.length === 0 ? (
@@ -221,13 +334,17 @@ function App() {
             onCancel={handleMappingCancel}
           />
         ) : (
-          <Dashboard />
+          <Dashboard onPointClick={openDataTableAtRow} />
         )}
       </main>
 
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       <SavedProjectsModal isOpen={isProjectsOpen} onClose={() => setIsProjectsOpen(false)} />
-      <DataTableModal isOpen={isDataTableOpen} onClose={() => setIsDataTableOpen(false)} />
+      <DataTableModal
+        isOpen={isDataTableOpen}
+        onClose={handleCloseDataTable}
+        highlightRowIndex={highlightRowIndex ?? undefined}
+      />
 
       <AppFooter filteredCount={filteredData.length} totalCount={rawData.length} />
     </div>
