@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { AlertCircle, CheckCircle2, TrendingUp, BarChart3, Settings2, Plus } from 'lucide-react';
-import { StatsResult } from '../logic/stats';
+import type { StatsResult } from '@variscout/core';
 import { useData } from '../context/DataContext';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';

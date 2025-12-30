@@ -7,7 +7,7 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { calculateStats, StatsResult } from '../logic/stats';
+import { calculateStats, type StatsResult } from '@variscout/core';
 import {
   autoSave,
   loadAutoSave,

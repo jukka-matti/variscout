@@ -3,7 +3,7 @@ import { CheckCircle2, TrendingUp, AlertCircle, BarChart3 } from 'lucide-react';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import { useData } from '../context/DataContext';
-import { StatsResult } from '../logic/stats';
+import type { StatsResult } from '@variscout/core';
 
 interface MobileStatsPanelProps {
   stats: StatsResult | null;

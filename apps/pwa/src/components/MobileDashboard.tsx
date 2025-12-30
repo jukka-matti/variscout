@@ -5,7 +5,7 @@ import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import MobileStatsPanel from './MobileStatsPanel';
 import ErrorBoundary from './ErrorBoundary';
-import { StatsResult } from '../logic/stats';
+import type { StatsResult } from '@variscout/core';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
