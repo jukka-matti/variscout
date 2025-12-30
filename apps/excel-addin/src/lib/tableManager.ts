@@ -8,16 +8,22 @@
 /**
  * Create an Excel Table from a data range
  *
- * @param rangeAddress - Address of the range (e.g., "Sheet1!A1:D100")
+ * @param sheetName - Name of the worksheet containing the data
+ * @param rangeAddress - Address of the range (e.g., "A1:D100")
  * @param tableName - Name for the table (must be unique in workbook)
  * @returns The created table name
  */
-export async function createTable(rangeAddress: string, tableName: string): Promise<string> {
+export async function createTable(
+  sheetName: string,
+  rangeAddress: string,
+  tableName: string
+): Promise<string> {
   return Excel.run(async context => {
-    const range = context.workbook.worksheets.getActiveWorksheet().getRange(rangeAddress);
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const range = sheet.getRange(rangeAddress);
 
     // Create table with headers in first row
-    const table = context.workbook.worksheets.getActiveWorksheet().tables.add(range, true);
+    const table = sheet.tables.add(range, true);
     table.name = tableName;
 
     // Style the table
@@ -31,12 +37,14 @@ export async function createTable(rangeAddress: string, tableName: string): Prom
 
 /**
  * Get table by name (or null if not found)
+ *
+ * @param sheetName - Name of the worksheet containing the table
+ * @param tableName - Name of the table
  */
-export async function getTable(tableName: string): Promise<Excel.Table | null> {
+export async function getTable(sheetName: string, tableName: string): Promise<Excel.Table | null> {
   return Excel.run(async context => {
-    const table = context.workbook.worksheets
-      .getActiveWorksheet()
-      .tables.getItemOrNullObject(tableName);
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const table = sheet.tables.getItemOrNullObject(tableName);
 
     await context.sync();
 
@@ -50,10 +58,14 @@ export async function getTable(tableName: string): Promise<Excel.Table | null> {
 
 /**
  * Get all column names from a table
+ *
+ * @param sheetName - Name of the worksheet containing the table
+ * @param tableName - Name of the table
  */
-export async function getTableColumns(tableName: string): Promise<string[]> {
+export async function getTableColumns(sheetName: string, tableName: string): Promise<string[]> {
   return Excel.run(async context => {
-    const table = context.workbook.worksheets.getActiveWorksheet().tables.getItem(tableName);
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const table = sheet.tables.getItem(tableName);
 
     const headerRange = table.getHeaderRowRange();
     headerRange.load('values');
@@ -66,13 +78,16 @@ export async function getTableColumns(tableName: string): Promise<string[]> {
 /**
  * Detect column types from table data
  *
+ * @param sheetName - Name of the worksheet containing the table
+ * @param tableName - Name of the table
  * @returns Object with arrays of numeric and categorical column names
  */
 export async function detectColumnTypes(
+  sheetName: string,
   tableName: string
 ): Promise<{ numeric: string[]; categorical: string[] }> {
   return Excel.run(async context => {
-    const sheet = context.workbook.worksheets.getActiveWorksheet();
+    const sheet = context.workbook.worksheets.getItem(sheetName);
     const table = sheet.tables.getItem(tableName);
 
     const headerRange = table.getHeaderRowRange();
@@ -123,13 +138,18 @@ export async function detectColumnTypes(
  *
  * Checks if the range is already part of a table;
  * if so, returns that table's name.
+ *
+ * @param sheetName - Name of the worksheet containing the range
+ * @param rangeAddress - Address of the range (e.g., "A1:D100")
+ * @param preferredName - Preferred name for the table (must be unique in workbook)
  */
 export async function ensureTable(
+  sheetName: string,
   rangeAddress: string,
   preferredName: string = 'VariScoutData'
 ): Promise<string> {
   return Excel.run(async context => {
-    const sheet = context.workbook.worksheets.getActiveWorksheet();
+    const sheet = context.workbook.worksheets.getItem(sheetName);
 
     // Check if range intersects with any existing table
     const tables = sheet.tables;
@@ -171,18 +191,20 @@ export async function ensureTable(
       counter++;
     }
 
-    return createTable(rangeAddress, uniqueName);
+    return createTable(sheetName, rangeAddress, uniqueName);
   });
 }
 
 /**
  * Delete a table (converts back to range)
+ *
+ * @param sheetName - Name of the worksheet containing the table
+ * @param tableName - Name of the table to delete
  */
-export async function deleteTable(tableName: string): Promise<void> {
+export async function deleteTable(sheetName: string, tableName: string): Promise<void> {
   return Excel.run(async context => {
-    const table = context.workbook.worksheets
-      .getActiveWorksheet()
-      .tables.getItemOrNullObject(tableName);
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const table = sheet.tables.getItemOrNullObject(tableName);
 
     await context.sync();
 
@@ -196,12 +218,14 @@ export async function deleteTable(tableName: string): Promise<void> {
 
 /**
  * Get the data range address of a table
+ *
+ * @param sheetName - Name of the worksheet containing the table
+ * @param tableName - Name of the table
  */
-export async function getTableRange(tableName: string): Promise<string | null> {
+export async function getTableRange(sheetName: string, tableName: string): Promise<string | null> {
   return Excel.run(async context => {
-    const table = context.workbook.worksheets
-      .getActiveWorksheet()
-      .tables.getItemOrNullObject(tableName);
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const table = sheet.tables.getItemOrNullObject(tableName);
 
     await context.sync();
 
@@ -219,12 +243,14 @@ export async function getTableRange(tableName: string): Promise<string | null> {
 
 /**
  * Get the row count of a table (excluding header)
+ *
+ * @param sheetName - Name of the worksheet containing the table
+ * @param tableName - Name of the table
  */
-export async function getTableRowCount(tableName: string): Promise<number> {
+export async function getTableRowCount(sheetName: string, tableName: string): Promise<number> {
   return Excel.run(async context => {
-    const table = context.workbook.worksheets
-      .getActiveWorksheet()
-      .tables.getItemOrNullObject(tableName);
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const table = sheet.tables.getItemOrNullObject(tableName);
 
     await context.sync();
 

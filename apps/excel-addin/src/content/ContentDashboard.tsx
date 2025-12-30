@@ -92,7 +92,7 @@ const ContentDashboard: React.FC<ContentDashboardProps> = ({ state }) => {
     setIsLoading(true);
     setError(null);
     errorCountRef.current = 0;
-  }, [state.tableName, state.outcomeColumn, state.factorColumns]);
+  }, [state.dataSheetName, state.tableName, state.outcomeColumn, state.factorColumns]);
 
   // Load data from Excel Table
   useEffect(() => {
@@ -101,6 +101,7 @@ const ContentDashboard: React.FC<ContentDashboardProps> = ({ state }) => {
     const loadData = async () => {
       try {
         const data = await getFilteredTableData(
+          state.dataSheetName,
           state.tableName,
           state.outcomeColumn,
           state.factorColumns
@@ -135,7 +136,7 @@ const ContentDashboard: React.FC<ContentDashboardProps> = ({ state }) => {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [state.tableName, state.outcomeColumn, state.factorColumns]);
+  }, [state.dataSheetName, state.tableName, state.outcomeColumn, state.factorColumns]);
 
   // Calculate statistics
   const stats = useMemo(() => {

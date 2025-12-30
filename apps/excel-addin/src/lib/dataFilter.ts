@@ -10,18 +10,20 @@
  *
  * Uses getVisibleView() to respect slicer/AutoFilter selections.
  *
+ * @param sheetName - Name of the worksheet containing the table
  * @param tableName - Name of the Excel Table
  * @param outcomeColumn - Column name for outcome variable
  * @param factorColumns - Column names for factor variables
  * @returns Array of row objects with specified columns
  */
 export async function getFilteredTableData(
+  sheetName: string,
   tableName: string,
   outcomeColumn: string,
   factorColumns: string[]
 ): Promise<Record<string, any>[]> {
   return Excel.run(async context => {
-    const sheet = context.workbook.worksheets.getActiveWorksheet();
+    const sheet = context.workbook.worksheets.getItem(sheetName);
     const table = sheet.tables.getItemOrNullObject(tableName);
     await context.sync();
 
@@ -80,16 +82,18 @@ export async function getFilteredTableData(
 /**
  * Get all unique values for a column (for filter UI)
  *
+ * @param sheetName - Name of the worksheet containing the table
  * @param tableName - Name of the Excel Table
  * @param columnName - Column name to get unique values from
  * @returns Array of unique values
  */
 export async function getColumnUniqueValues(
+  sheetName: string,
   tableName: string,
   columnName: string
 ): Promise<string[]> {
   return Excel.run(async context => {
-    const sheet = context.workbook.worksheets.getActiveWorksheet();
+    const sheet = context.workbook.worksheets.getItem(sheetName);
     const table = sheet.tables.getItem(tableName);
 
     // Get header to find column index
@@ -125,12 +129,13 @@ export async function getColumnUniqueValues(
 /**
  * Get row count for filtered data
  *
+ * @param sheetName - Name of the worksheet containing the table
  * @param tableName - Name of the Excel Table
  * @returns Number of visible rows
  */
-export async function getFilteredRowCount(tableName: string): Promise<number> {
+export async function getFilteredRowCount(sheetName: string, tableName: string): Promise<number> {
   return Excel.run(async context => {
-    const sheet = context.workbook.worksheets.getActiveWorksheet();
+    const sheet = context.workbook.worksheets.getItem(sheetName);
     const table = sheet.tables.getItemOrNullObject(tableName);
     await context.sync();
 

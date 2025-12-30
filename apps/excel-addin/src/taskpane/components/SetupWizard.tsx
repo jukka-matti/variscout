@@ -128,6 +128,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
 
   // Step 1: Data state
   const [rangeAddress, setRangeAddress] = useState<string>('');
+  const [dataSheetName, setDataSheetName] = useState<string>('');
   const [tableName, setTableName] = useState<string>('');
 
   // Step 2: Column configuration
@@ -169,11 +170,13 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     setError(null);
 
     try {
-      const address = await Excel.run(async context => {
+      const { address, sheetName } = await Excel.run(async context => {
         const range = context.workbook.getSelectedRange();
+        const sheet = range.worksheet;
         range.load('address');
+        sheet.load('name');
         await context.sync();
-        return range.address;
+        return { address: range.address, sheetName: sheet.name };
       });
 
       if (!address) {
@@ -182,13 +185,14 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
       }
 
       setRangeAddress(address);
+      setDataSheetName(sheetName);
 
       // Create or get table
-      const name = await ensureTable(address, 'VariScoutData');
+      const name = await ensureTable(sheetName, address, 'VariScoutData');
       setTableName(name);
 
       // Detect column types
-      const types = await detectColumnTypes(name);
+      const types = await detectColumnTypes(sheetName, name);
       setNumericColumns(types.numeric);
       setCategoricalColumns(types.categorical);
 
@@ -230,7 +234,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
 
     try {
       if (createSlicers && slicerSupported && factorColumns.length > 0) {
-        const names = await createSlicerRow(tableName, factorColumns);
+        const names = await createSlicerRow(dataSheetName, tableName, factorColumns);
         setSlicerNames(names);
       }
       setCurrentStep('specs');
@@ -240,7 +244,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     } finally {
       setIsLoading(false);
     }
-  }, [createSlicers, slicerSupported, factorColumns, tableName]);
+  }, [createSlicers, slicerSupported, factorColumns, dataSheetName, tableName]);
 
   // Step 4 → Complete: Save state
   const handleSpecsNext = useCallback(async () => {
@@ -298,7 +302,13 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
         return;
       }
 
-      const state = createInitialState(rangeAddress, tableName, outcomeColumn, factorColumns);
+      const state = createInitialState(
+        rangeAddress,
+        dataSheetName,
+        tableName,
+        outcomeColumn,
+        factorColumns
+      );
       state.specs = specs;
       state.slicerNames = slicerNames;
 
@@ -320,6 +330,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     target,
     cpkTarget,
     rangeAddress,
+    dataSheetName,
     tableName,
     outcomeColumn,
     factorColumns,
@@ -577,11 +588,49 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
           </div>
           <Body1 className={styles.stepTitle}>Setup Complete!</Body1>
           <Body2 style={{ marginTop: tokens.spacingVerticalM }}>
-            Your data is configured. The charts will now respond to slicer selections.
+            Your data is configured. The charts will respond to slicer selections.
           </Body2>
-          <Body2 style={{ marginTop: tokens.spacingVerticalS }}>
-            To view charts, insert the VariScout Charts content add-in into your worksheet.
+          <Body2
+            style={{
+              marginTop: tokens.spacingVerticalL,
+              fontWeight: tokens.fontWeightSemibold,
+            }}
+          >
+            To view charts, insert the VariScout Charts add-in:
           </Body2>
+          <ol
+            style={{
+              marginTop: tokens.spacingVerticalS,
+              marginBottom: 0,
+              paddingLeft: tokens.spacingHorizontalL,
+              color: tokens.colorNeutralForeground2,
+              fontSize: tokens.fontSizeBase200,
+              lineHeight: '1.6',
+            }}
+          >
+            <li>
+              In Excel ribbon, click <strong>Insert</strong> → <strong>Add-ins</strong> (or{' '}
+              <strong>Get Add-ins</strong>)
+            </li>
+            <li>
+              Go to <strong>My Add-ins</strong> tab
+            </li>
+            <li>
+              Find and select <strong>VariScout Charts</strong>
+            </li>
+            <li>
+              Click <strong>Add</strong> to insert charts into your worksheet
+            </li>
+          </ol>
+          <Caption1
+            style={{
+              marginTop: tokens.spacingVerticalM,
+              color: tokens.colorNeutralForeground3,
+              display: 'block',
+            }}
+          >
+            Tip: Position your cursor where you want the charts before inserting.
+          </Caption1>
         </Card>
       )}
 

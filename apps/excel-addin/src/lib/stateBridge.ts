@@ -10,6 +10,8 @@ export interface AddInState {
   version: number;
   /** Address of the data range (e.g., "Sheet1!A1:D100") */
   dataRange: string;
+  /** Name of the worksheet containing the data */
+  dataSheetName: string;
   /** Name of the Excel Table */
   tableName: string;
   /** Column name for outcome (Y variable) */
@@ -113,6 +115,7 @@ export async function clearAddInState(): Promise<void> {
  */
 export function createInitialState(
   dataRange: string,
+  dataSheetName: string,
   tableName: string,
   outcomeColumn: string,
   factorColumns: string[] = []
@@ -120,6 +123,7 @@ export function createInitialState(
   return {
     version: 1,
     dataRange,
+    dataSheetName,
     tableName,
     outcomeColumn,
     factorColumns,

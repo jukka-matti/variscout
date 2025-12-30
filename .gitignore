@@ -127,3 +127,6 @@ dist
 
 # Generated production manifests (Excel Add-in)
 *.prod.xml
+
+# Office Add-in dev certificates
+.cert/
