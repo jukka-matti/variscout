@@ -105,7 +105,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
       {/* Menu */}
       <div
         ref={menuRef}
-        className="fixed right-2 top-14 w-64 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50 sm:hidden animate-slide-up"
+        className="fixed right-2 top-14 w-64 max-h-[80vh] bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-y-auto z-50 sm:hidden animate-slide-up"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
