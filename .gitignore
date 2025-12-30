@@ -124,6 +124,7 @@ dist
 
 # AI/LLM
 .gemini_brain
+.claude/CLAUDE.local.md
 
 # Generated production manifests (Excel Add-in)
 *.prod.xml

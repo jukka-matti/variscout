@@ -1,0 +1,13 @@
+# Local Claude Code Preferences
+
+Copy this file to `CLAUDE.local.md` (gitignored) for personal settings.
+
+## Example Preferences
+
+```markdown
+# My VariScout Preferences
+
+- Prefer concise responses
+- Use TypeScript strict patterns
+- Run tests before committing
+```
