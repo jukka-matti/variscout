@@ -4,6 +4,19 @@ import Dashboard from '../Dashboard';
 import { DataProvider } from '../../context/DataContext';
 import * as DataContextModule from '../../context/DataContext'; // Import entire module
 
+// Mock react-resizable-panels to avoid CSS style issues in jsdom
+vi.mock('react-resizable-panels', () => ({
+  Group: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <div data-testid="panel-group" className={className}>
+      {children}
+    </div>
+  ),
+  Panel: ({ children }: { children: React.ReactNode }) => <div data-testid="panel">{children}</div>,
+  Separator: ({ className }: { className?: string }) => (
+    <div data-testid="separator" className={className} />
+  ),
+}));
+
 // Mock the Visual Charts
 vi.mock('../charts/IChart', () => ({
   default: () => <div data-testid="i-chart">I-Chart Mock</div>,
@@ -72,6 +85,8 @@ describe('Dashboard Component - With Data', () => {
       currentProjectId: null,
       currentProjectName: null,
       hasUnsavedChanges: false,
+      dataFilename: null,
+      setDataFilename: vi.fn(),
       saveProject: vi.fn(),
       loadProject: vi.fn(),
       listProjects: vi.fn(),

@@ -4,6 +4,8 @@ import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Bar } from '@visx/shape';
 import { withParentSize } from '@visx/responsive';
+import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
+import { localPoint } from '@visx/event';
 import { getResponsiveMargins, getResponsiveFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 
@@ -30,6 +32,7 @@ interface BarData {
   label: string;
   value: number;
   color: string;
+  description: string;
 }
 
 /**
@@ -57,15 +60,33 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
   );
   const fonts = getResponsiveFonts(parentWidth);
 
+  const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
+    useTooltip<BarData>();
+
   const width = Math.max(0, parentWidth - margin.left - margin.right);
   const height = Math.max(0, parentHeight - margin.top - margin.bottom);
 
   // Data for horizontal bars
   const barData: BarData[] = useMemo(
     () => [
-      { label: 'Part-to-Part', value: pctPart, color: '#22c55e' }, // green-500
-      { label: 'Repeatability', value: pctRepeatability, color: '#3b82f6' }, // blue-500
-      { label: 'Reproducibility', value: pctReproducibility, color: '#f59e0b' }, // amber-500
+      {
+        label: 'Part-to-Part',
+        value: pctPart,
+        color: '#22c55e',
+        description: 'Actual variation between parts',
+      },
+      {
+        label: 'Repeatability',
+        value: pctRepeatability,
+        color: '#3b82f6',
+        description: 'Equipment variation (same operator, same part)',
+      },
+      {
+        label: 'Reproducibility',
+        value: pctReproducibility,
+        color: '#f59e0b',
+        description: 'Operator variation (different operators)',
+      },
     ],
     [pctPart, pctRepeatability, pctReproducibility]
   );
@@ -93,6 +114,16 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
 
   if (parentWidth < 100 || parentHeight < 100) return null;
 
+  const handleMouseMove = (event: React.MouseEvent, data: BarData) => {
+    const coords = localPoint(event);
+    if (!coords) return;
+    showTooltip({
+      tooltipData: data,
+      tooltipLeft: coords.x,
+      tooltipTop: coords.y,
+    });
+  };
+
   return (
     <>
       <svg width={parentWidth} height={parentHeight}>
@@ -115,7 +146,17 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
                   rx={4}
                 />
                 {/* Value bar */}
-                <Bar x={0} y={y} width={barWidth} height={barHeight} fill={d.color} rx={4} />
+                <Bar
+                  x={0}
+                  y={y}
+                  width={barWidth}
+                  height={barHeight}
+                  fill={d.color}
+                  rx={4}
+                  style={{ cursor: 'pointer' }}
+                  onMouseMove={e => handleMouseMove(e, d)}
+                  onMouseLeave={hideTooltip}
+                />
                 {/* Percentage label on right */}
                 <text
                   x={width + 8}
@@ -187,6 +228,31 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
           />
         )}
       </svg>
+
+      {/* Tooltip */}
+      {tooltipOpen && tooltipData && (
+        <TooltipWithBounds
+          left={tooltipLeft}
+          top={tooltipTop}
+          style={{
+            ...defaultStyles,
+            background: '#1e293b',
+            border: '1px solid #334155',
+            color: '#f1f5f9',
+            fontSize: 12,
+            padding: '8px 12px',
+            maxWidth: 200,
+          }}
+        >
+          <div style={{ fontWeight: 600, marginBottom: 4, color: tooltipData.color }}>
+            {tooltipData.label}
+          </div>
+          <div style={{ marginBottom: 4 }}>
+            <strong>{tooltipData.value.toFixed(1)}%</strong> of total variation
+          </div>
+          <div style={{ fontSize: 11, color: '#94a3b8' }}>{tooltipData.description}</div>
+        </TooltipWithBounds>
+      )}
     </>
   );
 };

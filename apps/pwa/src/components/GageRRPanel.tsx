@@ -173,7 +173,7 @@ const GageRRPanel: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
             {/* Left column: Variance breakdown chart + stats */}
             <div className="flex flex-col gap-4">
               {/* %GRR Result card */}
@@ -218,7 +218,7 @@ const GageRRPanel: React.FC = () => {
                       pctRepeatability={result.pctRepeatability}
                       pctReproducibility={result.pctReproducibility}
                       pctGRR={result.pctGRR}
-                      showBranding={false}
+                      showBranding={true}
                     />
                   </ErrorBoundary>
                 </div>

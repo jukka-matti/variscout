@@ -12,9 +12,9 @@
     "lint:fix": "eslint src --fix"
   },
   "dependencies": {
+    "@types/react-window": "^1.8.8",
     "@variscout/charts": "workspace:*",
     "@variscout/core": "workspace:*",
-    "@types/react-window": "^1.8.8",
     "@visx/axis": "^3.12.0",
     "@visx/brush": "^3.12.0",
     "@visx/grid": "^3.12.0",
@@ -32,6 +32,7 @@
     "papaparse": "^5.4.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-resizable-panels": "^4.2.0",
     "react-window": "^2.2.3",
     "tailwind-merge": "^2.3.0",
     "xlsx": "^0.18.5"

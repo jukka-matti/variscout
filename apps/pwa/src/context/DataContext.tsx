@@ -42,6 +42,8 @@ interface DataContextType {
   currentProjectId: string | null;
   currentProjectName: string | null;
   hasUnsavedChanges: boolean;
+  dataFilename: string | null;
+  setDataFilename: (filename: string | null) => void;
   setRawData: (data: any[]) => void;
   setOutcome: (col: string) => void;
   setFactors: (cols: string[]) => void;
@@ -84,6 +86,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [currentProjectName, setCurrentProjectName] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [dataFilename, setDataFilename] = useState<string | null>(null);
   const isInitialized = useRef(false);
 
   const filteredData = useMemo(() => {
@@ -271,6 +274,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // New project (clear everything)
   const newProject = useCallback((): void => {
     setRawData([]);
+    setDataFilename(null);
     setOutcome(null);
     setFactors([]);
     setSpecs({});
@@ -305,6 +309,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentProjectId,
         currentProjectName,
         hasUnsavedChanges,
+        dataFilename,
+        setDataFilename,
         setRawData,
         setOutcome,
         setFactors,

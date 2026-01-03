@@ -8,7 +8,8 @@ const ROW_WARNING_THRESHOLD = 5000;
 const ROW_HARD_LIMIT = 50000;
 
 export const useDataIngestion = () => {
-  const { setRawData, setOutcome, setFactors, setSpecs, setGrades, setFilters } = useData();
+  const { setRawData, setOutcome, setFactors, setSpecs, setGrades, setFilters, setDataFilename } =
+    useData();
 
   const handleFileUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>): Promise<boolean> => {
@@ -39,6 +40,7 @@ export const useDataIngestion = () => {
           }
 
           setRawData(data);
+          setDataFilename(file.name);
           const detected = detectColumns(data);
           if (detected.outcome) setOutcome(detected.outcome);
           if (detected.factors.length > 0) setFactors(detected.factors);
@@ -51,28 +53,30 @@ export const useDataIngestion = () => {
         return false;
       }
     },
-    [setRawData, setOutcome, setFactors]
+    [setRawData, setDataFilename, setOutcome, setFactors]
   );
 
   const loadSample = useCallback(
     (sample: SampleDataset) => {
       setRawData(sample.data);
+      setDataFilename(sample.name);
       setOutcome(sample.config.outcome);
       setFactors(sample.config.factors);
       setSpecs(sample.config.specs);
       setGrades(sample.config.grades || []);
     },
-    [setRawData, setOutcome, setFactors, setSpecs, setGrades]
+    [setRawData, setDataFilename, setOutcome, setFactors, setSpecs, setGrades]
   );
 
   const clearData = useCallback(() => {
     setRawData([]);
+    setDataFilename(null);
     setOutcome('');
     setFactors([]);
     setSpecs({});
     setGrades([]);
     setFilters({});
-  }, [setRawData, setOutcome, setFactors, setSpecs, setGrades, setFilters]);
+  }, [setRawData, setDataFilename, setOutcome, setFactors, setSpecs, setGrades, setFilters]);
 
   return {
     handleFileUpload,

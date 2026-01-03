@@ -21,6 +21,7 @@ function App() {
     specs,
     currentProjectName,
     hasUnsavedChanges,
+    dataFilename,
     saveProject,
     exportProject,
     importProject,
@@ -228,6 +229,8 @@ function App() {
         currentProjectName={currentProjectName}
         hasUnsavedChanges={hasUnsavedChanges}
         hasData={rawData.length > 0}
+        dataFilename={dataFilename}
+        rowCount={rawData.length}
         isLargeMode={isLargeMode}
         isSaving={isSaving}
         onSaveToBrowser={handleSaveToBrowser}

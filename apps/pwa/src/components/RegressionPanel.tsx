@@ -215,7 +215,7 @@ const RegressionPanel: React.FC = () => {
               return (
                 <div
                   key={result.xColumn}
-                  className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden flex flex-col min-h-[250px]"
+                  className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden flex flex-col min-h-[280px]"
                 >
                   <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700/50">
                     <span className="text-xs font-medium text-slate-300 truncate">

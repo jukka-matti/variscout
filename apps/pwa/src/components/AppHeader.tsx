@@ -19,6 +19,8 @@ interface AppHeaderProps {
   currentProjectName: string | null;
   hasUnsavedChanges: boolean;
   hasData: boolean;
+  dataFilename: string | null;
+  rowCount: number;
   isLargeMode: boolean;
   isSaving: boolean;
   onSaveToBrowser: () => void;
@@ -40,6 +42,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   currentProjectName,
   hasUnsavedChanges,
   hasData,
+  dataFilename,
+  rowCount,
   isLargeMode,
   isSaving,
   onSaveToBrowser,
@@ -64,10 +68,21 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
             VariScout <span className="font-light text-slate-500">Lite</span>
           </h1>
-          {currentProjectName && (
-            <span className="text-[10px] sm:text-xs text-slate-500 truncate max-w-[120px] sm:max-w-none">
-              {currentProjectName}
-              {hasUnsavedChanges && ' *'}
+          {(currentProjectName || dataFilename) && (
+            <span className="text-[10px] sm:text-xs text-slate-500 truncate max-w-[150px] sm:max-w-none flex items-center gap-1">
+              {currentProjectName ? (
+                <>
+                  {currentProjectName}
+                  {hasUnsavedChanges && ' *'}
+                </>
+              ) : dataFilename ? (
+                <>
+                  {dataFilename}
+                  {rowCount > 0 && (
+                    <span className="text-slate-600">({rowCount.toLocaleString()} rows)</span>
+                  )}
+                </>
+              ) : null}
             </span>
           )}
         </div>
