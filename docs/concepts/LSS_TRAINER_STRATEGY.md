@@ -291,4 +291,4 @@ These features are not available in Minitab:
 
 - [Specs.md](../../Specs.md) — Current feature specifications
 - [POWER_BI_STRATEGY.md](POWER_BI_STRATEGY.md) — Power BI Custom Visual strategy
-- [MONETIZATION_CONCEPT.md](MONETIZATION_CONCEPT.md) — Pricing and monetization
+- [SUBSCRIPTION_LICENSING.md](SUBSCRIPTION_LICENSING.md) — Licensing and pricing

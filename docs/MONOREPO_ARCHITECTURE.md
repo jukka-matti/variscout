@@ -250,11 +250,11 @@ Shared TypeScript configuration extended by all packages:
 
 VariScout Lite supports three editions controlled by build-time and runtime configuration:
 
-| Edition       | Branding                            | Distribution           | Price |
-| ------------- | ----------------------------------- | ---------------------- | ----- |
-| **Community** | "VariScout Lite" footer             | Public web             | Free  |
-| **ITC**       | "International Trade Centre" footer | ITC network            | Free  |
-| **Licensed**  | No branding                         | License key activation | €39   |
+| Edition       | Branding                            | Distribution           | Price    |
+| ------------- | ----------------------------------- | ---------------------- | -------- |
+| **Community** | "VariScout Lite" footer             | Public web             | Free     |
+| **ITC**       | "International Trade Centre" footer | ITC network            | Free     |
+| **Licensed**  | No branding                         | License key activation | €49/year |
 
 **Build-time:** Set `VITE_EDITION` environment variable
 **Runtime:** License key can upgrade Community → Licensed
@@ -297,4 +297,4 @@ See `packages/core/src/edition.ts` for implementation.
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - High-level technical architecture
 - [Excel Add-in Strategy](concepts/EXCEL_ADDIN_STRATEGY.md) - PWA vs Excel Add-in comparison, Hybrid approach decision
 - [Excel Copilot Concept](concepts/EXCEL_COPILOT_CONCEPT.md) - Copilot integration vision
-- [Monetization Concept](concepts/MONETIZATION_CONCEPT.md) - Business and pricing strategy
+- [Subscription Licensing](concepts/SUBSCRIPTION_LICENSING.md) - Licensing and pricing strategy

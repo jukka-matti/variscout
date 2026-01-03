@@ -438,7 +438,7 @@ const App: React.FC = () => {
                 <Body2 style={{ color: tokens.colorPaletteRedForeground1 }}>{licenseError}</Body2>
               )}
               <Link href="https://variscout.com/buy" target="_blank" className={styles.buyLink}>
-                Don't have a license? Buy one (€39)
+                Don't have a license? Buy one (€49/year)
               </Link>
             </>
           )}

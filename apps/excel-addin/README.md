@@ -141,5 +141,5 @@ See [EXCEL_ADDIN_STRATEGY.md](../../docs/concepts/EXCEL_ADDIN_STRATEGY.md) for f
 
 - [Excel Add-in Strategy](../../docs/concepts/EXCEL_ADDIN_STRATEGY.md) - Strategic analysis and decision
 - [Excel Copilot Concept](../../docs/concepts/EXCEL_COPILOT_CONCEPT.md) - Copilot integration vision
-- [Monetization Concept](../../docs/concepts/MONETIZATION_CONCEPT.md) - Licensing approach
+- [Subscription Licensing](../../docs/concepts/SUBSCRIPTION_LICENSING.md) - Licensing and pricing
 - [Monorepo Architecture](../../docs/MONOREPO_ARCHITECTURE.md) - Package structure

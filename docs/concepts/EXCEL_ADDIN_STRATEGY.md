@@ -300,5 +300,5 @@ apps/
 ### Related Documents
 
 - [Excel Copilot Concept](./EXCEL_COPILOT_CONCEPT.md) - Vision and Copilot integration
-- [Monetization Concept](./MONETIZATION_CONCEPT.md) - Licensing and pricing strategy
+- [Subscription Licensing](./SUBSCRIPTION_LICENSING.md) - Licensing and pricing strategy
 - [Monorepo Architecture](../MONOREPO_ARCHITECTURE.md) - Package structure

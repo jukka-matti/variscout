@@ -112,7 +112,7 @@ Power BI AppSource supports tiered licensing based on user count:
 | Department | €999/year   | Up to 50 users  |
 | Enterprise | €1,999/year | Unlimited users |
 
-See [MONETIZATION_CONCEPT.md](MONETIZATION_CONCEPT.md) for full pricing details.
+See [SUBSCRIPTION_LICENSING.md](SUBSCRIPTION_LICENSING.md) for full pricing details.
 
 ---
 
@@ -143,5 +143,5 @@ After Power BI success, the same core logic can be adapted for:
 ## Related Documentation
 
 - [LSS_TRAINER_STRATEGY.md](LSS_TRAINER_STRATEGY.md) — Core feature roadmap
-- [MONETIZATION_CONCEPT.md](MONETIZATION_CONCEPT.md) — Pricing and monetization
+- [SUBSCRIPTION_LICENSING.md](SUBSCRIPTION_LICENSING.md) — Licensing and pricing
 - [EXCEL_ADDIN_STRATEGY.md](EXCEL_ADDIN_STRATEGY.md) — Excel Add-in architecture

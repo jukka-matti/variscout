@@ -746,6 +746,5 @@ function verifyPaddleSignature(rawBody: string, signature: string, secret: strin
 
 ## Related Documentation
 
-- [MONETIZATION_CONCEPT.md](MONETIZATION_CONCEPT.md) - Original monetization strategy
 - [ARCHITECTURE.md](../../ARCHITECTURE.md) - Technical architecture
 - [MONOREPO_ARCHITECTURE.md](../MONOREPO_ARCHITECTURE.md) - Package structure
