@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  calculateStats,
-  calculateAnova,
-  calculateRegression,
-  calculateGageRR,
-} from '@variscout/core';
+import { calculateStats, calculateAnova, calculateRegression, calculateGageRR } from '../stats';
 
 describe('Stats Engine', () => {
   it('should calculate basic stats for a normal distribution', () => {

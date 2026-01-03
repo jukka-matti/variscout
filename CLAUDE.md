@@ -53,17 +53,18 @@ variscout-lite/
 
 ## Key Files
 
-| File                                      | Purpose                                        |
-| ----------------------------------------- | ---------------------------------------------- |
-| `packages/core/src/stats.ts`              | Statistics engine (mean, Cp, Cpk, conformance) |
-| `packages/core/src/types.ts`              | Shared TypeScript interfaces                   |
-| `packages/charts/src/`                    | IChart, Boxplot, ParetoChart, responsive utils |
-| `apps/pwa/src/context/DataContext.tsx`    | Central state management                       |
-| `apps/excel-addin/src/lib/stateBridge.ts` | Excel state sync                               |
-| `docs/concepts/LSS_TRAINER_STRATEGY.md`   | Green Belt training feature roadmap            |
-| `docs/concepts/POWER_BI_STRATEGY.md`      | Power BI Custom Visual strategy                |
-| `docs/concepts/SUBSCRIPTION_LICENSING.md` | Paddle integration, license key system         |
-| `docs/technical/`                         | PWA storage, deployment, implementation specs  |
+| File                                        | Purpose                                        |
+| ------------------------------------------- | ---------------------------------------------- |
+| `packages/core/src/stats.ts`                | Statistics engine (mean, Cp, Cpk, conformance) |
+| `packages/core/src/__tests__/stats.test.ts` | Unit tests for statistics engine               |
+| `packages/core/src/types.ts`                | Shared TypeScript interfaces                   |
+| `packages/charts/src/`                      | IChart, Boxplot, ParetoChart, responsive utils |
+| `apps/pwa/src/context/DataContext.tsx`      | Central state management                       |
+| `apps/excel-addin/src/lib/stateBridge.ts`   | Excel state sync                               |
+| `docs/concepts/LSS_TRAINER_STRATEGY.md`     | Green Belt training feature roadmap            |
+| `docs/concepts/POWER_BI_STRATEGY.md`        | Power BI Custom Visual strategy                |
+| `docs/concepts/SUBSCRIPTION_LICENSING.md`   | Paddle integration, license key system         |
+| `docs/technical/`                           | PWA storage, deployment, testing strategy      |
 
 > Use `Read` tool to examine these files when needed.
 

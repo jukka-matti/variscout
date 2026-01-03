@@ -11,6 +11,7 @@ Technical specifications for VaRiScout implementation. These documents are desig
 | Document                                | Description                                            |
 | --------------------------------------- | ------------------------------------------------------ |
 | `PWA_STORAGE.md`                        | IndexedDB schema, project storage, offline capability  |
+| `TESTING_STRATEGY.md`                   | Testing philosophy, patterns, and ownership by package |
 | `../concepts/SUBSCRIPTION_LICENSING.md` | Paddle integration, license key generation, validation |
 
 ---
