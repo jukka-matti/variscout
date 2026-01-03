@@ -4,8 +4,9 @@ import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import MobileStatsPanel from './MobileStatsPanel';
+import AnovaResults from './AnovaResults';
 import ErrorBoundary from './ErrorBoundary';
-import type { StatsResult } from '@variscout/core';
+import type { StatsResult, AnovaResult } from '@variscout/core';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
@@ -17,6 +18,7 @@ interface MobileDashboardProps {
   boxplotFactor: string;
   paretoFactor: string;
   filteredData: any[];
+  anovaResult: AnovaResult | null;
   onSetBoxplotFactor: (f: string) => void;
   onSetParetoFactor: (f: string) => void;
   onPointClick?: (index: number) => void;
@@ -30,6 +32,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   boxplotFactor,
   paretoFactor,
   filteredData,
+  anovaResult,
   onSetBoxplotFactor,
   onSetParetoFactor,
   onPointClick,
@@ -150,8 +153,8 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       )}
 
       {/* Chart Content Area */}
-      <div className="flex-1 min-h-0 p-2 overflow-hidden">
-        <div className="h-full bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
+      <div className="flex-1 min-h-0 p-2 overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
           <ErrorBoundary componentName={views.find(v => v.key === activeView)?.label || ''}>
             {activeView === 'ichart' && <IChart onPointClick={onPointClick} />}
             {activeView === 'boxplot' && boxplotFactor && <Boxplot factor={boxplotFactor} />}
@@ -166,6 +169,11 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
             )}
           </ErrorBoundary>
         </div>
+        {activeView === 'boxplot' && anovaResult && (
+          <div className="flex-none mt-2">
+            <AnovaResults result={anovaResult} factorLabel={boxplotFactor} />
+          </div>
+        )}
       </div>
 
       {/* Swipe Indicator Dots */}

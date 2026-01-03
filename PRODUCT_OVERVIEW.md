@@ -11,6 +11,7 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 ## What We Built
 
 ### Core Analysis Dashboard
+
 - **I-Chart**: Time series with auto-calculated control limits (UCL/LCL)
 - **Boxplot**: Factor comparison (e.g., Farm A vs Farm B)
 - **Pareto**: Frequency analysis for categorical data
@@ -18,25 +19,30 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 - **Interactive Labels**: Rename axes and categories directly on the chart
 
 ### Data Input
+
 - **File Import**: Drag-and-drop CSV and Excel (.xlsx)
 - **Manual Entry**: Direct data entry with running statistics, keyboard navigation, and spec compliance feedback (56px touch targets for tablets)
 - **Paste from Excel**: Tab-separated data supported
 
 ### Export Options
+
 - **PNG Export**: Save charts as images for reports
 - **CSV Export**: Excel-compatible data export with row numbers and spec status
 - **Project Files**: Save/load as .vrs files for sharing
 
 ### Display Modes
+
 - **Large Mode**: Toggle 30% larger fonts for presentations and training sessions
 - **Normal Mode**: Dense information display for analysis work
 
 ### Capability Analysis
+
 - **Cp/Cpk Metrics**: Configurable process capability indices (toggle in Stats Panel)
 - **Capability Histogram**: Visual distribution analysis with spec limits overlay (tab in Stats Panel)
 - **Spec Editor**: Contextual editing of USL/LSL and Multi-Tier Grades directly in the analysis view
 
 ### Data Table
+
 - **View Data**: Excel-like table view of all imported data
 - **Inline Editing**: Click any cell to edit values
 - **Keyboard Navigation**: Tab/Enter to move between cells
@@ -44,6 +50,7 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 - **Row Operations**: Add and delete rows
 
 ### Persistence
+
 - **Auto-save**: Crash recovery via localStorage
 - **Named Projects**: Save multiple analyses to browser storage (IndexedDB)
 - **File Backup**: Download .vrs files for external backup
@@ -53,12 +60,14 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 ## What We Chose NOT to Build
 
 Based on UX research, we considered a complex 4-mode architecture with:
+
 - Field Mode (touch-optimized data entry)
 - Analysis Mode (command palette, templates)
 - Presentation Mode (annotations, insight cards)
 - Certification Mode (audit trails, compliance packages)
 
 **We rejected this approach** because:
+
 1. It added complexity without proportional value
 2. The core tool already serves the main use cases
 3. Simple enhancements (Large Mode, Manual Entry improvements) addressed the key needs
@@ -72,10 +81,10 @@ The exploratory design is archived in `docs/archive/PRODUCT_CONCEPTS_v1_abandone
 
 Based on UX research with quality professionals in developing countries:
 
-| Persona | Role | Key Need |
-|---------|------|----------|
-| **Grace** | QA Manager (Kenya) | Reduce 4-hour Excel work to 1 hour |
-| **Raj** | Quality Engineer (India) | Real-time variation monitoring |
+| Persona    | Role                             | Key Need                              |
+| ---------- | -------------------------------- | ------------------------------------- |
+| **Grace**  | QA Manager (Kenya)               | Reduce 4-hour Excel work to 1 hour    |
+| **Raj**    | Quality Engineer (India)         | Real-time variation monitoring        |
 | **Carlos** | Training Coordinator (Guatemala) | Explain quality data to farmer groups |
 
 See `UX_RESEARCH.md` for detailed personas, JTBD, and use cases.
@@ -97,14 +106,14 @@ See `UX_RESEARCH.md` for detailed personas, JTBD, and use cases.
 
 ## Technical Highlights
 
-| Aspect | Implementation |
-|--------|----------------|
-| Runtime | PWA with Service Worker |
+| Aspect    | Implementation            |
+| --------- | ------------------------- |
+| Runtime   | PWA with Service Worker   |
 | Framework | React + TypeScript + Vite |
-| Styling | Tailwind CSS |
-| Charts | Visx (D3 primitives) |
-| Storage | IndexedDB + localStorage |
-| Bundle | ~700KB gzipped |
+| Styling   | Tailwind CSS              |
+| Charts    | Visx (D3 primitives)      |
+| Storage   | IndexedDB + localStorage  |
+| Bundle    | ~700KB gzipped            |
 
 ---
 
@@ -128,8 +137,40 @@ src/
 
 ---
 
-*See also:*
+## Strategic Direction: LSS Training Market
+
+### The Opportunity
+
+VaRiScout Lite is positioned as a lightweight alternative to Minitab for Lean Six Sigma training programs. Rather than competing on statistical test coverage (a battle Minitab wins after 30 years), we differentiate through superior UX, plain-language insights, and zero-friction deployment.
+
+### Trainer Pain Points We Solve
+
+| Minitab Pain                            | VaRiScout Solution            |
+| --------------------------------------- | ----------------------------- |
+| Expensive per-seat licensing            | Free/cheap for classroom use  |
+| Students fight the UI                   | Clean, obvious interface      |
+| "Which menu is that test under?"        | Guided workflows              |
+| Output requires interpretation training | Plain-language insights       |
+| Installation headaches                  | Browser-based, works anywhere |
+
+### Planned Features
+
+Three features required for complete Green Belt training coverage:
+
+| Feature             | Purpose                                       |
+| ------------------- | --------------------------------------------- |
+| ANOVA integration   | Statistical confirmation of group differences |
+| Regression analysis | Multi-factor comparison with auto-fit         |
+| Gage R&R            | Measurement system analysis                   |
+
+See [LSS Trainer Strategy](docs/concepts/LSS_TRAINER_STRATEGY.md) for detailed specifications.
+
+---
+
+_See also:_
+
 - `README.md` - Quick start and installation
 - `ARCHITECTURE.md` - Technical architecture details
 - `UX_RESEARCH.md` - User research, personas, JTBD
 - `Specs.md` - Detailed functional specifications
+- `docs/concepts/LSS_TRAINER_STRATEGY.md` - Green Belt training roadmap

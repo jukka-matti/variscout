@@ -1,14 +1,67 @@
-# Concept: VariScout Excel Add-in Monetization
+# VaRiScout Monetization Strategy
 
 **Status:** Concept / Planning
-**Date:** December 2024
-**Author:** Product Team
+**Date:** January 2026
+**Version:** 2.0
 
 ---
 
-## Overview
+## Architecture Principle
 
-Two complementary monetization approaches for the VariScout Excel add-in:
+All VaRiScout products are client-side only. No backend, no database, no user data on any server. Static files are served, everything runs in the browser. User data never leaves their device.
+
+This is the simplest GDPR story: "We don't have your data."
+
+---
+
+## Product Portfolio Overview
+
+### Individual Products (via Paddle)
+
+| Product                | Free                     | Paid                   | Delivery       |
+| ---------------------- | ------------------------ | ---------------------- | -------------- |
+| VaRiScout Lite (PWA)   | Full features, watermark | €49/year, no watermark | Static hosting |
+| VaRiScout Excel Add-in | Full features, watermark | €49/year, no watermark | AppSource      |
+
+_Same core analysis, same price. User picks their preferred workflow._
+
+### Team & Enterprise Products
+
+| Product             | Price       | Users     | Delivery                  |
+| ------------------- | ----------- | --------- | ------------------------- |
+| Power BI Team       | €399/year   | Up to 10  | AppSource                 |
+| Power BI Department | €999/year   | Up to 50  | AppSource                 |
+| Power BI Enterprise | €1,999/year | Unlimited | AppSource                 |
+| VaRiScout Azure     | €999/year   | Unlimited | ARM template, self-deploy |
+
+### Azure Self-Deploy Option
+
+For organizations requiring deployment in their own Azure tenant:
+
+- ARM template for one-click deployment to Azure Static Web Apps
+- Custom domain (variscout.customer.com)
+- Custom branding (logo, colors)
+- Unlimited users within organization
+- Data never leaves user's browser
+- Azure hosting cost: approximately €5/month
+
+### Price Tier Summary
+
+| Tier             | Price       | Target                               |
+| ---------------- | ----------- | ------------------------------------ |
+| Free             | €0          | Learn, try, evaluate                 |
+| Individual       | €49/year    | Professional use                     |
+| Team             | €399/year   | Power BI, 10 users                   |
+| Department/Azure | €999/year   | Power BI 50 users or Azure unlimited |
+| Enterprise       | €1,999/year | Power BI unlimited                   |
+
+All products share the same analytical core and visual language, creating a consistent VaRiScout experience across platforms.
+
+---
+
+## Dual Monetization Strategy
+
+Two complementary monetization approaches:
 
 1. **Paddle** - License key sales via your website (individuals + SMEs)
 2. **Microsoft Transactable SaaS** - Enterprise purchases via AppSource (future)
@@ -23,7 +76,7 @@ Two complementary monetization approaches for the VariScout Excel add-in:
 │  │                               │  │                               │  │
 │  │  • Individual users           │  │  • Enterprise buyers          │  │
 │  │  • SMEs worldwide             │  │  • Work/school accounts       │  │
-│  │  • One-time €39-49            │  │  • Buy in AppSource           │  │
+│  │  • €49/year subscription      │  │  • Buy in AppSource           │  │
 │  │  • Your website checkout      │  │  • Microsoft bills them       │  │
 │  │  • You keep ~95% revenue      │  │  • Requires SaaS backend      │  │
 │  │  • Minimal backend needed     │  │  • Set up in 2-3 weeks        │  │
@@ -39,23 +92,23 @@ Two complementary monetization approaches for the VariScout Excel add-in:
 
 ### Why Paddle?
 
-| Feature | Benefit |
-|---------|---------|
-| Merchant of Record | Handles VAT, sales tax, compliance globally |
-| Chargeback Protection | Paddle handles disputes |
-| Global Payments | 200+ countries, local payment methods |
-| Subscription Support | Can switch to yearly later if desired |
-| No Monthly Fees | Only pay when you sell |
+| Feature               | Benefit                                     |
+| --------------------- | ------------------------------------------- |
+| Merchant of Record    | Handles VAT, sales tax, compliance globally |
+| Chargeback Protection | Paddle handles disputes                     |
+| Global Payments       | 200+ countries, local payment methods       |
+| Subscription Support  | Yearly billing with auto-renewal            |
+| No Monthly Fees       | Only pay when you sell                      |
 
 ### Paddle Pricing
 
-| Fee | Amount |
-|-----|--------|
+| Fee             | Amount                  |
+| --------------- | ----------------------- |
 | Transaction fee | **5% + $0.50** per sale |
-| Setup fee | $0 |
-| Monthly fee | $0 |
+| Setup fee       | $0                      |
+| Monthly fee     | $0                      |
 
-On a €39 sale: ~€2.45 fee → you keep ~€36.55 (~94%)
+On a €49 sale: ~€2.95 fee → you keep ~€46.05 (~94%)
 
 ### License Key Strategy with Paddle
 
@@ -134,6 +187,7 @@ Pre-generate license keys and upload to Paddle:
 #### Option 3: Keygen.sh Integration (Enterprise)
 
 Use [Keygen.sh](https://keygen.sh/integrate/paddle/) for advanced licensing:
+
 - Device limits
 - Feature flags
 - Subscription tiers
@@ -144,7 +198,8 @@ Use [Keygen.sh](https://keygen.sh/integrate/paddle/) for advanced licensing:
 
 ### Recommended: Option 1 with Existing License Logic
 
-You already have `src/lib/license.ts` with:
+You already have `packages/core/src/license.ts` with:
+
 - `generateLicenseKey()` - Creates VSL-XXXX-XXXX-XXXX format
 - `isValidLicenseFormat()` - Validates with checksum
 - `hasValidLicense()` - Checks localStorage
@@ -179,7 +234,7 @@ This works perfectly with Paddle webhooks. Just deploy a simple function to gene
 │  │  variscout.com/buy │                                                │
 │  │                    │                                                │
 │  │  Paddle Checkout   │                                                │
-│  │  €39 one-time      │                                                │
+│  │  €49/year          │                                                │
 │  │                    │                                                │
 │  │  Card / PayPal /   │                                                │
 │  │  Apple Pay / etc   │                                                │
@@ -220,6 +275,7 @@ This works perfectly with Paddle webhooks. Just deploy a simple function to gene
 ### When to Add This
 
 Add Microsoft SaaS billing when:
+
 - Enterprise customers request Microsoft invoicing
 - Volume deals where IT needs central license management
 - You have bandwidth for backend complexity
@@ -259,36 +315,11 @@ Add Microsoft SaaS billing when:
 
 ### Limitations
 
-| Limitation | Workaround |
-|------------|------------|
+| Limitation                | Workaround                         |
+| ------------------------- | ---------------------------------- |
 | Work/school accounts only | Offer Paddle for personal accounts |
-| Requires backend | Use Azure Functions |
-| Complex setup | Start with Paddle first |
-
----
-
-## Pricing Tiers
-
-### Individual Users (via Paddle)
-
-| Tier | Price | Use Case |
-|------|-------|----------|
-| **Licensed** | €39 one-time | Remove branding |
-| **Team** | €99 one-time | Small team (future) |
-
-### Enterprise (via Microsoft SaaS - Future)
-
-| Tier | Price | Use Case |
-|------|-------|----------|
-| **Department** | €500/year | Per 25 users |
-| **Enterprise** | Custom | Organization-wide |
-
-### Self-Hosted Azure Deployment (Separate)
-
-| Tier | Price |
-|------|-------|
-| Deployment License | €1,000-2,000 one-time |
-| Support Contract | €500/year (optional) |
+| Requires backend          | Use Azure Functions                |
+| Complex setup             | Start with Paddle first            |
 
 ---
 
@@ -336,7 +367,7 @@ function activateLicense(key: string): boolean {
 │  │                                                                   │ │
 │  │  Don't have a license?                                           │ │
 │  │                                                                   │ │
-│  │  [Buy License - €39]  →  Opens variscout.com/buy (Paddle)        │ │
+│  │  [Buy License - €49/year]  →  Opens variscout.com/buy (Paddle)   │ │
 │  │                                                                   │ │
 │  │  Enterprise? Contact sales@variscout.com                          │ │
 │  │                                                                   │ │
@@ -348,15 +379,15 @@ function activateLicense(key: string): boolean {
 
 ## Implementation Checklist
 
-### Phase 1: Paddle Setup (1-2 days)
+### Phase 1: Paddle Setup
 
 - [ ] Create Paddle account at paddle.com
 - [ ] Set up product: "VariScout Lite License"
-- [ ] Configure pricing: €39 one-time
+- [ ] Configure pricing: €49/year subscription
 - [ ] Set fulfillment method: Webhook
 - [ ] Create webhook endpoint URL
 
-### Phase 2: Webhook Endpoint (1 day)
+### Phase 2: Webhook Endpoint
 
 - [ ] Create serverless function for webhook
 - [ ] Verify Paddle signature
@@ -364,14 +395,14 @@ function activateLicense(key: string): boolean {
 - [ ] Return key in response
 - [ ] Test purchase flow end-to-end
 
-### Phase 3: Checkout Page (1 day)
+### Phase 3: Checkout Page
 
 - [ ] Create variscout.com/buy landing page
 - [ ] Embed Paddle checkout overlay
 - [ ] Add success page with license key display
 - [ ] Style to match VariScout branding
 
-### Phase 4: Add-in Integration (1 day)
+### Phase 4: Add-in Integration
 
 - [ ] Add "License" section to add-in settings
 - [ ] License key input + validate button
@@ -379,7 +410,7 @@ function activateLicense(key: string): boolean {
 - [ ] Show status (Free/Licensed)
 - [ ] Handle validation errors
 
-### Phase 5: Microsoft SaaS (Future - 2-3 weeks)
+### Phase 5: Microsoft SaaS (Future)
 
 - [ ] Set up Azure AD application
 - [ ] Create landing page
@@ -392,19 +423,28 @@ function activateLicense(key: string): boolean {
 
 ## Fee Comparison
 
-| Platform | Fee Structure | On €39 Sale | You Keep |
-|----------|---------------|-------------|----------|
-| **Paddle** | 5% + $0.50 | ~€2.45 | ~€36.55 (94%) |
-| **Microsoft AppSource** | 3% | ~€1.17 | ~€37.83 (97%) |
-| **Stripe** (DIY tax) | 2.9% + $0.30 | ~€1.43 | ~€37.57 (96%)* |
+| Platform                | Fee Structure | On €49 Sale | You Keep        |
+| ----------------------- | ------------- | ----------- | --------------- |
+| **Paddle**              | 5% + $0.50    | ~€2.95      | ~€46.05 (94%)   |
+| **Microsoft AppSource** | 3%            | ~€1.47      | ~€47.53 (97%)   |
+| **Stripe** (DIY tax)    | 2.9% + $0.30  | ~€1.72      | ~€47.28 (96%)\* |
 
-*Stripe requires you to handle tax compliance yourself (extra work).
+\*Stripe requires you to handle tax compliance yourself (extra work).
+
+---
+
+## Related Documentation
+
+- [LSS_TRAINER_STRATEGY.md](LSS_TRAINER_STRATEGY.md) — Feature roadmap
+- [POWER_BI_STRATEGY.md](POWER_BI_STRATEGY.md) — Power BI Custom Visual strategy
+- [SUBSCRIPTION_LICENSING.md](SUBSCRIPTION_LICENSING.md) — Technical licensing architecture
 
 ---
 
 ## Sources
 
 ### Paddle
+
 - [Paddle Pricing](https://www.paddle.com/pricing)
 - [What is Merchant of Record](https://www.paddle.com/blog/what-is-merchant-of-record)
 - [Fulfillment Methods](https://www.paddle.com/help/start/set-up-paddle/which-fulfillment-method-to-choose)
@@ -413,10 +453,12 @@ function activateLicense(key: string): boolean {
 - [Custom License Generator Integration](https://codeboje.de/licensegenerator-paddle/)
 
 ### Microsoft SaaS Monetization
+
 - [Monetize Office Add-ins](https://learn.microsoft.com/en-us/partner-center/marketplace-offers/monetize-addins-through-microsoft-commercial-marketplace)
 - [Office Add-in SaaS Monetization Sample](https://github.com/OfficeDev/office-add-in-saas-monetization-sample)
 - [Plan a SaaS Offer](https://learn.microsoft.com/en-us/partner-center/marketplace-offers/plan-saas-offer)
 
 ### Third-Party Licensing
+
 - [Keygen + Paddle Integration](https://keygen.sh/integrate/paddle/)
 - [Keygen Example App](https://github.com/keygen-sh/example-paddle-integration)

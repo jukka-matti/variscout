@@ -21,6 +21,7 @@ A lightweight, offline variation analysis tool for quality professionals. No AI,
 | **Quality Champions**    | SMEs in developing countries (via ITC) | Know statistics, need better tools than Excel |
 | **Experienced analysts** | Already know what to look for          | Don't need AI guidance                        |
 | **Trainers / educators** | Teaching variation analysis            | Clean demo tool, no AI unpredictability       |
+| **LSS Trainers**         | Green Belt / Black Belt courses        | Minitab replacement with zero installation    |
 | **Offline environments** | Factory floor, limited connectivity    | 100% local, no internet needed                |
 
 ---
@@ -431,6 +432,117 @@ When configured:
 
 ---
 
+## UI Design Principles
+
+### Screen Optimization
+
+The dashboard is optimized for 1920×1080 displays with all core charts visible without scrolling.
+
+### Consistent Layout Structure
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  I-Chart                                    [Outcome ▼]     │
+├═════════════════════════════════════════════════════════════┤ ← draggable splitter
+│  Boxplot      │  Pareto       │  Summary                    │
+│  [Factor ▼]   │  [Category ▼] │  [Prob] [Cap]               │
+│               │               │                             │
+└───────────────┴───────────────┴─────────────────────────────┘
+```
+
+### Resizable Panels
+
+Users can adjust the I-Chart height by dragging the horizontal splitter:
+
+| Drag Direction | Result                                               |
+| -------------- | ---------------------------------------------------- |
+| Drag up        | More space for bottom row (Boxplot, Pareto, Summary) |
+| Drag down      | More space for I-Chart, less for bottom row          |
+| Default        | 35% I-Chart / 65% bottom row                         |
+| Cursor         | `row-resize` on hover                                |
+
+### Independent Panel Selections
+
+Each panel has its own data selector and operates independently:
+
+| Panel   | Selection                     | Required  |
+| ------- | ----------------------------- | --------- |
+| I-Chart | Outcome (numeric column)      | Yes       |
+| Boxplot | Factor (categorical column)   | No        |
+| Pareto  | Category (categorical column) | No        |
+| Summary | Uses Outcome                  | Automatic |
+
+### Empty State Behavior
+
+When no data is selected for a panel, it displays a dropdown prompt rather than hiding or rearranging the layout. This keeps the interface consistent and learnable.
+
+### Header & Workspace Layout
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  📂 Project Name          data.csv (1,247 rows)    [Copy ▼] [⚙]│
+├─────────────────────────────────────────────────────────────────┤
+│  I-Chart ...                                                    │
+```
+
+| Element      | Description                     |
+| ------------ | ------------------------------- |
+| Project name | Editable, user-defined          |
+| Data file    | Shows source file and row count |
+| Copy menu    | Copy All, Copy Chart options    |
+| Settings     | Gear icon for preferences       |
+
+### Presentation Mode
+
+One-click toggle to clean view for presenting (hides controls, maximizes chart area).
+
+### Filter State Display
+
+Always show current filter state so users know what subset of data they're viewing:
+
+**No filters (default):**
+
+```
+│  📂 Cycle Time Reduction                    n = 1,247 rows │
+```
+
+**Filters active:**
+
+```
+│  📂 Cycle Time Reduction                                   │
+│  Shift = Night ✕ → Machine = Oven B ✕   [Clear] n = 47    │
+```
+
+| Action                 | Result                 |
+| ---------------------- | ---------------------- |
+| Click boxplot category | Adds filter            |
+| Click pareto bar       | Adds filter            |
+| Click ✕ on filter chip | Removes that filter    |
+| Click "Clear All"      | Resets to full dataset |
+
+### Copy & Export Workflow
+
+| Option     | Description                                             |
+| ---------- | ------------------------------------------------------- |
+| Copy All   | Entire dashboard view as single image                   |
+| Copy Chart | Individual chart (I-Chart, Boxplot, Pareto, or Summary) |
+| Copy Stats | Summary statistics as formatted text                    |
+
+Charts are copied to clipboard as PNG — paste directly into PowerPoint, Word, Google Slides, or email.
+
+### Design Principles Summary
+
+| Principle              | Implementation                               |
+| ---------------------- | -------------------------------------------- |
+| Optimized for 1080p    | All charts visible without scrolling         |
+| Consistent layout      | Same structure regardless of data selections |
+| User-adjustable        | Draggable splitter for I-Chart height        |
+| Independent selections | Each panel has its own data selector         |
+| Empty state = prompt   | Shows dropdown when no data selected         |
+| Persistent preferences | Layout ratio saved to localStorage           |
+
+---
+
 ## What's NOT Included
 
 | Feature                                   | Why excluded                 |
@@ -566,13 +678,44 @@ VaRiScout Pro (paid)
 
 ---
 
-## Next Steps
+## Planned Features (Green Belt Training)
 
-1. **Confirm with ITC** — Do they want this simpler version?
-2. **Finalize feature scope** — Any must-haves missing?
-3. **Build Electron shell** — Package existing React components
-4. **Create ITC branded build** — Logo, colors, watermark
-5. **Handoff** — ITC takes distribution from there
+For complete Green Belt training coverage, three features are planned. See [LSS Trainer Strategy](docs/concepts/LSS_TRAINER_STRATEGY.md) for detailed specifications.
+
+### Feature Summary
+
+| Feature             | Type        | Effort | Purpose                                            |
+| ------------------- | ----------- | ------ | -------------------------------------------------- |
+| ANOVA under Boxplot | Enhancement | Small  | Statistical confirmation of group differences      |
+| Regression Tab      | New Tab     | Medium | Multi-factor comparison with auto-fit intelligence |
+| Gage R&R Tab        | New Tab     | Medium | Measurement system analysis                        |
+
+### ANOVA Integration
+
+Add ANOVA calculations below the existing boxplot visualization:
+
+- Group means, sample sizes, and standard deviations
+- F-ratio and p-value
+- Plain-language interpretation: "Different? YES (p = 0.003)"
+- No separate t-test needed (2-group ANOVA is mathematically equivalent)
+
+### Regression Tab
+
+A new tab with 2×2 grid of scatter plots:
+
+- Each plot shows one X-Y relationship with regression line
+- R² value with star rating (★★★★★ for > 0.9)
+- Auto-fit intelligence (recommends quadratic when appropriate)
+- Summary ranking: "Temperature → Speed → Pressure" by R² strength
+
+### Gage R&R Tab
+
+Measurement System Analysis (MSA) tab:
+
+- Input: Part ID, Operator ID, Measurement columns
+- Variance breakdown chart (Part-to-Part vs Repeatability vs Reproducibility)
+- %GRR result with verdict (< 10% Excellent, 10-30% Marginal, > 30% Unacceptable)
+- Operator × Part interaction plot
 
 ---
 
@@ -580,4 +723,4 @@ VaRiScout Pro (paid)
 
 > **VaRiScout Lite** is a fast, offline variation analysis tool for people who know what they're doing but need better tools than Excel. No AI, no subscriptions, no complexity — just linked charts that reveal hidden variation.
 >
-> Perfect for ITC's quality champion network: distribute freely, zero ongoing costs, clean licensing.
+> Perfect for quality professionals, LSS trainers, and ITC's quality champion network: distribute freely, zero ongoing costs, clean licensing.

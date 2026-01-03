@@ -90,3 +90,47 @@ export interface DisplayOptions {
   showCpk: boolean;
   showSpecs?: boolean;
 }
+
+/**
+ * Group statistics for ANOVA
+ */
+export interface AnovaGroup {
+  /** Group name (factor level) */
+  name: string;
+  /** Sample size */
+  n: number;
+  /** Group mean */
+  mean: number;
+  /** Group standard deviation */
+  stdDev: number;
+}
+
+/**
+ * Result of one-way ANOVA calculation
+ */
+export interface AnovaResult {
+  /** Statistics for each group */
+  groups: AnovaGroup[];
+  /** Sum of squares between groups */
+  ssb: number;
+  /** Sum of squares within groups */
+  ssw: number;
+  /** Degrees of freedom between groups (k-1) */
+  dfBetween: number;
+  /** Degrees of freedom within groups (N-k) */
+  dfWithin: number;
+  /** Mean square between groups */
+  msb: number;
+  /** Mean square within groups */
+  msw: number;
+  /** F-statistic (MSB / MSW) */
+  fStatistic: number;
+  /** P-value from F-distribution */
+  pValue: number;
+  /** Whether difference is statistically significant (p < 0.05) */
+  isSignificant: boolean;
+  /** Eta-squared effect size (SSB / SST) */
+  etaSquared: number;
+  /** Plain-language interpretation */
+  insight: string;
+}

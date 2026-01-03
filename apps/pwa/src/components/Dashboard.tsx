@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
 import MobileDashboard from './MobileDashboard';
+import AnovaResults from './AnovaResults';
 import ErrorBoundary from './ErrorBoundary';
 import { useData } from '../context/DataContext';
+import { calculateAnova, type AnovaResult } from '@variscout/core';
 import { Activity, Copy, Check } from 'lucide-react';
 import { toBlob } from 'html-to-image';
 
@@ -52,6 +54,12 @@ const Dashboard = ({ onPointClick }: DashboardProps) => {
     }
   }, [factors, boxplotFactor, paretoFactor]);
 
+  // Compute ANOVA for the selected boxplot factor
+  const anovaResult: AnovaResult | null = useMemo(() => {
+    if (!outcome || !boxplotFactor || filteredData.length === 0) return null;
+    return calculateAnova(filteredData, outcome, boxplotFactor);
+  }, [filteredData, outcome, boxplotFactor]);
+
   const handleCopyChart = async (containerId: string, chartName: string) => {
     const node = document.getElementById(containerId);
     if (!node) return;
@@ -86,6 +94,7 @@ const Dashboard = ({ onPointClick }: DashboardProps) => {
           boxplotFactor={boxplotFactor}
           paretoFactor={paretoFactor}
           filteredData={filteredData}
+          anovaResult={anovaResult}
           onSetBoxplotFactor={setBoxplotFactor}
           onSetParetoFactor={setParetoFactor}
           onPointClick={onPointClick}
@@ -195,6 +204,7 @@ const Dashboard = ({ onPointClick }: DashboardProps) => {
                 {boxplotFactor && <Boxplot factor={boxplotFactor} />}
               </ErrorBoundary>
             </div>
+            {anovaResult && <AnovaResults result={anovaResult} factorLabel={boxplotFactor} />}
           </div>
 
           <div

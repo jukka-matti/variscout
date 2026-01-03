@@ -201,6 +201,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/MONOREPO_ARCHITECTURE.md](docs/
 
 ## Roadmap
 
+### Completed
+
 - [x] Core 3-chart dashboard with linked filtering
 - [x] Cp/Cpk capability analysis
 - [x] Editable data table
@@ -210,10 +212,19 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/MONOREPO_ARCHITECTURE.md](docs/
 - [x] pnpm monorepo architecture
 - [x] Excel Add-in with Task Pane and Content Add-in
 - [x] Shared charts package (@variscout/charts)
-- [ ] Excel Copilot integration
-- [ ] Batch file processing
 
-See [Specs.md](Specs.md) for detailed feature specifications.
+### In Progress (Green Belt Training)
+
+- [ ] ANOVA integration with Boxplot
+- [ ] Regression analysis tab (4-chart grid + auto-fit)
+- [ ] Gage R&R for measurement system analysis
+
+### Future
+
+- [ ] Power BI Custom Visuals
+- [ ] Excel Copilot integration
+
+See [Specs.md](Specs.md) for feature specifications and [LSS Trainer Strategy](docs/concepts/LSS_TRAINER_STRATEGY.md) for the Green Belt training roadmap.
 
 ## Data Privacy
 

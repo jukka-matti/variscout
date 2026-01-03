@@ -60,6 +60,8 @@ variscout-lite/
 | `packages/charts/src/`                    | IChart, Boxplot, ParetoChart, responsive utils |
 | `apps/pwa/src/context/DataContext.tsx`    | Central state management                       |
 | `apps/excel-addin/src/lib/stateBridge.ts` | Excel state sync                               |
+| `docs/concepts/LSS_TRAINER_STRATEGY.md`   | Green Belt training feature roadmap            |
+| `docs/concepts/POWER_BI_STRATEGY.md`      | Power BI Custom Visual strategy                |
 
 > Use `Read` tool to examine these files when needed.
 
@@ -70,3 +72,5 @@ variscout-lite/
 - `docs/MONOREPO_ARCHITECTURE.md` - Package structure
 - `Specs.md` - Feature specifications
 - `docs/concepts/EXCEL_ADDIN_STRATEGY.md` - Excel Add-in approach
+- `docs/concepts/LSS_TRAINER_STRATEGY.md` - LSS training features (ANOVA, Regression, Gage R&R)
+- `docs/concepts/MONETIZATION_CONCEPT.md` - Product portfolio and pricing

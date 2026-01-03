@@ -12,6 +12,8 @@ export type {
   ProbabilityPlotPoint,
   DisplayOptions,
   ConformanceResult,
+  AnovaResult,
+  AnovaGroup,
 } from './types';
 
 // Statistics
@@ -22,6 +24,7 @@ export {
   normalQuantile,
   calculateConformance,
   groupDataByFactor,
+  calculateAnova,
 } from './stats';
 
 // License

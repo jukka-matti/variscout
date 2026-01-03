@@ -1,8 +1,21 @@
 import * as d3 from 'd3';
-import type { StatsResult, GradeTier, ProbabilityPlotPoint, ConformanceResult } from './types';
+import type {
+  StatsResult,
+  GradeTier,
+  ProbabilityPlotPoint,
+  ConformanceResult,
+  AnovaResult,
+  AnovaGroup,
+} from './types';
 
 // Re-export types for convenience
-export type { StatsResult, ProbabilityPlotPoint, ConformanceResult } from './types';
+export type {
+  StatsResult,
+  ProbabilityPlotPoint,
+  ConformanceResult,
+  AnovaResult,
+  AnovaGroup,
+} from './types';
 
 /**
  * Calculate statistical metrics for quality analysis
@@ -303,4 +316,232 @@ export function groupDataByFactor<T extends Record<string, unknown>>(
   });
 
   return groups;
+}
+
+/**
+ * Incomplete beta function using continued fraction approximation
+ * Used for F-distribution CDF calculation
+ */
+function incompleteBeta(a: number, b: number, x: number): number {
+  if (x === 0) return 0;
+  if (x === 1) return 1;
+
+  // Use continued fraction approximation
+  const maxIterations = 200;
+  const epsilon = 1e-10;
+
+  // Calculate the log of the beta coefficient
+  const logBeta = lnGamma(a) + lnGamma(b) - lnGamma(a + b);
+  const front = Math.exp(Math.log(x) * a + Math.log(1 - x) * b - logBeta) / a;
+
+  // Lentz's algorithm for continued fraction
+  let f = 1;
+  let c = 1;
+  let d = 0;
+
+  for (let m = 0; m <= maxIterations; m++) {
+    // Calculate the numerator
+    let numerator: number;
+    if (m === 0) {
+      numerator = 1;
+    } else if (m % 2 === 0) {
+      const k = m / 2;
+      numerator = (k * (b - k) * x) / ((a + 2 * k - 1) * (a + 2 * k));
+    } else {
+      const k = (m - 1) / 2;
+      numerator = -((a + k) * (a + b + k) * x) / ((a + 2 * k) * (a + 2 * k + 1));
+    }
+
+    d = 1 + numerator * d;
+    if (Math.abs(d) < 1e-30) d = 1e-30;
+    d = 1 / d;
+
+    c = 1 + numerator / c;
+    if (Math.abs(c) < 1e-30) c = 1e-30;
+
+    const delta = c * d;
+    f *= delta;
+
+    if (Math.abs(delta - 1) < epsilon) break;
+  }
+
+  return front * (f - 1);
+}
+
+/**
+ * Log gamma function using Lanczos approximation
+ */
+function lnGamma(x: number): number {
+  const g = 7;
+  const c = [
+    0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313,
+    -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6,
+    1.5056327351493116e-7,
+  ];
+
+  if (x < 0.5) {
+    return Math.log(Math.PI / Math.sin(Math.PI * x)) - lnGamma(1 - x);
+  }
+
+  x -= 1;
+  let sum = c[0];
+  for (let i = 1; i < g + 2; i++) {
+    sum += c[i] / (x + i);
+  }
+
+  const t = x + g + 0.5;
+  return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(sum);
+}
+
+/**
+ * Calculate p-value from F-distribution
+ *
+ * @param f - F-statistic value
+ * @param df1 - Degrees of freedom numerator (between groups)
+ * @param df2 - Degrees of freedom denominator (within groups)
+ * @returns P-value (probability of observing F >= f under null hypothesis)
+ */
+function fDistributionPValue(f: number, df1: number, df2: number): number {
+  if (f <= 0) return 1;
+  if (!isFinite(f)) return 0;
+
+  // Use the relationship between F-distribution and incomplete beta function
+  // P(F > f) = I_x(df2/2, df1/2) where x = df2 / (df2 + df1 * f)
+  const x = df2 / (df2 + df1 * f);
+  return incompleteBeta(df2 / 2, df1 / 2, x);
+}
+
+/**
+ * Calculate one-way ANOVA for comparing group means
+ *
+ * Tests whether there are statistically significant differences between
+ * the means of two or more groups. Mathematically equivalent to t-test
+ * when there are exactly 2 groups.
+ *
+ * @param data - Array of data records with factor and outcome columns
+ * @param outcomeColumn - Column name for the numeric outcome variable
+ * @param factorColumn - Column name for the categorical grouping variable
+ * @returns AnovaResult with F-statistic, p-value, and plain-language insight
+ *
+ * @example
+ * const result = calculateAnova(data, 'CycleTime', 'Shift');
+ * if (result?.isSignificant) {
+ *   console.log(result.insight); // "Shift A is fastest (24.3 min average)"
+ * }
+ */
+export function calculateAnova<T extends Record<string, unknown>>(
+  data: T[],
+  outcomeColumn: string,
+  factorColumn: string
+): AnovaResult | null {
+  // Group data by factor
+  const groups = groupDataByFactor(data, factorColumn, outcomeColumn);
+
+  // Need at least 2 groups for comparison
+  if (groups.size < 2) return null;
+
+  // Calculate group statistics
+  const groupStats: AnovaGroup[] = [];
+  let totalN = 0;
+  let grandSum = 0;
+
+  groups.forEach((values, name) => {
+    if (values.length === 0) return;
+
+    const n = values.length;
+    const mean = d3.mean(values) || 0;
+    const stdDev = d3.deviation(values) || 0;
+
+    groupStats.push({ name, n, mean, stdDev });
+    totalN += n;
+    grandSum += d3.sum(values) || 0;
+  });
+
+  // Need at least 2 valid groups
+  if (groupStats.length < 2 || totalN < 3) return null;
+
+  const grandMean = grandSum / totalN;
+  const k = groupStats.length; // Number of groups
+
+  // Calculate Sum of Squares Between (SSB) and Within (SSW)
+  let ssb = 0;
+  let ssw = 0;
+
+  groupStats.forEach(group => {
+    // SSB: sum of n_i * (mean_i - grand_mean)^2
+    ssb += group.n * Math.pow(group.mean - grandMean, 2);
+
+    // SSW: sum of (n_i - 1) * variance_i
+    // variance = stdDev^2
+    ssw += (group.n - 1) * Math.pow(group.stdDev, 2);
+  });
+
+  // Degrees of freedom
+  const dfBetween = k - 1;
+  const dfWithin = totalN - k;
+
+  // Guard against division by zero
+  if (dfBetween <= 0 || dfWithin <= 0 || ssw === 0) return null;
+
+  // Mean squares
+  const msb = ssb / dfBetween;
+  const msw = ssw / dfWithin;
+
+  // F-statistic
+  const fStatistic = msb / msw;
+
+  // P-value from F-distribution
+  const pValue = fDistributionPValue(fStatistic, dfBetween, dfWithin);
+
+  // Significance at α = 0.05
+  const isSignificant = pValue < 0.05;
+
+  // Effect size (eta-squared)
+  const sst = ssb + ssw;
+  const etaSquared = sst > 0 ? ssb / sst : 0;
+
+  // Generate plain-language insight
+  const insight = generateAnovaInsight(groupStats, isSignificant, outcomeColumn);
+
+  return {
+    groups: groupStats,
+    ssb,
+    ssw,
+    dfBetween,
+    dfWithin,
+    msb,
+    msw,
+    fStatistic,
+    pValue,
+    isSignificant,
+    etaSquared,
+    insight,
+  };
+}
+
+/**
+ * Generate a plain-language insight from ANOVA results
+ */
+function generateAnovaInsight(
+  groups: AnovaGroup[],
+  isSignificant: boolean,
+  outcomeName: string
+): string {
+  if (!isSignificant) {
+    return 'No significant difference between groups';
+  }
+
+  // Find the group with highest and lowest mean
+  const sorted = [...groups].sort((a, b) => a.mean - b.mean);
+  const lowest = sorted[0];
+  const highest = sorted[sorted.length - 1];
+
+  // Determine if higher or lower is "better" based on common outcome names
+  const lowerIsBetter = /time|defect|error|reject|delay|cost|waste/i.test(outcomeName);
+
+  if (lowerIsBetter) {
+    return `${lowest.name} is best (${lowest.mean.toFixed(1)} avg)`;
+  } else {
+    return `${highest.name} is best (${highest.mean.toFixed(1)} avg)`;
+  }
 }
