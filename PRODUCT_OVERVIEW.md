@@ -117,22 +117,23 @@ See `UX_RESEARCH.md` for detailed personas, JTBD, and use cases.
 
 ---
 
-## File Structure (Key Files)
+## Repository Structure
+
+VariScout is a pnpm monorepo with shared packages and multiple apps:
 
 ```
-src/
-├── App.tsx                    # Main app with header controls
-├── components/
-│   ├── Dashboard.tsx          # 3-chart layout
-│   ├── ManualEntry.tsx        # Data entry with running stats
-│   ├── StatsPanel.tsx         # Stats display with histogram tab
-│   └── charts/                # I-Chart, Boxplot, Pareto, CapabilityHistogram
-├── context/
-│   └── DataContext.tsx        # Central state management
-├── lib/
-│   ├── export.ts              # CSV generation
-│   └── persistence.ts         # IndexedDB + localStorage
-└── index.css                  # Large mode CSS
+variscout-lite/
+├── packages/
+│   ├── core/              # @variscout/core - Stats, parser, license (pure TypeScript)
+│   └── charts/            # @variscout/charts - Visx chart components
+├── apps/
+│   ├── pwa/               # PWA website (React + Vite)
+│   └── excel-addin/       # Excel Add-in (Office.js + Fluent UI)
+└── docs/
+    ├── concepts/          # Strategic decisions (LSS, Power BI, Licensing)
+    ├── design-system/     # Design tokens, components
+    ├── technical/         # Implementation guides
+    └── products/          # Product specs (PWA, Website, Excel, Power BI, Azure)
 ```
 
 ---
@@ -173,4 +174,5 @@ _See also:_
 - `ARCHITECTURE.md` - Technical architecture details
 - `UX_RESEARCH.md` - User research, personas, JTBD
 - `Specs.md` - Detailed functional specifications
+- `docs/products/` - Product specs (PWA, Website, Excel, Power BI, Azure)
 - `docs/concepts/LSS_TRAINER_STRATEGY.md` - Green Belt training roadmap

@@ -14,7 +14,11 @@ variscout-lite/
 ├── apps/
 │   ├── pwa/               # PWA website (React + Vite + PWA)
 │   └── excel-addin/       # Excel Add-in (Office.js + React + Fluent UI)
-├── docs/                  # Documentation
+├── docs/
+│   ├── concepts/          # Strategic product decisions
+│   ├── design-system/     # Design tokens, components, charts
+│   ├── technical/         # Implementation guides
+│   └── products/          # Product specs (PWA, Website, Excel, Power BI, Azure)
 ├── pnpm-workspace.yaml    # Workspace configuration
 ├── tsconfig.base.json     # Shared TypeScript config
 └── package.json           # Root scripts
@@ -238,7 +242,10 @@ variscout-lite/
 │       └── dist/                # Add-in build output (gitignored)
 │
 ├── docs/                        # Documentation
-│   └── concepts/                # Design concept documents
+│   ├── concepts/                # Strategic product decisions
+│   ├── design-system/           # Design tokens, components, charts
+│   ├── technical/               # Implementation guides
+│   └── products/                # Product specs (PWA, Website, Excel, Power BI, Azure)
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json
 └── package.json                 # Root scripts

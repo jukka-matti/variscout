@@ -906,7 +906,6 @@ Use `darkTheme` from `apps/excel-addin/src/lib/darkTheme.ts` instead of hardcode
 ## Related Documentation
 
 - [Excel Add-in Strategy](concepts/EXCEL_ADDIN_STRATEGY.md) - Architecture decisions
-- [Excel Copilot Concept](concepts/EXCEL_COPILOT_CONCEPT.md) - Copilot integration
 - [Subscription Licensing](concepts/SUBSCRIPTION_LICENSING.md) - Licensing and pricing
 - [Monorepo Architecture](MONOREPO_ARCHITECTURE.md) - Package structure
 - [Fluent UI Documentation](https://react.fluentui.dev/) - Component reference

@@ -194,7 +194,11 @@ variscout-lite/
 ├── apps/
 │   ├── pwa/           # PWA website (mobile + desktop)
 │   └── excel-addin/   # Excel Add-in (Task Pane + Content Add-in)
-└── docs/              # Documentation
+└── docs/
+    ├── concepts/      # Strategic product decisions
+    ├── design-system/ # Design tokens, components, charts
+    ├── technical/     # Implementation guides
+    └── products/      # Product specs (PWA, Website, Excel, Power BI, Azure)
 ```
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/MONOREPO_ARCHITECTURE.md](docs/MONOREPO_ARCHITECTURE.md) for details.
@@ -221,10 +225,11 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/MONOREPO_ARCHITECTURE.md](docs/
 
 ### Future
 
-- [ ] Power BI Custom Visuals
-- [ ] Excel Copilot integration
+- [ ] Marketing website (Astro)
+- [ ] Power BI Custom Visuals (AppSource)
+- [ ] Azure team deployment (SharePoint/OneDrive, SSO)
 
-See [Specs.md](Specs.md) for feature specifications and [LSS Trainer Strategy](docs/concepts/LSS_TRAINER_STRATEGY.md) for the Green Belt training roadmap.
+See [Specs.md](Specs.md) for feature specifications, [docs/products/](docs/products/) for product specs, and [LSS Trainer Strategy](docs/concepts/LSS_TRAINER_STRATEGY.md) for the Green Belt training roadmap.
 
 ## Data Privacy
 

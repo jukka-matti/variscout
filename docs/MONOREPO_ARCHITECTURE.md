@@ -13,10 +13,15 @@ variscout-lite/
 │   └── charts/        # @variscout/charts - Props-based Visx chart components
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite + PWA)
-│   │   └── dist/      # PWA build output
-│   └── excel-addin/   # Excel Add-in (Office.js + React + Fluent UI)
-│       └── dist/      # Add-in build output
-└── docs/              # Documentation
+│   ├── excel-addin/   # Excel Add-in (Office.js + React + Fluent UI)
+│   ├── website/       # FUTURE: Marketing website (Astro)
+│   ├── azure/         # FUTURE: Azure team app (SharePoint, SSO)
+│   └── powerbi-visuals/ # FUTURE: Power BI custom visuals
+└── docs/
+    ├── concepts/      # Strategic product decisions
+    ├── design-system/ # Design tokens, components, charts
+    ├── technical/     # Implementation guides
+    └── products/      # Product specs (PWA, Website, Excel, Power BI, Azure)
 ```
 
 ## Why pnpm Workspaces?
@@ -133,7 +138,6 @@ Excel Add-in using the **Hybrid Approach**: Native Excel slicers for filtering +
 
 **Future:**
 
-- Copilot actions for natural language queries
 - License validation (same system as PWA)
 
 ## Build Commands
@@ -295,6 +299,6 @@ See `packages/core/src/edition.ts` for implementation.
 ## Related Documentation
 
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - High-level technical architecture
+- [Product Specs](products/) - Detailed specs for PWA, Website, Excel, Power BI, Azure
 - [Excel Add-in Strategy](concepts/EXCEL_ADDIN_STRATEGY.md) - PWA vs Excel Add-in comparison, Hybrid approach decision
-- [Excel Copilot Concept](concepts/EXCEL_COPILOT_CONCEPT.md) - Copilot integration vision
 - [Subscription Licensing](concepts/SUBSCRIPTION_LICENSING.md) - Licensing and pricing strategy

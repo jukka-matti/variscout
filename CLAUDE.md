@@ -23,7 +23,11 @@ variscout-lite/
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite)
 │   └── excel-addin/   # Excel Add-in (Office.js + Fluent UI)
-└── docs/              # Documentation
+└── docs/
+    ├── concepts/      # Strategic product decisions
+    ├── design-system/ # Design tokens, components, charts
+    ├── technical/     # Implementation guides
+    └── products/      # Product-specific specs (PWA, Excel, Website, Power BI, Azure)
 ```
 
 ## Code Conventions
@@ -65,6 +69,11 @@ variscout-lite/
 | `docs/concepts/POWER_BI_STRATEGY.md`        | Power BI Custom Visual strategy                |
 | `docs/concepts/SUBSCRIPTION_LICENSING.md`   | Paddle integration, license key system         |
 | `docs/technical/`                           | PWA storage, deployment, testing strategy      |
+| `docs/products/pwa/`                        | PWA product spec (licensing, storage, stack)   |
+| `docs/products/website/`                    | Marketing website spec (design, copy, pages)   |
+| `docs/products/excel/`                      | Excel Add-in spec                              |
+| `docs/products/powerbi/`                    | Power BI custom visuals spec                   |
+| `docs/products/azure/`                      | Azure team deployment spec (SharePoint, SSO)   |
 
 > Use `Read` tool to examine these files when needed.
 
@@ -76,6 +85,5 @@ variscout-lite/
 - `Specs.md` - Feature specifications
 - `docs/design-system/` - **Design system** (colors, typography, components, charts)
 - `docs/technical/` - **Technical specs** (storage, deployment)
-- `docs/concepts/EXCEL_ADDIN_STRATEGY.md` - Excel Add-in approach
-- `docs/concepts/LSS_TRAINER_STRATEGY.md` - LSS training features (ANOVA, Regression, Gage R&R)
-- `docs/concepts/SUBSCRIPTION_LICENSING.md` - Licensing & Paddle integration
+- `docs/concepts/` - **Strategic decisions** (Excel, LSS, Power BI, Licensing)
+- `docs/products/` - **Product specs** (PWA, Website, Excel, Power BI, Azure)

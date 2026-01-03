@@ -64,14 +64,13 @@ Research into Microsoft's Excel JavaScript API revealed several capabilities tha
 
 ### Excel Add-in Strengths
 
-| Aspect                  | Excel Advantage                  |
-| ----------------------- | -------------------------------- |
-| **Data Context**        | Already in Excel, no import step |
-| **Enterprise Fit**      | IT-approved, SSO integration     |
-| **Familiar UX**         | Users know Excel slicers         |
-| **Copilot Integration** | Future natural language queries  |
-| **Report Integration**  | Charts stay in workbook          |
-| **Scale**               | Handles 1M+ rows natively        |
+| Aspect                 | Excel Advantage                  |
+| ---------------------- | -------------------------------- |
+| **Data Context**       | Already in Excel, no import step |
+| **Enterprise Fit**     | IT-approved, SSO integration     |
+| **Familiar UX**        | Users know Excel slicers         |
+| **Report Integration** | Charts stay in workbook          |
+| **Scale**              | Handles 1M+ rows natively        |
 
 ### Neither is Universally Better
 
@@ -82,7 +81,6 @@ The choice depends on the use case:
 | Field data collection (offline) | PWA             |
 | Ad-hoc analysis from file       | PWA             |
 | Enterprise reporting workflow   | Excel Add-in    |
-| Copilot-enabled analysis        | Excel Add-in    |
 | Training/demo scenarios         | PWA             |
 | IT-managed deployment           | Excel Add-in    |
 
@@ -182,7 +180,6 @@ Combine native Excel Slicers for filtering with Visx charts rendered in a Conten
 - Best chart quality (Visx)
 - Familiar filtering (Excel Slicers)
 - High code reuse from PWA
-- Future Copilot integration path
 
 **Cons:**
 
@@ -207,7 +204,6 @@ Keep PWA as primary, add Excel integration for data import/export only.
 **Cons:**
 
 - Users must switch contexts
-- No Copilot path
 - Doesn't serve Excel-centric workflows
 
 **Code Reuse:** 100% (no Excel-specific code)
@@ -220,8 +216,7 @@ The Hybrid approach provides the best balance:
 
 1. **Enterprise users** get familiar Excel experience with Slicers
 2. **Chart quality** matches PWA with full Visx capabilities
-3. **Copilot integration** path via declarative agent + actions
-4. **Code reuse** maximized (~85% of PWA code)
+3. **Code reuse** maximized (~85% of PWA code)
 
 ### Implementation Architecture
 
@@ -268,7 +263,6 @@ apps/
 
 - Enterprise IT compliance
 - Large dataset handling
-- Copilot natural language interface
 - Workbook-based reporting
 
 ---
@@ -279,7 +273,6 @@ apps/
 2. **Implement Content Add-in** - Visx charts in iframe
 3. **Add Table binding** - Office.js data reading
 4. **Slicer integration** - Automatic via shared Table
-5. **Copilot actions** - `analyzeControlChart`, `calculateCapability`, etc.
 
 ---
 
@@ -291,7 +284,6 @@ apps/
 - [Excel.ChartSeries API](https://learn.microsoft.com/en-us/javascript/api/excel/excel.chartseries)
 - [Excel.Slicer API](https://learn.microsoft.com/en-us/javascript/api/excel/excel.slicer)
 - [Content Add-ins](https://learn.microsoft.com/en-us/office/dev/add-ins/excel/excel-add-ins-overview)
-- [Copilot Agents with Add-ins](https://learn.microsoft.com/en-us/office/dev/add-ins/design/agent-and-add-in-overview)
 
 ### GitHub Issues
 
@@ -299,6 +291,5 @@ apps/
 
 ### Related Documents
 
-- [Excel Copilot Concept](./EXCEL_COPILOT_CONCEPT.md) - Vision and Copilot integration
 - [Subscription Licensing](./SUBSCRIPTION_LICENSING.md) - Licensing and pricing strategy
 - [Monorepo Architecture](../MONOREPO_ARCHITECTURE.md) - Package structure

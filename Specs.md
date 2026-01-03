@@ -680,21 +680,20 @@ VaRiScout Pro (paid)
 
 ## Build Estimate
 
-| Component             | Effort  | Notes                                         |
-| --------------------- | ------- | --------------------------------------------- |
-| Chart components      | Done    | Already built                                 |
-| Linked filtering      | Done    | Already built                                 |
-| Statistics engine     | Done    | Cp/Cpk, grade counts, conformance             |
-| Data import           | Done    | CSV + Excel parsing                           |
-| Save/Load (.vrs)      | Done    | JSON serialization + file handling            |
-| Export (PNG/CSV)      | Done    | DOM-based capture, CSV generation             |
-| Edition config        | Done    | Watermark + branding                          |
-| Manual Entry          | Done    | Touch-optimized data entry                    |
-| Data Table            | Done    | Inline editing                                |
-| Shared charts package | Done    | @variscout/charts with props-based components |
-| Excel Add-in          | Done    | Task Pane wizard + Content Add-in charts      |
-| **Completed**         | ✓       | Core features + Excel Add-in implemented      |
-| Excel Copilot         | Planned | Natural language queries                      |
+| Component             | Effort | Notes                                         |
+| --------------------- | ------ | --------------------------------------------- |
+| Chart components      | Done   | Already built                                 |
+| Linked filtering      | Done   | Already built                                 |
+| Statistics engine     | Done   | Cp/Cpk, grade counts, conformance             |
+| Data import           | Done   | CSV + Excel parsing                           |
+| Save/Load (.vrs)      | Done   | JSON serialization + file handling            |
+| Export (PNG/CSV)      | Done   | DOM-based capture, CSV generation             |
+| Edition config        | Done   | Watermark + branding                          |
+| Manual Entry          | Done   | Touch-optimized data entry                    |
+| Data Table            | Done   | Inline editing                                |
+| Shared charts package | Done   | @variscout/charts with props-based components |
+| Excel Add-in          | Done   | Task Pane wizard + Content Add-in charts      |
+| **Completed**         | ✓      | Core features + Excel Add-in implemented      |
 
 ---
 

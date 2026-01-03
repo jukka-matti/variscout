@@ -116,7 +116,6 @@ The `manifest.xml` defines:
 - **Task Pane:** Setup, configuration, settings
 - **Content Add-in:** Charts display (planned)
 - **Ribbon Commands:** Quick actions
-- **Copilot Actions:** Natural language queries (planned)
 
 Required API sets:
 
@@ -133,13 +132,11 @@ See [EXCEL_ADDIN_STRATEGY.md](../../docs/concepts/EXCEL_ADDIN_STRATEGY.md) for f
 2. **Content Add-in** - Visx chart rendering
 3. **Table Binding** - Live data refresh
 4. **Slicer Integration** - Automatic via shared Table
-5. **Copilot Actions** - Natural language analysis
 
 ---
 
 ## Related Documentation
 
 - [Excel Add-in Strategy](../../docs/concepts/EXCEL_ADDIN_STRATEGY.md) - Strategic analysis and decision
-- [Excel Copilot Concept](../../docs/concepts/EXCEL_COPILOT_CONCEPT.md) - Copilot integration vision
 - [Subscription Licensing](../../docs/concepts/SUBSCRIPTION_LICENSING.md) - Licensing and pricing
 - [Monorepo Architecture](../../docs/MONOREPO_ARCHITECTURE.md) - Package structure
