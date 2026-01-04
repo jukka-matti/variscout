@@ -175,10 +175,10 @@ const GageRRPanel: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
             {/* Left column: Variance breakdown chart + stats */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 min-h-0 h-full">
               {/* %GRR Result card */}
               <div
-                className={`p-4 rounded-xl border border-slate-700 ${getVerdictStyle(result.verdict).bg}`}
+                className={`p-4 rounded-xl border border-slate-700 ${getVerdictStyle(result.verdict).bg} flex-none`}
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -205,27 +205,29 @@ const GageRRPanel: React.FC = () => {
               </div>
 
               {/* Variance breakdown chart */}
-              <div className="flex-1 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden min-h-[200px]">
-                <div className="px-3 py-2 border-b border-slate-700/50">
+              <div className="flex-1 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden min-h-0 flex flex-col">
+                <div className="flex-none px-3 py-2 border-b border-slate-700/50">
                   <span className="text-xs font-medium text-slate-300">
                     Variance Components (%Study Variation)
                   </span>
                 </div>
-                <div className="h-[calc(100%-40px)]">
-                  <ErrorBoundary componentName="Gage R&R Chart">
-                    <GageRRChart
-                      pctPart={result.pctPart}
-                      pctRepeatability={result.pctRepeatability}
-                      pctReproducibility={result.pctReproducibility}
-                      pctGRR={result.pctGRR}
-                      showBranding={true}
-                    />
-                  </ErrorBoundary>
+                <div className="flex-1 min-h-0 relative">
+                  <div className="absolute inset-0">
+                    <ErrorBoundary componentName="Gage R&R Chart">
+                      <GageRRChart
+                        pctPart={result.pctPart}
+                        pctRepeatability={result.pctRepeatability}
+                        pctReproducibility={result.pctReproducibility}
+                        pctGRR={result.pctGRR}
+                        showBranding={true}
+                      />
+                    </ErrorBoundary>
+                  </div>
                 </div>
               </div>
 
               {/* Study summary */}
-              <div className="bg-slate-800 rounded-xl border border-slate-700 p-4">
+              <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 flex-none">
                 <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">
                   Study Summary
                 </div>
@@ -251,8 +253,8 @@ const GageRRPanel: React.FC = () => {
             </div>
 
             {/* Right column: Interaction plot */}
-            <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden flex flex-col min-h-[400px]">
-              <div className="px-3 py-2 border-b border-slate-700/50">
+            <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden flex flex-col min-h-0 h-full">
+              <div className="flex-none px-3 py-2 border-b border-slate-700/50">
                 <span className="text-xs font-medium text-slate-300">
                   Operator × Part Interaction
                 </span>
@@ -260,10 +262,12 @@ const GageRRPanel: React.FC = () => {
                   (parallel lines = no interaction)
                 </span>
               </div>
-              <div className="flex-1 min-h-0">
-                <ErrorBoundary componentName="Interaction Plot">
-                  <InteractionPlot data={result.interactionData} showBranding={true} />
-                </ErrorBoundary>
+              <div className="flex-1 min-h-0 relative">
+                <div className="absolute inset-0">
+                  <ErrorBoundary componentName="Interaction Plot">
+                    <InteractionPlot data={result.interactionData} showBranding={true} />
+                  </ErrorBoundary>
+                </div>
               </div>
             </div>
           </div>
