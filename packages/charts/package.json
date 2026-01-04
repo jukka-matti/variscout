@@ -16,6 +16,8 @@
     "@variscout/core": "workspace:*",
     "@visx/axis": "^3.12.0",
     "@visx/brush": "^3.12.0",
+    "@visx/curve": "^3.12.0",
+    "@visx/event": "^3.12.0",
     "@visx/grid": "^3.12.0",
     "@visx/group": "^3.12.0",
     "@visx/legend": "^3.12.0",
