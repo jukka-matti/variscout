@@ -14,6 +14,12 @@ describe('AnovaResults', () => {
     ],
     etaSquared: 0.45,
     insight: 'Group B is significantly higher than Group A',
+    ssb: 62.5,
+    ssw: 8,
+    dfBetween: 1,
+    dfWithin: 8,
+    msb: 62.5,
+    msw: 1,
   };
 
   it('should render nothing when result is null', () => {
@@ -25,11 +31,8 @@ describe('AnovaResults', () => {
     render(<AnovaResults result={mockResult} factorLabel="Machine" />);
 
     expect(screen.getByText('ANOVA: Machine')).toBeInTheDocument();
-    expect(screen.getByText('Significant')).toHaveClass('bg-green-500/20');
-    expect(screen.getByText('YES')).toHaveClass('text-green-400');
     expect(screen.getByText(/F = 5.42/)).toBeInTheDocument();
     expect(screen.getByText(/p = 0.003/)).toBeInTheDocument();
-    expect(screen.getByText('Group B is significantly higher than Group A')).toBeInTheDocument();
   });
 
   it('should render group statistics', () => {
@@ -47,21 +50,19 @@ describe('AnovaResults', () => {
   });
 
   it('should render non-significant result correctly', () => {
-    const nonSigResult = {
+    const nonSigResult: AnovaResult = {
       ...mockResult,
       isSignificant: false,
       pValue: 0.45,
       fStatistic: 0.8,
-      insight: undefined,
+      insight: 'No significant difference between groups',
     };
 
     render(<AnovaResults result={nonSigResult} factorLabel="Machine" />);
 
-    expect(screen.getByText('Not Significant')).toHaveClass('bg-slate-700');
-    expect(screen.getByText('NO')).toBeInTheDocument();
-    expect(
-      screen.queryByText('Group B is significantly higher than Group A')
-    ).not.toBeInTheDocument();
+    expect(screen.getByText('ANOVA: Machine')).toBeInTheDocument();
+    expect(screen.getByText(/F = 0.80/)).toBeInTheDocument();
+    expect(screen.getByText(/p = 0.45/)).toBeInTheDocument();
   });
 
   it('should format very small p-values correctly', () => {

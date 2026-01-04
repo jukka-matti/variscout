@@ -5,6 +5,31 @@ All notable changes to VariScout Lite will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-01-04
+
+### Added
+
+- **Drill-Down Navigation**: Click Boxplot/Pareto elements to filter data with breadcrumb trail showing current filter path.
+- **Breadcrumb Component**: Visual navigation bar (`DrillBreadcrumb.tsx`) with home icon, chevron separators, and Clear All button.
+- **useDrillDown Hook**: React hook for managing drill-down state, history tracking, and filter sync.
+- **Navigation Types**: New types in `@variscout/core` (`DrillAction`, `DrillSource`, `BreadcrumbItem`) for cross-product consistency.
+- **Excel FilterBar Update**: Breadcrumb-style display for active slicer selections (read-only).
+
+### Changed
+
+- **Toolbar Redesign**: Contextual navigation with labeled buttons and grouped dropdowns.
+  - Single "Save" button with keyboard shortcut display (⌘S) and success feedback.
+  - "Export" dropdown grouping Download .vrs, CSV, and PNG exports.
+  - "View" dropdown for Data Table, Large Mode, Open Project, New Analysis.
+  - Mobile menu reorganized with section headers (Export, View, Project).
+  - Minimal toolbar (Open Project + Settings only) when no data loaded.
+  - New `ToolbarDropdown` reusable component for dropdown menus.
+
+### Documentation
+
+- **Navigation Architecture**: New comprehensive doc (`docs/design-system/NAVIGATION_ARCHITECTURE.md`) covering all navigation patterns.
+- **Drill-Down Patterns**: Added `docs/design-system/patterns/navigation.md` with chart-specific drill behavior.
+
 ## [1.3.0] - 2026-01-04
 
 ### Added

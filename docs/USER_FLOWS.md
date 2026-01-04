@@ -79,6 +79,7 @@ User drops CSV/Excel file
 ```
 
 **State Changes:**
+
 - `rawData` ← parsed file data
 - `outcome` ← user selection
 - `factors` ← user selection (0-3)
@@ -156,33 +157,43 @@ User clicks "Farm A" in Boxplot
          │
          ▼
 ┌────────────────────────────┐
-│ setFilters({               │
-│   'Farm': ['Farm A']       │
+│ useDrillDown.drillDown({   │
+│   source: 'boxplot',       │
+│   factor: 'Farm',          │
+│   values: ['Farm A']       │
 │ })                         │
 └────────────┬───────────────┘
              │
              ▼
 ┌────────────────────────────┐
-│ filteredData recalculates  │
-│ via useMemo in DataContext │
+│ drillStack updated         │
+│ → syncs to DataContext     │
+│ → filteredData recalculates│
 └────────────┬───────────────┘
              │
-    ┌────────┼────────┐
-    ▼        ▼        ▼
-┌───────┐ ┌───────┐ ┌───────┐
-│I-Chart│ │Boxplot│ │Pareto │
-│updates│ │updates│ │updates│
-└───────┘ └───────┘ └───────┘
+    ┌────────┼────────┬───────────────┐
+    ▼        ▼        ▼               ▼
+┌───────┐ ┌───────┐ ┌───────┐ ┌─────────────────┐
+│I-Chart│ │Boxplot│ │Pareto │ │ DrillBreadcrumb │
+│updates│ │updates│ │updates│ │ shows filter    │
+└───────┘ └───────┘ └───────┘ │ path: All Data  │
+                              │ > Farm: Farm A  │
+                              └─────────────────┘
              │
              ▼
-    Press ESC to clear filters
+    Navigation options:
+    • ESC key → clears all filters
+    • Click breadcrumb → navigates to that point
+    • Click same element → toggles filter off
 ```
 
 **Filter Behavior:**
+
 - Filters are additive (AND logic)
 - Click Farm A + Shift 1 → shows only (Farm A AND Shift 1)
 - ESC key clears all filters
 - Clicking same element toggles filter off
+- Breadcrumb provides visual navigation trail
 
 ---
 
@@ -301,12 +312,12 @@ save      input dialog
 
 ### Export Options
 
-| Action | Output | Contains |
-|--------|--------|----------|
-| **Save to Browser** | IndexedDB | Full state |
-| **Download .vrs** | JSON file | Full state (portable) |
-| **Export CSV** | CSV file | Data + spec status column |
-| **Export PNG** | Image file | Dashboard screenshot |
+| Action              | Output     | Contains                  |
+| ------------------- | ---------- | ------------------------- |
+| **Save to Browser** | IndexedDB  | Full state                |
+| **Download .vrs**   | JSON file  | Full state (portable)     |
+| **Export CSV**      | CSV file   | Data + spec status column |
+| **Export PNG**      | Image file | Dashboard screenshot      |
 
 ---
 
@@ -351,7 +362,15 @@ User clicks Settings gear
 App.tsx
 ├── AppHeader
 │   ├── Logo + project name
-│   └── Toolbar buttons (save, export, settings, reset)
+│   ├── Toolbar (desktop, contextual based on hasData)
+│   │   ├── Save button (⌘S shortcut, success feedback)
+│   │   ├── ToolbarDropdown (Export: .vrs, CSV, PNG)
+│   │   ├── ToolbarDropdown (View: Data Table, Large Mode, Projects)
+│   │   └── Settings button
+│   └── MobileMenu (mobile)
+│       ├── Export section
+│       ├── View section
+│       └── Project section
 ├── AppFooter
 │   └── Row count + version
 ├── HomeScreen (when rawData.length === 0)
@@ -363,6 +382,10 @@ App.tsx
 │   ├── Outcome selector
 │   └── Factor checkboxes
 ├── Dashboard (when data loaded)
+│   ├── DrillBreadcrumb (when filters active)
+│   │   ├── Home icon + "All Data"
+│   │   ├── Filter items with chevrons
+│   │   └── Clear All button
 │   ├── IChart
 │   │   └── ErrorBoundary wrapper
 │   ├── Boxplot
@@ -385,21 +408,21 @@ App.tsx
 
 ### DataContext State
 
-| State | Type | Purpose |
-|-------|------|---------|
-| `rawData` | `any[]` | All imported data |
-| `filteredData` | `any[]` | Derived: rawData + filters |
-| `outcome` | `string` | Y-axis column |
-| `factors` | `string[]` | Grouping columns (max 3) |
-| `specs` | `{usl?, lsl?, target?}` | Specification limits |
-| `grades` | `{max, label, color}[]` | Multi-tier grades |
-| `filters` | `Record<string, any[]>` | Active filters |
-| `stats` | `StatsResult` | Derived: calculated metrics |
-| `displayOptions` | `{showCp, showCpk}` | UI toggles |
-| `axisSettings` | `{min?, max?}` | Y-axis overrides |
-| `currentProjectId` | `string?` | Loaded project ID |
-| `currentProjectName` | `string?` | Project display name |
-| `hasUnsavedChanges` | `boolean` | Dirty flag |
+| State                | Type                    | Purpose                     |
+| -------------------- | ----------------------- | --------------------------- |
+| `rawData`            | `any[]`                 | All imported data           |
+| `filteredData`       | `any[]`                 | Derived: rawData + filters  |
+| `outcome`            | `string`                | Y-axis column               |
+| `factors`            | `string[]`              | Grouping columns (max 3)    |
+| `specs`              | `{usl?, lsl?, target?}` | Specification limits        |
+| `grades`             | `{max, label, color}[]` | Multi-tier grades           |
+| `filters`            | `Record<string, any[]>` | Active filters              |
+| `stats`              | `StatsResult`           | Derived: calculated metrics |
+| `displayOptions`     | `{showCp, showCpk}`     | UI toggles                  |
+| `axisSettings`       | `{min?, max?}`          | Y-axis overrides            |
+| `currentProjectId`   | `string?`               | Loaded project ID           |
+| `currentProjectName` | `string?`               | Project display name        |
+| `hasUnsavedChanges`  | `boolean`               | Dirty flag                  |
 
 ### Derived Values (Auto-Calculated)
 
@@ -412,23 +435,25 @@ filteredData + specs + grades → stats (useMemo)
 
 ## Keyboard Shortcuts
 
-| Key | Context | Action |
-|-----|---------|--------|
-| `ESC` | Dashboard | Clear all filters |
-| `Tab` | Data Table | Move to next cell |
-| `Shift+Tab` | Data Table | Move to previous cell |
-| `Enter` | Data Table | Move to next row |
-| `Enter` | Manual Entry | Add new row (if last cell) |
+| Key             | Context      | Action                     |
+| --------------- | ------------ | -------------------------- |
+| `⌘S` / `Ctrl+S` | Dashboard    | Save to browser            |
+| `⌘O` / `Ctrl+O` | Any          | Open saved projects        |
+| `ESC`           | Dashboard    | Clear all filters          |
+| `Tab`           | Data Table   | Move to next cell          |
+| `Shift+Tab`     | Data Table   | Move to previous cell      |
+| `Enter`         | Data Table   | Move to next row           |
+| `Enter`         | Manual Entry | Add new row (if last cell) |
 
 ---
 
 ## Data Limits
 
-| Threshold | Behavior |
-|-----------|----------|
-| < 5,000 rows | Loads immediately |
-| 5,000 - 50,000 rows | Warning prompt |
-| > 50,000 rows | Rejected |
+| Threshold             | Behavior          |
+| --------------------- | ----------------- |
+| < 5,000 rows          | Loads immediately |
+| 5,000 - 50,000 rows   | Warning prompt    |
+| > 50,000 rows         | Rejected          |
 | Data Table pagination | 500 rows per page |
 
 ---

@@ -1,8 +1,9 @@
 /**
  * FilterBar Component for Content Add-in
  *
- * Displays active slicer filters as pills with a Clear All button.
+ * Displays active slicer filters as a breadcrumb trail with a Clear All button.
  * Uses dark theme styling to match the Content Add-in dashboard.
+ * Read-only navigation (slicers control filtering, not clicks).
  */
 
 import React from 'react';
@@ -19,8 +20,41 @@ interface FilterBarProps {
   onClearFilter?: (column: string) => void;
 }
 
+/** Home icon SVG */
+const HomeIcon: React.FC<{ size?: number }> = ({ size = 12 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+
+/** Chevron separator */
+const ChevronRight: React.FC<{ size?: number }> = ({ size = 12 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+
 /**
- * Displays active slicer filters as styled pills
+ * Displays active slicer filters as a breadcrumb trail
  */
 const FilterBar: React.FC<FilterBarProps> = ({ filters, onClearAll, onClearFilter }) => {
   // Don't render if no filters active
@@ -29,33 +63,44 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, onClearAll, onClearFilte
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.filterList}>
-        <span style={styles.label}>Filters:</span>
+    <nav style={styles.container} aria-label="Filter breadcrumb">
+      <div style={styles.breadcrumbList}>
+        {/* Root/Home item */}
+        <span style={styles.rootItem}>
+          <HomeIcon size={12} />
+          <span style={{ marginLeft: 4 }}>All Data</span>
+        </span>
+
+        {/* Filter items with chevron separators */}
         {filters.map(filter => (
-          <div key={filter.column} style={styles.pill}>
-            <span style={styles.pillColumn}>{filter.column}:</span>
-            <span style={styles.pillValues}>
-              {filter.values.slice(0, 3).join(', ')}
-              {filter.values.length > 3 && ` +${filter.values.length - 3} more`}
+          <React.Fragment key={filter.column}>
+            <span style={styles.chevron}>
+              <ChevronRight size={12} />
             </span>
-            {onClearFilter && (
-              <button
-                onClick={() => onClearFilter(filter.column)}
-                style={styles.pillClose}
-                title={`Clear ${filter.column} filter`}
-                aria-label={`Clear ${filter.column} filter`}
-              >
-                ×
-              </button>
-            )}
-          </div>
+            <span style={styles.filterItem}>
+              <span style={styles.filterColumn}>{filter.column}:</span>
+              <span style={styles.filterValues}>
+                {filter.values.slice(0, 2).join(', ')}
+                {filter.values.length > 2 && ` +${filter.values.length - 2}`}
+              </span>
+              {onClearFilter && (
+                <button
+                  onClick={() => onClearFilter(filter.column)}
+                  style={styles.itemClose}
+                  title={`Clear ${filter.column} filter`}
+                  aria-label={`Clear ${filter.column} filter`}
+                >
+                  ×
+                </button>
+              )}
+            </span>
+          </React.Fragment>
         ))}
       </div>
-      <button onClick={onClearAll} style={styles.clearButton} title="Clear all filters">
+      <button onClick={onClearAll} style={styles.clearButton} title="Clear all slicer selections">
         Clear All
       </button>
-    </div>
+    </nav>
   );
 };
 
@@ -71,19 +116,27 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: darkTheme.spacingM,
     minHeight: 36,
   },
-  filterList: {
+  breadcrumbList: {
     display: 'flex',
     alignItems: 'center',
-    gap: darkTheme.spacingS,
+    gap: darkTheme.spacingXS,
     flexWrap: 'wrap',
     flex: 1,
   },
-  label: {
+  rootItem: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: `${darkTheme.spacingXS}px ${darkTheme.spacingS}px`,
+    borderRadius: darkTheme.borderRadiusS,
     fontSize: darkTheme.fontSizeSmall,
     color: darkTheme.colorNeutralForeground2,
-    marginRight: darkTheme.spacingXS,
   },
-  pill: {
+  chevron: {
+    display: 'flex',
+    alignItems: 'center',
+    color: darkTheme.colorNeutralForeground3,
+  },
+  filterItem: {
     display: 'flex',
     alignItems: 'center',
     gap: darkTheme.spacingXS,
@@ -93,31 +146,31 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: darkTheme.fontSizeSmall,
     color: darkTheme.colorNeutralForeground1,
   },
-  pillColumn: {
-    fontWeight: darkTheme.fontWeightSemibold,
-    color: darkTheme.colorBrandForeground1,
+  filterColumn: {
+    color: darkTheme.colorNeutralForeground2,
   },
-  pillValues: {
+  filterValues: {
     color: darkTheme.colorNeutralForeground1,
-    maxWidth: 150,
+    fontWeight: darkTheme.fontWeightSemibold,
+    maxWidth: 120,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
-  pillClose: {
+  itemClose: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 16,
-    height: 16,
+    width: 14,
+    height: 14,
     padding: 0,
     marginLeft: darkTheme.spacingXS,
     backgroundColor: 'transparent',
     border: 'none',
     borderRadius: darkTheme.borderRadiusCircular,
-    color: darkTheme.colorNeutralForeground2,
+    color: darkTheme.colorNeutralForeground3,
     cursor: 'pointer',
-    fontSize: 14,
+    fontSize: 12,
     lineHeight: 1,
   },
   clearButton: {

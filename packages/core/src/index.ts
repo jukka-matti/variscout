@@ -61,3 +61,27 @@ export type { ExportOptions } from './export';
 
 // Parser
 export { parseCSV, parseExcel, detectColumns } from './parser';
+
+// Navigation
+export type {
+  DrillType,
+  DrillSource,
+  DrillAction,
+  HighlightState,
+  NavigationState,
+  BreadcrumbItem,
+} from './navigation';
+
+export {
+  generateDrillId,
+  getDrillLabel,
+  drillStackToFilters,
+  createDrillAction,
+  findDrillIndex,
+  popDrillStackTo,
+  popDrillStack,
+  pushDrillStack,
+  shouldToggleDrill,
+  drillStackToBreadcrumbs,
+  initialNavigationState,
+} from './navigation';

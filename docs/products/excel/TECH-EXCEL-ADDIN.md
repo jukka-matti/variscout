@@ -39,7 +39,7 @@ Histogram / Probability Plot     ✅          ✅
 Copy charts to clipboard         ✅          ✅
 Insert charts into Excel         ✅          ✅
 Write stats to cells             ✅          ✅
-FilterBar (active filter display)✅          ✅
+FilterBar (breadcrumb display)   ✅          ✅
 ─────────────────────────────────────────────────────────────────
 Save settings in workbook        ❌          ✅
 Save spec limits                 ❌          ✅
@@ -192,7 +192,7 @@ apps/excel-addin/
 │   ├── content/
 │   │   ├── App.tsx                 # Content Add-in root (polls for state)
 │   │   ├── ContentDashboard.tsx    # Main chart dashboard
-│   │   ├── FilterBar.tsx           # Active slicer filters display
+│   │   ├── FilterBar.tsx           # Breadcrumb display (read-only)
 │   │   └── AnovaResults.tsx        # ANOVA statistics below charts
 │   │
 │   ├── lib/
@@ -234,7 +234,7 @@ CONTENT ADD-IN LAYOUT
 
 Features:
 • Export toolbar: Copy All (clipboard), Insert (into sheet), Stats (to cells)
-• FilterBar: Shows active slicer filters with Clear All button
+• FilterBar: Breadcrumb display of slicer filters (read-only, users control via Excel slicers)
 • Charts: I-Chart, Boxplot, Pareto, Histogram/Probability Plot toggle
 • ANOVA: F-statistic, p-value, group means, effect size, plain-language insight
 • Live updates: Polls table data every 1s, slicer state every 2s

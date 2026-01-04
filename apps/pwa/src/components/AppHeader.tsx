@@ -1,19 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Activity,
   Settings,
-  Download,
   Save,
   FolderOpen,
-  RefreshCw,
-  HardDrive,
+  Share2,
+  Eye,
+  FileDown,
   FileSpreadsheet,
-  Maximize2,
-  Minimize2,
+  Image,
   Table,
   MoreVertical,
+  Maximize2,
+  Plus,
+  Check,
 } from 'lucide-react';
 import MobileMenu from './MobileMenu';
+import ToolbarDropdown, { DropdownItem } from './ToolbarDropdown';
 
 interface AppHeaderProps {
   currentProjectName: string | null;
@@ -35,8 +38,12 @@ interface AppHeaderProps {
 }
 
 /**
- * Application header with logo, project name, and toolbar buttons
- * Shows different controls based on whether data is loaded
+ * Application header with contextual toolbar
+ *
+ * Design principles:
+ * - Clear for first-time users (labels on buttons)
+ * - Efficient for power users (keyboard shortcuts shown)
+ * - Context-aware (different actions when no data vs data loaded)
  */
 const AppHeader: React.FC<AppHeaderProps> = ({
   currentProjectName,
@@ -57,9 +64,77 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onReset,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+
+  // Handle save with success feedback
+  const handleSave = useCallback(() => {
+    onSaveToBrowser();
+    setShowSaveSuccess(true);
+    setTimeout(() => setShowSaveSuccess(false), 2000);
+  }, [onSaveToBrowser]);
+
+  // Detect Mac for shortcut display
+  const isMac =
+    typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const cmdKey = isMac ? '⌘' : 'Ctrl+';
+
+  // Export dropdown items
+  const exportItems: DropdownItem[] = [
+    {
+      id: 'download',
+      label: 'Download Project (.vrs)',
+      icon: <FileDown size={16} />,
+      onClick: onDownloadFile,
+    },
+    {
+      id: 'csv',
+      label: 'Export as CSV',
+      icon: <FileSpreadsheet size={16} />,
+      onClick: onExportCSV,
+    },
+    {
+      id: 'image',
+      label: 'Export as Image',
+      icon: <Image size={16} />,
+      onClick: onExportImage,
+    },
+  ];
+
+  // View dropdown items
+  const viewItems: DropdownItem[] = [
+    {
+      id: 'datatable',
+      label: 'Data Table',
+      icon: <Table size={16} />,
+      onClick: onOpenDataTable,
+    },
+    {
+      id: 'largemode',
+      label: 'Large Mode',
+      icon: <Maximize2 size={16} />,
+      onClick: onToggleLargeMode,
+      isToggle: true,
+      isActive: isLargeMode,
+    },
+    {
+      id: 'projects',
+      label: 'Open Project',
+      icon: <FolderOpen size={16} />,
+      shortcut: `${cmdKey}O`,
+      onClick: onOpenProjects,
+      dividerBefore: true,
+    },
+    {
+      id: 'new',
+      label: 'New Analysis',
+      icon: <Plus size={16} />,
+      onClick: onReset,
+    },
+  ];
 
   return (
     <header className="h-14 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 bg-slate-900/50 backdrop-blur-md z-10">
+      {/* Logo and project name */}
       <div className="flex items-center gap-2 sm:gap-3">
         <div className="p-1.5 sm:p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
           <Activity className="text-white" size={18} />
@@ -68,12 +143,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
             VariScout <span className="font-light text-slate-500">Lite</span>
           </h1>
-          {(currentProjectName || dataFilename) && (
+          {hasData && (currentProjectName || dataFilename) && (
             <span className="text-[10px] sm:text-xs text-slate-500 truncate max-w-[150px] sm:max-w-none flex items-center gap-1">
               {currentProjectName ? (
                 <>
                   {currentProjectName}
-                  {hasUnsavedChanges && ' *'}
+                  {hasUnsavedChanges && <span className="text-amber-500">*</span>}
                 </>
               ) : dataFilename ? (
                 <>
@@ -88,103 +163,79 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         </div>
       </div>
 
+      {/* Toolbar */}
       <div className="flex items-center gap-1 sm:gap-2">
-        {hasData && (
+        {hasData ? (
           <>
-            {/* Save to browser button - always visible */}
-            <button
-              onClick={onSaveToBrowser}
-              disabled={isSaving}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 touch-feedback"
-              title="Save to Browser"
-              style={{ minWidth: 44, minHeight: 44 }}
-            >
-              <HardDrive size={18} />
-            </button>
-
-            {/* View Data Table - always visible */}
-            <button
-              onClick={onOpenDataTable}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors touch-feedback"
-              title="View Data"
-              style={{ minWidth: 44, minHeight: 44 }}
-            >
-              <Table size={18} />
-            </button>
-
-            {/* Mobile: More menu button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="sm:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors touch-feedback"
-              title="More options"
-              style={{ minWidth: 44, minHeight: 44 }}
-            >
-              <MoreVertical size={18} />
-            </button>
-
-            {/* Desktop: Individual buttons */}
+            {/* Desktop: Full toolbar with labels */}
             <div className="hidden sm:flex items-center gap-1">
-              {/* Open saved projects */}
+              {/* Save button with label and shortcut */}
               <button
-                onClick={onOpenProjects}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                title="Open Saved Projects"
+                onClick={handleSave}
+                disabled={isSaving}
+                className={`
+                  flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all
+                  ${
+                    showSaveSuccess
+                      ? 'text-green-400 bg-green-400/10'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                `}
+                title={`Save to Browser (${cmdKey}S)`}
+                style={{ minHeight: 44 }}
               >
-                <FolderOpen size={18} />
+                {showSaveSuccess ? <Check size={18} /> : <Save size={18} />}
+                <span className="text-sm font-medium">{showSaveSuccess ? 'Saved' : 'Save'}</span>
+                {!showSaveSuccess && (
+                  <span className="text-xs text-slate-600 font-mono ml-1">{cmdKey}S</span>
+                )}
               </button>
-              <div className="h-4 w-px bg-slate-800 mx-1"></div>
-              {/* Download as file */}
-              <button
-                onClick={onDownloadFile}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                title="Download as File"
-              >
-                <Save size={18} />
-              </button>
-              {/* Export as CSV */}
-              <button
-                onClick={onExportCSV}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                title="Export as CSV"
-              >
-                <FileSpreadsheet size={18} />
-              </button>
-              {/* Export image */}
-              <button
-                onClick={onExportImage}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                title="Export as Image"
-              >
-                <Download size={18} />
-              </button>
-              <div className="h-4 w-px bg-slate-800 mx-1"></div>
-              {/* Large Mode toggle */}
-              <button
-                onClick={onToggleLargeMode}
-                className={`p-2 rounded-lg transition-colors ${
-                  isLargeMode
-                    ? 'text-blue-400 bg-blue-400/10 hover:bg-blue-400/20'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-                title={isLargeMode ? 'Exit Large Mode' : 'Large Mode (for presentations)'}
-              >
-                {isLargeMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-              </button>
-              {/* Settings */}
+
+              {/* Export dropdown */}
+              <ToolbarDropdown label="Export" icon={<Share2 size={18} />} items={exportItems} />
+
+              {/* View dropdown */}
+              <ToolbarDropdown label="View" icon={<Eye size={18} />} items={viewItems} />
+
+              {/* Settings - icon only */}
               <button
                 onClick={onOpenSettings}
                 className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
                 title="Settings"
+                style={{ minWidth: 44, minHeight: 44 }}
               >
                 <Settings size={18} />
               </button>
-              {/* Reset */}
+            </div>
+
+            {/* Mobile: Save button + menu */}
+            <div className="flex sm:hidden items-center gap-1">
               <button
-                onClick={onReset}
-                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                onClick={handleSave}
+                disabled={isSaving}
+                className={`
+                  p-2 rounded-lg transition-all touch-feedback
+                  ${
+                    showSaveSuccess
+                      ? 'text-green-400 bg-green-400/10'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }
+                  disabled:opacity-50
+                `}
+                title="Save"
+                style={{ minWidth: 44, minHeight: 44 }}
               >
-                <RefreshCw size={14} />
-                <span>Reset</span>
+                {showSaveSuccess ? <Check size={18} /> : <Save size={18} />}
+              </button>
+
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors touch-feedback"
+                title="Menu"
+                style={{ minWidth: 44, minHeight: 44 }}
+              >
+                <MoreVertical size={18} />
               </button>
             </div>
 
@@ -199,9 +250,35 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               onToggleLargeMode={onToggleLargeMode}
               onOpenSettings={onOpenSettings}
               onReset={onReset}
+              onOpenDataTable={onOpenDataTable}
               isLargeMode={isLargeMode}
             />
           </>
+        ) : (
+          /* No data: Minimal toolbar */
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onOpenProjects}
+              className="flex items-center gap-1.5 px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              title={`Open Project (${cmdKey}O)`}
+              style={{ minHeight: 44 }}
+            >
+              <FolderOpen size={18} />
+              <span className="hidden sm:inline text-sm font-medium">Open Project</span>
+              <span className="hidden sm:inline text-xs text-slate-600 font-mono ml-1">
+                {cmdKey}O
+              </span>
+            </button>
+
+            <button
+              onClick={onOpenSettings}
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              title="Settings"
+              style={{ minWidth: 44, minHeight: 44 }}
+            >
+              <Settings size={18} />
+            </button>
+          </div>
         )}
       </div>
     </header>

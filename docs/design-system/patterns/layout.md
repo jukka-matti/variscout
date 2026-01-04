@@ -8,7 +8,7 @@ Page and component layout patterns.
 ┌─────────────────────────────────────────┐
 │ Header (h-14)                           │
 ├─────────────────────────────────────────┤
-│ Filter Bar (conditional)                │
+│ DrillBreadcrumb (when filters active)   │
 ├─────────────────────────────────────────┤
 │                                         │
 │ Main Content (flex-1)                   │
@@ -21,11 +21,13 @@ Page and component layout patterns.
 ```jsx
 <div className="flex flex-col h-screen bg-slate-900">
   <AppHeader />
-  {hasFilters && <FilterBar />}
+  <DrillBreadcrumb items={breadcrumbs} onNavigate={handleNav} />
   <main className="flex-1 overflow-hidden">{content}</main>
   <AppFooter />
 </div>
 ```
+
+See [Navigation Patterns](./navigation.md) for drill-down behavior.
 
 ## Dashboard Layout (Desktop)
 

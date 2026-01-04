@@ -1,14 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import {
   FolderOpen,
-  Save,
+  FileDown,
   FileSpreadsheet,
-  Download,
+  Image,
   Maximize2,
   Minimize2,
   Settings,
-  RefreshCw,
+  Plus,
   X,
+  Table,
 } from 'lucide-react';
 
 interface MobileMenuProps {
@@ -21,9 +22,13 @@ interface MobileMenuProps {
   onToggleLargeMode: () => void;
   onOpenSettings: () => void;
   onReset: () => void;
+  onOpenDataTable: () => void;
   isLargeMode: boolean;
 }
 
+/**
+ * Mobile menu with grouped sections matching desktop dropdowns
+ */
 const MobileMenu: React.FC<MobileMenuProps> = ({
   isOpen,
   onClose,
@@ -34,6 +39,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onToggleLargeMode,
   onOpenSettings,
   onReset,
+  onOpenDataTable,
   isLargeMode,
 }) => {
   const menuRef = useRef<React.ElementRef<'div'>>(null);
@@ -97,6 +103,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
     </button>
   );
 
+  const SectionHeader = ({ title }: { title: string }) => (
+    <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      {title}
+    </div>
+  );
+
   return (
     <>
       {/* Backdrop */}
@@ -119,30 +131,42 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
         </div>
 
         <div className="py-2">
+          {/* Export Section */}
+          <SectionHeader title="Export" />
           <MenuItem
-            icon={<FolderOpen size={18} />}
-            label="Open Projects"
-            onClick={onOpenProjects}
+            icon={<FileDown size={18} />}
+            label="Download Project (.vrs)"
+            onClick={onDownloadFile}
           />
+          <MenuItem
+            icon={<FileSpreadsheet size={18} />}
+            label="Export as CSV"
+            onClick={onExportCSV}
+          />
+          <MenuItem icon={<Image size={18} />} label="Export as Image" onClick={onExportImage} />
 
-          <div className="h-px bg-slate-700 my-1 mx-4" />
+          <div className="h-px bg-slate-700 my-2" />
 
-          <MenuItem icon={<Save size={18} />} label="Download File" onClick={onDownloadFile} />
-          <MenuItem icon={<FileSpreadsheet size={18} />} label="Export CSV" onClick={onExportCSV} />
-          <MenuItem icon={<Download size={18} />} label="Export Image" onClick={onExportImage} />
-
-          <div className="h-px bg-slate-700 my-1 mx-4" />
-
+          {/* View Section */}
+          <SectionHeader title="View" />
+          <MenuItem icon={<Table size={18} />} label="Data Table" onClick={onOpenDataTable} />
           <MenuItem
             icon={isLargeMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
             label={isLargeMode ? 'Exit Large Mode' : 'Large Mode'}
             onClick={onToggleLargeMode}
           />
+
+          <div className="h-px bg-slate-700 my-2" />
+
+          {/* Project Section */}
+          <SectionHeader title="Project" />
+          <MenuItem icon={<FolderOpen size={18} />} label="Open Project" onClick={onOpenProjects} />
+          <MenuItem icon={<Plus size={18} />} label="New Analysis" onClick={onReset} />
+
+          <div className="h-px bg-slate-700 my-2" />
+
+          {/* Settings */}
           <MenuItem icon={<Settings size={18} />} label="Settings" onClick={onOpenSettings} />
-
-          <div className="h-px bg-slate-700 my-1 mx-4" />
-
-          <MenuItem icon={<RefreshCw size={18} />} label="Reset" onClick={onReset} danger />
         </div>
       </div>
     </>

@@ -102,10 +102,14 @@ Legend:
 - **Outcome Selection**: Switch primary metric (Y) directly from I-Chart header
 - **Factor Selection**: Independently select factors (X) for Boxplot and Pareto
 - **Click-to-Edit Axes**: Click Y-axis to manually set Min/Max or reset to Auto
-- **Linked Filtering**:
-  - Click any boxplot → filters I-Chart and Pareto
-  - Click Pareto bar → filters other charts
-  - Brush I-Chart range → filters others
+- **Linked Filtering with Drill-Down**:
+  - Click Boxplot category → filters to that factor level
+  - Click Pareto bar → filters to that category
+  - I-Chart point click → highlights row (no filter)
+  - **Breadcrumb Trail**: Shows current filter path with navigation
+    - `[🏠 All Data] > [Machine: A, B] > [Shift: Day]  [✕ Clear All]`
+  - Click breadcrumb item → navigates back to that state
+  - Clear All button → resets to unfiltered view
 - **"What's selected accounts for X% of total variation"**
 
 ### 4. Statistics Panel

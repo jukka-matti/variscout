@@ -1,6 +1,13 @@
 import React from 'react';
 import { useStorage } from '../services/storage';
 
+// TODO: When integrating @variscout/charts:
+// 1. Import { useDrillDown } from '../hooks/useDrillDown' (copy from PWA)
+// 2. Import DrillBreadcrumb component (copy from PWA)
+// 3. Add filters state and setFilters (like PWA DataContext)
+// 4. Wire breadcrumb between header and content
+// See: docs/design-system/patterns/navigation.md
+
 export const Editor: React.FC<{ projectId: string | null; onBack: () => void }> = ({
   projectId,
   onBack,
@@ -13,6 +20,7 @@ export const Editor: React.FC<{ projectId: string | null; onBack: () => void }> 
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)]">
+      {/* Header with back navigation */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <button onClick={onBack} className="text-gray-500 hover:text-gray-900">

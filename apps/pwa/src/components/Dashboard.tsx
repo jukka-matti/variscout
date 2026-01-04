@@ -9,8 +9,9 @@ import AnovaResults from './AnovaResults';
 import RegressionPanel from './RegressionPanel';
 import GageRRPanel from './GageRRPanel';
 import ErrorBoundary from './ErrorBoundary';
+import DrillBreadcrumb from './DrillBreadcrumb';
 import { useData } from '../context/DataContext';
-import { calculateAnova, type AnovaResult } from '@variscout/core';
+import { calculateAnova, type AnovaResult, type BreadcrumbItem } from '@variscout/core';
 import {
   Activity,
   Copy,
@@ -37,7 +38,18 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ onPointClick }: DashboardProps) => {
-  const { outcome, factors, setOutcome, rawData, stats, specs, filteredData } = useData();
+  const {
+    outcome,
+    factors,
+    setOutcome,
+    rawData,
+    stats,
+    specs,
+    filteredData,
+    filters,
+    setFilters,
+    columnAliases,
+  } = useData();
   const [isMobile, setIsMobile] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardTab>('analysis');
@@ -138,6 +150,79 @@ const Dashboard = ({ onPointClick }: DashboardProps) => {
     return calculateAnova(filteredData, outcome, boxplotFactor);
   }, [filteredData, outcome, boxplotFactor]);
 
+  // Convert current filters to breadcrumb items for navigation display
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    const items: BreadcrumbItem[] = [
+      { id: 'root', label: 'All Data', isActive: false, source: 'ichart' as const },
+    ];
+
+    // Guard against undefined filters (e.g., in tests)
+    if (!filters) {
+      items[0].isActive = true;
+      return items;
+    }
+
+    const activeFilters = Object.entries(filters).filter(
+      ([_, values]) => Array.isArray(values) && values.length > 0
+    );
+
+    activeFilters.forEach(([factor, values], index) => {
+      const alias = columnAliases[factor] || factor;
+      const displayValues = (values as any[]).slice(0, 2).map(String);
+      const suffix = values.length > 2 ? ` +${values.length - 2}` : '';
+      const label = `${alias}: ${displayValues.join(', ')}${suffix}`;
+
+      items.push({
+        id: factor,
+        label,
+        isActive: index === activeFilters.length - 1,
+        source: 'boxplot' as const, // Default source for filter-based navigation
+      });
+    });
+
+    // Mark root as active if no filters
+    if (items.length === 1) {
+      items[0].isActive = true;
+    }
+
+    return items;
+  }, [filters, columnAliases]);
+
+  // Handle breadcrumb navigation
+  const handleBreadcrumbNavigate = useCallback(
+    (id: string) => {
+      if (id === 'root') {
+        // Clear all filters
+        setFilters({});
+        return;
+      }
+
+      // Guard against undefined filters
+      if (!filters) return;
+
+      // Find the filter to navigate to, clear all filters after it
+      const activeFilters = Object.entries(filters).filter(
+        ([_, values]) => Array.isArray(values) && values.length > 0
+      );
+
+      const targetIndex = activeFilters.findIndex(([factor]) => factor === id);
+      if (targetIndex === -1) return;
+
+      // Keep only filters up to and including the target
+      const newFilters: Record<string, any[]> = {};
+      activeFilters.slice(0, targetIndex + 1).forEach(([factor, values]) => {
+        newFilters[factor] = values;
+      });
+      setFilters(newFilters);
+    },
+    [filters, setFilters]
+  );
+
+  // Clear all filters
+  const handleClearAllFilters = useCallback(() => {
+    setFilters({});
+  }, [setFilters]);
+
   const handleCopyChart = async (containerId: string, chartName: string) => {
     const node = document.getElementById(containerId);
     if (!node) return;
@@ -187,6 +272,13 @@ const Dashboard = ({ onPointClick }: DashboardProps) => {
       id="dashboard-export-container"
       className="flex flex-col h-full overflow-y-auto bg-slate-900 relative"
     >
+      {/* Drill Breadcrumb Navigation */}
+      <DrillBreadcrumb
+        items={breadcrumbItems}
+        onNavigate={handleBreadcrumbNavigate}
+        onClearAll={handleClearAllFilters}
+      />
+
       {/* Tab Navigation */}
       <div className="flex-none flex items-center gap-2 px-4 pt-4">
         <button

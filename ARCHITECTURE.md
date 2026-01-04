@@ -79,14 +79,15 @@ variscout-lite/
 
 Pure TypeScript logic with no React dependencies:
 
-| Module       | Purpose                                                       |
-| ------------ | ------------------------------------------------------------- |
-| `stats.ts`   | Mean, StdDev, UCL/LCL, Cp, Cpk, conformance, factor grouping  |
-| `parser.ts`  | CSV/Excel file parsing                                        |
-| `license.ts` | License key validation (offline)                              |
-| `edition.ts` | Edition configuration (community/itc/licensed)                |
-| `export.ts`  | CSV export utilities                                          |
-| `types.ts`   | Shared TypeScript interfaces (StatsResult, ConformanceResult) |
+| Module          | Purpose                                                       |
+| --------------- | ------------------------------------------------------------- |
+| `stats.ts`      | Mean, StdDev, UCL/LCL, Cp, Cpk, conformance, factor grouping  |
+| `parser.ts`     | CSV/Excel file parsing                                        |
+| `navigation.ts` | Navigation types and utilities (DrillAction, BreadcrumbItem)  |
+| `license.ts`    | License key validation (offline)                              |
+| `edition.ts`    | Edition configuration (community/itc/licensed)                |
+| `export.ts`     | CSV export utilities                                          |
+| `types.ts`      | Shared TypeScript interfaces (StatsResult, ConformanceResult) |
 
 ### @variscout/charts
 
@@ -107,13 +108,15 @@ Props-based React components using Visx for data visualization:
 
 React application with PWA capabilities:
 
-| Module                     | Purpose                      |
-| -------------------------- | ---------------------------- |
-| `context/DataContext.tsx`  | Centralized state management |
-| `components/Dashboard.tsx` | Main 3-chart layout          |
-| `components/Mobile*.tsx`   | Mobile-optimized components  |
-| `lib/persistence.ts`       | IndexedDB + localStorage     |
-| `hooks/useResponsive*.ts`  | Responsive sizing hooks      |
+| Module                           | Purpose                         |
+| -------------------------------- | ------------------------------- |
+| `context/DataContext.tsx`        | Centralized state management    |
+| `components/Dashboard.tsx`       | Main 3-chart layout             |
+| `components/DrillBreadcrumb.tsx` | Breadcrumb navigation component |
+| `components/Mobile*.tsx`         | Mobile-optimized components     |
+| `hooks/useDrillDown.ts`          | Drill-down navigation hook      |
+| `lib/persistence.ts`             | IndexedDB + localStorage        |
+| `hooks/useResponsive*.ts`        | Responsive sizing hooks         |
 
 ### @variscout/excel-addin
 
