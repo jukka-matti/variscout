@@ -20,9 +20,10 @@ interface BoxplotProps {
   factor: string;
   parentWidth: number;
   parentHeight: number;
+  onDrillDown?: (factor: string, value: string) => void;
 }
 
-const Boxplot = ({ factor, parentWidth, parentHeight }: BoxplotProps) => {
+const Boxplot = ({ factor, parentWidth, parentHeight, onDrillDown }: BoxplotProps) => {
   const sourceBarHeight = getSourceBarHeight();
   const margin = useResponsiveChartMargins(parentWidth, 'boxplot', sourceBarHeight);
   const fonts = useResponsiveChartFonts(parentWidth);
@@ -85,12 +86,16 @@ const Boxplot = ({ factor, parentWidth, parentHeight }: BoxplotProps) => {
   }, [height, min, max]);
 
   const handleBoxClick = (key: string) => {
-    const currentFilters = filters[factor] || [];
-    const newFilters = currentFilters.includes(key)
-      ? currentFilters.filter(v => v !== key)
-      : [...currentFilters, key];
-
-    setFilters({ ...filters, [factor]: newFilters });
+    if (onDrillDown) {
+      onDrillDown(factor, key);
+    } else {
+      // Fallback to current behavior
+      const currentFilters = filters[factor] || [];
+      const newFilters = currentFilters.includes(key)
+        ? currentFilters.filter(v => v !== key)
+        : [...currentFilters, key];
+      setFilters({ ...filters, [factor]: newFilters });
+    }
   };
 
   const handleSaveAlias = (newAlias: string, newValueLabels?: Record<string, string>) => {

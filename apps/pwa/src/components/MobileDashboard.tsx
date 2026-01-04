@@ -17,6 +17,8 @@ import AnovaResults from './AnovaResults';
 import RegressionPanel from './RegressionPanel';
 import GageRRPanel from './GageRRPanel';
 import ErrorBoundary from './ErrorBoundary';
+import FactorSelector from './FactorSelector';
+import FilterChips from './FilterChips';
 import type { StatsResult, AnovaResult } from '@variscout/core';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
@@ -30,9 +32,14 @@ interface MobileDashboardProps {
   paretoFactor: string;
   filteredData: any[];
   anovaResult: AnovaResult | null;
+  filters: Record<string, string[]>;
+  columnAliases?: Record<string, string>;
   onSetBoxplotFactor: (f: string) => void;
   onSetParetoFactor: (f: string) => void;
   onPointClick?: (index: number) => void;
+  onDrillDown?: (factor: string, value: string) => void;
+  onRemoveFilter?: (factor: string) => void;
+  onClearAllFilters?: () => void;
 }
 
 const MobileDashboard: React.FC<MobileDashboardProps> = ({
@@ -44,9 +51,14 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   paretoFactor,
   filteredData,
   anovaResult,
+  filters,
+  columnAliases = {},
   onSetBoxplotFactor,
   onSetParetoFactor,
   onPointClick,
+  onDrillDown,
+  onRemoveFilter,
+  onClearAllFilters,
 }) => {
   const [activeView, setActiveView] = useState<ChartView>('ichart');
 
@@ -143,25 +155,32 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
         </button>
       </div>
 
+      {/* Filter Chips */}
+      {onRemoveFilter && onClearAllFilters && (
+        <FilterChips
+          filters={filters}
+          columnAliases={columnAliases}
+          onRemoveFilter={onRemoveFilter}
+          onClearAll={onClearAllFilters}
+        />
+      )}
+
       {/* Factor Selector (for boxplot/pareto) */}
       {(activeView === 'boxplot' || activeView === 'pareto') && factors.length > 0 && (
-        <div className="px-3 py-2 bg-slate-900/50 border-b border-slate-700/50">
-          <select
-            value={activeView === 'boxplot' ? boxplotFactor : paretoFactor}
-            onChange={e =>
-              activeView === 'boxplot'
-                ? onSetBoxplotFactor(e.target.value)
-                : onSetParetoFactor(e.target.value)
+        <div className="px-3 py-2 bg-slate-900/50 border-b border-slate-700/50 flex justify-center">
+          <FactorSelector
+            factors={factors}
+            selected={activeView === 'boxplot' ? boxplotFactor : paretoFactor}
+            onChange={f =>
+              activeView === 'boxplot' ? onSetBoxplotFactor(f) : onSetParetoFactor(f)
             }
-            className="w-full bg-slate-800 border border-slate-600 text-sm text-white rounded-lg px-3 py-2 touch-feedback"
-            style={{ minHeight: 44 }}
-          >
-            {factors.map(f => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </select>
+            hasActiveFilter={
+              activeView === 'boxplot'
+                ? !!filters[boxplotFactor]?.length
+                : !!filters[paretoFactor]?.length
+            }
+            size="md"
+          />
         </div>
       )}
 
@@ -170,8 +189,12 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
         <div className="flex-1 min-h-0 bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
           <ErrorBoundary componentName={views.find(v => v.key === activeView)?.label || ''}>
             {activeView === 'ichart' && <IChart onPointClick={onPointClick} />}
-            {activeView === 'boxplot' && boxplotFactor && <Boxplot factor={boxplotFactor} />}
-            {activeView === 'pareto' && paretoFactor && <ParetoChart factor={paretoFactor} />}
+            {activeView === 'boxplot' && boxplotFactor && (
+              <Boxplot factor={boxplotFactor} onDrillDown={onDrillDown} />
+            )}
+            {activeView === 'pareto' && paretoFactor && (
+              <ParetoChart factor={paretoFactor} onDrillDown={onDrillDown} />
+            )}
             {activeView === 'stats' && (
               <MobileStatsPanel
                 stats={stats}

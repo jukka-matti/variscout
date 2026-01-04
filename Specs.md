@@ -100,16 +100,24 @@ Legend:
 ### 3. Interactive Analysis (Multi-Vari)
 
 - **Outcome Selection**: Switch primary metric (Y) directly from I-Chart header
-- **Factor Selection**: Independently select factors (X) for Boxplot and Pareto
+- **Factor Selection**: Segmented pill-button control for factor selection
+  - Blue highlight shows selected factor
+  - Amber dot indicator when filter active on that factor
+  - Clicking chart element syncs both Boxplot and Pareto to same factor
 - **Click-to-Edit Axes**: Click Y-axis to manually set Min/Max or reset to Auto
 - **Linked Filtering with Drill-Down**:
   - Click Boxplot category → filters to that factor level
   - Click Pareto bar → filters to that category
   - I-Chart point click → highlights row (no filter)
   - **Breadcrumb Trail**: Shows current filter path with navigation
-    - `[🏠 All Data] > [Machine: A, B] > [Shift: Day]  [✕ Clear All]`
+    - `[🏠 All Data] > [Machine: A, B ✕] > [Shift: Day ✕]  [✕ Clear All]`
   - Click breadcrumb item → navigates back to that state
+  - Click × on breadcrumb segment → removes that specific filter
   - Clear All button → resets to unfiltered view
+- **Filter Chips**: Active filters shown as removable chips
+  - Displays below breadcrumb in sticky navigation
+  - Each chip shows factor:values with × remove button
+  - "Clear all" button when multiple filters active
 - **"What's selected accounts for X% of total variation"**
 
 ### 4. Statistics Panel

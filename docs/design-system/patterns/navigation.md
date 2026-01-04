@@ -54,13 +54,14 @@ import DrillBreadcrumb from './DrillBreadcrumb';
 ### Visual Design
 
 ```
-[🏠 All Data] > [Machine: A, B] > [Shift: Day]  [✕ Clear All]
+[🏠 All Data] > [Machine: A, B ✕] > [Shift: Day ✕]  [✕ Clear All]
 ```
 
 - Home icon for root state
 - Chevron separators between items
 - Active item (last) is highlighted
 - Clickable items navigate back
+- Individual × buttons on each segment (except root)
 - Clear All button when filters active
 
 ### Props
@@ -70,6 +71,7 @@ interface DrillBreadcrumbProps {
   items: BreadcrumbItem[]; // From useDrillDown or generated
   onNavigate: (id: string) => void;
   onClearAll?: () => void;
+  onRemove?: (id: string) => void; // Remove individual filter
   showClearAll?: boolean; // Default: true
 }
 
@@ -81,6 +83,46 @@ interface BreadcrumbItem {
 }
 ```
 
+## Filter Chips Component
+
+Location: `apps/pwa/src/components/FilterChips.tsx`
+
+Displays active filters as removable chips below the breadcrumb.
+
+### Usage
+
+```tsx
+import FilterChips from './FilterChips';
+
+<FilterChips
+  filters={filters}
+  columnAliases={columnAliases}
+  onRemoveFilter={factor => handleRemoveFilter(factor)}
+  onClearAll={() => clearAllFilters()}
+/>;
+```
+
+### Visual Design
+
+```
+[Machine: A, B ✕] [Shift: Day ✕]  Clear all
+```
+
+- Each chip shows factor:values with × remove button
+- "Clear all" appears when multiple filters active
+- Chips are styled with blue-tinted background
+
+### Props
+
+```typescript
+interface FilterChipsProps {
+  filters: Record<string, string[]>;
+  columnAliases?: Record<string, string>;
+  onRemoveFilter: (factor: string) => void;
+  onClearAll: () => void;
+}
+```
+
 ## Layout Integration
 
 ```
@@ -89,13 +131,15 @@ interface BreadcrumbItem {
 ├─────────────────────────────────────────┤
 │ DrillBreadcrumb (when filters active)   │
 ├─────────────────────────────────────────┤
+│ FilterChips (when filters active)       │
+├─────────────────────────────────────────┤
 │ Tab Navigation                          │
 ├─────────────────────────────────────────┤
 │ Main Content                            │
 └─────────────────────────────────────────┘
 ```
 
-The breadcrumb appears above tab navigation when any filters are active.
+The breadcrumb and filter chips appear in sticky navigation when any filters are active.
 
 ## Core Types
 
@@ -188,10 +232,11 @@ Use Fluent UI Breadcrumb component with dark theme tokens when in Content Add-in
 
 ## Related Files
 
-| File                                          | Purpose               |
-| --------------------------------------------- | --------------------- |
-| `packages/core/src/navigation.ts`             | Types and utilities   |
-| `apps/pwa/src/hooks/useDrillDown.ts`          | React hook            |
-| `apps/pwa/src/components/DrillBreadcrumb.tsx` | UI component          |
-| `apps/pwa/src/components/Dashboard.tsx`       | Integration           |
-| `apps/pwa/src/components/FilterBar.tsx`       | Legacy filter display |
+| File                                          | Purpose                   |
+| --------------------------------------------- | ------------------------- |
+| `packages/core/src/navigation.ts`             | Types and utilities       |
+| `apps/pwa/src/hooks/useDrillDown.ts`          | React hook                |
+| `apps/pwa/src/components/DrillBreadcrumb.tsx` | Breadcrumb UI component   |
+| `apps/pwa/src/components/FilterChips.tsx`     | Filter chips UI component |
+| `apps/pwa/src/components/FactorSelector.tsx`  | Segmented factor control  |
+| `apps/pwa/src/components/Dashboard.tsx`       | Integration               |

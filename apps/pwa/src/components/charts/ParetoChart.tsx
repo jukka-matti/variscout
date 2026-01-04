@@ -21,9 +21,10 @@ interface ParetoChartProps {
   factor: string;
   parentWidth: number;
   parentHeight: number;
+  onDrillDown?: (factor: string, value: string) => void;
 }
 
-const ParetoChart = ({ factor, parentWidth, parentHeight }: ParetoChartProps) => {
+const ParetoChart = ({ factor, parentWidth, parentHeight, onDrillDown }: ParetoChartProps) => {
   const { filteredData, filters, setFilters, columnAliases, setColumnAliases, outcome } = useData();
   const [editingAxis, setEditingAxis] = useState<string | null>(null);
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
@@ -86,12 +87,16 @@ const ParetoChart = ({ factor, parentWidth, parentHeight }: ParetoChartProps) =>
   );
 
   const handleBarClick = (key: any) => {
-    const currentFilters = filters[factor] || [];
-    const newFilters = currentFilters.includes(key)
-      ? currentFilters.filter(v => v !== key)
-      : [...currentFilters, key];
-
-    setFilters({ ...filters, [factor]: newFilters });
+    if (onDrillDown) {
+      onDrillDown(factor, key);
+    } else {
+      // Fallback to current behavior
+      const currentFilters = filters[factor] || [];
+      const newFilters = currentFilters.includes(key)
+        ? currentFilters.filter(v => v !== key)
+        : [...currentFilters, key];
+      setFilters({ ...filters, [factor]: newFilters });
+    }
   };
 
   const handleAxisClick = (axisName: string) => {

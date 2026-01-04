@@ -9,6 +9,8 @@ import RegressionPanel from './RegressionPanel';
 import GageRRPanel from './GageRRPanel';
 import ErrorBoundary from './ErrorBoundary';
 import DrillBreadcrumb from './DrillBreadcrumb';
+import FactorSelector from './FactorSelector';
+import FilterChips from './FilterChips';
 import { useData } from '../context/DataContext';
 import { calculateAnova, type AnovaResult, type BreadcrumbItem } from '@variscout/core';
 import {
@@ -210,6 +212,45 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
     setFilters({});
   }, [setFilters]);
 
+  // Remove a specific filter
+  const handleRemoveFilter = useCallback(
+    (factor: string) => {
+      if (!filters) return;
+      const newFilters = { ...filters };
+      delete newFilters[factor];
+      setFilters(newFilters);
+    },
+    [filters, setFilters]
+  );
+
+  // Handle drill-down from chart click - syncs both charts to same factor
+  const handleDrillDown = useCallback(
+    (factor: string, value: string) => {
+      // Guard against undefined filters
+      if (!filters) return;
+
+      // Toggle the filter value
+      const currentFilters = filters[factor] || [];
+      const newFilterValues = currentFilters.includes(value)
+        ? currentFilters.filter((v: string) => v !== value)
+        : [...currentFilters, value];
+
+      // Update filters
+      if (newFilterValues.length === 0) {
+        const newFilters = { ...filters };
+        delete newFilters[factor];
+        setFilters(newFilters);
+      } else {
+        setFilters({ ...filters, [factor]: newFilterValues });
+      }
+
+      // Sync both charts to this factor for cohesive analysis
+      setBoxplotFactor(factor);
+      setParetoFactor(factor);
+    },
+    [filters, setFilters]
+  );
+
   const handleCopyChart = async (containerId: string, chartName: string) => {
     const node = document.getElementById(containerId);
     if (!node) return;
@@ -310,9 +351,14 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
           paretoFactor={paretoFactor}
           filteredData={filteredData}
           anovaResult={anovaResult}
+          filters={filters}
+          columnAliases={columnAliases}
           onSetBoxplotFactor={setBoxplotFactor}
           onSetParetoFactor={setParetoFactor}
           onPointClick={onPointClick}
+          onDrillDown={handleDrillDown}
+          onRemoveFilter={handleRemoveFilter}
+          onClearAllFilters={handleClearAllFilters}
         />
       </div>
     );
@@ -330,6 +376,15 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
         <DrillBreadcrumb
           items={breadcrumbItems}
           onNavigate={handleBreadcrumbNavigate}
+          onClearAll={handleClearAllFilters}
+          onRemove={handleRemoveFilter}
+        />
+
+        {/* Filter Chips */}
+        <FilterChips
+          filters={filters}
+          columnAliases={columnAliases}
+          onRemoveFilter={handleRemoveFilter}
           onClearAll={handleClearAllFilters}
         />
 
@@ -467,20 +522,15 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
                   >
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
-                        Boxplot Analysis
+                        Boxplot
                       </h3>
                       <div className="flex items-center gap-2">
-                        <select
-                          value={boxplotFactor}
-                          onChange={e => setBoxplotFactor(e.target.value)}
-                          className="bg-slate-900 border border-slate-700 text-xs text-white rounded px-2 py-1 outline-none focus:border-blue-500"
-                        >
-                          {factors.map(f => (
-                            <option key={f} value={f}>
-                              {f}
-                            </option>
-                          ))}
-                        </select>
+                        <FactorSelector
+                          factors={factors}
+                          selected={boxplotFactor}
+                          onChange={setBoxplotFactor}
+                          hasActiveFilter={!!filters?.[boxplotFactor]?.length}
+                        />
                         <button
                           onClick={() => handleCopyChart('boxplot-card', 'boxplot')}
                           className={`p-1.5 rounded transition-all ${
@@ -503,7 +553,9 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
                     </div>
                     <div id="boxplot-container" className="flex-1 min-h-[180px]">
                       <ErrorBoundary componentName="Boxplot">
-                        {boxplotFactor && <Boxplot factor={boxplotFactor} />}
+                        {boxplotFactor && (
+                          <Boxplot factor={boxplotFactor} onDrillDown={handleDrillDown} />
+                        )}
                       </ErrorBoundary>
                     </div>
                     {anovaResult && (
@@ -520,17 +572,12 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
                         Pareto
                       </h3>
                       <div className="flex items-center gap-2">
-                        <select
-                          value={paretoFactor}
-                          onChange={e => setParetoFactor(e.target.value)}
-                          className="bg-slate-900 border border-slate-700 text-xs text-white rounded px-2 py-1 outline-none focus:border-blue-500"
-                        >
-                          {factors.map(f => (
-                            <option key={f} value={f}>
-                              {f}
-                            </option>
-                          ))}
-                        </select>
+                        <FactorSelector
+                          factors={factors}
+                          selected={paretoFactor}
+                          onChange={setParetoFactor}
+                          hasActiveFilter={!!filters?.[paretoFactor]?.length}
+                        />
                         <button
                           onClick={() => handleCopyChart('pareto-card', 'pareto')}
                           className={`p-1.5 rounded transition-all ${
@@ -553,7 +600,9 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
                     </div>
                     <div id="pareto-container" className="flex-1 min-h-[180px]">
                       <ErrorBoundary componentName="Pareto Chart">
-                        {paretoFactor && <ParetoChart factor={paretoFactor} />}
+                        {paretoFactor && (
+                          <ParetoChart factor={paretoFactor} onDrillDown={handleDrillDown} />
+                        )}
                       </ErrorBoundary>
                     </div>
                   </div>
@@ -633,20 +682,16 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
                 >
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-slate-200 uppercase tracking-wider">
-                      Boxplot Analysis
+                      Boxplot
                     </h3>
                     <div className="flex items-center gap-4">
-                      <select
-                        value={boxplotFactor}
-                        onChange={e => setBoxplotFactor(e.target.value)}
-                        className="bg-slate-900 border border-slate-700 text-lg text-white rounded px-3 py-1.5 outline-none focus:border-blue-500"
-                      >
-                        {factors.map(f => (
-                          <option key={f} value={f}>
-                            {f}
-                          </option>
-                        ))}
-                      </select>
+                      <FactorSelector
+                        factors={factors}
+                        selected={boxplotFactor}
+                        onChange={setBoxplotFactor}
+                        hasActiveFilter={!!filters?.[boxplotFactor]?.length}
+                        size="md"
+                      />
                       <button
                         onClick={() => setFocusedChart(null)}
                         className="p-2 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors bg-slate-700/50"
@@ -658,7 +703,9 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
                   </div>
                   <div className="flex-1 min-h-0">
                     <ErrorBoundary componentName="Boxplot">
-                      {boxplotFactor && <Boxplot factor={boxplotFactor} />}
+                      {boxplotFactor && (
+                        <Boxplot factor={boxplotFactor} onDrillDown={handleDrillDown} />
+                      )}
                     </ErrorBoundary>
                   </div>
                   {anovaResult && <AnovaResults result={anovaResult} factorLabel={boxplotFactor} />}
@@ -672,20 +719,16 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
                 >
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-slate-200 uppercase tracking-wider">
-                      Pareto Analysis
+                      Pareto
                     </h3>
                     <div className="flex items-center gap-4">
-                      <select
-                        value={paretoFactor}
-                        onChange={e => setParetoFactor(e.target.value)}
-                        className="bg-slate-900 border border-slate-700 text-lg text-white rounded px-3 py-1.5 outline-none focus:border-blue-500"
-                      >
-                        {factors.map(f => (
-                          <option key={f} value={f}>
-                            {f}
-                          </option>
-                        ))}
-                      </select>
+                      <FactorSelector
+                        factors={factors}
+                        selected={paretoFactor}
+                        onChange={setParetoFactor}
+                        hasActiveFilter={!!filters?.[paretoFactor]?.length}
+                        size="md"
+                      />
                       <button
                         onClick={() => setFocusedChart(null)}
                         className="p-2 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors bg-slate-700/50"
@@ -697,7 +740,9 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
                   </div>
                   <div className="flex-1 min-h-0">
                     <ErrorBoundary componentName="Pareto Chart">
-                      {paretoFactor && <ParetoChart factor={paretoFactor} />}
+                      {paretoFactor && (
+                        <ParetoChart factor={paretoFactor} onDrillDown={handleDrillDown} />
+                      )}
                     </ErrorBoundary>
                   </div>
                 </div>

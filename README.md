@@ -28,7 +28,8 @@ A lightweight, offline-first variation analysis tool for quality professionals. 
 - **I-Chart**: Time series tracking with auto-calculated control limits (UCL/LCL)
 - **Boxplot**: Factor comparison (e.g., Shift A vs Shift B)
 - **Pareto**: Defect categorization and frequency analysis
-- **Linked Filtering**: Click chart elements to filter data with breadcrumb navigation
+- **Linked Filtering**: Click chart elements to filter data with breadcrumb navigation and removable filter chips
+- **Factor Selector**: Segmented control for switching factors with filter indicator
 - **Interactive Labels**: Click axis titles or categories to rename them (Aliasing)
 
 ### Data Input

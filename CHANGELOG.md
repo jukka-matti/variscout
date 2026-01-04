@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Presentation Mode**: Fullscreen distraction-free view showing all charts optimized for presentations. Access via View → Presentation Mode. Press Escape to exit.
+- **Segmented Factor Selector**: Modern pill-button UI replacing dropdown for factor selection in Boxplot/Pareto charts. Shows amber indicator when filter is active on selected factor.
+- **Filter Chips**: Active filters displayed as removable chips below breadcrumb. Click × to remove individual filters, "Clear all" to reset.
+- **Cross-Chart Sync**: Clicking a Boxplot or Pareto element now syncs both charts to the same factor for cohesive analysis.
+- **Breadcrumb Remove Buttons**: Individual × buttons on each breadcrumb segment for quick filter removal.
 
 ### Changed
 

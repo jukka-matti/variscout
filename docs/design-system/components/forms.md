@@ -152,6 +152,48 @@ Form input patterns for PWA.
 <input disabled className="... opacity-50 cursor-not-allowed bg-slate-800" />
 ```
 
+## Segmented Control (Factor Selector)
+
+Modern pill-button control for selecting from limited options.
+
+Location: `apps/pwa/src/components/FactorSelector.tsx`
+
+```jsx
+<div className="inline-flex bg-slate-900 rounded-lg p-0.5 border border-slate-700">
+  {options.map(option => (
+    <button
+      key={option}
+      onClick={() => onChange(option)}
+      className={`
+        px-2.5 py-1 text-xs font-medium rounded-md transition-all relative
+        ${
+          selected === option
+            ? 'bg-blue-600 text-white shadow-sm'
+            : 'text-slate-400 hover:text-white hover:bg-slate-800'
+        }
+      `}
+    >
+      {option}
+      {hasIndicator && selected === option && (
+        <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full border border-slate-900" />
+      )}
+    </button>
+  ))}
+</div>
+```
+
+### Use Cases
+
+- Factor selection in Boxplot/Pareto charts
+- Tab-like selection with visual indicator
+- When options are 2-5 items (use dropdown for more)
+
+### States
+
+- **Default**: Slate text on transparent
+- **Selected**: White text on blue background
+- **Indicator**: Amber dot when filter active on selection
+
 ## Excel Add-in Forms (Fluent UI)
 
 ```tsx

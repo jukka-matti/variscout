@@ -9,6 +9,8 @@ interface DrillBreadcrumbProps {
   onNavigate: (id: string) => void;
   /** Called when user clicks Clear All */
   onClearAll?: () => void;
+  /** Called when user clicks remove on individual breadcrumb item */
+  onRemove?: (id: string) => void;
   /** Show clear all button */
   showClearAll?: boolean;
 }
@@ -34,6 +36,7 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
   items,
   onNavigate,
   onClearAll,
+  onRemove,
   showClearAll = true,
 }) => {
   // Don't render if only root item (no drills active)
@@ -62,23 +65,39 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
               )}
 
               {/* Breadcrumb item */}
-              <button
-                onClick={() => onNavigate(item.id)}
-                disabled={isLast}
-                className={`
-                  flex items-center gap-1.5 px-2 py-1 rounded-full text-xs
-                  transition-colors flex-shrink-0
-                  ${
-                    isLast
-                      ? 'bg-slate-700/50 text-white font-medium cursor-default'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-700/30'
-                  }
-                `}
-                aria-current={isLast ? 'page' : undefined}
-              >
-                {isRoot && <Home size={12} className="flex-shrink-0" />}
-                <span className="truncate max-w-[150px]">{item.label}</span>
-              </button>
+              <div className="flex items-center gap-0.5 flex-shrink-0">
+                <button
+                  onClick={() => onNavigate(item.id)}
+                  disabled={isLast}
+                  className={`
+                    flex items-center gap-1.5 px-2 py-1 rounded-full text-xs
+                    transition-colors
+                    ${
+                      isLast
+                        ? 'bg-slate-700/50 text-white font-medium cursor-default'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-700/30'
+                    }
+                  `}
+                  aria-current={isLast ? 'page' : undefined}
+                >
+                  {isRoot && <Home size={12} className="flex-shrink-0" />}
+                  <span className="truncate max-w-[150px]">{item.label}</span>
+                </button>
+
+                {/* Remove button for non-root items */}
+                {!isRoot && onRemove && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      onRemove(item.id);
+                    }}
+                    className="p-0.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                    aria-label={`Remove ${item.label} filter`}
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
             </React.Fragment>
           );
         })}
