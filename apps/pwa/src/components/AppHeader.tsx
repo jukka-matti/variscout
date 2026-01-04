@@ -11,7 +11,7 @@ import {
   Image,
   Table,
   MoreVertical,
-  Maximize2,
+  Presentation,
   Plus,
   Check,
 } from 'lucide-react';
@@ -24,7 +24,6 @@ interface AppHeaderProps {
   hasData: boolean;
   dataFilename: string | null;
   rowCount: number;
-  isLargeMode: boolean;
   isSaving: boolean;
   onSaveToBrowser: () => void;
   onOpenProjects: () => void;
@@ -32,7 +31,7 @@ interface AppHeaderProps {
   onDownloadFile: () => void;
   onExportCSV: () => void;
   onExportImage: () => void;
-  onToggleLargeMode: () => void;
+  onEnterPresentationMode: () => void;
   onOpenSettings: () => void;
   onReset: () => void;
 }
@@ -51,7 +50,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   hasData,
   dataFilename,
   rowCount,
-  isLargeMode,
   isSaving,
   onSaveToBrowser,
   onOpenProjects,
@@ -59,7 +57,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onDownloadFile,
   onExportCSV,
   onExportImage,
-  onToggleLargeMode,
+  onEnterPresentationMode,
   onOpenSettings,
   onReset,
 }) => {
@@ -109,12 +107,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       onClick: onOpenDataTable,
     },
     {
-      id: 'largemode',
-      label: 'Large Mode',
-      icon: <Maximize2 size={16} />,
-      onClick: onToggleLargeMode,
-      isToggle: true,
-      isActive: isLargeMode,
+      id: 'presentation',
+      label: 'Presentation Mode',
+      icon: <Presentation size={16} />,
+      onClick: onEnterPresentationMode,
     },
     {
       id: 'projects',
@@ -247,11 +243,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               onDownloadFile={onDownloadFile}
               onExportCSV={onExportCSV}
               onExportImage={onExportImage}
-              onToggleLargeMode={onToggleLargeMode}
+              onEnterPresentationMode={onEnterPresentationMode}
               onOpenSettings={onOpenSettings}
               onReset={onReset}
               onOpenDataTable={onOpenDataTable}
-              isLargeMode={isLargeMode}
             />
           </>
         ) : (

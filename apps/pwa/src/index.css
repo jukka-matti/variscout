@@ -48,50 +48,10 @@ body {
   background: #475569;
 }
 
-/* Large Mode for Presentations */
-.large-mode {
-  --text-scale: 1.3;
-}
-
-.large-mode .text-xs {
-  font-size: calc(0.75rem * var(--text-scale));
-}
-
-.large-mode .text-sm {
-  font-size: calc(0.875rem * var(--text-scale));
-}
-
-.large-mode .text-base {
-  font-size: calc(1rem * var(--text-scale));
-}
-
-.large-mode .text-lg {
-  font-size: calc(1.125rem * var(--text-scale));
-}
-
-.large-mode .text-xl {
-  font-size: calc(1.25rem * var(--text-scale));
-}
-
-.large-mode .text-2xl {
-  font-size: calc(1.5rem * var(--text-scale));
-}
-
-.large-mode .text-3xl {
-  font-size: calc(1.875rem * var(--text-scale));
-}
-
-/* Chart labels and stats in large mode */
-.large-mode svg text {
-  font-size: 14px !important;
-}
-
-.large-mode .stats-value {
-  font-size: calc(1.5rem * var(--text-scale));
-}
-
-.large-mode .stats-label {
-  font-size: calc(0.875rem * var(--text-scale));
+/* Smooth scrolling for dashboard */
+.overflow-y-auto {
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
 }
 
 /* ========================================

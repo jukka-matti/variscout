@@ -438,32 +438,35 @@ When configured:
 
 ## UI Design Principles
 
-### Screen Optimization
+### Scrollable Dashboard Layout
 
-The dashboard is optimized for 1920×1080 displays with all core charts visible without scrolling.
+The dashboard uses a scrollable layout with minimum chart heights for comfortable analysis:
 
-### Consistent Layout Structure
+| Chart   | Minimum Height | Purpose                                 |
+| ------- | -------------- | --------------------------------------- |
+| I-Chart | 400px          | Primary chart needs good vertical space |
+| Boxplot | 280px          | Enough for readable axes                |
+| Pareto  | 280px          | Enough for readable axes                |
+
+**Sticky Navigation**: Breadcrumb trail and tab bar remain visible at top while scrolling.
+
+### Dashboard Structure
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
+│  🏠 All Data > Machine: A  [Clear All]    (sticky header)   │
+│  [Analysis] [Gage R&R]                                      │
+├─────────────────────────────────────────────────────────────┤
 │  I-Chart                                    [Outcome ▼]     │
-├═════════════════════════════════════════════════════════════┤ ← draggable splitter
+│                                                             │
+│  (scrollable content)                                       │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
 │  Boxplot      │  Pareto       │  Summary                    │
 │  [Factor ▼]   │  [Category ▼] │  [Prob] [Cap]               │
 │               │               │                             │
 └───────────────┴───────────────┴─────────────────────────────┘
 ```
-
-### Resizable Panels
-
-Users can adjust the I-Chart height by dragging the horizontal splitter:
-
-| Drag Direction | Result                                               |
-| -------------- | ---------------------------------------------------- |
-| Drag up        | More space for bottom row (Boxplot, Pareto, Summary) |
-| Drag down      | More space for I-Chart, less for bottom row          |
-| Default        | 35% I-Chart / 65% bottom row                         |
-| Cursor         | `row-resize` on hover                                |
 
 ### Independent Panel Selections
 
@@ -498,7 +501,15 @@ When no data is selected for a panel, it displays a dropdown prompt rather than 
 
 ### Presentation Mode
 
-One-click toggle to clean view for presenting (hides controls, maximizes chart area).
+Fullscreen distraction-free view for stakeholder presentations:
+
+- Access via **View → Presentation Mode**
+- Displays all charts in optimized layout:
+  - I-Chart on top (~60% height)
+  - Boxplot, Pareto, Stats Panel in bottom row
+- Hides header, footer, tabs, and breadcrumbs
+- Press **Escape** to exit
+- Subtle "Press Escape to exit" hint in bottom right
 
 ### Filter State Display
 
@@ -538,12 +549,12 @@ Charts are copied to clipboard as PNG — paste directly into PowerPoint, Word, 
 
 | Principle              | Implementation                               |
 | ---------------------- | -------------------------------------------- |
-| Optimized for 1080p    | All charts visible without scrolling         |
+| Scrollable layout      | Charts have comfortable min-heights          |
+| Sticky navigation      | Breadcrumb and tabs visible while scrolling  |
 | Consistent layout      | Same structure regardless of data selections |
-| User-adjustable        | Draggable splitter for I-Chart height        |
 | Independent selections | Each panel has its own data selector         |
 | Empty state = prompt   | Shows dropdown when no data selected         |
-| Persistent preferences | Layout ratio saved to localStorage           |
+| Presentation mode      | Fullscreen view for stakeholder meetings     |
 
 ---
 

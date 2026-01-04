@@ -38,23 +38,8 @@ function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [saveInputName, setSaveInputName] = useState('');
-  const [isLargeMode, setIsLargeMode] = useState(() => {
-    return localStorage.getItem('variscout-large-mode') === 'true';
-  });
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-
-  // Toggle large mode class on root element
-  useEffect(() => {
-    const root = document.getElementById('root');
-    if (root) {
-      if (isLargeMode) {
-        root.classList.add('large-mode');
-      } else {
-        root.classList.remove('large-mode');
-      }
-    }
-    localStorage.setItem('variscout-large-mode', String(isLargeMode));
-  }, [isLargeMode]);
+  const [isPresentationMode, setIsPresentationMode] = useState(false);
 
   const handleExport = useCallback(async () => {
     const node = document.getElementById('dashboard-export-container');
@@ -231,7 +216,6 @@ function App() {
         hasData={rawData.length > 0}
         dataFilename={dataFilename}
         rowCount={rawData.length}
-        isLargeMode={isLargeMode}
         isSaving={isSaving}
         onSaveToBrowser={handleSaveToBrowser}
         onOpenProjects={() => setIsProjectsOpen(true)}
@@ -242,7 +226,7 @@ function App() {
         onDownloadFile={handleDownloadFile}
         onExportCSV={handleExportCSV}
         onExportImage={handleExport}
-        onToggleLargeMode={() => setIsLargeMode(!isLargeMode)}
+        onEnterPresentationMode={() => setIsPresentationMode(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onReset={handleResetRequest}
       />
@@ -337,7 +321,11 @@ function App() {
             onCancel={handleMappingCancel}
           />
         ) : (
-          <Dashboard onPointClick={openDataTableAtRow} />
+          <Dashboard
+            onPointClick={openDataTableAtRow}
+            isPresentationMode={isPresentationMode}
+            onExitPresentation={() => setIsPresentationMode(false)}
+          />
         )}
       </main>
 

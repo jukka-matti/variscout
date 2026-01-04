@@ -53,7 +53,8 @@ A lightweight, offline-first variation analysis tool for quality professionals. 
 
 ### Display
 
-- **Large Mode**: 30% larger fonts for presentations and training
+- **Presentation Mode**: Fullscreen view with all charts for stakeholder presentations (View → Presentation Mode, Escape to exit)
+- **Focus Mode**: Maximize any chart for detailed analysis with carousel navigation
 - **Mobile Optimized**: Full support for phones (320px+) and tablets with:
   - Tab-based chart navigation with swipe gestures
   - 44px touch targets throughout

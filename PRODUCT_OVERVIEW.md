@@ -33,8 +33,9 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 
 ### Display Modes
 
-- **Large Mode**: Toggle 30% larger fonts for presentations and training sessions
-- **Normal Mode**: Dense information display for analysis work
+- **Presentation Mode**: Fullscreen view with all charts optimized for stakeholder presentations (Escape to exit)
+- **Focus Mode**: Maximize any chart for detailed analysis with carousel navigation
+- **Scrollable Layout**: Charts have comfortable minimum heights with sticky navigation
 
 ### Capability Analysis
 
@@ -71,7 +72,7 @@ Based on UX research, we considered a complex 4-mode architecture with:
 
 1. It added complexity without proportional value
 2. The core tool already serves the main use cases
-3. Simple enhancements (Large Mode, Manual Entry improvements) addressed the key needs
+3. Simple enhancements (Focus Mode, Presentation Mode, Manual Entry) addressed the key needs
 4. Maintaining 4 separate UIs would slow future development
 
 The exploratory design is archived in `docs/archive/PRODUCT_CONCEPTS_v1_abandoned.md` for reference.

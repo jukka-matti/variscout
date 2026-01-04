@@ -5,6 +5,23 @@ All notable changes to VariScout Lite will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-01-04
+
+### Added
+
+- **Presentation Mode**: Fullscreen distraction-free view showing all charts optimized for presentations. Access via View → Presentation Mode. Press Escape to exit.
+
+### Changed
+
+- **Scrollable Dashboard**: Replaced viewport-fit resizable panels with natural scrolling layout. Charts now have comfortable minimum heights (I-Chart 400px, Boxplot/Pareto 280px).
+- **Sticky Navigation**: Breadcrumb trail and tab bar remain visible while scrolling through charts.
+- **View Menu**: Reorganized to include Presentation Mode; removed Large Mode.
+
+### Removed
+
+- **Large Mode**: Removed 30% text scaling feature. Presentation Mode provides a better solution for visibility during presentations.
+- **Resizable Panels**: Removed draggable panel splitter in favor of scrollable layout with fixed proportions.
+
 ## [1.4.0] - 2026-01-04
 
 ### Added

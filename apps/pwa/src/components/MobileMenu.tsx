@@ -4,8 +4,7 @@ import {
   FileDown,
   FileSpreadsheet,
   Image,
-  Maximize2,
-  Minimize2,
+  Presentation,
   Settings,
   Plus,
   X,
@@ -19,11 +18,10 @@ interface MobileMenuProps {
   onDownloadFile: () => void;
   onExportCSV: () => void;
   onExportImage: () => void;
-  onToggleLargeMode: () => void;
+  onEnterPresentationMode: () => void;
   onOpenSettings: () => void;
   onReset: () => void;
   onOpenDataTable: () => void;
-  isLargeMode: boolean;
 }
 
 /**
@@ -36,11 +34,10 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onDownloadFile,
   onExportCSV,
   onExportImage,
-  onToggleLargeMode,
+  onEnterPresentationMode,
   onOpenSettings,
   onReset,
   onOpenDataTable,
-  isLargeMode,
 }) => {
   const menuRef = useRef<React.ElementRef<'div'>>(null);
 
@@ -151,9 +148,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           <SectionHeader title="View" />
           <MenuItem icon={<Table size={18} />} label="Data Table" onClick={onOpenDataTable} />
           <MenuItem
-            icon={isLargeMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-            label={isLargeMode ? 'Exit Large Mode' : 'Large Mode'}
-            onClick={onToggleLargeMode}
+            icon={<Presentation size={18} />}
+            label="Presentation Mode"
+            onClick={onEnterPresentationMode}
           />
 
           <div className="h-px bg-slate-700 my-2" />
