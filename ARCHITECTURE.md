@@ -13,7 +13,9 @@ variscout-lite/
 │   └── charts/            # @variscout/charts - Props-based Visx chart components
 ├── apps/
 │   ├── pwa/               # PWA website (React + Vite + PWA)
+│   ├── azure/             # Azure Team App (React + MSAL + Azure Functions)
 │   └── excel-addin/       # Excel Add-in (Office.js + React + Fluent UI)
+├── infra/                 # Infrastructure as Code (Bicep)
 ├── docs/
 │   ├── concepts/          # Strategic product decisions
 │   ├── design-system/     # Design tokens, components, charts
@@ -51,6 +53,13 @@ variscout-lite/
 │  │(Mobile)  │ │(Data) │ │(IDB)   │  │  │(Wizard)  │ │(Charts) │ │(Bridge) │  │
 │  └────┬─────┘ └───┬───┘ └───┬────┘  │  └────┬─────┘ └────┬────┘ └────┬────┘  │
 │       └───────────┼─────────┘       │       └────────────┼───────────┘       │
+│                   │                 │                    │                   │
+│         @variscout/azure-app        │                    │                   │
+│         (apps/azure/)               │                    │                   │
+│  ┌──────────┐ ┌──────┐ ┌─────────┐  │                    │                   │
+│  │Components│ │ MSAL │ │Sync(IDB)│  │                    │                   │
+│  └────┬─────┘ └───┬──┘ └────┬────┘  │                    │                   │
+│       └───────────┼─────────┘       │                    │                   │
 │                   │                 │                    │                   │
 └───────────────────┼─────────────────┴────────────────────┼───────────────────┘
                     │                                      │
@@ -118,6 +127,17 @@ Excel Add-in with hybrid approach (native slicers + Visx charts):
 | `utils/tableManager.ts`  | Excel Table creation from data ranges          |
 | `utils/slicerManager.ts` | Native slicer creation and management          |
 | `utils/dataFilter.ts`    | Data filtering logic for slicer changes        |
+
+### @variscout/azure-app
+
+Cloud-connected team application:
+
+| Module                    | Purpose                                   |
+| ------------------------- | ----------------------------------------- |
+| `src/auth/msalConfig.ts`  | Microsoft Entra ID configuration          |
+| `src/services/storage.ts` | Offline-first storage service with sync   |
+| `src/db/schema.ts`        | Dexie.js schema for offline data          |
+| `api/projects/`           | Azure Functions for Graph API integration |
 
 ## 4. Core Modules
 

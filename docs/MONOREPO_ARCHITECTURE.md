@@ -15,7 +15,7 @@ variscout-lite/
 │   ├── pwa/           # PWA website (React + Vite + PWA)
 │   ├── excel-addin/   # Excel Add-in (Office.js + React + Fluent UI)
 │   ├── website/       # FUTURE: Marketing website (Astro)
-│   ├── azure/         # FUTURE: Azure team app (SharePoint, SSO)
+│   ├── azure/         # Azure Team App (SharePoint, SSO)
 │   └── powerbi-visuals/ # FUTURE: Power BI custom visuals
 └── docs/
     ├── concepts/      # Strategic product decisions
@@ -136,21 +136,38 @@ Excel Add-in using the **Hybrid Approach**: Native Excel slicers for filtering +
 - `dataFilter.ts` - Data filtering logic for slicer changes
 - `excelData.ts` - Range reading and data extraction
 
-**Future:**
-
 - License validation (same system as PWA)
+
+### @variscout/azure-app (`apps/azure/`)
+
+Azure-native Team Application for enterprise environments.
+
+**Features:**
+
+- **Microsoft Entra ID (MSAL) Authentication**: Single Sign-On (SSO).
+- **SharePoint/OneDrive Integration**: Cloud storage for projects (.vrs files).
+- **Offline Sync**: Local-first architecture (Dexie.js) that syncs to cloud when online.
+- **Role**: Replaces the PWA's local storage with enterprise cloud storage while maintaining the same offline-capable React frontend.
+
+**Backend (`apps/azure/api/`):**
+
+- **Azure Functions**: Node.js backend for interacting with Microsoft Graph API on behalf of the user.
 
 ## Build Commands
 
 ```bash
 # Development
 pnpm dev                    # Start PWA dev server (http://localhost:5173)
+pnpm dev                    # Start PWA dev server (http://localhost:5173)
 pnpm dev:excel              # Start Excel Add-in dev server (https://localhost:3000)
+pnpm --filter @variscout/azure-app dev # Start Azure App dev server
 
 # Production builds
 pnpm build                  # Build all packages and apps
 pnpm build:pwa              # Build PWA only
+pnpm build:pwa              # Build PWA only
 pnpm build:excel            # Build Excel Add-in only
+pnpm --filter @variscout/azure-app build # Build Azure App only
 
 # Edition-specific PWA builds
 pnpm build:pwa:community    # Free with "VariScout Lite" branding

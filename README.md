@@ -117,9 +117,12 @@ pnpm build:pwa:licensed     # No branding
 
 ### Test
 
+````bash
 ```bash
 pnpm test
-```
+````
+
+> **Agentic Verification**: You can also ask the AI Agent to "Run the release checklist" for automated visual and E2E verification.
 
 ## Usage
 
@@ -193,7 +196,9 @@ variscout-lite/
 │   └── charts/        # @variscout/charts - Props-based Visx chart components
 ├── apps/
 │   ├── pwa/           # PWA website (mobile + desktop)
+│   ├── azure/         # Azure Team App (SharePoint, SSO)
 │   └── excel-addin/   # Excel Add-in (Task Pane + Content Add-in)
+├── infra/             # Infrastructure as Code (Bicep)
 └── docs/
     ├── concepts/      # Strategic product decisions
     ├── design-system/ # Design tokens, components, charts
@@ -227,7 +232,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/MONOREPO_ARCHITECTURE.md](docs/
 
 - [ ] Marketing website (Astro)
 - [ ] Power BI Custom Visuals (AppSource)
-- [ ] Azure team deployment (SharePoint/OneDrive, SSO)
+- [x] Azure team deployment (SharePoint/OneDrive, SSO)
 
 See [Specs.md](Specs.md) for feature specifications, [docs/products/](docs/products/) for product specs, and [LSS Trainer Strategy](docs/concepts/LSS_TRAINER_STRATEGY.md) for the Green Belt training roadmap.
 

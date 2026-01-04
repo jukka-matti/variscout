@@ -1,8 +1,8 @@
 # VaRiScout Lite: LSS Trainer Feature Strategy
 
-**Status:** Planning
+**Status:** Implemented
 **Date:** January 2026
-**Version:** 1.0
+**Version:** 1.1
 
 ---
 
@@ -255,13 +255,13 @@ User provides three columns: Part ID, Operator ID, and Measurement value. Standa
 
 ## Development Summary
 
-| Feature                             | Type        | Effort | Priority |
-| ----------------------------------- | ----------- | ------ | -------- |
-| ANOVA under Boxplot                 | Enhancement | Small  | High     |
-| Regression Tab (4-chart + auto-fit) | New Tab     | Medium | High     |
-| Gage R&R Tab                        | New Tab     | Medium | High     |
+| Feature                             | Type        | Effort | Status      |
+| ----------------------------------- | ----------- | ------ | ----------- |
+| ANOVA under Boxplot                 | Enhancement | Small  | ✅ Complete |
+| Regression Tab (4-chart + auto-fit) | New Tab     | Medium | ✅ Complete |
+| Gage R&R Tab                        | New Tab     | Medium | ✅ Complete |
 
-With these three additions, VaRiScout Lite provides complete Green Belt training coverage. The total scope is deliberately minimal — three features instead of fifty — because the goal is trainer adoption, not statistical completeness.
+All three features are now implemented. VaRiScout Lite provides complete Green Belt training coverage. The total scope was deliberately minimal — three features instead of fifty — because the goal is trainer adoption, not statistical completeness.
 
 ---
 
@@ -279,9 +279,9 @@ These features are not available in Minitab:
 
 ## Next Steps
 
-1. Implement ANOVA calculations and integrate with existing Boxplot tab
-2. Build Regression tab with 2×2 chart grid and auto-fit logic
-3. Build Gage R&R tab with variance breakdown visualization
+1. ~~Implement ANOVA calculations and integrate with existing Boxplot tab~~ ✅ Done
+2. ~~Build Regression tab with 2×2 chart grid and auto-fit logic~~ ✅ Done
+3. ~~Build Gage R&R tab with variance breakdown visualization~~ ✅ Done
 4. Test with sample training datasets
 5. Pilot with ESTIEM training program
 

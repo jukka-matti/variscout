@@ -33,7 +33,7 @@ class VariScoutDatabase extends Dexie {
 export const db = new VariScoutDatabase();
 
 // Sync queue operations
-export async function addToSyncQueue(item: Omit<SyncItem, 'id'>) {
+export async function addToSyncQueue(item: Omit<SyncItem, 'id' | 'queuedAt'>) {
   await db.syncQueue.put({
     name: item.name,
     location: item.location,

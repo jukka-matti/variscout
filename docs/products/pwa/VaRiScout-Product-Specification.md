@@ -565,11 +565,11 @@ User clicks "Upgrade"
 
 ### Phase 2: Trainer Features
 
-- [ ] Gage R&R
-- [ ] Normality test
-- [ ] 2-sample t-test
-- [ ] 1-way ANOVA
-- [ ] Simple regression
+- [x] Gage R&R
+- [x] Normality test (probability plot)
+- [x] 2-sample t-test (via ANOVA with 2 groups)
+- [x] 1-way ANOVA
+- [x] Simple regression
 
 ### Phase 3: Excel Add-in
 

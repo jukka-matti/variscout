@@ -5,6 +5,20 @@ All notable changes to VariScout Lite will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-04
+
+### Added
+
+- **Azure Team App**: New enterprise-focused application (`apps/azure`).
+  - Microsoft Entra ID (MSAL) Authentication.
+  - SharePoint/OneDrive integration for cloud storage.
+  - Offline-capabilities with automatic cloud sync.
+- **Infrastructure as Code**: Bicep templates for provisioning Azure Static Web App and Functions (`infra/`).
+
+### Documentation
+
+- **Agentic Testing Strategy**: Updated `docs/technical/TESTING_STRATEGY.md` to include Agent-driven QA protocols (Visual & E2E Verification).
+
 ## [1.1.0] - 2024-12-29
 
 ### Added

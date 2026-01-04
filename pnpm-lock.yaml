@@ -42,6 +42,46 @@ importers:
         specifier: ^5.5.2
         version: 5.9.3
 
+  apps/azure:
+    dependencies:
+      '@azure/msal-browser':
+        specifier: ^2.37.0
+        version: 2.39.0
+      '@azure/msal-react':
+        specifier: ^1.5.0
+        version: 1.5.13(@azure/msal-browser@2.39.0)(react@18.3.1)
+      '@variscout/charts':
+        specifier: workspace:*
+        version: link:../../packages/charts
+      '@variscout/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      dexie:
+        specifier: ^3.2.4
+        version: 3.2.7
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.3
+        version: 18.3.27
+      '@types/react-dom':
+        specifier: ^18.3.0
+        version: 18.3.7(@types/react@18.3.27)
+      '@vitejs/plugin-react':
+        specifier: ^4.3.1
+        version: 4.7.0(vite@5.4.21(@types/node@25.0.3)(terser@5.44.1))
+      typescript:
+        specifier: ^5.5.2
+        version: 5.9.3
+      vite:
+        specifier: ^5.3.1
+        version: 5.4.21(@types/node@25.0.3)(terser@5.44.1)
+
   apps/excel-addin:
     dependencies:
       '@fluentui/react-components':
@@ -412,8 +452,16 @@ packages:
     resolution: {integrity: sha512-fCqPIfOcLE+CGqGPd66c8bZpwAji98tZ4JI9i/mlTNTlsIWslCfpg48s/ypyLxZTump5sypjrKn2/kY7q8oAbA==}
     engines: {node: '>=20.0.0'}
 
+  '@azure/msal-browser@2.39.0':
+    resolution: {integrity: sha512-kks/n2AJzKUk+DBqZhiD+7zeQGBl+WpSOQYzWy6hff3bU0ZrYFqr4keFLlzB5VKuKZog0X59/FGHb1RPBDZLVg==}
+    engines: {node: '>=0.8.0'}
+
   '@azure/msal-browser@4.27.0':
     resolution: {integrity: sha512-bZ8Pta6YAbdd0o0PEaL1/geBsPrLEnyY/RDWqvF1PP9RUH8EMLvUMGoZFYS6jSlUan6KZ9IMTLCnwpWWpQRK/w==}
+    engines: {node: '>=0.8.0'}
+
+  '@azure/msal-common@13.3.3':
+    resolution: {integrity: sha512-n278DdCXKeiWhLwhEL7/u9HRMyzhUXLefeajiknf6AmEedoiOiv2r5aRJ7LXdT3NGPyubkdIbthaJlVtmuEqvA==}
     engines: {node: '>=0.8.0'}
 
   '@azure/msal-common@14.16.1':
@@ -431,6 +479,13 @@ packages:
   '@azure/msal-node@3.8.4':
     resolution: {integrity: sha512-lvuAwsDpPDE/jSuVQOBMpLbXuVuLsPNRwWCyK3/6bPlBk0fGWegqoZ0qjZclMWyQ2JNvIY3vHY7hoFmFmFQcOw==}
     engines: {node: '>=16'}
+
+  '@azure/msal-react@1.5.13':
+    resolution: {integrity: sha512-rv3q7hwZS5VQs5AXgdoXwrPnCc0/xs3YmWNxhyCFw7JWZ3Nq0hV1JJSvWXZgXQIINOV7hCky3lYaRgHYT9qyKw==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      '@azure/msal-browser': ^2.38.4
+      react: ^16.8.0 || ^17 || ^18
 
   '@azure/storage-blob@12.29.1':
     resolution: {integrity: sha512-7ktyY0rfTM0vo7HvtK6E3UvYnI9qfd6Oz6z/+92VhGRveWng3kJwMKeUpqmW/NmwcDNbxHpSlldG+vsUnRFnBg==}
@@ -3435,6 +3490,10 @@ packages:
     engines: {node: '>= 4.0.0'}
     hasBin: true
 
+  dexie@3.2.7:
+    resolution: {integrity: sha512-2a+BXvVhY5op+smDRLxeBAivE7YcYaneXJ1la3HOkUfX9zKkE/AJ8CNgjiXbtXepFyFmJNGSbmjOwqbT749r/w==}
+    engines: {node: '>=6.0'}
+
   diagnostic-channel-publishers@0.4.4:
     resolution: {integrity: sha512-l126t01d2ZS9EreskvEtZPrcgstuvH3rbKy82oUhUrVmBaGx4hO9wECdl3cvZbKDYjMF3QJDB5z5dL9yWAjvZQ==}
     peerDependencies:
@@ -6222,9 +6281,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@azure/msal-browser@2.39.0':
+    dependencies:
+      '@azure/msal-common': 13.3.3
+
   '@azure/msal-browser@4.27.0':
     dependencies:
       '@azure/msal-common': 15.13.3
+
+  '@azure/msal-common@13.3.3': {}
 
   '@azure/msal-common@14.16.1': {}
 
@@ -6241,6 +6306,11 @@ snapshots:
       '@azure/msal-common': 15.13.3
       jsonwebtoken: 9.0.3
       uuid: 8.3.2
+
+  '@azure/msal-react@1.5.13(@azure/msal-browser@2.39.0)(react@18.3.1)':
+    dependencies:
+      '@azure/msal-browser': 2.39.0
+      react: 18.3.1
 
   '@azure/storage-blob@12.29.1':
     dependencies:
@@ -10255,6 +10325,8 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  dexie@3.2.7: {}
 
   diagnostic-channel-publishers@0.4.4(diagnostic-channel@0.3.1):
     dependencies:
