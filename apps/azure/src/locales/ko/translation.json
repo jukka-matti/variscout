@@ -1,0 +1,11 @@
+{
+  "app": {
+    "title": "VariScout 팀",
+    "welcome": "VariScout 팀에 오신 것을 환영합니다"
+  },
+  "common": {
+    "loading": "로딩 중...",
+    "save": "저장",
+    "logout": "로그아웃"
+  }
+}

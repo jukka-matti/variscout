@@ -1,0 +1,64 @@
+{
+  "app": {
+    "title": "VariScout Lite",
+    "welcome": "Velkommen til VariScout Lite",
+    "slogan": "Enkel, sikker variasjonsanalyse"
+  },
+  "common": {
+    "loading": "Laster inn...",
+    "save": "Lagre",
+    "cancel": "Avbryt",
+    "delete": "Slett",
+    "edit": "Rediger",
+    "close": "Lukk",
+    "export": "Eksporter",
+    "import": "Importer",
+    "settings": "Innstillinger",
+    "help": "Hjelp",
+    "back": "Tilbake",
+    "next": "Neste",
+    "finish": "Fullfør"
+  },
+  "nav": {
+    "dashboard": "Oversikt",
+    "data": "Data",
+    "analysis": "Analyse",
+    "projects": "Prosjekter"
+  },
+  "charts": {
+    "title": "Diagrammer",
+    "iChart": "I-diagram",
+    "boxplot": "Boxplot",
+    "pareto": "Pareto-diagram",
+    "histogram": "Histogram",
+    "ucl": "ØG",
+    "lcl": "NG",
+    "mean": "Gjennomsnitt",
+    "median": "Median",
+    "stdDev": "Std.avvik"
+  },
+  "capability": {
+    "cp": "Cp",
+    "cpk": "Cpk",
+    "usl": "Øvre spesifikasjonsgrense",
+    "lsl": "Nedre spesifikasjonsgrense",
+    "target": "Mål",
+    "capable": "Prosessen er kapabel",
+    "notCapable": "Prosessen er ikke kapabel",
+    "conformance": "Samsvar"
+  },
+  "data": {
+    "importCsv": "Importer CSV",
+    "importExcel": "Importer Excel",
+    "manualEntry": "Manuell inntasting",
+    "sampleData": "Last inn eksempeldata",
+    "rows": "rader",
+    "columns": "kolonner",
+    "noData": "Ingen data funnet"
+  },
+  "auth": {
+    "signIn": "Logg inn",
+    "signOut": "Logg ut",
+    "profile": "Profil"
+  }
+}

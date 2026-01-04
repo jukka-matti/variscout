@@ -1,0 +1,11 @@
+{
+  "app": {
+    "title": "Nhóm VariScout",
+    "welcome": "Chào mừng bạn đến với Nhóm VariScout"
+  },
+  "common": {
+    "loading": "Đang tải...",
+    "save": "Lưu",
+    "logout": "Đăng xuất"
+  }
+}

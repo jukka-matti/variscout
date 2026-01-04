@@ -1,0 +1,64 @@
+{
+  "app": {
+    "title": "VariScout Lite",
+    "welcome": "Benvenuto in VariScout Lite",
+    "slogan": "Analisi delle variazioni semplice e sicura"
+  },
+  "common": {
+    "loading": "Caricamento...",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "close": "Chiudi",
+    "export": "Esporta",
+    "import": "Importa",
+    "settings": "Impostazioni",
+    "help": "Aiuto",
+    "back": "Indietro",
+    "next": "Avanti",
+    "finish": "Fine"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "data": "Dati",
+    "analysis": "Analisi",
+    "projects": "Progetti"
+  },
+  "charts": {
+    "title": "Grafici",
+    "iChart": "Carta I",
+    "boxplot": "Boxplot",
+    "pareto": "Diagramma di Pareto",
+    "histogram": "Istogramma",
+    "ucl": "LSC",
+    "lcl": "LIC",
+    "mean": "Media",
+    "median": "Mediana",
+    "stdDev": "Deviaz. Std."
+  },
+  "capability": {
+    "cp": "Cp",
+    "cpk": "Cpk",
+    "usl": "Limite di specifica sup.",
+    "lsl": "Limite di specifica inf.",
+    "target": "Target",
+    "capable": "Il processo è capace",
+    "notCapable": "Il processo non è capace",
+    "conformance": "Conformità"
+  },
+  "data": {
+    "importCsv": "Importa CSV",
+    "importExcel": "Importa Excel",
+    "manualEntry": "Inserimento manuale",
+    "sampleData": "Carica dati di esempio",
+    "rows": "righe",
+    "columns": "colonne",
+    "noData": "Nessun dato trovato"
+  },
+  "auth": {
+    "signIn": "Accedi",
+    "signOut": "Esci",
+    "profile": "Profilo"
+  }
+}

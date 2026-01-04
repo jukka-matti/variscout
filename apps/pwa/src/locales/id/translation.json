@@ -1,0 +1,64 @@
+{
+  "app": {
+    "title": "VariScout Lite",
+    "welcome": "Selamat Datang di VariScout Lite",
+    "slogan": "Analisis Variasi yang Sederhana dan Aman"
+  },
+  "common": {
+    "loading": "Memuat...",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "edit": "Ubah",
+    "close": "Tutup",
+    "export": "Ekspor",
+    "import": "Impor",
+    "settings": "Pengaturan",
+    "help": "Bantuan",
+    "back": "Kembali",
+    "next": "Berikutnya",
+    "finish": "Selesai"
+  },
+  "nav": {
+    "dashboard": "Dasbor",
+    "data": "Data",
+    "analysis": "Analisis",
+    "projects": "Proyek"
+  },
+  "charts": {
+    "title": "Grafik",
+    "iChart": "Grafik-I",
+    "boxplot": "Boxplot",
+    "pareto": "Diagram Pareto",
+    "histogram": "Histogram",
+    "ucl": "Batas Kendali Atas",
+    "lcl": "Batas Kendali Bawah",
+    "mean": "Rata-rata",
+    "median": "Median",
+    "stdDev": "Std Deviasi"
+  },
+  "capability": {
+    "cp": "Cp",
+    "cpk": "Cpk",
+    "usl": "Batas Spesifikasi Atas",
+    "lsl": "Batas Spesifikasi Bawah",
+    "target": "Target",
+    "capable": "Proses kapabel",
+    "notCapable": "Proses tidak kapabel",
+    "conformance": "Kesesuaian"
+  },
+  "data": {
+    "importCsv": "Impor CSV",
+    "importExcel": "Impor Excel",
+    "manualEntry": "Entri Manual",
+    "sampleData": "Muat Data Contoh",
+    "rows": "baris",
+    "columns": "kolom",
+    "noData": "Data tidak ditemukan"
+  },
+  "auth": {
+    "signIn": "Masuk",
+    "signOut": "Keluar",
+    "profile": "Profil"
+  }
+}

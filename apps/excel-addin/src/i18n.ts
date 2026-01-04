@@ -8,6 +8,20 @@ import de from './locales/de/translation.json';
 import es from './locales/es/translation.json';
 import fr from './locales/fr/translation.json';
 import pt from './locales/pt/translation.json';
+import it from './locales/it/translation.json';
+import pl from './locales/pl/translation.json';
+import nl from './locales/nl/translation.json';
+import cs from './locales/cs/translation.json';
+import ro from './locales/ro/translation.json';
+import tr from './locales/tr/translation.json';
+import sv from './locales/sv/translation.json';
+import da from './locales/da/translation.json';
+import no from './locales/no/translation.json';
+import id from './locales/id/translation.json';
+import vi from './locales/vi/translation.json';
+import th from './locales/th/translation.json';
+import hi from './locales/hi/translation.json';
+import ko from './locales/ko/translation.json';
 
 export const defaultNS = 'translation';
 export const resources = {
@@ -28,6 +42,48 @@ export const resources = {
   },
   pt: {
     translation: pt,
+  },
+  it: {
+    translation: it,
+  },
+  pl: {
+    translation: pl,
+  },
+  nl: {
+    translation: nl,
+  },
+  cs: {
+    translation: cs,
+  },
+  ro: {
+    translation: ro,
+  },
+  tr: {
+    translation: tr,
+  },
+  sv: {
+    translation: sv,
+  },
+  da: {
+    translation: da,
+  },
+  no: {
+    translation: no,
+  },
+  id: {
+    translation: id,
+  },
+  vi: {
+    translation: vi,
+  },
+  th: {
+    translation: th,
+  },
+  hi: {
+    translation: hi,
+  },
+  ko: {
+    translation: ko,
   },
 } as const;
 

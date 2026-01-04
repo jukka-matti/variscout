@@ -1,0 +1,11 @@
+{
+  "app": {
+    "title": "VariScout Team",
+    "welcome": "VariScout Team में आपका स्वागत है"
+  },
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "save": "सहेजें",
+    "logout": "साइन आउट करें"
+  }
+}

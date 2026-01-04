@@ -1,0 +1,12 @@
+{
+  "app": {
+    "title": "VariScout Excel-tilføjelse",
+    "welcome": "Velkommen til VariScout for Excel"
+  },
+  "common": {
+    "loading": "Indlæser...",
+    "save": "Gem",
+    "cancel": "Annuller",
+    "analyze": "Analyser"
+  }
+}

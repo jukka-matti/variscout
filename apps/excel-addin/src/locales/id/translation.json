@@ -1,0 +1,12 @@
+{
+  "app": {
+    "title": "VariScout Excel Add-in",
+    "welcome": "Selamat Datang di VariScout untuk Excel"
+  },
+  "common": {
+    "loading": "Memuat...",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "analyze": "Analisis"
+  }
+}

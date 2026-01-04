@@ -1,0 +1,11 @@
+{
+  "app": {
+    "title": "VariScout Team",
+    "welcome": "Vítejte ve VariScout Team"
+  },
+  "common": {
+    "loading": "Načítání...",
+    "save": "Uložit",
+    "logout": "Odhlásit se"
+  }
+}

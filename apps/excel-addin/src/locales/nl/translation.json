@@ -1,0 +1,12 @@
+{
+  "app": {
+    "title": "VariScout Excel Add-in",
+    "welcome": "Welkom bij VariScout voor Excel"
+  },
+  "common": {
+    "loading": "Laden...",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "analyze": "Analyseren"
+  }
+}

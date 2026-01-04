@@ -1,0 +1,11 @@
+{
+  "app": {
+    "title": "VariScout Team",
+    "welcome": "Welkom bij VariScout Team"
+  },
+  "common": {
+    "loading": "Laden...",
+    "save": "Opslaan",
+    "logout": "Uitloggen"
+  }
+}
