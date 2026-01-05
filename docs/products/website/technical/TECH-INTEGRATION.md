@@ -30,6 +30,23 @@ variscout.com (Marketing)     variscout.com/app (PWA)
 | `/app`       | PWA entry          | SPA bundle          |
 | `/app/*`     | PWA routes         | Client-side routing |
 
+### Interactive Case Studies (Embedding)
+
+The marketing website showcases the PWA's power through interactive embeds on use-case pages.
+
+**Implementation**:
+
+- **Component**: `PWAEmbed.astro`
+- **Mechanism**: `<iframe>` pointing to `/app` with specialized parameters.
+
+**Parameters**:
+
+- `?embed=true`: Removes header/footer/sidebar from PWA for a clean iframe look.
+- `?sample=<key>`: Automatically loads a sample dataset (e.g., `pizza`, `mango-export`).
+
+**Direct Links**:
+Each embed includes a "Go to Full App" link that opens the PWA without the `embed` parameter, allowing the user to continue their analysis with the same data.
+
 ### Shared Assets
 
 ```

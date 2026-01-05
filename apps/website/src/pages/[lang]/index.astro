@@ -1,0 +1,135 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Hero from "../../components/Hero.astro";
+import FeatureCard from "../../components/FeatureCard.astro";
+import UseCaseCard from "../../components/UseCaseCard.astro";
+import ProductCard from "../../components/ProductCard.astro";
+import { ArrowRight, CheckCircle2 } from "lucide-astro";
+import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
+
+export function getStaticPaths() {
+  const languages = Object.keys(ui);
+  return languages.map((lang) => ({ params: { lang } }));
+}
+
+const lang = getLangFromUrl(Astro.url);
+
+const hero = {
+	headline: "Find what's driving variation.",
+	emphasis: "In minutes.",
+	subhead: "Simple enough for anyone. Rigorous enough for experts. 1 minute to insight, 1 minute to adjust, 1 minute to present.",
+	primaryCTA: { text: "Try Free", href: "/app" },
+	secondaryCTA: { text: "Watch Demo", href: "#demo" },
+};
+
+const valueProps = [
+	{ icon: "line-chart", title: "See Variation", description: "I-Chart, Boxplot, Pareto — all visible at once. No clicking through menus." },
+	{ icon: "filter", title: "Find the Factor", description: "Click to filter. Drill down in seconds. Which x is driving variation in Y?" },
+	{ icon: "copy", title: "Present Instantly", description: "One-click copy to PowerPoint. Ready to share with your team." },
+];
+
+const steps = [
+	{ number: 1, title: "Upload", description: "Drag and drop your CSV or Excel file" },
+	{ number: 2, title: "Select", description: "Choose your outcome and factor variables" },
+	{ number: 3, title: "Explore", description: "Click to filter, drill down to find patterns" },
+	{ number: 4, title: "Copy", description: "One click to clipboard, paste into your presentation" },
+];
+
+const useCases = [
+	{
+		id: "lss",
+		title: "LSS Training & Projects",
+		description: "Simplified statistics for Green Belts and trainers. Learn the methodology, not the software.",
+		bullets: ["Zero learning curve", "Plain language insights", "Perfect for tollgate presentations"],
+		cta: { text: "Learn More", href: "/use-cases/lss-training" },
+	},
+	{
+		id: "operations",
+		title: "Quality & Operations",
+		description: "Live analysis for daily decisions. Answer questions in the meeting, not after.",
+		bullets: ["Analyze live with your team", "No waiting for reports", "Visual clarity for everyone"],
+		cta: { text: "Learn More", href: "/use-cases/operations" },
+	},
+];
+
+const products = [
+	{ id: "web", title: "Web App", description: "Browser-based. Try instantly.", price: "Free / €49", cta: { text: "Open App", href: "/app" } },
+	{ id: "excel", title: "Excel", description: "Add-in for Excel users.", price: "Free / €49", cta: { text: "Get Add-in", href: "/product/excel" } },
+	{ id: "powerbi", title: "Power BI", description: "Custom visuals for dashboards.", price: "From €399", cta: { text: "View Suite", href: "/product/power-bi" } },
+	{ id: "azure", title: "Azure", description: "Self-deploy to your tenant.", price: "€999", cta: { text: "Learn More", href: "/product/azure" } },
+];
+---
+
+<BaseLayout>
+	<Hero {...hero} />
+
+	<!-- Value Props -->
+	<section class="py-20 bg-neutral-50">
+		<div class="container-wide">
+			<div class="grid md:grid-cols-3 gap-8">
+				{valueProps.map((prop) => <FeatureCard {...prop} />)}
+			</div>
+		</div>
+	</section>
+
+	<!-- How It Works -->
+	<section class="py-24 bg-white border-y border-neutral-200">
+		<div class="container-wide text-center">
+			<h2 class="text-3xl font-bold mb-4">How It Works</h2>
+			<p class="text-neutral-600 mb-16 max-w-2xl mx-auto">From data to insight in four simple steps</p>
+			
+			<div class="grid md:grid-cols-4 gap-8">
+				{steps.map((step) => (
+					<div class="relative group">
+						<div class="mb-6 text-6xl font-black text-neutral-100 group-hover:text-brand-primary/10 transition-colors">
+							{step.number}
+						</div>
+						<h3 class="text-xl font-bold mb-3">{step.title}</h3>
+						<p class="text-neutral-600 text-sm leading-relaxed">{step.description}</p>
+					</div>
+				))}
+			</div>
+		</div>
+	</section>
+
+	<!-- Use Cases -->
+	<section class="py-24 bg-neutral-50 overflow-hidden">
+		<div class="container-wide">
+			<h2 class="text-3xl font-bold text-center mb-16">Two Worlds, One Tool</h2>
+			<div class="grid md:grid-cols-2 gap-8">
+				{useCases.map((useCase) => <UseCaseCard {...useCase} />)}
+			</div>
+		</div>
+	</section>
+
+	<!-- Products -->
+	<section class="py-24 bg-white border-b border-neutral-200">
+		<div class="container-wide">
+			<div class="text-center mb-16">
+				<h2 class="text-3xl font-bold mb-4">Choose Your Platform</h2>
+				<p class="text-neutral-600">Same analysis, wherever you work</p>
+			</div>
+			<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+				{products.map((product) => <ProductCard {...product} />)}
+			</div>
+		</div>
+	</section>
+
+	<!-- Final CTA -->
+	<section class="py-24 bg-brand-primary text-white overflow-hidden relative">
+		<div class="absolute inset-0 opacity-10">
+			<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white rounded-full"></div>
+			<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white rounded-full"></div>
+		</div>
+		<div class="container-wide text-center relative z-10">
+			<h2 class="text-4xl font-bold mb-6">Start Scouting Variation</h2>
+			<p class="text-brand-primary-light text-xl mb-10 max-w-2xl mx-auto">
+				No signup required. Your data stays in your browser. Complete privacy by design.
+			</p>
+			<a href="/app" class="btn bg-white text-brand-primary hover:bg-neutral-50 text-lg px-10 py-4 shadow-xl">
+				Open VaRiScout
+			</a>
+		</div>
+	</section>
+</BaseLayout>

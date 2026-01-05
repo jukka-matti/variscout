@@ -1,0 +1,157 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PricingCard from "../../components/PricingCard.astro";
+import PricingFAQ from "../../components/PricingFAQ.astro";
+import { ShieldCheck, Zap, FileText, RefreshCw } from "lucide-astro";
+import { ui } from "../../i18n/ui";
+
+export function getStaticPaths() {
+  const languages = Object.keys(ui);
+  return languages.map((lang) => ({ params: { lang } }));
+}
+
+const pricingTiers = [
+	{
+		name: "Free",
+		price: "€0",
+		period: "forever",
+		description: "Try full analysis — no signup needed",
+		features: [
+			"All chart types (I-Chart, Boxplot, Pareto, Capability)",
+			"Full analysis features",
+			"CSV and Excel import",
+			"Copy to clipboard",
+			"Export PNG/CSV",
+		],
+		limitations: [
+			"Watermark on exports",
+			"Session only — projects don't persist",
+			"No .vrs file export",
+		],
+		cta: { text: "Open VaRiScout", href: "/app" },
+		ctaNote: "No signup required",
+	},
+	{
+		name: "Individual",
+		price: "€49",
+		period: "/year",
+		description: "Save your work, share your files",
+		features: [
+			"Everything in Free, plus:",
+			"Save projects (persists in browser)",
+			"Export/import .vrs project files",
+			"Save analysis templates",
+			"No watermark on exports",
+			"Priority email support",
+		],
+		cta: { text: "Start Free First", href: "/app" },
+		ctaNote: "Upgrade anytime in Settings",
+		highlight: true,
+		badge: "Most Popular",
+		whereToGet: "In-app Upgrade",
+	},
+	{
+		name: "Team",
+		price: "€399",
+		period: "/year",
+		description: "Power BI visuals for your team",
+		features: [
+			"Up to 10 users",
+			"All 4 Power BI visuals",
+			"I-Chart, Boxplot, Pareto, Capability",
+			"Cross-visual filtering",
+			"Microsoft certified",
+			"Email support",
+		],
+		cta: { text: "View in AppSource", href: "https://appsource.microsoft.com/...", external: true },
+		ctaNote: "Billed through Microsoft",
+		whereToGet: "Microsoft AppSource",
+	},
+];
+
+const faqs = [
+	{
+		question: "What's the difference between Free and Individual?",
+		answer: "Free gives you full analysis features for one-off use, but projects don't persist — your work is gone when you close the browser. Individual (€49/year) lets you save projects, export .vrs files to share with colleagues, and removes the watermark from exports.",
+	},
+	{
+		question: "Can I use Free for real work?",
+		answer: "Absolutely. Free has full analysis features. It's great for quick analyses where you don't need to save. When you find yourself spending 20+ minutes on an analysis, you'll probably want to upgrade so you can save your work.",
+	},
+	{
+		question: "How does activation work?",
+		answer: "Instantly! After you pay inside the app, it activates within 2-3 seconds. No need to check email or enter a license key manually. A backup key is emailed to you just in case.",
+	},
+	{
+		question: "Where does my data go?",
+		answer: "Nowhere. VaRiScout runs entirely in your browser. Your data never leaves your device. We don't have servers that see your data — that's by design.",
+	},
+];
+
+const trustBadges = [
+	{ icon: ShieldCheck, text: "Secure payment via Paddle" },
+	{ icon: Zap, text: "Instant activation" },
+	{ icon: FileText, text: "VAT invoice included" },
+	{ icon: RefreshCw, text: "30-day money-back" },
+];
+---
+
+<BaseLayout 
+	title="VaRiScout Pricing | Free to Start, Simple to Scale"
+	description="VaRiScout pricing: Free forever with watermark. €49/year for individuals. Team and enterprise options available via Microsoft."
+>
+	<section class="py-20 bg-white border-b border-neutral-200">
+		<div class="container-wide text-center">
+			<h1 class="text-4xl md:text-5xl font-bold mb-6">Simple pricing. <span class="text-brand-primary">Start free.</span></h1>
+			<p class="text-xl text-neutral-600 max-w-2xl mx-auto mb-16 italic_text_shorthand">
+				Use VaRiScout free forever. Upgrade when you're ready — inside the app or through Microsoft.
+			</p>
+
+			<div class="grid md:grid-cols-3 gap-8 text-left">
+				{pricingTiers.map((tier) => <PricingCard {...tier} />)}
+			</div>
+		</div>
+	</section>
+
+	<!-- Trust Badges -->
+	<section class="py-12 bg-neutral-50 border-b border-neutral-200">
+		<div class="container-wide">
+			<div class="flex flex-wrap items-center justify-center gap-8 md:gap-16">
+				{trustBadges.map((badge) => (
+					<div class="flex items-center gap-3 text-neutral-600 grayscale opacity-80">
+						<badge.icon size={20} />
+						<span class="text-sm font-medium italic_text_shorthand">{badge.text}</span>
+					</div>
+				))}
+			</div>
+		</div>
+	</section>
+
+	<!-- FAQ -->
+	<section class="py-24 bg-white">
+		<div class="container-wide">
+			<h2 class="text-3xl font-bold text-center mb-16">Pricing FAQ</h2>
+			<PricingFAQ items={faqs} />
+		</div>
+	</section>
+
+	<!-- Privacy Callout -->
+	<section class="py-20 bg-brand-secondary text-white">
+		<div class="container-wide">
+			<div class="flex flex-col md:flex-row items-center gap-12 bg-white/5 p-12 rounded-3xl border border-white/10">
+				<div class="p-4 bg-brand-primary rounded-2xl text-white shadow-2xl shadow-brand-primary/20">
+					<ShieldCheck size={48} />
+				</div>
+				<div class="flex-1 text-center md:text-left">
+					<h2 class="text-2xl font-bold mb-4">Your Data Stays Yours</h2>
+					<p class="text-neutral-400 max-w-2xl italic_text_shorthand">
+						VaRiScout is designed for sensitive operational data. It runs entirely on your side — in your browser, your Excel, your Power BI, or your Azure tenant. We never see your data.
+					</p>
+				</div>
+				<div>
+					<a href="/app" class="btn btn-primary px-8 py-3 whitespace-nowrap">Open VaRiScout</a>
+				</div>
+			</div>
+		</div>
+	</section>
+</BaseLayout>

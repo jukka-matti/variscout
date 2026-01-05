@@ -45,6 +45,15 @@ This specification defines the complete variscout.com marketing website. The sit
 | VaRiScout Power BI | AppSource visuals | BI teams          |
 | VaRiScout Azure    | Azure Marketplace | Enterprise IT     |
 
+## Internationalization
+
+The website supports **local routing** (e.g., `/de/`, `/es/`) for Tier 1 languages to maximize global SEO reach.
+
+- **Default Locale**: `en` (redirects from `/` to `/en/`)
+- **Supported Locales**: `en`, `de`, `es`, `fr`, `pt`
+- **Routing Strategy**: `/[lang]/...` directory structure
+- **Implementation**: Astro i18n with custom `ui.ts` dictionary and explicit static paths.
+
 ## File Structure
 
 ```
@@ -90,6 +99,9 @@ This specification defines the complete variscout.com marketing website. The sit
 ### For AI Coding Agents
 
 1. Start with `TECH-STACK.md` — understand framework and setup
+   - [Design System Tokens](file:///Users/jukka-mattiturtiainen/Projects/VariScout_lite/docs/products/website/design-system/TOKENS.md)
+   - [Technical Integration Strategy](file:///Users/jukka-mattiturtiainen/Projects/VariScout_lite/docs/products/website/technical/TECH-INTEGRATION.md)
+   - [Shared UI Strategy (Cross-App Embedding)](file:///Users/jukka-mattiturtiainen/Projects/VariScout_lite/docs/technical/SHARED_UI_STRATEGY.md)
 2. Read `design-system/TOKENS.md` — generate CSS variables
 3. Build components from `design-system/COMPONENTS.md`
 4. Follow `pages/SITEMAP.md` — create page structure

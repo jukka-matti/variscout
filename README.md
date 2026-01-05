@@ -248,7 +248,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/MONOREPO_ARCHITECTURE.md](docs/
 
 ### Future
 
-- [ ] Marketing website (Astro) with interactive case studies
+- [x] Marketing website (Astro) with interactive case studies
 - [ ] Power BI Custom Visuals (AppSource)
 - [x] Azure team deployment (SharePoint/OneDrive, SSO)
 

@@ -1,0 +1,107 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import PWAEmbed from "../../../components/PWAEmbed.astro";
+import { ui } from "../../../i18n/ui";
+
+export function getStaticPaths() {
+	const languages = Object.keys(ui);
+	const useCases = [
+		{ 
+			slug: "lss-training",
+			props: {
+				title: "LSS Training & Projects",
+				description: "Teach methodology, not software menus. Simplified statistics for Green Belts and trainers.",
+				sampleKey: "pizza",
+				heroTitle: "Teach methodology, not software menus.",
+				heroSub: "Learn to find factors driving variation — not to navigate complex software. From training to tollgate presentations in minutes.",
+			}
+		},
+		{ 
+			slug: "operations",
+			props: {
+				title: "Quality & Operations",
+				description: "Live analysis for daily decisions. Answer questions in the meeting, not after.",
+				sampleKey: "mango-export",
+				heroTitle: "Real-time insights for the shop floor.",
+				heroSub: "Stop waiting for static reports. Analyze live with your team and make data-driven decisions during the daily huddle.",
+			}
+		},
+	];
+
+	return languages.flatMap((lang) => 
+		useCases.map((useCase) => ({
+			params: { lang, slug: useCase.slug },
+			props: useCase.props
+		}))
+	);
+}
+
+const { title, description, sampleKey, heroTitle, heroSub } = Astro.props;
+---
+
+<BaseLayout title={`VaRiScout | ${title}`} description={description}>
+	<!-- Hero -->
+	<section class="py-20 bg-white border-b border-neutral-200">
+		<div class="container-wide">
+			<div class="max-w-3xl mb-12">
+				<a href="/" class="text-sm font-medium text-brand-primary mb-4 block">← Use Cases</a>
+				<h1 class="text-4xl md:text-5xl font-bold mb-6">{heroTitle}</h1>
+				<p class="text-xl text-neutral-600 leading-relaxed italic_text_shorthand">
+					{heroSub}
+				</p>
+			</div>
+
+			<PWAEmbed sampleKey={sampleKey} title={`${title} Interactive Exercise`} />
+		</div>
+	</section>
+
+	<!-- Content Placeholder -->
+	<section class="py-20 bg-neutral-50">
+		<div class="container-wide">
+			<div class="grid md:grid-cols-2 gap-16">
+				<div>
+					<h2 class="text-2xl font-bold mb-6">The Problem</h2>
+					<div class="space-y-6">
+						<div class="p-6 bg-white border border-neutral-200 rounded-xl">
+							<h3 class="font-bold mb-2">Expensive Licenses</h3>
+							<p class="text-sm text-neutral-600">Traditional stats software costs thousands per user, making it inaccessible for many teams.</p>
+						</div>
+						<div class="p-6 bg-white border border-neutral-200 rounded-xl">
+							<h3 class="font-bold mb-2">Installation Friction</h3>
+							<p class="text-sm text-neutral-600">Waiting for IT approval and deployment slows down training and active projects.</p>
+						</div>
+					</div>
+				</div>
+				<div>
+					<h2 class="text-2xl font-bold mb-6">The VaRiScout Way</h2>
+					<div class="space-y-6">
+						<div class="flex gap-4">
+							<div class="shrink-0 w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold">1</div>
+							<div>
+								<h3 class="font-bold mb-1">Zero Learning Curve</h3>
+								<p class="text-sm text-neutral-600">No complex menus. If you can click, you can analyze.</p>
+							</div>
+						</div>
+						<div class="flex gap-4">
+							<div class="shrink-0 w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold">2</div>
+							<div>
+								<h3 class="font-bold mb-1">Plain Language Insights</h3>
+								<p class="text-sm text-neutral-600">The software tells you if there's a difference in plain English.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="py-20 bg-white border-t border-neutral-200">
+		<div class="container-wide text-center">
+			<h2 class="text-3xl font-bold mb-8 italic_text_shorthand">Ready to try it with your own data?</h2>
+			<div class="flex gap-4 justify-center">
+				<a href="/app" class="btn btn-primary px-8 py-3">Try Free</a>
+				<a href="/pricing" class="btn btn-secondary px-8 py-3">See Pricing</a>
+			</div>
+		</div>
+	</section>
+</BaseLayout>

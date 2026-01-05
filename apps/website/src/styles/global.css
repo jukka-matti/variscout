@@ -1,0 +1,80 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-brand-primary: #2563eb;
+  --color-brand-primary-dark: #1d4ed8;
+  --color-brand-primary-light: #3b82f6;
+  --color-brand-secondary: #0f172a;
+
+  --color-neutral-900: #0f172a;
+  --color-neutral-700: #334155;
+  --color-neutral-500: #64748b;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-50: #f8fafc;
+
+  --color-chart-primary: #2563eb;
+  --color-chart-secondary: #8b5cf6;
+  --color-chart-tertiary: #ec4899;
+  --color-chart-quaternary: #f59e0b;
+  --color-chart-control-limit: #ef4444;
+  --color-chart-center-line: #10b981;
+  --color-chart-spec-limit: #6b7280;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing from TOKENS.md */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+}
+
+@layer base {
+  body {
+    @apply bg-neutral-50 text-neutral-900 font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold text-neutral-900;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-brand-primary text-white hover:bg-brand-primary-dark;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-neutral-900 border border-neutral-300 hover:bg-neutral-50;
+  }
+
+  .container-wide {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}

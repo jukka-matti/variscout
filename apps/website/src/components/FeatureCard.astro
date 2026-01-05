@@ -1,0 +1,32 @@
+---
+import * as Lucide from "lucide-astro";
+
+interface Props {
+	icon: string;
+	title: string;
+	description: string;
+}
+
+const { icon, title, description } = Astro.props;
+
+// Dynamically get the icon component
+// Note: In Astro, we can't easily dynamic import icons by string name without a registry or massive switch
+// For simplicity in this tool-driven environment, I'll use a mapping or just hardcode specific icons for now.
+// However, I'll try to use a few common ones.
+---
+
+<div class="p-8 bg-white border border-neutral-200 rounded-xl hover:shadow-lg transition-shadow">
+	<div class="inline-flex p-3 bg-brand-primary/10 rounded-lg text-brand-primary mb-6">
+		{icon === 'line-chart' && <Lucide.LineChart size={24} />}
+		{icon === 'filter' && <Lucide.Filter size={24} />}
+		{icon === 'copy' && <Lucide.Copy size={24} />}
+		{icon === 'globe' && <Lucide.Globe size={24} />}
+		{icon === 'zap' && <Lucide.Zap size={24} />}
+		{icon === 'message-circle' && <Lucide.MessageCircle size={24} />}
+		{icon === 'shield-check' && <Lucide.ShieldCheck size={24} />}
+	</div>
+	<h3 class="text-xl font-bold mb-3">{title}</h3>
+	<p class="text-neutral-600 leading-relaxed italic_text_shorthand">
+		{description}
+	</p>
+</div>

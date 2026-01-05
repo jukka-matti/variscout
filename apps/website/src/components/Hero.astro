@@ -1,0 +1,39 @@
+---
+interface Props {
+	headline: string;
+	emphasis?: string;
+	subhead: string;
+	primaryCTA: { text: string; href: string };
+	secondaryCTA: { text: string; href: string };
+}
+
+const { headline, emphasis, subhead, primaryCTA, secondaryCTA } = Astro.props;
+---
+
+<section class="py-20 md:py-32 bg-white overflow-hidden">
+	<div class="container-wide text-center">
+		<h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+			{headline} <span class="text-brand-primary">{emphasis}</span>
+		</h1>
+		<p class="text-lg md:text-xl text-neutral-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+			{subhead}
+		</p>
+		<div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+			<a href={primaryCTA.href} class="btn btn-primary text-base px-8 py-3 w-full sm:w-auto">
+				{primaryCTA.text}
+			</a>
+			<a href={secondaryCTA.href} class="btn btn-secondary text-base px-8 py-3 w-full sm:w-auto">
+				{secondaryCTA.text}
+			</a>
+		</div>
+		
+		<div class="mt-20 relative">
+			<div class="absolute inset-0 bg-brand-primary/5 blur-3xl rounded-full -z-10 transform -translate-y-1/2"></div>
+			<div class="bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden border border-neutral-800 p-2">
+				<div class="bg-neutral-800 rounded-xl overflow-hidden aspect-video flex items-center justify-center">
+					<span class="text-neutral-500 text-sm">[Interactive Dashboard Simulation]</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>

@@ -1,0 +1,91 @@
+---
+import { Search } from "lucide-astro";
+import { getLangFromUrl, useTranslations } from "../i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const groups = [
+	{
+		title: t('footer.product'),
+		links: [
+			{ label: t('nav.product.web'), href: `/${lang}/product/web-app` },
+			{ label: t('nav.product.excel'), href: `/${lang}/product/excel` },
+			{ label: t('nav.product.powerbi'), href: `/${lang}/product/power-bi` },
+			{ label: t('nav.product.azure'), href: `/${lang}/product/azure` },
+			{ label: t('nav.pricing'), href: `/${lang}/pricing` },
+			{ label: t('nav.product.compare'), href: `/${lang}/product/compare` },
+		],
+	},
+	{
+		title: t('footer.useCases'),
+		links: [
+			{ label: t('nav.useCases.lss'), href: `/${lang}/use-cases/lss-training` },
+			{ label: t('nav.useCases.ops'), href: `/${lang}/use-cases/operations` },
+		],
+	},
+	{
+		title: t('footer.resources'),
+		links: [
+			{ label: "Tutorials", href: "/resources/tutorials" }, // Not yet translated
+			{ label: "Sample Data", href: "/resources/sample-data" }, // Not yet translated
+			{ label: "#VariationScouting", href: "/resources/variation-scouting" }, // Not yet translated
+		],
+	},
+	{
+		title: t('footer.company'),
+		links: [
+			{ label: "About", href: "/about" }, // Not yet translated
+			{ label: "Contact", href: "/contact" }, // Not yet translated
+		],
+	},
+];
+---
+
+<footer class="bg-brand-secondary text-neutral-300 py-16 border-t border-white/10">
+	<div class="container-wide">
+		<div class="grid grid-cols-2 md:grid-cols-5 gap-12">
+			<div class="col-span-2">
+				<a href={`/${lang}`} class="flex items-center gap-2 mb-6">
+					<div class="p-1.5 bg-brand-primary rounded-lg text-white">
+						<Search size={24} />
+					</div>
+					<span class="text-xl font-bold tracking-tight text-white">VaRiScout</span>
+				</a>
+				<p class="text-sm text-neutral-500 max-w-xs">
+					Find what's driving variation. In minutes. Simple enough for anyone. Rigorous enough for experts.
+				</p>
+			</div>
+
+			{groups.map((group) => (
+				<div class="space-y-4">
+					<h3 class="text-sm font-semibold text-white uppercase tracking-wider">
+						{group.title}
+					</h3>
+					<ul class="space-y-2">
+						{group.links.map((link) => (
+							<li>
+								<a
+									href={link.href}
+									class="text-sm hover:text-white transition-colors"
+								>
+									{link.label}
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
+			))}
+		</div>
+
+		<div class="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+			<p class="text-xs text-neutral-600">
+				© 2026 RDMAIC Oy. All rights reserved.
+			</p>
+			<div class="flex items-center gap-6">
+				<a href="/legal/privacy" class="text-xs text-neutral-600 hover:text-neutral-400">Privacy</a>
+				<a href="/legal/terms" class="text-xs text-neutral-600 hover:text-neutral-400">Terms</a>
+			</div>
+		</div>
+	</div>
+</footer>

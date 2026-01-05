@@ -1,0 +1,186 @@
+---
+import { Search, ChevronDown, Menu, X, Globe } from "lucide-astro";
+import { getLangFromUrl, useTranslations, getRouteFromUrl } from "../i18n/utils";
+import { languages } from "../i18n/ui";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const route = getRouteFromUrl(Astro.url);
+
+const navItems = [
+	{
+		label: t('nav.product'),
+		items: [
+			{ label: t('nav.product.web'), href: `/${lang}/product/web-app` },
+			{ label: t('nav.product.excel'), href: `/${lang}/product/excel` },
+			{ label: t('nav.product.powerbi'), href: `/${lang}/product/power-bi` },
+			{ label: t('nav.product.azure'), href: `/${lang}/product/azure` },
+			{ label: t('nav.product.compare'), href: `/${lang}/product/compare`, divider: true },
+		],
+	},
+	{
+		label: t('nav.useCases'),
+		items: [
+			{ label: t('nav.useCases.lss'), href: `/${lang}/use-cases/lss-training` },
+			{ label: t('nav.useCases.ops'), href: `/${lang}/use-cases/operations` },
+		],
+	},
+];
+---
+
+<header class="sticky top-0 z-sticky bg-white/80 backdrop-blur-md border-b border-neutral-300">
+	<div class="container-wide flex items-center justify-between h-16">
+		<div class="flex items-center gap-4 lg:gap-8">
+			<a href={`/${lang}`} class="flex items-center gap-2 group">
+				<div class="p-1.5 bg-brand-primary rounded-lg text-white group-hover:bg-brand-primary-dark transition-colors">
+					<Search size={24} />
+				</div>
+				<span class="text-xl font-bold tracking-tight text-neutral-900">VaRiScout</span>
+			</a>
+
+			<nav class="hidden md:flex items-center gap-1">
+				{navItems.map((group) => (
+					<div class="relative group">
+						<button class="flex items-center gap-1 px-3 py-2 text-sm font-medium text-neutral-700 hover:text-brand-primary transition-colors">
+							{group.label}
+							<ChevronDown size={14} class="opacity-50" />
+						</button>
+						<div class="absolute left-0 top-full hidden group-hover:block pt-1 z-dropdown">
+							<div class="bg-white border border-neutral-300 rounded-lg shadow-lg py-2 min-w-[200px] animate-in fade-in slide-in-from-top-2 duration-200">
+								{group.items.map((item) => (
+									<>
+										{item.divider && <div class="my-1 border-t border-neutral-200" />}
+										<a
+											href={item.href}
+											class="block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-brand-primary transition-colors"
+										>
+											{item.label}
+										</a>
+									</>
+								))}
+							</div>
+						</div>
+					</div>
+				))}
+				<a
+					href={`/${lang}/pricing`}
+					class="px-3 py-2 text-sm font-medium text-neutral-700 hover:text-brand-primary transition-colors"
+				>
+					{t('nav.pricing')}
+				</a>
+			</nav>
+		</div>
+
+		<div class="flex items-center gap-2 lg:gap-4">
+			<!-- Language Switcher -->
+			<div class="relative group hidden sm:block">
+				<button class="flex items-center gap-1 px-2 py-2 text-sm text-neutral-600 hover:text-brand-primary transition-colors" aria-label="Change language">
+					<Globe size={18} />
+					<span class="uppercase font-medium">{lang}</span>
+				</button>
+				<div class="absolute right-0 top-full hidden group-hover:block pt-1 z-dropdown">
+					<div class="bg-white border border-neutral-300 rounded-lg shadow-lg py-1 min-w-[120px] animate-in fade-in slide-in-from-top-2 duration-200">
+						{Object.entries(languages).map(([code, label]) => (
+							<a
+								href={`/${code}${route ? `/${route}` : ''}`}
+								class={`block px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-brand-primary transition-colors ${code === lang ? 'font-bold bg-neutral-50 text-brand-primary' : ''}`}
+							>
+								{label}
+							</a>
+						))}
+					</div>
+				</div>
+			</div>
+
+			<a href="/app" class="hidden sm:flex btn btn-primary text-sm px-6">
+				{t('cta.tryFree')}
+			</a>
+			
+			<button id="menu-toggle" class="md:hidden p-2 text-neutral-700" aria-label="Toggle menu">
+				<Menu size={24} class="menu-icon" />
+				<X size={24} class="close-icon hidden" />
+			</button>
+		</div>
+	</div>
+
+	<!-- Mobile Menu Overlay -->
+	<div id="mobile-menu" class="fixed inset-0 top-16 bg-white z-40 hidden md:hidden border-t border-neutral-200 overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-200">
+		<nav class="flex flex-col p-4 space-y-4">
+			{navItems.map((group) => (
+				<div class="space-y-2">
+					<h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider px-2">{group.label}</h3>
+					<div class="space-y-1">
+						{group.items.map((item) => (
+							<>
+								{!item.divider && (
+									<a
+										href={item.href}
+										class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50"
+									>
+										{item.label}
+									</a>
+								)}
+							</>
+						))}
+					</div>
+				</div>
+			))}
+			<hr class="border-neutral-200 my-4" />
+			<a href={`/${lang}/pricing`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">
+				{t('nav.pricing')}
+			</a>
+			
+			<div class="flex items-center gap-2 px-4 py-2">
+				<Globe size={18} class="text-neutral-500" />
+				<div class="flex flex-wrap gap-2">
+					{Object.entries(languages).map(([code, label]) => (
+						<a 
+							href={`/${code}${route ? `/${route}` : ''}`}
+							class={`text-sm px-2 py-1 rounded ${code === lang ? 'bg-brand-primary text-white' : 'bg-neutral-100 text-neutral-700'}`}
+						>
+							{code.toUpperCase()}
+						</a>
+					))}
+				</div>
+			</div>
+
+			<a href="/app" class="btn btn-primary w-full justify-center py-3 text-lg">
+				{t('cta.tryFree')}
+			</a>
+		</nav>
+	</div>
+</header>
+
+<script>
+	const menuToggle = document.getElementById('menu-toggle');
+	const mobileMenu = document.getElementById('mobile-menu');
+	const menuIcon = document.querySelector('.menu-icon');
+	const closeIcon = document.querySelector('.close-icon');
+
+	menuToggle?.addEventListener('click', () => {
+		const isHidden = mobileMenu?.classList.contains('hidden');
+		
+		if (isHidden) {
+			mobileMenu?.classList.remove('hidden');
+			document.body.style.overflow = 'hidden'; // Prevent scrolling
+			menuIcon?.classList.add('hidden');
+			closeIcon?.classList.remove('hidden');
+		} else {
+			mobileMenu?.classList.add('hidden');
+			document.body.style.overflow = ''; // Restore scrolling
+			menuIcon?.classList.remove('hidden');
+			closeIcon?.classList.add('hidden');
+		}
+	});
+
+	// Close menu when clicking a link
+	const links = mobileMenu?.querySelectorAll('a');
+	links?.forEach(link => {
+		link.addEventListener('click', () => {
+			mobileMenu?.classList.add('hidden');
+			document.body.style.overflow = '';
+			menuIcon?.classList.remove('hidden');
+			closeIcon?.classList.add('hidden');
+		});
+	});
+</script>

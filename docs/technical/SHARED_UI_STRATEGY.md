@@ -75,10 +75,25 @@ Develop components in isolation using **Storybook**. This forces components to b
 
 ## 5. Summary Recommendation
 
-| App              | UI Strategy        | Action                                                 |
-| :--------------- | :----------------- | :----------------------------------------------------- |
-| **PWA**          | Custom (Tailwind)  | Consume `@variscout/ui`                                |
-| **Azure App**    | Custom (Tailwind)  | Consume `@variscout/ui`                                |
-| **Excel Add-in** | Native (Fluent UI) | Keep independent UI, share Logic via `@variscout/core` |
+| App              | UI Strategy        | Action                                                       |
+| :--------------- | :----------------- | :----------------------------------------------------------- |
+| **PWA**          | Custom (Tailwind)  | Consume `@variscout/ui`                                      |
+| **Azure App**    | Custom (Tailwind)  | Consume `@variscout/ui`                                      |
+| **Excel Add-in** | Native (Fluent UI) | Keep independent UI, share Logic via `@variscout/core`       |
+| **Marketing**    | Astro (Tailwind)   | SSG for performance, embeds PWA for interactive case studies |
+
+## 6. Cross-App Embedding (iframe strategy)
+
+The PWA supports a specialized **Embed Mode** to allow its charts and analysis features to be reused as interactive components within other sites (like the marketing website).
+
+### Implementation
+
+- **URL Parameter**: `?embed=true` hides the PWA header, footer, and navigation.
+- **Sample Data**: `?sample=<key>` auto-loads a specific dataset for the context.
+- **Security**: Content Security Policy (CSP) should allow framing from `variscout.com`.
+
+### Usage in Marketing Website
+
+The marketing site uses the `PWAEmbed.astro` component to showcase live analysis on Use Case pages. This ensures "What You See Is What You Get" for potential users.
 
 **Next Step**: Initialize `packages/ui` when you are ready to align the PWA and Azure App designs.
