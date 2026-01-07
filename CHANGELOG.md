@@ -5,6 +5,28 @@ All notable changes to VariScout Lite will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Case Study UX Overhaul**: Complete redesign of interactive case study pages
+  - PostMessage communication between marketing website and embedded PWA
+  - Chart highlighting when corresponding step scrolls into view
+  - Skeleton loader during iframe load with smooth fade-in
+  - Scroll animations with `prefers-reduced-motion` support
+  - Progress indicator showing case position (desktop only)
+  - Sticky mobile CTA button with safe-area-inset support
+  - Difficulty badges and time estimates for each case
+  - Related tools section linking to tool documentation
+  - "What's Next" navigation with related cases
+
+### Documentation
+
+- **Embed Messaging Protocol**: Technical spec for iframe↔PWA communication (`docs/technical/EMBED_MESSAGING.md`)
+- **PWA Embed Mode**: Configuration guide for embedded PWA (`docs/products/pwa/EMBED-MODE.md`)
+- **Case Study Components**: Component API reference (`docs/products/website/components/CASE-COMPONENTS.md`)
+- **Animation System**: Design system tokens and keyframes (`docs/design-system/ANIMATIONS.md`)
+
 ## [1.6.0] - 2026-01-05
 
 ### Added
@@ -166,16 +188,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tailwind CSS for styling
 - Service Worker for offline support
 - IndexedDB via idb library
-
----
-
-## [Unreleased]
-
-### Planned
-
-- Multi-tier grade specifications
-- Custom branding/watermarks
-- Batch file processing
 
 ---
 
