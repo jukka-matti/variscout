@@ -1,0 +1,181 @@
+---
+/**
+ * ScrollReveal - Intersection Observer based scroll animations
+ * Wraps content and reveals it when scrolling into view
+ *
+ * @prop animation - Animation type: 'fade-up' | 'fade-in' | 'slide-left' | 'slide-right' | 'scale'
+ * @prop delay - Delay in ms before animation starts (default: 0)
+ * @prop duration - Animation duration in ms (default: 600)
+ * @prop threshold - How much of element must be visible (0-1, default: 0.1)
+ * @prop once - Only animate once (default: true)
+ * @prop class - Additional CSS classes
+ */
+
+interface Props {
+	animation?: 'fade-up' | 'fade-in' | 'slide-left' | 'slide-right' | 'scale';
+	delay?: number;
+	duration?: number;
+	threshold?: number;
+	once?: boolean;
+	class?: string;
+}
+
+const {
+	animation = 'fade-up',
+	delay = 0,
+	duration = 600,
+	threshold = 0.1,
+	once = true,
+	class: className = '',
+} = Astro.props;
+
+// Generate unique ID for this instance
+const id = `sr-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div
+	id={id}
+	class:list={['scroll-reveal', `scroll-reveal--${animation}`, className]}
+	data-sr-animation={animation}
+	data-sr-delay={delay}
+	data-sr-duration={duration}
+	data-sr-threshold={threshold}
+	data-sr-once={once}
+	style={`--sr-delay: ${delay}ms; --sr-duration: ${duration}ms;`}
+>
+	<slot />
+</div>
+
+<style>
+	/* Base state - hidden */
+	.scroll-reveal {
+		opacity: 0;
+		transition-property: opacity, transform;
+		transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+		transition-duration: var(--sr-duration, 600ms);
+		transition-delay: var(--sr-delay, 0ms);
+		will-change: opacity, transform;
+	}
+
+	/* Animation-specific initial states */
+	.scroll-reveal--fade-up {
+		transform: translateY(30px);
+	}
+
+	.scroll-reveal--fade-in {
+		transform: none;
+	}
+
+	.scroll-reveal--slide-left {
+		transform: translateX(40px);
+	}
+
+	.scroll-reveal--slide-right {
+		transform: translateX(-40px);
+	}
+
+	.scroll-reveal--scale {
+		transform: scale(0.95);
+	}
+
+	/* Revealed state */
+	.scroll-reveal.is-revealed {
+		opacity: 1;
+		transform: translateY(0) translateX(0) scale(1);
+	}
+
+	/* Respect reduced motion preference */
+	@media (prefers-reduced-motion: reduce) {
+		.scroll-reveal {
+			opacity: 1;
+			transform: none;
+			transition: none;
+		}
+	}
+</style>
+
+<script>
+	// Initialize ScrollReveal for all elements
+	function initScrollReveal() {
+		const elements = document.querySelectorAll<HTMLElement>('.scroll-reveal:not(.is-initialized)');
+
+		// Check for reduced motion preference
+		const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		if (prefersReducedMotion) {
+			// Show all elements immediately
+			elements.forEach(el => {
+				el.classList.add('is-revealed', 'is-initialized');
+			});
+			return;
+		}
+
+		// Create observer
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach(entry => {
+					if (entry.isIntersecting) {
+						const el = entry.target as HTMLElement;
+						el.classList.add('is-revealed');
+
+						// Unobserve if once is true
+						const once = el.dataset.srOnce !== 'false';
+						if (once) {
+							observer.unobserve(el);
+						}
+					} else {
+						const el = entry.target as HTMLElement;
+						const once = el.dataset.srOnce !== 'false';
+						if (!once) {
+							el.classList.remove('is-revealed');
+						}
+					}
+				});
+			},
+			{
+				root: null,
+				rootMargin: '0px 0px -50px 0px',
+				threshold: 0.1,
+			}
+		);
+
+		// Observe all elements
+		elements.forEach(el => {
+			// Use element-specific threshold if provided
+			const threshold = parseFloat(el.dataset.srThreshold || '0.1');
+
+			// Create per-element observer if threshold differs
+			if (threshold !== 0.1) {
+				const customObserver = new IntersectionObserver(
+					(entries) => {
+						entries.forEach(entry => {
+							if (entry.isIntersecting) {
+								entry.target.classList.add('is-revealed');
+								const once = (entry.target as HTMLElement).dataset.srOnce !== 'false';
+								if (once) {
+									customObserver.unobserve(entry.target);
+								}
+							}
+						});
+					},
+					{ threshold }
+				);
+				customObserver.observe(el);
+			} else {
+				observer.observe(el);
+			}
+
+			el.classList.add('is-initialized');
+		});
+	}
+
+	// Run on page load
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initScrollReveal);
+	} else {
+		initScrollReveal();
+	}
+
+	// Re-run on Astro page transitions
+	document.addEventListener('astro:page-load', initScrollReveal);
+</script>

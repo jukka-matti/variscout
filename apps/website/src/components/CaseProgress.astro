@@ -1,0 +1,184 @@
+---
+/**
+ * CaseProgress - Progress indicator for case study pages
+ * Shows current case position and navigation dots
+ *
+ * @prop currentCase - Slug of current case
+ * @prop currentAct - Current act (1=Problem, 2=Interactive, 3=Solution)
+ * @prop lang - Current language for links
+ */
+
+interface CaseInfo {
+	slug: string;
+	title: string;
+}
+
+interface Props {
+	currentCase: string;
+	currentAct?: 1 | 2 | 3;
+	lang: string;
+}
+
+const { currentCase, currentAct = 1, lang } = Astro.props;
+
+// All cases in order
+const cases: CaseInfo[] = [
+	{ slug: 'bottleneck', title: 'The Bottleneck' },
+	{ slug: 'hospital-ward', title: 'Hospital Ward' },
+	{ slug: 'coffee', title: 'Coffee Quality' },
+	{ slug: 'packaging', title: 'Packaging Defects' },
+	{ slug: 'avocado', title: 'Avocado Coating' },
+];
+
+const currentIndex = cases.findIndex(c => c.slug === currentCase);
+const currentCaseInfo = cases[currentIndex];
+
+const acts = [
+	{ num: 1, label: 'Problem', id: 'problem-section' },
+	{ num: 2, label: 'Interactive', id: 'interactive-section' },
+	{ num: 3, label: 'Solution', id: 'solution-section' },
+];
+---
+
+<nav
+	class="case-progress fixed top-4 right-4 z-50 bg-white/90 backdrop-blur-md border border-neutral-200 rounded-xl shadow-lg p-3"
+	aria-label="Case study progress"
+>
+	<!-- Case counter -->
+	<div class="flex items-center gap-3 mb-3 pb-3 border-b border-neutral-100">
+		<span class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Case</span>
+		<div class="flex items-center gap-1.5">
+			{cases.map((caseItem, index) => (
+				<a
+					href={`/${lang}/cases/${caseItem.slug}`}
+					class:list={[
+						'w-2.5 h-2.5 rounded-full transition-all',
+						index === currentIndex
+							? 'bg-brand-primary scale-125'
+							: index < currentIndex
+								? 'bg-brand-primary/40 hover:bg-brand-primary/60'
+								: 'bg-neutral-300 hover:bg-neutral-400',
+					]}
+					title={caseItem.title}
+					aria-label={`Case ${index + 1}: ${caseItem.title}`}
+					aria-current={index === currentIndex ? 'page' : undefined}
+				/>
+			))}
+		</div>
+		<span class="text-sm font-bold text-neutral-700">
+			{currentIndex + 1}/{cases.length}
+		</span>
+	</div>
+
+	<!-- Act indicator -->
+	<div class="flex items-center gap-2">
+		{acts.map((act) => (
+			<button
+				type="button"
+				class:list={[
+					'act-btn px-2 py-1 text-xs font-medium rounded-md transition-all',
+					act.num === currentAct
+						? 'bg-brand-primary text-white'
+						: 'text-neutral-500 hover:bg-neutral-100',
+				]}
+				data-act={act.num}
+				data-target={act.id}
+				aria-pressed={act.num === currentAct}
+			>
+				{act.label}
+			</button>
+		))}
+	</div>
+</nav>
+
+<style>
+	.case-progress {
+		max-width: 280px;
+	}
+
+	/* Hide on mobile - too much screen real estate */
+	@media (max-width: 768px) {
+		.case-progress {
+			display: none;
+		}
+	}
+
+	/* Reduced motion - remove transitions */
+	@media (prefers-reduced-motion: reduce) {
+		.case-progress * {
+			transition: none;
+		}
+	}
+</style>
+
+<script>
+	function initCaseProgress() {
+		const progressNav = document.querySelector('.case-progress');
+		if (!progressNav) return;
+
+		const actButtons = progressNav.querySelectorAll<HTMLButtonElement>('.act-btn');
+		const sections = ['problem-section', 'interactive-section', 'solution-section']
+			.map(id => document.getElementById(id))
+			.filter(Boolean) as HTMLElement[];
+
+		// Handle act button clicks - smooth scroll to section
+		actButtons.forEach(btn => {
+			btn.addEventListener('click', () => {
+				const targetId = btn.dataset.target;
+				if (!targetId) return;
+
+				const target = document.getElementById(targetId);
+				if (target) {
+					target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				}
+			});
+		});
+
+		// Track current act based on scroll position
+		if (sections.length > 0) {
+			const observer = new IntersectionObserver(
+				(entries) => {
+					entries.forEach(entry => {
+						if (entry.isIntersecting) {
+							const sectionId = entry.target.id;
+							const actNum = sections.findIndex(s => s?.id === sectionId) + 1;
+
+							// Update button states
+							actButtons.forEach(btn => {
+								const btnAct = parseInt(btn.dataset.act || '0', 10);
+								if (btnAct === actNum) {
+									btn.classList.remove('text-neutral-500', 'hover:bg-neutral-100');
+									btn.classList.add('bg-brand-primary', 'text-white');
+									btn.setAttribute('aria-pressed', 'true');
+								} else {
+									btn.classList.add('text-neutral-500', 'hover:bg-neutral-100');
+									btn.classList.remove('bg-brand-primary', 'text-white');
+									btn.setAttribute('aria-pressed', 'false');
+								}
+							});
+						}
+					});
+				},
+				{
+					root: null,
+					rootMargin: '-40% 0px -40% 0px',
+					threshold: 0,
+				}
+			);
+
+			sections.forEach(section => {
+				if (section) observer.observe(section);
+			});
+		}
+	}
+
+	// Run on page load
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initCaseProgress);
+	} else {
+		initCaseProgress();
+	}
+
+	// Re-run on Astro page transitions
+	document.addEventListener('astro:page-load', initCaseProgress);
+</script>

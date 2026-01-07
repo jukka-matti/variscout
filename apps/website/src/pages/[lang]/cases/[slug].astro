@@ -2,6 +2,9 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import PWAEmbed from "../../../components/PWAEmbed.astro";
 import CaseStudyController from "../../../components/CaseStudyController.tsx";
+import ScrollReveal from "../../../components/ScrollReveal.astro";
+import CaseProgress from "../../../components/CaseProgress.astro";
+import StickyMobileCTA from "../../../components/StickyMobileCTA.astro";
 import { ui } from "../../../i18n/ui";
 
 // Step type with optional targetChart for highlight correlation
@@ -287,39 +290,51 @@ const { lang } = Astro.params;
 ---
 
 <BaseLayout title={`VaRiScout | ${title}`} description={description}>
+	<!-- Progress indicator (desktop only) -->
+	<CaseProgress currentCase={sampleKey} currentAct={1} lang={lang} />
+
+	<!-- Sticky mobile CTA -->
+	<StickyMobileCTA href="/app" text="Try Free" hideWhenVisible="cta-section" />
+
 	<!-- Hero / Act 1: The Problem -->
-	<section class="py-16 bg-white border-b border-neutral-200">
+	<section class="py-16 bg-white border-b border-neutral-200" id="problem-section">
 		<div class="container-wide">
-			<div class="max-w-3xl mb-8">
-				<a href={`/${lang}/cases`} class="text-sm font-medium text-brand-primary mb-4 block">&larr; Case Studies</a>
-				<div class="flex items-center gap-3 mb-4">
-					<span class="text-xs font-medium px-2 py-1 bg-brand-primary/10 text-brand-primary rounded">
-						Phase {phase} &middot; Week {week}
-					</span>
+			<ScrollReveal animation="fade-up">
+				<div class="max-w-3xl mb-8">
+					<a href={`/${lang}/cases`} class="text-sm font-medium text-brand-primary mb-4 block">&larr; Case Studies</a>
+					<div class="flex items-center gap-3 mb-4">
+						<span class="text-xs font-medium px-2 py-1 bg-brand-primary/10 text-brand-primary rounded">
+							Phase {phase} &middot; Week {week}
+						</span>
+					</div>
+					<h1 class="text-4xl md:text-5xl font-bold mb-3">{title}</h1>
+					<p class="text-xl text-neutral-500 mb-6">{subtitle}</p>
 				</div>
-				<h1 class="text-4xl md:text-5xl font-bold mb-3">{title}</h1>
-				<p class="text-xl text-neutral-500 mb-6">{subtitle}</p>
-			</div>
+			</ScrollReveal>
 
 			<!-- Problem Statement Card -->
-			<div class="max-w-3xl p-8 bg-neutral-50 border border-neutral-200 rounded-2xl mb-8">
-				<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">The Problem</h2>
-				<p class="text-2xl font-semibold mb-4">{problem.lead}</p>
-				<p class="text-neutral-600 leading-relaxed">{problem.context}</p>
-			</div>
+			<ScrollReveal animation="fade-up" delay={100}>
+				<div class="max-w-3xl p-8 bg-neutral-50 border border-neutral-200 rounded-2xl mb-8">
+					<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">The Problem</h2>
+					<p class="text-2xl font-semibold mb-4">{problem.lead}</p>
+					<p class="text-neutral-600 leading-relaxed">{problem.context}</p>
+				</div>
+			</ScrollReveal>
 
 			<!-- Learning Objectives -->
-			<div class="max-w-3xl">
-				<h3 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">What You'll Learn</h3>
-				<ul class="space-y-2">
-					{objectives.map((obj) => (
-						<li class="flex items-start gap-3">
-							<span class="shrink-0 w-5 h-5 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center text-xs">&#10003;</span>
-							<span class="text-neutral-700">{obj}</span>
-						</li>
-					))}
-				</ul>
-			</div>
+			<ScrollReveal animation="fade-up" delay={200}>
+				<div class="max-w-3xl">
+					<h3 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">What You'll Learn</h3>
+					<ul class="space-y-2">
+						{objectives.map((obj, i) => (
+							<li class="flex items-start gap-3" style={`animation-delay: ${250 + i * 50}ms`}>
+								<span class="shrink-0 w-5 h-5 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center text-xs">&#10003;</span>
+								<span class="text-neutral-700">{obj}</span>
+							</li>
+						))}
+					</ul>
+				</div>
+			</ScrollReveal>
 		</div>
 	</section>
 
@@ -340,10 +355,12 @@ const { lang } = Astro.params;
 	</section>
 
 	<!-- Act 3: Guided Solution -->
-	<section class="py-16 bg-white">
+	<section class="py-16 bg-white" id="solution-section">
 		<div class="container-wide">
 			<div class="max-w-3xl mx-auto">
-				<h2 class="text-2xl font-bold mb-8 text-center">The Solution Journey</h2>
+				<ScrollReveal animation="fade-in">
+					<h2 class="text-2xl font-bold mb-8 text-center">The Solution Journey</h2>
+				</ScrollReveal>
 
 				<!-- CaseStudyController - React island with client:load for immediate hydration -->
 				<CaseStudyController
@@ -354,27 +371,31 @@ const { lang } = Astro.params;
 				/>
 
 				<!-- Key Insight -->
-				<div class="mt-12 p-8 bg-neutral-900 text-white rounded-2xl text-center">
-					<p class="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-3">The Key Insight</p>
-					<p class="text-2xl font-bold">{insight}</p>
-				</div>
+				<ScrollReveal animation="scale" delay={200}>
+					<div class="mt-12 p-8 bg-neutral-900 text-white rounded-2xl text-center">
+						<p class="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-3">The Key Insight</p>
+						<p class="text-2xl font-bold">{insight}</p>
+					</div>
+				</ScrollReveal>
 			</div>
 		</div>
 	</section>
 
 	<!-- CTA Section -->
-	<section class="py-16 bg-neutral-50 border-t border-neutral-200">
+	<section class="py-16 bg-neutral-50 border-t border-neutral-200" id="cta-section">
 		<div class="container-wide">
-			<div class="max-w-3xl mx-auto text-center">
-				<h2 class="text-3xl font-bold mb-4">What's hiding in YOUR data?</h2>
-				<p class="text-neutral-600 mb-8">Try VaRiScout with your own data. Free, no signup required.</p>
-				<div class="flex gap-4 justify-center flex-wrap">
-					<a href="/app" class="btn btn-primary px-8 py-3">Try Free</a>
-					{nextCase && (
-						<a href={`/${lang}/cases/${nextCase}`} class="btn btn-secondary px-8 py-3">Next Case &rarr;</a>
-					)}
+			<ScrollReveal animation="fade-up">
+				<div class="max-w-3xl mx-auto text-center">
+					<h2 class="text-3xl font-bold mb-4">What's hiding in YOUR data?</h2>
+					<p class="text-neutral-600 mb-8">Try VaRiScout with your own data. Free, no signup required.</p>
+					<div class="flex gap-4 justify-center flex-wrap">
+						<a href="/app" class="btn btn-primary px-8 py-3">Try Free</a>
+						{nextCase && (
+							<a href={`/${lang}/cases/${nextCase}`} class="btn btn-secondary px-8 py-3">Next Case &rarr;</a>
+						)}
+					</div>
 				</div>
-			</div>
+			</ScrollReveal>
 		</div>
 	</section>
 </BaseLayout>

@@ -1,0 +1,151 @@
+---
+/**
+ * StickyMobileCTA - Fixed bottom CTA button for mobile devices
+ * Appears on scroll, hides when main CTA section is in view
+ *
+ * @prop href - Link destination
+ * @prop text - Button text
+ * @prop hideWhenVisible - ID of element that hides this CTA when visible
+ */
+
+interface Props {
+	href?: string;
+	text?: string;
+	hideWhenVisible?: string;
+}
+
+const {
+	href = '/app',
+	text = 'Try Free',
+	hideWhenVisible = 'cta-section',
+} = Astro.props;
+---
+
+<div
+	class="sticky-mobile-cta fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-white via-white to-white/0 md:hidden"
+	data-hide-when={hideWhenVisible}
+	aria-hidden="true"
+>
+	<div class="safe-area-bottom">
+		<a
+			href={href}
+			class="block w-full py-3.5 px-6 bg-brand-primary hover:bg-brand-primary-dark text-white font-semibold text-center rounded-xl shadow-lg shadow-brand-primary/30 transition-all active:scale-98"
+		>
+			{text}
+		</a>
+	</div>
+</div>
+
+<style>
+	.sticky-mobile-cta {
+		opacity: 0;
+		transform: translateY(100%);
+		transition:
+			opacity 0.3s ease-out,
+			transform 0.3s ease-out;
+		pointer-events: none;
+	}
+
+	.sticky-mobile-cta.is-visible {
+		opacity: 1;
+		transform: translateY(0);
+		pointer-events: auto;
+	}
+
+	/* Safe area for iOS notch/home indicator */
+	.safe-area-bottom {
+		padding-bottom: env(safe-area-inset-bottom, 0px);
+	}
+
+	/* Active state for touch feedback */
+	.active\:scale-98:active {
+		transform: scale(0.98);
+	}
+
+	/* Hide on desktop - desktop uses inline CTAs */
+	@media (min-width: 768px) {
+		.sticky-mobile-cta {
+			display: none;
+		}
+	}
+
+	/* Reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.sticky-mobile-cta {
+			transition: opacity 0.15s ease-out;
+			transform: none;
+		}
+
+		.sticky-mobile-cta.is-visible {
+			transform: none;
+		}
+	}
+</style>
+
+<script>
+	function initStickyMobileCTA() {
+		const cta = document.querySelector<HTMLElement>('.sticky-mobile-cta');
+		if (!cta) return;
+
+		const hideWhenId = cta.dataset.hideWhen;
+		const hideWhenEl = hideWhenId ? document.getElementById(hideWhenId) : null;
+
+		let hasScrolledEnough = false;
+		let ctaSectionVisible = false;
+
+		// Show CTA after scrolling past threshold
+		const scrollThreshold = 300; // px
+
+		function updateVisibility() {
+			const shouldShow = hasScrolledEnough && !ctaSectionVisible;
+			cta.classList.toggle('is-visible', shouldShow);
+			cta.setAttribute('aria-hidden', String(!shouldShow));
+		}
+
+		// Track scroll position
+		let ticking = false;
+		window.addEventListener('scroll', () => {
+			if (!ticking) {
+				requestAnimationFrame(() => {
+					hasScrolledEnough = window.scrollY > scrollThreshold;
+					updateVisibility();
+					ticking = false;
+				});
+				ticking = true;
+			}
+		});
+
+		// Track CTA section visibility
+		if (hideWhenEl) {
+			const observer = new IntersectionObserver(
+				(entries) => {
+					entries.forEach(entry => {
+						ctaSectionVisible = entry.isIntersecting;
+						updateVisibility();
+					});
+				},
+				{
+					root: null,
+					rootMargin: '0px',
+					threshold: 0.1,
+				}
+			);
+
+			observer.observe(hideWhenEl);
+		}
+
+		// Initial check
+		hasScrolledEnough = window.scrollY > scrollThreshold;
+		updateVisibility();
+	}
+
+	// Run on page load
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initStickyMobileCTA);
+	} else {
+		initStickyMobileCTA();
+	}
+
+	// Re-run on Astro page transitions
+	document.addEventListener('astro:page-load', initStickyMobileCTA);
+</script>
