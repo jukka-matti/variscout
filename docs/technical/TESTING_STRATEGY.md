@@ -34,6 +34,7 @@ pnpm test
 # Run tests in specific package
 pnpm --filter @variscout/core test
 pnpm --filter @variscout/pwa test
+pnpm --filter @variscout/azure-app test
 
 # Watch mode (during development)
 pnpm --filter @variscout/core test -- --watch
@@ -56,8 +57,10 @@ To run agentic tests, issue a prompt to the agent:
 | Package                  | Test Type        | What to Test                                                                                                                    |
 | :----------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------ |
 | `@variscout/core`        | **Unit**         | Statistics (calculateStats, calculateAnova, calculateRegression, calculateGageRR), parser, license validation, export utilities |
-| `@variscout/pwa`         | **Component**    | UI components (StatsPanel, Dashboard, DataTableModal)                                                                           |
+| `@variscout/pwa`         | **Component**    | UI components (StatsPanel, Dashboard, DataTableModal, RegressionPanel, GageRRPanel, AnovaResults)                               |
 | `@variscout/pwa`         | **Agent E2E**    | **Visual verification of charts**, full user flows, persistence layer checks                                                    |
+| `@variscout/azure-app`   | **Component**    | UI components (Dashboard, StatsPanel, RegressionPanel, GageRRPanel, AnovaResults) - mirrors PWA tests                           |
+| `@variscout/azure-app`   | **Agent E2E**    | **MSAL auth flows**, OneDrive sync, team collaboration features                                                                 |
 | `@variscout/charts`      | **Agent Visual** | **Render quality**, responsiveness, interaction handling                                                                        |
 | `@variscout/excel-addin` | **Agent E2E**    | State bridge, Office.js integration simulation                                                                                  |
 
@@ -87,12 +90,25 @@ To run agentic tests, issue a prompt to the agent:
 
 ### @variscout/pwa (25+ test cases)
 
-| Component        | Tested | Focus                                  |
-| :--------------- | :----- | :------------------------------------- |
-| `StatsPanel`     | ✅     | Conditional display, Cp/Cpk formatting |
-| `Dashboard`      | ✅     | Empty state, chart rendering           |
-| `DataTableModal` | ✅     | Cell editing, row operations           |
-| `export.ts`      | ✅     | CSV generation, special characters     |
+| Component         | Tested | Focus                                      |
+| :---------------- | :----- | :----------------------------------------- |
+| `StatsPanel`      | ✅     | Conditional display, Cp/Cpk formatting     |
+| `Dashboard`       | ✅     | Tab switching, chart rendering, ANOVA      |
+| `DataTableModal`  | ✅     | Cell editing, row operations               |
+| `RegressionPanel` | ✅     | Empty states, chart expansion, ranking     |
+| `GageRRPanel`     | ✅     | Column validation, verdict display         |
+| `AnovaResults`    | ✅     | Null state, F-stat display, p-value format |
+| `export.ts`       | ✅     | CSV generation, special characters         |
+
+### @variscout/azure-app (31 test cases)
+
+| Component         | Tested | Focus                                      |
+| :---------------- | :----- | :----------------------------------------- |
+| `AnovaResults`    | ✅     | Null state, F-stat display, p-value format |
+| `RegressionPanel` | ✅     | Empty states, chart expansion, ranking     |
+| `GageRRPanel`     | ✅     | Column validation, verdict display         |
+| `Dashboard`       | ✅     | Tab switching, ANOVA integration, stats    |
+| `StatsPanel`      | ✅     | Conditional display, Cp/Cpk, tabs          |
 
 ### @variscout/charts
 
@@ -174,14 +190,36 @@ packages/core/
 │   ├── stats.ts
 │   ├── parser.ts
 │   └── __tests__/
-│       └── stats.test.ts
+│       ├── stats.test.ts
+│       ├── navigation.test.ts
+│       └── variation.test.ts
 
 apps/pwa/
 ├── src/
 │   ├── components/
 │   │   ├── StatsPanel.tsx
+│   │   ├── Dashboard.tsx
 │   │   └── __tests__/
-│       └── StatsPanel.test.tsx
+│   │       ├── StatsPanel.test.tsx
+│   │       ├── Dashboard.test.tsx
+│   │       ├── RegressionPanel.test.tsx
+│   │       ├── GageRRPanel.test.tsx
+│   │       └── AnovaResults.test.tsx
+│   └── lib/
+│       └── __tests__/
+│           └── export.test.ts
+
+apps/azure/
+├── vitest.config.ts
+├── src/
+│   ├── setupTests.ts
+│   └── components/
+│       └── __tests__/
+│           ├── AnovaResults.test.tsx
+│           ├── RegressionPanel.test.tsx
+│           ├── GageRRPanel.test.tsx
+│           ├── Dashboard.test.tsx
+│           └── StatsPanel.test.tsx
 ```
 
 ---
@@ -190,11 +228,21 @@ apps/pwa/
 
 Instead of a manual checklist, assign the following tasks to the Agent for release verification:
 
+### PWA
+
 - [ ] **Smoke Test**: Launch PWA, ensuring it loads without console errors.
 - [ ] **Data Flow**: Load sample data, edit a cell, verify stats update.
 - [ ] **Visual Check**: Take screenshots of I-Charts and generic charts; check for layout shifts.
 - [ ] **Persistence**: Reload page, ensure data remains.
 - [ ] **Export**: Generate a PDF/CSV and verify file existence (if environment permits).
+
+### Azure Team App
+
+- [ ] **Auth Flow**: Verify MSAL login/logout works correctly.
+- [ ] **Tab Navigation**: Switch between Analysis, Regression, and Gage R&R tabs.
+- [ ] **Chart Rendering**: Verify I-Chart, Boxplot, Pareto, ScatterPlot, and GageRR charts render.
+- [ ] **ANOVA Integration**: Confirm ANOVA results display below Boxplot.
+- [ ] **Sync Status**: Verify offline/online sync indicator updates.
 
 ---
 

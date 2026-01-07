@@ -7,8 +7,13 @@ Lightweight, offline-first variation analysis tool for quality professionals.
 ```bash
 pnpm dev             # PWA dev server (localhost:5173)
 pnpm dev:excel       # Excel Add-in dev server (localhost:3000)
+pnpm --filter @variscout/azure-app dev  # Azure app dev server
+
 pnpm build           # Build all packages and apps
-pnpm test            # Run Vitest tests
+pnpm test            # Run Vitest tests (all packages)
+pnpm --filter @variscout/core test      # Core package tests only
+pnpm --filter @variscout/pwa test       # PWA tests only
+pnpm --filter @variscout/azure-app test # Azure app tests only
 ```
 
 ## Repository Structure
@@ -22,6 +27,7 @@ variscout-lite/
 │   └── charts/        # @variscout/charts - Visx chart components
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite)
+│   ├── azure/         # Azure Team App (MSAL + OneDrive sync)
 │   └── excel-addin/   # Excel Add-in (Office.js + Fluent UI)
 └── docs/
     ├── concepts/      # Strategic product decisions
@@ -59,21 +65,26 @@ variscout-lite/
 
 | File                                            | Purpose                                                   |
 | ----------------------------------------------- | --------------------------------------------------------- |
-| `packages/core/src/stats.ts`                    | Statistics engine (mean, Cp, Cpk, conformance)            |
+| `packages/core/src/stats.ts`                    | Statistics engine (mean, Cp, Cpk, ANOVA, GageRR)          |
 | `packages/core/src/__tests__/stats.test.ts`     | Unit tests for statistics engine                          |
 | `packages/core/src/types.ts`                    | Shared TypeScript interfaces                              |
 | `packages/core/src/navigation.ts`               | Navigation types and utilities                            |
-| `packages/charts/src/`                          | IChart, Boxplot, ParetoChart, responsive utils            |
+| `packages/charts/src/`                          | IChart, Boxplot, ParetoChart, ScatterPlot, GageRRChart    |
 | `apps/pwa/src/context/DataContext.tsx`          | Central state management                                  |
+| `apps/pwa/src/components/__tests__/`            | Component tests (Dashboard, RegressionPanel, GageRRPanel) |
 | `packages/core/src/parser.ts`                   | CSV/Excel parsing, validation, keyword detection (shared) |
 | `apps/pwa/src/hooks/useDataIngestion.ts`        | File upload handlers, validation integration              |
 | `apps/pwa/src/components/DataQualityBanner.tsx` | Validation summary UI component                           |
 | `apps/pwa/src/hooks/useDrillDown.ts`            | Drill-down navigation hook                                |
 | `apps/pwa/src/components/DrillBreadcrumb.tsx`   | Breadcrumb UI component                                   |
+| `apps/azure/src/context/DataContext.tsx`        | Azure app central state (mirrors PWA)                     |
+| `apps/azure/src/services/storage.ts`            | Offline-first storage + OneDrive sync                     |
+| `apps/azure/src/components/__tests__/`          | Azure app component tests                                 |
 | `apps/excel-addin/src/lib/stateBridge.ts`       | Excel state sync                                          |
 | `docs/concepts/LSS_TRAINER_STRATEGY.md`         | Green Belt training feature roadmap                       |
 | `docs/concepts/POWER_BI_STRATEGY.md`            | Power BI Custom Visual strategy                           |
 | `docs/concepts/SUBSCRIPTION_LICENSING.md`       | Paddle integration, license key system                    |
+| `docs/technical/TESTING_STRATEGY.md`            | Testing philosophy, coverage, patterns                    |
 | `docs/technical/`                               | PWA storage, deployment, testing strategy                 |
 | `docs/products/pwa/`                            | PWA product spec (licensing, storage, stack)              |
 | `docs/products/website/`                        | Marketing website spec (design, copy, pages)              |

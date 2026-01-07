@@ -8,11 +8,13 @@ Technical specifications for VaRiScout implementation. These documents are desig
 
 ## Documents
 
-| Document                                | Description                                            |
-| --------------------------------------- | ------------------------------------------------------ |
-| `PWA_STORAGE.md`                        | IndexedDB schema, project storage, offline capability  |
-| `TESTING_STRATEGY.md`                   | Testing philosophy, patterns, and ownership by package |
-| `../concepts/SUBSCRIPTION_LICENSING.md` | Paddle integration, license key generation, validation |
+| Document                                | Description                                                      |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| `PWA_STORAGE.md`                        | IndexedDB schema, project storage, offline capability            |
+| `TESTING_STRATEGY.md`                   | Testing philosophy, patterns, ownership by package (incl. Azure) |
+| `DATA_INPUT.md`                         | CSV/Excel parsing, validation, auto-mapping                      |
+| `INTERNATIONALIZATION_STRATEGY.md`      | i18next setup, language detection, translation workflow          |
+| `../concepts/SUBSCRIPTION_LICENSING.md` | Paddle integration, license key generation, validation           |
 
 ---
 
@@ -161,6 +163,8 @@ npx wrangler publish
 
 ## Testing Checklist
 
+> See [TESTING_STRATEGY.md](./TESTING_STRATEGY.md) for complete testing philosophy and patterns.
+
 ### License System
 
 - [ ] Generate license key
@@ -187,6 +191,15 @@ npx wrangler publish
 - [ ] Install prompt appears
 - [ ] Service worker caches correctly
 - [ ] Updates apply correctly
+
+### Azure Team App
+
+- [ ] MSAL login/logout works
+- [ ] Tab navigation (Analysis, Regression, Gage R&R)
+- [ ] All charts render correctly
+- [ ] ANOVA results display below Boxplot
+- [ ] Offline indicator updates
+- [ ] Sync to OneDrive works when online
 
 ---
 
