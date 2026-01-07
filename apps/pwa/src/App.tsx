@@ -12,6 +12,7 @@ import AppHeader from './components/AppHeader';
 import AppFooter from './components/AppFooter';
 import FilterBar from './components/FilterBar';
 import { useDataIngestion } from './hooks/useDataIngestion';
+import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from './data/sampleData';
 import type { ExclusionReason } from './logic/parser';
 
@@ -55,6 +56,10 @@ function App() {
 
   // Embed mode - hides header/footer for iframe embedding
   const [isEmbedMode, setIsEmbedMode] = useState(false);
+
+  // Embed messaging - handles postMessage communication with parent window
+  const { highlightedChart, highlightIntensity, notifyChartClicked } =
+    useEmbedMessaging(isEmbedMode);
 
   // Handle URL parameters on mount (?sample=xxx&embed=true)
   useEffect(() => {
@@ -401,6 +406,9 @@ function App() {
             onPointClick={openDataTableAtRow}
             isPresentationMode={isPresentationMode}
             onExitPresentation={() => setIsPresentationMode(false)}
+            highlightedChart={highlightedChart}
+            highlightIntensity={highlightIntensity}
+            onChartClick={isEmbedMode ? notifyChartClicked : undefined}
           />
         )}
       </main>

@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { toBlob } from 'html-to-image';
 
+import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
+
 type DashboardTab = 'analysis' | 'regression' | 'gagerr';
 
 const MOBILE_BREAKPOINT = 640; // sm breakpoint
@@ -42,9 +44,20 @@ interface DashboardProps {
   onPointClick?: (index: number) => void;
   isPresentationMode?: boolean;
   onExitPresentation?: () => void;
+  // Embed mode highlight props
+  highlightedChart?: ChartId | null;
+  highlightIntensity?: HighlightIntensity;
+  onChartClick?: (chartId: ChartId) => void;
 }
 
-const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: DashboardProps) => {
+const Dashboard = ({
+  onPointClick,
+  isPresentationMode,
+  onExitPresentation,
+  highlightedChart,
+  highlightIntensity = 'pulse',
+  onChartClick,
+}: DashboardProps) => {
   const {
     outcome,
     factors,
@@ -95,6 +108,25 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
       return CHART_ORDER[prevIndex];
     });
   }, []);
+
+  // Helper to get highlight classes for embed mode
+  const getHighlightClass = useCallback(
+    (chartId: ChartId): string => {
+      if (highlightedChart !== chartId) return '';
+      return `chart-highlight-${highlightIntensity}`;
+    },
+    [highlightedChart, highlightIntensity]
+  );
+
+  // Helper to create chart click handler for embed mode
+  const handleChartWrapperClick = useCallback(
+    (chartId: ChartId) => {
+      if (onChartClick) {
+        onChartClick(chartId);
+      }
+    },
+    [onChartClick]
+  );
 
   // Keyboard navigation for Focus Mode
   useEffect(() => {
@@ -537,7 +569,9 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
               {/* I-Chart Section */}
               <div
                 id="ichart-card"
-                className="min-h-[400px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col"
+                data-chart-id="ichart"
+                onClick={() => handleChartWrapperClick('ichart')}
+                className={`min-h-[400px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col transition-all ${getHighlightClass('ichart')}`}
               >
                 <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
                   <div className="flex items-center gap-4">
@@ -629,7 +663,9 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
                 <div className="flex flex-1 flex-col md:flex-row gap-4">
                   <div
                     id="boxplot-card"
-                    className="flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col"
+                    data-chart-id="boxplot"
+                    onClick={() => handleChartWrapperClick('boxplot')}
+                    className={`flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('boxplot')}`}
                   >
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
@@ -680,7 +716,9 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
 
                   <div
                     id="pareto-card"
-                    className="flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col"
+                    data-chart-id="pareto"
+                    onClick={() => handleChartWrapperClick('pareto')}
+                    className={`flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('pareto')}`}
                   >
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
@@ -724,12 +762,18 @@ const Dashboard = ({ onPointClick, isPresentationMode, onExitPresentation }: Das
                 </div>
 
                 {/* Stats Panel */}
-                <StatsPanel
-                  stats={stats}
-                  specs={specs}
-                  filteredData={filteredData}
-                  outcome={outcome}
-                />
+                <div
+                  data-chart-id="stats"
+                  onClick={() => handleChartWrapperClick('stats')}
+                  className={`transition-all ${getHighlightClass('stats')}`}
+                >
+                  <StatsPanel
+                    stats={stats}
+                    specs={specs}
+                    filteredData={filteredData}
+                    outcome={outcome}
+                  />
+                </div>
               </div>
             </div>
           ) : (
