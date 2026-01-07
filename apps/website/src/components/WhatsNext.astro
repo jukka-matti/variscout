@@ -1,0 +1,118 @@
+---
+/**
+ * WhatsNext - Next case preview and related cases section
+ *
+ * @prop nextCase - Slug of the next case (null if last)
+ * @prop currentCase - Slug of current case
+ * @prop lang - Current language for links
+ */
+
+interface CaseInfo {
+	slug: string;
+	title: string;
+	subtitle: string;
+	phase: number;
+	week: number;
+}
+
+interface Props {
+	nextCase: string | null;
+	currentCase: string;
+	lang: string;
+}
+
+const { nextCase, currentCase, lang } = Astro.props;
+
+// All cases for reference
+const allCases: CaseInfo[] = [
+	{ slug: 'bottleneck', title: 'The Bottleneck', subtitle: 'Finding the Hidden Constraint', phase: 1, week: 1 },
+	{ slug: 'hospital-ward', title: 'Hospital Ward', subtitle: 'The Aggregation Trap', phase: 2, week: 5 },
+	{ slug: 'coffee', title: 'Coffee Quality', subtitle: 'East Africa Washing Station', phase: 3, week: 9 },
+	{ slug: 'packaging', title: 'Packaging Defects', subtitle: 'Africa Manufacturing', phase: 3, week: 9 },
+	{ slug: 'avocado', title: 'Avocado Coating', subtitle: 'Post-Harvest Optimization', phase: 3, week: 12 },
+];
+
+const nextCaseInfo = nextCase ? allCases.find((c) => c.slug === nextCase) : null;
+const currentIndex = allCases.findIndex((c) => c.slug === currentCase);
+
+// Get related cases (not current, not next)
+const relatedCases = allCases
+	.filter((c) => c.slug !== currentCase && c.slug !== nextCase)
+	.slice(0, 2);
+---
+
+<div class="space-y-8">
+	{/* Next case preview */}
+	{nextCaseInfo && (
+		<div class="p-6 bg-brand-primary/5 border border-brand-primary/20 rounded-xl">
+			<span class="text-xs font-bold text-brand-primary uppercase tracking-wider">Up Next</span>
+			<a
+				href={`/${lang}/cases/${nextCaseInfo.slug}`}
+				class="group block mt-3"
+			>
+				<h3 class="text-xl font-bold text-neutral-900 group-hover:text-brand-primary transition-colors">
+					{nextCaseInfo.title} &rarr;
+				</h3>
+				<p class="text-neutral-600 mt-1">{nextCaseInfo.subtitle}</p>
+				<div class="flex items-center gap-2 mt-3">
+					<span class="text-xs font-medium px-2 py-0.5 bg-white border border-neutral-200 rounded">
+						Phase {nextCaseInfo.phase}
+					</span>
+					<span class="text-xs font-medium px-2 py-0.5 bg-white border border-neutral-200 rounded">
+						Week {nextCaseInfo.week}
+					</span>
+				</div>
+			</a>
+		</div>
+	)}
+
+	{/* Completion message for last case */}
+	{!nextCaseInfo && (
+		<div class="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl text-center">
+			<span class="text-4xl mb-3 block">🎉</span>
+			<h3 class="text-xl font-bold text-green-900">You've completed all cases!</h3>
+			<p class="text-green-700 mt-2">You're ready to apply these techniques to your own data.</p>
+		</div>
+	)}
+
+	{/* Related cases */}
+	{relatedCases.length > 0 && (
+		<div>
+			<h4 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">
+				More Case Studies
+			</h4>
+			<div class="grid gap-3 sm:grid-cols-2">
+				{relatedCases.map((caseItem) => (
+					<a
+						href={`/${lang}/cases/${caseItem.slug}`}
+						class="group flex items-center gap-4 p-4 bg-white border border-neutral-200 rounded-lg hover:border-brand-primary hover:shadow-sm transition-all"
+					>
+						<div class="shrink-0 w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center text-lg font-bold text-neutral-400 group-hover:bg-brand-primary/10 group-hover:text-brand-primary transition-colors">
+							{allCases.findIndex((c) => c.slug === caseItem.slug) + 1}
+						</div>
+						<div>
+							<span class="font-semibold text-neutral-900 group-hover:text-brand-primary transition-colors">
+								{caseItem.title}
+							</span>
+							<p class="text-xs text-neutral-500 mt-0.5">{caseItem.subtitle}</p>
+						</div>
+					</a>
+				))}
+			</div>
+		</div>
+	)}
+
+	{/* Progress summary */}
+	<div class="flex items-center justify-center gap-1.5 pt-4">
+		{allCases.map((_, index) => (
+			<div
+				class:list={[
+					'w-2 h-2 rounded-full transition-all',
+					index <= currentIndex ? 'bg-brand-primary' : 'bg-neutral-300',
+					index === currentIndex && 'scale-125',
+				]}
+				title={`Case ${index + 1}`}
+			/>
+		))}
+	</div>
+</div>

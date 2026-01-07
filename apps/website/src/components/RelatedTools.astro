@@ -1,0 +1,91 @@
+---
+/**
+ * RelatedTools - Links to tool pages used in the case study
+ *
+ * @prop tools - Array of tool IDs to display
+ * @prop lang - Current language for links
+ */
+
+type ToolId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
+
+interface ToolInfo {
+	id: ToolId;
+	name: string;
+	description: string;
+	icon: string;
+}
+
+interface Props {
+	tools: ToolId[];
+	lang: string;
+}
+
+const { tools, lang } = Astro.props;
+
+// Tool metadata
+const toolData: Record<ToolId, ToolInfo> = {
+	ichart: {
+		id: 'ichart',
+		name: 'I-Chart',
+		description: 'Monitor process variation over time',
+		icon: '📈',
+	},
+	boxplot: {
+		id: 'boxplot',
+		name: 'Boxplot',
+		description: 'Compare groups and find outliers',
+		icon: '📊',
+	},
+	pareto: {
+		id: 'pareto',
+		name: 'Pareto Chart',
+		description: 'Prioritize problems by impact',
+		icon: '📉',
+	},
+	stats: {
+		id: 'stats',
+		name: 'Statistics Panel',
+		description: 'Summary stats and capability indices',
+		icon: '🔢',
+	},
+	regression: {
+		id: 'regression',
+		name: 'Regression',
+		description: 'Analyze relationships between variables',
+		icon: '📐',
+	},
+	gagerr: {
+		id: 'gagerr',
+		name: 'Gage R&R',
+		description: 'Measure system analysis',
+		icon: '🎯',
+	},
+};
+
+// Filter to only valid tools
+const displayTools = tools.map((id) => toolData[id]).filter(Boolean);
+---
+
+{displayTools.length > 0 && (
+	<div class="mt-8 p-6 bg-neutral-50 border border-neutral-200 rounded-xl">
+		<h3 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">
+			Tools Used in This Case
+		</h3>
+		<div class="grid gap-3 sm:grid-cols-2">
+			{displayTools.map((tool) => (
+				<a
+					href={`/${lang}/tools/${tool.id}`}
+					class="group flex items-start gap-3 p-3 bg-white border border-neutral-200 rounded-lg hover:border-brand-primary hover:shadow-sm transition-all"
+				>
+					<span class="text-2xl" aria-hidden="true">{tool.icon}</span>
+					<div>
+						<span class="font-semibold text-neutral-900 group-hover:text-brand-primary transition-colors">
+							{tool.name}
+						</span>
+						<p class="text-xs text-neutral-500 mt-0.5">{tool.description}</p>
+					</div>
+				</a>
+			))}
+		</div>
+	</div>
+)}

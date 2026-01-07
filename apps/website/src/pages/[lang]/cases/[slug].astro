@@ -5,6 +5,9 @@ import CaseStudyController from "../../../components/CaseStudyController.tsx";
 import ScrollReveal from "../../../components/ScrollReveal.astro";
 import CaseProgress from "../../../components/CaseProgress.astro";
 import StickyMobileCTA from "../../../components/StickyMobileCTA.astro";
+import CaseMeta from "../../../components/CaseMeta.astro";
+import RelatedTools from "../../../components/RelatedTools.astro";
+import WhatsNext from "../../../components/WhatsNext.astro";
 import { ui } from "../../../i18n/ui";
 
 // Step type with optional targetChart for highlight correlation
@@ -31,6 +34,9 @@ export function getStaticPaths() {
 				title: "The Bottleneck",
 				subtitle: "Finding the Hidden Constraint",
 				description: "A process with 5 steps. Step 3 was blamed. But what did the data show?",
+				difficulty: "beginner" as const,
+				time: "5 min",
+				tools: ["ichart", "boxplot"] as ChartId[],
 				problem: {
 					lead: "Which step is actually the bottleneck?",
 					context: "A manufacturing process had 5 sequential steps. Whenever delays occurred, Step 3 was blamed. The manager wanted to invest in new equipment for Step 3. But nobody had actually looked at the data...",
@@ -79,6 +85,9 @@ export function getStaticPaths() {
 				title: "Hospital Ward",
 				subtitle: "The Aggregation Trap",
 				description: "The dashboard showed 75% occupancy. Everything looked fine. But was it?",
+				difficulty: "beginner" as const,
+				time: "5 min",
+				tools: ["ichart", "boxplot", "stats"] as ChartId[],
 				problem: {
 					lead: "What is your daily average hiding?",
 					context: "A hospital ward dashboard showed 75% average occupancy. Management was satisfied - plenty of capacity. But nurses complained about being overwhelmed. The numbers didn't match the reality...",
@@ -127,6 +136,9 @@ export function getStaticPaths() {
 				title: "Coffee Quality",
 				subtitle: "East Africa Washing Station",
 				description: "Drying Bed C consistently fails export spec. Is it the bed, the operator, or the measurement?",
+				difficulty: "intermediate" as const,
+				time: "7 min",
+				tools: ["boxplot", "ichart", "gagerr"] as ChartId[],
 				problem: {
 					lead: "Which drying bed is causing the moisture problems?",
 					context: "A coffee washing station in East Africa exports specialty coffee. Moisture content must be 10-12% for export. Bed C's batches keep failing. The manager blames the bed location. But is that the real cause?",
@@ -175,6 +187,9 @@ export function getStaticPaths() {
 				title: "Packaging Defects",
 				subtitle: "Africa Manufacturing",
 				description: "Night shift is systematically underfilling. Is it the operators, the equipment, or something else?",
+				difficulty: "intermediate" as const,
+				time: "8 min",
+				tools: ["pareto", "boxplot", "ichart"] as ChartId[],
 				problem: {
 					lead: "What's causing the fill weight problems on night shift?",
 					context: "A packaging facility runs two shifts. The night shift has higher defect rates and more underfilling complaints. Management wants to retrain the night operators. But is training really the answer?",
@@ -223,6 +238,9 @@ export function getStaticPaths() {
 				title: "Avocado Coating",
 				subtitle: "Post-Harvest Optimization",
 				description: "More coating means longer shelf life. But can operators apply it consistently?",
+				difficulty: "advanced" as const,
+				time: "10 min",
+				tools: ["regression", "gagerr", "stats"] as ChartId[],
 				problem: {
 					lead: "What's the optimal coating level for maximum shelf life?",
 					context: "A post-harvest facility coats avocados with wax to extend shelf life. Research suggests more coating = longer shelf life. But there's 28% unexplained variation in the results. Why?",
@@ -283,7 +301,10 @@ const {
 	insight,
 	nextCase,
 	week,
-	phase
+	phase,
+	difficulty,
+	time,
+	tools,
 } = Astro.props;
 
 const { lang } = Astro.params;
@@ -308,7 +329,8 @@ const { lang } = Astro.params;
 						</span>
 					</div>
 					<h1 class="text-4xl md:text-5xl font-bold mb-3">{title}</h1>
-					<p class="text-xl text-neutral-500 mb-6">{subtitle}</p>
+					<p class="text-xl text-neutral-500 mb-4">{subtitle}</p>
+					<CaseMeta difficulty={difficulty} time={time} />
 				</div>
 			</ScrollReveal>
 
@@ -377,6 +399,11 @@ const { lang } = Astro.params;
 						<p class="text-2xl font-bold">{insight}</p>
 					</div>
 				</ScrollReveal>
+
+				<!-- Related Tools -->
+				<ScrollReveal animation="fade-up" delay={300}>
+					<RelatedTools tools={tools} lang={lang} />
+				</ScrollReveal>
 			</div>
 		</div>
 	</section>
@@ -384,18 +411,19 @@ const { lang } = Astro.params;
 	<!-- CTA Section -->
 	<section class="py-16 bg-neutral-50 border-t border-neutral-200" id="cta-section">
 		<div class="container-wide">
-			<ScrollReveal animation="fade-up">
-				<div class="max-w-3xl mx-auto text-center">
-					<h2 class="text-3xl font-bold mb-4">What's hiding in YOUR data?</h2>
-					<p class="text-neutral-600 mb-8">Try VaRiScout with your own data. Free, no signup required.</p>
-					<div class="flex gap-4 justify-center flex-wrap">
+			<div class="max-w-3xl mx-auto">
+				<ScrollReveal animation="fade-up">
+					<div class="text-center mb-8">
+						<h2 class="text-3xl font-bold mb-4">What's hiding in YOUR data?</h2>
+						<p class="text-neutral-600 mb-8">Try VaRiScout with your own data. Free, no signup required.</p>
 						<a href="/app" class="btn btn-primary px-8 py-3">Try Free</a>
-						{nextCase && (
-							<a href={`/${lang}/cases/${nextCase}`} class="btn btn-secondary px-8 py-3">Next Case &rarr;</a>
-						)}
 					</div>
-				</div>
-			</ScrollReveal>
+				</ScrollReveal>
+
+				<ScrollReveal animation="fade-up" delay={100}>
+					<WhatsNext nextCase={nextCase} currentCase={sampleKey} lang={lang} />
+				</ScrollReveal>
+			</div>
 		</div>
 	</section>
 </BaseLayout>

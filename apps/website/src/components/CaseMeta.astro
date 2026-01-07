@@ -1,0 +1,64 @@
+---
+/**
+ * CaseMeta - Difficulty badge and time estimate for case studies
+ *
+ * @prop difficulty - Skill level: 'beginner' | 'intermediate' | 'advanced'
+ * @prop time - Estimated completion time (e.g., "5 min", "10 min")
+ * @prop tools - List of tools used (for icon display)
+ */
+
+interface Props {
+	difficulty: 'beginner' | 'intermediate' | 'advanced';
+	time: string;
+	tools?: string[];
+}
+
+const { difficulty, time, tools = [] } = Astro.props;
+
+const difficultyConfig = {
+	beginner: {
+		label: 'Beginner',
+		color: 'bg-green-100 text-green-700 border-green-200',
+		icon: '●',
+	},
+	intermediate: {
+		label: 'Intermediate',
+		color: 'bg-amber-100 text-amber-700 border-amber-200',
+		icon: '●●',
+	},
+	advanced: {
+		label: 'Advanced',
+		color: 'bg-red-100 text-red-700 border-red-200',
+		icon: '●●●',
+	},
+};
+
+const config = difficultyConfig[difficulty];
+---
+
+<div class="flex flex-wrap items-center gap-3 text-sm">
+	<!-- Difficulty badge -->
+	<span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${config.color}`}>
+		<span class="text-[8px] tracking-tight" aria-hidden="true">{config.icon}</span>
+		<span class="font-medium">{config.label}</span>
+	</span>
+
+	<!-- Time estimate -->
+	<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-600 border border-neutral-200">
+		<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<circle cx="12" cy="12" r="10" />
+			<path d="M12 6v6l4 2" />
+		</svg>
+		<span class="font-medium">{time}</span>
+	</span>
+
+	<!-- Tool icons (if provided) -->
+	{tools.length > 0 && (
+		<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+			<span class="font-medium text-xs uppercase tracking-wider">Uses:</span>
+			{tools.map((tool) => (
+				<span class="font-medium">{tool}</span>
+			))}
+		</span>
+	)}
+</div>
