@@ -255,3 +255,35 @@ export interface GageRRResult {
   /** Data for Operator × Part interaction chart */
   interactionData: GageRRInteraction[];
 }
+
+/**
+ * Stage order determination mode for I-Chart with stages
+ */
+export type StageOrderMode = 'auto' | 'first-occurrence' | 'alphabetical';
+
+/**
+ * Result of staged statistical calculations
+ * Used when data is divided into distinct phases with separate control limits
+ */
+export interface StagedStatsResult {
+  /** Stats calculated separately for each stage */
+  stages: Map<string, StatsResult>;
+  /** Ordered list of stage names (determines display order) */
+  stageOrder: string[];
+  /** Combined stats across all stages (for reference) */
+  overallStats: StatsResult;
+}
+
+/**
+ * Stage boundary information for chart rendering
+ */
+export interface StageBoundary {
+  /** Stage name/label */
+  name: string;
+  /** Starting X index (inclusive) */
+  startX: number;
+  /** Ending X index (inclusive) */
+  endX: number;
+  /** Stats for this stage */
+  stats: StatsResult;
+}

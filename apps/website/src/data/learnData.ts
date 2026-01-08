@@ -379,6 +379,171 @@ export const LEARN_TOPICS: LearnTopic[] = [
     relatedTools: ['i-chart', 'boxplot', 'regression'],
     relatedTopics: ['four-pillars', 'two-voices'],
   },
+  {
+    slug: 'staged-analysis',
+    title: 'Staged Analysis',
+    subtitle: 'Compare Process Phases with Separate Control Limits',
+    description:
+      'When your process changes, your control limits should too. Staged analysis reveals improvements that combined data hides.',
+    color: '#3b82f6',
+    colorClass: 'text-blue-500',
+    icon: '📊',
+    sections: [
+      {
+        id: 'intro',
+        title: 'The Problem with Combined Data',
+        content:
+          'When you implement a process improvement, your I-Chart calculates control limits from ALL the data—before and after. This masks real improvements and hides true process shifts. The "after" data gets averaged with the "before" data, making your improvement invisible.',
+        visual: {
+          type: 'comparison',
+          data: {
+            left: {
+              title: 'Combined Limits',
+              subtitle: 'What most tools show',
+              items: [
+                'Single set of control limits',
+                'Calculated from all data',
+                'Improvements hidden',
+                'Process shifts masked',
+              ],
+              color: 'neutral',
+            },
+            right: {
+              title: 'Staged Limits',
+              subtitle: 'What VaRiScout reveals',
+              items: [
+                'Separate limits per phase',
+                'Each stage calculated independently',
+                'Improvements clearly visible',
+                'Process shifts revealed',
+              ],
+              color: 'blue',
+            },
+          },
+        },
+      },
+      {
+        id: 'when-to-use',
+        title: 'When to Use Staged Analysis',
+        content:
+          'Use staged analysis whenever your process has distinct phases. The key question: did something fundamentally change between data collection periods?',
+        visual: {
+          type: 'list',
+          data: {
+            items: [
+              {
+                title: 'Before/After Improvement',
+                description: 'Compare process performance before and after implementing a change',
+              },
+              {
+                title: 'Batch Comparison',
+                description:
+                  'Different production batches or material lots may have different baselines',
+              },
+              {
+                title: 'Equipment Changes',
+                description: 'Before/after maintenance, equipment replacement, or calibration',
+              },
+              {
+                title: 'Shift or Time Periods',
+                description: 'Compare day vs night shift, or week-over-week performance',
+              },
+            ],
+          },
+        },
+      },
+      {
+        id: 'how-it-works',
+        title: 'How It Works in VaRiScout',
+        content:
+          'VaRiScout makes staged analysis simple: select your stage column, and the I-Chart instantly shows separate control limits for each phase. No complex setup required.',
+        visual: {
+          type: 'diagram',
+          data: {
+            steps: [
+              {
+                label: 'Add a Stage Column',
+                description:
+                  'Your data needs a column identifying each phase (e.g., "Before", "After")',
+              },
+              {
+                label: 'Select Stage in Dashboard',
+                description: 'Choose your stage column from the Stage dropdown',
+              },
+              {
+                label: 'See Separate Limits',
+                description: 'I-Chart shows UCL, Mean, LCL calculated independently for each stage',
+              },
+              {
+                label: 'Compare Phases',
+                description: 'Vertical dividers and labels make comparison instant',
+              },
+            ],
+          },
+        },
+      },
+      {
+        id: 'interpreting',
+        title: 'Interpreting Staged Charts',
+        content:
+          'With staged analysis, you can immediately see how each phase differs. Look for changes in the center line (mean shifted?) and control limits (variation changed?).',
+        visual: {
+          type: 'list',
+          data: {
+            items: [
+              {
+                title: 'Tighter Control Limits',
+                description: 'Variation reduced—process improved',
+              },
+              {
+                title: 'Shifted Mean',
+                description: 'Process centered differently—check if intentional',
+              },
+              {
+                title: 'Fewer Out-of-Control Points',
+                description: 'More stable process in that phase',
+              },
+              {
+                title: 'Similar Limits Across Stages',
+                description: 'No real change between phases—investigate other factors',
+              },
+            ],
+          },
+        },
+      },
+      {
+        id: 'best-practices',
+        title: 'Best Practices',
+        content:
+          'For reliable staged analysis, ensure each stage has enough data points. VaRiScout works best with stages that have 10+ points each.',
+        visual: {
+          type: 'list',
+          data: {
+            items: [
+              {
+                title: 'Minimum 10 Points Per Stage',
+                description: 'Control limits need data to be meaningful',
+              },
+              {
+                title: '2-10 Stages Maximum',
+                description: 'More stages become visually crowded',
+              },
+              {
+                title: 'Meaningful Stage Definitions',
+                description: 'Stages should represent real process changes, not arbitrary splits',
+              },
+              {
+                title: 'Check Stage Order',
+                description: 'Use Auto-detect or set order manually if needed',
+              },
+            ],
+          },
+        },
+      },
+    ],
+    relatedTools: ['i-chart', 'capability'],
+    relatedTopics: ['two-voices', 'four-pillars'],
+  },
 ];
 
 export function getLearnTopicBySlug(slug: string): LearnTopic | undefined {

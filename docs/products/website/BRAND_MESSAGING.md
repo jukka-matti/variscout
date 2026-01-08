@@ -11,7 +11,7 @@
 | **Tagline**    | "See Beyond Averages"                                              | Header, hero, social |
 | **Hook**       | "Find what averages hide"                                          | Opening lines        |
 | **Promise**    | "46% of your variation may be hiding in one place"                 | Journey, cases       |
-| **Action**     | "Find it. Fix it. Move on."                                        | CTAs, closings       |
+| **Action**     | "Find it. Fix it. Check it. Continue."                             | CTAs, closings       |
 | **Philosophy** | "VaRiScout finds WHERE to focus. Apply Lean thinking to find WHY." | About, positioning   |
 
 ---
@@ -254,12 +254,12 @@ CTA: "Start Free"
 
 ### For Different Contexts
 
-| Context     | Tagline                        |
-| ----------- | ------------------------------ |
-| Main        | "See Beyond Averages"          |
-| Technical   | "EDA for Process Improvement"  |
-| Educational | "See What's Driving Variation" |
-| Action      | "Find it. Fix it. Move on."    |
+| Context     | Tagline                                |
+| ----------- | -------------------------------------- |
+| Main        | "See Beyond Averages"                  |
+| Technical   | "EDA for Process Improvement"          |
+| Educational | "See What's Driving Variation"         |
+| Action      | "Find it. Fix it. Check it. Continue." |
 
 ---
 

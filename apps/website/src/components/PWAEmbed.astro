@@ -6,20 +6,29 @@ interface Props {
 	title?: string;
 	height?: string;
 	iframeId?: string;
+	chart?: 'ichart' | 'boxplot' | 'pareto' | 'stats';
+	tab?: 'summary' | 'histogram' | 'normality';
 }
 
 const {
 	sampleKey,
 	title = "Interactive Analysis",
 	height = "600px",
-	iframeId = `pwa-embed-${sampleKey}`
+	iframeId = `pwa-embed-${sampleKey}`,
+	chart,
+	tab,
 } = Astro.props;
 
 // Build the PWA URL with embed parameters
-// In production, this would be https://variscout.com/app
-// For local dev/monorepo, it's relative or absolute depending on deployment
-const pwaUrl = `/app?sample=${sampleKey}&embed=true`;
-const fullUrl = `/app?sample=${sampleKey}`;
+// Use direct PWA URL to avoid redirect issues with iframe query params
+const pwaBaseUrl = import.meta.env.PROD 
+  ? 'https://variscout.com/app' 
+  : 'http://localhost:5173';
+
+const chartParam = chart ? `&chart=${chart}` : '';
+const tabParam = tab ? `&tab=${tab}` : '';
+const pwaUrl = `${pwaBaseUrl}?sample=${sampleKey}&embed=true${chartParam}${tabParam}`;
+const fullUrl = `${pwaBaseUrl}?sample=${sampleKey}${chartParam}${tabParam}`;
 ---
 
 <div class="w-full bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-lg group pwa-embed-container" data-iframe-id={iframeId}>

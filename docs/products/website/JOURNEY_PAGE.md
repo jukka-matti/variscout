@@ -153,7 +153,7 @@ AFTER:  Cpk 1.5 (green zone)
 
 "46% of improvement potential in one place."
 
-"Find it. Fix it. Move on."
+"Find it. Fix it. Check it. Continue."
 ```
 
 **Visual**: Breadcrumb trail with icons for each pillar

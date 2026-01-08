@@ -2,24 +2,29 @@
 
 ## Overview
 
-Interactive case study pages that embed the VariScout PWA with pre-loaded sample data. Each case combines:
+Interactive case study pages that embed the VaRiScout PWA with pre-loaded sample data. Each case combines:
 
 - Problem context and learning objectives
 - Embedded interactive app (iframe)
 - Guided prompts for hands-on exploration
 
+These pages are the primary conversion tool - visitors explore cases and then try VaRiScout with their own data.
+
 ## URL Structure
 
 ```
-/learn/mango-export     - Factor identification case
-/learn/textiles-strength - Process capability case
-/learn/coffee-defects   - Defect prioritization case
+/cases/                   - Case study hub (lists all cases)
+/cases/bottleneck         - Week 1: Process step analysis
+/cases/hospital-ward      - Week 5: Aggregation trap
+/cases/coffee             - Week 9: Drying bed comparison
+/cases/packaging          - Week 9: Defect analysis
+/cases/avocado            - Week 12: Regression analysis
 ```
 
 ## Embed URL Format
 
 ```
-https://app.variscout.com?sample=mango-export&embed=true
+https://app.variscout.com?sample=bottleneck&embed=true
 ```
 
 **Parameters:**
@@ -28,11 +33,36 @@ https://app.variscout.com?sample=mango-export&embed=true
 - `embed=true` - Hides header/footer for clean iframe display
 
 **Available sample keys:**
-| URL Key | Sample Name | Focus |
-|---------|-------------|-------|
-| `mango-export` | Agri-Food: Mango Export | Factor identification, ANOVA |
-| `textiles-strength` | Textiles: Fabric Strength | Process capability, Cpk |
-| `coffee-defects` | Coffee: Defect Analysis | Pareto, grade breakdown |
+
+| URL Key         | Case Name         | Focus                            | Week |
+| --------------- | ----------------- | -------------------------------- | ---- |
+| `bottleneck`    | The Bottleneck    | Process step variation, Boxplot  | 1    |
+| `hospital-ward` | Hospital Ward     | Aggregation trap, Time patterns  | 5    |
+| `coffee`        | Coffee Moisture   | Drying bed comparison, Specs     | 9    |
+| `packaging`     | Packaging Defects | Product line analysis, Pareto    | 9    |
+| `avocado`       | Avocado Coating   | Regression, coating optimization | 12   |
+
+## Three-Act Page Structure
+
+Each case study page follows a three-act structure:
+
+### Act 1: The Problem
+
+- Problem statement card with context
+- Learning objectives
+- Sets up the mystery
+
+### Act 2: Your Turn (Interactive)
+
+- Embedded PWA with sample data
+- Prompts to explore
+- Interactive discovery
+
+### Act 3: The Solution
+
+- Guided solution steps
+- Key insight reveal
+- CTA to try with own data
 
 ## Page Layout
 
@@ -41,43 +71,39 @@ https://app.variscout.com?sample=mango-export&embed=true
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        Page Header                              │
-├────────────────────────────┬────────────────────────────────────┤
-│                            │                                    │
-│  Tutorial Content          │   Embedded PWA                     │
-│  (40% width)               │   (60% width)                      │
-│                            │                                    │
-│  - Problem Statement       │   [Interactive app with            │
-│  - Learning Objectives     │    pre-loaded sample data]         │
-│  - Guided Prompts          │                                    │
-│  - Concept Explanations    │   iframe:                          │
-│                            │   src="?sample=xxx&embed=true"     │
-│                            │   min-height: 600px                │
-│                            │                                    │
-├────────────────────────────┴────────────────────────────────────┤
-│                        Footer Links                             │
+├─────────────────────────────────────────────────────────────────┤
+│  Act 1: The Problem                                             │
+│  - Phase & Week badge                                           │
+│  - Title & Subtitle                                             │
+│  - Problem Statement Card                                       │
+│  - Learning Objectives                                          │
+├─────────────────────────────────────────────────────────────────┤
+│  Act 2: Your Turn                                               │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │                                                           │  │
+│  │              Embedded PWA (full width)                    │  │
+│  │              iframe: src="?sample=xxx&embed=true"         │  │
+│  │              min-height: 650px                            │  │
+│  │                                                           │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│  "Your Turn: Explore the Data - Click the charts to filter"    │
+├─────────────────────────────────────────────────────────────────┤
+│  Act 3: The Solution Journey                                    │
+│  - Numbered step cards                                          │
+│  - Interactive step highlighted                                 │
+│  - Key insight card (dark background)                           │
+├─────────────────────────────────────────────────────────────────┤
+│  CTA Section                                                    │
+│  - "What's hiding in YOUR data?"                                │
+│  - [Try Free] [Next Case →]                                     │
+├─────────────────────────────────────────────────────────────────┤
+│                        Footer                                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Mobile (<768px)
 
-```
-┌─────────────────────────────┐
-│       Page Header           │
-├─────────────────────────────┤
-│                             │
-│   Tutorial Content          │
-│   (full width)              │
-│                             │
-├─────────────────────────────┤
-│                             │
-│   Embedded PWA              │
-│   (full width)              │
-│   min-height: 500px         │
-│                             │
-├─────────────────────────────┤
-│       Footer Links          │
-└─────────────────────────────┘
-```
+Same sections, stacked vertically with full-width components.
 
 ## Page Components
 
@@ -85,11 +111,12 @@ https://app.variscout.com?sample=mango-export&embed=true
 
 ```html
 <div class="problem-card">
-  <h2>The Problem</h2>
-  <p class="lead">Which farm is causing weight compliance failures?</p>
+  <h2 class="section-label">The Problem</h2>
+  <p class="lead">Which step is actually the bottleneck?</p>
   <p class="context">
-    A mango exporter needs to identify which supplying farm produces the most inconsistent fruit
-    weights, causing EU compliance failures.
+    A manufacturing process had 5 sequential steps. Whenever delays occurred, Step 3 was blamed. The
+    manager wanted to invest in new equipment for Step 3. But nobody had actually looked at the
+    data...
   </p>
 </div>
 ```
@@ -100,14 +127,29 @@ https://app.variscout.com?sample=mango-export&embed=true
 <div class="objectives">
   <h3>What You'll Learn</h3>
   <ul>
-    <li>How to compare group variation using Boxplots</li>
-    <li>Interpreting ANOVA results (p-value, eta-squared)</li>
-    <li>Using drill-down to explore data interactively</li>
+    <li>Use I-Chart to see variation over time</li>
+    <li>Compare process steps with Boxplot</li>
+    <li>Identify the step with the most variation</li>
   </ul>
 </div>
 ```
 
-### 3. Guided Prompts (Numbered Steps)
+### 3. Embedded App (iframe)
+
+```html
+<div class="app-embed">
+  <iframe
+    src="https://app.variscout.com?sample=bottleneck&embed=true"
+    title="VaRiScout Interactive Analysis"
+    width="100%"
+    height="650"
+    frameborder="0"
+    allow="clipboard-write"
+  ></iframe>
+</div>
+```
+
+### 4. Guided Steps
 
 ```html
 <div class="guided-steps">
@@ -116,19 +158,8 @@ https://app.variscout.com?sample=mango-export&embed=true
     <div class="step-content">
       <h4>Look at the Boxplot</h4>
       <p>
-        Notice how Farm A (Smallholder) has a much wider box than Farm C (Commercial). The wider the
-        box, the more variation.
-      </p>
-    </div>
-  </div>
-
-  <div class="step">
-    <span class="step-number">2</span>
-    <div class="step-content">
-      <h4>Check the ANOVA Results</h4>
-      <p>
-        Below the Boxplot, you'll see "p = 0.001". This means the difference between farms is
-        statistically significant (not due to random chance).
+        Notice how the boxes have different sizes. A wider box means more variation. Which step has
+        the widest spread?
       </p>
     </div>
   </div>
@@ -136,95 +167,84 @@ https://app.variscout.com?sample=mango-export&embed=true
   <div class="step interactive">
     <span class="step-number">3</span>
     <div class="step-content">
-      <h4>Try It: Click on Farm A</h4>
+      <h4>Click on Step 2</h4>
       <p>
-        Click the "Farm A" box in the Boxplot. Watch how all charts update to show only Farm A's
-        data. This is drill-down filtering.
+        Click the Step 2 box in the Boxplot. Watch how the I-Chart updates to show only Step 2's
+        data. Now you can see the time pattern.
       </p>
+      <span class="try-badge">↑ Try this in the interactive demo above</span>
     </div>
   </div>
 </div>
 ```
 
-### 4. Embedded App (iframe)
+### 5. Key Insight Card
 
 ```html
-<div class="app-embed">
-  <iframe
-    src="https://app.variscout.com?sample=mango-export&embed=true"
-    title="VariScout Interactive Analysis"
-    width="100%"
-    height="600"
-    frameborder="0"
-    allow="clipboard-write"
-  ></iframe>
+<div class="insight-card">
+  <span class="section-label">The Key Insight</span>
+  <p class="insight-text">What's hiding in YOUR process?</p>
 </div>
 ```
 
-### 5. Footer Links
+### 6. CTA Section
 
 ```html
-<div class="case-footer">
-  <div class="next-case">
-    <span>Next Case Study:</span>
-    <a href="/learn/textiles-strength">Process Capability Analysis →</a>
-  </div>
-  <div class="try-own">
-    <a href="https://app.variscout.com" class="cta-button"> Try With Your Own Data </a>
+<div class="cta-section">
+  <h2>What's hiding in YOUR data?</h2>
+  <p>Try VaRiScout with your own data. Free, no signup required.</p>
+  <div class="cta-buttons">
+    <a href="/app" class="btn-primary">Try Free</a>
+    <a href="/cases/hospital-ward" class="btn-secondary">Next Case →</a>
   </div>
 </div>
 ```
+
+## Case Data Reference
+
+| Case          | sampleKey       | outcome         | factors                          | specs                        |
+| ------------- | --------------- | --------------- | -------------------------------- | ---------------------------- |
+| Bottleneck    | `bottleneck`    | Cycle_Time_sec  | Step, Shift                      | target: 40                   |
+| Hospital Ward | `hospital-ward` | Utilization_pct | Time_Period, Day_of_Week         | target: 75, usl: 90          |
+| Coffee        | `coffee`        | Moisture_pct    | Drying_Bed                       | lsl: 10, usl: 12, target: 11 |
+| Packaging     | `packaging`     | Defect_Count    | Product, Defect_Type             | target: 50, usl: 100         |
+| Avocado       | `avocado`       | Shelf_Life_Days | Coating_ml_kg, Process, Material | lsl: 10, target: 15          |
 
 ## Styling Guidelines
 
 ### Colors (from design system)
 
 ```css
---bg-page: #0f172a; /* slate-900 */
---bg-card: #1e293b; /* slate-800 */
---text-primary: #f1f5f9; /* slate-100 */
---text-secondary: #94a3b8; /* slate-400 */
---accent: #3b82f6; /* blue-500 */
+--bg-page: #ffffff; /* white for light theme */
+--bg-card: #f8fafc; /* slate-50 */
+--bg-dark: #0f172a; /* slate-900 for insight card */
+--text-primary: #0f172a; /* slate-900 */
+--text-secondary: #64748b; /* slate-500 */
+--brand-primary: #3b82f6; /* blue-500 */
 --success: #22c55e; /* green-500 */
 ```
 
-### Typography
-
-- Page title: 24px, font-weight 700
-- Section headings: 18px, font-weight 600
-- Body text: 14px, line-height 1.6
-- Step numbers: 20px, font-weight 700, accent color
-
-### Interactive Prompts
+### Interactive Steps
 
 Highlight "try it" steps with a distinct border:
 
 ```css
 .step.interactive {
-  border-left: 3px solid var(--accent);
-  background: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid var(--brand-primary);
+  background: rgba(59, 130, 246, 0.05);
 }
 ```
-
-## Accessibility
-
-- All images have descriptive alt text
-- Step numbers are ARIA-hidden (content provides context)
-- iframe has descriptive title attribute
-- Focus visible on all interactive elements
-- Sufficient color contrast (WCAG AA)
 
 ## SEO Metadata
 
 ```html
-<title>Find the Problem Farm - VariScout Case Study</title>
+<title>The Bottleneck - VaRiScout Case Study</title>
 <meta
   name="description"
-  content="Learn how to identify which factor
-      drives process variation using interactive Boxplot and ANOVA
-      analysis in VariScout."
+  content="A process with 5 steps. Step 3 was blamed.
+      But what did the data show? Interactive case study with VaRiScout."
 />
-<meta property="og:image" content="/images/case-mango-preview.png" />
+<meta property="og:image" content="/images/case-bottleneck-preview.png" />
 ```
 
 ## Implementation Notes
@@ -233,15 +253,22 @@ Highlight "try it" steps with a distinct border:
 2. **Responsive iframe**: Use CSS aspect-ratio or min-height
 3. **Loading State**: Show spinner while iframe loads
 4. **Error Handling**: Graceful fallback if app fails to load
+5. **i18n**: Case pages available in all 5 languages (en, de, es, fr, pt)
 
-## File Structure
+## File Structure (Astro)
 
 ```
-/learn/
-├── mango-export/
-│   └── index.html (or page component)
-├── textiles-strength/
-│   └── index.html
-└── coffee-defects/
-    └── index.html
+apps/website/src/pages/[lang]/cases/
+├── index.astro           # Case hub (lists all cases by phase)
+└── [slug].astro          # Individual case page (5 slugs)
 ```
+
+## Cross-Links
+
+| From                 | Links To                                |
+| -------------------- | --------------------------------------- |
+| /cases/bottleneck    | /cases/hospital-ward (next), /app (CTA) |
+| /cases/hospital-ward | /cases/coffee (next), /app (CTA)        |
+| /cases/coffee        | /cases/packaging (next), /app (CTA)     |
+| /cases/packaging     | /cases/avocado (next), /app (CTA)       |
+| /cases/avocado       | /cases (hub), /app (CTA)                |

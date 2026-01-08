@@ -3,10 +3,16 @@
  * Props-based chart components for use across PWA and Excel Add-in
  */
 
-import type { StatsResult, SpecLimits, GradeTier } from '@variscout/core';
+import type {
+  StatsResult,
+  SpecLimits,
+  GradeTier,
+  StagedStatsResult,
+  StageBoundary,
+} from '@variscout/core';
 
 // Re-export types from core for convenience
-export type { SpecLimits, GradeTier };
+export type { SpecLimits, GradeTier, StagedStatsResult, StageBoundary };
 
 /**
  * Common props shared by all chart components
@@ -23,13 +29,29 @@ export interface BaseChartProps {
 }
 
 /**
+ * Data point for I-Chart
+ */
+export interface IChartDataPoint {
+  /** X-axis value (typically index or time) */
+  x: number;
+  /** Y-axis value (measurement) */
+  y: number;
+  /** Original row index for drill-down navigation */
+  originalIndex?: number;
+  /** Stage identifier for staged I-Charts */
+  stage?: string;
+}
+
+/**
  * I-Chart (Individual Control Chart) props
  */
 export interface IChartProps extends BaseChartProps {
-  /** Data points with x (index) and y (value) */
-  data: Array<{ x: number; y: number; originalIndex?: number }>;
-  /** Statistical results (mean, stdDev, ucl, lcl) */
+  /** Data points with x (index), y (value), and optional stage */
+  data: IChartDataPoint[];
+  /** Statistical results (mean, stdDev, ucl, lcl) - used when not staged */
   stats: StatsResult | null;
+  /** Staged statistics - when provided, renders per-stage control limits */
+  stagedStats?: StagedStatsResult;
   /** Specification limits */
   specs: SpecLimits;
   /** Grade tiers for multi-tier grading */

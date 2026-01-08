@@ -1,0 +1,41 @@
+---
+/**
+ * JourneyProductBadge - Shows the VaRiScout tagline for product pages
+ * "Find it. Fix it. Check it. Continue." with link to full journey
+ */
+
+interface Props {
+	lang: string;
+}
+
+const { lang } = Astro.props;
+---
+
+<div class="bg-gradient-to-r from-purple-50 via-amber-50 to-teal-50 border-b border-neutral-200">
+	<div class="container-wide py-3">
+		<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+			<!-- Tagline -->
+			<div class="flex items-center gap-0.5 text-sm font-medium">
+				<span class="text-purple-600">Find it</span>
+				<span class="text-neutral-400 mx-1">.</span>
+				<span class="text-amber-500">Fix it</span>
+				<span class="text-neutral-400 mx-1">.</span>
+				<span class="text-teal-500">Check it</span>
+				<span class="text-neutral-400 mx-1">.</span>
+				<span class="text-brand-primary">Continue</span>
+				<span class="text-neutral-400">.</span>
+			</div>
+
+			<!-- Journey link -->
+			<a
+				href={`/${lang}/journey`}
+				class="inline-flex items-center gap-1 text-brand-primary text-sm hover:underline font-medium"
+			>
+				<span>See the journey</span>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+				</svg>
+			</a>
+		</div>
+	</div>
+</div>

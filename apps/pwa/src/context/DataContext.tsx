@@ -7,7 +7,15 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { calculateStats, type StatsResult } from '@variscout/core';
+import {
+  calculateStats,
+  calculateStatsByStage,
+  sortDataByStage,
+  determineStageOrder,
+  type StatsResult,
+  type StagedStatsResult,
+  type StageOrderMode,
+} from '@variscout/core';
 import {
   autoSave,
   loadAutoSave,
@@ -35,6 +43,11 @@ interface DataContextType {
   specs: { usl?: number; lsl?: number; target?: number };
   grades: { max: number; label: string; color: string }[];
   stats: StatsResult | null;
+  // Stage support for I-Chart with stages
+  stageColumn: string | null;
+  stageOrderMode: StageOrderMode;
+  stagedStats: StagedStatsResult | null;
+  stagedData: any[]; // Data sorted by stage when stageColumn is active
   filters: Record<string, any[]>;
   axisSettings: { min?: number; max?: number };
   columnAliases: Record<string, string>;
@@ -66,6 +79,9 @@ interface DataContextType {
   setParetoMode: (mode: 'derived' | 'separate') => void;
   setSeparateParetoData: (data: ParetoRow[] | null) => void;
   setSeparateParetoFilename: (name: string | null) => void;
+  // Stage setters
+  setStageColumn: (col: string | null) => void;
+  setStageOrderMode: (mode: StageOrderMode) => void;
   // Persistence methods
   saveProject: (name: string) => Promise<SavedProject>;
   loadProject: (id: string) => Promise<void>;
@@ -105,6 +121,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [paretoMode, setParetoMode] = useState<'derived' | 'separate'>('derived');
   const [separateParetoData, setSeparateParetoData] = useState<ParetoRow[] | null>(null);
   const [separateParetoFilename, setSeparateParetoFilename] = useState<string | null>(null);
+  // Stage support for I-Chart with stages
+  const [stageColumn, setStageColumn] = useState<string | null>(null);
+  const [stageOrderMode, setStageOrderMode] = useState<StageOrderMode>('auto');
 
   const isInitialized = useRef(false);
 
@@ -122,6 +141,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const values = filteredData.map(d => Number(d[outcome])).filter(v => !isNaN(v));
     return calculateStats(values, specs.usl, specs.lsl, grades);
   }, [filteredData, outcome, specs, grades]);
+
+  // Staged data - sorted by stage when stageColumn is active
+  const stagedData = useMemo(() => {
+    if (!stageColumn || filteredData.length === 0) return filteredData;
+
+    // Get stage values and determine order
+    const stageValues = filteredData.map(row => String(row[stageColumn] ?? ''));
+    const stageOrder = determineStageOrder(stageValues, stageOrderMode);
+
+    // Sort data by stage
+    return sortDataByStage(filteredData, stageColumn, stageOrder);
+  }, [filteredData, stageColumn, stageOrderMode]);
+
+  // Staged stats - calculated separately for each stage
+  const stagedStats = useMemo(() => {
+    if (!stageColumn || !outcome || filteredData.length === 0) return null;
+
+    return calculateStatsByStage(filteredData, outcome, stageColumn, specs, undefined, grades);
+  }, [filteredData, outcome, stageColumn, specs, grades]);
 
   // Get current state for saving
   const getCurrentState = useCallback(
@@ -311,6 +349,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setParetoMode('derived');
     setSeparateParetoData(null);
     setSeparateParetoFilename(null);
+    // Reset stage state
+    setStageColumn(null);
+    setStageOrderMode('auto');
     clearAutoSave();
   }, []);
 
@@ -325,6 +366,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         specs,
         grades,
         stats,
+        stageColumn,
+        stageOrderMode,
+        stagedStats,
+        stagedData,
         filters,
         axisSettings,
         columnAliases,
@@ -353,6 +398,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setParetoMode,
         setSeparateParetoData,
         setSeparateParetoFilename,
+        setStageColumn,
+        setStageOrderMode,
         saveProject,
         loadProject,
         listProjects,

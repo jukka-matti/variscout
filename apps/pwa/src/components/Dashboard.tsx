@@ -31,7 +31,9 @@ import {
   ChevronLeft,
   ChevronRight,
   HelpCircle,
+  Layers,
 } from 'lucide-react';
+import type { StageOrderMode } from '@variscout/core';
 import { toBlob } from 'html-to-image';
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -48,6 +50,10 @@ interface DashboardProps {
   highlightedChart?: ChartId | null;
   highlightIntensity?: HighlightIntensity;
   onChartClick?: (chartId: ChartId) => void;
+  // Embed focus: when set, render only this single chart (for iframe embeds)
+  embedFocusChart?: 'ichart' | 'boxplot' | 'pareto' | 'stats' | null;
+  // Embed stats tab: when set, auto-selects this tab in StatsPanel
+  embedStatsTab?: 'summary' | 'histogram' | 'normality' | null;
 }
 
 const Dashboard = ({
@@ -57,6 +63,8 @@ const Dashboard = ({
   highlightedChart,
   highlightIntensity = 'pulse',
   onChartClick,
+  embedFocusChart,
+  embedStatsTab,
 }: DashboardProps) => {
   const {
     outcome,
@@ -69,6 +77,11 @@ const Dashboard = ({
     filters,
     setFilters,
     columnAliases,
+    stageColumn,
+    setStageColumn,
+    stageOrderMode,
+    setStageOrderMode,
+    stagedStats,
   } = useData();
   const [isMobile, setIsMobile] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
@@ -159,6 +172,36 @@ const Dashboard = ({
     const row = rawData[0];
     return Object.keys(row).filter(key => typeof row[key] === 'number');
   }, [rawData]);
+
+  // Derive potential stage columns (categorical with 2-10 unique values)
+  const availableStageColumns = React.useMemo(() => {
+    if (rawData.length === 0) return [];
+    const candidates: string[] = [];
+    const columns = Object.keys(rawData[0] || {});
+
+    for (const col of columns) {
+      // Skip the outcome column
+      if (col === outcome) continue;
+
+      // Get unique values
+      const uniqueValues = new Set<string>();
+      for (const row of rawData) {
+        const val = row[col];
+        if (val !== undefined && val !== null && val !== '') {
+          uniqueValues.add(String(val));
+        }
+        // Early exit if too many unique values
+        if (uniqueValues.size > 10) break;
+      }
+
+      // Valid stage column: 2-10 unique values
+      if (uniqueValues.size >= 2 && uniqueValues.size <= 10) {
+        candidates.push(col);
+      }
+    }
+
+    return candidates;
+  }, [rawData, outcome]);
 
   // Initialize/Update defaults when factors change
   React.useEffect(() => {
@@ -479,6 +522,98 @@ const Dashboard = ({
     );
   }
 
+  // Embed Focus Mode - render only the specified chart (for iframe embeds)
+  if (embedFocusChart) {
+    return (
+      <div className="h-full w-full bg-slate-900 p-4 flex flex-col">
+        {embedFocusChart === 'ichart' && (
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex items-center gap-3 mb-3">
+              <Activity className="text-blue-400" size={20} />
+              <span className="text-lg font-bold text-white">I-Chart: {outcome}</span>
+              {stats && (
+                <div className="flex gap-4 text-xs text-slate-400 ml-auto">
+                  <span>
+                    UCL: <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
+                  </span>
+                  <span>
+                    Mean: <span className="text-white font-mono">{stats.mean.toFixed(2)}</span>
+                  </span>
+                  <span>
+                    LCL: <span className="text-white font-mono">{stats.lcl.toFixed(2)}</span>
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-h-0">
+              <ErrorBoundary componentName="I-Chart">
+                <IChart onPointClick={onPointClick} />
+              </ErrorBoundary>
+            </div>
+          </div>
+        )}
+
+        {embedFocusChart === 'boxplot' && (
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-lg font-bold text-white">Boxplot</span>
+              <FactorSelector
+                factors={factors}
+                selected={boxplotFactor}
+                onChange={setBoxplotFactor}
+                hasActiveFilter={!!filters?.[boxplotFactor]?.length}
+              />
+            </div>
+            <div className="flex-1 min-h-0">
+              <ErrorBoundary componentName="Boxplot">
+                {boxplotFactor && (
+                  <Boxplot
+                    factor={boxplotFactor}
+                    onDrillDown={handleDrillDown}
+                    variationPct={factorVariations.get(boxplotFactor)}
+                  />
+                )}
+              </ErrorBoundary>
+            </div>
+          </div>
+        )}
+
+        {embedFocusChart === 'pareto' && (
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-lg font-bold text-white">Pareto</span>
+              <FactorSelector
+                factors={factors}
+                selected={paretoFactor}
+                onChange={setParetoFactor}
+                hasActiveFilter={!!filters?.[paretoFactor]?.length}
+              />
+            </div>
+            <div className="flex-1 min-h-0">
+              <ErrorBoundary componentName="Pareto Chart">
+                {paretoFactor && (
+                  <ParetoChart factor={paretoFactor} onDrillDown={handleDrillDown} />
+                )}
+              </ErrorBoundary>
+            </div>
+          </div>
+        )}
+
+        {embedFocusChart === 'stats' && (
+          <div className="flex-1 min-h-0">
+            <StatsPanel
+              stats={stats}
+              specs={specs}
+              filteredData={filteredData}
+              outcome={outcome}
+              defaultTab={embedStatsTab || undefined}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Desktop Layout
   return (
     <div
@@ -590,6 +725,39 @@ const Dashboard = ({
                         </option>
                       ))}
                     </select>
+
+                    {/* Stage Column Selector */}
+                    {availableStageColumns.length > 0 && (
+                      <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-700">
+                        <Layers size={16} className="text-slate-500" />
+                        <select
+                          value={stageColumn || ''}
+                          onChange={e => setStageColumn(e.target.value || null)}
+                          className="bg-slate-900 border border-slate-700 text-sm text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                          title="Select a column to divide the chart into stages"
+                        >
+                          <option value="">No stages</option>
+                          {availableStageColumns.map(col => (
+                            <option key={col} value={col}>
+                              {columnAliases[col] || col}
+                            </option>
+                          ))}
+                        </select>
+                        {stageColumn && (
+                          <select
+                            value={stageOrderMode}
+                            onChange={e => setStageOrderMode(e.target.value as StageOrderMode)}
+                            className="bg-slate-900 border border-slate-700 text-xs text-slate-400 rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                            title="Stage ordering method"
+                          >
+                            <option value="auto">Auto order</option>
+                            <option value="first-occurrence">First occurrence</option>
+                            <option value="alphabetical">A-Z / 1-9</option>
+                          </select>
+                        )}
+                      </div>
+                    )}
+
                     <button
                       onClick={() => handleCopyChart('ichart-card', 'ichart')}
                       className={`p-1.5 rounded transition-all ${
@@ -609,45 +777,76 @@ const Dashboard = ({
                       <Maximize2 size={16} />
                     </button>
                   </div>
-                  {stats && (
+                  {/* Stats display - show staged info or overall stats */}
+                  {stageColumn && stagedStats ? (
                     <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
                       <span className="text-slate-400 flex items-center gap-1">
-                        UCL: <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
+                        <Layers size={12} className="text-blue-400" />
+                        <span className="text-blue-400 font-medium">
+                          {stagedStats.stageOrder.length} stages
+                        </span>
                         <span className="tooltip-wrapper">
                           <HelpCircle
                             size={12}
                             className="text-slate-500 hover:text-slate-300 cursor-help"
                           />
                           <span className="tooltip">
-                            Upper Control Limit. Points above this indicate special cause variation.
+                            Control limits calculated separately for each stage. Stage boundaries
+                            shown as vertical lines.
                           </span>
                         </span>
                       </span>
                       <span className="text-slate-400 flex items-center gap-1">
-                        Mean: <span className="text-white font-mono">{stats.mean.toFixed(2)}</span>
-                        <span className="tooltip-wrapper">
-                          <HelpCircle
-                            size={12}
-                            className="text-slate-500 hover:text-slate-300 cursor-help"
-                          />
-                          <span className="tooltip">
-                            Process average. The center line on the I-Chart.
-                          </span>
-                        </span>
-                      </span>
-                      <span className="text-slate-400 flex items-center gap-1">
-                        LCL: <span className="text-white font-mono">{stats.lcl.toFixed(2)}</span>
-                        <span className="tooltip-wrapper">
-                          <HelpCircle
-                            size={12}
-                            className="text-slate-500 hover:text-slate-300 cursor-help"
-                          />
-                          <span className="tooltip">
-                            Lower Control Limit. Points below this indicate special cause variation.
-                          </span>
+                        Overall Mean:{' '}
+                        <span className="text-white font-mono">
+                          {stagedStats.overallStats.mean.toFixed(2)}
                         </span>
                       </span>
                     </div>
+                  ) : (
+                    stats && (
+                      <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                        <span className="text-slate-400 flex items-center gap-1">
+                          UCL: <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
+                          <span className="tooltip-wrapper">
+                            <HelpCircle
+                              size={12}
+                              className="text-slate-500 hover:text-slate-300 cursor-help"
+                            />
+                            <span className="tooltip">
+                              Upper Control Limit. Points above this indicate special cause
+                              variation.
+                            </span>
+                          </span>
+                        </span>
+                        <span className="text-slate-400 flex items-center gap-1">
+                          Mean:{' '}
+                          <span className="text-white font-mono">{stats.mean.toFixed(2)}</span>
+                          <span className="tooltip-wrapper">
+                            <HelpCircle
+                              size={12}
+                              className="text-slate-500 hover:text-slate-300 cursor-help"
+                            />
+                            <span className="tooltip">
+                              Process average. The center line on the I-Chart.
+                            </span>
+                          </span>
+                        </span>
+                        <span className="text-slate-400 flex items-center gap-1">
+                          LCL: <span className="text-white font-mono">{stats.lcl.toFixed(2)}</span>
+                          <span className="tooltip-wrapper">
+                            <HelpCircle
+                              size={12}
+                              className="text-slate-500 hover:text-slate-300 cursor-help"
+                            />
+                            <span className="tooltip">
+                              Lower Control Limit. Points below this indicate special cause
+                              variation.
+                            </span>
+                          </span>
+                        </span>
+                      </div>
+                    )
                   )}
                 </div>
                 <div id="ichart-container" className="flex-1 min-h-[300px] w-full">

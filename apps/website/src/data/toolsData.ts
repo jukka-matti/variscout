@@ -5,6 +5,10 @@ export interface ToolData {
   pillar: 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE' | null;
   color: string;
   colorClass: string;
+  // Journey integration (only for pillar tools)
+  journeySection?: number;
+  journeyPrevTool?: string;
+  journeyNextTool?: string;
   hero: {
     title: string;
     subtitle: string;
@@ -38,6 +42,9 @@ export const TOOLS: ToolData[] = [
     pillar: 'CHANGE',
     color: '#3b82f6',
     colorClass: 'text-blue-500',
+    journeySection: 3,
+    journeyPrevTool: 'capability',
+    journeyNextTool: 'boxplot',
     hero: {
       title: 'See how your data changes over time',
       subtitle:
@@ -95,10 +102,14 @@ export const TOOLS: ToolData[] = [
       { name: 'Auto-calculated limits', description: 'UCL and LCL computed from your data' },
       { name: 'Click to filter', description: 'Click any point to filter other charts' },
       { name: 'Two Voices', description: 'Show spec limits alongside control limits' },
+      {
+        name: 'Staged Analysis',
+        description: 'Compare process phases with separate control limits per stage',
+      },
     ],
     sampleKey: 'journey',
     nextTools: ['boxplot', 'capability'],
-    relatedLearn: ['two-voices', 'four-pillars'],
+    relatedLearn: ['two-voices', 'four-pillars', 'staged-analysis'],
   },
   {
     slug: 'boxplot',
@@ -106,6 +117,9 @@ export const TOOLS: ToolData[] = [
     pillar: 'FLOW',
     color: '#f97316',
     colorClass: 'text-orange-500',
+    journeySection: 4,
+    journeyPrevTool: 'i-chart',
+    journeyNextTool: 'pareto',
     hero: {
       title: 'Compare groups to find where variation hides',
       subtitle: 'The Boxplot shows the spread and center of different groups side-by-side.',
@@ -167,6 +181,9 @@ export const TOOLS: ToolData[] = [
     pillar: 'FAILURE',
     color: '#ef4444',
     colorClass: 'text-red-500',
+    journeySection: 5,
+    journeyPrevTool: 'boxplot',
+    journeyNextTool: undefined,
     hero: {
       title: 'Find where problems concentrate',
       subtitle: 'The Pareto Chart reveals which categories account for most of your issues.',
@@ -228,6 +245,9 @@ export const TOOLS: ToolData[] = [
     pillar: 'VALUE',
     color: '#22c55e',
     colorClass: 'text-green-500',
+    journeySection: 2,
+    journeyPrevTool: undefined,
+    journeyNextTool: 'i-chart',
     hero: {
       title: 'See if your process meets customer requirements',
       subtitle:

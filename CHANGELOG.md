@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Related tools section linking to tool documentation
   - "What's Next" navigation with related cases
 
+- **Holistic Journey Integration**: Complete journey threading across all website pages
+  - **Phase 1 (Homepage)**: AVERAGES hook, MiniJourney, FourPillars sections
+  - **Phase 2 (Tool Pages)**: JourneyToolBadge showing journey position, JourneyToolNav for prev/next navigation
+  - **Phase 3 (Case Studies)**: JourneyCaseBadge with AVERAGES→EXPLORE→REVEAL flow, act labels
+  - **Phase 4 (Product Pages)**: JourneyProductBadge tagline, JourneyFeatures organized by FIND IT/FIX IT/CHECK IT/CONTINUE
+
 - **Journey Page Interactive Embeds**: Real PWA charts embedded in scrollytelling sections
   - `chart` URL parameter for single-chart focus mode (`ichart`, `boxplot`, `pareto`, `stats`)
   - `tab` URL parameter for auto-selecting StatsPanel tab (`summary`, `histogram`, `normality`)

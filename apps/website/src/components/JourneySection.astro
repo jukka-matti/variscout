@@ -6,7 +6,7 @@
 
 interface Props {
 	id: string;
-	pillar: 'AVERAGES' | 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE' | 'CLARITY' | 'CLOSE';
+	pillar: 'AVERAGES' | 'VALUE' | 'CHANGE' | 'FLOW' | 'FAILURE' | 'FIND IT' | 'FIX IT' | 'CHECK IT' | 'CONTINUE';
 	question: string;
 	number: number;
 	class?: string;
@@ -17,12 +17,14 @@ const { id, pillar, question, number, class: className = '' } = Astro.props;
 // Pillar colors
 const pillarColors: Record<string, string> = {
 	AVERAGES: 'text-neutral-400',
+	VALUE: 'text-green-500',
 	CHANGE: 'text-blue-500',
 	FLOW: 'text-orange-500',
 	FAILURE: 'text-red-500',
-	VALUE: 'text-green-500',
-	CLARITY: 'text-purple-500',
-	CLOSE: 'text-brand-primary',
+	'FIND IT': 'text-purple-500',
+	'FIX IT': 'text-amber-500',
+	'CHECK IT': 'text-teal-500',
+	CONTINUE: 'text-brand-primary',
 };
 ---
 

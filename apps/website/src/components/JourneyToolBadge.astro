@@ -1,0 +1,74 @@
+---
+/**
+ * JourneyToolBadge - Shows journey position above tool pages
+ * Displays progress dots with current section highlighted
+ */
+
+interface Props {
+	pillar: 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE';
+	journeySection: number;
+	lang: string;
+}
+
+const { pillar, journeySection, lang } = Astro.props;
+
+const sections = [
+	{ id: 'averages', label: 'AVG', name: 'AVERAGES', color: 'bg-neutral-400', textColor: 'text-neutral-400' },
+	{ id: 'value', label: 'VAL', name: 'VALUE', color: 'bg-green-500', textColor: 'text-green-500' },
+	{ id: 'change', label: 'CHG', name: 'CHANGE', color: 'bg-blue-500', textColor: 'text-blue-500' },
+	{ id: 'flow', label: 'FLO', name: 'FLOW', color: 'bg-orange-500', textColor: 'text-orange-500' },
+	{ id: 'failure', label: 'FAI', name: 'FAILURE', color: 'bg-red-500', textColor: 'text-red-500' },
+	{ id: 'find-it', label: 'FND', name: 'FIND IT', color: 'bg-purple-500', textColor: 'text-purple-500' },
+	{ id: 'fix-it', label: 'FIX', name: 'FIX IT', color: 'bg-amber-500', textColor: 'text-amber-500' },
+	{ id: 'check-it', label: 'CHK', name: 'CHECK IT', color: 'bg-teal-500', textColor: 'text-teal-500' },
+	{ id: 'continue', label: 'CON', name: 'CONTINUE', color: 'bg-brand-primary', textColor: 'text-brand-primary' },
+];
+
+// Find current section index (1-based journeySection to 0-based index)
+const currentIndex = journeySection - 1;
+const currentSection = sections[currentIndex];
+---
+
+<div class="bg-neutral-50 border-b border-neutral-200">
+	<div class="container-wide py-4">
+		<div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+			<!-- Progress dots -->
+			<div class="flex items-center gap-1">
+				{sections.map((section, i) => (
+					<>
+						<div
+							class:list={[
+								'w-3 h-3 rounded-full transition-all',
+								i === currentIndex ? section.color : 'bg-neutral-300',
+								i === currentIndex && 'ring-2 ring-offset-2 ring-current',
+							]}
+							title={section.name}
+						/>
+						{i < sections.length - 1 && (
+							<div class:list={[
+								'w-4 h-0.5',
+								i < currentIndex ? 'bg-neutral-400' : 'bg-neutral-200',
+							]} />
+						)}
+					</>
+				))}
+			</div>
+
+			<!-- Step label + link -->
+			<div class="flex items-center gap-4 text-sm">
+				<span class="text-neutral-600">
+					<span class={currentSection?.textColor}>Step {journeySection}</span> of the VaRiScout Journey
+				</span>
+				<a
+					href={`/${lang}/journey#${currentSection?.id}`}
+					class="inline-flex items-center gap-1 text-brand-primary hover:underline font-medium"
+				>
+					See full journey
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+					</svg>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>

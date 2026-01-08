@@ -1,0 +1,147 @@
+---
+/**
+ * FourPillars - Color-coded pillar cards representing the VaRiScout methodology
+ * Each pillar links to its respective tool page
+ */
+
+interface Props {
+	lang: string;
+}
+
+const { lang } = Astro.props;
+
+const pillars = [
+	{
+		id: 'change',
+		name: 'CHANGE',
+		question: 'Is it stable over time?',
+		tool: 'I-Chart',
+		description: 'Plot every point in sequence. See patterns that averages hide.',
+		color: 'blue',
+		href: `/${lang}/tools/i-chart`,
+		icon: `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4v16" /></svg>`,
+	},
+	{
+		id: 'flow',
+		name: 'FLOW',
+		question: 'Which factor drives variation?',
+		tool: 'Boxplot',
+		description: 'Compare spread across factors. Find where variation hides.',
+		color: 'orange',
+		href: `/${lang}/tools/boxplot`,
+		icon: `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>`,
+	},
+	{
+		id: 'failure',
+		name: 'FAILURE',
+		question: 'Where do problems concentrate?',
+		tool: 'Pareto',
+		description: 'Find the vital few. Focus on what matters most.',
+		color: 'red',
+		href: `/${lang}/tools/pareto`,
+		icon: `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>`,
+	},
+	{
+		id: 'value',
+		name: 'VALUE',
+		question: 'Does it meet customer specs?',
+		tool: 'Capability',
+		description: 'Voice of the Customer. Are you meeting expectations?',
+		color: 'green',
+		href: `/${lang}/tools/capability`,
+		icon: `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+	},
+];
+
+// Color mappings for Tailwind classes
+const colorClasses: Record<string, { bg: string; border: string; text: string; hover: string }> = {
+	blue: {
+		bg: 'bg-blue-500/10',
+		border: 'border-blue-500/30 hover:border-blue-500/60',
+		text: 'text-blue-500',
+		hover: 'group-hover:bg-blue-500/20',
+	},
+	orange: {
+		bg: 'bg-orange-500/10',
+		border: 'border-orange-500/30 hover:border-orange-500/60',
+		text: 'text-orange-500',
+		hover: 'group-hover:bg-orange-500/20',
+	},
+	red: {
+		bg: 'bg-red-500/10',
+		border: 'border-red-500/30 hover:border-red-500/60',
+		text: 'text-red-500',
+		hover: 'group-hover:bg-red-500/20',
+	},
+	green: {
+		bg: 'bg-green-500/10',
+		border: 'border-green-500/30 hover:border-green-500/60',
+		text: 'text-green-500',
+		hover: 'group-hover:bg-green-500/20',
+	},
+};
+---
+
+<section class="py-24 bg-neutral-50">
+	<div class="container-wide">
+		<!-- Section Header -->
+		<div class="text-center mb-16">
+			<span class="text-xs font-bold uppercase tracking-widest text-brand-primary">The Framework</span>
+			<h2 class="text-3xl md:text-4xl font-bold mt-4 text-neutral-900">Four Questions. Four Tools.</h2>
+			<p class="text-neutral-600 mt-4 max-w-2xl mx-auto">
+				Every process problem can be understood with four questions. VaRiScout answers all four, linked together.
+			</p>
+		</div>
+
+		<!-- Pillar Cards -->
+		<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+			{pillars.map((pillar) => {
+				const colors = colorClasses[pillar.color];
+				return (
+					<a
+						href={pillar.href}
+						class={`group block rounded-2xl border-2 ${colors.border} ${colors.bg} p-6 transition-all hover:shadow-lg`}
+					>
+						<!-- Icon -->
+						<div class={`w-14 h-14 rounded-xl ${colors.bg} ${colors.hover} flex items-center justify-center mb-4 transition-colors`}>
+							<span class={colors.text} set:html={pillar.icon} />
+						</div>
+
+						<!-- Pillar Name -->
+						<div class="flex items-center gap-2 mb-2">
+							<span class={`text-xs font-bold uppercase tracking-widest ${colors.text}`}>{pillar.name}</span>
+						</div>
+
+						<!-- Question -->
+						<h3 class="text-lg font-bold text-neutral-900 mb-2">{pillar.question}</h3>
+
+						<!-- Tool -->
+						<p class="text-sm text-neutral-500 mb-3">Tool: {pillar.tool}</p>
+
+						<!-- Description -->
+						<p class="text-sm text-neutral-600">{pillar.description}</p>
+
+						<!-- Arrow -->
+						<div class={`mt-4 flex items-center gap-1 text-sm font-medium ${colors.text}`}>
+							<span>Learn more</span>
+							<svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+							</svg>
+						</div>
+					</a>
+				);
+			})}
+		</div>
+
+		<!-- Journey Link -->
+		<div class="mt-12 text-center">
+			<p class="text-neutral-600 mb-4">See all four pillars work together in the VaRiScout Journey.</p>
+			<a href={`/${lang}/journey`} class="inline-flex items-center gap-2 text-brand-primary hover:underline font-medium">
+				<span>Experience the full journey</span>
+				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+				</svg>
+			</a>
+		</div>
+	</div>
+</section>

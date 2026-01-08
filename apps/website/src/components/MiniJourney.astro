@@ -1,0 +1,131 @@
+---
+/**
+ * MiniJourney - A condensed "aha moment" section for the homepage
+ * Shows the transformation from chaotic data to the 46% discovery
+ */
+
+interface Props {
+	lang: string;
+}
+
+const { lang } = Astro.props;
+---
+
+<section id="mini-journey" class="py-24 bg-neutral-900 text-white overflow-hidden">
+	<div class="container-wide">
+		<!-- Section Header -->
+		<div class="text-center mb-16">
+			<span class="text-xs font-bold uppercase tracking-widest text-brand-primary">The Transformation</span>
+			<h2 class="text-3xl md:text-4xl font-bold mt-4">What averages hide</h2>
+		</div>
+
+		<!-- Before/After Comparison -->
+		<div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+			<!-- BEFORE: Mixed Data -->
+			<div class="mini-journey-card bg-neutral-800/50 rounded-2xl p-6 border border-neutral-700">
+				<div class="flex items-center justify-between mb-6">
+					<span class="text-sm font-bold text-neutral-400 uppercase tracking-wider">All Data Mixed</span>
+					<span class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs font-medium">Chaotic</span>
+				</div>
+
+				<!-- Chaotic I-Chart visualization -->
+				<div class="relative h-48 mb-6">
+					<!-- Control limits -->
+					<div class="absolute top-4 left-0 right-0 border-t-2 border-dashed border-red-500/40">
+						<span class="absolute -top-5 right-0 text-xs text-red-400/60">UCL</span>
+					</div>
+					<div class="absolute bottom-4 left-0 right-0 border-t-2 border-dashed border-red-500/40">
+						<span class="absolute -bottom-5 right-0 text-xs text-red-400/60">LCL</span>
+					</div>
+					<div class="absolute top-1/2 left-0 right-0 border-t border-neutral-600">
+						<span class="absolute -top-3 right-0 text-xs text-neutral-500">x̄</span>
+					</div>
+
+					<!-- Scattered points (chaotic) -->
+					<div class="absolute inset-0 flex items-center justify-around px-2">
+						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(-50px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(35px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(-20px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(55px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(-45px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(15px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(-35px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(40px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(-10px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(25px);"></div>
+					</div>
+				</div>
+
+				<div class="text-center">
+					<p class="text-neutral-400">"The process looks unstable."</p>
+					<p class="text-neutral-500 text-sm mt-2">What should we fix?</p>
+				</div>
+			</div>
+
+			<!-- AFTER: Filtered Data -->
+			<div class="mini-journey-card bg-neutral-800/50 rounded-2xl p-6 border border-green-500/30">
+				<div class="flex items-center justify-between mb-6">
+					<span class="text-sm font-bold text-neutral-400 uppercase tracking-wider">Filtered by Factor</span>
+					<span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-medium">Clear</span>
+				</div>
+
+				<!-- Clean I-Chart visualization -->
+				<div class="relative h-48 mb-6">
+					<!-- Control limits -->
+					<div class="absolute top-4 left-0 right-0 border-t-2 border-dashed border-green-500/40">
+						<span class="absolute -top-5 right-0 text-xs text-green-400/60">UCL</span>
+					</div>
+					<div class="absolute bottom-4 left-0 right-0 border-t-2 border-dashed border-green-500/40">
+						<span class="absolute -bottom-5 right-0 text-xs text-green-400/60">LCL</span>
+					</div>
+					<div class="absolute top-1/2 left-0 right-0 border-t border-neutral-600">
+						<span class="absolute -top-3 right-0 text-xs text-neutral-500">x̄</span>
+					</div>
+
+					<!-- Clustered points (stable) -->
+					<div class="absolute inset-0 flex items-center justify-around px-2">
+						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(5px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(-8px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(3px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(-5px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(10px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(-3px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(7px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(-10px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(2px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(-6px);"></div>
+					</div>
+				</div>
+
+				<div class="text-center">
+					<p class="text-green-400">"Factor A is stable and capable."</p>
+					<p class="text-neutral-400 text-sm mt-2">Focus improvement on Factor C.</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- The Discovery -->
+		<div class="mt-16 text-center">
+			<div class="inline-block bg-purple-500/10 border border-purple-500/30 rounded-2xl px-8 py-6">
+				<p class="text-lg text-neutral-300 mb-2">Same data. Different questions.</p>
+				<p class="text-3xl md:text-4xl font-bold text-white">
+					<span class="text-purple-400">46%</span> of variation in one place.
+				</p>
+			</div>
+		</div>
+
+		<!-- CTA -->
+		<div class="mt-12 text-center">
+			<a
+				href={`/${lang}/journey`}
+				class="inline-flex items-center gap-3 bg-brand-primary hover:bg-brand-primary-dark text-white font-semibold px-8 py-4 rounded-xl transition-colors"
+			>
+				<span>Take the Full Journey</span>
+				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+				</svg>
+			</a>
+			<p class="text-neutral-500 text-sm mt-4">9 sections. 3 minutes. One aha moment.</p>
+		</div>
+	</div>
+</section>

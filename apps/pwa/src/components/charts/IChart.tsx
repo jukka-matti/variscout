@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Group } from '@visx/group';
-import { LinePath, Circle } from '@visx/shape';
+import { LinePath, Circle, Line } from '@visx/shape';
 import { scaleLinear, scaleTime } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { GridRows, GridColumns } from '@visx/grid';
@@ -16,6 +16,7 @@ import { Edit2, RotateCcw, Check, X } from 'lucide-react';
 import AxisEditor from '../AxisEditor';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import ChartSignature from './ChartSignature';
+import { getStageBoundaries, type StageBoundary } from '@variscout/core';
 
 interface IChartProps {
   parentWidth: number;
@@ -39,6 +40,9 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
     columnAliases,
     setColumnAliases,
     displayOptions,
+    stageColumn,
+    stagedStats,
+    stagedData,
   } = useData();
   const [isEditingScale, setIsEditingScale] = useState(false);
   const [isEditingLabel, setIsEditingLabel] = useState(false);
@@ -48,18 +52,35 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
   const width = Math.max(0, parentWidth - margin.left - margin.right);
   const height = Math.max(0, parentHeight - margin.top - margin.bottom);
 
+  // Use staged data when stage column is active
+  const sourceData = stageColumn ? stagedData : filteredData;
+  const isStaged = !!stageColumn && !!stagedStats;
+
   const data = useMemo(() => {
     if (!outcome) return [];
-    return filteredData
+    return sourceData
       .map((d: any, i: number) => ({
-        x: timeColumn ? new Date(d[timeColumn]) : i,
+        x: timeColumn && !stageColumn ? new Date(d[timeColumn]) : i, // Use index when staged
         y: Number(d[outcome]),
+        stage: stageColumn ? String(d[stageColumn] ?? '') : undefined,
       }))
       .filter((d: any) => !isNaN(d.y));
-  }, [filteredData, outcome, timeColumn]);
+  }, [sourceData, outcome, timeColumn, stageColumn]);
+
+  // Calculate stage boundaries for rendering
+  // Need to convert data to expected format (x as number) for getStageBoundaries
+  const stageBoundaries = useMemo<StageBoundary[]>(() => {
+    if (!isStaged || !stagedStats) return [];
+    const dataForBoundaries = data.map((d, i) => ({
+      x: i, // Always use index for stage boundaries
+      stage: d.stage,
+    }));
+    return getStageBoundaries(dataForBoundaries, stagedStats);
+  }, [data, isStaged, stagedStats]);
 
   const xScale = useMemo(() => {
-    if (timeColumn) {
+    // When staged, always use linear scale (index-based)
+    if (timeColumn && !isStaged) {
       return scaleTime({
         range: [0, width],
         domain: [
@@ -70,9 +91,9 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
     }
     return scaleLinear({
       range: [0, width],
-      domain: [0, data.length - 1],
+      domain: [0, Math.max(data.length - 1, 1)],
     });
-  }, [data, width, timeColumn]);
+  }, [data, width, timeColumn, isStaged]);
 
   // Use existing hook for scale limits
   const { min, max } = useChartScale();
@@ -222,8 +243,75 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
               />
             )}
 
-          {/* Control Limits */}
-          {stats && (
+          {/* Control Limits - Staged Mode */}
+          {isStaged &&
+            stageBoundaries.map((boundary, idx) => {
+              const x1 = xScale(boundary.startX);
+              const x2 = xScale(boundary.endX);
+              const stageWidth = x2 - x1;
+
+              return (
+                <Group key={boundary.name}>
+                  {/* Stage divider (vertical line at stage boundary) */}
+                  {idx > 0 && (
+                    <Line
+                      from={{ x: x1 - 5, y: 0 }}
+                      to={{ x: x1 - 5, y: height }}
+                      stroke="#475569"
+                      strokeWidth={1}
+                      strokeDasharray="4,4"
+                    />
+                  )}
+
+                  {/* Stage label at top */}
+                  <text
+                    x={x1 + stageWidth / 2}
+                    y={-8}
+                    textAnchor="middle"
+                    fill="#94a3b8"
+                    fontSize={fonts.tickLabel}
+                    fontWeight={500}
+                  >
+                    {boundary.name}
+                  </text>
+
+                  {/* UCL for this stage */}
+                  <line
+                    x1={x1}
+                    x2={x2}
+                    y1={yScale(boundary.stats.ucl)}
+                    y2={yScale(boundary.stats.ucl)}
+                    stroke="#64748b"
+                    strokeWidth={1}
+                    strokeDasharray="4,4"
+                  />
+
+                  {/* Mean for this stage */}
+                  <line
+                    x1={x1}
+                    x2={x2}
+                    y1={yScale(boundary.stats.mean)}
+                    y2={yScale(boundary.stats.mean)}
+                    stroke="#64748b"
+                    strokeWidth={1}
+                  />
+
+                  {/* LCL for this stage */}
+                  <line
+                    x1={x1}
+                    x2={x2}
+                    y1={yScale(boundary.stats.lcl)}
+                    y2={yScale(boundary.stats.lcl)}
+                    stroke="#64748b"
+                    strokeWidth={1}
+                    strokeDasharray="4,4"
+                  />
+                </Group>
+              );
+            })}
+
+          {/* Control Limits - Non-staged Mode */}
+          {!isStaged && stats && (
             <>
               <line
                 x1={0}

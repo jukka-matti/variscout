@@ -56,20 +56,40 @@ function App() {
 
   // Embed mode - hides header/footer for iframe embedding
   const [isEmbedMode, setIsEmbedMode] = useState(false);
+  // Embed focus chart - when set, Dashboard shows only this chart
+  const [embedFocusChart, setEmbedFocusChart] = useState<
+    'ichart' | 'boxplot' | 'pareto' | 'stats' | null
+  >(null);
+  // Embed stats tab - when set, auto-selects this tab in StatsPanel
+  const [embedStatsTab, setEmbedStatsTab] = useState<'summary' | 'histogram' | 'normality' | null>(
+    null
+  );
 
   // Embed messaging - handles postMessage communication with parent window
   const { highlightedChart, highlightIntensity, notifyChartClicked } =
     useEmbedMessaging(isEmbedMode);
 
-  // Handle URL parameters on mount (?sample=xxx&embed=true)
+  // Handle URL parameters on mount (?sample=xxx&embed=true&chart=ichart&tab=histogram)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const sampleKey = params.get('sample');
     const embedParam = params.get('embed');
+    const chartParam = params.get('chart');
+    const tabParam = params.get('tab');
 
     // Set embed mode if specified
     if (embedParam === 'true') {
       setIsEmbedMode(true);
+    }
+
+    // Set focus chart if specified (only valid in embed mode)
+    if (chartParam && ['ichart', 'boxplot', 'pareto', 'stats'].includes(chartParam)) {
+      setEmbedFocusChart(chartParam as 'ichart' | 'boxplot' | 'pareto' | 'stats');
+    }
+
+    // Set stats tab if specified (for stats chart embed)
+    if (tabParam && ['summary', 'histogram', 'normality'].includes(tabParam)) {
+      setEmbedStatsTab(tabParam as 'summary' | 'histogram' | 'normality');
     }
 
     // Auto-load sample if specified
@@ -409,6 +429,8 @@ function App() {
             highlightedChart={highlightedChart}
             highlightIntensity={highlightIntensity}
             onChartClick={isEmbedMode ? notifyChartClicked : undefined}
+            embedFocusChart={embedFocusChart}
+            embedStatsTab={embedStatsTab}
           />
         )}
       </main>

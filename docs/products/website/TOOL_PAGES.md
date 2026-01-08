@@ -234,6 +234,8 @@ After [Tool], you might want to:
 
 **Two Voices Connection**: UCL/LCL = Voice of Process, USL/LSL = Voice of Customer
 
+**Staged Analysis**: Compare process phases with separate control limits per stage
+
 ---
 
 ### Boxplot (FLOW)

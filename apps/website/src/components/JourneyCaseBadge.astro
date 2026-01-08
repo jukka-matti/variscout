@@ -1,0 +1,56 @@
+---
+/**
+ * JourneyCaseBadge - Shows journey context for case study pages
+ * Displays the AVERAGES → EXPLORE → REVEAL flow with current act highlighted
+ */
+
+interface Props {
+	lang: string;
+	currentAct?: 1 | 2 | 3;
+}
+
+const { lang, currentAct = 1 } = Astro.props;
+
+const acts = [
+	{ num: 1, label: 'AVERAGES', desc: 'The Problem', bgActive: 'bg-neutral-500/20', textActive: 'text-neutral-700' },
+	{ num: 2, label: 'EXPLORE', desc: 'Your Turn', bgActive: 'bg-brand-primary/20', textActive: 'text-brand-primary' },
+	{ num: 3, label: 'REVEAL', desc: 'The Solution', bgActive: 'bg-purple-500/20', textActive: 'text-purple-600' },
+];
+---
+
+<div class="bg-neutral-50 border-b border-neutral-200">
+	<div class="container-wide py-3">
+		<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+			<!-- Journey flow -->
+			<div class="flex items-center gap-1.5 text-sm">
+				<span class="text-neutral-500 mr-1 hidden sm:inline">Practice the Journey:</span>
+				{acts.map((act, i) => (
+					<>
+						<span
+							class:list={[
+								'px-2 py-1 rounded text-xs font-medium transition-colors',
+								currentAct === act.num
+									? [act.bgActive, act.textActive]
+									: 'text-neutral-400 bg-transparent',
+							]}
+						>
+							{act.label}
+						</span>
+						{i < 2 && <span class="text-neutral-300">→</span>}
+					</>
+				))}
+			</div>
+
+			<!-- Journey link -->
+			<a
+				href={`/${lang}/journey`}
+				class="inline-flex items-center gap-1 text-brand-primary text-sm hover:underline font-medium"
+			>
+				<span>See full journey</span>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+				</svg>
+			</a>
+		</div>
+	</div>
+</div>

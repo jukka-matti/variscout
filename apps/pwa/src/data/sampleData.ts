@@ -235,6 +235,39 @@ const journeyData = (() => {
   return data;
 })();
 
+// 8b. Journey Before: Capability Analysis - BEFORE improvement (Cpk ~0.8)
+// High variation process, not capable of meeting spec
+const journeyBeforeData = (() => {
+  const data: any[] = [];
+  // Generate 100 measurements with high variation (std=8), mean slightly off-center
+  // Specs: LSL=90, USL=110, Target=100
+  // With mean=98 and std=8, Cpk ≈ (98-90)/(3*8) = 0.33 (very poor)
+  // Adjust to get Cpk ~0.8: mean=100, std=4.17 → Cpk = 10/(3*4.17) = 0.8
+  for (let i = 1; i <= 100; i++) {
+    data.push({
+      Sample: i,
+      Measurement: Number(generateNormal(100, 4.2).toFixed(1)), // Cpk ~0.8
+    });
+  }
+  return data;
+})();
+
+// 8c. Journey After: Capability Analysis - AFTER improvement (Cpk ~1.5)
+// Low variation process after fixing Factor C
+const journeyAfterData = (() => {
+  const data: any[] = [];
+  // Generate 100 measurements with low variation (std=2.2), centered on target
+  // Specs: LSL=90, USL=110, Target=100
+  // With mean=100 and std=2.2, Cpk = 10/(3*2.2) = 1.52 (good)
+  for (let i = 1; i <= 100; i++) {
+    data.push({
+      Sample: i,
+      Measurement: Number(generateNormal(100, 2.2).toFixed(1)), // Cpk ~1.5
+    });
+  }
+  return data;
+})();
+
 // 9. Avocado Coating: Regression Analysis (Week 12 Case)
 // Story: More coating = longer shelf life, but operator variation matters
 const avocadoCoatingData = (() => {
@@ -567,6 +600,31 @@ export const SAMPLES: SampleDataset[] = [
     config: {
       outcome: 'Measurement',
       factors: ['Factor'],
+      specs: { lsl: 90, usl: 110, target: 100 },
+    },
+  },
+  // Journey Before/After (for capability comparison on VALUE section)
+  {
+    name: 'Journey: Before Improvement',
+    description: 'Capability analysis before fixing Factor C (Cpk ~0.8).',
+    icon: 'alert-circle',
+    urlKey: 'journey-before',
+    data: journeyBeforeData,
+    config: {
+      outcome: 'Measurement',
+      factors: ['Sample'],
+      specs: { lsl: 90, usl: 110, target: 100 },
+    },
+  },
+  {
+    name: 'Journey: After Improvement',
+    description: 'Capability analysis after fixing Factor C (Cpk ~1.5).',
+    icon: 'check-circle',
+    urlKey: 'journey-after',
+    data: journeyAfterData,
+    config: {
+      outcome: 'Measurement',
+      factors: ['Sample'],
       specs: { lsl: 90, usl: 110, target: 100 },
     },
   },

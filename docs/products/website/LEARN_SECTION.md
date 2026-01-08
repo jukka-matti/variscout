@@ -14,13 +14,14 @@ The Learn section provides the theoretical foundation for VaRiScout's approach. 
 
 ---
 
-## The 3 Learn Pages
+## The 4 Learn Pages
 
-| Page           | Route                   | Core Concept                                   |
-| -------------- | ----------------------- | ---------------------------------------------- |
-| Two Voices     | `/learn/two-voices`     | Control limits vs Spec limits                  |
-| Four Pillars   | `/learn/four-pillars`   | Watson's CHANGE-FLOW-FAILURE-VALUE methodology |
-| EDA Philosophy | `/learn/eda-philosophy` | Exploratory Data Analysis mindset              |
+| Page            | Route                    | Core Concept                                   |
+| --------------- | ------------------------ | ---------------------------------------------- |
+| Two Voices      | `/learn/two-voices`      | Control limits vs Spec limits                  |
+| Four Pillars    | `/learn/four-pillars`    | Watson's CHANGE-FLOW-FAILURE-VALUE methodology |
+| EDA Philosophy  | `/learn/eda-philosophy`  | Exploratory Data Analysis mindset              |
+| Staged Analysis | `/learn/staged-analysis` | Compare process phases with separate limits    |
 
 ---
 
@@ -326,6 +327,70 @@ Side-by-side comparison:
 
 ---
 
+## Page 4: Staged Analysis
+
+**Route**: `/[lang]/learn/staged-analysis`
+
+### Core Concept
+
+When a process changes, control limits calculated from combined data can mask real improvements or hide problems:
+
+- **Combined data**: Wide limits obscure phase differences
+- **Staged analysis**: Separate limits per phase reveal true performance
+
+### Content Structure
+
+```
+# Staged Analysis: Compare Process Phases
+
+## The Problem
+
+When your process changes, single control limits hide the story:
+
+| Approach | What It Shows | What It Hides |
+|----------|---------------|---------------|
+| Combined limits | Overall average | Phase-specific behavior |
+| Staged limits | Each phase separately | Nothing - full picture |
+
+## When to Use Staged Analysis
+
+- Before/after process improvements
+- Batch-to-batch comparisons
+- Equipment or material changes
+- Shift or time period analysis
+
+## How It Works
+
+1. Select your stage column (e.g., "Phase", "Batch", "Period")
+2. Choose stage ordering (auto-detect, alphabetical, first occurrence)
+3. See separate UCL/Mean/LCL for each stage
+
+[PWA embed showing staged I-Chart]
+
+## Interpreting Results
+
+| Pattern | Meaning |
+|---------|---------|
+| Lower mean in Stage B | Process shifted |
+| Tighter limits in Stage B | Variation reduced (improvement) |
+| Wider limits in Stage B | Variation increased (problem) |
+
+## Try It
+
+[Interactive demo with before/after data]
+
+"When your process changes, your control limits should too."
+```
+
+### Key Visual
+
+Before/After comparison showing:
+
+- Combined limits hiding improvement
+- Staged limits revealing true performance per phase
+
+---
+
 ## Technical Implementation
 
 ### Dynamic Routing
@@ -333,7 +398,7 @@ Side-by-side comparison:
 ```astro
 // pages/[lang]/learn/[topic].astro
 export function getStaticPaths() {
-  const topics = ['two-voices', 'four-pillars', 'eda-philosophy'];
+  const topics = ['two-voices', 'four-pillars', 'eda-philosophy', 'staged-analysis'];
   const languages = ['en', 'de', 'es', 'fr', 'pt'];
 
   return languages.flatMap(lang =>

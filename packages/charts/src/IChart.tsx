@@ -6,7 +6,8 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { GridRows } from '@visx/grid';
 import { withParentSize } from '@visx/responsive';
 import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
-import type { IChartProps } from './types';
+import { getStageBoundaries, type StatsResult } from '@variscout/core';
+import type { IChartProps, StageBoundary } from './types';
 import { getResponsiveMargins, getResponsiveFonts, getResponsiveTickCount } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 
@@ -17,6 +18,7 @@ import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 const IChartBase: React.FC<IChartProps> = ({
   data,
   stats,
+  stagedStats,
   specs,
   grades,
   yAxisLabel = 'Value',
@@ -29,7 +31,15 @@ const IChartBase: React.FC<IChartProps> = ({
   sampleSize,
 }) => {
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
-    useTooltip<{ x: number; y: number; index: number }>();
+    useTooltip<{ x: number; y: number; index: number; stage?: string }>();
+
+  // Calculate stage boundaries when staged mode is active
+  const stageBoundaries = useMemo<StageBoundary[]>(() => {
+    if (!stagedStats) return [];
+    return getStageBoundaries(data, stagedStats);
+  }, [data, stagedStats]);
+
+  const isStaged = stageBoundaries.length > 0;
 
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'ichart', sourceBarHeight);
@@ -48,8 +58,14 @@ const IChartBase: React.FC<IChartProps> = ({
     let minVal = Math.min(...values);
     let maxVal = Math.max(...values);
 
-    // Include control limits
-    if (stats) {
+    // Include control limits (single stats or all staged stats)
+    if (isStaged) {
+      // Include all stage control limits
+      stageBoundaries.forEach(boundary => {
+        minVal = Math.min(minVal, boundary.stats.lcl);
+        maxVal = Math.max(maxVal, boundary.stats.ucl);
+      });
+    } else if (stats) {
       minVal = Math.min(minVal, stats.lcl);
       maxVal = Math.max(maxVal, stats.ucl);
     }
@@ -67,7 +83,7 @@ const IChartBase: React.FC<IChartProps> = ({
     // Add padding
     const padding = (maxVal - minVal) * 0.1;
     return [minVal - padding, maxVal + padding] as [number, number];
-  }, [data, stats, specs, grades, axisSettings]);
+  }, [data, stats, isStaged, stageBoundaries, specs, grades, axisSettings]);
 
   const xScale = useMemo(
     () =>
@@ -91,8 +107,14 @@ const IChartBase: React.FC<IChartProps> = ({
   const xTickCount = getResponsiveTickCount(width, 'x');
   const yTickCount = getResponsiveTickCount(height, 'y');
 
+  // Get stage stats for a specific data point
+  const getStageStatsForPoint = (stage?: string): StatsResult | null => {
+    if (!isStaged || !stage) return stats;
+    return stagedStats?.stages.get(stage) ?? null;
+  };
+
   // Determine point color based on specs or grades
-  const getPointColor = (value: number): string => {
+  const getPointColor = (value: number, stage?: string): string => {
     // Check grades first (multi-tier)
     if (grades && grades.length > 0) {
       const grade = grades.find(g => value <= g.max);
@@ -103,7 +125,14 @@ const IChartBase: React.FC<IChartProps> = ({
     if (specs.usl !== undefined && value > specs.usl) return '#ef4444'; // Red - above USL
     if (specs.lsl !== undefined && value < specs.lsl) return '#f59e0b'; // Amber - below LSL
 
-    return '#22c55e'; // Green - in spec
+    // Check control limits (use stage-specific limits if staged)
+    const stageStats = getStageStatsForPoint(stage);
+    if (stageStats) {
+      if (value > stageStats.ucl) return '#f97316'; // Orange - above UCL
+      if (value < stageStats.lcl) return '#f97316'; // Orange - below LCL
+    }
+
+    return '#22c55e'; // Green - in spec/control
   };
 
   if (data.length === 0) return null;
@@ -133,8 +162,69 @@ const IChartBase: React.FC<IChartProps> = ({
               );
             })}
 
-          {/* Control limits */}
-          {stats && (
+          {/* Control limits - Staged mode */}
+          {isStaged &&
+            stageBoundaries.map((boundary, idx) => {
+              const x1 = xScale(boundary.startX);
+              const x2 = xScale(boundary.endX);
+              const stageWidth = x2 - x1;
+
+              return (
+                <Group key={boundary.name}>
+                  {/* Stage divider (vertical line at stage boundary) */}
+                  {idx > 0 && (
+                    <Line
+                      from={{ x: x1 - 5, y: 0 }}
+                      to={{ x: x1 - 5, y: height }}
+                      stroke="#475569"
+                      strokeWidth={1}
+                      strokeDasharray="4,4"
+                    />
+                  )}
+
+                  {/* Stage label at top */}
+                  <text
+                    x={x1 + stageWidth / 2}
+                    y={-8}
+                    textAnchor="middle"
+                    fill="#94a3b8"
+                    fontSize={fonts.tickLabel}
+                    fontWeight={500}
+                  >
+                    {boundary.name}
+                  </text>
+
+                  {/* UCL for this stage */}
+                  <Line
+                    from={{ x: x1, y: yScale(boundary.stats.ucl) }}
+                    to={{ x: x2, y: yScale(boundary.stats.ucl) }}
+                    stroke="#94a3b8"
+                    strokeWidth={1}
+                    strokeDasharray="4,4"
+                  />
+
+                  {/* Mean for this stage */}
+                  <Line
+                    from={{ x: x1, y: yScale(boundary.stats.mean) }}
+                    to={{ x: x2, y: yScale(boundary.stats.mean) }}
+                    stroke="#3b82f6"
+                    strokeWidth={1.5}
+                  />
+
+                  {/* LCL for this stage */}
+                  <Line
+                    from={{ x: x1, y: yScale(boundary.stats.lcl) }}
+                    to={{ x: x2, y: yScale(boundary.stats.lcl) }}
+                    stroke="#94a3b8"
+                    strokeWidth={1}
+                    strokeDasharray="4,4"
+                  />
+                </Group>
+              );
+            })}
+
+          {/* Control limits - Non-staged mode */}
+          {!isStaged && stats && (
             <>
               {/* UCL */}
               <Line
@@ -208,7 +298,7 @@ const IChartBase: React.FC<IChartProps> = ({
               cx={xScale(d.x)}
               cy={yScale(d.y)}
               r={4}
-              fill={getPointColor(d.y)}
+              fill={getPointColor(d.y, d.stage)}
               stroke="#0f172a"
               strokeWidth={1}
               className={onPointClick ? 'cursor-pointer hover:opacity-80' : ''}
@@ -217,7 +307,7 @@ const IChartBase: React.FC<IChartProps> = ({
                 showTooltip({
                   tooltipLeft: xScale(d.x),
                   tooltipTop: yScale(d.y),
-                  tooltipData: { x: d.x, y: d.y, index: i },
+                  tooltipData: { x: d.x, y: d.y, index: i, stage: d.stage },
                 })
               }
               onMouseLeave={hideTooltip}
@@ -308,6 +398,9 @@ const IChartBase: React.FC<IChartProps> = ({
         >
           <div>
             <strong>#{tooltipData.index + 1}</strong>
+            {tooltipData.stage && (
+              <span style={{ color: '#94a3b8', marginLeft: 8 }}>{tooltipData.stage}</span>
+            )}
           </div>
           <div>Value: {tooltipData.y.toFixed(2)}</div>
         </TooltipWithBounds>

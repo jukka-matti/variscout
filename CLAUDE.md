@@ -30,6 +30,7 @@ variscout-lite/
 │   ├── azure/         # Azure Team App (MSAL + OneDrive sync)
 │   └── excel-addin/   # Excel Add-in (Office.js + Fluent UI)
 └── docs/
+    ├── cases/         # Case studies with demo data (coffee, packaging, avocado)
     ├── concepts/      # Strategic product decisions
     ├── design-system/ # Design tokens, components, charts
     ├── technical/     # Implementation guides
@@ -81,9 +82,13 @@ variscout-lite/
 | `apps/azure/src/services/storage.ts`            | Offline-first storage + OneDrive sync                     |
 | `apps/azure/src/components/__tests__/`          | Azure app component tests                                 |
 | `apps/excel-addin/src/lib/stateBridge.ts`       | Excel state sync                                          |
+| `docs/cases/`                                   | Case studies with demo data and teaching briefs           |
 | `docs/concepts/LSS_TRAINER_STRATEGY.md`         | Green Belt training feature roadmap                       |
 | `docs/concepts/POWER_BI_STRATEGY.md`            | Power BI Custom Visual strategy                           |
 | `docs/concepts/SUBSCRIPTION_LICENSING.md`       | Paddle integration, license key system                    |
+| `docs/concepts/FOUR_PILLARS_METHODOLOGY.md`     | Core methodology (Watson's Four Pillars)                  |
+| `docs/concepts/TWO_VOICES_CONTROL_VS_SPEC.md`   | Control limits vs spec limits (Two Voices)                |
+| `docs/concepts/CASE_BASED_LEARNING.md`          | Three-act case structure for learning                     |
 | `docs/technical/TESTING_STRATEGY.md`            | Testing philosophy, coverage, patterns                    |
 | `docs/technical/`                               | PWA storage, deployment, testing strategy                 |
 | `docs/products/pwa/`                            | PWA product spec (licensing, storage, stack)              |
@@ -100,8 +105,9 @@ variscout-lite/
 - `ARCHITECTURE.md` - Technical details
 - `docs/MONOREPO_ARCHITECTURE.md` - Package structure
 - `Specs.md` - Feature specifications
+- `docs/cases/` - **Case studies** (coffee, packaging, avocado - with demo data)
 - `docs/design-system/` - **Design system** (colors, typography, components, charts)
 - `docs/technical/` - **Technical specs** (storage, deployment, data input)
 - `docs/technical/DATA_INPUT.md` - **Data input system** (parsing, validation, auto-mapping)
-- `docs/concepts/` - **Strategic decisions** (Excel, LSS, Power BI, Licensing)
+- `docs/concepts/` - **Strategic decisions** (Excel, LSS, Power BI, Licensing, Methodology)
 - `docs/products/` - **Product specs** (PWA, Website, Excel, Power BI, Azure)

@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { calculateStats, calculateAnova, calculateRegression, calculateGageRR } from '../stats';
+import {
+  calculateStats,
+  calculateAnova,
+  calculateRegression,
+  calculateGageRR,
+  determineStageOrder,
+  sortDataByStage,
+  calculateStatsByStage,
+  getStageBoundaries,
+} from '../stats';
 
 describe('Stats Engine', () => {
   it('should calculate basic stats for a normal distribution', () => {
@@ -574,5 +583,309 @@ describe('Gage R&R', () => {
     // %GRR = σ_GRR / σ_Total × 100
     const expectedPctGRR = (Math.sqrt(result!.varGRR) / Math.sqrt(result!.varTotal)) * 100;
     expect(result!.pctGRR).toBeCloseTo(expectedPctGRR, 5);
+  });
+});
+
+describe('Stage Order Detection', () => {
+  it('should preserve first occurrence order for text stages', () => {
+    const stages = ['Before', 'After', 'Before', 'During', 'After'];
+    const order = determineStageOrder(stages);
+
+    expect(order).toEqual(['Before', 'After', 'During']);
+  });
+
+  it('should sort numeric stages numerically', () => {
+    const stages = ['3', '1', '2', '1', '3'];
+    const order = determineStageOrder(stages);
+
+    expect(order).toEqual(['1', '2', '3']);
+  });
+
+  it('should sort "Stage N" patterns numerically', () => {
+    const stages = ['Stage 3', 'Stage 1', 'Stage 2'];
+    const order = determineStageOrder(stages);
+
+    expect(order).toEqual(['Stage 1', 'Stage 2', 'Stage 3']);
+  });
+
+  it('should sort "Batch N" patterns numerically', () => {
+    const stages = ['Batch 10', 'Batch 2', 'Batch 1'];
+    const order = determineStageOrder(stages);
+
+    expect(order).toEqual(['Batch 1', 'Batch 2', 'Batch 10']);
+  });
+
+  it('should sort "Phase N" patterns numerically', () => {
+    const stages = ['Phase 2', 'Phase 1', 'Phase 3'];
+    const order = determineStageOrder(stages);
+
+    expect(order).toEqual(['Phase 1', 'Phase 2', 'Phase 3']);
+  });
+
+  it('should respect explicit first-occurrence mode', () => {
+    const stages = ['3', '1', '2'];
+    const order = determineStageOrder(stages, 'first-occurrence');
+
+    expect(order).toEqual(['3', '1', '2']);
+  });
+
+  it('should respect explicit alphabetical mode', () => {
+    const stages = ['Charlie', 'Alpha', 'Bravo'];
+    const order = determineStageOrder(stages, 'alphabetical');
+
+    expect(order).toEqual(['Alpha', 'Bravo', 'Charlie']);
+  });
+
+  it('should sort numbers in alphabetical mode numerically', () => {
+    const stages = ['10', '2', '1'];
+    const order = determineStageOrder(stages, 'alphabetical');
+
+    expect(order).toEqual(['1', '2', '10']);
+  });
+
+  it('should handle empty array', () => {
+    const order = determineStageOrder([]);
+    expect(order).toEqual([]);
+  });
+
+  it('should handle single stage', () => {
+    const order = determineStageOrder(['Only']);
+    expect(order).toEqual(['Only']);
+  });
+});
+
+describe('Sort Data by Stage', () => {
+  it('should group data by stage while preserving within-stage order', () => {
+    const data = [
+      { id: 1, stage: 'B', value: 10 },
+      { id: 2, stage: 'A', value: 20 },
+      { id: 3, stage: 'B', value: 30 },
+      { id: 4, stage: 'A', value: 40 },
+    ];
+
+    const sorted = sortDataByStage(data, 'stage', ['A', 'B']);
+
+    expect(sorted.map(d => d.id)).toEqual([2, 4, 1, 3]);
+  });
+
+  it('should handle interleaved stages correctly', () => {
+    const data = [
+      { id: 1, stage: 'A' },
+      { id: 2, stage: 'B' },
+      { id: 3, stage: 'A' },
+      { id: 4, stage: 'B' },
+      { id: 5, stage: 'A' },
+    ];
+
+    const sorted = sortDataByStage(data, 'stage', ['A', 'B']);
+
+    // All A's first (preserving order), then all B's
+    expect(sorted.map(d => d.id)).toEqual([1, 3, 5, 2, 4]);
+  });
+
+  it('should put unknown stages at the end', () => {
+    const data = [
+      { id: 1, stage: 'Unknown' },
+      { id: 2, stage: 'A' },
+      { id: 3, stage: 'B' },
+    ];
+
+    const sorted = sortDataByStage(data, 'stage', ['A', 'B']);
+
+    expect(sorted.map(d => d.id)).toEqual([2, 3, 1]);
+  });
+
+  it('should handle empty data', () => {
+    const sorted = sortDataByStage([], 'stage', ['A', 'B']);
+    expect(sorted).toEqual([]);
+  });
+
+  it('should handle empty stage order', () => {
+    const data = [{ id: 1, stage: 'A' }];
+    const sorted = sortDataByStage(data, 'stage', []);
+
+    expect(sorted).toEqual([{ id: 1, stage: 'A' }]);
+  });
+
+  it('should not mutate original data', () => {
+    const data = [
+      { id: 1, stage: 'B' },
+      { id: 2, stage: 'A' },
+    ];
+    const original = [...data];
+
+    sortDataByStage(data, 'stage', ['A', 'B']);
+
+    expect(data).toEqual(original);
+  });
+});
+
+describe('Calculate Stats by Stage', () => {
+  const stageData = [
+    { batch: 'Batch 1', weight: 10 },
+    { batch: 'Batch 1', weight: 11 },
+    { batch: 'Batch 1', weight: 12 },
+    { batch: 'Batch 2', weight: 20 },
+    { batch: 'Batch 2', weight: 21 },
+    { batch: 'Batch 2', weight: 22 },
+    { batch: 'Batch 3', weight: 30 },
+    { batch: 'Batch 3', weight: 31 },
+    { batch: 'Batch 3', weight: 32 },
+  ];
+
+  it('should calculate stats for each stage', () => {
+    const result = calculateStatsByStage(stageData, 'weight', 'batch', {});
+
+    expect(result).not.toBeNull();
+    expect(result!.stages.size).toBe(3);
+    expect(result!.stageOrder).toEqual(['Batch 1', 'Batch 2', 'Batch 3']);
+
+    const batch1 = result!.stages.get('Batch 1');
+    expect(batch1).toBeDefined();
+    expect(batch1!.mean).toBeCloseTo(11, 1);
+
+    const batch2 = result!.stages.get('Batch 2');
+    expect(batch2).toBeDefined();
+    expect(batch2!.mean).toBeCloseTo(21, 1);
+  });
+
+  it('should calculate separate control limits per stage', () => {
+    const result = calculateStatsByStage(stageData, 'weight', 'batch', {});
+
+    expect(result).not.toBeNull();
+
+    const batch1 = result!.stages.get('Batch 1');
+    const batch2 = result!.stages.get('Batch 2');
+
+    // Each stage should have its own UCL/LCL
+    expect(batch1!.ucl).not.toBeCloseTo(batch2!.ucl, 0);
+    expect(batch1!.lcl).not.toBeCloseTo(batch2!.lcl, 0);
+  });
+
+  it('should calculate overall stats for reference', () => {
+    const result = calculateStatsByStage(stageData, 'weight', 'batch', {});
+
+    expect(result).not.toBeNull();
+    // Overall mean should be (11 + 21 + 31) / 3 * 3 / 9 = 21
+    expect(result!.overallStats.mean).toBeCloseTo(21, 1);
+  });
+
+  it('should respect spec limits', () => {
+    const result = calculateStatsByStage(stageData, 'weight', 'batch', {
+      usl: 35,
+      lsl: 5,
+    });
+
+    expect(result).not.toBeNull();
+
+    const batch1 = result!.stages.get('Batch 1');
+    expect(batch1!.cpk).toBeDefined();
+  });
+
+  it('should filter out empty stages', () => {
+    const dataWithEmpty = [
+      { batch: 'A', weight: 10 },
+      { batch: 'A', weight: 11 },
+      { batch: 'B', weight: NaN }, // Invalid values only
+    ];
+
+    const result = calculateStatsByStage(dataWithEmpty, 'weight', 'batch', {});
+
+    expect(result).not.toBeNull();
+    expect(result!.stageOrder).toEqual(['A']);
+    expect(result!.stages.has('B')).toBe(false);
+  });
+
+  it('should return null for empty data', () => {
+    const result = calculateStatsByStage([], 'weight', 'batch', {});
+    expect(result).toBeNull();
+  });
+
+  it('should use provided stage order', () => {
+    const result = calculateStatsByStage(
+      stageData,
+      'weight',
+      'batch',
+      {},
+      ['Batch 3', 'Batch 2', 'Batch 1'] // Reverse order
+    );
+
+    expect(result).not.toBeNull();
+    expect(result!.stageOrder).toEqual(['Batch 3', 'Batch 2', 'Batch 1']);
+  });
+});
+
+describe('Get Stage Boundaries', () => {
+  it('should calculate correct X boundaries for each stage', () => {
+    const data = [
+      { x: 0, stage: 'A' },
+      { x: 1, stage: 'A' },
+      { x: 2, stage: 'A' },
+      { x: 3, stage: 'B' },
+      { x: 4, stage: 'B' },
+      { x: 5, stage: 'C' },
+    ];
+
+    const stagedStats = {
+      stages: new Map([
+        ['A', { mean: 10, stdDev: 1, ucl: 13, lcl: 7, outOfSpecPercentage: 0 }],
+        ['B', { mean: 20, stdDev: 1, ucl: 23, lcl: 17, outOfSpecPercentage: 0 }],
+        ['C', { mean: 30, stdDev: 1, ucl: 33, lcl: 27, outOfSpecPercentage: 0 }],
+      ]),
+      stageOrder: ['A', 'B', 'C'],
+      overallStats: { mean: 20, stdDev: 5, ucl: 35, lcl: 5, outOfSpecPercentage: 0 },
+    };
+
+    const boundaries = getStageBoundaries(data, stagedStats);
+
+    expect(boundaries).toHaveLength(3);
+
+    expect(boundaries[0].name).toBe('A');
+    expect(boundaries[0].startX).toBe(0);
+    expect(boundaries[0].endX).toBe(2);
+
+    expect(boundaries[1].name).toBe('B');
+    expect(boundaries[1].startX).toBe(3);
+    expect(boundaries[1].endX).toBe(4);
+
+    expect(boundaries[2].name).toBe('C');
+    expect(boundaries[2].startX).toBe(5);
+    expect(boundaries[2].endX).toBe(5);
+  });
+
+  it('should include stage stats in boundaries', () => {
+    const data = [
+      { x: 0, stage: 'A' },
+      { x: 1, stage: 'A' },
+    ];
+
+    const stats = { mean: 15, stdDev: 2, ucl: 21, lcl: 9, outOfSpecPercentage: 0 };
+    const stagedStats = {
+      stages: new Map([['A', stats]]),
+      stageOrder: ['A'],
+      overallStats: stats,
+    };
+
+    const boundaries = getStageBoundaries(data, stagedStats);
+
+    expect(boundaries[0].stats).toBe(stats);
+  });
+
+  it('should skip stages with no data points', () => {
+    const data = [{ x: 0, stage: 'A' }];
+
+    const stagedStats = {
+      stages: new Map([
+        ['A', { mean: 10, stdDev: 1, ucl: 13, lcl: 7, outOfSpecPercentage: 0 }],
+        ['B', { mean: 20, stdDev: 1, ucl: 23, lcl: 17, outOfSpecPercentage: 0 }],
+      ]),
+      stageOrder: ['A', 'B'],
+      overallStats: { mean: 15, stdDev: 5, ucl: 30, lcl: 0, outOfSpecPercentage: 0 },
+    };
+
+    const boundaries = getStageBoundaries(data, stagedStats);
+
+    expect(boundaries).toHaveLength(1);
+    expect(boundaries[0].name).toBe('A');
   });
 });

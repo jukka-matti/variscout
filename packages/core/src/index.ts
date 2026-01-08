@@ -19,6 +19,9 @@ export type {
   QuadraticFit,
   GageRRResult,
   GageRRInteraction,
+  StageOrderMode,
+  StagedStatsResult,
+  StageBoundary,
 } from './types';
 
 // Statistics
@@ -32,6 +35,11 @@ export {
   calculateAnova,
   calculateRegression,
   calculateGageRR,
+  // Staged stats functions
+  determineStageOrder,
+  sortDataByStage,
+  calculateStatsByStage,
+  getStageBoundaries,
 } from './stats';
 
 // License

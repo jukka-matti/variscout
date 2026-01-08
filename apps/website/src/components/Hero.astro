@@ -5,9 +5,10 @@ interface Props {
 	subhead: string;
 	primaryCTA: { text: string; href: string };
 	secondaryCTA: { text: string; href: string };
+	showAveragesHook?: boolean;
 }
 
-const { headline, emphasis, subhead, primaryCTA, secondaryCTA } = Astro.props;
+const { headline, emphasis, subhead, primaryCTA, secondaryCTA, showAveragesHook = false } = Astro.props;
 ---
 
 <section class="py-20 md:py-32 bg-white overflow-hidden">
@@ -26,14 +27,78 @@ const { headline, emphasis, subhead, primaryCTA, secondaryCTA } = Astro.props;
 				{secondaryCTA.text}
 			</a>
 		</div>
-		
-		<div class="mt-20 relative">
-			<div class="absolute inset-0 bg-brand-primary/5 blur-3xl rounded-full -z-10 transform -translate-y-1/2"></div>
-			<div class="bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden border border-neutral-800 p-2">
-				<div class="bg-neutral-800 rounded-xl overflow-hidden aspect-video flex items-center justify-center">
-					<span class="text-neutral-500 text-sm">[Interactive Dashboard Simulation]</span>
+
+		{showAveragesHook ? (
+			<!-- AVERAGES Hook: The Illusion -->
+			<div class="mt-16 relative max-w-3xl mx-auto">
+				<div class="absolute inset-0 bg-brand-primary/5 blur-3xl rounded-full -z-10 transform -translate-y-1/2"></div>
+
+				<!-- Dashboard Card -->
+				<div class="bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden border border-neutral-800 p-6 md:p-8">
+					<div class="text-left mb-6">
+						<span class="text-xs font-bold uppercase tracking-widest text-neutral-500">Your Dashboard Says</span>
+					</div>
+
+					<!-- Bar Chart: Pass Rates -->
+					<div class="flex items-end justify-center gap-6 md:gap-12 h-48 mb-6">
+						<!-- Factor A: 96% -->
+						<div class="flex flex-col items-center">
+							<div class="w-16 md:w-20 bg-green-500/80 rounded-t-lg transition-all duration-500" style="height: 184px;">
+								<div class="h-full flex items-start justify-center pt-2">
+									<span class="text-white font-bold text-lg">96%</span>
+								</div>
+							</div>
+							<span class="text-neutral-400 text-sm mt-3">Factor A</span>
+						</div>
+						<!-- Factor B: 94% -->
+						<div class="flex flex-col items-center">
+							<div class="w-16 md:w-20 bg-green-500/80 rounded-t-lg transition-all duration-500" style="height: 180px;">
+								<div class="h-full flex items-start justify-center pt-2">
+									<span class="text-white font-bold text-lg">94%</span>
+								</div>
+							</div>
+							<span class="text-neutral-400 text-sm mt-3">Factor B</span>
+						</div>
+						<!-- Factor C: 95% -->
+						<div class="flex flex-col items-center">
+							<div class="w-16 md:w-20 bg-green-500/80 rounded-t-lg transition-all duration-500" style="height: 182px;">
+								<div class="h-full flex items-start justify-center pt-2">
+									<span class="text-white font-bold text-lg">95%</span>
+								</div>
+							</div>
+							<span class="text-neutral-400 text-sm mt-3">Factor C</span>
+						</div>
+					</div>
+
+					<!-- Dashboard Message -->
+					<div class="text-center pt-4 border-t border-neutral-800">
+						<p class="text-neutral-300 text-lg">
+							"Everything looks fine. <span class="text-green-400 font-semibold">95% pass rate.</span>"
+						</p>
+					</div>
+				</div>
+
+				<!-- The Hook -->
+				<div class="mt-8">
+					<p class="text-2xl md:text-3xl font-bold text-neutral-800">But is it?</p>
+					<a href="#mini-journey" class="inline-flex items-center gap-2 mt-4 text-brand-primary hover:underline font-medium">
+						<span>See what's hiding</span>
+						<svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+						</svg>
+					</a>
 				</div>
 			</div>
-		</div>
+		) : (
+			<!-- Default: Placeholder -->
+			<div class="mt-20 relative">
+				<div class="absolute inset-0 bg-brand-primary/5 blur-3xl rounded-full -z-10 transform -translate-y-1/2"></div>
+				<div class="bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden border border-neutral-800 p-2">
+					<div class="bg-neutral-800 rounded-xl overflow-hidden aspect-video flex items-center justify-center">
+						<span class="text-neutral-500 text-sm">[Interactive Dashboard Simulation]</span>
+					</div>
+				</div>
+			</div>
+		)}
 	</div>
 </section>

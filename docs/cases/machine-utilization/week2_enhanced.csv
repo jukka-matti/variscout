@@ -1,0 +1,6 @@
+Day,Day_Num,No_Product,Clearing_Output,Refill_Supplies,Changeover,Break,Lunch,Repair,Total_Stops,Total_Stoppage_Min,Running_Min,Running_Pct
+Monday,1,3,2,2,2,2,1,0,12,165,315,66
+Tuesday,2,3,2,1,3,2,1,0,12,154,326,68
+Wednesday,3,3,2,2,2,2,1,1,13,227,253,53
+Thursday,4,3,2,2,3,2,1,0,13,175,305,64
+Friday,5,4,2,2,3,2,1,0,14,233,247,51

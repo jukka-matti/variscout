@@ -4,6 +4,7 @@ import PWAEmbed from "../../../components/PWAEmbed.astro";
 import CaseStudyController from "../../../components/CaseStudyController.tsx";
 import ScrollReveal from "../../../components/ScrollReveal.astro";
 import CaseProgress from "../../../components/CaseProgress.astro";
+import JourneyCaseBadge from "../../../components/JourneyCaseBadge.astro";
 import StickyMobileCTA from "../../../components/StickyMobileCTA.astro";
 import CaseMeta from "../../../components/CaseMeta.astro";
 import RelatedTools from "../../../components/RelatedTools.astro";
@@ -570,6 +571,9 @@ const { lang } = Astro.params;
 	<!-- Progress indicator (desktop only) -->
 	<CaseProgress currentCase={sampleKey} currentAct={1} lang={lang} />
 
+	<!-- Journey context badge -->
+	<JourneyCaseBadge lang={lang} currentAct={1} />
+
 	<!-- Sticky mobile CTA -->
 	<StickyMobileCTA href="/app" text="Try Free" hideWhenVisible="cta-section" />
 
@@ -593,7 +597,7 @@ const { lang } = Astro.params;
 			<!-- Problem Statement Card -->
 			<ScrollReveal animation="fade-up" delay={100}>
 				<div class="max-w-3xl p-8 bg-neutral-50 border border-neutral-200 rounded-2xl mb-8">
-					<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">The Problem</h2>
+					<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">Act 1: The Problem</h2>
 					<p class="text-2xl font-semibold mb-4">{problem.lead}</p>
 					<p class="text-neutral-600 leading-relaxed">{problem.context}</p>
 				</div>
@@ -620,7 +624,7 @@ const { lang } = Astro.params;
 	<section class="py-12 bg-neutral-900 sticky top-0 z-40" id="interactive-section">
 		<div class="container-wide">
 			<div class="text-center mb-8">
-				<h2 class="text-2xl font-bold text-white mb-2">Your Turn: Explore the Data</h2>
+				<h2 class="text-2xl font-bold text-white mb-2">Act 2: Explore the Data</h2>
 				<p class="text-neutral-400">Click the charts to filter and explore. Can you find the pattern?</p>
 			</div>
 			<PWAEmbed
@@ -637,7 +641,7 @@ const { lang } = Astro.params;
 		<div class="container-wide">
 			<div class="max-w-3xl mx-auto">
 				<ScrollReveal animation="fade-in">
-					<h2 class="text-2xl font-bold mb-8 text-center">The Solution Journey</h2>
+					<h2 class="text-2xl font-bold mb-8 text-center">Act 3: The Reveal</h2>
 				</ScrollReveal>
 
 				<!-- CaseStudyController - React island with client:load for immediate hydration -->
@@ -672,7 +676,10 @@ const { lang } = Astro.params;
 					<div class="text-center mb-8">
 						<h2 class="text-3xl font-bold mb-4">What's hiding in YOUR data?</h2>
 						<p class="text-neutral-600 mb-8">Try VaRiScout with your own data. Free, no signup required.</p>
-						<a href="/app" class="btn btn-primary px-8 py-3">Try Free</a>
+						<div class="flex flex-col sm:flex-row gap-4 justify-center">
+							<a href="/app" class="btn btn-primary px-8 py-3">Try Free</a>
+							<a href={`/${lang}/journey`} class="btn btn-outline px-8 py-3">See the Full Journey</a>
+						</div>
 					</div>
 				</ScrollReveal>
 

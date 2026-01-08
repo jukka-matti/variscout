@@ -1,62 +1,130 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { Check, ArrowRight } from "lucide-astro";
+import { ArrowRight } from "lucide-astro";
 import { ui } from "../../../i18n/ui";
+import JourneyProductBadge from "../../../components/JourneyProductBadge.astro";
+import JourneyFeatures from "../../../components/JourneyFeatures.astro";
+
+interface JourneyFeaturesData {
+	findIt: {
+		pillars: {
+			change: boolean;
+			flow: boolean;
+			failure: boolean;
+			value: boolean;
+		};
+		extras?: string[];
+	};
+	fixIt: string[];
+	checkIt: string[];
+	continue: string[];
+}
+
+interface ProductProps {
+	title: string;
+	description: string;
+	heroTitle: string;
+	heroSub: string;
+	journeyFeatures: JourneyFeaturesData;
+	cta: { text: string; href: string };
+}
 
 export function getStaticPaths() {
 	const languages = Object.keys(ui);
-	const products = [
-		{ 
+	const products: Array<{ slug: string; props: ProductProps }> = [
+		{
 			slug: "excel",
 			props: {
 				title: "VaRiScout for Excel",
 				description: "Analyze without leaving your spreadsheet. The power of VaRiScout, integrated directly into Excel.",
 				heroTitle: "Find variation where your data lives.",
 				heroSub: "The VaRiScout Excel Add-in brings professional variation analysis to your everyday spreadsheets. No more fighting with chart menus.",
-				features: [
-					"Integrated panel in Excel Desktop & Web",
-					"One-click chart generation from selected range",
-					"Automatic updates when your data changes",
-					"Export directly to your worksheet as images",
-				],
+				journeyFeatures: {
+					findIt: {
+						pillars: { change: true, flow: true, failure: true, value: true },
+						extras: ["Auto-refresh when data changes", "Range selection wizard"],
+					},
+					fixIt: [
+						"Export findings directly to cells",
+						"Filter data with native Excel slicers",
+						"Highlight outliers in source range",
+					],
+					checkIt: [
+						"Real-time updates when data changes",
+						"Compare before/after in same workbook",
+					],
+					continue: [
+						"Save chart configs in workbook",
+						"Share analysis with colleagues",
+					],
+				},
 				cta: { text: "Get from AppSource", href: "https://appsource.microsoft.com/..." },
 			}
 		},
-		{ 
+		{
 			slug: "power-bi",
 			props: {
 				title: "VaRiScout for Power BI",
 				description: "Professional variation analysis visuals for your Power BI dashboards.",
 				heroTitle: "Dashboards that actually explain variation.",
 				heroSub: "Standard Power BI charts often hide variation. VaRiScout custom visuals bring I-Charts, Boxplots, and Pareto charts to your team's reporting.",
-				features: [
-					"Microsoft Certified custom visuals",
-					"Cross-visual filtering with your data model",
-					"Full support for Power BI Service and Desktop",
-					"Department and Enterprise licensing available",
-				],
+				journeyFeatures: {
+					findIt: {
+						pillars: { change: true, flow: true, failure: true, value: true },
+						extras: ["Cross-visual filtering", "DAX measure support"],
+					},
+					fixIt: [
+						"Drill through to detail pages",
+						"Cross-filter other visuals on click",
+						"Export insights to PDF or PowerPoint",
+					],
+					checkIt: [
+						"Refresh data to see latest state",
+						"Compare time periods with slicers",
+					],
+					continue: [
+						"Embed in team dashboards",
+						"Schedule automated reports",
+						"Share via Power BI Service",
+					],
+				},
 				cta: { text: "View in AppSource", href: "https://appsource.microsoft.com/..." },
 			}
 		},
-		{ 
+		{
 			slug: "azure",
 			props: {
 				title: "VaRiScout for Azure",
 				description: "Deploy VaRiScout to your own Azure tenant for total control and privacy.",
 				heroTitle: "Your infrastructure. Your data. Your control.",
 				heroSub: "For organizations with strict security requirements. Deploy a dedicated instance of VaRiScout to your Azure subscription in minutes.",
-				features: [
-					"Self-hosted in your Azure tenant",
-					"Custom domain and corporate branding",
-					"Unlimited users within your sub-org",
-					"Data never leaves your Azure infrastructure",
-				],
+				journeyFeatures: {
+					findIt: {
+						pillars: { change: true, flow: true, failure: true, value: true },
+						extras: ["Team collaboration", "Role-based access"],
+					},
+					fixIt: [
+						"Create action items from findings",
+						"Assign tasks to team members",
+						"Track resolution status",
+					],
+					checkIt: [
+						"Version history of all analyses",
+						"Before/after snapshots",
+						"Audit trail for compliance",
+					],
+					continue: [
+						"Save projects to OneDrive",
+						"Sync across devices",
+						"Data stays in your tenant",
+					],
+				},
 				cta: { text: "View in Marketplace", href: "https://azuremarketplace.microsoft.com/..." },
 			}
 		},
 	];
 
-	return languages.flatMap((lang) => 
+	return languages.flatMap((lang) =>
 		products.map((product) => ({
 			params: { lang, slug: product.slug },
 			props: product.props
@@ -64,58 +132,60 @@ export function getStaticPaths() {
 	);
 }
 
-const { title, description, heroTitle, heroSub, features, cta } = Astro.props;
+const { lang } = Astro.params;
+const { title, description, heroTitle, heroSub, journeyFeatures, cta } = Astro.props;
 ---
 
 <BaseLayout title={`VaRiScout | ${title}`} description={description}>
-	<section class="py-20 md:py-32 bg-white">
+	<!-- Journey badge -->
+	<JourneyProductBadge lang={lang as string} />
+
+	<!-- Hero -->
+	<section class="py-20 md:py-28 bg-white">
 		<div class="container-wide">
 			<div class="grid md:grid-cols-2 gap-16 items-center">
 				<div>
-					<a href="/" class="text-sm font-medium text-brand-primary mb-4 block">← Products</a>
-					<h1 class="text-4xl md:text-5xl font-bold mb-6">{heroTitle}</h1>
-					<p class="text-xl text-neutral-600 mb-10 leading-relaxed italic_text_shorthand">
+					<a href={`/${lang}`} class="text-sm font-medium text-brand-primary mb-4 block hover:underline">
+						← Back to Home
+					</a>
+					<h1 class="text-4xl md:text-5xl font-bold mb-6 text-neutral-900">{heroTitle}</h1>
+					<p class="text-xl text-neutral-600 mb-10 leading-relaxed">
 						{heroSub}
 					</p>
-					<div class="flex gap-4">
-						<a href={cta.href} target="_blank" class="btn btn-primary px-8 py-3">{cta.text}</a>
-						<a href="/pricing" class="btn btn-secondary px-8 py-3">View Pricing</a>
+					<div class="flex flex-wrap gap-4">
+						<a href={cta.href} target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">{cta.text}</a>
+						<a href={`/${lang}/pricing`} class="btn btn-secondary px-8 py-3">View Pricing</a>
 					</div>
 				</div>
 				<div class="bg-neutral-100 rounded-3xl aspect-[4/3] flex items-center justify-center border border-neutral-200">
-					<span class="text-neutral-400 font-medium italic_text_shorthand">[Product UI Screenshot]</span>
+					<span class="text-neutral-400 font-medium">[Product UI Screenshot]</span>
 				</div>
 			</div>
 		</div>
 	</section>
 
-	<section class="py-24 bg-neutral-50 border-y border-neutral-200">
-		<div class="container-wide">
-			<div class="max-w-3xl mx-auto">
-				<h2 class="text-3xl font-bold mb-12 text-center">Key Features</h2>
-				<div class="grid sm:grid-cols-2 gap-8">
-					{features.map((feature) => (
-						<div class="flex gap-4 p-6 bg-white border border-neutral-200 rounded-2xl">
-							<div class="shrink-0 text-brand-primary">
-								<Check size={24} />
-							</div>
-							<p class="font-medium text-neutral-800 italic_text_shorthand">{feature}</p>
-						</div>
-					))}
-				</div>
-			</div>
-		</div>
-	</section>
+	<!-- Journey Features -->
+	<JourneyFeatures features={journeyFeatures} />
 
-	<section class="py-24 bg-white">
+	<!-- Journey CTA -->
+	<section class="py-20 bg-white">
 		<div class="container-wide text-center">
-			<h2 class="text-3xl font-bold mb-6">Built for Professionals</h2>
-			<p class="text-neutral-600 mb-12 max-w-2xl mx-auto italic_text_shorthand">
-				Whether you're a Green Belt in training or a specialized Quality Manager, VaRiScout provides the tools you need to find and present variation.
+			<h2 class="text-3xl font-bold mb-4 text-neutral-900">Run Your Own Journey</h2>
+			<p class="text-neutral-600 mb-8 max-w-2xl mx-auto">
+				Apply the same methodology that found the 46% to your own data.
+				Find it. Fix it. Check it. Continue.
 			</p>
-			<div class="inline-flex flex-col sm:flex-row items-center gap-4">
-				<a href="/app" class="flex items-center gap-2 text-brand-primary font-bold hover:gap-3 transition-all">
-					Try the Web App Free <ArrowRight size={20} />
+			<div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+				<a href={cta.href} target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">
+					{cta.text}
+				</a>
+				<a href={`/${lang}/journey`} class="btn btn-outline px-8 py-3">
+					See the Full Journey
+				</a>
+			</div>
+			<div class="mt-8">
+				<a href="/app" class="inline-flex items-center gap-2 text-brand-primary font-bold hover:gap-3 transition-all">
+					Or try the Web App free <ArrowRight size={20} />
 				</a>
 			</div>
 		</div>

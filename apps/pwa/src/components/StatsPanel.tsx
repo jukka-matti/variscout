@@ -19,11 +19,20 @@ interface StatsPanelProps {
   specs: { usl?: number; lsl?: number; target?: number };
   filteredData?: any[];
   outcome?: string | null;
+  defaultTab?: 'summary' | 'histogram' | 'normality';
 }
 
-const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = [], outcome }) => {
+const StatsPanel: React.FC<StatsPanelProps> = ({
+  stats,
+  specs,
+  filteredData = [],
+  outcome,
+  defaultTab,
+}) => {
   const { displayOptions, setDisplayOptions, setSpecs, setGrades, grades } = useData();
-  const [activeTab, setActiveTab] = useState<'summary' | 'histogram' | 'normality'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'histogram' | 'normality'>(
+    defaultTab || 'summary'
+  );
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
   // Extract numeric values for histogram

@@ -1,0 +1,8 @@
+Reason,Count,Reason_Type
+No product,16,Workflow
+Changeover,13,Setup
+Clearing output,10,Workflow
+Break,10,Planned
+Refill supplies,9,Workflow
+Lunch,5,Planned
+Repair,1,Machine

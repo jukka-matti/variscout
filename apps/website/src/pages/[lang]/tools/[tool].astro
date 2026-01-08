@@ -2,6 +2,8 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import PWAEmbed from "../../../components/PWAEmbed.astro";
 import ScrollReveal from "../../../components/ScrollReveal.astro";
+import JourneyToolBadge from "../../../components/JourneyToolBadge.astro";
+import JourneyToolNav from "../../../components/JourneyToolNav.astro";
 import { ui } from "../../../i18n/ui";
 import { TOOLS, getToolBySlug, type ToolData } from "../../../data/toolsData";
 
@@ -24,6 +26,9 @@ interface Props {
 const { tool } = Astro.props;
 const { lang } = Astro.params;
 
+// Check if this is a pillar tool with journey integration
+const hasPillarJourney = tool.pillar && tool.journeySection;
+
 // Pillar badge colors
 const pillarBadgeColors: Record<string, string> = {
 	CHANGE: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -45,6 +50,15 @@ const pillarAccentColors: Record<string, string> = {
 	title={`${tool.name} | VaRiScout`}
 	description={tool.hero.subtitle}
 >
+	{/* Journey Badge - only for pillar tools */}
+	{hasPillarJourney && (
+		<JourneyToolBadge
+			pillar={tool.pillar as 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE'}
+			journeySection={tool.journeySection!}
+			lang={lang as string}
+		/>
+	)}
+
 	<!-- Section 1: Hero -->
 	<section class={`py-20 bg-gradient-to-b ${tool.pillar ? pillarAccentColors[tool.pillar] : 'from-purple-500/5'} to-white`}>
 		<div class="container-wide">
@@ -338,6 +352,17 @@ const pillarAccentColors: Record<string, string> = {
 			</div>
 		</div>
 	</section>
+
+	{/* Journey Navigation - only for pillar tools */}
+	{hasPillarJourney && (
+		<JourneyToolNav
+			currentPillar={tool.pillar as 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE'}
+			prevToolSlug={tool.journeyPrevTool}
+			nextToolSlug={tool.journeyNextTool}
+			journeySection={tool.journeySection!}
+			lang={lang as string}
+		/>
+	)}
 
 	<!-- Section 10: CTA -->
 	<section class="py-20 bg-neutral-900 text-white">

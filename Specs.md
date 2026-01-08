@@ -102,6 +102,16 @@ Legend:
 - Points colored by grade achieved
 - Enables grade summary calculations
 
+**Staged I-Chart (optional):**
+
+- Select a categorical column as "Stage Column" to divide chart into phases
+- Each stage calculates its own control limits (UCL, Mean, LCL)
+- Data automatically sorted by stage (all Stage A points, then Stage B, etc.)
+- Stage order modes: Auto-detect, First occurrence, Alphabetical
+- Vertical dividers mark stage boundaries
+- Points colored based on their stage's control limits
+- Use cases: before/after process improvements, comparing batches, equipment changes
+
 ### 3. Interactive Analysis (Multi-Vari)
 
 - **Outcome Selection**: Switch primary metric (Y) directly from I-Chart header

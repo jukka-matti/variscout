@@ -536,3 +536,145 @@ Common icon sizes:
 │  [Try Free]                     │
 └─────────────────────────────────┘
 ```
+
+---
+
+## Journey Components
+
+Components for threading the VaRiScout Journey across all pages.
+
+### JourneyToolBadge
+
+Shows journey position on pillar tool pages (I-Chart, Boxplot, Pareto, Capability).
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  CHANGE                                                         │
+│  Step 3 of the VaRiScout Journey                               │
+│  ○───○───●───○───○───○───○───○───○                             │
+│                    [See full journey →]                         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+| Property      | Value                             |
+| ------------- | --------------------------------- |
+| Background    | Pillar color (10% opacity)        |
+| Border        | Pillar color (30% opacity)        |
+| Progress dots | 9 dots for journey sections       |
+| Highlighted   | Filled circle for current section |
+| Pillar label  | Uppercase, pillar color           |
+
+**File:** `apps/website/src/components/JourneyToolBadge.astro`
+
+---
+
+### JourneyToolNav
+
+Navigation between tools in journey order at bottom of tool pages.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Continue the Journey                         │
+│                                                                 │
+│  ┌─────────────────┐              ┌─────────────────┐          │
+│  │  ← VALUE        │              │      FLOW →     │          │
+│  │  Capability     │              │      Boxplot    │          │
+│  └─────────────────┘              └─────────────────┘          │
+│                                                                 │
+│              [See this step in the full journey]                │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+| Property        | Value                          |
+| --------------- | ------------------------------ |
+| Cards           | Pillar-colored prev/next links |
+| Card background | Pillar color (10% opacity)     |
+| Card border     | Pillar color (30% opacity)     |
+| Journey link    | Links to `/journey#pillar`     |
+
+**File:** `apps/website/src/components/JourneyToolNav.astro`
+
+---
+
+### JourneyCaseBadge
+
+Shows AVERAGES → EXPLORE → REVEAL flow on case study pages.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Practice the Journey:  AVERAGES → EXPLORE → REVEAL            │
+│                                        ↑                        │
+│                                    (highlighted)                │
+│                                    [See full journey →]         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+| Property      | Value                                                             |
+| ------------- | ----------------------------------------------------------------- |
+| Background    | `neutral-50`                                                      |
+| Flow          | 3 steps with arrows                                               |
+| Active colors | AVERAGES: neutral-500, EXPLORE: brand-primary, REVEAL: purple-500 |
+| Active style  | Background tint + colored text                                    |
+
+**File:** `apps/website/src/components/JourneyCaseBadge.astro`
+
+---
+
+### JourneyProductBadge
+
+Tagline banner on product pages showing the journey philosophy.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Find it. Fix it. Check it. Continue.    [See the journey →]   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+| Property    | Value                                              |
+| ----------- | -------------------------------------------------- |
+| Background  | Gradient: `from-purple-50 via-amber-50 to-teal-50` |
+| Text colors | purple-600, amber-500, teal-500, brand-primary     |
+| Punctuation | neutral-400                                        |
+
+**File:** `apps/website/src/components/JourneyProductBadge.astro`
+
+---
+
+### JourneyFeatures
+
+Features organized by journey phase on product pages.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      What You Can Do                            │
+│                                                                 │
+│  🔍 FIND IT                                                     │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌──────────┐                 │
+│  │ CHANGE │ │  FLOW  │ │FAILURE │ │  VALUE   │                 │
+│  │I-Chart │ │Boxplot │ │ Pareto │ │Capability│                 │
+│  │   ✓    │ │   ✓    │ │   ✓    │ │    ✓     │                 │
+│  └────────┘ └────────┘ └────────┘ └──────────┘                 │
+│                                                                 │
+│  🔧 FIX IT          ✅ CHECK IT         🔄 CONTINUE            │
+│  • Feature 1        • Feature 1        • Feature 1             │
+│  • Feature 2        • Feature 2        • Feature 2             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+| Section  | Color         | Background       |
+| -------- | ------------- | ---------------- |
+| FIND IT  | purple-500    | purple-500/10    |
+| FIX IT   | amber-500     | amber-500/10     |
+| CHECK IT | teal-500      | teal-500/10      |
+| CONTINUE | brand-primary | brand-primary/10 |
+
+**Pillar Grid Colors:**
+
+| Pillar  | Color      | Active Background |
+| ------- | ---------- | ----------------- |
+| CHANGE  | blue-500   | blue-500/10       |
+| FLOW    | orange-500 | orange-500/10     |
+| FAILURE | red-500    | red-500/10        |
+| VALUE   | green-500  | green-500/10      |
+
+**File:** `apps/website/src/components/JourneyFeatures.astro`

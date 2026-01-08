@@ -31,7 +31,8 @@ variscout.com
 ├── /learn/                     Conceptual learning
 │   ├── /two-voices             Control vs Spec limits
 │   ├── /four-pillars           Watson framework
-│   └── /eda-philosophy         Visual exploration
+│   ├── /eda-philosophy         Visual exploration
+│   └── /staged-analysis        Compare process phases
 │
 ├── /product/
 │   ├── /web-app                VaRiScout Web (PWA)
@@ -109,6 +110,7 @@ Journey is the **primary nav item** (bold, brand color), not hidden in a dropdow
 │ Two Voices                  │ → /learn/two-voices (Control vs Spec)
 │ Four Pillars                │ → /learn/four-pillars (Watson framework)
 │ EDA Philosophy              │ → /learn/eda-philosophy (Visual exploration)
+│ Staged Analysis             │ → /learn/staged-analysis (Process phases)
 └─────────────────────────────┘
 ```
 
@@ -150,6 +152,7 @@ Journey is prominently featured at the top of mobile menu.
 │   Two Voices                    │
 │   Four Pillars                  │
 │   EDA Philosophy                │
+│   Staged Analysis               │
 │ PRODUCT                         │
 │   Web App                       │
 │   Excel                         │
@@ -177,7 +180,7 @@ Journey is prominently featured at the top of mobile menu.
 │  Journey          I-Chart          Two Voices       Web App         About       │
 │  Case Studies     Boxplot          Four Pillars     Excel           Contact     │
 │                   Pareto           EDA Philosophy   Power BI                    │
-│                   Capability                        Azure                       │
+│                   Capability       Staged Analysis  Azure                       │
 │                                                     Pricing                     │
 │                                                                                 │
 │  ─────────────────────────────────────────────────────────────────────────────  │

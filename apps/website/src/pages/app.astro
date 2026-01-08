@@ -1,0 +1,12 @@
+---
+// Redirect to the PWA application, preserving query parameters
+const baseUrl = import.meta.env.PROD 
+  ? 'https://variscout.com/app' 
+  : 'http://localhost:5173';
+
+// Preserve query string from current request
+const queryString = Astro.url.search;
+const destination = `${baseUrl}${queryString}`;
+
+return Astro.redirect(destination);
+---

@@ -57,6 +57,14 @@ const navItems = [
 			</a>
 
 			<nav class="hidden md:flex items-center gap-1">
+				<!-- Journey: Primary nav item -->
+				<a
+					href={`/${lang}/journey`}
+					class="px-3 py-2 text-sm font-bold text-brand-primary hover:text-brand-primary-dark transition-colors"
+				>
+					Journey
+				</a>
+
 				{navItems.map((group) => (
 					<div class="relative group">
 						<button class="flex items-center gap-1 px-3 py-2 text-sm font-medium text-neutral-700 hover:text-brand-primary transition-colors">
@@ -124,6 +132,14 @@ const navItems = [
 	<!-- Mobile Menu Overlay -->
 	<div id="mobile-menu" class="fixed inset-0 top-16 bg-white z-40 hidden md:hidden border-t border-neutral-200 overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-200">
 		<nav class="flex flex-col p-4 space-y-4">
+			<!-- Journey: Primary link -->
+			<a
+				href={`/${lang}/journey`}
+				class="block px-4 py-3 text-lg font-bold text-brand-primary rounded-lg bg-brand-primary/5 hover:bg-brand-primary/10"
+			>
+				Take the Journey
+			</a>
+
 			{navItems.map((group) => (
 				<div class="space-y-2">
 					<h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider px-2">{group.label}</h3>

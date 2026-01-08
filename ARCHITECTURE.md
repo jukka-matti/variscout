@@ -85,16 +85,16 @@ variscout-lite/
 
 Pure TypeScript logic with no React dependencies:
 
-| Module          | Purpose                                                         |
-| --------------- | --------------------------------------------------------------- |
-| `stats.ts`      | Mean, StdDev, UCL/LCL, Cp, Cpk, conformance, factor grouping    |
-| `parser.ts`     | CSV/Excel file parsing                                          |
-| `navigation.ts` | Navigation types and utilities (DrillAction, BreadcrumbItem)    |
-| `variation.ts`  | Cumulative variation tracking (η² cascading, drill suggestions) |
-| `license.ts`    | License key validation (offline)                                |
-| `edition.ts`    | Edition configuration (community/itc/licensed)                  |
-| `export.ts`     | CSV export utilities                                            |
-| `types.ts`      | Shared TypeScript interfaces (StatsResult, ConformanceResult)   |
+| Module          | Purpose                                                                    |
+| --------------- | -------------------------------------------------------------------------- |
+| `stats.ts`      | Mean, StdDev, UCL/LCL, Cp, Cpk, conformance, factor grouping, staged stats |
+| `parser.ts`     | CSV/Excel file parsing                                                     |
+| `navigation.ts` | Navigation types and utilities (DrillAction, BreadcrumbItem)               |
+| `variation.ts`  | Cumulative variation tracking (η² cascading, drill suggestions)            |
+| `license.ts`    | License key validation (offline)                                           |
+| `edition.ts`    | Edition configuration (community/itc/licensed)                             |
+| `export.ts`     | CSV export utilities                                                       |
+| `types.ts`      | Shared TypeScript interfaces (StatsResult, ConformanceResult)              |
 
 ### @variscout/charts
 
@@ -182,6 +182,15 @@ A tailored math library that computes quality control metrics on the fly.
 
 - **Metrics**: Mean, StdDev, UCL/LCL (3-sigma), Cp, Cpk, Out-of-Spec %.
 - **Logic**: Handles both standard (USL & LSL) and one-sided (USL or LSL only) specifications.
+
+**Staged Statistics** (for staged I-Charts):
+
+| Function                  | Purpose                                         |
+| ------------------------- | ----------------------------------------------- |
+| `determineStageOrder()`   | Auto-detect numeric patterns for stage sorting  |
+| `sortDataByStage()`       | Stable sort data by stage order                 |
+| `calculateStatsByStage()` | Calculate per-stage statistics (UCL, Mean, LCL) |
+| `getStageBoundaries()`    | Get X boundaries for chart rendering            |
 
 ### 4.3 Visualization Layer (`apps/pwa/src/components/charts/`)
 
