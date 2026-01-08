@@ -6,6 +6,7 @@ This document explains the statistical calculations used in VariScout Lite. Unde
 
 - [Basic Statistics](#basic-statistics)
 - [Control Limits (I-Chart)](#control-limits-i-chart)
+- [Staged Control Limits](#staged-control-limits)
 - [Process Capability (Cp & Cpk)](#process-capability-cp--cpk)
 - [Conformance Metrics](#conformance-metrics)
 - [Multi-Tier Grading](#multi-tier-grading)
@@ -66,6 +67,83 @@ LCL = Mean - (3 × StdDev)
 - Control limits are calculated from your **data**, not specifications
 - They show what your process **is doing**, not what it **should do**
 - Specification limits (USL/LSL) are separate—they define what is acceptable
+
+---
+
+## Staged Control Limits
+
+When analyzing data across distinct phases (before/after, different batches), staged control limits calculate separate UCL, Mean, and LCL for each stage.
+
+### When to Use Staged Analysis
+
+- Before/during/after a process improvement
+- Comparing different production batches or shifts
+- Equipment or material changes over time
+- Any time the process baseline may have shifted
+
+### How It Works
+
+1. Select a categorical column as the "Stage Column"
+2. Data is sorted so all points from each stage are grouped together
+3. Control limits are calculated independently for each stage
+4. Each stage displays its own UCL, Mean, and LCL lines
+
+### Stage Order Detection
+
+VariScout auto-detects the appropriate ordering:
+
+- **Numeric stages** ("1", "2", "3" or "Stage 1", "Phase 2") → sorted numerically
+- **Text stages** ("Before", "After") → first occurrence order
+
+Manual override available: Auto-detect, First occurrence, A-Z/1-9
+
+### Per-Stage Calculations
+
+Each stage has its own statistics calculated independently:
+
+```
+Stage Mean = Σ(values in stage) / n_stage
+Stage StdDev = √[ Σ(xᵢ - Stage Mean)² / (n_stage - 1) ]
+Stage UCL = Stage Mean + (3 × Stage StdDev)
+Stage LCL = Stage Mean - (3 × Stage StdDev)
+```
+
+### Visual Elements
+
+- Vertical dashed lines at stage boundaries
+- Stage labels at top of each section
+- Per-stage control limit lines (UCL, Mean, LCL)
+- Points colored based on their stage's limits
+
+### API Functions
+
+```typescript
+import {
+  determineStageOrder,
+  sortDataByStage,
+  calculateStatsByStage,
+  getStageBoundaries,
+  type StagedStatsResult,
+  type StageOrderMode,
+  type StageBoundary,
+} from '@variscout/core';
+
+// Determine stage ordering (auto-detect or manual)
+const stageOrder = determineStageOrder(stageValues, 'auto');
+
+// Sort data by stage
+const sortedData = sortDataByStage(data, 'PhaseColumn', stageOrder);
+
+// Calculate per-stage statistics
+const stagedStats = calculateStatsByStage(data, 'Measurement', 'PhaseColumn', { usl: 10, lsl: 0 });
+
+// Get boundaries for chart rendering
+const boundaries = getStageBoundaries(chartData, stagedStats);
+```
+
+> **User Guide:** [docs/products/pwa/STAGED_ANALYSIS.md](products/pwa/STAGED_ANALYSIS.md)
+>
+> Staged analysis is available in PWA, Azure Team App, and Excel Add-in.
 
 ---
 

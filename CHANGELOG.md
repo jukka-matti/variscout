@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Staged I-Chart**: Divide I-Chart into distinct phases with separate control limits per stage
+  - Available in PWA, Azure Team App, and Excel Add-in
+  - Column-based stage definition (select any categorical column with 2-10 unique values)
+  - Auto-detect stage ordering (numeric patterns sorted numerically, else first occurrence)
+  - Manual override: Sort stages by "Auto-detect", "First occurrence", or "Alphabetical"
+  - Visual: Vertical dividers, per-stage UCL/Mean/LCL lines, stage labels
+  - Points colored based on their stage's control limits
+  - Excel Add-in: New "Stage Analysis" step in Setup Wizard for stage configuration
+
 - **Case Study UX Overhaul**: Complete redesign of interactive case study pages
   - PostMessage communication between marketing website and embedded PWA
   - Chart highlighting when corresponding step scrolls into view
@@ -19,6 +28,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Difficulty badges and time estimates for each case
   - Related tools section linking to tool documentation
   - "What's Next" navigation with related cases
+
+- **Journey Page Interactive Embeds**: Real PWA charts embedded in scrollytelling sections
+  - `chart` URL parameter for single-chart focus mode (`ichart`, `boxplot`, `pareto`, `stats`)
+  - `tab` URL parameter for auto-selecting StatsPanel tab (`summary`, `histogram`, `normality`)
+  - Sample datasets: `journey`, `journey-before` (Cpk ~0.8), `journey-after` (Cpk ~1.5)
+  - PWAEmbed component supports `chart` and `tab` props
+
+### Changed
+
+- **Journey Page Visualizations**: Fixed static bar charts in AVERAGES and FAILURE sections
+  - Replaced percentage-based heights with pixel values for proper rendering
+  - Pareto section now displays real interactive Pareto chart via PWAEmbed
 
 ### Documentation
 

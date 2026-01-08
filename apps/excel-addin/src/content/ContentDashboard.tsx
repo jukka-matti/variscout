@@ -10,9 +10,13 @@ import {
 } from '@variscout/charts';
 import {
   calculateStats,
+  calculateStatsByStage,
+  sortDataByStage,
+  determineStageOrder,
   groupDataByFactor,
   calculateAnova,
   calculateFactorVariations,
+  type StagedStatsResult,
 } from '@variscout/core';
 import type { AddInState } from '../lib/stateBridge';
 import { getFilteredTableData } from '../lib/dataFilter';
@@ -184,15 +188,38 @@ const ContentDashboard: React.FC<ContentDashboardProps> = ({ state }) => {
     return calculateStats(values, state.specs?.usl, state.specs?.lsl);
   }, [filteredData, state.outcomeColumn, state.specs]);
 
-  // Prepare I-Chart data
+  // Calculate staged statistics (when stage column is configured)
+  const stagedStats = useMemo((): StagedStatsResult | null => {
+    if (!state.stageColumn || !filteredData.length || !state.outcomeColumn) return null;
+
+    return calculateStatsByStage(
+      filteredData,
+      state.outcomeColumn,
+      state.stageColumn,
+      state.specs || {}
+    );
+  }, [filteredData, state.outcomeColumn, state.stageColumn, state.specs]);
+
+  // Sort data by stage when staging is active
+  const sortedData = useMemo(() => {
+    if (!state.stageColumn) return filteredData;
+
+    const stageValues = filteredData.map(d => String(d[state.stageColumn!] ?? ''));
+    const stageOrder = determineStageOrder(stageValues, state.stageOrderMode || 'auto');
+    return sortDataByStage(filteredData, state.stageColumn, stageOrder);
+  }, [filteredData, state.stageColumn, state.stageOrderMode]);
+
+  // Prepare I-Chart data (use sorted data when staging is active)
   const chartData = useMemo(() => {
     if (!filteredData.length || !state.outcomeColumn) return [];
 
-    return filteredData.map((d, i) => ({
+    const sourceData = state.stageColumn ? sortedData : filteredData;
+    return sourceData.map((d, i) => ({
       x: i,
       y: Number(d[state.outcomeColumn]),
+      stage: state.stageColumn ? String(d[state.stageColumn] ?? '') : undefined,
     }));
-  }, [filteredData, state.outcomeColumn]);
+  }, [filteredData, sortedData, state.outcomeColumn, state.stageColumn]);
 
   // Prepare Boxplot data using shared grouping utility
   const boxplotData = useMemo(() => {
@@ -515,6 +542,7 @@ const ContentDashboard: React.FC<ContentDashboardProps> = ({ state }) => {
             <IChartBase
               data={chartData}
               stats={stats ?? null}
+              stagedStats={stagedStats}
               specs={state.specs || {}}
               parentWidth={Math.max(200, containerSize.width - 36)}
               parentHeight={Math.max(120, (containerSize.height - 100) * 0.45)}

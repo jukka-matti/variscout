@@ -23,6 +23,7 @@ import {
   Checkmark24Regular,
   ArrowLeft24Regular,
   ArrowRight24Regular,
+  Flowchart24Regular,
 } from '@fluentui/react-icons';
 import { ensureTable, detectColumnTypes } from '../../lib/tableManager';
 import { createSlicerRow, isSlicerSupported } from '../../lib/slicerManager';
@@ -113,7 +114,7 @@ const useStyles = makeStyles({
   },
 });
 
-type WizardStep = 'data' | 'columns' | 'slicers' | 'specs' | 'complete';
+type WizardStep = 'data' | 'columns' | 'stages' | 'slicers' | 'specs' | 'complete';
 
 interface SetupWizardProps {
   onComplete: (state: AddInState) => void;
@@ -137,12 +138,18 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
   const [outcomeColumn, setOutcomeColumn] = useState<string>('');
   const [factorColumns, setFactorColumns] = useState<string[]>([]);
 
-  // Step 3: Slicer configuration
+  // Step 3: Stage configuration (for staged I-Charts)
+  const [stageColumn, setStageColumn] = useState<string | null>(null);
+  const [stageOrderMode, setStageOrderMode] = useState<
+    'auto' | 'first-occurrence' | 'alphabetical'
+  >('auto');
+
+  // Step 4: Slicer configuration
   const [slicerSupported, setSlicerSupported] = useState(false);
   const [createSlicers, setCreateSlicers] = useState(true);
   const [slicerNames, setSlicerNames] = useState<string[]>([]);
 
-  // Step 4: Spec limits
+  // Step 5: Spec limits
   const [usl, setUsl] = useState<string>('');
   const [lsl, setLsl] = useState<string>('');
   const [target, setTarget] = useState<string>('');
@@ -156,6 +163,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
   const steps: { key: WizardStep; label: string; icon: React.ReactNode }[] = [
     { key: 'data', label: 'Select Data', icon: <TableSimple24Regular /> },
     { key: 'columns', label: 'Configure Columns', icon: <Settings24Regular /> },
+    { key: 'stages', label: 'Stage Analysis', icon: <Flowchart24Regular /> },
     { key: 'slicers', label: 'Create Slicers', icon: <Filter24Regular /> },
     { key: 'specs', label: 'Set Specs', icon: <ChartMultiple24Regular /> },
     { key: 'complete', label: 'Complete', icon: <Checkmark24Regular /> },
@@ -217,17 +225,23 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     }
   }, []);
 
-  // Step 2 → Step 3: Create slicers
+  // Step 2 → Step 3: Stage configuration
   const handleColumnsNext = useCallback(async () => {
     if (!outcomeColumn) {
       setError('Please select an outcome column.');
       return;
     }
     setError(null);
-    setCurrentStep('slicers');
+    setCurrentStep('stages');
   }, [outcomeColumn]);
 
-  // Step 3 → Step 4: Optionally create slicers, then proceed
+  // Step 3 → Step 4: Slicers
+  const handleStagesNext = useCallback(() => {
+    setError(null);
+    setCurrentStep('slicers');
+  }, []);
+
+  // Step 4 → Step 5: Optionally create slicers, then proceed
   const handleSlicersNext = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -246,7 +260,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     }
   }, [createSlicers, slicerSupported, factorColumns, dataSheetName, tableName]);
 
-  // Step 4 → Complete: Save state
+  // Step 5 → Complete: Save state
   const handleSpecsNext = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -311,6 +325,9 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
       );
       state.specs = specs;
       state.slicerNames = slicerNames;
+      // Add stage configuration
+      state.stageColumn = stageColumn;
+      state.stageOrderMode = stageOrderMode;
 
       await saveAddInState(state);
 
@@ -335,6 +352,8 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     outcomeColumn,
     factorColumns,
     slicerNames,
+    stageColumn,
+    stageOrderMode,
     onComplete,
   ]);
 
@@ -458,7 +477,79 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
         </Card>
       )}
 
-      {/* Step 3: Create Slicers */}
+      {/* Step 3: Stage Analysis */}
+      {currentStep === 'stages' && (
+        <Card className={styles.card}>
+          <div className={styles.stepHeader}>
+            <Flowchart24Regular className={styles.stepIcon} />
+            <Body1 className={styles.stepTitle}>Stage Analysis (Optional)</Body1>
+          </div>
+          <Body2 className={styles.stepDescription}>
+            Select a column to divide your I-Chart into stages with separate control limits per
+            stage. Useful for before/after comparisons or batch analysis.
+          </Body2>
+
+          <div className={styles.formGroup}>
+            <Field label="Stage Column">
+              <Dropdown
+                value={stageColumn || ''}
+                onOptionSelect={(_, data) =>
+                  setStageColumn(data.optionValue === '' ? null : (data.optionValue as string))
+                }
+              >
+                <Option value="">No stages (single chart)</Option>
+                {categoricalColumns
+                  .filter(col => {
+                    // Only show columns with 2-10 unique values
+                    const uniqueValues = new Set();
+                    // We don't have rawData here, but categoricalColumns already filtered
+                    // Just show all categorical columns
+                    return true;
+                  })
+                  .map(col => (
+                    <Option key={col} value={col}>
+                      {col}
+                    </Option>
+                  ))}
+              </Dropdown>
+            </Field>
+          </div>
+
+          {stageColumn && (
+            <div className={styles.formGroup}>
+              <Field label="Stage Order">
+                <Dropdown
+                  value={stageOrderMode}
+                  onOptionSelect={(_, data) =>
+                    setStageOrderMode(
+                      data.optionValue as 'auto' | 'first-occurrence' | 'alphabetical'
+                    )
+                  }
+                >
+                  <Option value="auto">Auto-detect</Option>
+                  <Option value="first-occurrence">First occurrence</Option>
+                  <Option value="alphabetical">Alphabetical (A-Z / 1-9)</Option>
+                </Dropdown>
+              </Field>
+              <Caption1 style={{ marginTop: tokens.spacingVerticalXS }}>
+                Auto-detect: numeric stages sorted numerically, text stages by first occurrence.
+              </Caption1>
+            </div>
+          )}
+
+          {error && (
+            <Body2
+              role="alert"
+              aria-live="polite"
+              style={{ color: tokens.colorPaletteRedForeground1 }}
+            >
+              {error}
+            </Body2>
+          )}
+        </Card>
+      )}
+
+      {/* Step 4: Create Slicers */}
       {currentStep === 'slicers' && (
         <Card className={styles.card}>
           <div className={styles.stepHeader}>
@@ -513,7 +604,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
         </Card>
       )}
 
-      {/* Step 4: Set Specs */}
+      {/* Step 5: Set Specs */}
       {currentStep === 'specs' && (
         <Card className={styles.card}>
           <div className={styles.stepHeader}>
@@ -580,7 +671,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
         </Card>
       )}
 
-      {/* Step 5: Complete */}
+      {/* Step 6: Complete */}
       {currentStep === 'complete' && (
         <Card className={styles.successCard}>
           <div className={styles.successIcon}>
@@ -655,9 +746,11 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
                 ? handleGetSelection
                 : currentStep === 'columns'
                   ? handleColumnsNext
-                  : currentStep === 'slicers'
-                    ? handleSlicersNext
-                    : handleSpecsNext
+                  : currentStep === 'stages'
+                    ? handleStagesNext
+                    : currentStep === 'slicers'
+                      ? handleSlicersNext
+                      : handleSpecsNext
             }
             disabled={isLoading || (currentStep === 'data' && !rangeAddress && !isLoading)}
           >

@@ -27,6 +27,10 @@ export interface AddInState {
   };
   /** Names of created slicers */
   slicerNames: string[];
+  /** Column name for stage grouping (optional) */
+  stageColumn?: string | null;
+  /** Stage order mode: auto-detect, first-occurrence, or alphabetical */
+  stageOrderMode?: 'auto' | 'first-occurrence' | 'alphabetical';
   /** ISO timestamp of last update */
   lastUpdated: string;
 }

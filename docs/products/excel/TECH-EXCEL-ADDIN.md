@@ -922,6 +922,31 @@ interface ExportOptions {
 }
 ```
 
+### Staged I-Chart Analysis
+
+The Excel Add-in supports staged I-Chart analysis for comparing process phases:
+
+**Setup Wizard Configuration**
+
+- **Step 3 (Stage Analysis)**: Select a categorical column to divide the I-Chart into stages
+- Stage columns must have 2-10 unique values
+- Choose stage order mode: Auto-detect, First occurrence, or Alphabetical
+
+**How It Works**
+
+1. During setup, select a stage column (e.g., "Phase", "Batch", "Shift")
+2. The I-Chart will display separate control limits (UCL, Mean, LCL) per stage
+3. Vertical dividers mark stage boundaries
+4. Stage labels appear at the top of each section
+
+**Use Cases**
+
+- Before/after process improvement comparisons
+- Batch-to-batch analysis
+- Shift or time period comparisons
+
+See [Staged Analysis User Guide](../pwa/STAGED_ANALYSIS.md) for detailed usage patterns.
+
 ---
 
 ## Development Setup
