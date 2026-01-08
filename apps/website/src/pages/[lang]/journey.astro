@@ -1,0 +1,327 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import JourneySection from "../../components/JourneySection.astro";
+import JourneyProgress from "../../components/JourneyProgress.astro";
+import PWAEmbed from "../../components/PWAEmbed.astro";
+import ScrollReveal from "../../components/ScrollReveal.astro";
+import { ui } from "../../i18n/ui";
+
+export function getStaticPaths() {
+	return Object.keys(ui).map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+---
+
+<BaseLayout
+	title="See Beyond Averages | VaRiScout Journey"
+	description="Discover how averages hide 46% of your improvement potential. An interactive journey through variation analysis."
+>
+	<!-- Progress Indicator -->
+	<JourneyProgress />
+
+	<!-- Section 1: AVERAGES -->
+	<JourneySection id="averages" pillar="AVERAGES" question="What does the dashboard show?" number={1}>
+		<ScrollReveal animation="fade-up">
+			<div class="max-w-3xl">
+				<p class="text-2xl md:text-3xl text-neutral-300 mb-8">
+					The dashboard says <span class="text-white font-bold">95% pass rate</span>.
+				</p>
+
+				<!-- Simple bar chart visualization -->
+				<div class="bg-neutral-800/50 rounded-2xl p-8 mb-8">
+					<div class="flex items-end justify-around gap-4 h-48">
+						<div class="flex flex-col items-center gap-2">
+							<div class="w-16 bg-green-500/80 rounded-t-lg" style="height: 96%"></div>
+							<span class="text-sm text-neutral-400">Factor A</span>
+							<span class="text-lg font-bold text-white">96%</span>
+						</div>
+						<div class="flex flex-col items-center gap-2">
+							<div class="w-16 bg-green-500/80 rounded-t-lg" style="height: 94%"></div>
+							<span class="text-sm text-neutral-400">Factor B</span>
+							<span class="text-lg font-bold text-white">94%</span>
+						</div>
+						<div class="flex flex-col items-center gap-2">
+							<div class="w-16 bg-green-500/80 rounded-t-lg" style="height: 95%"></div>
+							<span class="text-sm text-neutral-400">Factor C</span>
+							<span class="text-lg font-bold text-white">95%</span>
+						</div>
+					</div>
+				</div>
+
+				<p class="text-xl text-neutral-400">
+					Everything looks fine. Management is satisfied.
+				</p>
+				<p class="text-2xl text-white font-semibold mt-4">
+					But is it?
+				</p>
+			</div>
+		</ScrollReveal>
+
+		<div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+			<svg class="w-6 h-6 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+			</svg>
+		</div>
+	</JourneySection>
+
+	<!-- Section 2: CHANGE -->
+	<JourneySection id="change" pillar="CHANGE" question="What patterns does time reveal?" number={2}>
+		<ScrollReveal animation="fade-up">
+			<p class="text-xl text-neutral-300 mb-8 max-w-2xl">
+				What if we look at <span class="text-blue-400 font-semibold">time</span>?
+			</p>
+		</ScrollReveal>
+
+		<ScrollReveal animation="fade-up" delay={200}>
+			<PWAEmbed
+				sampleKey="journey"
+				title="I-Chart: See the Pattern"
+				height="450px"
+				iframeId="journey-ichart"
+			/>
+		</ScrollReveal>
+
+		<ScrollReveal animation="fade-up" delay={400}>
+			<div class="mt-8 max-w-2xl">
+				<p class="text-xl text-neutral-300">
+					Factor C has a <span class="text-white font-semibold">pattern</span> the average hides.
+				</p>
+				<p class="text-lg text-neutral-400 mt-2">
+					Something changed around observation 15.
+				</p>
+			</div>
+		</ScrollReveal>
+	</JourneySection>
+
+	<!-- Section 3: FLOW -->
+	<JourneySection id="flow" pillar="FLOW" question="Which factors drive variation?" number={3}>
+		<ScrollReveal animation="fade-up">
+			<p class="text-xl text-neutral-300 mb-8 max-w-2xl">
+				Where is the <span class="text-orange-400 font-semibold">variation</span> hiding?
+			</p>
+		</ScrollReveal>
+
+		<ScrollReveal animation="fade-up" delay={200}>
+			<PWAEmbed
+				sampleKey="journey"
+				title="Boxplot: Compare the Spread"
+				height="450px"
+				iframeId="journey-boxplot"
+			/>
+		</ScrollReveal>
+
+		<ScrollReveal animation="fade-up" delay={400}>
+			<div class="mt-8 max-w-2xl">
+				<p class="text-xl text-neutral-300">
+					Factor C has <span class="text-white font-semibold">3x the variation</span> of the others.
+				</p>
+				<p class="text-lg text-neutral-400 mt-2">
+					The average was the same. The spread was not.
+				</p>
+			</div>
+		</ScrollReveal>
+	</JourneySection>
+
+	<!-- Section 4: FAILURE -->
+	<JourneySection id="failure" pillar="FAILURE" question="Where do problems concentrate?" number={4}>
+		<ScrollReveal animation="fade-up">
+			<p class="text-xl text-neutral-300 mb-8 max-w-2xl">
+				What's the <span class="text-red-400 font-semibold">impact</span>?
+			</p>
+		</ScrollReveal>
+
+		<ScrollReveal animation="fade-up" delay={200}>
+			<div class="bg-neutral-800/50 rounded-2xl p-8 max-w-2xl">
+				<!-- Pareto visualization -->
+				<div class="flex items-end gap-4 h-64 mb-4">
+					<div class="flex flex-col items-center gap-2 flex-1">
+						<div class="w-full bg-red-500 rounded-t-lg relative" style="height: 100%">
+							<span class="absolute -top-8 left-1/2 -translate-x-1/2 text-2xl font-bold text-white">46%</span>
+						</div>
+						<span class="text-sm text-neutral-400">Factor C</span>
+					</div>
+					<div class="flex flex-col items-center gap-2 flex-1">
+						<div class="w-full bg-red-500/60 rounded-t-lg" style="height: 35%"></div>
+						<span class="text-sm text-neutral-400">Factor A</span>
+					</div>
+					<div class="flex flex-col items-center gap-2 flex-1">
+						<div class="w-full bg-red-500/40 rounded-t-lg" style="height: 19%"></div>
+						<span class="text-sm text-neutral-400">Factor B</span>
+					</div>
+				</div>
+				<div class="h-1 bg-neutral-700 rounded relative">
+					<div class="absolute inset-y-0 left-0 bg-yellow-500 rounded" style="width: 46%"></div>
+				</div>
+			</div>
+		</ScrollReveal>
+
+		<ScrollReveal animation="fade-up" delay={400}>
+			<div class="mt-8 max-w-2xl">
+				<p class="text-2xl text-white font-bold">
+					46% of all defects come from Factor C.
+				</p>
+				<p class="text-lg text-neutral-400 mt-2">
+					One factor. Nearly half the problem.
+				</p>
+			</div>
+		</ScrollReveal>
+	</JourneySection>
+
+	<!-- Section 5: VALUE -->
+	<JourneySection id="value" pillar="VALUE" question="Does it meet customer specs?" number={5}>
+		<ScrollReveal animation="fade-up">
+			<p class="text-xl text-neutral-300 mb-8 max-w-2xl">
+				What happens when you <span class="text-green-400 font-semibold">fix it</span>?
+			</p>
+		</ScrollReveal>
+
+		<ScrollReveal animation="fade-up" delay={200}>
+			<div class="grid md:grid-cols-2 gap-8 max-w-4xl">
+				<!-- Before -->
+				<div class="bg-red-950/30 border border-red-500/30 rounded-2xl p-8">
+					<span class="text-sm font-bold text-red-400 uppercase tracking-wider">Before</span>
+					<div class="mt-4">
+						<span class="text-5xl font-bold text-red-400">0.8</span>
+						<span class="text-lg text-neutral-400 ml-2">Cpk</span>
+					</div>
+					<p class="text-neutral-400 mt-4">Process not capable. High reject rate.</p>
+				</div>
+
+				<!-- After -->
+				<div class="bg-green-950/30 border border-green-500/30 rounded-2xl p-8">
+					<span class="text-sm font-bold text-green-400 uppercase tracking-wider">After</span>
+					<div class="mt-4">
+						<span class="text-5xl font-bold text-green-400">1.5</span>
+						<span class="text-lg text-neutral-400 ml-2">Cpk</span>
+					</div>
+					<p class="text-neutral-400 mt-4">Process capable. Minimal rejects.</p>
+				</div>
+			</div>
+		</ScrollReveal>
+
+		<ScrollReveal animation="fade-up" delay={400}>
+			<div class="mt-8 max-w-2xl">
+				<p class="text-xl text-neutral-300">
+					The same process. Just focused on the <span class="text-white font-semibold">right thing</span>.
+				</p>
+			</div>
+		</ScrollReveal>
+	</JourneySection>
+
+	<!-- Section 6: CLARITY -->
+	<JourneySection id="clarity" pillar="CLARITY" question="Where should Lean thinking focus?" number={6}>
+		<ScrollReveal animation="fade-up">
+			<div class="max-w-3xl">
+				<h3 class="text-2xl font-bold text-white mb-8">The VaRiScout Journey</h3>
+
+				<div class="space-y-6">
+					<div class="flex items-start gap-4">
+						<span class="w-8 h-8 rounded-full bg-neutral-700 flex items-center justify-center text-sm font-bold text-neutral-400">1</span>
+						<div>
+							<span class="text-neutral-500 font-medium">AVERAGES</span>
+							<span class="text-neutral-300"> said "95% - all good"</span>
+						</div>
+					</div>
+
+					<div class="flex items-start gap-4">
+						<span class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400">2</span>
+						<div>
+							<span class="text-blue-400 font-medium">CHANGE</span>
+							<span class="text-neutral-300"> revealed the hidden pattern</span>
+						</div>
+					</div>
+
+					<div class="flex items-start gap-4">
+						<span class="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-sm font-bold text-orange-400">3</span>
+						<div>
+							<span class="text-orange-400 font-medium">FLOW</span>
+							<span class="text-neutral-300"> found where variation hides</span>
+						</div>
+					</div>
+
+					<div class="flex items-start gap-4">
+						<span class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-sm font-bold text-red-400">4</span>
+						<div>
+							<span class="text-red-400 font-medium">FAILURE</span>
+							<span class="text-neutral-300"> showed where problems concentrate</span>
+						</div>
+					</div>
+
+					<div class="flex items-start gap-4">
+						<span class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-sm font-bold text-green-400">5</span>
+						<div>
+							<span class="text-green-400 font-medium">VALUE</span>
+							<span class="text-neutral-300"> proved the business case</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="mt-12 p-8 bg-purple-500/10 border border-purple-500/30 rounded-2xl">
+					<p class="text-3xl font-bold text-white">
+						46% of improvement potential in one place.
+					</p>
+					<p class="text-xl text-purple-300 mt-4">
+						Find it. Fix it. Move on.
+					</p>
+				</div>
+			</div>
+		</ScrollReveal>
+	</JourneySection>
+
+	<!-- Section 7: CLOSE -->
+	<JourneySection id="close" pillar="CLOSE" question="Where's YOUR 46%?" number={7} class="bg-gradient-to-b from-neutral-900 to-brand-primary/20">
+		<ScrollReveal animation="scale">
+			<div class="text-center max-w-4xl mx-auto">
+				<p class="text-xl text-neutral-300 mb-12">
+					Your data is hiding opportunity. Let's find it.
+				</p>
+
+				<div class="grid md:grid-cols-3 gap-6 mb-12">
+					<!-- PWA -->
+					<a href="/app" class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-8 transition-all">
+						<div class="text-4xl mb-4">🌐</div>
+						<h3 class="text-xl font-bold text-white mb-2">Web App</h3>
+						<p class="text-neutral-400 text-sm mb-4">Works in your browser. No install needed.</p>
+						<span class="text-brand-primary font-semibold group-hover:underline">Try Free →</span>
+					</a>
+
+					<!-- Excel -->
+					<a href="https://appsource.microsoft.com" target="_blank" class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-8 transition-all">
+						<div class="text-4xl mb-4">📊</div>
+						<h3 class="text-xl font-bold text-white mb-2">Excel Add-in</h3>
+						<p class="text-neutral-400 text-sm mb-4">Charts inside your spreadsheet.</p>
+						<span class="text-brand-primary font-semibold group-hover:underline">Get Add-in →</span>
+					</a>
+
+					<!-- Enterprise -->
+					<a href={`/${lang}/product/azure`} class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-8 transition-all">
+						<div class="text-4xl mb-4">🏢</div>
+						<h3 class="text-xl font-bold text-white mb-2">Enterprise</h3>
+						<p class="text-neutral-400 text-sm mb-4">Team deployment with SSO.</p>
+						<span class="text-brand-primary font-semibold group-hover:underline">Learn More →</span>
+					</a>
+				</div>
+
+				<p class="text-sm text-neutral-500">
+					No signup required. Your data stays on your device.
+				</p>
+			</div>
+		</ScrollReveal>
+	</JourneySection>
+</BaseLayout>
+
+<style is:global>
+	/* Smooth scroll for the whole journey */
+	html {
+		scroll-behavior: smooth;
+		scroll-snap-type: y proximity;
+	}
+
+	/* Disable snap on reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		html {
+			scroll-snap-type: none;
+		}
+	}
+</style>

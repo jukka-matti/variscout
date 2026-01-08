@@ -16,11 +16,11 @@ export function getStaticPaths() {
 const lang = getLangFromUrl(Astro.url);
 
 const hero = {
-	headline: "Find what's driving variation.",
-	emphasis: "In minutes.",
-	subhead: "Simple enough for anyone. Rigorous enough for experts. 1 minute to insight, 1 minute to adjust, 1 minute to present.",
+	headline: "See Beyond Averages.",
+	emphasis: "Find your 46%.",
+	subhead: "46% of your improvement potential may be hiding in one place. VaRiScout finds WHERE to focus. Simple enough for anyone. Rigorous enough for experts.",
 	primaryCTA: { text: "Try Free", href: "/app" },
-	secondaryCTA: { text: "Watch Demo", href: "#demo" },
+	secondaryCTA: { text: "Take the Journey", href: `/${lang}/journey` },
 };
 
 const valueProps = [
@@ -123,13 +123,21 @@ const products = [
 			<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white rounded-full"></div>
 		</div>
 		<div class="container-wide text-center relative z-10">
-			<h2 class="text-4xl font-bold mb-6">Start Scouting Variation</h2>
+			<h2 class="text-4xl font-bold mb-6">Where's YOUR 46%?</h2>
 			<p class="text-brand-primary-light text-xl mb-10 max-w-2xl mx-auto">
-				No signup required. Your data stays in your browser. Complete privacy by design.
+				Your data is hiding opportunity. Find it. Fix it. Move on.
 			</p>
-			<a href="/app" class="btn bg-white text-brand-primary hover:bg-neutral-50 text-lg px-10 py-4 shadow-xl">
-				Open VaRiScout
-			</a>
+			<div class="flex flex-col sm:flex-row gap-4 justify-center">
+				<a href="/app" class="btn bg-white text-brand-primary hover:bg-neutral-50 text-lg px-10 py-4 shadow-xl">
+					Try Free - No Signup
+				</a>
+				<a href={`/${lang}/journey`} class="btn border-2 border-white text-white hover:bg-white/10 text-lg px-10 py-4">
+					Take the Journey
+				</a>
+			</div>
+			<p class="mt-6 text-sm text-white/60">
+				Your data stays on your device. Always.
+			</p>
 		</div>
 	</section>
 </BaseLayout>

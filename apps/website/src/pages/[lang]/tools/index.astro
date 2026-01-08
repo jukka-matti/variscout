@@ -1,0 +1,197 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ScrollReveal from "../../../components/ScrollReveal.astro";
+import { ui } from "../../../i18n/ui";
+import { TOOLS } from "../../../data/toolsData";
+
+export function getStaticPaths() {
+	return Object.keys(ui).map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+
+// Group tools by pillar
+const pillarTools = TOOLS.filter((t) => t.pillar !== null);
+const additionalTools = TOOLS.filter((t) => t.pillar === null);
+
+// Pillar info for section headers
+const pillars = [
+	{ id: "CHANGE", name: "CHANGE", color: "text-blue-500", bgColor: "bg-blue-500/10", description: "See patterns over time" },
+	{ id: "FLOW", name: "FLOW", color: "text-orange-500", bgColor: "bg-orange-500/10", description: "Compare factors and groups" },
+	{ id: "FAILURE", name: "FAILURE", color: "text-red-500", bgColor: "bg-red-500/10", description: "Find where problems concentrate" },
+	{ id: "VALUE", name: "VALUE", color: "text-green-500", bgColor: "bg-green-500/10", description: "Meet customer requirements" },
+];
+---
+
+<BaseLayout
+	title="Statistical Tools | VaRiScout"
+	description="Learn how to use I-Charts, Boxplots, Pareto Charts, Capability Analysis, Regression, and Gage R&R with interactive examples."
+>
+	<!-- Hero -->
+	<section class="py-20 bg-gradient-to-b from-neutral-50 to-white">
+		<div class="container-wide">
+			<ScrollReveal animation="fade-up">
+				<div class="max-w-3xl">
+					<h1 class="text-4xl md:text-5xl font-bold mb-4">Statistical Tools</h1>
+					<p class="text-xl text-neutral-600 mb-6">
+						Six visual tools to find where variation hides. Each one answers a different question about your data.
+					</p>
+					<p class="text-neutral-500">
+						Click any tool to learn when to use it, how to read it, and try it with real data.
+					</p>
+				</div>
+			</ScrollReveal>
+		</div>
+	</section>
+
+	<!-- Four Pillars Tools -->
+	<section class="py-16 bg-white">
+		<div class="container-wide">
+			<ScrollReveal animation="fade-up">
+				<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-8">The Four Pillars</h2>
+			</ScrollReveal>
+
+			<div class="grid md:grid-cols-2 gap-8">
+				{pillars.map((pillar) => {
+					const tool = pillarTools.find((t) => t.pillar === pillar.id);
+					if (!tool) return null;
+
+					return (
+						<ScrollReveal animation="fade-up" delay={pillars.indexOf(pillar) * 100}>
+							<a
+								href={`/${lang}/tools/${tool.slug}`}
+								class="block group"
+							>
+								<div class={`rounded-2xl p-8 border-2 border-transparent ${pillar.bgColor} hover:border-current ${pillar.color} transition-all`}>
+									<div class="flex items-start justify-between mb-4">
+										<div>
+											<span class={`text-xs font-bold uppercase tracking-wider ${pillar.color}`}>
+												{pillar.name}
+											</span>
+											<h3 class="text-2xl font-bold mt-1 group-hover:text-brand-primary transition-colors">
+												{tool.name}
+											</h3>
+										</div>
+										<div class={`w-12 h-12 rounded-full ${pillar.bgColor} ${pillar.color} flex items-center justify-center text-2xl font-bold`}>
+											{tool.name[0]}
+										</div>
+									</div>
+									<p class="text-neutral-600 mb-4">{tool.hero.title}</p>
+									<p class="text-sm text-neutral-500">{pillar.description}</p>
+									<div class="mt-4 flex items-center gap-2 text-sm font-medium text-brand-primary opacity-0 group-hover:opacity-100 transition-opacity">
+										Learn more <span>&rarr;</span>
+									</div>
+								</div>
+							</a>
+						</ScrollReveal>
+					);
+				})}
+			</div>
+		</div>
+	</section>
+
+	<!-- Additional Tools -->
+	<section class="py-16 bg-neutral-50">
+		<div class="container-wide">
+			<ScrollReveal animation="fade-up">
+				<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-8">Additional Tools</h2>
+			</ScrollReveal>
+
+			<div class="grid md:grid-cols-2 gap-6">
+				{additionalTools.map((tool, i) => (
+					<ScrollReveal animation="fade-up" delay={i * 100}>
+						<a
+							href={`/${lang}/tools/${tool.slug}`}
+							class="flex items-start gap-4 p-6 bg-white rounded-xl border border-neutral-200 hover:border-neutral-300 hover:shadow-md transition-all group"
+						>
+							<div class={`shrink-0 w-12 h-12 rounded-full ${tool.colorClass.replace('text-', 'bg-')}/10 ${tool.colorClass} flex items-center justify-center text-xl font-bold`}>
+								{tool.name[0]}
+							</div>
+							<div>
+								<h3 class="text-xl font-bold group-hover:text-brand-primary transition-colors">
+									{tool.name}
+								</h3>
+								<p class="text-neutral-600 mt-1">{tool.hero.title}</p>
+								<p class="text-sm text-neutral-500 mt-2">{tool.hero.subtitle}</p>
+							</div>
+						</a>
+					</ScrollReveal>
+				))}
+			</div>
+		</div>
+	</section>
+
+	<!-- How They Work Together -->
+	<section class="py-16 bg-white border-t border-neutral-100">
+		<div class="container-wide">
+			<div class="max-w-3xl mx-auto">
+				<ScrollReveal animation="fade-up">
+					<h2 class="text-2xl font-bold text-center mb-8">How They Work Together</h2>
+					<div class="space-y-4">
+						<div class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg">
+							<span class="shrink-0 w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">1</span>
+							<div>
+								<span class="font-semibold">I-Chart</span>
+								<span class="text-neutral-600"> reveals patterns over time</span>
+							</div>
+						</div>
+						<div class="flex justify-center">
+							<svg class="w-6 h-6 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+							</svg>
+						</div>
+						<div class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg">
+							<span class="shrink-0 w-8 h-8 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold">2</span>
+							<div>
+								<span class="font-semibold">Boxplot</span>
+								<span class="text-neutral-600"> compares factors to find the source</span>
+							</div>
+						</div>
+						<div class="flex justify-center">
+							<svg class="w-6 h-6 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+							</svg>
+						</div>
+						<div class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg">
+							<span class="shrink-0 w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center font-bold">3</span>
+							<div>
+								<span class="font-semibold">Pareto</span>
+								<span class="text-neutral-600"> prioritizes which category matters most</span>
+							</div>
+						</div>
+						<div class="flex justify-center">
+							<svg class="w-6 h-6 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+							</svg>
+						</div>
+						<div class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg">
+							<span class="shrink-0 w-8 h-8 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center font-bold">4</span>
+							<div>
+								<span class="font-semibold">Capability</span>
+								<span class="text-neutral-600"> proves the improvement to stakeholders</span>
+							</div>
+						</div>
+					</div>
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- CTA -->
+	<section class="py-16 bg-neutral-900 text-white">
+		<div class="container-wide">
+			<ScrollReveal animation="scale">
+				<div class="max-w-2xl mx-auto text-center">
+					<h2 class="text-3xl font-bold mb-4">Ready to Find Your 46%?</h2>
+					<p class="text-neutral-300 mb-8">
+						Try VaRiScout free with your own data. No signup, no upload - everything stays on your device.
+					</p>
+					<div class="flex flex-col sm:flex-row gap-4 justify-center">
+						<a href="/app" class="btn btn-primary px-8 py-3">Try Free</a>
+						<a href={`/${lang}/journey`} class="btn btn-outline-light px-8 py-3">Take the Journey</a>
+					</div>
+				</div>
+			</ScrollReveal>
+		</div>
+	</section>
+</BaseLayout>

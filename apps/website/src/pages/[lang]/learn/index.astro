@@ -1,0 +1,139 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ScrollReveal from "../../../components/ScrollReveal.astro";
+import { ui } from "../../../i18n/ui";
+import { LEARN_TOPICS } from "../../../data/learnData";
+
+export function getStaticPaths() {
+	return Object.keys(ui).map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+---
+
+<BaseLayout
+	title="Learn | VaRiScout"
+	description="Learn the concepts behind variation analysis: Two Voices, Four Pillars, and EDA Philosophy."
+>
+	<!-- Hero -->
+	<section class="py-20 bg-gradient-to-b from-neutral-50 to-white">
+		<div class="container-wide">
+			<ScrollReveal animation="fade-up">
+				<div class="max-w-3xl">
+					<h1 class="text-4xl md:text-5xl font-bold mb-4">Learn</h1>
+					<p class="text-xl text-neutral-600 mb-6">
+						Understand the concepts behind effective variation analysis. These ideas power how VaRiScout helps you find what averages hide.
+					</p>
+				</div>
+			</ScrollReveal>
+		</div>
+	</section>
+
+	<!-- Topics Grid -->
+	<section class="py-16 bg-white">
+		<div class="container-wide">
+			<div class="grid md:grid-cols-3 gap-8">
+				{LEARN_TOPICS.map((topic, i) => (
+					<ScrollReveal animation="fade-up" delay={i * 100}>
+						<a
+							href={`/${lang}/learn/${topic.slug}`}
+							class="block group h-full"
+						>
+							<div class={`h-full rounded-2xl p-8 border-2 border-transparent bg-neutral-50 hover:border-current ${topic.colorClass} transition-all`}>
+								<div class="text-5xl mb-4">{topic.icon}</div>
+								<h2 class="text-2xl font-bold mb-2 group-hover:text-brand-primary transition-colors">
+									{topic.title}
+								</h2>
+								<p class="text-lg text-neutral-600 mb-4">{topic.subtitle}</p>
+								<p class="text-sm text-neutral-500 mb-6">{topic.description}</p>
+								<div class={`text-sm font-medium ${topic.colorClass} flex items-center gap-2`}>
+									<span>Learn more</span>
+									<span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+								</div>
+							</div>
+						</a>
+					</ScrollReveal>
+				))}
+			</div>
+		</div>
+	</section>
+
+	<!-- Why Learn This -->
+	<section class="py-16 bg-neutral-50">
+		<div class="container-wide">
+			<div class="max-w-3xl mx-auto">
+				<ScrollReveal animation="fade-up">
+					<h2 class="text-2xl font-bold text-center mb-8">Why This Matters</h2>
+					<div class="space-y-6">
+						<div class="flex items-start gap-4 p-6 bg-white rounded-xl border border-neutral-200">
+							<div class="shrink-0 w-12 h-12 rounded-full bg-purple-500/10 text-purple-500 flex items-center justify-center text-2xl">
+								🎭
+							</div>
+							<div>
+								<h3 class="font-bold text-lg mb-1">Two Voices</h3>
+								<p class="text-neutral-600">
+									Confusing control limits with spec limits is the most common mistake in process analysis. Understanding the difference changes everything.
+								</p>
+							</div>
+						</div>
+						<div class="flex items-start gap-4 p-6 bg-white rounded-xl border border-neutral-200">
+							<div class="shrink-0 w-12 h-12 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl">
+								🏛️
+							</div>
+							<div>
+								<h3 class="font-bold text-lg mb-1">Four Pillars</h3>
+								<p class="text-neutral-600">
+									Different questions need different visualizations. The Four Pillars framework helps you pick the right tool for your question.
+								</p>
+							</div>
+						</div>
+						<div class="flex items-start gap-4 p-6 bg-white rounded-xl border border-neutral-200">
+							<div class="shrink-0 w-12 h-12 rounded-full bg-cyan-500/10 text-cyan-500 flex items-center justify-center text-2xl">
+								🔬
+							</div>
+							<div>
+								<h3 class="font-bold text-lg mb-1">EDA Philosophy</h3>
+								<p class="text-neutral-600">
+									Traditional statistics tests hypotheses. EDA generates them. VaRiScout is built for exploration first, confirmation second.
+								</p>
+							</div>
+						</div>
+					</div>
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- Connection to Tools -->
+	<section class="py-16 bg-white border-t border-neutral-100">
+		<div class="container-wide">
+			<div class="max-w-3xl mx-auto text-center">
+				<ScrollReveal animation="fade-up">
+					<h2 class="text-2xl font-bold mb-4">Concepts + Tools = Insight</h2>
+					<p class="text-neutral-600 mb-8">
+						These concepts power how VaRiScout's tools work together. Learn the ideas, then apply them with the tools.
+					</p>
+					<div class="flex flex-col sm:flex-row gap-4 justify-center">
+						<a href={`/${lang}/tools`} class="btn btn-primary px-8 py-3">Explore Tools</a>
+						<a href={`/${lang}/journey`} class="btn btn-outline px-8 py-3">Take the Journey</a>
+					</div>
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- CTA -->
+	<section class="py-16 bg-neutral-900 text-white">
+		<div class="container-wide">
+			<ScrollReveal animation="scale">
+				<div class="max-w-2xl mx-auto text-center">
+					<h2 class="text-3xl font-bold mb-4">Ready to Find Your 46%?</h2>
+					<p class="text-neutral-300 mb-8">
+						Apply these concepts to your own data. Free, no signup required.
+					</p>
+					<a href="/app" class="btn btn-primary px-8 py-3">Try VaRiScout Free</a>
+				</div>
+			</ScrollReveal>
+		</div>
+	</section>
+</BaseLayout>

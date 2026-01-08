@@ -1,0 +1,141 @@
+---
+/**
+ * JourneyProgress - Sticky progress indicator for the journey scroll experience
+ * Shows dots on mobile, labels on desktop
+ */
+
+const sections = [
+	{ id: 'averages', pillar: 'AVERAGES', color: 'bg-neutral-400' },
+	{ id: 'change', pillar: 'CHANGE', color: 'bg-blue-500' },
+	{ id: 'flow', pillar: 'FLOW', color: 'bg-orange-500' },
+	{ id: 'failure', pillar: 'FAILURE', color: 'bg-red-500' },
+	{ id: 'value', pillar: 'VALUE', color: 'bg-green-500' },
+	{ id: 'clarity', pillar: 'CLARITY', color: 'bg-purple-500' },
+	{ id: 'close', pillar: 'CLOSE', color: 'bg-brand-primary' },
+];
+---
+
+<nav
+	class="journey-progress fixed right-4 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col gap-3"
+	aria-label="Journey progress"
+>
+	{sections.map((section, i) => (
+		<a
+			href={`#${section.id}`}
+			class="journey-progress-item group flex items-center gap-3"
+			data-section={section.id}
+			aria-label={`Go to ${section.pillar} section`}
+		>
+			<!-- Dot -->
+			<span
+				class:list={[
+					'w-3 h-3 rounded-full transition-all duration-300',
+					'bg-neutral-600 group-hover:scale-125',
+					'group-[.is-active]:scale-125',
+				]}
+				data-active-color={section.color}
+			/>
+			<!-- Label (desktop only) -->
+			<span class="text-xs font-medium text-neutral-500 opacity-0 group-hover:opacity-100 group-[.is-active]:opacity-100 transition-opacity whitespace-nowrap">
+				{section.pillar}
+			</span>
+		</a>
+	))}
+</nav>
+
+<!-- Mobile: Simple dots at bottom -->
+<div class="journey-progress-mobile fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex gap-2 md:hidden">
+	{sections.map((section) => (
+		<a
+			href={`#${section.id}`}
+			class="journey-progress-dot w-2 h-2 rounded-full bg-neutral-600 transition-all"
+			data-section={section.id}
+			data-active-color={section.color}
+			aria-label={`Go to ${section.pillar} section`}
+		/>
+	))}
+</div>
+
+<script>
+	function initJourneyProgress() {
+		const sections = document.querySelectorAll<HTMLElement>('.journey-section');
+		const desktopItems = document.querySelectorAll<HTMLElement>('.journey-progress-item');
+		const mobileDots = document.querySelectorAll<HTMLElement>('.journey-progress-dot');
+
+		if (sections.length === 0) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						const sectionId = entry.target.id;
+
+						// Update desktop progress
+						desktopItems.forEach((item) => {
+							const dot = item.querySelector('span');
+							if (item.dataset.section === sectionId) {
+								item.classList.add('is-active');
+								if (dot) {
+									dot.classList.remove('bg-neutral-600');
+									dot.classList.add(dot.dataset.activeColor || 'bg-brand-primary');
+								}
+							} else {
+								item.classList.remove('is-active');
+								if (dot) {
+									dot.classList.add('bg-neutral-600');
+									dot.classList.remove(dot.dataset.activeColor || 'bg-brand-primary');
+								}
+							}
+						});
+
+						// Update mobile dots
+						mobileDots.forEach((dot) => {
+							if (dot.dataset.section === sectionId) {
+								dot.classList.remove('bg-neutral-600');
+								dot.classList.add(dot.dataset.activeColor || 'bg-brand-primary');
+								dot.classList.add('scale-150');
+							} else {
+								dot.classList.add('bg-neutral-600');
+								dot.classList.remove(dot.dataset.activeColor || 'bg-brand-primary');
+								dot.classList.remove('scale-150');
+							}
+						});
+					}
+				});
+			},
+			{
+				root: null,
+				rootMargin: '-40% 0px -40% 0px',
+				threshold: 0,
+			}
+		);
+
+		sections.forEach((section) => observer.observe(section));
+	}
+
+	// Run on page load
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initJourneyProgress);
+	} else {
+		initJourneyProgress();
+	}
+
+	// Re-run on Astro page transitions
+	document.addEventListener('astro:page-load', initJourneyProgress);
+</script>
+
+<style>
+	/* Smooth scroll for anchor links */
+	.journey-progress a,
+	.journey-progress-mobile a {
+		scroll-behavior: smooth;
+	}
+
+	/* Hide progress on reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.journey-progress,
+		.journey-progress-mobile {
+			display: none;
+		}
+	}
+</style>

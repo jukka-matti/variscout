@@ -1,0 +1,366 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import PWAEmbed from "../../../components/PWAEmbed.astro";
+import ScrollReveal from "../../../components/ScrollReveal.astro";
+import { ui } from "../../../i18n/ui";
+import { TOOLS, getToolBySlug, type ToolData } from "../../../data/toolsData";
+
+export function getStaticPaths() {
+	const languages = Object.keys(ui);
+	const toolSlugs = TOOLS.map((t) => t.slug);
+
+	return languages.flatMap((lang) =>
+		toolSlugs.map((tool) => ({
+			params: { lang, tool },
+			props: { tool: getToolBySlug(tool)! },
+		}))
+	);
+}
+
+interface Props {
+	tool: ToolData;
+}
+
+const { tool } = Astro.props;
+const { lang } = Astro.params;
+
+// Pillar badge colors
+const pillarBadgeColors: Record<string, string> = {
+	CHANGE: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+	FLOW: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+	FAILURE: "bg-red-500/10 text-red-500 border-red-500/20",
+	VALUE: "bg-green-500/10 text-green-500 border-green-500/20",
+};
+
+// Section background colors based on pillar
+const pillarAccentColors: Record<string, string> = {
+	CHANGE: "from-blue-500/5",
+	FLOW: "from-orange-500/5",
+	FAILURE: "from-red-500/5",
+	VALUE: "from-green-500/5",
+};
+---
+
+<BaseLayout
+	title={`${tool.name} | VaRiScout`}
+	description={tool.hero.subtitle}
+>
+	<!-- Section 1: Hero -->
+	<section class={`py-20 bg-gradient-to-b ${tool.pillar ? pillarAccentColors[tool.pillar] : 'from-purple-500/5'} to-white`}>
+		<div class="container-wide">
+			<ScrollReveal animation="fade-up">
+				<div class="max-w-3xl">
+					<a href={`/${lang}/tools`} class="text-sm font-medium text-brand-primary mb-4 block">&larr; All Tools</a>
+					{tool.pillar && (
+						<span class={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border mb-4 ${pillarBadgeColors[tool.pillar]}`}>
+							{tool.pillar} Pillar
+						</span>
+					)}
+					<h1 class="text-4xl md:text-5xl font-bold mb-4">{tool.name}</h1>
+					<p class="text-2xl md:text-3xl font-medium text-neutral-700 mb-4">{tool.hero.title}</p>
+					<p class="text-lg text-neutral-500">{tool.hero.subtitle}</p>
+				</div>
+			</ScrollReveal>
+		</div>
+	</section>
+
+	<!-- Section 2: When to Use -->
+	<section class="py-16 bg-white border-b border-neutral-100">
+		<div class="container-wide">
+			<div class="max-w-3xl">
+				<ScrollReveal animation="fade-up">
+					<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">When to Use</h2>
+					<ul class="space-y-4">
+						{tool.whenToUse.map((item, i) => (
+							<li class="flex items-start gap-3">
+								<span class={`shrink-0 w-6 h-6 rounded-full ${tool.colorClass.replace('text-', 'bg-')}/10 ${tool.colorClass} flex items-center justify-center text-xs font-bold`}>
+									{i + 1}
+								</span>
+								<span class="text-neutral-700 text-lg">{item}</span>
+							</li>
+						))}
+					</ul>
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- Section 3: Data Requirements -->
+	<section class="py-16 bg-neutral-50">
+		<div class="container-wide">
+			<div class="max-w-3xl">
+				<ScrollReveal animation="fade-up">
+					<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">What Data Do You Need?</h2>
+					<div class="grid md:grid-cols-3 gap-6">
+						<div class="bg-white rounded-xl p-6 border border-neutral-200">
+							<div class="text-3xl font-bold text-neutral-400 mb-2">{tool.dataRequirements.minimum.count}+</div>
+							<div class="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-2">Minimum</div>
+							<p class="text-sm text-neutral-600">{tool.dataRequirements.minimum.description}</p>
+						</div>
+						<div class="bg-white rounded-xl p-6 border border-neutral-200">
+							<div class={`text-3xl font-bold ${tool.colorClass} mb-2`}>{tool.dataRequirements.better.count}+</div>
+							<div class="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-2">Better</div>
+							<p class="text-sm text-neutral-600">{tool.dataRequirements.better.description}</p>
+						</div>
+						<div class="bg-white rounded-xl p-6 border border-neutral-200 ring-2 ring-neutral-900">
+							<div class="text-3xl font-bold text-neutral-900 mb-2">{tool.dataRequirements.sweet.count}+</div>
+							<div class="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-2">Sweet Spot</div>
+							<p class="text-sm text-neutral-600">{tool.dataRequirements.sweet.description}</p>
+						</div>
+					</div>
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- Section 4: How to Read -->
+	<section class="py-16 bg-white border-b border-neutral-100">
+		<div class="container-wide">
+			<div class="max-w-4xl">
+				<ScrollReveal animation="fade-up">
+					<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">How to Read</h2>
+					<p class="text-lg text-neutral-600 mb-8">{tool.howToRead.description}</p>
+
+					<div class="grid md:grid-cols-2 gap-6 mb-8">
+						{tool.howToRead.elements.map((element) => (
+							<div class="flex items-start gap-4 p-4 bg-neutral-50 rounded-lg">
+								<div class={`shrink-0 w-3 h-3 rounded-full mt-1.5 ${tool.colorClass.replace('text-', 'bg-')}`}></div>
+								<div>
+									<div class="font-semibold text-neutral-900">{element.name}</div>
+									<p class="text-sm text-neutral-600">{element.description}</p>
+								</div>
+							</div>
+						))}
+					</div>
+
+					<div class="bg-neutral-900 text-white rounded-xl p-6">
+						<h3 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">Quick Check</h3>
+						<ul class="space-y-2">
+							{tool.howToRead.quickCheck.map((check) => (
+								<li class="flex items-center gap-3">
+									<span class="text-green-400">&#10003;</span>
+									<span>{check}</span>
+								</li>
+							))}
+						</ul>
+					</div>
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- Section 5: Patterns to Find -->
+	<section class="py-16 bg-neutral-50">
+		<div class="container-wide">
+			<div class="max-w-4xl">
+				<ScrollReveal animation="fade-up">
+					<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">Patterns to Find</h2>
+					<div class="space-y-4">
+						{tool.patterns.map((pattern, i) => (
+							<div class="bg-white rounded-xl p-6 border border-neutral-200 hover:border-neutral-300 transition-colors">
+								<div class="flex items-start gap-4">
+									<span class={`shrink-0 w-8 h-8 rounded-full ${tool.colorClass.replace('text-', 'bg-')}/10 ${tool.colorClass} flex items-center justify-center font-bold`}>
+										{i + 1}
+									</span>
+									<div class="flex-1">
+										<h3 class="font-bold text-lg text-neutral-900 mb-1">{pattern.name}</h3>
+										<p class="text-neutral-600 mb-3">{pattern.description}</p>
+										<div class="flex items-center gap-2 text-sm">
+											<span class="font-medium text-neutral-500">Action:</span>
+											<span class={tool.colorClass}>{pattern.action}</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- Section 6: Try It -->
+	<section class="py-16 bg-neutral-900">
+		<div class="container-wide">
+			<ScrollReveal animation="fade-up">
+				<div class="text-center mb-8">
+					<h2 class="text-2xl font-bold text-white mb-2">Try It Yourself</h2>
+					<p class="text-neutral-400">Explore a real dataset with the {tool.name}. Click and interact with the chart.</p>
+				</div>
+				<PWAEmbed
+					sampleKey={tool.sampleKey}
+					title={`${tool.name} Demo`}
+					height="550px"
+					iframeId={`tool-demo-${tool.slug}`}
+				/>
+			</ScrollReveal>
+		</div>
+	</section>
+
+	<!-- Section 7: VaRiScout Features -->
+	<section class="py-16 bg-white border-b border-neutral-100">
+		<div class="container-wide">
+			<div class="max-w-3xl">
+				<ScrollReveal animation="fade-up">
+					<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">VaRiScout Features</h2>
+					<div class="space-y-4">
+						{tool.features.map((feature) => (
+							<div class="flex items-start gap-4 p-4 bg-neutral-50 rounded-lg">
+								<div class={`shrink-0 w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center`}>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+									</svg>
+								</div>
+								<div>
+									<div class="font-semibold text-neutral-900">{feature.name}</div>
+									<p class="text-sm text-neutral-600">{feature.description}</p>
+								</div>
+							</div>
+						))}
+					</div>
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- Section 8: Two Mindsets (EDA vs Traditional) -->
+	<section class="py-16 bg-neutral-50">
+		<div class="container-wide">
+			<div class="max-w-4xl">
+				<ScrollReveal animation="fade-up">
+					<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">Two Mindsets</h2>
+					<div class="grid md:grid-cols-2 gap-6">
+						<div class="bg-white rounded-xl p-6 border border-neutral-200">
+							<div class="flex items-center gap-3 mb-4">
+								<div class="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center">
+									<span class="text-xl">📊</span>
+								</div>
+								<h3 class="font-bold text-lg">Traditional Statistics</h3>
+							</div>
+							<ul class="space-y-2 text-sm text-neutral-600">
+								<li class="flex items-start gap-2">
+									<span class="text-neutral-400">•</span>
+									<span>Start with a hypothesis</span>
+								</li>
+								<li class="flex items-start gap-2">
+									<span class="text-neutral-400">•</span>
+									<span>Collect data to test it</span>
+								</li>
+								<li class="flex items-start gap-2">
+									<span class="text-neutral-400">•</span>
+									<span>Calculate p-values</span>
+								</li>
+								<li class="flex items-start gap-2">
+									<span class="text-neutral-400">•</span>
+									<span>Accept or reject hypothesis</span>
+								</li>
+							</ul>
+						</div>
+						<div class={`bg-white rounded-xl p-6 border-2 ${tool.colorClass.replace('text-', 'border-')}`}>
+							<div class="flex items-center gap-3 mb-4">
+								<div class={`w-10 h-10 rounded-full ${tool.colorClass.replace('text-', 'bg-')}/10 flex items-center justify-center`}>
+									<span class="text-xl">🔍</span>
+								</div>
+								<h3 class="font-bold text-lg">EDA (VaRiScout)</h3>
+							</div>
+							<ul class="space-y-2 text-sm text-neutral-600">
+								<li class="flex items-start gap-2">
+									<span class={tool.colorClass}>•</span>
+									<span>Start with curiosity</span>
+								</li>
+								<li class="flex items-start gap-2">
+									<span class={tool.colorClass}>•</span>
+									<span>Let the data speak</span>
+								</li>
+								<li class="flex items-start gap-2">
+									<span class={tool.colorClass}>•</span>
+									<span>Find patterns visually</span>
+								</li>
+								<li class="flex items-start gap-2">
+									<span class={tool.colorClass}>•</span>
+									<span>Generate hypotheses to explore</span>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<p class="mt-6 text-center text-neutral-500">
+						Both approaches have their place. EDA helps you find WHERE to focus. Then apply traditional methods to confirm WHY.
+					</p>
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- Section 9: What's Next -->
+	<section class="py-16 bg-white border-b border-neutral-100">
+		<div class="container-wide">
+			<div class="max-w-3xl">
+				<ScrollReveal animation="fade-up">
+					<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">What's Next?</h2>
+					<p class="text-lg text-neutral-600 mb-6">After using the {tool.name}, consider exploring:</p>
+					<div class="grid md:grid-cols-2 gap-4">
+						{tool.nextTools.map((nextSlug) => {
+							const nextTool = getToolBySlug(nextSlug);
+							if (!nextTool) return null;
+							return (
+								<a
+									href={`/${lang}/tools/${nextSlug}`}
+									class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all group"
+								>
+									<div class={`w-10 h-10 rounded-full ${nextTool.colorClass.replace('text-', 'bg-')}/10 ${nextTool.colorClass} flex items-center justify-center font-bold`}>
+										{nextTool.name[0]}
+									</div>
+									<div>
+										<div class="font-semibold text-neutral-900 group-hover:text-brand-primary transition-colors">{nextTool.name}</div>
+										<p class="text-sm text-neutral-500">{nextTool.pillar ? `${nextTool.pillar} Pillar` : 'Additional Tool'}</p>
+									</div>
+								</a>
+							);
+						})}
+					</div>
+
+					{tool.relatedLearn.length > 0 && (
+						<div class="mt-8">
+							<h3 class="text-sm font-medium text-neutral-500 mb-4">Related Learning</h3>
+							<div class="flex flex-wrap gap-2">
+								{tool.relatedLearn.map((learnSlug) => (
+									<a
+										href={`/${lang}/learn/${learnSlug}`}
+										class="px-4 py-2 bg-neutral-100 hover:bg-neutral-200 rounded-full text-sm font-medium text-neutral-700 transition-colors"
+									>
+										{learnSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+									</a>
+								))}
+							</div>
+						</div>
+					)}
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- Section 10: CTA -->
+	<section class="py-20 bg-neutral-900 text-white">
+		<div class="container-wide">
+			<ScrollReveal animation="scale">
+				<div class="max-w-2xl mx-auto text-center">
+					<h2 class="text-3xl md:text-4xl font-bold mb-4">Where's YOUR 46%?</h2>
+					<p class="text-lg text-neutral-300 mb-8">
+						Your data is hiding opportunity. The {tool.name} helps you find it.
+					</p>
+					<div class="flex flex-col sm:flex-row gap-4 justify-center">
+						<a href="/app" class="btn btn-primary px-8 py-3">
+							Try Free - No Signup
+						</a>
+						<a href={`/${lang}/cases`} class="btn btn-outline-light px-8 py-3">
+							Practice with Cases
+						</a>
+					</div>
+					<p class="mt-6 text-sm text-neutral-500">
+						Your data stays on your device. Always.
+					</p>
+				</div>
+			</ScrollReveal>
+		</div>
+	</section>
+</BaseLayout>

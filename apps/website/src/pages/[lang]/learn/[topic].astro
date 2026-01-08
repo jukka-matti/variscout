@@ -1,0 +1,222 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ScrollReveal from "../../../components/ScrollReveal.astro";
+import { ui } from "../../../i18n/ui";
+import { LEARN_TOPICS, getLearnTopicBySlug, type LearnTopic, type LearnSection } from "../../../data/learnData";
+import { getToolBySlug } from "../../../data/toolsData";
+
+export function getStaticPaths() {
+	const languages = Object.keys(ui);
+	const topicSlugs = LEARN_TOPICS.map((t) => t.slug);
+
+	return languages.flatMap((lang) =>
+		topicSlugs.map((topic) => ({
+			params: { lang, topic },
+			props: { topic: getLearnTopicBySlug(topic)! },
+		}))
+	);
+}
+
+interface Props {
+	topic: LearnTopic;
+}
+
+const { topic } = Astro.props;
+const { lang } = Astro.params;
+
+// Helper to render visual components
+function getComparisonClasses(color: string) {
+	const colorMap: Record<string, { bg: string; text: string; border: string }> = {
+		blue: { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20' },
+		green: { bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/20' },
+		cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-500', border: 'border-cyan-500/20' },
+		amber: { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' },
+		neutral: { bg: 'bg-neutral-100', text: 'text-neutral-600', border: 'border-neutral-200' },
+	};
+	return colorMap[color] || colorMap.neutral;
+}
+---
+
+<BaseLayout
+	title={`${topic.title} | VaRiScout Learn`}
+	description={topic.description}
+>
+	<!-- Hero -->
+	<section class="py-20 bg-gradient-to-b from-neutral-50 to-white">
+		<div class="container-wide">
+			<ScrollReveal animation="fade-up">
+				<div class="max-w-3xl">
+					<a href={`/${lang}/learn`} class="text-sm font-medium text-brand-primary mb-4 block">&larr; All Topics</a>
+					<div class="flex items-center gap-3 mb-4">
+						<span class="text-4xl">{topic.icon}</span>
+					</div>
+					<h1 class="text-4xl md:text-5xl font-bold mb-4">{topic.title}</h1>
+					<p class="text-2xl text-neutral-600 mb-2">{topic.subtitle}</p>
+					<p class="text-neutral-500">{topic.description}</p>
+				</div>
+			</ScrollReveal>
+		</div>
+	</section>
+
+	<!-- Content Sections -->
+	{topic.sections.map((section, sectionIndex) => (
+		<section
+			id={section.id}
+			class={`py-16 ${sectionIndex % 2 === 0 ? 'bg-white' : 'bg-neutral-50'}`}
+		>
+			<div class="container-wide">
+				<div class="max-w-4xl">
+					<ScrollReveal animation="fade-up">
+						<h2 class="text-2xl font-bold mb-4">{section.title}</h2>
+						<p class="text-lg text-neutral-600 mb-8 leading-relaxed">{section.content}</p>
+
+						{/* Comparison Visual */}
+						{section.visual?.type === 'comparison' && (
+							<div class="grid md:grid-cols-2 gap-6">
+								{[section.visual.data.left, section.visual.data.right].map((side) => {
+									const classes = getComparisonClasses(side.color);
+									return (
+										<div class={`rounded-xl p-6 border ${classes.border} ${classes.bg}`}>
+											<h3 class={`font-bold text-lg mb-1 ${classes.text}`}>{side.title}</h3>
+											<p class="text-sm text-neutral-500 mb-4">{side.subtitle}</p>
+											<ul class="space-y-2">
+												{side.items.map((item: string) => (
+													<li class="flex items-start gap-2 text-neutral-700">
+														<span class={classes.text}>•</span>
+														<span>{item}</span>
+													</li>
+												))}
+											</ul>
+										</div>
+									);
+								})}
+							</div>
+						)}
+
+						{/* List Visual */}
+						{section.visual?.type === 'list' && (
+							<div class="space-y-4">
+								{section.visual.data.items.map((item: { title: string; description: string }) => (
+									<div class="flex items-start gap-4 p-4 bg-neutral-100 rounded-lg">
+										<div class={`shrink-0 w-3 h-3 rounded-full mt-1.5 ${topic.colorClass.replace('text-', 'bg-')}`}></div>
+										<div>
+											<div class="font-semibold text-neutral-900">{item.title}</div>
+											<p class="text-sm text-neutral-600">{item.description}</p>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+
+						{/* Quote Visual */}
+						{section.visual?.type === 'quote' && (
+							<blockquote class={`border-l-4 ${topic.colorClass.replace('text-', 'border-')} pl-6 py-2`}>
+								<p class="text-xl italic text-neutral-700 mb-2">"{section.visual.data.quote}"</p>
+								<cite class="text-sm text-neutral-500 not-italic">— {section.visual.data.author}</cite>
+							</blockquote>
+						)}
+
+						{/* Diagram Visual */}
+						{section.visual?.type === 'diagram' && (
+							<div class="space-y-4">
+								{section.visual.data.steps.map((step: { label: string; description?: string; tool?: string }, i: number) => (
+									<div class="flex items-center gap-4">
+										<span class={`shrink-0 w-8 h-8 rounded-full ${topic.colorClass.replace('text-', 'bg-')}/10 ${topic.colorClass} flex items-center justify-center font-bold`}>
+											{i + 1}
+										</span>
+										<div class="flex-1 p-4 bg-neutral-100 rounded-lg">
+											<div class="font-semibold">{step.label}</div>
+											{step.description && <p class="text-sm text-neutral-600">{step.description}</p>}
+											{step.tool && <p class="text-sm text-neutral-500 mt-1">Tool: {step.tool}</p>}
+										</div>
+										{i < section.visual!.data.steps.length - 1 && (
+											<svg class="w-4 h-4 text-neutral-300 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+											</svg>
+										)}
+									</div>
+								))}
+							</div>
+						)}
+					</ScrollReveal>
+				</div>
+			</div>
+		</section>
+	))}
+
+	<!-- Related Content -->
+	<section class="py-16 bg-white border-t border-neutral-100">
+		<div class="container-wide">
+			<div class="max-w-4xl">
+				<ScrollReveal animation="fade-up">
+					{/* Related Tools */}
+					{topic.relatedTools.length > 0 && (
+						<div class="mb-12">
+							<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">Related Tools</h2>
+							<div class="grid md:grid-cols-2 gap-4">
+								{topic.relatedTools.map((toolSlug) => {
+									const tool = getToolBySlug(toolSlug);
+									if (!tool) return null;
+									return (
+										<a
+											href={`/${lang}/tools/${toolSlug}`}
+											class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all group"
+										>
+											<div class={`w-10 h-10 rounded-full ${tool.colorClass.replace('text-', 'bg-')}/10 ${tool.colorClass} flex items-center justify-center font-bold`}>
+												{tool.name[0]}
+											</div>
+											<div>
+												<div class="font-semibold text-neutral-900 group-hover:text-brand-primary transition-colors">{tool.name}</div>
+												<p class="text-sm text-neutral-500">{tool.pillar ? `${tool.pillar} Pillar` : 'Additional Tool'}</p>
+											</div>
+										</a>
+									);
+								})}
+							</div>
+						</div>
+					)}
+
+					{/* Related Topics */}
+					{topic.relatedTopics.length > 0 && (
+						<div>
+							<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">Continue Learning</h2>
+							<div class="flex flex-wrap gap-3">
+								{topic.relatedTopics.map((topicSlug) => {
+									const relatedTopic = getLearnTopicBySlug(topicSlug);
+									if (!relatedTopic) return null;
+									return (
+										<a
+											href={`/${lang}/learn/${topicSlug}`}
+											class="flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-neutral-200 rounded-full text-sm font-medium text-neutral-700 transition-colors"
+										>
+											<span>{relatedTopic.icon}</span>
+											<span>{relatedTopic.title}</span>
+										</a>
+									);
+								})}
+							</div>
+						</div>
+					)}
+				</ScrollReveal>
+			</div>
+		</div>
+	</section>
+
+	<!-- CTA -->
+	<section class="py-16 bg-neutral-900 text-white">
+		<div class="container-wide">
+			<ScrollReveal animation="scale">
+				<div class="max-w-2xl mx-auto text-center">
+					<h2 class="text-3xl font-bold mb-4">Ready to Apply This?</h2>
+					<p class="text-neutral-300 mb-8">
+						Try VaRiScout free with your own data. See these concepts in action.
+					</p>
+					<div class="flex flex-col sm:flex-row gap-4 justify-center">
+						<a href="/app" class="btn btn-primary px-8 py-3">Try Free</a>
+						<a href={`/${lang}/cases`} class="btn btn-outline-light px-8 py-3">Practice with Cases</a>
+					</div>
+				</div>
+			</ScrollReveal>
+		</div>
+	</section>
+</BaseLayout>

@@ -9,6 +9,31 @@ const route = getRouteFromUrl(Astro.url);
 
 const navItems = [
 	{
+		label: 'Explore',
+		items: [
+			{ label: 'Journey', href: `/${lang}/journey`, description: 'See the 46% story unfold' },
+			{ label: 'Case Studies', href: `/${lang}/cases`, description: 'Practice with real scenarios' },
+		],
+	},
+	{
+		label: 'Tools',
+		items: [
+			{ label: 'I-Chart', href: `/${lang}/tools/i-chart`, description: 'Patterns over time' },
+			{ label: 'Boxplot', href: `/${lang}/tools/boxplot`, description: 'Compare factors' },
+			{ label: 'Pareto', href: `/${lang}/tools/pareto`, description: 'Prioritize problems' },
+			{ label: 'Capability', href: `/${lang}/tools/capability`, description: 'Meet specs' },
+			{ label: 'All Tools', href: `/${lang}/tools`, divider: true },
+		],
+	},
+	{
+		label: 'Learn',
+		items: [
+			{ label: 'Two Voices', href: `/${lang}/learn/two-voices`, description: 'Control vs Spec' },
+			{ label: 'Four Pillars', href: `/${lang}/learn/four-pillars`, description: 'Watson framework' },
+			{ label: 'EDA Philosophy', href: `/${lang}/learn/eda-philosophy`, description: 'Visual exploration' },
+		],
+	},
+	{
 		label: t('nav.product'),
 		items: [
 			{ label: t('nav.product.web'), href: `/${lang}/product/web-app` },
@@ -16,13 +41,6 @@ const navItems = [
 			{ label: t('nav.product.powerbi'), href: `/${lang}/product/power-bi` },
 			{ label: t('nav.product.azure'), href: `/${lang}/product/azure` },
 			{ label: t('nav.product.compare'), href: `/${lang}/product/compare`, divider: true },
-		],
-	},
-	{
-		label: t('nav.useCases'),
-		items: [
-			{ label: t('nav.useCases.lss'), href: `/${lang}/use-cases/lss-training` },
-			{ label: t('nav.useCases.ops'), href: `/${lang}/use-cases/operations` },
 		],
 	},
 ];
