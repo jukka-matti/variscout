@@ -86,7 +86,9 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
   // Calculate stage boundaries for rendering
   const stageBoundaries = useMemo(() => {
     if (!stageColumn || !stagedStats) return [];
-    return getStageBoundaries(data, stagedStats);
+    // Map data to the expected type for getStageBoundaries (x must be number)
+    const stageData = data.map((d, i) => ({ x: i, stage: d.stage }));
+    return getStageBoundaries(stageData, stagedStats);
   }, [data, stageColumn, stagedStats]);
 
   // Use existing hook for scale limits
@@ -263,7 +265,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
                       fontSize={10}
                       fontWeight={500}
                     >
-                      {boundary.stage}
+                      {boundary.name}
                     </text>
                     {/* UCL */}
                     <line

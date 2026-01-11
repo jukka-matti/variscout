@@ -218,6 +218,12 @@ export interface ProbabilityPlotProps extends BaseChartProps {
   mean: number;
   /** Standard deviation for theoretical line */
   stdDev: number;
+  /** Optional custom margin override */
+  marginOverride?: { top: number; right: number; bottom: number; left: number };
+  /** Optional custom font sizes override */
+  fontsOverride?: { tickLabel: number; axisLabel: number };
+  /** Optional signature element to render */
+  signatureElement?: React.ReactNode;
 }
 
 /**

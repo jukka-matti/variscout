@@ -8,6 +8,8 @@ import {
   sortDataByStage,
   calculateStatsByStage,
   getStageBoundaries,
+  calculateProbabilityPlotData,
+  normalQuantile,
 } from '../stats';
 
 describe('Stats Engine', () => {
@@ -887,5 +889,88 @@ describe('Get Stage Boundaries', () => {
 
     expect(boundaries).toHaveLength(1);
     expect(boundaries[0].name).toBe('A');
+  });
+});
+
+describe('Probability Plot', () => {
+  describe('normalQuantile', () => {
+    it('should return 0 for p=0.5 (median)', () => {
+      expect(normalQuantile(0.5)).toBe(0);
+    });
+
+    it('should return correct z-scores for standard percentiles', () => {
+      // p=0.025 → z≈-1.96, p=0.975 → z≈+1.96
+      expect(normalQuantile(0.025)).toBeCloseTo(-1.96, 2);
+      expect(normalQuantile(0.975)).toBeCloseTo(1.96, 2);
+      // p=0.1587 → z≈-1.0, p=0.8413 → z≈+1.0
+      expect(normalQuantile(0.1587)).toBeCloseTo(-1.0, 1);
+      expect(normalQuantile(0.8413)).toBeCloseTo(1.0, 1);
+    });
+
+    it('should handle edge cases', () => {
+      expect(normalQuantile(0)).toBe(-Infinity);
+      expect(normalQuantile(1)).toBe(Infinity);
+    });
+
+    it('should be symmetric around 0.5', () => {
+      const z1 = normalQuantile(0.1);
+      const z2 = normalQuantile(0.9);
+      expect(z1).toBeCloseTo(-z2, 5);
+    });
+  });
+
+  describe('calculateProbabilityPlotData', () => {
+    it('should return empty array for empty input', () => {
+      expect(calculateProbabilityPlotData([])).toEqual([]);
+    });
+
+    it('should filter out invalid values', () => {
+      const data = [1, NaN, 2, Infinity, 3, -Infinity, 4];
+      const result = calculateProbabilityPlotData(data);
+      expect(result).toHaveLength(4);
+    });
+
+    it('should sort data ascending', () => {
+      const data = [5, 1, 3, 2, 4];
+      const result = calculateProbabilityPlotData(data);
+      expect(result.map(d => d.value)).toEqual([1, 2, 3, 4, 5]);
+    });
+
+    it('should calculate expected percentiles using Blom formula', () => {
+      const data = [10, 20, 30, 40, 50];
+      const result = calculateProbabilityPlotData(data);
+
+      // Blom's formula: p = (i + 1 - 0.375) / (n + 0.25)
+      // For i=0, n=5: p = (1 - 0.375) / 5.25 = 0.119 → 11.9%
+      expect(result[0].expectedPercentile).toBeCloseTo(11.9, 1);
+      // For i=2 (median): p = (3 - 0.375) / 5.25 = 0.5 → 50%
+      expect(result[2].expectedPercentile).toBeCloseTo(50, 1);
+      // For i=4: p = (5 - 0.375) / 5.25 = 0.881 → 88.1%
+      expect(result[4].expectedPercentile).toBeCloseTo(88.1, 1);
+    });
+
+    it('should calculate 95% CI bounds', () => {
+      const data = [10, 12, 14, 16, 18];
+      const result = calculateProbabilityPlotData(data);
+
+      // Each point should have CI bounds
+      result.forEach(point => {
+        expect(point.lowerCI).toBeLessThanOrEqual(point.value);
+        expect(point.upperCI).toBeGreaterThanOrEqual(point.value);
+      });
+    });
+
+    it('should have wider CI at distribution tails', () => {
+      const data = Array.from({ length: 20 }, (_, i) => i * 5);
+      const result = calculateProbabilityPlotData(data);
+
+      const firstCI = result[0].upperCI - result[0].lowerCI;
+      const middleCI = result[10].upperCI - result[10].lowerCI;
+      const lastCI = result[19].upperCI - result[19].lowerCI;
+
+      // Tails should have wider CI than middle
+      expect(firstCI).toBeGreaterThan(middleCI);
+      expect(lastCI).toBeGreaterThan(middleCI);
+    });
   });
 });

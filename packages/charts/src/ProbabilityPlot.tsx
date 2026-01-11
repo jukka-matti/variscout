@@ -22,10 +22,14 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
   parentHeight,
   showBranding = true,
   brandingText,
+  marginOverride,
+  fontsOverride,
+  signatureElement,
 }) => {
   const sourceBarHeight = getSourceBarHeight(showBranding);
-  const margin = getResponsiveMargins(parentWidth, 'probability', sourceBarHeight);
-  const fonts = getResponsiveFonts(parentWidth);
+  const margin =
+    marginOverride ?? getResponsiveMargins(parentWidth, 'probability', sourceBarHeight);
+  const fonts = fontsOverride ?? getResponsiveFonts(parentWidth);
 
   const width = Math.max(0, parentWidth - margin.left - margin.right);
   const height = Math.max(0, parentHeight - margin.top - margin.bottom);
@@ -94,7 +98,20 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
   );
 
   if (data.length === 0 || !xScale) {
-    return null;
+    return (
+      <svg width={parentWidth} height={parentHeight}>
+        <text
+          x={parentWidth / 2}
+          y={parentHeight / 2}
+          textAnchor="middle"
+          fill="#64748b"
+          fontSize={12}
+          fontStyle="italic"
+        >
+          No data available for probability plot
+        </text>
+      </svg>
+    );
   }
 
   // Build CI band path
@@ -201,6 +218,9 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
             dy: 4,
           })}
         />
+
+        {/* Optional signature element */}
+        {signatureElement}
 
         {/* Source Bar (branding) */}
         {showBranding && (
