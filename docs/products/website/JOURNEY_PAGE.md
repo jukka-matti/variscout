@@ -186,30 +186,30 @@ Enterprise: "Learn More" → /products/enterprise
 
 ## Technical Implementation
 
-### Embedded PWA Approach
+### React Islands Approach
 
-Each chart section uses the existing `PWAEmbed.astro` component:
+Each chart section uses React Islands with pre-computed data from `@variscout/data`:
 
 ```astro
-<PWAEmbed
-  sampleKey="journey"
-  title="Journey Analysis"
-  height="500px"
-  iframeId="journey-section-ichart"
-/>
+---
+import IChartIsland from '../../components/islands/IChartIsland';
+import BoxplotIsland from '../../components/islands/BoxplotIsland';
+import ParetoIsland from '../../components/islands/ParetoIsland';
+---
+
+<IChartIsland client:only="react" sampleKey="journey" height={450} />
+<BoxplotIsland client:only="react" sampleKey="journey" height={450} />
+<ParetoIsland client:only="react" sampleKey="journey" height={450} />
 ```
 
-### Chart Highlighting
+### Chart Interaction
 
-Use the existing postMessage protocol to highlight specific charts as user scrolls:
+Charts render directly on the page without iframe communication. Scroll-triggered animations use Astro's ScrollReveal component:
 
-```typescript
-// When section enters viewport
-sendMessage({
-  type: 'variscout-embed',
-  action: 'highlight-chart',
-  payload: { chartId: 'ichart', intensity: 'pulse' },
-});
+```astro
+<ScrollReveal animation="fade-up" delay={200}>
+  <IChartIsland client:only="react" sampleKey="journey" height={450} />
+</ScrollReveal>
 ```
 
 ### Scroll Triggers

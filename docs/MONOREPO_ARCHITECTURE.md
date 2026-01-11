@@ -10,11 +10,13 @@ VariScout Lite uses a **pnpm workspaces monorepo** to share code between multipl
 variscout-lite/
 ├── packages/
 │   ├── core/          # @variscout/core - Pure logic (stats, parser, license)
-│   └── charts/        # @variscout/charts - Props-based Visx chart components
+│   ├── charts/        # @variscout/charts - Props-based Visx chart components
+│   ├── data/          # @variscout/data - Sample datasets with pre-computed chart data
+│   └── ui/            # @variscout/ui - Shared UI utilities and colors
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite + PWA)
 │   ├── excel-addin/   # Excel Add-in (Office.js + React + Fluent UI)
-│   ├── website/       # FUTURE: Marketing website (Astro)
+│   ├── website/       # Marketing website (Astro + React Islands)
 │   ├── azure/         # Azure Team App (SharePoint, SSO)
 │   └── powerbi-visuals/ # FUTURE: Power BI custom visuals
 └── docs/
@@ -95,6 +97,71 @@ import { IChartBase, BoxplotBase, calculateBoxplotStats } from '@variscout/chart
 
 // Use responsive utilities
 import { getResponsiveMargins, getResponsiveFonts } from '@variscout/charts';
+```
+
+### @variscout/data (`packages/data/`)
+
+Pre-computed sample datasets for the marketing website's React Islands. Provides ready-to-render chart data without runtime computation.
+
+**Contents:**
+
+- `samples/*.ts` - Individual sample datasets (coffee, journey, bottleneck, etc.)
+- `types.ts` - SampleDataset interface definition
+- `index.ts` - `getSample()` helper and sample registry
+
+**Each sample provides:**
+
+- `rawData` - Original records
+- `stats` - Pre-calculated StatsResult
+- `specs` - USL/LSL/Target specification limits
+- `ichartData` - Pre-formatted IChartPoint[] for I-Chart
+- `boxplotData` - Pre-calculated BoxplotGroup[] for Boxplot
+- `paretoData` - Pre-aggregated ParetoItem[] for Pareto chart
+
+**Usage:**
+
+```typescript
+import { getSample } from '@variscout/data';
+
+const sample = getSample('coffee');
+// Returns: { rawData, stats, specs, ichartData, boxplotData, paretoData }
+
+// Use with chart components
+<IChartBase data={sample.ichartData} stats={sample.stats} specs={sample.specs} />
+```
+
+**Why pre-computed?**
+
+- Faster page load (no runtime calculations)
+- Smaller bundle (statistics engine not needed on website)
+- SSR-friendly (no React hooks during server render)
+
+### @variscout/ui (`packages/ui/`)
+
+Shared UI utilities and color constants for consistent styling across apps.
+
+**Contents:**
+
+- `colors.ts` - Semantic color constants (statusColors, gradeColors)
+- `lib/utils.ts` - Utility functions (`cn` for className merging)
+- `components/ui/button.tsx` - Shared Button component
+
+**Color Exports:**
+
+```typescript
+import { statusColors, gradeColors } from '@variscout/ui';
+
+// Status indicators
+statusColors.pass; // #22c55e - within spec
+statusColors.fail; // #ef4444 - above USL
+statusColors.warning; // #f59e0b - below LSL
+
+// Grade tiers (coffee grading, etc.)
+gradeColors.specialty; // #22c55e
+gradeColors.premium; // #eab308
+gradeColors.exchange; // #f97316
+gradeColors.offGrade; // #ef4444
+gradeColors.default; // #cccccc
 ```
 
 ### @variscout/pwa (`apps/pwa/`)

@@ -9,13 +9,15 @@
 
 | Product               | Spec Docs | Code | Implementation |
 | --------------------- | --------- | ---- | -------------- |
-| **PWA**               | Extensive | Yes  | ~70%           |
-| **Excel Add-in**      | Extensive | Yes  | ~60%           |
-| **Website**           | 21 docs   | No   | 0%             |
-| **Azure**             | Detailed  | No   | 0%             |
+| **PWA**               | Extensive | Yes  | ~75%           |
+| **Excel Add-in**      | Extensive | Yes  | ~65%           |
+| **Website**           | 21 docs   | Yes  | ~90%           |
+| **Azure**             | Detailed  | Yes  | ~50%           |
 | **Licensing Backend** | Detailed  | No   | 0%             |
 
 **Critical gap:** Monetization infrastructure (Paddle, license backend) is fully specified but not implemented.
+
+**Quick win:** Website is built and ready for deployment (1-2 hours to go live).
 
 ---
 
@@ -110,34 +112,56 @@
 
 ---
 
-## 3. Products with NO Implementation
+## 3. Website (~90% Implemented)
 
-### Website (docs/products/website/)
+### Website (apps/website/)
 
 **Spec status:** 21 detailed documents covering design system, content, pages, flows, technical
-**Code status:** 0% - No implementation exists
+**Code status:** ~90% - Astro site fully built, needs deployment
 
-**Documented specs:**
+**Implemented:**
 
-- Design system: `TOKENS.md`, `COMPONENTS.md`, `ICONS.md`
-- Content: 10 copy documents (home, products, use cases, pricing, resources)
-- Pages: 8 page layout specs
-- Flows: 3 user journey specs (first-use, free-to-paid, product selection)
-- Technical: Stack, SEO, analytics, PWA integration
+- Astro 5.1.4 with React integration
+- 13 pages (homepage, journey, cases, tools, learn, pricing, products)
+- 27 custom components (Hero, Header, Footer, JourneySection, etc.)
+- 5-language i18n support (EN, DE, ES, FR, PT)
+- Tailwind CSS styling with brand tokens
+- Production build: 708KB static output
+- Case studies with interactive CaseStudyController
 
-### Azure Deployment (docs/products/azure/TECH-AZURE-DEPLOYMENT.md)
+**Remaining:**
+
+- Deployment configuration (Vercel/Netlify)
+- Domain DNS setup
+- SEO meta tags and sitemap.xml
+- Analytics integration
+
+**Build command:** `pnpm --filter @variscout/website build`
+
+---
+
+## 4. Azure App (~50% Implemented)
+
+### Azure Deployment (apps/azure/)
 
 **Spec status:** Detailed architecture document
-**Code status:** 0% - No implementation exists
+**Code status:** ~50% - Core app built, team features missing
 
-**Documented specs:**
+**Implemented:**
 
-- Azure AD SSO with MSAL.js
-- SharePoint/OneDrive integration via Microsoft Graph API
-- Custom branding configuration
-- ARM template / Bicep infrastructure as code
-- Offline sync queue mechanism
-- €999/year + ~€10-20/month Azure hosting
+- Core analysis engine (full @variscout/core integration)
+- 24 React components (Dashboard, charts, ANOVA results)
+- MSAL authentication structure (auth folder)
+- Dexie.js IndexedDB persistence
+- i18n support (21 locale files)
+
+**NOT Implemented:**
+
+- SharePoint/OneDrive sync via Microsoft Graph API
+- Team file sharing and collaboration
+- Permission management
+- ARM template / Bicep infrastructure
+- Custom enterprise branding configuration
 
 ### Subscription/Licensing Backend (docs/concepts/SUBSCRIPTION_LICENSING.md)
 
@@ -156,7 +180,7 @@
 
 ---
 
-## 4. Roadmap
+## 5. Roadmap
 
 ### Priority Definitions
 
@@ -179,26 +203,26 @@
 
 ### Prioritized Feature Roadmap
 
-| Priority | Feature                     | Product        | Effort | Dependencies            | Notes                                    |
-| -------- | --------------------------- | -------------- | ------ | ----------------------- | ---------------------------------------- |
-| P0       | Paddle checkout integration | PWA            | M      | Paddle account          | Paddle.js overlay, success callback      |
-| P0       | License activation API      | Backend        | M      | Cloudflare Workers      | POST /license/activate endpoint          |
-| P0       | RSA-signed license keys     | Backend        | S      | RSA key pair            | Replace checksum with signature          |
-| P0       | Webhook handler             | Backend        | S      | Paddle webhook secret   | subscription.created/updated/canceled    |
-| P0       | Online license validation   | Core + Backend | S      | Activation API          | GET /license/validate with caching       |
-| P1       | Website implementation      | Website        | XL     | Design assets finalized | 21 spec docs ready                       |
-| P1       | Watermark on exports        | PWA            | S      | None                    | Overlay on PNG export for free tier      |
-| P1       | Upgrade prompts             | PWA            | S      | None                    | "Save requires license" modal            |
-| P1       | AppSource submission        | Excel          | M      | Testing complete        | Manifest exists, need testing            |
-| P1       | Expiration warnings         | PWA            | XS     | Online validation       | Show renewal date, warn at 30 days       |
-| P2       | Dark mode                   | PWA            | S      | None                    | System preference detection              |
-| P2       | Template saving             | PWA            | S      | None                    | Save column mapping + specs without data |
-| P2       | Office.roamingSettings      | Excel          | S      | None                    | Roaming license across devices           |
-| P2       | Excel integration tests     | Excel          | M      | None                    | Currently 0 tests                        |
-| P2       | PWA install prompt          | PWA            | XS     | None                    | beforeinstallprompt handling             |
-| P3       | Azure deployment            | Azure          | XL     | MSAL.js, Graph API      | €999/year enterprise feature             |
-| P3       | Write stats to Excel cells  | Excel          | S      | None                    | Output stats to worksheet                |
-| P3       | Live data binding           | Excel          | M      | Office.js events        | Replace polling with events              |
+| Priority | Feature                     | Product        | Effort | Dependencies           | Notes                                    |
+| -------- | --------------------------- | -------------- | ------ | ---------------------- | ---------------------------------------- |
+| P0       | Paddle checkout integration | PWA            | M      | Paddle account         | Paddle.js overlay, success callback      |
+| P0       | License activation API      | Backend        | M      | Cloudflare Workers     | POST /license/activate endpoint          |
+| P0       | RSA-signed license keys     | Backend        | S      | RSA key pair           | Replace checksum with signature          |
+| P0       | Webhook handler             | Backend        | S      | Paddle webhook secret  | subscription.created/updated/canceled    |
+| P0       | Online license validation   | Core + Backend | S      | Activation API         | GET /license/validate with caching       |
+| P1       | Website deployment          | Website        | XS     | Domain, Vercel account | ~90% built, needs deploy + SEO           |
+| P1       | Watermark on exports        | PWA            | S      | None                   | Overlay on PNG export for free tier      |
+| P1       | Upgrade prompts             | PWA            | S      | None                   | "Save requires license" modal            |
+| P1       | AppSource submission        | Excel          | M      | Testing complete       | Manifest exists, need testing            |
+| P1       | Expiration warnings         | PWA            | XS     | Online validation      | Show renewal date, warn at 30 days       |
+| P2       | Dark mode                   | PWA            | S      | None                   | System preference detection              |
+| P2       | Template saving             | PWA            | S      | None                   | Save column mapping + specs without data |
+| P2       | Office.roamingSettings      | Excel          | S      | None                   | Roaming license across devices           |
+| P2       | Excel integration tests     | Excel          | M      | None                   | Currently 0 tests                        |
+| P2       | PWA install prompt          | PWA            | XS     | None                   | beforeinstallprompt handling             |
+| P3       | Azure team features         | Azure          | L      | Microsoft Graph API    | ~50% built, team sync missing            |
+| P3       | Write stats to Excel cells  | Excel          | S      | None                   | Output stats to worksheet                |
+| P3       | Live data binding           | Excel          | M      | Office.js events       | Replace polling with events              |
 
 ### Revenue-Critical Path (P0)
 
@@ -220,7 +244,7 @@
 
 ---
 
-## 5. Spec Updates Completed
+## 6. Spec Updates Completed
 
 The following spec documents have been updated:
 

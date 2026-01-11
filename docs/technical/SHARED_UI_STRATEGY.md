@@ -94,6 +94,8 @@ The PWA supports a specialized **Embed Mode** to allow its charts and analysis f
 
 ### Usage in Marketing Website
 
-The marketing site uses the `PWAEmbed.astro` component to showcase live analysis on Use Case pages. This ensures "What You See Is What You Get" for potential users.
+The marketing site uses React Islands with pre-computed data from `@variscout/data` to showcase interactive charts on case study and tool pages. This ensures fast page loads while maintaining interactivity.
+
+**Implementation**: Chart islands import directly from `@variscout/charts` and render with Astro's `client:only="react"` directive.
 
 **Next Step**: Initialize `packages/ui` when you are ready to align the PWA and Azure App designs.

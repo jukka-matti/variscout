@@ -16,6 +16,7 @@ import ChartSignature from './ChartSignature';
 import { Edit2 } from 'lucide-react';
 import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { VARIATION_THRESHOLDS } from '@variscout/core';
+import { chartColors } from '@variscout/charts';
 
 interface BoxplotProps {
   factor: string;
@@ -151,7 +152,7 @@ const Boxplot = ({
                   x2={width}
                   y1={yScale(specs.usl)}
                   y2={yScale(specs.usl)}
-                  stroke="#ef4444"
+                  stroke={chartColors.spec}
                   strokeWidth={2}
                   strokeDasharray="4,4"
                 />
@@ -162,7 +163,7 @@ const Boxplot = ({
                   x2={width}
                   y1={yScale(specs.lsl)}
                   y2={yScale(specs.lsl)}
-                  stroke="#ef4444"
+                  stroke={chartColors.spec}
                   strokeWidth={2}
                   strokeDasharray="4,4"
                 />
@@ -173,7 +174,7 @@ const Boxplot = ({
                   x2={width}
                   y1={yScale(specs.target)}
                   y2={yScale(specs.target)}
-                  stroke="#22c55e"
+                  stroke={chartColors.target}
                   strokeWidth={1}
                   strokeDasharray="4,4"
                 />
@@ -243,7 +244,7 @@ const Boxplot = ({
                     cx={x + barWidth / 2}
                     cy={yScale(o)}
                     r={3}
-                    fill="#ef4444"
+                    fill={chartColors.fail}
                     opacity={0.6}
                   />
                 ))}

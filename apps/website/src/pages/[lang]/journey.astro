@@ -2,9 +2,13 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import JourneySection from "../../components/JourneySection.astro";
 import JourneyProgress from "../../components/JourneyProgress.astro";
-import PWAEmbed from "../../components/PWAEmbed.astro";
 import ScrollReveal from "../../components/ScrollReveal.astro";
 import { ui } from "../../i18n/ui";
+
+// React island components for charts
+import IChartIsland from "../../components/islands/IChartIsland";
+import BoxplotIsland from "../../components/islands/BoxplotIsland";
+import ParetoIsland from "../../components/islands/ParetoIsland";
 
 export function getStaticPaths() {
 	return Object.keys(ui).map((lang) => ({ params: { lang } }));
@@ -28,25 +32,25 @@ const { lang } = Astro.params;
 					The dashboard says <span class="text-white font-bold">95% pass rate</span>.
 				</p>
 
-				<!-- Simple bar chart visualization -->
-				<div class="bg-neutral-800/50 rounded-2xl p-8 mb-8">
+				<!-- Animated bar chart visualization -->
+				<div class="bar-chart-container bg-neutral-800/50 rounded-2xl p-8 mb-8">
 					<div class="relative h-48 mb-4">
 						<div class="absolute inset-0 flex items-end justify-around gap-6">
 							<!-- Factor A: 96% -->
 							<div class="flex-1 flex flex-col items-center">
-								<div class="w-16 bg-green-500/80 rounded-t-lg" style="height: 184px;"></div>
+								<div class="animated-bar w-16 bg-green-500/80 rounded-t-lg" style="--target-height: 184px; --delay: 0ms;"></div>
 								<span class="text-sm text-neutral-400 mt-2">Factor A</span>
 								<span class="text-lg font-bold text-white">96%</span>
 							</div>
 							<!-- Factor B: 94% -->
 							<div class="flex-1 flex flex-col items-center">
-								<div class="w-16 bg-green-500/70 rounded-t-lg" style="height: 180px;"></div>
+								<div class="animated-bar w-16 bg-green-500/70 rounded-t-lg" style="--target-height: 180px; --delay: 100ms;"></div>
 								<span class="text-sm text-neutral-400 mt-2">Factor B</span>
 								<span class="text-lg font-bold text-white">94%</span>
 							</div>
 							<!-- Factor C: 95% -->
 							<div class="flex-1 flex flex-col items-center">
-								<div class="w-16 bg-green-500/75 rounded-t-lg" style="height: 182px;"></div>
+								<div class="animated-bar w-16 bg-green-500/75 rounded-t-lg" style="--target-height: 182px; --delay: 200ms;"></div>
 								<span class="text-sm text-neutral-400 mt-2">Factor C</span>
 								<span class="text-lg font-bold text-white">95%</span>
 							</div>
@@ -86,8 +90,8 @@ const { lang } = Astro.params;
 					<span class="text-sm text-neutral-500">Specification: 10 - 14</span>
 				</div>
 
-				<!-- Simple histogram visualization with spec lines -->
-				<div class="relative h-48">
+				<!-- Animated histogram visualization with spec lines -->
+				<div class="histogram-container relative h-48">
 					<!-- LSL line -->
 					<div class="absolute left-[15%] top-0 bottom-0 border-l-2 border-dashed border-red-500/70">
 						<span class="absolute -top-6 -left-3 text-xs text-red-400">LSL</span>
@@ -100,22 +104,22 @@ const { lang } = Astro.params;
 					<!-- Histogram bars (distribution) -->
 					<div class="absolute inset-0 flex items-end justify-center gap-1 px-8">
 						<!-- Left tail (outside LSL) -->
-						<div class="w-4 bg-red-500/60 rounded-t" style="height: 15%;"></div>
-						<div class="w-4 bg-red-500/60 rounded-t" style="height: 25%;"></div>
+						<div class="histogram-bar w-4 bg-red-500/60 rounded-t" style="--target-height: 15%; --delay: 0ms;"></div>
+						<div class="histogram-bar w-4 bg-red-500/60 rounded-t" style="--target-height: 25%; --delay: 30ms;"></div>
 						<!-- Within spec -->
-						<div class="w-4 bg-green-500/60 rounded-t" style="height: 40%;"></div>
-						<div class="w-4 bg-green-500/60 rounded-t" style="height: 55%;"></div>
-						<div class="w-4 bg-green-500/60 rounded-t" style="height: 75%;"></div>
-						<div class="w-4 bg-green-500/60 rounded-t" style="height: 90%;"></div>
-						<div class="w-4 bg-green-500/60 rounded-t" style="height: 100%;"></div>
-						<div class="w-4 bg-green-500/60 rounded-t" style="height: 95%;"></div>
-						<div class="w-4 bg-green-500/60 rounded-t" style="height: 80%;"></div>
-						<div class="w-4 bg-green-500/60 rounded-t" style="height: 60%;"></div>
-						<div class="w-4 bg-green-500/60 rounded-t" style="height: 45%;"></div>
-						<div class="w-4 bg-green-500/60 rounded-t" style="height: 30%;"></div>
+						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 40%; --delay: 60ms;"></div>
+						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 55%; --delay: 90ms;"></div>
+						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 75%; --delay: 120ms;"></div>
+						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 90%; --delay: 150ms;"></div>
+						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 100%; --delay: 180ms;"></div>
+						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 95%; --delay: 210ms;"></div>
+						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 80%; --delay: 240ms;"></div>
+						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 60%; --delay: 270ms;"></div>
+						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 45%; --delay: 300ms;"></div>
+						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 30%; --delay: 330ms;"></div>
 						<!-- Right tail (outside USL) -->
-						<div class="w-4 bg-red-500/60 rounded-t" style="height: 20%;"></div>
-						<div class="w-4 bg-red-500/60 rounded-t" style="height: 10%;"></div>
+						<div class="histogram-bar w-4 bg-red-500/60 rounded-t" style="--target-height: 20%; --delay: 360ms;"></div>
+						<div class="histogram-bar w-4 bg-red-500/60 rounded-t" style="--target-height: 10%; --delay: 390ms;"></div>
 					</div>
 				</div>
 
@@ -154,13 +158,9 @@ const { lang } = Astro.params;
 		</ScrollReveal>
 
 		<ScrollReveal animation="fade-up" delay={200}>
-			<PWAEmbed
-				sampleKey="journey"
-				title="I-Chart: See the Pattern"
-				height="450px"
-				iframeId="journey-ichart"
-				chart="ichart"
-			/>
+			<div class="max-w-4xl bg-slate-900 rounded-2xl overflow-hidden">
+				<IChartIsland client:only="react" sampleKey="journey" height={450} />
+			</div>
 		</ScrollReveal>
 
 		<ScrollReveal animation="fade-up" delay={400}>
@@ -184,13 +184,9 @@ const { lang } = Astro.params;
 		</ScrollReveal>
 
 		<ScrollReveal animation="fade-up" delay={200}>
-			<PWAEmbed
-				sampleKey="journey"
-				title="Boxplot: Compare the Spread"
-				height="450px"
-				iframeId="journey-boxplot"
-				chart="boxplot"
-			/>
+			<div class="max-w-4xl bg-slate-900 rounded-2xl overflow-hidden">
+				<BoxplotIsland client:only="react" sampleKey="journey" height={450} />
+			</div>
 		</ScrollReveal>
 
 		<ScrollReveal animation="fade-up" delay={400}>
@@ -214,13 +210,9 @@ const { lang } = Astro.params;
 		</ScrollReveal>
 
 		<ScrollReveal animation="fade-up" delay={200}>
-			<PWAEmbed
-				sampleKey="journey"
-				title="Pareto Chart: Find the Vital Few"
-				height="450px"
-				iframeId="journey-pareto"
-				chart="pareto"
-			/>
+			<div class="max-w-4xl bg-slate-900 rounded-2xl overflow-hidden">
+				<ParetoIsland client:only="react" sampleKey="journey" height={450} />
+			</div>
 		</ScrollReveal>
 
 		<ScrollReveal animation="fade-up" delay={400}>
@@ -536,6 +528,28 @@ const { lang } = Astro.params;
 		}
 	}
 
+	/* Animated bar chart styles */
+	.animated-bar {
+		height: 0;
+		transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+		transition-delay: var(--delay, 0ms);
+	}
+
+	.bar-chart-container.is-animating .animated-bar {
+		height: var(--target-height);
+	}
+
+	/* Animated histogram styles */
+	.histogram-bar {
+		height: 0;
+		transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+		transition-delay: var(--delay, 0ms);
+	}
+
+	.histogram-container.is-animating .histogram-bar {
+		height: var(--target-height);
+	}
+
 	/* CHECK IT section animation */
 	.check-point {
 		transform: translateY(var(--start-y));
@@ -563,6 +577,34 @@ const { lang } = Astro.params;
 </style>
 
 <script>
+	// Animate bar charts and histograms when they come into view
+	function initChartAnimations() {
+		const observerOptions: IntersectionObserverInit = {
+			root: null,
+			rootMargin: '-10% 0px',
+			threshold: 0.1,
+		};
+
+		// Observe bar chart containers
+		const barCharts = document.querySelectorAll('.bar-chart-container');
+		const histograms = document.querySelectorAll('.histogram-container');
+
+		const chartObserver = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				if (entry.isIntersecting) {
+					// Delay slightly for smoother experience
+					setTimeout(() => {
+						entry.target.classList.add('is-animating');
+					}, 200);
+					chartObserver.unobserve(entry.target);
+				}
+			});
+		}, observerOptions);
+
+		barCharts.forEach((chart) => chartObserver.observe(chart));
+		histograms.forEach((chart) => chartObserver.observe(chart));
+	}
+
 	// Animate the CHECK IT section when it comes into view
 	function initCheckAnimation() {
 		const checkSection = document.getElementById('check-it');
@@ -592,13 +634,18 @@ const { lang } = Astro.params;
 		observer.observe(checkSection);
 	}
 
-	// Run on page load
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', initCheckAnimation);
-	} else {
+	function initAllAnimations() {
+		initChartAnimations();
 		initCheckAnimation();
 	}
 
+	// Run on page load
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initAllAnimations);
+	} else {
+		initAllAnimations();
+	}
+
 	// Re-run on Astro page transitions
-	document.addEventListener('astro:page-load', initCheckAnimation);
+	document.addEventListener('astro:page-load', initAllAnimations);
 </script>

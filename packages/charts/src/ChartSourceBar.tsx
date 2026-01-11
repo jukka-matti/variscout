@@ -1,6 +1,7 @@
 import React from 'react';
 import { Group } from '@visx/group';
 import type { ChartSourceBarProps } from './types';
+import { chromeColors } from './colors';
 
 const BAR_HEIGHT = 18;
 const ACCENT_WIDTH = 3;
@@ -26,7 +27,15 @@ const ChartSourceBar: React.FC<ChartSourceBarProps> = ({
   return (
     <Group left={left} top={top}>
       {/* Background */}
-      <rect x={0} y={0} width={width} height={BAR_HEIGHT} fill="#334155" opacity={0.6} rx={2} />
+      <rect
+        x={0}
+        y={0}
+        width={width}
+        height={BAR_HEIGHT}
+        fill={chromeColors.barBackground}
+        opacity={0.6}
+        rx={2}
+      />
 
       {/* Accent bar on left */}
       <rect x={0} y={0} width={ACCENT_WIDTH} height={BAR_HEIGHT} fill={accentColor} rx={1} />
@@ -36,7 +45,7 @@ const ChartSourceBar: React.FC<ChartSourceBarProps> = ({
         <text
           x={ACCENT_WIDTH + 8}
           y={BAR_HEIGHT / 2}
-          fill="#94a3b8"
+          fill={chromeColors.labelSecondary}
           fontSize={10}
           fontWeight={500}
           dominantBaseline="central"
@@ -51,7 +60,7 @@ const ChartSourceBar: React.FC<ChartSourceBarProps> = ({
         <text
           x={width - 8}
           y={BAR_HEIGHT / 2}
-          fill="#64748b"
+          fill={chromeColors.labelMuted}
           fontSize={10}
           textAnchor="end"
           dominantBaseline="central"

@@ -12,9 +12,9 @@ Case Study Page
 │   ├── ScrollReveal.astro      (animations)
 │   └── CaseMeta.astro          (difficulty/time)
 ├── Act 2: Interactive
-│   └── PWAEmbed.astro          (iframe + skeleton)
+│   └── CaseStudyChartsIsland   (React Island - multiple charts)
 ├── Act 3: Solution
-│   ├── CaseStudyController.tsx (React island)
+│   ├── CaseStepsDisplay.tsx    (React Island - step content)
 │   └── RelatedTools.astro
 └── CTA Section
     └── WhatsNext.astro
@@ -24,50 +24,224 @@ Case Study Page
 
 ## React Islands
 
-### CaseStudyController.tsx
+The website uses React Islands (Astro's partial hydration) to render interactive chart components. Charts are rendered client-side only using `client:only="react"` to avoid SSR issues with visx hooks.
 
-**Location**: `apps/website/src/components/CaseStudyController.tsx`
+### Data Source
 
-**Hydration**: `client:load` (needed immediately for iframe communication)
+All sample data comes from the `@variscout/data` package, which provides pre-computed chart data:
 
-**Purpose**: Coordinates iframe messaging and step visibility tracking.
+```typescript
+import { getSample } from '@variscout/data';
+
+const sample = getSample('coffee');
+// Returns: { rawData, stats, specs, ichartData, boxplotData, paretoData }
+```
+
+---
+
+### IChartIsland.tsx
+
+**Location**: `apps/website/src/components/islands/IChartIsland.tsx`
+
+**Purpose**: Renders an I-Chart (Individuals Control Chart) with sample data.
 
 #### Props
 
 ```typescript
-interface CaseStudyControllerProps {
-  iframeId: string; // ID of PWAEmbed iframe
-  steps: CaseStep[]; // Step content with targetChart
-  defaultIntensity?: HighlightIntensity; // Default: 'pulse'
-  onReady?: () => void; // Callback when iframe ready
-  onChartClicked?: (chartId: ChartId) => void;
+interface Props {
+  sampleKey: string; // Key from @variscout/data (e.g., 'coffee', 'journey')
+  height?: number; // Chart height in pixels (default: 400)
 }
+```
 
-interface CaseStep {
-  title: string;
-  content: string;
-  interactive: boolean;
-  targetChart?: ChartId;
+#### Usage
+
+```astro
+---
+import IChartIsland from '../../components/islands/IChartIsland';
+---
+
+<IChartIsland client:only="react" sampleKey="journey" height={450} />
+```
+
+---
+
+### BoxplotIsland.tsx
+
+**Location**: `apps/website/src/components/islands/BoxplotIsland.tsx`
+
+**Purpose**: Renders a Boxplot chart for factor comparison.
+
+#### Props
+
+```typescript
+interface Props {
+  sampleKey: string;
+  height?: number;
+}
+```
+
+#### Usage
+
+```astro
+<BoxplotIsland client:only="react" sampleKey="journey" height={450} />
+```
+
+---
+
+### ParetoIsland.tsx
+
+**Location**: `apps/website/src/components/islands/ParetoIsland.tsx`
+
+**Purpose**: Renders a Pareto chart for frequency analysis.
+
+#### Props
+
+```typescript
+interface Props {
+  sampleKey: string;
+  height?: number;
+}
+```
+
+#### Usage
+
+```astro
+<ParetoIsland client:only="react" sampleKey="journey" height={450} />
+```
+
+---
+
+### ToolChartIsland.tsx
+
+**Location**: `apps/website/src/components/islands/ToolChartIsland.tsx`
+
+**Purpose**: Renders the appropriate chart type based on tool slug. Used on tool pages.
+
+#### Props
+
+```typescript
+interface Props {
+  toolSlug: string; // Tool identifier (e.g., 'i-chart', 'boxplot', 'pareto')
+  sampleKey: string;
+  height?: number;
+}
+```
+
+#### Tool to Chart Mapping
+
+| Tool Slug    | Chart Type          |
+| ------------ | ------------------- |
+| `i-chart`    | IChartBase          |
+| `boxplot`    | BoxplotBase         |
+| `pareto`     | ParetoChartBase     |
+| `capability` | CapabilityHistogram |
+| `regression` | ScatterPlotBase     |
+| `gage-rr`    | GageRRChartBase     |
+
+#### Usage
+
+```astro
+<ToolChartIsland client:only="react" toolSlug="i-chart" sampleKey="journey" height={450} />
+```
+
+---
+
+### CaseStudyChartsIsland.tsx
+
+**Location**: `apps/website/src/components/islands/CaseStudyChartsIsland.tsx`
+
+**Purpose**: Renders multiple charts in a grid layout for case study pages. Supports different chart type combinations per case.
+
+#### Props
+
+```typescript
+interface Props {
+  sampleKey: string;
+  chartTypes?: ('ichart' | 'boxplot' | 'pareto' | 'capability')[];
+  height?: number;
 }
 ```
 
 #### Features
 
-- Intersection Observer tracks which step is in viewport
-- Sends `highlight-chart` messages when step with `targetChart` enters view
-- Debounced (150ms) to prevent rapid switching
-- "Show me the X" buttons for manual chart focus
+- Renders 1-4 charts in responsive grid
+- Automatically adjusts layout based on chart count
+- Uses pre-computed data from `@variscout/data`
 
 #### Usage
 
 ```astro
-<CaseStudyController
-  client:load
-  iframeId="pwa-embed-bottleneck"
-  steps={steps}
-  defaultIntensity="pulse"
+<CaseStudyChartsIsland
+  client:only="react"
+  sampleKey="coffee"
+  chartTypes={['ichart', 'boxplot', 'pareto']}
+  height={400}
 />
 ```
+
+---
+
+### CaseStepsDisplay.tsx
+
+**Location**: `apps/website/src/components/CaseStepsDisplay.tsx`
+
+**Purpose**: Displays case study steps with titles and content. Replaced the old CaseStudyController that used iframe messaging.
+
+#### Props
+
+```typescript
+interface CaseStep {
+  title: string;
+  content: string;
+  interactive?: boolean;
+}
+
+interface Props {
+  steps: CaseStep[];
+}
+```
+
+#### Features
+
+- Simple step-by-step display
+- No iframe communication needed (charts render directly)
+- Scroll-based visibility tracking (optional)
+
+#### Usage
+
+```astro
+<CaseStepsDisplay
+  client:only="react"
+  steps={[
+    { title: 'Step 1', content: 'Examine the I-Chart...', interactive: true },
+    { title: 'Step 2', content: 'Look at the Boxplot...', interactive: true },
+  ]}
+/>
+```
+
+---
+
+### ChartContainer.tsx
+
+**Location**: `apps/website/src/components/islands/ChartContainer.tsx`
+
+**Purpose**: Responsive wrapper that provides width/height to child chart components via ResizeObserver.
+
+#### Props
+
+```typescript
+interface Props {
+  height: number;
+  children: (dimensions: { width: number; height: number }) => React.ReactNode;
+}
+```
+
+#### Features
+
+- Uses ResizeObserver for responsive width
+- Provides render prop pattern for flexible chart rendering
+- Handles container sizing edge cases
 
 ---
 
@@ -251,52 +425,20 @@ interface CaseStep {
 
 ---
 
-### PWAEmbed.astro (Updated)
-
-**Location**: `apps/website/src/components/PWAEmbed.astro`
-
-**Purpose**: Embeds PWA in iframe with loading states.
-
-#### New Props
-
-| Prop       | Type     | Default                 | Description             |
-| ---------- | -------- | ----------------------- | ----------------------- |
-| `iframeId` | `string` | `pwa-embed-{sampleKey}` | ID for iframe targeting |
-
-#### New Features
-
-- **Skeleton loader**: Chart-shaped placeholders with pulse animation
-- **Ready detection**: Listens for `ready` message from PWA
-- **Fallback timeout**: Shows iframe after 5s even without ready message
-- **Smooth transition**: Fades in iframe when ready
-
-#### Usage
-
-```astro
-<PWAEmbed
-  sampleKey="bottleneck"
-  title="Interactive Analysis"
-  height="650px"
-  iframeId="pwa-embed-bottleneck"
-/>
-```
-
----
-
 ## Case Data Structure
 
 Each case includes metadata for these components:
 
 ```typescript
 interface CaseProps {
-  // Existing
   title: string;
   subtitle: string;
-  sampleKey: string;
+  sampleKey: string; // Key for @variscout/data
+  chartTypes: ChartType[]; // Charts to display
   steps: CaseStep[];
   nextCase: string | null;
 
-  // New for components
+  // Component metadata
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   time: string;
   tools: ChartId[];
@@ -305,6 +447,6 @@ interface CaseProps {
 
 ## Related Documentation
 
-- [Embed Messaging Protocol](../../technical/EMBED_MESSAGING.md)
-- [PWA Embed Mode](../pwa/EMBED-MODE.md)
+- [PWA Embed Mode](../pwa/EMBED-MODE.md) - URL parameters for external embedding
 - [Animation System](../../design-system/ANIMATIONS.md)
+- [@variscout/data Package](../../../MONOREPO_ARCHITECTURE.md) - Sample data source

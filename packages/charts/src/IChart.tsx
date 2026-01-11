@@ -10,6 +10,7 @@ import { getStageBoundaries, type StatsResult } from '@variscout/core';
 import type { IChartProps, StageBoundary } from './types';
 import { getResponsiveMargins, getResponsiveFonts, getResponsiveTickCount } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import { chartColors, chromeColors } from './colors';
 
 /**
  * I-Chart (Individual Control Chart) - Props-based version
@@ -118,21 +119,21 @@ const IChartBase: React.FC<IChartProps> = ({
     // Check grades first (multi-tier)
     if (grades && grades.length > 0) {
       const grade = grades.find(g => value <= g.max);
-      return grade?.color || '#ef4444'; // Default red if above all grades
+      return grade?.color || chartColors.fail; // Default red if above all grades
     }
 
     // Check spec limits
-    if (specs.usl !== undefined && value > specs.usl) return '#ef4444'; // Red - above USL
-    if (specs.lsl !== undefined && value < specs.lsl) return '#f59e0b'; // Amber - below LSL
+    if (specs.usl !== undefined && value > specs.usl) return chartColors.fail; // Red - above USL
+    if (specs.lsl !== undefined && value < specs.lsl) return chartColors.warning; // Amber - below LSL
 
     // Check control limits (use stage-specific limits if staged)
     const stageStats = getStageStatsForPoint(stage);
     if (stageStats) {
-      if (value > stageStats.ucl) return '#f97316'; // Orange - above UCL
-      if (value < stageStats.lcl) return '#f97316'; // Orange - below LCL
+      if (value > stageStats.ucl) return chartColors.violation; // Orange - above UCL
+      if (value < stageStats.lcl) return chartColors.violation; // Orange - below LCL
     }
 
-    return '#22c55e'; // Green - in spec/control
+    return chartColors.pass; // Green - in spec/control
   };
 
   if (data.length === 0) return null;
@@ -141,7 +142,7 @@ const IChartBase: React.FC<IChartProps> = ({
     <>
       <svg width={parentWidth} height={parentHeight}>
         <Group left={margin.left} top={margin.top}>
-          <GridRows scale={yScale} width={width} stroke="#1e293b" />
+          <GridRows scale={yScale} width={width} stroke={chromeColors.gridLine} />
 
           {/* Grade bands (if defined) */}
           {grades &&
@@ -176,7 +177,7 @@ const IChartBase: React.FC<IChartProps> = ({
                     <Line
                       from={{ x: x1 - 5, y: 0 }}
                       to={{ x: x1 - 5, y: height }}
-                      stroke="#475569"
+                      stroke={chromeColors.stageDivider}
                       strokeWidth={1}
                       strokeDasharray="4,4"
                     />
@@ -187,7 +188,7 @@ const IChartBase: React.FC<IChartProps> = ({
                     x={x1 + stageWidth / 2}
                     y={-8}
                     textAnchor="middle"
-                    fill="#94a3b8"
+                    fill={chromeColors.labelSecondary}
                     fontSize={fonts.tickLabel}
                     fontWeight={500}
                   >
@@ -198,7 +199,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   <Line
                     from={{ x: x1, y: yScale(boundary.stats.ucl) }}
                     to={{ x: x2, y: yScale(boundary.stats.ucl) }}
-                    stroke="#94a3b8"
+                    stroke={chartColors.control}
                     strokeWidth={1}
                     strokeDasharray="4,4"
                   />
@@ -207,7 +208,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   <Line
                     from={{ x: x1, y: yScale(boundary.stats.mean) }}
                     to={{ x: x2, y: yScale(boundary.stats.mean) }}
-                    stroke="#3b82f6"
+                    stroke={chartColors.mean}
                     strokeWidth={1.5}
                   />
 
@@ -215,7 +216,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   <Line
                     from={{ x: x1, y: yScale(boundary.stats.lcl) }}
                     to={{ x: x2, y: yScale(boundary.stats.lcl) }}
-                    stroke="#94a3b8"
+                    stroke={chartColors.control}
                     strokeWidth={1}
                     strokeDasharray="4,4"
                   />
@@ -230,7 +231,7 @@ const IChartBase: React.FC<IChartProps> = ({
               <Line
                 from={{ x: 0, y: yScale(stats.ucl) }}
                 to={{ x: width, y: yScale(stats.ucl) }}
-                stroke="#94a3b8"
+                stroke={chartColors.control}
                 strokeWidth={1}
                 strokeDasharray="4,4"
               />
@@ -238,14 +239,14 @@ const IChartBase: React.FC<IChartProps> = ({
               <Line
                 from={{ x: 0, y: yScale(stats.mean) }}
                 to={{ x: width, y: yScale(stats.mean) }}
-                stroke="#3b82f6"
+                stroke={chartColors.mean}
                 strokeWidth={1.5}
               />
               {/* LCL */}
               <Line
                 from={{ x: 0, y: yScale(stats.lcl) }}
                 to={{ x: width, y: yScale(stats.lcl) }}
-                stroke="#94a3b8"
+                stroke={chartColors.control}
                 strokeWidth={1}
                 strokeDasharray="4,4"
               />
@@ -257,7 +258,7 @@ const IChartBase: React.FC<IChartProps> = ({
             <Line
               from={{ x: 0, y: yScale(specs.usl) }}
               to={{ x: width, y: yScale(specs.usl) }}
-              stroke="#ef4444"
+              stroke={chartColors.spec}
               strokeWidth={2}
               strokeDasharray="6,3"
             />
@@ -266,7 +267,7 @@ const IChartBase: React.FC<IChartProps> = ({
             <Line
               from={{ x: 0, y: yScale(specs.lsl) }}
               to={{ x: width, y: yScale(specs.lsl) }}
-              stroke="#ef4444"
+              stroke={chartColors.spec}
               strokeWidth={2}
               strokeDasharray="6,3"
             />
@@ -275,7 +276,7 @@ const IChartBase: React.FC<IChartProps> = ({
             <Line
               from={{ x: 0, y: yScale(specs.target) }}
               to={{ x: width, y: yScale(specs.target) }}
-              stroke="#22c55e"
+              stroke={chartColors.target}
               strokeWidth={1}
               strokeDasharray="2,2"
             />
@@ -286,7 +287,7 @@ const IChartBase: React.FC<IChartProps> = ({
             data={data}
             x={d => xScale(d.x)}
             y={d => yScale(d.y)}
-            stroke="#94a3b8"
+            stroke={chromeColors.dataLine}
             strokeWidth={1}
             strokeOpacity={0.5}
           />
@@ -299,7 +300,7 @@ const IChartBase: React.FC<IChartProps> = ({
               cy={yScale(d.y)}
               r={4}
               fill={getPointColor(d.y, d.stage)}
-              stroke="#0f172a"
+              stroke={chromeColors.pointStroke}
               strokeWidth={1}
               className={onPointClick ? 'cursor-pointer hover:opacity-80' : ''}
               onClick={() => onPointClick?.(i, d.originalIndex)}
@@ -317,11 +318,11 @@ const IChartBase: React.FC<IChartProps> = ({
           {/* Axes */}
           <AxisLeft
             scale={yScale}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chromeColors.axisPrimary}
+            tickStroke={chromeColors.axisPrimary}
             numTicks={yTickCount}
             tickLabelProps={() => ({
-              fill: '#cbd5e1',
+              fill: chromeColors.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'end',
               dx: -4,
@@ -336,7 +337,7 @@ const IChartBase: React.FC<IChartProps> = ({
             y={height / 2}
             transform={`rotate(-90 ${parentWidth < 400 ? -25 : parentWidth < 768 ? -40 : -50} ${height / 2})`}
             textAnchor="middle"
-            fill="#cbd5e1"
+            fill={chromeColors.labelPrimary}
             fontSize={fonts.axisLabel}
             fontWeight={500}
           >
@@ -346,11 +347,11 @@ const IChartBase: React.FC<IChartProps> = ({
           <AxisBottom
             top={height}
             scale={xScale}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chromeColors.axisPrimary}
+            tickStroke={chromeColors.axisPrimary}
             numTicks={xTickCount}
             tickLabelProps={() => ({
-              fill: '#cbd5e1',
+              fill: chromeColors.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 2,
@@ -362,7 +363,7 @@ const IChartBase: React.FC<IChartProps> = ({
             x={width / 2}
             y={height + (parentWidth < 400 ? 30 : 40)}
             textAnchor="middle"
-            fill="#cbd5e1"
+            fill={chromeColors.labelPrimary}
             fontSize={fonts.axisLabel}
             fontWeight={500}
           >
@@ -388,9 +389,9 @@ const IChartBase: React.FC<IChartProps> = ({
           top={margin.top + (tooltipTop ?? 0)}
           style={{
             ...defaultStyles,
-            backgroundColor: '#1e293b',
-            color: '#f1f5f9',
-            border: '1px solid #334155',
+            backgroundColor: chromeColors.tooltipBg,
+            color: chromeColors.tooltipText,
+            border: `1px solid ${chromeColors.tooltipBorder}`,
             borderRadius: 6,
             padding: '8px 12px',
             fontSize: 12,
@@ -399,7 +400,9 @@ const IChartBase: React.FC<IChartProps> = ({
           <div>
             <strong>#{tooltipData.index + 1}</strong>
             {tooltipData.stage && (
-              <span style={{ color: '#94a3b8', marginLeft: 8 }}>{tooltipData.stage}</span>
+              <span style={{ color: chromeColors.labelSecondary, marginLeft: 8 }}>
+                {tooltipData.stage}
+              </span>
             )}
           </div>
           <div>Value: {tooltipData.y.toFixed(2)}</div>

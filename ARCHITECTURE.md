@@ -10,10 +10,12 @@ VariScout Lite uses a **pnpm workspaces monorepo** to support multiple applicati
 variscout-lite/
 ├── packages/
 │   ├── core/              # @variscout/core - Pure logic (stats, parser, license)
-│   └── charts/            # @variscout/charts - Props-based Visx chart components
+│   ├── charts/            # @variscout/charts - Props-based Visx chart components
+│   └── data/              # @variscout/data - Sample datasets with pre-computed chart data
 ├── apps/
 │   ├── pwa/               # PWA website (React + Vite + PWA)
 │   ├── azure/             # Azure Team App (React + MSAL + Azure Functions)
+│   ├── website/           # Marketing website (Astro + React Islands)
 │   └── excel-addin/       # Excel Add-in (Office.js + React + Fluent UI)
 ├── infra/                 # Infrastructure as Code (Bicep)
 ├── docs/
@@ -110,6 +112,34 @@ Props-based React components using Visx for data visualization:
 | `ChartSourceBar.tsx`      | Branding footer component                         |
 | `responsive.ts`           | `getResponsiveMargins`, `getResponsiveFonts`      |
 | `types.ts`                | Chart prop interfaces, `calculateBoxplotStats()`  |
+
+### @variscout/data
+
+Pre-computed sample datasets for the marketing website's React Islands. Provides ready-to-render chart data without runtime computation.
+
+| Module         | Purpose                                                  |
+| -------------- | -------------------------------------------------------- |
+| `samples/*.ts` | Individual sample datasets (coffee, journey, bottleneck) |
+| `types.ts`     | SampleDataset interface definition                       |
+| `index.ts`     | `getSample()` helper and sample registry                 |
+
+Each sample exports:
+
+- `rawData` - Original records
+- `stats` - Pre-calculated StatsResult
+- `specs` - USL/LSL/Target
+- `ichartData` - Pre-formatted IChartPoint[]
+- `boxplotData` - Pre-calculated BoxplotGroup[]
+- `paretoData` - Pre-aggregated ParetoItem[]
+
+**Usage:**
+
+```typescript
+import { getSample } from '@variscout/data';
+
+const sample = getSample('coffee');
+// Use sample.ichartData, sample.boxplotData, etc.
+```
 
 ### @variscout/ui
 

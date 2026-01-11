@@ -542,7 +542,7 @@ const ContentDashboard: React.FC<ContentDashboardProps> = ({ state }) => {
             <IChartBase
               data={chartData}
               stats={stats ?? null}
-              stagedStats={stagedStats}
+              stagedStats={stagedStats || undefined}
               specs={state.specs || {}}
               parentWidth={Math.max(200, containerSize.width - 36)}
               parentHeight={Math.max(120, (containerSize.height - 100) * 0.45)}

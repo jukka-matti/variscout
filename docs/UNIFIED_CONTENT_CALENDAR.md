@@ -266,7 +266,7 @@ Blog Post
 - [ ] /cases/index hub page live
 - [ ] /tools/\* pages live
 - [ ] /learn/\* pages live
-- [ ] PWAEmbed component working
+- [x] React Islands chart components working
 
 ### Platform Ready
 

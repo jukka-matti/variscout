@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Plus, Trash2 } from 'lucide-react';
+import { gradeColors } from '@variscout/ui';
 
 const MOBILE_BREAKPOINT = 640;
 
@@ -45,7 +46,7 @@ const SpecEditor = ({ specs, grades, onSave, onClose, style }: SpecEditorProps) 
   };
 
   const addGrade = () => {
-    setLocalGrades([...localGrades, { max: 0, label: 'New Grade', color: '#cccccc' }]);
+    setLocalGrades([...localGrades, { max: 0, label: 'New Grade', color: gradeColors.default }]);
   };
 
   const updateGrade = (index: number, field: keyof (typeof localGrades)[0], value: any) => {

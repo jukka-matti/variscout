@@ -28,6 +28,8 @@ import {
 import { ensureTable, detectColumnTypes } from '../../lib/tableManager';
 import { createSlicerRow, isSlicerSupported } from '../../lib/slicerManager';
 import { saveAddInState, createInitialState, type AddInState } from '../../lib/stateBridge';
+import { hasValidLicense } from '@variscout/core';
+import { UpgradePrompt } from './UpgradePrompt';
 
 const useStyles = makeStyles({
   container: {
@@ -126,6 +128,8 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
   const [currentStep, setCurrentStep] = useState<WizardStep>('data');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [pendingState, setPendingState] = useState<AddInState | null>(null);
 
   // Step 1: Data state
   const [rangeAddress, setRangeAddress] = useState<string>('');
@@ -329,10 +333,16 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
       state.stageColumn = stageColumn;
       state.stageOrderMode = stageOrderMode;
 
-      await saveAddInState(state);
-
-      setCurrentStep('complete');
-      onComplete(state);
+      // Check license status - only licensed users can save configuration
+      if (hasValidLicense()) {
+        await saveAddInState(state);
+        setCurrentStep('complete');
+        onComplete(state);
+      } else {
+        // Store state and show upgrade prompt
+        setPendingState(state);
+        setShowUpgradePrompt(true);
+      }
     } catch (err: unknown) {
       console.error('Error saving state:', err);
       setError(
@@ -364,12 +374,37 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     }
   };
 
+  // Handle "Continue without saving" from upgrade prompt
+  const handleContinueWithoutSaving = useCallback(() => {
+    if (pendingState) {
+      setShowUpgradePrompt(false);
+      setCurrentStep('complete');
+      // Complete without saving to document properties - config will be lost on close
+      onComplete(pendingState);
+      setPendingState(null);
+    }
+  }, [pendingState, onComplete]);
+
+  // Handle closing upgrade prompt without action
+  const handleCloseUpgradePrompt = useCallback(() => {
+    setShowUpgradePrompt(false);
+    setIsLoading(false);
+  }, []);
+
   const toggleFactorColumn = (col: string) => {
     setFactorColumns(prev => (prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col]));
   };
 
   return (
     <div className={styles.container}>
+      {/* Upgrade prompt dialog */}
+      <UpgradePrompt
+        open={showUpgradePrompt}
+        onClose={handleCloseUpgradePrompt}
+        onContinueWithoutSaving={handleContinueWithoutSaving}
+        feature="save your configuration to the workbook"
+      />
+
       {/* Progress */}
       <div className={styles.progressContainer}>
         <Caption1>
@@ -498,19 +533,11 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
                 }
               >
                 <Option value="">No stages (single chart)</Option>
-                {categoricalColumns
-                  .filter(col => {
-                    // Only show columns with 2-10 unique values
-                    const uniqueValues = new Set();
-                    // We don't have rawData here, but categoricalColumns already filtered
-                    // Just show all categorical columns
-                    return true;
-                  })
-                  .map(col => (
-                    <Option key={col} value={col}>
-                      {col}
-                    </Option>
-                  ))}
+                {categoricalColumns.map(column => (
+                  <Option key={column} value={column}>
+                    {column}
+                  </Option>
+                ))}
               </Dropdown>
             </Field>
           </div>

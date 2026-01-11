@@ -209,9 +209,11 @@ This is a **pnpm workspaces monorepo** supporting multiple applications:
 variscout-lite/
 ├── packages/
 │   ├── core/          # @variscout/core - Shared logic (stats, parser, license)
-│   └── charts/        # @variscout/charts - Props-based Visx chart components
+│   ├── charts/        # @variscout/charts - Props-based Visx chart components
+│   └── data/          # @variscout/data - Sample datasets with pre-computed chart data
 ├── apps/
 │   ├── pwa/           # PWA website (mobile + desktop)
+│   ├── website/       # Marketing website (Astro + React Islands)
 │   ├── azure/         # Azure Team App (SharePoint, SSO)
 │   └── excel-addin/   # Excel Add-in (Task Pane + Content Add-in)
 ├── infra/             # Infrastructure as Code (Bicep)
@@ -248,11 +250,9 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/MONOREPO_ARCHITECTURE.md](docs/
 
 ### Future
 
-- [x] Marketing website (Astro) with interactive case studies
+- [x] Marketing website (Astro + React Islands) with interactive case studies
 - [ ] Power BI Custom Visuals (AppSource)
 - [x] Azure team deployment (SharePoint/OneDrive, SSO)
-
-Case study content is ready in `docs/products/website/content/` — waiting for website implementation.
 
 See [Specs.md](Specs.md) for feature specifications, [docs/products/](docs/products/) for product specs, and [LSS Trainer Strategy](docs/concepts/LSS_TRAINER_STRATEGY.md) for the Green Belt training roadmap.
 

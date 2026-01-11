@@ -2,6 +2,30 @@
 
 Data visualization colors for VariScout charts.
 
+## Implementation
+
+All chart colors are centralized in `packages/charts/src/colors.ts`. **Never hardcode hex values in chart components** - always import from the colors module.
+
+```typescript
+import { chartColors, chromeColors, operatorColors } from './colors';
+
+// Data point colors
+fill={chartColors.pass}      // #22c55e - within spec
+fill={chartColors.fail}      // #ef4444 - above USL
+fill={chartColors.warning}   // #f59e0b - below LSL
+
+// Line colors
+stroke={chartColors.mean}    // #3b82f6 - center line
+stroke={chartColors.spec}    // #ef4444 - spec limits
+
+// Multi-series
+fill={operatorColors[index]} // 8-color array for categories
+
+// UI chrome
+fill={chromeColors.tooltipBg}      // #1e293b
+fill={chromeColors.labelSecondary} // #94a3b8
+```
+
 ## Data Point Colors
 
 ### Spec Status Colors
@@ -108,35 +132,58 @@ const tooltipStyle = {
 | Text        | `#94a3b8` | Branding text    |
 | Sample size | `#64748b` | "n = X" text     |
 
-## Implementation
-
-### SVG Elements
+## SVG Usage Examples
 
 ```tsx
+import { chartColors, chromeColors } from './colors';
+
 // Grid
-<GridRows stroke="#334155" strokeOpacity={0.5} />
+<GridRows stroke={chromeColors.gridLine} strokeOpacity={0.5} />
 
 // Spec lines
 <line
-  stroke="#ef4444"
+  stroke={chartColors.spec}
   strokeWidth={1.5}
   strokeDasharray="6,3"
 />
 
-// Data points
+// Data points with status
 <Circle
-  fill={getPointColor(value, specs.usl, specs.lsl)}
+  fill={value > usl ? chartColors.fail : value < lsl ? chartColors.warning : chartColors.pass}
   stroke="#fff"
   strokeWidth={1}
 />
 ```
 
-### Consistent Application
+## Design Principles
 
-All chart colors are defined inline in SVG for:
+Colors are centralized in `packages/charts/src/colors.ts` for:
 
-1. **Simplicity** - No external theme dependency
-2. **Portability** - Charts work in any context
-3. **Performance** - No runtime theme lookups
+1. **Consistency** - Single source of truth for all charts
+2. **Maintainability** - Change colors in one place
+3. **Type Safety** - TypeScript const assertions prevent typos
+4. **Portability** - Charts work in any context (PWA, Excel, Azure, Website)
 
-When adding new charts, reference this palette to maintain consistency.
+When adding new charts, import from the colors module to maintain consistency.
+
+## Cross-Platform Usage
+
+All apps must import chart colors from `@variscout/charts`:
+
+```typescript
+// PWA, Azure, Website
+import { chartColors } from '@variscout/charts';
+
+// Use in components
+fill={chartColors.pass}    // #22c55e
+stroke={chartColors.spec}  // #ef4444
+```
+
+**Do NOT hardcode hex values in chart components.** Always use the centralized color constants to ensure visual consistency across all platforms.
+
+| App     | Import From         | Usage                              |
+| ------- | ------------------- | ---------------------------------- |
+| PWA     | `@variscout/charts` | Chart components in Dashboard      |
+| Azure   | `@variscout/charts` | Chart components in Dashboard      |
+| Website | `@variscout/charts` | React Islands (IChartIsland, etc.) |
+| Excel   | `@variscout/charts` | Content Add-in chart panel         |

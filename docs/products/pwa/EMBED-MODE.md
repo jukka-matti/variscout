@@ -197,7 +197,40 @@ window.postMessage(
 [EmbedMessaging] Received: highlight-chart
 ```
 
+## Integration Options
+
+### Option 1: React Islands (Recommended for VariScout Sites)
+
+The VariScout marketing website uses React Islands instead of iframe embedding for better performance and SEO:
+
+```astro
+---
+import IChartIsland from '../../components/islands/IChartIsland';
+---
+
+<IChartIsland client:only="react" sampleKey="coffee" height={450} />
+```
+
+**Benefits:**
+
+- No iframe overhead
+- Direct SSR/hydration
+- Shared dependencies with main site
+- Pre-computed data from `@variscout/data`
+
+See [Case Components](../website/components/CASE-COMPONENTS.md) for implementation details.
+
+### Option 2: Iframe Embed (Third-Party Sites)
+
+For external sites that want to embed the PWA:
+
+```html
+<iframe src="https://app.variscout.com?embed=true&sample=coffee" width="100%" height="600"></iframe>
+```
+
+The `useEmbedMessaging` hook enables parent-child communication for highlight coordination.
+
 ## Related Documentation
 
-- [Embed Messaging Protocol](../../technical/EMBED_MESSAGING.md)
-- [Case Study Components](../website/components/CASE-COMPONENTS.md)
+- [Embed Messaging Protocol](../../technical/EMBED_MESSAGING.md) - For iframe integrations
+- [Case Study Components](../website/components/CASE-COMPONENTS.md) - React Islands architecture

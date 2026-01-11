@@ -1,3 +1,5 @@
+import { gradeColors } from '@variscout/ui';
+
 export interface SampleDataset {
   name: string;
   description: string;
@@ -522,10 +524,10 @@ export const SAMPLES: SampleDataset[] = [
       factors: ['Cooperative', 'Processing Method'],
       specs: { target: 0 },
       grades: [
-        { max: 5, label: 'Specialty', color: '#22c55e' }, // Green
-        { max: 8, label: 'Premium', color: '#eab308' }, // Yellow
-        { max: 23, label: 'Exchange', color: '#f97316' }, // Orange
-        { max: 999, label: 'Off-Grade', color: '#ef4444' }, // Red
+        { max: 5, label: 'Specialty', color: gradeColors.specialty },
+        { max: 8, label: 'Premium', color: gradeColors.premium },
+        { max: 23, label: 'Exchange', color: gradeColors.exchange },
+        { max: 999, label: 'Off-Grade', color: gradeColors.offGrade },
       ],
     },
   },

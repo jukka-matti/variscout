@@ -378,37 +378,56 @@ const Dashboard = ({ onPointClick }: DashboardProps) => {
                         </option>
                       ))}
                     </select>
-                    {/* Stage Column Selector */}
-                    {availableStageColumns.length > 0 && (
-                      <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-700">
-                        <Layers size={16} className="text-slate-500" />
-                        <select
-                          value={stageColumn || ''}
-                          onChange={e => setStageColumn(e.target.value || null)}
-                          className="bg-slate-900 border border-slate-700 text-sm text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
-                          title="Select a column to divide the chart into stages"
-                        >
-                          <option value="">No stages</option>
-                          {availableStageColumns.map(col => (
-                            <option key={col} value={col}>
-                              {columnAliases[col] || col}
-                            </option>
-                          ))}
-                        </select>
-                        {stageColumn && (
+                    {/* Stage Column Selector - always visible for discoverability */}
+                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-700">
+                      <span
+                        className="tooltip-wrapper"
+                        title="Divide chart into stages (e.g., Before/After, Phase 1/2/3)"
+                      >
+                        <Layers
+                          size={16}
+                          className={
+                            availableStageColumns.length > 0 ? 'text-blue-400' : 'text-slate-600'
+                          }
+                        />
+                      </span>
+                      {availableStageColumns.length > 0 ? (
+                        <>
                           <select
-                            value={stageOrderMode}
-                            onChange={e => setStageOrderMode(e.target.value as StageOrderMode)}
-                            className="bg-slate-900 border border-slate-700 text-xs text-slate-400 rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
-                            title="Stage ordering method"
+                            value={stageColumn || ''}
+                            onChange={e => setStageColumn(e.target.value || null)}
+                            className="bg-slate-900 border border-slate-700 text-sm text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                            title="Select a column to divide the chart into stages"
                           >
-                            <option value="auto">Auto order</option>
-                            <option value="first-occurrence">First occurrence</option>
-                            <option value="alphabetical">A-Z / 1-9</option>
+                            <option value="">No stages</option>
+                            {availableStageColumns.map(col => (
+                              <option key={col} value={col}>
+                                {columnAliases[col] || col}
+                              </option>
+                            ))}
                           </select>
-                        )}
-                      </div>
-                    )}
+                          {stageColumn && (
+                            <select
+                              value={stageOrderMode}
+                              onChange={e => setStageOrderMode(e.target.value as StageOrderMode)}
+                              className="bg-slate-900 border border-slate-700 text-xs text-slate-400 rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                              title="Stage ordering method"
+                            >
+                              <option value="auto">Auto order</option>
+                              <option value="first-occurrence">First occurrence</option>
+                              <option value="alphabetical">A-Z / 1-9</option>
+                            </select>
+                          )}
+                        </>
+                      ) : (
+                        <span
+                          className="text-xs text-slate-500 cursor-help"
+                          title="Staging requires a column with 2-10 unique categorical values"
+                        >
+                          No stage columns
+                        </span>
+                      )}
+                    </div>
                     <button
                       onClick={() => setFocusedChart('ichart')}
                       className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"

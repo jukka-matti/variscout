@@ -8,6 +8,7 @@ import { bin } from 'd3';
 import type { CapabilityHistogramProps } from './types';
 import { getResponsiveMargins, getResponsiveFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import { chartColors, chromeColors } from './colors';
 
 /**
  * Capability Histogram - Props-based version
@@ -100,7 +101,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               y={barY}
               width={Math.max(0, barWidth)}
               height={Math.max(0, barHeight)}
-              fill={withinSpec ? '#22c55e' : '#ef4444'}
+              fill={withinSpec ? chartColors.pass : chartColors.fail}
               opacity={0.8}
               rx={2}
             />
@@ -113,7 +114,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
             <Line
               from={{ x: xScale(specs.lsl), y: 0 }}
               to={{ x: xScale(specs.lsl), y: height }}
-              stroke="#ef4444"
+              stroke={chartColors.spec}
               strokeWidth={2}
               strokeDasharray="4,4"
             />
@@ -121,7 +122,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               x={xScale(specs.lsl)}
               y={-5}
               textAnchor="middle"
-              fill="#ef4444"
+              fill={chartColors.spec}
               fontSize={10}
               fontWeight="bold"
             >
@@ -136,7 +137,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
             <Line
               from={{ x: xScale(specs.usl), y: 0 }}
               to={{ x: xScale(specs.usl), y: height }}
-              stroke="#ef4444"
+              stroke={chartColors.spec}
               strokeWidth={2}
               strokeDasharray="4,4"
             />
@@ -144,7 +145,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               x={xScale(specs.usl)}
               y={-5}
               textAnchor="middle"
-              fill="#ef4444"
+              fill={chartColors.spec}
               fontSize={10}
               fontWeight="bold"
             >
@@ -159,7 +160,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
             <Line
               from={{ x: xScale(specs.target), y: 0 }}
               to={{ x: xScale(specs.target), y: height }}
-              stroke="#22c55e"
+              stroke={chartColors.target}
               strokeWidth={2}
               strokeDasharray="6,3"
             />
@@ -167,7 +168,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               x={xScale(specs.target)}
               y={-5}
               textAnchor="middle"
-              fill="#22c55e"
+              fill={chartColors.target}
               fontSize={10}
               fontWeight="bold"
             >
@@ -180,14 +181,14 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
         <Line
           from={{ x: xScale(mean), y: 0 }}
           to={{ x: xScale(mean), y: height }}
-          stroke="#60a5fa"
+          stroke={chartColors.meanAlt}
           strokeWidth={2}
         />
         <text
           x={xScale(mean)}
           y={height + 25}
           textAnchor="middle"
-          fill="#60a5fa"
+          fill={chartColors.meanAlt}
           fontSize={10}
           fontWeight="bold"
         >
@@ -198,10 +199,10 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
         <AxisLeft
           scale={yScale}
           numTicks={parentWidth < 300 ? 3 : 5}
-          stroke="#64748b"
-          tickStroke="#64748b"
+          stroke={chromeColors.axisSecondary}
+          tickStroke={chromeColors.axisSecondary}
           tickLabelProps={() => ({
-            fill: '#94a3b8',
+            fill: chromeColors.labelSecondary,
             fontSize: fonts.tickLabel,
             textAnchor: 'end',
             dy: '0.33em',
@@ -214,10 +215,10 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
           scale={xScale}
           top={height}
           numTicks={parentWidth < 300 ? 4 : 6}
-          stroke="#64748b"
-          tickStroke="#64748b"
+          stroke={chromeColors.axisSecondary}
+          tickStroke={chromeColors.axisSecondary}
           tickLabelProps={() => ({
-            fill: '#94a3b8',
+            fill: chromeColors.labelSecondary,
             fontSize: fonts.tickLabel,
             textAnchor: 'middle',
             dy: 4,

@@ -8,6 +8,7 @@ import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { getResponsiveFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import { chartColors, chromeColors } from './colors';
 
 export interface GageRRChartProps {
   /** % contribution from Part-to-Part */
@@ -73,19 +74,19 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
       {
         label: 'Part-to-Part',
         value: pctPart,
-        color: '#22c55e',
+        color: chartColors.pass,
         description: 'Actual variation between parts',
       },
       {
         label: 'Repeatability',
         value: pctRepeatability,
-        color: '#3b82f6',
+        color: chartColors.mean,
         description: 'Equipment variation (same operator, same part)',
       },
       {
         label: 'Reproducibility',
         value: pctReproducibility,
-        color: '#f59e0b',
+        color: chartColors.warning,
         description: 'Operator variation (different operators)',
       },
     ],
@@ -143,7 +144,7 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
                   y={y}
                   width={width}
                   height={barHeight}
-                  fill="#334155" // slate-700
+                  fill={chromeColors.barBackground}
                   rx={4}
                 />
                 {/* Value bar */}
@@ -162,7 +163,7 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
                 <text
                   x={width + 8}
                   y={y + barHeight / 2}
-                  fill="#f1f5f9"
+                  fill={chromeColors.tooltipText}
                   fontSize={fonts.statLabel}
                   fontWeight={600}
                   dominantBaseline="middle"
@@ -176,11 +177,11 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
           {/* Y Axis (category labels) */}
           <AxisLeft
             scale={yScale}
-            stroke="#475569"
+            stroke={chromeColors.stageDivider}
             strokeWidth={0}
             tickStroke="transparent"
             tickLabelProps={() => ({
-              fill: '#94a3b8',
+              fill: chromeColors.labelSecondary,
               fontSize: fonts.tickLabel,
               textAnchor: 'end',
               dy: '0.33em',
@@ -192,12 +193,12 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
           <AxisBottom
             scale={xScale}
             top={height}
-            stroke="#475569"
-            tickStroke="#475569"
+            stroke={chromeColors.stageDivider}
+            tickStroke={chromeColors.stageDivider}
             numTicks={5}
             tickFormat={v => `${v}%`}
             tickLabelProps={() => ({
-              fill: '#94a3b8',
+              fill: chromeColors.labelSecondary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
             })}
@@ -211,7 +212,7 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
               x2={xScale(threshold)}
               y1={0}
               y2={height}
-              stroke={threshold === 10 ? '#22c55e' : '#ef4444'}
+              stroke={threshold === 10 ? chartColors.pass : chartColors.fail}
               strokeWidth={1}
               strokeDasharray="4,4"
               opacity={0.5}
@@ -237,9 +238,9 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
           top={tooltipTop}
           style={{
             ...defaultStyles,
-            background: '#1e293b',
-            border: '1px solid #334155',
-            color: '#f1f5f9',
+            background: chromeColors.tooltipBg,
+            border: `1px solid ${chromeColors.tooltipBorder}`,
+            color: chromeColors.tooltipText,
             fontSize: 12,
             padding: '8px 12px',
             maxWidth: 200,
@@ -251,7 +252,9 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
           <div style={{ marginBottom: 4 }}>
             <strong>{tooltipData.value.toFixed(1)}%</strong> of total variation
           </div>
-          <div style={{ fontSize: 11, color: '#94a3b8' }}>{tooltipData.description}</div>
+          <div style={{ fontSize: 11, color: chromeColors.labelSecondary }}>
+            {tooltipData.description}
+          </div>
         </TooltipWithBounds>
       )}
     </>

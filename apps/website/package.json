@@ -12,6 +12,9 @@
   "dependencies": {
     "@astrojs/react": "^4.2.1",
     "@tailwindcss/vite": "^4.1.18",
+    "@variscout/charts": "workspace:*",
+    "@variscout/core": "workspace:*",
+    "@variscout/data": "workspace:*",
     "astro": "^5.1.4",
     "lucide-astro": "^0.556.0",
     "react": "^19.0.0",

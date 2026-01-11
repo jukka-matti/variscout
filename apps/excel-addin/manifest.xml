@@ -3,11 +3,11 @@
   VariScout Excel Add-in Manifest
 
   This manifest defines the add-in for Microsoft Excel.
-  For AppSource submission, you'll need to update:
-  - Id (generate a new GUID)
-  - ProviderName
-  - SupportUrl
-  - AppDomains (production URLs)
+
+  Production deployment:
+  - Host add-in files at https://excel.variscout.com/
+  - Create icon assets (16, 32, 64, 80px PNG files)
+  - Test in Excel 2019, 2021, Microsoft 365, Excel Online
 -->
 <OfficeApp
   xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
@@ -17,20 +17,20 @@
   xsi:type="TaskPaneApp">
 
   <!-- Begin Basic Settings -->
-  <Id>a1b2c3d4-e5f6-7890-abcd-ef1234567890</Id>
+  <Id>b4d72841-ead7-439c-bce5-ce5882f3e255</Id>
   <Version>1.0.0.0</Version>
   <ProviderName>VariScout</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="VariScout" />
   <Description DefaultValue="Statistical variation analysis for quality professionals. Analyze control charts, calculate Cpk, and compare factors - all within Excel."/>
-  <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-64.png"/>
+  <IconUrl DefaultValue="https://excel.variscout.com/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://excel.variscout.com/assets/icon-64.png"/>
   <SupportUrl DefaultValue="https://variscout.com/support"/>
   <!-- End Basic Settings -->
 
   <!-- Domains that will be allowed when navigating -->
   <AppDomains>
-    <AppDomain>https://localhost:3000</AppDomain>
+    <AppDomain>https://excel.variscout.com</AppDomain>
   </AppDomains>
 
   <!-- Begin TaskPane Mode integration -->
@@ -40,12 +40,12 @@
 
   <Requirements>
     <Sets DefaultMinVersion="1.1">
-      <Set Name="ExcelApi" MinVersion="1.9"/>
+      <Set Name="ExcelApi" MinVersion="1.10"/>
     </Sets>
   </Requirements>
 
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://localhost:3000/"/>
+    <SourceLocation DefaultValue="https://excel.variscout.com/"/>
   </DefaultSettings>
 
   <Permissions>ReadWriteDocument</Permissions>
@@ -113,13 +113,13 @@
     <!-- Resources used by the add-in -->
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://localhost:3000/assets/icon-16.png"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://localhost:3000/assets/icon-32.png"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://localhost:3000/assets/icon-80.png"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://excel.variscout.com/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://excel.variscout.com/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://excel.variscout.com/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/"/>
-        <bt:Url id="Commands.Url" DefaultValue="https://localhost:3000/commands.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://excel.variscout.com/"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://excel.variscout.com/commands.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel" DefaultValue="VariScout"/>

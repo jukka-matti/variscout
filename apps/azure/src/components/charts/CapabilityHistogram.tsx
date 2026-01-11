@@ -12,6 +12,7 @@ import {
 } from '../../hooks/useResponsiveChartMargins';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import ChartSignature from './ChartSignature';
+import { chartColors } from '@variscout/charts';
 
 type HistogramBin = Bin<number, number>;
 
@@ -112,7 +113,7 @@ const CapabilityHistogram = ({
               y={barY}
               width={Math.max(0, barWidth)}
               height={Math.max(0, barHeight)}
-              fill={withinSpec ? '#22c55e' : '#ef4444'}
+              fill={withinSpec ? chartColors.pass : chartColors.fail}
               opacity={0.8}
               rx={2}
             />
@@ -125,7 +126,7 @@ const CapabilityHistogram = ({
             <Line
               from={{ x: xScale(specs.lsl), y: 0 }}
               to={{ x: xScale(specs.lsl), y: height }}
-              stroke="#ef4444"
+              stroke={chartColors.spec}
               strokeWidth={2}
               strokeDasharray="4,4"
             />
@@ -133,7 +134,7 @@ const CapabilityHistogram = ({
               x={xScale(specs.lsl)}
               y={-5}
               textAnchor="middle"
-              fill="#ef4444"
+              fill={chartColors.spec}
               fontSize={10}
               fontWeight="bold"
             >
@@ -148,7 +149,7 @@ const CapabilityHistogram = ({
             <Line
               from={{ x: xScale(specs.usl), y: 0 }}
               to={{ x: xScale(specs.usl), y: height }}
-              stroke="#ef4444"
+              stroke={chartColors.spec}
               strokeWidth={2}
               strokeDasharray="4,4"
             />
@@ -156,7 +157,7 @@ const CapabilityHistogram = ({
               x={xScale(specs.usl)}
               y={-5}
               textAnchor="middle"
-              fill="#ef4444"
+              fill={chartColors.spec}
               fontSize={10}
               fontWeight="bold"
             >
@@ -171,7 +172,7 @@ const CapabilityHistogram = ({
             <Line
               from={{ x: xScale(specs.target), y: 0 }}
               to={{ x: xScale(specs.target), y: height }}
-              stroke="#22c55e"
+              stroke={chartColors.target}
               strokeWidth={2}
               strokeDasharray="6,3"
             />
@@ -179,7 +180,7 @@ const CapabilityHistogram = ({
               x={xScale(specs.target)}
               y={-5}
               textAnchor="middle"
-              fill="#22c55e"
+              fill={chartColors.target}
               fontSize={10}
               fontWeight="bold"
             >

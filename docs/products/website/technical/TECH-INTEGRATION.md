@@ -30,22 +30,38 @@ variscout.com (Marketing)     variscout.com/app (PWA)
 | `/app`       | PWA entry          | SPA bundle          |
 | `/app/*`     | PWA routes         | Client-side routing |
 
-### Interactive Case Studies (Embedding)
+### Interactive Case Studies (React Islands)
 
-The marketing website showcases the PWA's power through interactive embeds on use-case pages.
+The marketing website showcases the chart capabilities through React Islands - native React components rendered directly on the page.
 
 **Implementation**:
 
-- **Component**: `PWAEmbed.astro`
-- **Mechanism**: `<iframe>` pointing to `/app` with specialized parameters.
+- **Architecture**: React Islands via Astro's `client:only="react"` directive
+- **Data Source**: Pre-computed sample data from `@variscout/data` package
+- **Chart Components**: Direct imports from `@variscout/charts`
 
-**Parameters**:
+**Why React Islands (not iframe)?**
 
-- `?embed=true`: Removes header/footer/sidebar from PWA for a clean iframe look.
-- `?sample=<key>`: Automatically loads a sample dataset (e.g., `pizza`, `mango-export`).
+| Aspect        | React Islands            | Iframe (PWAEmbed)          |
+| ------------- | ------------------------ | -------------------------- |
+| Performance   | Single bundle, no iframe | Additional load, isolation |
+| SEO           | Content in DOM           | Content hidden in iframe   |
+| Styling       | Shared Tailwind          | Separate styles            |
+| Communication | Direct props             | PostMessage protocol       |
+| Complexity    | Simple component imports | Message coordination       |
+
+**Usage**:
+
+```astro
+---
+import IChartIsland from '../../components/islands/IChartIsland';
+---
+
+<IChartIsland client:only="react" sampleKey="coffee" height={450} />
+```
 
 **Direct Links**:
-Each embed includes a "Go to Full App" link that opens the PWA without the `embed` parameter, allowing the user to continue their analysis with the same data.
+Each chart section includes a "Try with your data" link that opens the PWA, allowing users to upload their own data for analysis.
 
 ### Shared Assets
 

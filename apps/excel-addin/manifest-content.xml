@@ -20,14 +20,14 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="VariScout Charts" />
   <Description DefaultValue="Interactive statistical charts embedded in your worksheet. I-Chart, Boxplot, and real-time statistics that update with Excel slicer selections."/>
-  <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-64.png"/>
+  <IconUrl DefaultValue="https://excel.variscout.com/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://excel.variscout.com/assets/icon-64.png"/>
   <SupportUrl DefaultValue="https://variscout.com/support"/>
   <!-- End Basic Settings -->
 
   <!-- Domains that will be allowed when navigating -->
   <AppDomains>
-    <AppDomain>https://localhost:3000</AppDomain>
+    <AppDomain>https://excel.variscout.com</AppDomain>
   </AppDomains>
 
   <!-- Begin Content Mode integration -->
@@ -43,7 +43,7 @@
 
   <!-- Default size for the Content Add-in (in pixels) -->
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://localhost:3000/content.html"/>
+    <SourceLocation DefaultValue="https://excel.variscout.com/content.html"/>
     <RequestedWidth>800</RequestedWidth>
     <RequestedHeight>300</RequestedHeight>
   </DefaultSettings>

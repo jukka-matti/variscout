@@ -10,6 +10,7 @@ import { localPoint } from '@visx/event';
 import type { GageRRInteraction } from '@variscout/core';
 import { getResponsiveFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import { chromeColors, operatorColors } from './colors';
 
 export interface InteractionPlotProps {
   /** Interaction data from Gage R&R result */
@@ -23,18 +24,6 @@ export interface InteractionPlotProps {
   /** Custom branding text */
   brandingText?: string;
 }
-
-// Color palette for operators
-const OPERATOR_COLORS = [
-  '#3b82f6', // blue-500
-  '#22c55e', // green-500
-  '#f59e0b', // amber-500
-  '#ef4444', // red-500
-  '#8b5cf6', // violet-500
-  '#ec4899', // pink-500
-  '#06b6d4', // cyan-500
-  '#84cc16', // lime-500
-];
 
 /**
  * InteractionPlot - Shows Operator × Part interaction for Gage R&R
@@ -117,7 +106,7 @@ const InteractionPlotBase: React.FC<InteractionPlotProps> = ({
     () =>
       scaleOrdinal({
         domain: operators,
-        range: OPERATOR_COLORS.slice(0, operators.length),
+        range: operatorColors.slice(0, operators.length),
       }),
     [operators]
   );
@@ -162,7 +151,7 @@ const InteractionPlotBase: React.FC<InteractionPlotProps> = ({
               cy={yScale(d.mean)}
               r={5}
               fill={colorScale(d.operator)}
-              stroke="#0f172a"
+              stroke={chromeColors.pointStroke}
               strokeWidth={1}
               style={{ cursor: 'pointer' }}
               onMouseMove={e => handleMouseMove(e, d)}
@@ -173,11 +162,11 @@ const InteractionPlotBase: React.FC<InteractionPlotProps> = ({
           {/* Y Axis */}
           <AxisLeft
             scale={yScale}
-            stroke="#475569"
-            tickStroke="#475569"
+            stroke={chromeColors.stageDivider}
+            tickStroke={chromeColors.stageDivider}
             numTicks={5}
             tickLabelProps={() => ({
-              fill: '#94a3b8',
+              fill: chromeColors.labelSecondary,
               fontSize: fonts.tickLabel,
               textAnchor: 'end',
               dy: '0.33em',
@@ -188,10 +177,10 @@ const InteractionPlotBase: React.FC<InteractionPlotProps> = ({
           <AxisBottom
             scale={xScale}
             top={height}
-            stroke="#475569"
-            tickStroke="#475569"
+            stroke={chromeColors.stageDivider}
+            tickStroke={chromeColors.stageDivider}
             tickLabelProps={() => ({
-              fill: '#94a3b8',
+              fill: chromeColors.labelSecondary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 4,
@@ -203,7 +192,7 @@ const InteractionPlotBase: React.FC<InteractionPlotProps> = ({
             x={-height / 2}
             y={-45}
             transform="rotate(-90)"
-            fill="#94a3b8"
+            fill={chromeColors.labelSecondary}
             fontSize={fonts.axisLabel}
             textAnchor="middle"
           >
@@ -212,7 +201,7 @@ const InteractionPlotBase: React.FC<InteractionPlotProps> = ({
           <text
             x={width / 2}
             y={height + 40}
-            fill="#94a3b8"
+            fill={chromeColors.labelSecondary}
             fontSize={fonts.axisLabel}
             textAnchor="middle"
           >
@@ -228,7 +217,7 @@ const InteractionPlotBase: React.FC<InteractionPlotProps> = ({
                 <text
                   x={20}
                   y={0}
-                  fill="#94a3b8"
+                  fill={chromeColors.labelSecondary}
                   fontSize={fonts.tickLabel}
                   dominantBaseline="middle"
                 >
@@ -257,9 +246,9 @@ const InteractionPlotBase: React.FC<InteractionPlotProps> = ({
           top={tooltipTop}
           style={{
             ...defaultStyles,
-            background: '#1e293b',
-            border: '1px solid #334155',
-            color: '#f1f5f9',
+            background: chromeColors.tooltipBg,
+            border: `1px solid ${chromeColors.tooltipBorder}`,
+            color: chromeColors.tooltipText,
             fontSize: 12,
             padding: '8px 12px',
           }}

@@ -1,11 +1,13 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import PWAEmbed from "../../../components/PWAEmbed.astro";
 import ScrollReveal from "../../../components/ScrollReveal.astro";
 import JourneyToolBadge from "../../../components/JourneyToolBadge.astro";
 import JourneyToolNav from "../../../components/JourneyToolNav.astro";
 import { ui } from "../../../i18n/ui";
 import { TOOLS, getToolBySlug, type ToolData } from "../../../data/toolsData";
+
+// React island component for tool charts
+import ToolChartIsland from "../../../components/islands/ToolChartIsland";
 
 export function getStaticPaths() {
 	const languages = Object.keys(ui);
@@ -201,12 +203,14 @@ const pillarAccentColors: Record<string, string> = {
 					<h2 class="text-2xl font-bold text-white mb-2">Try It Yourself</h2>
 					<p class="text-neutral-400">Explore a real dataset with the {tool.name}. Click and interact with the chart.</p>
 				</div>
-				<PWAEmbed
-					sampleKey={tool.sampleKey}
-					title={`${tool.name} Demo`}
-					height="550px"
-					iframeId={`tool-demo-${tool.slug}`}
-				/>
+				<div class="max-w-5xl mx-auto bg-slate-900 rounded-2xl overflow-hidden">
+					<ToolChartIsland
+						client:only="react"
+						toolSlug={tool.slug}
+						sampleKey={tool.sampleKey}
+						height={550}
+					/>
+				</div>
 			</ScrollReveal>
 		</div>
 	</section>

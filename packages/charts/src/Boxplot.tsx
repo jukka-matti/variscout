@@ -7,6 +7,7 @@ import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import type { BoxplotProps, BoxplotGroupData } from './types';
 import { getResponsiveMargins, getResponsiveFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import { chartColors, chromeColors } from './colors';
 
 /** Default threshold for high variation highlight (50%) */
 const DEFAULT_VARIATION_THRESHOLD = 50;
@@ -92,7 +93,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               x2={width}
               y1={yScale(specs.usl)}
               y2={yScale(specs.usl)}
-              stroke="#ef4444"
+              stroke={chartColors.spec}
               strokeWidth={2}
               strokeDasharray="4,4"
             />
@@ -103,7 +104,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               x2={width}
               y1={yScale(specs.lsl)}
               y2={yScale(specs.lsl)}
-              stroke="#ef4444"
+              stroke={chartColors.spec}
               strokeWidth={2}
               strokeDasharray="4,4"
             />
@@ -114,7 +115,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               x2={width}
               y1={yScale(specs.target)}
               y2={yScale(specs.target)}
-              stroke="#22c55e"
+              stroke={chartColors.target}
               strokeWidth={1}
               strokeDasharray="4,4"
             />
@@ -152,7 +153,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                   x2={x + barWidth / 2}
                   y1={yScale(d.min)}
                   y2={yScale(d.max)}
-                  stroke="#94a3b8"
+                  stroke={chromeColors.whisker}
                   strokeWidth={1}
                 />
 
@@ -162,7 +163,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                   x2={x + (3 * barWidth) / 4}
                   y1={yScale(d.min)}
                   y2={yScale(d.min)}
-                  stroke="#94a3b8"
+                  stroke={chromeColors.whisker}
                   strokeWidth={1}
                 />
 
@@ -172,7 +173,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                   x2={x + (3 * barWidth) / 4}
                   y1={yScale(d.max)}
                   y2={yScale(d.max)}
-                  stroke="#94a3b8"
+                  stroke={chromeColors.whisker}
                   strokeWidth={1}
                 />
 
@@ -182,8 +183,8 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                   y={yScale(d.q3)}
                   width={barWidth}
                   height={Math.abs(yScale(d.q1) - yScale(d.q3))}
-                  fill={isSelected ? '#0ea5e9' : '#475569'}
-                  stroke={isSelected ? '#0284c7' : '#64748b'}
+                  fill={isSelected ? chartColors.selected : chromeColors.boxDefault}
+                  stroke={isSelected ? chartColors.selectedBorder : chromeColors.boxBorder}
                   rx={2}
                 />
 
@@ -193,7 +194,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                   x2={x + barWidth}
                   y1={yScale(d.median)}
                   y2={yScale(d.median)}
-                  stroke="#f97316"
+                  stroke={chartColors.cumulative}
                   strokeWidth={2}
                 />
 
@@ -204,7 +205,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                     cx={x + barWidth / 2}
                     cy={yScale(o)}
                     r={3}
-                    fill="#ef4444"
+                    fill={chartColors.fail}
                     opacity={0.6}
                   />
                 ))}
@@ -215,10 +216,10 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           {/* Y-Axis */}
           <AxisLeft
             scale={yScale}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chromeColors.axisPrimary}
+            tickStroke={chromeColors.axisPrimary}
             tickLabelProps={() => ({
-              fill: '#cbd5e1',
+              fill: chromeColors.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'end',
               dx: -4,
@@ -233,7 +234,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             y={height / 2}
             transform={`rotate(-90 ${parentWidth < 400 ? -25 : parentWidth < 768 ? -40 : -50} ${height / 2})`}
             textAnchor="middle"
-            fill="#cbd5e1"
+            fill={chromeColors.labelPrimary}
             fontSize={fonts.axisLabel}
             fontWeight={500}
           >
@@ -244,10 +245,10 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           <AxisBottom
             top={height}
             scale={xScale}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chromeColors.axisPrimary}
+            tickStroke={chromeColors.axisPrimary}
             tickLabelProps={() => ({
-              fill: '#94a3b8',
+              fill: chromeColors.labelSecondary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 2,
@@ -259,7 +260,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             x={width / 2}
             y={height + (parentWidth < 400 ? 35 : 50)}
             textAnchor="middle"
-            fill={isHighVariation ? '#f87171' : '#94a3b8'}
+            fill={isHighVariation ? '#f87171' : chromeColors.labelSecondary}
             fontSize={fonts.axisLabel}
             fontWeight={isHighVariation ? 600 : 500}
           >
@@ -298,9 +299,9 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           top={margin.top + (tooltipTop ?? 0)}
           style={{
             ...defaultStyles,
-            backgroundColor: '#1e293b',
-            color: '#f1f5f9',
-            border: '1px solid #334155',
+            backgroundColor: chromeColors.tooltipBg,
+            color: chromeColors.tooltipText,
+            border: `1px solid ${chromeColors.tooltipBorder}`,
             borderRadius: 6,
             padding: '8px 12px',
             fontSize: 12,

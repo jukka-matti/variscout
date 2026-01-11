@@ -17,6 +17,7 @@ import AxisEditor from '../AxisEditor';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import ChartSignature from './ChartSignature';
 import { getStageBoundaries, type StageBoundary } from '@variscout/core';
+import { chartColors } from '@variscout/charts';
 
 interface IChartProps {
   parentWidth: number;
@@ -155,9 +156,9 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
       (specs.usl !== undefined && val > specs.usl) ||
       (specs.lsl !== undefined && val < specs.lsl)
     ) {
-      return '#ef4444';
+      return chartColors.fail;
     }
-    return '#007FBD';
+    return chartColors.mean;
   };
 
   // Responsive Y-axis label positioning
@@ -211,7 +212,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
                 x2={width}
                 y1={yScale(specs.usl)}
                 y2={yScale(specs.usl)}
-                stroke="#ef4444"
+                stroke={chartColors.spec}
                 strokeWidth={2}
                 strokeDasharray="4,4"
               />
@@ -224,7 +225,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
                 x2={width}
                 y1={yScale(specs.lsl)}
                 y2={yScale(specs.lsl)}
-                stroke="#ef4444"
+                stroke={chartColors.spec}
                 strokeWidth={2}
                 strokeDasharray="4,4"
               />
@@ -237,7 +238,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
                 x2={width}
                 y1={yScale(specs.target)}
                 y2={yScale(specs.target)}
-                stroke="#22c55e"
+                stroke={chartColors.target}
                 strokeWidth={1}
                 strokeDasharray="4,4"
               />

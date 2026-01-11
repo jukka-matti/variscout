@@ -1,10 +1,12 @@
 # PWA Embed Messaging Protocol
 
-Communication protocol for iframe-embedded PWA on the marketing website.
+Communication protocol for iframe-embedded PWA (when used externally).
 
 ## Overview
 
-PostMessage-based bidirectional communication between the marketing website and embedded PWA iframe. Used for case study pages to synchronize chart highlights with step content.
+PostMessage-based bidirectional communication for when the PWA is embedded in an iframe by third parties. The protocol enables parent windows to control chart highlights and receive interaction events.
+
+> **Note:** The VariScout marketing website no longer uses iframe embedding. As of the React Islands migration, the website renders charts directly using `@variscout/charts` components with data from `@variscout/data`. This protocol remains available for third-party integrations or external documentation sites that want to embed the PWA.
 
 ## Security
 
@@ -14,7 +16,7 @@ PostMessage-based bidirectional communication between the marketing website and 
 
 ## Message Types
 
-### Website → PWA (EmbedMessage)
+### Parent → PWA (EmbedMessage)
 
 ```typescript
 interface EmbedMessage {
@@ -35,7 +37,7 @@ interface EmbedMessage {
 | `ping`            | -                        | Health check             |
 | `scroll-to-chart` | `{ chartId }`            | Scroll chart into view   |
 
-### PWA → Website (EmbedResponse)
+### PWA → Parent (EmbedResponse)
 
 ```typescript
 interface EmbedResponse {
@@ -83,9 +85,7 @@ type HighlightIntensity = 'pulse' | 'glow' | 'border';
 | `glow`    | `.chart-highlight-glow`   | Soft blue glow effect           |
 | `border`  | `.chart-highlight-border` | Simple 2px border               |
 
-## Integration
-
-### PWA Side (useEmbedMessaging hook)
+## PWA Integration (useEmbedMessaging hook)
 
 Location: `apps/pwa/src/hooks/useEmbedMessaging.ts`
 
@@ -112,32 +112,43 @@ function App() {
 }
 ```
 
-### Website Side (CaseStudyController)
+## Third-Party Integration Example
 
-Location: `apps/website/src/components/CaseStudyController.tsx`
+For external sites wanting to embed the PWA:
 
-```typescript
-// Send highlight message to iframe
-const highlightChart = (chartId: ChartId, intensity: HighlightIntensity) => {
-  iframe.contentWindow.postMessage(
-    {
-      type: 'variscout-embed',
-      action: 'highlight-chart',
-      payload: { chartId, intensity },
-      messageId: generateMessageId(),
-    },
-    '*'
-  );
-};
+```html
+<iframe
+  id="variscout-embed"
+  src="https://app.variscout.com?embed=true&sample=coffee"
+  width="100%"
+  height="600"
+></iframe>
 
-// Listen for ready message
-window.addEventListener('message', event => {
-  if (event.data.type === 'variscout-embed-response') {
-    if (event.data.action === 'ready') {
-      setIsIframeReady(true);
+<script>
+  const iframe = document.getElementById('variscout-embed');
+
+  // Wait for PWA to be ready
+  window.addEventListener('message', event => {
+    if (event.data.type === 'variscout-embed-response') {
+      if (event.data.action === 'ready') {
+        console.log('PWA ready for commands');
+      }
     }
+  });
+
+  // Send highlight command
+  function highlightChart(chartId) {
+    iframe.contentWindow.postMessage(
+      {
+        type: 'variscout-embed',
+        action: 'highlight-chart',
+        payload: { chartId, intensity: 'pulse' },
+        messageId: crypto.randomUUID(),
+      },
+      '*'
+    );
   }
-});
+</script>
 ```
 
 ## Debugging
@@ -160,8 +171,8 @@ Messages are logged with `[EmbedMessaging]` prefix:
 
 ```
 ┌─────────────┐                      ┌─────────────┐
-│   Website   │                      │     PWA     │
-│  (parent)   │                      │  (iframe)   │
+│   Parent    │                      │     PWA     │
+│  (embedder) │                      │  (iframe)   │
 └─────────────┘                      └─────────────┘
        │                                    │
        │         iframe loads               │
@@ -192,5 +203,13 @@ Messages are logged with `[EmbedMessaging]` prefix:
 - `apps/pwa/src/hooks/useEmbedMessaging.ts` - PWA message handler
 - `apps/pwa/src/components/Dashboard.tsx` - Highlight prop consumer
 - `apps/pwa/src/index.css` - Highlight CSS classes
-- `apps/website/src/components/CaseStudyController.tsx` - Website message sender
-- `apps/website/src/components/PWAEmbed.astro` - Iframe container
+
+## Marketing Website Architecture (React Islands)
+
+The VariScout marketing website uses a different architecture that doesn't require iframe messaging:
+
+- **React Islands**: Chart components render directly on the page using Astro's `client:only="react"` directive
+- **Data Package**: Pre-computed sample data from `@variscout/data`
+- **Chart Components**: Direct imports from `@variscout/charts`
+
+See [Case Components](../products/website/components/CASE-COMPONENTS.md) for the current website architecture.

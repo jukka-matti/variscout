@@ -1,7 +1,9 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import PWAEmbed from "../../../components/PWAEmbed.astro";
 import { ui } from "../../../i18n/ui";
+
+// React island component for charts
+import IChartIsland from "../../../components/islands/IChartIsland";
 
 export function getStaticPaths() {
 	const languages = Object.keys(ui);
@@ -51,7 +53,9 @@ const { title, description, sampleKey, heroTitle, heroSub } = Astro.props;
 				</p>
 			</div>
 
-			<PWAEmbed sampleKey={sampleKey} title={`${title} Interactive Exercise`} />
+			<div class="bg-slate-900 rounded-2xl overflow-hidden">
+				<IChartIsland client:only="react" sampleKey={sampleKey} height={500} />
+			</div>
 		</div>
 	</section>
 

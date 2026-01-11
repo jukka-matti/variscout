@@ -34,6 +34,15 @@ export type { InteractionPlotProps } from './InteractionPlot';
 // Helper functions
 export { calculateBoxplotStats } from './types';
 
+// Color constants
+export {
+  chartColors,
+  chromeColors,
+  operatorColors,
+  type ChartColor,
+  type ChromeColor,
+} from './colors';
+
 // Responsive utilities
 export {
   getResponsiveMargins,

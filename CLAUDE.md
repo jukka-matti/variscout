@@ -24,10 +24,13 @@ pnpm workspaces monorepo:
 variscout-lite/
 ├── packages/
 │   ├── core/          # @variscout/core - Stats, parser, license, types
-│   └── charts/        # @variscout/charts - Visx chart components
+│   ├── charts/        # @variscout/charts - Visx chart components
+│   ├── data/          # @variscout/data - Sample datasets with pre-computed chart data
+│   └── ui/            # @variscout/ui - Shared UI utilities and colors
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite)
 │   ├── azure/         # Azure Team App (MSAL + OneDrive sync)
+│   ├── website/       # Marketing website (Astro + React Islands)
 │   └── excel-addin/   # Excel Add-in (Office.js + Fluent UI)
 └── docs/
     ├── cases/         # Case studies with demo data (coffee, packaging, avocado)
@@ -71,6 +74,10 @@ variscout-lite/
 | `packages/core/src/types.ts`                    | Shared TypeScript interfaces                              |
 | `packages/core/src/navigation.ts`               | Navigation types and utilities                            |
 | `packages/charts/src/`                          | IChart, Boxplot, ParetoChart, ScatterPlot, GageRRChart    |
+| `packages/charts/src/colors.ts`                 | Chart color constants (chartColors, chromeColors)         |
+| `packages/data/src/`                            | Sample datasets with pre-computed stats and chart data    |
+| `packages/data/src/samples/`                    | Individual sample files (coffee, journey, bottleneck)     |
+| `packages/ui/src/colors.ts`                     | Shared UI colors (statusColors, gradeColors)              |
 | `apps/pwa/src/context/DataContext.tsx`          | Central state management                                  |
 | `apps/pwa/src/components/__tests__/`            | Component tests (Dashboard, RegressionPanel, GageRRPanel) |
 | `packages/core/src/parser.ts`                   | CSV/Excel parsing, validation, keyword detection (shared) |
