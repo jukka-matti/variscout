@@ -23,7 +23,7 @@ const {
 // Use direct PWA URL to avoid redirect issues with iframe query params
 // PUBLIC_PWA_URL can be set in Vercel for preview/staging environments
 const pwaBaseUrl = import.meta.env.PROD
-  ? (import.meta.env.PUBLIC_PWA_URL || 'https://variscout.com/app')
+  ? (import.meta.env.PUBLIC_PWA_URL || 'https://mean-beoynd-lite-pwa.vercel.app')
   : 'http://localhost:5173';
 
 const chartParam = chart ? `&chart=${chart}` : '';
