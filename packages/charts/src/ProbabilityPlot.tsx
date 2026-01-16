@@ -12,8 +12,58 @@ import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import { chartColors, chromeColors } from './colors';
 
 /**
+ * Standard percentile tick values for probability plots
+ * These are the conventional percentiles used in Minitab/JMP probability plots
+ */
+const PROB_TICK_PERCENTILES = [1, 5, 10, 25, 50, 75, 90, 95, 99];
+const PROB_TICK_PERCENTILES_COMPACT = [5, 25, 50, 75, 95];
+
+/**
+ * Normal PDF for standard normal distribution
+ */
+function normalPDF(z: number): number {
+  return Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+}
+
+/**
+ * Calculate CI width at a given percentile for the fitted distribution
+ * Uses asymptotic formula for percentile CI based on sample statistics
+ *
+ * The CI for a percentile θ_p = μ + z_p * σ depends on:
+ * - Uncertainty in the mean estimate (σ/√n)
+ * - Uncertainty in the std dev estimate
+ * - The z-score for that percentile
+ */
+function calculateCIWidth(
+  p: number, // percentile as decimal (0-1)
+  n: number, // sample size
+  stdDev: number // sample standard deviation
+): number {
+  // Simplified CI calculation based on MLE variance propagation
+  // This gives symmetric, smooth CI bands that widen at extremes
+
+  const z = normalQuantile(p);
+
+  // Variance of the percentile estimate includes:
+  // 1. Variance from mean estimation: σ²/n
+  // 2. Variance from std dev estimation propagated through z: z² * σ²/(2n)
+  // Combined: σ² * (1/n + z²/(2n)) = σ²/n * (1 + z²/2)
+
+  const varPercentile = ((stdDev * stdDev) / n) * (1 + (z * z) / 2);
+  const sePercentile = Math.sqrt(varPercentile);
+
+  // 95% CI half-width
+  return 1.96 * sePercentile;
+}
+
+/**
  * Probability Plot - Props-based version
  * Shows normality assessment with 95% confidence intervals
+ *
+ * Uses probability-transformed Y-axis (Minitab convention):
+ * - Y-axis is scaled using inverse normal CDF (z-scores)
+ * - This makes normally distributed data appear as a straight line
+ * - Deviations from normality show as curves away from the fitted line
  */
 const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
   data,
@@ -35,24 +85,44 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
   const width = Math.max(0, parentWidth - margin.left - margin.right);
   const height = Math.max(0, parentHeight - margin.top - margin.bottom);
 
-  // Calculate plot data with CI bands
+  // Calculate plot data for data points
   const plotData = useMemo(() => calculateProbabilityPlotData(data), [data]);
+  const n = data.length;
 
-  // X Scale (data values)
+  // Percentiles for fitted line and CI bands (fine granularity for smooth curves)
+  const fittedPercentiles = useMemo(() => {
+    // Use more points for smoother CI curves
+    const percentiles: number[] = [];
+    for (let p = 1; p <= 99; p += 2) {
+      percentiles.push(p);
+    }
+    return percentiles;
+  }, []);
+
+  // Fitted line with CI bands (calculated for theoretical distribution)
+  const fittedLineWithCI = useMemo(() => {
+    return fittedPercentiles.map(p => {
+      const pDecimal = p / 100;
+      const z = normalQuantile(pDecimal);
+      const expectedX = mean + z * stdDev;
+      const ciWidth = calculateCIWidth(pDecimal, n, stdDev);
+
+      return {
+        z,
+        x: expectedX,
+        lowerCI: expectedX - ciWidth,
+        upperCI: expectedX + ciWidth,
+      };
+    });
+  }, [fittedPercentiles, mean, stdDev, n]);
+
+  // X Scale (data values) - include CI bounds
   const xScale = useMemo(() => {
     if (plotData.length === 0) return null;
 
-    const values = plotData.map(d => d.value);
-    const dataMin = Math.min(...values);
-    const dataMax = Math.max(...values);
-    const dataRange = dataMax - dataMin || 1;
-    // CI shouldn't be 100x wider than data range - filter out extreme values
-    const maxReasonableCI = dataRange * 100;
-
-    const ciValues = plotData.flatMap(d => [d.lowerCI, d.upperCI]);
-    const allValues = [...values, ...ciValues].filter(
-      v => isFinite(v) && Math.abs(v - dataMin) < maxReasonableCI
-    );
+    const dataValues = plotData.map(d => d.value);
+    const ciValues = fittedLineWithCI.flatMap(d => [d.lowerCI, d.upperCI]);
+    const allValues = [...dataValues, ...ciValues].filter(v => isFinite(v));
 
     const min = Math.min(...allValues);
     const max = Math.max(...allValues);
@@ -63,38 +133,29 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
       domain: [min - padding, max + padding],
       nice: true,
     });
-  }, [plotData, width]);
+  }, [plotData, fittedLineWithCI, width]);
 
-  // Y Scale (percentile)
-  const yScale = useMemo(
-    () =>
-      scaleLinear({
-        range: [height, 0],
-        domain: [0.5, 99.5],
-      }),
-    [height]
-  );
+  // Y Scale - Probability transformed (z-score based)
+  const yScale = useMemo(() => {
+    const zMin = normalQuantile(0.01);
+    const zMax = normalQuantile(0.99);
 
-  // Fitted line (theoretical normal distribution)
-  const fittedLine = useMemo(() => {
-    const percentiles = [1, 5, 10, 25, 50, 75, 90, 95, 99];
-    return percentiles.map(p => {
-      const z = normalQuantile(p / 100);
-      return {
-        x: mean + z * stdDev,
-        y: p,
-      };
+    return scaleLinear({
+      range: [height, 0],
+      domain: [zMin, zMax],
     });
-  }, [mean, stdDev]);
+  }, [height]);
 
-  // CI band data
-  const lowerBand = useMemo(
-    () => plotData.map(d => ({ x: d.lowerCI, y: d.expectedPercentile })),
-    [plotData]
-  );
+  // Z-scores for grid lines at standard percentiles
+  const gridZScores = useMemo(() => PROB_TICK_PERCENTILES.map(p => normalQuantile(p / 100)), []);
 
-  const upperBand = useMemo(
-    () => plotData.map(d => ({ x: d.upperCI, y: d.expectedPercentile })),
+  // Data points with z-scores
+  const dataPoints = useMemo(
+    () =>
+      plotData.map(d => ({
+        x: d.value,
+        z: normalQuantile(d.expectedPercentile / 100),
+      })),
     [plotData]
   );
 
@@ -115,37 +176,45 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
     );
   }
 
-  // Build CI band path
-  const bandPath = `
-    M ${xScale(lowerBand[0]?.x ?? 0)} ${yScale(lowerBand[0]?.y ?? 0)}
-    ${lowerBand.map(d => `L ${xScale(d.x)} ${yScale(d.y)}`).join(' ')}
-    ${[...upperBand]
+  // Build CI band path - smooth curves based on fitted line CI
+  const bandPath = useMemo(() => {
+    if (fittedLineWithCI.length === 0) return '';
+
+    const lowerPath = fittedLineWithCI
+      .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(d.lowerCI)} ${yScale(d.z)}`)
+      .join(' ');
+
+    const upperPath = [...fittedLineWithCI]
       .reverse()
-      .map(d => `L ${xScale(d.x)} ${yScale(d.y)}`)
-      .join(' ')}
-    Z
-  `;
+      .map(d => `L ${xScale(d.upperCI)} ${yScale(d.z)}`)
+      .join(' ');
+
+    return `${lowerPath} ${upperPath} Z`;
+  }, [fittedLineWithCI, xScale, yScale]);
+
+  // Tick values for axis
+  const tickPercentiles = parentWidth < 300 ? PROB_TICK_PERCENTILES_COMPACT : PROB_TICK_PERCENTILES;
 
   return (
     <svg width={parentWidth} height={parentHeight}>
       <Group left={margin.left} top={margin.top}>
-        {/* Grid lines */}
+        {/* Grid lines at standard percentile positions */}
         <GridRows
           scale={yScale}
           width={width}
           stroke={chromeColors.tooltipBorder}
           strokeOpacity={0.5}
-          tickValues={[1, 5, 10, 25, 50, 75, 90, 95, 99]}
+          tickValues={gridZScores}
         />
 
-        {/* CI Bands (shaded area) */}
-        <path d={bandPath} fill={chromeColors.ciband} fillOpacity={0.1} />
+        {/* CI Bands (shaded area) - now smooth and symmetric! */}
+        <path d={bandPath} fill={chromeColors.ciband} fillOpacity={0.15} />
 
         {/* Lower CI line */}
         <LinePath
-          data={lowerBand}
-          x={d => xScale(d.x)}
-          y={d => yScale(d.y)}
+          data={fittedLineWithCI}
+          x={d => xScale(d.lowerCI)}
+          y={d => yScale(d.z)}
           stroke={chromeColors.labelMuted}
           strokeWidth={1}
           strokeDasharray="4,4"
@@ -153,29 +222,29 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
 
         {/* Upper CI line */}
         <LinePath
-          data={upperBand}
-          x={d => xScale(d.x)}
-          y={d => yScale(d.y)}
+          data={fittedLineWithCI}
+          x={d => xScale(d.upperCI)}
+          y={d => yScale(d.z)}
           stroke={chromeColors.labelMuted}
           strokeWidth={1}
           strokeDasharray="4,4"
         />
 
-        {/* Fitted distribution line */}
+        {/* Fitted distribution line (straight) */}
         <LinePath
-          data={fittedLine}
+          data={fittedLineWithCI}
           x={d => xScale(d.x)}
-          y={d => yScale(d.y)}
+          y={d => yScale(d.z)}
           stroke={chartColors.linear}
           strokeWidth={2}
         />
 
         {/* Data points */}
-        {plotData.map((d, i) => (
+        {dataPoints.map((d, i) => (
           <Circle
             key={i}
-            cx={xScale(d.value)}
-            cy={yScale(d.expectedPercentile)}
+            cx={xScale(d.x)}
+            cy={yScale(d.z)}
             r={4}
             fill={chartColors.pass}
             stroke="#fff"
@@ -183,12 +252,21 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
           />
         ))}
 
-        {/* Y Axis (Percent) */}
+        {/* Y Axis (Percent) - custom tick formatting */}
         <AxisLeft
           scale={yScale}
           stroke={chromeColors.labelMuted}
           tickStroke={chromeColors.labelMuted}
-          tickValues={parentWidth < 300 ? [5, 25, 50, 75, 95] : [1, 5, 10, 25, 50, 75, 90, 95, 99]}
+          tickValues={tickPercentiles.map(p => normalQuantile(p / 100))}
+          tickFormat={zValue => {
+            const z = zValue as number;
+            for (const p of PROB_TICK_PERCENTILES) {
+              if (Math.abs(normalQuantile(p / 100) - z) < 0.01) {
+                return String(p);
+              }
+            }
+            return '';
+          }}
           tickLabelProps={() => ({
             fill: chromeColors.labelSecondary,
             fontSize: fonts.tickLabel,

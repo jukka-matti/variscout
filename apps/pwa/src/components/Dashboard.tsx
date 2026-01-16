@@ -607,6 +607,7 @@ const Dashboard = ({
               filteredData={filteredData}
               outcome={outcome}
               defaultTab={embedStatsTab || undefined}
+              className="w-full h-full lg:w-full border-none shadow-none rounded-none"
             />
           </div>
         )}

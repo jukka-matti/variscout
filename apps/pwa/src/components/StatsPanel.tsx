@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { twMerge } from 'tailwind-merge';
 import {
   AlertCircle,
   CheckCircle2,
@@ -20,6 +21,7 @@ interface StatsPanelProps {
   filteredData?: any[];
   outcome?: string | null;
   defaultTab?: 'summary' | 'histogram' | 'normality';
+  className?: string;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -28,6 +30,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   filteredData = [],
   outcome,
   defaultTab,
+  className,
 }) => {
   const { displayOptions, setDisplayOptions, setSpecs, setGrades, grades } = useData();
   const [activeTab, setActiveTab] = useState<'summary' | 'histogram' | 'normality'>(
@@ -55,7 +58,12 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   };
 
   return (
-    <div className="w-full lg:w-80 bg-slate-800 rounded-xl border border-slate-700 p-6 flex flex-col gap-4 shadow-lg relative">
+    <div
+      className={twMerge(
+        'w-full lg:w-80 bg-slate-800 rounded-xl border border-slate-700 p-6 flex flex-col gap-4 shadow-lg relative',
+        className
+      )}
+    >
       {/* Header / Tab buttons */}
       <div className="flex justify-between items-center border-b border-slate-700 pb-4">
         <div className="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700/50">

@@ -179,10 +179,17 @@ TRADITIONAL TOOLS          VARISCOUT
 │
 ├── ────────────────────────────── USER FLOWS ───────────────────────────────
 ├── /flows/
-│   ├── FLOW-FREE-TO-PAID.md     # Conversion journey
-│   ├── FLOW-FIRST-USE.md        # First-time user flow
-│   ├── FLOW-PRODUCT-SELECTION.md
-│   └── USER-FLOWS-ARCHITECTURE.md # Complete user flows & site architecture
+│   ├── OVERVIEW.md              # Holistic picture (personas, architecture, CTAs)
+│   ├── 1-SEO-LEARNER.md         # Google → Tool → Product (Green Belt Gary)
+│   ├── 2-SOCIAL-DISCOVERY.md    # LinkedIn → Case → Product (Curious Carlos)
+│   ├── 3-CONTENT-YOUTUBE.md     # YouTube → Website → Product
+│   ├── 4-ENTERPRISE.md          # Referral → Enterprise (OpEx Olivia)
+│   ├── 5-RETURN-VISITOR.md      # Existing user → App
+│   ├── CONTENT-STRATEGY.md      # 16-week marketing campaign
+│   ├── STORY-PAGE.md            # /about/story page specification
+│   ├── FLOW-FREE-TO-PAID.md     # Conversion journey (legacy)
+│   ├── FLOW-FIRST-USE.md        # First-time user flow (legacy)
+│   └── FLOW-PRODUCT-SELECTION.md # Product selection (legacy)
 │
 ├── ────────────────────────────── MARKETING ────────────────────────────────
 ├── /marketing/
