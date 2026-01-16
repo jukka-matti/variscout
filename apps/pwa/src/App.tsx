@@ -10,7 +10,6 @@ import Dashboard from './components/Dashboard';
 import HomeScreen from './components/HomeScreen';
 import AppHeader from './components/AppHeader';
 import AppFooter from './components/AppFooter';
-import FilterBar from './components/FilterBar';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from './data/sampleData';
@@ -393,9 +392,6 @@ function App() {
         </div>
       )}
 
-      {/* Filter Context Bar - shows active filters when Dashboard is visible (hidden in embed mode) */}
-      {rawData.length > 0 && !isMapping && !isEmbedMode && <FilterBar />}
-
       {/* Main Content */}
       <main className="flex-1 overflow-hidden relative">
         {rawData.length === 0 ? (
@@ -431,6 +427,7 @@ function App() {
             onChartClick={isEmbedMode ? notifyChartClicked : undefined}
             embedFocusChart={embedFocusChart}
             embedStatsTab={embedStatsTab}
+            onOpenColumnMapping={() => setIsMapping(true)}
           />
         )}
       </main>

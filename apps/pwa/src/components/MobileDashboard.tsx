@@ -18,8 +18,8 @@ import RegressionPanel from './RegressionPanel';
 import GageRRPanel from './GageRRPanel';
 import ErrorBoundary from './ErrorBoundary';
 import FactorSelector from './FactorSelector';
-import FilterChips from './FilterChips';
-import type { StatsResult, AnovaResult } from '@variscout/core';
+import DrillBreadcrumb from './DrillBreadcrumb';
+import type { StatsResult, AnovaResult, BreadcrumbItem } from '@variscout/core';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
 
@@ -40,6 +40,13 @@ interface MobileDashboardProps {
   onDrillDown?: (factor: string, value: string) => void;
   onRemoveFilter?: (factor: string) => void;
   onClearAllFilters?: () => void;
+  // Breadcrumb props for unified filter display
+  breadcrumbItems?: BreadcrumbItem[];
+  cumulativeVariationPct?: number | null;
+  onBreadcrumbNavigate?: (id: string) => void;
+  // Pareto empty state actions
+  onHideParetoPanel?: () => void;
+  onUploadPareto?: () => void;
 }
 
 const MobileDashboard: React.FC<MobileDashboardProps> = ({
@@ -59,6 +66,11 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   onDrillDown,
   onRemoveFilter,
   onClearAllFilters,
+  breadcrumbItems = [],
+  cumulativeVariationPct,
+  onBreadcrumbNavigate,
+  onHideParetoPanel,
+  onUploadPareto,
 }) => {
   const [activeView, setActiveView] = useState<ChartView>('ichart');
 
@@ -155,13 +167,30 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
         </button>
       </div>
 
-      {/* Filter Chips */}
-      {onRemoveFilter && onClearAllFilters && (
-        <FilterChips
-          filters={filters}
-          columnAliases={columnAliases}
-          onRemoveFilter={onRemoveFilter}
+      {/* Filter Breadcrumb (compact mode for mobile) */}
+      {breadcrumbItems.length > 0 && onBreadcrumbNavigate && (
+        <DrillBreadcrumb
+          items={breadcrumbItems}
+          onNavigate={onBreadcrumbNavigate}
           onClearAll={onClearAllFilters}
+          onRemove={
+            onRemoveFilter
+              ? (id: string) => {
+                  // Find the factor name from the breadcrumb item id
+                  const item = breadcrumbItems.find(b => b.id === id);
+                  if (item && item.id !== 'root') {
+                    // Extract factor from label (format: "Factor: Value")
+                    const colonIndex = item.label.indexOf(':');
+                    if (colonIndex > 0) {
+                      const factor = item.label.substring(0, colonIndex).trim();
+                      onRemoveFilter(factor);
+                    }
+                  }
+                }
+              : undefined
+          }
+          cumulativeVariationPct={cumulativeVariationPct}
+          compact={true}
         />
       )}
 
@@ -193,7 +222,13 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
               <Boxplot factor={boxplotFactor} onDrillDown={onDrillDown} />
             )}
             {activeView === 'pareto' && paretoFactor && (
-              <ParetoChart factor={paretoFactor} onDrillDown={onDrillDown} />
+              <ParetoChart
+                factor={paretoFactor}
+                onDrillDown={onDrillDown}
+                onHide={onHideParetoPanel}
+                onUploadPareto={onUploadPareto}
+                availableFactors={factors}
+              />
             )}
             {activeView === 'stats' && (
               <MobileStatsPanel

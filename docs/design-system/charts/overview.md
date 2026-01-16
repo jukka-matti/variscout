@@ -118,5 +118,5 @@ Height: 18px (included in bottom margin calculations)
 1. **Use responsive utilities** from `packages/charts/src/responsive.ts`
 2. **Include branding** unless chart is in a compact view
 3. **Add tooltips** for interactive elements
-4. **Handle empty states** gracefully
+4. **Handle empty states** gracefully - show actionable options when no data (see [feedback patterns](../patterns/feedback.md#actionable-empty-state))
 5. **Test at multiple sizes** using the responsive wrapper

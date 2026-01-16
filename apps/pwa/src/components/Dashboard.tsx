@@ -10,7 +10,7 @@ import GageRRPanel from './GageRRPanel';
 import ErrorBoundary from './ErrorBoundary';
 import DrillBreadcrumb from './DrillBreadcrumb';
 import FactorSelector from './FactorSelector';
-import FilterChips from './FilterChips';
+import SpecEditor from './SpecEditor';
 import { useData } from '../context/DataContext';
 import { calculateAnova, type AnovaResult, getNextDrillFactor } from '@variscout/core';
 import useVariationTracking from '../hooks/useVariationTracking';
@@ -28,6 +28,7 @@ import {
   ChevronRight,
   HelpCircle,
   Layers,
+  Plus,
 } from 'lucide-react';
 import type { StageOrderMode } from '@variscout/core';
 import { toBlob } from 'html-to-image';
@@ -50,6 +51,8 @@ interface DashboardProps {
   embedFocusChart?: 'ichart' | 'boxplot' | 'pareto' | 'stats' | null;
   // Embed stats tab: when set, auto-selects this tab in StatsPanel
   embedStatsTab?: 'summary' | 'histogram' | 'normality' | null;
+  // Callback to open column mapping dialog (for Pareto upload)
+  onOpenColumnMapping?: () => void;
 }
 
 const Dashboard = ({
@@ -61,6 +64,7 @@ const Dashboard = ({
   onChartClick,
   embedFocusChart,
   embedStatsTab,
+  onOpenColumnMapping,
 }: DashboardProps) => {
   const {
     outcome,
@@ -69,6 +73,9 @@ const Dashboard = ({
     rawData,
     stats,
     specs,
+    setSpecs,
+    grades,
+    setGrades,
     filteredData,
     filters,
     columnAliases,
@@ -110,6 +117,18 @@ const Dashboard = ({
   const [focusedChart, setFocusedChart] = useState<'ichart' | 'boxplot' | 'pareto' | null>(null);
   // Toggle for showing full population comparison (ghost bars) on Pareto
   const [showParetoComparison, setShowParetoComparison] = useState(false);
+  // State for spec editor popover in I-Chart header
+  const [showSpecEditor, setShowSpecEditor] = useState(false);
+  // Toggle for showing/hiding Pareto panel (resets on data change)
+  const [showParetoPanel, setShowParetoPanel] = useState(true);
+  // Ref for Pareto factor selector to allow focusing from empty state
+  const paretoFactorSelectorRef = React.useRef<HTMLSelectElement>(null);
+
+  // Callback to focus Pareto factor selector (used by ParetoEmptyState)
+  const handleParetoSelectFactor = useCallback(() => {
+    paretoFactorSelectorRef.current?.focus();
+    paretoFactorSelectorRef.current?.click();
+  }, []);
 
   // Determine focused chart navigation
   const CHART_ORDER = ['ichart', 'boxplot', 'pareto'] as const;
@@ -149,6 +168,18 @@ const Dashboard = ({
       }
     },
     [onChartClick]
+  );
+
+  // Handler for saving specs from SpecEditor
+  const handleSaveSpecs = useCallback(
+    (
+      newSpecs: { usl?: number; lsl?: number; target?: number },
+      newGrades: { max: number; label: string; color: string }[]
+    ) => {
+      setSpecs(newSpecs);
+      setGrades(newGrades);
+    },
+    [setSpecs, setGrades]
   );
 
   // Keyboard navigation for Focus Mode
@@ -224,6 +255,11 @@ const Dashboard = ({
       }
     }
   }, [factors, boxplotFactor, paretoFactor]);
+
+  // Reset Pareto panel visibility when data changes
+  React.useEffect(() => {
+    setShowParetoPanel(true);
+  }, [rawData, factors]);
 
   // Compute ANOVA for the selected boxplot factor
   const anovaResult: AnovaResult | null = useMemo(() => {
@@ -359,7 +395,7 @@ const Dashboard = ({
           </div>
           <div className="flex-1 min-h-0">
             <ErrorBoundary componentName="I-Chart">
-              <IChart />
+              <IChart onSpecClick={() => setShowSpecEditor(true)} />
             </ErrorBoundary>
           </div>
         </div>
@@ -392,6 +428,7 @@ const Dashboard = ({
                     factor={paretoFactor}
                     showComparison={showParetoComparison}
                     onToggleComparison={() => setShowParetoComparison(prev => !prev)}
+                    availableFactors={factors}
                   />
                 )}
               </ErrorBoundary>
@@ -429,6 +466,11 @@ const Dashboard = ({
           onDrillDown={handleDrillDown}
           onRemoveFilter={handleRemoveFilter}
           onClearAllFilters={handleClearAllFilters}
+          breadcrumbItems={breadcrumbItems}
+          cumulativeVariationPct={cumulativeVariationPct}
+          onBreadcrumbNavigate={handleBreadcrumbNavigate}
+          onHideParetoPanel={() => setShowParetoPanel(false)}
+          onUploadPareto={onOpenColumnMapping}
         />
       </div>
     );
@@ -459,7 +501,7 @@ const Dashboard = ({
             </div>
             <div className="flex-1 min-h-0">
               <ErrorBoundary componentName="I-Chart">
-                <IChart onPointClick={onPointClick} />
+                <IChart onPointClick={onPointClick} onSpecClick={() => setShowSpecEditor(true)} />
               </ErrorBoundary>
             </div>
           </div>
@@ -509,6 +551,9 @@ const Dashboard = ({
                     onDrillDown={handleDrillDown}
                     showComparison={showParetoComparison}
                     onToggleComparison={() => setShowParetoComparison(prev => !prev)}
+                    onSelectFactor={handleParetoSelectFactor}
+                    onUploadPareto={onOpenColumnMapping}
+                    availableFactors={factors}
                   />
                 )}
               </ErrorBoundary>
@@ -547,14 +592,6 @@ const Dashboard = ({
           onClearAll={handleClearAllFilters}
           onRemove={handleRemoveFilter}
           cumulativeVariationPct={cumulativeVariationPct}
-        />
-
-        {/* Filter Chips */}
-        <FilterChips
-          filters={filters}
-          columnAliases={columnAliases}
-          onRemoveFilter={handleRemoveFilter}
-          onClearAll={handleClearAllFilters}
         />
 
         {/* Tab Navigation */}
@@ -694,6 +731,30 @@ const Dashboard = ({
                       )}
                     </div>
 
+                    {/* + Specs / + Target buttons */}
+                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-700">
+                      {!specs?.usl && !specs?.lsl && (
+                        <button
+                          onClick={() => setShowSpecEditor(true)}
+                          className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 px-2 py-1 rounded hover:bg-slate-700/50 transition-colors"
+                          title="Add specification limits"
+                        >
+                          <Plus size={12} />
+                          Specs
+                        </button>
+                      )}
+                      {!specs?.target && (specs?.usl !== undefined || specs?.lsl !== undefined) && (
+                        <button
+                          onClick={() => setShowSpecEditor(true)}
+                          className="flex items-center gap-1 text-xs text-green-400 hover:text-green-300 px-2 py-1 rounded hover:bg-slate-700/50 transition-colors"
+                          title="Add target value"
+                        >
+                          <Plus size={12} />
+                          Target
+                        </button>
+                      )}
+                    </div>
+
                     <button
                       onClick={() => handleCopyChart('ichart-card', 'ichart')}
                       className={`p-1.5 rounded transition-all ${
@@ -787,7 +848,10 @@ const Dashboard = ({
                 </div>
                 <div id="ichart-container" className="flex-1 min-h-[300px] w-full">
                   <ErrorBoundary componentName="I-Chart">
-                    <IChart onPointClick={onPointClick} />
+                    <IChart
+                      onPointClick={onPointClick}
+                      onSpecClick={() => setShowSpecEditor(true)}
+                    />
                   </ErrorBoundary>
                 </div>
               </div>
@@ -849,56 +913,62 @@ const Dashboard = ({
                     )}
                   </div>
 
-                  <div
-                    id="pareto-card"
-                    data-chart-id="pareto"
-                    onClick={() => handleChartWrapperClick('pareto')}
-                    className={`flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('pareto')}`}
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
-                        Pareto
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <FactorSelector
-                          factors={factors}
-                          selected={paretoFactor}
-                          onChange={setParetoFactor}
-                          hasActiveFilter={!!filters?.[paretoFactor]?.length}
-                        />
-                        <button
-                          onClick={() => handleCopyChart('pareto-card', 'pareto')}
-                          className={`p-1.5 rounded transition-all ${
-                            copyFeedback === 'pareto'
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'text-slate-500 hover:text-white hover:bg-slate-700'
-                          }`}
-                          title="Copy Pareto Chart to clipboard"
-                        >
-                          {copyFeedback === 'pareto' ? <Check size={14} /> : <Copy size={14} />}
-                        </button>
-                        <button
-                          onClick={() => setFocusedChart('pareto')}
-                          className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
-                          title="Maximize Chart"
-                        >
-                          <Maximize2 size={14} />
-                        </button>
+                  {showParetoPanel && (
+                    <div
+                      id="pareto-card"
+                      data-chart-id="pareto"
+                      onClick={() => handleChartWrapperClick('pareto')}
+                      className={`flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('pareto')}`}
+                    >
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+                          Pareto
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <FactorSelector
+                            factors={factors}
+                            selected={paretoFactor}
+                            onChange={setParetoFactor}
+                            hasActiveFilter={!!filters?.[paretoFactor]?.length}
+                          />
+                          <button
+                            onClick={() => handleCopyChart('pareto-card', 'pareto')}
+                            className={`p-1.5 rounded transition-all ${
+                              copyFeedback === 'pareto'
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                            }`}
+                            title="Copy Pareto Chart to clipboard"
+                          >
+                            {copyFeedback === 'pareto' ? <Check size={14} /> : <Copy size={14} />}
+                          </button>
+                          <button
+                            onClick={() => setFocusedChart('pareto')}
+                            className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                            title="Maximize Chart"
+                          >
+                            <Maximize2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                      <div id="pareto-container" className="flex-1 min-h-[180px]">
+                        <ErrorBoundary componentName="Pareto Chart">
+                          {paretoFactor && (
+                            <ParetoChart
+                              factor={paretoFactor}
+                              onDrillDown={handleDrillDown}
+                              showComparison={showParetoComparison}
+                              onToggleComparison={() => setShowParetoComparison(prev => !prev)}
+                              onHide={() => setShowParetoPanel(false)}
+                              onSelectFactor={handleParetoSelectFactor}
+                              onUploadPareto={onOpenColumnMapping}
+                              availableFactors={factors}
+                            />
+                          )}
+                        </ErrorBoundary>
                       </div>
                     </div>
-                    <div id="pareto-container" className="flex-1 min-h-[180px]">
-                      <ErrorBoundary componentName="Pareto Chart">
-                        {paretoFactor && (
-                          <ParetoChart
-                            factor={paretoFactor}
-                            onDrillDown={handleDrillDown}
-                            showComparison={showParetoComparison}
-                            onToggleComparison={() => setShowParetoComparison(prev => !prev)}
-                          />
-                        )}
-                      </ErrorBoundary>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Stats Panel */}
@@ -968,7 +1038,10 @@ const Dashboard = ({
                   </div>
                   <div className="flex-1 min-h-0 w-full">
                     <ErrorBoundary componentName="I-Chart">
-                      <IChart onPointClick={onPointClick} />
+                      <IChart
+                        onPointClick={onPointClick}
+                        onSpecClick={() => setShowSpecEditor(true)}
+                      />
                     </ErrorBoundary>
                   </div>
                 </div>
@@ -1049,6 +1122,13 @@ const Dashboard = ({
                           onDrillDown={handleDrillDown}
                           showComparison={showParetoComparison}
                           onToggleComparison={() => setShowParetoComparison(prev => !prev)}
+                          onHide={() => {
+                            setShowParetoPanel(false);
+                            setFocusedChart(null);
+                          }}
+                          onSelectFactor={handleParetoSelectFactor}
+                          onUploadPareto={onOpenColumnMapping}
+                          availableFactors={factors}
                         />
                       )}
                     </ErrorBoundary>
@@ -1058,6 +1138,17 @@ const Dashboard = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* Spec Editor Popover */}
+      {showSpecEditor && (
+        <SpecEditor
+          specs={specs}
+          grades={grades}
+          onSave={handleSaveSpecs}
+          onClose={() => setShowSpecEditor(false)}
+          style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}
+        />
       )}
     </div>
   );

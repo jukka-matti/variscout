@@ -14,8 +14,58 @@ import {
 import AxisEditor from '../AxisEditor';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import ChartSignature from './ChartSignature';
-import { Edit2, Info, Eye, EyeOff } from 'lucide-react';
+import { Edit2, Info, Eye, EyeOff, BarChart3, Upload, EyeOff as HideIcon } from 'lucide-react';
 import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
+
+// Empty state component for when no Pareto data is available
+interface ParetoEmptyStateProps {
+  onHide?: () => void;
+  onSelectFactor?: () => void;
+  onUploadPareto?: () => void;
+  hasFactors: boolean;
+}
+
+function ParetoEmptyState({
+  onHide,
+  onSelectFactor,
+  onUploadPareto,
+  hasFactors,
+}: ParetoEmptyStateProps) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full text-slate-400">
+      <BarChart3 size={32} className="mb-2 opacity-50" />
+      <p className="text-sm mb-3">No Pareto data</p>
+      <div className="flex gap-2">
+        {hasFactors && onSelectFactor && (
+          <button
+            onClick={onSelectFactor}
+            className="text-xs px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 transition-colors"
+          >
+            Select Factor
+          </button>
+        )}
+        {onUploadPareto && (
+          <button
+            onClick={onUploadPareto}
+            className="text-xs px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 transition-colors flex items-center gap-1"
+          >
+            <Upload size={12} />
+            Upload
+          </button>
+        )}
+        {onHide && (
+          <button
+            onClick={onHide}
+            className="text-xs px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 transition-colors flex items-center gap-1"
+          >
+            <HideIcon size={12} />
+            Hide
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface ParetoChartProps {
   factor: string;
@@ -26,6 +76,14 @@ interface ParetoChartProps {
   showComparison?: boolean;
   /** Callback to toggle comparison view */
   onToggleComparison?: () => void;
+  /** Callback to hide the Pareto panel */
+  onHide?: () => void;
+  /** Callback to open factor selector */
+  onSelectFactor?: () => void;
+  /** Callback to open Pareto file upload dialog */
+  onUploadPareto?: () => void;
+  /** Available factors for selection (to determine if "Select Factor" button shows) */
+  availableFactors?: string[];
 }
 
 const ParetoChart = ({
@@ -35,6 +93,10 @@ const ParetoChart = ({
   onDrillDown,
   showComparison = false,
   onToggleComparison,
+  onHide,
+  onSelectFactor,
+  onUploadPareto,
+  availableFactors = [],
 }: ParetoChartProps) => {
   const {
     rawData,
@@ -175,7 +237,17 @@ const ParetoChart = ({
     }
   };
 
-  if (data.length === 0) return null;
+  // Show empty state with actionable options when no Pareto data
+  if (data.length === 0) {
+    return (
+      <ParetoEmptyState
+        onHide={onHide}
+        onSelectFactor={onSelectFactor}
+        onUploadPareto={onUploadPareto}
+        hasFactors={availableFactors.length > 0}
+      />
+    );
+  }
 
   return (
     <>

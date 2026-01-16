@@ -62,6 +62,30 @@ Status, loading, and error state patterns.
 </div>
 ```
 
+### Actionable Empty State
+
+For chart panels that can be configured or hidden:
+
+```jsx
+<div className="flex flex-col items-center justify-center h-full text-slate-400">
+  <BarChart3 className="opacity-50 mb-2" size={32} />
+  <p className="text-sm mb-3">No Pareto data</p>
+  <div className="flex gap-2">
+    <button className="text-xs px-3 py-1 bg-slate-700 rounded hover:bg-slate-600">
+      Select Factor
+    </button>
+    <button className="text-xs px-3 py-1 bg-slate-700 rounded hover:bg-slate-600">Upload</button>
+    <button className="text-xs px-3 py-1 bg-slate-700 rounded hover:bg-slate-600">Hide</button>
+  </div>
+</div>
+```
+
+Use when:
+
+- Chart requires data/configuration that isn't present
+- User should have options to configure, upload, or dismiss the panel
+- Hiding is temporary (resets on new data)
+
 ## Success States
 
 ### Inline Success
