@@ -76,11 +76,10 @@ or
 
 When you select a stage column, a secondary dropdown appears for **stage ordering**:
 
-| Option                    | Behavior                                                      |
-| ------------------------- | ------------------------------------------------------------- |
-| **Auto-detect** (default) | Numeric patterns sorted numerically, text by first occurrence |
-| **First occurrence**      | Stages appear in the order they first occur in your data      |
-| **Alphabetical**          | Stages sorted A-Z or 1-9                                      |
+| Option                   | Behavior                                                       |
+| ------------------------ | -------------------------------------------------------------- |
+| **Auto order** (default) | Numeric patterns sorted numerically, text stages by data order |
+| **As in data**           | Stages appear in the order they first occur in your data       |
 
 ---
 
@@ -97,17 +96,14 @@ VariScout automatically determines the best ordering:
 - `"Phase 1", "Phase 2"` → Phase 1, Phase 2
 - `"Batch 01", "Batch 02"` → Batch 01, Batch 02
 
-**Text stages** use first occurrence order:
+**Text stages** are kept in data order:
 
 - `"Before", "After"` → Before, After (order from data)
 - `"Control", "Treatment"` → as they appear in data
 
 ### Manual Override
 
-If auto-detect doesn't match your needs, select a different order mode:
-
-- **First occurrence**: Preserves the sequence in your raw data
-- **Alphabetical**: Sorts stages A-Z or numerically 1-9
+If auto-detect doesn't match your needs, select **"As in data"** to explicitly preserve the original data sequence.
 
 ---
 
