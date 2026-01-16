@@ -1136,7 +1136,7 @@ export function calculateGageRR<T extends Record<string, unknown>>(
  * - Otherwise → first occurrence order (preserve original data sequence)
  *
  * @param stageValues - Array of stage values in original data order
- * @param mode - Override mode: 'auto' (default), 'first-occurrence', or 'alphabetical'
+ * @param mode - Override mode: 'auto' (default) or 'data-order'
  * @returns Ordered array of unique stage names
  *
  * @example
@@ -1164,22 +1164,9 @@ export function determineStageOrder(
 
   if (unique.length === 0) return [];
 
-  // Handle explicit modes
-  if (mode === 'first-occurrence') {
+  // Handle explicit data-order mode (preserve as-in-data sequence)
+  if (mode === 'data-order') {
     return unique;
-  }
-
-  if (mode === 'alphabetical') {
-    return [...unique].sort((a, b) => {
-      // Try numeric sort first
-      const numA = parseFloat(a);
-      const numB = parseFloat(b);
-      if (!isNaN(numA) && !isNaN(numB)) {
-        return numA - numB;
-      }
-      // Fall back to alphabetical
-      return a.localeCompare(b);
-    });
   }
 
   // Auto-detect mode

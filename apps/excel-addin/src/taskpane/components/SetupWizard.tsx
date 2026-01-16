@@ -144,9 +144,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
 
   // Step 3: Stage configuration (for staged I-Charts)
   const [stageColumn, setStageColumn] = useState<string | null>(null);
-  const [stageOrderMode, setStageOrderMode] = useState<
-    'auto' | 'first-occurrence' | 'alphabetical'
-  >('auto');
+  const [stageOrderMode, setStageOrderMode] = useState<'auto' | 'data-order'>('auto');
 
   // Step 4: Slicer configuration
   const [slicerSupported, setSlicerSupported] = useState(false);
@@ -548,18 +546,15 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
                 <Dropdown
                   value={stageOrderMode}
                   onOptionSelect={(_, data) =>
-                    setStageOrderMode(
-                      data.optionValue as 'auto' | 'first-occurrence' | 'alphabetical'
-                    )
+                    setStageOrderMode(data.optionValue as 'auto' | 'data-order')
                   }
                 >
                   <Option value="auto">Auto-detect</Option>
-                  <Option value="first-occurrence">First occurrence</Option>
-                  <Option value="alphabetical">Alphabetical (A-Z / 1-9)</Option>
+                  <Option value="data-order">As in data</Option>
                 </Dropdown>
               </Field>
               <Caption1 style={{ marginTop: tokens.spacingVerticalXS }}>
-                Auto-detect: numeric stages sorted numerically, text stages by first occurrence.
+                Auto-detect: numeric stages sorted numerically, text stages by data order.
               </Caption1>
             </div>
           )}

@@ -94,11 +94,11 @@ describe('stateBridge', () => {
     it('should handle stage column updates', () => {
       const updated = updateState(baseState, {
         stageColumn: 'Phase',
-        stageOrderMode: 'alphabetical',
+        stageOrderMode: 'auto',
       });
 
       expect(updated.stageColumn).toBe('Phase');
-      expect(updated.stageOrderMode).toBe('alphabetical');
+      expect(updated.stageOrderMode).toBe('auto');
     });
 
     it('should not mutate original state', () => {
@@ -129,10 +129,10 @@ describe('stateBridge', () => {
     it('should allow stage configuration', () => {
       const state = createInitialState('A1:B10', 'Sheet1', 'Table1', 'Value');
       state.stageColumn = 'Stage';
-      state.stageOrderMode = 'first-occurrence';
+      state.stageOrderMode = 'data-order';
 
       expect(state.stageColumn).toBe('Stage');
-      expect(state.stageOrderMode).toBe('first-occurrence');
+      expect(state.stageOrderMode).toBe('data-order');
     });
   });
 });

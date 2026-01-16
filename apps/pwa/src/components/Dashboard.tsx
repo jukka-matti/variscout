@@ -763,8 +763,7 @@ const Dashboard = ({
                               title="Stage ordering method"
                             >
                               <option value="auto">Auto order</option>
-                              <option value="first-occurrence">First occurrence</option>
-                              <option value="alphabetical">A-Z / 1-9</option>
+                              <option value="data-order">As in data</option>
                             </select>
                           )}
                         </>

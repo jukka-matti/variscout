@@ -29,8 +29,8 @@ export interface AddInState {
   slicerNames: string[];
   /** Column name for stage grouping (optional) */
   stageColumn?: string | null;
-  /** Stage order mode: auto-detect, first-occurrence, or alphabetical */
-  stageOrderMode?: 'auto' | 'first-occurrence' | 'alphabetical';
+  /** Stage order mode: auto-detect or as-in-data */
+  stageOrderMode?: 'auto' | 'data-order';
   /** Display options */
   displayOptions?: {
     lockYAxisToFullData?: boolean;

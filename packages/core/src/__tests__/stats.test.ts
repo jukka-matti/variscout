@@ -624,25 +624,27 @@ describe('Stage Order Detection', () => {
     expect(order).toEqual(['Phase 1', 'Phase 2', 'Phase 3']);
   });
 
-  it('should respect explicit first-occurrence mode', () => {
+  it('should respect explicit data-order mode', () => {
     const stages = ['3', '1', '2'];
-    const order = determineStageOrder(stages, 'first-occurrence');
+    const order = determineStageOrder(stages, 'data-order');
 
     expect(order).toEqual(['3', '1', '2']);
   });
 
-  it('should respect explicit alphabetical mode', () => {
+  it('should sort text stages by data order in auto mode', () => {
     const stages = ['Charlie', 'Alpha', 'Bravo'];
-    const order = determineStageOrder(stages, 'alphabetical');
+    const order = determineStageOrder(stages, 'auto');
 
-    expect(order).toEqual(['Alpha', 'Bravo', 'Charlie']);
+    // Non-numeric patterns should preserve data order
+    expect(order).toEqual(['Charlie', 'Alpha', 'Bravo']);
   });
 
-  it('should sort numbers in alphabetical mode numerically', () => {
+  it('should keep data-order for numbers when explicitly set', () => {
     const stages = ['10', '2', '1'];
-    const order = determineStageOrder(stages, 'alphabetical');
+    const order = determineStageOrder(stages, 'data-order');
 
-    expect(order).toEqual(['1', '2', '10']);
+    // Data order preserved even for numbers when explicitly set
+    expect(order).toEqual(['10', '2', '1']);
   });
 
   it('should handle empty array', () => {

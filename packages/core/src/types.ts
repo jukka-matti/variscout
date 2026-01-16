@@ -258,8 +258,10 @@ export interface GageRRResult {
 
 /**
  * Stage order determination mode for I-Chart with stages
+ * - 'auto': Detects numeric patterns and sorts accordingly, otherwise uses data order
+ * - 'data-order': Preserves original data sequence (as in data)
  */
-export type StageOrderMode = 'auto' | 'first-occurrence' | 'alphabetical';
+export type StageOrderMode = 'auto' | 'data-order';
 
 /**
  * Result of staged statistical calculations
