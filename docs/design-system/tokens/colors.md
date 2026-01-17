@@ -1,42 +1,78 @@
 # Color System
 
-VariScout uses a dark theme based on Tailwind's slate palette with semantic color assignments.
+VariScout uses CSS variables with Tailwind semantic classes for theme-aware styling.
 
-## Background Colors
+## Theme Support
 
-| Token                  | Hex       | PWA (Tailwind) | Excel (darkTheme)         | Usage                 |
-| ---------------------- | --------- | -------------- | ------------------------- | --------------------- |
-| background-app         | `#0f172a` | `bg-slate-900` | `colorNeutralBackground1` | App background        |
-| background-card        | `#1e293b` | `bg-slate-800` | `colorNeutralBackground2` | Cards, panels         |
-| background-elevated    | `#334155` | `bg-slate-700` | `colorNeutralBackground3` | Hover states, inputs  |
-| background-interactive | `#475569` | `bg-slate-600` | `colorNeutralBackground4` | Active/pressed states |
+| Edition       | Dark | Light | System Pref | Company Accent |
+| ------------- | :--: | :---: | :---------: | :------------: |
+| Community/ITC |  ✓   |   -   |      -      |       -        |
+| Licensed      |  ✓   |   ✓   |      ✓      |       ✓        |
 
-## Text Colors
+## CSS Variables
 
-| Token          | Hex       | PWA (Tailwind)   | Excel (darkTheme)         | Usage                 |
-| -------------- | --------- | ---------------- | ------------------------- | --------------------- |
-| text-primary   | `#f1f5f9` | `text-slate-100` | `colorNeutralForeground1` | Main text, headings   |
-| text-secondary | `#94a3b8` | `text-slate-400` | `colorNeutralForeground2` | Labels, descriptions  |
-| text-tertiary  | `#64748b` | `text-slate-500` | `colorNeutralForeground3` | Placeholder, disabled |
-| text-muted     | `#475569` | `text-slate-600` | `colorNeutralForeground4` | Very subtle text      |
+Defined in `apps/pwa/src/index.css`, these variables use RGB format for alpha support:
 
-## Border Colors
+```css
+:root,
+[data-theme='dark'] {
+  --surface-primary: 15 23 42; /* slate-900 */
+  --surface-secondary: 30 41 59; /* slate-800 */
+  --surface-tertiary: 51 65 85; /* slate-700 */
+  --content-primary: 226 232 240; /* slate-200 */
+  --content-secondary: 148 163 184; /* slate-400 */
+  --content-muted: 100 116 139; /* slate-500 */
+  --edge-primary: 51 65 85; /* slate-700 */
+}
 
-| Token              | Hex       | PWA (Tailwind)     | Excel (darkTheme)     | Usage         |
-| ------------------ | --------- | ------------------ | --------------------- | ------------- |
-| border-default     | `#334155` | `border-slate-700` | `colorNeutralStroke1` | Card borders  |
-| border-subtle      | `#1e293b` | `border-slate-800` | `colorNeutralStroke2` | Dividers      |
-| border-interactive | `#475569` | `border-slate-600` | `colorNeutralStroke3` | Input borders |
+[data-theme='light'] {
+  --surface-primary: 248 250 252; /* slate-50 */
+  --surface-secondary: 241 245 249; /* slate-100 */
+  --surface-tertiary: 226 232 240; /* slate-200 */
+  --content-primary: 15 23 42; /* slate-900 */
+  --content-secondary: 71 85 105; /* slate-600 */
+  --content-muted: 100 116 139; /* slate-500 */
+  --edge-primary: 226 232 240; /* slate-200 */
+}
+```
 
-## Status Colors
+## Semantic Tailwind Classes
 
-These colors have **consistent semantic meaning** across the entire application.
+Configured in `packages/ui/tailwind.config.cjs`:
 
-| Token   | Hex       | PWA (Tailwind)   | Excel (darkTheme)    | Usage                           |
-| ------- | --------- | ---------------- | -------------------- | ------------------------------- |
-| success | `#22c55e` | `text-green-500` | `colorStatusSuccess` | Pass, in-spec, valid            |
-| danger  | `#ef4444` | `text-red-500`   | `colorStatusDanger`  | Fail, out of spec (high), error |
-| warning | `#f59e0b` | `text-amber-500` | `colorStatusWarning` | Warning, out of spec (low)      |
+### Surface Colors (Backgrounds)
+
+| Semantic Class         | CSS Variable          | Dark      | Light     | Usage                 |
+| ---------------------- | --------------------- | --------- | --------- | --------------------- |
+| `bg-surface`           | `--surface-primary`   | `#0f172a` | `#f8fafc` | App background        |
+| `bg-surface-secondary` | `--surface-secondary` | `#1e293b` | `#f1f5f9` | Cards, panels         |
+| `bg-surface-tertiary`  | `--surface-tertiary`  | `#334155` | `#e2e8f0` | Hover states, inputs  |
+| `bg-surface-elevated`  | `--surface-elevated`  | `#475569` | `#ffffff` | Active/pressed states |
+
+### Content Colors (Text)
+
+| Semantic Class           | CSS Variable          | Dark      | Light     | Usage                 |
+| ------------------------ | --------------------- | --------- | --------- | --------------------- |
+| `text-content`           | `--content-primary`   | `#e2e8f0` | `#0f172a` | Main text, headings   |
+| `text-content-secondary` | `--content-secondary` | `#94a3b8` | `#475569` | Labels, descriptions  |
+| `text-content-muted`     | `--content-muted`     | `#64748b` | `#64748b` | Placeholder, disabled |
+
+### Edge Colors (Borders)
+
+| Semantic Class          | CSS Variable       | Dark      | Light     | Usage        |
+| ----------------------- | ------------------ | --------- | --------- | ------------ |
+| `border-edge`           | `--edge-primary`   | `#334155` | `#e2e8f0` | Card borders |
+| `border-edge-secondary` | `--edge-secondary` | `#475569` | `#cbd5e1` | Dividers     |
+
+## Status Colors (Universal)
+
+These colors have **consistent semantic meaning** across both themes:
+
+| Token   | Hex       | Tailwind Class   | Usage                           |
+| ------- | --------- | ---------------- | ------------------------------- |
+| success | `#22c55e` | `text-green-500` | Pass, in-spec, valid            |
+| danger  | `#ef4444` | `text-red-500`   | Fail, out of spec (high), error |
+| warning | `#f59e0b` | `text-amber-500` | Warning, out of spec (low)      |
 
 ### Status Usage in Data Analysis
 
@@ -51,45 +87,48 @@ These colors have **consistent semantic meaning** across the entire application.
 
 ## Brand Colors
 
-| Token         | Hex       | PWA (Tailwind)      | Excel (darkTheme)           | Usage                    |
-| ------------- | --------- | ------------------- | --------------------------- | ------------------------ |
-| brand-primary | `#3b82f6` | `bg-blue-600`       | `colorBrandBackground`      | Primary buttons, accents |
-| brand-hover   | `#2563eb` | `hover:bg-blue-700` | `colorBrandBackgroundHover` | Hover state              |
-| brand-light   | `#60a5fa` | `text-blue-400`     | `colorBrandForeground1`     | Links, highlights        |
+| Token         | Hex       | Tailwind Class      | Usage                    |
+| ------------- | --------- | ------------------- | ------------------------ |
+| brand-primary | `#3b82f6` | `bg-blue-600`       | Primary buttons, accents |
+| brand-hover   | `#2563eb` | `hover:bg-blue-700` | Hover state              |
+| brand-light   | `#60a5fa` | `text-blue-400`     | Links, highlights        |
 
-## Chart-Specific Colors
+### Company Accent (Licensed Only)
+
+Licensed users can customize the accent color via Settings > Appearance:
+
+```tsx
+// ThemeContext applies custom accent as CSS variable
+document.documentElement.style.setProperty('--company-accent', '#8b5cf6');
+```
+
+## Chart Colors
 
 See [Charts > Colors](../charts/colors.md) for data visualization colors.
 
-## Accessibility
+Charts use the `useChartTheme()` hook for theme-aware chrome colors:
 
-All color combinations meet WCAG AA contrast requirements:
+```tsx
+import { useChartTheme } from '@variscout/charts';
 
-- Text on background: minimum 4.5:1 ratio
-- Large text: minimum 3:1 ratio
-- UI components: minimum 3:1 ratio
-
-| Combination                       | Contrast Ratio | Pass |
-| --------------------------------- | -------------- | ---- |
-| text-primary on background-app    | 13.5:1         | AAA  |
-| text-secondary on background-card | 5.2:1          | AA   |
-| success on background-card        | 4.8:1          | AA   |
-| danger on background-card         | 4.6:1          | AA   |
+const { isDark, chrome } = useChartTheme();
+// chrome.gridLine, chrome.labelPrimary, chrome.tooltipBg, etc.
+```
 
 ## Implementation Examples
 
-### PWA Button
+### PWA Component
 
 ```jsx
-// Primary button
-<button className="bg-blue-600 hover:bg-blue-700 text-white">
-  Save
-</button>
+// Theme-aware card
+<div className="bg-surface-secondary border border-edge rounded-lg p-4">
+  <h2 className="text-content font-semibold">Title</h2>
+  <p className="text-content-secondary">Description</p>
+  <span className="text-content-muted text-sm">Metadata</span>
+</div>
 
-// Success state
+// Status display
 <span className="text-green-500">In Spec</span>
-
-// Danger state
 <span className="text-red-500">Out of Spec</span>
 ```
 
@@ -112,10 +151,33 @@ const styles = {
 ### Chart SVG
 
 ```tsx
-// Data point colors
+import { useChartTheme, chartColors } from '@variscout/charts';
+
+const { chrome } = useChartTheme();
+
+// Theme-aware chrome
+<Line stroke={chrome.gridLine} />
+<text fill={chrome.labelPrimary}>Axis Label</text>
+
+// Universal data colors
 const getPointColor = (value: number, usl?: number, lsl?: number) => {
-  if (usl !== undefined && value > usl) return '#ef4444'; // Red
-  if (lsl !== undefined && value < lsl) return '#f59e0b'; // Amber
-  return '#22c55e'; // Green
+  if (usl !== undefined && value > usl) return chartColors.fail;    // Red
+  if (lsl !== undefined && value < lsl) return chartColors.warning; // Amber
+  return chartColors.pass; // Green
 };
 ```
+
+## Accessibility
+
+All color combinations meet WCAG AA contrast requirements:
+
+- Text on background: minimum 4.5:1 ratio
+- Large text: minimum 3:1 ratio
+- UI components: minimum 3:1 ratio
+
+| Combination                                    | Dark Ratio | Light Ratio | Pass |
+| ---------------------------------------------- | ---------- | ----------- | ---- |
+| text-content on bg-surface                     | 13.5:1     | 15.4:1      | AAA  |
+| text-content-secondary on bg-surface-secondary | 5.2:1      | 4.8:1       | AA   |
+| green-500 on bg-surface-secondary              | 4.8:1      | 4.5:1       | AA   |
+| red-500 on bg-surface-secondary                | 4.6:1      | 4.3:1       | AA   |

@@ -59,11 +59,11 @@ variscout-lite/
 
 ## Editions
 
-| Edition   | Branding              | Build Command              |
-| --------- | --------------------- | -------------------------- |
-| Community | "VariScout Lite"      | `pnpm build:pwa:community` |
-| ITC       | "ITC" branding        | `pnpm build:pwa:itc`       |
-| Licensed  | No branding (€49 key) | `pnpm build:pwa:licensed`  |
+| Edition   | Branding              | Theming                     | Build Command              |
+| --------- | --------------------- | --------------------------- | -------------------------- |
+| Community | "VariScout Lite"      | Dark only                   | `pnpm build:pwa:community` |
+| ITC       | "ITC" branding        | Dark only                   | `pnpm build:pwa:itc`       |
+| Licensed  | No branding (€49 key) | Light/Dark/System + Accents | `pnpm build:pwa:licensed`  |
 
 ## Key Files
 
@@ -79,6 +79,9 @@ variscout-lite/
 | `packages/data/src/samples/`                        | Individual sample files (coffee, journey, bottleneck)     |
 | `packages/ui/src/colors.ts`                         | Shared UI colors (statusColors, gradeColors)              |
 | `apps/pwa/src/context/DataContext.tsx`              | Central state management                                  |
+| `apps/pwa/src/context/ThemeContext.tsx`             | Theme state (light/dark/system, company accent)           |
+| `packages/core/src/edition.ts`                      | Edition detection, `isThemingEnabled()` feature gate      |
+| `packages/charts/src/useChartTheme.ts`              | Theme-aware chart colors hook                             |
 | `apps/pwa/src/components/__tests__/`                | Component tests (Dashboard, RegressionPanel, GageRRPanel) |
 | `packages/core/src/parser.ts`                       | CSV/Excel parsing, validation, keyword detection (shared) |
 | `apps/pwa/src/hooks/useDataIngestion.ts`            | File upload handlers, validation integration              |
