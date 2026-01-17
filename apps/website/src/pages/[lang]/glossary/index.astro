@@ -1,0 +1,190 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ScrollReveal from "../../../components/ScrollReveal.astro";
+import { ui } from "../../../i18n/ui";
+import {
+  GLOSSARY_CATEGORIES,
+  getGlossaryByCategory,
+  type CategoryMeta
+} from "../../../data/glossaryData";
+import type { GlossaryCategory, GlossaryTerm } from "@variscout/core";
+
+export function getStaticPaths() {
+  const languages = Object.keys(ui);
+  return languages.map((lang) => ({
+    params: { lang },
+  }));
+}
+
+const { lang } = Astro.params;
+
+// Get all terms organized by category
+const termsByCategory = getGlossaryByCategory();
+
+// Category order for display
+const categoryOrder: GlossaryCategory[] = [
+  'control-limits',
+  'capability',
+  'statistics',
+  'charts',
+  'methodology'
+];
+---
+
+<BaseLayout
+  title="Glossary | VaRiScout"
+  description="Your guide to quality and statistical terms. Learn about control limits, capability metrics, ANOVA, and more."
+>
+  <!-- Hero -->
+  <section class="py-20 bg-gradient-to-b from-neutral-50 to-white">
+    <div class="container-wide">
+      <ScrollReveal animation="fade-up">
+        <div class="max-w-3xl">
+          <h1 class="text-4xl md:text-5xl font-bold mb-4">Glossary</h1>
+          <p class="text-xl text-neutral-600 mb-2">
+            Your guide to quality and statistical terms.
+          </p>
+          <p class="text-neutral-500">
+            From control limits to capability metrics, find clear definitions for the terms used in process analysis.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  {categoryOrder.map((categoryKey, index) => {
+    const category = GLOSSARY_CATEGORIES[categoryKey];
+    const terms = termsByCategory[categoryKey];
+
+    if (terms.length === 0) return null;
+
+    return (
+      <section
+        id={categoryKey}
+        class={`py-16 ${index % 2 === 0 ? 'bg-white' : 'bg-neutral-50'}`}
+      >
+        <div class="container-wide">
+          <ScrollReveal animation="fade-up">
+            <div class="max-w-4xl">
+              <!-- Category Header -->
+              <div class="flex items-center gap-4 mb-6">
+                <span class="text-3xl">{category.icon}</span>
+                <div>
+                  <h2 class={`text-2xl font-bold ${category.colorClass}`}>{category.name}</h2>
+                  <p class="text-neutral-500">{category.description}</p>
+                </div>
+              </div>
+
+              <!-- Term Cards -->
+              <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {terms.map((term: GlossaryTerm) => (
+                  <a
+                    href={`/${lang}/glossary/${term.id}`}
+                    class="group block p-4 bg-white rounded-xl border border-neutral-200 hover:border-neutral-300 hover:shadow-md transition-all"
+                  >
+                    <div class="flex items-start gap-3">
+                      <div class={`shrink-0 w-2 h-2 rounded-full mt-2 ${category.colorClass.replace('text-', 'bg-')}`}></div>
+                      <div class="flex-1 min-w-0">
+                        <h3 class="font-semibold text-neutral-900 group-hover:text-brand-primary transition-colors">
+                          {term.label}
+                        </h3>
+                        <p class="text-sm text-neutral-500 line-clamp-2 mt-1">
+                          {term.definition}
+                        </p>
+                      </div>
+                      <svg
+                        class="shrink-0 w-4 h-4 text-neutral-300 group-hover:text-brand-primary transition-colors mt-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+    );
+  })}
+
+  <!-- Related Content -->
+  <section class="py-16 bg-white border-t border-neutral-100">
+    <div class="container-wide">
+      <div class="max-w-4xl">
+        <ScrollReveal animation="fade-up">
+          <h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">Continue Learning</h2>
+          <div class="grid md:grid-cols-3 gap-6">
+            <a
+              href={`/${lang}/learn/two-voices`}
+              class="group p-6 bg-neutral-50 rounded-xl border border-neutral-200 hover:border-purple-300 hover:shadow-md transition-all"
+            >
+              <span class="text-2xl mb-3 block">🎭</span>
+              <h3 class="font-semibold text-neutral-900 group-hover:text-purple-600 transition-colors mb-2">
+                The Two Voices
+              </h3>
+              <p class="text-sm text-neutral-500">
+                Understand control limits vs specification limits
+              </p>
+            </a>
+            <a
+              href={`/${lang}/learn/four-pillars`}
+              class="group p-6 bg-neutral-50 rounded-xl border border-neutral-200 hover:border-amber-300 hover:shadow-md transition-all"
+            >
+              <span class="text-2xl mb-3 block">🏛️</span>
+              <h3 class="font-semibold text-neutral-900 group-hover:text-amber-600 transition-colors mb-2">
+                The Four Pillars
+              </h3>
+              <p class="text-sm text-neutral-500">
+                Watson's framework for variation analysis
+              </p>
+            </a>
+            <a
+              href={`/${lang}/learn/eda-philosophy`}
+              class="group p-6 bg-neutral-50 rounded-xl border border-neutral-200 hover:border-cyan-300 hover:shadow-md transition-all"
+            >
+              <span class="text-2xl mb-3 block">🔬</span>
+              <h3 class="font-semibold text-neutral-900 group-hover:text-cyan-600 transition-colors mb-2">
+                EDA Philosophy
+              </h3>
+              <p class="text-sm text-neutral-500">
+                Exploratory data analysis approach
+              </p>
+            </a>
+          </div>
+        </ScrollReveal>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 bg-neutral-900 text-white">
+    <div class="container-wide">
+      <ScrollReveal animation="scale">
+        <div class="max-w-2xl mx-auto text-center">
+          <h2 class="text-3xl font-bold mb-4">Ready to Apply These Concepts?</h2>
+          <p class="text-neutral-300 mb-8">
+            See these terms in action with your own data.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/app" class="btn btn-primary px-8 py-3">Try Free - No Signup</a>
+            <a href={`/${lang}/tools`} class="btn btn-outline-light px-8 py-3">Explore Tools</a>
+          </div>
+        </div>
+      </ScrollReveal>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

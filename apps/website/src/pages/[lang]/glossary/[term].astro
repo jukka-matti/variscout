@@ -1,0 +1,302 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ScrollReveal from "../../../components/ScrollReveal.astro";
+import { ui } from "../../../i18n/ui";
+import {
+  GLOSSARY_CATEGORIES,
+  getGlossaryPageData,
+  getAllGlossaryTermIds,
+  type GlossaryPageData,
+  type GlossarySection
+} from "../../../data/glossaryData";
+import { getTerm } from "@variscout/core";
+import { getToolBySlug } from "../../../data/toolsData";
+import { getLearnTopicBySlug } from "../../../data/learnData";
+
+export function getStaticPaths() {
+  const languages = Object.keys(ui);
+  const termIds = getAllGlossaryTermIds();
+
+  return languages.flatMap((lang) =>
+    termIds.map((term) => ({
+      params: { lang, term },
+      props: { termData: getGlossaryPageData(term)! },
+    }))
+  );
+}
+
+interface Props {
+  termData: GlossaryPageData;
+}
+
+const { termData } = Astro.props;
+const { lang } = Astro.params;
+
+// Get category metadata
+const category = GLOSSARY_CATEGORIES[termData.category];
+
+// Get related terms
+const relatedTerms = termData.relatedTerms?.map(id => getTerm(id)).filter(Boolean) || [];
+---
+
+<BaseLayout
+  title={termData.seoTitle}
+  description={termData.seoDescription}
+>
+  <!-- Breadcrumb + Hero -->
+  <section class={`py-16 bg-gradient-to-b from-${category.colorClass.replace('text-', '')}/5 to-white`}>
+    <div class="container-wide">
+      <ScrollReveal animation="fade-up">
+        <div class="max-w-3xl">
+          <!-- Breadcrumb -->
+          <nav class="flex items-center gap-2 text-sm text-neutral-500 mb-6">
+            <a href={`/${lang}/glossary`} class="hover:text-brand-primary transition-colors">Glossary</a>
+            <span>/</span>
+            <a
+              href={`/${lang}/glossary#${termData.category}`}
+              class={`hover:${category.colorClass} transition-colors`}
+            >
+              {category.name}
+            </a>
+          </nav>
+
+          <!-- Title -->
+          <div class="flex items-start gap-4 mb-6">
+            <div>
+              <h1 class="text-4xl md:text-5xl font-bold mb-2">{termData.label}</h1>
+              <span class={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${category.colorClass} ${category.colorClass.replace('text-', 'bg-')}/10 ${category.colorClass.replace('text-', 'border-')}/20`}>
+                {category.name}
+              </span>
+            </div>
+          </div>
+        </div>
+      </ScrollReveal>
+    </div>
+  </section>
+
+  <!-- Definition -->
+  <section class="py-12 bg-white border-b border-neutral-100">
+    <div class="container-wide">
+      <div class="max-w-3xl">
+        <ScrollReveal animation="fade-up">
+          <h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">Definition</h2>
+          <p class="text-xl text-neutral-700 leading-relaxed">
+            {termData.definition}
+          </p>
+        </ScrollReveal>
+      </div>
+    </div>
+  </section>
+
+  <!-- Extended Description -->
+  {termData.description && (
+    <section class="py-12 bg-neutral-50">
+      <div class="container-wide">
+        <div class="max-w-3xl">
+          <ScrollReveal animation="fade-up">
+            <h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">Extended Explanation</h2>
+            <p class="text-lg text-neutral-600 leading-relaxed">
+              {termData.description}
+            </p>
+          </ScrollReveal>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Rich Content Sections -->
+  {termData.sections && termData.sections.map((section: GlossarySection, index: number) => (
+    <section class={`py-12 ${index % 2 === 0 ? 'bg-white' : 'bg-neutral-50'}`}>
+      <div class="container-wide">
+        <div class="max-w-3xl">
+          <ScrollReveal animation="fade-up">
+            <h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">{section.title}</h2>
+
+            {/* Formula section */}
+            {section.type === 'formula' && (
+              <div class="bg-neutral-900 text-white rounded-xl p-6 font-mono">
+                <pre class="whitespace-pre-wrap">{section.content}</pre>
+              </div>
+            )}
+
+            {/* Interpretation section */}
+            {section.type === 'interpretation' && (
+              <div>
+                <p class="text-lg text-neutral-600 mb-4">{section.content}</p>
+                {section.items && (
+                  <div class="space-y-3">
+                    {section.items.map((item) => (
+                      <div class="flex items-start gap-4 p-4 bg-neutral-100 rounded-lg">
+                        <span class={`shrink-0 font-bold font-mono ${category.colorClass}`}>{item.value}</span>
+                        <div>
+                          <span class="font-semibold text-neutral-900">{item.label}</span>
+                          {item.description && (
+                            <span class="text-neutral-500"> — {item.description}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Example section */}
+            {section.type === 'example' && (
+              <div class="bg-blue-50 border border-blue-100 rounded-xl p-6">
+                <p class="text-neutral-700">{section.content}</p>
+              </div>
+            )}
+
+            {/* Diagram section */}
+            {section.type === 'diagram' && (
+              <div class="bg-neutral-100 rounded-xl p-6">
+                <p class="text-neutral-600">{section.content}</p>
+              </div>
+            )}
+          </ScrollReveal>
+        </div>
+      </div>
+    </section>
+  ))}
+
+  <!-- Examples -->
+  {termData.examples && termData.examples.length > 0 && (
+    <section class="py-12 bg-white border-b border-neutral-100">
+      <div class="container-wide">
+        <div class="max-w-3xl">
+          <ScrollReveal animation="fade-up">
+            <h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4">Examples</h2>
+            <div class="space-y-4">
+              {termData.examples.map((example: string) => (
+                <div class="flex items-start gap-3 p-4 bg-neutral-50 rounded-lg">
+                  <span class={`shrink-0 ${category.colorClass}`}>→</span>
+                  <p class="text-neutral-700">{example}</p>
+                </div>
+              ))}
+            </div>
+          </ScrollReveal>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Practical Tip -->
+  {termData.practicalTip && (
+    <section class="py-12 bg-amber-50 border-y border-amber-100">
+      <div class="container-wide">
+        <div class="max-w-3xl">
+          <ScrollReveal animation="fade-up">
+            <div class="flex items-start gap-4">
+              <span class="text-2xl">💡</span>
+              <div>
+                <h2 class="text-sm font-bold text-amber-700 uppercase tracking-wider mb-2">Practical Tip</h2>
+                <p class="text-lg text-amber-900">{termData.practicalTip}</p>
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Related Content -->
+  <section class="py-16 bg-white">
+    <div class="container-wide">
+      <div class="max-w-4xl">
+        <ScrollReveal animation="fade-up">
+          <!-- Related Terms -->
+          {relatedTerms.length > 0 && (
+            <div class="mb-12">
+              <h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">Related Terms</h2>
+              <div class="flex flex-wrap gap-3">
+                {relatedTerms.map((term) => {
+                  if (!term) return null;
+                  const termCategory = GLOSSARY_CATEGORIES[term.category];
+                  return (
+                    <a
+                      href={`/${lang}/glossary/${term.id}`}
+                      class={`px-4 py-2 rounded-full border ${termCategory.colorClass.replace('text-', 'border-')}/30 ${termCategory.colorClass.replace('text-', 'bg-')}/5 hover:${termCategory.colorClass.replace('text-', 'bg-')}/10 transition-colors`}
+                    >
+                      <span class={`font-medium ${termCategory.colorClass}`}>{term.label}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <!-- Related Tools -->
+          {termData.relatedTools.length > 0 && (
+            <div class="mb-12">
+              <h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">Related Tools</h2>
+              <div class="grid md:grid-cols-2 gap-4">
+                {termData.relatedTools.map((toolSlug) => {
+                  const tool = getToolBySlug(toolSlug);
+                  if (!tool) return null;
+                  return (
+                    <a
+                      href={`/${lang}/tools/${toolSlug}`}
+                      class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all group"
+                    >
+                      <div class={`w-10 h-10 rounded-full ${tool.colorClass.replace('text-', 'bg-')}/10 ${tool.colorClass} flex items-center justify-center font-bold`}>
+                        {tool.name[0]}
+                      </div>
+                      <div>
+                        <div class="font-semibold text-neutral-900 group-hover:text-brand-primary transition-colors">{tool.name}</div>
+                        <p class="text-sm text-neutral-500">{tool.hero.title}</p>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <!-- Related Learn Topics -->
+          {termData.relatedLearn.length > 0 && (
+            <div>
+              <h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">Continue Learning</h2>
+              <div class="grid md:grid-cols-2 gap-4">
+                {termData.relatedLearn.map((topicSlug) => {
+                  const topic = getLearnTopicBySlug(topicSlug);
+                  if (!topic) return null;
+                  return (
+                    <a
+                      href={`/${lang}/learn/${topicSlug}`}
+                      class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all group"
+                    >
+                      <span class="text-2xl">{topic.icon}</span>
+                      <div>
+                        <div class="font-semibold text-neutral-900 group-hover:text-brand-primary transition-colors">{topic.title}</div>
+                        <p class="text-sm text-neutral-500">{topic.subtitle}</p>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </ScrollReveal>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-16 bg-neutral-900 text-white">
+    <div class="container-wide">
+      <ScrollReveal animation="scale">
+        <div class="max-w-2xl mx-auto text-center">
+          <h2 class="text-3xl font-bold mb-4">See {termData.label} in Action</h2>
+          <p class="text-neutral-300 mb-8">
+            Apply this concept to your own data with VaRiScout.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/app" class="btn btn-primary px-8 py-3">Try Free - No Signup</a>
+            <a href={`/${lang}/glossary`} class="btn btn-outline-light px-8 py-3">Back to Glossary</a>
+          </div>
+        </div>
+      </ScrollReveal>
+    </div>
+  </section>
+</BaseLayout>

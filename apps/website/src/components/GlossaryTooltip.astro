@@ -1,0 +1,148 @@
+---
+/**
+ * GlossaryTooltip.astro - Static tooltip component for Astro pages
+ *
+ * A CSS-only tooltip that shows glossary term definitions on hover.
+ * For interactive features (keyboard nav, click handling), use GlossaryTooltipIsland.tsx instead.
+ *
+ * Usage:
+ * <GlossaryTooltip termId="cpk" lang="en">Cpk</GlossaryTooltip>
+ */
+
+import { getTerm } from "@variscout/core";
+import { GLOSSARY_CATEGORIES } from "../data/glossaryData";
+
+interface Props {
+  termId: string;
+  lang?: string;
+  class?: string;
+}
+
+const { termId, lang = "en", class: className = "" } = Astro.props;
+
+const term = getTerm(termId);
+const category = term ? GLOSSARY_CATEGORIES[term.category] : null;
+const glossaryPath = `/${lang}/glossary/${termId}`;
+---
+
+{term && category && (
+  <span class={`glossary-tooltip-wrapper ${className}`}>
+    <slot />
+    <span class="glossary-tooltip-icon" aria-label={`Help: ${term.label}`}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 16v-4"></path>
+        <path d="M12 8h.01"></path>
+      </svg>
+    </span>
+    <span class="glossary-tooltip" role="tooltip">
+      <span class="glossary-tooltip__content">
+        <span class={`glossary-tooltip__label ${category.colorClass}`}>{term.label}</span>
+        <span class="glossary-tooltip__definition">{term.definition}</span>
+        {term.learnMorePath && (
+          <a href={glossaryPath} class="glossary-tooltip__link">
+            Learn more →
+          </a>
+        )}
+      </span>
+      <span class="glossary-tooltip__arrow" aria-hidden="true"></span>
+    </span>
+  </span>
+)}
+
+<style>
+  .glossary-tooltip-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .glossary-tooltip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    cursor: help;
+    transition: color 0.2s ease;
+  }
+
+  .glossary-tooltip-wrapper:hover .glossary-tooltip-icon {
+    color: #64748b;
+  }
+
+  .glossary-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    min-width: 240px;
+    max-width: 320px;
+    padding: 0.75rem;
+    background: #1e293b;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    pointer-events: none;
+  }
+
+  .glossary-tooltip-wrapper:hover .glossary-tooltip,
+  .glossary-tooltip-wrapper:focus-within .glossary-tooltip {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .glossary-tooltip__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .glossary-tooltip__label {
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .glossary-tooltip__definition {
+    font-size: 0.8125rem;
+    color: #cbd5e1;
+    line-height: 1.4;
+  }
+
+  .glossary-tooltip__link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #60a5fa;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .glossary-tooltip__link:hover {
+    color: #93c5fd;
+  }
+
+  .glossary-tooltip__arrow {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #1e293b;
+  }
+
+  /* Position adjustments for edge cases */
+  @media (max-width: 640px) {
+    .glossary-tooltip {
+      min-width: 200px;
+      max-width: 280px;
+    }
+  }
+</style>
