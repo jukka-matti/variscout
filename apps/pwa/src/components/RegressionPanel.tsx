@@ -68,7 +68,7 @@ const RegressionPanel: React.FC = () => {
 
   if (!outcome) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-500">
+      <div className="flex items-center justify-center h-full text-content-muted">
         Select an outcome variable to view regression analysis
       </div>
     );
@@ -76,7 +76,7 @@ const RegressionPanel: React.FC = () => {
 
   if (numericColumns.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-500">
+      <div className="flex items-center justify-center h-full text-content-muted">
         No numeric columns available for regression
       </div>
     );
@@ -92,20 +92,20 @@ const RegressionPanel: React.FC = () => {
           : result.linear.rSquared;
 
       return (
-        <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-slate-700">
+        <div className="fixed inset-0 z-50 bg-surface/95 flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-edge">
             <div className="flex items-center gap-3">
               <TrendingUp className="text-blue-400" size={20} />
               <h2 className="text-lg font-semibold text-white">
                 {result.xColumn} vs {result.yColumn}
               </h2>
-              <span className="text-slate-400 text-sm flex items-center gap-1">
+              <span className="text-content-secondary text-sm flex items-center gap-1">
                 R² = {rSquared.toFixed(3)}{' '}
                 <span className="text-yellow-400">{getStars(result.strengthRating)}</span>
                 <span className="tooltip-wrapper">
                   <HelpCircle
                     size={12}
-                    className="text-slate-500 hover:text-slate-300 cursor-help"
+                    className="text-content-muted hover:text-content cursor-help"
                   />
                   <span className="tooltip">
                     R-squared measures how much of Y's variation is explained by X. Closer to 1 =
@@ -116,14 +116,14 @@ const RegressionPanel: React.FC = () => {
             </div>
             <button
               onClick={() => setExpandedChart(null)}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+              className="p-2 text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
             >
               <X size={20} />
             </button>
           </div>
 
           <div className="flex-1 p-4">
-            <div className="h-full bg-slate-800 rounded-xl border border-slate-700">
+            <div className="h-full bg-surface-secondary rounded-xl border border-edge">
               <ScatterPlot
                 regression={result}
                 specs={specs}
@@ -134,38 +134,38 @@ const RegressionPanel: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-4 border-t border-slate-700 bg-slate-800/50">
+          <div className="p-4 border-t border-edge bg-surface-secondary/50">
             <div className="flex flex-wrap gap-4 text-sm">
-              <div className="text-slate-400">
-                <span className="text-slate-500">Fit:</span>{' '}
+              <div className="text-content-secondary">
+                <span className="text-content-muted">Fit:</span>{' '}
                 <span className="text-white capitalize">{result.recommendedFit}</span>
               </div>
-              <div className="text-slate-400">
-                <span className="text-slate-500">n:</span>{' '}
+              <div className="text-content-secondary">
+                <span className="text-content-muted">n:</span>{' '}
                 <span className="text-white">{result.n}</span>
               </div>
-              <div className="text-slate-400 flex items-center gap-1">
-                <span className="text-slate-500">Slope:</span>{' '}
+              <div className="text-content-secondary flex items-center gap-1">
+                <span className="text-content-muted">Slope:</span>{' '}
                 <span className="text-white">{result.linear.slope.toFixed(4)}</span>
                 <span className="tooltip-wrapper">
                   <HelpCircle
                     size={12}
-                    className="text-slate-500 hover:text-slate-300 cursor-help"
+                    className="text-content-muted hover:text-content cursor-help"
                   />
                   <span className="tooltip">
                     How much Y changes for each unit increase in X. Positive = Y increases with X.
                   </span>
                 </span>
               </div>
-              <div className="text-slate-400 flex items-center gap-1">
-                <span className="text-slate-500">p-value:</span>{' '}
-                <span className={result.linear.isSignificant ? 'text-green-400' : 'text-slate-300'}>
+              <div className="text-content-secondary flex items-center gap-1">
+                <span className="text-content-muted">p-value:</span>{' '}
+                <span className={result.linear.isSignificant ? 'text-green-400' : 'text-content'}>
                   {result.linear.pValue < 0.001 ? '< 0.001' : result.linear.pValue.toFixed(3)}
                 </span>
                 <span className="tooltip-wrapper">
                   <HelpCircle
                     size={12}
-                    className="text-slate-500 hover:text-slate-300 cursor-help"
+                    className="text-content-muted hover:text-content cursor-help"
                   />
                   <span className="tooltip">
                     Probability this relationship happened by chance. p &lt; 0.05 = statistically
@@ -182,11 +182,13 @@ const RegressionPanel: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 overflow-hidden">
+    <div className="flex flex-col h-full bg-surface overflow-hidden">
       {/* Column selector */}
-      <div className="flex-none px-4 py-3 border-b border-slate-700 bg-slate-800/50">
+      <div className="flex-none px-4 py-3 border-b border-edge bg-surface-secondary/50">
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs text-slate-400 uppercase tracking-wider">X Variables:</span>
+          <span className="text-xs text-content-secondary uppercase tracking-wider">
+            X Variables:
+          </span>
           <div className="relative">
             <select
               onChange={e => {
@@ -196,7 +198,7 @@ const RegressionPanel: React.FC = () => {
                 }
                 e.target.value = '';
               }}
-              className="bg-slate-900 border border-slate-600 text-xs text-white rounded px-2 py-1.5 pr-6 outline-none focus:border-blue-500"
+              className="bg-surface border border-edge-secondary text-xs text-white rounded px-2 py-1.5 pr-6 outline-none focus:border-blue-500"
             >
               <option value="">+ Add column</option>
               {numericColumns
@@ -209,7 +211,7 @@ const RegressionPanel: React.FC = () => {
             </select>
             <ChevronDown
               size={12}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-content-secondary pointer-events-none"
             />
           </div>
           {selectedXColumns.map(col => (
@@ -223,14 +225,14 @@ const RegressionPanel: React.FC = () => {
               </button>
             </span>
           ))}
-          <span className="text-xs text-slate-500">→ {outcome}</span>
+          <span className="text-xs text-content-muted">→ {outcome}</span>
         </div>
       </div>
 
       {/* 2×2 Grid of scatter plots */}
       <div className="flex-1 p-4 overflow-auto">
         {regressionResults.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-slate-500">
+          <div className="flex items-center justify-center h-full text-content-muted">
             Select X variables above to view regression analysis
           </div>
         ) : (
@@ -244,19 +246,19 @@ const RegressionPanel: React.FC = () => {
               return (
                 <div
                   key={result.xColumn}
-                  className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden flex flex-col min-h-[280px]"
+                  className="bg-surface-secondary rounded-xl border border-edge overflow-hidden flex flex-col min-h-[280px]"
                 >
-                  <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700/50">
-                    <span className="text-xs font-medium text-slate-300 truncate">
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-edge/50">
+                    <span className="text-xs font-medium text-content truncate">
                       {result.xColumn} vs {result.yColumn}
                     </span>
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <span className="text-xs text-content-secondary flex items-center gap-1">
                       R²={rSquared.toFixed(2)}{' '}
                       <span className="text-yellow-400">{getStars(result.strengthRating)}</span>
                       <span className="tooltip-wrapper">
                         <HelpCircle
                           size={10}
-                          className="text-slate-500 hover:text-slate-300 cursor-help"
+                          className="text-content-muted hover:text-content cursor-help"
                         />
                         <span className="tooltip">
                           R-squared: 0=no relationship, 1=perfect relationship
@@ -284,15 +286,15 @@ const RegressionPanel: React.FC = () => {
 
       {/* Summary ranking bar */}
       {sortedByStrength.length > 1 && (
-        <div className="flex-none px-4 py-3 border-t border-slate-700 bg-slate-800/50">
+        <div className="flex-none px-4 py-3 border-t border-edge bg-surface-secondary/50">
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-400">Ranking:</span>
+            <span className="text-content-secondary">Ranking:</span>
             {sortedByStrength.map((r, i) => (
               <React.Fragment key={r.xColumn}>
-                {i > 0 && <span className="text-slate-600">→</span>}
+                {i > 0 && <span className="text-content-muted">→</span>}
                 <span
                   className={`px-2 py-0.5 rounded ${
-                    i === 0 ? 'bg-green-500/20 text-green-400' : 'bg-slate-700 text-slate-300'
+                    i === 0 ? 'bg-green-500/20 text-green-400' : 'bg-surface-tertiary text-content'
                   }`}
                 >
                   {r.xColumn}

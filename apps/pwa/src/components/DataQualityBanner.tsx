@@ -51,13 +51,13 @@ const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
   };
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+    <div className="bg-surface-secondary border border-edge rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-700">
+      <div className="flex items-center justify-between p-4 border-b border-edge">
         <div className="flex items-center gap-3">
           <FileText size={20} className="text-blue-400" />
           <span className="text-white font-medium">{filename || 'Data File'}</span>
-          <span className="text-slate-400 text-sm">{totalRows} rows</span>
+          <span className="text-content-secondary text-sm">{totalRows} rows</span>
         </div>
         {!hasIssues && (
           <span className="flex items-center gap-1 text-green-500 text-sm">
@@ -72,7 +72,7 @@ const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
         {/* Valid rows count */}
         <div className="flex items-center gap-2">
           <CheckCircle size={18} className="text-green-500" />
-          <span className="text-slate-300">
+          <span className="text-content">
             <span className="font-medium text-white">{validRows}</span> rows ready for analysis
           </span>
         </div>
@@ -86,13 +86,13 @@ const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
                 <span className="font-medium">{excludedCount}</span> rows excluded:
               </span>
             </div>
-            <ul className="ml-7 space-y-1 text-sm text-slate-400">
+            <ul className="ml-7 space-y-1 text-sm text-content-secondary">
               {Object.entries(issuesByType).map(([type, issues]) => {
                 const totalCount = issues.reduce((sum, i) => sum + i.count, 0);
                 const columns = issues.map(i => i.column).join(', ');
                 return (
                   <li key={type} className="flex items-start gap-1">
-                    <span className="text-slate-500">•</span>
+                    <span className="text-content-muted">•</span>
                     <span>
                       {totalCount} {formatIssueType(type)} in {columns}
                     </span>
@@ -105,7 +105,7 @@ const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
 
         {/* No variation warning (info level) */}
         {columnIssues.some(i => i.type === 'no_variation') && (
-          <div className="flex items-center gap-2 text-sm text-slate-400">
+          <div className="flex items-center gap-2 text-sm text-content-secondary">
             <Info size={16} className="text-blue-400" />
             <span>
               Outcome column has no variation - all values are identical. Control charts will show
@@ -117,7 +117,7 @@ const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
 
       {/* Actions */}
       {showActions && (onViewExcludedRows || onViewAllData || onContinue) && (
-        <div className="flex items-center gap-3 p-4 border-t border-slate-700 bg-slate-800/50">
+        <div className="flex items-center gap-3 p-4 border-t border-edge bg-surface-secondary/50">
           {onViewExcludedRows && excludedCount > 0 && (
             <button
               onClick={onViewExcludedRows}
@@ -130,7 +130,7 @@ const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
           {onViewAllData && (
             <button
               onClick={onViewAllData}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-surface-tertiary hover:bg-surface-elevated text-white rounded-lg transition-colors"
             >
               <Table size={16} />
               View All Data

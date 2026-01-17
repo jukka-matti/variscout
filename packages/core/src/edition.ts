@@ -91,3 +91,10 @@ export function getSignatureText(): string {
       return 'VariScout';
   }
 }
+
+/**
+ * Check if theming features are enabled (Licensed edition only)
+ */
+export function isThemingEnabled(): boolean {
+  return getEdition() === 'licensed';
+}

@@ -70,35 +70,41 @@ const SpecEditor = ({ specs, grades, onSave, onClose, style }: SpecEditorProps) 
           </h4>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1">LSL (Min)</label>
+              <label className="block text-[10px] sm:text-xs text-content-secondary mb-1">
+                LSL (Min)
+              </label>
               <input
                 type="number"
                 step="any"
                 value={localSpecs.lsl}
                 onChange={e => setLocalSpecs({ ...localSpecs, lsl: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500"
+                className="w-full bg-surface border border-edge rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500"
                 style={{ minHeight: isMobile ? 44 : undefined }}
               />
             </div>
             <div>
-              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1">Target</label>
+              <label className="block text-[10px] sm:text-xs text-content-secondary mb-1">
+                Target
+              </label>
               <input
                 type="number"
                 step="any"
                 value={localSpecs.target}
                 onChange={e => setLocalSpecs({ ...localSpecs, target: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500"
+                className="w-full bg-surface border border-edge rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500"
                 style={{ minHeight: isMobile ? 44 : undefined }}
               />
             </div>
             <div>
-              <label className="block text-[10px] sm:text-xs text-slate-400 mb-1">USL (Max)</label>
+              <label className="block text-[10px] sm:text-xs text-content-secondary mb-1">
+                USL (Max)
+              </label>
               <input
                 type="number"
                 step="any"
                 value={localSpecs.usl}
                 onChange={e => setLocalSpecs({ ...localSpecs, usl: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500"
+                className="w-full bg-surface border border-edge rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500"
                 style={{ minHeight: isMobile ? 44 : undefined }}
               />
             </div>
@@ -111,7 +117,7 @@ const SpecEditor = ({ specs, grades, onSave, onClose, style }: SpecEditorProps) 
             <h4 className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Grades</h4>
             <button
               onClick={addGrade}
-              className="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 sm:px-2 sm:py-0.5 rounded flex items-center gap-1 transition-colors touch-feedback"
+              className="text-xs bg-surface-tertiary hover:bg-surface-elevated text-white px-3 py-1.5 sm:px-2 sm:py-0.5 rounded flex items-center gap-1 transition-colors touch-feedback"
               style={{ minHeight: isMobile ? 36 : undefined }}
             >
               <Plus size={12} /> Add
@@ -119,12 +125,12 @@ const SpecEditor = ({ specs, grades, onSave, onClose, style }: SpecEditorProps) 
           </div>
 
           {localGrades.length === 0 ? (
-            <div className="text-center p-4 border border-dashed border-slate-700 rounded text-slate-600 text-xs italic">
+            <div className="text-center p-4 border border-dashed border-edge rounded text-content-muted text-xs italic">
               No grades defined.
             </div>
           ) : (
             <div className="space-y-3 sm:space-y-2">
-              <div className="hidden sm:flex gap-2 text-[10px] text-slate-500 px-1">
+              <div className="hidden sm:flex gap-2 text-[10px] text-content-muted px-1">
                 <span className="flex-1">Label</span>
                 <span className="w-12 text-right">Max</span>
                 <span className="w-6"></span>
@@ -136,7 +142,7 @@ const SpecEditor = ({ specs, grades, onSave, onClose, style }: SpecEditorProps) 
                     type="text"
                     value={grade.label}
                     onChange={e => updateGrade(idx, 'label', e.target.value)}
-                    className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500"
+                    className="flex-1 bg-surface border border-edge rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500"
                     placeholder="Name"
                     style={{ minHeight: isMobile ? 44 : undefined }}
                   />
@@ -145,7 +151,7 @@ const SpecEditor = ({ specs, grades, onSave, onClose, style }: SpecEditorProps) 
                     step="any"
                     value={grade.max}
                     onChange={e => updateGrade(idx, 'max', parseFloat(e.target.value))}
-                    className="w-16 sm:w-12 bg-slate-900 border border-slate-700 rounded px-2 sm:px-1 py-2 sm:py-1 text-sm sm:text-xs text-white text-right outline-none focus:border-blue-500"
+                    className="w-16 sm:w-12 bg-surface border border-edge rounded px-2 sm:px-1 py-2 sm:py-1 text-sm sm:text-xs text-white text-right outline-none focus:border-blue-500"
                     style={{ minHeight: isMobile ? 44 : undefined }}
                   />
                   <input
@@ -156,7 +162,7 @@ const SpecEditor = ({ specs, grades, onSave, onClose, style }: SpecEditorProps) 
                   />
                   <button
                     onClick={() => removeGrade(idx)}
-                    className="p-2 sm:p-0 text-slate-500 hover:text-red-400 transition-colors touch-feedback"
+                    className="p-2 sm:p-0 text-content-muted hover:text-red-400 transition-colors touch-feedback"
                     style={{
                       minWidth: isMobile ? 44 : undefined,
                       minHeight: isMobile ? 44 : undefined,
@@ -190,20 +196,20 @@ const SpecEditor = ({ specs, grades, onSave, onClose, style }: SpecEditorProps) 
 
         {/* Bottom Sheet */}
         <div
-          className="fixed inset-x-0 bottom-0 z-50 bg-slate-800 border-t border-slate-600 rounded-t-2xl shadow-2xl animate-slide-up"
+          className="fixed inset-x-0 bottom-0 z-50 bg-surface-secondary border-t border-edge-secondary rounded-t-2xl shadow-2xl animate-slide-up"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
         >
           {/* Drag Handle */}
           <div className="flex justify-center pt-3 pb-2">
-            <div className="w-10 h-1 bg-slate-600 rounded-full" />
+            <div className="w-10 h-1 bg-surface-elevated rounded-full" />
           </div>
 
           {/* Header */}
-          <div className="flex justify-between items-center border-b border-slate-700 px-4 pb-3">
+          <div className="flex justify-between items-center border-b border-edge px-4 pb-3">
             <h3 className="text-base font-bold text-white">Edit Specifications</h3>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white touch-feedback rounded-lg"
+              className="p-2 text-content-secondary hover:text-white touch-feedback rounded-lg"
               style={{ minWidth: 44, minHeight: 44 }}
             >
               <X size={20} />
@@ -220,12 +226,12 @@ const SpecEditor = ({ specs, grades, onSave, onClose, style }: SpecEditorProps) 
   // Desktop: Absolute positioned popup
   return (
     <div
-      className="absolute z-50 bg-slate-800 border border-slate-600 rounded-lg shadow-2xl p-4 flex flex-col gap-4 w-80"
+      className="absolute z-50 bg-surface-secondary border border-edge-secondary rounded-lg shadow-2xl p-4 flex flex-col gap-4 w-80"
       style={style}
     >
-      <div className="flex justify-between items-center border-b border-slate-700 pb-3">
+      <div className="flex justify-between items-center border-b border-edge pb-3">
         <h3 className="text-sm font-bold text-white">Edit Specifications</h3>
-        <button onClick={onClose} className="text-slate-400 hover:text-white">
+        <button onClick={onClose} className="text-content-secondary hover:text-white">
           <X size={16} />
         </button>
       </div>

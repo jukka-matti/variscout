@@ -124,16 +124,16 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
 
   return (
     <div
-      className="flex flex-col h-full bg-slate-900"
+      className="flex flex-col h-full bg-surface"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
       {/* Chart Header with Navigation */}
-      <div className="flex items-center justify-between px-2 py-2 bg-slate-800/50 border-b border-slate-700">
+      <div className="flex items-center justify-between px-2 py-2 bg-surface-secondary/50 border-b border-edge">
         <button
           onClick={() => goToView('prev')}
-          className="p-2 touch-feedback rounded-lg text-slate-400 hover:text-white"
+          className="p-2 touch-feedback rounded-lg text-content-secondary hover:text-white"
           style={{ minWidth: 44, minHeight: 44 }}
         >
           <ChevronLeft size={20} />
@@ -148,7 +148,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
                                 ${
                                   activeView === v.key
                                     ? 'bg-blue-600 text-white'
-                                    : 'bg-slate-700/50 text-slate-400 hover:text-white'
+                                    : 'bg-surface-tertiary/50 text-content-secondary hover:text-white'
                                 }`}
               style={{ minHeight: 36 }}
             >
@@ -160,7 +160,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
 
         <button
           onClick={() => goToView('next')}
-          className="p-2 touch-feedback rounded-lg text-slate-400 hover:text-white"
+          className="p-2 touch-feedback rounded-lg text-content-secondary hover:text-white"
           style={{ minWidth: 44, minHeight: 44 }}
         >
           <ChevronRight size={20} />
@@ -196,7 +196,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
 
       {/* Factor Selector (for boxplot/pareto) */}
       {(activeView === 'boxplot' || activeView === 'pareto') && factors.length > 0 && (
-        <div className="px-3 py-2 bg-slate-900/50 border-b border-slate-700/50 flex justify-center">
+        <div className="px-3 py-2 bg-surface/50 border-b border-edge/50 flex justify-center">
           <FactorSelector
             factors={factors}
             selected={activeView === 'boxplot' ? boxplotFactor : paretoFactor}
@@ -215,7 +215,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
 
       {/* Chart Content Area */}
       <div className="flex-1 min-h-0 p-2 overflow-hidden flex flex-col">
-        <div className="flex-1 min-h-0 bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
+        <div className="flex-1 min-h-0 bg-surface-secondary/50 rounded-xl border border-edge overflow-hidden">
           <ErrorBoundary componentName={views.find(v => v.key === activeView)?.label || ''}>
             {activeView === 'ichart' && <IChart onPointClick={onPointClick} />}
             {activeView === 'boxplot' && boxplotFactor && (
@@ -250,13 +250,13 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
       </div>
 
       {/* Swipe Indicator Dots */}
-      <div className="flex justify-center gap-2 py-3 bg-slate-900/50">
+      <div className="flex justify-center gap-2 py-3 bg-surface/50">
         {views.map(v => (
           <button
             key={v.key}
             onClick={() => setActiveView(v.key)}
             className={`w-2 h-2 rounded-full transition-colors
-                            ${activeView === v.key ? 'bg-blue-500' : 'bg-slate-600'}`}
+                            ${activeView === v.key ? 'bg-blue-500' : 'bg-surface-elevated'}`}
             aria-label={`Go to ${v.label}`}
           />
         ))}

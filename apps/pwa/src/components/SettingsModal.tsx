@@ -111,11 +111,14 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-surface-secondary border border-edge rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div className="flex items-center justify-between p-6 border-b border-edge">
           <h2 className="text-xl font-bold text-white">Analysis Settings</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+          <button
+            onClick={onClose}
+            className="text-content-secondary hover:text-white transition-colors"
+          >
             <X size={24} />
           </button>
         </div>
@@ -129,11 +132,13 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             </h3>
 
             <div className="mb-4">
-              <label className="block text-sm text-slate-400 mb-1">Outcome Column (Numeric)</label>
+              <label className="block text-sm text-content-secondary mb-1">
+                Outcome Column (Numeric)
+              </label>
               <select
                 value={localOutcome}
                 onChange={e => setLocalOutcome(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full bg-surface border border-edge rounded-lg p-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
               >
                 <option value="" disabled>
                   Select outcome...
@@ -147,7 +152,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             </div>
 
             <div>
-              <label className="block text-sm text-slate-400 mb-2">
+              <label className="block text-sm text-content-secondary mb-2">
                 Factor Columns (Categorical) - Max 3
               </label>
               <div className="flex flex-wrap gap-2">
@@ -159,7 +164,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                       localFactors.includes(col)
                         ? 'bg-blue-600 border-blue-500 text-white'
-                        : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'
+                        : 'bg-surface border-edge text-content-secondary hover:border-edge'
                     }`}
                   >
                     {col}
@@ -171,13 +176,13 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
 
           {/* Section 2: Visualization Settings */}
           <div>
-            <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-6">
+            <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4 border-t border-edge pt-6">
               2. Visualization
             </h3>
 
             {/* Display Options */}
             <div className="mb-6">
-              <h4 className="text-xs font-semibold text-slate-300 mb-2">
+              <h4 className="text-xs font-semibold text-content mb-2">
                 Capability Metrics Display
               </h4>
               <div className="space-y-2">
@@ -188,11 +193,11 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     onChange={e =>
                       setLocalDisplayOptions({ ...localDisplayOptions, showCp: e.target.checked })
                     }
-                    className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
+                    className="w-4 h-4 rounded border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500 focus:ring-offset-surface-secondary"
                   />
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+                  <span className="text-sm text-content group-hover:text-white transition-colors">
                     Show Cp{' '}
-                    <span className="text-slate-500 text-xs">(requires both USL and LSL)</span>
+                    <span className="text-content-muted text-xs">(requires both USL and LSL)</span>
                   </span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer group">
@@ -202,9 +207,9 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     onChange={e =>
                       setLocalDisplayOptions({ ...localDisplayOptions, showCpk: e.target.checked })
                     }
-                    className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
+                    className="w-4 h-4 rounded border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500 focus:ring-offset-surface-secondary"
                   />
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+                  <span className="text-sm text-content group-hover:text-white transition-colors">
                     Show Cpk
                   </span>
                 </label>
@@ -218,9 +223,9 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                         showSpecs: e.target.checked,
                       })
                     }
-                    className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
+                    className="w-4 h-4 rounded border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500 focus:ring-offset-surface-secondary"
                   />
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+                  <span className="text-sm text-content group-hover:text-white transition-colors">
                     Show Spec Limits (USL/LSL/Target)
                   </span>
                 </label>
@@ -229,7 +234,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
 
             {/* Y-Axis Lock */}
             <div className="mb-6">
-              <h4 className="text-xs font-semibold text-slate-300 mb-2">Filtering Behavior</h4>
+              <h4 className="text-xs font-semibold text-content mb-2">Filtering Behavior</h4>
               <div className="space-y-2">
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
@@ -241,13 +246,13 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                         lockYAxisToFullData: e.target.checked,
                       })
                     }
-                    className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800"
+                    className="w-4 h-4 rounded border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500 focus:ring-offset-surface-secondary"
                   />
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+                  <span className="text-sm text-content group-hover:text-white transition-colors">
                     Lock Y-axis to full data range when filtering
                   </span>
                 </label>
-                <p className="text-[10px] text-slate-500 ml-7">
+                <p className="text-[10px] text-content-muted ml-7">
                   Keeps chart scale consistent for visual comparison. Control limits still
                   recalculate.
                 </p>
@@ -255,34 +260,34 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             </div>
 
             <div className="mb-2">
-              <h4 className="text-xs font-semibold text-slate-300 mb-2">
+              <h4 className="text-xs font-semibold text-content mb-2">
                 Y-Axis Scaling (Manual Override)
               </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Min Y</label>
+                  <label className="block text-xs text-content-secondary mb-1">Min Y</label>
                   <input
                     type="number"
                     step="any"
                     value={localAxis.min}
                     onChange={e => setLocalAxis({ ...localAxis, min: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
+                    className="w-full bg-surface border border-edge rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
                     placeholder="Auto"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Max Y</label>
+                  <label className="block text-xs text-content-secondary mb-1">Max Y</label>
                   <input
                     type="number"
                     step="any"
                     value={localAxis.max}
                     onChange={e => setLocalAxis({ ...localAxis, max: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
+                    className="w-full bg-surface border border-edge rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
                     placeholder="Auto"
                   />
                 </div>
               </div>
-              <p className="text-[10px] text-slate-500 mt-2">
+              <p className="text-[10px] text-content-muted mt-2">
                 Leave blank for automatic scaling. Both charts will use these limits.
               </p>
             </div>
@@ -290,12 +295,12 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         </div>
 
         {/* Section 4: License */}
-        <div className="border-t border-slate-700 pt-6 px-6 pb-6">
+        <div className="border-t border-edge pt-6 px-6 pb-6">
           <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4">
             3. License
           </h3>
 
-          <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="bg-surface/50 rounded-lg p-4 border border-edge">
             {/* Current Status */}
             <div className="flex items-center gap-3 mb-4">
               {edition === 'pro' ? (
@@ -303,7 +308,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                   <CheckCircle size={20} className="text-green-500" />
                   <div>
                     <div className="text-white font-medium">VariScout Lite Pro</div>
-                    <div className="text-xs text-slate-500">Branding removed</div>
+                    <div className="text-xs text-content-muted">Branding removed</div>
                   </div>
                 </>
               ) : edition === 'itc' ? (
@@ -311,15 +316,17 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                   <CheckCircle size={20} className="text-blue-500" />
                   <div>
                     <div className="text-white font-medium">ITC Edition</div>
-                    <div className="text-xs text-slate-500">International Trade Centre</div>
+                    <div className="text-xs text-content-muted">International Trade Centre</div>
                   </div>
                 </>
               ) : (
                 <>
-                  <Key size={20} className="text-slate-500" />
+                  <Key size={20} className="text-content-muted" />
                   <div>
                     <div className="text-white font-medium">Community Edition</div>
-                    <div className="text-xs text-slate-500">Free with VariScout Lite branding</div>
+                    <div className="text-xs text-content-muted">
+                      Free with VariScout Lite branding
+                    </div>
                   </div>
                 </>
               )}
@@ -329,7 +336,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             {edition === 'community' && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">License Key</label>
+                  <label className="block text-xs text-content-secondary mb-1">License Key</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -339,12 +346,12 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                         setLicenseStatus('none');
                       }}
                       placeholder="VSL-XXXX-XXXX-XXXX"
-                      className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm font-mono outline-none focus:border-blue-500"
+                      className="flex-1 bg-surface border border-edge rounded-lg px-3 py-2 text-white text-sm font-mono outline-none focus:border-blue-500"
                     />
                     <button
                       onClick={handleActivateLicense}
                       disabled={!licenseKey || licenseKey.length < 19}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-medium transition-colors"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-surface-tertiary disabled:text-content-muted text-white rounded-lg text-sm font-medium transition-colors"
                     >
                       Activate
                     </button>
@@ -356,7 +363,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     </div>
                   )}
                 </div>
-                <p className="text-[10px] text-slate-500">
+                <p className="text-[10px] text-content-muted">
                   Purchase a license to remove chart branding.{' '}
                   <a href="#" className="text-blue-400 hover:underline">
                     Get Pro →
@@ -369,7 +376,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             {edition === 'pro' && licenseStatus === 'valid' && (
               <button
                 onClick={handleRemoveLicense}
-                className="text-xs text-slate-500 hover:text-red-400 transition-colors"
+                className="text-xs text-content-muted hover:text-red-400 transition-colors"
               >
                 Remove license key
               </button>
@@ -378,10 +385,10 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-slate-700 flex justify-end gap-3 rounded-b-2xl bg-slate-800">
+        <div className="p-6 border-t border-edge flex justify-end gap-3 rounded-b-2xl bg-surface-secondary">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-slate-400 hover:text-white dark:hover:bg-slate-700 rounded-lg transition-colors font-medium"
+            className="px-4 py-2 text-content-secondary hover:text-white dark:hover:bg-surface-tertiary rounded-lg transition-colors font-medium"
           >
             Cancel
           </button>

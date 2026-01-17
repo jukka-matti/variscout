@@ -79,7 +79,7 @@ const CapabilityHistogram = ({
 
   if (data.length === 0 || !xScale || !yScale) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-500 italic text-sm">
+      <div className="flex items-center justify-center h-full text-content-muted italic text-sm">
         No data available for histogram
       </div>
     );

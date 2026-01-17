@@ -4,11 +4,14 @@ import App from './App';
 import './index.css';
 import './i18n';
 import { DataProvider } from './context/DataContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <DataProvider>
-      <App />
-    </DataProvider>
+    <ThemeProvider>
+      <DataProvider>
+        <App />
+      </DataProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );

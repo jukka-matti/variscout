@@ -58,27 +58,35 @@ Setup Mode → [Configure] → [Validate] → [Complete] → Analysis Mode
 Dashboard ↔ Editor (state toggle via navigateToEditor/navigateToDashboard)
 ```
 
-### 2. Tab Navigation
+### 2. Analysis View Switching
 
-Switching modes within a view (no data change).
+Switching between analysis modes (Dashboard, Regression, Gage R&R).
 
-| Product         | Location          | Tabs                             |
-| --------------- | ----------------- | -------------------------------- |
-| PWA Dashboard   | Top               | Analysis, Regression, Gage R&R   |
-| PWA Mobile      | Bottom            | Summary, I-Chart, Boxplot, Stats |
-| Excel Task Pane | Below header      | Data, Charts, Settings           |
-| Azure           | (Not implemented) | -                                |
+| Product         | Location               | Modes                           |
+| --------------- | ---------------------- | ------------------------------- |
+| PWA             | Settings Panel         | Dashboard, Regression, Gage R&R |
+| PWA Mobile      | Bottom tabs (carousel) | I-Chart, Boxplot, Pareto, Stats |
+| Excel Task Pane | Below header           | Data, Charts, Settings          |
+| Azure           | (Not implemented)      | -                               |
 
-**PWA Tab Implementation**:
+**PWA Implementation** (moved to Settings Panel):
+
+Analysis view selection is now in the Settings Panel slide-in, not top tabs:
 
 ```tsx
-const [activeTab, setActiveTab] = useState<DashboardTab>('analysis');
-
-<TabBar active={activeTab} onChange={setActiveTab}>
-  <Tab value="analysis">Analysis</Tab>
-  <Tab value="regression">Regression</Tab>
-  <Tab value="gagerr">Gage R&R</Tab>
-</TabBar>;
+// In SettingsPanel.tsx
+<div className="space-y-2">
+  <label className="text-xs font-medium text-slate-400 uppercase">Analysis View</label>
+  {['dashboard', 'regression', 'gagerr'].map(view => (
+    <button
+      key={view}
+      onClick={() => setActiveTab(view)}
+      className={activeTab === view ? 'bg-slate-700' : ''}
+    >
+      {view === 'dashboard' ? 'Dashboard' : view === 'regression' ? 'Regression' : 'Gage R&R'}
+    </button>
+  ))}
+</div>
 ```
 
 **Excel Tab Implementation** (Fluent UI):
@@ -93,42 +101,45 @@ const [activeTab, setActiveTab] = useState<DashboardTab>('analysis');
 
 ### 3. Toolbar Navigation (PWA)
 
-The PWA header toolbar is contextual, showing different actions based on state.
+The PWA header uses an icon-based toolbar for a cleaner, more focused interface.
 
-#### No Data State
-
-```
-[Logo] VariScout Lite            [Open Project ⌘O] [⚙️]
-```
-
-#### Data Loaded State
+#### Desktop Layout (≥640px)
 
 ```
-[Logo] Project Name*     [Save ⌘S] [Export ▾] [View ▾] [⚙️]
+[Logo ▾] Project Name ●              [📊] [⛶] [↗] [⚙]
 ```
 
-**Toolbar Buttons:**
+| Element  | Action         | Behavior                                         |
+| -------- | -------------- | ------------------------------------------------ |
+| **Logo** | Project picker | Click → Opens SavedProjectsModal (Open, New)     |
+| **●**    | Save indicator | Blue when saved, pulses when unsaved changes     |
+| **📊**   | Data Table     | Toggle right panel on/off                        |
+| **⛶**    | Fullscreen     | Enter presentation mode (Escape to exit)         |
+| **↗**    | Share          | Popover: Export Image, Export CSV, Download .vrs |
+| **⚙**    | Settings       | Opens Settings Panel (slide-in from right)       |
 
-| Button       | Contents                                           | Notes                                   |
-| ------------ | -------------------------------------------------- | --------------------------------------- |
-| **Save**     | Save to browser                                    | Shows ⌘S shortcut, checkmark on success |
-| **Export ▾** | Download .vrs, CSV, PNG                            | Grouped dropdown                        |
-| **View ▾**   | Data Table, Large Mode, Open Project, New Analysis | Grouped dropdown                        |
-| **Settings** | Icon only                                          | Opens settings modal                    |
-
-**Mobile Toolbar:**
+#### Mobile Layout (<640px)
 
 ```
-[Logo] Project*    [Save] [⋯ Menu]
+[Logo ▾] Project ●    [📊] [⛶] [⚙]
 ```
 
-Mobile menu contains all Export, View, and Project actions in grouped sections.
+Mobile shares most icons with desktop. The Share icon is accessible via Settings.
+
+#### Auto-Save Behavior
+
+- Changes auto-save to IndexedDB after 2-second debounce
+- Save indicator (●) shows sync status:
+  - Blue dot: All changes saved
+  - Pulsing: Save in progress
+- Manual "Save Now" available in Settings Panel
 
 #### Component Structure
 
-- `AppHeader.tsx` - Main header with contextual toolbar
-- `ToolbarDropdown.tsx` - Reusable dropdown for Export/View menus
-- `MobileMenu.tsx` - Mobile-optimized menu with sections
+- `AppHeader.tsx` - Main header with icon toolbar
+- `SharePopover.tsx` - Export options popover (Image, CSV, .vrs)
+- `SettingsPanel.tsx` - Slide-in settings panel
+- `DataPanel.tsx` - Resizable right panel for data table
 
 ### 4. Drill-Down Navigation (Chart Filtering)
 
@@ -177,16 +188,16 @@ When filters are active, Pareto can show "ghost bars" comparing filtered distrib
 - Reveals whether a problem is specific to the filtered context or a general pattern
 - Tooltip shows comparison: "Filtered: 60% vs Overall: 30% ↑30%"
 
-### 4. Mobile Navigation
+### 5. Mobile Navigation
 
 Responsive patterns for small screens.
 
 **PWA Mobile** (`<640px`):
 
 - Vertical scrolling layout (no resizable panels)
-- Bottom tab bar for chart switching
-- Swipe gestures (future enhancement)
-- Focus mode carousel for chart details
+- Carousel for chart switching (swipe or buttons)
+- Data Panel as bottom sheet (swipe up to expand)
+- Settings Panel uses modal instead of slide-in
 
 **Excel Task Pane** (350px fixed width):
 
@@ -196,25 +207,144 @@ Responsive patterns for small screens.
 
 ---
 
+## PWA Panel Components
+
+### Settings Panel
+
+Slide-in panel from the right (modal on mobile) for configuration options.
+
+```
+┌─────────────────────────────────────┐
+│ Settings                        ✕   │
+├─────────────────────────────────────┤
+│                                     │
+│ ANALYSIS VIEW                       │
+│ ○ Dashboard (default)               │
+│ ○ Regression                        │
+│ ○ Gage R&R                          │
+│                                     │
+│ ─────────────────────────────────── │
+│                                     │
+│ DISPLAY OPTIONS                     │
+│ ☑ Lock Y-axis when drilling         │
+│ ☐ Show data labels                  │
+│ ☐ Large mode (30% larger UI)        │
+│                                     │
+│ ─────────────────────────────────── │
+│                                     │
+│ PROJECT                             │
+│ [Open Project...]  [New Analysis]   │
+│                                     │
+│ ─────────────────────────────────── │
+│                                     │
+│ [Save Now]  Auto-save: On           │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+**Key File**: `apps/pwa/src/components/SettingsPanel.tsx`
+
+### Data Panel
+
+Resizable right panel showing the data table alongside charts.
+
+**Features**:
+
+- Toggle visibility via 📊 button in header
+- Draggable divider for custom width (persisted to localStorage)
+- Bi-directional sync with charts:
+  - Click chart point → scrolls table to that row, highlights it
+  - Click table row → highlights corresponding point in chart
+- Drill-aware: Table shows filtered data matching current drill state
+- Sticky header with sortable columns
+
+**Desktop**:
+
+```
+┌───────────────────────────────┬─────────────────┐
+│ Charts Area                   ║ Data Table      │
+│                               ║                 │
+│   I-Chart     Boxplot         ║ [sticky header] │
+│   Pareto      Stats           ║ [scrollable]    │
+│                               ║                 │
+└───────────────────────────────┴─────────────────┘
+                                ↕ draggable
+```
+
+**Mobile**: Bottom sheet with drag handle
+
+- Collapsed: Shows row count + "Swipe up"
+- Partial: ~40% screen height
+- Full: ~90% screen height
+
+**Key File**: `apps/pwa/src/components/DataPanel.tsx`
+
+### Share Popover
+
+Dropdown popover for export options.
+
+```
+┌─────────────────────────┐
+│ Export Image (PNG)      │ → Copies chart to clipboard
+│ Export Data (CSV)       │ → Downloads filtered data
+│ Download Project (.vrs) │ → Saves complete project
+└─────────────────────────┘
+```
+
+**Key File**: `apps/pwa/src/components/SharePopover.tsx`
+
+### Specs Popover
+
+I-Chart header dropdown for specification limits (replaces SpecEditor modal for basic limits).
+
+```
+I-Chart Header:
+[I-Chart: Value]  [Stages▾]  [Specs▾]  [📋 Copy]  [⛶ Focus]
+
+Specs popover:
+┌─────────────────────────┐
+│ SPECIFICATION LIMITS    │
+├─────────────────────────┤
+│ ☑ USL    [50.0    ]    │
+│ ☑ LSL    [30.0    ]    │
+│ ☑ Target [40.0    ]    │
+├─────────────────────────┤
+│ [Apply Changes]         │
+└─────────────────────────┘
+```
+
+- Checkbox = toggle visibility of that limit on chart
+- Input = editable value
+- Advanced features (Grades) accessible via gear icon → SpecEditor modal
+
+**Key File**: `apps/pwa/src/components/SpecsPopover.tsx`
+
+---
+
 ## By Product
 
-| Feature          | PWA         | Excel             | Azure                 |
-| ---------------- | ----------- | ----------------- | --------------------- |
-| **Page nav**     | State-based | Wizard steps      | State-based           |
-| **Tab nav**      | Top tabs    | Fluent TabList    | (None yet)            |
-| **Drill-down**   | Full        | Read-only display | Planned               |
-| **Breadcrumbs**  | Interactive | Display only      | Interactive (planned) |
-| **Mobile**       | Responsive  | Fixed 350px       | Responsive            |
-| **URL routing**  | None        | N/A               | None                  |
-| **Deep linking** | Future      | N/A               | Future                |
+| Feature                | PWA                | Excel             | Azure                 |
+| ---------------------- | ------------------ | ----------------- | --------------------- |
+| **Page nav**           | State-based        | Wizard steps      | State-based           |
+| **Analysis switching** | Settings Panel     | Fluent TabList    | (None yet)            |
+| **Data table**         | Right panel/bottom | N/A               | Planned               |
+| **Drill-down**         | Full               | Read-only display | Planned               |
+| **Breadcrumbs**        | Interactive        | Display only      | Interactive (planned) |
+| **Mobile**             | Responsive         | Fixed 350px       | Responsive            |
+| **Auto-save**          | Yes (2s debounce)  | N/A               | Planned               |
+| **URL routing**        | None               | N/A               | None                  |
+| **Deep linking**       | Future             | N/A               | Future                |
 
 ### Product-Specific Details
 
 #### PWA (`apps/pwa`)
 
-- **State**: `DataContext` manages filters, `activeTab` for mode switching
+- **State**: `DataContext` manages filters, `activeTab` for analysis switching
+- **Settings**: `SettingsPanel` for configuration, opens via ⚙ icon
+- **Data table**: `DataPanel` - resizable right panel (desktop) or bottom sheet (mobile)
 - **Mobile detection**: `window.innerWidth < 640`
-- **Persistence**: Filters saved to IndexedDB with project
+- **Auto-save**: `useAutoSave` hook with 2-second debounce
+- **Persistence**: Filters and panel width saved to IndexedDB with project
 
 #### Excel Add-in (`apps/excel-addin`)
 
@@ -394,11 +524,14 @@ All navigation patterns follow accessibility guidelines:
 | `packages/core/src/navigation.ts`                | Types and utilities           |
 | `packages/core/src/variation.ts`                 | Auto-switch logic, η² helpers |
 | `apps/pwa/src/hooks/useDrillDown.ts`             | React hook for drill-down     |
-| `apps/pwa/src/components/AppHeader.tsx`          | Contextual toolbar            |
-| `apps/pwa/src/components/ToolbarDropdown.tsx`    | Reusable dropdown             |
-| `apps/pwa/src/components/MobileMenu.tsx`         | Mobile navigation menu        |
+| `apps/pwa/src/hooks/useAutoSave.ts`              | Auto-save hook (2s debounce)  |
+| `apps/pwa/src/components/AppHeader.tsx`          | Icon-based toolbar            |
+| `apps/pwa/src/components/SettingsPanel.tsx`      | Slide-in settings panel       |
+| `apps/pwa/src/components/DataPanel.tsx`          | Resizable data table panel    |
+| `apps/pwa/src/components/SharePopover.tsx`       | Export options popover        |
+| `apps/pwa/src/components/SpecsPopover.tsx`       | Spec limits popover (I-Chart) |
 | `apps/pwa/src/components/DrillBreadcrumb.tsx`    | Breadcrumb UI                 |
-| `apps/pwa/src/components/Dashboard.tsx`          | PWA main view + tab nav       |
+| `apps/pwa/src/components/Dashboard.tsx`          | PWA main view                 |
 | `apps/pwa/src/components/charts/ParetoChart.tsx` | Pareto with ghost bars        |
 | `apps/excel-addin/src/content/FilterBar.tsx`     | Excel breadcrumb display      |
 | `apps/azure/src/App.tsx`                         | Azure page navigation         |

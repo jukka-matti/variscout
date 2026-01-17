@@ -194,23 +194,23 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
   const columns = [...factors, outcomeName];
 
   return (
-    <div className="flex flex-col h-screen bg-slate-900 text-slate-200">
+    <div className="flex flex-col h-screen bg-surface text-content">
       {/* Header with running stats */}
-      <div className="flex-none p-4 border-b border-slate-700 bg-slate-800/50">
+      <div className="flex-none p-4 border-b border-edge bg-surface-secondary/50">
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setStep('setup')}
-              className="bg-slate-800 p-3 rounded-lg hover:bg-slate-700 border border-slate-600"
+              className="bg-surface-secondary p-3 rounded-lg hover:bg-surface-tertiary border border-edge-secondary"
             >
-              <RotateCcw size={18} className="text-slate-400" />
+              <RotateCcw size={18} className="text-content-secondary" />
             </button>
             <div>
               <h2 className="text-lg font-bold text-white">Manual Entry</h2>
-              <div className="text-xs text-slate-400">
+              <div className="text-xs text-content-secondary">
                 Targeting: <span className="text-blue-400">{outcomeName}</span>
                 {(lsl || usl) && (
-                  <span className="ml-2 text-slate-500">
+                  <span className="ml-2 text-content-muted">
                     [{lsl || '−∞'} to {usl || '+∞'}]
                   </span>
                 )}
@@ -220,20 +220,20 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
           <div className="flex gap-3">
             <button
               onClick={handlePaste}
-              className="px-4 py-3 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-700 flex items-center gap-2"
+              className="px-4 py-3 rounded-lg border border-edge-secondary text-content text-sm hover:bg-surface-tertiary flex items-center gap-2"
             >
               <Clipboard size={18} /> Paste
             </button>
             <button
               onClick={onCancel}
-              className="px-4 py-3 rounded-lg text-slate-400 hover:text-white text-sm"
+              className="px-4 py-3 rounded-lg text-content-secondary hover:text-white text-sm"
             >
               Cancel
             </button>
             <button
               onClick={handleAnalyze}
               disabled={!runningStats}
-              className="bg-green-600 hover:bg-green-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold rounded-lg px-6 py-3 flex items-center gap-2 shadow-lg shadow-green-900/20"
+              className="bg-green-600 hover:bg-green-500 disabled:bg-surface-tertiary disabled:text-content-muted text-white font-bold rounded-lg px-6 py-3 flex items-center gap-2 shadow-lg shadow-green-900/20"
             >
               <Play size={18} fill="currentColor" /> Analyze
             </button>
@@ -242,32 +242,32 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
 
         {/* Running Statistics Bar */}
         {runningStats && (
-          <div className="flex gap-6 bg-slate-900/50 rounded-lg p-3 text-sm">
+          <div className="flex gap-6 bg-surface/50 rounded-lg p-3 text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-slate-500">Count:</span>
+              <span className="text-content-muted">Count:</span>
               <span className="font-mono font-bold text-white">{runningStats.count}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-slate-500">Mean:</span>
+              <span className="text-content-muted">Mean:</span>
               <span className="font-mono font-bold text-blue-400">
                 {runningStats.mean.toFixed(2)}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-slate-500">Range:</span>
-              <span className="font-mono text-slate-300">
+              <span className="text-content-muted">Range:</span>
+              <span className="font-mono text-content">
                 {runningStats.min.toFixed(1)} – {runningStats.max.toFixed(1)}
               </span>
             </div>
             {(lsl || usl) && (
               <div className="flex items-center gap-2 ml-auto">
-                <span className="text-slate-500">Pass:</span>
+                <span className="text-content-muted">Pass:</span>
                 <span
                   className={`font-mono font-bold ${runningStats.passCount === runningStats.count ? 'text-green-400' : 'text-amber-400'}`}
                 >
                   {runningStats.passCount}/{runningStats.count}
                 </span>
-                <span className="text-slate-500">
+                <span className="text-content-muted">
                   ({Math.round((runningStats.passCount / runningStats.count) * 100)}%)
                 </span>
               </div>
@@ -278,20 +278,20 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-8">
-        <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-xl max-w-5xl mx-auto">
+        <div className="bg-surface-secondary rounded-xl border border-edge overflow-hidden shadow-xl max-w-5xl mx-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-900/50 border-b border-slate-700">
-                <th className="p-3 w-12 text-center text-slate-500 font-normal">#</th>
+              <tr className="bg-surface/50 border-b border-edge">
+                <th className="p-3 w-12 text-center text-content-muted font-normal">#</th>
                 {factors.map((f, i) => (
                   <th
                     key={i}
-                    className="p-3 text-slate-400 font-semibold border-r border-slate-700/50"
+                    className="p-3 text-content-secondary font-semibold border-r border-edge/50"
                   >
                     {f} (X)
                   </th>
                 ))}
-                <th className="p-3 text-blue-400 font-bold bg-blue-900/10 border-l border-slate-700">
+                <th className="p-3 text-blue-400 font-bold bg-blue-900/10 border-l border-edge">
                   {outcomeName} (Y)
                 </th>
                 <th className="w-12"></th>
@@ -304,24 +304,24 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
                   pass: 'bg-green-900/20 border-l-2 border-l-green-500',
                   fail_usl: 'bg-red-900/20 border-l-2 border-l-red-500',
                   fail_lsl: 'bg-amber-900/20 border-l-2 border-l-amber-500',
-                  none: 'bg-blue-900/5 border-l border-slate-700',
+                  none: 'bg-blue-900/5 border-l border-edge',
                 };
 
                 return (
                   <tr
                     key={idx}
-                    className="border-b border-slate-700/50 hover:bg-slate-700/30 group"
+                    className="border-b border-edge/50 hover:bg-surface-tertiary/30 group"
                   >
-                    <td className="p-3 text-center text-slate-600 font-mono text-sm min-h-[56px]">
+                    <td className="p-3 text-center text-content-muted font-mono text-sm min-h-[56px]">
                       {idx + 1}
                     </td>
                     {factors.map((f, colIdx) => (
-                      <td key={colIdx} className="p-0 border-r border-slate-700/50">
+                      <td key={colIdx} className="p-0 border-r border-edge/50">
                         <input
                           ref={el => {
                             if (el) inputRefs.current.set(`${idx}-${f}`, el);
                           }}
-                          className="w-full bg-transparent px-4 py-4 min-h-[56px] text-white text-base outline-none focus:bg-slate-700/50 transition-colors"
+                          className="w-full bg-transparent px-4 py-4 min-h-[56px] text-white text-base outline-none focus:bg-surface-tertiary/50 transition-colors"
                           value={row[f] || ''}
                           onChange={e => updateRow(idx, f, e.target.value)}
                           onKeyDown={e => handleKeyDown(e, idx, colIdx, columns)}
@@ -345,7 +345,7 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
                     <td className="p-0 text-center min-h-[56px]">
                       <button
                         onClick={() => deleteRow(idx)}
-                        className="p-3 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="p-3 text-content-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -358,18 +358,18 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
 
           <button
             onClick={addRow}
-            className="w-full p-4 min-h-[56px] text-center text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors border-t border-slate-700 text-base font-semibold flex items-center justify-center gap-2"
+            className="w-full p-4 min-h-[56px] text-center text-content-secondary hover:text-white hover:bg-surface-tertiary/50 transition-colors border-t border-edge text-base font-semibold flex items-center justify-center gap-2"
           >
             <Plus size={20} /> Add Row
           </button>
         </div>
 
-        <div className="max-w-5xl mx-auto mt-4 text-center text-slate-500 text-sm">
-          <kbd className="bg-slate-800 px-2 py-1 rounded border border-slate-600 font-mono text-xs">
+        <div className="max-w-5xl mx-auto mt-4 text-center text-content-muted text-sm">
+          <kbd className="bg-surface-secondary px-2 py-1 rounded border border-edge-secondary font-mono text-xs">
             Enter
           </kbd>{' '}
           or
-          <kbd className="bg-slate-800 px-2 py-1 rounded border border-slate-600 font-mono text-xs ml-1">
+          <kbd className="bg-surface-secondary px-2 py-1 rounded border border-edge-secondary font-mono text-xs ml-1">
             Tab
           </kbd>{' '}
           to move between cells. New rows are added automatically at the end.

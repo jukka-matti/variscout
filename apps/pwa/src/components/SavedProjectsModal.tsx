@@ -82,13 +82,13 @@ export default function SavedProjectsModal({ isOpen, onClose }: SavedProjectsMod
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-xl max-w-lg w-full max-h-[80vh] flex flex-col">
+      <div className="bg-surface-secondary border border-edge rounded-2xl shadow-xl max-w-lg w-full max-h-[80vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-700">
+        <div className="flex items-center justify-between p-4 border-b border-edge">
           <h2 className="text-lg font-semibold text-white">Saved Projects</h2>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+            className="p-1.5 text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
           >
             <X size={18} />
           </button>
@@ -106,14 +106,14 @@ export default function SavedProjectsModal({ isOpen, onClose }: SavedProjectsMod
             </div>
             <div>
               <div className="text-sm font-medium text-blue-400">New Project</div>
-              <div className="text-xs text-slate-500">Start fresh with a blank analysis</div>
+              <div className="text-xs text-content-muted">Start fresh with a blank analysis</div>
             </div>
           </button>
 
           {loading ? (
-            <div className="text-center py-8 text-slate-500">Loading...</div>
+            <div className="text-center py-8 text-content-muted">Loading...</div>
           ) : projects.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">
+            <div className="text-center py-8 text-content-muted">
               <FolderOpen size={32} className="mx-auto mb-2 opacity-50" />
               <p>No saved projects yet</p>
               <p className="text-xs mt-1">Your saved analyses will appear here</p>
@@ -122,10 +122,10 @@ export default function SavedProjectsModal({ isOpen, onClose }: SavedProjectsMod
             projects.map(project => (
               <div
                 key={project.id}
-                className="flex items-center gap-3 p-3 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded-xl transition-all group"
+                className="flex items-center gap-3 p-3 bg-surface-tertiary/50 hover:bg-surface-tertiary border border-edge-secondary rounded-xl transition-all group"
               >
-                <div className="p-2 bg-slate-600 rounded-lg">
-                  <Database size={18} className="text-slate-300" />
+                <div className="p-2 bg-surface-elevated rounded-lg">
+                  <Database size={18} className="text-content" />
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -139,7 +139,7 @@ export default function SavedProjectsModal({ isOpen, onClose }: SavedProjectsMod
                           if (e.key === 'Enter') handleRename(project.id);
                           if (e.key === 'Escape') setEditingId(null);
                         }}
-                        className="flex-1 px-2 py-1 bg-slate-800 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500"
+                        className="flex-1 px-2 py-1 bg-surface-secondary border border-edge-secondary rounded text-sm text-white focus:outline-none focus:border-blue-500"
                         autoFocus
                       />
                       <button
@@ -152,7 +152,7 @@ export default function SavedProjectsModal({ isOpen, onClose }: SavedProjectsMod
                   ) : (
                     <>
                       <div className="text-sm font-medium text-white truncate">{project.name}</div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <div className="flex items-center gap-3 text-xs text-content-muted">
                         <span className="flex items-center gap-1">
                           <Calendar size={10} />
                           {formatDate(project.savedAt)}
@@ -173,7 +173,7 @@ export default function SavedProjectsModal({ isOpen, onClose }: SavedProjectsMod
                     </button>
                     <button
                       onClick={() => setConfirmDelete(null)}
-                      className="px-2 py-1 text-xs bg-slate-600 hover:bg-slate-500 text-white rounded transition-colors"
+                      className="px-2 py-1 text-xs bg-surface-elevated hover:bg-surface-elevated text-white rounded transition-colors"
                     >
                       Cancel
                     </button>
@@ -189,7 +189,7 @@ export default function SavedProjectsModal({ isOpen, onClose }: SavedProjectsMod
                     </button>
                     <button
                       onClick={() => startEditing(project)}
-                      className="p-1.5 text-slate-400 hover:bg-slate-600 rounded-lg transition-colors"
+                      className="p-1.5 text-content-secondary hover:bg-surface-elevated rounded-lg transition-colors"
                       title="Rename"
                     >
                       <Edit2 size={16} />
@@ -209,7 +209,7 @@ export default function SavedProjectsModal({ isOpen, onClose }: SavedProjectsMod
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-700 text-xs text-slate-500 text-center">
+        <div className="p-4 border-t border-edge text-xs text-content-muted text-center">
           Projects are stored locally in your browser
         </div>
       </div>

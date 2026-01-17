@@ -39,9 +39,15 @@ export {
   chartColors,
   chromeColors,
   operatorColors,
+  getChromeColors,
+  getDocumentTheme,
   type ChartColor,
   type ChromeColor,
+  type ChromeColorValues,
 } from './colors';
+
+// Theme hook
+export { useChartTheme, type ChartThemeColors } from './useChartTheme';
 
 // Responsive utilities
 export {

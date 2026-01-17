@@ -58,15 +58,15 @@ const Modal: React.FC<ModalProps> = ({
       onClick={handleBackdropClick}
     >
       <div
-        className={`bg-slate-800 border border-slate-700 rounded-2xl w-full ${maxWidth} shadow-2xl flex flex-col max-h-[90vh]`}
+        className={`bg-surface-secondary border border-edge rounded-2xl w-full ${maxWidth} shadow-2xl flex flex-col max-h-[90vh]`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div className="flex items-center justify-between p-6 border-b border-edge">
           <h2 className="text-xl font-bold text-white">{title}</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors"
+            className="text-content-secondary hover:text-white transition-colors"
             aria-label="Close modal"
           >
             <X size={24} />
@@ -77,9 +77,7 @@ const Modal: React.FC<ModalProps> = ({
         <div className="flex-1 overflow-y-auto p-6">{children}</div>
 
         {/* Footer (optional) */}
-        {footer && (
-          <div className="border-t border-slate-700 p-4 flex justify-end gap-3">{footer}</div>
-        )}
+        {footer && <div className="border-t border-edge p-4 flex justify-end gap-3">{footer}</div>}
       </div>
     </div>
   );
@@ -103,7 +101,7 @@ export const ModalButton = {
     <button
       onClick={onClick}
       disabled={disabled}
-      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-surface-elevated disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
     >
       {children}
     </button>
@@ -111,7 +109,7 @@ export const ModalButton = {
   Secondary: ({ children, onClick }: { children: React.ReactNode; onClick: () => void }) => (
     <button
       onClick={onClick}
-      className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg font-medium transition-colors"
+      className="px-4 py-2 bg-surface-tertiary hover:bg-surface-elevated text-content rounded-lg font-medium transition-colors"
     >
       {children}
     </button>

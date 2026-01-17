@@ -61,9 +61,9 @@ function getVariationBadgeColors(impactLevel: 'high' | 'moderate' | 'low'): {
     case 'low':
     default:
       return {
-        bg: 'bg-slate-500/20',
-        text: 'text-slate-400',
-        border: 'border-slate-500/30',
+        bg: 'bg-surface-elevated/20',
+        text: 'text-content-secondary',
+        border: 'border-edge/30',
       };
   }
 }
@@ -105,13 +105,13 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
     if (filterItems.length === 0) return null;
 
     return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-slate-900/50 border-b border-slate-800 overflow-x-auto scrollbar-hide">
+      <div className="flex items-center gap-2 px-4 py-2 bg-surface/50 border-b border-edge overflow-x-auto scrollbar-hide">
         {/* Filter chips */}
         <div className="flex items-center gap-2 flex-nowrap min-w-0">
           {filterItems.map(item => (
             <div
               key={item.id}
-              className="flex items-center gap-1 px-2.5 py-1 bg-slate-700/50 rounded-full text-xs flex-shrink-0"
+              className="flex items-center gap-1 px-2.5 py-1 bg-surface-tertiary/50 rounded-full text-xs flex-shrink-0"
             >
               <span className="text-white truncate max-w-[150px]">
                 {formatLabelWithVariation(item.label, item.localVariationPct)}
@@ -122,7 +122,7 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
                     e.stopPropagation();
                     onRemove(item.id);
                   }}
-                  className="p-0.5 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                  className="p-0.5 text-content-secondary hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
                   aria-label={`Remove ${item.label} filter`}
                 >
                   <X size={12} />
@@ -136,7 +136,7 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
         {showClearAll && onClearAll && filterItems.length > 1 && (
           <button
             onClick={onClearAll}
-            className="flex-shrink-0 flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors whitespace-nowrap"
+            className="flex-shrink-0 flex items-center gap-1 px-2 py-1 text-xs text-content-secondary hover:text-red-400 hover:bg-red-400/10 rounded transition-colors whitespace-nowrap"
             aria-label="Clear all filters"
           >
             <X size={14} />
@@ -149,7 +149,7 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
 
   // Standard breadcrumb mode
   return (
-    <div className="flex items-center gap-1 px-4 sm:px-6 py-2 bg-slate-900/50 border-b border-slate-800 overflow-x-auto scrollbar-hide">
+    <div className="flex items-center gap-1 px-4 sm:px-6 py-2 bg-surface/50 border-b border-edge overflow-x-auto scrollbar-hide">
       {/* Breadcrumb trail */}
       <nav
         className="flex items-center gap-1 flex-nowrap min-w-0"
@@ -165,7 +165,7 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
               {index > 0 && (
                 <ChevronRight
                   size={14}
-                  className="text-slate-600 flex-shrink-0"
+                  className="text-content-muted flex-shrink-0"
                   aria-hidden="true"
                 />
               )}
@@ -180,8 +180,8 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
                     transition-colors
                     ${
                       isLast
-                        ? 'bg-slate-700/50 text-white font-medium cursor-default'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-700/30'
+                        ? 'bg-surface-tertiary/50 text-white font-medium cursor-default'
+                        : 'text-content-secondary hover:text-white hover:bg-surface-tertiary/30'
                     }
                   `}
                   aria-current={isLast ? 'page' : undefined}
@@ -201,7 +201,7 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
                       e.stopPropagation();
                       onRemove(item.id);
                     }}
-                    className="p-0.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                    className="p-0.5 text-content-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
                     aria-label={`Remove ${item.label} filter`}
                   >
                     <X size={12} />
@@ -233,7 +233,7 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
             <div
               className="
                 absolute bottom-full right-0 mb-2 w-64 p-3 rounded-lg
-                bg-slate-800 border border-slate-700 shadow-xl
+                bg-surface-secondary border border-edge shadow-xl
                 opacity-0 invisible group-hover:opacity-100 group-hover:visible
                 transition-all duration-200 z-50
                 text-xs
@@ -242,26 +242,26 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
               <div className={`font-semibold ${badgeColors.text} mb-1`}>
                 {Math.round(cumulativeVariationPct!)}% of total variation isolated
               </div>
-              <p className="text-slate-300">{insightText}</p>
-              <div className="mt-2 pt-2 border-t border-slate-700 text-slate-500">
+              <p className="text-content">{insightText}</p>
+              <div className="mt-2 pt-2 border-t border-edge text-content-muted">
                 {impactLevel === 'high' && '🔴 High impact — strong case for action'}
                 {impactLevel === 'moderate' && '🟡 Moderate impact — worth investigating'}
                 {impactLevel === 'low' && '⚪ One of several contributing factors'}
               </div>
               {/* Tooltip arrow */}
-              <div className="absolute bottom-0 right-4 translate-y-1/2 rotate-45 w-2 h-2 bg-slate-800 border-r border-b border-slate-700" />
+              <div className="absolute bottom-0 right-4 translate-y-1/2 rotate-45 w-2 h-2 bg-surface-secondary border-r border-b border-edge" />
             </div>
           </div>
         )}
 
         {/* Divider */}
-        {showClearAll && onClearAll && <div className="h-4 w-px bg-slate-700" />}
+        {showClearAll && onClearAll && <div className="h-4 w-px bg-surface-tertiary" />}
 
         {/* Clear All */}
         {showClearAll && onClearAll && (
           <button
             onClick={onClearAll}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors whitespace-nowrap"
+            className="flex items-center gap-1 px-2 py-1 text-xs text-content-secondary hover:text-red-400 hover:bg-red-400/10 rounded transition-colors whitespace-nowrap"
             aria-label="Clear all filters"
           >
             <X size={14} />

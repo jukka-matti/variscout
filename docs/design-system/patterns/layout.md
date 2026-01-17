@@ -4,6 +4,8 @@ Page and component layout patterns.
 
 ## PWA App Layout
 
+### Without Data Panel
+
 ```
 ┌─────────────────────────────────────────┐
 │ Header (h-14)                           │
@@ -18,11 +20,31 @@ Page and component layout patterns.
 └─────────────────────────────────────────┘
 ```
 
+### With Data Panel (toggled via 📊 button)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Header (h-14)                                           │
+├─────────────────────────────────────────────────────────┤
+│ DrillBreadcrumb (when filters active)                   │
+├─────────────────────────────────┬───────────────────────┤
+│                                 │                       │
+│ Main Content (flex-1)           ║ Data Panel            │
+│                                 ║ (resizable width)     │
+│                                 ║                       │
+├─────────────────────────────────┴───────────────────────┤
+│ Footer                                                  │
+└─────────────────────────────────────────────────────────┘
+```
+
 ```jsx
 <div className="flex flex-col h-screen bg-slate-900">
   <AppHeader />
   <DrillBreadcrumb items={breadcrumbs} onNavigate={handleNav} />
-  <main className="flex-1 overflow-hidden">{content}</main>
+  <div className="flex flex-1 overflow-hidden">
+    <main className="flex-1 overflow-hidden">{content}</main>
+    {showDataPanel && <DataPanel width={dataPanelWidth} onWidthChange={setDataPanelWidth} />}
+  </div>
   <AppFooter />
 </div>
 ```
@@ -30,6 +52,8 @@ Page and component layout patterns.
 See [Navigation Patterns](./navigation.md) for drill-down behavior.
 
 ## Dashboard Layout (Desktop)
+
+### Charts Only
 
 ```
 ┌─────────────────────────────────────────┐
@@ -41,6 +65,21 @@ See [Navigation Patterns](./navigation.md) for drill-down behavior.
 │ Boxplot    │ Pareto     │ Stats Panel   │
 │            │            │               │
 └────────────┴────────────┴───────────────┘
+```
+
+### With Data Panel
+
+```
+┌─────────────────────────────────────────┬─────────────────┐
+│ I-Chart (40%)                           │ Data Table      │
+│                                         │                 │
+├─────────────────────────────────────────┤ [sticky header] │
+│ ═══════════ Resize Handle ═══════════   │                 │
+├────────────┬────────────┬───────────────┤ [scrollable     │
+│ Boxplot    │ Pareto     │ Stats Panel   │  content]       │
+│            │            │               │                 │
+└────────────┴────────────┴───────────────┴─────────────────┘
+                                          ↔ draggable divider
 ```
 
 ```jsx
@@ -59,21 +98,39 @@ See [Navigation Patterns](./navigation.md) for drill-down behavior.
 </PanelGroup>
 ```
 
+**Data Panel** (`DataPanel.tsx`):
+
+- Toggle visibility via 📊 button in header
+- Draggable divider persists width to localStorage
+- Bi-directional sync: click chart → highlight row, click row → highlight chart point
+
 ## Dashboard Layout (Mobile)
 
 ```
 ┌─────────────────┐
-│ Tab: Summary    │
+│ Header          │
 ├─────────────────┤
 │                 │
-│ Selected Chart  │
+│ Chart Carousel  │
+│ ◀ I-Chart ▶     │
 │                 │
 ├─────────────────┤
 │ Stats Summary   │
+├─────────────────┤
+│ Data Panel      │
+│ (bottom sheet)  │
+│ ═══════════════ │ ← drag handle
 └─────────────────┘
 ```
 
-Mobile uses vertical scrolling with tab-based chart selection.
+Mobile uses vertical scrolling with carousel-based chart selection.
+
+**Data Panel (Bottom Sheet)**:
+
+- Collapsed: Shows row count + "Swipe up"
+- Partial: ~40% screen height
+- Full: ~90% screen height
+- Drag handle for resizing
 
 ## Grid Layouts
 

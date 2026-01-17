@@ -32,14 +32,14 @@ function ParetoEmptyState({
   hasFactors,
 }: ParetoEmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center h-full text-slate-400">
+    <div className="flex flex-col items-center justify-center h-full text-content-secondary">
       <BarChart3 size={32} className="mb-2 opacity-50" />
       <p className="text-sm mb-3">No Pareto data</p>
       <div className="flex gap-2">
         {hasFactors && onSelectFactor && (
           <button
             onClick={onSelectFactor}
-            className="text-xs px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 transition-colors"
+            className="text-xs px-3 py-1 bg-surface-tertiary rounded hover:bg-surface-elevated transition-colors"
           >
             Select Factor
           </button>
@@ -47,7 +47,7 @@ function ParetoEmptyState({
         {onUploadPareto && (
           <button
             onClick={onUploadPareto}
-            className="text-xs px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 transition-colors flex items-center gap-1"
+            className="text-xs px-3 py-1 bg-surface-tertiary rounded hover:bg-surface-elevated transition-colors flex items-center gap-1"
           >
             <Upload size={12} />
             Upload
@@ -56,7 +56,7 @@ function ParetoEmptyState({
         {onHide && (
           <button
             onClick={onHide}
-            className="text-xs px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 transition-colors flex items-center gap-1"
+            className="text-xs px-3 py-1 bg-surface-tertiary rounded hover:bg-surface-elevated transition-colors flex items-center gap-1"
           >
             <HideIcon size={12} />
             Hide
@@ -273,7 +273,7 @@ const ParetoChart = ({
                 className={`p-1 rounded transition-colors ${
                   showComparison
                     ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                    : 'bg-slate-700/50 text-slate-500 hover:text-slate-300 hover:bg-slate-700'
+                    : 'bg-surface-tertiary/50 text-content-muted hover:text-content hover:bg-surface-tertiary'
                 }`}
                 title={
                   showComparison ? 'Hide overall comparison' : 'Compare to overall distribution'
@@ -538,7 +538,7 @@ const ParetoChart = ({
           <div>Cumulative: {tooltipData.cumulativePercentage?.toFixed(1)}%</div>
           {tooltipData.showComparison && (
             <>
-              <div className="mt-1 pt-1 border-t border-slate-600">
+              <div className="mt-1 pt-1 border-t border-edge-secondary">
                 <div>Filtered: {tooltipData.filteredPct?.toFixed(1)}%</div>
                 <div>Overall: {tooltipData.fullPct?.toFixed(1)}%</div>
                 <div
@@ -547,7 +547,7 @@ const ParetoChart = ({
                       ? 'text-red-400'
                       : tooltipData.pctDiff < 0
                         ? 'text-green-400'
-                        : 'text-slate-400'
+                        : 'text-content-secondary'
                   }
                 >
                   {tooltipData.pctDiff > 0 ? '↑' : tooltipData.pctDiff < 0 ? '↓' : '→'}{' '}

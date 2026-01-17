@@ -11,6 +11,7 @@ import ErrorBoundary from './ErrorBoundary';
 import DrillBreadcrumb from './DrillBreadcrumb';
 import FactorSelector from './FactorSelector';
 import SpecEditor from './SpecEditor';
+import SpecsPopover from './SpecsPopover';
 import { useData } from '../context/DataContext';
 import { calculateAnova, type AnovaResult, getNextDrillFactor } from '@variscout/core';
 import useVariationTracking from '../hooks/useVariationTracking';
@@ -19,23 +20,19 @@ import {
   Activity,
   Copy,
   Check,
-  BarChart3,
-  TrendingUp,
-  Target,
   Maximize2,
   Minimize2,
   ChevronLeft,
   ChevronRight,
   HelpCircle,
   Layers,
-  Plus,
 } from 'lucide-react';
 import type { StageOrderMode } from '@variscout/core';
 import { toBlob } from 'html-to-image';
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
 
-type DashboardTab = 'analysis' | 'regression' | 'gagerr';
+type AnalysisView = 'dashboard' | 'regression' | 'gagerr';
 
 const MOBILE_BREAKPOINT = 640; // sm breakpoint
 
@@ -56,6 +53,10 @@ interface DashboardProps {
   // External trigger to open spec editor (from MobileMenu)
   openSpecEditorRequested?: boolean;
   onSpecEditorOpened?: () => void;
+  // Analysis view controlled from settings
+  activeView?: AnalysisView;
+  // Highlighted point index from data panel (bi-directional sync)
+  highlightedPointIndex?: number | null;
 }
 
 const Dashboard = ({
@@ -70,6 +71,8 @@ const Dashboard = ({
   onOpenColumnMapping,
   openSpecEditorRequested,
   onSpecEditorOpened,
+  activeView = 'dashboard',
+  highlightedPointIndex,
 }: DashboardProps) => {
   const {
     outcome,
@@ -105,7 +108,6 @@ const Dashboard = ({
   } = useVariationTracking(rawData, drillStack, outcome, factors);
   const [isMobile, setIsMobile] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<DashboardTab>('analysis');
 
   // Detect mobile/desktop on mount and resize
   useEffect(() => {
@@ -357,22 +359,22 @@ const Dashboard = ({
   // Presentation Mode - Fullscreen overlay with all charts
   if (isPresentationMode) {
     return (
-      <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col p-4 gap-4">
+      <div className="fixed inset-0 z-50 bg-surface flex flex-col p-4 gap-4">
         {/* I-Chart - top section */}
-        <div className="flex-[45] min-h-0 bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col">
+        <div className="flex-[45] min-h-0 bg-surface-secondary border border-edge rounded-2xl p-4 flex flex-col">
           <div className="flex items-center gap-4 mb-2">
             <h2 className="text-lg font-bold flex items-center gap-2 text-white">
               <Activity className="text-blue-400" size={20} />
               I-Chart: {outcome}
             </h2>
             {stats && (
-              <div className="flex gap-4 text-sm text-slate-400 ml-auto">
+              <div className="flex gap-4 text-sm text-content-secondary ml-auto">
                 <span className="flex items-center gap-1">
                   UCL: <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
                   <span className="tooltip-wrapper">
                     <HelpCircle
                       size={12}
-                      className="text-slate-500 hover:text-slate-300 cursor-help"
+                      className="text-content-muted hover:text-content cursor-help"
                     />
                     <span className="tooltip">
                       Upper Control Limit. Points above this indicate special cause variation.
@@ -384,7 +386,7 @@ const Dashboard = ({
                   <span className="tooltip-wrapper">
                     <HelpCircle
                       size={12}
-                      className="text-slate-500 hover:text-slate-300 cursor-help"
+                      className="text-content-muted hover:text-content cursor-help"
                     />
                     <span className="tooltip">
                       Process average. The center line on the I-Chart.
@@ -396,7 +398,7 @@ const Dashboard = ({
                   <span className="tooltip-wrapper">
                     <HelpCircle
                       size={12}
-                      className="text-slate-500 hover:text-slate-300 cursor-help"
+                      className="text-content-muted hover:text-content cursor-help"
                     />
                     <span className="tooltip">
                       Lower Control Limit. Points below this indicate special cause variation.
@@ -415,8 +417,8 @@ const Dashboard = ({
 
         {/* Bottom section - Boxplot, Pareto, Stats */}
         <div className="flex-[55] min-h-0 flex gap-4">
-          <div className="flex-1 bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          <div className="flex-1 bg-surface-secondary border border-edge rounded-2xl p-4 flex flex-col">
+            <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider mb-2">
               Boxplot: {boxplotFactor}
             </h3>
             <div className="flex-1 min-h-0">
@@ -430,8 +432,8 @@ const Dashboard = ({
               </ErrorBoundary>
             </div>
           </div>
-          <div className="flex-1 bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-col">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
+          <div className="flex-1 bg-surface-secondary border border-edge rounded-2xl p-4 flex flex-col">
+            <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider mb-2">
               Pareto: {paretoFactor}
             </h3>
             <div className="flex-1 min-h-0">
@@ -447,13 +449,15 @@ const Dashboard = ({
               </ErrorBoundary>
             </div>
           </div>
-          <div className="w-80 bg-slate-800 border border-slate-700 rounded-2xl p-4">
+          <div className="w-80 bg-surface-secondary border border-edge rounded-2xl p-4">
             <StatsPanel stats={stats} specs={specs} filteredData={filteredData} outcome={outcome} />
           </div>
         </div>
 
         {/* Exit hint */}
-        <div className="absolute bottom-4 right-4 text-slate-600 text-xs">Press Escape to exit</div>
+        <div className="absolute bottom-4 right-4 text-content-muted text-xs">
+          Press Escape to exit
+        </div>
       </div>
     );
   }
@@ -492,14 +496,14 @@ const Dashboard = ({
   // Embed Focus Mode - render only the specified chart (for iframe embeds)
   if (embedFocusChart) {
     return (
-      <div className="h-full w-full bg-slate-900 p-4 flex flex-col">
+      <div className="h-full w-full bg-surface p-4 flex flex-col">
         {embedFocusChart === 'ichart' && (
           <div className="flex-1 flex flex-col min-h-0">
             <div className="flex items-center gap-3 mb-3">
               <Activity className="text-blue-400" size={20} />
               <span className="text-lg font-bold text-white">I-Chart: {outcome}</span>
               {stats && (
-                <div className="flex gap-4 text-xs text-slate-400 ml-auto">
+                <div className="flex gap-4 text-xs text-content-secondary ml-auto">
                   <span>
                     UCL: <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
                   </span>
@@ -594,10 +598,10 @@ const Dashboard = ({
   return (
     <div
       id="dashboard-export-container"
-      className="flex flex-col h-full overflow-y-auto bg-slate-900 relative"
+      className="flex flex-col h-full overflow-y-auto bg-surface relative"
     >
-      {/* Sticky Navigation */}
-      <div className="sticky top-0 z-30 bg-slate-900">
+      {/* Sticky Navigation - Breadcrumbs only (tabs moved to Settings) */}
+      <div className="sticky top-0 z-30 bg-surface">
         {/* Drill Breadcrumb Navigation with Variation Tracking */}
         <DrillBreadcrumb
           items={breadcrumbItems}
@@ -606,65 +610,28 @@ const Dashboard = ({
           onRemove={handleRemoveFilter}
           cumulativeVariationPct={cumulativeVariationPct}
         />
-
-        {/* Tab Navigation */}
-        <div className="flex-none flex items-center gap-2 px-4 pt-4 pb-2">
-          <button
-            onClick={() => setActiveTab('analysis')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'analysis'
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
-            }`}
-          >
-            <BarChart3 size={16} />
-            Analysis
-          </button>
-          <button
-            onClick={() => setActiveTab('regression')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'regression'
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
-            }`}
-          >
-            <TrendingUp size={16} />
-            Regression
-          </button>
-          <button
-            onClick={() => setActiveTab('gagerr')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'gagerr'
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
-            }`}
-          >
-            <Target size={16} />
-            Gage R&R
-          </button>
-        </div>
       </div>
 
-      {/* Regression Tab */}
-      {activeTab === 'regression' && (
-        <div className="flex-1 m-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
+      {/* Regression View */}
+      {activeView === 'regression' && (
+        <div className="flex-1 m-4 bg-surface-secondary border border-edge rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
           <ErrorBoundary componentName="Regression Panel">
             <RegressionPanel />
           </ErrorBoundary>
         </div>
       )}
 
-      {/* Gage R&R Tab */}
-      {activeTab === 'gagerr' && (
-        <div className="flex-1 m-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
+      {/* Gage R&R View */}
+      {activeView === 'gagerr' && (
+        <div className="flex-1 m-4 bg-surface-secondary border border-edge rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
           <ErrorBoundary componentName="Gage R&R Panel">
             <GageRRPanel />
           </ErrorBoundary>
         </div>
       )}
 
-      {/* Analysis Tab */}
-      {activeTab === 'analysis' && (
+      {/* Dashboard View (default) */}
+      {activeView === 'dashboard' && (
         <div className="flex-1 flex flex-col min-h-0">
           {!focusedChart ? (
             // Scrollable Layout
@@ -674,7 +641,7 @@ const Dashboard = ({
                 id="ichart-card"
                 data-chart-id="ichart"
                 onClick={() => handleChartWrapperClick('ichart')}
-                className={`min-h-[400px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col transition-all ${getHighlightClass('ichart')}`}
+                className={`min-h-[400px] bg-surface-secondary border border-edge p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col transition-all ${getHighlightClass('ichart')}`}
               >
                 <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
                   <div className="flex items-center gap-4">
@@ -685,7 +652,7 @@ const Dashboard = ({
                     <select
                       value={outcome}
                       onChange={e => setOutcome(e.target.value)}
-                      className="bg-slate-900 border border-slate-700 text-lg font-bold text-white rounded px-3 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                      className="bg-surface border border-edge text-lg font-bold text-white rounded px-3 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
                     >
                       {availableOutcomes.map(o => (
                         <option key={o} value={o}>
@@ -695,7 +662,7 @@ const Dashboard = ({
                     </select>
 
                     {/* Stage Column Selector - always visible for discoverability */}
-                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-700">
+                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-edge">
                       <span
                         className="tooltip-wrapper"
                         title="Divide chart into stages (e.g., Before/After, Phase 1/2/3)"
@@ -703,7 +670,9 @@ const Dashboard = ({
                         <Layers
                           size={16}
                           className={
-                            availableStageColumns.length > 0 ? 'text-blue-400' : 'text-slate-600'
+                            availableStageColumns.length > 0
+                              ? 'text-blue-400'
+                              : 'text-content-muted'
                           }
                         />
                       </span>
@@ -712,7 +681,7 @@ const Dashboard = ({
                           <select
                             value={stageColumn || ''}
                             onChange={e => setStageColumn(e.target.value || null)}
-                            className="bg-slate-900 border border-slate-700 text-sm text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                            className="bg-surface border border-edge text-sm text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
                             title="Select a column to divide the chart into stages"
                           >
                             <option value="">No stages</option>
@@ -726,7 +695,7 @@ const Dashboard = ({
                             <select
                               value={stageOrderMode}
                               onChange={e => setStageOrderMode(e.target.value as StageOrderMode)}
-                              className="bg-slate-900 border border-slate-700 text-xs text-slate-400 rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                              className="bg-surface border border-edge text-xs text-content-secondary rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
                               title="Stage ordering method"
                             >
                               <option value="auto">Auto order</option>
@@ -736,7 +705,7 @@ const Dashboard = ({
                         </>
                       ) : (
                         <span
-                          className="text-xs text-slate-500 cursor-help"
+                          className="text-xs text-content-muted cursor-help"
                           title="Staging requires a column with 2-10 unique categorical values"
                         >
                           No stage columns
@@ -744,28 +713,13 @@ const Dashboard = ({
                       )}
                     </div>
 
-                    {/* + Specs / + Target buttons */}
-                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-700">
-                      {!specs?.usl && !specs?.lsl && (
-                        <button
-                          onClick={() => setShowSpecEditor(true)}
-                          className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 px-2 py-1 rounded hover:bg-slate-700/50 transition-colors"
-                          title="Add specification limits"
-                        >
-                          <Plus size={12} />
-                          Specs
-                        </button>
-                      )}
-                      {!specs?.target && (specs?.usl !== undefined || specs?.lsl !== undefined) && (
-                        <button
-                          onClick={() => setShowSpecEditor(true)}
-                          className="flex items-center gap-1 text-xs text-green-400 hover:text-green-300 px-2 py-1 rounded hover:bg-slate-700/50 transition-colors"
-                          title="Add target value"
-                        >
-                          <Plus size={12} />
-                          Target
-                        </button>
-                      )}
+                    {/* Specs Popover (replaces + Specs / + Target buttons) */}
+                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-edge">
+                      <SpecsPopover
+                        specs={specs}
+                        onSave={newSpecs => setSpecs(newSpecs)}
+                        onOpenAdvanced={() => setShowSpecEditor(true)}
+                      />
                     </div>
 
                     <button
@@ -773,7 +727,7 @@ const Dashboard = ({
                       className={`p-1.5 rounded transition-all ${
                         copyFeedback === 'ichart'
                           ? 'bg-green-500/20 text-green-400'
-                          : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                          : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
                       }`}
                       title="Copy I-Chart to clipboard"
                     >
@@ -781,7 +735,7 @@ const Dashboard = ({
                     </button>
                     <button
                       onClick={() => setFocusedChart('ichart')}
-                      className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                      className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
                       title="Maximize Chart"
                     >
                       <Maximize2 size={16} />
@@ -789,8 +743,8 @@ const Dashboard = ({
                   </div>
                   {/* Stats display - show staged info or overall stats */}
                   {stageColumn && stagedStats ? (
-                    <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
-                      <span className="text-slate-400 flex items-center gap-1">
+                    <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
+                      <span className="text-content-secondary flex items-center gap-1">
                         <Layers size={12} className="text-blue-400" />
                         <span className="text-blue-400 font-medium">
                           {stagedStats.stageOrder.length} stages
@@ -798,7 +752,7 @@ const Dashboard = ({
                         <span className="tooltip-wrapper">
                           <HelpCircle
                             size={12}
-                            className="text-slate-500 hover:text-slate-300 cursor-help"
+                            className="text-content-muted hover:text-content cursor-help"
                           />
                           <span className="tooltip">
                             Control limits calculated separately for each stage. Stage boundaries
@@ -806,7 +760,7 @@ const Dashboard = ({
                           </span>
                         </span>
                       </span>
-                      <span className="text-slate-400 flex items-center gap-1">
+                      <span className="text-content-secondary flex items-center gap-1">
                         Overall Mean:{' '}
                         <span className="text-white font-mono">
                           {stagedStats.overallStats.mean.toFixed(2)}
@@ -815,13 +769,13 @@ const Dashboard = ({
                     </div>
                   ) : (
                     stats && (
-                      <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
-                        <span className="text-slate-400 flex items-center gap-1">
+                      <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
+                        <span className="text-content-secondary flex items-center gap-1">
                           UCL: <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
                           <span className="tooltip-wrapper">
                             <HelpCircle
                               size={12}
-                              className="text-slate-500 hover:text-slate-300 cursor-help"
+                              className="text-content-muted hover:text-content cursor-help"
                             />
                             <span className="tooltip">
                               Upper Control Limit. Points above this indicate special cause
@@ -829,25 +783,25 @@ const Dashboard = ({
                             </span>
                           </span>
                         </span>
-                        <span className="text-slate-400 flex items-center gap-1">
+                        <span className="text-content-secondary flex items-center gap-1">
                           Mean:{' '}
                           <span className="text-white font-mono">{stats.mean.toFixed(2)}</span>
                           <span className="tooltip-wrapper">
                             <HelpCircle
                               size={12}
-                              className="text-slate-500 hover:text-slate-300 cursor-help"
+                              className="text-content-muted hover:text-content cursor-help"
                             />
                             <span className="tooltip">
                               Process average. The center line on the I-Chart.
                             </span>
                           </span>
                         </span>
-                        <span className="text-slate-400 flex items-center gap-1">
+                        <span className="text-content-secondary flex items-center gap-1">
                           LCL: <span className="text-white font-mono">{stats.lcl.toFixed(2)}</span>
                           <span className="tooltip-wrapper">
                             <HelpCircle
                               size={12}
-                              className="text-slate-500 hover:text-slate-300 cursor-help"
+                              className="text-content-muted hover:text-content cursor-help"
                             />
                             <span className="tooltip">
                               Lower Control Limit. Points below this indicate special cause
@@ -877,10 +831,10 @@ const Dashboard = ({
                     id="boxplot-card"
                     data-chart-id="boxplot"
                     onClick={() => handleChartWrapperClick('boxplot')}
-                    className={`flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('boxplot')}`}
+                    className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('boxplot')}`}
                   >
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+                      <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
                         Boxplot
                       </h3>
                       <div className="flex items-center gap-2">
@@ -895,7 +849,7 @@ const Dashboard = ({
                           className={`p-1.5 rounded transition-all ${
                             copyFeedback === 'boxplot'
                               ? 'bg-green-500/20 text-green-400'
-                              : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                              : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
                           }`}
                           title="Copy Boxplot to clipboard"
                         >
@@ -903,7 +857,7 @@ const Dashboard = ({
                         </button>
                         <button
                           onClick={() => setFocusedChart('boxplot')}
-                          className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                          className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
                           title="Maximize Chart"
                         >
                           <Maximize2 size={14} />
@@ -931,10 +885,10 @@ const Dashboard = ({
                       id="pareto-card"
                       data-chart-id="pareto"
                       onClick={() => handleChartWrapperClick('pareto')}
-                      className={`flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('pareto')}`}
+                      className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('pareto')}`}
                     >
                       <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+                        <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
                           Pareto
                         </h3>
                         <div className="flex items-center gap-2">
@@ -949,7 +903,7 @@ const Dashboard = ({
                             className={`p-1.5 rounded transition-all ${
                               copyFeedback === 'pareto'
                                 ? 'bg-green-500/20 text-green-400'
-                                : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                                : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
                             }`}
                             title="Copy Pareto Chart to clipboard"
                           >
@@ -957,7 +911,7 @@ const Dashboard = ({
                           </button>
                           <button
                             onClick={() => setFocusedChart('pareto')}
-                            className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                            className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
                             title="Maximize Chart"
                           >
                             <Maximize2 size={14} />
@@ -1005,14 +959,14 @@ const Dashboard = ({
               {/* Navigation Buttons (Overlay) */}
               <button
                 onClick={handlePrevChart}
-                className="absolute left-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full shadow-lg border border-slate-700 opacity-0 group-hover/focus:opacity-100 transition-opacity"
+                className="absolute left-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-surface-secondary/80 hover:bg-surface-tertiary text-content-secondary hover:text-white rounded-full shadow-lg border border-edge opacity-0 group-hover/focus:opacity-100 transition-opacity"
                 title="Previous Chart (Left Arrow)"
               >
                 <ChevronLeft size={24} />
               </button>
               <button
                 onClick={handleNextChart}
-                className="absolute right-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full shadow-lg border border-slate-700 opacity-0 group-hover/focus:opacity-100 transition-opacity"
+                className="absolute right-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-surface-secondary/80 hover:bg-surface-tertiary text-content-secondary hover:text-white rounded-full shadow-lg border border-edge opacity-0 group-hover/focus:opacity-100 transition-opacity"
                 title="Next Chart (Right Arrow)"
               >
                 <ChevronRight size={24} />
@@ -1021,7 +975,7 @@ const Dashboard = ({
               {focusedChart === 'ichart' && (
                 <div
                   id="ichart-focus"
-                  className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full"
+                  className="flex-1 bg-surface-secondary border border-edge p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full"
                 >
                   <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
                     <div className="flex items-center gap-4">
@@ -1032,7 +986,7 @@ const Dashboard = ({
                       <select
                         value={outcome}
                         onChange={e => setOutcome(e.target.value)}
-                        className="bg-slate-900 border border-slate-700 text-xl font-bold text-white rounded px-3 py-1.5 outline-none focus:border-blue-500"
+                        className="bg-surface border border-edge text-xl font-bold text-white rounded px-3 py-1.5 outline-none focus:border-blue-500"
                       >
                         {availableOutcomes.map(o => (
                           <option key={o} value={o}>
@@ -1042,7 +996,7 @@ const Dashboard = ({
                       </select>
                       <button
                         onClick={() => setFocusedChart(null)}
-                        className="p-2 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors ml-4 bg-slate-700/50"
+                        className="p-2 rounded text-content-secondary hover:text-white hover:bg-surface-tertiary transition-colors ml-4 bg-surface-tertiary/50"
                         title="Exit Focus Mode"
                       >
                         <Minimize2 size={20} />
@@ -1063,10 +1017,10 @@ const Dashboard = ({
               {focusedChart === 'boxplot' && (
                 <div
                   id="boxplot-focus"
-                  className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full"
+                  className="flex-1 bg-surface-secondary border border-edge p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full"
                 >
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-slate-200 uppercase tracking-wider">
+                    <h3 className="text-xl font-semibold text-content uppercase tracking-wider">
                       Boxplot
                     </h3>
                     <div className="flex items-center gap-4">
@@ -1079,7 +1033,7 @@ const Dashboard = ({
                       />
                       <button
                         onClick={() => setFocusedChart(null)}
-                        className="p-2 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors bg-slate-700/50"
+                        className="p-2 rounded text-content-secondary hover:text-white hover:bg-surface-tertiary transition-colors bg-surface-tertiary/50"
                         title="Exit Focus Mode"
                       >
                         <Minimize2 size={20} />
@@ -1104,10 +1058,10 @@ const Dashboard = ({
               {focusedChart === 'pareto' && (
                 <div
                   id="pareto-focus"
-                  className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full"
+                  className="flex-1 bg-surface-secondary border border-edge p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full"
                 >
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-slate-200 uppercase tracking-wider">
+                    <h3 className="text-xl font-semibold text-content uppercase tracking-wider">
                       Pareto
                     </h3>
                     <div className="flex items-center gap-4">
@@ -1120,7 +1074,7 @@ const Dashboard = ({
                       />
                       <button
                         onClick={() => setFocusedChart(null)}
-                        className="p-2 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors bg-slate-700/50"
+                        className="p-2 rounded text-content-secondary hover:text-white hover:bg-surface-tertiary transition-colors bg-surface-tertiary/50"
                         title="Exit Focus Mode"
                       >
                         <Minimize2 size={20} />

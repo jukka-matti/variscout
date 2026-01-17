@@ -52,19 +52,19 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   return (
     <div
       className={twMerge(
-        'w-full lg:w-80 bg-slate-800 rounded-xl border border-slate-700 p-6 flex flex-col gap-4 shadow-lg relative',
+        'w-full lg:w-80 bg-surface-secondary rounded-xl border border-edge p-6 flex flex-col gap-4 shadow-lg relative',
         className
       )}
     >
       {/* Header / Tab buttons */}
-      <div className="flex justify-between items-center border-b border-slate-700 pb-4">
-        <div className="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700/50">
+      <div className="flex justify-between items-center border-b border-edge pb-4">
+        <div className="flex bg-surface/50 p-1 rounded-lg border border-edge/50">
           <button
             onClick={() => setActiveTab('summary')}
             className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
               activeTab === 'summary'
-                ? 'bg-slate-700 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-300'
+                ? 'bg-surface-tertiary text-white shadow-sm'
+                : 'text-content-secondary hover:text-content'
             }`}
           >
             Summary
@@ -73,8 +73,8 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             onClick={() => setActiveTab('histogram')}
             className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
               activeTab === 'histogram'
-                ? 'bg-slate-700 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-300'
+                ? 'bg-surface-tertiary text-white shadow-sm'
+                : 'text-content-secondary hover:text-content'
             }`}
           >
             Histogram
@@ -83,8 +83,8 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             onClick={() => setActiveTab('normality')}
             className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
               activeTab === 'normality'
-                ? 'bg-slate-700 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-300'
+                ? 'bg-surface-tertiary text-white shadow-sm'
+                : 'text-content-secondary hover:text-content'
             }`}
           >
             Prob Plot
@@ -111,7 +111,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             {stats?.gradeCounts && stats.gradeCounts.length > 0 ? (
               <div className="space-y-2">
                 {/* Header Row */}
-                <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-2 text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-2 text-[10px] text-content-muted uppercase tracking-wider font-semibold">
                   <span>Grade</span>
                   <span>Count</span>
                   <span>%</span>
@@ -119,7 +119,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                 {stats.gradeCounts.map((grade, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-[1fr_40px_45px] gap-4 items-center p-2 rounded hover:bg-slate-700/30 transition-colors"
+                    className="grid grid-cols-[1fr_40px_45px] gap-4 items-center p-2 rounded hover:bg-surface-tertiary/30 transition-colors"
                   >
                     <div className="flex items-center gap-2 overflow-hidden">
                       <div
@@ -127,13 +127,15 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                         style={{ backgroundColor: grade.color }}
                       ></div>
                       <span
-                        className="text-slate-300 text-sm font-medium truncate"
+                        className="text-content text-sm font-medium truncate"
                         title={grade.label}
                       >
                         {grade.label}
                       </span>
                     </div>
-                    <div className="text-right text-slate-500 text-xs font-mono">{grade.count}</div>
+                    <div className="text-right text-content-muted text-xs font-mono">
+                      {grade.count}
+                    </div>
                     <div className="text-right text-white font-bold font-mono">
                       {grade.percentage.toFixed(1)}%
                     </div>
@@ -143,14 +145,14 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
             ) : (
               /* Standard Cp/Cpk Mode */
               <>
-                <div className="flex items-center justify-between p-2 rounded hover:bg-slate-700/30 transition-colors">
-                  <div className="flex items-center gap-2 text-slate-300">
+                <div className="flex items-center justify-between p-2 rounded hover:bg-surface-tertiary/30 transition-colors">
+                  <div className="flex items-center gap-2 text-content">
                     <CheckCircle2 size={18} className="text-green-500" />
                     <span>Pass Rate</span>
                     <span className="tooltip-wrapper">
                       <HelpCircle
                         size={14}
-                        className="text-slate-500 hover:text-slate-300 cursor-help"
+                        className="text-content-muted hover:text-content cursor-help"
                       />
                       <span className="tooltip">
                         Percentage of measurements within specification limits (between LSL and
@@ -164,14 +166,14 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                 </div>
 
                 {displayOptions.showCp && stats?.cp !== undefined && (
-                  <div className="flex items-center justify-between p-2 rounded hover:bg-slate-700/30 transition-colors">
-                    <div className="flex items-center gap-2 text-slate-300">
+                  <div className="flex items-center justify-between p-2 rounded hover:bg-surface-tertiary/30 transition-colors">
+                    <div className="flex items-center gap-2 text-content">
                       <BarChart3 size={18} className="text-purple-400" />
                       <span>Cp</span>
                       <span className="tooltip-wrapper">
                         <HelpCircle
                           size={14}
-                          className="text-slate-500 hover:text-slate-300 cursor-help"
+                          className="text-content-muted hover:text-content cursor-help"
                         />
                         <span className="tooltip">
                           Process Capability. Measures how well your process fits within spec
@@ -188,14 +190,14 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                 )}
 
                 {displayOptions.showCpk && (
-                  <div className="flex items-center justify-between p-2 rounded hover:bg-slate-700/30 transition-colors">
-                    <div className="flex items-center gap-2 text-slate-300">
+                  <div className="flex items-center justify-between p-2 rounded hover:bg-surface-tertiary/30 transition-colors">
+                    <div className="flex items-center gap-2 text-content">
                       <TrendingUp size={18} className="text-blue-400" />
                       <span>Cpk</span>
                       <span className="tooltip-wrapper">
                         <HelpCircle
                           size={14}
-                          className="text-slate-500 hover:text-slate-300 cursor-help"
+                          className="text-content-muted hover:text-content cursor-help"
                         />
                         <span className="tooltip">
                           Process Capability Index. Like Cp, but accounts for centering. ≥1.33 is
@@ -211,14 +213,14 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between border-t border-slate-700 pt-4 p-2">
-                  <div className="flex items-center gap-2 text-slate-300">
+                <div className="flex items-center justify-between border-t border-edge pt-4 p-2">
+                  <div className="flex items-center gap-2 text-content">
                     <AlertCircle size={18} className="text-red-400" />
                     <span>Rejected</span>
                     <span className="tooltip-wrapper">
                       <HelpCircle
                         size={14}
-                        className="text-slate-500 hover:text-slate-300 cursor-help"
+                        className="text-content-muted hover:text-content cursor-help"
                       />
                       <span className="tooltip">
                         Percentage of measurements outside specification limits (above USL or below
@@ -235,23 +237,27 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
           </div>
 
           <div
-            className="mt-auto p-4 bg-slate-900/80 rounded-lg text-xs text-slate-500 border border-slate-800 cursor-pointer hover:border-slate-600 transition-colors group"
+            className="mt-auto p-4 bg-surface/80 rounded-lg text-xs text-content-muted border border-edge cursor-pointer hover:border-edge-secondary transition-colors group"
             onClick={() => setIsEditingSpecs(true)}
           >
             {specs.usl && (
               <div className="flex justify-between">
                 <span>USL:</span>{' '}
-                <span className="font-mono text-slate-400 group-hover:text-white">{specs.usl}</span>
+                <span className="font-mono text-content-secondary group-hover:text-white">
+                  {specs.usl}
+                </span>
               </div>
             )}
             {specs.lsl && (
               <div className="flex justify-between">
                 <span>LSL:</span>{' '}
-                <span className="font-mono text-slate-400 group-hover:text-white">{specs.lsl}</span>
+                <span className="font-mono text-content-secondary group-hover:text-white">
+                  {specs.lsl}
+                </span>
               </div>
             )}
             {!specs.usl && !specs.lsl && (
-              <div className="italic text-center text-slate-600 group-hover:text-blue-400 flex items-center justify-center gap-2">
+              <div className="italic text-center text-content-muted group-hover:text-blue-400 flex items-center justify-center gap-2">
                 <Plus size={14} /> Add Specs
               </div>
             )}
@@ -263,7 +269,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
           {histogramData.length > 0 && stats ? (
             <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
           ) : (
-            <div className="flex items-center justify-center h-full text-slate-500 italic text-sm">
+            <div className="flex items-center justify-center h-full text-content-muted italic text-sm">
               No data available for histogram
             </div>
           )}
@@ -274,7 +280,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
           {histogramData.length > 0 && stats ? (
             <ProbabilityPlot data={histogramData} mean={stats.mean} stdDev={stats.stdDev} />
           ) : (
-            <div className="flex items-center justify-center h-full text-slate-500 italic text-sm">
+            <div className="flex items-center justify-center h-full text-content-muted italic text-sm">
               No data available for probability plot
             </div>
           )}

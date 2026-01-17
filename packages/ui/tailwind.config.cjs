@@ -12,6 +12,7 @@ module.exports = {
         },
         extend: {
             colors: {
+                // Existing shadcn/ui colors (HSL-based)
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
@@ -44,6 +45,37 @@ module.exports = {
                 card: {
                     DEFAULT: "hsl(var(--card))",
                     foreground: "hsl(var(--card-foreground))",
+                },
+
+                // Theme-aware semantic colors (RGB-based for alpha support)
+                surface: {
+                    DEFAULT: "rgb(var(--surface-primary) / <alpha-value>)",
+                    secondary: "rgb(var(--surface-secondary) / <alpha-value>)",
+                    tertiary: "rgb(var(--surface-tertiary) / <alpha-value>)",
+                    elevated: "rgb(var(--surface-elevated) / <alpha-value>)",
+                },
+                content: {
+                    DEFAULT: "rgb(var(--content-primary) / <alpha-value>)",
+                    secondary: "rgb(var(--content-secondary) / <alpha-value>)",
+                    muted: "rgb(var(--content-muted) / <alpha-value>)",
+                },
+                edge: {
+                    DEFAULT: "rgb(var(--edge-primary) / <alpha-value>)",
+                    secondary: "rgb(var(--edge-secondary) / <alpha-value>)",
+                },
+                interactive: {
+                    hover: "rgb(var(--interactive-hover) / <alpha-value>)",
+                    active: "rgb(var(--interactive-active) / <alpha-value>)",
+                },
+                brand: {
+                    DEFAULT: "rgb(var(--accent) / <alpha-value>)",
+                    hover: "rgb(var(--accent-hover) / <alpha-value>)",
+                    foreground: "rgb(var(--accent-foreground) / <alpha-value>)",
+                },
+                status: {
+                    pass: "rgb(var(--status-pass) / <alpha-value>)",
+                    fail: "rgb(var(--status-fail) / <alpha-value>)",
+                    warning: "rgb(var(--status-warning) / <alpha-value>)",
                 },
             },
             borderRadius: {

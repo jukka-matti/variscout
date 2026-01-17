@@ -79,7 +79,7 @@ const GageRRPanel: React.FC = () => {
 
   if (categoricalColumns.length < 2 || numericColumns.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-500">
+      <div className="flex items-center justify-center h-full text-content-muted">
         <div className="text-center">
           <AlertCircle className="mx-auto mb-2" size={24} />
           <p>Gage R&R requires at least 2 categorical columns</p>
@@ -90,18 +90,18 @@ const GageRRPanel: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 overflow-hidden">
+    <div className="flex flex-col h-full bg-surface overflow-hidden">
       {/* Column selectors */}
-      <div className="flex-none px-4 py-3 border-b border-slate-700 bg-slate-800/50">
+      <div className="flex-none px-4 py-3 border-b border-edge bg-surface-secondary/50">
         <div className="flex items-center gap-4 flex-wrap">
           {/* Part selector */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 uppercase tracking-wider">Part:</span>
+            <span className="text-xs text-content-secondary uppercase tracking-wider">Part:</span>
             <div className="relative">
               <select
                 value={partColumn}
                 onChange={e => setPartColumn(e.target.value)}
-                className="bg-slate-900 border border-slate-600 text-xs text-white rounded px-2 py-1.5 pr-6 outline-none focus:border-blue-500"
+                className="bg-surface border border-edge-secondary text-xs text-white rounded px-2 py-1.5 pr-6 outline-none focus:border-blue-500"
               >
                 {categoricalColumns.map(col => (
                   <option key={col} value={col}>
@@ -111,19 +111,21 @@ const GageRRPanel: React.FC = () => {
               </select>
               <ChevronDown
                 size={12}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-content-secondary pointer-events-none"
               />
             </div>
           </div>
 
           {/* Operator selector */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 uppercase tracking-wider">Operator:</span>
+            <span className="text-xs text-content-secondary uppercase tracking-wider">
+              Operator:
+            </span>
             <div className="relative">
               <select
                 value={operatorColumn}
                 onChange={e => setOperatorColumn(e.target.value)}
-                className="bg-slate-900 border border-slate-600 text-xs text-white rounded px-2 py-1.5 pr-6 outline-none focus:border-blue-500"
+                className="bg-surface border border-edge-secondary text-xs text-white rounded px-2 py-1.5 pr-6 outline-none focus:border-blue-500"
               >
                 {categoricalColumns.map(col => (
                   <option key={col} value={col}>
@@ -133,19 +135,21 @@ const GageRRPanel: React.FC = () => {
               </select>
               <ChevronDown
                 size={12}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-content-secondary pointer-events-none"
               />
             </div>
           </div>
 
           {/* Measurement selector */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 uppercase tracking-wider">Measurement:</span>
+            <span className="text-xs text-content-secondary uppercase tracking-wider">
+              Measurement:
+            </span>
             <div className="relative">
               <select
                 value={measurementColumn}
                 onChange={e => setMeasurementColumn(e.target.value)}
-                className="bg-slate-900 border border-slate-600 text-xs text-white rounded px-2 py-1.5 pr-6 outline-none focus:border-blue-500"
+                className="bg-surface border border-edge-secondary text-xs text-white rounded px-2 py-1.5 pr-6 outline-none focus:border-blue-500"
               >
                 {numericColumns.map(col => (
                   <option key={col} value={col}>
@@ -155,7 +159,7 @@ const GageRRPanel: React.FC = () => {
               </select>
               <ChevronDown
                 size={12}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-content-secondary pointer-events-none"
               />
             </div>
           </div>
@@ -165,7 +169,7 @@ const GageRRPanel: React.FC = () => {
       {/* Results area */}
       <div className="flex-1 p-4 overflow-auto">
         {!result ? (
-          <div className="flex items-center justify-center h-full text-slate-500">
+          <div className="flex items-center justify-center h-full text-content-muted">
             <div className="text-center">
               <AlertCircle className="mx-auto mb-2" size={24} />
               <p>Unable to calculate Gage R&R</p>
@@ -178,16 +182,16 @@ const GageRRPanel: React.FC = () => {
             <div className="flex flex-col gap-4 min-h-0 h-full">
               {/* %GRR Result card */}
               <div
-                className={`p-4 rounded-xl border border-slate-700 ${getVerdictStyle(result.verdict).bg} flex-none`}
+                className={`p-4 rounded-xl border border-edge ${getVerdictStyle(result.verdict).bg} flex-none`}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <div className="text-xs text-content-secondary uppercase tracking-wider mb-1 flex items-center gap-1">
                       %GRR (Study Variation)
                       <span className="tooltip-wrapper">
                         <HelpCircle
                           size={12}
-                          className="text-slate-500 hover:text-slate-300 cursor-help"
+                          className="text-content-muted hover:text-content cursor-help"
                         />
                         <span className="tooltip">
                           Total measurement system variation as a percentage of study variation.
@@ -212,18 +216,18 @@ const GageRRPanel: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <p className="text-sm text-slate-400 mt-2">{result.verdictText}</p>
+                <p className="text-sm text-content-secondary mt-2">{result.verdictText}</p>
               </div>
 
               {/* Variance breakdown chart */}
-              <div className="flex-1 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden min-h-0 flex flex-col">
-                <div className="flex-none px-3 py-2 border-b border-slate-700/50">
-                  <span className="text-xs font-medium text-slate-300 flex items-center gap-1">
+              <div className="flex-1 bg-surface-secondary rounded-xl border border-edge overflow-hidden min-h-0 flex flex-col">
+                <div className="flex-none px-3 py-2 border-b border-edge/50">
+                  <span className="text-xs font-medium text-content flex items-center gap-1">
                     Variance Components (%Study Variation)
                     <span className="tooltip-wrapper">
                       <HelpCircle
                         size={12}
-                        className="text-slate-500 hover:text-slate-300 cursor-help"
+                        className="text-content-muted hover:text-content cursor-help"
                       />
                       <span className="tooltip">
                         Breaks down total variation: Part-to-Part (actual product differences),
@@ -249,25 +253,25 @@ const GageRRPanel: React.FC = () => {
               </div>
 
               {/* Study summary */}
-              <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 flex-none">
-                <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+              <div className="bg-surface-secondary rounded-xl border border-edge p-4 flex-none">
+                <div className="text-xs text-content-secondary uppercase tracking-wider mb-2">
                   Study Summary
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Parts:</span>
+                    <span className="text-content-secondary">Parts:</span>
                     <span className="text-white font-mono">{result.partCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Operators:</span>
+                    <span className="text-content-secondary">Operators:</span>
                     <span className="text-white font-mono">{result.operatorCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Replicates:</span>
+                    <span className="text-content-secondary">Replicates:</span>
                     <span className="text-white font-mono">{result.replicates}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Measurements:</span>
+                    <span className="text-content-secondary">Measurements:</span>
                     <span className="text-white font-mono">{result.totalMeasurements}</span>
                   </div>
                 </div>
@@ -275,14 +279,14 @@ const GageRRPanel: React.FC = () => {
             </div>
 
             {/* Right column: Interaction plot */}
-            <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden flex flex-col min-h-0 h-full">
-              <div className="flex-none px-3 py-2 border-b border-slate-700/50">
-                <span className="text-xs font-medium text-slate-300 flex items-center gap-1">
+            <div className="bg-surface-secondary rounded-xl border border-edge overflow-hidden flex flex-col min-h-0 h-full">
+              <div className="flex-none px-3 py-2 border-b border-edge/50">
+                <span className="text-xs font-medium text-content flex items-center gap-1">
                   Operator × Part Interaction
                   <span className="tooltip-wrapper">
                     <HelpCircle
                       size={12}
-                      className="text-slate-500 hover:text-slate-300 cursor-help"
+                      className="text-content-muted hover:text-content cursor-help"
                     />
                     <span className="tooltip">
                       Shows if operators measure parts consistently. Parallel lines = good (no
@@ -290,7 +294,7 @@ const GageRRPanel: React.FC = () => {
                     </span>
                   </span>
                 </span>
-                <span className="text-xs text-slate-500 ml-2">
+                <span className="text-xs text-content-muted ml-2">
                   (parallel lines = no interaction)
                 </span>
               </div>
@@ -308,8 +312,8 @@ const GageRRPanel: React.FC = () => {
 
       {/* AIAG guidelines reference */}
       {result && (
-        <div className="flex-none px-4 py-2 border-t border-slate-700 bg-slate-800/50">
-          <div className="flex items-center gap-4 text-xs text-slate-500">
+        <div className="flex-none px-4 py-2 border-t border-edge bg-surface-secondary/50">
+          <div className="flex items-center gap-4 text-xs text-content-muted">
             <span>AIAG Guidelines:</span>
             <span className="text-green-400">&lt;10% Excellent</span>
             <span className="text-amber-400">10-30% Marginal</span>

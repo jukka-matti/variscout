@@ -2,14 +2,140 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   Theme CSS Variables
+   ======================================== */
+
+:root,
+[data-theme='dark'] {
+  /* Surface colors (backgrounds) - slate palette */
+  --surface-primary: 15 23 42; /* slate-900 #0f172a */
+  --surface-secondary: 30 41 59; /* slate-800 #1e293b */
+  --surface-tertiary: 51 65 85; /* slate-700 #334155 */
+  --surface-elevated: 71 85 105; /* slate-600 #475569 */
+
+  /* Content colors (text) */
+  --content-primary: 226 232 240; /* slate-200 #e2e8f0 */
+  --content-secondary: 148 163 184; /* slate-400 #94a3b8 */
+  --content-muted: 100 116 139; /* slate-500 #64748b */
+
+  /* Edge colors (borders) */
+  --edge-primary: 51 65 85; /* slate-700 #334155 */
+  --edge-secondary: 71 85 105; /* slate-600 #475569 */
+
+  /* Interactive states */
+  --interactive-hover: 51 65 85; /* slate-700 */
+  --interactive-active: 71 85 105; /* slate-600 */
+
+  /* Accent/Brand colors */
+  --accent: 59 130 246; /* blue-500 #3b82f6 */
+  --accent-hover: 37 99 235; /* blue-600 #2563eb */
+  --accent-foreground: 255 255 255; /* white */
+
+  /* Status colors (universal - same in light/dark) */
+  --status-pass: 34 197 94; /* green-500 #22c55e */
+  --status-fail: 239 68 68; /* red-500 #ef4444 */
+  --status-warning: 245 158 11; /* amber-500 #f59e0b */
+
+  /* Chart chrome colors */
+  --chart-grid: 30 41 59; /* slate-800 */
+  --chart-axis: 100 116 139; /* slate-500 */
+  --chart-tooltip-bg: 30 41 59; /* slate-800 */
+  --chart-tooltip-border: 51 65 85; /* slate-700 */
+
+  /* Existing shadcn variables (for compatibility) */
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 224.3 76.3% 48%;
+  --radius: 0.5rem;
+
+  color-scheme: dark;
+}
+
+/* Light theme (for licensed users) */
+[data-theme='light'] {
+  /* Surface colors (backgrounds) */
+  --surface-primary: 248 250 252; /* slate-50 #f8fafc */
+  --surface-secondary: 241 245 249; /* slate-100 #f1f5f9 */
+  --surface-tertiary: 226 232 240; /* slate-200 #e2e8f0 */
+  --surface-elevated: 255 255 255; /* white */
+
+  /* Content colors (text) */
+  --content-primary: 15 23 42; /* slate-900 #0f172a */
+  --content-secondary: 71 85 105; /* slate-600 #475569 */
+  --content-muted: 100 116 139; /* slate-500 #64748b */
+
+  /* Edge colors (borders) */
+  --edge-primary: 226 232 240; /* slate-200 #e2e8f0 */
+  --edge-secondary: 203 213 225; /* slate-300 #cbd5e1 */
+
+  /* Interactive states */
+  --interactive-hover: 241 245 249; /* slate-100 */
+  --interactive-active: 226 232 240; /* slate-200 */
+
+  /* Accent colors (same as dark) */
+  --accent: 59 130 246; /* blue-500 */
+  --accent-hover: 37 99 235; /* blue-600 */
+  --accent-foreground: 255 255 255; /* white */
+
+  /* Status colors (universal) */
+  --status-pass: 34 197 94;
+  --status-fail: 239 68 68;
+  --status-warning: 245 158 11;
+
+  /* Chart chrome colors */
+  --chart-grid: 241 245 249; /* slate-100 */
+  --chart-axis: 100 116 139; /* slate-500 */
+  --chart-tooltip-bg: 255 255 255; /* white */
+  --chart-tooltip-border: 226 232 240; /* slate-200 */
+
+  /* Existing shadcn variables */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 224.3 76.3% 48%;
+
+  color-scheme: light;
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #0f172a;
+  color: rgb(var(--content-primary));
+  background-color: rgb(var(--surface-primary));
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -29,23 +155,23 @@ body {
   width: 100%;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - uses theme variables */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: rgb(var(--surface-primary));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: rgb(var(--edge-primary));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: rgb(var(--edge-secondary));
 }
 
 /* Smooth scrolling for dashboard */
@@ -150,6 +276,38 @@ button:active:not(:disabled),
   animation: slideInFromBottom 0.3s ease-out;
 }
 
+/* Slide in from right animation (for settings panel) */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.25s ease-out;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out;
+}
+
 /* Hide scrollbar while maintaining scroll functionality */
 .scrollbar-hide {
   -ms-overflow-style: none; /* IE and Edge */
@@ -173,10 +331,10 @@ button:active:not(:disabled),
   bottom: calc(100% + 8px);
   transform: translateX(-50%);
   padding: 8px 12px;
-  background-color: #1e293b;
-  border: 1px solid #334155;
+  background-color: rgb(var(--surface-secondary));
+  border: 1px solid rgb(var(--edge-primary));
   border-radius: 8px;
-  color: #e2e8f0;
+  color: rgb(var(--content-primary));
   font-size: 12px;
   line-height: 1.4;
   white-space: normal;
@@ -200,7 +358,7 @@ button:active:not(:disabled),
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: #334155;
+  border-top-color: rgb(var(--edge-primary));
 }
 
 .tooltip-wrapper:hover .tooltip {

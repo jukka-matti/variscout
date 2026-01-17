@@ -251,9 +251,9 @@ const DataTableModal = ({
 
   // Get status color for outcome column
   const getStatusColor = (value: any): string => {
-    if (!outcome) return 'text-slate-400';
+    if (!outcome) return 'text-content-secondary';
     const numValue = parseFloat(value);
-    if (isNaN(numValue)) return 'text-slate-400';
+    if (isNaN(numValue)) return 'text-content-secondary';
 
     const status = getSpecStatus(numValue, specs);
     switch (status) {
@@ -264,7 +264,7 @@ const DataTableModal = ({
       case 'FAIL_LSL':
         return 'text-amber-500';
       default:
-        return 'text-slate-400';
+        return 'text-content-secondary';
     }
   };
 
@@ -272,7 +272,7 @@ const DataTableModal = ({
   const getStatusBadge = (value: any) => {
     if (!outcome) return null;
     const numValue = parseFloat(value);
-    if (isNaN(numValue)) return <span className="text-slate-500 text-xs">-</span>;
+    if (isNaN(numValue)) return <span className="text-content-muted text-xs">-</span>;
 
     const status = getSpecStatus(numValue, specs);
     switch (status) {
@@ -283,19 +283,19 @@ const DataTableModal = ({
       case 'FAIL_LSL':
         return <span className="text-amber-500 text-xs font-medium">LSL</span>;
       default:
-        return <span className="text-slate-500 text-xs">-</span>;
+        return <span className="text-content-muted text-xs">-</span>;
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-surface-secondary border border-edge rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div className="flex items-center justify-between p-6 border-b border-edge">
           <div className="flex items-center gap-3">
             <Table size={20} className="text-blue-400" />
             <h2 className="text-xl font-bold text-white">Data Table</h2>
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-content-secondary">
               {filterExcluded && excludedRowIndices
                 ? `${displayData.length} excluded rows`
                 : `${localData.length} rows`}
@@ -310,7 +310,7 @@ const DataTableModal = ({
                 className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
                   filterExcluded
                     ? 'bg-amber-600 hover:bg-amber-500 text-white'
-                    : 'bg-slate-700 hover:bg-slate-600 text-white'
+                    : 'bg-surface-tertiary hover:bg-surface-elevated text-white'
                 }`}
               >
                 <Filter size={16} />
@@ -319,14 +319,14 @@ const DataTableModal = ({
             )}
             <button
               onClick={addRow}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-tertiary hover:bg-surface-elevated text-white rounded-lg transition-colors"
             >
               <Plus size={16} />
               Add Row
             </button>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors p-1"
+              className="text-content-secondary hover:text-white transition-colors p-1"
             >
               <X size={24} />
             </button>
@@ -336,21 +336,21 @@ const DataTableModal = ({
         {/* Table Body */}
         <div className="flex-1 overflow-auto p-4">
           {localData.length === 0 ? (
-            <div className="flex items-center justify-center h-48 text-slate-500 italic">
+            <div className="flex items-center justify-center h-48 text-content-muted italic">
               No data loaded. Import a file or add rows manually.
             </div>
           ) : (
             <table className="w-full border-collapse text-sm">
-              <thead className="sticky top-0 bg-slate-800 z-10">
+              <thead className="sticky top-0 bg-surface-secondary z-10">
                 <tr>
-                  <th className="px-3 py-2 text-left text-slate-400 font-semibold border-b border-slate-700 w-12">
+                  <th className="px-3 py-2 text-left text-content-secondary font-semibold border-b border-edge w-12">
                     #
                   </th>
                   {columns.map(col => (
                     <th
                       key={col}
-                      className={`px-3 py-2 text-left font-semibold border-b border-slate-700 ${
-                        col === outcome ? 'text-blue-400' : 'text-slate-400'
+                      className={`px-3 py-2 text-left font-semibold border-b border-edge ${
+                        col === outcome ? 'text-blue-400' : 'text-content-secondary'
                       }`}
                     >
                       {col}
@@ -358,11 +358,11 @@ const DataTableModal = ({
                     </th>
                   ))}
                   {outcome && (
-                    <th className="px-3 py-2 text-left text-slate-400 font-semibold border-b border-slate-700 w-16">
+                    <th className="px-3 py-2 text-left text-content-secondary font-semibold border-b border-edge w-16">
                       Status
                     </th>
                   )}
-                  <th className="px-3 py-2 text-center text-slate-400 font-semibold border-b border-slate-700 w-16"></th>
+                  <th className="px-3 py-2 text-center text-content-secondary font-semibold border-b border-edge w-16"></th>
                 </tr>
               </thead>
               <tbody>
@@ -375,7 +375,7 @@ const DataTableModal = ({
                     <tr
                       key={originalIndex}
                       ref={isHighlighted ? highlightRowRef : undefined}
-                      className={`hover:bg-slate-700/30 transition-colors duration-1000 ${
+                      className={`hover:bg-surface-tertiary/30 transition-colors duration-1000 ${
                         isHighlighted
                           ? 'bg-blue-500/30 animate-pulse'
                           : isExcluded
@@ -383,7 +383,7 @@ const DataTableModal = ({
                             : ''
                       }`}
                     >
-                      <td className="px-3 py-1.5 text-slate-500 border-b border-slate-700/50 font-mono text-xs">
+                      <td className="px-3 py-1.5 text-content-muted border-b border-edge/50 font-mono text-xs">
                         <span className="flex items-center gap-1">
                           {originalIndex + 1}
                           {isExcluded && (
@@ -399,8 +399,8 @@ const DataTableModal = ({
                       {columns.map(col => (
                         <td
                           key={col}
-                          className={`px-1 py-0.5 border-b border-slate-700/50 ${
-                            col === outcome ? getStatusColor(row[col]) : 'text-slate-300'
+                          className={`px-1 py-0.5 border-b border-edge/50 ${
+                            col === outcome ? getStatusColor(row[col]) : 'text-content'
                           }`}
                           onClick={() => startEditing(originalIndex, col)}
                         >
@@ -412,21 +412,21 @@ const DataTableModal = ({
                               onChange={e => setEditValue(e.target.value)}
                               onBlur={saveEdit}
                               onKeyDown={handleKeyDown}
-                              className="w-full px-2 py-1 bg-slate-900 border border-blue-500 rounded text-white outline-none"
+                              className="w-full px-2 py-1 bg-surface border border-blue-500 rounded text-white outline-none"
                             />
                           ) : (
-                            <div className="px-2 py-1 cursor-pointer hover:bg-slate-700/50 rounded min-h-[28px]">
+                            <div className="px-2 py-1 cursor-pointer hover:bg-surface-tertiary/50 rounded min-h-[28px]">
                               {row[col] !== '' && row[col] !== undefined ? (
                                 String(row[col])
                               ) : (
-                                <span className="text-slate-600">-</span>
+                                <span className="text-content-muted">-</span>
                               )}
                             </div>
                           )}
                         </td>
                       ))}
                       {outcome && (
-                        <td className="px-3 py-1.5 border-b border-slate-700/50 text-center">
+                        <td className="px-3 py-1.5 border-b border-edge/50 text-center">
                           {isExcluded ? (
                             <span className="text-amber-500 text-xs font-medium">EXCL</span>
                           ) : (
@@ -434,10 +434,10 @@ const DataTableModal = ({
                           )}
                         </td>
                       )}
-                      <td className="px-3 py-1.5 border-b border-slate-700/50 text-center">
+                      <td className="px-3 py-1.5 border-b border-edge/50 text-center">
                         <button
                           onClick={() => deleteRow(originalIndex)}
-                          className="text-slate-500 hover:text-red-400 transition-colors p-1"
+                          className="text-content-muted hover:text-red-400 transition-colors p-1"
                           title="Delete row"
                         >
                           <Trash2 size={14} />
@@ -452,9 +452,9 @@ const DataTableModal = ({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-slate-700 flex justify-between items-center">
+        <div className="p-6 border-t border-edge flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-content-muted">
               Click a cell to edit. Tab/Enter to navigate. Escape to cancel.
             </div>
             {needsPagination && (
@@ -462,28 +462,28 @@ const DataTableModal = ({
                 <button
                   onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
                   disabled={currentPage === 0}
-                  className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1 text-content-secondary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft size={16} />
                 </button>
-                <span className="text-slate-400">
+                <span className="text-content-secondary">
                   Page {currentPage + 1} of {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
                   disabled={currentPage >= totalPages - 1}
-                  className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1 text-content-secondary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ChevronRight size={16} />
                 </button>
-                <span className="text-slate-500 ml-2">({ROWS_PER_PAGE} rows/page)</span>
+                <span className="text-content-muted ml-2">({ROWS_PER_PAGE} rows/page)</span>
               </div>
             )}
           </div>
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors font-medium"
+              className="px-4 py-2 text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors font-medium"
             >
               Cancel
             </button>
@@ -493,7 +493,7 @@ const DataTableModal = ({
               className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors font-bold ${
                 hasChanges
                   ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20'
-                  : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  : 'bg-surface-tertiary text-content-muted cursor-not-allowed'
               }`}
             >
               <Save size={18} />

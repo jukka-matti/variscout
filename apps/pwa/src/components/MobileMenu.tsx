@@ -93,7 +93,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 ${
                   danger
                     ? 'text-red-400 hover:bg-red-400/10 active:bg-red-400/20'
-                    : 'text-slate-300 hover:bg-slate-700/50 active:bg-slate-700'
+                    : 'text-content hover:bg-surface-tertiary/50 active:bg-surface-tertiary'
                 }
                 transition-colors`}
       style={{ minHeight: 48 }}
@@ -104,7 +104,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   );
 
   const SectionHeader = ({ title }: { title: string }) => (
-    <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+    <div className="px-4 py-2 text-xs font-semibold text-content-muted uppercase tracking-wider">
       {title}
     </div>
   );
@@ -117,14 +117,14 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
       {/* Menu */}
       <div
         ref={menuRef}
-        className="fixed right-2 top-14 w-64 max-h-[80vh] bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-y-auto z-50 sm:hidden animate-slide-up"
+        className="fixed right-2 top-14 w-64 max-h-[80vh] bg-surface-secondary border border-edge rounded-xl shadow-2xl overflow-y-auto z-50 sm:hidden animate-slide-up"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
           <span className="text-sm font-semibold text-white">Menu</span>
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-white rounded touch-feedback"
+            className="p-1 text-content-secondary hover:text-white rounded touch-feedback"
           >
             <X size={18} />
           </button>
@@ -145,7 +145,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           />
           <MenuItem icon={<Image size={18} />} label="Export as Image" onClick={onExportImage} />
 
-          <div className="h-px bg-slate-700 my-2" />
+          <div className="h-px bg-surface-tertiary my-2" />
 
           {/* View Section */}
           <SectionHeader title="View" />
@@ -156,7 +156,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
             onClick={onEnterPresentationMode}
           />
 
-          <div className="h-px bg-slate-700 my-2" />
+          <div className="h-px bg-surface-tertiary my-2" />
 
           {/* Analysis Section */}
           <SectionHeader title="Analysis" />
@@ -168,14 +168,14 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
             />
           )}
 
-          <div className="h-px bg-slate-700 my-2" />
+          <div className="h-px bg-surface-tertiary my-2" />
 
           {/* Project Section */}
           <SectionHeader title="Project" />
           <MenuItem icon={<FolderOpen size={18} />} label="Open Project" onClick={onOpenProjects} />
           <MenuItem icon={<Plus size={18} />} label="New Analysis" onClick={onReset} />
 
-          <div className="h-px bg-slate-700 my-2" />
+          <div className="h-px bg-surface-tertiary my-2" />
 
           {/* Settings */}
           <MenuItem icon={<Settings size={18} />} label="Settings" onClick={onOpenSettings} />

@@ -61,6 +61,7 @@ export {
   getBrandingText,
   isITCEdition,
   getSignatureText,
+  isThemingEnabled,
 } from './edition';
 
 // Export utilities

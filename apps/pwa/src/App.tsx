@@ -2,9 +2,10 @@ import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { toPng } from 'html-to-image';
 import { useData } from './context/DataContext';
 import { downloadCSV } from './lib/export';
-import SettingsModal from './components/SettingsModal';
+import SettingsPanel from './components/SettingsPanel';
 import SavedProjectsModal from './components/SavedProjectsModal';
 import DataTableModal from './components/DataTableModal';
+import DataPanel from './components/DataPanel';
 import ColumnMapping from './components/ColumnMapping';
 import Dashboard from './components/Dashboard';
 import HomeScreen from './components/HomeScreen';
@@ -12,8 +13,14 @@ import AppHeader from './components/AppHeader';
 import AppFooter from './components/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
+import { useAutoSave } from './hooks/useAutoSave';
 import { SAMPLES } from './data/sampleData';
 import type { ExclusionReason } from './logic/parser';
+
+type AnalysisView = 'dashboard' | 'regression' | 'gagerr';
+
+// Breakpoint for desktop panel (vs modal on mobile)
+const DESKTOP_BREAKPOINT = 1024;
 
 function App() {
   const {
@@ -45,6 +52,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
   const [isDataTableOpen, setIsDataTableOpen] = useState(false);
+  const [isDataPanelOpen, setIsDataPanelOpen] = useState(false);
   const [highlightRowIndex, setHighlightRowIndex] = useState<number | null>(null);
   const [showExcludedOnly, setShowExcludedOnly] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,8 +60,15 @@ function App() {
   const [saveInputName, setSaveInputName] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
+  const [activeView, setActiveView] = useState<AnalysisView>('dashboard');
   // Trigger for opening spec editor from MobileMenu
   const [openSpecEditorRequested, setOpenSpecEditorRequested] = useState(false);
+  // Track if desktop for panel vs modal
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== 'undefined' && window.innerWidth >= DESKTOP_BREAKPOINT
+  );
+  // Highlighted point from table row click (for bi-directional sync)
+  const [highlightedChartPoint, setHighlightedChartPoint] = useState<number | null>(null);
 
   // Embed mode - hides header/footer for iframe embedding
   const [isEmbedMode, setIsEmbedMode] = useState(false);
@@ -69,6 +84,28 @@ function App() {
   // Embed messaging - handles postMessage communication with parent window
   const { highlightedChart, highlightIntensity, notifyChartClicked } =
     useEmbedMessaging(isEmbedMode);
+
+  // Auto-save hook - saves project after 2s debounce when changes detected
+  const { isSaving: isAutoSaving } = useAutoSave(
+    hasUnsavedChanges,
+    currentProjectName,
+    saveProject,
+    {
+      delay: 2000,
+      enabled: true,
+    }
+  );
+
+  // Combined saving state (manual or auto)
+  const isSavingAny = isSaving || isAutoSaving;
+
+  // Track desktop/mobile for panel behavior
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= DESKTOP_BREAKPOINT);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   // Handle URL parameters on mount (?sample=xxx&embed=true&chart=ichart&tab=histogram)
   useEffect(() => {
@@ -246,8 +283,6 @@ function App() {
     if (success) {
       setIsMapping(true);
     }
-    // Input reset is handled in the UI element by clearing ref or value if needed,
-    // but here we just need to ensuring mapping state
     e.target.value = '';
   };
 
@@ -263,16 +298,45 @@ function App() {
   };
 
   // Open data table with a specific row highlighted (from chart point click)
-  const openDataTableAtRow = useCallback((index: number) => {
-    setHighlightRowIndex(index);
-    setIsDataTableOpen(true);
+  const openDataTableAtRow = useCallback(
+    (index: number) => {
+      setHighlightRowIndex(index);
+      if (isDesktop) {
+        setIsDataPanelOpen(true);
+      } else {
+        setIsDataTableOpen(true);
+      }
+    },
+    [isDesktop]
+  );
+
+  // Handle row click from data panel (bi-directional sync)
+  const handleDataPanelRowClick = useCallback((index: number) => {
+    setHighlightedChartPoint(index);
+    // Clear highlight after animation
+    setTimeout(() => setHighlightedChartPoint(null), 2000);
   }, []);
+
+  // Toggle data panel
+  const handleToggleDataPanel = useCallback(() => {
+    if (isDesktop) {
+      setIsDataPanelOpen(prev => !prev);
+    } else {
+      setIsDataTableOpen(true);
+    }
+  }, [isDesktop]);
 
   // Close data table and clear highlight
   const handleCloseDataTable = useCallback(() => {
     setIsDataTableOpen(false);
     setHighlightRowIndex(null);
     setShowExcludedOnly(false);
+  }, []);
+
+  // Close data panel
+  const handleCloseDataPanel = useCallback(() => {
+    setIsDataPanelOpen(false);
+    setHighlightRowIndex(null);
   }, []);
 
   // Open data table showing only excluded rows (from validation banner)
@@ -299,8 +363,13 @@ function App() {
     setShowResetConfirm(false);
   }, [clearData]);
 
+  // Handle view change from settings
+  const handleViewChange = useCallback((view: AnalysisView) => {
+    setActiveView(view);
+  }, []);
+
   return (
-    <div className="flex flex-col h-screen bg-slate-900 text-slate-200 font-sans selection:bg-blue-500/30">
+    <div className="flex flex-col h-screen bg-surface text-content font-sans selection:bg-blue-500/30">
       {/* Hide header in embed mode */}
       {!isEmbedMode && (
         <AppHeader
@@ -309,11 +378,13 @@ function App() {
           hasData={rawData.length > 0}
           dataFilename={dataFilename}
           rowCount={rawData.length}
-          isSaving={isSaving}
+          isSaving={isSavingAny}
+          isDataPanelOpen={isDataPanelOpen}
           onSaveToBrowser={handleSaveToBrowser}
           onOpenProjects={() => setIsProjectsOpen(true)}
+          onToggleDataPanel={handleToggleDataPanel}
           onOpenDataTable={() => {
-            setHighlightRowIndex(null); // No highlight when opened from header
+            setHighlightRowIndex(null);
             setIsDataTableOpen(true);
           }}
           onDownloadFile={handleDownloadFile}
@@ -329,7 +400,7 @@ function App() {
       {/* Save name input modal */}
       {showSaveInput && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-4 w-full max-w-sm">
+          <div className="bg-surface-secondary border border-edge rounded-xl shadow-xl p-4 w-full max-w-sm">
             <h3 className="text-sm font-semibold text-white mb-3">Save Project</h3>
             <input
               type="text"
@@ -340,13 +411,13 @@ function App() {
                 if (e.key === 'Escape') setShowSaveInput(false);
               }}
               placeholder="Project name"
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 mb-3"
+              className="w-full px-3 py-2 bg-surface border border-edge-secondary rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 mb-3"
               autoFocus
             />
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowSaveInput(false)}
-                className="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -365,13 +436,13 @@ function App() {
       {/* Reset confirmation modal */}
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-4 w-full max-w-sm">
+          <div className="bg-surface-secondary border border-edge rounded-xl shadow-xl p-4 w-full max-w-sm">
             <h3 className="text-sm font-semibold text-white mb-2">Reset Analysis?</h3>
-            <p className="text-xs text-slate-400 mb-4">
+            <p className="text-xs text-content-secondary mb-4">
               {currentProjectName ? (
                 <>
                   All unsaved changes to{' '}
-                  <strong className="text-slate-300">{currentProjectName}</strong> will be lost.
+                  <strong className="text-content">{currentProjectName}</strong> will be lost.
                 </>
               ) : (
                 <>All data will be cleared. This cannot be undone.</>
@@ -380,7 +451,7 @@ function App() {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowResetConfirm(false)}
-                className="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                className="px-3 py-1.5 text-xs font-medium text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -396,48 +467,83 @@ function App() {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden relative">
-        {rawData.length === 0 ? (
-          <HomeScreen
-            onFileUpload={handleFileUpload}
-            onImportFile={handleImportFile}
-            onOpenProjects={() => setIsProjectsOpen(true)}
-            onLoadSample={loadSample}
-          />
-        ) : isMapping ? (
-          <ColumnMapping
-            availableColumns={Object.keys(rawData[0])}
-            initialOutcome={outcome}
-            initialFactors={factors}
-            datasetName={dataFilename || undefined}
-            onConfirm={handleMappingConfirm}
-            onCancel={handleMappingCancel}
-            dataQualityReport={dataQualityReport}
-            onViewExcludedRows={openDataTableExcluded}
-            onViewAllData={openDataTableAll}
-            paretoMode={paretoMode}
-            separateParetoFilename={separateParetoFilename}
-            onParetoFileUpload={handleParetoFileUpload}
-            onClearParetoFile={clearParetoFile}
-          />
-        ) : (
-          <Dashboard
-            onPointClick={openDataTableAtRow}
-            isPresentationMode={isPresentationMode}
-            onExitPresentation={() => setIsPresentationMode(false)}
-            highlightedChart={highlightedChart}
-            highlightIntensity={highlightIntensity}
-            onChartClick={isEmbedMode ? notifyChartClicked : undefined}
-            embedFocusChart={embedFocusChart}
-            embedStatsTab={embedStatsTab}
-            onOpenColumnMapping={() => setIsMapping(true)}
-            openSpecEditorRequested={openSpecEditorRequested}
-            onSpecEditorOpened={() => setOpenSpecEditorRequested(false)}
+      <main className="flex-1 overflow-hidden relative flex">
+        {/* Main content area */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {rawData.length === 0 ? (
+            <HomeScreen
+              onFileUpload={handleFileUpload}
+              onImportFile={handleImportFile}
+              onOpenProjects={() => setIsProjectsOpen(true)}
+              onLoadSample={loadSample}
+            />
+          ) : isMapping ? (
+            <ColumnMapping
+              availableColumns={Object.keys(rawData[0])}
+              initialOutcome={outcome}
+              initialFactors={factors}
+              datasetName={dataFilename || undefined}
+              onConfirm={handleMappingConfirm}
+              onCancel={handleMappingCancel}
+              dataQualityReport={dataQualityReport}
+              onViewExcludedRows={openDataTableExcluded}
+              onViewAllData={openDataTableAll}
+              paretoMode={paretoMode}
+              separateParetoFilename={separateParetoFilename}
+              onParetoFileUpload={handleParetoFileUpload}
+              onClearParetoFile={clearParetoFile}
+            />
+          ) : (
+            <Dashboard
+              onPointClick={openDataTableAtRow}
+              isPresentationMode={isPresentationMode}
+              onExitPresentation={() => setIsPresentationMode(false)}
+              highlightedChart={highlightedChart}
+              highlightIntensity={highlightIntensity}
+              onChartClick={isEmbedMode ? notifyChartClicked : undefined}
+              embedFocusChart={embedFocusChart}
+              embedStatsTab={embedStatsTab}
+              onOpenColumnMapping={() => setIsMapping(true)}
+              openSpecEditorRequested={openSpecEditorRequested}
+              onSpecEditorOpened={() => setOpenSpecEditorRequested(false)}
+              activeView={activeView}
+              highlightedPointIndex={highlightedChartPoint}
+            />
+          )}
+        </div>
+
+        {/* Data Panel (desktop only, when open) */}
+        {isDesktop && rawData.length > 0 && !isMapping && (
+          <DataPanel
+            isOpen={isDataPanelOpen}
+            onClose={handleCloseDataPanel}
+            highlightRowIndex={highlightRowIndex}
+            onRowClick={handleDataPanelRowClick}
+            excludedRowIndices={excludedRowIndices}
+            excludedReasons={excludedReasons}
           />
         )}
       </main>
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      {/* Settings Panel (slide-in from right) */}
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        activeView={activeView}
+        onViewChange={handleViewChange}
+        onOpenProjects={() => {
+          setIsSettingsOpen(false);
+          setIsProjectsOpen(true);
+        }}
+        onNewAnalysis={() => {
+          setIsSettingsOpen(false);
+          handleResetRequest();
+        }}
+        onSaveProject={handleSaveToBrowser}
+        isSaving={isSavingAny}
+        hasUnsavedChanges={hasUnsavedChanges}
+      />
+
       <SavedProjectsModal isOpen={isProjectsOpen} onClose={() => setIsProjectsOpen(false)} />
       <DataTableModal
         isOpen={isDataTableOpen}

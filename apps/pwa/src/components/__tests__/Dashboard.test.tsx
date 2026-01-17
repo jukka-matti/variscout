@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
 import * as DataContextModule from '../../context/DataContext';
 import * as CoreModule from '@variscout/core';
@@ -108,38 +108,33 @@ describe('Dashboard', () => {
     columnAliases: {},
   };
 
-  it('renders Analysis tab by default', () => {
+  it('renders dashboard view by default', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
 
     render(<Dashboard />);
 
-    expect(screen.getByText('Analysis')).toHaveClass('bg-blue-600'); // Active
+    // Dashboard view shows I-Chart, Boxplot, and Stats Panel
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
     expect(screen.getByTestId('stats-panel')).toBeInTheDocument();
   });
 
-  it('switches to Regression tab', () => {
+  it('renders regression view when activeView is regression', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
 
-    render(<Dashboard />);
+    render(<Dashboard activeView="regression" />);
 
-    fireEvent.click(screen.getByText('Regression'));
-
-    expect(screen.getByText('Regression')).toHaveClass('bg-blue-600');
     expect(screen.getByTestId('regression-panel')).toBeInTheDocument();
     expect(screen.queryByTestId('i-chart')).not.toBeInTheDocument();
   });
 
-  it('switches to Gage R&R tab', () => {
+  it('renders gagerr view when activeView is gagerr', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
 
-    render(<Dashboard />);
+    render(<Dashboard activeView="gagerr" />);
 
-    fireEvent.click(screen.getByText('Gage R&R'));
-
-    expect(screen.getByText('Gage R&R')).toHaveClass('bg-blue-600');
     expect(screen.getByTestId('gagerr-panel')).toBeInTheDocument();
+    expect(screen.queryByTestId('i-chart')).not.toBeInTheDocument();
   });
 
   it('renders AnovaResults when ANOVA calculation succeeds', () => {

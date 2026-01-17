@@ -140,7 +140,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
 
   if (!outcome || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-500 italic">
+      <div className="flex items-center justify-center h-full text-content-muted italic">
         No data available for I-Chart
       </div>
     );
@@ -542,44 +542,44 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
       {/* In-Place Scale Editor Popover */}
       {isEditingScale && (
         <div
-          className="absolute z-50 bg-slate-800 border border-slate-600 rounded-lg shadow-xl p-3 flex flex-col gap-3 w-40"
+          className="absolute z-50 bg-surface-secondary border border-edge-secondary rounded-lg shadow-xl p-3 flex flex-col gap-3 w-40"
           style={{ top: margin.top, left: 10 }}
         >
-          <div className="flex justify-between items-center border-b border-slate-700 pb-2">
+          <div className="flex justify-between items-center border-b border-edge pb-2">
             <span className="text-xs font-bold text-white flex items-center gap-1">
               <Edit2 size={12} /> Edit Scale
             </span>
             <button
               onClick={() => setIsEditingScale(false)}
-              className="text-slate-400 hover:text-white"
+              className="text-content-secondary hover:text-white"
             >
               <X size={14} />
             </button>
           </div>
           <div className="space-y-2">
             <div>
-              <label className="text-[10px] text-slate-400 uppercase">Max</label>
+              <label className="text-[10px] text-content-secondary uppercase">Max</label>
               <input
                 type="number"
                 value={tempMax}
                 onChange={e => setTempMax(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white outline-none focus:border-blue-500"
+                className="w-full bg-surface border border-edge rounded px-2 py-1 text-xs text-white outline-none focus:border-blue-500"
               />
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase">Min</label>
+              <label className="text-[10px] text-content-secondary uppercase">Min</label>
               <input
                 type="number"
                 value={tempMin}
                 onChange={e => setTempMin(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white outline-none focus:border-blue-500"
+                className="w-full bg-surface border border-edge rounded px-2 py-1 text-xs text-white outline-none focus:border-blue-500"
               />
             </div>
           </div>
           <div className="flex gap-2 pt-1">
             <button
               onClick={handleResetAxis}
-              className="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-xs py-1 rounded flex justify-center items-center gap-1"
+              className="flex-1 bg-surface-tertiary hover:bg-surface-elevated text-white text-xs py-1 rounded flex justify-center items-center gap-1"
               title="Reset to Auto"
             >
               <RotateCcw size={10} /> Auto

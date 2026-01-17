@@ -78,8 +78,8 @@ const ToolbarDropdown: React.FC<ToolbarDropdownProps> = ({
           flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors
           ${
             isOpen
-              ? 'text-white bg-slate-700'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? 'text-white bg-surface-tertiary'
+              : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
           }
           disabled:opacity-50 disabled:cursor-not-allowed
         `}
@@ -91,10 +91,10 @@ const ToolbarDropdown: React.FC<ToolbarDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 min-w-[200px] bg-slate-800 border border-slate-700 rounded-lg shadow-xl shadow-black/30 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute right-0 top-full mt-1 min-w-[200px] bg-surface-secondary border border-edge rounded-lg shadow-xl shadow-black/30 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
           {items.map((item, index) => (
             <React.Fragment key={item.id}>
-              {item.dividerBefore && index > 0 && <div className="h-px bg-slate-700 my-1" />}
+              {item.dividerBefore && index > 0 && <div className="h-px bg-surface-tertiary my-1" />}
               <button
                 onClick={() => handleItemClick(item)}
                 className={`
@@ -102,7 +102,7 @@ const ToolbarDropdown: React.FC<ToolbarDropdownProps> = ({
                   ${
                     item.isDanger
                       ? 'text-red-400 hover:bg-red-400/10'
-                      : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                      : 'text-content hover:bg-surface-tertiary hover:text-white'
                   }
                 `}
               >
@@ -112,14 +112,14 @@ const ToolbarDropdown: React.FC<ToolbarDropdownProps> = ({
                   <span
                     className={`
                     w-8 h-5 rounded-full transition-colors flex items-center
-                    ${item.isActive ? 'bg-blue-600 justify-end' : 'bg-slate-600 justify-start'}
+                    ${item.isActive ? 'bg-blue-600 justify-end' : 'bg-surface-elevated justify-start'}
                   `}
                   >
                     <span className="w-4 h-4 bg-white rounded-full mx-0.5 shadow" />
                   </span>
                 )}
                 {item.shortcut && !item.isToggle && (
-                  <span className="text-xs text-slate-500 font-mono">{item.shortcut}</span>
+                  <span className="text-xs text-content-muted font-mono">{item.shortcut}</span>
                 )}
               </button>
             </React.Fragment>

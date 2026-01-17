@@ -34,42 +34,46 @@ Specifications (Spec Limits) define what is considered "acceptable" quality. Var
 
 ### Setting Standard Limits (USL/LSL)
 
-1.  Locate the **Stats Panel** (the card with Cp/Cpk stats).
-2.  Click the **"Add Specs"** area at the bottom, or the **Settings Icon** in the panel header.
+1.  In the **I-Chart header**, click the **"Specs"** dropdown button.
+2.  A popover will appear with checkboxes and input fields for each limit.
 3.  Enter your limits:
+    - **USL (Upper Spec Limit)**: Maximum acceptable value.
     - **LSL (Lower Spec Limit)**: Minimum acceptable value.
     - **Target**: Ideal value (optional, drawn in green).
-    - **USL (Upper Spec Limit)**: Maximum acceptable value.
-4.  **Result**:
+4.  Use the checkboxes to toggle visibility of each limit on the chart.
+5.  Click **"Apply Changes"** to update the chart.
+6.  **Result**:
     - Red dotted lines appear on charts (I-Chart & Boxplot).
-    - Cp, Cpk, and Pass/Fail rates are instantly calculated.
+    - Cp, Cpk, and Pass/Fail rates are instantly calculated in the Stats Panel.
     - Histogram updates to show spec boundaries.
 
 ### Multi-Tier Grading
 
 For industries like Coffee or Textiles, simple Pass/Fail isn't enough. You can define multiple grades (e.g., Specialty, Premium, Commercial).
 
-1.  Open the **Spec Editor** (same as above).
-2.  In the "Grades" section, click **"+ Add"**.
-3.  Define a grade:
+1.  In the **I-Chart header**, click the **"Specs"** dropdown.
+2.  Click the **gear icon** in the popover to open the full **Spec Editor** modal.
+3.  In the "Grades" section, click **"+ Add"**.
+4.  Define a grade:
     - **Label**: e.g., "Grade A".
     - **Max**: The upper limit for this grade (inclusive).
     - **Color**: Pick a color for visualization.
-4.  Add as many grades as needed. Ensure they are sorted logic (the editor usually handles sorting by max value).
-5.  **Result**: Charts will show colored background bands corresponding to these grades.
+5.  Add as many grades as needed. Ensure they are sorted logically (the editor usually handles sorting by max value).
+6.  **Result**: Charts will show colored background bands corresponding to these grades.
 
 ---
 
 ## Visualization Options
 
-You can toggle visibility of chart elements in the global **Settings**.
+You can toggle visibility of chart elements and change display settings in the **Settings Panel**.
 
-1.  Click the **Gear Icon** (top right of the header).
-2.  Scroll to **"2. Visualization"**.
-3.  Toggle options:
-    - **Show Cp**: Capability of the process width (ignoring centering).
-    - **Show Cpk**: Capability considering process centering (real-world performance).
-    - **Show Spec Limits**: Toggle the red USL/LSL lines on charts on/off.
+1.  Click the **Settings icon (⚙)** in the top right of the header.
+2.  The Settings Panel will slide in from the right.
+3.  In the **"Display Options"** section, toggle:
+    - **Lock Y-axis when drilling**: Keep the Y-axis scale consistent when filtering data.
+    - **Show data labels**: Display values on chart points.
+    - **Large mode**: Increase UI size by 30% for presentations.
+4.  Spec limit visibility (USL/LSL/Target) is now controlled via the **Specs dropdown** in the I-Chart header.
 
 ---
 
@@ -264,10 +268,12 @@ You can always override these suggestions in the column mapping screen.
 
 - **Keyboard Shortcuts**: Press `Esc` to instantly clear all chart filters.
 - **Reset Scaling**: If you manually zoomed or panned, double-click the chart area or use the "Reset" button in scale settings to fit to data.
-- **Large Mode**: Presenting to a group? Open Settings and toggle "Large Mode" for 30% larger text.
-- **Export Charts**: Click the camera icon to save individual charts as PNG images.
+- **Large Mode**: Presenting to a group? Open Settings (⚙) and toggle "Large Mode" for 30% larger text.
+- **Export Charts**: Use the Share button (↗) to export charts as PNG images.
 - **Linked Filtering**: Click any bar in Pareto or group in Boxplot to filter all charts instantly.
-- **Focus Mode**: Click the square "Make Full Screen" icon to maximize. **Use Arrow Keys (Left/Right)** or on-screen buttons to cycle through charts like a slideshow.
+- **Focus Mode**: Click the fullscreen icon (⛶) to maximize. **Use Arrow Keys (Left/Right)** or on-screen buttons to cycle through charts like a slideshow.
+- **Data Table**: Toggle the Data Panel (📊) to view raw data alongside your charts. Click a row to highlight it in the chart.
+- **Auto-Save**: Your work is automatically saved every 2 seconds. The blue dot (●) next to the project name indicates save status.
 
 ---
 
@@ -316,16 +322,23 @@ A: Yes! After visiting once, the app caches itself for offline use. You can even
 
 A: All data stays in your browser:
 
-- **Auto-save**: localStorage (survives page refresh)
-- **Saved Projects**: IndexedDB (larger storage)
+- **Auto-save**: Changes are automatically saved to IndexedDB every 2 seconds (indicated by the blue dot next to the project name)
+- **Manual save**: Click **"Save Now"** in the Settings Panel for immediate save
+- **Saved Projects**: Stored in IndexedDB (larger storage, persists across sessions)
 - **No cloud**: Nothing is sent to any server
 
 ### Projects & Export
 
 **Q: How do I share my analysis?**
 
-A: Use **File → Export as .vrs** to save a portable JSON file. Others can import it with File → Import.
+A: Click the **Share icon (↗)** in the header to see export options:
+
+- **Export Image (PNG)**: Save charts as images for presentations
+- **Export Data (CSV)**: Download the filtered data as a spreadsheet
+- **Download Project (.vrs)**: Save the complete analysis for sharing
+
+Others can import .vrs files by clicking the **Logo** and selecting **"Open Project"**.
 
 **Q: Can I open .vrs files in Excel?**
 
-A: Not directly. Export your data as CSV instead (File → Export CSV).
+A: Not directly. Use the **Share icon (↗)** and select **"Export Data (CSV)"** to export your data in a format Excel can open.

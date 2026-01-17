@@ -79,3 +79,56 @@ export const operatorColors = [
 // Type exports for type safety
 export type ChartColor = keyof typeof chartColors;
 export type ChromeColor = keyof typeof chromeColors;
+
+// Light theme chrome colors
+const chromeColorsLight = {
+  // Backgrounds
+  tooltipBg: '#ffffff', // white
+  gridLine: '#f1f5f9', // slate-100
+  barBackground: '#e2e8f0', // slate-200
+
+  // Borders
+  tooltipBorder: '#e2e8f0', // slate-200
+
+  // Text/labels
+  labelPrimary: '#334155', // slate-700 - axis labels, tick labels
+  labelSecondary: '#64748b', // slate-500 - secondary text
+  labelMuted: '#94a3b8', // slate-400 - muted text
+  tooltipText: '#0f172a', // slate-900 - tooltip text
+
+  // Strokes/lines
+  axisPrimary: '#64748b', // slate-500 - axis lines
+  axisSecondary: '#94a3b8', // slate-400 - secondary axis
+  whisker: '#64748b', // slate-500 - boxplot whiskers
+  dataLine: '#64748b', // slate-500 - connecting lines
+  stageDivider: '#cbd5e1', // slate-300 - stage separators
+  pointStroke: '#ffffff', // white - data point outlines
+
+  // Fills
+  boxDefault: '#cbd5e1', // slate-300 - boxplot box fill
+  boxBorder: '#94a3b8', // slate-400 - box border
+  ciband: '#3b82f6', // blue-500 - confidence interval (with opacity)
+} as const;
+
+/** Type for chrome colors (values can vary by theme) */
+export type ChromeColorValues = {
+  [K in keyof typeof chromeColors]: string;
+};
+
+/**
+ * Get theme-aware chrome colors
+ * @param isDark - Whether dark theme is active (default: true for backwards compatibility)
+ */
+export function getChromeColors(isDark: boolean = true): ChromeColorValues {
+  return isDark ? chromeColors : chromeColorsLight;
+}
+
+/**
+ * Get theme from document (checks data-theme attribute)
+ * Returns 'dark' if unable to determine
+ */
+export function getDocumentTheme(): 'light' | 'dark' {
+  if (typeof document === 'undefined') return 'dark';
+  const theme = document.documentElement.getAttribute('data-theme');
+  return theme === 'light' ? 'light' : 'dark';
+}

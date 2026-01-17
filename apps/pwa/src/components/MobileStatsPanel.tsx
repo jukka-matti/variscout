@@ -30,7 +30,7 @@ const MobileStatsPanel: React.FC<MobileStatsPanelProps> = ({
   return (
     <div className="flex flex-col h-full p-3 overflow-auto scroll-touch">
       {/* Tab Buttons */}
-      <div className="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700/50 mb-4">
+      <div className="flex bg-surface/50 p-1 rounded-lg border border-edge/50 mb-4">
         {(['summary', 'histogram', 'normality'] as const).map(tab => (
           <button
             key={tab}
@@ -38,8 +38,8 @@ const MobileStatsPanel: React.FC<MobileStatsPanelProps> = ({
             className={`flex-1 px-2 py-2 text-xs font-medium rounded-md transition-all touch-feedback
                             ${
                               activeTab === tab
-                                ? 'bg-slate-700 text-white shadow-sm'
-                                : 'text-slate-400'
+                                ? 'bg-surface-tertiary text-white shadow-sm'
+                                : 'text-content-secondary'
                             }`}
             style={{ minHeight: 44 }}
           >
@@ -58,7 +58,7 @@ const MobileStatsPanel: React.FC<MobileStatsPanelProps> = ({
                 {stats.gradeCounts.map((grade, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-slate-700/50"
+                    className="flex items-center justify-between p-3 rounded-xl bg-surface-secondary/50 border border-edge/50"
                     style={{ minHeight: 56 }}
                   >
                     <div className="flex items-center gap-3">
@@ -66,11 +66,11 @@ const MobileStatsPanel: React.FC<MobileStatsPanelProps> = ({
                         className="w-3 h-3 rounded-full flex-shrink-0"
                         style={{ backgroundColor: grade.color }}
                       />
-                      <span className="text-slate-300 text-sm font-medium">{grade.label}</span>
+                      <span className="text-content text-sm font-medium">{grade.label}</span>
                     </div>
                     <div className="text-right">
                       <span className="text-white font-bold">{grade.percentage.toFixed(1)}%</span>
-                      <span className="text-slate-500 text-xs ml-2">({grade.count})</span>
+                      <span className="text-content-muted text-xs ml-2">({grade.count})</span>
                     </div>
                   </div>
                 ))}
@@ -110,18 +110,18 @@ const MobileStatsPanel: React.FC<MobileStatsPanelProps> = ({
                 />
 
                 {/* Specs Display */}
-                <div className="mt-4 p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                <div className="mt-4 p-4 bg-surface/50 rounded-xl border border-edge/50">
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="text-slate-500 text-xs mb-1">LSL</div>
+                      <div className="text-content-muted text-xs mb-1">LSL</div>
                       <div className="font-mono text-white text-lg">{specs.lsl ?? '-'}</div>
                     </div>
                     <div>
-                      <div className="text-slate-500 text-xs mb-1">Target</div>
+                      <div className="text-content-muted text-xs mb-1">Target</div>
                       <div className="font-mono text-white text-lg">{specs.target ?? '-'}</div>
                     </div>
                     <div>
-                      <div className="text-slate-500 text-xs mb-1">USL</div>
+                      <div className="text-content-muted text-xs mb-1">USL</div>
                       <div className="font-mono text-white text-lg">{specs.usl ?? '-'}</div>
                     </div>
                   </div>
@@ -129,22 +129,22 @@ const MobileStatsPanel: React.FC<MobileStatsPanelProps> = ({
 
                 {/* Additional Stats */}
                 {stats && (
-                  <div className="mt-4 p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                  <div className="mt-4 p-4 bg-surface/50 rounded-xl border border-edge/50">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="text-slate-500 text-xs mb-1">Mean</div>
+                        <div className="text-content-muted text-xs mb-1">Mean</div>
                         <div className="font-mono text-white">{stats.mean.toFixed(2)}</div>
                       </div>
                       <div>
-                        <div className="text-slate-500 text-xs mb-1">Std Dev</div>
+                        <div className="text-content-muted text-xs mb-1">Std Dev</div>
                         <div className="font-mono text-white">{stats.stdDev.toFixed(2)}</div>
                       </div>
                       <div>
-                        <div className="text-slate-500 text-xs mb-1">UCL</div>
+                        <div className="text-content-muted text-xs mb-1">UCL</div>
                         <div className="font-mono text-white">{stats.ucl.toFixed(2)}</div>
                       </div>
                       <div>
-                        <div className="text-slate-500 text-xs mb-1">LCL</div>
+                        <div className="text-content-muted text-xs mb-1">LCL</div>
                         <div className="font-mono text-white">{stats.lcl.toFixed(2)}</div>
                       </div>
                     </div>
@@ -191,12 +191,12 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = ({ icon, label, value, status, highlight }) => (
   <div
     className={`flex items-center justify-between p-4 rounded-xl border
-            ${highlight ? 'bg-slate-800 border-slate-600' : 'bg-slate-800/50 border-slate-700/50'}`}
+            ${highlight ? 'bg-surface-secondary border-edge-secondary' : 'bg-surface-secondary/50 border-edge/50'}`}
     style={{ minHeight: 56 }}
   >
     <div className="flex items-center gap-3">
       {icon}
-      <span className="text-slate-300">{label}</span>
+      <span className="text-content">{label}</span>
     </div>
     <span
       className={`text-xl font-bold
@@ -208,7 +208,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon, label, value, status, highlig
 );
 
 const EmptyState: React.FC<{ message: string }> = ({ message }) => (
-  <div className="flex items-center justify-center h-full text-slate-500 italic">{message}</div>
+  <div className="flex items-center justify-center h-full text-content-muted italic">{message}</div>
 );
 
 export default MobileStatsPanel;

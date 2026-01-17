@@ -29,9 +29,7 @@ const FactorSelector: React.FC<FactorSelectorProps> = ({
   };
 
   return (
-    <div
-      className={`inline-flex bg-slate-900 rounded-lg p-0.5 border border-slate-700 ${className}`}
-    >
+    <div className={`inline-flex bg-surface rounded-lg p-0.5 border border-edge ${className}`}>
       {factors.map(factor => {
         const isSelected = selected === factor;
         const showIndicator = hasActiveFilter && isSelected;
@@ -45,13 +43,13 @@ const FactorSelector: React.FC<FactorSelectorProps> = ({
               ${
                 isSelected
                   ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
               }
             `}
           >
             {factor}
             {showIndicator && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full border border-slate-900" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full border border-surface" />
             )}
           </button>
         );
