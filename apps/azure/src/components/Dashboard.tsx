@@ -179,7 +179,14 @@ const Dashboard = ({ onPointClick }: DashboardProps) => {
         const etaSq = getEtaSquared(currentData, factor, outcome);
         localPct = etaSq * 100;
         cumulative = (cumulative * localPct) / 100;
-        currentData = currentData.filter(row => values.includes(row[factor]));
+        currentData = currentData.filter(row => {
+          const cellValue = row[factor];
+          return (
+            cellValue !== undefined &&
+            cellValue !== null &&
+            values.includes(cellValue as string | number)
+          );
+        });
       }
 
       items.push({
@@ -263,7 +270,7 @@ const Dashboard = ({ onPointClick }: DashboardProps) => {
 
       const currentFilters = filters[factor] || [];
       const newFilterValues = currentFilters.includes(value)
-        ? currentFilters.filter((v: string) => v !== value)
+        ? currentFilters.filter((v: string | number) => v !== value)
         : [...currentFilters, value];
 
       if (newFilterValues.length === 0) {

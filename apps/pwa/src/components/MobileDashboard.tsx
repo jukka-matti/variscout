@@ -32,7 +32,7 @@ interface MobileDashboardProps {
   paretoFactor: string;
   filteredData: any[];
   anovaResult: AnovaResult | null;
-  filters: Record<string, string[]>;
+  filters: Record<string, (string | number)[]>;
   columnAliases?: Record<string, string>;
   onSetBoxplotFactor: (f: string) => void;
   onSetParetoFactor: (f: string) => void;

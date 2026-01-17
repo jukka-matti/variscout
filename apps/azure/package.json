@@ -15,6 +15,7 @@
     "@azure/msal-react": "^1.5.0",
     "@variscout/charts": "workspace:*",
     "@variscout/core": "workspace:*",
+    "@variscout/hooks": "workspace:*",
     "@variscout/ui": "workspace:*",
     "@visx/axis": "^3.5.0",
     "@visx/grid": "^3.5.0",

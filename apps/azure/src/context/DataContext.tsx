@@ -1,469 +1,221 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useMemo,
-  useEffect,
-  useCallback,
-  useRef,
-} from 'react';
+/**
+ * DataContext - Central state management for VariScout Azure App
+ *
+ * Uses the shared useDataState hook from @variscout/hooks for core state management,
+ * while adding Azure-specific cloud sync functionality via useStorage.
+ */
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import {
-  calculateStats,
-  calculateStatsByStage,
-  sortDataByStage,
-  determineStageOrder,
-  type StatsResult,
-  type StageOrderMode,
-  type StagedStatsResult,
-} from '@variscout/core';
-import {
-  autoSave,
-  loadAutoSave,
-  clearAutoSave,
-  saveProjectLocally,
-  loadProjectLocally,
-  listProjectsLocally,
-  deleteProjectLocally,
-  renameProjectLocally,
-  exportToFile,
-  importFromFile,
-  debounce,
-  SavedProject,
-  AnalysisState,
-  DisplayOptions,
-} from '../lib/persistence';
-import { useStorage, type StorageLocation } from '../services/storage';
-import type { DataQualityReport, ParetoRow } from '../logic/parser';
+  useDataState,
+  type DataState,
+  type DataActions,
+  type DisplayOptions,
+  type ParetoMode,
+  type DataQualityReport,
+  type ParetoRow,
+  type SavedProject,
+} from '@variscout/hooks';
+import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
+import { useStorage, type StorageLocation, type SyncStatus } from '../services/storage';
+import type { StatsResult, StagedStatsResult, StageOrderMode } from '@variscout/core';
 
-interface DataContextType {
-  rawData: any[];
-  filteredData: any[];
-  outcome: string | null;
-  factors: string[];
-  timeColumn: string | null;
-  specs: { usl?: number; lsl?: number; target?: number };
-  grades: { max: number; label: string; color: string }[];
-  stats: StatsResult | null;
-  // Stage support for I-Chart with stages
-  stageColumn: string | null;
-  stageOrderMode: StageOrderMode;
-  stagedStats: StagedStatsResult | null;
-  stagedData: any[]; // Data sorted by stage when stageColumn is active
-  filters: Record<string, any[]>;
-  axisSettings: { min?: number; max?: number };
-  columnAliases: Record<string, string>;
-  valueLabels: Record<string, Record<string, string>>;
-  displayOptions: DisplayOptions;
-  currentProjectId: string | null;
-  currentProjectName: string | null;
+// Re-export types for backwards compatibility
+export type { DisplayOptions, ParetoMode, DataQualityReport, ParetoRow, StorageLocation };
+
+/**
+ * Extended DataContext interface for Azure app
+ * Includes cloud sync features beyond the base DataState/DataActions
+ */
+interface DataContextType extends Omit<DataState, 'saveProject' | 'loadProject'> {
+  // All DataState fields are inherited
+
+  // Azure-specific state
   currentProjectLocation: StorageLocation;
-  hasUnsavedChanges: boolean;
-  dataFilename: string | null;
-  // Data quality validation
-  dataQualityReport: DataQualityReport | null;
-  // Separate Pareto data support
-  paretoMode: 'derived' | 'separate';
-  separateParetoData: ParetoRow[] | null;
-  separateParetoFilename: string | null;
-  // Y-axis lock feature
-  fullDataYDomain: { min: number; max: number } | null;
-  yDomainForCharts: { min: number; max: number } | undefined;
-  // Setters
-  setDataFilename: (filename: string | null) => void;
-  setRawData: (data: any[]) => void;
-  setOutcome: (col: string) => void;
-  setFactors: (cols: string[]) => void;
-  setSpecs: (specs: { usl?: number; lsl?: number; target?: number }) => void;
-  setGrades: (grades: { max: number; label: string; color: string }[]) => void;
-  setFilters: (filters: Record<string, any[]>) => void;
-  setAxisSettings: (settings: { min?: number; max?: number }) => void;
-  setColumnAliases: (aliases: Record<string, string>) => void;
-  setValueLabels: (labels: Record<string, Record<string, string>>) => void;
-  setDisplayOptions: (options: DisplayOptions) => void;
-  setDataQualityReport: (report: DataQualityReport | null) => void;
-  setParetoMode: (mode: 'derived' | 'separate') => void;
-  setSeparateParetoData: (data: ParetoRow[] | null) => void;
-  setSeparateParetoFilename: (name: string | null) => void;
-  // Stage setters
-  setStageColumn: (col: string | null) => void;
-  setStageOrderMode: (mode: StageOrderMode) => void;
-  // Persistence methods (local + cloud sync)
+  syncStatus: SyncStatus;
+
+  // All DataActions are inherited except for persistence methods we override
+  setRawData: DataActions['setRawData'];
+  setOutcome: DataActions['setOutcome'];
+  setFactors: DataActions['setFactors'];
+  setTimeColumn: DataActions['setTimeColumn'];
+  setSpecs: DataActions['setSpecs'];
+  setGrades: DataActions['setGrades'];
+  setFilters: DataActions['setFilters'];
+  setAxisSettings: DataActions['setAxisSettings'];
+  setChartTitles: DataActions['setChartTitles'];
+  setColumnAliases: DataActions['setColumnAliases'];
+  setValueLabels: DataActions['setValueLabels'];
+  setDisplayOptions: DataActions['setDisplayOptions'];
+  setDataFilename: DataActions['setDataFilename'];
+  setDataQualityReport: DataActions['setDataQualityReport'];
+  setParetoMode: DataActions['setParetoMode'];
+  setSeparateParetoData: DataActions['setSeparateParetoData'];
+  setSeparateParetoFilename: DataActions['setSeparateParetoFilename'];
+  setStageColumn: DataActions['setStageColumn'];
+  setStageOrderMode: DataActions['setStageOrderMode'];
+
+  // Azure-specific persistence methods (with location support)
   saveProject: (name: string, location?: StorageLocation) => Promise<SavedProject>;
   loadProject: (name: string) => Promise<void>;
   listProjects: () => Promise<SavedProject[]>;
   deleteProject: (name: string) => Promise<void>;
   renameProject: (oldName: string, newName: string) => Promise<void>;
-  exportProject: (filename: string) => void;
-  importProject: (file: File) => Promise<void>;
-  newProject: () => void;
+  exportProject: DataActions['exportProject'];
+  importProject: DataActions['importProject'];
+  newProject: DataActions['newProject'];
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [rawData, setRawData] = useState<any[]>([]);
-  const [outcome, setOutcome] = useState<string | null>(null);
-  const [factors, setFactors] = useState<string[]>([]);
-  const [timeColumn, setTimeColumn] = useState<string | null>(null);
-  const [specs, setSpecs] = useState<{ usl?: number; lsl?: number; target?: number }>({});
-  const [grades, setGrades] = useState<{ max: number; label: string; color: string }[]>([]);
-  const [filters, setFilters] = useState<Record<string, any[]>>({});
-  const [axisSettings, setAxisSettings] = useState<{ min?: number; max?: number }>({});
-  const [columnAliases, setColumnAliases] = useState<Record<string, string>>({});
-  const [valueLabels, setValueLabels] = useState<Record<string, Record<string, string>>>({});
-  const [displayOptions, setDisplayOptions] = useState<DisplayOptions>({
-    showCp: false,
-    showCpk: true,
-    showSpecs: true,
-    lockYAxisToFullData: true, // Default: lock Y-axis for easier comparison
+  // Core state from shared hook
+  const [state, actions] = useDataState({
+    persistence: azurePersistenceAdapter,
+    autoSaveDelay: 1000,
   });
-  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
-  const [currentProjectName, setCurrentProjectName] = useState<string | null>(null);
+
+  // Azure-specific state
   const [currentProjectLocation, setCurrentProjectLocation] = useState<StorageLocation>('team');
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [dataFilename, setDataFilename] = useState<string | null>(null);
-  // Data quality validation
-  const [dataQualityReport, setDataQualityReport] = useState<DataQualityReport | null>(null);
-  // Separate Pareto data support
-  const [paretoMode, setParetoMode] = useState<'derived' | 'separate'>('derived');
-  const [separateParetoData, setSeparateParetoData] = useState<ParetoRow[] | null>(null);
-  const [separateParetoFilename, setSeparateParetoFilename] = useState<string | null>(null);
-  // Stage support for I-Chart with stages
-  const [stageColumn, setStageColumn] = useState<string | null>(null);
-  const [stageOrderMode, setStageOrderMode] = useState<StageOrderMode>('auto');
 
   // Cloud sync hook
   const { saveProject: saveToCloud, syncStatus } = useStorage();
 
-  const isInitialized = useRef(false);
-
-  const filteredData = useMemo(() => {
-    return rawData.filter(row => {
-      return Object.entries(filters).every(([col, values]) => {
-        if (!values || values.length === 0) return true;
-        return values.includes(row[col]);
-      });
-    });
-  }, [rawData, filters]);
-
-  const stats = useMemo(() => {
-    if (!outcome || filteredData.length === 0) return null;
-    const values = filteredData.map(d => Number(d[outcome])).filter(v => !isNaN(v));
-    return calculateStats(values, specs.usl, specs.lsl, grades);
-  }, [filteredData, outcome, specs, grades]);
-
-  // Full dataset Y domain (for Y-axis lock feature)
-  const fullDataYDomain = useMemo(() => {
-    if (!outcome || rawData.length === 0) return null;
-    const values = rawData.map(d => Number(d[outcome])).filter(v => !isNaN(v));
-    if (values.length === 0) return null;
-
-    let minVal = Math.min(...values);
-    let maxVal = Math.max(...values);
-
-    // Include spec limits in domain
-    if (specs.usl !== undefined) maxVal = Math.max(maxVal, specs.usl);
-    if (specs.lsl !== undefined) minVal = Math.min(minVal, specs.lsl);
-
-    // Add 10% padding
-    const padding = (maxVal - minVal) * 0.1 || 1;
-    return { min: minVal - padding, max: maxVal + padding };
-  }, [rawData, outcome, specs]);
-
-  // Y domain to pass to charts (either full data domain or undefined for auto)
-  const yDomainForCharts = useMemo(() => {
-    if (displayOptions.lockYAxisToFullData && fullDataYDomain) {
-      return fullDataYDomain;
-    }
-    return undefined; // Let charts auto-calculate
-  }, [displayOptions.lockYAxisToFullData, fullDataYDomain]);
-
-  // Staged data - sorted by stage when stageColumn is active
-  const stagedData = useMemo(() => {
-    if (!stageColumn || filteredData.length === 0) return filteredData;
-
-    // Get stage values and determine order
-    const stageValues = filteredData.map(row => String(row[stageColumn] ?? ''));
-    const stageOrder = determineStageOrder(stageValues, stageOrderMode);
-
-    // Sort data by stage
-    return sortDataByStage(filteredData, stageColumn, stageOrder);
-  }, [filteredData, stageColumn, stageOrderMode]);
-
-  // Staged stats - calculated separately for each stage
-  const stagedStats = useMemo(() => {
-    if (!stageColumn || !outcome || filteredData.length === 0) return null;
-
-    return calculateStatsByStage(filteredData, outcome, stageColumn, specs, undefined, grades);
-  }, [filteredData, outcome, stageColumn, specs, grades]);
-
-  // Get current state for saving
-  const getCurrentState = useCallback(
-    (): Omit<AnalysisState, 'version'> => ({
-      rawData,
-      outcome,
-      factors,
-      specs,
-      grades,
-      filters,
-      axisSettings,
-      columnAliases,
-      valueLabels,
-      displayOptions,
-    }),
-    [
-      rawData,
-      outcome,
-      factors,
-      specs,
-      grades,
-      filters,
-      axisSettings,
-      columnAliases,
-      valueLabels,
-      displayOptions,
-    ]
-  );
-
-  // Debounced auto-save
-  const debouncedAutoSave = useMemo(
-    () =>
-      debounce((state: Omit<AnalysisState, 'version'>) => {
-        if (state.rawData.length > 0) {
-          autoSave(state);
-        }
-      }, 1000),
-    []
-  );
-
-  // Auto-save on state change
-  useEffect(() => {
-    if (!isInitialized.current) return;
-    if (rawData.length > 0) {
-      setHasUnsavedChanges(true);
-      debouncedAutoSave(getCurrentState());
-    }
-    return () => debouncedAutoSave.cancel();
-  }, [
-    rawData,
-    outcome,
-    factors,
-    specs,
-    grades,
-    filters,
-    axisSettings,
-    columnAliases,
-    valueLabels,
-    displayOptions,
-    getCurrentState,
-    debouncedAutoSave,
-  ]);
-
-  // Restore from auto-save on mount
-  useEffect(() => {
-    const saved = loadAutoSave();
-    if (saved && saved.rawData && saved.rawData.length > 0) {
-      setRawData(saved.rawData);
-      if (saved.outcome) setOutcome(saved.outcome);
-      if (saved.factors) setFactors(saved.factors);
-      if (saved.specs) setSpecs(saved.specs);
-      if (saved.grades) setGrades(saved.grades);
-      if (saved.filters) setFilters(saved.filters);
-      if (saved.axisSettings) setAxisSettings(saved.axisSettings);
-      if (saved.columnAliases) setColumnAliases(saved.columnAliases);
-      if (saved.valueLabels) setValueLabels(saved.valueLabels);
-      if (saved.displayOptions) setDisplayOptions(saved.displayOptions);
-    }
-    isInitialized.current = true;
-  }, []);
-
-  // Save project to local IndexedDB and trigger cloud sync
+  /**
+   * Save project with cloud sync
+   * Saves locally first (instant feedback), then triggers cloud sync
+   */
   const saveProject = useCallback(
     async (name: string, location: StorageLocation = 'team'): Promise<SavedProject> => {
-      // Save locally first (instant feedback)
-      const project = await saveProjectLocally(name, getCurrentState(), location);
-
-      setCurrentProjectId(project.id);
-      setCurrentProjectName(project.name);
+      // Update default location for adapter
+      setDefaultLocation(location);
       setCurrentProjectLocation(location);
-      setHasUnsavedChanges(false);
+
+      // Save locally via the shared hook's persistence adapter
+      const project = await actions.saveProject(name);
 
       // Trigger cloud sync
-      await saveToCloud(getCurrentState(), name, location);
+      await saveToCloud(state, name, location);
 
       return project;
     },
-    [getCurrentState, saveToCloud]
+    [actions, state, saveToCloud]
   );
 
-  // Load project from IndexedDB
-  const loadProject = useCallback(async (name: string): Promise<void> => {
-    const project = await loadProjectLocally(name);
-    if (project) {
-      const { state } = project;
-      setRawData(state.rawData);
-      setOutcome(state.outcome);
-      setFactors(state.factors);
-      setSpecs(state.specs);
-      setGrades(state.grades);
-      setFilters(state.filters);
-      setAxisSettings(state.axisSettings);
-      setColumnAliases(state.columnAliases || {});
-      setValueLabels(state.valueLabels || {});
-      if (state.displayOptions) setDisplayOptions(state.displayOptions);
-      setCurrentProjectId(project.id);
-      setCurrentProjectName(project.name);
-      setCurrentProjectLocation(project.location);
-      setHasUnsavedChanges(false);
-    }
-  }, []);
+  /**
+   * Load project - delegates to shared hook
+   * Note: Azure uses name-based lookups
+   */
+  const loadProject = useCallback(
+    async (name: string): Promise<void> => {
+      await actions.loadProject(name);
+    },
+    [actions]
+  );
 
-  // List all projects
-  const listProjects = useCallback(async (): Promise<SavedProject[]> => {
-    return listProjectsLocally();
-  }, []);
-
-  // Delete project
+  /**
+   * Delete project - delegates to shared hook
+   * Note: Azure uses name-based lookups
+   */
   const deleteProject = useCallback(
     async (name: string): Promise<void> => {
-      await deleteProjectLocally(name);
-      if (currentProjectName === name) {
-        setCurrentProjectId(null);
-        setCurrentProjectName(null);
-      }
+      await actions.deleteProject(name);
     },
-    [currentProjectName]
+    [actions]
   );
 
-  // Rename project
+  /**
+   * Rename project - delegates to shared hook
+   * Note: Azure uses name-based lookups
+   */
   const renameProject = useCallback(
     async (oldName: string, newName: string): Promise<void> => {
-      await renameProjectLocally(oldName, newName);
-      if (currentProjectName === oldName) {
-        setCurrentProjectName(newName);
-      }
+      await actions.renameProject(oldName, newName);
     },
-    [currentProjectName]
+    [actions]
   );
 
-  // Export to file
-  const exportProject = useCallback(
-    (filename: string): void => {
-      exportToFile(getCurrentState(), filename);
-    },
-    [getCurrentState]
-  );
+  // Combine state and actions into context value
+  const value: DataContextType = {
+    // Core state from shared hook
+    rawData: state.rawData,
+    filteredData: state.filteredData,
+    outcome: state.outcome,
+    factors: state.factors,
+    timeColumn: state.timeColumn,
+    specs: state.specs,
+    grades: state.grades,
+    stats: state.stats,
+    stageColumn: state.stageColumn,
+    stageOrderMode: state.stageOrderMode,
+    stagedStats: state.stagedStats,
+    stagedData: state.stagedData,
+    filters: state.filters,
+    axisSettings: state.axisSettings,
+    chartTitles: state.chartTitles,
+    columnAliases: state.columnAliases,
+    valueLabels: state.valueLabels,
+    displayOptions: state.displayOptions,
+    currentProjectId: state.currentProjectId,
+    currentProjectName: state.currentProjectName,
+    hasUnsavedChanges: state.hasUnsavedChanges,
+    dataFilename: state.dataFilename,
+    dataQualityReport: state.dataQualityReport,
+    paretoMode: state.paretoMode,
+    separateParetoData: state.separateParetoData,
+    separateParetoFilename: state.separateParetoFilename,
+    fullDataYDomain: state.fullDataYDomain,
+    yDomainForCharts: state.yDomainForCharts,
 
-  // Import from file
-  const importProject = useCallback(async (file: File): Promise<void> => {
-    const state = await importFromFile(file);
-    setRawData(state.rawData);
-    if (state.outcome) setOutcome(state.outcome);
-    if (state.factors) setFactors(state.factors);
-    if (state.specs) setSpecs(state.specs);
-    if (state.grades) setGrades(state.grades);
-    if (state.filters) setFilters(state.filters);
-    if (state.axisSettings) setAxisSettings(state.axisSettings);
-    if (state.columnAliases) setColumnAliases(state.columnAliases);
-    if (state.valueLabels) setValueLabels(state.valueLabels);
-    if (state.displayOptions) setDisplayOptions(state.displayOptions);
-    setCurrentProjectId(null);
-    setCurrentProjectName(file.name.replace('.vrs', ''));
-    setHasUnsavedChanges(true);
-  }, []);
+    // Azure-specific state
+    currentProjectLocation,
+    syncStatus,
 
-  // New project (clear everything)
-  const newProject = useCallback((): void => {
-    setRawData([]);
-    setDataFilename(null);
-    setOutcome(null);
-    setFactors([]);
-    setSpecs({});
-    setGrades([]);
-    setFilters({});
-    setAxisSettings({});
-    setColumnAliases({});
-    setValueLabels({});
-    setDisplayOptions({ showCp: false, showCpk: true, showSpecs: true });
-    setCurrentProjectId(null);
-    setCurrentProjectName(null);
-    setHasUnsavedChanges(false);
-    // Reset validation and Pareto
-    setDataQualityReport(null);
-    setParetoMode('derived');
-    setSeparateParetoData(null);
-    setSeparateParetoFilename(null);
-    // Reset stage state
-    setStageColumn(null);
-    setStageOrderMode('auto');
-    clearAutoSave();
-  }, []);
+    // Core setters from shared hook
+    setRawData: actions.setRawData,
+    setOutcome: actions.setOutcome,
+    setFactors: actions.setFactors,
+    setTimeColumn: actions.setTimeColumn,
+    setSpecs: actions.setSpecs,
+    setGrades: actions.setGrades,
+    setFilters: actions.setFilters,
+    setAxisSettings: actions.setAxisSettings,
+    setChartTitles: actions.setChartTitles,
+    setColumnAliases: actions.setColumnAliases,
+    setValueLabels: actions.setValueLabels,
+    setDisplayOptions: actions.setDisplayOptions,
+    setDataFilename: actions.setDataFilename,
+    setDataQualityReport: actions.setDataQualityReport,
+    setParetoMode: actions.setParetoMode,
+    setSeparateParetoData: actions.setSeparateParetoData,
+    setSeparateParetoFilename: actions.setSeparateParetoFilename,
+    setStageColumn: actions.setStageColumn,
+    setStageOrderMode: actions.setStageOrderMode,
 
-  return (
-    <DataContext.Provider
-      value={{
-        rawData,
-        filteredData,
-        outcome,
-        factors,
-        timeColumn,
-        specs,
-        grades,
-        stats,
-        stageColumn,
-        stageOrderMode,
-        stagedStats,
-        stagedData,
-        filters,
-        axisSettings,
-        columnAliases,
-        valueLabels,
-        displayOptions,
-        currentProjectId,
-        currentProjectName,
-        currentProjectLocation,
-        hasUnsavedChanges,
-        dataFilename,
-        dataQualityReport,
-        paretoMode,
-        separateParetoData,
-        separateParetoFilename,
-        fullDataYDomain,
-        yDomainForCharts,
-        setDataFilename,
-        setRawData,
-        setOutcome,
-        setFactors,
-        setSpecs,
-        setGrades,
-        setFilters,
-        setAxisSettings,
-        setColumnAliases,
-        setValueLabels,
-        setDisplayOptions,
-        setDataQualityReport,
-        setParetoMode,
-        setSeparateParetoData,
-        setSeparateParetoFilename,
-        setStageColumn,
-        setStageOrderMode,
-        saveProject,
-        loadProject,
-        listProjects,
-        deleteProject,
-        renameProject,
-        exportProject,
-        importProject,
-        newProject,
-      }}
-    >
-      {children}
-    </DataContext.Provider>
-  );
+    // Azure-enhanced persistence methods
+    saveProject,
+    loadProject,
+    listProjects: actions.listProjects,
+    deleteProject,
+    renameProject,
+    exportProject: actions.exportProject,
+    importProject: actions.importProject,
+    newProject: actions.newProject,
+  };
+
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
 
-export const useData = () => {
+/**
+ * Hook to access the DataContext
+ * @throws Error if used outside of DataProvider
+ */
+export const useData = (): DataContextType => {
   const context = useContext(DataContext);
-  if (!context) throw new Error('useData must be used within DataProvider');
+  if (!context) {
+    throw new Error('useData must be used within DataProvider');
+  }
   return context;
 };
+
+// Export additional types for component type annotations
+export type { StatsResult, StagedStatsResult, StageOrderMode, SyncStatus };
