@@ -8,21 +8,22 @@
 
 ## Overview
 
-VariScout uses a yearly subscription model (€49/year + VAT) for both the PWA and Excel Add-in. The system uses Paddle for payment processing with **instant activation** — license is delivered directly to the PWA after checkout, with email as backup.
+VariScout uses a yearly subscription model (€99/year + VAT) with **separate licenses for each product**. The PWA uses Paddle for payment processing, while the Excel Add-in uses Microsoft AppSource for corporate-friendly purchasing. Both support **instant activation** — license is delivered directly to the app after checkout, with email as backup.
 
 ### Key Decisions
 
-| Decision              | Choice                           | Rationale                                  |
-| --------------------- | -------------------------------- | ------------------------------------------ |
-| **Pricing**           | €49/year + VAT                   | Sustainable revenue, accessible to SMEs    |
-| **Payment Processor** | Paddle Billing                   | Merchant of Record handles global VAT/tax  |
-| **License Scope**     | Single license for PWA + Excel   | Simpler user experience                    |
-| **Activation**        | Instant (POST /license/activate) | License returned directly, no email wait   |
-| **Validation**        | Offline-capable (RSA signature)  | Works without internet after activation    |
-| **Email**             | Backup only                      | Sent in background for records/new devices |
-| **Free Trial**        | None (Community edition)         | Community edition serves as trial          |
-| **API Location**      | Cloudflare Workers               | Edge deployment, fast globally             |
-| **Database**          | Cloudflare KV                    | Simple key-value storage, edge-native      |
+| Decision          | Choice                           | Rationale                                   |
+| ----------------- | -------------------------------- | ------------------------------------------- |
+| **Pricing**       | €99/year + VAT (per product)     | Sustainable revenue, premium positioning    |
+| **PWA Billing**   | Paddle Billing                   | Merchant of Record handles global VAT/tax   |
+| **Excel Billing** | Microsoft AppSource              | Corporate-friendly purchasing (procurement) |
+| **License Scope** | Separate licenses per product    | Independent purchase paths, clearer value   |
+| **Activation**    | Instant (POST /license/activate) | License returned directly, no email wait    |
+| **Validation**    | Offline-capable (RSA signature)  | Works without internet after activation     |
+| **Email**         | Backup only                      | Sent in background for records/new devices  |
+| **Free Trial**    | None (Community edition)         | Community edition serves as trial           |
+| **API Location**  | Cloudflare Workers               | Edge deployment, fast globally              |
+| **Database**      | Cloudflare KV                    | Simple key-value storage, edge-native       |
 
 ---
 
@@ -33,52 +34,81 @@ VariScout uses a yearly subscription model (€49/year + VAT) for both the PWA a
 │                         SUBSCRIPTION LICENSING SYSTEM                         │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│  ┌─────────────────┐                    ┌─────────────────────────────────┐  │
-│  │   Paddle.com    │                    │       Vercel Deployment         │  │
-│  │   (Billing)     │                    │                                 │  │
-│  │                 │   Webhooks         │  ┌───────────────────────────┐  │  │
-│  │  • Products     │───────────────────▶│  │   /api/paddle/webhook     │  │  │
-│  │  • Subscriptions│                    │  │   (subscription events)   │  │  │
-│  │  • Checkout     │                    │  └───────────────────────────┘  │  │
-│  │  • VAT handling │                    │             │                   │  │
-│  └─────────────────┘                    │             ▼                   │  │
-│          │                              │  ┌───────────────────────────┐  │  │
-│          │ User checkout                │  │   Vercel KV (Redis)       │  │  │
-│          ▼                              │  │                           │  │  │
-│  ┌─────────────────┐                    │  │  license:VSL-XXXX → {     │  │  │
-│  │   User          │                    │  │    email, status,         │  │  │
-│  │                 │                    │  │    expires_at,            │  │  │
-│  │  • Pays €49/yr  │                    │  │    subscription_id        │  │  │
-│  │  • Gets key     │                    │  │  }                        │  │  │
-│  │  • Enters in app│                    │  └───────────────────────────┘  │  │
-│  └─────────────────┘                    │             │                   │  │
-│          │                              │             │                   │  │
-│          │ Enters license key           │             │                   │  │
-│          ▼                              │             ▼                   │  │
-│  ┌─────────────────────────────────────────────────────────────────────┐  │  │
-│  │                        CLIENT APPLICATIONS                           │  │  │
-│  │                                                                      │  │  │
-│  │  ┌─────────────────────┐      ┌─────────────────────┐               │  │  │
-│  │  │   PWA               │      │   Excel Add-in      │               │  │  │
-│  │  │   (variscout.com)   │      │   (Task Pane)       │               │  │  │
-│  │  │                     │      │                     │               │  │  │
-│  │  │  • Settings UI      │      │  • Settings UI      │               │  │  │
-│  │  │  • License input    │      │  • License input    │               │  │  │
-│  │  │  • Subscribe button │      │  • Subscribe button │               │  │  │
-│  │  └─────────┬───────────┘      └─────────┬───────────┘               │  │  │
-│  │            │                            │                           │  │  │
-│  │            └────────────┬───────────────┘                           │  │  │
-│  │                         │                                           │  │  │
-│  │                         ▼                                           │  │  │
-│  │            ┌─────────────────────────┐                              │  │  │
-│  │            │  @variscout/core        │                              │  │  │
-│  │            │  license.ts             │                              │  │  │
-│  │            │                         │                              │  │  │
-│  │            │  • checkLicense()       │───▶ GET /api/license/validate│  │  │
-│  │            │  • cacheLicenseStatus() │                              │  │  │
-│  │            │  • isValidLicenseFormat()                              │  │  │
-│  │            └─────────────────────────┘                              │  │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │  │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │                        BILLING CHANNELS                                  │ │
+│  │                                                                          │ │
+│  │   ┌─────────────────┐              ┌─────────────────┐                  │ │
+│  │   │   Paddle.com    │              │  MS AppSource   │                  │ │
+│  │   │   (PWA only)    │              │  (Excel only)   │                  │ │
+│  │   │                 │              │                 │                  │ │
+│  │   │  • €99/year     │              │  • €99/year     │                  │ │
+│  │   │  • Individuals  │              │  • Corporate    │                  │ │
+│  │   │  • Small biz    │              │  • Procurement  │                  │ │
+│  │   │  • VAT handling │              │  • Enterprise   │                  │ │
+│  │   └────────┬────────┘              └────────┬────────┘                  │ │
+│  │            │ Webhooks                       │ Events                    │ │
+│  │            ▼                                ▼                           │ │
+│  └─────────────────────────────────────────────────────────────────────────┘ │
+│                                 │                                            │
+│                                 ▼                                            │
+│  ┌─────────────────────────────────────────────────────────────────────────┐ │
+│  │                        VERCEL DEPLOYMENT                                 │ │
+│  │                                                                          │ │
+│  │   ┌───────────────────────────┐    ┌───────────────────────────┐        │ │
+│  │   │   /api/paddle/webhook     │    │  /api/appstore/webhook    │        │ │
+│  │   │   (PWA subscriptions)     │    │  (Excel subscriptions)    │        │ │
+│  │   └─────────────┬─────────────┘    └─────────────┬─────────────┘        │ │
+│  │                 │                                │                      │ │
+│  │                 └────────────┬───────────────────┘                      │ │
+│  │                              ▼                                          │ │
+│  │                 ┌───────────────────────────┐                           │ │
+│  │                 │   Vercel KV (Redis)       │                           │ │
+│  │                 │                           │                           │ │
+│  │                 │  license:VSL-XXXX → {     │                           │ │
+│  │                 │    email, status,         │                           │ │
+│  │                 │    expires_at, product,   │                           │ │
+│  │                 │    source: paddle|appstore│                           │ │
+│  │                 │  }                        │                           │ │
+│  │                 └───────────────────────────┘                           │ │
+│  └─────────────────────────────────────────────────────────────────────────┘ │
+│                                 │                                            │
+│  ┌─────────────────┐            │            ┌─────────────────┐            │
+│  │   User (PWA)    │            │            │  User (Excel)   │            │
+│  │                 │            │            │                 │            │
+│  │  • Pays €99/yr  │            │            │  • Pays €99/yr  │            │
+│  │    via Paddle   │            │            │    via AppSource│            │
+│  │  • Gets PWA key │            │            │  • Gets Excel key│           │
+│  └────────┬────────┘            │            └────────┬────────┘            │
+│           │                     │                     │                     │
+│           │ Enters license key  │                     │ Enters license key  │
+│           ▼                     ▼                     ▼                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                        CLIENT APPLICATIONS                           │   │
+│  │                                                                      │   │
+│  │  ┌─────────────────────┐      ┌─────────────────────┐               │   │
+│  │  │   PWA               │      │   Excel Add-in      │               │   │
+│  │  │   (variscout.com)   │      │   (Task Pane)       │               │   │
+│  │  │                     │      │                     │               │   │
+│  │  │  • Settings UI      │      │  • Settings UI      │               │   │
+│  │  │  • License input    │      │  • License input    │               │   │
+│  │  │  • Subscribe (Paddle)      │  • Subscribe (AppSource)            │   │
+│  │  └─────────┬───────────┘      └─────────┬───────────┘               │   │
+│  │            │                            │                           │   │
+│  │            └────────────┬───────────────┘                           │   │
+│  │                         │                                           │   │
+│  │                         ▼                                           │   │
+│  │            ┌─────────────────────────┐                              │   │
+│  │            │  @variscout/core        │                              │   │
+│  │            │  license.ts             │                              │   │
+│  │            │                         │                              │   │
+│  │            │  • checkLicense()       │───▶ GET /api/license/validate│   │
+│  │            │  • cacheLicenseStatus() │                              │   │
+│  │            │  • isValidLicenseFormat()                              │   │
+│  │            └─────────────────────────┘                              │   │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  Note: PWA and Excel licenses are product-specific. Users need separate     │
+│  licenses if they want to use both products.                                │
 │                                                                              │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -87,13 +117,15 @@ VariScout uses a yearly subscription model (€49/year + VAT) for both the PWA a
 
 ## Edition System
 
-VariScout has three editions determined by build-time configuration and runtime license validation:
+VariScout has four editions determined by build-time configuration and runtime license validation:
 
-| Edition       | Price    | Branding                     | How Activated                  |
-| ------------- | -------- | ---------------------------- | ------------------------------ |
-| **Community** | Free     | "VariScout Lite" footer      | Default                        |
-| **ITC**       | Free     | "International Trade Centre" | Build-time: `VITE_EDITION=itc` |
-| **Licensed**  | €49/year | No branding                  | Valid subscription license key |
+| Edition               | Price    | Platform | Branding                     | How Activated                     |
+| --------------------- | -------- | -------- | ---------------------------- | --------------------------------- |
+| **Community**         | Free     | PWA      | "VariScout Lite" footer      | Default                           |
+| **Community (Excel)** | Free     | Excel    | "VariScout Lite" footer      | Default                           |
+| **ITC**               | Free     | PWA      | "International Trade Centre" | Build-time: `VITE_EDITION=itc`    |
+| **Licensed (PWA)**    | €99/year | PWA      | No branding                  | Valid license key (via Paddle)    |
+| **Licensed (Excel)**  | €99/year | Excel    | No branding                  | Valid license key (via AppSource) |
 
 ### Edition Flow
 
@@ -127,6 +159,55 @@ VariScout has three editions determined by build-time configuration and runtime 
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Billing Channels
+
+VariScout uses a hybrid billing model with different payment processors for each product:
+
+### PWA — Paddle Billing
+
+| Aspect              | Details                                    |
+| ------------------- | ------------------------------------------ |
+| **Price**           | €99/year + VAT                             |
+| **Target Users**    | Individuals, consultants, small businesses |
+| **Payment Methods** | Credit card, PayPal, Apple Pay, Google Pay |
+| **VAT Handling**    | Automatic (Paddle is Merchant of Record)   |
+| **Checkout**        | In-app overlay (Paddle.js)                 |
+| **License Scope**   | PWA only (variscout.com)                   |
+
+### Excel Add-in — Microsoft AppSource
+
+| Aspect              | Details                                   |
+| ------------------- | ----------------------------------------- |
+| **Price**           | €99/year + VAT                            |
+| **Target Users**    | Corporate users, enterprise procurement   |
+| **Payment Methods** | Microsoft billing (invoicing, PO support) |
+| **VAT Handling**    | Microsoft handles VAT/tax                 |
+| **Checkout**        | AppSource purchase flow                   |
+| **License Scope**   | Excel Add-in only                         |
+
+### Azure Team App — Enterprise Licensing
+
+| Aspect            | Details                                    |
+| ----------------- | ------------------------------------------ |
+| **Pricing**       | Contact for enterprise pricing             |
+| **Target Users**  | Teams, departments, organizations          |
+| **Features**      | OneDrive sync, SSO, centralized management |
+| **License Scope** | Azure app with team features               |
+
+### Why Separate Licenses?
+
+| Benefit                     | Explanation                                    |
+| --------------------------- | ---------------------------------------------- |
+| **Clear value per product** | Users pay for what they use                    |
+| **Corporate purchasing**    | Excel via AppSource fits procurement workflows |
+| **Individual purchasing**   | PWA via Paddle is simpler for consultants      |
+| **Independent updates**     | Each product can evolve on its own schedule    |
+| **Simpler support**         | License issues are product-specific            |
+
+**Note:** Users who want both PWA and Excel need to purchase separate licenses (€99/year each = €198/year total). There is no bundle discount at this time.
 
 ---
 
@@ -504,8 +585,8 @@ const LICENSE_CACHE = 'variscout_license_cache'; // Cached validation result
 │  ┌──────────────────────────────────────┐                               │
 │  │  Settings → License → "Subscribe"    │                               │
 │  │                                       │                               │
-│  │  Shows: €49/year + VAT               │                               │
-│  │  Button: [Subscribe with Paddle]     │                               │
+│  │  Shows: €99/year + VAT               │                               │
+│  │  Button: [Subscribe with Paddle]     │  (PWA)                        │
 │  └──────────────────────────────────────┘                               │
 │       │                                                                  │
 │       │ User clicks Subscribe                                            │
@@ -571,12 +652,13 @@ const LICENSE_CACHE = 'variscout_license_cache'; // Cached validation result
 │  │  ┌─────────────────────────────────────────────────────────────┐   │ │
 │  │  │  Upgrade to remove branding                                  │   │ │
 │  │  │                                                              │   │ │
-│  │  │  €49/year + VAT                                              │   │ │
+│  │  │  €99/year + VAT                                              │   │ │
 │  │  │  • Remove chart branding                                     │   │ │
 │  │  │  • Support development                                       │   │ │
-│  │  │  • Works on PWA + Excel Add-in                               │   │ │
+│  │  │  • License for this app only                                 │   │ │
 │  │  │                                                              │   │ │
-│  │  │  [Subscribe with Paddle]                                     │   │ │
+│  │  │  [Subscribe with Paddle]  (PWA)                              │   │ │
+│  │  │  [Get on AppSource]       (Excel)                            │   │ │
 │  │  └─────────────────────────────────────────────────────────────┘   │ │
 │  │                                                                     │ │
 │  │  Already have a license?                                           │ │
@@ -613,17 +695,20 @@ const LICENSE_CACHE = 'variscout_license_cache'; // Cached validation result
 
 ---
 
-## Paddle Configuration
+## Paddle Configuration (PWA Only)
+
+Paddle is used for PWA billing only. Excel Add-in uses Microsoft AppSource (see separate documentation).
 
 ### Product Setup
 
 | Setting           | Value                           |
 | ----------------- | ------------------------------- |
-| **Product Name**  | VariScout Pro                   |
-| **Price**         | €49/year                        |
+| **Product Name**  | VariScout Pro (PWA)             |
+| **Price**         | €99/year                        |
 | **Billing Cycle** | Annual                          |
 | **Currency**      | EUR (with regional equivalents) |
 | **Tax Category**  | Software                        |
+| **Scope**         | PWA only (not Excel Add-in)     |
 
 ### Webhook Configuration
 
