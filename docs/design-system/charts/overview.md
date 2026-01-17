@@ -147,6 +147,64 @@ Users can open the SpecEditor from multiple entry points:
 
 The MobileMenu "Edit Specification Limits" option ensures mobile users have clear access to spec editing since the I-Chart header buttons may be less discoverable on small screens.
 
+### Y-Axis Scale Editing
+
+Users can click the Y-axis tick area to open a popover for manual scale adjustment. This allows focusing on specific data ranges or ensuring consistent scales across analyses.
+
+**Entry Point:**
+
+The I-Chart includes an invisible clickable rectangle over the Y-axis tick area:
+
+```tsx
+{
+  onYAxisClick && (
+    <rect
+      x={0}
+      y={margin.top}
+      width={margin.left}
+      height={height - margin.top - margin.bottom}
+      fill="transparent"
+      style={{ cursor: 'pointer' }}
+      onClick={e => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        onYAxisClick({ top: e.clientY - rect.top, left: margin.left });
+      }}
+    />
+  );
+}
+```
+
+**YAxisPopover Component:**
+
+The popover provides min/max inputs with validation. See [YAxisPopover documentation](../components/popovers.md#yaxispopover) for full details.
+
+```tsx
+<YAxisPopover
+  isOpen={yAxisPopoverOpen}
+  onClose={() => setYAxisPopoverOpen(false)}
+  currentMin={yAxisSettings.min}
+  currentMax={yAxisSettings.max}
+  autoMin={dataMin}
+  autoMax={dataMax}
+  onSave={setYAxisSettings}
+  anchorPosition={popoverPosition}
+/>
+```
+
+**Behavior:**
+
+| Setting       | Y-Scale Behavior                        |
+| ------------- | --------------------------------------- |
+| Both empty    | Auto-scale from data (default)          |
+| Min only      | Fixed minimum, auto maximum             |
+| Max only      | Auto minimum, fixed maximum             |
+| Both set      | Fixed range (validation: min < max)     |
+| Reset to Auto | Clears overrides, returns to auto-scale |
+
+**Visual Indicator:**
+
+When custom scale is active, the chart shows a visual cue (implementation-specific) to indicate non-default scaling.
+
 ### Tooltips
 
 Use Visx `useTooltip` with consistent styling:

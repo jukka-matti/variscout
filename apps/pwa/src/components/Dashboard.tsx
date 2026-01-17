@@ -12,6 +12,7 @@ import DrillBreadcrumb from './DrillBreadcrumb';
 import FactorSelector from './FactorSelector';
 import SpecEditor from './SpecEditor';
 import SpecsPopover from './SpecsPopover';
+import EditableChartTitle from './EditableChartTitle';
 import { useData } from '../context/DataContext';
 import { calculateAnova, type AnovaResult, getNextDrillFactor } from '@variscout/core';
 import useVariationTracking from '../hooks/useVariationTracking';
@@ -92,6 +93,8 @@ const Dashboard = ({
     stageOrderMode,
     setStageOrderMode,
     stagedStats,
+    chartTitles,
+    setChartTitles,
   } = useData();
 
   // Drill-down navigation with browser history and URL sync
@@ -594,7 +597,11 @@ const Dashboard = ({
                   <div className="flex items-center gap-4">
                     <h2 className="text-xl font-bold flex items-center gap-2 text-white">
                       <Activity className="text-blue-400" />
-                      I-Chart:
+                      <EditableChartTitle
+                        defaultTitle={`I-Chart: ${outcome}`}
+                        value={chartTitles.ichart || ''}
+                        onChange={title => setChartTitles({ ...chartTitles, ichart: title })}
+                      />
                     </h2>
                     <select
                       value={outcome}
@@ -740,7 +747,11 @@ const Dashboard = ({
                   >
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                        Boxplot
+                        <EditableChartTitle
+                          defaultTitle={`Boxplot: ${boxplotFactor}`}
+                          value={chartTitles.boxplot || ''}
+                          onChange={title => setChartTitles({ ...chartTitles, boxplot: title })}
+                        />
                       </h3>
                       <div className="flex items-center gap-2">
                         <FactorSelector
@@ -794,7 +805,11 @@ const Dashboard = ({
                     >
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                          Pareto
+                          <EditableChartTitle
+                            defaultTitle={`Pareto: ${paretoFactor}`}
+                            value={chartTitles.pareto || ''}
+                            onChange={title => setChartTitles({ ...chartTitles, pareto: title })}
+                          />
                         </h3>
                         <div className="flex items-center gap-2">
                           <FactorSelector

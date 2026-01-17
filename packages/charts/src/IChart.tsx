@@ -8,9 +8,10 @@ import { withParentSize } from '@visx/responsive';
 import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { getStageBoundaries, type StatsResult } from '@variscout/core';
 import type { IChartProps, StageBoundary } from './types';
-import { getResponsiveMargins, getResponsiveFonts, getResponsiveTickCount } from './responsive';
-import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import { getResponsiveTickCount } from './responsive';
+import ChartSourceBar from './ChartSourceBar';
 import { chartColors, chromeColors } from './colors';
+import { useChartLayout } from './hooks';
 
 /**
  * I-Chart (Individual Control Chart) - Props-based version
@@ -33,9 +34,17 @@ const IChartBase: React.FC<IChartProps> = ({
   sampleSize,
   showLimitLabels = true,
   onSpecClick,
+  onYAxisClick,
 }) => {
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
     useTooltip<{ x: number; y: number; index: number; stage?: string }>();
+
+  const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
+    parentWidth,
+    parentHeight,
+    chartType: 'ichart',
+    showBranding,
+  });
 
   // Calculate stage boundaries when staged mode is active
   const stageBoundaries = useMemo<StageBoundary[]>(() => {
@@ -44,13 +53,6 @@ const IChartBase: React.FC<IChartProps> = ({
   }, [data, stagedStats]);
 
   const isStaged = stageBoundaries.length > 0;
-
-  const sourceBarHeight = getSourceBarHeight(showBranding);
-  const margin = getResponsiveMargins(parentWidth, 'ichart', sourceBarHeight);
-  const fonts = getResponsiveFonts(parentWidth);
-
-  const width = Math.max(0, parentWidth - margin.left - margin.right);
-  const height = Math.max(0, parentHeight - margin.top - margin.bottom);
 
   // Determine Y domain
   const yDomain = useMemo(() => {
@@ -446,6 +448,22 @@ const IChartBase: React.FC<IChartProps> = ({
           >
             {yAxisLabel}
           </text>
+
+          {/* Clickable Y-axis area for editing scale */}
+          {onYAxisClick && (
+            <rect
+              x={-margin.left + 10}
+              y={0}
+              width={margin.left - 20}
+              height={height}
+              fill="transparent"
+              style={{ cursor: 'pointer' }}
+              className="hover:fill-blue-500/10 transition-colors"
+              onClick={onYAxisClick}
+            >
+              <title>Click to edit Y-axis scale</title>
+            </rect>
+          )}
 
           <AxisBottom
             top={height}

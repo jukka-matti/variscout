@@ -241,7 +241,7 @@ export interface ProbabilityPlotProps extends BaseChartProps {
   /** Optional custom margin override */
   marginOverride?: { top: number; right: number; bottom: number; left: number };
   /** Optional custom font sizes override */
-  fontsOverride?: { tickLabel: number; axisLabel: number };
+  fontsOverride?: ChartFonts;
   /** Optional signature element to render */
   signatureElement?: React.ReactNode;
 }

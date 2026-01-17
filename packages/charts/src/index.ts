@@ -25,6 +25,7 @@ export type {
   ChartSourceBarProps,
   ChartMargins,
   ChartFonts,
+  YAxisDomain,
 } from './types';
 
 export type { ScatterPlotProps } from './ScatterPlot';
@@ -58,6 +59,30 @@ export {
   getBreakpoints,
   type ChartType,
 } from './responsive';
+
+// Layout hook
+export { useChartLayout, type UseChartLayoutOptions, type ChartLayout } from './hooks';
+
+// Shared components
+export { ChartTooltip, getTooltipStyle, type ChartTooltipProps } from './components/ChartTooltip';
+
+export {
+  getYAxisTickLabelProps,
+  getXAxisTickLabelProps,
+  getTickLabelProps,
+  getAxisLabelProps,
+  getYAxisLabelX,
+  getAxisLabelOffset,
+  type TickLabelStyle,
+} from './components/ChartAxis';
+
+export {
+  SpecLimitLine,
+  VerticalSpecLimitLine,
+  type SpecLimitLineProps,
+  type VerticalSpecLimitLineProps,
+  type LimitType,
+} from './components/SpecLimitLine';
 
 // Chart components
 export { default as IChart, IChartBase } from './IChart';

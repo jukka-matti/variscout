@@ -50,6 +50,8 @@ interface DataContextType {
   stagedData: any[]; // Data sorted by stage when stageColumn is active
   filters: Record<string, any[]>;
   axisSettings: { min?: number; max?: number };
+  // Custom chart titles (for reporting/export)
+  chartTitles: { ichart?: string; boxplot?: string; pareto?: string };
   columnAliases: Record<string, string>;
   valueLabels: Record<string, Record<string, string>>;
   displayOptions: DisplayOptions;
@@ -75,6 +77,7 @@ interface DataContextType {
   setGrades: (grades: { max: number; label: string; color: string }[]) => void;
   setFilters: (filters: Record<string, any[]>) => void;
   setAxisSettings: (settings: { min?: number; max?: number }) => void;
+  setChartTitles: (titles: { ichart?: string; boxplot?: string; pareto?: string }) => void;
   setColumnAliases: (aliases: Record<string, string>) => void;
   setValueLabels: (labels: Record<string, Record<string, string>>) => void;
   setDisplayOptions: (options: DisplayOptions) => void;
@@ -107,6 +110,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [grades, setGrades] = useState<{ max: number; label: string; color: string }[]>([]);
   const [filters, setFilters] = useState<Record<string, any[]>>({});
   const [axisSettings, setAxisSettings] = useState<{ min?: number; max?: number }>({});
+  const [chartTitles, setChartTitles] = useState<{
+    ichart?: string;
+    boxplot?: string;
+    pareto?: string;
+  }>({});
   const [columnAliases, setColumnAliases] = useState<Record<string, string>>({});
   const [valueLabels, setValueLabels] = useState<Record<string, Record<string, string>>>({});
   const [displayOptions, setDisplayOptions] = useState<DisplayOptions>({
@@ -402,6 +410,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stagedData,
         filters,
         axisSettings,
+        chartTitles,
         columnAliases,
         valueLabels,
         displayOptions,
@@ -423,6 +432,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setGrades,
         setFilters,
         setAxisSettings,
+        setChartTitles,
         setColumnAliases,
         setValueLabels,
         setDisplayOptions,

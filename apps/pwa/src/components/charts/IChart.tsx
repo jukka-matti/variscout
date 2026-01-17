@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Group } from '@visx/group';
 import { LinePath, Circle, Line } from '@visx/shape';
 import { scaleLinear, scaleTime } from '@visx/scale';
@@ -12,8 +12,9 @@ import {
   useResponsiveChartFonts,
   useResponsiveTickCount,
 } from '../../hooks/useResponsiveChartMargins';
-import { Edit2, RotateCcw, Check, X } from 'lucide-react';
+import { Edit2 } from 'lucide-react';
 import AxisEditor from '../AxisEditor';
+import YAxisPopover from '../YAxisPopover';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import ChartSignature from './ChartSignature';
 import { getStageBoundaries, type StageBoundary } from '@variscout/core';
@@ -48,8 +49,6 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
   } = useData();
   const [isEditingScale, setIsEditingScale] = useState(false);
   const [isEditingLabel, setIsEditingLabel] = useState(false);
-  const [tempMin, setTempMin] = useState<string>('');
-  const [tempMax, setTempMax] = useState<string>('');
 
   const width = Math.max(0, parentWidth - margin.left - margin.right);
   const height = Math.max(0, parentHeight - margin.top - margin.bottom);
@@ -107,27 +106,6 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
       nice: true,
     });
   }, [height, min, max]);
-
-  // Initialize temp values when entering edit mode
-  useEffect(() => {
-    if (isEditingScale) {
-      setTempMin(axisSettings.min !== undefined ? axisSettings.min.toString() : min.toFixed(2));
-      setTempMax(axisSettings.max !== undefined ? axisSettings.max.toString() : max.toFixed(2));
-    }
-  }, [isEditingScale, axisSettings, min, max]);
-
-  const handleSaveAxis = () => {
-    setAxisSettings({
-      min: tempMin ? parseFloat(tempMin) : undefined,
-      max: tempMax ? parseFloat(tempMax) : undefined,
-    });
-    setIsEditingScale(false);
-  };
-
-  const handleResetAxis = () => {
-    setAxisSettings({});
-    setIsEditingScale(false);
-  };
 
   const handleSaveAlias = (newAlias: string) => {
     if (outcome) {
@@ -591,60 +569,17 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
         </Group>
       </svg>
 
-      {/* In-Place Scale Editor Popover */}
-      {isEditingScale && (
-        <div
-          className="absolute z-50 bg-surface-secondary border border-edge-secondary rounded-lg shadow-xl p-3 flex flex-col gap-3 w-40"
-          style={{ top: margin.top, left: 10 }}
-        >
-          <div className="flex justify-between items-center border-b border-edge pb-2">
-            <span className="text-xs font-bold text-white flex items-center gap-1">
-              <Edit2 size={12} /> Edit Scale
-            </span>
-            <button
-              onClick={() => setIsEditingScale(false)}
-              className="text-content-secondary hover:text-white"
-            >
-              <X size={14} />
-            </button>
-          </div>
-          <div className="space-y-2">
-            <div>
-              <label className="text-[10px] text-content-secondary uppercase">Max</label>
-              <input
-                type="number"
-                value={tempMax}
-                onChange={e => setTempMax(e.target.value)}
-                className="w-full bg-surface border border-edge rounded px-2 py-1 text-xs text-white outline-none focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] text-content-secondary uppercase">Min</label>
-              <input
-                type="number"
-                value={tempMin}
-                onChange={e => setTempMin(e.target.value)}
-                className="w-full bg-surface border border-edge rounded px-2 py-1 text-xs text-white outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={handleResetAxis}
-              className="flex-1 bg-surface-tertiary hover:bg-surface-elevated text-white text-xs py-1 rounded flex justify-center items-center gap-1"
-              title="Reset to Auto"
-            >
-              <RotateCcw size={10} /> Auto
-            </button>
-            <button
-              onClick={handleSaveAxis}
-              className="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded flex justify-center items-center gap-1"
-            >
-              <Check size={10} /> Set
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Y-Axis Scale Editor Popover */}
+      <YAxisPopover
+        isOpen={isEditingScale}
+        onClose={() => setIsEditingScale(false)}
+        currentMin={axisSettings.min}
+        currentMax={axisSettings.max}
+        autoMin={min}
+        autoMax={max}
+        onSave={setAxisSettings}
+        anchorPosition={{ top: margin.top, left: 10 }}
+      />
 
       {/* In-Place Label Editor Popover */}
       {isEditingLabel && (
