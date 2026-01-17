@@ -1,21 +1,12 @@
 {
   "name": "@variscout/ui",
   "version": "1.0.0",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "type": "module",
+  "main": "./src/index.ts",
   "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
+    ".": "./src/index.ts",
     "./tailwind.config": "./tailwind.config.cjs"
   },
-  "files": [
-    "dist",
-    "tailwind.config.cjs"
-  ],
   "scripts": {
     "build": "tsc && vite build",
     "lint": "eslint src"
