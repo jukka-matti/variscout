@@ -4,12 +4,11 @@
 
 ```
 packages/
-├── core/      # @variscout/core - Pure logic (no React)
+├── core/      # @variscout/core - Pure logic, glossary (no React)
 ├── charts/    # @variscout/charts - React + Visx components
 ├── data/      # @variscout/data - Sample datasets with pre-computed chart data
 ├── hooks/     # @variscout/hooks - Shared React hooks (drill-down, scale, tracking)
-├── analysis/  # @variscout/analysis - Analysis algorithms (deferred integration)
-└── ui/        # @variscout/ui - Shared UI utilities, colors, and hooks
+└── ui/        # @variscout/ui - HelpTooltip, useGlossary, colors, hooks
 
 apps/
 ├── pwa/          # @variscout/pwa - PWA website
@@ -21,11 +20,10 @@ apps/
 
 - Apps import from packages: `import { calculateStats } from '@variscout/core'`
 - Packages never import from apps
-- `@variscout/core` has no React dependencies
+- `@variscout/core` has no React dependencies (exports stats, parser, glossary)
 - `@variscout/charts` depends on `@variscout/core`
 - `@variscout/hooks` depends on `@variscout/core` (for types and utilities)
-- `@variscout/ui` exports responsive hooks (`useMediaQuery`, `useIsMobile`)
-- `@variscout/analysis` contains pure analysis algorithms (deferred integration)
+- `@variscout/ui` exports `HelpTooltip`, `useGlossary`, `useIsMobile`, `gradeColors`, `errorService`
 
 ## Build Commands
 

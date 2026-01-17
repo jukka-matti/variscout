@@ -1,0 +1,216 @@
+/**
+ * HelpTooltip component styles
+ *
+ * Uses CSS custom properties for theming, with fallbacks for non-themed contexts.
+ * Variables expected from the app's CSS:
+ * - --surface-secondary: Background color for tooltip
+ * - --edge-primary: Border color
+ * - --content-primary: Text color
+ * - --content-muted: Secondary text color
+ * - --help-link-color: "Learn more" link color (defaults to accent)
+ */
+
+/* ===== Wrapper ===== */
+.help-tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+}
+
+.help-tooltip-wrapper:focus {
+  outline: none;
+}
+
+.help-tooltip-wrapper:focus-visible {
+  outline: 2px solid rgb(var(--accent, 59 130 246));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== Icon ===== */
+.help-tooltip-icon {
+  color: rgb(var(--content-muted, 148 163 184));
+  transition: color 0.15s ease;
+}
+
+.help-tooltip-wrapper:hover .help-tooltip-icon,
+.help-tooltip-wrapper:focus .help-tooltip-icon {
+  color: rgb(var(--content-primary, 241 245 249));
+}
+
+/* ===== Tooltip Container ===== */
+.help-tooltip {
+  position: absolute;
+  padding: 10px 14px;
+  background-color: rgb(var(--surface-secondary, 30 41 59));
+  border: 1px solid rgb(var(--edge-primary, 71 85 105));
+  border-radius: 8px;
+  color: rgb(var(--content-primary, 241 245 249));
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: normal;
+  width: max-content;
+  max-width: 260px;
+  text-align: left;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.15s ease-out,
+    visibility 0.15s ease-out;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.help-tooltip--visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* ===== Position Variants ===== */
+
+/* Top (default) */
+.help-tooltip--top {
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
+}
+
+.help-tooltip--top .help-tooltip__arrow {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgb(var(--edge-primary, 71 85 105));
+}
+
+.help-tooltip--top .help-tooltip__arrow::after {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: -5px;
+  border: 5px solid transparent;
+  border-top-color: rgb(var(--surface-secondary, 30 41 59));
+}
+
+/* Bottom */
+.help-tooltip--bottom {
+  left: 50%;
+  top: calc(100% + 10px);
+  transform: translateX(-50%);
+}
+
+.help-tooltip--bottom .help-tooltip__arrow {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: rgb(var(--edge-primary, 71 85 105));
+}
+
+.help-tooltip--bottom .help-tooltip__arrow::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: -5px;
+  border: 5px solid transparent;
+  border-bottom-color: rgb(var(--surface-secondary, 30 41 59));
+}
+
+/* Left */
+.help-tooltip--left {
+  top: 50%;
+  right: calc(100% + 10px);
+  transform: translateY(-50%);
+}
+
+.help-tooltip--left .help-tooltip__arrow {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-left-color: rgb(var(--edge-primary, 71 85 105));
+}
+
+.help-tooltip--left .help-tooltip__arrow::after {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: -5px;
+  border: 5px solid transparent;
+  border-left-color: rgb(var(--surface-secondary, 30 41 59));
+}
+
+/* Right */
+.help-tooltip--right {
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%);
+}
+
+.help-tooltip--right .help-tooltip__arrow {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: rgb(var(--edge-primary, 71 85 105));
+}
+
+.help-tooltip--right .help-tooltip__arrow::after {
+  content: '';
+  position: absolute;
+  right: -7px;
+  top: -5px;
+  border: 5px solid transparent;
+  border-right-color: rgb(var(--surface-secondary, 30 41 59));
+}
+
+/* ===== Content ===== */
+.help-tooltip__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.help-tooltip__label {
+  font-weight: 600;
+  font-size: 13px;
+  color: rgb(var(--content-primary, 241 245 249));
+}
+
+.help-tooltip__definition {
+  margin: 0;
+  color: rgb(var(--content-secondary, 203 213 225));
+  font-size: 12px;
+}
+
+/* ===== Learn More Link ===== */
+.help-tooltip__link {
+  display: inline-block;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgb(var(--edge-primary, 71 85 105) / 0.5);
+  color: rgb(var(--help-link-color, var(--accent, 59 130 246)));
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.help-tooltip__link:hover,
+.help-tooltip__link:focus {
+  color: rgb(var(--help-link-color, var(--accent, 59 130 246)) / 0.8);
+  text-decoration: underline;
+}
+
+.help-tooltip__link:focus-visible {
+  outline: 2px solid rgb(var(--accent, 59 130 246));
+  outline-offset: 2px;
+  border-radius: 2px;
+}

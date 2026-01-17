@@ -27,7 +27,6 @@ variscout-lite/
 │   ├── charts/        # @variscout/charts - Visx chart components
 │   ├── data/          # @variscout/data - Sample datasets with pre-computed chart data
 │   ├── hooks/         # @variscout/hooks - Shared React hooks (drill-down, scale, tracking)
-│   ├── analysis/      # @variscout/analysis - Analysis algorithms (deferred integration)
 │   └── ui/            # @variscout/ui - Shared UI utilities, colors, and hooks
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite)
@@ -79,8 +78,13 @@ variscout-lite/
 | `packages/charts/src/colors.ts`                     | Chart color constants (chartColors, chromeColors)         |
 | `packages/data/src/`                                | Sample datasets with pre-computed stats and chart data    |
 | `packages/data/src/samples/`                        | Individual sample files (coffee, journey, bottleneck)     |
-| `packages/ui/src/colors.ts`                         | Shared UI colors (statusColors, gradeColors)              |
-| `packages/ui/src/hooks/useMediaQuery.ts`            | Responsive hooks (useMediaQuery, useIsMobile)             |
+| `packages/ui/src/colors.ts`                         | Shared UI colors (gradeColors)                            |
+| `packages/ui/src/hooks/useMediaQuery.ts`            | Responsive hooks (useIsMobile)                            |
+| `packages/ui/src/components/HelpTooltip/`           | Help tooltip component with CSS theming and "Learn more"  |
+| `packages/ui/src/hooks/useGlossary.ts`              | Hook for accessing glossary terms and definitions         |
+| `packages/core/src/glossary/types.ts`               | Glossary term type definitions (GlossaryTerm, etc.)       |
+| `packages/core/src/glossary/terms.ts`               | Glossary content (~20 terms for capability, statistics)   |
+| `apps/excel-addin/src/components/HelpTooltip.tsx`   | Fluent UI variant of HelpTooltip for Excel Add-in         |
 | `packages/hooks/src/useChartScale.ts`               | Chart Y-axis scale calculation                            |
 | `packages/hooks/src/useDrillDown.ts`                | Drill-down navigation with breadcrumb trail               |
 | `packages/hooks/src/useVariationTracking.ts`        | Cumulative variation tracking (η²)                        |

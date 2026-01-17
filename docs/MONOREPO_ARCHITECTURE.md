@@ -13,14 +13,12 @@ variscout-lite/
 │   ├── charts/        # @variscout/charts - Props-based Visx chart components
 │   ├── data/          # @variscout/data - Sample datasets with pre-computed chart data
 │   ├── hooks/         # @variscout/hooks - Shared React hooks (drill-down, scale, tracking)
-│   ├── analysis/      # @variscout/analysis - Analysis algorithms (deferred integration)
 │   └── ui/            # @variscout/ui - Shared UI utilities, colors, and hooks
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite + PWA)
 │   ├── excel-addin/   # Excel Add-in (Office.js + React + Fluent UI)
 │   ├── website/       # Marketing website (Astro + React Islands)
-│   ├── azure/         # Azure Team App (SharePoint, SSO)
-│   └── powerbi-visuals/ # FUTURE: Power BI custom visuals
+│   └── azure/         # Azure Team App (SharePoint, SSO)
 └── docs/
     ├── concepts/      # Strategic product decisions
     ├── design-system/ # Design tokens, components, charts
@@ -49,6 +47,7 @@ Pure TypeScript logic with no React dependencies. Can be used by any JavaScript/
 - `stats.ts` - Statistical calculations (mean, stdDev, Cp, Cpk, calculateConformance, groupDataByFactor, getEtaSquared)
 - `parser.ts` - CSV/Excel file parsing
 - `navigation.ts` - Drill-down navigation types and utilities (DrillAction, BreadcrumbItem, thresholds)
+- `glossary/` - Glossary system (`glossaryTerms`, `getTerm`, `getTermsByCategory`, `hasTerm`)
 - `variation.ts` - Cumulative variation tracking (calculateDrillVariation, calculateFactorVariations, shouldHighlightDrill)
 - `license.ts` - License key validation (offline, checksum-based)
 - `export.ts` - CSV export utilities
@@ -140,24 +139,20 @@ const sample = getSample('coffee');
 
 ### @variscout/ui (`packages/ui/`)
 
-Shared UI utilities and color constants for consistent styling across apps.
+Shared UI utilities, components, and services for consistent behavior across apps.
 
 **Contents:**
 
-- `colors.ts` - Semantic color constants (statusColors, gradeColors)
-- `lib/utils.ts` - Utility functions (`cn` for className merging)
-- `components/ui/button.tsx` - Shared Button component
-- `hooks/useMediaQuery.ts` - Responsive hooks (`useMediaQuery`, `useIsMobile`)
+- `colors.ts` - Semantic color constants (gradeColors for coffee grading, etc.)
+- `components/HelpTooltip/` - Help tooltip component with CSS theming and "Learn more" links
+- `services/errorService.ts` - Centralized error logging and user notifications
+- `hooks/useMediaQuery.ts` - Responsive hooks (`useIsMobile`)
+- `hooks/useGlossary.ts` - Hook for accessing glossary terms and definitions
 
 **Color Exports:**
 
 ```typescript
-import { statusColors, gradeColors } from '@variscout/ui';
-
-// Status indicators
-statusColors.pass; // #22c55e - within spec
-statusColors.fail; // #ef4444 - above USL
-statusColors.warning; // #f59e0b - below LSL
+import { gradeColors } from '@variscout/ui';
 
 // Grade tiers (coffee grading, etc.)
 gradeColors.specialty; // #22c55e
@@ -170,10 +165,37 @@ gradeColors.default; // #cccccc
 **Hook Exports:**
 
 ```typescript
-import { useMediaQuery, useIsMobile } from '@variscout/ui';
+import { useIsMobile, useGlossary } from '@variscout/ui';
 
 const isMobile = useIsMobile(); // true when < 640px
-const isTablet = useMediaQuery('(max-width: 1024px)');
+
+// Glossary access
+const { getTerm, hasTerm } = useGlossary();
+const cpkTerm = getTerm('cpk'); // Returns GlossaryTerm or undefined
+```
+
+**Component Exports:**
+
+```typescript
+import { HelpTooltip } from '@variscout/ui';
+
+// Tooltips with glossary integration
+<HelpTooltip term="cpk">Cpk</HelpTooltip>
+```
+
+**Error Service:**
+
+```typescript
+import { errorService } from '@variscout/ui';
+
+// Log errors with context
+errorService.logError(error, { component: 'Dashboard', action: 'loadData' });
+
+// Show user-facing messages (requires notification handler setup)
+errorService.showUserError('Failed to load project');
+
+// Get error log for debugging
+const log = errorService.getErrorLog();
 ```
 
 ### @variscout/hooks (`packages/hooks/`)
@@ -182,15 +204,28 @@ Shared React hooks for cross-platform functionality. Extracted from PWA for reus
 
 **Contents:**
 
-| Hook                        | Purpose                                             |
+| Hook/Utility                | Purpose                                             |
 | --------------------------- | --------------------------------------------------- |
+| `useDataState`              | Core data state management (used by PWA/Azure)      |
 | `useChartScale`             | Calculate Y-axis range from data, specs, and grades |
 | `useDrillDown`              | Drill-down navigation with breadcrumb trail         |
 | `useVariationTracking`      | Cumulative η² variation tracking through drill path |
 | `useKeyboardNavigation`     | Arrow key navigation and focus management           |
 | `useResponsiveChartMargins` | Dynamic chart margins based on container width      |
 
-**Usage:**
+**Data State Hook (shared DataContext logic):**
+
+```typescript
+import { useDataState } from '@variscout/hooks';
+
+// In DataProvider
+const [state, actions] = useDataState({
+  persistence: persistenceAdapter,
+  autoSaveDelay: 1000,
+});
+```
+
+**Chart Hooks:**
 
 ```typescript
 import { useDrillDown, useChartScale, useVariationTracking } from '@variscout/hooks';
@@ -199,12 +234,6 @@ const { drillStack, breadcrumbs, drillDown, drillUp } = useDrillDown();
 const { min, max } = useChartScale();
 const { cumulativeVariation, currentSuggestions } = useVariationTracking();
 ```
-
-### @variscout/analysis (`packages/analysis/`)
-
-Analysis algorithms package (deferred integration). Contains pure TypeScript analysis functions that may be integrated into apps in future iterations.
-
-**Status:** Created but not yet integrated into apps.
 
 ### @variscout/pwa (`apps/pwa/`)
 
