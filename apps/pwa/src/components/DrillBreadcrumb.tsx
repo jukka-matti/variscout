@@ -131,7 +131,7 @@ const DrillBreadcrumb: React.FC<DrillBreadcrumbProps> = ({
   return (
     <div className="flex flex-col bg-surface/50 border-b border-edge">
       {/* Main breadcrumb row */}
-      <div className="flex items-center gap-1 px-4 sm:px-6 py-2 overflow-x-auto scrollbar-hide">
+      <div className="flex items-center gap-1 px-4 sm:px-6 py-1 overflow-x-auto scrollbar-hide">
         {/* Breadcrumb trail */}
         <nav
           className="flex items-center gap-1 flex-nowrap min-w-0"

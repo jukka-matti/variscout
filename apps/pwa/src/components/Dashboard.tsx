@@ -485,9 +485,9 @@ const Dashboard = ({
                 id="ichart-card"
                 data-chart-id="ichart"
                 onClick={() => handleChartWrapperClick('ichart')}
-                className={`min-h-[400px] bg-surface-secondary border border-edge p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col transition-all ${getHighlightClass('ichart')}`}
+                className={`min-h-[400px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 flex flex-col transition-all ${getHighlightClass('ichart')}`}
               >
-                <div className="flex justify-between items-center mb-4 gap-4">
+                <div className="flex justify-between items-center mb-2 gap-4">
                   {/* Left: Editable Title */}
                   <h2 className="text-xl font-bold flex items-center gap-2 text-white">
                     <Activity className="text-blue-400" />
@@ -605,9 +605,9 @@ const Dashboard = ({
                     id="boxplot-card"
                     data-chart-id="boxplot"
                     onClick={() => handleChartWrapperClick('boxplot')}
-                    className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('boxplot')}`}
+                    className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('boxplot')}`}
                   >
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-2">
                       <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
                         <EditableChartTitle
                           defaultTitle={`Boxplot: ${boxplotFactor}`}
@@ -663,9 +663,9 @@ const Dashboard = ({
                       id="pareto-card"
                       data-chart-id="pareto"
                       onClick={() => handleChartWrapperClick('pareto')}
-                      className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('pareto')}`}
+                      className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('pareto')}`}
                     >
-                      <div className="flex justify-between items-center mb-4">
+                      <div className="flex justify-between items-center mb-2">
                         <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
                           <EditableChartTitle
                             defaultTitle={`Pareto: ${paretoFactor}`}
