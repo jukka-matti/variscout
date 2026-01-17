@@ -106,6 +106,8 @@ describe('Dashboard', () => {
     setOutcome: vi.fn(),
     filters: {},
     columnAliases: {},
+    chartTitles: { ichart: '', boxplot: '', pareto: '', histogram: '', scatter: '' },
+    setChartTitles: vi.fn(),
   };
 
   it('renders dashboard view by default', () => {

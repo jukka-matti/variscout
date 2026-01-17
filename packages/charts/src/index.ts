@@ -94,3 +94,9 @@ export { default as ScatterPlot, ScatterPlotBase } from './ScatterPlot';
 export { default as GageRRChart, GageRRChartBase } from './GageRRChart';
 export { default as InteractionPlot, InteractionPlotBase } from './InteractionPlot';
 export { default as ChartSourceBar, getSourceBarHeight } from './ChartSourceBar';
+
+// UI Components
+export {
+  default as EditableChartTitle,
+  type EditableChartTitleProps,
+} from './components/EditableChartTitle';

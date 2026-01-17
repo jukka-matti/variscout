@@ -9,9 +9,9 @@ import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import type { RegressionResult } from '@variscout/core';
 import type { BaseChartProps, SpecLimits } from './types';
-import { getResponsiveMargins, getResponsiveFonts } from './responsive';
-import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import ChartSourceBar from './ChartSourceBar';
 import { chartColors, chromeColors } from './colors';
+import { useChartLayout } from './hooks';
 
 interface TooltipData {
   x: number;
@@ -82,15 +82,15 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
   brandingText,
   onClick,
 }) => {
-  const sourceBarHeight = getSourceBarHeight(showBranding);
-  const margin = getResponsiveMargins(parentWidth, 'scatter', sourceBarHeight);
-  const fonts = getResponsiveFonts(parentWidth);
+  const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
+    parentWidth,
+    parentHeight,
+    chartType: 'scatter',
+    showBranding,
+  });
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
     useTooltip<TooltipData>();
-
-  const width = Math.max(0, parentWidth - margin.left - margin.right);
-  const height = Math.max(0, parentHeight - margin.top - margin.bottom);
 
   const { points, linear, quadratic, recommendedFit, strengthRating } = regression;
 

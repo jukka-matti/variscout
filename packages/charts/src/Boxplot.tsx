@@ -5,9 +5,9 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { withParentSize } from '@visx/responsive';
 import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import type { BoxplotProps, BoxplotGroupData } from './types';
-import { getResponsiveMargins, getResponsiveFonts } from './responsive';
-import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import ChartSourceBar from './ChartSourceBar';
 import { chartColors, chromeColors } from './colors';
+import { useChartLayout } from './hooks';
 
 /** Default threshold for high variation highlight (50%) */
 const DEFAULT_VARIATION_THRESHOLD = 50;
@@ -34,15 +34,16 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
 }) => {
   // Determine if this factor should be highlighted as a drill target
   const isHighVariation = variationPct !== undefined && variationPct >= variationThreshold;
-  const sourceBarHeight = getSourceBarHeight(showBranding);
-  const margin = getResponsiveMargins(parentWidth, 'boxplot', sourceBarHeight);
-  const fonts = getResponsiveFonts(parentWidth);
+
+  const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
+    parentWidth,
+    parentHeight,
+    chartType: 'boxplot',
+    showBranding,
+  });
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
     useTooltip<BoxplotGroupData>();
-
-  const width = Math.max(0, parentWidth - margin.left - margin.right);
-  const height = Math.max(0, parentHeight - margin.top - margin.bottom);
 
   // Calculate Y domain from data
   const yDomain = useMemo(() => {

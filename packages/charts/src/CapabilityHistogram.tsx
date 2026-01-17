@@ -6,9 +6,9 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { withParentSize } from '@visx/responsive';
 import { bin } from 'd3';
 import type { CapabilityHistogramProps } from './types';
-import { getResponsiveMargins, getResponsiveFonts } from './responsive';
-import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import ChartSourceBar from './ChartSourceBar';
 import { chartColors, chromeColors } from './colors';
+import { useChartLayout } from './hooks';
 
 /**
  * Capability Histogram - Props-based version
@@ -24,12 +24,12 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
   showBranding = true,
   brandingText,
 }) => {
-  const sourceBarHeight = getSourceBarHeight(showBranding);
-  const margin = getResponsiveMargins(parentWidth, 'histogram', sourceBarHeight);
-  const fonts = getResponsiveFonts(parentWidth);
-
-  const width = Math.max(0, parentWidth - margin.left - margin.right);
-  const height = Math.max(0, parentHeight - margin.top - margin.bottom);
+  const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
+    parentWidth,
+    parentHeight,
+    chartType: 'histogram',
+    showBranding,
+  });
 
   const bins = useMemo(() => {
     if (data.length === 0) return [];

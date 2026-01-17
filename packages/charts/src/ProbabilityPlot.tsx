@@ -7,9 +7,9 @@ import { withParentSize } from '@visx/responsive';
 import { GridRows } from '@visx/grid';
 import { calculateProbabilityPlotData, normalQuantile } from '@variscout/core';
 import type { ProbabilityPlotProps } from './types';
-import { getResponsiveMargins, getResponsiveFonts } from './responsive';
-import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import ChartSourceBar from './ChartSourceBar';
 import { chartColors, chromeColors } from './colors';
+import { useChartLayout } from './hooks';
 
 /**
  * Standard percentile tick values for probability plots
@@ -70,13 +70,14 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
   fontsOverride,
   signatureElement,
 }) => {
-  const sourceBarHeight = getSourceBarHeight(showBranding);
-  const margin =
-    marginOverride ?? getResponsiveMargins(parentWidth, 'probability', sourceBarHeight);
-  const fonts = fontsOverride ?? getResponsiveFonts(parentWidth);
-
-  const width = Math.max(0, parentWidth - margin.left - margin.right);
-  const height = Math.max(0, parentHeight - margin.top - margin.bottom);
+  const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
+    parentWidth,
+    parentHeight,
+    chartType: 'probability',
+    showBranding,
+    marginOverride,
+    fontsOverride,
+  });
 
   // Calculate plot data for data points
   const plotData = useMemo(() => calculateProbabilityPlotData(data), [data]);
@@ -159,8 +160,8 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
           x={parentWidth / 2}
           y={parentHeight / 2}
           textAnchor="middle"
-          fill="#64748b"
-          fontSize={12}
+          fill={chromeColors.labelSecondary}
+          fontSize={fonts.statLabel}
           fontStyle="italic"
         >
           No data available for probability plot

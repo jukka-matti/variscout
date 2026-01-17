@@ -7,9 +7,9 @@ import { GridRows } from '@visx/grid';
 import { withParentSize } from '@visx/responsive';
 import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import type { ParetoChartProps, ParetoDataPoint } from './types';
-import { getResponsiveMargins, getResponsiveFonts } from './responsive';
-import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import ChartSourceBar from './ChartSourceBar';
 import { chartColors, chromeColors } from './colors';
+import { useChartLayout } from './hooks';
 
 /**
  * Pareto Chart - Props-based version
@@ -27,15 +27,15 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
   brandingText,
   onBarClick,
 }) => {
-  const sourceBarHeight = getSourceBarHeight(showBranding);
-  const margin = getResponsiveMargins(parentWidth, 'pareto', sourceBarHeight);
-  const fonts = getResponsiveFonts(parentWidth);
+  const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
+    parentWidth,
+    parentHeight,
+    chartType: 'pareto',
+    showBranding,
+  });
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
     useTooltip<ParetoDataPoint>();
-
-  const width = Math.max(0, parentWidth - margin.left - margin.right);
-  const height = Math.max(0, parentHeight - margin.top - margin.bottom);
 
   const xScale = scaleBand({
     range: [0, width],

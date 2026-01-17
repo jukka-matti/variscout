@@ -8,9 +8,9 @@ import { withParentSize } from '@visx/responsive';
 import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import type { GageRRInteraction } from '@variscout/core';
-import { getResponsiveFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import { chromeColors, operatorColors } from './colors';
+import { useChartLayout } from './hooks';
 
 export interface InteractionPlotProps {
   /** Interaction data from Gage R&R result */
@@ -36,20 +36,25 @@ const InteractionPlotBase: React.FC<InteractionPlotProps> = ({
   showBranding = true,
   brandingText,
 }) => {
-  const sourceBarHeight = getSourceBarHeight(showBranding);
-  const margin = useMemo(
+  // InteractionPlot uses custom margins (different from responsive margins)
+  const customSourceBarHeight = getSourceBarHeight(showBranding);
+  const customMargin = useMemo(
     () => ({
       top: 30,
       right: 100, // Legend space
-      bottom: 50 + sourceBarHeight,
+      bottom: 50 + customSourceBarHeight,
       left: 60,
     }),
-    [sourceBarHeight]
+    [customSourceBarHeight]
   );
-  const fonts = getResponsiveFonts(parentWidth);
 
-  const width = Math.max(0, parentWidth - margin.left - margin.right);
-  const height = Math.max(0, parentHeight - margin.top - margin.bottom);
+  const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
+    parentWidth,
+    parentHeight,
+    chartType: 'scatter', // closest match for base calculations
+    showBranding,
+    marginOverride: customMargin,
+  });
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
     useTooltip<GageRRInteraction>();

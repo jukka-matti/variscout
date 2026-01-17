@@ -6,9 +6,9 @@ import { Bar } from '@visx/shape';
 import { withParentSize } from '@visx/responsive';
 import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
-import { getResponsiveFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import { chartColors, chromeColors } from './colors';
+import { useChartLayout } from './hooks';
 
 export interface GageRRChartProps {
   /** % contribution from Part-to-Part */
@@ -50,23 +50,29 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
   brandingText,
 }) => {
   void _pctGRR; // pctGRR is passed for API consistency but not displayed (it's the sum of repeatability + reproducibility)
-  const sourceBarHeight = getSourceBarHeight(showBranding);
-  const margin = useMemo(
+
+  // GageRRChart uses custom margins (different from responsive margins)
+  const customSourceBarHeight = getSourceBarHeight(showBranding);
+  const customMargin = useMemo(
     () => ({
       top: 20,
       right: 60, // Space for percentage labels
-      bottom: 30 + sourceBarHeight,
+      bottom: 30 + customSourceBarHeight,
       left: 100, // Space for category labels
     }),
-    [sourceBarHeight]
+    [customSourceBarHeight]
   );
-  const fonts = getResponsiveFonts(parentWidth);
+
+  const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
+    parentWidth,
+    parentHeight,
+    chartType: 'histogram', // closest match for base calculations
+    showBranding,
+    marginOverride: customMargin,
+  });
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
     useTooltip<BarData>();
-
-  const width = Math.max(0, parentWidth - margin.left - margin.right);
-  const height = Math.max(0, parentHeight - margin.top - margin.bottom);
 
   // Data for horizontal bars
   const barData: BarData[] = useMemo(
@@ -253,7 +259,7 @@ const GageRRChartBase: React.FC<GageRRChartProps> = ({
           <div style={{ marginBottom: 4 }}>
             <strong>{tooltipData.value.toFixed(1)}%</strong> of total variation
           </div>
-          <div style={{ fontSize: fonts.tooltipText - 1, color: chromeColors.labelSecondary }}>
+          <div style={{ fontSize: fonts.tooltipText, color: chromeColors.labelSecondary }}>
             {tooltipData.description}
           </div>
         </TooltipWithBounds>
