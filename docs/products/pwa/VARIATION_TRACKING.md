@@ -105,6 +105,164 @@ When a boxplot category explains > 50% of variation:
 
 ---
 
+## Visual Variation Display
+
+### Stacked Variation Bar
+
+The breadcrumb now includes a visual progress bar below the navigation trail that provides immediate visual feedback about how much variation has been isolated.
+
+```
+🏠 All Data → Shift (67%) → Machine C (89%)
+[██████████░░░░░░░░░░] 60% isolated | 40% unexplained
+```
+
+**Design:**
+
+- Two-segment horizontal bar (8px height)
+- Left segment (colored): isolated variation percentage
+- Right segment (gray): remaining unexplained variation
+- Labels below bar show percentages
+- Tooltip on hover with insight text
+
+**Color Coding:**
+
+| Isolated % | Color | Meaning                               |
+| ---------- | ----- | ------------------------------------- |
+| ≥ 50%      | Green | High impact — more than half isolated |
+| 30-50%     | Amber | Moderate impact — significant chunk   |
+| < 30%      | Blue  | Low impact — one of several factors   |
+
+**Responsive Behavior:**
+
+- Desktop: Full bar with labels below
+- Mobile: Bar only (set `showLabels={false}`)
+
+**Implementation:**
+
+- Component: `apps/pwa/src/components/VariationBar.tsx`
+- Integrated into: `DrillBreadcrumb.tsx`
+- Uses: `getVariationImpactLevel()`, `getVariationInsight()` from `@variscout/core`
+
+---
+
+## Variation Funnel Panel
+
+A slide-in analysis tool that helps identify the optimal 1-3 factor combinations that explain ~70% of variation.
+
+### Access
+
+- **Toolbar button:** Filter icon in header toolbar
+- **Popout:** Opens in new window for dual-screen setups
+- **URL parameter:** `?view=funnel` for direct access to standalone view
+
+### Features
+
+1. **Ranked factors** — Sorted by η² (highest first)
+2. **Checkboxes** — Select/deselect factors to include in analysis
+3. **Visual bars** — Show each factor's individual contribution
+4. **Best value indicator** — Shows which category has highest impact
+5. **Cumulative tracker** — Combined % updates as factors are selected
+6. **70% target line** — Visual goal indicator (configurable)
+7. **Apply button** — Sets selected filters in main view
+
+### Funnel Visualization
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  VARIATION FUNNEL                              [↗] [×]  │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Total Variation (100%)                                 │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                                                         │
+│  ☑ Shift                                       67%      │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━                      │
+│    Highest impact: Night                    [Drill →]   │
+│                                                         │
+│  ☑ Machine                                     47%      │
+│  ━━━━━━━━━━━━━━━━━━━━━                                  │
+│    Highest impact: C                        [Drill →]   │
+│                                                         │
+│  ☐ Operator                                    35%      │
+│  ━━━━━━━━━━━━━                                          │
+│    Highest impact: Bob                      [Drill →]   │
+│                                                         │
+│  ─ ─ ─ ─ ─ ─ ─ ⎯ 70% Target ⎯ ─ ─ ─ ─ ─ ─ ─           │
+│                                                         │
+│  Combined Explained                             82%     │
+│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━| ← target         │
+│  These 2 factors explain 82% of your variation          │
+│                                                         │
+│  [ 🔍 Apply 2 Filters ]                                 │
+│  Filters to highest-impact values for selected factors  │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Algorithm: Greedy Factor Selection
+
+The `findOptimalFactors()` function uses a greedy algorithm to select factors:
+
+```typescript
+// packages/core/src/variation.ts
+export function findOptimalFactors(
+  data: any[],
+  factors: string[],
+  outcome: string,
+  targetPct: number = 70,
+  maxFactors: number = 3
+): OptimalFactorResult[];
+```
+
+1. Calculate η² for each factor
+2. Sort factors by η² descending
+3. Greedily select factors until:
+   - Target % reached (default: 70%), OR
+   - Max factors selected (default: 3)
+4. Calculate cumulative % as product of remaining variation
+
+**Example:**
+
+| Factor                   | η²  | Remaining After | Cumulative Isolated |
+| ------------------------ | --- | --------------- | ------------------- |
+| Shift                    | 67% | 33%             | 67%                 |
+| Machine                  | 45% | 33% × 55% = 18% | 82%                 |
+| ← Stop: 82% > 70% target |
+
+### Popout Window Mode
+
+Open via external link icon or URL parameter `?view=funnel`:
+
+- Standalone funnel view in separate window
+- Syncs with main window via localStorage events
+- Useful for dual-screen analysis workflows
+
+**Sync Mechanism:**
+
+```typescript
+// Main window writes state to localStorage
+localStorage.setItem('variscout-sync', JSON.stringify(state));
+
+// Popout listens for storage events
+window.addEventListener('storage', e => {
+  if (e.key === 'variscout-sync') {
+    // Update funnel with new data
+  }
+});
+```
+
+### Implementation Files
+
+| File                                          | Purpose                          |
+| --------------------------------------------- | -------------------------------- |
+| `apps/pwa/src/components/VariationFunnel.tsx` | Core funnel component            |
+| `apps/pwa/src/components/FunnelPanel.tsx`     | Slide-in panel wrapper           |
+| `apps/pwa/src/components/FunnelWindow.tsx`    | Standalone popout view           |
+| `packages/core/src/variation.ts`              | `findOptimalFactors()` algorithm |
+| `apps/pwa/src/App.tsx`                        | `?view=funnel` route detection   |
+| `apps/pwa/src/components/AppHeader.tsx`       | Funnel toolbar button            |
+
+---
+
 ## Data Flow
 
 ```
@@ -363,9 +521,13 @@ User now knows: **New operators on Machine C during Night Shift** account for 46
 | Platform  | Feature                           | Implementation                                  |
 | --------- | --------------------------------- | ----------------------------------------------- |
 | **PWA**   | Full breadcrumb with cumulative % | `useVariationTracking` hook → `DrillBreadcrumb` |
+| **PWA**   | Stacked variation bar             | `VariationBar.tsx` below breadcrumb             |
+| **PWA**   | Variation funnel panel            | `VariationFunnel.tsx` in slide-in panel         |
+| **PWA**   | Popout funnel window              | `FunnelWindow.tsx` + `?view=funnel` route       |
 | **PWA**   | Drill suggestions on boxplot      | `factorVariations` → boxplot with highlight     |
 | **Excel** | Variation % on boxplot axis label | `calculateFactorVariations` → `BoxplotBase`     |
-| **Azure** | Full breadcrumb experience        | Same as PWA (future)                            |
+| **Azure** | Full breadcrumb + variation bar   | Same as PWA                                     |
+| **Azure** | Variation funnel panel            | Same as PWA                                     |
 
 ---
 

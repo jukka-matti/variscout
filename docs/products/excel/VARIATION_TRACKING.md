@@ -147,14 +147,25 @@ const factorVariationPct = useMemo(() => {
 
 ## Differences from PWA
 
-| Feature             | PWA                  | Excel Add-in      |
-| ------------------- | -------------------- | ----------------- |
-| Variation display   | Breadcrumb + Boxplot | Boxplot only      |
-| Cumulative tracking | Yes (multiplied η²)  | No (single level) |
-| Drill suggestions   | Boxplot highlight    | Boxplot highlight |
-| Navigation          | Click-to-drill       | Use Excel slicers |
-| Filter history      | Breadcrumb trail     | Excel's native UI |
-| Insight tooltips    | On cumulative badge  | Not included      |
+| Feature             | PWA                          | Excel Add-in      |
+| ------------------- | ---------------------------- | ----------------- |
+| Variation display   | Breadcrumb + Boxplot + Bar   | Boxplot only      |
+| Cumulative tracking | Yes (multiplied η²)          | No (single level) |
+| Variation bar       | Stacked bar below breadcrumb | Not included      |
+| Variation funnel    | Slide-in analysis panel      | Not included      |
+| Drill suggestions   | Boxplot highlight            | Boxplot highlight |
+| Navigation          | Click-to-drill               | Use Excel slicers |
+| Filter history      | Breadcrumb trail             | Excel's native UI |
+| Insight tooltips    | On cumulative badge + bar    | Not included      |
+| Popout window       | Dual-screen funnel view      | Not applicable    |
+
+**Note:** The PWA includes additional visual features:
+
+- **Stacked Variation Bar** — Visual progress bar below breadcrumb showing isolated vs unexplained variation
+- **Variation Funnel Panel** — Slide-in analysis tool that finds optimal factor combinations
+- **Popout Window Support** — Opens funnel in separate window for dual-screen analysis
+
+These features use the same core `@variscout/core` functions (`findOptimalFactors()`, `getVariationImpactLevel()`, `getVariationInsight()`) and may be added to Excel in future versions.
 
 ---
 
