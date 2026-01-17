@@ -16,6 +16,7 @@ import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import ChartSignature from './ChartSignature';
 import { Edit2, Info, Eye, EyeOff, BarChart3, Upload, EyeOff as HideIcon } from 'lucide-react';
 import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
+import { chartColors, useChartTheme } from '@variscout/charts';
 
 // Empty state component for when no Pareto data is available
 interface ParetoEmptyStateProps {
@@ -98,6 +99,7 @@ const ParetoChart = ({
   onUploadPareto,
   availableFactors = [],
 }: ParetoChartProps) => {
+  const { chrome } = useChartTheme();
   const {
     rawData,
     filteredData,
@@ -253,7 +255,7 @@ const ParetoChart = ({
     <>
       <svg width={parentWidth} height={parentHeight}>
         <Group left={margin.left} top={margin.top}>
-          <GridRows scale={yScale} width={width} stroke="#1e293b" />
+          <GridRows scale={yScale} width={width} stroke={chrome.gridLine} />
 
           {/* Separate data indicator */}
           {usingSeparateData && (
@@ -303,10 +305,10 @@ const ParetoChart = ({
                   y={yScale(expectedCount)}
                   width={xScale.bandwidth()}
                   height={height - yScale(expectedCount)}
-                  fill="#64748b"
+                  fill={chrome.axisSecondary}
                   opacity={0.3}
                   rx={4}
-                  stroke="#94a3b8"
+                  stroke={chrome.axisPrimary}
                   strokeWidth={1}
                   strokeDasharray="4,2"
                   pointerEvents="none"
@@ -329,7 +331,7 @@ const ParetoChart = ({
                 y={yScale(d.value)}
                 width={xScale.bandwidth()}
                 height={height - yScale(d.value)}
-                fill={isSelected ? '#0ea5e9' : '#475569'}
+                fill={isSelected ? chartColors.selected : chrome.boxDefault}
                 rx={4}
                 onClick={() => handleBarClick(d.key)}
                 onMouseOver={event => {
@@ -380,8 +382,8 @@ const ParetoChart = ({
               cx={(xScale(d.key) || 0) + xScale.bandwidth() / 2}
               cy={yPercScale(d.cumulativePercentage)}
               r={3}
-              fill="#f97316"
-              stroke="#0f172a"
+              fill={chartColors.cumulative}
+              stroke={chrome.pointStroke}
               strokeWidth={1}
             />
           ))}
@@ -389,11 +391,11 @@ const ParetoChart = ({
           {/* Axes */}
           <AxisLeft
             scale={yScale}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chrome.axisPrimary}
+            tickStroke={chrome.axisPrimary}
             label=""
             tickLabelProps={() => ({
-              fill: '#cbd5e1',
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'end',
               dx: -4,
@@ -415,7 +417,7 @@ const ParetoChart = ({
                   y={height / 2}
                   transform={`rotate(-90 ${yLabelOffset} ${height / 2})`}
                   textAnchor="middle"
-                  fill="#cbd5e1"
+                  fill={chrome.labelPrimary}
                   fontSize={fonts.axisLabel}
                   fontWeight={500}
                   className="group-hover/label:fill-blue-400 transition-colors"
@@ -441,17 +443,17 @@ const ParetoChart = ({
           <AxisRight
             scale={yPercScale}
             left={width}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chrome.axisPrimary}
+            tickStroke={chrome.axisPrimary}
             label={parentWidth > 400 ? 'Cumulative %' : '%'}
             labelProps={{
-              fill: '#cbd5e1',
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dx: parentWidth < 400 ? 20 : 35,
             }}
             tickLabelProps={() => ({
-              fill: '#cbd5e1',
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'start',
               dx: 4,
@@ -461,11 +463,11 @@ const ParetoChart = ({
           <AxisBottom
             top={height}
             scale={xScale}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chrome.axisPrimary}
+            tickStroke={chrome.axisPrimary}
             label=""
             tickLabelProps={() => ({
-              fill: '#cbd5e1',
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 2,
@@ -484,7 +486,7 @@ const ParetoChart = ({
                   x={width / 2}
                   y={height + xLabelOffset}
                   textAnchor="middle"
-                  fill="#cbd5e1"
+                  fill={chrome.labelPrimary}
                   fontSize={fonts.axisLabel}
                   fontWeight={500}
                   className="group-hover/label2:fill-blue-400 transition-colors"
@@ -525,9 +527,9 @@ const ParetoChart = ({
           top={margin.top + (tooltipTop ?? 0)}
           style={{
             ...defaultStyles,
-            backgroundColor: '#1e293b',
-            color: '#f1f5f9',
-            border: '1px solid #334155',
+            backgroundColor: chrome.tooltipBg,
+            color: chrome.tooltipText,
+            border: `1px solid ${chrome.tooltipBorder}`,
             borderRadius: 6,
             padding: '8px 12px',
             fontSize: 12,

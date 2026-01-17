@@ -11,6 +11,14 @@ import { hasValidLicense } from './license';
 
 export type Edition = 'community' | 'itc' | 'licensed';
 
+/**
+ * Brand accent colors for each edition
+ */
+export const EDITION_COLORS = {
+  itc: '#007FBD', // ITC blue
+  variscout: '#3b82f6', // blue-500 (VariScout blue)
+} as const;
+
 // Edition can be set by the app (e.g., from environment variables)
 let configuredEdition: Edition | null = null;
 

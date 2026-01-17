@@ -18,7 +18,7 @@ import YAxisPopover from '../YAxisPopover';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import ChartSignature from './ChartSignature';
 import { getStageBoundaries, type StageBoundary } from '@variscout/core';
-import { chartColors } from '@variscout/charts';
+import { chartColors, useChartTheme } from '@variscout/charts';
 
 interface IChartProps {
   parentWidth: number;
@@ -28,6 +28,7 @@ interface IChartProps {
 }
 
 const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChartProps) => {
+  const { chrome } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight();
   const margin = useResponsiveChartMargins(parentWidth, 'ichart', sourceBarHeight);
   const fonts = useResponsiveChartFonts(parentWidth);
@@ -202,14 +203,14 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
       labels.push({
         y: yScale(stats.ucl),
         text: `UCL: ${stats.ucl.toFixed(1)}`,
-        fill: '#64748b',
+        fill: chrome.axisSecondary,
         tooltip:
           'Upper Control Limit – 3σ above the mean. Points above indicate special cause variation.',
       });
       labels.push({
         y: yScale(stats.lcl),
         text: `LCL: ${stats.lcl.toFixed(1)}`,
-        fill: '#64748b',
+        fill: chrome.axisSecondary,
         tooltip:
           'Lower Control Limit – 3σ below the mean. Points below indicate special cause variation.',
       });
@@ -272,8 +273,8 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
               );
             })}
 
-          <GridRows scale={yScale} width={width} stroke="#1e293b" />
-          <GridColumns scale={xScale} height={height} stroke="#1e293b" />
+          <GridRows scale={yScale} width={width} stroke={chrome.gridLine} />
+          <GridColumns scale={xScale} height={height} stroke={chrome.gridLine} />
 
           {/* Spec Lines with Clickable Annotations */}
           {displayOptions.showSpecs !== false &&
@@ -348,7 +349,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
                     <Line
                       from={{ x: x1 - 5, y: 0 }}
                       to={{ x: x1 - 5, y: height }}
-                      stroke="#475569"
+                      stroke={chrome.stageDivider}
                       strokeWidth={1}
                       strokeDasharray="4,4"
                     />
@@ -359,7 +360,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
                     x={x1 + stageWidth / 2}
                     y={-8}
                     textAnchor="middle"
-                    fill="#94a3b8"
+                    fill={chrome.labelSecondary}
                     fontSize={fonts.tickLabel}
                     fontWeight={500}
                   >
@@ -372,7 +373,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
                     x2={x2}
                     y1={yScale(boundary.stats.ucl)}
                     y2={yScale(boundary.stats.ucl)}
-                    stroke="#64748b"
+                    stroke={chrome.axisSecondary}
                     strokeWidth={1}
                     strokeDasharray="4,4"
                   />
@@ -383,7 +384,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
                     x2={x2}
                     y1={yScale(boundary.stats.mean)}
                     y2={yScale(boundary.stats.mean)}
-                    stroke="#64748b"
+                    stroke={chrome.axisSecondary}
                     strokeWidth={1}
                   />
 
@@ -393,7 +394,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
                     x2={x2}
                     y1={yScale(boundary.stats.lcl)}
                     y2={yScale(boundary.stats.lcl)}
-                    stroke="#64748b"
+                    stroke={chrome.axisSecondary}
                     strokeWidth={1}
                     strokeDasharray="4,4"
                   />
@@ -410,7 +411,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
                 x2={width}
                 y1={yScale(stats.ucl)}
                 y2={yScale(stats.ucl)}
-                stroke="#64748b"
+                stroke={chrome.axisSecondary}
                 strokeWidth={1}
                 strokeDasharray="4,4"
               />
@@ -421,7 +422,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
                 x2={width}
                 y1={yScale(stats.lcl)}
                 y2={yScale(stats.lcl)}
-                stroke="#64748b"
+                stroke={chrome.axisSecondary}
                 strokeWidth={1}
                 strokeDasharray="4,4"
               />
@@ -442,7 +443,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
             data={data}
             x={d => xScale(d.x as any)}
             y={d => yScale(d.y)}
-            stroke="#94a3b8"
+            stroke={chrome.dataLine}
             strokeWidth={2}
           />
 
@@ -453,7 +454,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
               cy={yScale(d.y)}
               r={4}
               fill={getPointColor(d.y)}
-              stroke="#0f172a"
+              stroke={chrome.pointStroke}
               strokeWidth={1}
               className={onPointClick ? 'cursor-pointer' : ''}
               onClick={() => onPointClick?.(i)}
@@ -462,12 +463,12 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
 
           <AxisLeft
             scale={yScale}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chrome.axisPrimary}
+            tickStroke={chrome.axisPrimary}
             // Custom Label Handling
             label={''}
             tickLabelProps={() => ({
-              fill: '#cbd5e1',
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'end',
               dx: -4,
@@ -483,7 +484,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
               y={yParams.y}
               transform={`rotate(${yParams.rotation} ${yParams.x} ${yParams.y})`}
               textAnchor="middle"
-              fill="#cbd5e1"
+              fill={chrome.labelPrimary}
               fontSize={13} // Increased
               fontWeight={500}
               className="group-hover/label:fill-blue-400 transition-colors"
@@ -521,17 +522,17 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
           <AxisBottom
             top={height}
             scale={xScale}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chrome.axisPrimary}
+            tickStroke={chrome.axisPrimary}
             numTicks={width > 500 ? 10 : width > 300 ? 5 : 3}
             label={timeColumn ? 'Time' : 'Sequence'}
             labelProps={{
-              fill: '#cbd5e1',
+              fill: chrome.labelPrimary,
               fontSize: fonts.axisLabel,
               textAnchor: 'middle',
             }}
             tickLabelProps={() => ({
-              fill: '#cbd5e1',
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 2,

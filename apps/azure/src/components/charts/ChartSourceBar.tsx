@@ -3,6 +3,7 @@ import {
   ChartSourceBar as ChartSourceBarBase,
   getSourceBarHeight as getSourceBarHeightBase,
 } from '@variscout/charts';
+import { EDITION_COLORS } from '@variscout/core';
 import { shouldShowBranding, getBrandingText, isITCEdition } from '../../lib/edition';
 
 interface ChartSourceBarProps {
@@ -28,7 +29,7 @@ const ChartSourceBar: React.FC<ChartSourceBarProps> = ({ width, top, n, left = 0
   }
 
   // Accent color: ITC blue for ITC, VariScout blue for community
-  const accentColor = isITC ? '#007FBD' : '#3b82f6';
+  const accentColor = isITC ? EDITION_COLORS.itc : EDITION_COLORS.variscout;
 
   return (
     <ChartSourceBarBase

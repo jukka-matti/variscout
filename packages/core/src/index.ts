@@ -3,7 +3,11 @@
  * Core statistics and utility functions for VariScout
  */
 
-// Types
+// Types - Data Row (foundation for type-safe data handling)
+export type { DataCellValue, DataRow } from './types';
+export { isNumericValue, isStringValue, toNumericValue } from './types';
+
+// Types - Statistics and Analysis
 export type {
   StatsResult,
   GradeTier,
@@ -55,6 +59,7 @@ export {
 // Edition
 export type { Edition } from './edition';
 export {
+  EDITION_COLORS,
   configureEdition,
   getEdition,
   shouldShowBranding,
@@ -131,3 +136,7 @@ export {
   getFiltersFromUrl,
   isEmbedMode,
 } from './urlParams';
+
+// Glossary
+export type { GlossaryTerm, GlossaryCategory, GlossaryLocale } from './glossary';
+export { glossaryTerms, glossaryMap, getTerm, getTermsByCategory, hasTerm } from './glossary';

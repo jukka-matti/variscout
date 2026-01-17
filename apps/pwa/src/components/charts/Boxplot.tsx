@@ -16,7 +16,7 @@ import ChartSignature from './ChartSignature';
 import { Edit2 } from 'lucide-react';
 import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { VARIATION_THRESHOLDS } from '@variscout/core';
-import { chartColors } from '@variscout/charts';
+import { chartColors, useChartTheme } from '@variscout/charts';
 
 interface BoxplotProps {
   factor: string;
@@ -34,6 +34,7 @@ const Boxplot = ({
   onDrillDown,
   variationPct,
 }: BoxplotProps) => {
+  const { chrome } = useChartTheme();
   // Determine if this factor should be highlighted as a drill target
   const isHighVariation =
     variationPct !== undefined && variationPct >= VARIATION_THRESHOLDS.HIGH_IMPACT;
@@ -212,7 +213,7 @@ const Boxplot = ({
                   x2={x + barWidth / 2}
                   y1={yScale(d.min)}
                   y2={yScale(d.max)}
-                  stroke="#94a3b8"
+                  stroke={chrome.whisker}
                   strokeWidth={1}
                 />
 
@@ -222,8 +223,8 @@ const Boxplot = ({
                   y={yScale(d.q3)}
                   width={barWidth}
                   height={Math.abs(yScale(d.q1) - yScale(d.q3))}
-                  fill="#0ea5e9"
-                  stroke="#0284c7"
+                  fill={chartColors.selected}
+                  stroke={chartColors.selectedBorder}
                   rx={2}
                 />
 
@@ -253,11 +254,11 @@ const Boxplot = ({
           })}
           <AxisLeft
             scale={yScale}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chrome.axisPrimary}
+            tickStroke={chrome.axisPrimary}
             label=""
             tickLabelProps={() => ({
-              fill: '#cbd5e1',
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'end',
               dx: -4,
@@ -273,7 +274,7 @@ const Boxplot = ({
               y={height / 2}
               transform={`rotate(-90 ${yLabelOffset} ${height / 2})`}
               textAnchor="middle"
-              fill="#cbd5e1"
+              fill={chrome.labelPrimary}
               fontSize={fonts.axisLabel}
               fontWeight={500}
               className="group-hover/label:fill-blue-400 transition-colors"
@@ -298,12 +299,12 @@ const Boxplot = ({
           <AxisBottom
             top={height}
             scale={xScale}
-            stroke="#94a3b8"
-            tickStroke="#94a3b8"
+            stroke={chrome.axisPrimary}
+            tickStroke={chrome.axisPrimary}
             label={''} // Custom Label below
             tickFormat={val => factorLabels[val] || val}
             tickLabelProps={() => ({
-              fill: '#94a3b8',
+              fill: chrome.labelSecondary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 2,
@@ -316,7 +317,7 @@ const Boxplot = ({
               x={xParams.x}
               y={xParams.y}
               textAnchor="middle"
-              fill={isHighVariation ? '#f87171' : '#94a3b8'}
+              fill={isHighVariation ? '#f87171' : chrome.labelSecondary}
               fontSize={13}
               fontWeight={isHighVariation ? 600 : 500}
               className="group-hover/label2:fill-blue-400 transition-colors"

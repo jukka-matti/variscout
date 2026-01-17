@@ -14,7 +14,7 @@ import {
 type HistogramBin = Bin<number, number>;
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import ChartSignature from './ChartSignature';
-import { chartColors } from '@variscout/charts';
+import { chartColors, useChartTheme } from '@variscout/charts';
 
 interface CapabilityHistogramProps {
   parentWidth: number;
@@ -31,6 +31,7 @@ const CapabilityHistogram = ({
   specs,
   mean,
 }: CapabilityHistogramProps) => {
+  const { chrome } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight();
   const margin = useResponsiveChartMargins(parentWidth, 'histogram', sourceBarHeight);
   const fonts = useResponsiveChartFonts(parentWidth);
@@ -193,14 +194,14 @@ const CapabilityHistogram = ({
         <Line
           from={{ x: xScale(mean), y: 0 }}
           to={{ x: xScale(mean), y: height }}
-          stroke="#60a5fa"
+          stroke={chartColors.meanAlt}
           strokeWidth={2}
         />
         <text
           x={xScale(mean)}
           y={height + 25}
           textAnchor="middle"
-          fill="#60a5fa"
+          fill={chartColors.meanAlt}
           fontSize={10}
           fontWeight="bold"
         >
@@ -211,10 +212,10 @@ const CapabilityHistogram = ({
         <AxisLeft
           scale={yScale}
           numTicks={parentWidth < 300 ? 3 : 5}
-          stroke="#64748b"
-          tickStroke="#64748b"
+          stroke={chrome.axisSecondary}
+          tickStroke={chrome.axisSecondary}
           tickLabelProps={() => ({
-            fill: '#94a3b8',
+            fill: chrome.labelSecondary,
             fontSize: fonts.tickLabel,
             textAnchor: 'end',
             dy: '0.33em',
@@ -227,10 +228,10 @@ const CapabilityHistogram = ({
           scale={xScale}
           top={height}
           numTicks={parentWidth < 300 ? 4 : 6}
-          stroke="#64748b"
-          tickStroke="#64748b"
+          stroke={chrome.axisSecondary}
+          tickStroke={chrome.axisSecondary}
           tickLabelProps={() => ({
-            fill: '#94a3b8',
+            fill: chrome.labelSecondary,
             fontSize: fonts.tickLabel,
             textAnchor: 'middle',
             dy: 4,
