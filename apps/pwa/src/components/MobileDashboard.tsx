@@ -47,6 +47,8 @@ interface MobileDashboardProps {
   // Pareto empty state actions
   onHideParetoPanel?: () => void;
   onUploadPareto?: () => void;
+  // Variation tracking for drill hints
+  factorVariations?: Map<string, number>;
 }
 
 const MobileDashboard: React.FC<MobileDashboardProps> = ({
@@ -71,6 +73,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   onBreadcrumbNavigate,
   onHideParetoPanel,
   onUploadPareto,
+  factorVariations,
 }) => {
   const [activeView, setActiveView] = useState<ChartView>('ichart');
 
@@ -219,7 +222,11 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
           <ErrorBoundary componentName={views.find(v => v.key === activeView)?.label || ''}>
             {activeView === 'ichart' && <IChart onPointClick={onPointClick} />}
             {activeView === 'boxplot' && boxplotFactor && (
-              <Boxplot factor={boxplotFactor} onDrillDown={onDrillDown} />
+              <Boxplot
+                factor={boxplotFactor}
+                onDrillDown={onDrillDown}
+                variationPct={factorVariations?.get(boxplotFactor)}
+              />
             )}
             {activeView === 'pareto' && paretoFactor && (
               <ParetoChart
