@@ -120,6 +120,8 @@ Legend:
   - Amber dot indicator when filter active on that factor
   - Clicking chart element syncs both Boxplot and Pareto to same factor
 - **Click-to-Edit Axes**: Click Y-axis to manually set Min/Max or reset to Auto
+  - **Scale Mode**: Auto (fit to data), Start at Zero, or Manual
+  - **Control Limits Visibility**: Toggle UCL/Mean/LCL display in Settings
 - **Linked Filtering with Drill-Down**:
   - Click Boxplot category → filters to that factor level
   - Click Pareto bar → filters to that category

@@ -71,9 +71,12 @@ You can toggle visibility of chart elements and change display settings in the *
 2.  The Settings Panel will slide in from the right.
 3.  In the **"Display Options"** section, toggle:
     - **Lock Y-axis when drilling**: Keep the Y-axis scale consistent when filtering data.
-    - **Show data labels**: Display values on chart points.
-    - **Large mode**: Increase UI size by 30% for presentations.
-4.  Spec limit visibility (USL/LSL/Target) is now controlled via the **Specs dropdown** in the I-Chart header.
+    - **Show Control Limits**: Display UCL/Mean/LCL lines on the I-Chart (statistical process control limits based on 3-sigma rule).
+4.  In the **"Y-Axis Scale Mode"** section, choose:
+    - **Auto**: Automatically fit scale to data and specification limits.
+    - **Start at Zero**: Force Y-axis minimum to zero (useful for ratio data).
+    - **Manual**: Set explicit Min and Max values for the Y-axis.
+5.  Spec limit visibility (USL/LSL/Target) is now controlled via the **Specs dropdown** in the I-Chart header.
 
 ---
 

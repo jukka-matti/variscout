@@ -20,6 +20,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Points colored based on their stage's control limits
   - Excel Add-in: New "Stage Analysis" step in Setup Wizard for stage configuration
 
+- **Y-Axis Scale Options**: New scale mode selector in Settings modal
+  - Auto: Fit scale to data + specs (default behavior)
+  - Start at Zero: Force Y-axis minimum to 0
+  - Manual: Set explicit min/max values
+  - Settings persist with saved projects
+
+- **Control Limits Toggle**: Option to show/hide UCL/Mean/LCL lines on I-Chart
+  - Toggle in Settings → Display Options → "Show Control Limits"
+  - Affects both regular and staged I-Chart modes
+  - Labels also hidden when disabled
+
 - **Case Study UX Overhaul**: Complete redesign of interactive case study pages
   - PostMessage communication between marketing website and embedded PWA
   - Chart highlighting when corresponding step scrolls into view
