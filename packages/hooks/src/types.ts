@@ -17,6 +17,14 @@ import type {
 export type { DataQualityReport, ParetoRow };
 
 /**
+ * Y-axis scale mode
+ * - 'auto': Automatically calculate range from data, specs, and control limits
+ * - 'clampZero': Start Y-axis at zero, auto-calculate max
+ * - 'manual': Use explicit min/max values from axisSettings
+ */
+export type ScaleMode = 'auto' | 'clampZero' | 'manual';
+
+/**
  * Minimal interface for chart scale calculation
  * Apps inject their context data matching this shape
  */
@@ -25,7 +33,7 @@ export interface ChartScaleContext {
   outcome: string | null;
   specs: SpecLimits;
   grades?: { max: number; label: string; color: string }[];
-  axisSettings: { min?: number; max?: number };
+  axisSettings: { min?: number; max?: number; scaleMode?: ScaleMode };
 }
 
 /**
@@ -65,7 +73,7 @@ export interface DataContextInterface {
   // Filters & Settings
   filters: Record<string, (string | number)[]>;
   setFilters: (filters: Record<string, (string | number)[]>) => void;
-  axisSettings: { min?: number; max?: number };
+  axisSettings: { min?: number; max?: number; scaleMode?: ScaleMode };
   columnAliases: Record<string, string>;
   valueLabels: Record<string, Record<string, string>>;
 }
@@ -83,6 +91,8 @@ export interface DisplayOptions {
   showSpecs?: boolean;
   /** Lock Y-axis to full dataset range when filtering (default: true) */
   lockYAxisToFullData?: boolean;
+  /** Show control limits (UCL/Mean/LCL) on I-Chart (default: true) */
+  showControlLimits?: boolean;
 }
 
 /**
@@ -112,7 +122,7 @@ export interface AnalysisState {
   specs: { usl?: number; lsl?: number; target?: number };
   grades: { max: number; label: string; color: string }[];
   filters: Record<string, (string | number)[]>;
-  axisSettings: { min?: number; max?: number };
+  axisSettings: { min?: number; max?: number; scaleMode?: ScaleMode };
   columnAliases?: Record<string, string>;
   valueLabels?: Record<string, Record<string, string>>;
   displayOptions?: DisplayOptions;

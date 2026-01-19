@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import type {
+  DataRow,
   StatsResult,
   GradeTier,
   ProbabilityPlotPoint,
@@ -16,6 +17,7 @@ import type {
   StageBoundary,
   StageOrderMode,
 } from './types';
+import { toNumericValue } from './types';
 
 // Re-export types for convenience
 export type {
@@ -143,7 +145,7 @@ export function calculateStats(
  * Measures how much of the total variation in the outcome is explained
  * by the grouping factor. Higher values indicate stronger effect.
  *
- * @param data - Array of data objects with factor and outcome columns
+ * @param data - Array of data rows with factor and outcome columns
  * @param factor - Column name for the grouping variable
  * @param outcome - Column name for the numeric outcome variable
  * @returns η² value between 0 and 1
@@ -157,17 +159,20 @@ export function calculateStats(
  * - 0.06-0.14: Medium effect
  * - > 0.14: Large effect
  */
-export function getEtaSquared(data: any[], factor: string, outcome: string): number {
+export function getEtaSquared(data: DataRow[], factor: string, outcome: string): number {
   // η² = SS_between / SS_total
 
-  const totalMean = d3.mean(data, d => d[outcome]) || 0;
-  const ssTotal = d3.sum(data, d => Math.pow(d[outcome] - totalMean, 2));
+  const totalMean = d3.mean(data, d => toNumericValue(d[outcome])) || 0;
+  const ssTotal = d3.sum(data, d => {
+    const val = toNumericValue(d[outcome]);
+    return val !== undefined ? Math.pow(val - totalMean, 2) : 0;
+  });
 
   const groups = d3.group(data, d => d[factor]);
   let ssBetween = 0;
 
   groups.forEach(groupData => {
-    const groupMean = d3.mean(groupData, d => d[outcome]) || 0;
+    const groupMean = d3.mean(groupData, d => toNumericValue(d[outcome])) || 0;
     ssBetween += groupData.length * Math.pow(groupMean - totalMean, 2);
   });
 

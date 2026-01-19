@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { AlertCircle, CheckCircle2, TrendingUp, BarChart3, Plus, HelpCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, TrendingUp, BarChart3, Plus } from 'lucide-react';
 import type { StatsResult } from '@variscout/core';
+import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useData } from '../context/DataContext';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
@@ -25,6 +26,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   className,
 }) => {
   const { displayOptions, setDisplayOptions, setSpecs, setGrades, grades } = useData();
+  const { getTerm } = useGlossary();
   const [activeTab, setActiveTab] = useState<'summary' | 'histogram' | 'normality'>(
     defaultTab || 'summary'
   );
@@ -149,16 +151,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                   <div className="flex items-center gap-2 text-content">
                     <CheckCircle2 size={18} className="text-green-500" />
                     <span>Pass Rate</span>
-                    <span className="tooltip-wrapper">
-                      <HelpCircle
-                        size={14}
-                        className="text-content-muted hover:text-content cursor-help"
-                      />
-                      <span className="tooltip">
-                        Percentage of measurements within specification limits (between LSL and
-                        USL).
-                      </span>
-                    </span>
+                    <HelpTooltip term={getTerm('passRate')} />
                   </div>
                   <span className="text-xl font-bold text-white">
                     {(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}%
@@ -170,16 +163,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                     <div className="flex items-center gap-2 text-content">
                       <BarChart3 size={18} className="text-purple-400" />
                       <span>Cp</span>
-                      <span className="tooltip-wrapper">
-                        <HelpCircle
-                          size={14}
-                          className="text-content-muted hover:text-content cursor-help"
-                        />
-                        <span className="tooltip">
-                          Process Capability. Measures how well your process fits within spec
-                          limits. ≥1.33 is good.
-                        </span>
-                      </span>
+                      <HelpTooltip term={getTerm('cp')} />
                     </div>
                     <span
                       className={`text-xl font-bold ${stats.cp < 1.33 ? 'text-yellow-500' : 'text-green-500'}`}
@@ -194,16 +178,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                     <div className="flex items-center gap-2 text-content">
                       <TrendingUp size={18} className="text-blue-400" />
                       <span>Cpk</span>
-                      <span className="tooltip-wrapper">
-                        <HelpCircle
-                          size={14}
-                          className="text-content-muted hover:text-content cursor-help"
-                        />
-                        <span className="tooltip">
-                          Process Capability Index. Like Cp, but accounts for centering. ≥1.33 is
-                          good.
-                        </span>
-                      </span>
+                      <HelpTooltip term={getTerm('cpk')} />
                     </div>
                     <span
                       className={`text-xl font-bold ${stats?.cpk && stats.cpk < 1.33 ? 'text-yellow-500' : 'text-green-500'}`}
@@ -217,16 +192,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                   <div className="flex items-center gap-2 text-content">
                     <AlertCircle size={18} className="text-red-400" />
                     <span>Rejected</span>
-                    <span className="tooltip-wrapper">
-                      <HelpCircle
-                        size={14}
-                        className="text-content-muted hover:text-content cursor-help"
-                      />
-                      <span className="tooltip">
-                        Percentage of measurements outside specification limits (above USL or below
-                        LSL).
-                      </span>
-                    </span>
+                    <HelpTooltip term={getTerm('rejected')} />
                   </div>
                   <span className="text-xl font-bold text-red-400">
                     {stats?.outOfSpecPercentage.toFixed(1)}%

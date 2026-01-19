@@ -14,7 +14,15 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@variscout/core": ["../../packages/core/src"],
+      "@variscout/core/*": ["../../packages/core/src/*"],
+      "@variscout/hooks": ["../../packages/hooks/src"],
+      "@variscout/hooks/*": ["../../packages/hooks/src/*"],
+      "@variscout/ui": ["../../packages/ui/src"],
+      "@variscout/ui/*": ["../../packages/ui/src/*"],
+      "@variscout/charts": ["../../packages/charts/src"],
+      "@variscout/charts/*": ["../../packages/charts/src/*"]
     }
   },
   "include": ["src"],

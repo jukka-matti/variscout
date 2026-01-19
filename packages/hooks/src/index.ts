@@ -25,6 +25,7 @@ export type {
   DebouncedFunction,
   DataQualityReport,
   ParetoRow,
+  ScaleMode,
 } from './types';
 
 // Data State Hook (shared DataContext logic)

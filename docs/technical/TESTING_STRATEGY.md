@@ -79,14 +79,18 @@ To run agentic tests, issue a prompt to the agent:
 
 ## Current Coverage
 
-### @variscout/core (30+ test cases)
+### @variscout/core (140+ test cases)
 
-| Function                | Tested | Cases                                                    |
+| Function/Module         | Tested | Cases                                                    |
 | :---------------------- | :----- | :------------------------------------------------------- |
 | `calculateStats()`      | ✅     | Basic stats, Cp/Cpk, one-sided specs, empty data         |
 | `calculateAnova()`      | ✅     | Significant/non-significant, group stats, eta-squared    |
 | `calculateRegression()` | ✅     | Linear, quadratic, weak relationships, optimum detection |
 | `calculateGageRR()`     | ✅     | Excellent/unacceptable systems, variance components      |
+| `license.ts`            | ✅     | Format validation, checksum verification, edge cases     |
+| `parser.ts`             | ✅     | CSV/Excel parsing, auto-mapping, validation, data types  |
+| `export.ts`             | ✅     | CSV generation, special characters, escaping             |
+| `edition.ts`            | ✅     | Edition detection, feature flags, theming gates          |
 
 ### @variscout/pwa (25+ test cases)
 

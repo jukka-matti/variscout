@@ -48,8 +48,8 @@ describe('StatsPanel', () => {
     const summaryTab = screen.getByText('Summary');
     expect(summaryTab).toHaveClass('bg-surface-tertiary');
 
-    // Should show pass rate
-    expect(screen.getByText('Pass Rate')).toBeInTheDocument();
+    // Should show pass rate (use getAllByText since HelpTooltip may also contain the term)
+    expect(screen.getAllByText('Pass Rate').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('94.5%')).toBeInTheDocument(); // 100 - 5.5
   });
 
@@ -92,7 +92,8 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Cp')).toBeInTheDocument();
+    // Cp label appears multiple times due to HelpTooltip
+    expect(screen.getAllByText('Cp').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('1.50')).toBeInTheDocument();
   });
 
@@ -127,7 +128,8 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Cpk')).toBeInTheDocument();
+    // Cpk label appears multiple times due to HelpTooltip
+    expect(screen.getAllByText('Cpk').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('1.20')).toBeInTheDocument();
   });
 
@@ -162,7 +164,8 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Rejected')).toBeInTheDocument();
+    // Rejected label appears multiple times due to HelpTooltip
+    expect(screen.getAllByText('Rejected').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('5.5%')).toBeInTheDocument();
   });
 

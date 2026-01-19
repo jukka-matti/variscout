@@ -1,5 +1,6 @@
 import React, { Component, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { errorService } from '@variscout/ui';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -32,7 +33,18 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Log to error service for centralized tracking
+    errorService.handleBoundaryError(error, {
+      componentStack: errorInfo.componentStack ?? undefined,
+    });
+
+    // Also log additional context if available
+    if (this.props.componentName) {
+      errorService.logError(error, {
+        component: this.props.componentName,
+        action: 'render',
+      });
+    }
   }
 
   handleRetry = (): void => {

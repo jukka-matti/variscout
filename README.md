@@ -133,10 +133,9 @@ pnpm build:pwa:licensed     # No branding
 
 ### Test
 
-````bash
 ```bash
 pnpm test
-````
+```
 
 > **Agentic Verification**: You can also ask the AI Agent to "Run the release checklist" for automated visual and E2E verification.
 

@@ -11,6 +11,8 @@
  * - Azure: Future full breadcrumb experience
  */
 
+import type { DataRow } from './types';
+import { toNumericValue } from './types';
 import { getEtaSquared } from './stats';
 import { VARIATION_THRESHOLDS, getVariationImpactLevel, getVariationInsight } from './navigation';
 
@@ -79,7 +81,7 @@ export interface DrillLevelVariation {
  * // result.insightText = "Fix this combination to address more than half..."
  */
 export function calculateDrillVariation(
-  rawData: any[],
+  rawData: DataRow[],
   filters: Record<string, (string | number)[]>,
   outcome: string
 ): DrillVariationResult | null {
@@ -121,7 +123,10 @@ export function calculateDrillVariation(
     });
 
     // Filter data for next level
-    currentData = currentData.filter(row => values.includes(row[factor]));
+    currentData = currentData.filter(row => {
+      const cellValue = row[factor];
+      return values.includes(cellValue as string | number);
+    });
 
     if (currentData.length < 2) {
       break;
@@ -156,7 +161,7 @@ export function calculateDrillVariation(
  * // variations.get('Machine') = 67.5 -> highlight Machine in boxplot
  */
 export function calculateFactorVariations(
-  data: any[],
+  data: DataRow[],
   factors: string[],
   outcome: string,
   excludeFactors: string[] = []
@@ -200,11 +205,15 @@ export function shouldHighlightDrill(variationPct: number): boolean {
  * @param filters - Filters as Record<factor, values[]>
  * @returns Filtered data array
  */
-export function applyFilters(data: any[], filters: Record<string, (string | number)[]>): any[] {
+export function applyFilters(
+  data: DataRow[],
+  filters: Record<string, (string | number)[]>
+): DataRow[] {
   return data.filter(row => {
     return Object.entries(filters).every(([col, values]) => {
       if (!values || values.length === 0) return true;
-      return values.includes(row[col]);
+      const cellValue = row[col];
+      return values.includes(cellValue as string | number);
     });
   });
 }
@@ -297,7 +306,7 @@ export interface OptimalFactorResult {
  * // -> Two factors explain 82% of variation, exceeding 70% target
  */
 export function findOptimalFactors(
-  data: any[],
+  data: DataRow[],
   factors: string[],
   outcome: string,
   targetPct: number = 70,
@@ -358,7 +367,7 @@ export function findOptimalFactors(
  * This identifies which category of the factor contributes most to variation
  */
 function findBestValueForFactor(
-  data: any[],
+  data: DataRow[],
   factor: string,
   outcome: string
 ): string | number | undefined {
@@ -366,11 +375,11 @@ function findBestValueForFactor(
   const groups = new Map<string | number, number[]>();
 
   for (const row of data) {
-    const value = row[factor];
-    const outcomeValue = row[outcome];
+    const factorValue = row[factor];
+    const outcomeValue = toNumericValue(row[outcome]);
 
-    if (value !== undefined && value !== null && typeof outcomeValue === 'number') {
-      const key = value;
+    if (factorValue !== undefined && factorValue !== null && outcomeValue !== undefined) {
+      const key = factorValue as string | number;
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -381,7 +390,12 @@ function findBestValueForFactor(
   if (groups.size === 0) return undefined;
 
   // Calculate overall mean
-  const allValues = data.map(r => r[outcome]).filter((v): v is number => typeof v === 'number');
+  const allValues = data
+    .map(r => toNumericValue(r[outcome]))
+    .filter((v): v is number => v !== undefined);
+
+  if (allValues.length === 0) return undefined;
+
   const overallMean = allValues.reduce((a, b) => a + b, 0) / allValues.length;
 
   // Find group with highest deviation from mean

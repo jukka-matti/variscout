@@ -4,7 +4,7 @@
  * Uses the shared useDataState hook from @variscout/hooks for core state management,
  * while adding Azure-specific cloud sync functionality via useStorage.
  */
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import {
   useDataState,
   type DataState,
@@ -134,73 +134,85 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [actions]
   );
 
-  // Combine state and actions into context value
-  const value: DataContextType = {
-    // Core state from shared hook
-    rawData: state.rawData,
-    filteredData: state.filteredData,
-    outcome: state.outcome,
-    factors: state.factors,
-    timeColumn: state.timeColumn,
-    specs: state.specs,
-    grades: state.grades,
-    stats: state.stats,
-    stageColumn: state.stageColumn,
-    stageOrderMode: state.stageOrderMode,
-    stagedStats: state.stagedStats,
-    stagedData: state.stagedData,
-    filters: state.filters,
-    axisSettings: state.axisSettings,
-    chartTitles: state.chartTitles,
-    columnAliases: state.columnAliases,
-    valueLabels: state.valueLabels,
-    displayOptions: state.displayOptions,
-    currentProjectId: state.currentProjectId,
-    currentProjectName: state.currentProjectName,
-    hasUnsavedChanges: state.hasUnsavedChanges,
-    dataFilename: state.dataFilename,
-    dataQualityReport: state.dataQualityReport,
-    paretoMode: state.paretoMode,
-    separateParetoData: state.separateParetoData,
-    separateParetoFilename: state.separateParetoFilename,
-    fullDataYDomain: state.fullDataYDomain,
-    yDomainForCharts: state.yDomainForCharts,
+  // Combine state and actions into memoized context value
+  const value = useMemo<DataContextType>(
+    () => ({
+      // Core state from shared hook
+      rawData: state.rawData,
+      filteredData: state.filteredData,
+      outcome: state.outcome,
+      factors: state.factors,
+      timeColumn: state.timeColumn,
+      specs: state.specs,
+      grades: state.grades,
+      stats: state.stats,
+      stageColumn: state.stageColumn,
+      stageOrderMode: state.stageOrderMode,
+      stagedStats: state.stagedStats,
+      stagedData: state.stagedData,
+      filters: state.filters,
+      axisSettings: state.axisSettings,
+      chartTitles: state.chartTitles,
+      columnAliases: state.columnAliases,
+      valueLabels: state.valueLabels,
+      displayOptions: state.displayOptions,
+      currentProjectId: state.currentProjectId,
+      currentProjectName: state.currentProjectName,
+      hasUnsavedChanges: state.hasUnsavedChanges,
+      dataFilename: state.dataFilename,
+      dataQualityReport: state.dataQualityReport,
+      paretoMode: state.paretoMode,
+      separateParetoData: state.separateParetoData,
+      separateParetoFilename: state.separateParetoFilename,
+      fullDataYDomain: state.fullDataYDomain,
+      yDomainForCharts: state.yDomainForCharts,
 
-    // Azure-specific state
-    currentProjectLocation,
-    syncStatus,
+      // Azure-specific state
+      currentProjectLocation,
+      syncStatus,
 
-    // Core setters from shared hook
-    setRawData: actions.setRawData,
-    setOutcome: actions.setOutcome,
-    setFactors: actions.setFactors,
-    setTimeColumn: actions.setTimeColumn,
-    setSpecs: actions.setSpecs,
-    setGrades: actions.setGrades,
-    setFilters: actions.setFilters,
-    setAxisSettings: actions.setAxisSettings,
-    setChartTitles: actions.setChartTitles,
-    setColumnAliases: actions.setColumnAliases,
-    setValueLabels: actions.setValueLabels,
-    setDisplayOptions: actions.setDisplayOptions,
-    setDataFilename: actions.setDataFilename,
-    setDataQualityReport: actions.setDataQualityReport,
-    setParetoMode: actions.setParetoMode,
-    setSeparateParetoData: actions.setSeparateParetoData,
-    setSeparateParetoFilename: actions.setSeparateParetoFilename,
-    setStageColumn: actions.setStageColumn,
-    setStageOrderMode: actions.setStageOrderMode,
+      // Core setters from shared hook
+      setRawData: actions.setRawData,
+      setOutcome: actions.setOutcome,
+      setFactors: actions.setFactors,
+      setTimeColumn: actions.setTimeColumn,
+      setSpecs: actions.setSpecs,
+      setGrades: actions.setGrades,
+      setFilters: actions.setFilters,
+      setAxisSettings: actions.setAxisSettings,
+      setChartTitles: actions.setChartTitles,
+      setColumnAliases: actions.setColumnAliases,
+      setValueLabels: actions.setValueLabels,
+      setDisplayOptions: actions.setDisplayOptions,
+      setDataFilename: actions.setDataFilename,
+      setDataQualityReport: actions.setDataQualityReport,
+      setParetoMode: actions.setParetoMode,
+      setSeparateParetoData: actions.setSeparateParetoData,
+      setSeparateParetoFilename: actions.setSeparateParetoFilename,
+      setStageColumn: actions.setStageColumn,
+      setStageOrderMode: actions.setStageOrderMode,
 
-    // Azure-enhanced persistence methods
-    saveProject,
-    loadProject,
-    listProjects: actions.listProjects,
-    deleteProject,
-    renameProject,
-    exportProject: actions.exportProject,
-    importProject: actions.importProject,
-    newProject: actions.newProject,
-  };
+      // Azure-enhanced persistence methods
+      saveProject,
+      loadProject,
+      listProjects: actions.listProjects,
+      deleteProject,
+      renameProject,
+      exportProject: actions.exportProject,
+      importProject: actions.importProject,
+      newProject: actions.newProject,
+    }),
+    [
+      state,
+      actions,
+      currentProjectLocation,
+      syncStatus,
+      saveProject,
+      loadProject,
+      deleteProject,
+      renameProject,
+    ]
+  );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };

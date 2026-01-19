@@ -9,6 +9,7 @@ import {
   removeLicenseKey,
   isValidLicenseFormat,
 } from '../lib/license';
+import type { ScaleMode } from '@variscout/hooks';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -31,13 +32,24 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
   // Local state for form inputs
   const [localOutcome, setLocalOutcome] = useState<string>('');
   const [localFactors, setLocalFactors] = useState<string[]>([]);
-  const [localAxis, setLocalAxis] = useState<{ min: string; max: string }>({ min: '', max: '' });
+  const [localAxis, setLocalAxis] = useState<{ min: string; max: string; scaleMode: ScaleMode }>({
+    min: '',
+    max: '',
+    scaleMode: 'auto',
+  });
   const [localDisplayOptions, setLocalDisplayOptions] = useState<{
     showCp: boolean;
     showCpk: boolean;
     showSpecs?: boolean;
     lockYAxisToFullData?: boolean;
-  }>({ showCp: false, showCpk: true, showSpecs: true, lockYAxisToFullData: true });
+    showControlLimits?: boolean;
+  }>({
+    showCp: false,
+    showCpk: true,
+    showSpecs: true,
+    lockYAxisToFullData: true,
+    showControlLimits: true,
+  });
 
   // License state
   const [licenseKey, setLicenseKey] = useState('');
@@ -79,6 +91,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
       setLocalAxis({
         min: axisSettings.min !== undefined ? axisSettings.min.toString() : '',
         max: axisSettings.max !== undefined ? axisSettings.max.toString() : '',
+        scaleMode: axisSettings.scaleMode ?? 'auto',
       });
       setLocalDisplayOptions(displayOptions);
     }
@@ -94,6 +107,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     setAxisSettings({
       min: localAxis.min ? parseFloat(localAxis.min) : undefined,
       max: localAxis.max ? parseFloat(localAxis.max) : undefined,
+      scaleMode: localAxis.scaleMode,
     });
     setDisplayOptions(localDisplayOptions);
     onClose();
@@ -232,6 +246,32 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               </div>
             </div>
 
+            {/* Control Limits Toggle */}
+            <div className="mb-6">
+              <h4 className="text-xs font-semibold text-content mb-2">Control Limits</h4>
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={localDisplayOptions.showControlLimits !== false}
+                    onChange={e =>
+                      setLocalDisplayOptions({
+                        ...localDisplayOptions,
+                        showControlLimits: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 rounded border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500 focus:ring-offset-surface-secondary"
+                  />
+                  <span className="text-sm text-content group-hover:text-white transition-colors">
+                    Show Control Limits (UCL/Mean/LCL)
+                  </span>
+                </label>
+                <p className="text-[10px] text-content-muted ml-7">
+                  Statistical process control limits based on 3-sigma rule.
+                </p>
+              </div>
+            </div>
+
             {/* Y-Axis Lock */}
             <div className="mb-6">
               <h4 className="text-xs font-semibold text-content mb-2">Filtering Behavior</h4>
@@ -259,37 +299,75 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               </div>
             </div>
 
+            {/* Y-Axis Scale Mode */}
             <div className="mb-2">
-              <h4 className="text-xs font-semibold text-content mb-2">
-                Y-Axis Scaling (Manual Override)
-              </h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-content-secondary mb-1">Min Y</label>
+              <h4 className="text-xs font-semibold text-content mb-2">Y-Axis Scale Mode</h4>
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer group">
                   <input
-                    type="number"
-                    step="any"
-                    value={localAxis.min}
-                    onChange={e => setLocalAxis({ ...localAxis, min: e.target.value })}
-                    className="w-full bg-surface border border-edge rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
-                    placeholder="Auto"
+                    type="radio"
+                    name="scaleMode"
+                    checked={localAxis.scaleMode === 'auto'}
+                    onChange={() => setLocalAxis({ ...localAxis, scaleMode: 'auto' })}
+                    className="w-4 h-4 border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500 focus:ring-offset-surface-secondary"
                   />
-                </div>
-                <div>
-                  <label className="block text-xs text-content-secondary mb-1">Max Y</label>
+                  <span className="text-sm text-content group-hover:text-white transition-colors">
+                    Auto (fit data + specs)
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer group">
                   <input
-                    type="number"
-                    step="any"
-                    value={localAxis.max}
-                    onChange={e => setLocalAxis({ ...localAxis, max: e.target.value })}
-                    className="w-full bg-surface border border-edge rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
-                    placeholder="Auto"
+                    type="radio"
+                    name="scaleMode"
+                    checked={localAxis.scaleMode === 'clampZero'}
+                    onChange={() => setLocalAxis({ ...localAxis, scaleMode: 'clampZero' })}
+                    className="w-4 h-4 border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500 focus:ring-offset-surface-secondary"
                   />
-                </div>
+                  <span className="text-sm text-content group-hover:text-white transition-colors">
+                    Start at Zero (min = 0)
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="scaleMode"
+                    checked={localAxis.scaleMode === 'manual'}
+                    onChange={() => setLocalAxis({ ...localAxis, scaleMode: 'manual' })}
+                    className="w-4 h-4 border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500 focus:ring-offset-surface-secondary"
+                  />
+                  <span className="text-sm text-content group-hover:text-white transition-colors">
+                    Manual (set min/max)
+                  </span>
+                </label>
               </div>
-              <p className="text-[10px] text-content-muted mt-2">
-                Leave blank for automatic scaling. Both charts will use these limits.
-              </p>
+
+              {/* Manual min/max inputs - only show when manual mode is selected */}
+              {localAxis.scaleMode === 'manual' && (
+                <div className="mt-3 ml-7 grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-content-secondary mb-1">Min Y</label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={localAxis.min}
+                      onChange={e => setLocalAxis({ ...localAxis, min: e.target.value })}
+                      className="w-full bg-surface border border-edge rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
+                      placeholder="Required"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-content-secondary mb-1">Max Y</label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={localAxis.max}
+                      onChange={e => setLocalAxis({ ...localAxis, max: e.target.value })}
+                      className="w-full bg-surface border border-edge rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
+                      placeholder="Required"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

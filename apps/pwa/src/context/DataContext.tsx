@@ -4,7 +4,7 @@
  * Uses the shared useDataState hook from @variscout/hooks for core state management,
  * reducing duplication with the Azure app while maintaining full API compatibility.
  */
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import {
   useDataState,
   type DataState,
@@ -37,11 +37,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     autoSaveDelay: 1000,
   });
 
-  // Combine state and actions into a single context value
-  const value: DataContextType = {
-    ...state,
-    ...actions,
-  };
+  // Combine state and actions into a memoized context value
+  const value = useMemo<DataContextType>(
+    () => ({
+      ...state,
+      ...actions,
+    }),
+    [state, actions]
+  );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };

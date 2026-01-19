@@ -192,8 +192,8 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
       }
     }
 
-    // Collect Stat Labels (only if not staged)
-    if (!isStaged && stats) {
+    // Collect Stat Labels (only if not staged and control limits are enabled)
+    if (displayOptions.showControlLimits !== false && !isStaged && stats) {
       labels.push({
         y: yScale(stats.mean),
         text: `Mean: ${stats.mean.toFixed(1)}`,
@@ -237,10 +237,12 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
     stats,
     isStaged,
     displayOptions.showSpecs,
+    displayOptions.showControlLimits,
     grades,
     yScale,
     fonts.statLabel,
     onSpecClick,
+    chrome.axisSecondary,
   ]);
 
   return (
@@ -336,7 +338,8 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
             )}
 
           {/* Control Limits - Staged Mode */}
-          {isStaged &&
+          {displayOptions.showControlLimits !== false &&
+            isStaged &&
             stageBoundaries.map((boundary, idx) => {
               const x1 = xScale(boundary.startX);
               const x2 = xScale(boundary.endX);
@@ -403,7 +406,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
             })}
 
           {/* Control Limits - Non-staged Mode */}
-          {!isStaged && stats && (
+          {displayOptions.showControlLimits !== false && !isStaged && stats && (
             <>
               {/* UCL */}
               <line

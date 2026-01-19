@@ -1,5 +1,7 @@
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import type { DataRow, DataCellValue } from './types';
+import { toNumericValue } from './types';
 
 // ============================================================================
 // Keyword lists for smart column detection
@@ -121,19 +123,31 @@ export interface ParetoRow {
 // Parsing functions
 // ============================================================================
 
-export async function parseCSV(file: File): Promise<any[]> {
+/**
+ * Parse a CSV file into an array of data rows
+ *
+ * @param file - The CSV file to parse
+ * @returns Promise resolving to array of DataRow objects
+ */
+export async function parseCSV(file: File): Promise<DataRow[]> {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
       dynamicTyping: true,
       skipEmptyLines: true,
-      complete: results => resolve(results.data),
+      complete: results => resolve(results.data as DataRow[]),
       error: err => reject(err),
     });
   });
 }
 
-export async function parseExcel(file: File): Promise<any[]> {
+/**
+ * Parse an Excel file into an array of data rows
+ *
+ * @param file - The Excel file to parse
+ * @returns Promise resolving to array of DataRow objects
+ */
+export async function parseExcel(file: File): Promise<DataRow[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = e => {
@@ -141,7 +155,7 @@ export async function parseExcel(file: File): Promise<any[]> {
       const workbook = XLSX.read(data, { type: 'binary' });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      const json = XLSX.utils.sheet_to_json(worksheet);
+      const json = XLSX.utils.sheet_to_json(worksheet) as DataRow[];
       resolve(json);
     };
     reader.onerror = err => reject(err);
@@ -156,10 +170,16 @@ export async function parseExcel(file: File): Promise<any[]> {
 /**
  * Analyze a single column to determine its type and characteristics.
  * Samples multiple rows (not just the first) for better accuracy.
+ *
+ * @param data - Array of data rows
+ * @param colName - Name of the column to analyze
+ * @returns ColumnAnalysis with type, uniqueness, and sample values
  */
-function analyzeColumn(data: any[], colName: string): ColumnAnalysis {
-  const values = data.map(row => row[colName]);
-  const nonNullValues = values.filter(v => v !== null && v !== undefined && v !== '');
+function analyzeColumn(data: DataRow[], colName: string): ColumnAnalysis {
+  const values: DataCellValue[] = data.map(row => row[colName]);
+  const nonNullValues = values.filter(
+    (v): v is NonNullable<DataCellValue> => v !== null && v !== undefined && v !== ''
+  );
 
   // Count missing values
   const missingCount = values.length - nonNullValues.length;
@@ -223,8 +243,11 @@ function analyzeColumn(data: any[], colName: string): ColumnAnalysis {
 
 /**
  * Detect column mappings with smart keyword matching.
+ *
+ * @param data - Array of data rows to analyze
+ * @returns DetectedColumns with suggested outcome, factors, and time column
  */
-export function detectColumns(data: any[]): DetectedColumns {
+export function detectColumns(data: DataRow[]): DetectedColumns {
   if (data.length === 0) {
     return {
       outcome: null,
@@ -308,8 +331,12 @@ export function detectColumns(data: any[]): DetectedColumns {
 
 /**
  * Validate data and identify rows that will be excluded from analysis.
+ *
+ * @param data - Array of data rows to validate
+ * @param outcomeColumn - Column to validate for numeric values
+ * @returns DataQualityReport with excluded rows and column issues
  */
-export function validateData(data: any[], outcomeColumn: string | null): DataQualityReport {
+export function validateData(data: DataRow[], outcomeColumn: string | null): DataQualityReport {
   const excludedRows: ExcludedRow[] = [];
   const columnIssues: ColumnIssue[] = [];
 
@@ -332,9 +359,9 @@ export function validateData(data: any[], outcomeColumn: string | null): DataQua
       reasons.push({ type: 'missing', column: outcomeColumn });
     }
     // Check non-numeric (only if not missing)
-    else if (typeof value !== 'number') {
-      const parsed = parseFloat(value);
-      if (isNaN(parsed) || !isFinite(parsed)) {
+    else {
+      const numericValue = toNumericValue(value);
+      if (numericValue === undefined) {
         reasons.push({
           type: 'non_numeric',
           column: outcomeColumn,
@@ -375,11 +402,8 @@ export function validateData(data: any[], outcomeColumn: string | null): DataQua
   // Check for no variation in valid values
   const validValues = data
     .filter((_, i) => !excludedRows.some(e => e.index === i))
-    .map(row => {
-      const v = row[outcomeColumn];
-      return typeof v === 'number' ? v : parseFloat(v);
-    })
-    .filter(v => !isNaN(v));
+    .map(row => toNumericValue(row[outcomeColumn]))
+    .filter((v): v is number => v !== undefined);
 
   if (validValues.length > 0) {
     const uniqueValid = new Set(validValues);

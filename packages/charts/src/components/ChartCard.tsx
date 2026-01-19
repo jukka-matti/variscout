@@ -1,5 +1,5 @@
 import React from 'react';
-import EditableChartTitle, { type EditableChartTitleProps } from './EditableChartTitle';
+import EditableChartTitle from './EditableChartTitle';
 
 export interface ChartCardProps {
   /** Chart title (auto-generated default) */

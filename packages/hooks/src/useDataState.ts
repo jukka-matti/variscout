@@ -30,6 +30,7 @@ import type {
   ParetoMode,
   DataQualityReport,
   ParetoRow,
+  ScaleMode,
 } from './types';
 
 // ============================================================================
@@ -62,7 +63,7 @@ export interface DataState {
 
   // Filters and settings
   filters: Record<string, (string | number)[]>;
-  axisSettings: { min?: number; max?: number };
+  axisSettings: { min?: number; max?: number; scaleMode?: ScaleMode };
   chartTitles: ChartTitles;
   columnAliases: Record<string, string>;
   valueLabels: Record<string, Record<string, string>>;
@@ -96,7 +97,7 @@ export interface DataActions {
   setSpecs: (specs: { usl?: number; lsl?: number; target?: number }) => void;
   setGrades: (grades: { max: number; label: string; color: string }[]) => void;
   setFilters: (filters: Record<string, (string | number)[]>) => void;
-  setAxisSettings: (settings: { min?: number; max?: number }) => void;
+  setAxisSettings: (settings: { min?: number; max?: number; scaleMode?: ScaleMode }) => void;
   setChartTitles: (titles: ChartTitles) => void;
   setColumnAliases: (aliases: Record<string, string>) => void;
   setValueLabels: (labels: Record<string, Record<string, string>>) => void;
@@ -157,6 +158,7 @@ const DEFAULT_DISPLAY_OPTIONS: DisplayOptions = {
   showCpk: true,
   showSpecs: true,
   lockYAxisToFullData: true,
+  showControlLimits: true,
 };
 
 // ============================================================================
@@ -174,7 +176,11 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   const [specs, setSpecs] = useState<{ usl?: number; lsl?: number; target?: number }>({});
   const [grades, setGrades] = useState<{ max: number; label: string; color: string }[]>([]);
   const [filters, setFilters] = useState<Record<string, (string | number)[]>>({});
-  const [axisSettings, setAxisSettings] = useState<{ min?: number; max?: number }>({});
+  const [axisSettings, setAxisSettings] = useState<{
+    min?: number;
+    max?: number;
+    scaleMode?: ScaleMode;
+  }>({});
   const [chartTitles, setChartTitles] = useState<ChartTitles>({});
   const [columnAliases, setColumnAliases] = useState<Record<string, string>>({});
   const [valueLabels, setValueLabels] = useState<Record<string, Record<string, string>>>({});
@@ -477,69 +483,132 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   }, [persistence]);
 
   // ---------------------------------------------------------------------------
-  // Return state and actions
+  // Return memoized state and actions
   // ---------------------------------------------------------------------------
 
-  const state: DataState = {
-    rawData,
-    filteredData,
-    outcome,
-    factors,
-    timeColumn,
-    specs,
-    grades,
-    stats,
-    stageColumn,
-    stageOrderMode,
-    stagedStats,
-    stagedData,
-    filters,
-    axisSettings,
-    chartTitles,
-    columnAliases,
-    valueLabels,
-    displayOptions,
-    currentProjectId,
-    currentProjectName,
-    hasUnsavedChanges,
-    dataFilename,
-    dataQualityReport,
-    paretoMode,
-    separateParetoData,
-    separateParetoFilename,
-    fullDataYDomain,
-    yDomainForCharts,
-  };
+  const state: DataState = useMemo(
+    () => ({
+      rawData,
+      filteredData,
+      outcome,
+      factors,
+      timeColumn,
+      specs,
+      grades,
+      stats,
+      stageColumn,
+      stageOrderMode,
+      stagedStats,
+      stagedData,
+      filters,
+      axisSettings,
+      chartTitles,
+      columnAliases,
+      valueLabels,
+      displayOptions,
+      currentProjectId,
+      currentProjectName,
+      hasUnsavedChanges,
+      dataFilename,
+      dataQualityReport,
+      paretoMode,
+      separateParetoData,
+      separateParetoFilename,
+      fullDataYDomain,
+      yDomainForCharts,
+    }),
+    [
+      rawData,
+      filteredData,
+      outcome,
+      factors,
+      timeColumn,
+      specs,
+      grades,
+      stats,
+      stageColumn,
+      stageOrderMode,
+      stagedStats,
+      stagedData,
+      filters,
+      axisSettings,
+      chartTitles,
+      columnAliases,
+      valueLabels,
+      displayOptions,
+      currentProjectId,
+      currentProjectName,
+      hasUnsavedChanges,
+      dataFilename,
+      dataQualityReport,
+      paretoMode,
+      separateParetoData,
+      separateParetoFilename,
+      fullDataYDomain,
+      yDomainForCharts,
+    ]
+  );
 
-  const actions: DataActions = {
-    setRawData,
-    setOutcome,
-    setFactors,
-    setTimeColumn,
-    setSpecs,
-    setGrades,
-    setFilters,
-    setAxisSettings,
-    setChartTitles,
-    setColumnAliases,
-    setValueLabels,
-    setDisplayOptions,
-    setDataFilename,
-    setDataQualityReport,
-    setParetoMode,
-    setSeparateParetoData,
-    setSeparateParetoFilename,
-    setStageColumn,
-    setStageOrderMode,
-    saveProject,
-    loadProject,
-    listProjects,
-    deleteProject,
-    renameProject,
-    exportProject,
-    importProject,
-    newProject,
-  };
+  const actions: DataActions = useMemo(
+    () => ({
+      setRawData,
+      setOutcome,
+      setFactors,
+      setTimeColumn,
+      setSpecs,
+      setGrades,
+      setFilters,
+      setAxisSettings,
+      setChartTitles,
+      setColumnAliases,
+      setValueLabels,
+      setDisplayOptions,
+      setDataFilename,
+      setDataQualityReport,
+      setParetoMode,
+      setSeparateParetoData,
+      setSeparateParetoFilename,
+      setStageColumn,
+      setStageOrderMode,
+      saveProject,
+      loadProject,
+      listProjects,
+      deleteProject,
+      renameProject,
+      exportProject,
+      importProject,
+      newProject,
+    }),
+    [
+      setRawData,
+      setOutcome,
+      setFactors,
+      setTimeColumn,
+      setSpecs,
+      setGrades,
+      setFilters,
+      setAxisSettings,
+      setChartTitles,
+      setColumnAliases,
+      setValueLabels,
+      setDisplayOptions,
+      setDataFilename,
+      setDataQualityReport,
+      setParetoMode,
+      setSeparateParetoData,
+      setSeparateParetoFilename,
+      setStageColumn,
+      setStageOrderMode,
+      saveProject,
+      loadProject,
+      listProjects,
+      deleteProject,
+      renameProject,
+      exportProject,
+      importProject,
+      newProject,
+    ]
+  );
 
   return [state, actions];
 }

@@ -1,5 +1,5 @@
-import { HelpCircle } from 'lucide-react';
 import type { AnovaResult } from '@variscout/core';
+import { HelpTooltip, useGlossary } from '@variscout/ui';
 
 interface AnovaResultsProps {
   result: AnovaResult | null;
@@ -11,6 +11,8 @@ interface AnovaResultsProps {
  * Shows group means, significance test, and plain-language insight
  */
 const AnovaResults = ({ result, factorLabel }: AnovaResultsProps) => {
+  const { getTerm } = useGlossary();
+
   if (!result) return null;
 
   const { groups, pValue, isSignificant, insight, etaSquared, fStatistic } = result;
@@ -54,24 +56,12 @@ const AnovaResults = ({ result, factorLabel }: AnovaResultsProps) => {
           <span className="font-mono text-content">
             F = {fStatistic.toFixed(2)}, p = {formatPValue(pValue)}
           </span>
-          <span className="tooltip-wrapper">
-            <HelpCircle size={12} className="text-content-muted hover:text-content cursor-help" />
-            <span className="tooltip">
-              F-statistic measures group difference strength. p-value is the probability this
-              difference happened by chance. p &lt; 0.05 means statistically significant.
-            </span>
-          </span>
+          <HelpTooltip term={getTerm('fStatistic')} iconSize={12} />
         </span>
         {etaSquared > 0 && (
           <span className="text-content-muted text-xs flex items-center gap-1">
             η² = {etaSquared.toFixed(2)}
-            <span className="tooltip-wrapper">
-              <HelpCircle size={12} className="text-content-muted hover:text-content cursor-help" />
-              <span className="tooltip">
-                Eta-squared (η²) is the effect size. Shows how much variation is explained by the
-                factor. Small &lt; 0.06, medium 0.06-0.14, large &gt; 0.14.
-              </span>
-            </span>
+            <HelpTooltip term={getTerm('etaSquared')} iconSize={12} />
           </span>
         )}
       </div>

@@ -2,6 +2,87 @@
  * Shared type definitions for VariScout
  */
 
+// ============================================================================
+// Data Row Types - Foundation for type-safe data handling
+// ============================================================================
+
+/**
+ * Valid values that can appear in a data cell
+ * Covers all typical CSV/Excel cell types
+ */
+export type DataCellValue = string | number | boolean | null | undefined;
+
+/**
+ * A single row of data with dynamic column names
+ * Replaces `any[]` throughout the data layer
+ *
+ * @example
+ * const row: DataRow = {
+ *   'Product': 'Widget A',
+ *   'Weight': 12.5,
+ *   'Pass': true,
+ *   'Notes': null
+ * };
+ */
+export interface DataRow {
+  [columnName: string]: DataCellValue;
+}
+
+/**
+ * Type guard to check if a value is a valid numeric value
+ * Filters out NaN, Infinity, and non-number types
+ *
+ * @param value - The cell value to check
+ * @returns true if the value is a finite number
+ *
+ * @example
+ * if (isNumericValue(row['Weight'])) {
+ *   // TypeScript knows row['Weight'] is a number here
+ *   const weight: number = row['Weight'];
+ * }
+ */
+export function isNumericValue(value: DataCellValue): value is number {
+  return typeof value === 'number' && !isNaN(value) && isFinite(value);
+}
+
+/**
+ * Type guard to check if a value is a non-empty string
+ *
+ * @param value - The cell value to check
+ * @returns true if the value is a non-empty string
+ */
+export function isStringValue(value: DataCellValue): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+/**
+ * Extract numeric value from a cell, parsing strings if needed
+ * Returns undefined if the value cannot be converted to a number
+ *
+ * @param value - The cell value to extract
+ * @returns The numeric value or undefined
+ *
+ * @example
+ * toNumericValue('12.5') // 12.5
+ * toNumericValue(12.5)   // 12.5
+ * toNumericValue('abc')  // undefined
+ * toNumericValue(null)   // undefined
+ */
+export function toNumericValue(value: DataCellValue): number | undefined {
+  if (typeof value === 'number') {
+    return isFinite(value) && !isNaN(value) ? value : undefined;
+  }
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    return isFinite(parsed) && !isNaN(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
+// ============================================================================
+// Statistics Result Types
+// ============================================================================
+
 /**
  * Result of statistical calculations for a dataset
  */

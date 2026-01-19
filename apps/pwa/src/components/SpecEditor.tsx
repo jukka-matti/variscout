@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Save, Plus, Trash2 } from 'lucide-react';
-import { gradeColors } from '@variscout/ui';
+import { gradeColors, useIsMobile } from '@variscout/ui';
 
 const MOBILE_BREAKPOINT = 640;
 
@@ -22,15 +22,9 @@ const SpecEditor = ({ specs, grades, onSave, onClose, style }: SpecEditorProps) 
     target: specs.target?.toString() || '',
   });
   const [localGrades, setLocalGrades] = useState(grades || []);
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Detect mobile/desktop
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Responsive mobile detection
+  const isMobile = useIsMobile(MOBILE_BREAKPOINT);
 
   const handleSave = () => {
     const parsedSpecs = {
