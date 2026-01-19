@@ -13,6 +13,7 @@ export { sockMystery } from './sock-mystery';
 export { mangoExport } from './mango-export';
 export { textiles } from './textiles';
 export { pizza } from './pizza';
+export { sachets } from './sachets';
 
 // Re-export types
 export type { SampleDataset, SampleConfig, SpecLimits, GradeDefinition } from '../types';
@@ -32,6 +33,7 @@ import { sockMystery } from './sock-mystery';
 import { mangoExport } from './mango-export';
 import { textiles } from './textiles';
 import { pizza } from './pizza';
+import { sachets } from './sachets';
 import type { SampleDataset } from '../types';
 
 /**
@@ -53,6 +55,8 @@ export const SAMPLES: SampleDataset[] = [
   callWait,
   delivery,
   sockMystery,
+  // Performance Mode (Multi-Channel Analysis)
+  sachets,
   // Journey/Training
   journey,
   journeyBefore,

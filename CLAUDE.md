@@ -68,61 +68,61 @@ variscout-lite/
 
 ## Key Files
 
-| File                                                | Purpose                                                   |
-| --------------------------------------------------- | --------------------------------------------------------- |
-| `packages/core/src/stats.ts`                        | Statistics engine (mean, Cp, Cpk, ANOVA, GageRR)          |
-| `packages/core/src/__tests__/stats.test.ts`         | Unit tests for statistics engine                          |
-| `packages/core/src/types.ts`                        | Shared TypeScript interfaces                              |
-| `packages/core/src/navigation.ts`                   | Navigation types and utilities                            |
-| `packages/charts/src/`                              | IChart, Boxplot, ParetoChart, ScatterPlot, GageRRChart    |
-| `packages/charts/src/colors.ts`                     | Chart color constants (chartColors, chromeColors)         |
-| `packages/data/src/`                                | Sample datasets with pre-computed stats and chart data    |
-| `packages/data/src/samples/`                        | Individual sample files (coffee, journey, bottleneck)     |
-| `packages/ui/src/colors.ts`                         | Shared UI colors (gradeColors)                            |
-| `packages/ui/src/hooks/useMediaQuery.ts`            | Responsive hooks (useIsMobile)                            |
-| `packages/ui/src/components/HelpTooltip/`           | Help tooltip component with CSS theming and "Learn more"  |
-| `packages/ui/src/hooks/useGlossary.ts`              | Hook for accessing glossary terms and definitions         |
-| `packages/core/src/glossary/types.ts`               | Glossary term type definitions (GlossaryTerm, etc.)       |
-| `packages/core/src/glossary/terms.ts`               | Glossary content (~20 terms for capability, statistics)   |
-| `apps/excel-addin/src/components/HelpTooltip.tsx`   | Fluent UI variant of HelpTooltip for Excel Add-in         |
-| `packages/hooks/src/useChartScale.ts`               | Chart Y-axis scale calculation                            |
-| `packages/hooks/src/useDrillDown.ts`                | Drill-down navigation with breadcrumb trail               |
-| `packages/hooks/src/useVariationTracking.ts`        | Cumulative variation tracking (η²)                        |
-| `packages/hooks/src/useKeyboardNavigation.ts`       | Keyboard navigation (arrow keys, focus management)        |
-| `packages/hooks/src/useResponsiveChartMargins.ts`   | Dynamic chart margins based on container width            |
-| `packages/hooks/src/useDataState.ts`                | Shared DataContext state (used by PWA & Azure)            |
-| `apps/pwa/src/context/DataContext.tsx`              | Central state management                                  |
-| `apps/pwa/src/context/ThemeContext.tsx`             | Theme state (light/dark/system, company accent)           |
-| `packages/core/src/edition.ts`                      | Edition detection, `isThemingEnabled()` feature gate      |
-| `packages/charts/src/useChartTheme.ts`              | Theme-aware chart colors hook                             |
-| `apps/pwa/src/components/__tests__/`                | Component tests (Dashboard, RegressionPanel, GageRRPanel) |
-| `packages/core/src/parser.ts`                       | CSV/Excel parsing, validation, keyword detection (shared) |
-| `apps/pwa/src/hooks/useDataIngestion.ts`            | File upload handlers, validation integration              |
-| `apps/pwa/src/components/DataQualityBanner.tsx`     | Validation summary UI component                           |
-| `apps/pwa/src/components/DrillBreadcrumb.tsx`       | Breadcrumb UI component                                   |
-| `apps/pwa/src/components/views/`                    | Extracted view components (chart containers)              |
-| `apps/azure/src/context/DataContext.tsx`            | Azure app central state (mirrors PWA)                     |
-| `apps/azure/src/services/storage.ts`                | Offline-first storage + OneDrive sync                     |
-| `apps/azure/src/components/__tests__/`              | Azure app component tests                                 |
-| `apps/excel-addin/src/lib/stateBridge.ts`           | Excel state sync                                          |
-| `docs/cases/`                                       | Case studies with demo data and teaching briefs           |
-| `docs/concepts/LSS_TRAINER_STRATEGY.md`             | Green Belt training feature roadmap                       |
-| `docs/concepts/POWER_BI_STRATEGY.md`                | Power BI Custom Visual strategy                           |
-| `docs/concepts/SUBSCRIPTION_LICENSING.md`           | Paddle integration, license key system                    |
-| `docs/concepts/FOUR_PILLARS_METHODOLOGY.md`         | Core methodology (Watson's Four Pillars)                  |
-| `docs/concepts/TWO_VOICES_CONTROL_VS_SPEC.md`       | Control limits vs spec limits (Two Voices)                |
-| `docs/concepts/CASE_BASED_LEARNING.md`              | Three-act case structure for learning                     |
-| `docs/technical/TESTING_STRATEGY.md`                | Testing philosophy, coverage, patterns                    |
-| `docs/technical/`                                   | PWA storage, deployment, testing strategy                 |
-| `docs/products/pwa/`                                | PWA product spec (licensing, storage, stack)              |
-| `docs/products/website/`                            | Marketing website spec (design, copy, pages)              |
-| `docs/products/website/flows/OVERVIEW.md`           | Website user flows overview (personas, architecture)      |
-| `docs/products/website/flows/1-SEO-LEARNER.md`      | SEO → Tool → Product flow (Green Belt Gary)               |
-| `docs/products/website/flows/2-SOCIAL-DISCOVERY.md` | Social → Case → Product flow (Curious Carlos)             |
-| `docs/products/website/flows/CONTENT-STRATEGY.md`   | 16-week content marketing campaign                        |
-| `docs/products/excel/`                              | Excel Add-in spec                                         |
-| `docs/products/powerbi/`                            | Power BI custom visuals spec                              |
-| `docs/products/azure/`                              | Azure team deployment spec (SharePoint, SSO)              |
+| File                                                | Purpose                                                        |
+| --------------------------------------------------- | -------------------------------------------------------------- |
+| `packages/core/src/stats.ts`                        | Statistics engine (mean, Cp, Cpk, ANOVA, GageRR)               |
+| `packages/core/src/__tests__/stats.test.ts`         | Unit tests for statistics engine                               |
+| `packages/core/src/types.ts`                        | Shared TypeScript interfaces                                   |
+| `packages/core/src/navigation.ts`                   | Navigation types and utilities                                 |
+| `packages/charts/src/`                              | IChart, Boxplot, ParetoChart, ScatterPlot, GageRRChart         |
+| `packages/charts/src/colors.ts`                     | Chart color constants (chartColors, chromeColors)              |
+| `packages/data/src/`                                | Sample datasets with pre-computed stats and chart data         |
+| `packages/data/src/samples/`                        | Individual sample files (coffee, journey, bottleneck, sachets) |
+| `packages/ui/src/colors.ts`                         | Shared UI colors (gradeColors)                                 |
+| `packages/ui/src/hooks/useMediaQuery.ts`            | Responsive hooks (useIsMobile)                                 |
+| `packages/ui/src/components/HelpTooltip/`           | Help tooltip component with CSS theming and "Learn more"       |
+| `packages/ui/src/hooks/useGlossary.ts`              | Hook for accessing glossary terms and definitions              |
+| `packages/core/src/glossary/types.ts`               | Glossary term type definitions (GlossaryTerm, etc.)            |
+| `packages/core/src/glossary/terms.ts`               | Glossary content (~20 terms for capability, statistics)        |
+| `apps/excel-addin/src/components/HelpTooltip.tsx`   | Fluent UI variant of HelpTooltip for Excel Add-in              |
+| `packages/hooks/src/useChartScale.ts`               | Chart Y-axis scale calculation                                 |
+| `packages/hooks/src/useDrillDown.ts`                | Drill-down navigation with breadcrumb trail                    |
+| `packages/hooks/src/useVariationTracking.ts`        | Cumulative variation tracking (η²)                             |
+| `packages/hooks/src/useKeyboardNavigation.ts`       | Keyboard navigation (arrow keys, focus management)             |
+| `packages/hooks/src/useResponsiveChartMargins.ts`   | Dynamic chart margins based on container width                 |
+| `packages/hooks/src/useDataState.ts`                | Shared DataContext state (used by PWA & Azure)                 |
+| `apps/pwa/src/context/DataContext.tsx`              | Central state management                                       |
+| `apps/pwa/src/context/ThemeContext.tsx`             | Theme state (light/dark/system, company accent)                |
+| `packages/core/src/edition.ts`                      | Edition detection, `isThemingEnabled()` feature gate           |
+| `packages/charts/src/useChartTheme.ts`              | Theme-aware chart colors hook                                  |
+| `apps/pwa/src/components/__tests__/`                | Component tests (Dashboard, RegressionPanel, GageRRPanel)      |
+| `packages/core/src/parser.ts`                       | CSV/Excel parsing, validation, keyword detection (shared)      |
+| `apps/pwa/src/hooks/useDataIngestion.ts`            | File upload handlers, validation integration                   |
+| `apps/pwa/src/components/DataQualityBanner.tsx`     | Validation summary UI component                                |
+| `apps/pwa/src/components/DrillBreadcrumb.tsx`       | Breadcrumb UI component                                        |
+| `apps/pwa/src/components/views/`                    | Extracted view components (chart containers)                   |
+| `apps/azure/src/context/DataContext.tsx`            | Azure app central state (mirrors PWA)                          |
+| `apps/azure/src/services/storage.ts`                | Offline-first storage + OneDrive sync                          |
+| `apps/azure/src/components/__tests__/`              | Azure app component tests                                      |
+| `apps/excel-addin/src/lib/stateBridge.ts`           | Excel state sync                                               |
+| `docs/cases/`                                       | Case studies with demo data and teaching briefs                |
+| `docs/concepts/LSS_TRAINER_STRATEGY.md`             | Green Belt training feature roadmap                            |
+| `docs/concepts/POWER_BI_STRATEGY.md`                | Power BI Custom Visual strategy                                |
+| `docs/concepts/SUBSCRIPTION_LICENSING.md`           | Paddle integration, license key system                         |
+| `docs/concepts/FOUR_PILLARS_METHODOLOGY.md`         | Core methodology (Watson's Four Pillars)                       |
+| `docs/concepts/TWO_VOICES_CONTROL_VS_SPEC.md`       | Control limits vs spec limits (Two Voices)                     |
+| `docs/concepts/CASE_BASED_LEARNING.md`              | Three-act case structure for learning                          |
+| `docs/technical/TESTING_STRATEGY.md`                | Testing philosophy, coverage, patterns                         |
+| `docs/technical/`                                   | PWA storage, deployment, testing strategy                      |
+| `docs/products/pwa/`                                | PWA product spec (licensing, storage, stack)                   |
+| `docs/products/website/`                            | Marketing website spec (design, copy, pages)                   |
+| `docs/products/website/flows/OVERVIEW.md`           | Website user flows overview (personas, architecture)           |
+| `docs/products/website/flows/1-SEO-LEARNER.md`      | SEO → Tool → Product flow (Green Belt Gary)                    |
+| `docs/products/website/flows/2-SOCIAL-DISCOVERY.md` | Social → Case → Product flow (Curious Carlos)                  |
+| `docs/products/website/flows/CONTENT-STRATEGY.md`   | 16-week content marketing campaign                             |
+| `docs/products/excel/`                              | Excel Add-in spec                                              |
+| `docs/products/powerbi/`                            | Power BI custom visuals spec                                   |
+| `docs/products/azure/`                              | Azure team deployment spec (SharePoint, SSO)                   |
 
 > Use `Read` tool to examine these files when needed.
 
