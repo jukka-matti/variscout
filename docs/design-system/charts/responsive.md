@@ -166,3 +166,13 @@ Dashboard panels use `react-resizable-panels` with:
   </Panel>
 </PanelGroup>
 ```
+
+---
+
+## See Also
+
+- [README](./README.md) - Chart design system overview and selection guide
+- [Overview](./overview.md) - Chart architecture and common patterns
+- [Colors](./colors.md) - Data visualization color palette
+- [Hooks](./hooks.md) - useChartLayout for responsive layout
+- [Utilities](./utilities.md) - Accessibility and interaction helpers

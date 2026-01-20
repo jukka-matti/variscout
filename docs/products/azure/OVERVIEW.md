@@ -41,6 +41,12 @@ All PWA analysis features included:
 
 ---
 
+## User Flows
+
+- [Project Management](../../flows/azure/PROJECT-MANAGEMENT.md) - Project browser, cloud sync, team sharing
+- [Core Analysis Journey](../../flows/CORE-ANALYSIS-JOURNEY.md) - Dashboard, drill-down, focus mode
+- [Performance Mode](../../flows/PERFORMANCE-MODE.md) - Multi-measure analysis
+
 ## Related Documentation
 
 - [OneDrive Sync](./ONEDRIVE-SYNC.md) - File storage and sharing

@@ -297,6 +297,9 @@ const MyChart: React.FC<Props> = ({ parentWidth, parentHeight, data, selectedKey
 
 ## See Also
 
+- [README](./README.md) - Chart design system overview and selection guide
 - [Colors](./colors.md) - `useChartTheme` hook for theme-aware colors
-- [Shared Components](./shared-components.md) - ChartTooltip component
 - [Responsive](./responsive.md) - Underlying responsive utilities
+- [Shared Components](./shared-components.md) - ChartTooltip component
+- [Utilities](./utilities.md) - Accessibility and interaction helpers
+- [Overview](./overview.md) - Chart architecture and common patterns

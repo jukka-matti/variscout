@@ -364,6 +364,12 @@ import { PerformanceCapabilityBase } from '@variscout/charts/PerformanceCapabili
 
 ## See Also
 
+- [README](./README.md) - Chart design system overview and selection guide
 - [Colors](./colors.md) - Health classification colors
+- [Responsive](./responsive.md) - Breakpoints and scaling utilities
 - [Hooks](./hooks.md) - useChartLayout, useChartTooltip
 - [Overview](./overview.md) - Standard chart components
+- [IChart](./ichart.md) - PerformanceIChart component
+- [Boxplot](./boxplot.md) - PerformanceBoxplot component
+- [Pareto](./pareto.md) - PerformancePareto component
+- [Capability](./capability.md) - PerformanceCapability component

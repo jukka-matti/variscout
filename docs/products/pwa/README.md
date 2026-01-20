@@ -6,6 +6,14 @@ Technical specifications for VaRiScout implementation. These documents are desig
 
 ---
 
+## User Flows
+
+- [Data Onboarding](../../flows/pwa/DATA-ONBOARDING.md) - File upload, sample data, manual entry
+- [Core Analysis Journey](../../flows/CORE-ANALYSIS-JOURNEY.md) - Dashboard, drill-down, focus mode
+- [Performance Mode](../../flows/PERFORMANCE-MODE.md) - Multi-measure analysis
+
+---
+
 ## Documents
 
 | Document              | Description                                            |

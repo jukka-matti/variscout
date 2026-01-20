@@ -58,6 +58,12 @@ Same philosophy as PWA: **Save is the upgrade gate.**
 
 ---
 
+## User Flows
+
+- [Setup Wizard](../../flows/excel/SETUP-WIZARD.md) - 6-step setup wizard from worksheet data
+- [Core Analysis Journey](../../flows/CORE-ANALYSIS-JOURNEY.md) - Dashboard, drill-down, focus mode
+- [Performance Mode](../../flows/PERFORMANCE-MODE.md) - Multi-measure analysis
+
 ## Related Documentation
 
 - [Architecture](./ARCHITECTURE.md) - Hybrid Task Pane + Content Add-in architecture

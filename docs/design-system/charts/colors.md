@@ -217,3 +217,13 @@ stroke={chartColors.spec}  // #ef4444
 | Azure   | `@variscout/charts` | Chart components in Dashboard      |
 | Website | `@variscout/charts` | React Islands (IChartIsland, etc.) |
 | Excel   | `@variscout/charts` | Content Add-in chart panel         |
+
+---
+
+## See Also
+
+- [README](./README.md) - Chart design system overview and selection guide
+- [Overview](./overview.md) - Chart architecture and common patterns
+- [Responsive](./responsive.md) - Breakpoints and scaling utilities
+- [Hooks](./hooks.md) - useChartTheme for theme-aware colors
+- [IChart](./ichart.md) - I-Chart point coloring implementation

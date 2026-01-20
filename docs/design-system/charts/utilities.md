@@ -201,6 +201,9 @@ import { getBarA11yProps, interactionStyles, hoverOpacity } from '@variscout/cha
 
 ## See Also
 
+- [README](./README.md) - Chart design system overview and selection guide
 - [Shared Components](./shared-components.md) - ChartTooltip, SpecLimitLine
 - [Hooks](./hooks.md) - useSelectionState for opacity management
 - [Colors](./colors.md) - Chart color constants
+- [Responsive](./responsive.md) - Breakpoints and scaling utilities
+- [Overview](./overview.md) - Chart architecture and common patterns

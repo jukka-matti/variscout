@@ -262,3 +262,14 @@ Height: 18px (included in bottom margin calculations)
 3. **Add tooltips** for interactive elements
 4. **Handle empty states** gracefully - show actionable options when no data (see [feedback patterns](../patterns/feedback.md#actionable-empty-state))
 5. **Test at multiple sizes** using the responsive wrapper
+
+---
+
+## See Also
+
+- [README](./README.md) - Chart design system overview and selection guide
+- [Colors](./colors.md) - Data visualization color palette
+- [Responsive](./responsive.md) - Breakpoints and scaling utilities
+- [Hooks](./hooks.md) - React hooks API for charts
+- [Shared Components](./shared-components.md) - Reusable chart UI components
+- [Utilities](./utilities.md) - Accessibility and interaction helpers

@@ -307,6 +307,9 @@ export { default as ChartCard } from './ChartCard';
 
 ## See Also
 
+- [README](./README.md) - Chart design system overview and selection guide
 - [Utilities](./utilities.md) - A11y and interaction utilities
 - [Hooks](./hooks.md) - useChartTooltip hook
 - [Colors](./colors.md) - Chart color constants
+- [Responsive](./responsive.md) - Breakpoints and scaling utilities
+- [Overview](./overview.md) - Chart architecture and common patterns
