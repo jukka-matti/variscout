@@ -2,19 +2,23 @@
 
 ## Overview
 
-The journey from first visit to paid customer.
+The journey from first visit to paid customer, with the new 3-tier model:
+
+- **Demo** (browser) → Samples only
+- **Free** (installed PWA) → Upload files, session-only
+- **Licensed** (installed PWA) → Save projects, €99/year
 
 ---
 
 ## Funnel Stages
 
 ```
-AWARENESS → TRIAL → VALUE → CONVERSION → RETENTION
+AWARENESS → DEMO → INSTALL → VALUE → CONVERSION → RETENTION
 
-   │          │       │         │           │
-   ▼          ▼       ▼         ▼           ▼
- Website    /app    First    Purchase    Renewal
-  visit     use    insight   decision
+   │          │       │        │         │           │
+   ▼          ▼       ▼        ▼         ▼           ▼
+ Website    /app    Install   Upload    Save      Renewal
+  visit    demo     PWA      own data  blocked
 ```
 
 ---
@@ -40,75 +44,121 @@ AWARENESS → TRIAL → VALUE → CONVERSION → RETENTION
 
 ### Conversion Goal
 
-Click "Try Free" → Enter app
+Click "Try Demo" → Enter app (browser demo)
 
 ---
 
-## Stage 2: Trial
+## Stage 2: Demo (Browser)
 
-### First App Experience
+### Demo Experience
 
 ```
-FIRST VISIT TO /app
+FIRST VISIT TO /app (BROWSER)
 ─────────────────────────────────────────────────────
 
-Option A: Has own data
-  1. See empty state with upload prompt
-  2. Drag/drop CSV
-  3. Select columns
-  4. See charts
+User arrives in browser:
+  1. See sample datasets available
+  2. Explore 16 pre-loaded samples
+  3. Experience all chart types
+  4. Click to filter, copy charts
+  5. Realize: "I want to use my own data"
+  6. See prompt: "Install to upload your data"
 
-Option B: No data ready
-  1. See empty state
-  2. Click "Try Sample Data"
-  3. Sample loads automatically
-  4. Explore pre-configured analysis
-
-TIME TO VALUE: < 2 minutes
+TIME TO VALUE: < 2 minutes with samples
 ```
 
-### Empty State Design
+### Demo State Design
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │                                                     │
-│              📊 Ready to Scout?                     │
+│              📊 VaRiScout Demo                      │
 │                                                     │
-│         Drop your CSV here to start                 │
+│         Explore with sample datasets               │
+│                                                     │
+│    ┌─────────┐ ┌─────────┐ ┌─────────┐            │
+│    │ Coffee  │ │ Pizza   │ │ Bottleneck│           │
+│    │ Sample  │ │ Delivery│ │  Case   │            │
+│    └─────────┘ └─────────┘ └─────────┘            │
 │                                                     │
 │         ─────── or ───────                          │
 │                                                     │
-│         [Try with Sample Data]                      │
+│         [Install to Upload Your Data]              │
 │                                                     │
-│    Supports: CSV, Excel (.xlsx, .xls)              │
-│    Your data never leaves your browser              │
+│    Your data never leaves your device              │
+│    Installation is free • 2 clicks                 │
 │                                                     │
 └─────────────────────────────────────────────────────┘
 ```
 
-### Sample Data Experience
+### Why Demo First?
 
-Pre-configured dataset that demonstrates:
-
-- I-Chart with visible pattern
-- Boxplot with clear difference between groups
-- Pareto with 80/20 distribution
-- Filter interaction
-
-User can immediately:
-
-- See all charts
-- Click to filter
-- Copy charts
-- Experience the value
+| Benefit           | Explanation                             |
+| ----------------- | --------------------------------------- |
+| Immediate value   | User sees charts instantly with samples |
+| No commitment     | Explore freely without installing       |
+| Trust building    | User understands the tool before upload |
+| Privacy messaging | "Install to upload" explains why        |
 
 ---
 
-## Stage 3: Value Discovery
+## Stage 3: Install (Free Tier)
+
+### Install Prompt
+
+When user tries to upload in browser, or clicks "Install to upload":
+
+```
+┌─────────────────────────────────────────────────────┐
+│                                                     │
+│  ⬇️ Install VaRiScout (Free)                        │
+│                                                     │
+│  To upload your own data, install the app.         │
+│  This keeps your data 100% on your device.         │
+│                                                     │
+│  ✓ Upload CSV/Excel files                          │
+│  ✓ Manual data entry                               │
+│  ✓ Full analysis tools                             │
+│  ✓ Works offline                                   │
+│                                                     │
+│  [Install App]                                      │
+│                                                     │
+│  Free • No signup • 2 clicks                       │
+│                                                     │
+│  Note: Session-only (projects don't persist)       │
+│  Upgrade to Licensed (€99/year) to save work       │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Installation Flow
+
+```
+User clicks "Install App"
+         │
+         ▼
+Browser shows native install prompt
+         │
+         ▼
+User confirms installation
+         │
+         ▼
+PWA installs (2-3 seconds)
+         │
+         ▼
+App launches in standalone window
+         │
+         ▼
+User can now upload files
+```
+
+---
+
+## Stage 4: Value Discovery (Free Tier)
 
 ### First Value Moment
 
-User realizes: "This is useful for me."
+User realizes: "This is useful for me with MY data."
 
 Triggers:
 
@@ -121,7 +171,7 @@ Triggers:
 
 | Friction                              | Solution                               |
 | ------------------------------------- | -------------------------------------- |
-| "I don't have data ready"             | Sample data option                     |
+| "I can't upload in browser"           | Clear "Install to upload" messaging    |
 | "I don't know what columns to select" | Smart auto-detection                   |
 | "The chart isn't what I expected"     | Clear empty states, help text          |
 | "I need to do this again next week"   | **Upgrade prompt when trying to save** |
@@ -139,38 +189,18 @@ Track:
 
 ---
 
-## Stage 4: Conversion
+## Stage 5: Conversion (Free → Licensed)
 
 ### Upgrade Triggers
 
-| Trigger                   | Moment                       | Priority     | Message                             |
-| ------------------------- | ---------------------------- | ------------ | ----------------------------------- |
-| **Save project attempt**  | User clicks Save             | 🔴 Primary   | "Save projects with Individual"     |
-| **Browser close**         | Unsaved work in progress     | 🔴 Primary   | "Your work will be lost"            |
-| **Template save attempt** | User tries to save template  | 🟡 Secondary | "Save templates with Individual"    |
-| **.vrs export attempt**   | User tries to export project | 🟡 Secondary | "Export .vrs files with Individual" |
-| Export with watermark     | After copy/export            | 🟢 Gentle    | "Remove watermark for €49/year"     |
-| Repeat visit              | 3rd+ session with work       | 🟢 Gentle    | "Ready to save your work?"          |
-
-### Why Save-Based Triggers Work
-
-```
-USER PSYCHOLOGY
-─────────────────────────────────────────────────────────────────
-
-1. User spends 15-30 minutes on analysis
-2. Sees insights, wants to keep them
-3. Clicks "Save Project"
-4. Prompt: "This requires Individual"
-5. User thinks: "I just invested 30 minutes... €49 is worth it"
-
-vs.
-
-Old model:
-1. User exports chart
-2. Sees watermark
-3. User thinks: "I'll just crop it out"
-```
+| Trigger                   | Moment                       | Priority     | Message                           |
+| ------------------------- | ---------------------------- | ------------ | --------------------------------- |
+| **Save project attempt**  | User clicks Save             | 🔴 Primary   | "Save projects with Licensed"     |
+| **Browser/app close**     | Unsaved work in progress     | 🔴 Primary   | "Your work will be lost"          |
+| **Template save attempt** | User tries to save template  | 🟡 Secondary | "Save templates with Licensed"    |
+| **.vrs export attempt**   | User tries to export project | 🟡 Secondary | "Export .vrs files with Licensed" |
+| Export with watermark     | After copy/export            | 🟢 Gentle    | "Remove watermark for €99/year"   |
+| Repeat visit              | 3rd+ session with work       | 🟢 Gentle    | "Ready to save your work?"        |
 
 ### Upgrade Prompt Designs
 
@@ -180,7 +210,7 @@ SAVE PROJECT ATTEMPT (primary trigger)
 
 ┌─────────────────────────────────────────────────────┐
 │                                                     │
-│  💾 Save Projects with Individual                   │
+│  💾 Save Projects with Licensed                     │
 │                                                     │
 │  Your analysis will be lost when you close.        │
 │  Upgrade to save and return to your work anytime.  │
@@ -189,8 +219,9 @@ SAVE PROJECT ATTEMPT (primary trigger)
 │  • Export .vrs files to share                      │
 │  • Save templates for repeat analyses              │
 │  • Remove watermark from exports                   │
+│  • Theme customization                             │
 │                                                     │
-│  €49/year                                          │
+│  €99/year                                          │
 │                                                     │
 │  [Upgrade Now]    [Maybe Later]                    │
 │                                                     │
@@ -203,92 +234,27 @@ SAVE PROJECT ATTEMPT (primary trigger)
 └─────────────────────────────────────────────────────┘
 
 
-BROWSER CLOSE WARNING (if work in progress)
+APP CLOSE WARNING (if work in progress)
 ─────────────────────────────────────────────────────
 
 ┌─────────────────────────────────────────────────────┐
 │                                                     │
 │  ⚠️ Your analysis will be lost                      │
 │                                                     │
-│  Free version: projects don't persist.             │
+│  Free tier: projects don't persist.                │
 │                                                     │
-│  [Upgrade to Save — €49/year]                      │
+│  [Upgrade to Save — €99/year]                      │
 │                                                     │
 │  [Copy Charts First]    [Close Anyway]             │
 │                                                     │
 │  ☐ Don't warn me again                             │
 │                                                     │
 └─────────────────────────────────────────────────────┘
-
-
-AFTER EXPORT (gentle upsell)
-─────────────────────────────────────────────────────
-
-┌─────────────────────────────────────────────────────┐
-│  ✓ Copied to clipboard                              │
-│                                                     │
-│  💡 Upgrade to save projects and remove watermark   │
-│                                                     │
-│  [Learn More]  [Dismiss]  ☐ Don't show again       │
-└─────────────────────────────────────────────────────┘
-
-
-SETTINGS PAGE (permanent option)
-─────────────────────────────────────────────────────
-
-┌─────────────────────────────────────────────────────┐
-│  Settings                                           │
-│                                                     │
-│  Account                                            │
-│  ────────────────────────────────────────────      │
-│  Status: Free tier                                  │
-│                                                     │
-│  Free tier limitations:                             │
-│  • Projects don't persist (session only)           │
-│  • Watermark on exports                            │
-│                                                     │
-│  ┌───────────────────────────────────────────┐     │
-│  │  Upgrade to Individual — €49/year          │     │
-│  │                                            │     │
-│  │  ✓ Save projects     ✓ No watermark       │     │
-│  │  ✓ Export .vrs       ✓ Save templates     │     │
-│  │                                            │     │
-│  │  [Upgrade Now]                             │     │
-│  └───────────────────────────────────────────┘     │
-│                                                     │
-│  ─────────────────────────────────────────────     │
-│                                                     │
-│  Other Options                                      │
-│                                                     │
-│  For teams and enterprises, we offer:              │
-│  • Power BI visuals (€399 - €1,999/year)          │
-│  • Azure self-hosted deployment (€999/year)        │
-│                                                     │
-│  [View all options at variscout.com/pricing]       │
-│                                                     │
-│  ─────────────────────────────────────────────     │
-│                                                     │
-│  Prompt Preferences                                 │
-│  ☐ Show upgrade prompts                            │
-│  ☐ Show browser close warnings                     │
-│                                                     │
-└─────────────────────────────────────────────────────┘
 ```
-
-### "Don't Show Again" Behavior
-
-| Preference           | Stored In          | Effect                           |
-| -------------------- | ------------------ | -------------------------------- |
-| `hideUpgradePrompts` | IndexedDB settings | Suppresses save/export prompts   |
-| `hideCloseWarning`   | IndexedDB settings | Suppresses browser close warning |
-
-**Reset option**: Always available in Settings under "Prompt Preferences"
-
-**Important**: Settings page always shows upgrade option regardless of prompt preferences — user can always upgrade if they change their mind.
 
 ### Checkout Flow (In-App via Paddle + Instant Activation)
 
-Checkout happens **inside the PWA** with **instant activation** — no waiting for email.
+Checkout happens **inside the installed PWA** with **instant activation**.
 
 ```
 IN-APP CHECKOUT (Instant Activation)
@@ -299,11 +265,11 @@ User clicks "Upgrade" in PWA
          ▼
 ┌─────────────────────────────────────────────────────┐
 │                                                     │
-│  🔓 Unlock Full Version                             │
+│  🔓 Unlock Licensed Version                         │
 │                                                     │
 │  Save projects • Export .vrs • No watermark         │
 │                                                     │
-│  €49/year                                          │
+│  €99/year                                          │
 │                                                     │
 │  ┌─────────────────────────────────────────────┐   │
 │  │     [Paddle Checkout Overlay]               │   │
@@ -311,7 +277,7 @@ User clicks "Upgrade" in PWA
 │  │     Email: user@example.com                 │   │
 │  │     Card: •••• •••• •••• 4242               │   │
 │  │                                             │   │
-│  │     [Pay €49]                               │   │
+│  │     [Pay €99]                               │   │
 │  └─────────────────────────────────────────────┘   │
 │                                                     │
 │  Paddle handles VAT automatically.                  │
@@ -342,66 +308,22 @@ License returned to PWA → stored in IndexedDB
 └─────────────────────────────────────────────────────┘
 ```
 
-### Why Instant Activation?
-
-| Old Flow (Email)                        | New Flow (Instant) |
-| --------------------------------------- | ------------------ |
-| Pay → Wait → Check email → Copy → Paste | Pay → Done         |
-| 1-5 minutes                             | 2-3 seconds        |
-| Spam folder risk                        | No risk            |
-| User might close browser                | Immediate          |
-| Friction                                | Delight ✨         |
-
-### Email as Backup
-
-Email is still sent (in background) for:
-
-- Setting up on new devices
-- Recovering after browser data cleared
-- Invoice/receipts for company records
-
 ### What Changes After Activation
 
-| Feature           | Before (Free)     | After (Individual) |
-| ----------------- | ----------------- | ------------------ |
-| Save projects     | ❌ Blocked        | ✅ Enabled         |
-| Export .vrs       | ❌ Blocked        | ✅ Enabled         |
-| Save templates    | ❌ Blocked        | ✅ Enabled         |
-| Export PNG/CSV    | ✅ With watermark | ✅ No watermark    |
-| Copy to clipboard | ✅ With watermark | ✅ No watermark    |
-
-### Why In-App Checkout?
-
-| Reason                        | Benefit                                                      |
-| ----------------------------- | ------------------------------------------------------------ |
-| Data stays local              | User was just analyzing sensitive data — don't redirect away |
-| Context preserved             | They're already in the tool, friction-free                   |
-| Instant activation            | Pay → features unlock in 2 seconds                           |
-| No website payment complexity | Website is just static marketing                             |
-| Paddle handles VAT            | No tax compliance on our end                                 |
-
-### Website's Role
-
-The website **does not** handle checkout. Instead:
-
-- Pricing page is **informational** — shows prices, explains how buying works
-- All CTAs lead to `/app` (open the tool) or Microsoft AppSource
-- Upgrade prompts and Paddle checkout live **inside the PWA only**
-
-```
-WEBSITE                              PWA
-────────────────────                ────────────────────
-• Explain value                     • Analyze data
-• Show pricing                      • Experience value
-• Explain how buying works          • Try to save → upgrade prompt
-• Link to /app                      • Pay via Paddle overlay
-• Link to AppSource                 • Instant activation (2 sec)
-                                    • Done! Features unlocked
-```
+| Feature           | Demo         | Free (Installed)  | Licensed        |
+| ----------------- | ------------ | ----------------- | --------------- |
+| Sample datasets   | ✅           | ✅                | ✅              |
+| Upload CSV/Excel  | ❌           | ✅                | ✅              |
+| Save projects     | ❌           | ❌                | ✅              |
+| Export .vrs       | ❌           | ❌                | ✅              |
+| Save templates    | ❌           | ❌                | ✅              |
+| Export PNG/CSV    | ❌           | ✅ With watermark | ✅ No watermark |
+| Copy to clipboard | ✅ Watermark | ✅ With watermark | ✅ No watermark |
+| Works offline     | ❌           | ✅                | ✅              |
 
 ---
 
-## Stage 5: Retention
+## Stage 6: Retention
 
 ### Engagement Triggers
 
@@ -420,49 +342,40 @@ WEBSITE                              PWA
 
 ---
 
+## Updated User Journey
+
+```
+BEFORE (Old Model):
+Homepage → Try Free → Upload file → Analyze → Save blocked → Upgrade
+
+AFTER (New 3-Tier Model):
+Homepage → Try Demo → Demo (samples) → "Install to upload" →
+  Install PWA → Upload file → Analyze → Save blocked → Upgrade to Licensed
+```
+
+---
+
 ## Conversion Metrics
 
 ### Funnel Metrics
 
 | Stage                         | Metric             | Target |
 | ----------------------------- | ------------------ | ------ |
-| Visit → App                   | Click-through rate | 20%    |
-| App → First analysis          | Completion rate    | 60%    |
+| Visit → Demo                  | Click-through rate | 20%    |
+| Demo → Install                | Install rate       | 15%    |
+| Install → First analysis      | Completion rate    | 70%    |
 | First analysis → Save attempt | Intent signal      | 40%    |
 | Save attempt → Upgrade        | Conversion rate    | 15%    |
-| Overall: Visit → Paid         | End-to-end         | 2-3%   |
-
-### Save-Based Conversion Signals
-
-| Signal                       | What It Means                 | Action                 |
-| ---------------------------- | ----------------------------- | ---------------------- |
-| Time in app > 5 min          | Invested, likely to want save | Prepare upgrade prompt |
-| Multiple filter interactions | Exploring, finding value      | Good sign              |
-| Save button click            | Strong intent                 | Show upgrade prompt    |
-| Browser close with work      | Critical moment               | Show warning prompt    |
-| Return visit                 | Repeat interest               | Gentle reminder        |
+| Overall: Visit → Licensed     | End-to-end         | 1-2%   |
 
 ### Time-Based
 
 | Metric                             | Target                     |
 | ---------------------------------- | -------------------------- |
-| Time to first chart                | < 2 minutes                |
-| Time to save attempt               | 5-30 minutes               |
+| Time to first chart (demo)         | < 1 minute                 |
+| Time to install decision           | 2-5 minutes exploring demo |
+| Time to save attempt               | 5-30 minutes after install |
 | Time to upgrade (from save prompt) | < 2 minutes                |
-| Time to paid conversion            | Same session or 1-3 visits |
-
----
-
-## A/B Testing Opportunities
-
-| Test                                 | Hypothesis                                        |
-| ------------------------------------ | ------------------------------------------------- |
-| Save button visibility               | More prominent → more upgrade prompts             |
-| Prompt copy: features vs. loss       | "Save your work" vs. "Don't lose your work"       |
-| Prompt timing                        | After 5 min vs. only on save click                |
-| Browser close warning                | With warning → higher conversion                  |
-| Price in prompt                      | Show €49 → higher conversion (low perceived cost) |
-| "Copy first" option in close warning | Reduces frustration, maintains goodwill           |
 
 ---
 
@@ -478,44 +391,32 @@ WEBSITE                              PWA
 ### Tracking (PWA)
 
 - Session tracking (anonymous)
+- **Install tracking** (browser → installed PWA)
 - Event tracking (filter, export, copy)
 - **Save attempt tracking** (critical conversion signal)
-- **Browser close with unsaved work** (trigger for warning)
 - Upgrade prompt impressions (by type)
-- Upgrade prompt responses (upgrade / dismiss / copy first)
-- **"Don't show again" clicks** (measure opt-out rate)
-- **Team options link clicks** (Power BI/Azure interest)
+- Upgrade prompt responses (upgrade / dismiss)
 - Conversion tracking (upgrade click, purchase complete)
 - License activation
 
 ### Analytics Events Schema
 
 ```javascript
+// Install events (new)
+{ event: 'install_prompt_shown' }
+{ event: 'install_completed' }
+{ event: 'install_dismissed' }
+
 // Prompt events
 { event: 'prompt_shown', type: 'save_attempt' | 'close_warning' | 'export' }
 { event: 'prompt_response', type: 'upgrade' | 'dismiss' | 'copy_first' }
 { event: 'prompt_dont_show_again', type: 'save_attempt' | 'close_warning' | 'export' }
-{ event: 'team_options_click', location: 'prompt' | 'settings' }
 
 // Conversion events
 { event: 'upgrade_started', trigger: 'save_attempt' | 'settings' | 'export' }
 { event: 'checkout_completed', source: 'paddle' }
 { event: 'license_activated' }
 ```
-
-### Storage (PWA)
-
-- IndexedDB for projects, settings, license
-- No server-side user data
-- License validation offline via signed keys
-
-### Payment (PWA Only)
-
-- **Paddle** for in-app checkout
-- License key delivery via email (Resend)
-- Offline key validation in app
-
-> See `variscout-pwa/technical/TECH-LICENSING.md` for full implementation.
 
 ---
 

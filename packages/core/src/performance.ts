@@ -371,3 +371,147 @@ export function getWorstChannels(channels: ChannelResult[], n: number): ChannelR
 export function getBestChannels(channels: ChannelResult[], n: number): ChannelResult[] {
   return sortChannels(channels, 'cpk-desc').slice(0, n);
 }
+
+// ============================================================================
+// Control Limits for Capability Metrics
+// ============================================================================
+
+/**
+ * Control limit calculation result for capability metrics (Cp/Cpk)
+ */
+export interface CapabilityControlLimits {
+  /** Mean of capability values across channels */
+  mean: number;
+  /** Standard deviation of capability values */
+  stdDev: number;
+  /** Upper Control Limit (mean + 3σ) */
+  ucl: number;
+  /** Lower Control Limit (mean - 3σ), clamped to 0 */
+  lcl: number;
+  /** Number of channels used in calculation */
+  n: number;
+}
+
+/**
+ * Calculate control limits for capability metrics (Cp or Cpk) across channels
+ *
+ * Uses standard control chart formula: UCL = mean + 3σ, LCL = mean - 3σ
+ * LCL is clamped to 0 since negative capability values are meaningless.
+ *
+ * @param channels - Array of channel results
+ * @param metric - Which capability metric to use: 'cp' or 'cpk'
+ * @returns Control limits, or null if insufficient data
+ *
+ * @example
+ * const limits = calculateCapabilityControlLimits(channels, 'cpk');
+ * // { mean: 1.25, stdDev: 0.15, ucl: 1.70, lcl: 0.80, n: 12 }
+ */
+export function calculateCapabilityControlLimits(
+  channels: ChannelResult[],
+  metric: 'cp' | 'cpk' = 'cpk'
+): CapabilityControlLimits | null {
+  // Extract valid capability values
+  const values = channels
+    .map(c => c[metric])
+    .filter((v): v is number => v !== undefined && !isNaN(v));
+
+  // Need at least 2 values for meaningful statistics
+  if (values.length < 2) {
+    return null;
+  }
+
+  const n = values.length;
+  const mean = d3.mean(values) || 0;
+  const stdDev = d3.deviation(values) || 0;
+
+  // Calculate control limits
+  // LCL is clamped to 0 since negative capability is meaningless
+  const ucl = mean + 3 * stdDev;
+  const lcl = Math.max(0, mean - 3 * stdDev);
+
+  return {
+    mean,
+    stdDev,
+    ucl,
+    lcl,
+    n,
+  };
+}
+
+/**
+ * Result of control status check for a capability value
+ */
+export interface CapabilityControlStatus {
+  /** Whether the value is within control limits */
+  inControl: boolean;
+  /** Whether this point is part of a Nelson Rule 2 violation (9+ consecutive on same side) */
+  nelsonRule2Violation: boolean;
+}
+
+/**
+ * Determine control status for each channel's capability value
+ *
+ * Checks:
+ * 1. Basic control limits (within UCL/LCL)
+ * 2. Nelson Rule 2: 9 or more consecutive points on same side of mean
+ *
+ * @param channels - Array of channel results
+ * @param limits - Pre-calculated control limits
+ * @param metric - Which capability metric to use: 'cp' or 'cpk'
+ * @returns Map of channel ID to control status
+ */
+export function getCapabilityControlStatus(
+  channels: ChannelResult[],
+  limits: CapabilityControlLimits,
+  metric: 'cp' | 'cpk' = 'cpk'
+): Map<string, CapabilityControlStatus> {
+  const statusMap = new Map<string, CapabilityControlStatus>();
+
+  // First pass: check basic control limits
+  const basicStatus = channels.map(channel => {
+    const value = channel[metric];
+    if (value === undefined) {
+      return { id: channel.id, inControl: false, aboveMean: false };
+    }
+    const inControl = value >= limits.lcl && value <= limits.ucl;
+    const aboveMean = value > limits.mean;
+    return { id: channel.id, inControl, aboveMean };
+  });
+
+  // Second pass: check Nelson Rule 2 (9+ consecutive on same side of mean)
+  const nelsonViolations = new Set<number>();
+  let consecutiveCount = 1;
+  let previousAboveMean = basicStatus[0]?.aboveMean;
+
+  for (let i = 1; i < basicStatus.length; i++) {
+    if (basicStatus[i].aboveMean === previousAboveMean) {
+      consecutiveCount++;
+    } else {
+      // If we had 9+ consecutive, mark them all
+      if (consecutiveCount >= 9) {
+        for (let j = i - consecutiveCount; j < i; j++) {
+          nelsonViolations.add(j);
+        }
+      }
+      consecutiveCount = 1;
+      previousAboveMean = basicStatus[i].aboveMean;
+    }
+  }
+
+  // Check final run
+  if (consecutiveCount >= 9) {
+    for (let j = basicStatus.length - consecutiveCount; j < basicStatus.length; j++) {
+      nelsonViolations.add(j);
+    }
+  }
+
+  // Build result map
+  basicStatus.forEach((status, index) => {
+    statusMap.set(status.id, {
+      inControl: status.inControl,
+      nelsonRule2Violation: nelsonViolations.has(index),
+    });
+  });
+
+  return statusMap;
+}

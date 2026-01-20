@@ -104,6 +104,9 @@ variscout-lite/
 | `apps/pwa/src/hooks/useDataIngestion.ts`                       | File upload handlers, validation integration                       |
 | `apps/pwa/src/components/DataQualityBanner.tsx`                | Validation summary UI component                                    |
 | `apps/pwa/src/components/DrillBreadcrumb.tsx`                  | Breadcrumb UI component                                            |
+| `apps/pwa/src/components/MobileMenu.tsx`                       | Mobile navigation hamburger menu                                   |
+| `apps/pwa/src/components/FunnelPanel.tsx`                      | Variation funnel visualization panel                               |
+| `apps/pwa/src/components/VariationFunnel.tsx`                  | Funnel chart showing drill-down progress                           |
 | `apps/pwa/src/components/MeasureColumnSelector.tsx`            | Checkbox list for selecting measure columns                        |
 | `apps/pwa/src/components/PerformanceSetupPanel.tsx`            | Setup panel for multi-measure analysis                             |
 | `apps/pwa/src/components/PerformanceDetectedModal.tsx`         | Auto-detection modal for wide-format data                          |
@@ -114,6 +117,9 @@ variscout-lite/
 | `apps/azure/src/services/storage.ts`                           | Offline-first storage + OneDrive sync                              |
 | `apps/azure/src/components/__tests__/`                         | Azure app component tests                                          |
 | `apps/azure/src/components/PerformanceDashboard.tsx`           | Azure Performance Mode dashboard (Cp/Cpk toggle, drill navigation) |
+| `apps/azure/src/components/DataPanel.tsx`                      | Azure data table panel (resizable, bi-directional sync)            |
+| `apps/azure/src/components/DrillBreadcrumb.tsx`                | Azure breadcrumb UI component                                      |
+| `apps/azure/src/components/FilterChips.tsx`                    | Azure active filter chips display                                  |
 | `apps/excel-addin/src/content/ContentPerformanceDashboard.tsx` | Excel Performance Mode dashboard (Cp/Cpk toggle, drill navigation) |
 | `apps/excel-addin/src/lib/stateBridge.ts`                      | Excel state sync                                                   |
 | `docs/cases/`                                                  | Case studies with demo data and teaching briefs                    |

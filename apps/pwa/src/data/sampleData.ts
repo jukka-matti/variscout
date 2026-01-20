@@ -1,10 +1,14 @@
 import { gradeColors } from '@variscout/ui';
 
+export type SampleCategory = 'featured' | 'cases' | 'journeys' | 'standard';
+
 export interface SampleDataset {
   name: string;
   description: string;
   icon: string;
   urlKey: string; // URL-friendly key for ?sample= parameter
+  category: SampleCategory; // Category for grouping in UI
+  featured: boolean; // Show as visual card in web demo mode
   data: any[];
   config: {
     outcome: string;
@@ -492,11 +496,14 @@ const sockMysteryData = (() => {
 })();
 
 export const SAMPLES: SampleDataset[] = [
+  // Standard samples (ITC sector examples)
   {
     name: 'Agri-Food: Mango Export',
     description: 'Weight compliance analysis for fruit export to EU markets.',
     icon: 'apple',
     urlKey: 'mango-export',
+    category: 'standard',
+    featured: false,
     data: mangoData,
     config: {
       outcome: 'Fruit Weight (g)',
@@ -509,6 +516,8 @@ export const SAMPLES: SampleDataset[] = [
     description: 'Quality control for cotton tensile strength in garment production.',
     icon: 'shirt',
     urlKey: 'textiles-strength',
+    category: 'standard',
+    featured: false,
     data: textileData,
     config: {
       outcome: 'Tensile Strength (N)',
@@ -521,6 +530,8 @@ export const SAMPLES: SampleDataset[] = [
     description: 'Defect counts per 300g sample (Specialty vs Off-Grade detection).',
     icon: 'coffee',
     urlKey: 'coffee-defects',
+    category: 'standard',
+    featured: false,
     data: coffeeData,
     config: {
       outcome: 'Total Defects (per 300g)',
@@ -534,12 +545,28 @@ export const SAMPLES: SampleDataset[] = [
       ],
     },
   },
-  // Case Study Samples (for website embedding)
+  // Case Study Samples - Featured samples shown in web demo mode
+  {
+    name: 'Case: Coffee Moisture',
+    description: 'Drying bed comparison - which bed keeps failing export spec?',
+    icon: 'coffee',
+    urlKey: 'coffee',
+    category: 'cases',
+    featured: true, // Simple 30-row comparison, great for quick demo
+    data: coffeeMoistureData,
+    config: {
+      outcome: 'Moisture_pct',
+      factors: ['Drying_Bed'],
+      specs: { lsl: 10, usl: 12, target: 11 },
+    },
+  },
   {
     name: 'Case: The Bottleneck',
     description: 'Process step analysis - which step is really the bottleneck?',
     icon: 'factory',
     urlKey: 'bottleneck',
+    category: 'cases',
+    featured: true, // Classic variation analysis, Step 2 has 3x variation
     data: bottleneckData,
     config: {
       outcome: 'Cycle_Time_sec',
@@ -552,6 +579,8 @@ export const SAMPLES: SampleDataset[] = [
     description: 'The aggregation trap - what is your daily average hiding?',
     icon: 'activity',
     urlKey: 'hospital-ward',
+    category: 'cases',
+    featured: false,
     data: hospitalWardData,
     config: {
       outcome: 'Utilization_pct',
@@ -560,22 +589,12 @@ export const SAMPLES: SampleDataset[] = [
     },
   },
   {
-    name: 'Case: Coffee Moisture',
-    description: 'Drying bed comparison - which bed keeps failing export spec?',
-    icon: 'coffee',
-    urlKey: 'coffee',
-    data: coffeeMoistureData,
-    config: {
-      outcome: 'Moisture_pct',
-      factors: ['Drying_Bed'],
-      specs: { lsl: 10, usl: 12, target: 11 },
-    },
-  },
-  {
     name: 'Case: Packaging Defects',
     description: 'Product line analysis - which product has a defect problem?',
     icon: 'package',
     urlKey: 'packaging',
+    category: 'cases',
+    featured: false,
     data: packagingDefectsData,
     config: {
       outcome: 'Defect_Count',
@@ -588,6 +607,8 @@ export const SAMPLES: SampleDataset[] = [
     description: 'Regression analysis - optimizing shelf life through coating.',
     icon: 'trending-up',
     urlKey: 'avocado',
+    category: 'cases',
+    featured: false,
     data: avocadoCoatingData,
     config: {
       outcome: 'Shelf_Life_Days',
@@ -595,50 +616,13 @@ export const SAMPLES: SampleDataset[] = [
       specs: { lsl: 10, target: 15 },
     },
   },
-  // Journey Page Sample (for the 7-section scroll experience)
-  {
-    name: 'Journey: The 46% Story',
-    description: 'Three factors, one hidden problem. Where is the 46%?',
-    icon: 'search',
-    urlKey: 'journey',
-    data: journeyData,
-    config: {
-      outcome: 'Measurement',
-      factors: ['Factor'],
-      specs: { lsl: 90, usl: 110, target: 100 },
-    },
-  },
-  // Journey Before/After (for capability comparison on VALUE section)
-  {
-    name: 'Journey: Before Improvement',
-    description: 'Capability analysis before fixing Factor C (Cpk ~0.8).',
-    icon: 'alert-circle',
-    urlKey: 'journey-before',
-    data: journeyBeforeData,
-    config: {
-      outcome: 'Measurement',
-      factors: ['Sample'],
-      specs: { lsl: 90, usl: 110, target: 100 },
-    },
-  },
-  {
-    name: 'Journey: After Improvement',
-    description: 'Capability analysis after fixing Factor C (Cpk ~1.5).',
-    icon: 'check-circle',
-    urlKey: 'journey-after',
-    data: journeyAfterData,
-    config: {
-      outcome: 'Measurement',
-      factors: ['Sample'],
-      specs: { lsl: 90, usl: 110, target: 100 },
-    },
-  },
-  // New Case Studies (Design Doc Cases)
   {
     name: 'Case: Cookie Weight',
     description: 'Classic SPC case - which oven is causing weight variation?',
     icon: 'cookie',
     urlKey: 'cookie-weight',
+    category: 'cases',
+    featured: false,
     data: cookieWeightData,
     config: {
       outcome: 'Cookie_Weight_g',
@@ -651,6 +635,8 @@ export const SAMPLES: SampleDataset[] = [
     description: 'Robot cell analysis - find the fixture problem.',
     icon: 'zap',
     urlKey: 'weld-defects',
+    category: 'cases',
+    featured: false,
     data: weldDefectsData,
     config: {
       outcome: 'Defect_Count',
@@ -663,6 +649,8 @@ export const SAMPLES: SampleDataset[] = [
     description: 'Service center analysis - which queue needs help?',
     icon: 'phone',
     urlKey: 'call-wait',
+    category: 'cases',
+    featured: false,
     data: callWaitTimeData,
     config: {
       outcome: 'Wait_Time_min',
@@ -675,6 +663,8 @@ export const SAMPLES: SampleDataset[] = [
     description: 'Logistics analysis - which route causes delays?',
     icon: 'truck',
     urlKey: 'delivery',
+    category: 'cases',
+    featured: false,
     data: deliveryPerformanceData,
     config: {
       outcome: 'Delivery_Time_min',
@@ -687,11 +677,56 @@ export const SAMPLES: SampleDataset[] = [
     description: 'Classic training case - where do the socks go?',
     icon: 'help-circle',
     urlKey: 'sock-mystery',
+    category: 'cases',
+    featured: false,
     data: sockMysteryData,
     config: {
       outcome: 'Socks_Lost',
       factors: ['Dryer', 'Washer', 'Load_Size'],
       specs: { target: 0, usl: 2 },
+    },
+  },
+  // Journey samples - for learning experiences
+  {
+    name: 'Journey: The 46% Story',
+    description: 'Three factors, one hidden problem. Where is the 46%?',
+    icon: 'search',
+    urlKey: 'journey',
+    category: 'journeys',
+    featured: true, // Great for showing hidden variation problem
+    data: journeyData,
+    config: {
+      outcome: 'Measurement',
+      factors: ['Factor'],
+      specs: { lsl: 90, usl: 110, target: 100 },
+    },
+  },
+  {
+    name: 'Journey: Before Improvement',
+    description: 'Capability analysis before fixing Factor C (Cpk ~0.8).',
+    icon: 'alert-circle',
+    urlKey: 'journey-before',
+    category: 'journeys',
+    featured: false,
+    data: journeyBeforeData,
+    config: {
+      outcome: 'Measurement',
+      factors: ['Sample'],
+      specs: { lsl: 90, usl: 110, target: 100 },
+    },
+  },
+  {
+    name: 'Journey: After Improvement',
+    description: 'Capability analysis after fixing Factor C (Cpk ~1.5).',
+    icon: 'check-circle',
+    urlKey: 'journey-after',
+    category: 'journeys',
+    featured: false,
+    data: journeyAfterData,
+    config: {
+      outcome: 'Measurement',
+      factors: ['Sample'],
+      specs: { lsl: 90, usl: 110, target: 100 },
     },
   },
 ];

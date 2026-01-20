@@ -119,7 +119,12 @@ export {
   getChannelsNeedingAttention,
   getWorstChannels,
   getBestChannels,
+  // Control limits for capability metrics
+  calculateCapabilityControlLimits,
+  getCapabilityControlStatus,
   type ChannelSortBy,
+  type CapabilityControlLimits,
+  type CapabilityControlStatus,
 } from './performance';
 
 // Navigation

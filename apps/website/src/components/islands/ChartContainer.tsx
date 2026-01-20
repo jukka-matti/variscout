@@ -36,8 +36,8 @@ export default function ChartContainer({ height, className = '', children }: Cha
 
   return (
     <div ref={containerRef} className={`relative ${className}`} style={{ height, width: '100%' }}>
-      {/* Dark background matching PWA charts */}
-      <div className="absolute inset-0 bg-slate-900 rounded-lg overflow-hidden">
+      {/* Dark background matching PWA/Azure charts */}
+      <div className="absolute inset-0 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
         {width > 0 && children({ width, height })}
       </div>
     </div>

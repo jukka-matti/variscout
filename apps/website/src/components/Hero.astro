@@ -5,10 +5,11 @@ interface Props {
 	subhead: string;
 	primaryCTA: { text: string; href: string };
 	secondaryCTA: { text: string; href: string };
+	primaryCTANote?: string;
 	showAveragesHook?: boolean;
 }
 
-const { headline, emphasis, subhead, primaryCTA, secondaryCTA, showAveragesHook = false } = Astro.props;
+const { headline, emphasis, subhead, primaryCTA, secondaryCTA, primaryCTANote, showAveragesHook = false } = Astro.props;
 ---
 
 <section class="py-20 md:py-32 bg-white overflow-hidden">
@@ -27,6 +28,9 @@ const { headline, emphasis, subhead, primaryCTA, secondaryCTA, showAveragesHook 
 				{secondaryCTA.text}
 			</a>
 		</div>
+		{primaryCTANote && (
+			<p class="mt-4 text-sm text-neutral-500">{primaryCTANote}</p>
+		)}
 
 		{showAveragesHook ? (
 			<!-- AVERAGES Hook: The Illusion -->

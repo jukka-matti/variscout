@@ -93,6 +93,8 @@ export interface DataState {
   measureLabel: string;
   selectedMeasure: string | null;
   performanceResult: ChannelPerformanceData | null;
+  /** User-defined Cpk target for Performance Mode (default: 1.33) */
+  cpkTarget: number;
 }
 
 export interface DataActions {
@@ -128,6 +130,7 @@ export interface DataActions {
   setMeasureColumns: (columns: string[]) => void;
   setMeasureLabel: (label: string) => void;
   setSelectedMeasure: (measureId: string | null) => void;
+  setCpkTarget: (target: number) => void;
 
   // Persistence methods
   saveProject: (name: string) => Promise<SavedProject>;
@@ -200,6 +203,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   const [measureColumns, setMeasureColumns] = useState<string[]>([]);
   const [measureLabel, setMeasureLabel] = useState('Measure');
   const [selectedMeasure, setSelectedMeasure] = useState<string | null>(null);
+  const [cpkTarget, setCpkTarget] = useState(1.33);
 
   // ---------------------------------------------------------------------------
   // Computed values
@@ -437,6 +441,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     setMeasureColumns([]);
     setMeasureLabel('Measure');
     setSelectedMeasure(null);
+    setCpkTarget(1.33);
   }, []);
 
   // ---------------------------------------------------------------------------
@@ -478,6 +483,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       measureLabel,
       selectedMeasure,
       performanceResult,
+      cpkTarget,
     }),
     [
       rawData,
@@ -513,6 +519,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       measureLabel,
       selectedMeasure,
       performanceResult,
+      cpkTarget,
     ]
   );
 
@@ -541,6 +548,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setMeasureColumns,
       setMeasureLabel,
       setSelectedMeasure,
+      setCpkTarget,
       saveProject,
       loadProject,
       listProjects,
@@ -574,6 +582,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setMeasureColumns,
       setMeasureLabel,
       setSelectedMeasure,
+      setCpkTarget,
       saveProject,
       loadProject,
       listProjects,

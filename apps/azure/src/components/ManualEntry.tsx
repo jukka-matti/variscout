@@ -16,28 +16,57 @@ interface ManualEntryConfig {
 interface ManualEntryProps {
   onAnalyze: (data: any[], config: ManualEntryConfig) => void;
   onCancel: () => void;
+  appendMode?: boolean;
+  existingConfig?: ManualEntryConfig;
+  existingRowCount?: number;
 }
 
-const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
+const ManualEntry = ({
+  onAnalyze,
+  onCancel,
+  appendMode = false,
+  existingConfig,
+  existingRowCount = 0,
+}: ManualEntryProps) => {
   const [step, setStep] = useState<'setup' | 'grid'>('setup');
 
-  // Mode State
-  const [mode, setMode] = useState<EntryMode>('standard');
+  // Mode State - use existing config if in append mode
+  const [mode, setMode] = useState<EntryMode>(
+    appendMode && existingConfig?.isPerformanceMode ? 'performance' : 'standard'
+  );
 
-  // Standard Mode Config State
-  const [outcomeName, setOutcomeName] = useState('Weight');
-  const [factors, setFactors] = useState<string[]>(['Operator', 'Machine']);
+  // Standard Mode Config State - pre-fill from existing config in append mode
+  const [outcomeName, setOutcomeName] = useState(
+    appendMode && existingConfig && !existingConfig.isPerformanceMode
+      ? existingConfig.outcome
+      : 'Weight'
+  );
+  const [factors, setFactors] = useState<string[]>(
+    appendMode && existingConfig && !existingConfig.isPerformanceMode
+      ? existingConfig.factors
+      : ['Operator', 'Machine']
+  );
 
-  // Performance Mode Config State
-  const [measureLabel, setMeasureLabel] = useState('Head');
-  const [channelCount, setChannelCount] = useState(8);
+  // Performance Mode Config State - pre-fill from existing config in append mode
+  const [measureLabel, setMeasureLabel] = useState(
+    appendMode && existingConfig?.isPerformanceMode ? existingConfig.measureLabel || 'Head' : 'Head'
+  );
+  const [channelCount, setChannelCount] = useState(
+    appendMode && existingConfig?.isPerformanceMode && existingConfig.measureColumns
+      ? existingConfig.measureColumns.length
+      : 8
+  );
 
   // Grid State
   const [rows, setRows] = useState<Record<string, string>[]>([]);
 
-  // Spec limits for visual feedback
-  const [usl, setUsl] = useState<string>('');
-  const [lsl, setLsl] = useState<string>('');
+  // Spec limits for visual feedback - pre-fill from existing config in append mode
+  const [usl, setUsl] = useState<string>(
+    appendMode && existingConfig?.specs?.usl !== undefined ? String(existingConfig.specs.usl) : ''
+  );
+  const [lsl, setLsl] = useState<string>(
+    appendMode && existingConfig?.specs?.lsl !== undefined ? String(existingConfig.specs.lsl) : ''
+  );
 
   // Refs for keyboard navigation
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
@@ -351,12 +380,19 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
                 <RotateCcw size={18} className="text-content-secondary" />
               </button>
               <div>
-                <h2 className="text-lg font-bold text-white">Manual Entry</h2>
+                <h2 className="text-lg font-bold text-white">
+                  {appendMode ? 'Add More Data' : 'Manual Entry'}
+                </h2>
                 <div className="text-xs text-content-secondary">
                   Targeting: <span className="text-blue-400">{outcomeName}</span>
                   {(lsl || usl) && (
                     <span className="ml-2 text-content-muted">
                       [{lsl || '−∞'} to {usl || '+∞'}]
+                    </span>
+                  )}
+                  {appendMode && existingRowCount > 0 && (
+                    <span className="ml-2 text-amber-400">
+                      (merging with {existingRowCount} existing rows)
                     </span>
                   )}
                 </div>
@@ -380,7 +416,7 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
                 disabled={!runningStats}
                 className="bg-green-600 hover:bg-green-500 disabled:bg-surface-tertiary disabled:text-content-muted text-white font-bold rounded-lg px-6 py-3 flex items-center gap-2 shadow-lg shadow-green-900/20"
               >
-                <Play size={18} fill="currentColor" /> Analyze
+                <Play size={18} fill="currentColor" /> {appendMode ? 'Merge & Analyze' : 'Analyze'}
               </button>
             </div>
           </div>
@@ -538,12 +574,19 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
               <RotateCcw size={18} className="text-content-secondary" />
             </button>
             <div>
-              <h2 className="text-lg font-bold text-white">Manual Entry - Performance Mode</h2>
+              <h2 className="text-lg font-bold text-white">
+                {appendMode ? 'Add More Data' : 'Manual Entry'} - Performance Mode
+              </h2>
               <div className="text-xs text-content-secondary">
                 {channelCount} channels
                 {(lsl || usl) && (
                   <span className="ml-2 text-content-muted">
                     Specs: [{lsl || '−∞'} to {usl || '+∞'}]
+                  </span>
+                )}
+                {appendMode && existingRowCount > 0 && (
+                  <span className="ml-2 text-amber-400">
+                    (merging with {existingRowCount} existing rows)
                   </span>
                 )}
               </div>
@@ -567,7 +610,10 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
               disabled={performanceRowCount === 0}
               className="bg-green-600 hover:bg-green-500 disabled:bg-surface-tertiary disabled:text-content-muted text-white font-bold rounded-lg px-6 py-3 flex items-center gap-2 shadow-lg shadow-green-900/20"
             >
-              <Play size={18} fill="currentColor" /> Analyze ({performanceRowCount} rows)
+              <Play size={18} fill="currentColor" />{' '}
+              {appendMode
+                ? `Merge & Analyze (${performanceRowCount} new)`
+                : `Analyze (${performanceRowCount} rows)`}
             </button>
           </div>
         </div>

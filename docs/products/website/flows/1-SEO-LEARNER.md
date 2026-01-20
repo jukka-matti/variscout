@@ -135,13 +135,19 @@ Gary evaluates:
 
 ## CTAs on This Journey
 
-| Location       | CTA Text                   | Destination        |
-| -------------- | -------------------------- | ------------------ |
-| Tool page hero | "Try it with your data"    | /app               |
-| After demo     | "Get VaRiScout"            | /products          |
-| Two Mindsets   | "See the full methodology" | /learn or /journey |
-| End of page    | "Try VaRiScout Free"       | /app               |
-| Related tools  | "Next: Boxplot"            | /tools/boxplot     |
+| Location       | CTA Text                   | Destination        | Note                    |
+| -------------- | -------------------------- | ------------------ | ----------------------- |
+| Tool page hero | "Try Demo"                 | /app               | Opens browser demo      |
+| After demo     | "Install to Upload"        | /app               | Leads to install prompt |
+| Two Mindsets   | "See the full methodology" | /learn or /journey |                         |
+| End of page    | "Try Demo - No Signup"     | /app               | Opens browser demo      |
+| Related tools  | "Next: Boxplot"            | /tools/boxplot     |                         |
+
+**Updated Journey:**
+
+1. Tool page → "Try Demo" → Explore with samples
+2. Like it? → "Install to Upload" → Install PWA (free)
+3. Want to save? → Upgrade to Licensed (€49/year)
 
 ---
 

@@ -31,28 +31,28 @@ const { lang } = Astro.props;
 				<!-- Chaotic I-Chart visualization -->
 				<div class="relative h-48 mb-6">
 					<!-- Control limits -->
-					<div class="absolute top-4 left-0 right-0 border-t-2 border-dashed border-red-500/40">
-						<span class="absolute -top-5 right-0 text-xs text-red-400/60">UCL</span>
+					<div class="absolute top-4 left-0 right-0 border-t-2 border-dashed border-slate-400/40">
+						<span class="absolute -top-5 right-0 text-xs text-slate-400/60">UCL</span>
 					</div>
-					<div class="absolute bottom-4 left-0 right-0 border-t-2 border-dashed border-red-500/40">
-						<span class="absolute -bottom-5 right-0 text-xs text-red-400/60">LCL</span>
+					<div class="absolute bottom-4 left-0 right-0 border-t-2 border-dashed border-slate-400/40">
+						<span class="absolute -bottom-5 right-0 text-xs text-slate-400/60">LCL</span>
 					</div>
-					<div class="absolute top-1/2 left-0 right-0 border-t border-neutral-600">
-						<span class="absolute -top-3 right-0 text-xs text-neutral-500">x̄</span>
+					<div class="absolute top-1/2 left-0 right-0 border-t border-blue-500">
+						<span class="absolute -top-3 right-0 text-xs text-blue-500">x̄</span>
 					</div>
 
-					<!-- Scattered points (chaotic) -->
+					<!-- Scattered points (chaotic - out of control) -->
 					<div class="absolute inset-0 flex items-center justify-around px-2">
-						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(-50px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(35px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(-20px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(55px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(-45px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(15px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(-35px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(40px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(-10px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-neutral-400" style="transform: translateY(25px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-red-500" style="transform: translateY(-50px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-red-500" style="transform: translateY(35px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-red-500" style="transform: translateY(-20px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-red-500" style="transform: translateY(55px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-red-500" style="transform: translateY(-45px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-red-500" style="transform: translateY(15px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-red-500" style="transform: translateY(-35px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-red-500" style="transform: translateY(40px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-red-500" style="transform: translateY(-10px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-red-500" style="transform: translateY(25px);"></div>
 					</div>
 				</div>
 
@@ -72,28 +72,28 @@ const { lang } = Astro.props;
 				<!-- Clean I-Chart visualization -->
 				<div class="relative h-48 mb-6">
 					<!-- Control limits -->
-					<div class="absolute top-4 left-0 right-0 border-t-2 border-dashed border-green-500/40">
-						<span class="absolute -top-5 right-0 text-xs text-green-400/60">UCL</span>
+					<div class="absolute top-4 left-0 right-0 border-t-2 border-dashed border-slate-400/40">
+						<span class="absolute -top-5 right-0 text-xs text-slate-400/60">UCL</span>
 					</div>
-					<div class="absolute bottom-4 left-0 right-0 border-t-2 border-dashed border-green-500/40">
-						<span class="absolute -bottom-5 right-0 text-xs text-green-400/60">LCL</span>
+					<div class="absolute bottom-4 left-0 right-0 border-t-2 border-dashed border-slate-400/40">
+						<span class="absolute -bottom-5 right-0 text-xs text-slate-400/60">LCL</span>
 					</div>
-					<div class="absolute top-1/2 left-0 right-0 border-t border-neutral-600">
-						<span class="absolute -top-3 right-0 text-xs text-neutral-500">x̄</span>
+					<div class="absolute top-1/2 left-0 right-0 border-t border-blue-500">
+						<span class="absolute -top-3 right-0 text-xs text-blue-500">x̄</span>
 					</div>
 
-					<!-- Clustered points (stable) -->
+					<!-- Clustered points (stable - in control) -->
 					<div class="absolute inset-0 flex items-center justify-around px-2">
-						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(5px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(-8px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(3px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(-5px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(10px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(-3px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(7px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(-10px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(2px);"></div>
-						<div class="w-2.5 h-2.5 rounded-full bg-green-400" style="transform: translateY(-6px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-blue-500" style="transform: translateY(5px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-blue-500" style="transform: translateY(-8px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-blue-500" style="transform: translateY(3px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-blue-500" style="transform: translateY(-5px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-blue-500" style="transform: translateY(10px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-blue-500" style="transform: translateY(-3px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-blue-500" style="transform: translateY(7px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-blue-500" style="transform: translateY(-10px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-blue-500" style="transform: translateY(2px);"></div>
+						<div class="w-2.5 h-2.5 rounded-full bg-blue-500" style="transform: translateY(-6px);"></div>
 					</div>
 				</div>
 

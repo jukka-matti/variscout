@@ -2,7 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PricingCard from "../../components/PricingCard.astro";
 import PricingFAQ from "../../components/PricingFAQ.astro";
-import { ShieldCheck, Zap, FileText, RefreshCw } from "lucide-astro";
+import { ShieldCheck, Zap, FileText, RefreshCw, Cloud, Check } from "lucide-astro";
 import { ui } from "../../i18n/ui";
 
 export function getStaticPaths() {
@@ -12,79 +12,94 @@ export function getStaticPaths() {
 
 const pricingTiers = [
 	{
+		name: "Demo",
+		price: "€0",
+		period: "forever",
+		description: "Explore sample analyses in your browser",
+		features: [
+			"16 sample datasets",
+			"Full chart gallery",
+			"Interactive analysis",
+			"Learn variation concepts",
+		],
+		limitations: [
+			"Sample data only",
+			"No file upload",
+			"No saving",
+		],
+		cta: { text: "Try Demo", href: "/app" },
+		ctaNote: "Opens in browser",
+	},
+	{
 		name: "Free",
 		price: "€0",
 		period: "forever",
-		description: "Try full analysis — no signup needed",
+		description: "Install to analyze your own data",
 		features: [
-			"All chart types (I-Chart, Boxplot, Pareto, Capability)",
-			"Full analysis features",
-			"CSV and Excel import",
-			"Copy to clipboard",
-			"Export PNG/CSV",
+			"Upload CSV/Excel files",
+			"Manual data entry",
+			"Full analysis tools",
+			"Works offline",
 		],
 		limitations: [
+			"Session-only (no save)",
 			"Watermark on exports",
-			"Session only — projects don't persist",
-			"No .vrs file export",
 		],
-		cta: { text: "Open VaRiScout", href: "/app" },
-		ctaNote: "No signup required",
-	},
-	{
-		name: "Individual",
-		price: "€49",
-		period: "/year",
-		description: "Save your work, share your files",
-		features: [
-			"Everything in Free, plus:",
-			"Save projects (persists in browser)",
-			"Export/import .vrs project files",
-			"Save analysis templates",
-			"No watermark on exports",
-			"Priority email support",
-		],
-		cta: { text: "Start Free First", href: "/app" },
-		ctaNote: "Upgrade anytime in Settings",
+		cta: { text: "Install App", href: "/app" },
+		ctaNote: "PWA - works like native app",
 		highlight: true,
 		badge: "Most Popular",
+	},
+	{
+		name: "Licensed",
+		price: "€99",
+		period: "/year",
+		description: "Save projects and export without watermarks",
+		features: [
+			"Everything in Free, plus:",
+			"Save projects locally",
+			"Export/import .vrs files",
+			"Save analysis templates",
+			"No watermark on exports",
+			"Theme customization",
+		],
+		cta: { text: "Get License", href: "/app?upgrade=true" },
+		ctaNote: "One-time license key",
 		whereToGet: "In-app Upgrade",
 	},
 	{
-		name: "Team",
-		price: "€399",
+		name: "Excel",
+		price: "€99",
 		period: "/year",
-		description: "Power BI visuals for your team",
+		description: "VaRiScout inside Excel",
 		features: [
-			"Up to 10 users",
-			"All 4 Power BI visuals",
-			"I-Chart, Boxplot, Pareto, Capability",
-			"Cross-visual filtering",
-			"Microsoft certified",
-			"Email support",
+			"Excel Add-in for Windows/Mac/Web",
+			"Analyze data directly in spreadsheets",
+			"Save settings in workbook",
+			"Native Excel experience",
 		],
-		cta: { text: "View in AppSource", href: "https://appsource.microsoft.com/...", external: true },
-		ctaNote: "Billed through Microsoft",
+		cta: { text: "Get Add-in", href: "https://appsource.microsoft.com/", external: true },
+		ctaNote: "Via Microsoft AppSource",
 		whereToGet: "Microsoft AppSource",
 	},
 ];
 
 const faqs = [
 	{
-		question: "What's the difference between Free and Individual?",
-		answer: "Free gives you full analysis features for one-off use, but projects don't persist — your work is gone when you close the browser. Individual (€49/year) lets you save projects, export .vrs files to share with colleagues, and removes the watermark from exports.",
+		question: "Why can't I upload files in my browser?",
+		answer: "For privacy, your data never leaves your device. This requires installing the app as a PWA (Progressive Web App). Installation is free and takes 2 clicks - no app store needed.",
 	},
 	{
-		question: "Can I use Free for real work?",
-		answer: "Absolutely. Free has full analysis features. It's great for quick analyses where you don't need to save. When you find yourself spending 20+ minutes on an analysis, you'll probably want to upgrade so you can save your work.",
+		question: "What's the difference between Demo and Free?",
+		answer: "Demo runs in your browser with sample data only - great for exploring and learning. Free is the installed app that works offline and lets you upload your own CSV/Excel files. Both are completely free.",
 	},
 	{
-		question: "How does activation work?",
-		answer: "Instantly! After you pay inside the app, it activates within 2-3 seconds. No need to check email or enter a license key manually. A backup key is emailed to you just in case.",
+		question: "How do I upgrade from Free to Licensed?",
+		answer: "Click 'Upgrade' in the app's Settings. Complete the secure checkout (powered by Paddle). Your license activates instantly — no waiting for email. A backup key is emailed to you just in case.",
 	},
 	{
 		question: "Where does my data go?",
-		answer: "Nowhere. VaRiScout runs entirely in your browser. Your data never leaves your device. We don't have servers that see your data — that's by design.",
+		answer: "Nowhere. VaRiScout runs entirely in your browser/device. Your data never leaves. We don't have servers that see your data — that's by design.",
 	},
 ];
 
@@ -96,20 +111,24 @@ const trustBadges = [
 ];
 ---
 
-<BaseLayout 
-	title="VaRiScout Pricing | Free to Start, Simple to Scale"
-	description="VaRiScout pricing: Free forever with watermark. €49/year for individuals. Team and enterprise options available via Microsoft."
+<BaseLayout
+	title="VaRiScout Pricing | Demo Free, Install Free, License €99"
+	description="VaRiScout pricing: Demo with samples in browser. Install free to upload your data. €99/year license for saving projects."
 >
 	<section class="py-20 bg-white border-b border-neutral-200">
 		<div class="container-wide text-center">
 			<h1 class="text-4xl md:text-5xl font-bold mb-6">Simple pricing. <span class="text-brand-primary">Start free.</span></h1>
 			<p class="text-xl text-neutral-600 max-w-2xl mx-auto mb-16 italic">
-				Use VaRiScout free forever. Upgrade when you're ready — inside the app or through Microsoft.
+				Demo in your browser. Install to upload your data. License to save projects.
 			</p>
 
-			<div class="grid md:grid-cols-3 gap-8 text-left">
+			<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
 				{pricingTiers.map((tier) => <PricingCard {...tier} />)}
 			</div>
+
+			<p class="text-center text-sm text-neutral-500 mt-8 italic">
+				All prices exclude VAT. VAT will be calculated at checkout where applicable.
+			</p>
 		</div>
 	</section>
 
@@ -132,6 +151,37 @@ const trustBadges = [
 		<div class="container-wide">
 			<h2 class="text-3xl font-bold text-center mb-16">Pricing FAQ</h2>
 			<PricingFAQ items={faqs} />
+		</div>
+	</section>
+
+	<!-- Team Options -->
+	<section class="py-24 bg-neutral-50 border-b border-neutral-200">
+		<div class="container-wide">
+			<div class="text-center mb-12">
+				<h2 class="text-3xl font-bold mb-4">Need Team or Enterprise Features?</h2>
+				<p class="text-neutral-600">For organizations needing central deployment and full control</p>
+			</div>
+			<div class="max-w-xl mx-auto">
+				<div class="bg-white p-8 rounded-2xl border border-neutral-200">
+					<div class="flex items-center gap-3 mb-4">
+						<Cloud size={24} class="text-brand-primary" />
+						<h3 class="text-xl font-bold">Azure Deployment</h3>
+					</div>
+					<p class="text-sm text-neutral-500 mb-2">For organizations wanting full control</p>
+					<p class="text-neutral-700 mb-4">Self-hosted in your Azure tenant with SSO, custom branding, and unlimited team members.</p>
+					<ul class="space-y-2 mb-6">
+						<li class="flex items-center gap-2 text-sm text-neutral-600"><Check size={16} class="text-brand-primary" />Custom domain (analysis.yourcompany.com)</li>
+						<li class="flex items-center gap-2 text-sm text-neutral-600"><Check size={16} class="text-brand-primary" />SSO integration (Azure AD)</li>
+						<li class="flex items-center gap-2 text-sm text-neutral-600"><Check size={16} class="text-brand-primary" />Custom branding (your logo)</li>
+						<li class="flex items-center gap-2 text-sm text-neutral-600"><Check size={16} class="text-brand-primary" />Unlimited team members</li>
+						<li class="flex items-center gap-2 text-sm text-neutral-600"><Check size={16} class="text-brand-primary" />Data stays in your tenant</li>
+					</ul>
+					<p class="text-lg font-bold mb-4">€1799/year + hosting (excl. VAT)</p>
+					<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-secondary w-full text-center block">
+						View in Azure Marketplace
+					</a>
+				</div>
+			</div>
 		</div>
 	</section>
 

@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, FolderOpen, ArrowRight, BarChart2, FileUp, Clock, PenLine } from 'lucide-react';
-import { SAMPLES, SampleDataset } from '../data/sampleData';
+import { SampleDataset } from '../data/sampleData';
 import { useData } from '../context/DataContext';
+import { hasValidLicense } from '../lib/license';
+import { useIsInstalled } from '../hooks/useIsInstalled';
+import SampleSection from './SampleSection';
+import InstallPrompt from './InstallPrompt';
+import SessionWarning from './SessionWarning';
 import type { SavedProject } from '../lib/persistence';
 
 interface HomeScreenProps {
@@ -10,6 +15,7 @@ interface HomeScreenProps {
   onOpenProjects: () => void;
   onLoadSample: (sample: SampleDataset) => void;
   onOpenManualEntry: () => void;
+  onOpenSettings?: () => void;
 }
 
 // Format relative time (e.g., "2h ago", "yesterday")
@@ -31,7 +37,11 @@ function formatRelativeTime(dateStr: string): string {
 
 /**
  * Landing screen shown when no data is loaded
- * Provides options to upload files, import .vrs, or load sample data
+ *
+ * Three variants based on user state:
+ * - Web browser (not installed): Demo mode, samples only, install CTA
+ * - Installed, no license: Upload/Manual entry, session warning
+ * - Installed, licensed: Recent projects, full functionality
  */
 const HomeScreen: React.FC<HomeScreenProps> = ({
   onFileUpload,
@@ -39,137 +49,150 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenProjects,
   onLoadSample,
   onOpenManualEntry,
+  onOpenSettings,
 }) => {
   const { listProjects, loadProject } = useData();
+  const isInstalled = useIsInstalled();
+  const isLicensed = hasValidLicense();
+
   const [recentProjects, setRecentProjects] = useState<SavedProject[]>([]);
 
-  // Load recent projects on mount
+  // Load recent projects on mount (only for licensed users)
   useEffect(() => {
-    listProjects().then(projects => {
-      setRecentProjects(projects.slice(0, 3)); // Top 3 most recent
-    });
-  }, [listProjects]);
+    if (isInstalled && isLicensed) {
+      listProjects().then(projects => {
+        setRecentProjects(projects.slice(0, 3)); // Top 3 most recent
+      });
+    }
+  }, [listProjects, isInstalled, isLicensed]);
 
   const handleLoadProject = async (id: string) => {
     await loadProject(id);
   };
 
-  return (
-    <div className="h-full flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-500">
-      <div className="max-w-2xl w-full text-center space-y-6 sm:space-y-8">
-        <div className="space-y-4">
-          <div className="inline-flex p-4 bg-surface-secondary/50 rounded-full border border-edge mb-4">
-            <BarChart2 size={48} className="text-blue-500" />
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">Start Your Analysis</h2>
-          <p className="text-content-secondary text-base sm:text-lg max-w-lg mx-auto">
-            Import your process data to visualize variability, calculate capability, and identify
-            root causes instantly.
-          </p>
-        </div>
+  // Determine user state
+  const userState: 'web' | 'installed-free' | 'installed-licensed' = !isInstalled
+    ? 'web'
+    : isLicensed
+      ? 'installed-licensed'
+      : 'installed-free';
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto">
-          {/* Left column: Upload options */}
-          <div className="space-y-3">
-            <label className="flex flex-col items-center justify-center p-6 sm:p-8 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500 border-dashed rounded-2xl cursor-pointer transition-all group">
+  // Web browser (Demo Mode) - samples only, install CTA
+  if (userState === 'web') {
+    return (
+      <div className="h-full flex flex-col items-center justify-start p-4 sm:p-8 overflow-auto animate-in fade-in duration-500">
+        <div className="max-w-xl w-full space-y-6 sm:space-y-8 py-4">
+          {/* Header */}
+          <div className="text-center space-y-3">
+            <div className="inline-flex p-4 bg-surface-secondary/50 rounded-full border border-edge">
+              <BarChart2 size={40} className="text-blue-500" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white">Explore Variation Analysis</h2>
+            <p className="text-sm text-content-secondary max-w-md mx-auto">
+              See what's hiding in your data. Visualize variability, calculate capability, and
+              identify root causes.
+            </p>
+          </div>
+
+          {/* Sample datasets section */}
+          <div className="bg-surface-secondary border border-edge rounded-2xl p-5">
+            <SampleSection onLoadSample={onLoadSample} variant="web" />
+          </div>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-edge"></div>
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-3 bg-surface text-xs text-content-muted uppercase tracking-wider">
+                or
+              </span>
+            </div>
+          </div>
+
+          {/* Install prompt */}
+          <InstallPrompt />
+        </div>
+      </div>
+    );
+  }
+
+  // Installed PWA (No License) - Upload/Manual entry, session warning
+  if (userState === 'installed-free') {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-500">
+        <div className="max-w-lg w-full text-center space-y-6">
+          {/* Header */}
+          <div className="space-y-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-white">Start Your Analysis</h2>
+          </div>
+
+          {/* Upload and Manual Entry - Equal prominence */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Upload file */}
+            <label className="flex flex-col items-center justify-center p-6 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500 border-dashed rounded-2xl cursor-pointer transition-all group">
               <Upload
-                size={32}
-                className="text-content-muted group-hover:text-blue-400 mb-4 transition-colors"
+                size={28}
+                className="text-content-muted group-hover:text-blue-400 mb-3 transition-colors"
               />
-              <span className="text-sm font-semibold text-white mb-1">Upload Data</span>
-              <span className="text-xs text-content-muted">.csv or .xlsx</span>
+              <span className="text-sm font-semibold text-white mb-1">Upload File</span>
+              <span className="text-xs text-content-muted text-center">CSV or Excel</span>
               <input type="file" accept=".csv,.xlsx" onChange={onFileUpload} className="hidden" />
             </label>
 
-            {/* Import .vrs file */}
-            <label className="flex items-center justify-center gap-2 p-3 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-edge-secondary rounded-xl cursor-pointer transition-all group">
-              <FileUp size={16} className="text-content-secondary group-hover:text-white" />
-              <span className="text-sm text-content-secondary group-hover:text-white">
-                Import .vrs file
-              </span>
-              <input type="file" accept=".vrs" onChange={onImportFile} className="hidden" />
-            </label>
-
-            {/* Open saved projects */}
-            <button
-              onClick={onOpenProjects}
-              className="w-full flex items-center justify-center gap-2 p-3 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-edge-secondary rounded-xl transition-all group"
-            >
-              <FolderOpen size={16} className="text-content-secondary group-hover:text-white" />
-              <span className="text-sm text-content-secondary group-hover:text-white">
-                Open Saved Projects
-              </span>
-            </button>
-
-            {/* Manual data entry */}
+            {/* Manual entry */}
             <button
               onClick={onOpenManualEntry}
-              className="w-full flex items-center justify-center gap-2 p-3 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-edge-secondary rounded-xl transition-all group"
+              className="flex flex-col items-center justify-center p-6 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500 rounded-2xl transition-all group"
             >
-              <PenLine size={16} className="text-content-secondary group-hover:text-white" />
-              <span className="text-sm text-content-secondary group-hover:text-white">
-                Enter Data Manually
-              </span>
+              <PenLine
+                size={28}
+                className="text-content-muted group-hover:text-blue-400 mb-3 transition-colors"
+              />
+              <span className="text-sm font-semibold text-white mb-1">Enter Manually</span>
+              <span className="text-xs text-content-muted text-center">Paste from Excel</span>
             </button>
           </div>
 
-          {/* Right column: Sample data */}
-          <div className="flex flex-col gap-3">
-            <div className="text-xs text-content-muted font-semibold uppercase tracking-wider text-left pl-1">
-              Load Sample Data
-            </div>
-            {SAMPLES.map(sample => (
-              <button
-                key={sample.name}
-                onClick={() => onLoadSample(sample)}
-                className="flex items-center gap-3 p-3 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-edge-secondary rounded-xl text-left transition-all group"
-              >
-                <div className="p-2 bg-surface rounded-lg text-content-secondary group-hover:text-white transition-colors">
-                  <FolderOpen size={16} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-white">{sample.name}</div>
-                  <div className="text-[10px] text-content-muted line-clamp-1">
-                    {sample.description}
-                  </div>
-                </div>
-                <ArrowRight
-                  size={14}
-                  className="text-content-muted group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1"
-                />
-              </button>
-            ))}
+          {/* Session warning */}
+          <SessionWarning onUpgradeClick={onOpenSettings} />
+
+          {/* Sample datasets section - collapsed */}
+          <div className="max-w-lg mx-auto">
+            <SampleSection onLoadSample={onLoadSample} variant="installed" />
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* Recent Projects Section */}
+  // Installed PWA (Licensed) - Recent projects, full functionality
+  return (
+    <div className="h-full flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-500">
+      <div className="max-w-xl w-full space-y-6">
+        {/* Recent Projects (if any) */}
         {recentProjects.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-edge max-w-xl mx-auto">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 text-xs text-content-muted font-semibold uppercase tracking-wider">
-                <Clock size={12} />
+          <div className="bg-surface-secondary border border-edge rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Clock size={16} className="text-content-secondary" />
                 <span>Recent Projects</span>
               </div>
-              <button
-                onClick={onOpenProjects}
-                className="text-xs text-content-muted hover:text-blue-400 transition-colors"
-              >
-                See all →
-              </button>
             </div>
             <div className="space-y-2">
               {recentProjects.map(project => (
                 <button
                   key={project.id}
                   onClick={() => handleLoadProject(project.id)}
-                  className="w-full flex items-center gap-3 p-3 bg-surface-secondary/50 hover:bg-surface-tertiary border border-edge/50 hover:border-edge-secondary rounded-xl text-left transition-all group"
+                  className="w-full flex items-center gap-3 p-3 bg-surface hover:bg-surface-tertiary border border-edge/50 hover:border-edge-secondary rounded-xl text-left transition-all group"
                 >
-                  <div className="p-2 bg-surface rounded-lg text-content-secondary group-hover:text-white transition-colors">
-                    <FolderOpen size={14} />
+                  <div className="p-2 bg-surface-secondary rounded-lg text-content-secondary group-hover:text-white transition-colors">
+                    <FolderOpen size={16} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-white truncate">{project.name}</div>
-                    <div className="text-[10px] text-content-muted">
+                    <div className="text-xs text-content-muted">
                       {project.rowCount} rows · {formatRelativeTime(project.savedAt)}
                     </div>
                   </div>
@@ -180,8 +203,82 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 </button>
               ))}
             </div>
+            <div className="flex items-center gap-3 mt-4 pt-3 border-t border-edge">
+              <button
+                onClick={onOpenProjects}
+                className="flex-1 flex items-center justify-center gap-2 py-2 text-xs text-content-secondary hover:text-white hover:bg-surface transition-colors rounded-lg"
+              >
+                <FolderOpen size={14} />
+                <span>See all projects</span>
+              </button>
+              <label className="flex-1 flex items-center justify-center gap-2 py-2 text-xs text-content-secondary hover:text-white hover:bg-surface transition-colors rounded-lg cursor-pointer">
+                <FileUp size={14} />
+                <span>Import .vrs</span>
+                <input type="file" accept=".vrs" onChange={onImportFile} className="hidden" />
+              </label>
+            </div>
           </div>
         )}
+
+        {/* No recent projects - show projects options inline */}
+        {recentProjects.length === 0 && (
+          <div className="flex items-center justify-center gap-4 pb-2">
+            <button
+              onClick={onOpenProjects}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-content-secondary hover:text-white hover:bg-surface-secondary transition-colors rounded-lg"
+            >
+              <FolderOpen size={16} />
+              <span>Open Saved Projects</span>
+            </button>
+            <label className="flex items-center gap-2 px-4 py-2 text-sm text-content-secondary hover:text-white hover:bg-surface-secondary transition-colors rounded-lg cursor-pointer">
+              <FileUp size={16} />
+              <span>Import .vrs</span>
+              <input type="file" accept=".vrs" onChange={onImportFile} className="hidden" />
+            </label>
+          </div>
+        )}
+
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-edge"></div>
+          </div>
+          <div className="relative flex justify-center">
+            <span className="px-3 bg-surface text-xs text-content-muted uppercase tracking-wider">
+              or start new
+            </span>
+          </div>
+        </div>
+
+        {/* Upload and Manual Entry - Equal prominence */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Upload file */}
+          <label className="flex flex-col items-center justify-center p-6 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500 border-dashed rounded-2xl cursor-pointer transition-all group">
+            <Upload
+              size={28}
+              className="text-content-muted group-hover:text-blue-400 mb-3 transition-colors"
+            />
+            <span className="text-sm font-semibold text-white mb-1">Upload File</span>
+            <span className="text-xs text-content-muted text-center">CSV or Excel</span>
+            <input type="file" accept=".csv,.xlsx" onChange={onFileUpload} className="hidden" />
+          </label>
+
+          {/* Manual entry */}
+          <button
+            onClick={onOpenManualEntry}
+            className="flex flex-col items-center justify-center p-6 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500 rounded-2xl transition-all group"
+          >
+            <PenLine
+              size={28}
+              className="text-content-muted group-hover:text-blue-400 mb-3 transition-colors"
+            />
+            <span className="text-sm font-semibold text-white mb-1">Enter Manually</span>
+            <span className="text-xs text-content-muted text-center">Paste from Excel</span>
+          </button>
+        </div>
+
+        {/* Sample datasets section - collapsed */}
+        <SampleSection onLoadSample={onLoadSample} variant="installed" />
       </div>
     </div>
   );

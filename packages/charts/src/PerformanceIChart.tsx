@@ -1,10 +1,12 @@
 /**
- * PerformanceIChart - Cpk by Channel Chart
+ * PerformanceIChart - I-Chart for Capability Metrics (Cpk/Cp)
  *
- * Displays Cpk values for each channel as a scatter plot.
- * X-axis: Channel index/name
- * Y-axis: Cpk value
- * Reference lines at Cpk = 1.0 (minimum) and 1.33 (target)
+ * Displays Cpk or Cp values for each channel as an Individuals Control Chart.
+ * X-axis: Channel index (1, 2, 3, ... n)
+ * Y-axis: Cpk or Cp value
+ * Control limits: UCL/LCL calculated from Cpk/Cp distribution across channels
+ * Point coloring: Standard I-Chart logic (blue = in-control, red = out-of-control)
+ * Target line: User-defined reference (default 1.33)
  *
  * Props-based component for sharing across PWA, Azure, and Excel Add-in.
  */
@@ -22,14 +24,28 @@ import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { getResponsiveMargins, getResponsiveFonts, getResponsiveTickCount } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import {
+  calculateCapabilityControlLimits,
+  getCapabilityControlStatus,
+  type CapabilityControlStatus,
+} from '@variscout/core';
 
 interface TooltipData {
   channel: ChannelResult;
   x: number;
   y: number;
+  status: CapabilityControlStatus | undefined;
 }
 
-export const PerformanceIChartBase: React.FC<PerformanceIChartProps> = ({
+/** Default Cpk target (industry standard for ~63 PPM defects) */
+const DEFAULT_CPK_TARGET = 1.33;
+
+export interface PerformanceIChartBaseProps extends PerformanceIChartProps {
+  /** User-defined Cpk/Cp target line (default: 1.33) */
+  cpkTarget?: number;
+}
+
+export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
   parentWidth,
   parentHeight,
   channels,
@@ -37,6 +53,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartProps> = ({
   onChannelClick,
   showBranding = true,
   capabilityMetric = 'cpk',
+  cpkTarget = DEFAULT_CPK_TARGET,
 }) => {
   const { chrome } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
@@ -49,6 +66,18 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartProps> = ({
 
   const width = Math.max(0, parentWidth - margin.left - margin.right);
   const height = Math.max(0, parentHeight - margin.top - margin.bottom);
+
+  // Calculate control limits from capability values across channels
+  const controlLimits = useMemo(
+    () => calculateCapabilityControlLimits(channels, capabilityMetric),
+    [channels, capabilityMetric]
+  );
+
+  // Determine control status for each channel
+  const controlStatus = useMemo(() => {
+    if (!controlLimits) return new Map<string, CapabilityControlStatus>();
+    return getCapabilityControlStatus(channels, controlLimits, capabilityMetric);
+  }, [channels, controlLimits, capabilityMetric]);
 
   // X scale - band scale for channels
   const xScale = useMemo(
@@ -64,15 +93,25 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartProps> = ({
   // Metric label for display
   const metricLabel = capabilityMetric === 'cp' ? 'Cp' : 'Cpk';
 
-  // Y scale - capability metric values with padding
+  // Y scale - capability metric values with control limits and target
   const yScale = useMemo(() => {
     if (channels.length === 0) {
       return scaleLinear({ range: [height, 0], domain: [0, 2] });
     }
 
     const metricValues = channels.map(c => c[capabilityMetric] ?? 0).filter(v => v > 0);
-    const minMetric = Math.min(...metricValues, 0);
-    const maxMetric = Math.max(...metricValues, 2);
+    let minMetric = Math.min(...metricValues, 0);
+    let maxMetric = Math.max(...metricValues, 2);
+
+    // Include control limits in scale
+    if (controlLimits) {
+      minMetric = Math.min(minMetric, controlLimits.lcl);
+      maxMetric = Math.max(maxMetric, controlLimits.ucl);
+    }
+
+    // Include target in scale
+    maxMetric = Math.max(maxMetric, cpkTarget);
+
     const padding = (maxMetric - minMetric) * 0.1;
 
     return scaleLinear({
@@ -80,30 +119,27 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartProps> = ({
       domain: [Math.min(minMetric - padding, 0), maxMetric + padding],
       nice: true,
     });
-  }, [channels, height, capabilityMetric]);
+  }, [channels, height, capabilityMetric, controlLimits, cpkTarget]);
 
   const xTickCount = getResponsiveTickCount(width, 'x');
 
-  // Get point color based on health classification
-  const getPointColor = (channel: ChannelResult): string => {
-    switch (channel.health) {
-      case 'critical':
-        return chartColors.fail; // Red
-      case 'warning':
-        return chartColors.warning; // Amber
-      case 'capable':
-        return chartColors.pass; // Green
-      case 'excellent':
-        return chartColors.mean; // Blue
-      default:
-        return chrome.labelSecondary;
+  // Get point color based on control status (I-Chart style)
+  const getPointColor = (channelId: string): string => {
+    const status = controlStatus.get(channelId);
+    if (!status) return chrome.labelSecondary;
+
+    // Out of control = red, in control = blue
+    if (!status.inControl || status.nelsonRule2Violation) {
+      return chartColors.fail; // Red
     }
+    return chartColors.mean; // Blue (in-control)
   };
 
   const showTooltip = (channel: ChannelResult, index: number) => {
     const x = (xScale(index.toString()) ?? 0) + xScale.bandwidth() / 2;
     const y = yScale(channel[capabilityMetric] ?? 0);
-    setTooltipData({ channel, x, y });
+    const status = controlStatus.get(channel.id);
+    setTooltipData({ channel, x, y, status });
     setTooltipLeft(x + margin.left);
     setTooltipTop(y + margin.top);
   };
@@ -134,40 +170,80 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartProps> = ({
         <Group left={margin.left} top={margin.top}>
           <GridRows scale={yScale} width={width} stroke={chrome.gridLine} />
 
-          {/* Metric = 1.0 reference line (minimum capability) */}
-          <Line
-            from={{ x: 0, y: yScale(1.0) }}
-            to={{ x: width, y: yScale(1.0) }}
-            stroke={chartColors.fail}
-            strokeWidth={1.5}
-            strokeDasharray="6,4"
-          />
-          <text
-            x={width - 4}
-            y={yScale(1.0) - 4}
-            fill={chartColors.fail}
-            fontSize={fonts.statLabel}
-            textAnchor="end"
-          >
-            {metricLabel} = 1.0
-          </text>
+          {/* Control Limits (when available) */}
+          {controlLimits && (
+            <>
+              {/* UCL line */}
+              <Line
+                from={{ x: 0, y: yScale(controlLimits.ucl) }}
+                to={{ x: width, y: yScale(controlLimits.ucl) }}
+                stroke={chrome.axisPrimary}
+                strokeWidth={1.5}
+                strokeDasharray="6,4"
+              />
+              <text
+                x={width - 4}
+                y={yScale(controlLimits.ucl) - 4}
+                fill={chrome.axisPrimary}
+                fontSize={fonts.statLabel}
+                textAnchor="end"
+              >
+                UCL = {controlLimits.ucl.toFixed(2)}
+              </text>
 
-          {/* Metric = 1.33 reference line (target capability) */}
+              {/* Mean line */}
+              <Line
+                from={{ x: 0, y: yScale(controlLimits.mean) }}
+                to={{ x: width, y: yScale(controlLimits.mean) }}
+                stroke={chartColors.mean}
+                strokeWidth={1.5}
+              />
+              <text
+                x={width - 4}
+                y={yScale(controlLimits.mean) - 4}
+                fill={chartColors.mean}
+                fontSize={fonts.statLabel}
+                textAnchor="end"
+              >
+                x̄ = {controlLimits.mean.toFixed(2)}
+              </text>
+
+              {/* LCL line */}
+              <Line
+                from={{ x: 0, y: yScale(controlLimits.lcl) }}
+                to={{ x: width, y: yScale(controlLimits.lcl) }}
+                stroke={chrome.axisPrimary}
+                strokeWidth={1.5}
+                strokeDasharray="6,4"
+              />
+              <text
+                x={width - 4}
+                y={yScale(controlLimits.lcl) + 12}
+                fill={chrome.axisPrimary}
+                fontSize={fonts.statLabel}
+                textAnchor="end"
+              >
+                LCL = {controlLimits.lcl.toFixed(2)}
+              </text>
+            </>
+          )}
+
+          {/* Target line (user-defined reference) */}
           <Line
-            from={{ x: 0, y: yScale(1.33) }}
-            to={{ x: width, y: yScale(1.33) }}
+            from={{ x: 0, y: yScale(cpkTarget) }}
+            to={{ x: width, y: yScale(cpkTarget) }}
             stroke={chartColors.pass}
             strokeWidth={1.5}
-            strokeDasharray="6,4"
+            strokeDasharray="4,2"
           />
           <text
-            x={width - 4}
-            y={yScale(1.33) - 4}
+            x={4}
+            y={yScale(cpkTarget) - 4}
             fill={chartColors.pass}
             fontSize={fonts.statLabel}
-            textAnchor="end"
+            textAnchor="start"
           >
-            {metricLabel} = 1.33
+            Target = {cpkTarget}
           </text>
 
           {/* Data points */}
@@ -176,6 +252,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartProps> = ({
             const x = (xScale(i.toString()) ?? 0) + xScale.bandwidth() / 2;
             const y = yScale(metricValue);
             const isSelected = selectedMeasure === channel.id;
+            const pointColor = getPointColor(channel.id);
 
             return (
               <Circle
@@ -183,7 +260,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartProps> = ({
                 cx={x}
                 cy={y}
                 r={isSelected ? 8 : 5}
-                fill={getPointColor(channel)}
+                fill={pointColor}
                 stroke={isSelected ? '#fff' : chrome.pointStroke}
                 strokeWidth={isSelected ? 2 : 1}
                 opacity={selectedMeasure && !isSelected ? 0.4 : 1}
@@ -302,15 +379,24 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartProps> = ({
               Mean:{' '}
               <span style={{ fontFamily: 'monospace' }}>{tooltipData.channel.mean.toFixed(2)}</span>
             </div>
-            <div
-              style={{
-                fontSize: '0.75rem',
-                textTransform: 'capitalize',
-                color: getPointColor(tooltipData.channel),
-              }}
-            >
-              {tooltipData.channel.health}
-            </div>
+            {/* Control status */}
+            {tooltipData.status && (
+              <div
+                style={{
+                  fontSize: '0.75rem',
+                  color:
+                    tooltipData.status.inControl && !tooltipData.status.nelsonRule2Violation
+                      ? chartColors.mean
+                      : chartColors.fail,
+                }}
+              >
+                {!tooltipData.status.inControl
+                  ? 'Out of control (beyond UCL/LCL)'
+                  : tooltipData.status.nelsonRule2Violation
+                    ? 'Nelson Rule 2 violation'
+                    : 'In control'}
+              </div>
+            )}
           </div>
         </TooltipWithBounds>
       )}

@@ -3,8 +3,8 @@
 ## Meta
 
 ```yaml
-title: 'VaRiScout Web | Free Variation Analysis in Your Browser'
-description: 'VaRiScout Web: Free browser-based variation analysis. Upload CSV, see charts instantly, click to filter. No installation needed. Perfect for learning and quick analysis.'
+title: 'VaRiScout Web | Demo with Samples, Install to Upload'
+description: 'VaRiScout Web: Explore sample datasets in your browser (Demo). Install to upload your own CSV/Excel files (Free). No signup needed.'
 keywords: 'variation analysis online, SPC tool, control chart software, free statistical analysis'
 ```
 
@@ -13,11 +13,11 @@ keywords: 'variation analysis online, SPC tool, control chart software, free sta
 ## hero
 
 ```yaml
-headline: 'Try it now.'
-headline_emphasis: 'Free in your browser.'
-subhead: 'Full analysis features. No signup, no installation. Perfect for learning, training, and quick analysis.'
+headline: 'Explore in browser.'
+headline_emphasis: 'Install to upload.'
+subhead: 'Demo with sample datasets in your browser. Install the free app to upload your own data. No signup, no installation needed for the demo.'
 cta_primary:
-  text: 'Open VaRiScout'
+  text: 'Try Demo'
   url: '/app'
 cta_secondary:
   text: 'Watch Demo'
@@ -32,71 +32,99 @@ badge: 'Free'
 ```yaml
 section_id: 'benefits'
 items:
-  - icon: 'zap'
-    title: 'Try Instantly'
-    description: 'No signup, no installation. Open the app and start analyzing.'
+  - icon: 'play'
+    title: 'Demo Instantly'
+    description: 'Open in your browser. Explore 16 sample datasets with all chart types. No signup.'
 
-  - icon: 'graduation-cap'
-    title: 'Perfect for Learning'
-    description: 'Full analysis features. Great for training, workshops, and courses.'
+  - icon: 'download'
+    title: 'Install to Upload'
+    description: 'Click Install in your browser to get the PWA. Then upload your own CSV/Excel files.'
 
   - icon: 'lock'
     title: 'Data Stays Local'
-    description: 'Your data never leaves your browser. Nothing uploaded to any server.'
+    description: 'Your data never leaves your device. Works offline after installation.'
 ```
 
 ---
 
-## web_vs_pwa
+## three_tier_model
 
 ```yaml
-section_id: 'web-vs-pwa'
-headline: 'Web App vs Installed App'
+section_id: 'tiers'
+headline: 'Three Ways to Use VaRiScout'
 
-comparison:
-  web_app:
-    name: 'Web App'
-    tagline: 'Try and learn'
+tiers:
+  demo:
+    name: 'Demo'
+    tagline: 'Explore and learn'
+    platform: 'Browser'
     features:
-      - 'Full analysis features'
+      - '16 sample datasets'
       - 'All chart types'
+      - 'Interactive analysis'
       - 'Copy to clipboard'
-      - 'Export PNG/CSV (watermark)'
     limitations:
-      - 'Session only — work disappears on close'
-      - 'No saving projects'
-      - 'Requires internet'
+      - 'Sample data only'
+      - 'No file upload'
+      - 'No saving'
     best_for:
-      - 'Learning & training'
-      - 'Quick one-off analysis'
-      - 'Trying before installing'
+      - 'Learning & exploring'
+      - 'Deciding if VaRiScout fits'
+      - 'Quick reference'
     price: 'Free'
     cta:
-      text: 'Open Web App'
+      text: 'Try Demo'
       url: '/app'
+    note: 'Opens in browser'
 
-  installed_pwa:
-    name: 'Installed App'
-    tagline: 'For real work'
+  free:
+    name: 'Free'
+    tagline: 'Analyze your data'
+    platform: 'Installed PWA'
     features:
-      - 'Everything in Web App, plus:'
-      - 'Save projects'
+      - 'Upload CSV/Excel files'
+      - 'Manual data entry'
+      - 'Full analysis tools'
+      - 'Works offline'
+      - 'Copy to clipboard'
+    limitations:
+      - 'Session-only (no saving)'
+      - 'Watermark on exports'
+    best_for:
+      - 'Quick one-off analysis'
+      - 'Training & workshops'
+      - 'Trying with your data'
+    price: 'Free'
+    cta:
+      text: 'Install App'
+      url: '/app'
+    note: 'Click "Install" in your browser'
+
+  licensed:
+    name: 'Licensed'
+    tagline: 'Save your work'
+    platform: 'Installed PWA'
+    features:
+      - 'Everything in Free, plus:'
+      - 'Save projects locally'
       - 'Export/import .vrs files'
       - 'Save templates'
       - 'No watermark'
-      - 'Works offline'
+      - 'Theme customization'
     best_for:
-      - 'Project work'
-      - 'Ongoing analysis'
+      - 'Ongoing projects'
       - 'Professional use'
+      - 'Sharing analyses'
     price: '€49/year'
     cta:
-      text: 'How to Install'
-      url: '#install'
+      text: 'Get License'
+      url: '/app?upgrade=true'
+    note: 'Upgrade inside the app'
 
-install_note: |
-  To get the installed app: Open the web app, then click "Install" in your browser.
-  The app installs on your computer and unlocks paid features.
+install_explanation: |
+  **Why install?** For privacy, your data never leaves your device.
+  This requires installing the app as a PWA (Progressive Web App).
+  Installation is free and takes 2 clicks - no app store needed.
 ```
 
 ---
@@ -105,17 +133,20 @@ install_note: |
 
 ```yaml
 section_id: 'use-cases'
-headline: 'Who Uses the Web App'
+headline: 'Who Uses Each Tier'
 
 cases:
   - title: 'Learning & Training'
-    description: 'Full analysis features, free. Works well for workshops, courses, and self-learning.'
+    tier: 'Demo'
+    description: 'Explore all chart types with sample data. Perfect for workshops, courses, and self-learning. No data upload needed.'
 
   - title: 'Quick Analysis'
-    description: 'Open browser, upload data, get answers. No setup, no commitment.'
+    tier: 'Free'
+    description: "Install the app, upload your data, get answers. Great for one-off analyses where you don't need to save."
 
-  - title: 'Trying Before Installing'
-    description: 'See if VaRiScout fits your needs. Install the PWA when ready for more.'
+  - title: 'Ongoing Projects'
+    tier: 'Licensed'
+    description: 'Save projects, export .vrs files, share with colleagues. For when you need to keep your work.'
 ```
 
 ---
@@ -124,16 +155,13 @@ cases:
 
 ```yaml
 section_id: 'features'
-headline: 'Full Analysis Features — Free'
+headline: 'Full Analysis Features'
 
-note: 'The web app has all analysis features. Saving and templates require the installed app.'
+note: 'All features available in Demo (with samples) and Free/Licensed (with your data).'
 
 items:
-  - title: 'Upload Any Data'
-    description: 'Drag and drop CSV or Excel files. Smart column detection recognizes common formats.'
-
-  - title: 'All Charts at Once'
-    description: 'I-Chart, Boxplot, Pareto, Capability — visible together. See patterns immediately.'
+  - title: 'All Chart Types'
+    description: 'I-Chart, Boxplot, Pareto, Capability — all visible together. See patterns immediately.'
 
   - title: 'Click to Filter'
     description: 'Click any bar or category. All charts update instantly. Drill down in seconds.'
@@ -143,11 +171,11 @@ items:
 
   - title: 'Copy to Clipboard'
     description: 'Copy charts to clipboard. Paste directly into PowerPoint, Word, or email.'
-    note: 'Watermark in web app'
+    note: 'Watermark in Demo/Free'
 
   - title: 'Export PNG/CSV'
     description: 'Export charts as images. Export data with analysis results.'
-    note: 'Watermark in web app'
+    note: 'Watermark in Demo/Free, requires install'
 
   - title: 'Presentation Mode'
     description: 'Clean view for screen sharing. Hide controls, show insights.'
@@ -163,24 +191,19 @@ headline: 'How It Works'
 
 steps:
   - number: 1
-    title: 'Upload'
-    description: 'Drag your CSV or Excel file onto the page'
-    detail: 'Supports CSV, XLSX, XLS. Up to 100,000 rows.'
+    title: 'Try Demo'
+    description: 'Open VaRiScout in your browser and explore sample datasets'
+    detail: 'No signup, no installation. Just open and explore.'
 
   - number: 2
-    title: 'Select'
-    description: 'Choose your outcome (Y) and factors (x)'
-    detail: 'Smart recognition suggests mappings for common column names.'
+    title: 'Install Free'
+    description: 'Click "Install" in your browser to get the full app'
+    detail: 'Works offline. Upload your own CSV/Excel files.'
 
   - number: 3
-    title: 'Explore'
-    description: 'See all charts. Click to filter and drill down.'
-    detail: 'Filter state always visible. Clear all with one click.'
-
-  - number: 4
-    title: 'Share'
-    description: 'Copy charts or switch to presentation mode'
-    detail: 'High-resolution output. Paste directly into PowerPoint.'
+    title: 'Upgrade (Optional)'
+    description: 'Need to save projects? Get a license (€49/year)'
+    detail: 'Instant activation. License key emailed as backup.'
 ```
 
 ---
@@ -189,31 +212,28 @@ steps:
 
 ```yaml
 section_id: 'install'
-headline: 'Want to Save Your Work?'
-subhead: 'Install the app to unlock saving, templates, and offline use.'
+headline: 'How to Install'
+subhead: 'Get the full app to upload your own data'
 
 how_to_install:
-  headline: 'How to Install'
+  headline: 'Installation Steps'
   steps:
     - platform: 'Chrome / Edge'
-      steps: "Click the install icon in the address bar, or look for 'Install VaRiScout' prompt"
+      steps: "Open /app, then click the install icon in the address bar or accept the 'Install VaRiScout' prompt"
 
     - platform: 'Mobile'
-      steps: "Tap 'Add to Home Screen' in browser menu"
+      steps: "Open /app, then tap 'Add to Home Screen' in browser menu"
 
 what_you_get:
-  - 'Save projects (persists across sessions)'
-  - 'Export/import .vrs files'
-  - 'Save templates for repeat data sources'
-  - 'No watermark on exports'
+  - 'Upload your own CSV/Excel files'
+  - 'Manual data entry'
+  - 'Full analysis tools'
   - 'Works offline'
   - 'Launches like a native app'
 
-pricing:
-  free: 'Free — same as web app, but works offline'
-  paid: '€49/year — unlock saving, templates, no watermark'
-
-note: 'Upgrade option appears inside the installed app. Not available in web app.'
+why_install: |
+  **Privacy by design**: Your data never leaves your device.
+  This requires installing as a PWA. It's free and takes 2 clicks.
 ```
 
 ---
@@ -222,16 +242,26 @@ note: 'Upgrade option appears inside the installed app. Not available in web app
 
 ```yaml
 section_id: 'pricing'
-headline: 'Web App is Free'
+headline: 'Free to Start'
 
-message: |
-  The web app at variscout.com/app is completely free.
-  Full analysis features. No signup. No credit card.
+tiers:
+  - name: 'Demo'
+    price: '€0'
+    description: 'Sample data in browser'
+    features: ['All charts', 'Sample data', 'No upload']
 
-  For saving projects and removing watermarks, install the app and upgrade (€49/year).
+  - name: 'Free'
+    price: '€0'
+    description: 'Your data, installed app'
+    features: ['Upload files', 'Session-only', 'Watermark']
+
+  - name: 'Licensed'
+    price: '€49/year'
+    description: 'Save projects'
+    features: ['Save work', 'No watermark', 'Templates']
 
 cta:
-  text: 'Open Free Web App'
+  text: 'Try Demo'
   url: '/app'
 
 see_also:
@@ -261,10 +291,10 @@ specs:
     value: '100,000 rows (browser memory dependent)'
 
   - label: 'Data Storage'
-    value: 'Browser only. Nothing sent to servers.'
+    value: 'Browser/device only. Nothing sent to servers.'
 
   - label: 'Offline Support'
-    value: 'Yes (after first load)'
+    value: 'Yes (after installation)'
 ```
 
 ---
@@ -276,26 +306,23 @@ section_id: 'faq'
 headline: 'Questions'
 
 items:
-  - question: 'Is the web app really free?'
-    answer: 'Yes. The web app at variscout.com/app is completely free. Full analysis features, no signup, no credit card, no time limit.'
+  - question: "Why can't I upload files in my browser?"
+    answer: 'For privacy, your data never leaves your device. This requires installing the app as a PWA. Installation is free and takes 2 clicks.'
 
-  - question: 'Where does my data go?'
-    answer: 'Nowhere. Your data stays in your browser. We never see it, store it, or transmit it.'
+  - question: "What's the difference between Demo and Free?"
+    answer: 'Demo runs in your browser with sample data only. Free is the installed app that lets you upload your own CSV/Excel files. Both are completely free.'
 
-  - question: 'Can I save my work in the web app?'
-    answer: 'No. The web app is session-only — your work disappears when you close the browser. To save projects, install the app and upgrade to Individual (€49/year).'
-
-  - question: "What's the difference between web app and installed app?"
-    answer: 'The web app runs from our servers and is free-only (no saving). The installed app runs on your computer, works offline, and has the option to upgrade for saving/templates/no watermark.'
+  - question: 'Can I save my work in the Free tier?'
+    answer: 'No. Free tier is session-only — your work disappears when you close the app. To save projects, upgrade to Licensed (€49/year).'
 
   - question: 'How do I install the app?'
-    answer: "Open the web app, then click 'Install' in your browser's address bar (Chrome/Edge) or 'Add to Home Screen' (mobile). The app installs locally on your device."
+    answer: "Open the demo at /app, then click 'Install' in your browser's address bar (Chrome/Edge) or 'Add to Home Screen' (mobile)."
 
   - question: 'Can I use this for training or learning?'
-    answer: "Yes — that's exactly what the free web app is for. Full analysis features, works in any browser, no saving needed for classroom exercises."
+    answer: 'Yes — the Demo tier with sample data is perfect for classroom use, workshops, and self-learning. No installation or data upload needed.'
 
-  - question: 'Can I use this for work?'
-    answer: 'The web app is great for quick analysis. For ongoing project work where you need to save, install the app and upgrade.'
+  - question: 'Does the app work offline?'
+    answer: 'Yes, after installation. The installed PWA works offline and your data never leaves your device.'
 
   - question: 'Does the web app work on mobile?'
     answer: "Yes, but it's optimized for desktop. The full interface works best on screens 1024px or wider."
@@ -308,8 +335,9 @@ items:
 ```yaml
 section_id: 'final-cta'
 headline: 'Ready to Scout?'
-subhead: 'Your data. Your browser. Your insights.'
+subhead: 'Demo with samples. Install to upload your data.'
 cta:
-  text: 'Open VaRiScout'
+  text: 'Try Demo'
   url: '/app'
+note: 'No signup needed'
 ```

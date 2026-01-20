@@ -73,9 +73,10 @@ const {
 	</div>
 
 	<div class="space-y-3">
-		<a 
-			href={cta.href} 
+		<a
+			href={cta.href}
 			target={cta.external ? "_blank" : "_self"}
+			rel={cta.external ? "noopener" : undefined}
 			class={`btn w-full py-3 ${highlight ? 'btn-primary' : 'btn-secondary'}`}
 		>
 			{cta.text}

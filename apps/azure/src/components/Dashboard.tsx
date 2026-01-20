@@ -40,6 +40,8 @@ type DashboardTab = 'analysis' | 'regression' | 'gagerr' | 'performance';
 
 interface DashboardProps {
   onPointClick?: (index: number) => void;
+  /** Highlighted point index from data panel (bi-directional sync) */
+  highlightedPointIndex?: number | null;
   /** Drill navigation from Performance Mode */
   drillFromPerformance?: string | null;
   /** Callback to return to Performance Mode */
@@ -50,6 +52,7 @@ interface DashboardProps {
 
 const Dashboard = ({
   onPointClick,
+  highlightedPointIndex,
   drillFromPerformance,
   onBackToPerformance,
   onDrillToMeasure,
@@ -595,7 +598,10 @@ const Dashboard = ({
                 </div>
                 <div className="flex-1 min-h-[300px] w-full">
                   <ErrorBoundary componentName="I-Chart">
-                    <IChart onPointClick={onPointClick} />
+                    <IChart
+                      onPointClick={onPointClick}
+                      highlightedPointIndex={highlightedPointIndex}
+                    />
                   </ErrorBoundary>
                 </div>
               </div>
@@ -735,7 +741,10 @@ const Dashboard = ({
                   </div>
                   <div className="flex-1 min-h-0 w-full">
                     <ErrorBoundary componentName="I-Chart">
-                      <IChart onPointClick={onPointClick} />
+                      <IChart
+                        onPointClick={onPointClick}
+                        highlightedPointIndex={highlightedPointIndex}
+                      />
                     </ErrorBoundary>
                   </div>
                 </div>

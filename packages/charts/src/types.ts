@@ -314,7 +314,7 @@ export interface ChartFonts {
 // ============================================================================
 
 /**
- * PerformanceIChart props - Cpk scatter plot by channel
+ * PerformanceIChart props - I-Chart for capability metrics (Cpk/Cp)
  */
 export interface PerformanceIChartProps extends BaseChartProps {
   /** Channel results with Cpk values */
@@ -325,6 +325,8 @@ export interface PerformanceIChartProps extends BaseChartProps {
   onChannelClick?: (channelId: string) => void;
   /** Which capability metric to display: 'cpk' (default) or 'cp' */
   capabilityMetric?: 'cp' | 'cpk';
+  /** User-defined Cpk/Cp target line (default: 1.33) */
+  cpkTarget?: number;
 }
 
 /**

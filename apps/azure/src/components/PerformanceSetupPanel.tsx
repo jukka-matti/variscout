@@ -43,9 +43,11 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
     specs,
     measureColumns: currentMeasureColumns,
     measureLabel: currentMeasureLabel,
+    cpkTarget: currentCpkTarget,
     setMeasureColumns,
     setMeasureLabel,
     setPerformanceMode,
+    setCpkTarget,
   } = useData();
 
   // Local state for editing
@@ -53,6 +55,7 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
     initialSelection ?? currentMeasureColumns ?? []
   );
   const [label, setLabel] = useState(initialLabel ?? currentMeasureLabel ?? 'Measure');
+  const [targetValue, setTargetValue] = useState(currentCpkTarget ?? 1.33);
 
   // Detect available numeric columns
   const availableColumns = useMemo(() => {
@@ -84,9 +87,19 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
     } else {
       setMeasureColumns(selectedColumns);
       setMeasureLabel(label);
+      setCpkTarget(targetValue);
       setPerformanceMode(true);
     }
-  }, [selectedColumns, label, onEnable, setMeasureColumns, setMeasureLabel, setPerformanceMode]);
+  }, [
+    selectedColumns,
+    label,
+    targetValue,
+    onEnable,
+    setMeasureColumns,
+    setMeasureLabel,
+    setCpkTarget,
+    setPerformanceMode,
+  ]);
 
   // No data loaded
   if (rawData.length === 0) {
@@ -139,6 +152,28 @@ const PerformanceSetupPanel: React.FC<PerformanceSetupPanelProps> = ({
         </div>
         <p className="text-xs text-slate-500 mt-1">
           Customize how measures are displayed in charts and summaries
+        </p>
+      </div>
+
+      {/* Cpk Target input */}
+      <div>
+        <label className="block text-sm font-medium text-slate-400 mb-2">Cpk Target</label>
+        <div className="flex items-center gap-3">
+          <input
+            type="number"
+            value={targetValue}
+            onChange={e => setTargetValue(Number(e.target.value) || 1.33)}
+            min={0.5}
+            max={3.0}
+            step={0.01}
+            className="w-24 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white font-mono focus:outline-none focus:border-blue-500 transition-colors"
+          />
+          <span className="text-xs text-slate-500">
+            Target line shown on I-Chart (default: 1.33)
+          </span>
+        </div>
+        <p className="text-xs text-slate-500 mt-1">
+          1.33 = ~63 PPM defects | 1.67 = ~1 PPM defects
         </p>
       </div>
 

@@ -321,17 +321,17 @@ Specs popover:
 
 ## By Product
 
-| Feature                | PWA                | Excel             | Azure                 |
-| ---------------------- | ------------------ | ----------------- | --------------------- |
-| **Page nav**           | State-based        | Wizard steps      | State-based           |
-| **Analysis switching** | Settings Panel     | Fluent TabList    | (None yet)            |
-| **Data table**         | Right panel/bottom | N/A               | Planned               |
-| **Drill-down**         | Full               | Read-only display | Planned               |
-| **Breadcrumbs**        | Interactive        | Display only      | Interactive (planned) |
-| **Mobile**             | Responsive         | Fixed 350px       | Responsive            |
-| **Auto-save**          | No (explicit save) | N/A               | No                    |
-| **URL routing**        | None               | N/A               | None                  |
-| **Deep linking**       | Future             | N/A               | Future                |
+| Feature                | PWA                | Excel             | Azure       |
+| ---------------------- | ------------------ | ----------------- | ----------- |
+| **Page nav**           | State-based        | Wizard steps      | State-based |
+| **Analysis switching** | Settings Panel     | Fluent TabList    | (None yet)  |
+| **Data table**         | Right panel/bottom | N/A               | Right panel |
+| **Drill-down**         | Full               | Read-only display | Full        |
+| **Breadcrumbs**        | Interactive        | Display only      | Interactive |
+| **Mobile**             | Responsive         | Fixed 350px       | Responsive  |
+| **Auto-save**          | No (explicit save) | N/A               | No          |
+| **URL routing**        | None               | N/A               | None        |
+| **Deep linking**       | Future             | N/A               | Future      |
 
 ### Product-Specific Details
 
@@ -354,8 +354,10 @@ Specs popover:
 
 - **Authentication**: MSAL popup login required
 - **Views**: Dashboard (project list) ↔ Editor (analysis)
-- **State**: Simple `currentView` and `currentProject` state
-- **Future**: Add drill-down when @variscout/charts integrated
+- **State**: `DataContext` manages filters, drill-down state, and data
+- **Data table**: `DataPanel` - resizable right panel with bi-directional chart sync
+- **Drill-down**: Full drill-down with auto-switch to highest variation factor
+- **Breadcrumbs**: Interactive `DrillBreadcrumb` with filter chips
 
 ---
 
@@ -516,19 +518,26 @@ All navigation patterns follow accessibility guidelines:
 
 ## Key Files
 
-| File                                             | Purpose                       |
-| ------------------------------------------------ | ----------------------------- |
-| `packages/core/src/navigation.ts`                | Types and utilities           |
-| `packages/core/src/variation.ts`                 | Auto-switch logic, η² helpers |
-| `apps/pwa/src/hooks/useDrillDown.ts`             | React hook for drill-down     |
-| `apps/pwa/src/lib/persistence.ts`                | IndexedDB project storage     |
-| `apps/pwa/src/components/AppHeader.tsx`          | Icon-based toolbar            |
-| `apps/pwa/src/components/SettingsPanel.tsx`      | Slide-in settings panel       |
-| `apps/pwa/src/components/DataPanel.tsx`          | Resizable data table panel    |
-| `apps/pwa/src/components/SharePopover.tsx`       | Export options popover        |
-| `apps/pwa/src/components/SpecsPopover.tsx`       | Spec limits popover (I-Chart) |
-| `apps/pwa/src/components/DrillBreadcrumb.tsx`    | Breadcrumb UI                 |
-| `apps/pwa/src/components/Dashboard.tsx`          | PWA main view                 |
-| `apps/pwa/src/components/charts/ParetoChart.tsx` | Pareto with ghost bars        |
-| `apps/excel-addin/src/content/FilterBar.tsx`     | Excel breadcrumb display      |
-| `apps/azure/src/App.tsx`                         | Azure page navigation         |
+| File                                             | Purpose                        |
+| ------------------------------------------------ | ------------------------------ |
+| `packages/core/src/navigation.ts`                | Types and utilities            |
+| `packages/core/src/variation.ts`                 | Auto-switch logic, η² helpers  |
+| `packages/hooks/src/useDrillDown.ts`             | Shared drill-down hook         |
+| `apps/pwa/src/lib/persistence.ts`                | IndexedDB project storage      |
+| `apps/pwa/src/components/AppHeader.tsx`          | Icon-based toolbar             |
+| `apps/pwa/src/components/SettingsPanel.tsx`      | Slide-in settings panel        |
+| `apps/pwa/src/components/DataPanel.tsx`          | Resizable data table panel     |
+| `apps/pwa/src/components/SharePopover.tsx`       | Export options popover         |
+| `apps/pwa/src/components/SpecsPopover.tsx`       | Spec limits popover (I-Chart)  |
+| `apps/pwa/src/components/DrillBreadcrumb.tsx`    | Breadcrumb UI                  |
+| `apps/pwa/src/components/MobileMenu.tsx`         | Mobile navigation menu         |
+| `apps/pwa/src/components/FunnelPanel.tsx`        | Variation funnel visualization |
+| `apps/pwa/src/components/VariationFunnel.tsx`    | Funnel chart component         |
+| `apps/pwa/src/components/Dashboard.tsx`          | PWA main view                  |
+| `apps/pwa/src/components/charts/ParetoChart.tsx` | Pareto with ghost bars         |
+| `apps/excel-addin/src/content/FilterBar.tsx`     | Excel breadcrumb display       |
+| `apps/azure/src/App.tsx`                         | Azure page navigation          |
+| `apps/azure/src/components/Dashboard.tsx`        | Azure main dashboard           |
+| `apps/azure/src/components/DataPanel.tsx`        | Azure data table panel         |
+| `apps/azure/src/components/DrillBreadcrumb.tsx`  | Azure breadcrumb UI            |
+| `apps/azure/src/components/FilterChips.tsx`      | Azure active filter chips      |

@@ -27,9 +27,16 @@ interface IChartProps {
   parentWidth: number;
   parentHeight: number;
   onPointClick?: (index: number) => void;
+  /** Highlighted point index from data panel (bi-directional sync) */
+  highlightedPointIndex?: number | null;
 }
 
-const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
+const IChart = ({
+  parentWidth,
+  parentHeight,
+  onPointClick,
+  highlightedPointIndex,
+}: IChartProps) => {
   const { chrome } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight();
   const margin = useResponsiveChartMargins(parentWidth, 'ichart', sourceBarHeight);
@@ -383,19 +390,35 @@ const IChart = ({ parentWidth, parentHeight, onPointClick }: IChartProps) => {
             strokeWidth={2}
           />
 
-          {data.map((d: any, i: number) => (
-            <Circle
-              key={i}
-              cx={xScale(d.x as any)}
-              cy={yScale(d.y)}
-              r={4}
-              fill={getPointColor(d.y, i)}
-              stroke={chrome.pointStroke}
-              strokeWidth={1}
-              className={onPointClick ? 'cursor-pointer' : ''}
-              onClick={() => onPointClick?.(i)}
-            />
-          ))}
+          {data.map((d: any, i: number) => {
+            const isHighlighted = highlightedPointIndex === i;
+            return (
+              <g key={i}>
+                {/* Highlight ring for selected point */}
+                {isHighlighted && (
+                  <Circle
+                    cx={xScale(d.x as any)}
+                    cy={yScale(d.y)}
+                    r={12}
+                    fill="transparent"
+                    stroke={chartColors.mean}
+                    strokeWidth={2}
+                    className="animate-pulse"
+                  />
+                )}
+                <Circle
+                  cx={xScale(d.x as any)}
+                  cy={yScale(d.y)}
+                  r={isHighlighted ? 6 : 4}
+                  fill={getPointColor(d.y, i)}
+                  stroke={isHighlighted ? chartColors.mean : chrome.pointStroke}
+                  strokeWidth={isHighlighted ? 2 : 1}
+                  className={onPointClick ? 'cursor-pointer' : ''}
+                  onClick={() => onPointClick?.(i)}
+                />
+              </g>
+            );
+          })}
 
           <AxisLeft
             scale={yScale}

@@ -58,3 +58,36 @@ export { useVariationTracking, type VariationTrackingResult } from './useVariati
 
 // Keyboard Navigation
 export { useKeyboardNavigation, type KeyboardNavigationOptions } from './useKeyboardNavigation';
+
+// Data Analysis Hooks
+export { useAvailableOutcomes } from './useAvailableOutcomes';
+export { useAvailableStageColumns, type StageColumnOptions } from './useAvailableStageColumns';
+
+// Chart Navigation
+export {
+  useChartNavigation,
+  DEFAULT_CHART_ORDER,
+  type ChartId,
+  type UseChartNavigationOptions,
+  type UseChartNavigationReturn,
+} from './useChartNavigation';
+
+// Clipboard
+export {
+  useClipboardCopy,
+  type UseClipboardCopyOptions,
+  type UseClipboardCopyReturn,
+} from './useClipboardCopy';
+
+// Dashboard Props Types
+export type {
+  AnalysisView,
+  HighlightIntensity,
+  DashboardModeProps,
+  DashboardEmbedProps,
+  DashboardPerformanceProps,
+  DashboardInteractionProps,
+  DashboardSpecEditorProps,
+  DashboardProps,
+  AzureDashboardProps,
+} from './types/dashboardProps';

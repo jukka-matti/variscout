@@ -5,15 +5,51 @@
 
 ## Entry Points
 
-The PWA HomeScreen offers five ways to start:
+The PWA HomeScreen shows different options based on user state.
+See [PWA Tier Model](./PWA-TIER-MODEL.md) for full details on the 3-tier system.
+
+### Entry Points by State
+
+#### Web Browser (Demo Mode)
+
+Web visitors can only explore sample data:
 
 ```
-HomeScreen
+HomeScreen (Demo)
+├── Load sample data (pre-built demos)
+│   ├── Featured cards (Coffee, Bottleneck, Journey)
+│   └── Collapsible category lists
+└── Install CTA → Leads to Trial mode
+```
+
+**Key insight:** Upload and manual entry are NOT available in web browser mode.
+Users must install the PWA first to work with their own data.
+
+#### Installed PWA (No License)
+
+Installed users without a license can work with data, but it's session-only:
+
+```
+HomeScreen (Trial)
 ├── 1. Upload CSV/Excel file (drag-drop or click)
-├── 2. Load sample data (pre-built demos)
-├── 3. Import .vrs file (saved project)
-├── 4. Open recent project (from history)
-└── 5. Enter data manually (direct entry)
+├── 2. Enter data manually (direct entry)
+└── 3. Load sample data (collapsed at bottom)
+```
+
+Session warning: "Work disappears when you close. Upgrade to save projects →"
+
+#### Installed PWA (Licensed)
+
+Licensed users have full access:
+
+```
+HomeScreen (Full)
+├── Recent projects (top 3, if any exist)
+│   ├── See all projects
+│   └── Import .vrs file
+├── 1. Upload CSV/Excel file (drag-drop or click)
+├── 2. Enter data manually (direct entry)
+└── 3. Load sample data (collapsed at bottom)
 ```
 
 > **Manual Entry**: For direct data entry without a file, see [Manual Entry Flow](./MANUAL-ENTRY.md).

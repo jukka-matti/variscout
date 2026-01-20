@@ -675,6 +675,7 @@ function App() {
               onOpenProjects={() => setIsProjectsOpen(true)}
               onLoadSample={loadSample}
               onOpenManualEntry={handleOpenManualEntry}
+              onOpenSettings={() => setIsSettingsOpen(true)}
             />
           ) : isMapping ? (
             <ColumnMapping
