@@ -37,6 +37,8 @@ interface ChannelResult {
 
 ### Health Classification
 
+Health classification is used by PerformanceBoxplot, PerformancePareto, and PerformanceCapability charts:
+
 | Health      | Cpk Range   | Color                         |
 | ----------- | ----------- | ----------------------------- |
 | `excellent` | >= 1.67     | Blue (`chartColors.mean`)     |
@@ -44,11 +46,15 @@ interface ChannelResult {
 | `warning`   | 1.0 - 1.33  | Amber (`chartColors.warning`) |
 | `critical`  | < 1.0       | Red (`chartColors.fail`)      |
 
+> **Note:** PerformanceIChart uses control-based coloring (blue/red for in-control/out-of-control)
+> based on statistical control limits calculated from the Cpk/Cp distribution across channels.
+> See [PerformanceIChart section](#performanceichart) below for details.
+
 ---
 
 ## PerformanceIChart
 
-Displays Cpk (or Cp) values for each channel as a scatter plot.
+I-Chart for capability metrics (Cpk or Cp) across channels. Uses statistical control limits rather than health-based coloring.
 
 **Source:** `packages/charts/src/PerformanceIChart.tsx`
 
@@ -63,17 +69,49 @@ interface PerformanceIChartProps {
   onChannelClick?: (id: string) => void;
   showBranding?: boolean;
   capabilityMetric?: 'cp' | 'cpk'; // Toggle between Cp/Cpk (default: 'cpk')
+  cpkTarget?: number; // Target line value (default: 1.33)
 }
 ```
 
 ### Features
 
-- X-axis: Channel index/name
-- Y-axis: Capability metric value
-- Reference lines at Cpk = 1.0 (minimum) and 1.33 (target)
-- Points colored by health classification
+- **X-axis:** Channel index/name
+- **Y-axis:** Capability metric value (Cpk or Cp)
+- **Control limits:** UCL/LCL calculated from capability distribution (mean ± 3σ)
+- **Mean line:** Average capability across all channels (solid blue)
+- **Target line:** User-defined reference (default: 1.33, dashed green)
+- **Point coloring:** Control-based (blue = in-control, red = out-of-control)
+- **Nelson Rule 2:** 9+ consecutive points on same side of mean flagged as violations
 - Selected point highlighted with larger radius and white stroke
 - Unselected points dimmed when selection exists
+
+### Control-Based vs Health-Based Coloring
+
+PerformanceIChart differs from other Performance charts in its coloring approach:
+
+| Chart                 | Coloring Approach | Colors Used           |
+| --------------------- | ----------------- | --------------------- |
+| **PerformanceIChart** | Control-based     | Blue (in) / Red (out) |
+| PerformanceBoxplot    | Health-based      | 4-tier health colors  |
+| PerformancePareto     | Health-based      | 4-tier health colors  |
+| PerformanceCapability | Health-based      | 4-tier health colors  |
+
+### Cpk Target Setting
+
+Users can configure a custom Cpk target in PerformanceSetupPanel:
+
+| Property  | Default | Range     | Description                  |
+| --------- | ------- | --------- | ---------------------------- |
+| cpkTarget | 1.33    | 0.5 - 3.0 | Target line shown on I-Chart |
+
+Common target values:
+
+| Target | PPM Defects | Use Case           |
+| ------ | ----------- | ------------------ |
+| 1.00   | ~2,700      | Minimum capability |
+| 1.33   | ~63         | Standard target    |
+| 1.67   | ~1          | High capability    |
+| 2.00   | <1          | Six Sigma          |
 
 ### Example
 
@@ -85,6 +123,7 @@ import PerformanceIChart from '@variscout/charts/PerformanceIChart';
   selectedMeasure={selectedId}
   onChannelClick={handleChannelSelect}
   capabilityMetric="cpk"
+  cpkTarget={1.33}
 />;
 ```
 

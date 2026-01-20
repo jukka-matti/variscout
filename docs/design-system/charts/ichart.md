@@ -135,7 +135,7 @@ Locks Y-axis scale to a fixed range (useful during drill-down to maintain refere
 
 ## PerformanceIChart
 
-Displays Cpk values for each channel as a scatter plot in Performance Mode.
+I-Chart for capability metrics (Cpk or Cp) across channels. Uses statistical control limits calculated from the capability distribution rather than health-based coloring.
 
 ### Props Interface
 
@@ -149,36 +149,65 @@ interface PerformanceIChartProps extends BaseChartProps {
   onChannelClick?: (channelId: string) => void;
   /** Which capability metric to display: 'cpk' (default) or 'cp' */
   capabilityMetric?: 'cp' | 'cpk';
+  /** User-defined Cpk/Cp target line (default: 1.33) */
+  cpkTarget?: number;
 }
 ```
+
+### Features
+
+- **X-axis:** Channel index (1, 2, 3, ... n)
+- **Y-axis:** Cpk or Cp value
+- **Control limits:** UCL/LCL calculated from capability distribution (mean ± 3σ)
+- **Mean line:** Average capability across all channels (solid blue)
+- **Target line:** User-defined reference (default: 1.33, dashed green)
+- **Nelson Rule 2 detection:** Flags 9+ consecutive points on same side of mean
 
 ### Display Behavior
 
 | State            | Display                                              |
 | ---------------- | ---------------------------------------------------- |
-| No selection     | All channels as scatter points by Cpk                |
+| No selection     | All channels as scatter points by Cpk/Cp             |
 | Channel selected | Selected channel highlighted, others dimmed          |
 | Empty channels   | Placeholder: "No channel performance data available" |
 
-### Capability Reference Lines
+### Control Limit Lines
 
-The chart displays two reference lines:
+The chart displays statistical control limits calculated from the Cpk/Cp distribution:
 
-| Line     | Value | Color | Meaning                  |
-| -------- | ----- | ----- | ------------------------ |
-| Critical | 1.0   | Red   | Minimum acceptable Cpk   |
-| Target   | 1.33  | Green | Industry standard target |
+| Line   | Calculation | Style        | Meaning                          |
+| ------ | ----------- | ------------ | -------------------------------- |
+| UCL    | mean + 3σ   | Dashed gray  | Upper Control Limit              |
+| Mean   | x̄           | Solid blue   | Average capability               |
+| LCL    | mean - 3σ   | Dashed gray  | Lower Control Limit (min: 0)     |
+| Target | User input  | Dashed green | Reference target (default: 1.33) |
 
-### Health-Based Coloring
+### Control-Based Coloring
 
-Point color reflects channel capability health:
+Point color reflects statistical control status (I-Chart style):
 
-| Health      | Cpk Range   | Color                         |
-| ----------- | ----------- | ----------------------------- |
-| `critical`  | < 1.0       | Red (`chartColors.fail`)      |
-| `warning`   | 1.0 - 1.33  | Amber (`chartColors.warning`) |
-| `capable`   | 1.33 - 1.67 | Green (`chartColors.pass`)    |
-| `excellent` | >= 1.67     | Blue (`chartColors.mean`)     |
+| Status         | Color                     | Condition                                 |
+| -------------- | ------------------------- | ----------------------------------------- |
+| In-control     | Blue (`chartColors.mean`) | Within UCL/LCL, no rule violations        |
+| Out-of-control | Red (`chartColors.fail`)  | Beyond UCL/LCL or Nelson Rule 2 violation |
+
+**Note:** This differs from the other Performance charts (Boxplot, Pareto, Capability) which use health-based 4-tier coloring.
+
+### Control Limit Calculation
+
+Control limits are calculated using functions from `@variscout/core`:
+
+```typescript
+import { calculateCapabilityControlLimits, getCapabilityControlStatus } from '@variscout/core';
+
+// Calculate limits from Cpk/Cp distribution
+const limits = calculateCapabilityControlLimits(channels, 'cpk');
+// Returns: { mean, stdDev, ucl, lcl, n }
+
+// Determine control status for each channel
+const statusMap = getCapabilityControlStatus(channels, limits, 'cpk');
+// Returns: Map<channelId, { inControl, nelsonRule2Violation }>
+```
 
 ### Example
 
@@ -190,6 +219,7 @@ import PerformanceIChart from '@variscout/charts/PerformanceIChart';
   selectedMeasure={selectedId}
   onChannelClick={handleChannelSelect}
   capabilityMetric="cpk"
+  cpkTarget={1.33}
 />;
 ```
 
@@ -197,17 +227,16 @@ import PerformanceIChart from '@variscout/charts/PerformanceIChart';
 
 ## Statistical Elements
 
-| Element            | Standard IChart                   | PerformanceIChart            |
-| ------------------ | --------------------------------- | ---------------------------- |
-| **Data points**    | Circles on time series            | Circles by channel index     |
-| **Data line**      | Connecting line (dimmed)          | Not shown                    |
-| **UCL/LCL**        | Dashed lines with labels          | Not applicable               |
-| **Mean line**      | Solid blue line with label        | Not applicable               |
-| **Cpk reference**  | Not applicable                    | Dashed lines at 1.0 and 1.33 |
-| **Spec limits**    | Dashed red lines (USL/LSL)        | Not shown                    |
-| **Target line**    | Dashed green line                 | Not shown                    |
-| **Stage dividers** | Vertical dashed lines (if staged) | Not applicable               |
-| **Grid**           | Horizontal rows                   | Horizontal rows              |
+| Element            | Standard IChart                   | PerformanceIChart                         |
+| ------------------ | --------------------------------- | ----------------------------------------- |
+| **Data points**    | Circles on time series            | Circles by channel index                  |
+| **Data line**      | Connecting line (dimmed)          | Not shown                                 |
+| **UCL/LCL**        | Dashed lines with labels          | Dashed gray (mean ± 3σ of Cpk/Cp)         |
+| **Mean line**      | Solid blue line with label        | Solid blue (mean Cpk/Cp across channels)  |
+| **Target line**    | Dashed green line                 | Dashed green (user-defined, default 1.33) |
+| **Spec limits**    | Dashed red lines (USL/LSL)        | Not shown                                 |
+| **Stage dividers** | Vertical dashed lines (if staged) | Not applicable                            |
+| **Grid**           | Horizontal rows                   | Horizontal rows                           |
 
 ---
 
@@ -298,7 +327,7 @@ PerformanceIChart tooltip shows:
 - Cpk value
 - Sample size (n)
 - Mean
-- Health status (colored)
+- Control status (colored: "In control", "Out of control", or "Nelson Rule 2 violation")
 
 ---
 
@@ -362,11 +391,12 @@ import { PerformanceIChartBase } from '@variscout/charts/PerformanceIChart';
 
 ### Point Colors
 
-| Variant              | Condition       | Fill Color                |
-| -------------------- | --------------- | ------------------------- |
-| Standard (in-ctrl)   | All checks pass | `chartColors.mean` (blue) |
-| Standard (violation) | Any violation   | `chartColors.fail` (red)  |
-| Performance          | By health       | Health color (see above)  |
+| Variant               | Condition                          | Fill Color                |
+| --------------------- | ---------------------------------- | ------------------------- |
+| Standard (in-ctrl)    | All checks pass                    | `chartColors.mean` (blue) |
+| Standard (violation)  | Any violation                      | `chartColors.fail` (red)  |
+| Performance (in-ctrl) | Within UCL/LCL, no rule violations | `chartColors.mean` (blue) |
+| Performance (out)     | Beyond UCL/LCL or Nelson Rule 2    | `chartColors.fail` (red)  |
 
 ### Theme-Aware Colors
 

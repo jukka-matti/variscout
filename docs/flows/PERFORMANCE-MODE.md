@@ -209,6 +209,13 @@ HomeScreen → "Load Sample Data"
 ┌─────────────────────────────────────────────────┐
 │ Performance Mode Setup                          │
 ├─────────────────────────────────────────────────┤
+│ Measure Label: [Head________]                   │
+│   e.g., "Head 1", "Head 2"                      │
+│                                                 │
+│ Cpk Target: [1.33]                              │
+│   Target line shown on I-Chart (default: 1.33) │
+│   1.33 = ~63 PPM defects | 1.67 = ~1 PPM        │
+│                                                 │
 │ Select Measure Columns:                         │
 │   ☑ Head 1                                      │
 │   ☑ Head 2                                      │
@@ -217,14 +224,29 @@ HomeScreen → "Load Sample Data"
 │   ☐ Timestamp (excluded - not numeric)          │
 │   ☐ Batch (excluded - categorical)              │
 │                                                 │
-│ Measure Label: [Head________]                   │
-│                                                 │
-│ Spec Limits (shared):                           │
-│   USL: [10.5]  LSL: [9.5]                       │
-│                                                 │
 │ [Cancel]              [Analyze 4 Channels →]    │
 └─────────────────────────────────────────────────┘
 ```
+
+#### Cpk Target Setting
+
+The Cpk Target allows users to define a reference target for capability analysis:
+
+| Property    | Description                                                 |
+| ----------- | ----------------------------------------------------------- |
+| **Input**   | Numeric field with range 0.5 - 3.0                          |
+| **Default** | 1.33 (industry standard, ~63 PPM defects)                   |
+| **Purpose** | Displays a target line on the Performance I-Chart           |
+| **Storage** | Stored with Performance Mode settings, reset on new project |
+
+Common target values:
+
+| Target | PPM Defects | Use Case           |
+| ------ | ----------- | ------------------ |
+| 1.00   | ~2,700      | Minimum capability |
+| 1.33   | ~63         | Standard target    |
+| 1.67   | ~1          | High capability    |
+| 2.00   | <1          | Six Sigma          |
 
 ---
 
