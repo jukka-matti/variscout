@@ -39,6 +39,12 @@ All PWA analysis features included:
 - Capability Analysis (Cp/Cpk)
 - Performance Mode (multi-measure analysis)
 
+### Azure-Specific Features
+
+- **Data Panel** - Interactive table with bi-directional chart sync (click chart → highlight row, click row → highlight chart point)
+- **Append Mode** - Add new data incrementally via Manual Entry without replacing existing data
+- **OneDrive Sync** - Automatic project sync across team members
+
 ---
 
 ## User Flows
@@ -49,6 +55,7 @@ All PWA analysis features included:
 
 ## Related Documentation
 
+- [Data Panel](./DATA-PANEL.md) - Interactive data table with chart sync
 - [OneDrive Sync](./ONEDRIVE-SYNC.md) - File storage and sharing
 - [SharePoint](./SHAREPOINT.md) - Team collaboration
 - [MSAL Auth](./MSAL-AUTH.md) - Azure AD authentication

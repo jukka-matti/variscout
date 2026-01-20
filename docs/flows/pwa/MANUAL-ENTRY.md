@@ -237,6 +237,79 @@ DataContext.setData()
 
 ---
 
+## Append Mode
+
+Append mode allows adding new data to an existing analysis without replacing the current dataset. This is useful for incremental data collection over time.
+
+### Access Points
+
+When data is already loaded, access append mode via:
+
+1. **Toolbar button**: Click "Add Data" (➕) in the header toolbar
+2. **Azure app**: Also available from the project menu
+
+### How It Works
+
+```
+Existing Data (10 rows)          Manual Entry (5 new rows)
+┌──────────────────────┐         ┌──────────────────────┐
+│ Op │ Machine │ Wt   │         │ Op │ Machine │ Wt   │
+├────┼─────────┼──────┤         ├────┼─────────┼──────┤
+│ A  │ M1      │ 10.2 │    +    │ C  │ M2      │ 10.3 │
+│ B  │ M1      │ 10.4 │         │ A  │ M2      │ 10.1 │
+│ ...│ ...     │ ...  │         │ ...│ ...     │ ...  │
+└──────────────────────┘         └──────────────────────┘
+           │                                │
+           └──────────────┬─────────────────┘
+                          ▼
+              Merged Data (15 rows)
+              ┌──────────────────────┐
+              │ Op │ Machine │ Wt   │
+              ├────┼─────────┼──────┤
+              │ A  │ M1      │ 10.2 │
+              │ ...│ ...     │ ...  │
+              │ C  │ M2      │ 10.3 │
+              │ ...│ ...     │ ...  │
+              └──────────────────────┘
+```
+
+### Data Merging Behavior
+
+| Scenario        | Behavior                                             |
+| --------------- | ---------------------------------------------------- |
+| Same columns    | New rows appended to existing data                   |
+| New columns     | Columns added; existing rows get empty values        |
+| Missing columns | Existing columns retained; new rows get empty values |
+
+### Config Merging
+
+When appending, configuration is intelligently merged:
+
+| Config Property  | Merge Behavior                                       |
+| ---------------- | ---------------------------------------------------- |
+| `factors`        | Union of existing and new factors                    |
+| `measureColumns` | Union of existing and new measure columns            |
+| `outcome`        | Preserved from existing (unless new data defines it) |
+| `specs`          | Preserved from existing analysis                     |
+
+### Modes
+
+Append mode works in both analysis modes:
+
+- **Standard Mode**: Append new factor-outcome rows
+- **Performance Mode**: Append new measurement cycles across channels
+
+### Workflow
+
+1. Click "Add Data" in toolbar
+2. Manual Entry opens with existing config pre-filled
+3. Enter new data rows
+4. Click "Analyze"
+5. New data merges with existing
+6. Dashboard updates with combined dataset
+
+---
+
 ## Touch-Optimized Design
 
 Manual Entry is designed for tablet and field use:
