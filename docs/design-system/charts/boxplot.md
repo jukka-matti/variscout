@@ -60,6 +60,7 @@ interface BoxplotGroupData {
   max: number; // Upper whisker (or Q3 + 1.5*IQR)
   q1: number; // First quartile (25th percentile)
   median: number; // Median (50th percentile)
+  mean: number; // Mean value (for diamond marker)
   q3: number; // Third quartile (75th percentile)
   outliers: number[]; // Values beyond 1.5*IQR fences
 }
@@ -176,16 +177,16 @@ interface PerformanceBoxplotProps extends BaseChartProps {
 | Channel selected | Single detailed boxplot for selected channel             |
 | Empty channels   | Placeholder: "Select a channel or load performance data" |
 
-### Health-Based Coloring
+### Visual Style
 
-Box color reflects channel capability health:
+PerformanceBoxplot uses neutral theme-aware colors consistent with Standard Boxplot:
 
-| Health      | Cpk Range   | Color                         |
-| ----------- | ----------- | ----------------------------- |
-| `critical`  | < 1.0       | Red (`chartColors.fail`)      |
-| `warning`   | 1.0 - 1.33  | Amber (`chartColors.warning`) |
-| `capable`   | 1.33 - 1.67 | Green (`chartColors.pass`)    |
-| `excellent` | ≥ 1.67      | Blue (`chartColors.mean`)     |
+- Box: `chrome.boxDefault` / `chrome.boxBorder`
+- Whiskers: `chrome.whisker`
+- Median: `chartColors.cumulative`
+- Mean: Diamond marker in `chrome.labelPrimary`
+
+When a channel is selected, it uses `chartColors.selected` / `chartColors.selectedBorder`.
 
 ### Example
 
@@ -205,19 +206,19 @@ import PerformanceBoxplot from '@variscout/charts/PerformanceBoxplot';
 
 ## Statistical Elements
 
-| Element            | Standard Boxplot          | PerformanceBoxplot               |
-| ------------------ | ------------------------- | -------------------------------- |
-| **Whiskers**       | Min/Max (within 1.5×IQR)  | Min to Max                       |
-| **Whisker caps**   | Horizontal at min/max     | Horizontal at min/max            |
-| **Box**            | Q1 to Q3 (IQR)            | Q1 to Q3 (IQR)                   |
-| **Median**         | Thick line                | Thick line                       |
-| **Mean**           | Not shown                 | Diamond marker (◆)               |
-| **Outliers**       | Red circles beyond fences | Not shown separately             |
-| **n label**        | Below each box            | Below each box                   |
-| **Contribution %** | Below n (optional)        | Not applicable                   |
-| **Spec lines**     | USL/LSL (dashed red)      | USL/LSL (dashed red with labels) |
-| **Target line**    | Dashed green              | Not shown                        |
-| **Grid**           | Not shown                 | Horizontal rows                  |
+| Element            | Standard Boxplot          | PerformanceBoxplot    |
+| ------------------ | ------------------------- | --------------------- |
+| **Whiskers**       | Min/Max (within 1.5×IQR)  | Min to Max            |
+| **Whisker caps**   | Horizontal at min/max     | Horizontal at min/max |
+| **Box**            | Q1 to Q3 (IQR)            | Q1 to Q3 (IQR)        |
+| **Median**         | Thick line                | Thick line            |
+| **Mean**           | Diamond marker            | Diamond marker        |
+| **Outliers**       | Red circles beyond fences | Not shown separately  |
+| **n label**        | Below each box            | Below each box        |
+| **Contribution %** | Below n (optional)        | Not applicable        |
+| **Spec lines**     | USL/LSL (dashed red)      | USL/LSL (dashed red)  |
+| **Target line**    | Dashed green              | Not shown             |
+| **Grid**           | Not shown                 | Not shown             |
 
 ---
 
@@ -276,7 +277,7 @@ onChannelClick={(channelId) => {
 Standard Boxplot tooltip shows:
 
 - Category key
-- Median, Q1, Q3
+- Median, Mean, Q1, Q3
 - Sample size (n)
 - Impact % (if `categoryContributions` provided)
 
@@ -356,11 +357,12 @@ import { PerformanceBoxplotBase } from '@variscout/charts/PerformanceBoxplot';
 
 ### Box Colors
 
-| Variant             | Condition    | Fill Color                | Stroke Color                 |
-| ------------------- | ------------ | ------------------------- | ---------------------------- |
-| Standard (default)  | Unselected   | `chromeColors.boxDefault` | `chromeColors.boxBorder`     |
-| Standard (selected) | In selection | `chartColors.selected`    | `chartColors.selectedBorder` |
-| Performance         | By health    | Health color (see above)  | Same as fill                 |
+| Variant             | Condition    | Fill Color             | Stroke Color                 |
+| ------------------- | ------------ | ---------------------- | ---------------------------- |
+| Standard (default)  | Unselected   | `chrome.boxDefault`    | `chrome.boxBorder`           |
+| Standard (selected) | In selection | `chartColors.selected` | `chartColors.selectedBorder` |
+| Performance         | Unselected   | `chrome.boxDefault`    | `chrome.boxBorder`           |
+| Performance         | Selected     | `chartColors.selected` | `chartColors.selectedBorder` |
 
 ### Theme-Aware Colors
 
