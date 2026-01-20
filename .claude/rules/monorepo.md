@@ -19,6 +19,7 @@ packages/
 apps/
 ├── pwa/          # @variscout/pwa - PWA website
 ├── azure/        # @variscout/azure-app - Azure Team App
+├── website/      # @variscout/website - Marketing website (Astro + React Islands)
 └── excel-addin/  # @variscout/excel-addin - Excel Add-in
 ```
 

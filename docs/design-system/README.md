@@ -48,6 +48,10 @@ See [Colors](./tokens/colors.md) for the complete mapping.
 
 ## Quick Reference
 
+### Foundations
+
+- [Accessibility](./ACCESSIBILITY.md) - WCAG AA guidelines, keyboard navigation, screen readers
+
 ### Tokens
 
 - [Colors](./tokens/colors.md) - Color palette and semantic usage

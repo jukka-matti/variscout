@@ -13,6 +13,7 @@ User experience documentation for VariScout. These documents describe how users 
 | **Core Analysis Journey** | [CORE-ANALYSIS-JOURNEY.md](./CORE-ANALYSIS-JOURNEY.md) | Dashboard, drill-down, and chart interactions |
 | **Performance Mode**      | [PERFORMANCE-MODE.md](./PERFORMANCE-MODE.md)           | Multi-measure analysis for parallel channels  |
 | **Platform Adaptations**  | [PLATFORM-ADAPTATIONS.md](./PLATFORM-ADAPTATIONS.md)   | How each app adapts the core experience       |
+| **Error Handling**        | [ERROR-HANDLING.md](./ERROR-HANDLING.md)               | Validation, recovery patterns, user messaging |
 
 ### Platform-Specific Flows
 
@@ -33,6 +34,7 @@ User Flows
 ├── PERFORMANCE-MODE.md           # Multi-channel analysis
 │   └── Cpk comparison, channel selection
 ├── PLATFORM-ADAPTATIONS.md       # Platform differences summary
+├── ERROR-HANDLING.md             # Validation, recovery patterns
 │
 └── Platform-specific/
     ├── pwa/DATA-ONBOARDING.md    # PWA entry experience

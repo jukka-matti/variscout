@@ -14,6 +14,8 @@ Technical specifications for VaRiScout implementation. These documents are desig
 | `TESTING_STRATEGY.md`                   | Testing philosophy, patterns, ownership by package (incl. Azure) |
 | `DATA_INPUT.md`                         | CSV/Excel parsing, validation, auto-mapping                      |
 | `INTERNATIONALIZATION_STRATEGY.md`      | i18next setup, language detection, translation workflow          |
+| `ADR.md`                                | Architecture Decision Records (key technical decisions)          |
+| `DEPLOYMENT.md`                         | CI/CD placeholder, build commands, deployment targets            |
 | `../concepts/SUBSCRIPTION_LICENSING.md` | Paddle integration, license key generation, validation           |
 
 ---

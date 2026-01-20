@@ -34,7 +34,7 @@ variscout-lite/
 │   ├── website/       # Marketing website (Astro + React Islands)
 │   └── excel-addin/   # Excel Add-in (Office.js + Fluent UI)
 └── docs/
-    ├── cases/         # Case studies with demo data (coffee, packaging, avocado)
+    ├── cases/         # Case studies with demo data (coffee, packaging, avocado, bottleneck, hospital-ward, machine-utilization)
     ├── concepts/      # Strategic product decisions
     ├── design-system/ # Design tokens, components, charts
     ├── technical/     # Implementation guides
@@ -145,9 +145,13 @@ variscout-lite/
 - `ARCHITECTURE.md` - Technical details
 - `docs/MONOREPO_ARCHITECTURE.md` - Package structure
 - `Specs.md` - Feature specifications
-- `docs/cases/` - **Case studies** (coffee, packaging, avocado - with demo data)
+- `docs/cases/` - **Case studies** (coffee, packaging, avocado, bottleneck, hospital-ward, machine-utilization)
 - `docs/design-system/` - **Design system** (colors, typography, components, charts)
+- `docs/design-system/ACCESSIBILITY.md` - **Accessibility** (WCAG AA, keyboard navigation, screen readers)
 - `docs/technical/` - **Technical specs** (storage, deployment, data input)
 - `docs/technical/DATA_INPUT.md` - **Data input system** (parsing, validation, auto-mapping)
+- `docs/technical/ADR.md` - **Architecture Decision Records** (key technical decisions)
+- `docs/technical/DEPLOYMENT.md` - **Deployment** (CI/CD, build commands, environments)
+- `docs/flows/ERROR-HANDLING.md` - **Error handling** (validation, recovery patterns)
 - `docs/concepts/` - **Strategic decisions** (Excel, LSS, Power BI, Licensing, Methodology)
 - `docs/products/` - **Product specs** (PWA, Website, Excel, Power BI, Azure)
