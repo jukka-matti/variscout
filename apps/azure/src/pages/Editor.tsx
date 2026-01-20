@@ -3,7 +3,18 @@ import { useStorage } from '../services/storage';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
 import Dashboard from '../components/Dashboard';
-import { Upload, ArrowLeft, Save, FileText, Cloud, CloudOff } from 'lucide-react';
+import ManualEntry from '../components/ManualEntry';
+import { validateData } from '../logic/parser';
+import { Upload, ArrowLeft, Save, FileText, Cloud, CloudOff, PenLine } from 'lucide-react';
+
+interface ManualEntryConfig {
+  outcome: string;
+  factors: string[];
+  specs?: { usl?: number; lsl?: number };
+  isPerformanceMode?: boolean;
+  measureColumns?: string[];
+  measureLabel?: string;
+}
 
 interface EditorProps {
   projectId: string | null;
@@ -19,8 +30,19 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     hasUnsavedChanges,
     outcome,
     setOutcome,
+    setRawData,
+    setFactors,
+    setSpecs,
+    setDataFilename,
+    setDataQualityReport,
+    setPerformanceMode,
+    setMeasureColumns,
+    setMeasureLabel,
     saveProject,
   } = useData();
+
+  // State for manual entry view
+  const [isManualEntry, setIsManualEntry] = useState(false);
 
   // State for drill navigation from Performance Mode to standard I-Chart
   const [drillFromPerformance, setDrillFromPerformance] = useState<string | null>(null);
@@ -38,6 +60,44 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   const handleBackToPerformance = useCallback(() => {
     setDrillFromPerformance(null);
   }, []);
+
+  // Handle manual data entry analyze
+  const handleManualDataAnalyze = useCallback(
+    (data: any[], config: ManualEntryConfig) => {
+      setRawData(data);
+      setDataFilename('Manual Entry');
+      setOutcome(config.outcome);
+      setFactors(config.factors);
+      if (config.specs) {
+        setSpecs(config.specs);
+      }
+
+      // Run validation
+      const report = validateData(data, config.outcome);
+      setDataQualityReport(report);
+
+      // Handle performance mode
+      if (config.isPerformanceMode && config.measureColumns && config.measureColumns.length >= 3) {
+        setMeasureColumns(config.measureColumns);
+        setMeasureLabel(config.measureLabel || 'Channel');
+        setPerformanceMode(true);
+      }
+
+      setIsManualEntry(false);
+    },
+    [
+      setRawData,
+      setDataFilename,
+      setOutcome,
+      setFactors,
+      setSpecs,
+      setDataQualityReport,
+      setMeasureColumns,
+      setMeasureLabel,
+      setPerformanceMode,
+    ]
+  );
+
   const { handleFileUpload } = useDataIngestion();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -63,6 +123,13 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
       : syncStatus.status === 'syncing'
         ? 'text-blue-400'
         : 'text-slate-500';
+
+  // If in manual entry mode, show ManualEntry full screen
+  if (isManualEntry) {
+    return (
+      <ManualEntry onAnalyze={handleManualDataAnalyze} onCancel={() => setIsManualEntry(false)} />
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)]">
@@ -125,13 +192,23 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 className="hidden"
               />
 
-              <button
-                onClick={triggerFileUpload}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-              >
-                <Upload size={20} />
-                Upload Data File
-              </button>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={triggerFileUpload}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  <Upload size={20} />
+                  Upload Data File
+                </button>
+
+                <button
+                  onClick={() => setIsManualEntry(true)}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+                >
+                  <PenLine size={20} />
+                  Enter Data Manually
+                </button>
+              </div>
 
               <p className="text-xs text-slate-500 mt-4">Supports CSV, XLSX, and XLS files</p>
             </div>

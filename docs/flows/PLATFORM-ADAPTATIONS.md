@@ -4,17 +4,17 @@
 
 ## Quick Comparison
 
-| Aspect               | PWA                        | Azure                | Excel               |
-| -------------------- | -------------------------- | -------------------- | ------------------- |
-| **Target User**      | Individual analyst         | Team/enterprise      | Excel power user    |
-| **Data Source**      | File upload                | File upload + cloud  | Worksheet table     |
-| **Persistence**      | IndexedDB                  | OneDrive/SharePoint  | Document Properties |
-| **Authentication**   | License key                | Azure AD (SSO)       | License key         |
-| **Offline**          | Full PWA                   | Offline-first + sync | Native Excel        |
-| **Mobile**           | Responsive                 | Desktop-optimized    | N/A                 |
-| **Theme**            | Light/Dark/System          | Dark only            | Dark only           |
-| **Performance Mode** | Auto-detect + Manual entry | Auto-detect only     | Manual setup        |
-| **Pricing**          | €49/year                   | €999/year/tenant     | €49/year            |
+| Aspect               | PWA                        | Azure                      | Excel               |
+| -------------------- | -------------------------- | -------------------------- | ------------------- |
+| **Target User**      | Individual analyst         | Team/enterprise            | Excel power user    |
+| **Data Source**      | File upload                | File upload + cloud        | Worksheet table     |
+| **Persistence**      | IndexedDB                  | OneDrive/SharePoint        | Document Properties |
+| **Authentication**   | License key                | Azure AD (SSO)             | License key         |
+| **Offline**          | Full PWA                   | Offline-first + sync       | Native Excel        |
+| **Mobile**           | Responsive                 | Desktop-optimized          | N/A                 |
+| **Theme**            | Light/Dark/System          | Dark only                  | Dark only           |
+| **Performance Mode** | Auto-detect + Manual entry | Auto-detect + Manual entry | Manual setup        |
+| **Pricing**          | €49/year                   | €999/year/tenant           | €49/year            |
 
 ---
 
@@ -75,6 +75,10 @@ Open app → Project Browser (Dashboard page)
          ├── Personal tab (OneDrive)
          └── New Project button
 
+New Project → Editor page (empty state)
+           ├── Upload CSV/Excel file
+           └── Enter data manually (Standard or Performance Mode)
+
 Select project → Editor page
               ├── Analysis tab
               ├── Regression tab
@@ -92,7 +96,7 @@ Select project → Editor page
 
 | Feature                | PWA            | Azure      |
 | ---------------------- | -------------- | ---------- |
-| Manual data entry      | Yes            | No         |
+| Manual data entry      | Yes            | Yes        |
 | Sample data loading    | Yes            | No         |
 | Separate Pareto upload | Yes            | No         |
 | Validation banner      | Yes            | Simplified |
@@ -147,7 +151,7 @@ Content Add-in embeds in worksheet
 | Feature                 | PWA/Azure    | Excel               |
 | ----------------------- | ------------ | ------------------- |
 | Data input              | File upload  | Table selection     |
-| Manual data entry       | PWA only     | No                  |
+| Manual data entry       | Yes          | No                  |
 | Filtering UI            | Click charts | Native slicers      |
 | Chart container         | Web div      | Content Add-in      |
 | Responsive sizing       | Yes          | Fixed dimensions    |
