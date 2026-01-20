@@ -230,6 +230,14 @@ Click project card in browser
 | **GageRR**      | Gage R&R study panel       |
 | **Performance** | Multi-measure dashboard    |
 
+### Toolbar Actions
+
+| Button         | Action                                                                         |
+| -------------- | ------------------------------------------------------------------------------ |
+| **Add Data**   | Open Manual Entry in append mode to add more rows to existing data             |
+| **Data Panel** | Toggle data table panel (see [Data Panel](../../products/azure/DATA-PANEL.md)) |
+| **Save**       | Save project to OneDrive/SharePoint                                            |
+
 ### Differences from PWA
 
 | Feature        | PWA                            | Azure              |

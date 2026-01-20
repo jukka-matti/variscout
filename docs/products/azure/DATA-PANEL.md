@@ -69,6 +69,14 @@ Rows excluded from analysis (missing/invalid data) show:
 - Warning triangle (⚠) next to row number
 - Tooltip with exclusion reasons on hover
 
+### Appended Data
+
+When new data is added via Manual Entry append mode:
+
+- New rows appear at the end of the table
+- Row numbering continues from existing data
+- All highlighting and spec color-coding applies to appended rows
+
 ---
 
 ## Bi-directional Highlighting
