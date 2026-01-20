@@ -1,6 +1,6 @@
 # VariScout Design System
 
-A unified design system for VariScout Lite covering both PWA and Excel Add-in platforms.
+A unified design system for VariScout covering both PWA and Excel Add-in platforms.
 
 ## Principles
 

@@ -1,4 +1,4 @@
-# VariScout Lite
+# VariScout
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](CHANGELOG.md)
@@ -79,11 +79,11 @@ https://app.variscout.com?sample=mango-export&embed=true
 
 ### Editions
 
-| Edition       | Price    | Features                                           |
-| ------------- | -------- | -------------------------------------------------- |
-| **Community** | Free     | Full features, "VariScout Lite" branding on charts |
-| **ITC**       | Free     | Full features, ITC branding (for ITC network)      |
-| **Licensed**  | €49/year | Full features, no branding                         |
+| Edition       | Price    | Features                                      |
+| ------------- | -------- | --------------------------------------------- |
+| **Community** | Free     | Full features, "VariScout" branding on charts |
+| **ITC**       | Free     | Full features, ITC branding (for ITC network) |
+| **Licensed**  | €49/year | Full features, no branding                    |
 
 Activate Licensed edition by entering a license key in Settings → License.
 

@@ -35,8 +35,8 @@ VariScout has four editions determined by build-time configuration and runtime l
 
 | Edition               | Price    | Platform | Branding                     | How Activated                     |
 | --------------------- | -------- | -------- | ---------------------------- | --------------------------------- |
-| **Community**         | Free     | PWA      | "VariScout Lite" footer      | Default                           |
-| **Community (Excel)** | Free     | Excel    | "VariScout Lite" footer      | Default                           |
+| **Community**         | Free     | PWA      | "VariScout" footer           | Default                           |
+| **Community (Excel)** | Free     | Excel    | "VariScout" footer           | Default                           |
 | **ITC**               | Free     | PWA      | "International Trade Centre" | Build-time: `VITE_EDITION=itc`    |
 | **Licensed (PWA)**    | €99/year | PWA      | No branding                  | Valid license key (via Paddle)    |
 | **Licensed (Excel)**  | €99/year | Excel    | No branding                  | Valid license key (via AppSource) |

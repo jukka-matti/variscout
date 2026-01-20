@@ -106,12 +106,12 @@ The PWA header uses an icon-based toolbar for a cleaner, more focused interface.
 #### Desktop Layout (≥640px)
 
 ```
-[Logo ▾] Project Name ●              [📊] [⛶] [↗] [⚙]
+[Logo] Project Name ●              [📊] [⛶] [↗] [⚙]
 ```
 
 | Element  | Action         | Behavior                                         |
 | -------- | -------------- | ------------------------------------------------ |
-| **Logo** | Project picker | Click → Opens SavedProjectsModal (Open, New)     |
+| **Logo** | New Analysis   | Click → Reset confirmation → Home Screen         |
 | **●**    | Save indicator | Blue when saved, pulses when unsaved changes     |
 | **📊**   | Data Table     | Toggle right panel on/off                        |
 | **⛶**    | Fullscreen     | Enter presentation mode (Escape to exit)         |
@@ -121,7 +121,7 @@ The PWA header uses an icon-based toolbar for a cleaner, more focused interface.
 #### Mobile Layout (<640px)
 
 ```
-[Logo ▾] Project ●    [📊] [⛶] [⚙]
+[Logo] Project ●    [📊] [⛶] [⚙]
 ```
 
 Mobile shares most icons with desktop. The Share icon is accessible via Settings.

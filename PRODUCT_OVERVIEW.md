@@ -1,4 +1,4 @@
-# VariScout Lite: Product Overview
+# VariScout: Product Overview
 
 ## Philosophy
 

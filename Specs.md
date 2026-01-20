@@ -1,4 +1,4 @@
-# VaRiScout Lite — Product Spec
+# VariScout — Product Spec
 
 **Version:** 1.0  
 **Date:** December 2024  

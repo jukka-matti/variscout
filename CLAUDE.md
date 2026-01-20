@@ -1,4 +1,4 @@
-# VariScout Lite
+# VariScout
 
 Lightweight, offline-first variation analysis tool for quality professionals.
 
@@ -62,7 +62,7 @@ variscout-lite/
 
 | Edition   | Branding              | Theming                     | Build Command              |
 | --------- | --------------------- | --------------------------- | -------------------------- |
-| Community | "VariScout Lite"      | Dark only                   | `pnpm build:pwa:community` |
+| Community | "VariScout"           | Dark only                   | `pnpm build:pwa:community` |
 | ITC       | "ITC" branding        | Dark only                   | `pnpm build:pwa:itc`       |
 | Licensed  | No branding (€49 key) | Light/Dark/System + Accents | `pnpm build:pwa:licensed`  |
 
