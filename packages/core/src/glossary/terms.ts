@@ -232,6 +232,52 @@ export const glossaryTerms: GlossaryTerm[] = [
     relatedTerms: ['grr', 'repeatability'],
   },
 
+  // Multiple Regression Statistics
+  {
+    id: 'adjustedRSquared',
+    label: 'Adjusted R²',
+    definition:
+      'A modified R² that adjusts for the number of predictors. Only increases if a new predictor improves the model more than expected by chance.',
+    description:
+      'Unlike regular R², adjusted R² penalizes adding predictors that do not meaningfully improve the model. Use it to compare models with different numbers of predictors. Formula: 1 - [(1 - R²)(n - 1) / (n - p - 1)].',
+    category: 'statistics',
+    learnMorePath: '/tools/regression',
+    relatedTerms: ['rSquared', 'multipleRegression'],
+  },
+  {
+    id: 'vif',
+    label: 'VIF',
+    definition:
+      'Variance Inflation Factor. Measures how much a coefficient variance is inflated due to correlation with other predictors.',
+    description:
+      'VIF = 1 means no correlation with other predictors. VIF 1-5 is acceptable. VIF 5-10 indicates moderate multicollinearity. VIF > 10 suggests serious multicollinearity requiring action. High VIF makes coefficient estimates unreliable.',
+    category: 'statistics',
+    learnMorePath: '/tools/regression',
+    relatedTerms: ['multipleRegression', 'adjustedRSquared'],
+  },
+  {
+    id: 'interactionEffect',
+    label: 'Interaction',
+    definition:
+      'When the effect of one predictor depends on the value of another predictor. The combined effect differs from the sum of individual effects.',
+    description:
+      'A significant interaction means you cannot interpret main effects in isolation. Example: Temperature effect might be 2.0 units/degree for Machine A but 3.5 for Machine B, indicating a Temp × Machine interaction.',
+    category: 'statistics',
+    learnMorePath: '/tools/regression',
+    relatedTerms: ['multipleRegression', 'slope'],
+  },
+  {
+    id: 'multipleRegression',
+    label: 'Multiple Regression',
+    definition:
+      'Models the relationship between a response and two or more predictors. Predictors can be continuous (numeric) or categorical (groups).',
+    description:
+      'Each coefficient shows the effect of that predictor while holding others constant. Use adjusted R² to assess overall fit and VIF to check for multicollinearity. Example: Yield = 45 + 2.3×Temp + 5×Machine_B means each degree raises Yield by 2.3 units, and Machine B produces 5 units more than the reference.',
+    category: 'statistics',
+    learnMorePath: '/tools/regression',
+    relatedTerms: ['adjustedRSquared', 'vif', 'interactionEffect', 'rSquared'],
+  },
+
   // Methodology
   {
     id: 'stagedAnalysis',

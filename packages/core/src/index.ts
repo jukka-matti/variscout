@@ -33,6 +33,12 @@ export type {
   PerformanceSummary,
   ChannelPerformanceData,
   WideFormatDetection,
+  // Multiple Regression Types
+  MultiRegressionOptions,
+  MultiRegressionResult,
+  CoefficientResult,
+  RegressionTerm,
+  VIFWarning,
 } from './types';
 
 // Statistics
@@ -46,6 +52,8 @@ export {
   calculateAnova,
   calculateRegression,
   calculateGageRR,
+  // Multiple regression (GLM)
+  calculateMultipleRegression,
   // Staged stats functions
   determineStageOrder,
   sortDataByStage,
@@ -54,6 +62,10 @@ export {
   // Nelson rules
   getNelsonRule2ViolationPoints,
 } from './stats';
+
+// Matrix utilities (for advanced use)
+export type { Matrix } from './matrix';
+export { transpose, multiply, inverse, solve } from './matrix';
 
 // License
 export {

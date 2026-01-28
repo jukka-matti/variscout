@@ -480,3 +480,127 @@ export interface WideFormatDetection {
   /** Reason for classification */
   reason: string;
 }
+
+// ============================================================================
+// Multiple Regression Types - General Linear Model (GLM) support
+// ============================================================================
+
+/**
+ * Options for multiple regression analysis
+ */
+export interface MultiRegressionOptions {
+  /** Include two-way interaction terms between predictors (default: false) */
+  includeInteractions?: boolean;
+  /** Column names to treat as categorical (dummy-encoded) */
+  categoricalColumns?: string[];
+  /** Use forward selection to auto-select significant predictors (default: false) */
+  autoSelect?: boolean;
+  /** P-value threshold for auto-selection (default: 0.05) */
+  pValueThreshold?: number;
+}
+
+/**
+ * Represents a term in the regression model
+ * Can be a single predictor or an interaction
+ */
+export interface RegressionTerm {
+  /** Original column name(s) */
+  columns: string[];
+  /** Display name for the term (e.g., "Temp", "Machine_B", "Temp × Press") */
+  label: string;
+  /** Term type */
+  type: 'continuous' | 'categorical' | 'interaction';
+  /** For categorical: the level this dummy represents */
+  level?: string;
+  /** For categorical: the reference level */
+  referenceLevel?: string;
+}
+
+/**
+ * Result for a single coefficient in the model
+ */
+export interface CoefficientResult {
+  /** Term label (e.g., "Temperature", "Machine_B", "Temp × Press") */
+  term: string;
+  /** Regression coefficient (β) */
+  coefficient: number;
+  /** Standard error of the coefficient */
+  stdError: number;
+  /** t-statistic for testing H₀: β = 0 */
+  tStatistic: number;
+  /** Two-tailed p-value */
+  pValue: number;
+  /** Whether coefficient is statistically significant (p < 0.05) */
+  isSignificant: boolean;
+  /** Standardized coefficient (beta weight) for importance ranking */
+  standardized: number;
+  /** Variance Inflation Factor for this predictor */
+  vif?: number;
+  /** Term metadata */
+  termInfo: RegressionTerm;
+}
+
+/**
+ * VIF (Variance Inflation Factor) warning for multicollinearity
+ */
+export interface VIFWarning {
+  /** Term with high VIF */
+  term: string;
+  /** VIF value */
+  vif: number;
+  /** Severity level based on VIF value */
+  severity: 'moderate' | 'high' | 'severe';
+  /** Suggested action */
+  suggestion: string;
+}
+
+/**
+ * Result of multiple regression analysis
+ */
+export interface MultiRegressionResult {
+  /** Response (Y) column name */
+  yColumn: string;
+  /** Predictor column names (original columns, not dummy-encoded) */
+  xColumns: string[];
+  /** All terms in the model (includes dummies and interactions) */
+  terms: RegressionTerm[];
+  /** Sample size (rows used in analysis) */
+  n: number;
+  /** Number of predictors (degrees of freedom for regression) */
+  p: number;
+
+  // Fit statistics
+  /** Coefficient of determination (0-1) */
+  rSquared: number;
+  /** Adjusted R² accounting for number of predictors */
+  adjustedRSquared: number;
+  /** F-statistic for overall model significance */
+  fStatistic: number;
+  /** P-value for F-test */
+  pValue: number;
+  /** Whether model is statistically significant (p < 0.05) */
+  isSignificant: boolean;
+  /** Root Mean Square Error */
+  rmse: number;
+
+  // Coefficients
+  /** Intercept (β₀) */
+  intercept: number;
+  /** Coefficient results for each term */
+  coefficients: CoefficientResult[];
+
+  // Diagnostics
+  /** VIF warnings for multicollinearity */
+  vifWarnings: VIFWarning[];
+  /** Whether any severe multicollinearity was detected */
+  hasCollinearity: boolean;
+
+  // Insights
+  /** Plain-language interpretation of results */
+  insight: string;
+  /** Top predictors ranked by absolute standardized coefficient */
+  topPredictors: string[];
+
+  /** Star rating 1-5 based on adjusted R² strength */
+  strengthRating: 1 | 2 | 3 | 4 | 5;
+}
