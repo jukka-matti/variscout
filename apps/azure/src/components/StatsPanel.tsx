@@ -1,17 +1,58 @@
 import React, { useState, useMemo } from 'react';
-import {
-  AlertCircle,
-  CheckCircle2,
-  TrendingUp,
-  BarChart3,
-  Settings2,
-  Plus,
-  HelpCircle,
-} from 'lucide-react';
-import type { StatsResult } from '@variscout/core';
-import { useData } from '../context/DataContext';
+import { Plus } from 'lucide-react';
+import type { StatsResult, GlossaryTerm } from '@variscout/core';
+import { HelpTooltip, useGlossary } from '@variscout/ui';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
+
+// Status helper functions
+const getCpStatus = (value: number): 'good' | 'warning' | 'poor' => {
+  if (value >= 1.33) return 'good';
+  if (value >= 1.0) return 'warning';
+  return 'poor';
+};
+
+const getPassRateStatus = (value: number): 'good' | 'warning' | 'poor' => {
+  if (value >= 99) return 'good';
+  if (value >= 95) return 'warning';
+  return 'poor';
+};
+
+const getStatusColor = (status?: 'good' | 'warning' | 'poor'): string => {
+  if (!status) return 'text-white';
+  return status === 'good'
+    ? 'text-green-500'
+    : status === 'warning'
+      ? 'text-amber-500'
+      : 'text-red-400';
+};
+
+// MetricCard component for the summary grid
+interface MetricCardProps {
+  label: string;
+  value: string | number;
+  helpTerm?: GlossaryTerm;
+  status?: 'good' | 'warning' | 'poor';
+  unit?: string;
+}
+
+const MetricCard = ({ label, value, helpTerm, status, unit }: MetricCardProps) => (
+  <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-3 text-center">
+    <div className="flex items-center justify-center gap-1 text-xs text-slate-400 mb-1">
+      {label}
+      {helpTerm && <HelpTooltip term={helpTerm} iconSize={12} />}
+    </div>
+    <div className={`text-xl font-bold font-mono ${getStatusColor(status)}`}>
+      {value}
+      {unit}
+    </div>
+    {status && (
+      <div className={`text-xs mt-1 ${getStatusColor(status)}`}>
+        {status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Marginal' : '✗ Poor'}
+      </div>
+    )}
+  </div>
+);
 
 interface StatsPanelProps {
   stats: StatsResult | null;
@@ -21,7 +62,7 @@ interface StatsPanelProps {
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = [], outcome }) => {
-  const { displayOptions, setDisplayOptions, grades } = useData();
+  const { getTerm } = useGlossary();
   const [activeTab, setActiveTab] = useState<'summary' | 'histogram' | 'normality'>('summary');
 
   // Extract numeric values for histogram
@@ -71,7 +112,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = []
       {activeTab === 'summary' ? (
         /* Summary Tab Content */
         <>
-          <div className="space-y-4 flex-1">
+          <div className="flex-1">
             {/* Grade Summary Mode (Coffee/Textiles) */}
             {stats?.gradeCounts && stats.gradeCounts.length > 0 ? (
               <div className="space-y-2">
@@ -106,96 +147,39 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = []
                 ))}
               </div>
             ) : (
-              /* Standard Cp/Cpk Mode */
-              <>
-                <div className="flex items-center justify-between p-2 rounded hover:bg-slate-700/30 transition-colors">
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <CheckCircle2 size={18} className="text-green-500" />
-                    <span>Pass Rate</span>
-                    <span className="tooltip-wrapper">
-                      <HelpCircle
-                        size={14}
-                        className="text-slate-500 hover:text-slate-300 cursor-help"
-                      />
-                      <span className="tooltip">
-                        Percentage of measurements within specification limits (between LSL and
-                        USL).
-                      </span>
-                    </span>
-                  </div>
-                  <span className="text-xl font-bold text-white">
-                    {(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}%
-                  </span>
-                </div>
-
-                {displayOptions.showCp && stats?.cp !== undefined && (
-                  <div className="flex items-center justify-between p-2 rounded hover:bg-slate-700/30 transition-colors">
-                    <div className="flex items-center gap-2 text-slate-300">
-                      <BarChart3 size={18} className="text-purple-400" />
-                      <span>Cp</span>
-                      <span className="tooltip-wrapper">
-                        <HelpCircle
-                          size={14}
-                          className="text-slate-500 hover:text-slate-300 cursor-help"
-                        />
-                        <span className="tooltip">
-                          Process Capability. Measures how well your process fits within spec
-                          limits. ≥1.33 is good.
-                        </span>
-                      </span>
-                    </div>
-                    <span
-                      className={`text-xl font-bold ${stats.cp < 1.33 ? 'text-yellow-500' : 'text-green-500'}`}
-                    >
-                      {stats.cp.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-
-                {displayOptions.showCpk && (
-                  <div className="flex items-center justify-between p-2 rounded hover:bg-slate-700/30 transition-colors">
-                    <div className="flex items-center gap-2 text-slate-300">
-                      <TrendingUp size={18} className="text-blue-400" />
-                      <span>Cpk</span>
-                      <span className="tooltip-wrapper">
-                        <HelpCircle
-                          size={14}
-                          className="text-slate-500 hover:text-slate-300 cursor-help"
-                        />
-                        <span className="tooltip">
-                          Process Capability Index. Like Cp, but accounts for centering. ≥1.33 is
-                          good.
-                        </span>
-                      </span>
-                    </div>
-                    <span
-                      className={`text-xl font-bold ${stats?.cpk && stats.cpk < 1.33 ? 'text-yellow-500' : 'text-green-500'}`}
-                    >
-                      {stats?.cpk?.toFixed(2) || 'N/A'}
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between border-t border-slate-700 pt-4 p-2">
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <AlertCircle size={18} className="text-red-400" />
-                    <span>Rejected</span>
-                    <span className="tooltip-wrapper">
-                      <HelpCircle
-                        size={14}
-                        className="text-slate-500 hover:text-slate-300 cursor-help"
-                      />
-                      <span className="tooltip">
-                        Percentage of measurements outside specification limits (above USL or below
-                        LSL).
-                      </span>
-                    </span>
-                  </div>
-                  <span className="text-xl font-bold text-red-400">
-                    {stats?.outOfSpecPercentage.toFixed(1)}%
-                  </span>
-                </div>
-              </>
+              /* Process Health Card Grid */
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <MetricCard
+                  label="Pass Rate"
+                  value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
+                  unit="%"
+                  helpTerm={getTerm('passRate')}
+                  status={getPassRateStatus(100 - (stats?.outOfSpecPercentage || 0))}
+                />
+                <MetricCard
+                  label="Cp"
+                  value={stats?.cp?.toFixed(2) ?? 'N/A'}
+                  helpTerm={getTerm('cp')}
+                  status={stats?.cp ? getCpStatus(stats.cp) : undefined}
+                />
+                <MetricCard
+                  label="Cpk"
+                  value={stats?.cpk?.toFixed(2) ?? 'N/A'}
+                  helpTerm={getTerm('cpk')}
+                  status={stats?.cpk ? getCpStatus(stats.cpk) : undefined}
+                />
+                <MetricCard
+                  label="Mean"
+                  value={stats?.mean?.toFixed(2) ?? 'N/A'}
+                  helpTerm={getTerm('mean')}
+                />
+                <MetricCard
+                  label="Std Dev"
+                  value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
+                  helpTerm={getTerm('stdDev')}
+                />
+                <MetricCard label="Samples" value={`n=${filteredData?.length ?? 0}`} />
+              </div>
             )}
           </div>
 

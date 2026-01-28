@@ -1,9 +1,57 @@
 import React, { useState, useMemo } from 'react';
-import { CheckCircle2, TrendingUp, AlertCircle, BarChart3 } from 'lucide-react';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
-import { useData } from '../context/DataContext';
-import type { StatsResult } from '@variscout/core';
+import { HelpTooltip, useGlossary } from '@variscout/ui';
+import type { StatsResult, GlossaryTerm } from '@variscout/core';
+
+// Status helper functions
+const getCpStatus = (value: number): 'good' | 'warning' | 'poor' => {
+  if (value >= 1.33) return 'good';
+  if (value >= 1.0) return 'warning';
+  return 'poor';
+};
+
+const getPassRateStatus = (value: number): 'good' | 'warning' | 'poor' => {
+  if (value >= 99) return 'good';
+  if (value >= 95) return 'warning';
+  return 'poor';
+};
+
+const getStatusColor = (status?: 'good' | 'warning' | 'poor'): string => {
+  if (!status) return 'text-white';
+  return status === 'good'
+    ? 'text-green-500'
+    : status === 'warning'
+      ? 'text-amber-500'
+      : 'text-red-400';
+};
+
+// MetricCard component for the summary grid
+interface MetricCardProps {
+  label: string;
+  value: string | number;
+  helpTerm?: GlossaryTerm;
+  status?: 'good' | 'warning' | 'poor';
+  unit?: string;
+}
+
+const MetricCard = ({ label, value, helpTerm, status, unit }: MetricCardProps) => (
+  <div className="bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center">
+    <div className="flex items-center justify-center gap-1 text-xs text-content-secondary mb-1">
+      {label}
+      {helpTerm && <HelpTooltip term={helpTerm} iconSize={12} />}
+    </div>
+    <div className={`text-xl font-bold font-mono ${getStatusColor(status)}`}>
+      {value}
+      {unit}
+    </div>
+    {status && (
+      <div className={`text-xs mt-1 ${getStatusColor(status)}`}>
+        {status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Marginal' : '✗ Poor'}
+      </div>
+    )}
+  </div>
+);
 
 interface MobileStatsPanelProps {
   stats: StatsResult | null;
@@ -18,7 +66,7 @@ const MobileStatsPanel: React.FC<MobileStatsPanelProps> = ({
   filteredData = [],
   outcome,
 }) => {
-  const { displayOptions } = useData();
+  const { getTerm } = useGlossary();
   const [activeTab, setActiveTab] = useState<'summary' | 'histogram' | 'normality'>('summary');
 
   // Extract numeric values for histogram
@@ -76,80 +124,67 @@ const MobileStatsPanel: React.FC<MobileStatsPanelProps> = ({
                 ))}
               </div>
             ) : (
-              /* Standard Cp/Cpk Mode */
+              /* Process Health Card Grid */
               <>
-                <StatCard
-                  icon={<CheckCircle2 className="text-green-500" size={20} />}
-                  label="Pass Rate"
-                  value={`${(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}%`}
-                  highlight
-                />
-
-                {displayOptions.showCpk && stats?.cpk !== undefined && (
-                  <StatCard
-                    icon={<TrendingUp className="text-blue-400" size={20} />}
-                    label="Cpk"
-                    value={stats.cpk.toFixed(2)}
-                    status={stats.cpk >= 1.33 ? 'good' : 'warning'}
+                <div className="grid grid-cols-2 gap-2">
+                  <MetricCard
+                    label="Pass Rate"
+                    value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
+                    unit="%"
+                    helpTerm={getTerm('passRate')}
+                    status={getPassRateStatus(100 - (stats?.outOfSpecPercentage || 0))}
                   />
-                )}
-
-                {displayOptions.showCp && stats?.cp !== undefined && (
-                  <StatCard
-                    icon={<BarChart3 className="text-purple-400" size={20} />}
+                  <MetricCard
                     label="Cp"
-                    value={stats.cp.toFixed(2)}
-                    status={stats.cp >= 1.33 ? 'good' : 'warning'}
+                    value={stats?.cp?.toFixed(2) ?? 'N/A'}
+                    helpTerm={getTerm('cp')}
+                    status={stats?.cp ? getCpStatus(stats.cp) : undefined}
                   />
-                )}
-
-                <StatCard
-                  icon={<AlertCircle className="text-red-400" size={20} />}
-                  label="Rejected"
-                  value={`${stats?.outOfSpecPercentage?.toFixed(1) || 0}%`}
-                />
+                  <MetricCard
+                    label="Cpk"
+                    value={stats?.cpk?.toFixed(2) ?? 'N/A'}
+                    helpTerm={getTerm('cpk')}
+                    status={stats?.cpk ? getCpStatus(stats.cpk) : undefined}
+                  />
+                  <MetricCard
+                    label="Mean"
+                    value={stats?.mean?.toFixed(2) ?? 'N/A'}
+                    helpTerm={getTerm('mean')}
+                  />
+                  <MetricCard
+                    label="Std Dev"
+                    value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
+                    helpTerm={getTerm('stdDev')}
+                  />
+                  <MetricCard label="Samples" value={`n=${filteredData?.length ?? 0}`} />
+                </div>
 
                 {/* Specs Display */}
                 <div className="mt-4 p-4 bg-surface/50 rounded-xl border border-edge/50">
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="text-content-muted text-xs mb-1">LSL</div>
+                      <div className="text-content-muted text-xs mb-1 flex items-center justify-center gap-1">
+                        LSL
+                        <HelpTooltip term={getTerm('lsl')} iconSize={12} />
+                      </div>
                       <div className="font-mono text-white text-lg">{specs.lsl ?? '-'}</div>
                     </div>
                     <div>
-                      <div className="text-content-muted text-xs mb-1">Target</div>
+                      <div className="text-content-muted text-xs mb-1 flex items-center justify-center gap-1">
+                        Target
+                        <HelpTooltip term={getTerm('target')} iconSize={12} />
+                      </div>
                       <div className="font-mono text-white text-lg">{specs.target ?? '-'}</div>
                     </div>
                     <div>
-                      <div className="text-content-muted text-xs mb-1">USL</div>
+                      <div className="text-content-muted text-xs mb-1 flex items-center justify-center gap-1">
+                        USL
+                        <HelpTooltip term={getTerm('usl')} iconSize={12} />
+                      </div>
                       <div className="font-mono text-white text-lg">{specs.usl ?? '-'}</div>
                     </div>
                   </div>
                 </div>
-
-                {/* Additional Stats */}
-                {stats && (
-                  <div className="mt-4 p-4 bg-surface/50 rounded-xl border border-edge/50">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-content-muted text-xs mb-1">Mean</div>
-                        <div className="font-mono text-white">{stats.mean.toFixed(2)}</div>
-                      </div>
-                      <div>
-                        <div className="text-content-muted text-xs mb-1">Std Dev</div>
-                        <div className="font-mono text-white">{stats.stdDev.toFixed(2)}</div>
-                      </div>
-                      <div>
-                        <div className="text-content-muted text-xs mb-1">UCL</div>
-                        <div className="font-mono text-white">{stats.ucl.toFixed(2)}</div>
-                      </div>
-                      <div>
-                        <div className="text-content-muted text-xs mb-1">LCL</div>
-                        <div className="font-mono text-white">{stats.lcl.toFixed(2)}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </>
             )}
           </div>
@@ -178,34 +213,6 @@ const MobileStatsPanel: React.FC<MobileStatsPanelProps> = ({
     </div>
   );
 };
-
-// Helper components
-interface StatCardProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  status?: 'good' | 'warning';
-  highlight?: boolean;
-}
-
-const StatCard: React.FC<StatCardProps> = ({ icon, label, value, status, highlight }) => (
-  <div
-    className={`flex items-center justify-between p-4 rounded-xl border
-            ${highlight ? 'bg-surface-secondary border-edge-secondary' : 'bg-surface-secondary/50 border-edge/50'}`}
-    style={{ minHeight: 56 }}
-  >
-    <div className="flex items-center gap-3">
-      {icon}
-      <span className="text-content">{label}</span>
-    </div>
-    <span
-      className={`text-xl font-bold
-            ${status === 'good' ? 'text-green-500' : status === 'warning' ? 'text-yellow-500' : 'text-white'}`}
-    >
-      {value}
-    </span>
-  </div>
-);
 
 const EmptyState: React.FC<{ message: string }> = ({ message }) => (
   <div className="flex items-center justify-center h-full text-content-muted italic">{message}</div>

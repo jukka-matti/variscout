@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import StatsPanel from '../StatsPanel';
-import * as DataContextModule from '../../context/DataContext';
 
 // Mock the CapabilityHistogram component
 vi.mock('../charts/CapabilityHistogram', () => ({
@@ -31,10 +30,6 @@ describe('StatsPanel', () => {
   });
 
   it('shows Summary tab by default', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: true },
-    } as any);
-
     render(
       <StatsPanel
         stats={mockStats}
@@ -48,16 +43,12 @@ describe('StatsPanel', () => {
     const summaryTab = screen.getByText('Summary');
     expect(summaryTab).toHaveClass('bg-slate-700');
 
-    // Should show pass rate
-    expect(screen.getByText('Pass Rate')).toBeInTheDocument();
+    // Should show pass rate (use getAllByText since HelpTooltip may also contain the term)
+    expect(screen.getAllByText('Pass Rate').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('94.5%')).toBeInTheDocument(); // 100 - 5.5
   });
 
   it('switches to Histogram tab on click', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: true },
-    } as any);
-
     render(
       <StatsPanel
         stats={mockStats}
@@ -78,11 +69,7 @@ describe('StatsPanel', () => {
     expect(screen.getByTestId('capability-histogram')).toBeInTheDocument();
   });
 
-  it('displays Cp when showCp is true', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: false },
-    } as any);
-
+  it('displays Cp in the card grid', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -92,15 +79,12 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Cp')).toBeInTheDocument();
+    // Cp label appears multiple times due to HelpTooltip
+    expect(screen.getAllByText('Cp').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('1.50')).toBeInTheDocument();
   });
 
-  it('hides Cp when showCp is false', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: false, showCpk: true },
-    } as any);
-
+  it('always shows Cp in the card grid', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -110,14 +94,12 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.queryByText('Cp')).not.toBeInTheDocument();
+    // Cp is always shown in the new card grid
+    expect(screen.getAllByText('Cp').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('1.50')).toBeInTheDocument();
   });
 
-  it('displays Cpk when showCpk is true', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: false, showCpk: true },
-    } as any);
-
+  it('displays Cpk in the card grid', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -127,15 +109,13 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Cpk')).toBeInTheDocument();
-    expect(screen.getByText('1.20')).toBeInTheDocument();
+    // Cpk label appears multiple times due to HelpTooltip
+    expect(screen.getAllByText('Cpk').length).toBeGreaterThanOrEqual(1);
+    // Cpk value (1.20) may appear multiple times if Std Dev is same, use getAllByText
+    expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('hides Cpk when showCpk is false', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: false },
-    } as any);
-
+  it('shows Mean and Std Dev in the card grid', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -145,14 +125,15 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.queryByText('Cpk')).not.toBeInTheDocument();
+    // Mean and Std Dev are always shown in the new card grid
+    expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('10.50')).toBeInTheDocument();
+    expect(screen.getAllByText('Std Dev').length).toBeGreaterThanOrEqual(1);
+    // Std Dev value (1.20) may appear multiple times if Cpk is same, use getAllByText
+    expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows conformance stats (rejected percentage)', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: false, showCpk: false },
-    } as any);
-
+  it('shows Samples count in the card grid', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -162,15 +143,11 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.getByText('Rejected')).toBeInTheDocument();
-    expect(screen.getByText('5.5%')).toBeInTheDocument();
+    expect(screen.getByText('Samples')).toBeInTheDocument();
+    expect(screen.getByText('n=3')).toBeInTheDocument(); // 3 items in mockFilteredData
   });
 
   it('shows spec limits in footer', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: true },
-    } as any);
-
     render(
       <StatsPanel
         stats={mockStats}
@@ -187,10 +164,6 @@ describe('StatsPanel', () => {
   });
 
   it('shows "No Specs Configured" prompt when no specs provided', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: true },
-    } as any);
-
     render(
       <StatsPanel stats={mockStats} specs={{}} filteredData={mockFilteredData} outcome="value" />
     );
@@ -207,10 +180,6 @@ describe('StatsPanel', () => {
         { label: 'Grade C', count: 20, percentage: 20, color: '#ef4444' },
       ],
     };
-
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: true },
-    } as any);
 
     render(
       <StatsPanel

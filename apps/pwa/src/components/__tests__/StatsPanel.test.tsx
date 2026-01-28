@@ -97,7 +97,7 @@ describe('StatsPanel', () => {
     expect(screen.getByText('1.50')).toBeInTheDocument();
   });
 
-  it('hides Cp when showCp is false', () => {
+  it('always shows Cp in the card grid (regardless of displayOptions)', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       displayOptions: { showCp: false, showCpk: true },
     } as any);
@@ -111,10 +111,12 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.queryByText('Cp')).not.toBeInTheDocument();
+    // Cp is always shown in the new card grid
+    expect(screen.getAllByText('Cp').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('1.50')).toBeInTheDocument();
   });
 
-  it('displays Cpk when showCpk is true', () => {
+  it('displays Cpk in the card grid', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       displayOptions: { showCp: false, showCpk: true },
     } as any);
@@ -130,10 +132,11 @@ describe('StatsPanel', () => {
 
     // Cpk label appears multiple times due to HelpTooltip
     expect(screen.getAllByText('Cpk').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('1.20')).toBeInTheDocument();
+    // Cpk value (1.20) may appear multiple times if Std Dev is same, use getAllByText
+    expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('hides Cpk when showCpk is false', () => {
+  it('shows Mean and Std Dev in the card grid', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       displayOptions: { showCp: true, showCpk: false },
     } as any);
@@ -147,10 +150,15 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.queryByText('Cpk')).not.toBeInTheDocument();
+    // Mean and Std Dev are always shown in the new card grid
+    expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('10.50')).toBeInTheDocument();
+    expect(screen.getAllByText('Std Dev').length).toBeGreaterThanOrEqual(1);
+    // Std Dev value (1.20) may appear multiple times if Cpk is same, use getAllByText
+    expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows conformance stats (rejected percentage)', () => {
+  it('shows Samples count in the card grid', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       displayOptions: { showCp: false, showCpk: false },
     } as any);
@@ -164,9 +172,8 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Rejected label appears multiple times due to HelpTooltip
-    expect(screen.getAllByText('Rejected').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('5.5%')).toBeInTheDocument();
+    expect(screen.getByText('Samples')).toBeInTheDocument();
+    expect(screen.getByText('n=3')).toBeInTheDocument(); // 3 items in mockFilteredData
   });
 
   it('shows spec limits in footer', () => {

@@ -1,12 +1,61 @@
 import React, { useState, useMemo } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { AlertCircle, CheckCircle2, TrendingUp, BarChart3, Plus } from 'lucide-react';
-import type { StatsResult } from '@variscout/core';
+import { Plus } from 'lucide-react';
+import type { StatsResult, GlossaryTerm } from '@variscout/core';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useData } from '../context/DataContext';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import SpecEditor from './SpecEditor';
+
+// Status helper functions
+const getCpStatus = (value: number): 'good' | 'warning' | 'poor' => {
+  if (value >= 1.33) return 'good';
+  if (value >= 1.0) return 'warning';
+  return 'poor';
+};
+
+const getPassRateStatus = (value: number): 'good' | 'warning' | 'poor' => {
+  if (value >= 99) return 'good';
+  if (value >= 95) return 'warning';
+  return 'poor';
+};
+
+const getStatusColor = (status?: 'good' | 'warning' | 'poor'): string => {
+  if (!status) return 'text-white';
+  return status === 'good'
+    ? 'text-green-500'
+    : status === 'warning'
+      ? 'text-amber-500'
+      : 'text-red-400';
+};
+
+// MetricCard component for the summary grid
+interface MetricCardProps {
+  label: string;
+  value: string | number;
+  helpTerm?: GlossaryTerm;
+  status?: 'good' | 'warning' | 'poor';
+  unit?: string;
+}
+
+const MetricCard = ({ label, value, helpTerm, status, unit }: MetricCardProps) => (
+  <div className="bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center">
+    <div className="flex items-center justify-center gap-1 text-xs text-content-secondary mb-1">
+      {label}
+      {helpTerm && <HelpTooltip term={helpTerm} iconSize={12} />}
+    </div>
+    <div className={`text-xl font-bold font-mono ${getStatusColor(status)}`}>
+      {value}
+      {unit}
+    </div>
+    {status && (
+      <div className={`text-xs mt-1 ${getStatusColor(status)}`}>
+        {status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Marginal' : '✗ Poor'}
+      </div>
+    )}
+  </div>
+);
 
 interface StatsPanelProps {
   stats: StatsResult | null;
@@ -108,7 +157,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
       {activeTab === 'summary' ? (
         /* Summary Tab Content */
         <>
-          <div className="space-y-4 flex-1">
+          <div className="flex-1">
             {/* Grade Summary Mode (Coffee/Textiles) */}
             {stats?.gradeCounts && stats.gradeCounts.length > 0 ? (
               <div className="space-y-2">
@@ -145,60 +194,39 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                 ))}
               </div>
             ) : (
-              /* Standard Cp/Cpk Mode */
-              <>
-                <div className="flex items-center justify-between p-2 rounded hover:bg-surface-tertiary/30 transition-colors">
-                  <div className="flex items-center gap-2 text-content">
-                    <CheckCircle2 size={18} className="text-green-500" />
-                    <span>Pass Rate</span>
-                    <HelpTooltip term={getTerm('passRate')} />
-                  </div>
-                  <span className="text-xl font-bold text-white">
-                    {(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}%
-                  </span>
-                </div>
-
-                {displayOptions.showCp && stats?.cp !== undefined && (
-                  <div className="flex items-center justify-between p-2 rounded hover:bg-surface-tertiary/30 transition-colors">
-                    <div className="flex items-center gap-2 text-content">
-                      <BarChart3 size={18} className="text-purple-400" />
-                      <span>Cp</span>
-                      <HelpTooltip term={getTerm('cp')} />
-                    </div>
-                    <span
-                      className={`text-xl font-bold ${stats.cp < 1.33 ? 'text-yellow-500' : 'text-green-500'}`}
-                    >
-                      {stats.cp.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-
-                {displayOptions.showCpk && (
-                  <div className="flex items-center justify-between p-2 rounded hover:bg-surface-tertiary/30 transition-colors">
-                    <div className="flex items-center gap-2 text-content">
-                      <TrendingUp size={18} className="text-blue-400" />
-                      <span>Cpk</span>
-                      <HelpTooltip term={getTerm('cpk')} />
-                    </div>
-                    <span
-                      className={`text-xl font-bold ${stats?.cpk && stats.cpk < 1.33 ? 'text-yellow-500' : 'text-green-500'}`}
-                    >
-                      {stats?.cpk?.toFixed(2) || 'N/A'}
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between border-t border-edge pt-4 p-2">
-                  <div className="flex items-center gap-2 text-content">
-                    <AlertCircle size={18} className="text-red-400" />
-                    <span>Rejected</span>
-                    <HelpTooltip term={getTerm('rejected')} />
-                  </div>
-                  <span className="text-xl font-bold text-red-400">
-                    {stats?.outOfSpecPercentage.toFixed(1)}%
-                  </span>
-                </div>
-              </>
+              /* Process Health Card Grid */
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <MetricCard
+                  label="Pass Rate"
+                  value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
+                  unit="%"
+                  helpTerm={getTerm('passRate')}
+                  status={getPassRateStatus(100 - (stats?.outOfSpecPercentage || 0))}
+                />
+                <MetricCard
+                  label="Cp"
+                  value={stats?.cp?.toFixed(2) ?? 'N/A'}
+                  helpTerm={getTerm('cp')}
+                  status={stats?.cp ? getCpStatus(stats.cp) : undefined}
+                />
+                <MetricCard
+                  label="Cpk"
+                  value={stats?.cpk?.toFixed(2) ?? 'N/A'}
+                  helpTerm={getTerm('cpk')}
+                  status={stats?.cpk ? getCpStatus(stats.cpk) : undefined}
+                />
+                <MetricCard
+                  label="Mean"
+                  value={stats?.mean?.toFixed(2) ?? 'N/A'}
+                  helpTerm={getTerm('mean')}
+                />
+                <MetricCard
+                  label="Std Dev"
+                  value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
+                  helpTerm={getTerm('stdDev')}
+                />
+                <MetricCard label="Samples" value={`n=${filteredData?.length ?? 0}`} />
+              </div>
             )}
           </div>
 
