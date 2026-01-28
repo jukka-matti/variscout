@@ -103,7 +103,7 @@ All charts are props-based:
 ```typescript
 import {
   useChartScale, // Y-axis scale calculation
-  useDrillDown, // Drill-down navigation
+  useFilterNavigation, // Filter-based drill-down navigation
   useVariationTracking, // Cumulative η² tracking
   useDataState, // Shared DataContext state
   useKeyboardNavigation, // Arrow key focus
@@ -111,10 +111,42 @@ import {
 } from '@variscout/hooks';
 ```
 
+### useDataState
+
+Central state management hook used by both PWA and Azure apps. Returns `[state, actions]` tuple.
+
+**Key DataState properties:**
+
+| Property             | Type                         | Purpose                         |
+| -------------------- | ---------------------------- | ------------------------------- |
+| `rawData`            | `DataRow[]`                  | Original dataset                |
+| `filteredData`       | `DataRow[]`                  | After filter application        |
+| `specs`              | `SpecLimits`                 | Global specification limits     |
+| `measureSpecs`       | `Record<string, SpecLimits>` | Per-measure spec overrides      |
+| `getSpecsForMeasure` | `(id: string) => SpecLimits` | Get effective specs for measure |
+| `isPerformanceMode`  | `boolean`                    | Multi-measure analysis active   |
+| `measureColumns`     | `string[]`                   | Selected measure column names   |
+
+**Key DataActions:**
+
+| Action               | Purpose                         |
+| -------------------- | ------------------------------- |
+| `setSpecs`           | Set global specification limits |
+| `setMeasureSpecs`    | Set all per-measure overrides   |
+| `setMeasureSpec`     | Update single measure's specs   |
+| `setFilters`         | Update active filters           |
+| `setPerformanceMode` | Toggle Performance Mode         |
+
 ### Usage Example
 
 ```tsx
-const { breadcrumbs, currentLevel, drillTo, goBack } = useDrillDown(initialData);
+const [state, actions] = useDataState({ persistence: adapter });
+
+// Get specs for a specific measure (returns override or global)
+const specs = state.getSpecsForMeasure('FillHead_1');
+
+// Set per-measure spec override
+actions.setMeasureSpec('FillHead_1', { usl: 105, lsl: 95 });
 ```
 
 ---
@@ -127,7 +159,7 @@ const { breadcrumbs, currentLevel, drillTo, goBack } = useDrillDown(initialData)
 
 ```typescript
 // Components
-import { HelpTooltip } from '@variscout/ui';
+import { HelpTooltip, ChartCard } from '@variscout/ui';
 
 // Hooks
 import { useGlossary, useIsMobile } from '@variscout/ui';
