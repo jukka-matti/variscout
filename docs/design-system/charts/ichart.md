@@ -244,14 +244,15 @@ import PerformanceIChart from '@variscout/charts/PerformanceIChart';
 
 Standard IChart uses a simple two-color scheme following Minitab conventions:
 
-| Condition               | Color | Meaning          |
-| ----------------------- | ----- | ---------------- |
-| Above USL or below LSL  | Red   | Out of spec      |
-| Above UCL or below LCL  | Red   | Out of control   |
-| Nelson Rule 2 violation | Red   | Pattern detected |
-| All checks pass         | Blue  | In control       |
+| Condition             | Color       | Meaning                                             |
+| --------------------- | ----------- | --------------------------------------------------- |
+| Any Violation         | Red         | **Out of Control** (Spec, Limit, or Rule Violation) |
+| In Control (Standard) | Blue        | Stable Process                                      |
+| In Control (Graded)   | Grade Color | Stable Process (within grade tier)                  |
 
-**Nelson Rule 2:** 9 or more consecutive points on the same side of the mean line.
+**Priority:** Violations (Red) take precedence over all other colors. If a point is graded "A" (Green) but violates a control limit, it will be colored **Red**.
+
+**Nelson Rule 2:** 9 or more consecutive points on the same side of the mean line. All points in the run are highlighted.
 
 ---
 

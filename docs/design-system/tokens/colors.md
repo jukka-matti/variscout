@@ -162,8 +162,8 @@ const { chrome } = useChartTheme();
 // Universal data colors
 const getPointColor = (value: number, usl?: number, lsl?: number) => {
   if (usl !== undefined && value > usl) return chartColors.fail;    // Red
-  if (lsl !== undefined && value < lsl) return chartColors.warning; // Amber
-  return chartColors.pass; // Green
+  if (lsl !== undefined && value < lsl) return chartColors.fail;    // Red (treat as failure)
+  return chartColors.mean; // Blue (In Control)
 };
 ```
 

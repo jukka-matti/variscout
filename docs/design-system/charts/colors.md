@@ -45,17 +45,23 @@ The I-Chart uses a simplified 2-color scheme following Minitab conventions:
 
 ```tsx
 const getPointColor = (value: number, index: number): string => {
-  // Spec limit violations -> Red
+  // 1. Spec limit violations -> Red
   if (usl !== undefined && value > usl) return chartColors.fail;
   if (lsl !== undefined && value < lsl) return chartColors.fail;
 
-  // Control limit violations -> Red
+  // 2. Control limit violations -> Red
   if (value > ucl || value < lcl) return chartColors.fail;
 
-  // Nelson Rule 2 violations -> Red
+  // 3. Nelson Rule 2 violations -> Red
   if (nelsonRule2Violations.has(index)) return chartColors.fail;
 
-  // In-control -> Blue
+  // 4. Grades (if defined and In Control)
+  if (grades) {
+    const grade = grades.find(g => value <= g.max);
+    if (grade) return grade.color;
+  }
+
+  // 5. In-control Default -> Blue
   return chartColors.mean;
 };
 ```

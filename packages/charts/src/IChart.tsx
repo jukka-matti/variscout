@@ -179,27 +179,27 @@ const IChartBase: React.FC<IChartProps> = ({
   // Determine point color using Minitab-style 2-color scheme
   // Blue = in-control, Red = any violation
   const getPointColor = (value: number, index: number, stage?: string): string => {
-    // Check grades first (multi-tier) - use grade colors when defined
-    if (grades && grades.length > 0) {
-      const grade = grades.find(g => value <= g.max);
-      return grade?.color || chartColors.fail; // Default red if above all grades
-    }
-
-    // Check spec limit violations -> Red
+    // Priority 1: Check spec limit violations -> Red
     if (specs.usl !== undefined && value > specs.usl) return chartColors.fail;
     if (specs.lsl !== undefined && value < specs.lsl) return chartColors.fail;
 
-    // Check control limit violations (use stage-specific limits if staged) -> Red
+    // Priority 2: Check control limit violations (use stage-specific limits if staged) -> Red
     const stageStats = getStageStatsForPoint(stage);
     if (stageStats) {
       if (value > stageStats.ucl) return chartColors.fail;
       if (value < stageStats.lcl) return chartColors.fail;
     }
 
-    // Check Nelson Rule 2 violations -> Red
+    // Priority 3: Check Nelson Rule 2 violations -> Red
     if (nelsonRule2Violations.has(index)) return chartColors.fail;
 
-    // In-control -> Blue (Minitab-style)
+    // Priority 4: Check grades (multi-tier) - use grade colors when in control
+    if (grades && grades.length > 0) {
+      const grade = grades.find(g => value <= g.max);
+      return grade?.color || chartColors.fail; // Default red if above all grades but mostly covered by specs
+    }
+
+    // Priority 5: In-control default -> Blue (Minitab-style)
     return chartColors.mean;
   };
 
