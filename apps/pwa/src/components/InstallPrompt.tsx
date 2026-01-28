@@ -12,7 +12,7 @@ interface InstallPromptProps {
  * Shows:
  * 1. Install the app (free) - works offline, no signup
  * 2. Upload your CSV/Excel - data stays local
- * 3. Upgrade to save (€49/yr) - keep projects, export files
+ * 3. Upgrade to save (€99/yr) - keep projects, export files
  *
  * Plus a collapsible "What's a PWA?" explainer
  */
@@ -83,7 +83,7 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ className = '' }) => {
             <div className="flex items-center gap-2">
               <Crown size={14} className="text-content-secondary" />
               <span className="text-sm font-medium text-content-secondary">Upgrade to save</span>
-              <span className="text-xs text-content-muted">€49/yr</span>
+              <span className="text-xs text-content-muted">€99/yr</span>
             </div>
             <p className="text-xs text-content-muted mt-0.5">
               Keep projects, export files, remove watermark

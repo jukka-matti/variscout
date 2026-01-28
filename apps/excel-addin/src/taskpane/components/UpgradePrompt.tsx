@@ -13,7 +13,7 @@ import {
   Body2,
   Link,
 } from '@fluentui/react-components';
-import { LockClosed24Regular, Key24Regular } from '@fluentui/react-icons';
+import { Sparkle24Regular, Key24Regular } from '@fluentui/react-icons';
 
 const useStyles = makeStyles({
   content: {
@@ -25,7 +25,12 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: tokens.spacingHorizontalM,
-    color: tokens.colorPaletteYellowForeground2,
+    color: tokens.colorBrandForeground1,
+  },
+  freeNote: {
+    padding: tokens.spacingVerticalS,
+    backgroundColor: tokens.colorNeutralBackground3,
+    borderRadius: tokens.borderRadiusMedium,
   },
   featureList: {
     paddingLeft: tokens.spacingHorizontalL,
@@ -73,22 +78,28 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
         <DialogBody>
           <DialogTitle>
             <div className={styles.iconRow}>
-              <LockClosed24Regular />
-              Upgrade to VaRiScout Pro
+              <Sparkle24Regular />
+              Upgrade to Licensed Edition
             </div>
           </DialogTitle>
           <DialogContent className={styles.content}>
-            <Body1>To {feature}, you need a VaRiScout Pro license.</Body1>
+            <div className={styles.freeNote}>
+              <Body2>
+                You're using the <strong>free Community Edition</strong>. All charts and analysis
+                features work fully - just with VariScout branding.
+              </Body2>
+            </div>
 
-            <Body2>With Pro, you get:</Body2>
+            <Body1>To {feature}, upgrade to the Licensed Edition:</Body1>
+
             <ul className={styles.featureList}>
               <li>Save configuration to workbook (persists across sessions)</li>
-              <li>No branding on exported charts</li>
+              <li>Remove VariScout branding from charts</li>
               <li>Priority support</li>
             </ul>
 
             <div className={styles.priceRow}>
-              <span className={styles.price}>€49</span>
+              <span className={styles.price}>€99</span>
               <span className={styles.priceNote}>/ year</span>
             </div>
 
@@ -101,7 +112,7 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
           </DialogContent>
           <DialogActions>
             <Button appearance="secondary" onClick={onContinueWithoutSaving}>
-              Continue without saving
+              Continue with Community Edition
             </Button>
             <Button appearance="primary" icon={<Key24Regular />} onClick={handleBuyLicense}>
               Buy License
