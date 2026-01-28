@@ -42,6 +42,7 @@ All PWA analysis features included:
 ### Azure-Specific Features
 
 - **Data Panel** - Interactive table with bi-directional chart sync (click chart → highlight row, click row → highlight chart point)
+- **What-If Simulator** - Explore process improvement scenarios through mean adjustment and variation reduction
 - **Append Mode** - Add new data incrementally via Manual Entry without replacing existing data
 - **OneDrive Sync** - Automatic project sync across team members
 

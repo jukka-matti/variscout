@@ -232,11 +232,13 @@ const handleCpkBadgeClick = (factor: string) => {
 
 ## Files
 
-| File                                          | Purpose                      |
-| --------------------------------------------- | ---------------------------- |
-| `apps/pwa/src/components/WhatIfSimulator.tsx` | PWA component implementation |
-| `apps/pwa/src/components/ui/Slider.tsx`       | Slider input component       |
-| `packages/core/src/variation.ts`              | `simulateDirectAdjustment()` |
+| File                                            | Purpose                        |
+| ----------------------------------------------- | ------------------------------ |
+| `apps/pwa/src/components/WhatIfSimulator.tsx`   | PWA component implementation   |
+| `apps/pwa/src/components/ui/Slider.tsx`         | PWA Slider input component     |
+| `apps/azure/src/components/WhatIfSimulator.tsx` | Azure component implementation |
+| `apps/azure/src/components/ui/Slider.tsx`       | Azure Slider input component   |
+| `packages/core/src/variation.ts`                | `simulateDirectAdjustment()`   |
 
 ## Related Components
 
