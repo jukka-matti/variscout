@@ -34,14 +34,57 @@ Cards containing charts with header controls:
 </div>
 ```
 
-## Stats Card
+## MetricCard (Process Health)
 
-Compact card for displaying statistics:
+Card for displaying metrics with optional color-coded status indicators:
 
-```jsx
-<div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
-  <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Cpk</div>
-  <div className="text-2xl font-bold text-white">1.45</div>
+```tsx
+interface MetricCardProps {
+  label: string;
+  value: string | number;
+  helpTerm?: GlossaryTerm;
+  status?: 'good' | 'warning' | 'poor';
+  unit?: string;
+}
+
+<div className="bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center">
+  <div className="flex items-center justify-center gap-1 text-xs text-content-secondary mb-1">
+    {label}
+    {helpTerm && <HelpTooltip term={helpTerm} iconSize={12} />}
+  </div>
+  <div className={`text-xl font-bold font-mono ${getStatusColor(status)}`}>
+    {value}
+    {unit}
+  </div>
+  {status && (
+    <div className={`text-xs mt-1 ${getStatusColor(status)}`}>
+      {status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Marginal' : '✗ Poor'}
+    </div>
+  )}
+</div>;
+```
+
+### Status Colors
+
+| Status    | Color Class      | Usage                              |
+| --------- | ---------------- | ---------------------------------- |
+| `good`    | `text-green-500` | Cp/Cpk ≥1.33, Pass Rate ≥99%       |
+| `warning` | `text-amber-500` | Cp/Cpk 1.0-1.33, Pass Rate 95-99%  |
+| `poor`    | `text-red-400`   | Cp/Cpk <1.0, Pass Rate <95%        |
+| (none)    | `text-white`     | Neutral metrics (Mean, Std Dev, n) |
+
+### Grid Layout
+
+Used in StatsPanel Summary tab as 2x3 grid:
+
+```tsx
+<div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+  <MetricCard label="Pass Rate" value="98.5" unit="%" status="good" />
+  <MetricCard label="Cp" value="1.45" status="good" />
+  <MetricCard label="Cpk" value="1.12" status="warning" />
+  <MetricCard label="Mean" value="50.2" />
+  <MetricCard label="Std Dev" value="2.3" />
+  <MetricCard label="Samples" value="n=250" />
 </div>
 ```
 
