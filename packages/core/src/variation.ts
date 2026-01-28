@@ -363,6 +363,46 @@ export function findOptimalFactors(
 }
 
 /**
+ * Projected statistics if certain categories were excluded
+ * Used for the Process Improvement Simulator (Phase 2: Interactive Toggle)
+ */
+export interface ProjectedStats {
+  /** Projected mean after exclusions */
+  mean: number;
+  /** Projected standard deviation after exclusions */
+  stdDev: number;
+  /** Projected Cpk (requires specs) */
+  cpk?: number;
+  /** Projected Cp (requires both USL and LSL) */
+  cp?: number;
+  /** Number of remaining samples after exclusions */
+  remainingCount: number;
+  /** Percentage improvement in mean centering (closer to target) */
+  meanImprovementPct?: number;
+  /** Percentage reduction in standard deviation */
+  stdDevReductionPct?: number;
+  /** Percentage improvement in Cpk */
+  cpkImprovementPct?: number;
+}
+
+/**
+ * Statistics for a single category within a factor
+ * Used for the Process Improvement Simulator (Phase 1: Category Breakdown)
+ */
+export interface CategoryStats {
+  /** Category value (e.g., "Machine A", "Shift_1") */
+  value: string | number;
+  /** Number of samples in this category */
+  count: number;
+  /** Category mean */
+  mean: number;
+  /** Category standard deviation */
+  stdDev: number;
+  /** Percentage of total variation contributed by this category (0-100) */
+  contributionPct: number;
+}
+
+/**
  * Result of category contribution calculation
  */
 export interface CategoryContributionResult {
@@ -525,4 +565,224 @@ function findBestValueForFactor(
   }
 
   return bestValue;
+}
+
+/**
+ * Get detailed statistics for each category within a factor
+ *
+ * Returns mean, standard deviation, sample count, and contribution percentage
+ * for each category. Used by the Process Improvement Simulator to show
+ * WHERE variation comes from within a factor.
+ *
+ * Categories are sorted by contribution percentage (highest first),
+ * making it easy to identify the "worst" performers.
+ *
+ * @param data - Array of data rows
+ * @param factor - Column name for the grouping variable
+ * @param outcome - Column name for the numeric outcome variable
+ * @returns Array of CategoryStats sorted by contribution (highest first), or null if insufficient data
+ *
+ * @example
+ * const stats = getCategoryStats(data, 'Machine', 'Weight');
+ * // [
+ * //   { value: 'Machine C', count: 50, mean: 104.3, stdDev: 2.8, contributionPct: 40 },
+ * //   { value: 'Machine B', count: 45, mean: 99.1,  stdDev: 1.3, contributionPct: 15 },
+ * //   { value: 'Machine A', count: 55, mean: 98.2,  stdDev: 1.1, contributionPct: 12 },
+ * // ]
+ */
+export function getCategoryStats(
+  data: DataRow[],
+  factor: string,
+  outcome: string
+): CategoryStats[] | null {
+  if (data.length < 2) {
+    return null;
+  }
+
+  // Calculate overall mean for contribution calculation
+  const allOutcomeValues = data
+    .map(d => toNumericValue(d[outcome]))
+    .filter((v): v is number => v !== undefined);
+
+  if (allOutcomeValues.length < 2) {
+    return null;
+  }
+
+  const overallMean = allOutcomeValues.reduce((a, b) => a + b, 0) / allOutcomeValues.length;
+
+  // Calculate SS_total for contribution percentages
+  const ssTotal = allOutcomeValues.reduce((sum, val) => sum + Math.pow(val - overallMean, 2), 0);
+
+  if (ssTotal === 0) {
+    return null;
+  }
+
+  // Group data by factor
+  const groups = new Map<string | number, number[]>();
+
+  for (const row of data) {
+    const factorValue = row[factor];
+    const outcomeValue = toNumericValue(row[outcome]);
+
+    if (factorValue !== undefined && factorValue !== null && outcomeValue !== undefined) {
+      const key = factorValue as string | number;
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key)!.push(outcomeValue);
+    }
+  }
+
+  if (groups.size === 0) {
+    return null;
+  }
+
+  // Calculate stats for each category
+  const categoryStats: CategoryStats[] = [];
+
+  for (const [categoryValue, values] of groups) {
+    if (values.length === 0) continue;
+
+    const count = values.length;
+    const mean = values.reduce((a, b) => a + b, 0) / count;
+
+    // Calculate standard deviation
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / count;
+    const stdDev = Math.sqrt(variance);
+
+    // Calculate contribution to total variation (between-group SS for this category)
+    const categoryContribution = count * Math.pow(mean - overallMean, 2);
+    const contributionPct = (categoryContribution / ssTotal) * 100;
+
+    categoryStats.push({
+      value: categoryValue,
+      count,
+      mean,
+      stdDev,
+      contributionPct,
+    });
+  }
+
+  // Sort by contribution percentage (highest first)
+  categoryStats.sort((a, b) => b.contributionPct - a.contributionPct);
+
+  return categoryStats;
+}
+
+/**
+ * Calculate projected statistics if certain categories were excluded
+ *
+ * This enables the "what-if" analysis: if we fixed/excluded the worst-performing
+ * category, what would our stats look like? Shows potential improvement in
+ * mean, standard deviation, and Cpk.
+ *
+ * @param data - Array of data rows
+ * @param factor - Column name for the grouping variable
+ * @param outcome - Column name for the numeric outcome variable
+ * @param excludedCategories - Set of category values to exclude from projection
+ * @param specs - Optional spec limits for Cpk calculation
+ * @param currentStats - Optional current stats for improvement percentage calculation
+ * @returns ProjectedStats with projected mean, stdDev, Cpk, and improvement percentages
+ *
+ * @example
+ * const projected = calculateProjectedStats(
+ *   data,
+ *   'Machine',
+ *   'Weight',
+ *   new Set(['Machine C']),  // Exclude worst performer
+ *   { usl: 110, lsl: 90, target: 100 },
+ *   { mean: 103.3, stdDev: 4.5, cpk: 0.50 }
+ * );
+ * // projected.cpkImprovementPct = 190 (Cpk improved from 0.50 to 1.45)
+ */
+export function calculateProjectedStats(
+  data: DataRow[],
+  factor: string,
+  outcome: string,
+  excludedCategories: Set<string | number>,
+  specs?: { usl?: number; lsl?: number; target?: number },
+  currentStats?: { mean: number; stdDev: number; cpk?: number }
+): ProjectedStats | null {
+  // Filter out excluded categories
+  const filteredData = data.filter(row => {
+    const factorValue = row[factor];
+    if (factorValue === undefined || factorValue === null) return true;
+    return !excludedCategories.has(factorValue as string | number);
+  });
+
+  // Extract numeric outcome values
+  const values = filteredData
+    .map(d => toNumericValue(d[outcome]))
+    .filter((v): v is number => v !== undefined);
+
+  // Need at least 2 values for meaningful stats
+  if (values.length < 2) {
+    return null;
+  }
+
+  // Calculate projected mean
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+
+  // Calculate projected standard deviation (population)
+  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+  const stdDev = Math.sqrt(variance);
+
+  // Build result object
+  const result: ProjectedStats = {
+    mean,
+    stdDev,
+    remainingCount: values.length,
+  };
+
+  // Calculate Cp and Cpk if specs provided
+  if (specs && stdDev > 0) {
+    const { usl, lsl } = specs;
+
+    if (usl !== undefined && lsl !== undefined) {
+      result.cp = (usl - lsl) / (6 * stdDev);
+      const cpu = (usl - mean) / (3 * stdDev);
+      const cpl = (mean - lsl) / (3 * stdDev);
+      result.cpk = Math.min(cpu, cpl);
+    } else if (usl !== undefined) {
+      result.cpk = (usl - mean) / (3 * stdDev);
+    } else if (lsl !== undefined) {
+      result.cpk = (mean - lsl) / (3 * stdDev);
+    }
+  }
+
+  // Calculate improvement percentages if current stats provided
+  if (currentStats) {
+    // Standard deviation reduction (negative = worse, positive = improvement)
+    if (currentStats.stdDev > 0) {
+      result.stdDevReductionPct = ((currentStats.stdDev - stdDev) / currentStats.stdDev) * 100;
+    }
+
+    // Mean centering improvement (how much closer to target or center of specs)
+    if (specs) {
+      const target =
+        specs.target ??
+        (specs.usl !== undefined && specs.lsl !== undefined
+          ? (specs.usl + specs.lsl) / 2
+          : undefined);
+
+      if (target !== undefined) {
+        const currentDeviation = Math.abs(currentStats.mean - target);
+        const projectedDeviation = Math.abs(mean - target);
+
+        if (currentDeviation > 0) {
+          result.meanImprovementPct =
+            ((currentDeviation - projectedDeviation) / currentDeviation) * 100;
+        } else if (projectedDeviation === 0) {
+          result.meanImprovementPct = 0; // Already at target
+        }
+      }
+    }
+
+    // Cpk improvement
+    if (currentStats.cpk !== undefined && currentStats.cpk > 0 && result.cpk !== undefined) {
+      result.cpkImprovementPct = ((result.cpk - currentStats.cpk) / currentStats.cpk) * 100;
+    }
+  }
+
+  return result;
 }

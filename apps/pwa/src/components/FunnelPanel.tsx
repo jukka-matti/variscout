@@ -14,6 +14,8 @@ interface FunnelPanelProps {
   outcome: string;
   /** Column aliases for display */
   columnAliases?: Record<string, string>;
+  /** Specification limits for Cpk projection */
+  specs?: { usl?: number; lsl?: number; target?: number };
   /** Called when user applies selected filters */
   onApplyFilters?: (filters: Record<string, (string | number)[]>) => void;
   /** Called when user clicks a factor to drill into it */
@@ -36,6 +38,7 @@ const FunnelPanel: React.FC<FunnelPanelProps> = ({
   factors,
   outcome,
   columnAliases,
+  specs,
   onApplyFilters,
   onDrillFactor,
   onOpenPopout,
@@ -92,6 +95,7 @@ const FunnelPanel: React.FC<FunnelPanelProps> = ({
           factors={factors}
           outcome={outcome}
           columnAliases={columnAliases}
+          specs={specs}
           onApplyFilters={onApplyFilters}
           onDrillFactor={onDrillFactor}
           onOpenPopout={onOpenPopout}

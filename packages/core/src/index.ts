@@ -160,12 +160,16 @@ export type {
   DrillLevelVariation,
   OptimalFactorResult,
   CategoryContributionResult,
+  CategoryStats,
+  ProjectedStats,
 } from './variation';
 
 export {
   calculateDrillVariation,
   calculateFactorVariations,
   calculateCategoryContributions,
+  getCategoryStats,
+  calculateProjectedStats,
   shouldHighlightDrill,
   applyFilters,
   getNextDrillFactor,

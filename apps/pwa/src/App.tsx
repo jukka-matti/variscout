@@ -757,6 +757,7 @@ function App() {
           factors={factors}
           outcome={outcome}
           columnAliases={columnAliases}
+          specs={specs}
           onApplyFilters={handleApplyFunnelFilters}
           onOpenPopout={handleOpenFunnelPopout}
         />
