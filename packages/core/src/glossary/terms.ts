@@ -67,8 +67,7 @@ export const glossaryTerms: GlossaryTerm[] = [
   {
     id: 'cp',
     label: 'Cp',
-    definition:
-      'Process Capability. Measures how well your process fits within spec limits. \u22651.33 is good.',
+    definition: 'Process Capability. Measures how well your process fits within spec limits.',
     description:
       'Cp compares the width of specification limits to 6 standard deviations of the process. Cp = (USL - LSL) / (6\u03c3). Higher values mean the process has room to spare within specs. Does not account for centering.',
     category: 'capability',
@@ -79,7 +78,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     id: 'cpk',
     label: 'Cpk',
     definition:
-      'Process Capability Index. Like Cp, but accounts for how well centered the process is. \u22651.33 is good.',
+      'Process Capability Index. Like Cp, but accounts for how well centered the process is.',
     description:
       'Cpk considers both spread and centering. It takes the minimum of CPU and CPL. A Cpk much lower than Cp indicates the process mean is shifted toward one spec limit.',
     category: 'capability',
@@ -289,6 +288,28 @@ export const glossaryTerms: GlossaryTerm[] = [
     category: 'methodology',
     learnMorePath: '/learn/staged-analysis',
     relatedTerms: ['ucl', 'lcl', 'mean', 'stdDev'],
+  },
+  {
+    id: 'totalSSContribution',
+    label: 'Total SS Contribution',
+    definition:
+      "A category's share of total sum of squares. Captures both mean shift AND spread (within-group variation).",
+    description:
+      "Unlike between-group SS which only measures mean differences, Total SS contribution shows a category's full impact on variation. A category with mean near overall mean but high spread now shows non-zero impact. Sum of all category contributions equals 100%.",
+    category: 'methodology',
+    learnMorePath: '/tools/boxplot',
+    relatedTerms: ['etaSquared', 'stdDev'],
+  },
+  {
+    id: 'characteristicType',
+    label: 'Characteristic Type',
+    definition:
+      'Quality characteristic classification: nominal (target ideal), smaller-is-better, or larger-is-better.',
+    description:
+      'Determines how specification limits are interpreted. Nominal: both USL and LSL exist, target is ideal. Smaller-is-better: only USL exists, zero is ideal (e.g., defects). Larger-is-better: only LSL exists, higher is always better (e.g., yield). Automatically inferred from specs but can be overridden.',
+    category: 'methodology',
+    learnMorePath: '/learn/two-voices',
+    relatedTerms: ['usl', 'lsl', 'target'],
   },
   {
     id: 'probabilityPlot',

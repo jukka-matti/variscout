@@ -8,19 +8,7 @@ import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import SpecEditor from './SpecEditor';
 
-// Status helper functions
-const getCpStatus = (value: number): 'good' | 'warning' | 'poor' => {
-  if (value >= 1.33) return 'good';
-  if (value >= 1.0) return 'warning';
-  return 'poor';
-};
-
-const getPassRateStatus = (value: number): 'good' | 'warning' | 'poor' => {
-  if (value >= 99) return 'good';
-  if (value >= 95) return 'warning';
-  return 'poor';
-};
-
+// Status helper function for general string styling
 const getStatusColor = (status?: 'good' | 'warning' | 'poor'): string => {
   if (!status) return 'text-white';
   return status === 'good'
@@ -201,19 +189,16 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                   value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
                   unit="%"
                   helpTerm={getTerm('passRate')}
-                  status={getPassRateStatus(100 - (stats?.outOfSpecPercentage || 0))}
                 />
                 <MetricCard
                   label="Cp"
                   value={stats?.cp?.toFixed(2) ?? 'N/A'}
                   helpTerm={getTerm('cp')}
-                  status={stats?.cp ? getCpStatus(stats.cp) : undefined}
                 />
                 <MetricCard
                   label="Cpk"
                   value={stats?.cpk?.toFixed(2) ?? 'N/A'}
                   helpTerm={getTerm('cpk')}
-                  status={stats?.cpk ? getCpStatus(stats.cpk) : undefined}
                 />
                 <MetricCard
                   label="Mean"
@@ -231,35 +216,16 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
           </div>
 
           <div
-            className="mt-auto p-4 bg-surface/80 rounded-lg text-xs text-content-muted border border-edge cursor-pointer hover:border-edge-secondary transition-colors group"
+            className="mt-auto p-3 text-center bg-surface/80 rounded-lg text-xs text-content-muted border border-dashed border-edge cursor-pointer hover:border-edge-secondary hover:text-content hover:bg-surface-tertiary/50 transition-all flex items-center justify-center gap-2"
             onClick={() => setIsEditingSpecs(true)}
           >
-            {specs.usl && (
-              <div className="flex justify-between">
-                <span>USL:</span>{' '}
-                <span className="font-mono text-content-secondary group-hover:text-white">
-                  {specs.usl}
-                </span>
-              </div>
-            )}
-            {specs.lsl && (
-              <div className="flex justify-between">
-                <span>LSL:</span>{' '}
-                <span className="font-mono text-content-secondary group-hover:text-white">
-                  {specs.lsl}
-                </span>
-              </div>
-            )}
-            {!specs.usl && !specs.lsl && (
-              <div className="italic text-center text-content-muted group-hover:text-blue-400 flex items-center justify-center gap-2">
-                <Plus size={14} /> Add Specs
-              </div>
-            )}
+            <Plus size={14} />
+            <span>Edit Specifications</span>
           </div>
         </>
       ) : activeTab === 'histogram' ? (
         /* Histogram Tab Content */
-        <div className="flex-1 min-h-[200px]">
+        <div className="h-[300px] w-full">
           {histogramData.length > 0 && stats ? (
             <CapabilityHistogram data={histogramData} specs={specs} mean={stats.mean} />
           ) : (
@@ -270,7 +236,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         </div>
       ) : (
         /* Normality Tab Content (Probability Plot) */
-        <div className="flex-1 min-h-[200px]">
+        <div className="h-[300px] w-full">
           {histogramData.length > 0 && stats ? (
             <ProbabilityPlot data={histogramData} mean={stats.mean} stdDev={stats.stdDev} />
           ) : (
