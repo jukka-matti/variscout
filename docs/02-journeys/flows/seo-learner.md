@@ -147,7 +147,7 @@ Gary evaluates:
 
 1. Tool page → "Try Demo" → Explore with samples
 2. Like it? → "Install to Upload" → Install PWA (free)
-3. Want to save? → Upgrade to Licensed (€49/year)
+3. Want to save? → Upgrade to Licensed (€99/year)
 
 ---
 

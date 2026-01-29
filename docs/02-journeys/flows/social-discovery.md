@@ -185,7 +185,7 @@ Carlos learns the methodology:
 
 1. Case study → "Find YOUR 46%" → Try Demo with samples
 2. Like it? → "Install to Upload" → Install PWA (free)
-3. Want to save? → Upgrade to Licensed (€49/year)
+3. Want to save? → Upgrade to Licensed (€99/year)
 
 ---
 

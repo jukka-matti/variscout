@@ -124,7 +124,13 @@ dist
 
 # AI/LLM
 .gemini_brain
-.claude/CLAUDE.local.md
+.claude/
+.claude-flow/
+.swarm/
+.mcp.json
+
+# Build output
+site/
 
 # Generated production manifests (Excel Add-in)
 *.prod.xml

@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import * as d3 from 'd3';
 import type { DataRow, DataCellValue, ChannelInfo, WideFormatDetection } from './types';
 import { toNumericValue } from './types';
@@ -149,19 +149,54 @@ export async function parseCSV(file: File): Promise<DataRow[]> {
  * @returns Promise resolving to array of DataRow objects
  */
 export async function parseExcel(file: File): Promise<DataRow[]> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const data = e.target?.result;
-      const workbook = XLSX.read(data, { type: 'binary' });
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      const json = XLSX.utils.sheet_to_json(worksheet) as DataRow[];
-      resolve(json);
-    };
-    reader.onerror = err => reject(err);
-    reader.readAsBinaryString(file);
+  const arrayBuffer = await file.arrayBuffer();
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(arrayBuffer);
+
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet) return [];
+
+  // Get headers from first row
+  const headers: string[] = [];
+  const headerRow = worksheet.getRow(1);
+  headerRow.eachCell((cell, colNumber) => {
+    headers[colNumber - 1] = String(cell.value ?? `Column${colNumber}`);
   });
+
+  // Convert rows to objects
+  const rows: DataRow[] = [];
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return; // Skip header row
+    const rowData: DataRow = {};
+    row.eachCell((cell, colNumber) => {
+      const header = headers[colNumber - 1];
+      if (header) {
+        // Handle ExcelJS cell value types
+        const cellValue = cell.value;
+        if (cellValue === null || cellValue === undefined) {
+          rowData[header] = null;
+        } else if (typeof cellValue === 'object' && 'result' in cellValue) {
+          // Formula cell - use the computed result
+          rowData[header] = cellValue.result as DataCellValue;
+        } else if (typeof cellValue === 'object' && 'richText' in cellValue) {
+          // Rich text - concatenate text parts
+          rowData[header] = (cellValue.richText as Array<{ text: string }>)
+            .map(rt => rt.text)
+            .join('');
+        } else if (cellValue instanceof Date) {
+          rowData[header] = cellValue.toISOString();
+        } else {
+          rowData[header] = cellValue as DataCellValue;
+        }
+      }
+    });
+    // Only add non-empty rows
+    if (Object.keys(rowData).length > 0) {
+      rows.push(rowData);
+    }
+  });
+
+  return rows;
 }
 
 // ============================================================================

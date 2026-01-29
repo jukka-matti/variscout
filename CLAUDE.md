@@ -14,6 +14,9 @@ pnpm test            # Run Vitest tests (all packages)
 pnpm --filter @variscout/core test      # Core package tests only
 pnpm --filter @variscout/pwa test       # PWA tests only
 pnpm --filter @variscout/azure-app test # Azure app tests only
+
+npx claude-flow@v3alpha security scan --depth full  # OWASP security scan
+npx claude-flow@v3alpha security cve --check        # CVE check
 ```
 
 ## Repository Structure
@@ -60,10 +63,12 @@ variscout-lite/
 
 ## Editions
 
-| Edition   | Branding              | Theming                     | Build Command              |
-| --------- | --------------------- | --------------------------- | -------------------------- |
-| Community | "VariScout"           | Dark only                   | `pnpm build:pwa:community` |
-| Licensed  | No branding (€99 key) | Light/Dark/System + Accents | `pnpm build:pwa:licensed`  |
+| Edition   | Branding              | Theming                                | Build Command              |
+| --------- | --------------------- | -------------------------------------- | -------------------------- |
+| Community | "VariScout"           | Dark only                              | `pnpm build:pwa:community` |
+| Licensed  | No branding (€99 key) | Light/Dark/System + Accents (PWA only) | `pnpm build:pwa:licensed`  |
+
+> **Note**: Theme customization requires PWA installation (Add to Home Screen) plus a valid license key.
 
 ## Key Files
 
@@ -143,6 +148,7 @@ variscout-lite/
 | `docs/products/excel/`                                         | Excel Add-in spec                                                         |
 | `docs/products/powerbi/`                                       | Power BI custom visuals spec                                              |
 | `docs/products/azure/`                                         | Azure team deployment spec (SharePoint, SSO)                              |
+| `docs/05-technical/implementation/security-scanning.md`        | Security audit workflow (Claude Flow v3, OWASP)                           |
 
 > Use `Read` tool to examine these files when needed.
 
@@ -162,3 +168,4 @@ variscout-lite/
 - `docs/flows/ERROR-HANDLING.md` - **Error handling** (validation, recovery patterns)
 - `docs/concepts/` - **Strategic decisions** (Excel, LSS, Power BI, Licensing, Methodology)
 - `docs/products/` - **Product specs** (PWA, Website, Excel, Power BI, Azure)
+- `docs/05-technical/implementation/security-scanning.md` - **Security scanning** (Claude Flow v3, OWASP)

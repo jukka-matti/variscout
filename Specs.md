@@ -16,13 +16,13 @@ A lightweight, offline variation analysis tool for quality professionals. No AI,
 
 ## Target Users
 
-| User                     | Context                                | Why Lite works                                |
-| ------------------------ | -------------------------------------- | --------------------------------------------- |
-| **Quality Champions**    | SMEs in developing countries (via ITC) | Know statistics, need better tools than Excel |
-| **Experienced analysts** | Already know what to look for          | Don't need AI guidance                        |
-| **Trainers / educators** | Teaching variation analysis            | Clean demo tool, no AI unpredictability       |
-| **LSS Trainers**         | Green Belt / Black Belt courses        | Minitab replacement with zero installation    |
-| **Offline environments** | Factory floor, limited connectivity    | 100% local, no internet needed                |
+| User                     | Context                             | Why Lite works                                |
+| ------------------------ | ----------------------------------- | --------------------------------------------- |
+| **Quality Champions**    | SMEs in developing countries        | Know statistics, need better tools than Excel |
+| **Experienced analysts** | Already know what to look for       | Don't need AI guidance                        |
+| **Trainers / educators** | Teaching variation analysis         | Clean demo tool, no AI unpredictability       |
+| **LSS Trainers**         | Green Belt / Black Belt courses     | Minitab replacement with zero installation    |
+| **Offline environments** | Factory floor, limited connectivity | 100% local, no internet needed                |
 
 ---
 
@@ -415,7 +415,7 @@ When configured:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  VaRiScout Lite                                    ITC logo │
+│  VariScout                                                  │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  [  Import New Data (CSV/Excel)  ]                          │
@@ -712,15 +712,14 @@ NO backend. NO API calls. Works offline after first visit.
 
 ### Editions
 
-| Edition       | Footer Bar                        | Distribution           | Price    |
-| ------------- | --------------------------------- | ---------------------- | -------- |
-| **Community** | "VariScout Lite" + n=             | Public web             | Free     |
-| **ITC**       | "International Trade Centre" + n= | ITC network            | Free     |
-| **Licensed**  | None (hidden)                     | License key activation | €49/year |
+| Edition       | Footer Bar       | Distribution           | Price    |
+| ------------- | ---------------- | ---------------------- | -------- |
+| **Community** | "VariScout" + n= | Public web             | Free     |
+| **Licensed**  | None (hidden)    | License key activation | €99/year |
 
 ### Freemium Model: Free vs Licensed
 
-| Feature                      | Free            | Licensed (€49/year) |
+| Feature                      | Free            | Licensed (€99/year) |
 | ---------------------------- | --------------- | ------------------- |
 | All chart types              | ✓               | ✓                   |
 | Full analysis features       | ✓               | ✓                   |
@@ -730,6 +729,7 @@ NO backend. NO API calls. Works offline after first visit.
 | **Export/import .vrs files** | ❌              | ✓                   |
 | **Save templates**           | ❌              | ✓                   |
 | **Watermark-free exports**   | ❌              | ✓                   |
+| **Theme customization**      | ❌              | ✓ (PWA install)     |
 | Priority support             | ❌              | ✓                   |
 
 **Key insight:** Save is the upgrade gate, not just watermark removal.
@@ -751,44 +751,12 @@ NO backend. NO API calls. Works offline after first visit.
 
 ```bash
 pnpm build:pwa:community  # Default public release
-pnpm build:pwa:licensed   # Pre-licensed builds (no branding, theming)
+pnpm build:pwa:licensed   # Pre-licensed builds (no branding, theming requires PWA install)
 pnpm build:excel          # Excel Add-in build
 ```
 
 **Runtime Upgrade:**
-Community users can upgrade to Pro by entering a valid license key in Settings.
-
----
-
-## ITC Distribution Model
-
-```
-You (deploy)                   ITC (promote)
-    │                               │
-    │  Host PWA on Vercel           │
-    │  (variscout.itc.org or        │
-    │   custom subdomain)           │
-    ├──────────────────────────────►│
-    │                               ▼
-    │                    ITC training programs
-    │                    SME support networks
-    │                    Quality champion workshops
-    │                               │
-    │                               ▼
-    │                      End users (SMEs)
-    │                      - Any device with browser
-    │                      - Works offline
-    │                      - "Add to Home Screen"
-    │                               │
-    │   Some want more...           │
-    │◄──────────────────────────────┤
-    │                               │
-    ▼
-VaRiScout Pro (paid)
-"Now with AI guidance"
-```
-
-**No app stores. No installers. No usage tracking. No API costs.**
+Community users can upgrade to Licensed by entering a valid license key in Settings. Theme customization requires installing the PWA (Add to Home Screen).
 
 ---
 
@@ -813,12 +781,12 @@ VaRiScout Pro (paid)
 
 ## Success Metrics
 
-| Metric              | Target                                   |
-| ------------------- | ---------------------------------------- |
-| Downloads (via ITC) | 500 in first year                        |
-| Active users        | 100 monthly                              |
-| Conversion to Pro   | 5% of active users                       |
-| Support tickets     | < 10/month (simple tool = few questions) |
+| Metric                 | Target                                   |
+| ---------------------- | ---------------------------------------- |
+| Downloads              | 500 in first year                        |
+| Active users           | 100 monthly                              |
+| Conversion to Licensed | 5% of active users                       |
+| Support tickets        | < 10/month (simple tool = few questions) |
 
 ---
 
@@ -869,7 +837,7 @@ Measurement System Analysis (MSA) tab:
 
 | Aspect         | Minitab          | VaRiScout            |
 | -------------- | ---------------- | -------------------- |
-| Price          | $1,000+/year     | €49/year or free     |
+| Price          | $1,000+/year     | €99/year or free     |
 | Installation   | Desktop software | Browser (no install) |
 | Learning curve | Steep            | Minimal              |
 | Feature depth  | Deep (30 years)  | Focused (essentials) |
@@ -913,6 +881,6 @@ Measurement System Analysis (MSA) tab:
 
 ## Summary
 
-> **VaRiScout Lite** is a fast, offline variation analysis tool for people who know what they're doing but need better tools than Excel. No AI, no subscriptions, no complexity — just linked charts that reveal hidden variation.
+> **VariScout** is a fast, offline variation analysis tool for people who know what they're doing but need better tools than Excel. No AI, no subscriptions, no complexity — just linked charts that reveal hidden variation.
 >
-> Perfect for quality professionals, LSS trainers, and ITC's quality champion network: distribute freely, zero ongoing costs, clean licensing.
+> Perfect for quality professionals and LSS trainers: distribute freely, zero ongoing costs, clean licensing.

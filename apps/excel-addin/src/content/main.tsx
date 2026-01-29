@@ -17,10 +17,12 @@ Office.onReady(info => {
     );
   } else {
     // Show error if not in Excel (uses dark theme as fallback for error state)
-    document.getElementById('root')!.innerHTML = `
-      <div style="padding: ${darkTheme.spacingL}px; color: ${darkTheme.colorStatusDangerForeground};">
-        This add-in requires Microsoft Excel.
-      </div>
-    `;
+    // Using textContent instead of innerHTML to avoid XSS risks
+    const rootEl = document.getElementById('root')!;
+    const errorDiv = document.createElement('div');
+    errorDiv.style.padding = `${darkTheme.spacingL}px`;
+    errorDiv.style.color = darkTheme.colorStatusDangerForeground;
+    errorDiv.textContent = 'This add-in requires Microsoft Excel.';
+    rootEl.appendChild(errorDiv);
   }
 });
