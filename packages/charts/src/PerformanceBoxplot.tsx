@@ -19,7 +19,7 @@ import { getWorstChannels } from '@variscout/core';
 import type { PerformanceBoxplotProps, ChannelResult } from './types';
 import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
-import { getResponsiveMargins, getResponsiveFonts } from './responsive';
+import { getResponsiveMargins, getScaledFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import * as d3 from 'd3';
 
@@ -64,10 +64,10 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
   showBranding = true,
   showStatsTable = false,
 }) => {
-  const { chrome } = useChartTheme();
+  const { chrome, fontScale } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'boxplot', sourceBarHeight);
-  const fonts = getResponsiveFonts(parentWidth);
+  const fonts = getScaledFonts(parentWidth, fontScale);
 
   const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = React.useState(0);

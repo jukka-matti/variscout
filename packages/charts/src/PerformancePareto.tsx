@@ -19,7 +19,7 @@ import { sortChannels } from '@variscout/core';
 import type { PerformanceParetoProps, ChannelResult } from './types';
 import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
-import { getResponsiveMargins, getResponsiveFonts } from './responsive';
+import { getResponsiveMargins, getScaledFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 
 const DEFAULT_MAX_DISPLAYED = 20;
@@ -39,10 +39,10 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
   onChannelClick,
   showBranding = true,
 }) => {
-  const { chrome } = useChartTheme();
+  const { chrome, fontScale } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'pareto', sourceBarHeight);
-  const fonts = getResponsiveFonts(parentWidth);
+  const fonts = getScaledFonts(parentWidth, fontScale);
 
   const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = React.useState(0);

@@ -22,7 +22,7 @@ import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import type { PerformanceIChartProps, ChannelResult } from './types';
 import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
-import { getResponsiveMargins, getResponsiveFonts, getResponsiveTickCount } from './responsive';
+import { getResponsiveMargins, getScaledFonts, getResponsiveTickCount } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
 import {
   calculateCapabilityControlLimits,
@@ -55,10 +55,10 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
   capabilityMetric = 'cpk',
   cpkTarget = DEFAULT_CPK_TARGET,
 }) => {
-  const { chrome } = useChartTheme();
+  const { chrome, fontScale } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'ichart', sourceBarHeight);
-  const fonts = getResponsiveFonts(parentWidth);
+  const fonts = getScaledFonts(parentWidth, fontScale);
 
   const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
   const [tooltipLeft, setTooltipLeft] = React.useState(0);
