@@ -1,51 +1,28 @@
 import React, { useState, useMemo } from 'react';
-import { Plus } from 'lucide-react';
 import type { StatsResult, GlossaryTerm } from '@variscout/core';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import WhatIfSimulator from './WhatIfSimulator';
 
-// Status helper functions
-const getPassRateStatus = (value: number): 'good' | 'warning' | 'poor' => {
-  if (value >= 99) return 'good';
-  if (value >= 95) return 'warning';
-  return 'poor';
-};
-
-const getStatusColor = (status?: 'good' | 'warning' | 'poor'): string => {
-  if (!status) return 'text-white';
-  return status === 'good'
-    ? 'text-green-500'
-    : status === 'warning'
-      ? 'text-amber-500'
-      : 'text-red-400';
-};
-
 // MetricCard component for the summary grid
 interface MetricCardProps {
   label: string;
   value: string | number;
   helpTerm?: GlossaryTerm;
-  status?: 'good' | 'warning' | 'poor';
   unit?: string;
 }
 
-const MetricCard = ({ label, value, helpTerm, status, unit }: MetricCardProps) => (
+const MetricCard = ({ label, value, helpTerm, unit }: MetricCardProps) => (
   <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-3 text-center">
     <div className="flex items-center justify-center gap-1 text-xs text-slate-400 mb-1">
       {label}
       {helpTerm && <HelpTooltip term={helpTerm} iconSize={12} />}
     </div>
-    <div className={`text-xl font-bold font-mono ${getStatusColor(status)}`}>
+    <div className="text-xl font-bold font-mono text-white">
       {value}
       {unit}
     </div>
-    {status && (
-      <div className={`text-xs mt-1 ${getStatusColor(status)}`}>
-        {status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Marginal' : '✗ Poor'}
-      </div>
-    )}
   </div>
 );
 
@@ -143,36 +120,44 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = []
               </div>
             ) : (
               /* Process Health Card Grid */
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <MetricCard
-                  label="Pass Rate"
-                  value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
-                  unit="%"
-                  helpTerm={getTerm('passRate')}
-                  status={getPassRateStatus(100 - (stats?.outOfSpecPercentage || 0))}
-                />
-                <MetricCard
-                  label="Cp"
-                  value={stats?.cp?.toFixed(2) ?? 'N/A'}
-                  helpTerm={getTerm('cp')}
-                />
-                <MetricCard
-                  label="Cpk"
-                  value={stats?.cpk?.toFixed(2) ?? 'N/A'}
-                  helpTerm={getTerm('cpk')}
-                />
-                <MetricCard
-                  label="Mean"
-                  value={stats?.mean?.toFixed(2) ?? 'N/A'}
-                  helpTerm={getTerm('mean')}
-                />
-                <MetricCard
-                  label="Std Dev"
-                  value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
-                  helpTerm={getTerm('stdDev')}
-                />
-                <MetricCard label="Samples" value={`n=${filteredData?.length ?? 0}`} />
-              </div>
+              (() => {
+                const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {hasSpecs && (
+                      <>
+                        <MetricCard
+                          label="Pass Rate"
+                          value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
+                          unit="%"
+                          helpTerm={getTerm('passRate')}
+                        />
+                        <MetricCard
+                          label="Cp"
+                          value={stats?.cp?.toFixed(2) ?? 'N/A'}
+                          helpTerm={getTerm('cp')}
+                        />
+                        <MetricCard
+                          label="Cpk"
+                          value={stats?.cpk?.toFixed(2) ?? 'N/A'}
+                          helpTerm={getTerm('cpk')}
+                        />
+                      </>
+                    )}
+                    <MetricCard
+                      label="Mean"
+                      value={stats?.mean?.toFixed(2) ?? 'N/A'}
+                      helpTerm={getTerm('mean')}
+                    />
+                    <MetricCard
+                      label="Std Dev"
+                      value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
+                      helpTerm={getTerm('stdDev')}
+                    />
+                    <MetricCard label="Samples" value={`n=${filteredData?.length ?? 0}`} />
+                  </div>
+                );
+              })()
             )}
 
             {/* What-If Simulator */}
@@ -187,26 +172,6 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = []
                   specs={specs}
                   defaultExpanded={false}
                 />
-              </div>
-            )}
-          </div>
-
-          <div className="mt-auto p-4 bg-slate-900/80 rounded-lg text-xs text-slate-500 border border-slate-800">
-            {specs.usl && (
-              <div className="flex justify-between">
-                <span>USL:</span>
-                <span className="font-mono text-slate-400">{specs.usl}</span>
-              </div>
-            )}
-            {specs.lsl && (
-              <div className="flex justify-between">
-                <span>LSL:</span>
-                <span className="font-mono text-slate-400">{specs.lsl}</span>
-              </div>
-            )}
-            {!specs.usl && !specs.lsl && (
-              <div className="italic text-center text-slate-600 flex items-center justify-center gap-2">
-                <Plus size={14} /> No Specs Configured
               </div>
             )}
           </div>

@@ -8,40 +8,24 @@ import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import SpecEditor from './SpecEditor';
 
-// Status helper function for general string styling
-const getStatusColor = (status?: 'good' | 'warning' | 'poor'): string => {
-  if (!status) return 'text-white';
-  return status === 'good'
-    ? 'text-green-500'
-    : status === 'warning'
-      ? 'text-amber-500'
-      : 'text-red-400';
-};
-
 // MetricCard component for the summary grid
 interface MetricCardProps {
   label: string;
   value: string | number;
   helpTerm?: GlossaryTerm;
-  status?: 'good' | 'warning' | 'poor';
   unit?: string;
 }
 
-const MetricCard = ({ label, value, helpTerm, status, unit }: MetricCardProps) => (
+const MetricCard = ({ label, value, helpTerm, unit }: MetricCardProps) => (
   <div className="bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center">
     <div className="flex items-center justify-center gap-1 text-xs text-content-secondary mb-1">
       {label}
       {helpTerm && <HelpTooltip term={helpTerm} iconSize={12} />}
     </div>
-    <div className={`text-xl font-bold font-mono ${getStatusColor(status)}`}>
+    <div className="text-xl font-bold font-mono text-white">
       {value}
       {unit}
     </div>
-    {status && (
-      <div className={`text-xs mt-1 ${getStatusColor(status)}`}>
-        {status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Marginal' : '✗ Poor'}
-      </div>
-    )}
   </div>
 );
 
@@ -183,35 +167,44 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
               </div>
             ) : (
               /* Process Health Card Grid */
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <MetricCard
-                  label="Pass Rate"
-                  value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
-                  unit="%"
-                  helpTerm={getTerm('passRate')}
-                />
-                <MetricCard
-                  label="Cp"
-                  value={stats?.cp?.toFixed(2) ?? 'N/A'}
-                  helpTerm={getTerm('cp')}
-                />
-                <MetricCard
-                  label="Cpk"
-                  value={stats?.cpk?.toFixed(2) ?? 'N/A'}
-                  helpTerm={getTerm('cpk')}
-                />
-                <MetricCard
-                  label="Mean"
-                  value={stats?.mean?.toFixed(2) ?? 'N/A'}
-                  helpTerm={getTerm('mean')}
-                />
-                <MetricCard
-                  label="Std Dev"
-                  value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
-                  helpTerm={getTerm('stdDev')}
-                />
-                <MetricCard label="Samples" value={`n=${filteredData?.length ?? 0}`} />
-              </div>
+              (() => {
+                const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {hasSpecs && (
+                      <>
+                        <MetricCard
+                          label="Pass Rate"
+                          value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
+                          unit="%"
+                          helpTerm={getTerm('passRate')}
+                        />
+                        <MetricCard
+                          label="Cp"
+                          value={stats?.cp?.toFixed(2) ?? 'N/A'}
+                          helpTerm={getTerm('cp')}
+                        />
+                        <MetricCard
+                          label="Cpk"
+                          value={stats?.cpk?.toFixed(2) ?? 'N/A'}
+                          helpTerm={getTerm('cpk')}
+                        />
+                      </>
+                    )}
+                    <MetricCard
+                      label="Mean"
+                      value={stats?.mean?.toFixed(2) ?? 'N/A'}
+                      helpTerm={getTerm('mean')}
+                    />
+                    <MetricCard
+                      label="Std Dev"
+                      value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
+                      helpTerm={getTerm('stdDev')}
+                    />
+                    <MetricCard label="Samples" value={`n=${filteredData?.length ?? 0}`} />
+                  </div>
+                );
+              })()
             )}
           </div>
 

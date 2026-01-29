@@ -27,6 +27,20 @@ Capability reveals:
 
 ---
 
+## Prerequisites
+
+Capability metrics require specification limits to be meaningful:
+
+| Metric    | Requirements                   |
+| --------- | ------------------------------ |
+| Pass Rate | At least one spec (USL or LSL) |
+| Cp        | Both USL and LSL               |
+| Cpk       | At least one spec (USL or LSL) |
+
+When no specifications are configured, the StatsPanel shows only basic statistics (Mean, Std Dev, Sample count).
+
+---
+
 ## Capability Grades
 
 | Cpk       | Grade     | Interpretation |

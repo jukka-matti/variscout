@@ -4,52 +4,24 @@ import ProbabilityPlot from './charts/ProbabilityPlot';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import type { StatsResult, GlossaryTerm } from '@variscout/core';
 
-// Status helper functions
-const getCpStatus = (value: number): 'good' | 'warning' | 'poor' => {
-  if (value >= 1.33) return 'good';
-  if (value >= 1.0) return 'warning';
-  return 'poor';
-};
-
-const getPassRateStatus = (value: number): 'good' | 'warning' | 'poor' => {
-  if (value >= 99) return 'good';
-  if (value >= 95) return 'warning';
-  return 'poor';
-};
-
-const getStatusColor = (status?: 'good' | 'warning' | 'poor'): string => {
-  if (!status) return 'text-white';
-  return status === 'good'
-    ? 'text-green-500'
-    : status === 'warning'
-      ? 'text-amber-500'
-      : 'text-red-400';
-};
-
 // MetricCard component for the summary grid
 interface MetricCardProps {
   label: string;
   value: string | number;
   helpTerm?: GlossaryTerm;
-  status?: 'good' | 'warning' | 'poor';
   unit?: string;
 }
 
-const MetricCard = ({ label, value, helpTerm, status, unit }: MetricCardProps) => (
+const MetricCard = ({ label, value, helpTerm, unit }: MetricCardProps) => (
   <div className="bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center">
     <div className="flex items-center justify-center gap-1 text-xs text-content-secondary mb-1">
       {label}
       {helpTerm && <HelpTooltip term={helpTerm} iconSize={12} />}
     </div>
-    <div className={`text-xl font-bold font-mono ${getStatusColor(status)}`}>
+    <div className="text-xl font-bold font-mono text-white">
       {value}
       {unit}
     </div>
-    {status && (
-      <div className={`text-xs mt-1 ${getStatusColor(status)}`}>
-        {status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Marginal' : '✗ Poor'}
-      </div>
-    )}
   </div>
 );
 
@@ -125,67 +97,44 @@ const MobileStatsPanel: React.FC<MobileStatsPanelProps> = ({
               </div>
             ) : (
               /* Process Health Card Grid */
-              <>
-                <div className="grid grid-cols-2 gap-2">
-                  <MetricCard
-                    label="Pass Rate"
-                    value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
-                    unit="%"
-                    helpTerm={getTerm('passRate')}
-                    status={getPassRateStatus(100 - (stats?.outOfSpecPercentage || 0))}
-                  />
-                  <MetricCard
-                    label="Cp"
-                    value={stats?.cp?.toFixed(2) ?? 'N/A'}
-                    helpTerm={getTerm('cp')}
-                    status={stats?.cp ? getCpStatus(stats.cp) : undefined}
-                  />
-                  <MetricCard
-                    label="Cpk"
-                    value={stats?.cpk?.toFixed(2) ?? 'N/A'}
-                    helpTerm={getTerm('cpk')}
-                    status={stats?.cpk ? getCpStatus(stats.cpk) : undefined}
-                  />
-                  <MetricCard
-                    label="Mean"
-                    value={stats?.mean?.toFixed(2) ?? 'N/A'}
-                    helpTerm={getTerm('mean')}
-                  />
-                  <MetricCard
-                    label="Std Dev"
-                    value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
-                    helpTerm={getTerm('stdDev')}
-                  />
-                  <MetricCard label="Samples" value={`n=${filteredData?.length ?? 0}`} />
-                </div>
-
-                {/* Specs Display */}
-                <div className="mt-4 p-4 bg-surface/50 rounded-xl border border-edge/50">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-content-muted text-xs mb-1 flex items-center justify-center gap-1">
-                        LSL
-                        <HelpTooltip term={getTerm('lsl')} iconSize={12} />
-                      </div>
-                      <div className="font-mono text-white text-lg">{specs.lsl ?? '-'}</div>
-                    </div>
-                    <div>
-                      <div className="text-content-muted text-xs mb-1 flex items-center justify-center gap-1">
-                        Target
-                        <HelpTooltip term={getTerm('target')} iconSize={12} />
-                      </div>
-                      <div className="font-mono text-white text-lg">{specs.target ?? '-'}</div>
-                    </div>
-                    <div>
-                      <div className="text-content-muted text-xs mb-1 flex items-center justify-center gap-1">
-                        USL
-                        <HelpTooltip term={getTerm('usl')} iconSize={12} />
-                      </div>
-                      <div className="font-mono text-white text-lg">{specs.usl ?? '-'}</div>
-                    </div>
+              (() => {
+                const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
+                return (
+                  <div className="grid grid-cols-2 gap-2">
+                    {hasSpecs && (
+                      <>
+                        <MetricCard
+                          label="Pass Rate"
+                          value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
+                          unit="%"
+                          helpTerm={getTerm('passRate')}
+                        />
+                        <MetricCard
+                          label="Cp"
+                          value={stats?.cp?.toFixed(2) ?? 'N/A'}
+                          helpTerm={getTerm('cp')}
+                        />
+                        <MetricCard
+                          label="Cpk"
+                          value={stats?.cpk?.toFixed(2) ?? 'N/A'}
+                          helpTerm={getTerm('cpk')}
+                        />
+                      </>
+                    )}
+                    <MetricCard
+                      label="Mean"
+                      value={stats?.mean?.toFixed(2) ?? 'N/A'}
+                      helpTerm={getTerm('mean')}
+                    />
+                    <MetricCard
+                      label="Std Dev"
+                      value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
+                      helpTerm={getTerm('stdDev')}
+                    />
+                    <MetricCard label="Samples" value={`n=${filteredData?.length ?? 0}`} />
                   </div>
-                </div>
-              </>
+                );
+              })()
             )}
           </div>
         )}

@@ -38,6 +38,10 @@ Compact card for displaying statistics.
 </div>
 ```
 
+### Conditional Visibility
+
+Spec-dependent metrics (Pass Rate, Cp, Cpk) are hidden when no specification limits are configured. Only basic statistics (Mean, Std Dev, Samples) are shown until USL or LSL is set.
+
 ---
 
 ## See Also
