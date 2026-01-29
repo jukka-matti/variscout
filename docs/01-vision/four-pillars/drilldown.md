@@ -40,47 +40,54 @@ Finding: Machine C = 78% of Night Shift variation
 Action: Primary driver identified — investigate Machine C conditions
 ```
 
-### Breadcrumb Trail
+### Filter Chips UI
 
 ```
-All Data → Shift (67%) → Night (89%) → Machine C (78%)
+┌─────────────────────────────────────────────────────────────────────────┐
+│ ACTIVE FILTERS                                                          │
+│                                                                         │
+│ ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐ │
+│ │ Shift: Night ▼ 67% │  │ Machine: C ▼ 24%   │  │ Operator: Kim ▼ 9% │ │
+│ └────────────────────┘  └────────────────────┘  └────────────────────┘ │
+│                                                                         │
+│ CUMULATIVE: 46% of total variation isolated                            │
+│ "Fix this combination to address nearly half your quality problems"    │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-This path represents 46% of total variation — highly actionable.
+Each chip shows contribution % to TOTAL variation (not local η²).
 
 ---
 
 ## Cumulative Variation Tracking
 
-!!! methodology "The Power of the Breadcrumb"
-This is the killer insight of the entire methodology. The breadcrumb trail isn't just navigation — it's **cumulative math** that tells you exactly how much of your total problem you've isolated.
+!!! methodology "The Power of Filter Chips"
+This is the killer insight of the entire methodology. Filter chips aren't just navigation — they show **contribution to TOTAL variation** that tells you exactly how much of your total problem you've isolated.
 
 !!! warning "Important Terminology"
 VariScout identifies **factors driving variation**, not "root causes." EDA shows _which_ factors explain variation — the _why_ requires further investigation (5 Whys, experimentation, Gemba walks). This distinction matters: we quantify contribution, not causation.
 
-### The Math Behind the Breadcrumb
+### The Math Behind Contribution %
 
-Each drill-down level multiplies to show cumulative impact:
+Each filter's contribution % shows what portion of TOTAL variation it captures:
 
 ```
-LEVEL           LOCAL %     CUMULATIVE CALCULATION     TOTAL IMPACT
-─────────────────────────────────────────────────────────────────────
-All Data          100%      100%                       100% (baseline)
-    ↓
-Shift             67%       100% × 67%                 = 67% of total
-    ↓
-Night Shift       89%       100% × 67% × 89%           = 59.6% of total
-    ↓
-Machine C         78%       100% × 67% × 89% × 78%     = 46.5% of total
+FILTER CHIP                  CONTRIBUTION TO TOTAL    MEANING
+────────────────────────────────────────────────────────────────────────
+[Shift: Night ▼ 67%]         67% of total             Night shift alone
+[Machine: C ▼ 24%]           24% of total             Machine C within context
+[Operator: Kim ▼ 9%]         9% of total              Kim within context
+
+CUMULATIVE ISOLATION: ~46% of total variation in ONE condition
 ```
 
-**The insight:** By drilling three levels deep, you've isolated 46.5% of ALL your variation into ONE specific condition: Machine C on Night Shift.
+**The insight:** By applying three filters, you've isolated 46.5% of ALL your variation into ONE specific condition: Operator Kim on Machine C during Night Shift.
 
 ---
 
 ## Why This Changes Everything
 
-| Traditional Approach                | VariScout Breadcrumb Approach                     |
+| Traditional Approach                | VariScout Filter Chip Approach                    |
 | ----------------------------------- | ------------------------------------------------- |
 | "Our Cp is 0.4, process is chaotic" | "46% of variation = Machine C on Nights"          |
 | "We need to improve quality"        | "Fix this ONE combination = half the problem"     |
@@ -92,50 +99,67 @@ Machine C         78%       100% × 67% × 89% × 78%     = 46.5% of total
 
 ## The Actionability Hierarchy
 
-As you drill deeper, actionability increases:
+As you add more filters, actionability increases:
 
 ```
-DEPTH    BREADCRUMB                    FINDING                 ACTIONABILITY
-──────────────────────────────────────────────────────────────────────────────
-Level 0  All Data                      "We have variation"     ❌ Not actionable
-                                                               "Improve everything"
+DEPTH    FILTER CHIPS                         FINDING                 ACTIONABILITY
+──────────────────────────────────────────────────────────────────────────────────────
+Level 0  (no filters)                         "We have variation"     ❌ Not actionable
+                                                                      "Improve everything"
 
-Level 1  → Shift (67%)                 "It's shift-related"    ⚠️ Somewhat actionable
-                                                               "Look at shift practices"
+Level 1  [Shift: Night ▼ 67%]                 "It's shift-related"    ⚠️ Somewhat actionable
+                                                                      "Look at shift practices"
 
-Level 2  → → Night (89%)               "Night Shift is the     ✓ Actionable
-                                        problem"               "Investigate Night Shift"
+Level 2  + [Machine: C ▼ 24%]                 "Night + Machine C"     ✓ Actionable
+                                                                      "Investigate Machine C"
 
-Level 3  → → → Machine C (78%)         "Machine C on Nights"   ✓✓ Highly actionable
-                                                               "Fix Machine C setup/maint"
-
-Level 4  → → → → New Operators (92%)   "Inexperienced staff    ✓✓✓ PRIMARY DRIVER
-                                        on Machine C Nights"   "Training is top candidate"
+Level 3  + [Operator: Kim ▼ 9%]               "Kim on C at Night"     ✓✓ Highly actionable
+                                                                      "Fix Machine C setup/maint"
 ```
 
 ---
 
-## Reading the Breadcrumb
+## Reading Filter Chips
 
-**Local Percentage (shown in breadcrumb):**
+**Contribution % (shown in chip):**
 
-> "Of the variation at THIS level, how much does this factor explain?"
+> "Of TOTAL variation from ALL data, how much does this specific selection capture?"
 
-**Cumulative Percentage (calculated):**
-
-> "Of TOTAL variation from the beginning, how much have we isolated?"
+Unlike local η² which shows variation at the current filtered level, contribution % always references the original dataset.
 
 ```
-Example Breadcrumb:
-All Data → Shift (67%) → Night (89%) → Machine C (78%)
-           ↑             ↑              ↑
-           Local: 67%    Local: 89%     Local: 78%
-           of total      of Shift       of Night Shift
-
-           Cumulative:   Cumulative:    Cumulative:
-           67%           59.6%          46.5%
-           of total      of total       of total
+Example Filter Chips:
+[Shift: Night ▼ 67%]  [Machine: C ▼ 24%]  [Operator: Kim ▼ 9%]
+       ↑                    ↑                    ↑
+       67% of TOTAL         24% of TOTAL         9% of TOTAL
+       variation            variation            variation
 ```
+
+---
+
+## Multi-Select Capability
+
+Filter chips support selecting multiple values within a factor:
+
+```
+┌────────────────────────┐
+│ Machine: A, C ▼ 45%    │  ← Two machines selected
+└────────────────────────┘
+
+Clicking the dropdown reveals:
+┌─────────────────────────┐
+│ Machine                 │
+├─────────────────────────┤
+│ ☑ A             23%    │
+│ ☐ B             10%    │
+│ ☑ C             22%    │
+│ ☐ D             12%    │
+├─────────────────────────┤
+│ [Remove Filter]         │
+└─────────────────────────┘
+```
+
+This allows comparing specific combinations without losing context.
 
 ---
 
@@ -207,17 +231,17 @@ TO ONE CONDITION
 
 ---
 
-## The Breadcrumb as Communication Tool
+## Filter Chips as Communication Tool
 
 **Before (traditional):**
 
 > "ANOVA shows statistically significant differences between shifts (p<0.001) with eta-squared of 0.67, and within the night shift subset, machine effects show F(2,267)=45.3..."
 
-**After (VariScout breadcrumb):**
+**After (VariScout filter chips):**
 
-> "All Data → Shift (67%) → Night (89%) → Machine C (78%)
+> Filter chips: `[Shift: Night ▼ 67%] [Machine: C ▼ 24%] [Operator: Kim ▼ 9%]`
 >
-> Translation: Machine C on Night Shift explains 46% of all our quality variation. Fix this one combination and nearly half our problems disappear."
+> Translation: "This combination explains 46% of all our quality variation. Fix this one combination and nearly half our problems disappear."
 
 **Which one does the plant manager act on?**
 
@@ -225,18 +249,20 @@ TO ONE CONDITION
 
 ## Implementation in VariScout UI
 
-The breadcrumb should always show:
+The filter chips should always show:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ 📍 ANALYSIS PATH                                                        │
+│ ACTIVE FILTERS                                                          │
 │                                                                         │
-│ All Data → Shift (67%) → Night (89%) → Machine C (78%)                 │
+│ ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐ │
+│ │ Shift: Night ▼ 67% │  │ Machine: C ▼ 24%   │  │ Operator: Kim ▼ 9% │ │
+│ └────────────────────┘  └────────────────────┘  └────────────────────┘ │
 │                                                                         │
-│ 📊 Cumulative Impact: 46.5% of total variation isolated                │
-│ 💡 "Fix this combination to address nearly half your quality problems" │
+│ CUMULATIVE: 46% of total variation isolated                            │
+│ "Fix this combination to address nearly half your quality problems"    │
 │                                                                         │
-│ [← Back to Night Shift]  [← Back to All Shifts]  [← Start Over]        │
+│ [Clear All Filters]                                                     │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 

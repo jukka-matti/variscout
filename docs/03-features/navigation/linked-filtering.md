@@ -50,10 +50,30 @@ This isn't just a UI feature — it's how the Four Pillars interconnect:
 ### State Management
 
 ```typescript
-// DataContext maintains filter state
-const { filters, setFilter, clearFilters } = useDataContext();
+import { useFilterNavigation, useVariationTracking } from '@variscout/hooks';
 
-// Filters propagate to all charts
+// Filter navigation manages active filters
+const {
+  filterStack,
+  applyFilter,
+  updateFilterValues,
+  removeFilter,
+  clearFilters,
+  hasFilters,
+} = useFilterNavigation(
+  { filters, setFilters, columnAliases },
+  { enableHistory: true }
+);
+
+// Variation tracking provides filter chip data
+const { filterChipData, cumulativeVariationPct } = useVariationTracking(
+  rawData,
+  filterStack,
+  outcome,
+  factors
+);
+
+// Filters propagate to all charts via filteredData
 <IChart data={filteredData} />
 <Boxplot data={filteredData} />
 <ParetoChart data={filteredData} />
@@ -62,11 +82,41 @@ const { filters, setFilter, clearFilters } = useDataContext();
 ### Click Handlers
 
 ```typescript
-// Boxplot click handler
+// Boxplot click handler - single value
 const handleBoxClick = (factor: string, level: string) => {
-  setFilter(factor, level);
+  applyFilter({
+    type: 'filter',
+    source: 'boxplot',
+    factor,
+    values: [level],
+  });
   // All charts automatically re-render with filtered data
 };
+
+// Multi-select handler - toggle value in existing filter
+const handleMultiSelect = (factor: string, value: string, currentValues: string[]) => {
+  const newValues = currentValues.includes(value)
+    ? currentValues.filter(v => v !== value)
+    : [...currentValues, value];
+  updateFilterValues(factor, newValues, 'boxplot');
+};
+```
+
+### Filter Chip Rendering
+
+```typescript
+// Render filter chips from variation tracking
+{filterChipData.map(chip => (
+  <FilterChipDropdown
+    key={chip.factor}
+    factor={chip.factor}
+    values={chip.values}
+    contributionPct={chip.contributionPct}
+    availableValues={chip.availableValues}
+    onValuesChange={(newValues) => updateFilterValues(chip.factor, newValues)}
+    onRemove={() => removeFilter(chip.factor)}
+  />
+))}
 ```
 
 ---
@@ -85,5 +135,5 @@ const handleBoxClick = (factor: string, level: string) => {
 ## See Also
 
 - [Drill-Down](drill-down.md)
-- [Breadcrumbs](breadcrumbs.md)
+- [Filter Chips](breadcrumbs.md)
 - [Four Pillars](../../01-vision/four-pillars/index.md)

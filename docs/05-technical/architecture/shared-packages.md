@@ -103,11 +103,12 @@ All charts are props-based:
 ```typescript
 import {
   useChartScale, // Y-axis scale calculation
-  useFilterNavigation, // Filter-based drill-down navigation
-  useVariationTracking, // Cumulative η² tracking
+  useFilterNavigation, // Filter navigation with multi-select support
+  useVariationTracking, // Cumulative η² tracking + filter chip data
   useDataState, // Shared DataContext state
   useKeyboardNavigation, // Arrow key focus
   useResponsiveChartMargins, // Dynamic margins
+  type FilterChipData, // Filter chip data structure
 } from '@variscout/hooks';
 ```
 

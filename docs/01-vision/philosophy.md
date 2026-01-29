@@ -39,7 +39,7 @@ This distinction matters: we quantify contribution, not causation.
 
 > **46% of your variation may be hiding in one place. Find it. Fix it. Check it. Continue.**
 
-This isn't a marketing claim — it's what the drill-down methodology routinely reveals. By following the breadcrumb trail of highest-impact factors, practitioners typically isolate a significant portion of total variation to specific, actionable conditions.
+This isn't a marketing claim — it's what the drill-down methodology routinely reveals. By applying filter chips to the highest-impact factors, practitioners typically isolate a significant portion of total variation to specific, actionable conditions.
 
 ---
 

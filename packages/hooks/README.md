@@ -67,16 +67,25 @@ const [state, actions] = useDataState({
 
 #### `useFilterNavigation`
 
-Manages filter navigation with breadcrumb trail, toggle behavior, and optional browser history/URL sync.
+Manages filter navigation with filter chips, multi-select support, toggle behavior, and optional browser history/URL sync.
 
 ```tsx
-const { applyFilter, removeFilter, navigateTo, breadcrumbs, clearFilters, hasFilters } =
-  useFilterNavigation(
-    { filters, setFilters, columnAliases },
-    { enableHistory: true, enableUrlSync: true }
-  );
+const {
+  filterStack,
+  applyFilter,
+  updateFilterValues,
+  removeFilter,
+  removeLastFilter,
+  navigateTo,
+  breadcrumbs,
+  clearFilters,
+  hasFilters,
+} = useFilterNavigation(
+  { filters, setFilters, columnAliases },
+  { enableHistory: true, enableUrlSync: true }
+);
 
-// Filter into a Pareto category
+// Filter into a Pareto category (single value)
 applyFilter({
   type: 'filter',
   source: 'pareto',
@@ -84,8 +93,14 @@ applyFilter({
   values: ['Scratch'],
 });
 
-// Go back one level
-removeFilter();
+// Multi-select: update filter with multiple values
+updateFilterValues('Machine', ['A', 'C'], 'boxplot');
+
+// Remove a specific filter by factor name
+removeFilter('DefectType');
+
+// Go back one level (remove last filter)
+removeLastFilter();
 
 // Navigate to specific breadcrumb
 navigateTo('action-id');
@@ -100,16 +115,18 @@ navigateTo('action-id');
 
 **Returns:**
 
-| Property           | Type                     | Description                         |
-| ------------------ | ------------------------ | ----------------------------------- |
-| `filterStack`      | `FilterAction[]`         | Current navigation stack            |
-| `breadcrumbs`      | `BreadcrumbItem[]`       | UI-ready breadcrumb items           |
-| `currentHighlight` | `HighlightState \| null` | Currently highlighted I-Chart point |
-| `applyFilter`      | `function`               | Filter into data subset             |
-| `removeFilter`     | `function`               | Go back one level                   |
-| `navigateTo`       | `function`               | Navigate to specific point          |
-| `clearFilters`     | `function`               | Reset all filter state              |
-| `hasFilters`       | `boolean`                | Whether any filters are active      |
+| Property             | Type                                                              | Description                               |
+| -------------------- | ----------------------------------------------------------------- | ----------------------------------------- |
+| `filterStack`        | `FilterAction[]`                                                  | Current navigation stack                  |
+| `breadcrumbs`        | `BreadcrumbItem[]`                                                | UI-ready breadcrumb items                 |
+| `currentHighlight`   | `HighlightState \| null`                                          | Currently highlighted I-Chart point       |
+| `applyFilter`        | `function`                                                        | Filter into data subset                   |
+| `updateFilterValues` | `(factor: string, values: (string \| number)[], source?) => void` | Update/create filter with multiple values |
+| `removeFilter`       | `(factor: string) => void`                                        | Remove a specific filter by factor name   |
+| `removeLastFilter`   | `function`                                                        | Go back one level                         |
+| `navigateTo`         | `function`                                                        | Navigate to specific point                |
+| `clearFilters`       | `function`                                                        | Reset all filter state                    |
+| `hasFilters`         | `boolean`                                                         | Whether any filters are active            |
 
 ---
 
@@ -172,7 +189,7 @@ useKeyboardNavigation({
 
 #### `useVariationTracking`
 
-Tracks cumulative variation (η²) through drill-down navigation for the "variation funnel" insight.
+Tracks cumulative variation (η²) through drill-down navigation and provides filter chip data for the enhanced breadcrumb UI.
 
 ```tsx
 const {
@@ -181,22 +198,76 @@ const {
   impactLevel,
   factorVariations,
   categoryContributions,
+  filterChipData,
 } = useVariationTracking(rawData, filterStack, outcome, factors);
 
 // Use factorVariations to highlight high-impact factors
 const machineVariation = factorVariations.get('Machine'); // e.g., 0.67 (67%)
+
+// Use filterChipData for rendering filter chips with contribution %
+filterChipData.forEach(chip => {
+  console.log(`${chip.factor}: ${chip.contributionPct}% of total variation`);
+});
 ```
 
 **Returns:**
 
-| Property                   | Type                                         | Description                                  |
-| -------------------------- | -------------------------------------------- | -------------------------------------------- |
-| `breadcrumbsWithVariation` | `BreadcrumbItem[]`                           | Breadcrumbs with variation percentages       |
-| `cumulativeVariationPct`   | `number \| null`                             | Total % of original variation isolated       |
-| `impactLevel`              | `'high' \| 'moderate' \| 'low' \| null`      | Impact classification                        |
-| `insightText`              | `string \| null`                             | Human-readable insight                       |
-| `factorVariations`         | `Map<string, number>`                        | η² for each factor (for filter suggestions)  |
-| `categoryContributions`    | `Map<string, Map<string \| number, number>>` | Per-category contribution to total variation |
+| Property                   | Type                                         | Description                                                  |
+| -------------------------- | -------------------------------------------- | ------------------------------------------------------------ |
+| `breadcrumbsWithVariation` | `BreadcrumbItem[]`                           | Breadcrumbs with variation percentages                       |
+| `cumulativeVariationPct`   | `number \| null`                             | Total % of original variation isolated                       |
+| `impactLevel`              | `'high' \| 'moderate' \| 'low' \| null`      | Impact classification                                        |
+| `insightText`              | `string \| null`                             | Human-readable insight                                       |
+| `factorVariations`         | `Map<string, number>`                        | η² for each factor (for filter suggestions)                  |
+| `categoryContributions`    | `Map<string, Map<string \| number, number>>` | Per-category contribution to total variation                 |
+| `filterChipData`           | `FilterChipData[]`                           | Data for rendering filter chips with contribution % to TOTAL |
+
+---
+
+#### `FilterChipData` Interface
+
+Data structure for rendering filter chips with multi-select support:
+
+```typescript
+interface FilterChipData {
+  /** The factor/column name being filtered */
+  factor: string;
+  /** Currently selected value(s) */
+  values: (string | number)[];
+  /** Combined contribution % of selected values to TOTAL variation */
+  contributionPct: number;
+  /** All available values for the dropdown with their individual contributions */
+  availableValues: {
+    value: string | number;
+    contributionPct: number;
+    isSelected: boolean;
+  }[];
+}
+```
+
+**Usage with filter chips:**
+
+```tsx
+import { useFilterNavigation, useVariationTracking } from '@variscout/hooks';
+
+const { filterStack, updateFilterValues, removeFilter } = useFilterNavigation(context);
+const { filterChipData } = useVariationTracking(rawData, filterStack, outcome, factors);
+
+// Render filter chips
+{
+  filterChipData.map(chip => (
+    <FilterChip
+      key={chip.factor}
+      factor={chip.factor}
+      values={chip.values}
+      contributionPct={chip.contributionPct}
+      availableValues={chip.availableValues}
+      onValuesChange={newValues => updateFilterValues(chip.factor, newValues)}
+      onRemove={() => removeFilter(chip.factor)}
+    />
+  ));
+}
+```
 
 ---
 
@@ -379,6 +450,9 @@ import type {
   SavedProject,
   DashboardProps,
   AzureDashboardProps,
+  FilterChipData,
+  UseFilterNavigationReturn,
+  VariationTrackingResult,
 } from '@variscout/hooks';
 ```
 

@@ -162,18 +162,31 @@ Shared UI component library for Web and Azure apps (not Excel Add-in).
 
 Shared React hooks for cross-platform functionality:
 
-| Hook                        | Purpose                                              |
-| --------------------------- | ---------------------------------------------------- |
-| `useChartScale`             | Calculate Y-axis range from data, specs, and grades  |
-| `useFilterNavigation`       | Filter navigation with breadcrumb trail              |
-| `useVariationTracking`      | Cumulative η² variation tracking through filter path |
-| `useKeyboardNavigation`     | Arrow key navigation and focus management            |
-| `useResponsiveChartMargins` | Dynamic chart margins based on container width       |
+| Hook                        | Purpose                                                       |
+| --------------------------- | ------------------------------------------------------------- |
+| `useChartScale`             | Calculate Y-axis range from data, specs, and grades           |
+| `useFilterNavigation`       | Filter navigation with multi-select and filter chip support   |
+| `useVariationTracking`      | Cumulative η² tracking + filter chip data with contribution % |
+| `useKeyboardNavigation`     | Arrow key navigation and focus management                     |
+| `useResponsiveChartMargins` | Dynamic chart margins based on container width                |
+
+**Key types:**
+
+| Type                        | Purpose                                                        |
+| --------------------------- | -------------------------------------------------------------- |
+| `FilterChipData`            | Filter chip data with contribution % and available values      |
+| `UseFilterNavigationReturn` | Return type including `updateFilterValues()`, `removeFilter()` |
+| `VariationTrackingResult`   | Return type including `filterChipData`                         |
 
 **Usage:**
 
 ```typescript
-import { useFilterNavigation, useChartScale } from '@variscout/hooks';
+import {
+  useFilterNavigation,
+  useVariationTracking,
+  useChartScale,
+  type FilterChipData,
+} from '@variscout/hooks';
 ```
 
 ### @variscout/analysis

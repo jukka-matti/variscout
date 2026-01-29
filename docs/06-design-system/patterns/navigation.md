@@ -4,28 +4,58 @@ Navigation patterns used across VariScout applications.
 
 ---
 
-## Drill-Down Breadcrumb
+## Filter Chips
 
-The breadcrumb shows the analysis path and cumulative variation:
+Filter chips show active filters with contribution % to total variation:
 
 ```
-All Data → Shift (67%) → Night (89%) → Machine C (78%)
+┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐
+│ Shift: Night ▼ 67% │  │ Machine: C ▼ 24%   │  │ Operator: Kim ▼ 9% │
+└────────────────────┘  └────────────────────┘  └────────────────────┘
 ```
 
 ### Implementation
 
 ```tsx
-<FilterBreadcrumb items={breadcrumbs} onNavigate={handleNavigate} showCumulative={true} />
+import { useFilterNavigation, useVariationTracking } from '@variscout/hooks';
+
+const { filterStack, updateFilterValues, removeFilter } = useFilterNavigation(context);
+const { filterChipData } = useVariationTracking(rawData, filterStack, outcome, factors);
+
+{
+  filterChipData.map(chip => (
+    <FilterChipDropdown
+      key={chip.factor}
+      factor={chip.factor}
+      values={chip.values}
+      contributionPct={chip.contributionPct}
+      availableValues={chip.availableValues}
+      onValuesChange={newValues => updateFilterValues(chip.factor, newValues)}
+      onRemove={() => removeFilter(chip.factor)}
+    />
+  ));
+}
 ```
 
 ### Visual Design
 
-| Element         | Style                 |
-| --------------- | --------------------- |
-| Separator       | `→` or `›`            |
-| Percentage      | Muted, in parentheses |
-| Current level   | Bold, no link         |
-| Previous levels | Clickable links       |
+| Element         | Style                                    |
+| --------------- | ---------------------------------------- |
+| Chip            | Rounded pill with factor name and values |
+| Percentage      | Contribution % to TOTAL variation        |
+| Dropdown arrow  | Click to reveal all values with %        |
+| Selected values | Checkmarks in dropdown                   |
+| Remove button   | X icon or "Remove Filter" in dropdown    |
+
+### Multi-Select
+
+Chips support selecting multiple values within a factor:
+
+```
+┌────────────────────────┐
+│ Machine: A, C ▼ 45%    │
+└────────────────────────┘
+```
 
 ---
 
@@ -98,7 +128,7 @@ Mobile uses a hamburger menu with drawer:
 | `←` / `→`   | Navigate between factors      |
 | `↑` / `↓`   | Navigate within factor levels |
 | `Enter`     | Select/drill into             |
-| `Backspace` | Go back one level             |
+| `Backspace` | Remove last filter            |
 | `Escape`    | Exit focus mode               |
 
 ---
@@ -106,5 +136,5 @@ Mobile uses a hamburger menu with drawer:
 ## See Also
 
 - [Drill-Down Feature](../../03-features/navigation/drill-down.md)
-- [Breadcrumbs](../../03-features/navigation/breadcrumbs.md)
+- [Filter Chips](../../03-features/navigation/breadcrumbs.md)
 - [Accessibility](../foundations/accessibility.md)
