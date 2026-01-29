@@ -15,7 +15,7 @@ export const chartColors = {
   mean: '#3b82f6', // blue-500 - center line
   meanAlt: '#60a5fa', // blue-400 - alternative mean indicator
   target: '#22c55e', // green-500 - target line
-  spec: '#ef4444', // red-500 - specification limits
+  spec: '#f97316', // orange-500 - specification limits (Voice of Customer)
   control: '#94a3b8', // slate-400 - control limits (UCL/LCL)
 
   // Selection/interaction states

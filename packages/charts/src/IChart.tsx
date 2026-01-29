@@ -176,12 +176,14 @@ const IChartBase: React.FC<IChartProps> = ({
     return new Set<number>();
   }, [data, stats, isStaged, stagedStats, stageBoundaries, grades]);
 
-  // Determine point color using Minitab-style 2-color scheme
-  // Blue = in-control, Red = any violation
+  // Determine point color using Two Voices model:
+  // Orange = spec violation (Voice of Customer - defect)
+  // Red = control violation only (Voice of Process - instability)
+  // Blue = in-control (healthy process)
   const getPointColor = (value: number, index: number, stage?: string): string => {
-    // Priority 1: Check spec limit violations -> Red
-    if (specs.usl !== undefined && value > specs.usl) return chartColors.fail;
-    if (specs.lsl !== undefined && value < specs.lsl) return chartColors.fail;
+    // Priority 1: Check spec limit violations -> Orange (customer defect takes priority)
+    if (specs.usl !== undefined && value > specs.usl) return chartColors.spec;
+    if (specs.lsl !== undefined && value < specs.lsl) return chartColors.spec;
 
     // Priority 2: Check control limit violations (use stage-specific limits if staged) -> Red
     const stageStats = getStageStatsForPoint(stage);
@@ -190,16 +192,16 @@ const IChartBase: React.FC<IChartProps> = ({
       if (value < stageStats.lcl) return chartColors.fail;
     }
 
-    // Priority 3: Check Nelson Rule 2 violations -> Red
+    // Priority 3: Check Nelson Rule 2 violations -> Red (process pattern)
     if (nelsonRule2Violations.has(index)) return chartColors.fail;
 
     // Priority 4: Check grades (multi-tier) - use grade colors when in control
     if (grades && grades.length > 0) {
       const grade = grades.find(g => value <= g.max);
-      return grade?.color || chartColors.fail; // Default red if above all grades but mostly covered by specs
+      return grade?.color || chartColors.spec; // Default orange if above all grades
     }
 
-    // Priority 5: In-control default -> Blue (Minitab-style)
+    // Priority 5: In-control default -> Blue (healthy process)
     return chartColors.mean;
   };
 
