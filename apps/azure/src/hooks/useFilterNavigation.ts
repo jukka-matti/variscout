@@ -1,36 +1,36 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useData } from '../context/DataContext';
 import {
-  type DrillAction,
-  type DrillSource,
-  type DrillType,
+  type FilterAction,
+  type FilterSource,
+  type FilterType,
   type HighlightState,
   type BreadcrumbItem,
-  createDrillAction,
-  popDrillStack,
-  popDrillStackTo,
-  pushDrillStack,
-  drillStackToFilters,
-  drillStackToBreadcrumbs,
-  shouldToggleDrill,
+  createFilterAction,
+  popFilterStack,
+  popFilterStackTo,
+  pushFilterStack,
+  filterStackToFilters,
+  filterStackToBreadcrumbs,
+  shouldToggleFilter,
   searchParamsToFilters,
   updateUrlWithFilters,
   isEmbedMode,
 } from '@variscout/core';
-import type { DrillDownContext } from './types';
 
 /**
- * Options for useDrillDown hook
+ * Options for useFilterNavigation hook
  */
-export interface UseDrillDownOptions {
-  /** Push/pop browser history on drill changes (enables back button) */
+export interface UseFilterNavigationOptions {
+  /** Push/pop browser history on filter changes (enables back button) */
   enableHistory?: boolean;
   /** Sync filters to URL parameters (enables shareable URLs) */
   enableUrlSync?: boolean;
 }
 
-export interface UseDrillDownReturn {
-  /** Current drill stack */
-  drillStack: DrillAction[];
+export interface UseFilterNavigationReturn {
+  /** Current filter stack */
+  filterStack: FilterAction[];
 
   /** Breadcrumb items for UI display */
   breadcrumbs: BreadcrumbItem[];
@@ -39,13 +39,13 @@ export interface UseDrillDownReturn {
   currentHighlight: HighlightState | null;
 
   /**
-   * Drill down into data subset
+   * Apply a filter to the data
    * For filter type: applies filter and adds to breadcrumb trail
    * For highlight type: just highlights without filtering
    */
-  drillDown: (params: {
-    type: DrillType;
-    source: DrillSource;
+  applyFilter: (params: {
+    type: FilterType;
+    source: FilterSource;
     factor?: string;
     values: (string | number)[];
     rowIndex?: number;
@@ -53,20 +53,20 @@ export interface UseDrillDownReturn {
   }) => void;
 
   /**
-   * Go back one level in drill history
+   * Remove the last filter from the stack
    */
-  drillUp: () => void;
+  removeLastFilter: () => void;
 
   /**
-   * Navigate to a specific point in drill history
-   * Pass 'root' to clear all drills
+   * Navigate to a specific point in filter history
+   * Pass 'root' to clear all filters
    */
-  drillTo: (actionId: string) => void;
+  navigateTo: (actionId: string) => void;
 
   /**
-   * Clear all drill state (back to root)
+   * Clear all filter state (back to root)
    */
-  clearDrill: () => void;
+  clearFilters: () => void;
 
   /**
    * Set highlight without filtering (for I-Chart)
@@ -79,9 +79,25 @@ export interface UseDrillDownReturn {
   clearHighlight: () => void;
 
   /**
-   * Check if there are any active drills
+   * Check if there are any active filters
    */
-  hasDrills: boolean;
+  hasFilters: boolean;
+
+  /**
+   * Update the values for an existing filter
+   * If the filter doesn't exist, creates a new one
+   * If newValues is empty, removes the filter
+   */
+  updateFilterValues: (
+    factor: string,
+    newValues: (string | number)[],
+    source?: FilterSource
+  ) => void;
+
+  /**
+   * Remove a specific filter by factor name
+   */
+  removeFilter: (factor: string) => void;
 }
 
 /**
@@ -92,51 +108,28 @@ interface HistoryState {
 }
 
 /**
- * Hook for managing drill-down navigation state
- *
- * Uses context injection pattern - apps pass their data context
- * rather than this hook importing a specific context.
+ * Hook for managing filter navigation state
  *
  * Provides:
- * - Drill stack for tracking navigation history
+ * - Filter stack for tracking navigation history
  * - Breadcrumb generation for UI
  * - Automatic filter sync with DataContext
  * - Toggle behavior (clicking same filter removes it)
  * - Browser history integration (back button support)
  * - URL parameter sync (shareable URLs)
  *
- * @param context - Drill down context with filters and setFilters
  * @param options - Configuration options
- * @param options.enableHistory - Push/pop browser history on drill changes
+ * @param options.enableHistory - Push/pop browser history on filter changes
  * @param options.enableUrlSync - Sync filters to URL parameters
- *
- * @example
- * ```tsx
- * // In PWA or Azure app
- * const { filters, setFilters, columnAliases } = useData();
- * const { drillDown, breadcrumbs, clearDrill } = useDrillDown(
- *   { filters, setFilters, columnAliases },
- *   { enableHistory: true, enableUrlSync: true }
- * );
- *
- * // Drill into Pareto category
- * drillDown({
- *   type: 'filter',
- *   source: 'pareto',
- *   factor: 'DefectType',
- *   values: ['Scratch'],
- * });
- * ```
  */
-export function useDrillDown(
-  context: DrillDownContext,
-  options: UseDrillDownOptions = {}
-): UseDrillDownReturn {
+export function useFilterNavigation(
+  options: UseFilterNavigationOptions = {}
+): UseFilterNavigationReturn {
   const { enableHistory = false, enableUrlSync = false } = options;
-  const { filters, setFilters, columnAliases } = context;
+  const { filters, setFilters, columnAliases } = useData();
 
-  // Drill navigation state
-  const [drillStack, setDrillStack] = useState<DrillAction[]>([]);
+  // Filter navigation state
+  const [filterStack, setFilterStack] = useState<FilterAction[]>([]);
   const [currentHighlight, setCurrentHighlight] = useState<HighlightState | null>(null);
 
   // Track if we're handling a popstate event (to avoid pushing history)
@@ -155,10 +148,10 @@ export function useDrillDown(
 
     const urlFilters = searchParamsToFilters(new URLSearchParams(window.location.search));
     if (Object.keys(urlFilters).length > 0) {
-      // Create drill actions from URL filters
-      const initialStack: DrillAction[] = [];
+      // Create filter actions from URL filters
+      const initialStack: FilterAction[] = [];
       for (const [factor, values] of Object.entries(urlFilters)) {
-        const action = createDrillAction({
+        const action = createFilterAction({
           type: 'filter',
           source: 'boxplot', // Default source for URL-loaded filters
           factor,
@@ -170,7 +163,7 @@ export function useDrillDown(
         }
         initialStack.push(action);
       }
-      setDrillStack(initialStack);
+      setFilterStack(initialStack);
       setFilters(urlFilters);
 
       // Replace current history state to include initial filters
@@ -195,10 +188,10 @@ export function useDrillDown(
       const state = event.state as HistoryState | null;
       const restoredFilters = state?.drillFilters || {};
 
-      // Rebuild drill stack from restored filters
-      const restoredStack: DrillAction[] = [];
+      // Rebuild filter stack from restored filters
+      const restoredStack: FilterAction[] = [];
       for (const [factor, values] of Object.entries(restoredFilters)) {
-        const action = createDrillAction({
+        const action = createFilterAction({
           type: 'filter',
           source: 'boxplot',
           factor,
@@ -210,7 +203,7 @@ export function useDrillDown(
         restoredStack.push(action);
       }
 
-      setDrillStack(restoredStack);
+      setFilterStack(restoredStack);
       setFilters(restoredFilters);
 
       // Update URL to match restored state (if URL sync enabled)
@@ -229,10 +222,10 @@ export function useDrillDown(
     return () => window.removeEventListener('popstate', handlePopstate);
   }, [shouldUseHistory, shouldSyncUrl, columnAliases, setFilters]);
 
-  // Sync drill stack to DataContext filters and optionally update URL/history
+  // Sync filter stack to DataContext filters and optionally update URL/history
   const syncFiltersFromStack = useCallback(
-    (stack: DrillAction[], pushHistory = true) => {
-      const newFilters = drillStackToFilters(stack);
+    (stack: FilterAction[], pushHistory = true) => {
+      const newFilters = filterStackToFilters(stack);
       setFilters(newFilters);
 
       // Update URL parameters
@@ -255,11 +248,11 @@ export function useDrillDown(
     [setFilters, shouldSyncUrl, shouldUseHistory]
   );
 
-  // Drill down into data
-  const drillDown = useCallback(
+  // Apply filter to data
+  const applyFilter = useCallback(
     (params: {
-      type: DrillType;
-      source: DrillSource;
+      type: FilterType;
+      source: FilterSource;
       factor?: string;
       values: (string | number)[];
       rowIndex?: number;
@@ -278,18 +271,18 @@ export function useDrillDown(
       }
 
       // Check if this would toggle off an existing filter
-      if (shouldToggleDrill(drillStack, params)) {
+      if (shouldToggleFilter(filterStack, params)) {
         // Find and remove the matching action
-        const newStack = drillStack.filter(
+        const newStack = filterStack.filter(
           a => !(a.type === 'filter' && a.factor === params.factor)
         );
-        setDrillStack(newStack);
+        setFilterStack(newStack);
         syncFiltersFromStack(newStack);
         return;
       }
 
-      // Create new drill action with proper label
-      const action = createDrillAction({
+      // Create new filter action with proper label
+      const action = createFilterAction({
         type: params.type,
         source: params.source,
         factor: params.factor,
@@ -302,39 +295,39 @@ export function useDrillDown(
         action.label = action.label.replace(params.factor, columnAliases[params.factor]);
       }
 
-      const newStack = pushDrillStack(drillStack, action);
-      setDrillStack(newStack);
+      const newStack = pushFilterStack(filterStack, action);
+      setFilterStack(newStack);
       syncFiltersFromStack(newStack);
     },
-    [drillStack, columnAliases, syncFiltersFromStack]
+    [filterStack, columnAliases, syncFiltersFromStack]
   );
 
-  // Go back one level
-  const drillUp = useCallback(() => {
-    const newStack = popDrillStack(drillStack);
-    setDrillStack(newStack);
+  // Remove the last filter
+  const removeLastFilter = useCallback(() => {
+    const newStack = popFilterStack(filterStack);
+    setFilterStack(newStack);
     syncFiltersFromStack(newStack);
-  }, [drillStack, syncFiltersFromStack]);
+  }, [filterStack, syncFiltersFromStack]);
 
   // Navigate to specific point in history
-  const drillTo = useCallback(
+  const navigateTo = useCallback(
     (actionId: string) => {
       if (actionId === 'root') {
-        setDrillStack([]);
+        setFilterStack([]);
         syncFiltersFromStack([]);
         return;
       }
 
-      const newStack = popDrillStackTo(drillStack, actionId);
-      setDrillStack(newStack);
+      const newStack = popFilterStackTo(filterStack, actionId);
+      setFilterStack(newStack);
       syncFiltersFromStack(newStack);
     },
-    [drillStack, syncFiltersFromStack]
+    [filterStack, syncFiltersFromStack]
   );
 
-  // Clear all drills
-  const clearDrill = useCallback(() => {
-    setDrillStack([]);
+  // Clear all filters
+  const clearFilters = useCallback(() => {
+    setFilterStack([]);
     syncFiltersFromStack([]);
     setCurrentHighlight(null);
   }, [syncFiltersFromStack]);
@@ -349,25 +342,87 @@ export function useDrillDown(
     setCurrentHighlight(null);
   }, []);
 
+  // Update values for an existing filter (for multi-select)
+  const updateFilterValues = useCallback(
+    (factor: string, newValues: (string | number)[], source: FilterSource = 'boxplot') => {
+      // If empty values, remove the filter entirely
+      if (newValues.length === 0) {
+        const newStack = filterStack.filter(a => !(a.type === 'filter' && a.factor === factor));
+        setFilterStack(newStack);
+        syncFiltersFromStack(newStack);
+        return;
+      }
+
+      // Find existing filter for this factor
+      const existingIndex = filterStack.findIndex(a => a.type === 'filter' && a.factor === factor);
+
+      if (existingIndex >= 0) {
+        // Update existing filter's values
+        const newStack = [...filterStack];
+        const existing = newStack[existingIndex];
+        const newLabel = `${factor}: ${newValues.slice(0, 2).map(String).join(', ')}${newValues.length > 2 ? ` +${newValues.length - 2}` : ''}`;
+        // Apply column alias to label if available
+        const aliasedLabel = columnAliases[factor]
+          ? newLabel.replace(factor, columnAliases[factor])
+          : newLabel;
+        newStack[existingIndex] = {
+          ...existing,
+          values: newValues,
+          label: aliasedLabel,
+        };
+        setFilterStack(newStack);
+        syncFiltersFromStack(newStack);
+      } else {
+        // Create new filter
+        const action = createFilterAction({
+          type: 'filter',
+          source,
+          factor,
+          values: newValues,
+        });
+        // Update label with alias if available
+        if (columnAliases[factor]) {
+          action.label = action.label.replace(factor, columnAliases[factor]);
+        }
+        const newStack = pushFilterStack(filterStack, action);
+        setFilterStack(newStack);
+        syncFiltersFromStack(newStack);
+      }
+    },
+    [filterStack, columnAliases, syncFiltersFromStack]
+  );
+
+  // Remove a specific filter by factor name
+  const removeFilter = useCallback(
+    (factor: string) => {
+      const newStack = filterStack.filter(a => !(a.type === 'filter' && a.factor === factor));
+      setFilterStack(newStack);
+      syncFiltersFromStack(newStack);
+    },
+    [filterStack, syncFiltersFromStack]
+  );
+
   // Generate breadcrumb items with aliased labels
   const breadcrumbs = useMemo(() => {
-    return drillStackToBreadcrumbs(drillStack, 'All Data');
-  }, [drillStack]);
+    return filterStackToBreadcrumbs(filterStack, 'All Data');
+  }, [filterStack]);
 
-  const hasDrills = drillStack.length > 0;
+  const hasFilters = filterStack.length > 0;
 
   return {
-    drillStack,
+    filterStack,
     breadcrumbs,
     currentHighlight,
-    drillDown,
-    drillUp,
-    drillTo,
-    clearDrill,
+    applyFilter,
+    removeLastFilter,
+    navigateTo,
+    clearFilters,
     setHighlight,
     clearHighlight,
-    hasDrills,
+    hasFilters,
+    updateFilterValues,
+    removeFilter,
   };
 }
 
-export default useDrillDown;
+export default useFilterNavigation;

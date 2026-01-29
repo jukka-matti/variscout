@@ -11,7 +11,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { Activity, AlertTriangle, RefreshCw, Settings, X } from 'lucide-react';
-import MeasureColumnSelector from './MeasureColumnSelector';
+import { MeasureColumnSelector } from '@variscout/ui';
 import { useData } from '../context/DataContext';
 import { detectChannelColumns } from '@variscout/core';
 

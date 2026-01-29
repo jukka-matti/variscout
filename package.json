@@ -1,5 +1,5 @@
 {
-  "name": "variscout-lite-monorepo",
+  "name": "variscout",
   "version": "1.0.0",
   "private": true,
   "description": "VariScout Lite monorepo - PWA and Excel Add-in",
@@ -10,7 +10,6 @@
     "build": "pnpm -r build",
     "build:pwa": "pnpm --filter @variscout/pwa build",
     "build:pwa:community": "VITE_EDITION=community pnpm --filter @variscout/pwa build",
-    "build:pwa:itc": "VITE_EDITION=itc pnpm --filter @variscout/pwa build",
     "build:pwa:licensed": "VITE_EDITION=licensed pnpm --filter @variscout/pwa build",
     "build:excel": "pnpm --filter @variscout/excel-addin build",
     "build:excel:prod": "pnpm --filter @variscout/excel-addin build:prod",

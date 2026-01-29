@@ -2,10 +2,20 @@
  * Hooks barrel export for Azure app
  */
 
-export { useDrillDown, type UseDrillDownReturn } from './useDrillDown';
+// Filter Navigation
+export {
+  useFilterNavigation,
+  type UseFilterNavigationOptions,
+  type UseFilterNavigationReturn,
+} from './useFilterNavigation';
+
 export { useChartScale } from './useChartScale';
 export { useDataIngestion } from './useDataIngestion';
-export { useVariationTracking, type VariationTrackingResult } from './useVariationTracking';
+export {
+  useVariationTracking,
+  type VariationTrackingResult,
+  type FilterChipData,
+} from './useVariationTracking';
 export {
   useResponsiveChartMargins,
   useResponsiveChartFonts,

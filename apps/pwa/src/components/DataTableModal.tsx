@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { getSpecStatus } from '../lib/export';
-import type { ExclusionReason } from '../logic/parser';
+import type { ExclusionReason } from '@variscout/core';
 
 // Pagination threshold - show pagination for datasets larger than this
 const ROWS_PER_PAGE = 500;

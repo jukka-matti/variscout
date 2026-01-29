@@ -6,10 +6,12 @@ License key system for the paid PWA edition.
 
 ## License Model
 
-| Tier          | Price    | Features                          |
-| ------------- | -------- | --------------------------------- |
-| **Community** | Free     | Full features, VariScout branding |
-| **Licensed**  | €99/year | No branding, theme customization  |
+| Tier          | Price    | Features                                                |
+| ------------- | -------- | ------------------------------------------------------- |
+| **Community** | Free     | Full features, VariScout branding                       |
+| **Licensed**  | €99/year | No branding, theme customization (requires PWA install) |
+
+> **PWA-Only Theming**: Theme customization (light/dark/system modes and accent colors) requires installing the app as a PWA (Add to Home Screen). This encourages full app installation for the best experience.
 
 ---
 
@@ -61,7 +63,7 @@ USER                    PWA                      BACKEND
 import { getEdition, isThemingEnabled } from '@variscout/core';
 
 // Check edition
-const edition = getEdition(); // 'community' | 'itc' | 'licensed'
+const edition = getEdition(); // 'community' | 'licensed'
 
 // Feature gate
 if (isThemingEnabled()) {

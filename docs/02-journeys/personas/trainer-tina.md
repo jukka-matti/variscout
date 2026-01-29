@@ -146,7 +146,7 @@ journey
 ### Partnership Opportunities
 
 - Curriculum integration materials
-- Custom branding for training organizations (ITC edition model)
+- Custom branding for training organizations
 - Volume licensing for training programs
 - Co-marketing with training courses
 

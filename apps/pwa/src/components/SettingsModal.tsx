@@ -70,7 +70,7 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
   const handleActivateLicense = () => {
     if (storeLicenseKey(licenseKey)) {
       setLicenseStatus('valid');
-      setEdition('pro');
+      setEdition('licensed');
     } else {
       setLicenseStatus('invalid');
     }
@@ -381,20 +381,12 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
           <div className="bg-surface/50 rounded-lg p-4 border border-edge">
             {/* Current Status */}
             <div className="flex items-center gap-3 mb-4">
-              {edition === 'pro' ? (
+              {edition === 'licensed' ? (
                 <>
                   <CheckCircle size={20} className="text-green-500" />
                   <div>
-                    <div className="text-white font-medium">VariScout Lite Pro</div>
+                    <div className="text-white font-medium">Licensed Edition</div>
                     <div className="text-xs text-content-muted">Branding removed</div>
-                  </div>
-                </>
-              ) : edition === 'itc' ? (
-                <>
-                  <CheckCircle size={20} className="text-blue-500" />
-                  <div>
-                    <div className="text-white font-medium">ITC Edition</div>
-                    <div className="text-xs text-content-muted">International Trade Centre</div>
                   </div>
                 </>
               ) : (
@@ -450,8 +442,8 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               </div>
             )}
 
-            {/* Remove License (only for pro with license) */}
-            {edition === 'pro' && licenseStatus === 'valid' && (
+            {/* Remove License (only for licensed with license) */}
+            {edition === 'licensed' && licenseStatus === 'valid' && (
               <button
                 onClick={handleRemoveLicense}
                 className="text-xs text-content-muted hover:text-red-400 transition-colors"

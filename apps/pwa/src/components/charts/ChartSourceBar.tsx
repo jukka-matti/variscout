@@ -4,7 +4,7 @@ import {
   getSourceBarHeight as getSourceBarHeightBase,
 } from '@variscout/charts';
 import { EDITION_COLORS } from '@variscout/core';
-import { shouldShowBranding, getBrandingText, isITCEdition } from '../../lib/edition';
+import { shouldShowBranding, getBrandingText } from '../../lib/edition';
 
 interface ChartSourceBarProps {
   width: number;
@@ -19,16 +19,12 @@ interface ChartSourceBarProps {
  */
 const ChartSourceBar: React.FC<ChartSourceBarProps> = ({ width, top, n, left = 0 }) => {
   const showBranding = shouldShowBranding();
-  const isITC = isITCEdition();
   const brandingText = getBrandingText();
 
-  // Don't render if Pro edition (no branding)
-  if (!showBranding && !isITC) {
+  // Don't render if licensed edition (no branding)
+  if (!showBranding) {
     return null;
   }
-
-  // Accent color: ITC blue for ITC, VariScout blue for community
-  const accentColor = isITC ? EDITION_COLORS.itc : EDITION_COLORS.variscout;
 
   return (
     <ChartSourceBarBase
@@ -37,8 +33,7 @@ const ChartSourceBar: React.FC<ChartSourceBarProps> = ({ width, top, n, left = 0
       left={left}
       n={n}
       brandingText={brandingText}
-      accentColor={accentColor}
-      forceShow={isITC}
+      accentColor={EDITION_COLORS.variscout}
     />
   );
 };
@@ -50,7 +45,5 @@ export default ChartSourceBar;
  */
 export function getSourceBarHeight(): number {
   const showBranding = shouldShowBranding();
-  const isITC = isITCEdition();
-
-  return getSourceBarHeightBase(showBranding || isITC);
+  return getSourceBarHeightBase(showBranding);
 }

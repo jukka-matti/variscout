@@ -7,7 +7,6 @@ import {
   getEdition,
   shouldShowBranding,
   getBrandingText,
-  isITCEdition,
   getSignatureText,
   isThemingEnabled,
 } from '../edition';
@@ -25,13 +24,9 @@ describe('edition module', () => {
 
   describe('configureEdition', () => {
     it('should accept community edition', () => {
+      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
       configureEdition('community');
       expect(getEdition()).toBe('community');
-    });
-
-    it('should accept itc edition', () => {
-      configureEdition('itc');
-      expect(getEdition()).toBe('itc');
     });
 
     it('should accept licensed edition', () => {
@@ -40,7 +35,7 @@ describe('edition module', () => {
     });
 
     it('should accept null to reset', () => {
-      configureEdition('itc');
+      configureEdition('licensed');
       configureEdition(null);
       // Without a license, should default to community
       vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
@@ -49,11 +44,6 @@ describe('edition module', () => {
   });
 
   describe('getEdition', () => {
-    it('should return itc when configured as itc', () => {
-      configureEdition('itc');
-      expect(getEdition()).toBe('itc');
-    });
-
     it('should return licensed when configured as licensed', () => {
       configureEdition('licensed');
       expect(getEdition()).toBe('licensed');
@@ -71,7 +61,7 @@ describe('edition module', () => {
       expect(getEdition()).toBe('community');
     });
 
-    it('should return community even with config when license check returns true', () => {
+    it('should return licensed even with community config when license check returns true', () => {
       vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(true);
       configureEdition('community');
       // Community config but valid license -> still licensed
@@ -90,11 +80,6 @@ describe('edition module', () => {
       configureEdition('licensed');
       expect(shouldShowBranding()).toBe(false);
     });
-
-    it('should return false for itc edition', () => {
-      configureEdition('itc');
-      expect(shouldShowBranding()).toBe(false);
-    });
   });
 
   describe('getBrandingText', () => {
@@ -104,32 +89,9 @@ describe('edition module', () => {
       expect(getBrandingText()).toBe('VariScout Lite');
     });
 
-    it('should return International Trade Centre for itc', () => {
-      configureEdition('itc');
-      expect(getBrandingText()).toBe('International Trade Centre');
-    });
-
     it('should return empty string for licensed', () => {
       configureEdition('licensed');
       expect(getBrandingText()).toBe('');
-    });
-  });
-
-  describe('isITCEdition', () => {
-    it('should return true for itc edition', () => {
-      configureEdition('itc');
-      expect(isITCEdition()).toBe(true);
-    });
-
-    it('should return false for community edition', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
-      configureEdition(null);
-      expect(isITCEdition()).toBe(false);
-    });
-
-    it('should return false for licensed edition', () => {
-      configureEdition('licensed');
-      expect(isITCEdition()).toBe(false);
     });
   });
 
@@ -138,11 +100,6 @@ describe('edition module', () => {
       vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
       configureEdition(null);
       expect(getSignatureText()).toBe('VariScout');
-    });
-
-    it('should return ITC for itc', () => {
-      configureEdition('itc');
-      expect(getSignatureText()).toBe('ITC');
     });
 
     it('should return empty string for licensed', () => {
@@ -163,11 +120,6 @@ describe('edition module', () => {
       expect(isThemingEnabled()).toBe(false);
     });
 
-    it('should return false for itc edition', () => {
-      configureEdition('itc');
-      expect(isThemingEnabled()).toBe(false);
-    });
-
     it('should return true when user activates license in community build', () => {
       vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(true);
       configureEdition(null);
@@ -176,13 +128,6 @@ describe('edition module', () => {
   });
 
   describe('edition hierarchy', () => {
-    it('should prioritize ITC over license check', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(true);
-      configureEdition('itc');
-      // ITC takes priority even with a valid license
-      expect(getEdition()).toBe('itc');
-    });
-
     it('should prioritize licensed config over license check', () => {
       vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
       configureEdition('licensed');

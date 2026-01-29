@@ -1,35 +1,35 @@
 /**
- * Navigation types and utilities for drill-down navigation
+ * Navigation types and utilities for filter navigation
  *
  * Provides a consistent navigation model across all VariScout products:
- * - PWA: Full interactive drill-down with history
+ * - PWA: Full interactive filter navigation with history
  * - Excel: Read-only display (slicers control filtering)
- * - Azure: Full interactive drill-down with history
+ * - Azure: Full interactive filter navigation with history
  */
 
 /**
- * Types of drill-down actions
+ * Types of filter actions
  * - highlight: Show data point without filtering (I-Chart)
  * - filter: Filter data to subset (Boxplot, Pareto)
  */
-export type DrillType = 'highlight' | 'filter';
+export type FilterType = 'highlight' | 'filter';
 
 /**
- * Source chart that initiated the drill action
+ * Source chart that initiated the filter action
  */
-export type DrillSource = 'ichart' | 'boxplot' | 'pareto' | 'histogram';
+export type FilterSource = 'ichart' | 'boxplot' | 'pareto' | 'histogram' | 'funnel';
 
 /**
- * A single drill-down action in the navigation history
+ * A single filter action in the navigation history
  */
-export interface DrillAction {
+export interface FilterAction {
   /** Unique identifier for this action */
   id: string;
-  /** Type of drill (highlight vs filter) */
-  type: DrillType;
-  /** Which chart initiated the drill */
-  source: DrillSource;
-  /** The factor/column being drilled (for filter type) */
+  /** Type of action (highlight vs filter) */
+  type: FilterType;
+  /** Which chart initiated the filter */
+  source: FilterSource;
+  /** The factor/column being filtered */
   factor?: string;
   /** The value(s) being selected */
   values: (string | number)[];
@@ -39,13 +39,13 @@ export interface DrillAction {
   timestamp: number;
   /** Display label for breadcrumb UI */
   label: string;
-  /** Eta-squared (η²) - variation explained by this factor at drill time (0-100) */
+  /** Eta-squared (η²) - variation explained by this factor at filter time (0-100) */
   variationPct?: number;
 }
 
 /**
  * Current highlight state (I-Chart point selection)
- * Separate from drill stack as highlights don't filter data
+ * Separate from filter stack as highlights don't filter data
  */
 export interface HighlightState {
   /** Row index in filtered data */
@@ -60,23 +60,23 @@ export interface HighlightState {
  * Complete navigation state
  */
 export interface NavigationState {
-  /** Stack of drill actions (newest last) */
-  drillStack: DrillAction[];
+  /** Stack of filter actions (newest last) */
+  filterStack: FilterAction[];
   /** Current highlight (I-Chart only, not a filter) */
   currentHighlight: HighlightState | null;
 }
 
 /**
- * Generate a unique ID for a drill action
+ * Generate a unique ID for a filter action
  */
-export function generateDrillId(): string {
-  return `drill-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+export function generateFilterId(): string {
+  return `filter-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 /**
- * Generate a display label for a drill action
+ * Generate a display label for a filter action
  */
-export function getDrillLabel(action: DrillAction): string {
+export function getFilterLabel(action: FilterAction): string {
   if (action.type === 'highlight') {
     return `Point #${(action.rowIndex ?? 0) + 1}`;
   }
@@ -95,10 +95,10 @@ export function getDrillLabel(action: DrillAction): string {
 }
 
 /**
- * Convert a drill stack to a filters object for DataContext
+ * Convert a filter stack to a filters object for DataContext
  * Later actions for the same factor override earlier ones
  */
-export function drillStackToFilters(stack: DrillAction[]): Record<string, (string | number)[]> {
+export function filterStackToFilters(stack: FilterAction[]): Record<string, (string | number)[]> {
   const filters: Record<string, (string | number)[]> = {};
 
   for (const action of stack) {
@@ -112,51 +112,51 @@ export function drillStackToFilters(stack: DrillAction[]): Record<string, (strin
 }
 
 /**
- * Create a new drill action with auto-generated ID and timestamp
+ * Create a new filter action with auto-generated ID and timestamp
  */
-export function createDrillAction(
-  params: Omit<DrillAction, 'id' | 'timestamp' | 'label'>
-): DrillAction {
-  const action: DrillAction = {
+export function createFilterAction(
+  params: Omit<FilterAction, 'id' | 'timestamp' | 'label'>
+): FilterAction {
+  const action: FilterAction = {
     ...params,
-    id: generateDrillId(),
+    id: generateFilterId(),
     timestamp: Date.now(),
     label: '', // Will be set below
   };
-  action.label = getDrillLabel(action);
+  action.label = getFilterLabel(action);
   return action;
 }
 
 /**
- * Find the index of a drill action by ID
+ * Find the index of a filter action by ID
  * Returns -1 if not found
  */
-export function findDrillIndex(stack: DrillAction[], actionId: string): number {
+export function findFilterIndex(stack: FilterAction[], actionId: string): number {
   return stack.findIndex(a => a.id === actionId);
 }
 
 /**
- * Pop the drill stack back to a specific action (inclusive)
+ * Pop the filter stack back to a specific action (inclusive)
  * Returns the new stack with everything after actionId removed
  */
-export function popDrillStackTo(stack: DrillAction[], actionId: string): DrillAction[] {
-  const index = findDrillIndex(stack, actionId);
+export function popFilterStackTo(stack: FilterAction[], actionId: string): FilterAction[] {
+  const index = findFilterIndex(stack, actionId);
   if (index === -1) return stack;
   return stack.slice(0, index + 1);
 }
 
 /**
- * Pop the most recent action from the drill stack
+ * Pop the most recent action from the filter stack
  */
-export function popDrillStack(stack: DrillAction[]): DrillAction[] {
+export function popFilterStack(stack: FilterAction[]): FilterAction[] {
   if (stack.length === 0) return stack;
   return stack.slice(0, -1);
 }
 
 /**
- * Push a new action onto the drill stack
+ * Push a new action onto the filter stack
  */
-export function pushDrillStack(stack: DrillAction[], action: DrillAction): DrillAction[] {
+export function pushFilterStack(stack: FilterAction[], action: FilterAction): FilterAction[] {
   return [...stack, action];
 }
 
@@ -164,9 +164,9 @@ export function pushDrillStack(stack: DrillAction[], action: DrillAction): Drill
  * Check if clicking the same factor value should toggle (remove) the filter
  * Returns true if the action would result in the same filter as current
  */
-export function shouldToggleDrill(
-  stack: DrillAction[],
-  newAction: Omit<DrillAction, 'id' | 'timestamp' | 'label'>
+export function shouldToggleFilter(
+  stack: FilterAction[],
+  newAction: Omit<FilterAction, 'id' | 'timestamp' | 'label'>
 ): boolean {
   if (newAction.type !== 'filter' || !newAction.factor) return false;
 
@@ -193,19 +193,19 @@ export interface BreadcrumbItem {
   id: string;
   label: string;
   isActive: boolean;
-  source: DrillSource;
-  /** Local variation % (η²) explained at this drill level (0-100) */
+  source: FilterSource;
+  /** Local variation % (η²) explained at this filter level (0-100) */
   localVariationPct?: number;
-  /** Cumulative variation % isolated by all drills up to this point (0-100) */
+  /** Cumulative variation % isolated by all filters up to this point (0-100) */
   cumulativeVariationPct?: number;
 }
 
 /**
- * Convert drill stack to breadcrumb items for UI
+ * Convert filter stack to breadcrumb items for UI
  * Adds a "root" item at the beginning
  */
-export function drillStackToBreadcrumbs(
-  stack: DrillAction[],
+export function filterStackToBreadcrumbs(
+  stack: FilterAction[],
   rootLabel = 'All Data'
 ): BreadcrumbItem[] {
   const items: BreadcrumbItem[] = [
@@ -233,7 +233,7 @@ export function drillStackToBreadcrumbs(
  * Initial/empty navigation state
  */
 export const initialNavigationState: NavigationState = {
-  drillStack: [],
+  filterStack: [],
   currentHighlight: null,
 };
 

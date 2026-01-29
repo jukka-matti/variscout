@@ -79,13 +79,12 @@ https://app.variscout.com?sample=mango-export&embed=true
 
 ### Editions
 
-| Edition       | Price    | Features                                      |
-| ------------- | -------- | --------------------------------------------- |
-| **Community** | Free     | Full features, "VariScout" branding on charts |
-| **ITC**       | Free     | Full features, ITC branding (for ITC network) |
-| **Licensed**  | €99/year | Full features, no branding                    |
+| Edition       | Price    | Features                                                      |
+| ------------- | -------- | ------------------------------------------------------------- |
+| **Community** | Free     | Full features, "VariScout" branding on charts                 |
+| **Licensed**  | €99/year | Full features, no branding, theme customization (PWA install) |
 
-Activate Licensed edition by entering a license key in Settings → License.
+Activate Licensed edition by entering a license key in Settings → License. Theme customization requires installing the PWA (Add to Home Screen).
 
 ## Getting Started
 
@@ -127,8 +126,7 @@ pnpm preview         # Preview production build
 
 ```bash
 pnpm build:pwa:community    # Free with branding
-pnpm build:pwa:itc          # ITC-branded
-pnpm build:pwa:licensed     # No branding
+pnpm build:pwa:licensed     # No branding, theme customization
 ```
 
 ### Test

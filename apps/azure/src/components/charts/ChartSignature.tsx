@@ -1,5 +1,5 @@
 import React from 'react';
-import { shouldShowBranding, getSignatureText, isITCEdition } from '../../lib/edition';
+import { shouldShowBranding, getSignatureText } from '../../lib/edition';
 
 interface ChartSignatureProps {
   x: number; // Right edge position
@@ -12,11 +12,10 @@ interface ChartSignatureProps {
  */
 const ChartSignature: React.FC<ChartSignatureProps> = ({ x, y }) => {
   const showBranding = shouldShowBranding();
-  const isITC = isITCEdition();
   const signatureText = getSignatureText();
 
   // Azure deployments are licensed, so no signature is shown
-  if (!showBranding && !isITC) {
+  if (!showBranding) {
     return null;
   }
 

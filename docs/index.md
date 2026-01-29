@@ -89,11 +89,10 @@ VariScout is EDA (Exploratory Data Analysis) for process improvement - not stati
 
 ## Editions
 
-| Edition       | Branding       | Theming                     | Price    |
-| ------------- | -------------- | --------------------------- | -------- |
-| **Community** | VariScout logo | Dark only                   | Free     |
-| **ITC**       | ITC branding   | Dark only                   | Partner  |
-| **Licensed**  | No branding    | Light/Dark/System + Accents | €99/year |
+| Edition       | Branding       | Theming                                | Price    |
+| ------------- | -------------- | -------------------------------------- | -------- |
+| **Community** | VariScout logo | Dark only                              | Free     |
+| **Licensed**  | No branding    | Light/Dark/System + Accents (PWA only) | €99/year |
 
 ---
 

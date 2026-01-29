@@ -9,7 +9,7 @@
 export type {
   ChartScaleContext,
   ChartScaleResult,
-  DrillDownContext,
+  FilterNavigationContext,
   VariationTrackingContext,
   DataContextInterface,
 } from './types';
@@ -51,11 +51,19 @@ export {
   type ChartType,
 } from './useResponsiveChartMargins';
 
-// Drill-Down Navigation
-export { useDrillDown, type UseDrillDownOptions, type UseDrillDownReturn } from './useDrillDown';
+// Filter Navigation
+export {
+  useFilterNavigation,
+  type UseFilterNavigationOptions,
+  type UseFilterNavigationReturn,
+} from './useFilterNavigation';
 
 // Variation Tracking
-export { useVariationTracking, type VariationTrackingResult } from './useVariationTracking';
+export {
+  useVariationTracking,
+  type VariationTrackingResult,
+  type FilterChipData,
+} from './useVariationTracking';
 
 // Keyboard Navigation
 export { useKeyboardNavigation, type KeyboardNavigationOptions } from './useKeyboardNavigation';
@@ -92,3 +100,26 @@ export type {
   DashboardProps,
   AzureDashboardProps,
 } from './types/dashboardProps';
+
+// Column Classification
+export {
+  useColumnClassification,
+  type ColumnClassificationOptions,
+  type ColumnClassification,
+} from './useColumnClassification';
+
+// Regression State
+export {
+  useRegressionState,
+  type RegressionMode,
+  type UseRegressionStateOptions,
+  type UseRegressionStateReturn,
+} from './useRegressionState';
+
+// Data Ingestion
+export {
+  useDataIngestion,
+  type DataIngestionActions,
+  type UseDataIngestionOptions,
+  type UseDataIngestionReturn,
+} from './useDataIngestion';

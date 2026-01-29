@@ -61,6 +61,8 @@ interface DataContextType extends Omit<DataState, 'saveProject' | 'loadProject'>
   setMeasureLabel: DataActions['setMeasureLabel'];
   setSelectedMeasure: DataActions['setSelectedMeasure'];
   setCpkTarget: DataActions['setCpkTarget'];
+  setMeasureSpecs: DataActions['setMeasureSpecs'];
+  setMeasureSpec: DataActions['setMeasureSpec'];
 
   // Azure-specific persistence methods (with location support)
   saveProject: (name: string, location?: StorageLocation) => Promise<SavedProject>;
@@ -71,6 +73,10 @@ interface DataContextType extends Omit<DataState, 'saveProject' | 'loadProject'>
   exportProject: DataActions['exportProject'];
   importProject: DataActions['importProject'];
   newProject: DataActions['newProject'];
+
+  // Per-measure specs (Performance Mode)
+  measureSpecs: Record<string, { usl?: number; lsl?: number; target?: number }>;
+  getSpecsForMeasure: (measureId: string) => { usl?: number; lsl?: number; target?: number };
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -182,6 +188,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       selectedMeasure: state.selectedMeasure,
       performanceResult: state.performanceResult,
       cpkTarget: state.cpkTarget,
+      measureSpecs: state.measureSpecs,
+      getSpecsForMeasure: state.getSpecsForMeasure,
 
       // Azure-specific state
       currentProjectLocation,
@@ -215,6 +223,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setMeasureLabel: actions.setMeasureLabel,
       setSelectedMeasure: actions.setSelectedMeasure,
       setCpkTarget: actions.setCpkTarget,
+      setMeasureSpecs: actions.setMeasureSpecs,
+      setMeasureSpec: actions.setMeasureSpec,
 
       // Azure-enhanced persistence methods
       saveProject,

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useDrillDown } from '../useDrillDown';
+import { useFilterNavigation } from '../useFilterNavigation';
 import * as DataContextModule from '../../context/DataContext';
 
 // Mock the DataContext
@@ -8,7 +8,7 @@ vi.mock('../../context/DataContext', () => ({
   useData: vi.fn(),
 }));
 
-describe('useDrillDown', () => {
+describe('useFilterNavigation', () => {
   const mockSetFilters = vi.fn();
   const mockDataContext = {
     filters: {},
@@ -65,20 +65,20 @@ describe('useDrillDown', () => {
   });
 
   describe('basic functionality', () => {
-    it('initializes with empty drill stack', () => {
-      const { result } = renderHook(() => useDrillDown());
+    it('initializes with empty filter stack', () => {
+      const { result } = renderHook(() => useFilterNavigation());
 
-      expect(result.current.drillStack).toEqual([]);
-      expect(result.current.hasDrills).toBe(false);
+      expect(result.current.filterStack).toEqual([]);
+      expect(result.current.hasFilters).toBe(false);
       expect(result.current.breadcrumbs).toHaveLength(1);
       expect(result.current.breadcrumbs[0].id).toBe('root');
     });
 
-    it('drillDown adds action to stack', () => {
-      const { result } = renderHook(() => useDrillDown());
+    it('applyFilter adds action to stack', () => {
+      const { result } = renderHook(() => useFilterNavigation());
 
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Machine',
@@ -86,23 +86,23 @@ describe('useDrillDown', () => {
         });
       });
 
-      expect(result.current.drillStack).toHaveLength(1);
-      expect(result.current.drillStack[0].factor).toBe('Machine');
-      expect(result.current.drillStack[0].values).toEqual(['A']);
-      expect(result.current.hasDrills).toBe(true);
+      expect(result.current.filterStack).toHaveLength(1);
+      expect(result.current.filterStack[0].factor).toBe('Machine');
+      expect(result.current.filterStack[0].values).toEqual(['A']);
+      expect(result.current.hasFilters).toBe(true);
     });
 
-    it('drillDown toggles off existing filter', () => {
+    it('applyFilter toggles off existing filter', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         ...mockDataContext,
         filters: { Machine: ['A'] },
       } as any);
 
-      const { result } = renderHook(() => useDrillDown());
+      const { result } = renderHook(() => useFilterNavigation());
 
-      // First add a drill
+      // First add a filter
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Machine',
@@ -112,7 +112,7 @@ describe('useDrillDown', () => {
 
       // Now toggle it off
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Machine',
@@ -120,16 +120,16 @@ describe('useDrillDown', () => {
         });
       });
 
-      expect(result.current.drillStack).toHaveLength(0);
-      expect(result.current.hasDrills).toBe(false);
+      expect(result.current.filterStack).toHaveLength(0);
+      expect(result.current.hasFilters).toBe(false);
     });
 
-    it('clearDrill resets all state', () => {
-      const { result } = renderHook(() => useDrillDown());
+    it('clearFilters resets all state', () => {
+      const { result } = renderHook(() => useFilterNavigation());
 
-      // Add some drills
+      // Add some filters
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Machine',
@@ -138,19 +138,19 @@ describe('useDrillDown', () => {
       });
 
       act(() => {
-        result.current.clearDrill();
+        result.current.clearFilters();
       });
 
-      expect(result.current.drillStack).toHaveLength(0);
-      expect(result.current.hasDrills).toBe(false);
+      expect(result.current.filterStack).toHaveLength(0);
+      expect(result.current.hasFilters).toBe(false);
     });
 
-    it('drillTo navigates to specific action', () => {
-      const { result } = renderHook(() => useDrillDown());
+    it('navigateTo navigates to specific action', () => {
+      const { result } = renderHook(() => useFilterNavigation());
 
-      // Add two drills
+      // Add two filters
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Machine',
@@ -158,10 +158,10 @@ describe('useDrillDown', () => {
         });
       });
 
-      const firstActionId = result.current.drillStack[0].id;
+      const firstActionId = result.current.filterStack[0].id;
 
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Shift',
@@ -169,22 +169,22 @@ describe('useDrillDown', () => {
         });
       });
 
-      expect(result.current.drillStack).toHaveLength(2);
+      expect(result.current.filterStack).toHaveLength(2);
 
       // Navigate back to first action
       act(() => {
-        result.current.drillTo(firstActionId);
+        result.current.navigateTo(firstActionId);
       });
 
-      expect(result.current.drillStack).toHaveLength(1);
-      expect(result.current.drillStack[0].factor).toBe('Machine');
+      expect(result.current.filterStack).toHaveLength(1);
+      expect(result.current.filterStack[0].factor).toBe('Machine');
     });
 
-    it('drillTo root clears all drills', () => {
-      const { result } = renderHook(() => useDrillDown());
+    it('navigateTo root clears all filters', () => {
+      const { result } = renderHook(() => useFilterNavigation());
 
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Machine',
@@ -193,19 +193,19 @@ describe('useDrillDown', () => {
       });
 
       act(() => {
-        result.current.drillTo('root');
+        result.current.navigateTo('root');
       });
 
-      expect(result.current.drillStack).toHaveLength(0);
+      expect(result.current.filterStack).toHaveLength(0);
     });
   });
 
   describe('highlight functionality', () => {
-    it('handles highlight type drill without adding to stack', () => {
-      const { result } = renderHook(() => useDrillDown());
+    it('handles highlight type filter without adding to stack', () => {
+      const { result } = renderHook(() => useFilterNavigation());
 
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'highlight',
           source: 'ichart',
           values: [42],
@@ -213,7 +213,7 @@ describe('useDrillDown', () => {
         });
       });
 
-      expect(result.current.drillStack).toHaveLength(0);
+      expect(result.current.filterStack).toHaveLength(0);
       expect(result.current.currentHighlight).toEqual({
         rowIndex: 5,
         value: 42,
@@ -222,7 +222,7 @@ describe('useDrillDown', () => {
     });
 
     it('setHighlight and clearHighlight work correctly', () => {
-      const { result } = renderHook(() => useDrillDown());
+      const { result } = renderHook(() => useFilterNavigation());
 
       act(() => {
         result.current.setHighlight(10, 50.5, 15);
@@ -244,7 +244,7 @@ describe('useDrillDown', () => {
 
   describe('breadcrumb generation', () => {
     it('generates correct breadcrumbs', () => {
-      const { result } = renderHook(() => useDrillDown());
+      const { result } = renderHook(() => useFilterNavigation());
 
       // Initially just root
       expect(result.current.breadcrumbs).toHaveLength(1);
@@ -255,9 +255,9 @@ describe('useDrillDown', () => {
         source: 'ichart',
       });
 
-      // Add a drill
+      // Add a filter
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Machine',
@@ -275,11 +275,11 @@ describe('useDrillDown', () => {
   describe('history integration', () => {
     it('pushes history state when enableHistory is true', () => {
       const { result } = renderHook(() =>
-        useDrillDown({ enableHistory: true, enableUrlSync: false })
+        useFilterNavigation({ enableHistory: true, enableUrlSync: false })
       );
 
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Machine',
@@ -295,11 +295,11 @@ describe('useDrillDown', () => {
 
     it('does not push history when enableHistory is false', () => {
       const { result } = renderHook(() =>
-        useDrillDown({ enableHistory: false, enableUrlSync: false })
+        useFilterNavigation({ enableHistory: false, enableUrlSync: false })
       );
 
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Machine',
@@ -315,7 +315,7 @@ describe('useDrillDown', () => {
     it('initializes from URL parameters when enableUrlSync is true', () => {
       window.location.search = '?filter=Machine:A,B';
 
-      renderHook(() => useDrillDown({ enableHistory: false, enableUrlSync: true }));
+      renderHook(() => useFilterNavigation({ enableHistory: false, enableUrlSync: true }));
 
       // Should call setFilters with parsed URL params
       expect(mockSetFilters).toHaveBeenCalledWith({ Machine: ['A', 'B'] });
@@ -333,7 +333,7 @@ describe('useDrillDown', () => {
         writable: true,
       });
 
-      renderHook(() => useDrillDown({ enableHistory: false, enableUrlSync: false }));
+      renderHook(() => useFilterNavigation({ enableHistory: false, enableUrlSync: false }));
 
       // With enableUrlSync false, setFilters should not be called with URL filters
       // Check that we didn't initialize from URL
@@ -353,10 +353,10 @@ describe('useDrillDown', () => {
         columnAliases: { Machine: 'Equipment' },
       } as any);
 
-      const { result } = renderHook(() => useDrillDown());
+      const { result } = renderHook(() => useFilterNavigation());
 
       act(() => {
-        result.current.drillDown({
+        result.current.applyFilter({
           type: 'filter',
           source: 'boxplot',
           factor: 'Machine',
@@ -364,7 +364,7 @@ describe('useDrillDown', () => {
         });
       });
 
-      expect(result.current.drillStack[0].label).toContain('Equipment');
+      expect(result.current.filterStack[0].label).toContain('Equipment');
     });
   });
 });

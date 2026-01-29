@@ -40,7 +40,9 @@ interface VariationFunnelProps {
   specs?: { usl?: number; lsl?: number; target?: number };
   /** Target percentage to explain (default: 70) */
   targetPct?: number;
-  /** Called when user applies selected filters */
+  /** Called when user applies a single filter (integrates with filter navigation) */
+  onApplyFilter?: (factor: string, value: string | number) => void;
+  /** @deprecated Use onApplyFilter instead - applies all selected filters at once */
   onApplyFilters?: (filters: Record<string, (string | number)[]>) => void;
   /** Called when user clicks a factor to drill into it */
   onDrillFactor?: (factor: string, value: string | number) => void;
@@ -104,6 +106,7 @@ const VariationFunnel: React.FC<VariationFunnelProps> = ({
   columnAliases = {},
   specs,
   targetPct = 70,
+  onApplyFilter,
   onApplyFilters,
   onDrillFactor,
   onOpenPopout,
@@ -342,16 +345,29 @@ const VariationFunnel: React.FC<VariationFunnelProps> = ({
 
   // Apply selected filters
   const handleApplyFilters = useCallback(() => {
-    if (!onApplyFilters) return;
-
-    const filters: Record<string, (string | number)[]> = {};
-    for (const f of optimalFactors) {
-      if (selectedFactors.has(f.factor) && f.bestValue !== undefined) {
-        filters[f.factor] = [f.bestValue];
+    // Prefer new onApplyFilter (one at a time for filter navigation integration)
+    if (onApplyFilter) {
+      for (const f of optimalFactors) {
+        if (selectedFactors.has(f.factor) && f.bestValue !== undefined) {
+          onApplyFilter(f.factor, f.bestValue);
+        }
       }
+      // Close panel after applying filters
+      onClose?.();
+      return;
     }
-    onApplyFilters(filters);
-  }, [optimalFactors, selectedFactors, onApplyFilters]);
+
+    // Fallback to legacy onApplyFilters (batch mode)
+    if (onApplyFilters) {
+      const filters: Record<string, (string | number)[]> = {};
+      for (const f of optimalFactors) {
+        if (selectedFactors.has(f.factor) && f.bestValue !== undefined) {
+          filters[f.factor] = [f.bestValue];
+        }
+      }
+      onApplyFilters(filters);
+    }
+  }, [optimalFactors, selectedFactors, onApplyFilter, onApplyFilters, onClose]);
 
   // Handle direct drill on factor
   const handleDrillFactor = useCallback(
@@ -916,7 +932,7 @@ const VariationFunnel: React.FC<VariationFunnelProps> = ({
       </div>
 
       {/* Footer with Apply button */}
-      {onApplyFilters && selectedFactors.size > 0 && (
+      {(onApplyFilter || onApplyFilters) && selectedFactors.size > 0 && (
         <div className="px-4 py-3 border-t border-edge">
           <button
             onClick={handleApplyFilters}

@@ -31,19 +31,19 @@ The PWA is a React application that:
 
 ## Editions
 
-| Edition       | Branding       | Theming                     | Price    |
-| ------------- | -------------- | --------------------------- | -------- |
-| **Community** | VariScout logo | Dark only                   | Free     |
-| **ITC**       | ITC branding   | Dark only                   | Partner  |
-| **Licensed**  | No branding    | Light/Dark/System + Accents | €99/year |
+| Edition       | Branding       | Theming                                | Price    |
+| ------------- | -------------- | -------------------------------------- | -------- |
+| **Community** | VariScout logo | Dark only                              | Free     |
+| **Licensed**  | No branding    | Light/Dark/System + Accents (PWA only) | €99/year |
 
 Build commands:
 
 ```bash
 pnpm build:pwa:community  # Community edition
-pnpm build:pwa:itc        # ITC branded
 pnpm build:pwa:licensed   # Licensed edition
 ```
+
+> **Note**: Theme customization requires PWA installation (Add to Home Screen) plus a valid license key.
 
 ---
 

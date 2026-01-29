@@ -12,7 +12,7 @@ import React, { useMemo, useCallback } from 'react';
 import { Check, Sparkles } from 'lucide-react';
 import type { ChannelInfo } from '@variscout/core';
 
-interface MeasureColumnSelectorProps {
+export interface MeasureColumnSelectorProps {
   /** Available columns from detectChannelColumns() */
   availableColumns: ChannelInfo[];
   /** Currently selected column IDs */
@@ -23,7 +23,7 @@ interface MeasureColumnSelectorProps {
   minColumns?: number;
 }
 
-const MeasureColumnSelector: React.FC<MeasureColumnSelectorProps> = ({
+export const MeasureColumnSelector: React.FC<MeasureColumnSelectorProps> = ({
   availableColumns,
   selectedColumns,
   onSelectionChange,

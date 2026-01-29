@@ -1,8 +1,8 @@
-# ADR-006: Edition System (Community/ITC/Licensed)
+# ADR-006: Edition System (Community/Licensed)
 
 **Status**: Accepted
 
-**Date**: 2024-03-01
+**Date**: 2024-03-01 (Updated: 2025-01)
 
 ---
 
@@ -11,8 +11,7 @@
 We need to support multiple editions of the app:
 
 - **Community**: Free, full features, VariScout branding
-- **ITC**: Custom branding for training partner
-- **Licensed**: Paid (€99), no branding, theme customization
+- **Licensed**: Paid (€99), no branding, theme customization (requires PWA installation)
 
 ---
 
@@ -62,9 +61,17 @@ if (isThemingEnabled()) {
 
 ```bash
 pnpm build:pwa:community  # Community edition
-pnpm build:pwa:itc        # ITC branded
 pnpm build:pwa:licensed   # Licensed edition
 ```
+
+## PWA-Only Theming
+
+Theme customization (light/dark/system modes and accent colors) is only available when:
+
+1. The user has a valid license key
+2. The app is installed as a PWA (Add to Home Screen)
+
+This ensures that theming is a PWA-exclusive feature that encourages installation.
 
 ---
 

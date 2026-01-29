@@ -1,25 +1,16 @@
-import { useCallback } from 'react';
+/**
+ * useDataIngestion - Azure wrapper for shared data ingestion hook
+ *
+ * This wrapper integrates the shared hook with Azure's DataContext.
+ */
+
 import { useData } from '../context/DataContext';
 import {
-  parseCSV,
-  parseExcel,
-  detectColumns,
-  validateData,
-  parseParetoFile,
-} from '../logic/parser';
-import { detectWideFormat, type WideFormatDetection } from '@variscout/core';
-
-// Performance thresholds
-const ROW_WARNING_THRESHOLD = 5000;
-const ROW_HARD_LIMIT = 50000;
-
-interface UseDataIngestionOptions {
-  /** Callback when wide-format (multi-measure) data is detected */
-  onWideFormatDetected?: (result: WideFormatDetection) => void;
-}
+  useDataIngestion as useDataIngestionBase,
+  type UseDataIngestionOptions,
+} from '@variscout/hooks';
 
 export const useDataIngestion = (options?: UseDataIngestionOptions) => {
-  const { onWideFormatDetected } = options || {};
   const {
     setRawData,
     setOutcome,
@@ -37,136 +28,24 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setMeasureLabel,
   } = useData();
 
-  const handleFileUpload = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>): Promise<boolean> => {
-      const file = e.target.files?.[0];
-      if (!file) return false;
-
-      let data: any[] = [];
-      try {
-        if (file.name.endsWith('.csv')) {
-          data = await parseCSV(file);
-        } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-          data = await parseExcel(file);
-        }
-
-        if (data.length > 0) {
-          // Check row limits for performance
-          if (data.length > ROW_HARD_LIMIT) {
-            alert(
-              `File too large (${data.length.toLocaleString()} rows). Maximum is ${ROW_HARD_LIMIT.toLocaleString()} rows.`
-            );
-            return false;
-          }
-          if (data.length > ROW_WARNING_THRESHOLD) {
-            const proceed = window.confirm(
-              `Large dataset (${data.length.toLocaleString()} rows) may slow performance. Continue?`
-            );
-            if (!proceed) return false;
-          }
-
-          setRawData(data);
-          setDataFilename(file.name);
-
-          // Detect columns with enhanced keyword matching
-          const detected = detectColumns(data);
-          if (detected.outcome) setOutcome(detected.outcome);
-          if (detected.factors.length > 0) setFactors(detected.factors);
-
-          // Run validation and store report
-          const report = validateData(data, detected.outcome);
-          setDataQualityReport(report);
-
-          // Check for wide format (multi-measure) data
-          const wideFormat = detectWideFormat(data);
-          if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
-            // Use callback if provided
-            if (onWideFormatDetected) {
-              onWideFormatDetected(wideFormat);
-            }
-          }
-
-          return true;
-        }
-        return false;
-      } catch (error) {
-        console.error('Error parsing file:', error);
-        alert('Error parsing file. Please check format.');
-        return false;
-      }
-    },
-    [
-      setRawData,
-      setDataFilename,
-      setOutcome,
-      setFactors,
-      setDataQualityReport,
-      onWideFormatDetected,
-    ]
-  );
-
-  // Handle separate Pareto file upload
-  const handleParetoFileUpload = useCallback(
-    async (file: File): Promise<boolean> => {
-      try {
-        const paretoData = await parseParetoFile(file);
-        setSeparateParetoData(paretoData);
-        setSeparateParetoFilename(file.name);
-        setParetoMode('separate');
-        return true;
-      } catch (error) {
-        console.error('Error parsing Pareto file:', error);
-        alert(error instanceof Error ? error.message : 'Error parsing Pareto file.');
-        return false;
-      }
-    },
-    [setSeparateParetoData, setSeparateParetoFilename, setParetoMode]
-  );
-
-  // Clear separate Pareto data and switch back to derived mode
-  const clearParetoFile = useCallback(() => {
-    setSeparateParetoData(null);
-    setSeparateParetoFilename(null);
-    setParetoMode('derived');
-  }, [setSeparateParetoData, setSeparateParetoFilename, setParetoMode]);
-
-  const clearData = useCallback(() => {
-    setRawData([]);
-    setDataFilename(null);
-    setOutcome('');
-    setFactors([]);
-    setSpecs({});
-    setGrades([]);
-    setFilters({});
-    setDataQualityReport(null);
-    setParetoMode('derived');
-    setSeparateParetoData(null);
-    setSeparateParetoFilename(null);
-    // Reset performance mode
-    setMeasureColumns([]);
-    setMeasureLabel('Measure');
-    setPerformanceMode(false);
-  }, [
+  // Build actions object for the shared hook
+  const actions = {
     setRawData,
-    setDataFilename,
     setOutcome,
     setFactors,
     setSpecs,
     setGrades,
     setFilters,
+    setDataFilename,
     setDataQualityReport,
     setParetoMode,
     setSeparateParetoData,
     setSeparateParetoFilename,
+    setPerformanceMode,
     setMeasureColumns,
     setMeasureLabel,
-    setPerformanceMode,
-  ]);
-
-  return {
-    handleFileUpload,
-    handleParetoFileUpload,
-    clearParetoFile,
-    clearData,
   };
+
+  // Use the shared hook for common functionality
+  return useDataIngestionBase(actions, options);
 };

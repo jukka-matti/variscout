@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -8,7 +8,7 @@ import AnovaResults from './AnovaResults';
 import RegressionPanel from './RegressionPanel';
 import GageRRPanel from './GageRRPanel';
 import ErrorBoundary from './ErrorBoundary';
-import DrillBreadcrumb from './DrillBreadcrumb';
+import FilterBreadcrumb from './FilterBreadcrumb';
 import FactorSelector from './FactorSelector';
 import SpecEditor from './SpecEditor';
 import SpecsPopover from './SpecsPopover';
@@ -17,13 +17,9 @@ import { EditableChartTitle } from '@variscout/charts';
 import { useIsMobile } from '@variscout/ui';
 import { useKeyboardNavigation } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
-import { calculateAnova, type AnovaResult, getNextDrillFactor } from '@variscout/core';
-import { calculateBoxplotStats, type BoxplotGroupData } from '@variscout/charts';
-import useVariationTracking from '../hooks/useVariationTracking';
-import useDrillDown from '../hooks/useDrillDown';
+import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import { Activity, Copy, Check, Maximize2, Layers, ArrowLeft } from 'lucide-react';
 import type { StageOrderMode } from '@variscout/core';
-import { toBlob } from 'html-to-image';
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
 import PerformanceDashboard from './PerformanceDashboard';
@@ -101,102 +97,72 @@ const Dashboard = ({
     setParetoAggregation,
   } = useData();
 
-  // Drill-down navigation with browser history and URL sync
-  const { drillStack, drillDown, drillTo, clearDrill } = useDrillDown({
-    enableHistory: true,
-    enableUrlSync: true,
-  });
-
-  // Variation tracking for breadcrumbs and drill suggestions
+  // Use the consolidated chart state hook
   const {
-    breadcrumbsWithVariation: breadcrumbItems,
+    // Factor selection
+    boxplotFactor,
+    setBoxplotFactor,
+    paretoFactor,
+    setParetoFactor,
+    // Focus mode
+    focusedChart,
+    setFocusedChart,
+    handleNextChart,
+    handlePrevChart,
+    // Panel toggles
+    showParetoPanel,
+    setShowParetoPanel,
+    showParetoComparison,
+    toggleParetoComparison,
+    showSpecEditor,
+    setShowSpecEditor,
+    // Copy feedback
+    copyFeedback,
+    handleCopyChart,
+    // Pareto factor selector ref
+    paretoFactorSelectorRef,
+    // Embed mode helpers
+    getHighlightClass,
+    handleChartWrapperClick,
+    // Computed data
+    availableOutcomes,
+    availableStageColumns,
+    anovaResult,
+    boxplotData,
+    // Filter navigation state
+    filterStack,
+    applyFilter,
+    navigateTo,
+    clearFilters,
+    updateFilterValues,
+    removeFilter,
+    // Variation tracking
+    breadcrumbItems,
     cumulativeVariationPct,
     factorVariations,
     categoryContributions,
-  } = useVariationTracking(rawData, drillStack, outcome, factors);
+    filterChipData,
+    // Filter handler
+    handleDrillDown,
+  } = useDashboardCharts({
+    openSpecEditorRequested,
+    onSpecEditorOpened,
+    highlightedChart:
+      highlightedChart === 'regression'
+        ? null
+        : (highlightedChart as 'ichart' | 'boxplot' | 'pareto' | 'stats' | null | undefined),
+    highlightIntensity,
+    onChartClick,
+  });
 
   // Responsive mobile detection
   const isMobile = useIsMobile(MOBILE_BREAKPOINT);
-  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-
-  // Local state for chart configuration
-  // Default to first factor for Boxplot, second (or first) for Pareto
-  const [boxplotFactor, setBoxplotFactor] = React.useState<string>('');
-  const [paretoFactor, setParetoFactor] = React.useState<string>('');
-  const [focusedChart, setFocusedChart] = useState<'ichart' | 'boxplot' | 'pareto' | null>(null);
-  // Toggle for showing full population comparison (ghost bars) on Pareto
-  const [showParetoComparison, setShowParetoComparison] = useState(false);
-  // State for spec editor popover in I-Chart header
-  const [showSpecEditor, setShowSpecEditor] = useState(false);
-  // Toggle for showing/hiding Pareto panel (resets on data change)
-  const [showParetoPanel, setShowParetoPanel] = useState(true);
-  // Ref for Pareto factor selector to allow focusing from empty state
-  const paretoFactorSelectorRef = React.useRef<HTMLSelectElement>(null);
-  // Ref for copy feedback timeout cleanup
-  const copyFeedbackTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Open spec editor when requested from MobileMenu
-  useEffect(() => {
-    if (openSpecEditorRequested) {
-      setShowSpecEditor(true);
-      onSpecEditorOpened?.();
-    }
-  }, [openSpecEditorRequested, onSpecEditorOpened]);
-
-  // Cleanup copy feedback timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (copyFeedbackTimeoutRef.current) {
-        clearTimeout(copyFeedbackTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Callback to focus Pareto factor selector (used by ParetoEmptyState)
   const handleParetoSelectFactor = useCallback(() => {
     paretoFactorSelectorRef.current?.focus();
     paretoFactorSelectorRef.current?.click();
-  }, []);
-
-  // Determine focused chart navigation
-  const CHART_ORDER = ['ichart', 'boxplot', 'pareto'] as const;
-
-  const handleNextChart = useCallback(() => {
-    setFocusedChart(current => {
-      if (!current) return null;
-      const index = CHART_ORDER.indexOf(current as any);
-      const nextIndex = (index + 1) % CHART_ORDER.length;
-      return CHART_ORDER[nextIndex];
-    });
-  }, []);
-
-  const handlePrevChart = useCallback(() => {
-    setFocusedChart(current => {
-      if (!current) return null;
-      const index = CHART_ORDER.indexOf(current as any);
-      const prevIndex = (index - 1 + CHART_ORDER.length) % CHART_ORDER.length;
-      return CHART_ORDER[prevIndex];
-    });
-  }, []);
-
-  // Helper to get highlight classes for embed mode
-  const getHighlightClass = useCallback(
-    (chartId: ChartId): string => {
-      if (highlightedChart !== chartId) return '';
-      return `chart-highlight-${highlightIntensity}`;
-    },
-    [highlightedChart, highlightIntensity]
-  );
-
-  // Helper to create chart click handler for embed mode
-  const handleChartWrapperClick = useCallback(
-    (chartId: ChartId) => {
-      if (onChartClick) {
-        onChartClick(chartId);
-      }
-    },
-    [onChartClick]
-  );
+  }, [paretoFactorSelectorRef]);
 
   // Handler for saving specs from SpecEditor
   const handleSaveSpecs = useCallback(
@@ -224,159 +190,27 @@ const Dashboard = ({
     onEscape: onExitPresentation,
   });
 
-  // Derive available numeric outcomes
-  const availableOutcomes = React.useMemo(() => {
-    if (rawData.length === 0) return [];
-    const row = rawData[0];
-    return Object.keys(row).filter(key => typeof row[key] === 'number');
-  }, [rawData]);
-
-  // Derive potential stage columns (categorical with 2-10 unique values)
-  const availableStageColumns = React.useMemo(() => {
-    if (rawData.length === 0) return [];
-    const candidates: string[] = [];
-    const columns = Object.keys(rawData[0] || {});
-
-    for (const col of columns) {
-      // Skip the outcome column
-      if (col === outcome) continue;
-
-      // Get unique values
-      const uniqueValues = new Set<string>();
-      for (const row of rawData) {
-        const val = row[col];
-        if (val !== undefined && val !== null && val !== '') {
-          uniqueValues.add(String(val));
-        }
-        // Early exit if too many unique values
-        if (uniqueValues.size > 10) break;
-      }
-
-      // Valid stage column: 2-10 unique values
-      if (uniqueValues.size >= 2 && uniqueValues.size <= 10) {
-        candidates.push(col);
-      }
-    }
-
-    return candidates;
-  }, [rawData, outcome]);
-
-  // Initialize/Update defaults when factors change
-  // Use functional updates to avoid including state in dependencies
-  React.useEffect(() => {
-    if (factors.length > 0) {
-      setBoxplotFactor(prev => (!prev || !factors.includes(prev) ? factors[0] : prev));
-      setParetoFactor(prev => (!prev || !factors.includes(prev) ? factors[1] || factors[0] : prev));
-    }
-  }, [factors]);
-
-  // Reset Pareto panel visibility when data changes
-  React.useEffect(() => {
-    setShowParetoPanel(true);
-  }, [rawData, factors]);
-
-  // Compute ANOVA for the selected boxplot factor
-  const anovaResult: AnovaResult | null = useMemo(() => {
-    if (!outcome || !boxplotFactor || filteredData.length === 0) return null;
-    return calculateAnova(filteredData, outcome, boxplotFactor);
-  }, [filteredData, outcome, boxplotFactor]);
-
-  // Compute boxplot data for the selected factor (for stats table in fullscreen mode)
-  const boxplotData: BoxplotGroupData[] = useMemo(() => {
-    if (!outcome || !boxplotFactor || filteredData.length === 0) return [];
-
-    // Group data by factor
-    const groups = new Map<string, number[]>();
-    for (const row of filteredData) {
-      const key = String(row[boxplotFactor] ?? '');
-      const value = Number(row[outcome]);
-      if (!isNaN(value)) {
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key)!.push(value);
-      }
-    }
-
-    // Calculate stats for each group
-    return Array.from(groups.entries())
-      .map(([group, values]) => calculateBoxplotStats({ group, values }))
-      .sort((a, b) => a.key.localeCompare(b.key));
-  }, [filteredData, outcome, boxplotFactor]);
-
   // Handle breadcrumb navigation (delegates to hook)
-  const handleBreadcrumbNavigate = useCallback((id: string) => drillTo(id), [drillTo]);
+  const handleBreadcrumbNavigate = useCallback((id: string) => navigateTo(id), [navigateTo]);
 
   // Clear all filters (delegates to hook)
-  const handleClearAllFilters = useCallback(() => clearDrill(), [clearDrill]);
+  const handleClearAllFilters = useCallback(() => clearFilters(), [clearFilters]);
 
-  // Remove a specific filter by drilling to root then re-applying remaining filters
+  // Remove a specific filter
   const handleRemoveFilter = useCallback(
     (factor: string) => {
-      if (!filters) return;
-      // Find all drill actions except the one for this factor, then re-drill
-      // Since drillDown handles toggle, we just drill with same values to toggle off
-      const currentValues = filters[factor];
-      if (currentValues && currentValues.length > 0) {
-        drillDown({
-          type: 'filter',
-          source: 'boxplot',
-          factor,
-          values: currentValues,
-        });
-      }
+      removeFilter(factor);
     },
-    [filters, drillDown]
+    [removeFilter]
   );
 
-  // Handle drill-down from chart click - auto-switches to highest variation factor
-  const handleDrillDown = useCallback(
-    (factor: string, value: string) => {
-      // Use the hook's drillDown which handles toggle behavior
-      drillDown({
-        type: 'filter',
-        source: 'boxplot',
-        factor,
-        values: [value],
-      });
-
-      // Auto-switch to factor with highest variation in filtered data
-      // This guides users through a "variation funnel"
-      const nextFactor = getNextDrillFactor(factorVariations, factor);
-      if (nextFactor) {
-        // Switch both charts to the next most impactful factor
-        setBoxplotFactor(nextFactor);
-        setParetoFactor(nextFactor);
-      } else {
-        // No significant remaining factors - stay on current
-        setBoxplotFactor(factor);
-        setParetoFactor(factor);
-      }
+  // Update filter values (for multi-select in filter chips)
+  const handleUpdateFilterValues = useCallback(
+    (factor: string, newValues: (string | number)[]) => {
+      updateFilterValues(factor, newValues);
     },
-    [drillDown, factorVariations]
+    [updateFilterValues]
   );
-
-  const handleCopyChart = async (containerId: string, chartName: string) => {
-    const node = document.getElementById(containerId);
-    if (!node) return;
-
-    try {
-      const blob = await toBlob(node, {
-        cacheBust: true,
-        backgroundColor: '#0f172a',
-      });
-      if (blob) {
-        // eslint-disable-next-line no-undef
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        setCopyFeedback(chartName);
-        // Clear any existing timeout before setting a new one
-        if (copyFeedbackTimeoutRef.current) {
-          clearTimeout(copyFeedbackTimeoutRef.current);
-        }
-        copyFeedbackTimeoutRef.current = setTimeout(() => setCopyFeedback(null), 2000);
-      }
-    } catch (err) {
-      console.error('Failed to copy chart', err);
-    }
-  };
 
   if (!outcome) return null;
 
@@ -401,7 +235,7 @@ const Dashboard = ({
         filteredData={filteredData}
         factorVariations={factorVariations}
         showParetoComparison={showParetoComparison}
-        onToggleParetoComparison={() => setShowParetoComparison(prev => !prev)}
+        onToggleParetoComparison={() => toggleParetoComparison()}
         paretoAggregation={paretoAggregation}
         onToggleParetoAggregation={() =>
           setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
@@ -428,7 +262,7 @@ const Dashboard = ({
         filters={filters}
         factorVariations={factorVariations}
         showParetoComparison={showParetoComparison}
-        onToggleParetoComparison={() => setShowParetoComparison(prev => !prev)}
+        onToggleParetoComparison={() => toggleParetoComparison()}
         paretoAggregation={paretoAggregation}
         onToggleParetoAggregation={() =>
           setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
@@ -468,10 +302,10 @@ const Dashboard = ({
           onDrillDown={handleDrillDown}
           onRemoveFilter={handleRemoveFilter}
           onClearAllFilters={handleClearAllFilters}
-          breadcrumbItems={breadcrumbItems}
+          filterChipData={filterChipData}
           cumulativeVariationPct={cumulativeVariationPct}
+          onUpdateFilterValues={handleUpdateFilterValues}
           factorVariations={factorVariations}
-          onBreadcrumbNavigate={handleBreadcrumbNavigate}
           onHideParetoPanel={() => setShowParetoPanel(false)}
           onUploadPareto={onOpenColumnMapping}
           paretoAggregation={paretoAggregation}
@@ -491,12 +325,13 @@ const Dashboard = ({
     >
       {/* Sticky Navigation - Breadcrumbs only (tabs moved to Settings) */}
       <div className="sticky top-0 z-30 bg-surface">
-        {/* Drill Breadcrumb Navigation with Variation Tracking */}
-        <DrillBreadcrumb
-          items={breadcrumbItems}
-          onNavigate={handleBreadcrumbNavigate}
+        {/* Filter Breadcrumb Navigation with Variation Tracking */}
+        <FilterBreadcrumb
+          filterChipData={filterChipData}
+          columnAliases={columnAliases}
+          onUpdateFilterValues={handleUpdateFilterValues}
+          onRemoveFilter={handleRemoveFilter}
           onClearAll={handleClearAllFilters}
-          onRemove={handleRemoveFilter}
           cumulativeVariationPct={cumulativeVariationPct}
         />
       </div>
@@ -780,7 +615,7 @@ const Dashboard = ({
                               factor={paretoFactor}
                               onDrillDown={handleDrillDown}
                               showComparison={showParetoComparison}
-                              onToggleComparison={() => setShowParetoComparison(prev => !prev)}
+                              onToggleComparison={() => toggleParetoComparison()}
                               onHide={() => setShowParetoPanel(false)}
                               onSelectFactor={handleParetoSelectFactor}
                               onUploadPareto={onOpenColumnMapping}
@@ -833,7 +668,7 @@ const Dashboard = ({
               onSetBoxplotFactor={setBoxplotFactor}
               onSetParetoFactor={setParetoFactor}
               onDrillDown={handleDrillDown}
-              onToggleParetoComparison={() => setShowParetoComparison(prev => !prev)}
+              onToggleParetoComparison={() => toggleParetoComparison()}
               onHideParetoPanel={() => setShowParetoPanel(false)}
               onSelectParetoFactor={handleParetoSelectFactor}
               onOpenColumnMapping={onOpenColumnMapping}

@@ -8,17 +8,11 @@ import RegressionPanel from './RegressionPanel';
 import GageRRPanel from './GageRRPanel';
 import PerformanceDashboard from './PerformanceDashboard';
 import ErrorBoundary from './ErrorBoundary';
-import DrillBreadcrumb from './DrillBreadcrumb';
+import FilterBreadcrumb from './FilterBreadcrumb';
 import FactorSelector from './FactorSelector';
-import FilterChips from './FilterChips';
 import { useData } from '../context/DataContext';
-import {
-  calculateAnova,
-  type AnovaResult,
-  type BreadcrumbItem,
-  getEtaSquared,
-  getNextDrillFactor,
-} from '@variscout/core';
+import { useFilterNavigation, useVariationTracking } from '../hooks';
+import { calculateAnova, type AnovaResult, getNextDrillFactor } from '@variscout/core';
 import { calculateBoxplotStats, BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
 import {
   Activity,
@@ -192,143 +186,51 @@ const Dashboard = ({
       .sort((a, b) => a.key.localeCompare(b.key));
   }, [filteredData, outcome, boxplotFactor]);
 
-  // Convert current filters to breadcrumb items for navigation display
-  const { breadcrumbItems, cumulativeVariationPct, factorVariations } = useMemo(() => {
-    const items: BreadcrumbItem[] = [
-      {
-        id: 'root',
-        label: 'All Data',
-        isActive: false,
-        source: 'ichart' as const,
-        localVariationPct: 100,
-        cumulativeVariationPct: 100,
-      },
-    ];
-
-    if (!filters || !outcome) {
-      items[0].isActive = true;
-      return { breadcrumbItems: items, cumulativeVariationPct: null, factorVariations: new Map() };
-    }
-
-    const activeFilters = Object.entries(filters).filter(
-      ([_, values]) => Array.isArray(values) && values.length > 0
-    );
-
-    let cumulative = 100;
-    let currentData = rawData;
-
-    activeFilters.forEach(([factor, values], index) => {
-      const alias = columnAliases[factor] || factor;
-      const displayValues = (values as any[]).slice(0, 2).map(String);
-      const suffix = values.length > 2 ? ` +${values.length - 2}` : '';
-      const label = `${alias}: ${displayValues.join(', ')}${suffix}`;
-
-      let localPct: number | undefined;
-      if (currentData.length >= 2 && outcome) {
-        const etaSq = getEtaSquared(currentData, factor, outcome);
-        localPct = etaSq * 100;
-        cumulative = (cumulative * localPct) / 100;
-        currentData = currentData.filter(row => {
-          const cellValue = row[factor];
-          return (
-            cellValue !== undefined &&
-            cellValue !== null &&
-            values.includes(cellValue as string | number)
-          );
-        });
-      }
-
-      items.push({
-        id: factor,
-        label,
-        isActive: index === activeFilters.length - 1,
-        source: 'boxplot' as const,
-        localVariationPct: localPct,
-        cumulativeVariationPct: cumulative,
-      });
+  // Use filter navigation hook
+  const { filterStack, applyFilter, clearFilters, updateFilterValues, removeFilter } =
+    useFilterNavigation({
+      enableHistory: false,
+      enableUrlSync: false,
     });
 
-    if (items.length === 1) {
-      items[0].isActive = true;
-    }
-
-    const variations = new Map<string, number>();
-    if (filteredData.length >= 2 && outcome) {
-      for (const factor of factors) {
-        const isAlreadyFiltered = activeFilters.some(([f]) => f === factor);
-        if (isAlreadyFiltered) continue;
-
-        const etaSq = getEtaSquared(filteredData, factor, outcome);
-        if (etaSq > 0) {
-          variations.set(factor, etaSq * 100);
-        }
-      }
-    }
-
-    return {
-      breadcrumbItems: items,
-      cumulativeVariationPct: activeFilters.length > 0 ? cumulative : null,
-      factorVariations: variations,
-    };
-  }, [filters, columnAliases, rawData, filteredData, outcome, factors]);
-
-  // Handle breadcrumb navigation
-  const handleBreadcrumbNavigate = useCallback(
-    (id: string) => {
-      if (id === 'root') {
-        setFilters({});
-        return;
-      }
-
-      if (!filters) return;
-
-      const activeFilters = Object.entries(filters).filter(
-        ([_, values]) => Array.isArray(values) && values.length > 0
-      );
-
-      const targetIndex = activeFilters.findIndex(([factor]) => factor === id);
-      if (targetIndex === -1) return;
-
-      const newFilters: Record<string, any[]> = {};
-      activeFilters.slice(0, targetIndex + 1).forEach(([factor, values]) => {
-        newFilters[factor] = values;
-      });
-      setFilters(newFilters);
-    },
-    [filters, setFilters]
+  // Use variation tracking hook
+  const { cumulativeVariationPct, factorVariations, filterChipData } = useVariationTracking(
+    rawData,
+    filterStack,
+    outcome,
+    factors
   );
 
+  // Handle clear all filters
   const handleClearAllFilters = useCallback(() => {
-    setFilters({});
-  }, [setFilters]);
+    clearFilters();
+  }, [clearFilters]);
 
+  // Handle remove specific filter
   const handleRemoveFilter = useCallback(
     (factor: string) => {
-      if (!filters) return;
-      const newFilters = { ...filters };
-      delete newFilters[factor];
-      setFilters(newFilters);
+      removeFilter(factor);
     },
-    [filters, setFilters]
+    [removeFilter]
+  );
+
+  // Handle update filter values (for multi-select)
+  const handleUpdateFilterValues = useCallback(
+    (factor: string, newValues: (string | number)[]) => {
+      updateFilterValues(factor, newValues);
+    },
+    [updateFilterValues]
   );
 
   // Handle drill-down from chart click - auto-switches to highest variation factor
   const handleDrillDown = useCallback(
     (factor: string, value: string) => {
-      if (!filters) return;
-
-      const currentFilters = filters[factor] || [];
-      const newFilterValues = currentFilters.includes(value)
-        ? currentFilters.filter((v: string | number) => v !== value)
-        : [...currentFilters, value];
-
-      if (newFilterValues.length === 0) {
-        const newFilters = { ...filters };
-        delete newFilters[factor];
-        setFilters(newFilters);
-      } else {
-        setFilters({ ...filters, [factor]: newFilterValues });
-      }
+      applyFilter({
+        type: 'filter',
+        source: 'boxplot',
+        factor,
+        values: [value],
+      });
 
       // Auto-switch to factor with highest variation in filtered data
       const nextFactor = getNextDrillFactor(factorVariations, factor);
@@ -340,7 +242,7 @@ const Dashboard = ({
         setParetoFactor(factor);
       }
     },
-    [filters, setFilters, factorVariations]
+    [applyFilter, factorVariations]
   );
 
   if (!outcome) return null;
@@ -349,19 +251,13 @@ const Dashboard = ({
     <div className="flex flex-col h-full overflow-y-auto bg-slate-900 relative">
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-slate-900">
-        <DrillBreadcrumb
-          items={breadcrumbItems}
-          onNavigate={handleBreadcrumbNavigate}
-          onClearAll={handleClearAllFilters}
-          onRemove={handleRemoveFilter}
-          cumulativeVariationPct={cumulativeVariationPct}
-        />
-
-        <FilterChips
-          filters={filters}
+        <FilterBreadcrumb
+          filterChipData={filterChipData}
           columnAliases={columnAliases}
+          onUpdateFilterValues={handleUpdateFilterValues}
           onRemoveFilter={handleRemoveFilter}
           onClearAll={handleClearAllFilters}
+          cumulativeVariationPct={cumulativeVariationPct}
         />
 
         {/* Tab Navigation */}

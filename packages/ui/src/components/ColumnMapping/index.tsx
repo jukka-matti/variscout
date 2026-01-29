@@ -1,7 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, CheckSquare, Settings2 } from 'lucide-react';
+/**
+ * ColumnMapping - Column mapping UI for data setup
+ *
+ * Allows users to:
+ * - Select outcome (Y) column
+ * - Select factor (X) columns (up to 3)
+ * - Optionally upload separate Pareto file
+ * - Shows data quality validation results
+ */
 
-interface ColumnMappingProps {
+import React, { useState, useRef } from 'react';
+import { ArrowLeft, ArrowRight, CheckSquare, Settings2, Upload, X, BarChart3 } from 'lucide-react';
+import { DataQualityBanner } from '../DataQualityBanner';
+import type { DataQualityReport } from '@variscout/core';
+
+export interface ColumnMappingProps {
   availableColumns: string[];
   initialOutcome: string | null;
   initialFactors: string[];
@@ -9,9 +21,18 @@ interface ColumnMappingProps {
   onConfirm: (outcome: string, factors: string[]) => void;
   onCancel: () => void;
   onBack?: () => void;
+  // Validation integration
+  dataQualityReport?: DataQualityReport | null;
+  onViewExcludedRows?: () => void;
+  onViewAllData?: () => void;
+  // Pareto integration (optional - PWA supports, Azure may not)
+  paretoMode?: 'derived' | 'separate';
+  separateParetoFilename?: string | null;
+  onParetoFileUpload?: (file: File) => Promise<boolean>;
+  onClearParetoFile?: () => void;
 }
 
-const ColumnMapping: React.FC<ColumnMappingProps> = ({
+export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   availableColumns,
   initialOutcome,
   initialFactors,
@@ -19,9 +40,18 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
   onConfirm,
   onCancel,
   onBack,
+  dataQualityReport,
+  onViewExcludedRows,
+  onViewAllData,
+  paretoMode = 'derived',
+  separateParetoFilename,
+  onParetoFileUpload,
+  onClearParetoFile,
 }) => {
   const [outcome, setOutcome] = useState<string>(initialOutcome || '');
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
+  const [isDraggingPareto, setIsDraggingPareto] = useState(false);
+  const paretoFileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleFactor = (col: string) => {
     if (col === outcome) return; // Cannot be both outcome and factor
@@ -45,6 +75,25 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
 
   const isValid = !!outcome;
 
+  // Handle Pareto file drop
+  const handleParetoDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingPareto(false);
+    const file = e.dataTransfer.files[0];
+    if (file && onParetoFileUpload) {
+      await onParetoFileUpload(file);
+    }
+  };
+
+  // Handle Pareto file input change
+  const handleParetoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onParetoFileUpload) {
+      await onParetoFileUpload(file);
+    }
+    e.target.value = '';
+  };
+
   return (
     <div className="flex flex-col h-full items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
       <div className="w-full max-w-2xl max-h-[90vh] bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
@@ -64,6 +113,19 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-900/30">
+          {/* Data Quality Banner */}
+          {dataQualityReport && (
+            <DataQualityBanner
+              report={dataQualityReport}
+              filename={datasetName}
+              onViewExcludedRows={onViewExcludedRows}
+              onViewAllData={onViewAllData}
+              showActions={
+                !!(onViewExcludedRows || onViewAllData) && dataQualityReport.excludedRows.length > 0
+              }
+            />
+          )}
+
           {/* Outcome Selection */}
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -79,7 +141,7 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
               Count).
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1 custom-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
               {availableColumns.map(col => (
                 <label
                   key={`outcome-${col}`}
@@ -92,7 +154,7 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
                   <input
                     type="radio"
                     name="outcome"
-                    className="hidden"
+                    className="hidden" // Custom styling
                     checked={outcome === col}
                     onChange={() => handleOutcomeChange(col)}
                   />
@@ -128,7 +190,7 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
               Choose up to 3 categorical variables to group by (e.g., Machine, Shift, Operator).
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1 custom-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
               {availableColumns.map(col => {
                 const isOutcome = outcome === col;
                 return (
@@ -164,6 +226,74 @@ const ColumnMapping: React.FC<ColumnMappingProps> = ({
               })}
             </div>
           </div>
+
+          {/* Pareto Source (Optional) */}
+          {onParetoFileUpload && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-600 text-white">
+                  <BarChart3 size={14} />
+                </div>
+                <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                  Pareto Source
+                </h3>
+                <span className="text-xs text-slate-500 ml-auto">Optional</span>
+              </div>
+              <p className="text-xs text-slate-500 mb-3">
+                By default, Pareto counts from your selected factors. Upload a separate file for
+                pre-aggregated counts (e.g., from ERP/MES).
+              </p>
+
+              {paretoMode === 'separate' && separateParetoFilename ? (
+                // Show uploaded Pareto file
+                <div className="flex items-center justify-between p-3 rounded-lg bg-orange-600/10 border border-orange-600/30">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 size={18} className="text-orange-400" />
+                    <span className="text-sm text-orange-300">{separateParetoFilename}</span>
+                    <span className="text-xs text-slate-500">(separate data)</span>
+                  </div>
+                  <button
+                    onClick={onClearParetoFile}
+                    className="text-slate-400 hover:text-red-400 p-1 transition-colors"
+                    title="Remove Pareto file"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                // Show upload zone
+                <div
+                  onDragOver={e => {
+                    e.preventDefault();
+                    setIsDraggingPareto(true);
+                  }}
+                  onDragLeave={() => setIsDraggingPareto(false)}
+                  onDrop={handleParetoDrop}
+                  onClick={() => paretoFileInputRef.current?.click()}
+                  className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 border-dashed cursor-pointer transition-all ${
+                    isDraggingPareto
+                      ? 'bg-orange-600/20 border-orange-500'
+                      : 'bg-slate-800/50 border-slate-700 hover:border-slate-600 hover:bg-slate-700/50'
+                  }`}
+                >
+                  <input
+                    ref={paretoFileInputRef}
+                    type="file"
+                    accept=".csv,.xlsx,.xls"
+                    onChange={handleParetoFileChange}
+                    className="hidden"
+                  />
+                  <Upload size={20} className="text-slate-500 mb-2" />
+                  <span className="text-xs text-slate-500">
+                    Drop CSV/Excel with category + count columns
+                  </span>
+                  <span className="text-xs text-slate-500 mt-1">
+                    Not linked to main data filters
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer */}

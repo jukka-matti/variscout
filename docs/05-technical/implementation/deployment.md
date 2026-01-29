@@ -47,7 +47,6 @@ pnpm --filter @variscout/pwa build
 
 # Build PWA editions
 pnpm build:pwa:community  # Community edition
-pnpm build:pwa:itc        # ITC branded edition
 pnpm build:pwa:licensed   # Licensed edition
 ```
 
@@ -72,11 +71,11 @@ pnpm --filter @variscout/azure-app test
 
 ### PWA Environment Variables
 
-| Variable               | Description                           | Default           |
-| ---------------------- | ------------------------------------- | ----------------- |
-| `VITE_EDITION`         | Edition type (community/itc/licensed) | `community`       |
-| `VITE_APP_VERSION`     | App version for display               | From package.json |
-| `VITE_LICENSE_API_URL` | License validation endpoint           | Production URL    |
+| Variable               | Description                       | Default           |
+| ---------------------- | --------------------------------- | ----------------- |
+| `VITE_EDITION`         | Edition type (community/licensed) | `community`       |
+| `VITE_APP_VERSION`     | App version for display           | From package.json |
+| `VITE_LICENSE_API_URL` | License validation endpoint       | Production URL    |
 
 ### Azure App Environment Variables
 

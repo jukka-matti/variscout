@@ -86,7 +86,6 @@ export {
   getEdition,
   shouldShowBranding,
   getBrandingText,
-  isITCEdition,
   getSignatureText,
   isThemingEnabled,
 } from './edition';
@@ -142,25 +141,25 @@ export {
 
 // Navigation
 export type {
-  DrillType,
-  DrillSource,
-  DrillAction,
+  FilterType,
+  FilterSource,
+  FilterAction,
   HighlightState,
   NavigationState,
   BreadcrumbItem,
 } from './navigation';
 
 export {
-  generateDrillId,
-  getDrillLabel,
-  drillStackToFilters,
-  createDrillAction,
-  findDrillIndex,
-  popDrillStackTo,
-  popDrillStack,
-  pushDrillStack,
-  shouldToggleDrill,
-  drillStackToBreadcrumbs,
+  generateFilterId,
+  getFilterLabel,
+  filterStackToFilters,
+  createFilterAction,
+  findFilterIndex,
+  popFilterStackTo,
+  popFilterStack,
+  pushFilterStack,
+  shouldToggleFilter,
+  filterStackToBreadcrumbs,
   initialNavigationState,
   VARIATION_THRESHOLDS,
   getVariationImpactLevel,
@@ -208,3 +207,6 @@ export {
 // Glossary
 export type { GlossaryTerm, GlossaryCategory, GlossaryLocale } from './glossary';
 export { glossaryTerms, glossaryMap, getTerm, getTermsByCategory, hasTerm } from './glossary';
+
+// Formatting utilities
+export { formatPValue, getStars } from './format';

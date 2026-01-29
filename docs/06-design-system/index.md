@@ -25,12 +25,12 @@ Both platforms share the same **color values** and **semantic meanings**.
 
 The PWA uses CSS variables for theming, enabling runtime theme switching:
 
-| Feature           | Community/ITC | Licensed |
-| ----------------- | ------------- | -------- |
-| Dark mode         | ✓ (default)   | ✓        |
-| Light mode        | -             | ✓        |
-| System preference | -             | ✓        |
-| Company accent    | -             | ✓        |
+| Feature           | Community   | Licensed (PWA installed) |
+| ----------------- | ----------- | ------------------------ |
+| Dark mode         | ✓ (default) | ✓                        |
+| Light mode        | -           | ✓                        |
+| System preference | -           | ✓                        |
+| Company accent    | -           | ✓                        |
 
 ### Semantic Color Classes
 

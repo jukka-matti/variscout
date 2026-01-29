@@ -10,10 +10,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { Activity, X, Check, Sparkles } from 'lucide-react';
-import MeasureColumnSelector from './MeasureColumnSelector';
+import { MeasureColumnSelector } from '../MeasureColumnSelector';
 import type { WideFormatDetection, ChannelInfo } from '@variscout/core';
 
-interface PerformanceDetectedModalProps {
+export interface PerformanceDetectedModalProps {
   /** Detection result from detectWideFormat() */
   detection: WideFormatDetection;
   /** Callback when user enables performance mode */
@@ -22,7 +22,7 @@ interface PerformanceDetectedModalProps {
   onDecline: () => void;
 }
 
-const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> = ({
+export const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> = ({
   detection,
   onEnable,
   onDecline,
@@ -55,23 +55,23 @@ const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-surface-secondary border border-edge rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-lg bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-edge">
+        <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-600/20 text-blue-400 rounded-lg">
               <Activity size={20} />
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">Multi-Measure Data Detected</h2>
-              <p className="text-xs text-content-muted">
+              <p className="text-xs text-slate-500">
                 <span className={confidenceColor}>{detection.confidence} confidence</span>
               </p>
             </div>
           </div>
           <button
             onClick={onDecline}
-            className="text-content-secondary hover:text-white p-1.5 hover:bg-surface-tertiary rounded-lg transition-colors"
+            className="text-slate-400 hover:text-white p-1.5 hover:bg-slate-700 rounded-lg transition-colors"
           >
             <X size={20} />
           </button>
@@ -86,7 +86,7 @@ const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> = ({
               <p className="text-sm text-white">
                 Found <span className="font-bold">{detection.channels.length} measure columns</span>
               </p>
-              <p className="text-xs text-content-muted mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 {detection.channels
                   .slice(0, 5)
                   .map((c: ChannelInfo) => c.label)
@@ -98,7 +98,7 @@ const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> = ({
 
           {/* Quick label input */}
           <div>
-            <label className="block text-sm font-medium text-content-secondary mb-2">
+            <label className="block text-sm font-medium text-slate-400 mb-2">
               What should we call these? (optional)
             </label>
             <input
@@ -106,9 +106,9 @@ const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> = ({
               value={label}
               onChange={e => setLabel(e.target.value || 'Measure')}
               placeholder="e.g., Head, Valve, Nozzle, Cavity"
-              className="w-full px-3 py-2 bg-surface border border-edge rounded-lg text-white placeholder-content-muted focus:outline-none focus:border-blue-500 transition-colors text-sm"
+              className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors text-sm"
             />
-            <p className="text-xs text-content-muted mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Charts will show "{label} 1", "{label} 2", etc.
             </p>
           </div>
@@ -117,7 +117,7 @@ const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> = ({
           <div>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-xs text-content-secondary hover:text-white flex items-center gap-1 transition-colors"
+              className="text-xs text-slate-500 hover:text-white flex items-center gap-1 transition-colors"
             >
               {showAdvanced ? '− Hide' : '+ Show'} column selection
             </button>
@@ -136,10 +136,10 @@ const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-3 p-4 border-t border-edge bg-surface-secondary/50">
+        <div className="flex items-center justify-between gap-3 p-4 border-t border-slate-700 bg-slate-800/50">
           <button
             onClick={onDecline}
-            className="px-4 py-2 text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors text-sm"
+            className="px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors text-sm"
           >
             Not Now
           </button>

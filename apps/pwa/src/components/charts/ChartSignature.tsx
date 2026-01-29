@@ -1,5 +1,5 @@
 import React from 'react';
-import { shouldShowBranding, getSignatureText, isITCEdition } from '../../lib/edition';
+import { shouldShowBranding, getSignatureText } from '../../lib/edition';
 
 interface ChartSignatureProps {
   x: number; // Right edge position
@@ -8,16 +8,15 @@ interface ChartSignatureProps {
 
 /**
  * Painter-style signature mark for charts
- * Renders a handwritten-style "VariScout" (or "ITC") signature
- * Only visible in Community/ITC editions, hidden for Pro
+ * Renders a handwritten-style "VariScout" signature
+ * Only visible in Community edition, hidden for Licensed
  */
 const ChartSignature: React.FC<ChartSignatureProps> = ({ x, y }) => {
   const showBranding = shouldShowBranding();
-  const isITC = isITCEdition();
   const signatureText = getSignatureText();
 
-  // Don't render if Pro edition (no signature)
-  if (!showBranding && !isITC) {
+  // Don't render if licensed edition (no signature)
+  if (!showBranding) {
     return null;
   }
 

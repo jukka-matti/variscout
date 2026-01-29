@@ -103,7 +103,7 @@ Pure TypeScript logic with no React dependencies:
 | `navigation.ts` | Navigation types and utilities (FilterAction, BreadcrumbItem)              |
 | `variation.ts`  | Cumulative variation tracking (η² cascading, drill suggestions)            |
 | `license.ts`    | License key validation (offline)                                           |
-| `edition.ts`    | Edition configuration (community/itc/licensed)                             |
+| `edition.ts`    | Edition configuration (community/licensed)                                 |
 | `export.ts`     | CSV export utilities                                                       |
 | `types.ts`      | Shared TypeScript interfaces (StatsResult, ConformanceResult)              |
 
@@ -454,8 +454,8 @@ VariScout supports light/dark theming for Licensed editions via a coordinated sy
 
 Theme is controlled via the `data-theme` attribute on `<html>`:
 
-- `data-theme="dark"` - Dark mode (default for Community/ITC)
-- `data-theme="light"` - Light mode (Licensed edition only)
+- `data-theme="dark"` - Dark mode (default for Community edition)
+- `data-theme="light"` - Light mode (Licensed edition + PWA installation required)
 
 ### Chart Theme Hook
 
@@ -513,9 +513,8 @@ pnpm preview         # Preview production build locally
 ### Edition-Specific Builds
 
 ```bash
-pnpm build:pwa:community    # Free with "VariScout Lite" branding
-pnpm build:pwa:itc          # ITC-branded version
-pnpm build:pwa:licensed     # No branding (pre-licensed)
+pnpm build:pwa:community    # Free with "VariScout" branding
+pnpm build:pwa:licensed     # No branding, theme customization (PWA install required)
 ```
 
 ### Deployment

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { X, ChevronLeft, ChevronRight, AlertTriangle, GripVertical } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { getSpecStatus } from '../lib/export';
-import type { ExclusionReason } from '../logic/parser';
+import type { ExclusionReason } from '@variscout/core';
 
 // Pagination threshold
 const ROWS_PER_PAGE = 100;

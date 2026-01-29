@@ -63,7 +63,6 @@ variscout-lite/
 | Edition   | Branding              | Theming                     | Build Command              |
 | --------- | --------------------- | --------------------------- | -------------------------- |
 | Community | "VariScout"           | Dark only                   | `pnpm build:pwa:community` |
-| ITC       | "ITC" branding        | Dark only                   | `pnpm build:pwa:itc`       |
 | Licensed  | No branding (€99 key) | Light/Dark/System + Accents | `pnpm build:pwa:licensed`  |
 
 ## Key Files

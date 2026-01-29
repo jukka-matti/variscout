@@ -68,7 +68,7 @@ From the app registration Overview page, copy:
 | `AZURE_CLIENT_ID`      | Yes      | Azure AD app client ID                      |
 | `AZURE_TENANT_ID`      | Yes      | Tenant ID or 'common' for multi-tenant      |
 | `VITE_SHAREPOINT_SITE` | No       | SharePoint site path (default: /sites/root) |
-| `VITE_EDITION`         | No       | 'itc' or 'licensed' for branding            |
+| `VITE_EDITION`         | No       | 'licensed' for no branding (default)        |
 
 ## Build & Deploy
 

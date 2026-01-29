@@ -1,33 +1,33 @@
 import { describe, it, expect } from 'vitest';
 import {
-  generateDrillId,
-  getDrillLabel,
-  drillStackToFilters,
-  createDrillAction,
-  findDrillIndex,
-  popDrillStackTo,
-  popDrillStack,
-  pushDrillStack,
-  shouldToggleDrill,
-  drillStackToBreadcrumbs,
+  generateFilterId,
+  getFilterLabel,
+  filterStackToFilters,
+  createFilterAction,
+  findFilterIndex,
+  popFilterStackTo,
+  popFilterStack,
+  pushFilterStack,
+  shouldToggleFilter,
+  filterStackToBreadcrumbs,
   initialNavigationState,
-  type DrillAction,
+  type FilterAction,
 } from '../navigation';
 
 describe('Navigation Utilities', () => {
-  describe('generateDrillId', () => {
+  describe('generateFilterId', () => {
     it('should generate unique IDs', () => {
-      const id1 = generateDrillId();
-      const id2 = generateDrillId();
+      const id1 = generateFilterId();
+      const id2 = generateFilterId();
 
-      expect(id1).toMatch(/^drill-\d+-[a-z0-9]+$/);
+      expect(id1).toMatch(/^filter-\d+-[a-z0-9]+$/);
       expect(id1).not.toBe(id2);
     });
   });
 
-  describe('getDrillLabel', () => {
+  describe('getFilterLabel', () => {
     it('should format highlight action labels', () => {
-      const action: DrillAction = {
+      const action: FilterAction = {
         id: 'test-1',
         type: 'highlight',
         source: 'ichart',
@@ -37,11 +37,11 @@ describe('Navigation Utilities', () => {
         label: '',
       };
 
-      expect(getDrillLabel(action)).toBe('Point #6'); // 0-indexed to 1-indexed
+      expect(getFilterLabel(action)).toBe('Point #6'); // 0-indexed to 1-indexed
     });
 
     it('should format filter action labels with factor', () => {
-      const action: DrillAction = {
+      const action: FilterAction = {
         id: 'test-2',
         type: 'filter',
         source: 'boxplot',
@@ -51,11 +51,11 @@ describe('Navigation Utilities', () => {
         label: '',
       };
 
-      expect(getDrillLabel(action)).toBe('Machine: A, B');
+      expect(getFilterLabel(action)).toBe('Machine: A, B');
     });
 
     it('should truncate long value lists', () => {
-      const action: DrillAction = {
+      const action: FilterAction = {
         id: 'test-3',
         type: 'filter',
         source: 'pareto',
@@ -65,11 +65,11 @@ describe('Navigation Utilities', () => {
         label: '',
       };
 
-      expect(getDrillLabel(action)).toBe('Shift: Morning, Afternoon +2');
+      expect(getFilterLabel(action)).toBe('Shift: Morning, Afternoon +2');
     });
 
     it('should handle empty values', () => {
-      const action: DrillAction = {
+      const action: FilterAction = {
         id: 'test-4',
         type: 'filter',
         source: 'boxplot',
@@ -79,17 +79,17 @@ describe('Navigation Utilities', () => {
         label: '',
       };
 
-      expect(getDrillLabel(action)).toBe('Machine');
+      expect(getFilterLabel(action)).toBe('Machine');
     });
   });
 
-  describe('drillStackToFilters', () => {
+  describe('filterStackToFilters', () => {
     it('should convert empty stack to empty filters', () => {
-      expect(drillStackToFilters([])).toEqual({});
+      expect(filterStackToFilters([])).toEqual({});
     });
 
     it('should convert filter actions to filters object', () => {
-      const stack: DrillAction[] = [
+      const stack: FilterAction[] = [
         {
           id: '1',
           type: 'filter',
@@ -110,14 +110,14 @@ describe('Navigation Utilities', () => {
         },
       ];
 
-      expect(drillStackToFilters(stack)).toEqual({
+      expect(filterStackToFilters(stack)).toEqual({
         Machine: ['A'],
         Defect: ['Scratch', 'Dent'],
       });
     });
 
     it('should ignore highlight actions', () => {
-      const stack: DrillAction[] = [
+      const stack: FilterAction[] = [
         {
           id: '1',
           type: 'highlight',
@@ -129,11 +129,11 @@ describe('Navigation Utilities', () => {
         },
       ];
 
-      expect(drillStackToFilters(stack)).toEqual({});
+      expect(filterStackToFilters(stack)).toEqual({});
     });
 
     it('should use latest value when same factor appears multiple times', () => {
-      const stack: DrillAction[] = [
+      const stack: FilterAction[] = [
         {
           id: '1',
           type: 'filter',
@@ -154,29 +154,29 @@ describe('Navigation Utilities', () => {
         },
       ];
 
-      expect(drillStackToFilters(stack)).toEqual({
+      expect(filterStackToFilters(stack)).toEqual({
         Machine: ['B', 'C'],
       });
     });
   });
 
-  describe('createDrillAction', () => {
+  describe('createFilterAction', () => {
     it('should create action with auto-generated id, timestamp, and label', () => {
-      const action = createDrillAction({
+      const action = createFilterAction({
         type: 'filter',
         source: 'boxplot',
         factor: 'Machine',
         values: ['A'],
       });
 
-      expect(action.id).toMatch(/^drill-/);
+      expect(action.id).toMatch(/^filter-/);
       expect(action.timestamp).toBeGreaterThan(0);
       expect(action.label).toBe('Machine: A');
     });
   });
 
   describe('stack operations', () => {
-    const sampleStack: DrillAction[] = [
+    const sampleStack: FilterAction[] = [
       {
         id: 'action-1',
         type: 'filter',
@@ -206,44 +206,44 @@ describe('Navigation Utilities', () => {
       },
     ];
 
-    describe('findDrillIndex', () => {
+    describe('findFilterIndex', () => {
       it('should find action by id', () => {
-        expect(findDrillIndex(sampleStack, 'action-2')).toBe(1);
+        expect(findFilterIndex(sampleStack, 'action-2')).toBe(1);
       });
 
       it('should return -1 for missing id', () => {
-        expect(findDrillIndex(sampleStack, 'missing')).toBe(-1);
+        expect(findFilterIndex(sampleStack, 'missing')).toBe(-1);
       });
     });
 
-    describe('popDrillStackTo', () => {
+    describe('popFilterStackTo', () => {
       it('should pop stack to specified action (inclusive)', () => {
-        const result = popDrillStackTo(sampleStack, 'action-2');
+        const result = popFilterStackTo(sampleStack, 'action-2');
         expect(result).toHaveLength(2);
         expect(result[1].id).toBe('action-2');
       });
 
       it('should return original stack if id not found', () => {
-        const result = popDrillStackTo(sampleStack, 'missing');
+        const result = popFilterStackTo(sampleStack, 'missing');
         expect(result).toBe(sampleStack);
       });
     });
 
-    describe('popDrillStack', () => {
+    describe('popFilterStack', () => {
       it('should remove last action', () => {
-        const result = popDrillStack(sampleStack);
+        const result = popFilterStack(sampleStack);
         expect(result).toHaveLength(2);
         expect(result[result.length - 1].id).toBe('action-2');
       });
 
       it('should handle empty stack', () => {
-        expect(popDrillStack([])).toEqual([]);
+        expect(popFilterStack([])).toEqual([]);
       });
     });
 
-    describe('pushDrillStack', () => {
+    describe('pushFilterStack', () => {
       it('should add action to end of stack', () => {
-        const newAction: DrillAction = {
+        const newAction: FilterAction = {
           id: 'action-4',
           type: 'filter',
           source: 'pareto',
@@ -253,15 +253,15 @@ describe('Navigation Utilities', () => {
           label: 'Line: 1',
         };
 
-        const result = pushDrillStack(sampleStack, newAction);
+        const result = pushFilterStack(sampleStack, newAction);
         expect(result).toHaveLength(4);
         expect(result[3]).toBe(newAction);
       });
     });
   });
 
-  describe('shouldToggleDrill', () => {
-    const stack: DrillAction[] = [
+  describe('shouldToggleFilter', () => {
+    const stack: FilterAction[] = [
       {
         id: '1',
         type: 'filter',
@@ -274,7 +274,7 @@ describe('Navigation Utilities', () => {
     ];
 
     it('should return true when clicking same factor with same values', () => {
-      const result = shouldToggleDrill(stack, {
+      const result = shouldToggleFilter(stack, {
         type: 'filter',
         source: 'boxplot',
         factor: 'Machine',
@@ -284,7 +284,7 @@ describe('Navigation Utilities', () => {
     });
 
     it('should return true regardless of value order', () => {
-      const result = shouldToggleDrill(stack, {
+      const result = shouldToggleFilter(stack, {
         type: 'filter',
         source: 'boxplot',
         factor: 'Machine',
@@ -294,7 +294,7 @@ describe('Navigation Utilities', () => {
     });
 
     it('should return false for different values', () => {
-      const result = shouldToggleDrill(stack, {
+      const result = shouldToggleFilter(stack, {
         type: 'filter',
         source: 'boxplot',
         factor: 'Machine',
@@ -304,7 +304,7 @@ describe('Navigation Utilities', () => {
     });
 
     it('should return false for different factor', () => {
-      const result = shouldToggleDrill(stack, {
+      const result = shouldToggleFilter(stack, {
         type: 'filter',
         source: 'boxplot',
         factor: 'Shift',
@@ -314,7 +314,7 @@ describe('Navigation Utilities', () => {
     });
 
     it('should return false for highlight type', () => {
-      const result = shouldToggleDrill(stack, {
+      const result = shouldToggleFilter(stack, {
         type: 'highlight',
         source: 'ichart',
         values: [1],
@@ -324,9 +324,9 @@ describe('Navigation Utilities', () => {
     });
   });
 
-  describe('drillStackToBreadcrumbs', () => {
+  describe('filterStackToBreadcrumbs', () => {
     it('should return root item for empty stack', () => {
-      const result = drillStackToBreadcrumbs([]);
+      const result = filterStackToBreadcrumbs([]);
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         id: 'root',
@@ -337,7 +337,7 @@ describe('Navigation Utilities', () => {
     });
 
     it('should convert stack to breadcrumb items', () => {
-      const stack: DrillAction[] = [
+      const stack: FilterAction[] = [
         {
           id: 'a1',
           type: 'filter',
@@ -358,7 +358,7 @@ describe('Navigation Utilities', () => {
         },
       ];
 
-      const result = drillStackToBreadcrumbs(stack);
+      const result = filterStackToBreadcrumbs(stack);
 
       expect(result).toHaveLength(3);
       expect(result[0].isActive).toBe(false); // Root not active when stack has items
@@ -369,15 +369,15 @@ describe('Navigation Utilities', () => {
     });
 
     it('should use custom root label', () => {
-      const result = drillStackToBreadcrumbs([], 'Home');
+      const result = filterStackToBreadcrumbs([], 'Home');
       expect(result[0].label).toBe('Home');
     });
   });
 
   describe('initialNavigationState', () => {
-    it('should have empty drill stack and no highlight', () => {
+    it('should have empty filter stack and no highlight', () => {
       expect(initialNavigationState).toEqual({
-        drillStack: [],
+        filterStack: [],
         currentHighlight: null,
       });
     });

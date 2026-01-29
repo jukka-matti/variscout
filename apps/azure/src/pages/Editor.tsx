@@ -5,7 +5,7 @@ import { useDataIngestion } from '../hooks/useDataIngestion';
 import Dashboard from '../components/Dashboard';
 import DataPanel from '../components/DataPanel';
 import ManualEntry from '../components/ManualEntry';
-import { validateData } from '../logic/parser';
+import { validateData } from '@variscout/core';
 import {
   Upload,
   ArrowLeft,

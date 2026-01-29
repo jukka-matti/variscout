@@ -130,7 +130,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const handleActivateLicense = () => {
     if (storeLicenseKey(licenseKey)) {
       setLicenseStatus('valid');
-      setEdition('pro');
+      setEdition('licensed');
     } else {
       setLicenseStatus('invalid');
     }
@@ -501,20 +501,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             <div className="bg-surface/50 rounded-lg p-3 border border-edge">
               {/* Current Status */}
               <div className="flex items-center gap-3 mb-3">
-                {edition === 'pro' ? (
+                {edition === 'licensed' ? (
                   <>
                     <CheckCircle size={18} className="text-green-500" />
                     <div>
-                      <div className="text-sm text-white font-medium">Pro Edition</div>
+                      <div className="text-sm text-white font-medium">Licensed Edition</div>
                       <div className="text-xs text-content-muted">Branding removed</div>
-                    </div>
-                  </>
-                ) : edition === 'itc' ? (
-                  <>
-                    <CheckCircle size={18} className="text-blue-500" />
-                    <div>
-                      <div className="text-sm text-white font-medium">ITC Edition</div>
-                      <div className="text-xs text-content-muted">International Trade Centre</div>
                     </div>
                   </>
                 ) : (
@@ -560,7 +552,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               )}
 
               {/* Remove License */}
-              {edition === 'pro' && licenseStatus === 'valid' && (
+              {edition === 'licensed' && licenseStatus === 'valid' && (
                 <button
                   onClick={handleRemoveLicense}
                   className="text-xs text-content-muted hover:text-red-400 transition-colors"

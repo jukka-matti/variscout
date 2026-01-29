@@ -7,7 +7,7 @@ import React, {
   useMemo,
   type ReactNode,
 } from 'react';
-import { isThemingEnabled } from '@variscout/core';
+import { useLicenseStatus } from '../hooks/useLicenseStatus';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -93,8 +93,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<ThemeConfig>(loadStoredTheme);
   const [systemPreference, setSystemPreference] = useState<'light' | 'dark'>('dark');
 
-  // Check if theming is enabled (Licensed edition only)
-  const themingEnabled = isThemingEnabled();
+  // Check if theming is enabled (requires PWA + valid license)
+  const { canUseLicensedFeatures } = useLicenseStatus();
+  const themingEnabled = canUseLicensedFeatures;
 
   // Detect system color scheme preference
   useEffect(() => {

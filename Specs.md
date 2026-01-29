@@ -456,8 +456,8 @@ When configured:
 - Blue accent bar (3px) + branding text on left
 - Sample size (n=count) on right
 - Semi-transparent slate background
-- Visible in Community & ITC editions
-- Hidden when Pro edition or valid license key activated
+- Visible in Community edition
+- Hidden when valid license key activated
 
 **License Key System:**
 
@@ -751,8 +751,7 @@ NO backend. NO API calls. Works offline after first visit.
 
 ```bash
 pnpm build:pwa:community  # Default public release
-pnpm build:pwa:itc        # ITC-branded build
-pnpm build:pwa:licensed   # Pre-licensed builds (no branding)
+pnpm build:pwa:licensed   # Pre-licensed builds (no branding, theming)
 pnpm build:excel          # Excel Add-in build
 ```
 

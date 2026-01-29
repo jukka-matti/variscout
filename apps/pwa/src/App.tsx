@@ -8,7 +8,7 @@ import DataTableModal from './components/DataTableModal';
 import DataPanel from './components/DataPanel';
 import FunnelPanel from './components/FunnelPanel';
 import FunnelWindow, { openFunnelPopout } from './components/FunnelWindow';
-import ColumnMapping from './components/ColumnMapping';
+import { ColumnMapping } from '@variscout/ui';
 import Dashboard from './components/Dashboard';
 import HomeScreen from './components/HomeScreen';
 import ManualEntry from './components/ManualEntry';
@@ -18,8 +18,8 @@ import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { useAutoSave } from './hooks/useAutoSave';
 import { SAMPLES } from './data/sampleData';
-import { validateData, type ExclusionReason } from './logic/parser';
-import PerformanceDetectedModal from './components/PerformanceDetectedModal';
+import { validateData, type ExclusionReason } from '@variscout/core';
+import { PerformanceDetectedModal } from '@variscout/ui';
 import type { WideFormatDetection } from '@variscout/core';
 
 type AnalysisView = 'dashboard' | 'regression' | 'gagerr' | 'performance';
@@ -377,14 +377,33 @@ function App() {
     setIsFunnelPanelOpen(false);
   }, []);
 
-  // Apply filters from funnel panel
-  const handleApplyFunnelFilters = useCallback(
-    (filters: Record<string, (string | number)[]>) => {
-      setFilters(filters);
-      setIsFunnelPanelOpen(false);
+  // Accumulator for funnel filters (applied one at a time, then batch-set on close)
+  const pendingFunnelFiltersRef = React.useRef<Record<string, (string | number)[]>>({});
+
+  // Apply a single filter from funnel panel
+  // TODO: Integrate with FilterNavigation context to show breadcrumbs
+  // Currently sets filters directly to DataContext which filters data but doesn't show breadcrumbs
+  const handleApplyFunnelFilter = useCallback(
+    (factor: string, value: string | number) => {
+      // Accumulate filters in ref (VariationFunnel calls this multiple times before closing)
+      pendingFunnelFiltersRef.current = {
+        ...pendingFunnelFiltersRef.current,
+        [factor]: [value],
+      };
+      // Apply immediately so user sees filtered data
+      setFilters({
+        ...pendingFunnelFiltersRef.current,
+      });
     },
     [setFilters]
   );
+
+  // Reset pending filters when funnel panel opens
+  useEffect(() => {
+    if (isFunnelPanelOpen) {
+      pendingFunnelFiltersRef.current = {};
+    }
+  }, [isFunnelPanelOpen]);
 
   // Open funnel in popout window
   const handleOpenFunnelPopout = useCallback(() => {
@@ -758,7 +777,7 @@ function App() {
           outcome={outcome}
           columnAliases={columnAliases}
           specs={specs}
-          onApplyFilters={handleApplyFunnelFilters}
+          onApplyFilter={handleApplyFunnelFilter}
           onOpenPopout={handleOpenFunnelPopout}
         />
       )}

@@ -1,21 +1,19 @@
 /**
- * Edition configuration for VariScout Lite
+ * Edition configuration for VariScout
  *
  * Editions:
  * - community: Free with branding (default)
- * - itc: ITC-branded version (separate build)
  * - licensed: Paid version, no branding (license key required)
  */
 
 import { hasValidLicense } from './license';
 
-export type Edition = 'community' | 'itc' | 'licensed';
+export type Edition = 'community' | 'licensed';
 
 /**
- * Brand accent colors for each edition
+ * Brand accent colors
  */
 export const EDITION_COLORS = {
-  itc: '#007FBD', // ITC blue
   variscout: '#3b82f6', // blue-500 (VariScout blue)
 } as const;
 
@@ -35,10 +33,6 @@ export function configureEdition(edition: Edition | null): void {
  */
 export function getEdition(): Edition {
   // Check configured edition first (set by app from env vars)
-  if (configuredEdition === 'itc') {
-    return 'itc';
-  }
-
   if (configuredEdition === 'licensed') {
     return 'licensed';
   }
@@ -66,8 +60,6 @@ export function getBrandingText(): string {
   const edition = getEdition();
 
   switch (edition) {
-    case 'itc':
-      return 'International Trade Centre';
     case 'licensed':
       return ''; // No branding for licensed
     case 'community':
@@ -77,21 +69,12 @@ export function getBrandingText(): string {
 }
 
 /**
- * Check if this is the ITC edition
- */
-export function isITCEdition(): boolean {
-  return getEdition() === 'itc';
-}
-
-/**
  * Get the signature text for the current edition
  */
 export function getSignatureText(): string {
   const edition = getEdition();
 
   switch (edition) {
-    case 'itc':
-      return 'ITC';
     case 'licensed':
       return ''; // Hidden for licensed
     case 'community':

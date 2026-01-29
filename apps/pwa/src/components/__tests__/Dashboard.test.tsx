@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
 import * as DataContextModule from '../../context/DataContext';
 import * as CoreModule from '@variscout/core';
-import * as UseDrillDownModule from '../../hooks/useDrillDown';
+import * as UseFilterNavigationModule from '../../hooks/useFilterNavigation';
 import * as UseVariationTrackingModule from '../../hooks/useVariationTracking';
 
 // Mock components
@@ -46,10 +46,10 @@ vi.mock('@variscout/core', async () => {
   };
 });
 
-// Mock useDrillDown hook
-vi.mock('../../hooks/useDrillDown', () => ({
+// Mock useFilterNavigation hook
+vi.mock('../../hooks/useFilterNavigation', () => ({
   default: vi.fn(),
-  useDrillDown: vi.fn(),
+  useFilterNavigation: vi.fn(),
 }));
 
 // Mock useVariationTracking hook
@@ -59,19 +59,19 @@ vi.mock('../../hooks/useVariationTracking', () => ({
 }));
 
 describe('Dashboard', () => {
-  const mockDrillDown = vi.fn();
-  const mockDrillTo = vi.fn();
-  const mockClearDrill = vi.fn();
+  const mockApplyFilter = vi.fn();
+  const mockNavigateTo = vi.fn();
+  const mockClearFilters = vi.fn();
 
-  const mockDrillDownReturn = {
-    drillStack: [],
-    drillDown: mockDrillDown,
-    drillTo: mockDrillTo,
-    clearDrill: mockClearDrill,
-    hasDrills: false,
+  const mockFilterNavigationReturn = {
+    filterStack: [],
+    applyFilter: mockApplyFilter,
+    navigateTo: mockNavigateTo,
+    clearFilters: mockClearFilters,
+    hasFilters: false,
     breadcrumbs: [{ id: 'root', label: 'All Data', isActive: true, source: 'ichart' }],
     currentHighlight: null,
-    drillUp: vi.fn(),
+    removeLastFilter: vi.fn(),
     setHighlight: vi.fn(),
     clearHighlight: vi.fn(),
   };
@@ -86,8 +86,12 @@ describe('Dashboard', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(UseDrillDownModule, 'useDrillDown').mockReturnValue(mockDrillDownReturn as any);
-    vi.spyOn(UseDrillDownModule, 'default').mockReturnValue(mockDrillDownReturn as any);
+    vi.spyOn(UseFilterNavigationModule, 'useFilterNavigation').mockReturnValue(
+      mockFilterNavigationReturn as any
+    );
+    vi.spyOn(UseFilterNavigationModule, 'default').mockReturnValue(
+      mockFilterNavigationReturn as any
+    );
     vi.spyOn(UseVariationTrackingModule, 'useVariationTracking').mockReturnValue(
       mockVariationTrackingReturn as any
     );

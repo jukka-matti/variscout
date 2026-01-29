@@ -10,7 +10,6 @@ import {
   getEdition as getCoreEdition,
   shouldShowBranding as coreShouldShowBranding,
   getBrandingText as coreGetBrandingText,
-  isITCEdition as coreIsITCEdition,
   getSignatureText as coreGetSignatureText,
   type Edition,
 } from '@variscout/core';
@@ -23,5 +22,4 @@ export type { Edition };
 export const getEdition = getCoreEdition;
 export const shouldShowBranding = coreShouldShowBranding;
 export const getBrandingText = coreGetBrandingText;
-export const isITCEdition = coreIsITCEdition;
 export const getSignatureText = coreGetSignatureText;

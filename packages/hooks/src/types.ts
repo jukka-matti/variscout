@@ -37,10 +37,10 @@ export interface ChartScaleContext {
 }
 
 /**
- * Minimal interface for drill-down functionality
+ * Minimal interface for filter navigation functionality
  * Apps inject their context data matching this shape
  */
-export interface DrillDownContext {
+export interface FilterNavigationContext {
   filters: Record<string, (string | number)[]>;
   setFilters: (filters: Record<string, (string | number)[]>) => void;
   columnAliases: Record<string, string>;
