@@ -224,3 +224,6 @@ export {
   augmentWithTimeColumns,
   hasTimeComponent,
 } from './time';
+
+// Selection utilities (Minitab-style brushing)
+export { createFactorFromSelection, isValidFactorName, getColumnNames } from './utils/selection';

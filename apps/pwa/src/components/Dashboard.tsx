@@ -14,12 +14,12 @@ import SpecEditor from './SpecEditor';
 import SpecsPopover from './SpecsPopover';
 import { PresentationView, EmbedFocusView, FocusedChartView } from './views';
 import { EditableChartTitle } from '@variscout/charts';
-import { useIsMobile } from '@variscout/ui';
+import { SelectionPanel, CreateFactorModal, useIsMobile } from '@variscout/ui';
 import { useKeyboardNavigation } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import { Activity, Copy, Check, Maximize2, Layers, ArrowLeft } from 'lucide-react';
-import type { StageOrderMode } from '@variscout/core';
+import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '@variscout/core';
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
 import PerformanceDashboard from './PerformanceDashboard';
@@ -78,6 +78,7 @@ const Dashboard = ({
     factors,
     setOutcome,
     rawData,
+    setRawData,
     stats,
     specs,
     setSpecs,
@@ -85,6 +86,7 @@ const Dashboard = ({
     setGrades,
     filteredData,
     filters,
+    setFilters,
     columnAliases,
     stageColumn,
     setStageColumn,
@@ -95,7 +97,14 @@ const Dashboard = ({
     setChartTitles,
     paretoAggregation,
     setParetoAggregation,
+    timeColumn,
+    // Selection state
+    selectedPoints,
+    clearSelection,
   } = useData();
+
+  // Modal state for Create Factor
+  const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
 
   // Use the consolidated chart state hook
   const {
@@ -210,6 +219,33 @@ const Dashboard = ({
       updateFilterValues(factor, newValues);
     },
     [updateFilterValues]
+  );
+
+  // Handle Create Factor button click in SelectionPanel
+  const handleOpenCreateFactorModal = useCallback(() => {
+    setShowCreateFactorModal(true);
+  }, []);
+
+  // Handle factor creation from modal
+  const handleCreateFactor = useCallback(
+    (factorName: string) => {
+      // Create new column with factor values
+      const updatedData = createFactorFromSelection(rawData, selectedPoints, factorName);
+      setRawData(updatedData);
+
+      // Auto-apply filter to show only selected points
+      setFilters({
+        ...filters,
+        [factorName]: [factorName],
+      });
+
+      // Clear selection (now using filter instead)
+      clearSelection();
+
+      // Close modal
+      setShowCreateFactorModal(false);
+    },
+    [rawData, selectedPoints, filters, setRawData, setFilters, clearSelection]
   );
 
   if (!outcome) return null;
@@ -334,7 +370,30 @@ const Dashboard = ({
           onClearAll={handleClearAllFilters}
           cumulativeVariationPct={cumulativeVariationPct}
         />
+
+        {/* Selection Panel - Shows when points are brushed in IChart */}
+        {selectedPoints.size > 0 && (
+          <SelectionPanel
+            selectedIndices={selectedPoints}
+            data={filteredData}
+            outcome={outcome}
+            columnAliases={columnAliases}
+            factors={factors}
+            timeColumn={timeColumn}
+            onClearSelection={clearSelection}
+            onCreateFactor={handleOpenCreateFactorModal}
+          />
+        )}
       </div>
+
+      {/* Create Factor Modal */}
+      <CreateFactorModal
+        isOpen={showCreateFactorModal}
+        onClose={() => setShowCreateFactorModal(false)}
+        selectedCount={selectedPoints.size}
+        existingFactors={getColumnNames(rawData)}
+        onCreateFactor={handleCreateFactor}
+      />
 
       {/* Regression View */}
       {activeView === 'regression' && (

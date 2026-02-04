@@ -13,6 +13,8 @@ export {
 } from './components/PerformanceDetectedModal';
 export { DataQualityBanner, type DataQualityBannerProps } from './components/DataQualityBanner';
 export { ColumnMapping, type ColumnMappingProps } from './components/ColumnMapping';
+export { SelectionPanel, type SelectionPanelProps } from './components/SelectionPanel';
+export { CreateFactorModal, type CreateFactorModalProps } from './components/CreateFactorModal';
 
 // Services
 export {
