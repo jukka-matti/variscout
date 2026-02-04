@@ -205,7 +205,8 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
     if (!status) return chrome.labelSecondary;
 
     // Out of control = red (regardless of metric)
-    if (!status.inControl || status.nelsonRule2Violation) {
+    // Note: Nelson Rule 2 (runs) is ignored for Performance I-Charts as order is typically arbitrary
+    if (!status.inControl) {
       return chartColors.fail; // Red
     }
 
@@ -584,17 +585,10 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
               <div
                 style={{
                   fontSize: '0.75rem',
-                  color:
-                    tooltipData.status.inControl && !tooltipData.status.nelsonRule2Violation
-                      ? chartColors.mean
-                      : chartColors.fail,
+                  color: tooltipData.status.inControl ? chartColors.mean : chartColors.fail,
                 }}
               >
-                {!tooltipData.status.inControl
-                  ? 'Out of control (beyond UCL/LCL)'
-                  : tooltipData.status.nelsonRule2Violation
-                    ? 'Nelson Rule 2 violation'
-                    : 'In control'}
+                {!tooltipData.status.inControl ? 'Out of control (beyond UCL/LCL)' : 'In control'}
               </div>
             )}
           </div>
