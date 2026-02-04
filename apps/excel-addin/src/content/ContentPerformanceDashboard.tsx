@@ -464,18 +464,19 @@ const ContentPerformanceDashboard: React.FC<ContentPerformanceDashboardProps> = 
                 onClick={() => setCapabilityMetric('cpk')}
                 style={{
                   padding: `${theme.spacingXS}px ${theme.spacingS}px`,
-                  fontSize: theme.fontSizeCaption,
-                  fontWeight: theme.fontWeightSemibold,
-                  border: 'none',
-                  cursor: 'pointer',
                   backgroundColor:
                     capabilityMetric === 'cpk'
-                      ? theme.colorBrandForeground1
+                      ? '#3b82f6' // Blue (matches chart)
                       : theme.colorNeutralBackground2,
                   color:
                     capabilityMetric === 'cpk'
                       ? theme.colorNeutralForeground1
                       : theme.colorNeutralForeground2,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: theme.fontSizeCaption,
+                  fontWeight: theme.fontWeightSemibold,
+                  transition: 'all 0.2s ease',
                 }}
               >
                 Cpk
@@ -484,18 +485,19 @@ const ContentPerformanceDashboard: React.FC<ContentPerformanceDashboardProps> = 
                 onClick={() => setCapabilityMetric('cp')}
                 style={{
                   padding: `${theme.spacingXS}px ${theme.spacingS}px`,
-                  fontSize: theme.fontSizeCaption,
-                  fontWeight: theme.fontWeightSemibold,
-                  border: 'none',
-                  cursor: 'pointer',
                   backgroundColor:
                     capabilityMetric === 'cp'
-                      ? theme.colorBrandForeground1
+                      ? '#a855f7' // Purple (matches chart)
                       : theme.colorNeutralBackground2,
                   color:
                     capabilityMetric === 'cp'
                       ? theme.colorNeutralForeground1
                       : theme.colorNeutralForeground2,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: theme.fontSizeCaption,
+                  fontWeight: theme.fontWeightSemibold,
+                  transition: 'all 0.2s ease',
                 }}
               >
                 Cp
@@ -504,18 +506,19 @@ const ContentPerformanceDashboard: React.FC<ContentPerformanceDashboardProps> = 
                 onClick={() => setCapabilityMetric('both')}
                 style={{
                   padding: `${theme.spacingXS}px ${theme.spacingS}px`,
-                  fontSize: theme.fontSizeCaption,
-                  fontWeight: theme.fontWeightSemibold,
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor:
+                  background:
                     capabilityMetric === 'both'
-                      ? theme.colorBrandForeground1
+                      ? 'linear-gradient(90deg, #3b82f6 0%, #a855f7 100%)' // Blue-to-purple gradient
                       : theme.colorNeutralBackground2,
                   color:
                     capabilityMetric === 'both'
                       ? theme.colorNeutralForeground1
                       : theme.colorNeutralForeground2,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: theme.fontSizeCaption,
+                  fontWeight: theme.fontWeightSemibold,
+                  transition: 'all 0.2s ease',
                 }}
               >
                 Both

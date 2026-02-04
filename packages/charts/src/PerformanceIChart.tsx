@@ -199,16 +199,21 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
 
   const xTickCount = getResponsiveTickCount(width, 'x');
 
-  // Get point color based on control status (I-Chart style)
-  const getPointColor = (channelId: string): string => {
+  // Get point color based on metric type and control status
+  const getPointColor = (channelId: string, metricType: 'cp' | 'cpk' = 'cpk'): string => {
     const status = controlStatus.get(channelId);
     if (!status) return chrome.labelSecondary;
 
-    // Out of control = red, in control = blue
+    // Out of control = red (regardless of metric)
     if (!status.inControl || status.nelsonRule2Violation) {
       return chartColors.fail; // Red
     }
-    return chartColors.mean; // Blue (in-control)
+
+    // In control - color by metric type
+    if (metricType === 'cp') {
+      return chartColors.meanAlt; // Purple (#a855f7)
+    }
+    return chartColors.mean; // Blue (#3b82f6)
   };
 
   const showTooltip = (channel: ChannelResult, index: number) => {
@@ -299,18 +304,20 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
             const isSelected = selectedMeasure === channel.id;
 
             if (capabilityMetric === 'both') {
-              // Render BOTH Cp and Cpk dots
+              // Render BOTH Cp and Cpk dots with metric-specific colors
               const cpValue = channel.cp ?? 0;
               const cpkValue = channel.cpk ?? 0;
+              const cpkColor = getPointColor(channel.id, 'cpk');
+              const cpColor = getPointColor(channel.id, 'cp');
 
               return (
                 <Group key={channel.id}>
-                  {/* Cpk dot (darker blue) */}
+                  {/* Cpk dot (blue or red if out of control) */}
                   <Circle
                     cx={x}
                     cy={yScale(cpkValue)}
                     r={isSelected ? 8 : 5}
-                    fill={chartColors.mean} // #3b82f6 (darker)
+                    fill={cpkColor} // Blue (#3b82f6) or red if out of control
                     stroke={isSelected ? '#fff' : chrome.pointStroke}
                     strokeWidth={isSelected ? 2 : 1}
                     opacity={selectedMeasure && !isSelected ? 0.4 : 1}
@@ -331,18 +338,18 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
                       cy={yScale(cpkValue)}
                       r={12}
                       fill="transparent"
-                      stroke={chartColors.mean}
+                      stroke={cpkColor}
                       strokeWidth={2}
                       className="animate-pulse"
                       pointerEvents="none"
                     />
                   )}
-                  {/* Cp dot (lighter blue) */}
+                  {/* Cp dot (purple or red if out of control) */}
                   <Circle
                     cx={x}
                     cy={yScale(cpValue)}
                     r={isSelected ? 8 : 5}
-                    fill={chartColors.meanAlt} // #60a5fa (lighter)
+                    fill={cpColor} // Purple (#a855f7) or red if out of control
                     stroke={isSelected ? '#fff' : chrome.pointStroke}
                     strokeWidth={isSelected ? 2 : 1}
                     opacity={selectedMeasure && !isSelected ? 0.4 : 1}
@@ -363,7 +370,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
                       cy={yScale(cpValue)}
                       r={12}
                       fill="transparent"
-                      stroke={chartColors.meanAlt}
+                      stroke={cpColor}
                       strokeWidth={2}
                       className="animate-pulse"
                       pointerEvents="none"
@@ -372,10 +379,10 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
                 </Group>
               );
             } else {
-              // Render single dot (existing logic)
+              // Render single dot (metric-specific coloring)
               const metricValue = channel[capabilityMetric] ?? 0;
               const y = yScale(metricValue);
-              const pointColor = getPointColor(channel.id);
+              const pointColor = getPointColor(channel.id, capabilityMetric);
 
               return (
                 <Group key={channel.id}>
@@ -404,7 +411,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
                       cy={y}
                       r={12}
                       fill="transparent"
-                      stroke={chartColors.mean}
+                      stroke={pointColor}
                       strokeWidth={2}
                       className="animate-pulse"
                       pointerEvents="none"
@@ -489,6 +496,31 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
           >
             {metricLabel}
           </text>
+
+          {/* Legend for 'both' mode */}
+          {capabilityMetric === 'both' && (
+            <Group left={width - 80} top={10}>
+              <rect
+                x={0}
+                y={0}
+                width={75}
+                height={42}
+                fill={chrome.tooltipBg}
+                stroke={chrome.gridLine}
+                strokeWidth={1}
+                rx={4}
+                opacity={0.9}
+              />
+              <Circle cx={8} cy={12} r={4} fill={chartColors.mean} />
+              <text x={16} y={15} fontSize={fonts.tickLabel} fill={chrome.labelPrimary}>
+                Cpk
+              </text>
+              <Circle cx={8} cy={30} r={4} fill={chartColors.meanAlt} />
+              <text x={16} y={33} fontSize={fonts.tickLabel} fill={chrome.labelPrimary}>
+                Cp
+              </text>
+            </Group>
+          )}
         </Group>
 
         {/* Source Bar */}

@@ -12,8 +12,8 @@ export const chartColors = {
   violation: '#f97316', // orange-500 - outside control limits
 
   // Reference lines
-  mean: '#3b82f6', // blue-500 - center line
-  meanAlt: '#60a5fa', // blue-400 - alternative mean indicator
+  mean: '#3b82f6', // blue-500 - center line (Cpk - primary capability)
+  meanAlt: '#a855f7', // purple-500 - alternative mean indicator (Cp - potential capability)
   target: '#22c55e', // green-500 - target line
   spec: '#f97316', // orange-500 - specification limits (Voice of Customer)
   control: '#06b6d4', // cyan-500 - control limits (UCL/LCL) - Voice of Process

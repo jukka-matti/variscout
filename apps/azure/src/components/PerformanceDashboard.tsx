@@ -36,14 +36,30 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   onExitPerformanceMode,
   onDrillToMeasure,
 }) => {
-  const { performanceResult, selectedMeasure, setSelectedMeasure, specs, measureColumns } =
-    useData();
+  const {
+    performanceResult,
+    selectedMeasure,
+    setSelectedMeasure,
+    specs,
+    setSpecs,
+    measureColumns,
+  } = useData();
 
   // Cp/Cpk toggle state (includes 'both' option)
   const [capabilityMetric, setCapabilityMetric] = useState<'cp' | 'cpk' | 'both'>('cpk');
 
   // Cpk target threshold state
   const [cpkTarget, setCpkTarget] = useState<number>(1.33);
+
+  // Global specs editing (local state for input fields)
+  const [localLSL, setLocalLSL] = useState<string>(specs.lsl?.toString() || '');
+  const [localUSL, setLocalUSL] = useState<string>(specs.usl?.toString() || '');
+
+  // Sync local state when specs change externally
+  useEffect(() => {
+    setLocalLSL(specs.lsl?.toString() || '');
+    setLocalUSL(specs.usl?.toString() || '');
+  }, [specs.lsl, specs.usl]);
 
   // Focus mode state
   type FocusedChart = 'ichart' | 'boxplot' | null;
@@ -92,19 +108,40 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
     [selectedMeasure, setSelectedMeasure]
   );
 
-  const handleBoxplotClick = useCallback(
-    (measureId: string) => {
-      // Show confirmation and drill to Dashboard
-      if (
-        window.confirm(
-          `Analyze ${measureId} in detail? This will switch to standard Dashboard view.`
-        )
-      ) {
-        onDrillToMeasure?.(measureId);
+  // Confirmation modal state for drilling to measure
+  const [drillConfirmMeasure, setDrillConfirmMeasure] = useState<string | null>(null);
+
+  const handleBoxplotClick = useCallback((measureId: string) => {
+    // Show confirmation modal
+    setDrillConfirmMeasure(measureId);
+  }, []);
+
+  const handleConfirmDrill = useCallback(() => {
+    if (drillConfirmMeasure) {
+      onDrillToMeasure?.(drillConfirmMeasure);
+      setDrillConfirmMeasure(null);
+    }
+  }, [drillConfirmMeasure, onDrillToMeasure]);
+
+  const handleCancelDrill = useCallback(() => {
+    setDrillConfirmMeasure(null);
+  }, []);
+
+  // Keyboard handling for drill confirmation modal
+  useEffect(() => {
+    if (!drillConfirmMeasure) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCancelDrill();
+      } else if (e.key === 'Enter') {
+        handleConfirmDrill();
       }
-    },
-    [onDrillToMeasure]
-  );
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [drillConfirmMeasure, handleCancelDrill, handleConfirmDrill]);
 
   // Show setup panel if no measures configured
   if (!performanceResult || measureColumns.length === 0) {
@@ -173,7 +210,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                       className={`px-2 py-0.5 text-xs font-medium transition-colors ${
                         capabilityMetric === 'cpk'
                           ? 'bg-blue-600 text-white'
-                          : 'bg-slate-700 text-slate-400 hover:text-white'
+                          : 'bg-slate-700 text-slate-400 hover:bg-blue-800 hover:text-white'
                       }`}
                     >
                       Cpk
@@ -182,8 +219,8 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                       onClick={() => setCapabilityMetric('cp')}
                       className={`px-2 py-0.5 text-xs font-medium transition-colors ${
                         capabilityMetric === 'cp'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-slate-700 text-slate-400 hover:text-white'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-slate-700 text-slate-400 hover:bg-purple-800 hover:text-white'
                       }`}
                     >
                       Cp
@@ -192,7 +229,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                       onClick={() => setCapabilityMetric('both')}
                       className={`px-2 py-0.5 text-xs font-medium transition-colors ${
                         capabilityMetric === 'both'
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                           : 'bg-slate-700 text-slate-400 hover:text-white'
                       }`}
                     >
@@ -215,6 +252,54 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                       onChange={e => setCpkTarget(parseFloat(e.target.value) || 1.33)}
                       className="w-20 px-2 py-1 bg-slate-700 text-slate-100 border border-slate-600 rounded text-center"
                       title="Industry standard: 1.33 (4σ), 1.67 (5σ), 2.00 (6σ)"
+                    />
+                  </div>
+
+                  {/* LSL Input */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <label htmlFor="lsl-input-focused" className="text-slate-400">
+                      LSL:
+                    </label>
+                    <input
+                      id="lsl-input-focused"
+                      type="number"
+                      value={localLSL}
+                      onChange={e => {
+                        setLocalLSL(e.target.value);
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val)) {
+                          setSpecs({ ...specs, lsl: val });
+                        }
+                      }}
+                      onBlur={() => {
+                        if (localLSL === '') setLocalLSL(specs.lsl?.toString() || '');
+                      }}
+                      placeholder="Lower"
+                      className="w-20 px-2 py-1 bg-slate-700 text-slate-100 border border-slate-600 rounded text-center"
+                    />
+                  </div>
+
+                  {/* USL Input */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <label htmlFor="usl-input-focused" className="text-slate-400">
+                      USL:
+                    </label>
+                    <input
+                      id="usl-input-focused"
+                      type="number"
+                      value={localUSL}
+                      onChange={e => {
+                        setLocalUSL(e.target.value);
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val)) {
+                          setSpecs({ ...specs, usl: val });
+                        }
+                      }}
+                      onBlur={() => {
+                        if (localUSL === '') setLocalUSL(specs.usl?.toString() || '');
+                      }}
+                      placeholder="Upper"
+                      className="w-20 px-2 py-1 bg-slate-700 text-slate-100 border border-slate-600 rounded text-center"
                     />
                   </div>
 
@@ -304,7 +389,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                       className={`px-2 py-0.5 text-xs font-medium transition-colors ${
                         capabilityMetric === 'cpk'
                           ? 'bg-blue-600 text-white'
-                          : 'bg-slate-700 text-slate-400 hover:text-white'
+                          : 'bg-slate-700 text-slate-400 hover:bg-blue-800 hover:text-white'
                       }`}
                     >
                       Cpk
@@ -313,8 +398,8 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                       onClick={() => setCapabilityMetric('cp')}
                       className={`px-2 py-0.5 text-xs font-medium transition-colors ${
                         capabilityMetric === 'cp'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-slate-700 text-slate-400 hover:text-white'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-slate-700 text-slate-400 hover:bg-purple-800 hover:text-white'
                       }`}
                     >
                       Cp
@@ -323,7 +408,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                       onClick={() => setCapabilityMetric('both')}
                       className={`px-2 py-0.5 text-xs font-medium transition-colors ${
                         capabilityMetric === 'both'
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                           : 'bg-slate-700 text-slate-400 hover:text-white'
                       }`}
                     >
@@ -346,6 +431,54 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                       onChange={e => setCpkTarget(parseFloat(e.target.value) || 1.33)}
                       className="w-20 px-2 py-1 bg-slate-700 text-slate-100 border border-slate-600 rounded text-center"
                       title="Industry standard: 1.33 (4σ), 1.67 (5σ), 2.00 (6σ)"
+                    />
+                  </div>
+
+                  {/* LSL Input */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <label htmlFor="lsl-input-grid" className="text-slate-400">
+                      LSL:
+                    </label>
+                    <input
+                      id="lsl-input-grid"
+                      type="number"
+                      value={localLSL}
+                      onChange={e => {
+                        setLocalLSL(e.target.value);
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val)) {
+                          setSpecs({ ...specs, lsl: val });
+                        }
+                      }}
+                      onBlur={() => {
+                        if (localLSL === '') setLocalLSL(specs.lsl?.toString() || '');
+                      }}
+                      placeholder="Lower"
+                      className="w-20 px-2 py-1 bg-slate-700 text-slate-100 border border-slate-600 rounded text-center"
+                    />
+                  </div>
+
+                  {/* USL Input */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <label htmlFor="usl-input-grid" className="text-slate-400">
+                      USL:
+                    </label>
+                    <input
+                      id="usl-input-grid"
+                      type="number"
+                      value={localUSL}
+                      onChange={e => {
+                        setLocalUSL(e.target.value);
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val)) {
+                          setSpecs({ ...specs, usl: val });
+                        }
+                      }}
+                      onBlur={() => {
+                        if (localUSL === '') setLocalUSL(specs.usl?.toString() || '');
+                      }}
+                      placeholder="Upper"
+                      className="w-20 px-2 py-1 bg-slate-700 text-slate-100 border border-slate-600 rounded text-center"
                     />
                   </div>
 
@@ -400,6 +533,34 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                   <PerformanceBoxplot onChannelClick={handleBoxplotClick} maxDisplayed={15} />
                 </ErrorBoundary>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drill Confirmation Modal */}
+      {drillConfirmMeasure && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-white mb-3">Analyze in Detail?</h3>
+            <p className="text-sm text-slate-300 mb-6">
+              Switch to standard Dashboard view to analyze{' '}
+              <strong className="text-white">{drillConfirmMeasure}</strong> with full I-Chart,
+              Boxplot, and Pareto analysis?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={handleCancelDrill}
+                className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDrill}
+                className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+              >
+                Analyze
+              </button>
             </div>
           </div>
         </div>
