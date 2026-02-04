@@ -81,8 +81,27 @@ function App() {
     clearData,
   } = useDataIngestion({
     onWideFormatDetected: handleWideFormatDetected,
+    onTimeColumnDetected: prompt => {
+      setTimeExtractionPrompt(prompt);
+      if (prompt.hasTimeComponent) {
+        setTimeExtractionConfig(prev => ({ ...prev, extractHour: true }));
+      }
+    },
+    getRawData: () => rawData,
+    getOutcome: () => outcome,
   });
   const [isMapping, setIsMapping] = useState(false);
+  const [timeExtractionPrompt, setTimeExtractionPrompt] = useState<{
+    timeColumn: string;
+    hasTimeComponent: boolean;
+  } | null>(null);
+  const [timeExtractionConfig, setTimeExtractionConfig] = useState({
+    extractYear: true,
+    extractMonth: true,
+    extractWeek: false,
+    extractDayOfWeek: true,
+    extractHour: false,
+  });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
   const [isDataTableOpen, setIsDataTableOpen] = useState(false);

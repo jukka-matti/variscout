@@ -21,14 +21,27 @@ import { toNumericValue } from './types';
 // ============================================================================
 
 /**
- * Cpk thresholds for health classification
+ * Cpk thresholds interface for health classification
+ * User-configurable to align with organizational capability standards
+ */
+export interface CpkThresholds {
+  /** Threshold for critical status (default: 1.0) */
+  critical: number;
+  /** Threshold for warning status (default: 1.33) */
+  warning: number;
+  /** Threshold for capable status (default: 1.67) */
+  capable: number;
+}
+
+/**
+ * Default Cpk thresholds for health classification
  * Based on AIAG/industry standards:
  * - < 1.0: Process is not capable (critical)
  * - 1.0-1.33: Process is barely capable (warning)
  * - 1.33-1.67: Process is capable (capable)
  * - >= 1.67: Process is highly capable (excellent)
  */
-export const CPK_THRESHOLDS = {
+export const CPK_THRESHOLDS: CpkThresholds = {
   critical: 1.0,
   warning: 1.33,
   capable: 1.67,
@@ -48,9 +61,28 @@ export const CHANNEL_LIMITS = {
 // ============================================================================
 
 /**
+ * Validate that threshold values are properly ordered
+ *
+ * @param thresholds - Threshold values to validate
+ * @returns true if thresholds are valid (critical < warning < capable)
+ *
+ * @example
+ * validateThresholds({ critical: 1.0, warning: 1.33, capable: 1.67 }) // true
+ * validateThresholds({ critical: 1.5, warning: 1.0, capable: 2.0 })   // false
+ */
+export function validateThresholds(thresholds: CpkThresholds): boolean {
+  return (
+    thresholds.critical > 0 &&
+    thresholds.critical < thresholds.warning &&
+    thresholds.warning < thresholds.capable
+  );
+}
+
+/**
  * Classify channel health based on Cpk value
  *
  * @param cpk - Process capability index (may be undefined)
+ * @param thresholds - Optional custom thresholds (defaults to CPK_THRESHOLDS)
  * @returns Health classification
  *
  * @example
@@ -59,15 +91,22 @@ export const CHANNEL_LIMITS = {
  * getChannelHealth(1.5)   // 'capable'
  * getChannelHealth(2.0)   // 'excellent'
  * getChannelHealth(undefined) // 'critical' (no Cpk = assume worst)
+ *
+ * // With custom thresholds
+ * const aerospace = { critical: 1.5, warning: 2.0, capable: 2.5 };
+ * getChannelHealth(1.8, aerospace) // 'warning' (vs 'excellent' with defaults)
  */
-export function getChannelHealth(cpk: number | undefined): ChannelHealth {
-  if (cpk === undefined || cpk < CPK_THRESHOLDS.critical) {
+export function getChannelHealth(
+  cpk: number | undefined,
+  thresholds: CpkThresholds = CPK_THRESHOLDS
+): ChannelHealth {
+  if (cpk === undefined || cpk < thresholds.critical) {
     return 'critical';
   }
-  if (cpk < CPK_THRESHOLDS.warning) {
+  if (cpk < thresholds.warning) {
     return 'warning';
   }
-  if (cpk < CPK_THRESHOLDS.capable) {
+  if (cpk < thresholds.capable) {
     return 'capable';
   }
   return 'excellent';

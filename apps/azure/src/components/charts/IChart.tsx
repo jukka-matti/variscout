@@ -12,6 +12,7 @@ import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
 import { IChartBase, type IChartDataPoint } from '@variscout/charts';
+import { formatTimeValue } from '@variscout/core';
 import AxisEditor from '../AxisEditor';
 import YAxisPopover from '../YAxisPopover';
 
@@ -32,6 +33,7 @@ const IChart = ({
   const {
     filteredData,
     outcome,
+    timeColumn,
     stats,
     specs,
     grades,
@@ -62,11 +64,12 @@ const IChart = ({
           x: i,
           y: Number(d[outcome]),
           stage: stageColumn ? String(d[stageColumn] ?? '') : undefined,
+          timeValue: timeColumn ? formatTimeValue(d[timeColumn]) : undefined,
           originalIndex: i,
         })
       )
       .filter(d => !isNaN(d.y));
-  }, [sourceData, outcome, stageColumn]);
+  }, [sourceData, outcome, stageColumn, timeColumn]);
 
   const handleSaveAlias = (newAlias: string) => {
     if (outcome) {

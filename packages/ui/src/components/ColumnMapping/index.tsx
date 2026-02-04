@@ -9,9 +9,18 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, ArrowRight, CheckSquare, Settings2, Upload, X, BarChart3 } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckSquare,
+  Settings2,
+  Upload,
+  X,
+  BarChart3,
+  Clock,
+} from 'lucide-react';
 import { DataQualityBanner } from '../DataQualityBanner';
-import type { DataQualityReport } from '@variscout/core';
+import type { DataQualityReport, TimeExtractionConfig } from '@variscout/core';
 
 export interface ColumnMappingProps {
   availableColumns: string[];
@@ -30,6 +39,10 @@ export interface ColumnMappingProps {
   separateParetoFilename?: string | null;
   onParetoFileUpload?: (file: File) => Promise<boolean>;
   onClearParetoFile?: () => void;
+  // Time extraction (optional)
+  timeColumn?: string | null;
+  hasTimeComponent?: boolean;
+  onTimeExtractionChange?: (config: TimeExtractionConfig) => void;
 }
 
 export const ColumnMapping: React.FC<ColumnMappingProps> = ({
@@ -47,11 +60,23 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   separateParetoFilename,
   onParetoFileUpload,
   onClearParetoFile,
+  timeColumn,
+  hasTimeComponent,
+  onTimeExtractionChange,
 }) => {
   const [outcome, setOutcome] = useState<string>(initialOutcome || '');
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
   const [isDraggingPareto, setIsDraggingPareto] = useState(false);
   const paretoFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Time extraction state
+  const [timeExtraction, setTimeExtraction] = useState<TimeExtractionConfig>({
+    extractYear: true,
+    extractMonth: true,
+    extractWeek: false,
+    extractDayOfWeek: true,
+    extractHour: hasTimeComponent || false,
+  });
 
   const toggleFactor = (col: string) => {
     if (col === outcome) return; // Cannot be both outcome and factor
@@ -292,6 +317,60 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                   </span>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Time Extraction (Optional) */}
+          {timeColumn && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-600 text-white">
+                  <Clock size={14} />
+                </div>
+                <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                  Extract Time Factors
+                </h3>
+                <span className="text-xs text-slate-500 ml-auto">Optional</span>
+              </div>
+              <p className="text-xs text-slate-500 mb-3">
+                Create categorical columns from <strong>{timeColumn}</strong> to filter by Year,
+                Month, Week, etc.
+              </p>
+
+              <div className="space-y-2 p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                {[
+                  { key: 'extractYear' as const, label: 'Year', example: '2025' },
+                  { key: 'extractMonth' as const, label: 'Month', example: 'Jan' },
+                  { key: 'extractWeek' as const, label: 'Week', example: 'W03' },
+                  { key: 'extractDayOfWeek' as const, label: 'Day of Week', example: 'Mon' },
+                  ...(hasTimeComponent
+                    ? [{ key: 'extractHour' as const, label: 'Hour', example: '14:00' }]
+                    : []),
+                ].map(({ key, label, example }) => (
+                  <label
+                    key={key}
+                    className="flex items-center gap-3 p-2 rounded hover:bg-slate-700/50 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={timeExtraction[key]}
+                      onChange={e => {
+                        const newConfig = { ...timeExtraction, [key]: e.target.checked };
+                        setTimeExtraction(newConfig);
+                        onTimeExtractionChange?.(newConfig);
+                      }}
+                      className="w-4 h-4 rounded border-slate-600 text-purple-600 focus:ring-purple-600 focus:ring-offset-slate-900"
+                    />
+                    <span className="text-sm text-slate-300 flex-1">{label}</span>
+                    <span className="text-xs text-slate-500 font-mono">{example}</span>
+                  </label>
+                ))}
+
+                <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-700">
+                  New columns will be added as factors (e.g., "{timeColumn}_Month", "{timeColumn}
+                  _Year")
+                </p>
+              </div>
             </div>
           )}
         </div>

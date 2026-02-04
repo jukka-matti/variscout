@@ -9,6 +9,8 @@ import {
   getWorstChannels,
   getBestChannels,
   CPK_THRESHOLDS,
+  validateThresholds,
+  type CpkThresholds,
 } from '../performance';
 import { detectChannelColumns, detectWideFormat } from '../parser';
 import type { ChannelResult } from '../types';
@@ -798,5 +800,88 @@ describe('detectWideFormat', () => {
 
     const customResult = detectWideFormat(data, { minChannels: 2 });
     expect(customResult.isWideFormat).toBe(true);
+  });
+});
+
+// ============================================================================
+// Custom Cpk Thresholds Tests
+// ============================================================================
+
+describe('Custom Cpk Thresholds', () => {
+  describe('validateThresholds', () => {
+    it('should validate correct threshold ordering', () => {
+      expect(validateThresholds({ critical: 1.0, warning: 1.33, capable: 1.67 })).toBe(true);
+      expect(validateThresholds({ critical: 1.5, warning: 2.0, capable: 2.5 })).toBe(true);
+      expect(validateThresholds({ critical: 0.5, warning: 1.0, capable: 1.5 })).toBe(true);
+    });
+
+    it('should reject invalid threshold ordering', () => {
+      expect(validateThresholds({ critical: 1.5, warning: 1.0, capable: 2.0 })).toBe(false);
+      expect(validateThresholds({ critical: 1.0, warning: 2.0, capable: 1.5 })).toBe(false);
+      expect(validateThresholds({ critical: 2.0, warning: 1.5, capable: 1.0 })).toBe(false);
+    });
+
+    it('should reject equal threshold values', () => {
+      expect(validateThresholds({ critical: 1.0, warning: 1.0, capable: 1.5 })).toBe(false);
+      expect(validateThresholds({ critical: 1.0, warning: 1.5, capable: 1.5 })).toBe(false);
+    });
+
+    it('should reject zero or negative critical threshold', () => {
+      expect(validateThresholds({ critical: 0, warning: 1.0, capable: 1.5 })).toBe(false);
+      expect(validateThresholds({ critical: -0.5, warning: 1.0, capable: 1.5 })).toBe(false);
+    });
+  });
+
+  describe('getChannelHealth with custom thresholds', () => {
+    const defaultThresholds = CPK_THRESHOLDS;
+    const aerospaceThresholds: CpkThresholds = { critical: 1.5, warning: 2.0, capable: 2.5 };
+    const consumerThresholds: CpkThresholds = { critical: 0.67, warning: 1.0, capable: 1.33 };
+
+    it('should use default thresholds when not specified', () => {
+      expect(getChannelHealth(0.8)).toBe('critical');
+      expect(getChannelHealth(1.2)).toBe('warning');
+      expect(getChannelHealth(1.5)).toBe('capable');
+      expect(getChannelHealth(2.0)).toBe('excellent');
+    });
+
+    it('should apply aerospace (strict) thresholds correctly', () => {
+      expect(getChannelHealth(1.2, aerospaceThresholds)).toBe('critical');
+      expect(getChannelHealth(1.8, aerospaceThresholds)).toBe('warning');
+      expect(getChannelHealth(2.2, aerospaceThresholds)).toBe('capable');
+      expect(getChannelHealth(2.6, aerospaceThresholds)).toBe('excellent');
+    });
+
+    it('should apply consumer goods (lenient) thresholds correctly', () => {
+      expect(getChannelHealth(0.5, consumerThresholds)).toBe('critical');
+      expect(getChannelHealth(0.8, consumerThresholds)).toBe('warning');
+      expect(getChannelHealth(1.2, consumerThresholds)).toBe('capable');
+      expect(getChannelHealth(1.5, consumerThresholds)).toBe('excellent');
+    });
+
+    it('should show impact of threshold changes on same Cpk value', () => {
+      const cpk = 1.5;
+
+      // Same Cpk = 1.5 classified differently by industry
+      expect(getChannelHealth(cpk, defaultThresholds)).toBe('capable');
+      expect(getChannelHealth(cpk, aerospaceThresholds)).toBe('warning'); // 1.5 is at aerospace critical threshold
+      expect(getChannelHealth(cpk, consumerThresholds)).toBe('excellent');
+    });
+
+    it('should handle undefined Cpk as critical regardless of thresholds', () => {
+      expect(getChannelHealth(undefined, defaultThresholds)).toBe('critical');
+      expect(getChannelHealth(undefined, aerospaceThresholds)).toBe('critical');
+      expect(getChannelHealth(undefined, consumerThresholds)).toBe('critical');
+    });
+
+    it('should handle edge case values at threshold boundaries', () => {
+      const thresholds: CpkThresholds = { critical: 1.0, warning: 1.5, capable: 2.0 };
+
+      expect(getChannelHealth(0.99, thresholds)).toBe('critical');
+      expect(getChannelHealth(1.0, thresholds)).toBe('warning');
+      expect(getChannelHealth(1.49, thresholds)).toBe('warning');
+      expect(getChannelHealth(1.5, thresholds)).toBe('capable');
+      expect(getChannelHealth(1.99, thresholds)).toBe('capable');
+      expect(getChannelHealth(2.0, thresholds)).toBe('excellent');
+    });
   });
 });

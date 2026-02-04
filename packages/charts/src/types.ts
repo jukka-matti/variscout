@@ -10,10 +10,18 @@ import type {
   StagedStatsResult,
   StageBoundary,
   ChannelResult,
+  CpkThresholds,
 } from '@variscout/core';
 
 // Re-export types from core for convenience
-export type { SpecLimits, GradeTier, StagedStatsResult, StageBoundary, ChannelResult };
+export type {
+  SpecLimits,
+  GradeTier,
+  StagedStatsResult,
+  StageBoundary,
+  ChannelResult,
+  CpkThresholds,
+};
 
 /**
  * Y-axis domain override for locking scale to full dataset
@@ -333,6 +341,8 @@ export interface PerformanceIChartProps extends BaseChartProps {
   capabilityMetric?: 'cp' | 'cpk';
   /** User-defined Cpk/Cp target line (default: 1.33) */
   cpkTarget?: number;
+  /** Custom Cpk thresholds for health classification (defaults to industry standards) */
+  cpkThresholds?: CpkThresholds;
 }
 
 /**
@@ -365,6 +375,8 @@ export interface PerformanceParetoProps extends BaseChartProps {
   maxDisplayed?: number;
   /** Callback when a bar is clicked */
   onChannelClick?: (channelId: string) => void;
+  /** Custom Cpk thresholds for health classification and reference lines (defaults to industry standards) */
+  cpkThresholds?: CpkThresholds;
 }
 
 /**

@@ -20,6 +20,7 @@ import ChartSignature from './ChartSignature';
 import {
   getStageBoundaries,
   getNelsonRule2ViolationPoints,
+  formatTimeValue,
   type StageBoundary,
 } from '@variscout/core';
 import { chartColors, useChartTheme } from '@variscout/charts';
@@ -69,6 +70,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
         x: timeColumn && !stageColumn ? new Date(d[timeColumn]) : i, // Use index when staged
         y: Number(d[outcome]),
         stage: stageColumn ? String(d[stageColumn] ?? '') : undefined,
+        timeValue: timeColumn && !stageColumn ? formatTimeValue(d[timeColumn]) : undefined,
       }))
       .filter((d: any) => !isNaN(d.y));
   }, [sourceData, outcome, timeColumn, stageColumn]);
@@ -522,7 +524,13 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
               strokeWidth={1}
               className={onPointClick ? 'cursor-pointer' : ''}
               onClick={() => onPointClick?.(i)}
-            />
+            >
+              <title>
+                #{i + 1}
+                {d.timeValue && `\n${d.timeValue}`}
+                {`\nValue: ${d.y.toFixed(2)}`}
+              </title>
+            </Circle>
           ))}
 
           <AxisLeft

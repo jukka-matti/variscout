@@ -6,16 +6,22 @@
  */
 
 import React from 'react';
-import { PerformancePareto as PerformanceParetoBase } from '@variscout/charts';
+import { PerformancePareto as PerformanceParetoBase, type CpkThresholds } from '@variscout/charts';
 import { useData } from '../../context/DataContext';
 
 interface PerformanceParetoProps {
   onChannelClick?: (channelId: string) => void;
   /** Maximum number of channels to display (default: 20) */
   maxDisplayed?: number;
+  /** Custom Cpk thresholds for health classification and reference lines (defaults to industry standards) */
+  cpkThresholds?: CpkThresholds;
 }
 
-const PerformancePareto: React.FC<PerformanceParetoProps> = ({ onChannelClick, maxDisplayed }) => {
+const PerformancePareto: React.FC<PerformanceParetoProps> = ({
+  onChannelClick,
+  maxDisplayed,
+  cpkThresholds,
+}) => {
   const { performanceResult, selectedMeasure } = useData();
 
   return (
@@ -24,6 +30,7 @@ const PerformancePareto: React.FC<PerformanceParetoProps> = ({ onChannelClick, m
       selectedMeasure={selectedMeasure}
       onChannelClick={onChannelClick}
       maxDisplayed={maxDisplayed}
+      cpkThresholds={cpkThresholds}
     />
   );
 };

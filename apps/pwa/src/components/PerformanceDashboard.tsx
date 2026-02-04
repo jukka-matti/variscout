@@ -38,8 +38,14 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   onExitPerformanceMode,
   onDrillToMeasure,
 }) => {
-  const { performanceResult, selectedMeasure, setSelectedMeasure, specs, measureColumns } =
-    useData();
+  const {
+    performanceResult,
+    selectedMeasure,
+    setSelectedMeasure,
+    specs,
+    measureColumns,
+    cpkThresholds,
+  } = useData();
 
   // Cp/Cpk toggle state
   const [capabilityMetric, setCapabilityMetric] = useState<'cp' | 'cpk'>('cpk');
@@ -192,6 +198,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                   <PerformanceIChart
                     onChannelClick={handleMeasureClick}
                     capabilityMetric={capabilityMetric}
+                    cpkThresholds={cpkThresholds}
                   />
                 </ErrorBoundary>
               </div>
@@ -238,7 +245,11 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               </div>
               <div className="flex-1 min-h-0">
                 <ErrorBoundary componentName="PerformancePareto">
-                  <PerformancePareto onChannelClick={handleMeasureClick} maxDisplayed={50} />
+                  <PerformancePareto
+                    onChannelClick={handleMeasureClick}
+                    cpkThresholds={cpkThresholds}
+                    maxDisplayed={50}
+                  />
                 </ErrorBoundary>
               </div>
             </div>
@@ -327,6 +338,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                   <PerformanceIChart
                     onChannelClick={handleMeasureClick}
                     capabilityMetric={capabilityMetric}
+                    cpkThresholds={cpkThresholds}
                   />
                 </ErrorBoundary>
               </div>
@@ -372,7 +384,10 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               </div>
               <div className="h-[calc(100%-1.5rem)]">
                 <ErrorBoundary componentName="PerformancePareto">
-                  <PerformancePareto onChannelClick={handleMeasureClick} />
+                  <PerformancePareto
+                    onChannelClick={handleMeasureClick}
+                    cpkThresholds={cpkThresholds}
+                  />
                 </ErrorBoundary>
               </div>
             </div>

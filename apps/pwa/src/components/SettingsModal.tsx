@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Key, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Save, Key, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { getEdition } from '../lib/edition';
 import {
@@ -9,6 +9,7 @@ import {
   removeLicenseKey,
   isValidLicenseFormat,
 } from '../lib/license';
+import { CPK_THRESHOLDS, validateThresholds, type CpkThresholds } from '@variscout/core';
 import type { ScaleMode } from '@variscout/hooks';
 
 interface SettingsModalProps {
@@ -23,10 +24,13 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     factors,
     axisSettings,
     displayOptions,
+    cpkThresholds,
+    isPerformanceMode,
     setOutcome,
     setFactors,
     setAxisSettings,
     setDisplayOptions,
+    setCpkThresholds,
   } = useData();
 
   // Local state for form inputs
@@ -50,6 +54,9 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     lockYAxisToFullData: true,
     showControlLimits: true,
   });
+
+  // Cpk thresholds state
+  const [localThresholds, setLocalThresholds] = useState<CpkThresholds>(CPK_THRESHOLDS);
 
   // License state
   const [licenseKey, setLicenseKey] = useState('');
@@ -94,14 +101,25 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         scaleMode: axisSettings.scaleMode ?? 'auto',
       });
       setLocalDisplayOptions(displayOptions);
+      setLocalThresholds(cpkThresholds || CPK_THRESHOLDS);
     }
-  }, [isOpen, outcome, factors, axisSettings, displayOptions]);
+  }, [isOpen, outcome, factors, axisSettings, displayOptions, cpkThresholds]);
 
   if (!isOpen) return null;
 
   const availableColumns = rawData.length > 0 ? Object.keys(rawData[0]) : [];
 
   const handleSave = () => {
+    // Validate and save thresholds
+    if (validateThresholds(localThresholds)) {
+      setCpkThresholds(localThresholds);
+      localStorage.setItem('variscout_cpk_thresholds', JSON.stringify(localThresholds));
+    } else {
+      // Validation failed - reset to current valid thresholds
+      setLocalThresholds(cpkThresholds || CPK_THRESHOLDS);
+      alert('Invalid threshold ordering: Critical < Warning < Capable required');
+    }
+
     setOutcome(localOutcome);
     setFactors(localFactors);
     setAxisSettings({
@@ -372,10 +390,101 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
           </div>
         </div>
 
+        {/* Section 3: Performance Mode Thresholds */}
+        {isPerformanceMode && (
+          <div className="border-t border-edge pt-6 px-6 pb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider">
+                  3. Performance Mode Thresholds
+                </h3>
+                <div className="group relative">
+                  <Info size={14} className="text-content-muted cursor-help" />
+                  <div className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-surface border border-edge rounded-lg text-xs text-content-secondary opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                    Customize Cpk health classification thresholds to match your organization's
+                    capability standards. Industry default: 1.0 (critical), 1.33 (warning), 1.67
+                    (capable).
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setLocalThresholds(CPK_THRESHOLDS)}
+                className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                Reset to Defaults
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs text-content-secondary mb-1">Critical (&lt;)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  value={localThresholds.critical}
+                  onChange={e =>
+                    setLocalThresholds({ ...localThresholds, critical: parseFloat(e.target.value) })
+                  }
+                  className="w-full bg-surface border border-edge rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-content-secondary mb-1">Warning (&lt;)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min={localThresholds.critical + 0.1}
+                  value={localThresholds.warning}
+                  onChange={e =>
+                    setLocalThresholds({ ...localThresholds, warning: parseFloat(e.target.value) })
+                  }
+                  className="w-full bg-surface border border-edge rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-content-secondary mb-1">Capable (&lt;)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min={localThresholds.warning + 0.1}
+                  value={localThresholds.capable}
+                  onChange={e =>
+                    setLocalThresholds({ ...localThresholds, capable: parseFloat(e.target.value) })
+                  }
+                  className="w-full bg-surface border border-edge rounded-lg p-2 text-white text-sm outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Visual preview */}
+            <div className="flex items-center gap-2 text-xs mt-3">
+              <span className="text-red-400">
+                Critical &lt;{localThresholds.critical.toFixed(2)}
+              </span>
+              <span className="text-content-muted">→</span>
+              <span className="text-amber-500">&lt;{localThresholds.warning.toFixed(2)}</span>
+              <span className="text-content-muted">→</span>
+              <span className="text-green-500">&lt;{localThresholds.capable.toFixed(2)}</span>
+              <span className="text-content-muted">→</span>
+              <span className="text-green-400">Excellent</span>
+            </div>
+
+            {!validateThresholds(localThresholds) && (
+              <div className="flex items-center gap-2 mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <AlertCircle size={14} className="text-red-400" />
+                <p className="text-xs text-red-400">
+                  Invalid ordering: Critical &lt; Warning &lt; Capable required
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Section 4: License */}
         <div className="border-t border-edge pt-6 px-6 pb-6">
           <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4">
-            3. License
+            {isPerformanceMode ? '4' : '3'}. License
           </h3>
 
           <div className="bg-surface/50 rounded-lg p-4 border border-edge">

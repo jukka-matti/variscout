@@ -15,7 +15,7 @@ import { AxisBottom, AxisLeft, AxisRight } from '@visx/axis';
 import { GridRows } from '@visx/grid';
 import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
-import { sortChannels } from '@variscout/core';
+import { sortChannels, CPK_THRESHOLDS } from '@variscout/core';
 import type { PerformanceParetoProps, ChannelResult } from './types';
 import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
@@ -38,6 +38,7 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
   maxDisplayed = DEFAULT_MAX_DISPLAYED,
   onChannelClick,
   showBranding = true,
+  cpkThresholds = CPK_THRESHOLDS,
 }) => {
   const { chrome, fontScale } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
@@ -141,26 +142,49 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
           <GridRows scale={yScale} width={width} stroke={chrome.gridLine} />
 
           {/* Reference lines for Cpk thresholds */}
+          {/* Critical threshold line */}
           <line
             x1={0}
             x2={width}
-            y1={yScale(1.0)}
-            y2={yScale(1.0)}
+            y1={yScale(cpkThresholds.critical)}
+            y2={yScale(cpkThresholds.critical)}
             stroke={chartColors.fail}
             strokeWidth={1}
             strokeDasharray="4,4"
             opacity={0.6}
           />
+          <text
+            x={width - 4}
+            y={yScale(cpkThresholds.critical) - 4}
+            fontSize={fonts.tickLabel}
+            fill={chartColors.fail}
+            textAnchor="end"
+            style={{ pointerEvents: 'none', userSelect: 'none' }}
+          >
+            {cpkThresholds.critical.toFixed(2)}
+          </text>
+
+          {/* Warning threshold line */}
           <line
             x1={0}
             x2={width}
-            y1={yScale(1.33)}
-            y2={yScale(1.33)}
+            y1={yScale(cpkThresholds.warning)}
+            y2={yScale(cpkThresholds.warning)}
             stroke={chartColors.pass}
             strokeWidth={1}
             strokeDasharray="4,4"
             opacity={0.6}
           />
+          <text
+            x={width - 4}
+            y={yScale(cpkThresholds.warning) - 4}
+            fontSize={fonts.tickLabel}
+            fill={chartColors.pass}
+            textAnchor="end"
+            style={{ pointerEvents: 'none', userSelect: 'none' }}
+          >
+            {cpkThresholds.warning.toFixed(2)}
+          </text>
 
           {/* Bars */}
           {dataWithCumulative.map(d => {

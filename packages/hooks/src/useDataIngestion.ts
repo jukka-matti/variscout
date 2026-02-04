@@ -20,10 +20,13 @@ import {
   validateData,
   parseParetoFile,
   detectWideFormat,
+  augmentWithTimeColumns,
+  hasTimeComponent,
   type WideFormatDetection,
   type DataQualityReport,
   type ParetoRow,
   type DataRow,
+  type TimeExtractionConfig,
 } from '@variscout/core';
 
 // Performance thresholds
@@ -51,9 +54,20 @@ export interface DataIngestionActions {
   setMeasureLabel: (label: string) => void;
 }
 
+export interface TimeExtractionPrompt {
+  timeColumn: string;
+  hasTimeComponent: boolean;
+}
+
 export interface UseDataIngestionOptions {
   /** Callback when wide-format (multi-measure) data is detected */
   onWideFormatDetected?: (result: WideFormatDetection) => void;
+  /** Callback when time column is detected */
+  onTimeColumnDetected?: (prompt: TimeExtractionPrompt) => void;
+  /** Getter for current rawData (needed for time extraction) */
+  getRawData?: () => DataRow[];
+  /** Getter for current outcome column (needed for validation) */
+  getOutcome?: () => string | null;
 }
 
 export interface UseDataIngestionReturn {
@@ -65,6 +79,8 @@ export interface UseDataIngestionReturn {
   clearParetoFile: () => void;
   /** Clear all data and reset state */
   clearData: () => void;
+  /** Apply time extraction to current dataset */
+  applyTimeExtraction: (timeColumn: string, config: TimeExtractionConfig) => void;
 }
 
 /**
@@ -78,7 +94,7 @@ export function useDataIngestion(
   actions: DataIngestionActions,
   options?: UseDataIngestionOptions
 ): UseDataIngestionReturn {
-  const { onWideFormatDetected } = options || {};
+  const { onWideFormatDetected, onTimeColumnDetected, getRawData, getOutcome } = options || {};
   const {
     setRawData,
     setOutcome,
@@ -145,6 +161,15 @@ export function useDataIngestion(
             }
           }
 
+          // Check for time column
+          if (detected.timeColumn && onTimeColumnDetected) {
+            const hasTime = hasTimeComponent(data, detected.timeColumn);
+            onTimeColumnDetected({
+              timeColumn: detected.timeColumn,
+              hasTimeComponent: hasTime,
+            });
+          }
+
           return true;
         }
         return false;
@@ -161,6 +186,7 @@ export function useDataIngestion(
       setFactors,
       setDataQualityReport,
       onWideFormatDetected,
+      onTimeColumnDetected,
     ]
   );
 
@@ -222,10 +248,35 @@ export function useDataIngestion(
     setPerformanceMode,
   ]);
 
+  // Apply time extraction to current dataset
+  const applyTimeExtraction = useCallback(
+    (timeColumn: string, config: TimeExtractionConfig) => {
+      if (!getRawData || !getOutcome) {
+        console.warn('applyTimeExtraction requires getRawData and getOutcome options');
+        return;
+      }
+
+      const rawData = getRawData();
+      const outcome = getOutcome();
+
+      if (rawData.length === 0) return;
+
+      const { newColumns } = augmentWithTimeColumns(rawData, timeColumn, config);
+
+      if (newColumns.length > 0) {
+        setFactors(prev => [...prev, ...newColumns]);
+        const report = validateData(rawData, outcome);
+        setDataQualityReport(report);
+      }
+    },
+    [getRawData, getOutcome, setFactors, setDataQualityReport]
+  );
+
   return {
     handleFileUpload,
     handleParetoFileUpload,
     clearParetoFile,
     clearData,
+    applyTimeExtraction,
   };
 }

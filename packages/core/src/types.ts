@@ -2,6 +2,9 @@
  * Shared type definitions for VariScout
  */
 
+// Re-export performance types
+export type { CpkThresholds } from './performance';
+
 // ============================================================================
 // Data Row Types - Foundation for type-safe data handling
 // ============================================================================

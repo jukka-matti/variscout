@@ -133,9 +133,11 @@ export {
   getChannelsNeedingAttention,
   getWorstChannels,
   getBestChannels,
+  validateThresholds,
   // Control limits for capability metrics
   calculateCapabilityControlLimits,
   getCapabilityControlStatus,
+  type CpkThresholds,
   type ChannelSortBy,
   type CapabilityControlLimits,
   type CapabilityControlStatus,
@@ -212,3 +214,13 @@ export { glossaryTerms, glossaryMap, getTerm, getTermsByCategory, hasTerm } from
 
 // Formatting utilities
 export { formatPValue, getStars } from './format';
+
+// Time utilities
+export type { TimeComponents, TimeExtractionConfig } from './time';
+export {
+  parseTimeValue,
+  extractTimeComponents,
+  formatTimeValue,
+  augmentWithTimeColumns,
+  hasTimeComponent,
+} from './time';

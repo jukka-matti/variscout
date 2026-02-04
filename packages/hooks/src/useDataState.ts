@@ -17,11 +17,14 @@ import {
   sortDataByStage,
   determineStageOrder,
   calculateChannelPerformance,
+  CPK_THRESHOLDS,
+  validateThresholds,
   type DataRow,
   type StatsResult,
   type StagedStatsResult,
   type StageOrderMode,
   type ChannelPerformanceData,
+  type CpkThresholds,
 } from '@variscout/core';
 import type {
   AnalysisState,
@@ -98,6 +101,8 @@ export interface DataState {
   performanceResult: ChannelPerformanceData | null;
   /** User-defined Cpk target for Performance Mode (default: 1.33) */
   cpkTarget: number;
+  /** User-configurable Cpk thresholds for health classification */
+  cpkThresholds: CpkThresholds;
 
   /** Helper to get effective specs for a measure (per-measure override or global) */
   getSpecsForMeasure: (measureId: string) => { usl?: number; lsl?: number; target?: number };
@@ -147,6 +152,7 @@ export interface DataActions {
   setMeasureLabel: (label: string) => void;
   setSelectedMeasure: (measureId: string | null) => void;
   setCpkTarget: (target: number) => void;
+  setCpkThresholds: (thresholds: CpkThresholds) => void;
 
   // Persistence methods
   saveProject: (name: string) => Promise<SavedProject>;
@@ -224,6 +230,17 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   const [measureLabel, setMeasureLabel] = useState('Measure');
   const [selectedMeasure, setSelectedMeasure] = useState<string | null>(null);
   const [cpkTarget, setCpkTarget] = useState(1.33);
+  const [cpkThresholds, setCpkThresholdsState] = useState<CpkThresholds>(CPK_THRESHOLDS);
+
+  // Validated setter for Cpk thresholds
+  const setCpkThresholds = useCallback((thresholds: CpkThresholds) => {
+    if (!validateThresholds(thresholds)) {
+      console.error('Invalid Cpk threshold ordering:', thresholds);
+      return;
+    }
+    setCpkThresholdsState(thresholds);
+    setHasUnsavedChanges(true);
+  }, []);
 
   // ---------------------------------------------------------------------------
   // Computed values
@@ -489,6 +506,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     setMeasureLabel('Measure');
     setSelectedMeasure(null);
     setCpkTarget(1.33);
+    setCpkThresholdsState(CPK_THRESHOLDS);
   }, []);
 
   // ---------------------------------------------------------------------------
@@ -533,6 +551,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       selectedMeasure,
       performanceResult,
       cpkTarget,
+      cpkThresholds,
       getSpecsForMeasure,
     }),
     [
@@ -572,6 +591,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       selectedMeasure,
       performanceResult,
       cpkTarget,
+      cpkThresholds,
       getSpecsForMeasure,
     ]
   );
@@ -605,6 +625,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setMeasureLabel,
       setSelectedMeasure,
       setCpkTarget,
+      setCpkThresholds,
       saveProject,
       loadProject,
       listProjects,
@@ -642,6 +663,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setMeasureLabel,
       setSelectedMeasure,
       setCpkTarget,
+      setCpkThresholds,
       saveProject,
       loadProject,
       listProjects,

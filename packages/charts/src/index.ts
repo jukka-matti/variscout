@@ -14,6 +14,7 @@ export type {
   StagedStatsResult,
   StageBoundary,
   ChannelResult,
+  CpkThresholds,
   IChartDataPoint,
   IChartProps,
   BoxplotGroupInput,

@@ -51,7 +51,7 @@ const IChartBase: React.FC<IChartProps> = ({
 }) => {
   const { chrome } = useChartTheme();
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
-    useChartTooltip<{ x: number; y: number; index: number; stage?: string }>();
+    useChartTooltip<{ x: number; y: number; index: number; stage?: string; timeValue?: string }>();
 
   const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
     parentWidth,
@@ -754,6 +754,17 @@ const IChartBase: React.FC<IChartProps> = ({
               <span style={{ color: chrome.labelSecondary, marginLeft: 8 }}>
                 {tooltipData.stage}
               </span>
+            )}
+            {tooltipData.timeValue && (
+              <div
+                style={{
+                  color: chrome.labelSecondary,
+                  fontSize: fonts.tooltipText - 1,
+                  marginTop: 2,
+                }}
+              >
+                {tooltipData.timeValue}
+              </div>
             )}
           </div>
           <div>Value: {tooltipData.y.toFixed(2)}</div>
