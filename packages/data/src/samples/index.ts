@@ -14,6 +14,7 @@ export { mangoExport } from './mango-export';
 export { textiles } from './textiles';
 export { pizza } from './pizza';
 export { sachets } from './sachets';
+export { largeScale } from './large-scale';
 export { ovenZonesData } from './ovenZones';
 export { gagerr } from './gagerr';
 
@@ -36,6 +37,7 @@ import { mangoExport } from './mango-export';
 import { textiles } from './textiles';
 import { pizza } from './pizza';
 import { sachets } from './sachets';
+import { largeScale } from './large-scale';
 import { ovenZonesData } from './ovenZones';
 import { gagerr } from './gagerr';
 import type { SampleDataset } from '../types';
@@ -49,6 +51,7 @@ export const SAMPLES: SampleDataset[] = [
   textiles,
   coffeeDefects,
   // Case Studies
+  largeScale,
   bottleneck,
   hospitalWard,
   coffee,
