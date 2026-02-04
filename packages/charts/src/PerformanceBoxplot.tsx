@@ -282,10 +282,10 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
               <text
                 key={`n-${channel.id}`}
                 x={x + boxWidth / 2}
-                y={height + (parentWidth < 400 ? 24 : 28)}
+                y={height + (parentWidth < 400 ? 32 : 40)}
                 textAnchor="middle"
                 fill={chrome.labelMuted}
-                fontSize={fonts.statLabel - 1}
+                fontSize={fonts.statLabel - 2}
               >
                 n={channel.n}
               </text>
