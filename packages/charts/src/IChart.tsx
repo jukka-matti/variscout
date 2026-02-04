@@ -9,11 +9,14 @@ import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import {
   getStageBoundaries,
   getNelsonRule2ViolationPoints,
+  getNelsonRule2Sequences,
   type StatsResult,
+  type NelsonRule2Sequence,
 } from '@variscout/core';
 import type { IChartProps, StageBoundary } from './types';
 import { getResponsiveTickCount } from './responsive';
 import ChartSourceBar from './ChartSourceBar';
+import ChartLegend from './ChartLegend';
 import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout, useChartTooltip } from './hooks';
@@ -43,6 +46,8 @@ const IChartBase: React.FC<IChartProps> = ({
   onSpecClick,
   onYAxisClick,
   highlightedPointIndex,
+  showLegend = false,
+  legendMode = 'educational',
 }) => {
   const { chrome } = useChartTheme();
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
@@ -175,6 +180,86 @@ const IChartBase: React.FC<IChartProps> = ({
 
     return new Set<number>();
   }, [data, stats, isStaged, stagedStats, stageBoundaries, grades]);
+
+  // Compute Nelson Rule 2 sequences for visual highlighting
+  const nelsonRule2Sequences = useMemo(() => {
+    if (grades && grades.length > 0) {
+      // Skip Nelson Rule 2 for graded data
+      return [];
+    }
+
+    if (isStaged && stagedStats) {
+      // For staged mode, compute sequences per stage
+      const allSequences: NelsonRule2Sequence[] = [];
+      let dataIndex = 0;
+
+      stageBoundaries.forEach(boundary => {
+        const stageData = data.filter(d => d.stage === boundary.name);
+        const stageValues = stageData.map(d => d.y);
+        const stageSequences = getNelsonRule2Sequences(stageValues, boundary.stats.mean);
+
+        // Map stage-local indices to global indices
+        stageSequences.forEach(seq => {
+          // Find global start index
+          const globalStartIdx = data.findIndex(
+            (d, i) =>
+              i >= dataIndex && d.stage === boundary.name && stageData.indexOf(d) === seq.startIndex
+          );
+          // Find global end index
+          const globalEndIdx = data.findIndex(
+            (d, i) =>
+              i >= dataIndex && d.stage === boundary.name && stageData.indexOf(d) === seq.endIndex
+          );
+
+          if (globalStartIdx !== -1 && globalEndIdx !== -1) {
+            allSequences.push({
+              startIndex: globalStartIdx,
+              endIndex: globalEndIdx,
+              side: seq.side,
+            });
+          }
+        });
+        dataIndex += stageData.length;
+      });
+      return allSequences;
+    }
+
+    if (stats) {
+      const values = data.map(d => d.y);
+      return getNelsonRule2Sequences(values, stats.mean);
+    }
+
+    return [];
+  }, [data, stats, isStaged, stagedStats, stageBoundaries, grades]);
+
+  // Get violation reason for tooltip display
+  const getViolationReason = (value: number, index: number, stage?: string): string | null => {
+    // Priority 1: Check spec limit violations
+    if (specs.usl !== undefined && value > specs.usl) return 'Above USL';
+    if (specs.lsl !== undefined && value < specs.lsl) return 'Below LSL';
+
+    // Priority 2: Check control limit violations
+    const stageStats = getStageStatsForPoint(stage);
+    if (stageStats) {
+      if (value > stageStats.ucl) return 'Special Cause: Above UCL';
+      if (value < stageStats.lcl) return 'Special Cause: Below LCL';
+    }
+
+    // Priority 3: Check Nelson Rule 2 violations
+    if (nelsonRule2Violations.has(index)) {
+      // Find which sequence this point belongs to
+      const sequence = nelsonRule2Sequences.find(
+        seq => index >= seq.startIndex && index <= seq.endIndex
+      );
+      if (sequence) {
+        const count = sequence.endIndex - sequence.startIndex + 1;
+        return `Special Cause: Nelson Rule 2 (Points #${sequence.startIndex + 1}-${sequence.endIndex + 1}, ${count} consecutive ${sequence.side} mean)`;
+      }
+      return 'Special Cause: Nelson Rule 2 (9 consecutive points on same side of mean)';
+    }
+
+    return null; // In-control
+  };
 
   // Determine point color using Two Voices model:
   // Orange = spec violation (Voice of Customer - defect)
@@ -453,6 +538,51 @@ const IChartBase: React.FC<IChartProps> = ({
             </>
           )}
 
+          {/* Nelson Rule 2 sequence highlighting */}
+          {nelsonRule2Sequences.map((seq, idx) => {
+            // Draw a subtle connector line behind the points showing the sequence
+            const sequencePoints = data.slice(seq.startIndex, seq.endIndex + 1);
+            if (sequencePoints.length < 2) return null;
+
+            return (
+              <g key={`nelson-seq-${idx}`}>
+                {/* Highlight path connecting the sequence */}
+                <LinePath
+                  data={sequencePoints}
+                  x={d => xScale(d.x)}
+                  y={d => yScale(d.y)}
+                  stroke={chartColors.fail}
+                  strokeWidth={3}
+                  strokeOpacity={0.2}
+                  strokeDasharray="4,2"
+                />
+                {/* Optional: Add bracket at start/end to show sequence bounds */}
+                <g opacity={0.4}>
+                  {/* Start marker */}
+                  <Line
+                    from={{ x: xScale(sequencePoints[0].x), y: yScale(sequencePoints[0].y) - 15 }}
+                    to={{ x: xScale(sequencePoints[0].x), y: yScale(sequencePoints[0].y) + 15 }}
+                    stroke={chartColors.fail}
+                    strokeWidth={2}
+                  />
+                  {/* End marker */}
+                  <Line
+                    from={{
+                      x: xScale(sequencePoints[sequencePoints.length - 1].x),
+                      y: yScale(sequencePoints[sequencePoints.length - 1].y) - 15,
+                    }}
+                    to={{
+                      x: xScale(sequencePoints[sequencePoints.length - 1].x),
+                      y: yScale(sequencePoints[sequencePoints.length - 1].y) + 15,
+                    }}
+                    stroke={chartColors.fail}
+                    strokeWidth={2}
+                  />
+                </g>
+              </g>
+            );
+          })}
+
           {/* Data line */}
           <LinePath
             data={data}
@@ -580,6 +710,16 @@ const IChartBase: React.FC<IChartProps> = ({
             Observation
           </text>
 
+          {/* Chart Legend */}
+          {showLegend && (
+            <ChartLegend
+              mode={legendMode}
+              width={width}
+              top={height + (parentWidth < 400 ? 35 : 45)}
+              show={showLegend}
+            />
+          )}
+
           {/* Source Bar (branding) */}
           {showBranding && (
             <ChartSourceBar
@@ -617,6 +757,23 @@ const IChartBase: React.FC<IChartProps> = ({
             )}
           </div>
           <div>Value: {tooltipData.y.toFixed(2)}</div>
+          {(() => {
+            const reason = getViolationReason(tooltipData.y, tooltipData.index, tooltipData.stage);
+            if (reason) {
+              // Check if it's a spec violation (orange) or control violation (red)
+              const isSpecViolation =
+                (specs.usl !== undefined && tooltipData.y > specs.usl) ||
+                (specs.lsl !== undefined && tooltipData.y < specs.lsl);
+              const color = isSpecViolation ? chartColors.spec : chartColors.fail;
+              return (
+                <div style={{ marginTop: 4, color, fontWeight: 500 }}>
+                  {reason.startsWith('Special Cause') ? '⚠️ ' : ''}
+                  {reason}
+                </div>
+              );
+            }
+            return null;
+          })()}
         </TooltipWithBounds>
       )}
     </>

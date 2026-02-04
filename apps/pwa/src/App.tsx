@@ -18,7 +18,12 @@ import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { useAutoSave } from './hooks/useAutoSave';
 import { SAMPLES } from './data/sampleData';
-import { validateData, type ExclusionReason } from '@variscout/core';
+import {
+  validateData,
+  getNelsonRule2ViolationPoints,
+  calculateStats,
+  type ExclusionReason,
+} from '@variscout/core';
 import { PerformanceDetectedModal } from '@variscout/ui';
 import type { WideFormatDetection } from '@variscout/core';
 
@@ -192,6 +197,65 @@ function App() {
     });
     return map;
   }, [dataQualityReport]);
+
+  // Compute control violations for DataPanel annotations
+  const controlViolations = useMemo(() => {
+    if (!outcome || filteredData.length === 0) return undefined;
+
+    const map = new Map<number, string[]>();
+
+    // Calculate stats for violation detection
+    const values = filteredData
+      .map(row => {
+        const val = row[outcome];
+        return typeof val === 'number' ? val : parseFloat(String(val));
+      })
+      .filter(v => !isNaN(v));
+
+    if (values.length === 0) return undefined;
+
+    const stats = calculateStats(values);
+
+    // Check each row for violations
+    filteredData.forEach((row, index) => {
+      const val = row[outcome];
+      const numValue = typeof val === 'number' ? val : parseFloat(String(val));
+      if (isNaN(numValue)) return;
+
+      const violations: string[] = [];
+
+      // Check control limit violations
+      if (numValue > stats.ucl) {
+        violations.push('Special Cause: Above UCL');
+      } else if (numValue < stats.lcl) {
+        violations.push('Special Cause: Below LCL');
+      }
+
+      // Check spec limit violations
+      if (specs.usl !== undefined && numValue > specs.usl) {
+        violations.push('Above USL');
+      }
+      if (specs.lsl !== undefined && numValue < specs.lsl) {
+        violations.push('Below LSL');
+      }
+
+      if (violations.length > 0) {
+        map.set(index, violations);
+      }
+    });
+
+    // Check Nelson Rule 2 violations
+    const nelsonViolations = getNelsonRule2ViolationPoints(values, stats.mean);
+    nelsonViolations.forEach(index => {
+      const existing = map.get(index) || [];
+      if (!existing.some(v => v.includes('Nelson Rule 2'))) {
+        existing.push('Special Cause: Nelson Rule 2 (9 consecutive points on same side of mean)');
+        map.set(index, existing);
+      }
+    });
+
+    return map;
+  }, [filteredData, outcome, specs]);
 
   const handleExport = useCallback(async () => {
     const node = document.getElementById('dashboard-export-container');
@@ -749,6 +813,7 @@ function App() {
             onRowClick={handleDataPanelRowClick}
             excludedRowIndices={excludedRowIndices}
             excludedReasons={excludedReasons}
+            controlViolations={controlViolations}
           />
         )}
       </main>

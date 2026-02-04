@@ -127,6 +127,7 @@ export { default as ScatterPlot, ScatterPlotBase } from './ScatterPlot';
 export { default as GageRRChart, GageRRChartBase } from './GageRRChart';
 export { default as InteractionPlot, InteractionPlotBase } from './InteractionPlot';
 export { default as ChartSourceBar, getSourceBarHeight } from './ChartSourceBar';
+export { default as ChartLegend, type ChartLegendProps } from './ChartLegend';
 
 // Performance chart components
 export { default as PerformanceIChart, PerformanceIChartBase } from './PerformanceIChart';

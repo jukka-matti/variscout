@@ -498,7 +498,79 @@ UCL: "Upper Control Limit. Points above this indicate special cause
 
 **Design:** Tooltips appear on hover/tap with minimal delay. Uses HelpCircle icon next to terms. No clutter when not engaged.
 
-### 10. Embed Mode & Deep Linking
+### 10. Control Violation Explanations & Special Cause Education
+
+**Purpose:** Help users understand why points are flagged red (special cause variation) in control charts, supporting the core SPC learning journey from common vs. special cause distinction.
+
+**Implementation:**
+
+#### Enhanced I-Chart Tooltips
+
+Hover tooltips on I-Chart data points now explain violation types:
+
+```
+#42                           ← Point number
+Value: 45.2                  ← Measurement value
+⚠️ Special Cause: Above UCL   ← Color-coded status (red for control, factual signal)
+```
+
+**Violation Types:**
+
+- **Special Cause (Red)**: Control limit violations (Above/Below UCL/LCL) + Nelson Rule 2
+- **Out-of-Spec (Orange)**: Specification limit violations (Above/Below USL/LSL)
+- **In-Control (Blue)**: Normal random variation - no action needed
+
+#### Data Window Row Annotations
+
+The Data Panel (side table) shows violation icons next to row numbers:
+
+- 🟡 **AlertTriangle** (amber) = Data quality issues (missing/non-numeric values)
+- 🔴 **AlertCircle** (red) = Control violations (special cause)
+
+**Hover tooltip shows specific reasons:**
+
+- "Special Cause: Above UCL"
+- "Special Cause: Below LCL"
+- "Special Cause: Nelson Rule 2 (9 consecutive points on same side of mean)"
+- "Above USL" (spec violation)
+- "Below LSL" (spec violation)
+
+Multiple violations can appear for a single point (e.g., both control and spec limits).
+
+#### Educational Glossary Terms
+
+New glossary terms support deeper learning (accessed via HelpTooltip icons):
+
+| Term          | Definition                                              | Category    | Learn More Path   |
+| ------------- | ------------------------------------------------------- | ----------- | ----------------- |
+| Special Cause | Variation due to unusual events requiring investigation | Methodology | /learn/two-voices |
+| Common Cause  | Random variation inherent to stable processes           | Methodology | /learn/two-voices |
+| Nelson Rule 2 | 9+ consecutive points on same side of mean (shift)      | Methodology | /tools/i-chart    |
+| In-Control    | Stable process with only common cause variation         | Methodology | /learn/two-voices |
+
+**Pedagogical Goal:** Users learn the core SPC concept of **Special Cause vs Common Cause** variation:
+
+- **Blue dots** = Common cause (random, inherent) → No action, process is predictable
+- **Red dots** = Special cause (assignable, unusual) → Investigate and correct
+- This prevents both **tampering** (fixing common cause) and **under-reaction** (ignoring special cause)
+
+**Design Philosophy:**
+
+- Use "Special Cause" terminology consistently (industry standard)
+- Contrast with "Common Cause" to reinforce the distinction
+- **Factual language**: State the signal clearly without prescriptive action (VariScout finds WHERE to focus; user applies domain knowledge to determine WHY)
+- Progressive disclosure: Quick tooltip → Glossary definition → Website learning content
+- Aligns with philosophy doc: "VariScout identifies factors driving variation, not 'root causes'"
+
+**Industry Benchmark Alignment:**
+Matches Minitab, QI Macros, and Six Sigma tool patterns:
+
+- Visual indicators (red dots)
+- Hover tooltips with rule explanations
+- Data table annotations
+- Pattern highlighting for Nelson rules
+
+### 11. Embed Mode & Deep Linking
 
 The PWA supports URL parameters for embedding in website case studies or sharing specific analyses.
 

@@ -27,6 +27,7 @@ export type {
   StageOrderMode,
   StagedStatsResult,
   StageBoundary,
+  NelsonRule2Sequence,
   // Performance Module Types
   ChannelHealth,
   ChannelInfo,
@@ -62,6 +63,7 @@ export {
   getStageBoundaries,
   // Nelson rules
   getNelsonRule2ViolationPoints,
+  getNelsonRule2Sequences,
 } from './stats';
 
 // Matrix utilities (for advanced use)

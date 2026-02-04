@@ -85,6 +85,10 @@ export interface IChartProps extends BaseChartProps {
   onYAxisClick?: (event?: React.MouseEvent) => void;
   /** Highlighted point index for bi-directional sync (e.g., from data panel selection) */
   highlightedPointIndex?: number | null;
+  /** Show color-coded legend explaining point colors (default: false) */
+  showLegend?: boolean;
+  /** Legend display mode: educational (SPC learning) or practical (action-oriented) */
+  legendMode?: 'educational' | 'practical';
 }
 
 /**

@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { X, ChevronLeft, ChevronRight, AlertTriangle, GripVertical } from 'lucide-react';
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  AlertTriangle,
+  AlertCircle,
+  GripVertical,
+} from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { getSpecStatus, type ExclusionReason } from '@variscout/core';
 
@@ -19,6 +26,7 @@ interface DataPanelProps {
   onRowClick?: (index: number) => void;
   excludedRowIndices?: Set<number>;
   excludedReasons?: Map<number, ExclusionReason[]>;
+  controlViolations?: Map<number, string[]>;
 }
 
 const DataPanel: React.FC<DataPanelProps> = ({
@@ -28,6 +36,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
   onRowClick,
   excludedRowIndices,
   excludedReasons,
+  controlViolations,
 }) => {
   const { filteredData, rawData, outcome, specs, columnAliases, filters } = useData();
 
@@ -175,6 +184,18 @@ const DataPanel: React.FC<DataPanelProps> = ({
       .join(', ');
   };
 
+  const hasControlViolation = (originalIndex: number): boolean => {
+    return controlViolations?.has(originalIndex) ?? false;
+  };
+
+  const getControlViolationReasons = (originalIndex: number): string[] => {
+    return controlViolations?.get(originalIndex) ?? [];
+  };
+
+  const formatControlViolations = (violations: string[]): string => {
+    return violations.join(', ');
+  };
+
   const getStatusColor = (value: unknown): string => {
     if (!outcome) return 'text-slate-400';
     const numValue = parseFloat(String(value));
@@ -262,6 +283,8 @@ const DataPanel: React.FC<DataPanelProps> = ({
                   const isHighlighted = originalIndex === highlightedRow;
                   const isExcluded = isRowExcluded(originalIndex);
                   const exclusionReasons = getExclusionReasons(originalIndex);
+                  const hasViolation = hasControlViolation(originalIndex);
+                  const violationReasons = getControlViolationReasons(originalIndex);
 
                   return (
                     <tr
@@ -285,6 +308,14 @@ const DataPanel: React.FC<DataPanelProps> = ({
                               title={formatExclusionReason(exclusionReasons)}
                             >
                               <AlertTriangle size={10} />
+                            </span>
+                          )}
+                          {hasViolation && (
+                            <span
+                              className="text-red-500"
+                              title={formatControlViolations(violationReasons)}
+                            >
+                              <AlertCircle size={10} />
                             </span>
                           )}
                         </span>

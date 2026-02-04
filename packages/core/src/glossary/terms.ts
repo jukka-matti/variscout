@@ -279,6 +279,50 @@ export const glossaryTerms: GlossaryTerm[] = [
 
   // Methodology
   {
+    id: 'specialCause',
+    label: 'Special Cause',
+    definition:
+      'Variation due to unusual events or circumstances. Detected by points outside control limits or specific patterns (Nelson rules). Requires investigation.',
+    description:
+      'Special cause variation indicates something unusual happened in the process - a machine malfunction, operator error, material change, or other assignable cause. Unlike common cause variation (random, inherent), special causes are detectable, identifiable, and correctable. Red dots on control charts signal special cause - investigate and take action.',
+    category: 'methodology',
+    learnMorePath: '/learn/two-voices',
+    relatedTerms: ['commonCause', 'ucl', 'lcl', 'nelsonRule2', 'inControl'],
+  },
+  {
+    id: 'commonCause',
+    label: 'Common Cause',
+    definition:
+      'Random variation inherent to a stable process. Points within control limits showing no special patterns. No action required.',
+    description:
+      'Common cause variation is the natural, random variation present in all stable processes. It results from many small, uncontrollable factors acting together. Points within control limits (blue dots) represent common cause - the process is predictable. Attempting to "fix" common cause leads to tampering and increased variation. Only special causes require action.',
+    category: 'methodology',
+    learnMorePath: '/learn/two-voices',
+    relatedTerms: ['specialCause', 'ucl', 'lcl', 'inControl'],
+  },
+  {
+    id: 'nelsonRule2',
+    label: 'Nelson Rule 2',
+    definition:
+      'Nine or more consecutive points falling on the same side of the centerline. Indicates a persistent shift in process level.',
+    description:
+      'Nelson Rule 2 detects special cause variation in the form of a sustained process shift. When 9+ consecutive points fall on one side of the mean, the process has moved to a new level - not just random fluctuation. This pattern signals something systematic changed: new material batch, adjusted settings, different operator technique, etc. Investigate the timeline to identify what changed.',
+    category: 'methodology',
+    learnMorePath: '/tools/i-chart',
+    relatedTerms: ['specialCause', 'mean', 'ucl', 'lcl'],
+  },
+  {
+    id: 'inControl',
+    label: 'In-Control',
+    definition:
+      'A stable process where all points fall within control limits and show random variation. Only common cause variation present.',
+    description:
+      'An in-control process is stable and predictable - all points within control limits (UCL/LCL), no special patterns detected. This means only common cause (random, inherent) variation is present. Important: In-control does NOT mean capable. A process can be in-control (stable) but still produce defects if control limits are wider than spec limits.',
+    category: 'methodology',
+    learnMorePath: '/learn/two-voices',
+    relatedTerms: ['specialCause', 'commonCause', 'ucl', 'lcl'],
+  },
+  {
     id: 'stagedAnalysis',
     label: 'Staged Analysis',
     definition:

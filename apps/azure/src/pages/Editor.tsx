@@ -5,7 +5,7 @@ import { useDataIngestion } from '../hooks/useDataIngestion';
 import Dashboard from '../components/Dashboard';
 import DataPanel from '../components/DataPanel';
 import ManualEntry from '../components/ManualEntry';
-import { validateData } from '@variscout/core';
+import { validateData, getNelsonRule2ViolationPoints, calculateStats } from '@variscout/core';
 import {
   Upload,
   ArrowLeft,
@@ -36,6 +36,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   const { syncStatus } = useStorage();
   const {
     rawData,
+    filteredData,
     currentProjectName,
     currentProjectLocation,
     hasUnsavedChanges,
@@ -117,6 +118,65 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
       measureLabel: measureLabel || 'Channel',
     };
   }, [outcome, factors, specs, isPerformanceMode, measureColumns, measureLabel]);
+
+  // Compute control violations for DataPanel annotations
+  const controlViolations = useMemo(() => {
+    if (!outcome || filteredData.length === 0) return undefined;
+
+    const map = new Map<number, string[]>();
+
+    // Calculate stats for violation detection
+    const values = filteredData
+      .map(row => {
+        const val = row[outcome];
+        return typeof val === 'number' ? val : parseFloat(String(val));
+      })
+      .filter(v => !isNaN(v));
+
+    if (values.length === 0) return undefined;
+
+    const stats = calculateStats(values);
+
+    // Check each row for violations
+    filteredData.forEach((row, index) => {
+      const val = row[outcome];
+      const numValue = typeof val === 'number' ? val : parseFloat(String(val));
+      if (isNaN(numValue)) return;
+
+      const violations: string[] = [];
+
+      // Check control limit violations
+      if (numValue > stats.ucl) {
+        violations.push('Special Cause: Above UCL');
+      } else if (numValue < stats.lcl) {
+        violations.push('Special Cause: Below LCL');
+      }
+
+      // Check spec limit violations
+      if (specs.usl !== undefined && numValue > specs.usl) {
+        violations.push('Above USL');
+      }
+      if (specs.lsl !== undefined && numValue < specs.lsl) {
+        violations.push('Below LSL');
+      }
+
+      if (violations.length > 0) {
+        map.set(index, violations);
+      }
+    });
+
+    // Check Nelson Rule 2 violations
+    const nelsonViolations = getNelsonRule2ViolationPoints(values, stats.mean);
+    nelsonViolations.forEach(index => {
+      const existing = map.get(index) || [];
+      if (!existing.some(v => v.includes('Nelson Rule 2'))) {
+        existing.push('Special Cause: Nelson Rule 2 (9 consecutive points on same side of mean)');
+        map.set(index, existing);
+      }
+    });
+
+    return map;
+  }, [filteredData, outcome, specs]);
 
   // Merge data utility - combines existing rows with new rows, handling column expansion
   const mergeData = useCallback((existing: any[], incoming: any[]): any[] => {
@@ -387,6 +447,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               onClose={() => setIsDataPanelOpen(false)}
               highlightRowIndex={highlightRowIndex}
               onRowClick={handleRowClick}
+              controlViolations={controlViolations}
             />
           </div>
         ) : (

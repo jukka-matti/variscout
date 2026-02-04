@@ -144,6 +144,19 @@ export interface SpecLimits {
 }
 
 /**
+ * Nelson Rule 2 sequence detection result
+ * Represents a consecutive run of 9+ points on one side of the mean
+ */
+export interface NelsonRule2Sequence {
+  /** Starting index of the sequence (inclusive) */
+  startIndex: number;
+  /** Ending index of the sequence (inclusive) */
+  endIndex: number;
+  /** Which side of the mean ('above' or 'below') */
+  side: 'above' | 'below';
+}
+
+/**
  * Infer quality characteristic type from specification limits
  *
  * @param specs - Specification limits

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getNelsonRule2ViolationPoints } from '../stats';
+import { getNelsonRule2ViolationPoints, getNelsonRule2Sequences } from '../stats';
 
 describe('Nelson Rule 2 Detection', () => {
   it('should return empty set for datasets with fewer than 9 points', () => {
@@ -158,5 +158,182 @@ describe('Nelson Rule 2 Detection', () => {
   it('should return empty set for empty array', () => {
     const violations = getNelsonRule2ViolationPoints([], 0);
     expect(violations.size).toBe(0);
+  });
+});
+
+describe('Nelson Rule 2 Sequence Detection', () => {
+  it('should return empty array for datasets with fewer than 9 points', () => {
+    const sequences = getNelsonRule2Sequences([1, 2, 3, 4, 5, 6, 7, 8], 0);
+    expect(sequences).toEqual([]);
+  });
+
+  it('should detect single sequence of 9 consecutive points above mean', () => {
+    const values = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const sequences = getNelsonRule2Sequences(values, 0);
+
+    expect(sequences).toHaveLength(1);
+    expect(sequences[0]).toEqual({
+      startIndex: 0,
+      endIndex: 8,
+      side: 'above',
+    });
+  });
+
+  it('should detect single sequence of 9 consecutive points below mean', () => {
+    const values = [-1, -2, -3, -4, -5, -6, -7, -8, -9];
+    const sequences = getNelsonRule2Sequences(values, 0);
+
+    expect(sequences).toHaveLength(1);
+    expect(sequences[0]).toEqual({
+      startIndex: 0,
+      endIndex: 8,
+      side: 'below',
+    });
+  });
+
+  it('should return empty array when data crosses mean frequently', () => {
+    const values = [1, -1, 1, -1, 1, -1, 1, -1, 1, -1];
+    const sequences = getNelsonRule2Sequences(values, 0);
+    expect(sequences).toEqual([]);
+  });
+
+  it('should detect exactly one sequence when run is exactly 9', () => {
+    const values = [-1, -2, -3, -4, -5, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const sequences = getNelsonRule2Sequences(values, 0);
+
+    expect(sequences).toHaveLength(1);
+    expect(sequences[0]).toEqual({
+      startIndex: 5,
+      endIndex: 13,
+      side: 'above',
+    });
+  });
+
+  it('should detect extended runs (>9 points) as single sequence', () => {
+    const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const sequences = getNelsonRule2Sequences(values, 0);
+
+    expect(sequences).toHaveLength(1);
+    expect(sequences[0]).toEqual({
+      startIndex: 0,
+      endIndex: 11,
+      side: 'above',
+    });
+  });
+
+  it('should detect multiple separate sequences', () => {
+    const values = [
+      -1,
+      -2,
+      -3,
+      -4,
+      -5,
+      -6,
+      -7,
+      -8,
+      -9, // Sequence 1 (below)
+      1,
+      2, // Break
+      -1,
+      -2,
+      -3,
+      -4,
+      -5,
+      -6,
+      -7,
+      -8,
+      -9, // Sequence 2 (below)
+    ];
+    const sequences = getNelsonRule2Sequences(values, 0);
+
+    expect(sequences).toHaveLength(2);
+    expect(sequences[0]).toEqual({
+      startIndex: 0,
+      endIndex: 8,
+      side: 'below',
+    });
+    expect(sequences[1]).toEqual({
+      startIndex: 11,
+      endIndex: 19,
+      side: 'below',
+    });
+  });
+
+  it('should detect sequences with different sides (above and below)', () => {
+    const values = [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9, // Above mean
+      0, // At mean (breaks run)
+      -1,
+      -2,
+      -3,
+      -4,
+      -5,
+      -6,
+      -7,
+      -8,
+      -9, // Below mean
+    ];
+    const sequences = getNelsonRule2Sequences(values, 0);
+
+    expect(sequences).toHaveLength(2);
+    expect(sequences[0]).toEqual({
+      startIndex: 0,
+      endIndex: 8,
+      side: 'above',
+    });
+    expect(sequences[1]).toEqual({
+      startIndex: 10,
+      endIndex: 18,
+      side: 'below',
+    });
+  });
+
+  it('should break sequence when point equals mean', () => {
+    const values = [1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6];
+    const sequences = getNelsonRule2Sequences(values, 0);
+    expect(sequences).toEqual([]);
+  });
+
+  it('should not detect run of 8 points', () => {
+    const values = [1, 2, 3, 4, 5, 6, 7, 8];
+    const sequences = getNelsonRule2Sequences(values, 0);
+    expect(sequences).toEqual([]);
+  });
+
+  it('should handle sequence at end of array', () => {
+    const values = [-1, 0, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const sequences = getNelsonRule2Sequences(values, 0);
+
+    expect(sequences).toHaveLength(1);
+    expect(sequences[0]).toEqual({
+      startIndex: 3,
+      endIndex: 11,
+      side: 'above',
+    });
+  });
+
+  it('should work with non-zero mean', () => {
+    const values = [101, 102, 103, 104, 105, 106, 107, 108, 109];
+    const sequences = getNelsonRule2Sequences(values, 100);
+
+    expect(sequences).toHaveLength(1);
+    expect(sequences[0]).toEqual({
+      startIndex: 0,
+      endIndex: 8,
+      side: 'above',
+    });
+  });
+
+  it('should return empty array for empty input', () => {
+    const sequences = getNelsonRule2Sequences([], 0);
+    expect(sequences).toEqual([]);
   });
 });
