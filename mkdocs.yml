@@ -104,9 +104,21 @@ nav:
       - Boxplot: 03-features/analysis/boxplot.md
       - Pareto: 03-features/analysis/pareto.md
       - Capability: 03-features/analysis/capability.md
+      - Probability Plot: 03-features/analysis/probability-plot.md
       - Regression: 03-features/analysis/regression.md
       - Gage R&R: 03-features/analysis/gage-rr.md
       - Performance Mode: 03-features/analysis/performance-mode.md
+      - Nelson Rules: 03-features/analysis/nelson-rules.md
+      - Staged Analysis: 03-features/analysis/staged-analysis.md
+    - Workflows:
+      - Overview: 03-features/workflows/index.md
+      - Four Pillars: 03-features/workflows/four-pillars-workflow.md
+      - Drill-Down: 03-features/workflows/drill-down-workflow.md
+      - Performance Mode: 03-features/workflows/performance-mode-workflow.md
+      - MSA/Gage R&R: 03-features/workflows/msa-workflow.md
+      - Quick Check: 03-features/workflows/quick-check.md
+      - Deep Dive: 03-features/workflows/deep-dive.md
+      - Decision Trees: 03-features/workflows/decision-trees.md
     - Navigation:
       - Drill-Down: 03-features/navigation/drill-down.md
       - Linked Filtering: 03-features/navigation/linked-filtering.md
@@ -127,16 +139,20 @@ nav:
     - Packaging: 04-cases/packaging/index.md
     - Avocado: 04-cases/avocado/index.md
     - Machine Utilization: 04-cases/machine-utilization/index.md
+    - Oven Zones: 04-cases/oven-zones/index.md
   - Technical:
     - 05-technical/index.md
     - Architecture:
       - Monorepo: 05-technical/architecture/monorepo.md
       - Offline-First: 05-technical/architecture/offline-first.md
       - Shared Packages: 05-technical/architecture/shared-packages.md
+      - Data Flow: 05-technical/architecture/data-flow.md
+      - Component Patterns: 05-technical/architecture/component-patterns.md
     - Implementation:
       - Deployment: 05-technical/implementation/deployment.md
       - Testing: 05-technical/implementation/testing.md
       - Data Input: 05-technical/implementation/data-input.md
+      - Security Scanning: 05-technical/implementation/security-scanning.md
     - Integrations:
       - Embed Messaging: 05-technical/integrations/embed-messaging.md
       - Shared UI: 05-technical/integrations/shared-ui.md
@@ -168,6 +184,7 @@ nav:
       - Forms: 06-design-system/components/forms.md
       - Variation Funnel: 06-design-system/components/variation-funnel.md
       - What-If Simulator: 06-design-system/components/what-if-simulator.md
+      - Interaction Guidance: 06-design-system/components/interaction-guidance.md
     - Patterns:
       - Layout: 06-design-system/patterns/layout.md
       - Feedback: 06-design-system/patterns/feedback.md
@@ -180,21 +197,28 @@ nav:
     - ADR-004 Offline-First: 07-decisions/adr-004-offline-first.md
     - ADR-005 Props-Based Charts: 07-decisions/adr-005-props-based-charts.md
     - ADR-006 Edition System: 07-decisions/adr-006-edition-system.md
+    - ADR-007 Azure Distribution: 07-decisions/adr-007-azure-marketplace-distribution.md
   - Products:
     - 08-products/index.md
+    - Feature Parity: 08-products/feature-parity.md
     - PWA:
       - 08-products/pwa/index.md
-      - Licensing: 08-products/pwa/licensing.md
       - Storage: 08-products/pwa/storage.md
     - Excel:
       - 08-products/excel/index.md
       - Architecture: 08-products/excel/architecture.md
       - Office.js API: 08-products/excel/office-js-api.md
       - Design System: 08-products/excel/design-system.md
+      - Strategy: 08-products/excel/strategy.md
+      - AppSource: 08-products/excel/appsource.md
+      - License Detection: 08-products/excel/license-detection.md
     - Azure:
       - 08-products/azure/index.md
       - MSAL Auth: 08-products/azure/msal-auth.md
       - OneDrive Sync: 08-products/azure/onedrive-sync.md
+      - Marketplace: 08-products/azure/marketplace.md
+      - ARM Template: 08-products/azure/arm-template.md
+      - Pricing Tiers: 08-products/azure/pricing-tiers.md
     - Power BI:
       - 08-products/powerbi/index.md
     - Website:

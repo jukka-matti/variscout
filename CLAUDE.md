@@ -42,7 +42,10 @@ docs/
 │   ├── index.md
 │   ├── specifications.md
 │   ├── user-guide.md
-│   ├── analysis/        # boxplot, capability, i-chart, pareto, gage-rr, performance-mode
+│   ├── analysis/        # boxplot, capability, i-chart, pareto, gage-rr, performance-mode,
+│   │                    # nelson-rules, staged-analysis, probability-plot, regression
+│   ├── workflows/       # four-pillars, drill-down, performance-mode, msa, quick-check,
+│   │                    # deep-dive, decision-trees (analyst workflows & decision guides)
 │   ├── data/            # data-input, storage, validation
 │   ├── navigation/      # drill-down, breadcrumbs, linked-filtering
 │   └── learning/        # case-based-learning, glossary, help-tooltips
@@ -57,7 +60,7 @@ docs/
 ├── 05-technical/        # Technical architecture
 │   ├── index.md
 │   ├── architecture.md
-│   ├── architecture/    # offline-first, monorepo, shared-packages
+│   ├── architecture/    # offline-first, monorepo, shared-packages, data-flow, component-patterns
 │   ├── implementation/  # data-input, deployment, testing
 │   └── integrations/    # shared-ui, embed-messaging
 ├── 06-design-system/    # Design tokens and components
@@ -71,9 +74,10 @@ docs/
 │   └── adr-001 through adr-007
 ├── 08-products/         # Product-specific specs
 │   ├── index.md
+│   ├── feature-parity.md # Platform × Feature availability matrix
 │   ├── azure/           # index, marketplace, pricing-tiers, arm-template, msal-auth, onedrive-sync
 │   ├── excel/           # index, architecture, design-system, strategy, appsource, license-detection
-│   ├── pwa/             # index (deprecated), storage
+│   ├── pwa/             # index (demo tool), storage
 │   ├── website/
 │   └── powerbi/
 └── archive/             # Historical implementation docs
@@ -81,20 +85,29 @@ docs/
 
 ## Task-to-Documentation Mapping
 
-| Task Type              | Read First                                                            |
-| ---------------------- | --------------------------------------------------------------------- |
-| Statistics/Cpk changes | docs/03-features/analysis/capability.md, packages/core/src/stats.ts   |
-| Chart modifications    | docs/06-design-system/charts/, .claude/rules/charts.md                |
-| Excel Add-in work      | docs/08-products/excel/, .claude/rules/excel-addin.md                 |
-| Azure app changes      | docs/08-products/azure/, packages/hooks/src/useDataState.ts           |
-| Adding new feature     | docs/07-decisions/ (check ADRs), docs/05-technical/                   |
-| Parser/data input      | docs/03-features/data/data-input.md, packages/core/src/parser.ts      |
-| Design system          | docs/06-design-system/foundations/, packages/ui/src/colors.ts         |
-| User personas          | docs/02-journeys/personas/, docs/01-vision/philosophy.md              |
-| Performance Mode       | docs/03-features/analysis/performance-mode.md                         |
-| Testing                | docs/05-technical/implementation/testing.md, .claude/rules/testing.md |
-| Licensing/Tiers        | docs/07-decisions/adr-007-azure-marketplace-distribution.md           |
-| Deployment             | docs/05-technical/implementation/deployment.md                        |
+| Task Type              | Read First                                                             |
+| ---------------------- | ---------------------------------------------------------------------- |
+| Statistics/Cpk changes | docs/03-features/analysis/capability.md, packages/core/src/stats.ts    |
+| Chart modifications    | docs/06-design-system/charts/, .claude/rules/charts.md                 |
+| Excel Add-in work      | docs/08-products/excel/, .claude/rules/excel-addin.md                  |
+| Azure app changes      | docs/08-products/azure/, packages/hooks/src/useDataState.ts            |
+| Adding new feature     | docs/07-decisions/ (check ADRs), docs/05-technical/                    |
+| Parser/data input      | docs/03-features/data/data-input.md, packages/core/src/parser.ts       |
+| Design system          | docs/06-design-system/foundations/, packages/ui/src/colors.ts          |
+| User personas          | docs/02-journeys/personas/, docs/01-vision/philosophy.md               |
+| Performance Mode       | docs/03-features/analysis/performance-mode.md                          |
+| Testing                | docs/05-technical/implementation/testing.md, .claude/rules/testing.md  |
+| Licensing/Tiers        | docs/07-decisions/adr-007-azure-marketplace-distribution.md            |
+| Deployment             | docs/05-technical/implementation/deployment.md                         |
+| Nelson Rules/Runs      | docs/03-features/analysis/nelson-rules.md                              |
+| Staged Analysis        | docs/03-features/analysis/staged-analysis.md                           |
+| Probability Plots      | docs/03-features/analysis/probability-plot.md                          |
+| Data Flow/Architecture | docs/05-technical/architecture/data-flow.md                            |
+| Hook Integration       | docs/05-technical/architecture/component-patterns.md                   |
+| Platform Comparison    | docs/08-products/feature-parity.md                                     |
+| Analysis Workflows     | docs/03-features/workflows/ (four-pillars, drill-down, decision-trees) |
+| MSA/Gage R&R Study     | docs/03-features/workflows/msa-workflow.md                             |
+| Quick Analysis         | docs/03-features/workflows/quick-check.md, deep-dive.md                |
 
 ## Repository Structure
 
