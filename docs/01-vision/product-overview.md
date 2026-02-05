@@ -92,7 +92,7 @@ Based on UX research with quality professionals in developing countries:
 | **Raj**    | Quality Engineer (India)         | Real-time variation monitoring        |
 | **Carlos** | Training Coordinator (Guatemala) | Explain quality data to farmer groups |
 
-See `UX_RESEARCH.md` for detailed personas, JTBD, and use cases.
+See [UX Research](../02-journeys/ux-research.md) for detailed personas, JTBD, and use cases.
 
 ---
 
@@ -169,15 +169,14 @@ Three features required for complete Green Belt training coverage:
 | Regression analysis | Multi-factor comparison with auto-fit         |
 | Gage R&R            | Measurement system analysis                   |
 
-See [LSS Trainer Strategy](docs/concepts/LSS_TRAINER_STRATEGY.md) for detailed specifications.
+These features are planned for future releases.
 
 ---
 
 _See also:_
 
-- `README.md` - Quick start and installation
-- `ARCHITECTURE.md` - Technical architecture details
-- `UX_RESEARCH.md` - User research, personas, JTBD
-- `Specs.md` - Detailed functional specifications
-- `docs/products/` - Product specs (PWA, Website, Excel, Power BI, Azure)
-- `docs/concepts/LSS_TRAINER_STRATEGY.md` - Green Belt training roadmap
+- [README.md](../../README.md) - Quick start and installation
+- [Architecture](../05-technical/architecture.md) - Technical architecture details
+- [UX Research](../02-journeys/ux-research.md) - User research, personas, JTBD
+- [Specifications](../03-features/specifications.md) - Detailed functional specifications
+- [Product Specs](../08-products/) - Product specs (PWA, Website, Excel, Power BI, Azure)

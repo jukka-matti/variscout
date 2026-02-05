@@ -8,7 +8,7 @@ Excel Add-in for VariScout quality analysis, using the Hybrid Approach: Native E
 
 ## Architecture
 
-This add-in follows the **Hybrid Approach** documented in [EXCEL_ADDIN_STRATEGY.md](../../docs/concepts/EXCEL_ADDIN_STRATEGY.md):
+This add-in follows the **Hybrid Approach** documented in [EXCEL_ADDIN_STRATEGY.md](../../docs/08-products/excel/strategy.md):
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -126,7 +126,7 @@ Required API sets:
 
 ## Next Steps
 
-See [EXCEL_ADDIN_STRATEGY.md](../../docs/concepts/EXCEL_ADDIN_STRATEGY.md) for full implementation plan.
+See [EXCEL_ADDIN_STRATEGY.md](../../docs/08-products/excel/strategy.md) for full implementation plan.
 
 1. **Task Pane Setup Flow** - Table detection, column mapping
 2. **Content Add-in** - Visx chart rendering
@@ -137,6 +137,6 @@ See [EXCEL_ADDIN_STRATEGY.md](../../docs/concepts/EXCEL_ADDIN_STRATEGY.md) for f
 
 ## Related Documentation
 
-- [Excel Add-in Strategy](../../docs/concepts/EXCEL_ADDIN_STRATEGY.md) - Strategic analysis and decision
-- [Subscription Licensing](../../docs/concepts/SUBSCRIPTION_LICENSING.md) - Licensing and pricing
-- [Monorepo Architecture](../../docs/MONOREPO_ARCHITECTURE.md) - Package structure
+- [Excel Add-in Strategy](../../docs/08-products/excel/strategy.md) - Strategic analysis and decision
+- [PWA Licensing](../../docs/08-products/pwa/licensing.md) - Licensing details
+- [Monorepo Architecture](../../docs/05-technical/architecture/monorepo.md) - Package structure

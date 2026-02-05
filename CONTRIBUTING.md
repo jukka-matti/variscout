@@ -16,9 +16,10 @@ Before contributing, please understand our design philosophy:
 
 > **Stay Lite.** VariScout Lite is a focused analysis tool, not a platform.
 
-We deliberately chose simplicity over feature richness. See [PRODUCT_OVERVIEW.md](PRODUCT_OVERVIEW.md) for what we built and why we chose NOT to build certain features.
+We deliberately chose simplicity over feature richness. See [Product Overview](docs/01-vision/product-overview.md) for what we built and why we chose NOT to build certain features.
 
 **Contributions we welcome:**
+
 - Bug fixes
 - Performance improvements
 - Accessibility enhancements
@@ -26,6 +27,7 @@ We deliberately chose simplicity over feature richness. See [PRODUCT_OVERVIEW.md
 - Features aligned with our roadmap
 
 **Contributions we'll likely decline:**
+
 - Complex multi-mode UIs
 - Backend/server dependencies
 - Features requiring user accounts
@@ -34,6 +36,7 @@ We deliberately chose simplicity over feature richness. See [PRODUCT_OVERVIEW.md
 ## Development Setup
 
 ### Prerequisites
+
 - Node.js v18+
 - npm
 
@@ -69,12 +72,12 @@ src/
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `src/context/DataContext.tsx` | Central state management |
-| `src/logic/stats.ts` | Statistics calculations |
-| `src/lib/persistence.ts` | Storage operations |
-| `src/components/Dashboard.tsx` | Main layout |
+| File                           | Purpose                  |
+| ------------------------------ | ------------------------ |
+| `src/context/DataContext.tsx`  | Central state management |
+| `src/logic/stats.ts`           | Statistics calculations  |
+| `src/lib/persistence.ts`       | Storage operations       |
+| `src/components/Dashboard.tsx` | Main layout              |
 
 ## Code Style
 
@@ -87,16 +90,17 @@ src/
 
 ### Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Components | PascalCase | `StatsPanel.tsx` |
-| Hooks | camelCase with `use` | `useDataIngestion.ts` |
-| Utils | camelCase | `persistence.ts` |
-| Tests | `*.test.ts(x)` | `stats.test.ts` |
+| Type       | Convention           | Example               |
+| ---------- | -------------------- | --------------------- |
+| Components | PascalCase           | `StatsPanel.tsx`      |
+| Hooks      | camelCase with `use` | `useDataIngestion.ts` |
+| Utils      | camelCase            | `persistence.ts`      |
+| Tests      | `*.test.ts(x)`       | `stats.test.ts`       |
 
 ### Color Conventions
 
 For spec-related UI elements:
+
 - `text-green-500` — Pass / In-spec
 - `text-red-400` — Fail USL (above upper limit)
 - `text-amber-500` — Fail LSL (below lower limit)
@@ -104,12 +108,14 @@ For spec-related UI elements:
 ### Do's and Don'ts
 
 **Do:**
+
 - Keep components focused and small
 - Write tests for business logic
 - Use existing patterns from the codebase
 - Document complex algorithms
 
 **Don't:**
+
 - Add new npm dependencies without discussion
 - Use high-level chart abstractions (we use Visx primitives)
 - Store sensitive data (we're offline-first)
@@ -153,6 +159,7 @@ For spec-related UI elements:
 ### Bug Reports
 
 Include:
+
 - Browser and version
 - Steps to reproduce
 - Expected vs actual behavior
@@ -162,6 +169,7 @@ Include:
 ### Feature Requests
 
 Include:
+
 - Use case description
 - How it aligns with our philosophy
 - Proposed implementation (optional)
@@ -170,17 +178,18 @@ Include:
 
 When contributing, please update relevant documentation:
 
-| Change Type | Update |
-|-------------|--------|
-| New feature | PRODUCT_OVERVIEW.md, Specs.md |
-| API change | ARCHITECTURE.md |
-| New component | CLAUDE.md (Key Files) |
-| Bug fix | CHANGELOG.md |
+| Change Type   | Update                             |
+| ------------- | ---------------------------------- |
+| New feature   | docs/03-features/, docs/01-vision/ |
+| API change    | docs/05-technical/architecture.md  |
+| New component | CLAUDE.md (Key Files)              |
+| Bug fix       | CHANGELOG.md                       |
 
 ## Questions?
 
 - Read [CLAUDE.md](CLAUDE.md) for quick reference
-- Read [ARCHITECTURE.md](ARCHITECTURE.md) for technical details
+- Read [Architecture](docs/05-technical/architecture.md) for technical details
+- Browse [Documentation](docs/) for full reference
 - Open an issue for questions
 
 ---

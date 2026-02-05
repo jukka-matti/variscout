@@ -528,50 +528,6 @@ The brushing feature is now:
 
 ---
 
-## Commit Message
-
-```
-feat(brushing): implement Phases 3-5 - Data Table Sync, Performance Integration, Polish
-
-Complete the remaining phases of Minitab-style brushing implementation.
-
-**Phase 3: Data Table Sync**
-- Add bi-directional IChart ↔ DataTable synchronization
-- Table rows highlight when points brushed in IChart
-- Click table row to toggle point in selection
-- Auto-scroll to first selected row
-
-**Phase 4: Performance Mode Integration**
-- Clear selection when switching analysis views
-- Clear selection entering/exiting Performance Mode
-- Prevent stale selection state across modes
-- Clean state transitions for all view changes
-
-**Phase 5: Polish and Edge Cases**
-- Add Escape key to clear selection
-- Show "(Press Esc to clear)" hint in SelectionPanel
-- Responsive keyboard hint (hidden on mobile)
-- Follow existing keyboard navigation patterns
-
-**Files Modified:**
-- apps/pwa/src/components/DataPanel.tsx - Multi-selection support
-- apps/pwa/src/App.tsx - DataPanel integration, clearSelection calls
-- apps/pwa/src/components/Dashboard.tsx - Escape key handler
-- packages/ui/src/components/SelectionPanel/SelectionPanel.tsx - Keyboard hint
-
-**Testing:**
-- TypeScript: 0 errors
-- Build: All packages compile successfully
-- Manual: All workflows tested and verified
-
-**Overall Progress:** 5/5 phases complete (100%)
-
-Co-Authored-By: claude-flow <ruv@ruv.net>
-```
-
----
-
 **Status**: ✅ **ALL PHASES COMPLETE**
 **Progress**: 5/5 phases (100%)
 **Ready**: Production-ready implementation
-**Next**: Commit and push to repository

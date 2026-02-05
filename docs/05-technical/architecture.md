@@ -31,7 +31,7 @@ variscout-lite/
 └── package.json           # Root scripts
 ```
 
-> **Detailed monorepo documentation:** [docs/MONOREPO_ARCHITECTURE.md](docs/MONOREPO_ARCHITECTURE.md)
+> **Detailed monorepo documentation:** [Monorepo Architecture](architecture/monorepo.md)
 
 ## 2. High-Level Stack
 
@@ -556,7 +556,7 @@ The Excel Add-in uses a **Hybrid Approach**: native Excel slicers for filtering 
 
 Configuration is persisted in Excel document via Custom Document Properties, allowing the analysis to survive document save/reload cycles.
 
-> **See also:** [docs/concepts/EXCEL_ADDIN_STRATEGY.md](docs/concepts/EXCEL_ADDIN_STRATEGY.md) for the full strategic analysis.
+> **See also:** [Excel Strategy](../08-products/excel/strategy.md) for the full strategic analysis.
 
 ## 12. Variation Tracking Architecture
 
@@ -626,8 +626,6 @@ The `@variscout/charts` `BoxplotBase` component accepts optional `variationPct` 
 - Displays factor name + percentage on x-axis label
 - Shows "↓ drill here" indicator when `variationPct ≥ variationThreshold`
 - Red highlighting for high-impact factors
-
-> **Detailed documentation:** [docs/products/pwa/VARIATION_TRACKING.md](docs/products/pwa/VARIATION_TRACKING.md)
 
 ## 13. Performance Budget
 

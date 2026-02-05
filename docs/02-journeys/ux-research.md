@@ -1,4 +1,5 @@
 # UX Research: VariScout Lite
+
 ## Design Thinking & JTBD Framework for Quality Professionals in Developing Countries
 
 ---
@@ -6,6 +7,7 @@
 ## Part 1: Simulated User Interview
 
 ### Interview Context
+
 **Interviewer**: UX Researcher / Design Thinker
 **Interviewee**: Grace Mwangi, Quality Assurance Manager
 **Location**: Nairobi, Kenya (Remote Video Call)
@@ -26,7 +28,7 @@
 
 **Researcher**: What frustrates you most about your current process?
 
-**Grace**: *sighs* Where do I start?
+**Grace**: _sighs_ Where do I start?
 
 First, the **time**. I spend maybe 3-4 hours every week just formatting charts and doing repetitive calculations. My management wants to see trends, but creating comparison charts in Excel takes forever.
 
@@ -38,7 +40,7 @@ Third, **understanding variation**. I know there's something happening with our 
 
 **Grace**: Two weeks ago. We had a shipment rejected at Dubai port - 15% of mangoes were underweight. My manager wanted answers: Which farms? Which collection dates? What's the pattern?
 
-I had the data in Excel, but linking it all together... I spent an entire day making pivot tables, creating separate charts, trying to show the connection between farm source and weight distribution. When I presented, my charts were confusing even to me. I knew the answer was in the data, but I couldn't make it *visible*.
+I had the data in Excel, but linking it all together... I spent an entire day making pivot tables, creating separate charts, trying to show the connection between farm source and weight distribution. When I presented, my charts were confusing even to me. I knew the answer was in the data, but I couldn't make it _visible_.
 
 **Researcher**: What would your ideal tool look like?
 
@@ -64,7 +66,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 
 **Researcher**: Last question - how do you feel about software that uses AI to make recommendations?
 
-**Grace**: *hesitates* I'm cautious. I've seen AI tools that give suggestions but don't show their work. In quality, I need to defend my decisions to auditors, to certification bodies. I need to see the math, see the logic. A tool that helps me analyze faster - yes. A tool that makes decisions for me - I'm not sure I can trust that in my reports.
+**Grace**: _hesitates_ I'm cautious. I've seen AI tools that give suggestions but don't show their work. In quality, I need to defend my decisions to auditors, to certification bodies. I need to see the math, see the logic. A tool that helps me analyze faster - yes. A tool that makes decisions for me - I'm not sure I can trust that in my reports.
 
 ---
 
@@ -72,23 +74,25 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 
 ### Primary Persona: "The Export Quality Champion"
 
-| Attribute | Details |
-|-----------|---------|
-| **Name** | Grace Mwangi |
-| **Role** | Quality Assurance Manager |
-| **Location** | Nairobi, Kenya |
-| **Organization** | Mid-size agri-food export company (50-200 employees) |
-| **Education** | BSc Food Science, trained in basic statistics |
+| Attribute        | Details                                                              |
+| ---------------- | -------------------------------------------------------------------- |
+| **Name**         | Grace Mwangi                                                         |
+| **Role**         | Quality Assurance Manager                                            |
+| **Location**     | Nairobi, Kenya                                                       |
+| **Organization** | Mid-size agri-food export company (50-200 employees)                 |
+| **Education**    | BSc Food Science, trained in basic statistics                        |
 | **Tech Comfort** | Intermediate - proficient with Excel, smartphones, basic cloud tools |
-| **Age** | 32-45 |
+| **Age**          | 32-45                                                                |
 
 #### Goals
+
 - Ensure export shipments meet buyer specifications
 - Identify and address quality issues with specific suppliers
 - Produce clear reports for management and certification bodies
 - Support smallholder farmers in improving their quality
 
 #### Frustrations
+
 - Too much time spent on manual Excel work
 - Unreliable internet at field locations
 - Difficulty visualizing complex patterns in data
@@ -96,28 +100,31 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 - Showing farmers their performance in understandable ways
 
 #### Context
+
 - Works across multiple locations (office + field sites)
 - Budget-constrained organization
 - Data privacy important for competitive and compliance reasons
 - Needs audit-ready outputs (must show methodology, not black-box)
 
 #### Quote
+
 > "I know the answers are in my data. I just need a faster way to make them visible."
 
 ---
 
 ### Secondary Persona: "The Factory Floor Analyst"
 
-| Attribute | Details |
-|-----------|---------|
-| **Name** | Raj Sharma |
-| **Role** | Quality Engineer |
-| **Location** | Coimbatore, India |
-| **Organization** | Textile manufacturing unit |
-| **Education** | B.Tech Textile Engineering |
+| Attribute        | Details                                      |
+| ---------------- | -------------------------------------------- |
+| **Name**         | Raj Sharma                                   |
+| **Role**         | Quality Engineer                             |
+| **Location**     | Coimbatore, India                            |
+| **Organization** | Textile manufacturing unit                   |
+| **Education**    | B.Tech Textile Engineering                   |
 | **Tech Comfort** | High - comfortable with statistical concepts |
 
 #### Context
+
 - Works on shop floor with tablets
 - Needs real-time variation monitoring
 - Reports to plant manager on shift performance
@@ -127,15 +134,16 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 
 ### Tertiary Persona: "The Cooperative Trainer"
 
-| Attribute | Details |
-|-----------|---------|
-| **Name** | Carlos Mendez |
-| **Role** | Quality Training Coordinator |
-| **Location** | Guatemala |
-| **Organization** | Coffee cooperative network |
-| **Education** | Agricultural extension background |
+| Attribute        | Details                           |
+| ---------------- | --------------------------------- |
+| **Name**         | Carlos Mendez                     |
+| **Role**         | Quality Training Coordinator      |
+| **Location**     | Guatemala                         |
+| **Organization** | Coffee cooperative network        |
+| **Education**    | Agricultural extension background |
 
 #### Context
+
 - Trains farmer groups on quality improvement
 - Needs educational tool with predictable behavior
 - Uses projected dashboard in group training sessions
@@ -148,16 +156,19 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 ### Core Functional Jobs
 
 #### Job 1: Assess Batch Conformance
+
 > **When I** receive a batch of products from suppliers,
 > **I want to** quickly determine what percentage meets specifications,
 > **So I can** make accept/reject decisions and provide feedback to suppliers.
 
 **Success Metrics:**
+
 - Time to analyze batch: < 5 minutes
 - Clear pass/fail visualization
 - Breakdown by grade tier visible
 
 **Current Alternatives:**
+
 - Manual Excel calculations
 - Visual inspection only
 - Sampling-based judgment
@@ -165,16 +176,19 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 ---
 
 #### Job 2: Identify Variation Sources
+
 > **When I** observe quality problems in my process,
 > **I want to** see which factors (suppliers, machines, shifts) correlate with poor performance,
 > **So I can** take targeted corrective action.
 
 **Success Metrics:**
+
 - Ability to filter by any factor
 - Cross-chart highlighting of related data
 - Clear factor-to-outcome visualization
 
 **Current Alternatives:**
+
 - Multiple Excel pivot tables
 - Manual chart creation
 - Intuition-based investigation
@@ -182,16 +196,19 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 ---
 
 #### Job 3: Monitor Process Capability
+
 > **When I** need to demonstrate our quality capability to buyers or certifiers,
 > **I want to** show statistical metrics (Cpk, pass rate, control limits) in a professional format,
 > **So I can** prove we meet standards and build trust.
 
 **Success Metrics:**
+
 - Industry-standard metrics (Cp, Cpk) calculated automatically
 - Exportable charts for reports
 - Spec limits clearly visualized
 
 **Current Alternatives:**
+
 - Manual Cpk calculation in Excel
 - Third-party SPC software (expensive)
 - Verbal assurances without data
@@ -199,16 +216,19 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 ---
 
 #### Job 4: Communicate Quality Issues
+
 > **When I** need to explain quality problems to farmers, operators, or management,
 > **I want to** show clear, visual comparisons of performance across groups,
 > **So I can** drive understanding and motivate improvement.
 
 **Success Metrics:**
+
 - Intuitive visualizations (boxplots, Pareto)
 - Exportable as images for presentations
 - Simple enough for non-statisticians to understand
 
 **Current Alternatives:**
+
 - PowerPoint with static charts
 - Verbal explanations
 - Written reports
@@ -216,16 +236,19 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 ---
 
 #### Job 5: Work Without Internet
+
 > **When I** am at field sites or factory floors with unreliable connectivity,
 > **I want to** perform full analysis locally on my device,
 > **So I can** do my work regardless of network conditions.
 
 **Success Metrics:**
+
 - 100% functionality offline
 - Data persisted locally
 - Analysis resumable after reconnection
 
 **Current Alternatives:**
+
 - Paper-based field notes
 - Delayed analysis at office
 - Mobile hotspot (unreliable/expensive)
@@ -233,16 +256,19 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 ---
 
 #### Job 6: Protect Sensitive Data
+
 > **When I** analyze supplier quality or production data,
 > **I want to** keep that data on my own device (not sent to cloud servers),
 > **So I can** maintain competitive confidentiality and comply with data requirements.
 
 **Success Metrics:**
+
 - Zero data transmission to external servers
 - Local storage only
 - Clear privacy assurance
 
 **Current Alternatives:**
+
 - Air-gapped Excel files
 - Avoid digital tools entirely
 - Trust cloud providers (reluctantly)
@@ -252,11 +278,13 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 ### Emotional Jobs
 
 #### Job 7: Feel Confident in Analysis
+
 > **When I** present quality data to stakeholders,
 > **I want to** understand exactly how calculations were done,
 > **So I can** confidently answer questions and defend my conclusions.
 
 **Anxieties:**
+
 - "What if the AI made an error I can't explain?"
 - "Can I trust this metric for an audit?"
 - "What if someone asks how I calculated this?"
@@ -264,11 +292,13 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 ---
 
 #### Job 8: Feel Efficient and Professional
+
 > **When I** spend less time on tedious data manipulation,
 > **I want to** feel like a strategic professional, not a spreadsheet operator,
 > **So I can** focus on insights and actions rather than mechanics.
 
 **Desired Outcome:**
+
 - Reduce analysis time by 75%+
 - Professional-looking outputs
 - Modern tool that reflects professional standards
@@ -278,6 +308,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 ### Social Jobs
 
 #### Job 9: Demonstrate Value to Organization
+
 > **When I** show management clear quality insights,
 > **I want to** be seen as a data-driven professional who adds measurable value,
 > **So I can** strengthen my role and advance my career.
@@ -285,6 +316,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 ---
 
 #### Job 10: Empower Suppliers/Farmers
+
 > **When I** share performance data with suppliers,
 > **I want to** help them understand their quality standing without judgment,
 > **So I can** build collaborative improvement rather than adversarial relationships.
@@ -300,6 +332,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 **Precondition**: Tablet with VariScout Lite installed (PWA)
 
 **Flow**:
+
 1. Open VariScout Lite (works offline)
 2. Enter measurements manually or upload CSV from digital scale
 3. System auto-detects weight as outcome, farm as factor
@@ -321,6 +354,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 **Precondition**: Week's data collected in CSV
 
 **Flow**:
+
 1. Upload week's data (500 rows)
 2. Configure: Weight as outcome; Farm, Variety as factors
 3. Set spec limits: LSL=300g, USL=350g
@@ -342,6 +376,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 **Precondition**: 3 months of data available
 
 **Flow**:
+
 1. Load historical data (2000 rows)
 2. Set outcome and factors
 3. Configure buyer's specs (USL/LSL/Target)
@@ -361,6 +396,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 **Precondition**: Month's defect data collected
 
 **Flow**:
+
 1. Load cooperative's coffee defect data
 2. Configure multi-tier grades: Specialty (≤5), Premium (6-8), Exchange (9-23), Off-Grade (>23)
 3. Project dashboard to group
@@ -381,6 +417,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 **Precondition**: Production data from last 2 weeks
 
 **Flow**:
+
 1. Upload production data
 2. Set tensile strength as outcome; Loom ID, Operator, Shift as factors
 3. View I-chart: see jump in variation starting 5 days ago
@@ -401,6 +438,7 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 **Precondition**: VariScout Lite installed as PWA
 
 **Flow**:
+
 1. Open app (loads from cache, no network needed)
 2. Enter measurements via manual entry grid
 3. Paste data from clipboard (copied from scale readout)
@@ -417,35 +455,38 @@ And **affordable**. We're not a big company. We can't pay enterprise software pr
 Based on JTBD and use cases, prioritized features:
 
 ### Must Have (Core JTBD)
-| Feature | Job Served |
-|---------|-----------|
-| CSV/Excel import with auto-detection | All jobs |
-| I-Chart with control limits | Jobs 1, 2, 3 |
-| Boxplot factor comparison | Jobs 2, 4 |
-| Pareto frequency analysis | Jobs 2, 4 |
-| Linked cross-filtering | Job 2 |
-| Spec limits (USL/LSL) | Jobs 1, 3 |
-| Cpk/Cp calculation | Job 3 |
-| Offline PWA operation | Job 5 |
-| Local-only data storage | Job 6 |
-| PNG export | Jobs 3, 4 |
+
+| Feature                              | Job Served   |
+| ------------------------------------ | ------------ |
+| CSV/Excel import with auto-detection | All jobs     |
+| I-Chart with control limits          | Jobs 1, 2, 3 |
+| Boxplot factor comparison            | Jobs 2, 4    |
+| Pareto frequency analysis            | Jobs 2, 4    |
+| Linked cross-filtering               | Job 2        |
+| Spec limits (USL/LSL)                | Jobs 1, 3    |
+| Cpk/Cp calculation                   | Job 3        |
+| Offline PWA operation                | Job 5        |
+| Local-only data storage              | Job 6        |
+| PNG export                           | Jobs 3, 4    |
 
 ### Should Have (Enhanced Value)
-| Feature | Job Served |
-|---------|-----------|
-| Multi-tier grading system | Jobs 1, 4 (coffee/agriculture) |
-| Project save/load | Job 7 (confidence through reproducibility) |
-| .vrs file export/import | Job 6 (backup, transfer) |
-| Manual data entry | Job 5 (field use) |
-| Sample datasets | Job 7 (learning, demo) |
+
+| Feature                   | Job Served                                 |
+| ------------------------- | ------------------------------------------ |
+| Multi-tier grading system | Jobs 1, 4 (coffee/agriculture)             |
+| Project save/load         | Job 7 (confidence through reproducibility) |
+| .vrs file export/import   | Job 6 (backup, transfer)                   |
+| Manual data entry         | Job 5 (field use)                          |
+| Sample datasets           | Job 7 (learning, demo)                     |
 
 ### Nice to Have (Future)
-| Feature | Job Served |
-|---------|-----------|
-| Multi-language support | Accessibility in developing countries |
-| Trend analysis over time | Job 2 (pattern detection) |
-| Comparative period analysis | Job 2 (before/after) |
-| Report templates | Job 3 (certification reports) |
+
+| Feature                     | Job Served                            |
+| --------------------------- | ------------------------------------- |
+| Multi-language support      | Accessibility in developing countries |
+| Trend analysis over time    | Job 2 (pattern detection)             |
+| Comparative period analysis | Job 2 (before/after)                  |
+| Report templates            | Job 3 (certification reports)         |
 
 ---
 
@@ -486,4 +527,4 @@ Based on this research, the following design principles should guide development
 
 ---
 
-*Document prepared as UX research artifact for VariScout Lite product development*
+_Document prepared as UX research artifact for VariScout Lite product development_

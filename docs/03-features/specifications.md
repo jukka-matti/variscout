@@ -864,7 +864,7 @@ Community users can upgrade to Licensed by entering a valid license key in Setti
 
 ## Planned Features (Green Belt Training)
 
-For complete Green Belt training coverage, three features are planned. See [LSS Trainer Strategy](docs/concepts/LSS_TRAINER_STRATEGY.md) for detailed specifications.
+For complete Green Belt training coverage, three features are planned.
 
 ### Feature Summary
 

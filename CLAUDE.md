@@ -19,6 +19,81 @@ npx claude-flow@v3alpha security scan --depth full  # OWASP security scan
 npx claude-flow@v3alpha security cve --check        # CVE check
 ```
 
+## Retrieval-Led Reasoning
+
+**IMPORTANT**: Prefer retrieval-led reasoning over pre-training-led reasoning for VariScout tasks. Always read relevant docs before generating code.
+
+## Documentation Index
+
+```
+docs/
+├── 01-vision/           # Product philosophy, Four Pillars, Two Voices methodology
+│   ├── index.md
+│   ├── philosophy.md
+│   ├── product-overview.md
+│   ├── four-pillars/    # change, failure, flow, value, drilldown
+│   └── two-voices/      # control-limits, spec-limits, variation-types
+├── 02-journeys/         # User research, personas, flows
+│   ├── index.md
+│   ├── ux-research.md
+│   ├── personas/        # green-belt-gary, student-sara, curious-carlos, etc.
+│   └── flows/           # seo-learner, social-discovery, enterprise, return-visitor
+├── 03-features/         # Feature documentation
+│   ├── index.md
+│   ├── specifications.md
+│   ├── user-guide.md
+│   ├── analysis/        # boxplot, capability, i-chart, pareto, gage-rr, performance-mode
+│   ├── data/            # data-input, storage, validation
+│   ├── navigation/      # drill-down, breadcrumbs, linked-filtering
+│   └── learning/        # case-based-learning, glossary, help-tooltips
+├── 04-cases/            # Case studies with demo data
+│   ├── coffee/
+│   ├── packaging/
+│   ├── avocado/
+│   ├── bottleneck/
+│   ├── hospital-ward/
+│   ├── machine-utilization/
+│   └── oven-zones/
+├── 05-technical/        # Technical architecture
+│   ├── index.md
+│   ├── architecture.md
+│   ├── architecture/    # offline-first, monorepo, shared-packages
+│   ├── implementation/  # data-input, deployment, testing
+│   └── integrations/    # shared-ui, embed-messaging
+├── 06-design-system/    # Design tokens and components
+│   ├── index.md
+│   ├── foundations/     # colors, typography, spacing, accessibility
+│   ├── components/      # buttons, cards, forms, modals, variation-funnel
+│   ├── charts/          # overview, boxplot, capability, pareto, hooks, responsive
+│   └── patterns/        # layout, feedback, navigation
+├── 07-decisions/        # Architecture Decision Records
+│   ├── index.md
+│   └── adr-001 through adr-006
+├── 08-products/         # Product-specific specs
+│   ├── index.md
+│   ├── pwa/             # index, licensing, storage
+│   ├── excel/           # index, architecture, design-system, strategy
+│   ├── azure/           # index, msal-auth, onedrive-sync
+│   ├── website/
+│   └── powerbi/
+└── archive/             # Historical implementation docs
+```
+
+## Task-to-Documentation Mapping
+
+| Task Type              | Read First                                                            |
+| ---------------------- | --------------------------------------------------------------------- |
+| Statistics/Cpk changes | docs/03-features/analysis/capability.md, packages/core/src/stats.ts   |
+| Chart modifications    | docs/06-design-system/charts/, .claude/rules/charts.md                |
+| Excel Add-in work      | docs/08-products/excel/, .claude/rules/excel-addin.md                 |
+| Azure app changes      | docs/08-products/azure/, packages/hooks/src/useDataState.ts           |
+| Adding new feature     | docs/07-decisions/ (check ADRs), docs/05-technical/                   |
+| Parser/data input      | docs/03-features/data/data-input.md, packages/core/src/parser.ts      |
+| Design system          | docs/06-design-system/foundations/, packages/ui/src/colors.ts         |
+| User personas          | docs/02-journeys/personas/, docs/01-vision/philosophy.md              |
+| Performance Mode       | docs/03-features/analysis/performance-mode.md                         |
+| Testing                | docs/05-technical/implementation/testing.md, .claude/rules/testing.md |
+
 ## Repository Structure
 
 pnpm workspaces monorepo:
@@ -36,12 +111,7 @@ variscout-lite/
 │   ├── azure/         # Azure Team App (MSAL + OneDrive sync)
 │   ├── website/       # Marketing website (Astro + React Islands)
 │   └── excel-addin/   # Excel Add-in (Office.js + Fluent UI)
-└── docs/
-    ├── cases/         # Case studies with demo data (coffee, packaging, avocado, bottleneck, hospital-ward, machine-utilization)
-    ├── concepts/      # Strategic product decisions
-    ├── design-system/ # Design tokens, components, charts
-    ├── technical/     # Implementation guides
-    └── products/      # Product-specific specs (PWA, Excel, Website, Power BI, Azure)
+└── docs/              # Documentation (see index above)
 ```
 
 ## Code Conventions
@@ -128,46 +198,6 @@ variscout-lite/
 | `apps/azure/src/components/FilterChips.tsx`                    | Azure active filter chips display                                                |
 | `apps/excel-addin/src/content/ContentPerformanceDashboard.tsx` | Excel Performance Mode (Cpk target input, control-based coloring, Cp/Cpk toggle) |
 | `apps/excel-addin/src/lib/stateBridge.ts`                      | Excel state sync with Custom Document Properties                                 |
-| `docs/cases/`                                                  | Case studies with demo data and teaching briefs                                  |
-| `docs/concepts/LSS_TRAINER_STRATEGY.md`                        | Green Belt training feature roadmap                                              |
-| `docs/concepts/POWER_BI_STRATEGY.md`                           | Power BI Custom Visual strategy                                                  |
-| `docs/concepts/licensing/OVERVIEW.md`                          | Paddle integration, license key system                                           |
-| `docs/concepts/four-pillars/OVERVIEW.md`                       | Core methodology (Watson's Four Pillars)                                         |
-| `docs/concepts/two-voices/OVERVIEW.md`                         | Control limits vs spec limits (Two Voices)                                       |
-| `docs/design-system/charts/hooks.md`                           | Chart hooks (useChartLayout, useChartTooltip, useSelectionState)                 |
-| `docs/design-system/charts/shared-components.md`               | Reusable chart components (SpecLimitLine, ChartTooltip, etc.)                    |
-| `docs/concepts/CASE_BASED_LEARNING.md`                         | Three-act case structure for learning                                            |
-| `docs/technical/TESTING_STRATEGY.md`                           | Testing philosophy, coverage, patterns                                           |
-| `docs/technical/`                                              | PWA storage, deployment, testing strategy                                        |
-| `docs/products/pwa/`                                           | PWA product spec (licensing, storage, stack)                                     |
-| `docs/products/website/`                                       | Marketing website spec (design, copy, pages)                                     |
-| `docs/products/website/flows/OVERVIEW.md`                      | Website user flows overview (personas, architecture)                             |
-| `docs/products/website/flows/1-SEO-LEARNER.md`                 | SEO → Tool → Product flow (Green Belt Gary)                                      |
-| `docs/products/website/flows/2-SOCIAL-DISCOVERY.md`            | Social → Case → Product flow (Curious Carlos)                                    |
-| `docs/products/website/flows/CONTENT-STRATEGY.md`              | 16-week content marketing campaign                                               |
-| `docs/products/excel/`                                         | Excel Add-in spec                                                                |
-| `docs/products/excel/EXCEL_STRATEGY.md`                        | Excel Add-in strategy, feature parity analysis, roadmap                          |
-| `docs/products/powerbi/`                                       | Power BI custom visuals spec                                                     |
-| `docs/products/azure/`                                         | Azure team deployment spec (SharePoint, SSO)                                     |
-| `docs/05-technical/implementation/security-scanning.md`        | Security audit workflow (Claude Flow v3, OWASP)                                  |
+| `docs/04-cases/`                                               | Case studies with demo data and teaching briefs                                  |
 
 > Use `Read` tool to examine these files when needed.
-
-## Documentation
-
-- `README.md` - Quick start
-- `ARCHITECTURE.md` - Technical details
-- `docs/MONOREPO_ARCHITECTURE.md` - Package structure
-- `Specs.md` - Feature specifications
-- `docs/cases/` - **Case studies** (coffee, packaging, avocado, bottleneck, hospital-ward, machine-utilization)
-- `docs/design-system/` - **Design system** (colors, typography, components, charts)
-- `docs/design-system/ACCESSIBILITY.md` - **Accessibility** (WCAG AA, keyboard navigation, screen readers)
-- `docs/technical/` - **Technical specs** (storage, deployment, data input)
-- `docs/technical/DATA_INPUT.md` - **Data input system** (parsing, validation, auto-mapping)
-- `docs/technical/ADR.md` - **Architecture Decision Records** (key technical decisions)
-- `docs/technical/DEPLOYMENT.md` - **Deployment** (CI/CD, build commands, environments)
-- `docs/flows/ERROR-HANDLING.md` - **Error handling** (validation, recovery patterns)
-- `docs/concepts/` - **Strategic decisions** (Excel, LSS, Power BI, Licensing, Methodology)
-- `docs/products/` - **Product specs** (PWA, Website, Excel, Power BI, Azure)
-- `docs/products/excel/EXCEL_STRATEGY.md` - **Excel Strategy** (feature parity, Cpk target, panel sizing, roadmap)
-- `docs/05-technical/implementation/security-scanning.md` - **Security scanning** (Claude Flow v3, OWASP)
