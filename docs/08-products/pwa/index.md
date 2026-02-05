@@ -1,6 +1,20 @@
 # PWA (Progressive Web App)
 
-The primary VariScout application, running entirely in the browser.
+> **Deprecation Notice**: The PWA is deprecated as a commercial product. It remains available for evaluation, demos, and as the reference implementation for development. See [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md) for details on the new distribution strategy.
+
+---
+
+## Status: Internal / Demo Only
+
+The PWA is no longer a commercial offering. Use cases:
+
+| Use Case              | Appropriate | Alternative                    |
+| --------------------- | ----------- | ------------------------------ |
+| Evaluation & demos    | ✓           | -                              |
+| Development reference | ✓           | -                              |
+| Production use        | ✗           | [Azure App](../azure/index.md) |
+| Commercial licensing  | ✗           | Azure Marketplace              |
+| Team collaboration    | ✗           | Azure App with OneDrive        |
 
 ---
 
@@ -12,6 +26,8 @@ The PWA is a React application that:
 - Works offline after initial load
 - Can be installed like a native app
 - Stores data locally in IndexedDB
+
+This implementation serves as the **reference codebase** for VariScout features before they're ported to Azure App and Excel Add-in.
 
 ---
 
@@ -29,25 +45,9 @@ The PWA is a React application that:
 
 ---
 
-## Editions
-
-| Edition       | Branding       | Theming                                | Price    |
-| ------------- | -------------- | -------------------------------------- | -------- |
-| **Community** | VariScout logo | Dark only                              | Free     |
-| **Licensed**  | No branding    | Light/Dark/System + Accents (PWA only) | €99/year |
-
-Build commands:
-
-```bash
-pnpm build:pwa:community  # Community edition
-pnpm build:pwa:licensed   # Licensed edition
-```
-
-> **Note**: Theme customization requires PWA installation (Add to Home Screen) plus a valid license key.
-
----
-
 ## Features
+
+All features are available for evaluation:
 
 - All chart types (I-Chart, Boxplot, Pareto, Capability, Regression, Gage R&R)
 - Performance Mode for multi-channel analysis
@@ -71,7 +71,7 @@ pnpm build:pwa:licensed   # Licensed edition
 │                              │                                   │
 │  ┌─────────────────────────────────────────────────────────────┐ │
 │  │                      IndexedDB                               │ │
-│  │   Projects │ Settings │ License                             │ │
+│  │   Projects │ Settings                                       │ │
 │  └─────────────────────────────────────────────────────────────┘ │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────────┐ │
@@ -82,8 +82,52 @@ pnpm build:pwa:licensed   # Licensed edition
 
 ---
 
+## Development Commands
+
+```bash
+# Start development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Run tests
+pnpm --filter @variscout/pwa test
+```
+
+---
+
+## Role in Development Workflow
+
+The PWA serves as the **feature development sandbox**:
+
+1. **New features** are prototyped in the PWA first
+2. **Shared packages** are developed against PWA use cases
+3. **Azure App** adopts features after PWA validation
+4. **Excel Add-in** adapts features for Office.js constraints
+
+This ensures rapid iteration while maintaining code quality across all platforms.
+
+---
+
+## Migration Path for Existing Users
+
+For users who previously used the PWA:
+
+| If You Were...        | Migrate To...                    |
+| --------------------- | -------------------------------- |
+| Evaluating features   | Continue using PWA (demo)        |
+| Individual user (€99) | Azure App Individual tier        |
+| Team user             | Azure App Team tier              |
+| Excel-focused         | Excel Add-in (FREE on AppSource) |
+
+Existing license keys will be honored until expiry.
+
+---
+
 ## See Also
 
-- [Licensing](licensing.md)
 - [Storage](storage.md)
+- [Azure App (Primary Product)](../azure/index.md)
+- [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [ADR-004: Offline-First](../../07-decisions/adr-004-offline-first.md)

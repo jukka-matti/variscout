@@ -6,14 +6,15 @@ This section captures key architectural decisions made during VariScout developm
 
 ## Decision Log
 
-| ID                                   | Title                 | Status   | Date       |
-| ------------------------------------ | --------------------- | -------- | ---------- |
-| [001](adr-001-monorepo.md)           | Monorepo with pnpm    | Accepted | 2024-01-15 |
-| [002](adr-002-visx-charts.md)        | Visx for Charts       | Accepted | 2024-01-20 |
-| [003](adr-003-indexeddb.md)          | IndexedDB for Storage | Accepted | 2024-02-01 |
-| [004](adr-004-offline-first.md)      | Offline-First         | Accepted | 2024-02-05 |
-| [005](adr-005-props-based-charts.md) | Props-Based Charts    | Accepted | 2024-02-15 |
-| [006](adr-006-edition-system.md)     | Edition System        | Accepted | 2024-03-01 |
+| ID                                               | Title                          | Status     | Date       |
+| ------------------------------------------------ | ------------------------------ | ---------- | ---------- |
+| [001](adr-001-monorepo.md)                       | Monorepo with pnpm             | Accepted   | 2024-01-15 |
+| [002](adr-002-visx-charts.md)                    | Visx for Charts                | Accepted   | 2024-01-20 |
+| [003](adr-003-indexeddb.md)                      | IndexedDB for Storage          | Accepted   | 2024-02-01 |
+| [004](adr-004-offline-first.md)                  | Offline-First                  | Accepted   | 2024-02-05 |
+| [005](adr-005-props-based-charts.md)             | Props-Based Charts             | Accepted   | 2024-02-15 |
+| [006](adr-006-edition-system.md)                 | Edition System                 | Superseded | 2024-03-01 |
+| [007](adr-007-azure-marketplace-distribution.md) | Azure Marketplace Distribution | Accepted   | 2026-02-05 |
 
 ---
 
@@ -45,10 +46,10 @@ What becomes easier or harder as a result?
 
 ## Pending Decisions
 
-### ADR-007: Testing Strategy (Proposed)
+### ADR-008: Testing Strategy (Proposed)
 
 See `05-technical/implementation/testing.md` for current approach. May formalize as ADR.
 
-### ADR-008: State Management Pattern (Proposed)
+### ADR-009: State Management Pattern (Proposed)
 
 Currently using React Context. May evaluate alternatives if complexity grows.

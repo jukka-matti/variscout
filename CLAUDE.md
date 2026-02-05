@@ -68,12 +68,12 @@ docs/
 │   └── patterns/        # layout, feedback, navigation
 ├── 07-decisions/        # Architecture Decision Records
 │   ├── index.md
-│   └── adr-001 through adr-006
+│   └── adr-001 through adr-007
 ├── 08-products/         # Product-specific specs
 │   ├── index.md
-│   ├── pwa/             # index, licensing, storage
-│   ├── excel/           # index, architecture, design-system, strategy
-│   ├── azure/           # index, msal-auth, onedrive-sync
+│   ├── azure/           # index, marketplace, pricing-tiers, arm-template, msal-auth, onedrive-sync
+│   ├── excel/           # index, architecture, design-system, strategy, appsource, license-detection
+│   ├── pwa/             # index (deprecated), storage
 │   ├── website/
 │   └── powerbi/
 └── archive/             # Historical implementation docs
@@ -93,6 +93,8 @@ docs/
 | User personas          | docs/02-journeys/personas/, docs/01-vision/philosophy.md              |
 | Performance Mode       | docs/03-features/analysis/performance-mode.md                         |
 | Testing                | docs/05-technical/implementation/testing.md, .claude/rules/testing.md |
+| Licensing/Tiers        | docs/07-decisions/adr-007-azure-marketplace-distribution.md           |
+| Deployment             | docs/05-technical/implementation/deployment.md                        |
 
 ## Repository Structure
 
@@ -131,14 +133,15 @@ variscout-lite/
 - **Persistence**: IndexedDB + localStorage (PWA), Custom Document Properties (Excel)
 - **Offline-first**: PWA works without internet after first visit
 
-## Editions
+## Products & Pricing
 
-| Edition   | Branding              | Theming                                | Build Command              |
-| --------- | --------------------- | -------------------------------------- | -------------------------- |
-| Community | "VariScout"           | Dark only                              | `pnpm build:pwa:community` |
-| Licensed  | No branding (€99 key) | Light/Dark/System + Accents (PWA only) | `pnpm build:pwa:licensed`  |
+| Product      | Distribution      | Pricing                       | Status      |
+| ------------ | ----------------- | ----------------------------- | ----------- |
+| Azure App    | Azure Marketplace | €99/€499/€1,790 per year      | **PRIMARY** |
+| Excel Add-in | AppSource         | FREE (unlocks with Azure App) | Production  |
+| PWA          | Internal          | N/A (demo only)               | Deprecated  |
 
-> **Note**: Theme customization requires PWA installation (Add to Home Screen) plus a valid license key.
+See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for the distribution strategy.
 
 ## Key Files
 
@@ -148,6 +151,7 @@ variscout-lite/
 | `packages/core/src/__tests__/stats.test.ts`                    | Unit tests for statistics engine                                                 |
 | `packages/core/src/types.ts`                                   | Shared TypeScript interfaces                                                     |
 | `packages/core/src/navigation.ts`                              | Navigation types and utilities                                                   |
+| `packages/core/src/edition.ts`                                 | Tier detection (`getTier()`, feature gating)                                     |
 | `packages/charts/src/`                                         | IChart, Boxplot, ParetoChart, ScatterPlot, GageRRChart                           |
 | `packages/charts/src/PerformanceIChart.tsx`                    | Multi-channel Cpk scatter plot (shared)                                          |
 | `packages/charts/src/PerformanceBoxplot.tsx`                   | Multi-channel distribution comparison (shared)                                   |
@@ -172,7 +176,6 @@ variscout-lite/
 | `packages/hooks/src/useDataState.ts`                           | Shared DataContext state (used by PWA & Azure)                                   |
 | `apps/pwa/src/context/DataContext.tsx`                         | Central state management                                                         |
 | `apps/pwa/src/context/ThemeContext.tsx`                        | Theme state (light/dark/system, company accent)                                  |
-| `packages/core/src/edition.ts`                                 | Edition detection, `isThemingEnabled()` feature gate                             |
 | `packages/charts/src/useChartTheme.ts`                         | Theme-aware chart colors hook                                                    |
 | `apps/pwa/src/components/__tests__/`                           | Component tests (Dashboard, RegressionPanel, GageRRPanel)                        |
 | `packages/core/src/parser.ts`                                  | CSV/Excel parsing, validation, keyword detection (shared)                        |

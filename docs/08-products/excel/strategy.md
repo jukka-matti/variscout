@@ -2,13 +2,47 @@
 
 ## Executive Summary
 
-The Excel Add-in achieves **~85% feature parity** with the PWA, focusing on core capability analysis features while respecting Excel-native UX patterns. This document outlines the current state, architectural decisions, and future roadmap.
+The Excel Add-in achieves **~85% feature parity** with the Azure App, focusing on core capability analysis features while respecting Excel-native UX patterns. This document outlines the current state, architectural decisions, and future roadmap.
+
+---
+
+## Distribution Model
+
+### AppSource (FREE)
+
+The Excel Add-in is distributed **FREE** via Microsoft AppSource with a freemium model:
+
+| Tier     | Price | Access                      | Features                       |
+| -------- | ----- | --------------------------- | ------------------------------ |
+| **Free** | €0    | All AppSource users         | Basic charts, 50 channel limit |
+| **Full** | €0    | Auto-unlocks with Azure App | All features, unlimited        |
+
+### License Detection
+
+The Add-in uses Microsoft Graph API to detect if the user's tenant has VariScout Azure App deployed:
+
+```typescript
+// If Azure App exists in tenant → unlock full features
+const hasAzureApp = await checkAzureAppRegistration();
+const tier = hasAzureApp ? 'full' : 'free';
+```
+
+See [License Detection](license-detection.md) for implementation details.
+
+### Strategic Rationale
+
+1. **Lead generation**: Free tier brings users into ecosystem
+2. **Upsell path**: Power users upgrade to Azure App
+3. **No payment friction**: Microsoft handles all billing via Azure
+4. **Excel-native discovery**: AppSource is where Excel users find add-ins
+
+---
 
 ## Current State (Feb 2026)
 
 ### Feature Parity Status
 
-| Category              | Feature                 | PWA          | Excel             | Status            |
+| Category              | Feature                 | Azure App    | Excel             | Status            |
 | --------------------- | ----------------------- | ------------ | ----------------- | ----------------- |
 | **Performance Mode**  | Multi-channel analysis  | ✅           | ✅                | Complete          |
 |                       | PerformancePareto chart | ✅           | ✅                | Complete          |
@@ -321,7 +355,22 @@ const [cpkTarget, setCpkTarget] = useState<number>(1.33);
 
 ## Strategic Decisions
 
-### 1. 85% Parity is Optimal
+### 1. FREE on AppSource with Azure Unlock
+
+**Rationale:**
+
+- Zero friction for Excel users to try VariScout
+- Free tier provides value, creates awareness
+- Azure App purchase unlocks full potential
+- Microsoft handles all billing complexity
+
+**Result:**
+
+- Excel Add-in drives Azure App sales
+- No separate purchase flow needed
+- Enterprise compliance (no external payment processors)
+
+### 2. 85% Parity is Optimal
 
 **Rationale:**
 
@@ -334,7 +383,7 @@ const [cpkTarget, setCpkTarget] = useState<number>(1.33);
 **Result:**
 
 - Excel Add-in is "first-class" but not "identical"
-- PWA remains reference implementation for innovation
+- Azure App remains reference implementation for innovation
 - Excel users get best-in-class capability analysis
 
 ### 2. Sample Datasets via Website Downloads
@@ -468,12 +517,24 @@ import { PerformanceParetoBase } from '@variscout/charts';
 
 ## Deployment & Distribution
 
-### Current Status
+### AppSource Publication
 
-**AppSource Listing:**
+**Status:** Planned for Q2 2026
 
-- Status: Not yet published
-- Target: Q2 2026
+**Distribution:**
+
+- **Primary**: Microsoft AppSource (FREE listing)
+- **Secondary**: Sideload for enterprise testing
+
+**License Model:**
+
+- Free tier: Basic features for all users
+- Full tier: Auto-unlocks when tenant has Azure App
+- Detection: Graph API checks for Azure App registration
+
+See [AppSource Guide](appsource.md) for publication details.
+
+### Development
 
 **Dev Server:**
 
@@ -491,7 +552,7 @@ pnpm build --filter @variscout/excel-addin
 
 - `apps/excel-addin/manifest.xml`
 - Defines Task Pane and Content Add-in URLs
-- Production URLs: TBD (Azure Static Web Apps or CDN)
+- Production URLs: Azure Static Web Apps
 
 ### Publishing Checklist
 
@@ -503,6 +564,8 @@ pnpm build --filter @variscout/excel-addin
 - [ ] Performance testing (large datasets, 500+ channels)
 - [ ] Accessibility audit (WCAG AA)
 - [ ] Localization (i18n setup, translations)
+- [ ] Graph API license detection implementation
+- [ ] Free tier feature gating
 
 ## Performance Considerations
 
@@ -611,14 +674,25 @@ The Excel Add-in strategy balances feature parity with platform-appropriate UX. 
 
 **Next Steps:**
 
-1. Verify Cpk target functionality with manual testing
-2. Create sample dataset .xlsx files for website
-3. Publish AppSource listing (Q2 2026)
-4. Monitor user adoption and feature requests
+1. Implement Graph API license detection
+2. Define free tier feature limits
+3. Create sample dataset .xlsx files for website
+4. Publish AppSource listing (Q2 2026)
+5. Monitor user adoption and conversion to Azure
 
 **Strategic Decisions Affirmed:**
 
+- FREE on AppSource with Azure unlock
 - 85% feature parity is optimal
 - Sample datasets via website downloads
-- Excel-native UX patterns over PWA clones
+- Excel-native UX patterns over Azure App clones
 - Task Pane for config, Content for viz
+
+---
+
+## See Also
+
+- [AppSource Guide](appsource.md)
+- [License Detection](license-detection.md)
+- [Azure App (Primary Product)](../azure/index.md)
+- [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md)

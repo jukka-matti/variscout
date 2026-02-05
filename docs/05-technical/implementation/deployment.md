@@ -1,18 +1,19 @@
 # Deployment Guide
 
-This document covers build commands, deployment workflows, and environment configurations for VariScout Lite applications.
+This document covers build commands, deployment workflows, and environment configurations for VariScout applications.
 
-## Current Workflow
+---
 
-Development currently follows a local testing approach with manual commits:
+## Distribution Channels
 
-1. Local development with `pnpm dev`
-2. Run tests with `pnpm test`
-3. Build verification with `pnpm build`
-4. Manual git commit and push
-5. Manual deployment to hosting platforms
+| Product      | Distribution      | Target               |
+| ------------ | ----------------- | -------------------- |
+| Azure App    | Azure Marketplace | Enterprise customers |
+| Excel Add-in | AppSource (FREE)  | Excel users          |
+| PWA          | Internal only     | Demos & development  |
+| Website      | Vercel            | Marketing            |
 
-> **Note**: Automated CI/CD pipelines are planned but not yet implemented. This document serves as a placeholder for future automation.
+See [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md) for the distribution strategy.
 
 ---
 
@@ -43,11 +44,8 @@ pnpm build
 # Build specific packages
 pnpm --filter @variscout/core build
 pnpm --filter @variscout/charts build
-pnpm --filter @variscout/pwa build
-
-# Build PWA editions
-pnpm build:pwa:community  # Community edition
-pnpm build:pwa:licensed   # Licensed edition
+pnpm --filter @variscout/azure-app build
+pnpm --filter @variscout/excel-addin build
 ```
 
 ### Testing
@@ -69,54 +67,159 @@ pnpm --filter @variscout/azure-app test
 
 ## Environment Configuration
 
-### PWA Environment Variables
-
-| Variable               | Description                       | Default           |
-| ---------------------- | --------------------------------- | ----------------- |
-| `VITE_EDITION`         | Edition type (community/licensed) | `community`       |
-| `VITE_APP_VERSION`     | App version for display           | From package.json |
-| `VITE_LICENSE_API_URL` | License validation endpoint       | Production URL    |
-
 ### Azure App Environment Variables
 
-| Variable                  | Description                | Required |
-| ------------------------- | -------------------------- | -------- |
-| `VITE_AZURE_CLIENT_ID`    | MSAL application client ID | Yes      |
-| `VITE_AZURE_TENANT_ID`    | Azure AD tenant ID         | Yes      |
-| `VITE_AZURE_REDIRECT_URI` | OAuth redirect URI         | Yes      |
+| Variable                  | Description                | Required | Set By       |
+| ------------------------- | -------------------------- | -------- | ------------ |
+| `VITE_AZURE_CLIENT_ID`    | MSAL application client ID | Yes      | ARM template |
+| `VITE_AZURE_TENANT_ID`    | Azure AD tenant ID         | Yes      | ARM template |
+| `VITE_AZURE_REDIRECT_URI` | OAuth redirect URI         | Yes      | ARM template |
+| `VITE_LICENSE_TIER`       | License tier               | Yes      | ARM template |
+| `VITE_MAX_USERS`          | User limit for tier        | Yes      | ARM template |
 
 ### Excel Add-in Environment Variables
 
-| Variable            | Description           | Default   |
-| ------------------- | --------------------- | --------- |
-| `VITE_ADDIN_ID`     | Office Add-in ID      | Dev ID    |
-| `VITE_MANIFEST_URL` | Manifest XML location | localhost |
+| Variable               | Description           | Default   |
+| ---------------------- | --------------------- | --------- |
+| `VITE_ADDIN_ID`        | Office Add-in ID      | Dev ID    |
+| `VITE_MANIFEST_URL`    | Manifest XML location | localhost |
+| `VITE_AZURE_CLIENT_ID` | Graph API client ID   | Required  |
+
+### PWA Environment Variables (Demo Only)
+
+| Variable           | Description             | Default      |
+| ------------------ | ----------------------- | ------------ |
+| `VITE_APP_VERSION` | App version for display | package.json |
+
+> **Note**: The `VITE_LICENSE_API_URL` and `VITE_EDITION` variables are deprecated and no longer used.
+
+---
+
+## Azure Marketplace Publication
+
+### Overview
+
+The Azure App is published to Azure Marketplace as a Solution Template:
+
+```
+Azure Marketplace
+└── VariScout
+    ├── Individual Plan (€99/year)
+    ├── Team Plan (€499/year)
+    └── Enterprise Plan (€1,790/year)
+```
+
+### Publication Process
+
+1. **Partner Center Setup**
+   - Register at [Partner Center](https://partner.microsoft.com/)
+   - Complete publisher profile
+   - Enable Azure Marketplace program
+
+2. **Create Azure Application Offer**
+   - Offer type: Solution Template
+   - Create plans for each pricing tier
+   - Upload ARM template
+
+3. **Configure Pricing**
+   - Set annual prices per tier
+   - Configure regional pricing (EUR, USD, GBP)
+   - Microsoft handles VAT and billing
+
+4. **Submit for Certification**
+   - Microsoft reviews listing content
+   - Automated ARM template validation
+   - Security assessment
+   - Timeline: 5-10 business days
+
+See [Azure Marketplace Guide](../../08-products/azure/marketplace.md) for detailed instructions.
+
+### ARM Template Deployment
+
+Customers deploy via ARM template:
+
+```bash
+az deployment group create \
+  --resource-group rg-variscout \
+  --template-uri https://raw.githubusercontent.com/variscout/azure-deploy/main/azuredeploy.json \
+  --parameters tier=team
+```
+
+See [ARM Template Documentation](../../08-products/azure/arm-template.md) for template details.
+
+---
+
+## AppSource Publication (Excel Add-in)
+
+### Overview
+
+The Excel Add-in is published FREE on Microsoft AppSource:
+
+```
+AppSource
+└── VariScout - SPC Charts for Excel
+    ├── Free Tier: Basic features
+    └── Full Tier: Unlocks with Azure deployment
+```
+
+### Publication Process
+
+1. **Partner Center Setup**
+   - Same account as Azure Marketplace
+   - Enable Office Store program
+
+2. **Prepare Submission**
+   - Validate manifest.xml
+   - Prepare screenshots (1280x720 min)
+   - Write listing content
+
+3. **Microsoft 365 Certification**
+   - Security review
+   - Functionality testing
+   - Accessibility audit
+   - Timeline: 2-4 weeks
+
+4. **Listing Configuration**
+   - Price: FREE
+   - Categories: Productivity > Data Analysis
+   - Supported products: Excel (all platforms)
+
+See [AppSource Guide](../../08-products/excel/appsource.md) for detailed instructions.
 
 ---
 
 ## Deployment Targets
 
-### PWA (Vercel - Planned)
+### Azure App (Azure Static Web Apps)
+
+Deployed via ARM template to customer's Azure subscription:
 
 ```yaml
-# Future vercel.json configuration
-{
-  'buildCommand': 'pnpm build:pwa:community',
-  'outputDirectory': 'apps/pwa/dist',
-  'framework': 'vite',
-}
+# Azure Static Web Apps configuration (in ARM template)
+resource:
+  type: Microsoft.Web/staticSites
+  apiVersion: 2022-09-01
+  name: variscout-{unique}
+  sku: Standard
 ```
 
-**Manual deployment steps (current)**:
+### Excel Add-in (Azure Static Web Apps)
 
-1. Run `pnpm build:pwa:community`
-2. Deploy `apps/pwa/dist/` to static hosting
-3. Verify service worker registration
-
-### Marketing Website (Vercel - Planned)
+Hosted centrally, deployed via AppSource:
 
 ```yaml
-# Future configuration
+# Hosting configuration
+host: https://excel.variscout.com
+├── taskpane.html
+├── content.html
+├── assets/
+└── manifest.xml
+```
+
+### Marketing Website (Vercel)
+
+```yaml
+# vercel.json configuration
 {
   'buildCommand': 'pnpm --filter @variscout/website build',
   'outputDirectory': 'apps/website/dist',
@@ -124,71 +227,35 @@ pnpm --filter @variscout/azure-app test
 }
 ```
 
-### Azure App (Azure Static Web Apps - Planned)
+### PWA (Internal Hosting)
+
+For demos and development only:
 
 ```yaml
-# Future Azure Static Web Apps configuration
-app_location: 'apps/azure'
-output_location: 'dist'
-api_location: ''
+# Static hosting (internal)
+{ 'buildCommand': 'pnpm build', 'outputDirectory': 'apps/pwa/dist' }
 ```
-
-### Excel Add-in (Office Store - Planned)
-
-1. Build add-in package
-2. Generate manifest XML
-3. Submit to Office Store Partner Center
-4. Sideload for testing
 
 ---
 
-## Future CI/CD Pipeline
+## Azure App Registration Requirements
 
-### Planned GitHub Actions Workflow
+### Required for Azure App
 
-```yaml
-# .github/workflows/ci.yml (planned)
-name: CI
+The ARM template creates an App Registration with:
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+| Permission        | Type      | Purpose               |
+| ----------------- | --------- | --------------------- |
+| `User.Read`       | Delegated | Get user profile      |
+| `Files.ReadWrite` | Delegated | OneDrive project sync |
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      - run: pnpm install
-      - run: pnpm build
-      - run: pnpm test
+### Required for Excel Add-in
 
-  deploy-preview:
-    needs: test
-    if: github.event_name == 'pull_request'
-    # Deploy to preview URL
+The Excel Add-in App Registration needs:
 
-  deploy-production:
-    needs: test
-    if: github.ref == 'refs/heads/main'
-    # Deploy to production
-```
-
-### Pipeline Stages (To Be Implemented)
-
-1. **Lint & Type Check**: ESLint, TypeScript compilation
-2. **Unit Tests**: Vitest for all packages
-3. **Build**: All packages and apps
-4. **Integration Tests**: E2E tests (Playwright - planned)
-5. **Preview Deploy**: PR preview environments
-6. **Production Deploy**: Main branch auto-deploy
+| Permission             | Type      | Admin Consent | Purpose                         |
+| ---------------------- | --------- | ------------- | ------------------------------- |
+| `Application.Read.All` | Delegated | Yes           | License detection via Graph API |
 
 ---
 
@@ -200,69 +267,110 @@ jobs:
 - [ ] Build completes without errors (`pnpm build`)
 - [ ] No TypeScript errors (`pnpm tsc`)
 - [ ] Version numbers updated if releasing
+- [ ] Security scan (`npx claude-flow@v3alpha security scan`)
 
-### PWA-Specific
+### Azure Marketplace Submission
 
-- [ ] Service worker caches new assets
-- [ ] Lighthouse PWA score acceptable (>90)
-- [ ] Offline functionality verified
-- [ ] Edition-specific features work correctly
+- [ ] ARM template validates (`az deployment group validate`)
+- [ ] Partner Center account verified
+- [ ] Privacy policy URL accessible
+- [ ] Terms of service URL accessible
+- [ ] All screenshots meet requirements
+- [ ] Pricing configured for all regions
 
-### Azure App-Specific
+### AppSource Submission
 
-- [ ] MSAL authentication working
-- [ ] OneDrive sync tested
-- [ ] Correct tenant configuration
-- [ ] Permissions scoped correctly
+- [ ] Manifest.xml validates
+- [ ] HTTPS hosting configured
+- [ ] Graph API permissions documented
+- [ ] Screenshots prepared (1280x720 min)
+- [ ] Accessibility requirements met (WCAG AA)
 
-### Excel Add-in-Specific
+### Azure App Deployment (Per-Customer)
 
-- [ ] Manifest validates against schema
-- [ ] Sideload testing in desktop/web Excel
-- [ ] State bridge persists correctly
-- [ ] All supported Excel versions tested
+- [ ] Customer has Azure subscription
+- [ ] Customer selects pricing tier
+- [ ] ARM template deploys successfully
+- [ ] Admin consent granted for Graph API
+- [ ] MSAL authentication works
 
 ---
 
 ## Rollback Procedures
 
-### Current (Manual)
+### Azure Static Web Apps
 
-1. Identify last known good commit
-2. Checkout and rebuild
-3. Redeploy manually
+Azure maintains deployment history:
 
-### Planned (Automated)
+```bash
+# List deployments
+az staticwebapp deployment list --name variscout-xyz
 
-- Vercel automatic rollback to previous deployment
-- Azure deployment slots for blue-green deployments
-- Version tagging for easy rollback points
+# Rollback to previous deployment
+az staticwebapp deployment revert --name variscout-xyz --deployment-id {id}
+```
+
+### AppSource Updates
+
+AppSource updates are atomic - previous versions remain available until new version is certified.
+
+### ARM Template Updates
+
+For template updates:
+
+1. Update template in repository
+2. Submit new version to Partner Center
+3. Existing deployments unaffected
+4. New deployments use new template
 
 ---
 
-## Monitoring (Planned)
+## Monitoring
 
-### Planned Integrations
+### Azure App (Customer-Owned)
 
-| Service          | Purpose                     |
-| ---------------- | --------------------------- |
-| Vercel Analytics | PWA traffic, performance    |
-| Sentry           | Error tracking (PWA, Azure) |
-| Azure Monitor    | Azure app health            |
+Customers can add Application Insights:
 
-### Key Metrics to Track
+```json
+// Optional in ARM template
+{
+  "type": "Microsoft.Insights/components",
+  "apiVersion": "2020-02-02",
+  "name": "variscout-insights",
+  "properties": {
+    "Application_Type": "web"
+  }
+}
+```
 
-- Page load time
-- Error rates by type
-- Storage usage
-- Feature adoption by edition
+### Excel Add-in
+
+Central telemetry via Application Insights:
+
+- Feature usage (anonymous)
+- Error rates
+- Performance metrics
+
+### Partner Center Analytics
+
+- Azure Marketplace: Sales, deployments, usage
+- AppSource: Installs, active users
 
 ---
 
 ## Next Steps
 
-1. Set up GitHub Actions for CI
-2. Configure Vercel for PWA deployment
-3. Add Azure Static Web Apps for Azure app
-4. Implement preview deployments for PRs
-5. Add Lighthouse CI for performance regression testing
+1. Complete Azure Marketplace Partner Center setup
+2. Submit Azure App offer for certification
+3. Complete AppSource Partner Center setup
+4. Submit Excel Add-in for certification
+5. Configure production telemetry
+
+---
+
+## See Also
+
+- [Azure Marketplace Guide](../../08-products/azure/marketplace.md)
+- [ARM Template](../../08-products/azure/arm-template.md)
+- [AppSource Guide](../../08-products/excel/appsource.md)
+- [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)
