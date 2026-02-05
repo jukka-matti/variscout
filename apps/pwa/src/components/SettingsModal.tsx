@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Key, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import { useData } from '../context/DataContext';
-import { getEdition } from '../lib/edition';
-import {
-  hasValidLicense,
-  getStoredLicenseKey,
-  storeLicenseKey,
-  removeLicenseKey,
-  isValidLicenseFormat,
-} from '../lib/license';
 import type { ScaleMode } from '@variscout/hooks';
 
 interface SettingsModalProps {
@@ -51,38 +43,6 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     lockYAxisToFullData: true,
     showControlLimits: true,
   });
-
-  // License state
-  const [licenseKey, setLicenseKey] = useState('');
-  const [licenseStatus, setLicenseStatus] = useState<'none' | 'valid' | 'invalid'>('none');
-  const [edition, setEdition] = useState<string>('community');
-
-  // Check license status on mount
-  useEffect(() => {
-    const currentEdition = getEdition();
-    setEdition(currentEdition);
-    const storedKey = getStoredLicenseKey();
-    if (storedKey) {
-      setLicenseKey(storedKey);
-      setLicenseStatus(hasValidLicense() ? 'valid' : 'invalid');
-    }
-  }, [isOpen]);
-
-  const handleActivateLicense = () => {
-    if (storeLicenseKey(licenseKey)) {
-      setLicenseStatus('valid');
-      setEdition('licensed');
-    } else {
-      setLicenseStatus('invalid');
-    }
-  };
-
-  const handleRemoveLicense = () => {
-    removeLicenseKey();
-    setLicenseKey('');
-    setLicenseStatus('none');
-    setEdition('community');
-  };
 
   // Populate local state when modal opens
   useEffect(() => {
@@ -370,88 +330,6 @@ const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Section 4: License */}
-        <div className="border-t border-edge pt-6 px-6 pb-6">
-          <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4">
-            3. License
-          </h3>
-
-          <div className="bg-surface/50 rounded-lg p-4 border border-edge">
-            {/* Current Status */}
-            <div className="flex items-center gap-3 mb-4">
-              {edition === 'licensed' ? (
-                <>
-                  <CheckCircle size={20} className="text-green-500" />
-                  <div>
-                    <div className="text-white font-medium">Licensed Edition</div>
-                    <div className="text-xs text-content-muted">Branding removed</div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Key size={20} className="text-content-muted" />
-                  <div>
-                    <div className="text-white font-medium">Community Edition</div>
-                    <div className="text-xs text-content-muted">
-                      Free with VariScout Lite branding
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* License Key Input (only for community edition) */}
-            {edition === 'community' && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs text-content-secondary mb-1">License Key</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={licenseKey}
-                      onChange={e => {
-                        setLicenseKey(e.target.value.toUpperCase());
-                        setLicenseStatus('none');
-                      }}
-                      placeholder="VSL-XXXX-XXXX-XXXX"
-                      className="flex-1 bg-surface border border-edge rounded-lg px-3 py-2 text-white text-sm font-mono outline-none focus:border-blue-500"
-                    />
-                    <button
-                      onClick={handleActivateLicense}
-                      disabled={!licenseKey || licenseKey.length < 19}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-surface-tertiary disabled:text-content-muted text-white rounded-lg text-sm font-medium transition-colors"
-                    >
-                      Activate
-                    </button>
-                  </div>
-                  {licenseStatus === 'invalid' && (
-                    <div className="flex items-center gap-1 mt-2 text-red-400 text-xs">
-                      <AlertCircle size={12} />
-                      Invalid license key format
-                    </div>
-                  )}
-                </div>
-                <p className="text-[10px] text-content-muted">
-                  Purchase a license to remove chart branding.{' '}
-                  <a href="#" className="text-blue-400 hover:underline">
-                    Get Pro →
-                  </a>
-                </p>
-              </div>
-            )}
-
-            {/* Remove License (only for licensed with license) */}
-            {edition === 'licensed' && licenseStatus === 'valid' && (
-              <button
-                onClick={handleRemoveLicense}
-                className="text-xs text-content-muted hover:text-red-400 transition-colors"
-              >
-                Remove license key
-              </button>
-            )}
           </div>
         </div>
 

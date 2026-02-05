@@ -28,7 +28,7 @@ import {
 import { ensureTable, detectColumnTypes } from '../../lib/tableManager';
 import { createSlicerRow, isSlicerSupported } from '../../lib/slicerManager';
 import { saveAddInState, createInitialState, type AddInState } from '../../lib/stateBridge';
-import { hasValidLicense } from '@variscout/core';
+import { hasPaidSubscription } from '../../lib/licenseDetection';
 import { UpgradePrompt } from './UpgradePrompt';
 
 const useStyles = makeStyles({
@@ -331,8 +331,8 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
       state.stageColumn = stageColumn;
       state.stageOrderMode = stageOrderMode;
 
-      // Check license status - only licensed users can save configuration
-      if (hasValidLicense()) {
+      // Check subscription status - only paid users can save configuration
+      if (hasPaidSubscription()) {
         await saveAddInState(state);
         setCurrentStep('complete');
         onComplete(state);

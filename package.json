@@ -9,8 +9,6 @@
     "dev:excel": "pnpm --filter @variscout/excel-addin dev",
     "build": "pnpm -r build",
     "build:pwa": "pnpm --filter @variscout/pwa build",
-    "build:pwa:community": "VITE_EDITION=community pnpm --filter @variscout/pwa build",
-    "build:pwa:licensed": "VITE_EDITION=licensed pnpm --filter @variscout/pwa build",
     "build:excel": "pnpm --filter @variscout/excel-addin build",
     "build:excel:prod": "pnpm --filter @variscout/excel-addin build:prod",
     "preview": "pnpm --filter @variscout/pwa preview",
@@ -19,7 +17,10 @@
     "lint:fix": "pnpm -r lint:fix",
     "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\" \"apps/*/src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"packages/*/src/**/*.{ts,tsx}\" \"apps/*/src/**/*.{ts,tsx}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docs:build": "mkdocs build",
+    "docs:serve": "mkdocs serve",
+    "docs:deploy": "mkdocs gh-deploy"
   },
   "lint-staged": {
     "**/*.{ts,tsx}": [

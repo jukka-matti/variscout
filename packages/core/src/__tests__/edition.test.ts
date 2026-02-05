@@ -10,12 +10,15 @@ import {
   getSignatureText,
   isThemingEnabled,
 } from '../edition';
-import * as licenseModule from '../license';
+import * as tierModule from '../tier';
 
 describe('edition module', () => {
   beforeEach(() => {
     // Reset edition configuration before each test
     configureEdition(null);
+    // Reset tier to default (free)
+    vi.spyOn(tierModule, 'getTier').mockReturnValue('free');
+    vi.spyOn(tierModule, 'isPaidTier').mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -24,7 +27,6 @@ describe('edition module', () => {
 
   describe('configureEdition', () => {
     it('should accept community edition', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
       configureEdition('community');
       expect(getEdition()).toBe('community');
     });
@@ -37,8 +39,7 @@ describe('edition module', () => {
     it('should accept null to reset', () => {
       configureEdition('licensed');
       configureEdition(null);
-      // Without a license, should default to community
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
+      // Without a paid tier, should default to community
       expect(getEdition()).toBe('community');
     });
   });
@@ -49,29 +50,29 @@ describe('edition module', () => {
       expect(getEdition()).toBe('licensed');
     });
 
-    it('should return licensed when has valid license (even if not configured)', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(true);
+    it('should return licensed when tier is paid', () => {
+      vi.spyOn(tierModule, 'getTier').mockReturnValue('individual');
+      vi.spyOn(tierModule, 'isPaidTier').mockReturnValue(true);
       configureEdition(null);
       expect(getEdition()).toBe('licensed');
     });
 
-    it('should return community when no config and no license', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
+    it('should return community when no config and free tier', () => {
       configureEdition(null);
       expect(getEdition()).toBe('community');
     });
 
-    it('should return licensed even with community config when license check returns true', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(true);
+    it('should prioritize paid tier over community config', () => {
+      vi.spyOn(tierModule, 'getTier').mockReturnValue('team');
+      vi.spyOn(tierModule, 'isPaidTier').mockReturnValue(true);
       configureEdition('community');
-      // Community config but valid license -> still licensed
+      // Paid tier takes precedence
       expect(getEdition()).toBe('licensed');
     });
   });
 
   describe('shouldShowBranding', () => {
     it('should return true for community edition', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
       configureEdition(null);
       expect(shouldShowBranding()).toBe(true);
     });
@@ -84,7 +85,6 @@ describe('edition module', () => {
 
   describe('getBrandingText', () => {
     it('should return VariScout Lite for community', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
       configureEdition(null);
       expect(getBrandingText()).toBe('VariScout Lite');
     });
@@ -97,7 +97,6 @@ describe('edition module', () => {
 
   describe('getSignatureText', () => {
     it('should return VariScout for community', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
       configureEdition(null);
       expect(getSignatureText()).toBe('VariScout');
     });
@@ -115,23 +114,22 @@ describe('edition module', () => {
     });
 
     it('should return false for community edition', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
       configureEdition(null);
       expect(isThemingEnabled()).toBe(false);
     });
 
-    it('should return true when user activates license in community build', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(true);
+    it('should return true when paid tier is active', () => {
+      vi.spyOn(tierModule, 'getTier').mockReturnValue('enterprise');
+      vi.spyOn(tierModule, 'isPaidTier').mockReturnValue(true);
       configureEdition(null);
       expect(isThemingEnabled()).toBe(true);
     });
   });
 
   describe('edition hierarchy', () => {
-    it('should prioritize licensed config over license check', () => {
-      vi.spyOn(licenseModule, 'hasValidLicense').mockReturnValue(false);
+    it('should prioritize licensed config even with free tier', () => {
       configureEdition('licensed');
-      // Licensed config is honored even without stored license
+      // Licensed config is honored even with free tier
       expect(getEdition()).toBe('licensed');
     });
   });

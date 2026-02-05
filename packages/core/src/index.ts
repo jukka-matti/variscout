@@ -28,6 +28,9 @@ export type {
   StagedStatsResult,
   StageBoundary,
   NelsonRule2Sequence,
+  // Boxplot Types
+  BoxplotGroupInput,
+  BoxplotGroupData,
   // Performance Module Types
   ChannelHealth,
   ChannelInfo,
@@ -64,23 +67,15 @@ export {
   // Nelson rules
   getNelsonRule2ViolationPoints,
   getNelsonRule2Sequences,
+  // Boxplot statistics
+  calculateBoxplotStats,
 } from './stats';
 
 // Matrix utilities (for advanced use)
 export type { Matrix } from './matrix';
 export { transpose, multiply, inverse, solve } from './matrix';
 
-// License
-export {
-  isValidLicenseFormat,
-  generateLicenseKey,
-  storeLicenseKey,
-  getStoredLicenseKey,
-  removeLicenseKey,
-  hasValidLicense,
-} from './license';
-
-// Edition
+// Edition (legacy - prefer tier module for new code)
 export type { Edition } from './edition';
 export {
   EDITION_COLORS,
@@ -90,7 +85,26 @@ export {
   getBrandingText,
   getSignatureText,
   isThemingEnabled,
+  tierToEdition,
 } from './edition';
+
+// Tier (Azure Marketplace multi-tier licensing)
+export type { LicenseTier, TierLimits, ChannelLimitResult } from './tier';
+export {
+  TIER_LIMITS,
+  CHANNEL_WARNING_THRESHOLD,
+  DEFAULT_TIER,
+  configureTier,
+  getTier,
+  isPaidTier,
+  getMaxChannels,
+  getTierLimits,
+  isChannelLimitExceeded,
+  shouldShowChannelWarning,
+  validateChannelCount,
+  getTierDescription,
+  getUpgradeUrl,
+} from './tier';
 
 // Export utilities
 export { getSpecStatus, generateCSV, downloadCSV } from './export';
@@ -214,6 +228,16 @@ export { glossaryTerms, glossaryMap, getTerm, getTermsByCategory, hasTerm } from
 
 // Formatting utilities
 export { formatPValue, getStars } from './format';
+
+// Responsive utilities (chart layout calculations)
+export type { ChartMargins, ChartFonts, ChartType, Breakpoints } from './responsive';
+export {
+  getResponsiveMargins,
+  getResponsiveFonts,
+  getScaledFonts,
+  getResponsiveTickCount,
+  getBreakpoints,
+} from './responsive';
 
 // Time utilities
 export type { TimeComponents, TimeExtractionConfig } from './time';

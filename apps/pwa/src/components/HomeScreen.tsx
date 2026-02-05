@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Upload, FolderOpen, ArrowRight, BarChart2, FileUp, Clock, PenLine } from 'lucide-react';
 import type { SampleDataset } from '@variscout/data';
 import { useData } from '../context/DataContext';
-import { hasValidLicense } from '../lib/license';
 import { useIsInstalled } from '../hooks/useIsInstalled';
 import SampleSection from './SampleSection';
 import InstallPrompt from './InstallPrompt';
@@ -38,10 +37,9 @@ function formatRelativeTime(dateStr: string): string {
 /**
  * Landing screen shown when no data is loaded
  *
- * Three variants based on user state:
+ * Two variants based on user state:
  * - Web browser (not installed): Demo mode, samples only, install CTA
- * - Installed, no license: Upload/Manual entry, session warning
- * - Installed, licensed: Recent projects, full functionality
+ * - Installed PWA: Upload/Manual entry, session warning (PWA is demo-only)
  */
 const HomeScreen: React.FC<HomeScreenProps> = ({
   onFileUpload,
@@ -53,29 +51,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 }) => {
   const { listProjects, loadProject } = useData();
   const isInstalled = useIsInstalled();
-  const isLicensed = hasValidLicense();
 
   const [recentProjects, setRecentProjects] = useState<SavedProject[]>([]);
 
-  // Load recent projects on mount (only for licensed users)
+  // Load recent projects on mount (for installed PWA)
   useEffect(() => {
-    if (isInstalled && isLicensed) {
+    if (isInstalled) {
       listProjects().then(projects => {
         setRecentProjects(projects.slice(0, 3)); // Top 3 most recent
       });
     }
-  }, [listProjects, isInstalled, isLicensed]);
+  }, [listProjects, isInstalled]);
 
   const handleLoadProject = async (id: string) => {
     await loadProject(id);
   };
 
-  // Determine user state
-  const userState: 'web' | 'installed-free' | 'installed-licensed' = !isInstalled
-    ? 'web'
-    : isLicensed
-      ? 'installed-licensed'
-      : 'installed-free';
+  // Determine user state: web browser or installed PWA
+  const userState: 'web' | 'installed' = isInstalled ? 'installed' : 'web';
 
   // Web browser (Demo Mode) - samples only, install CTA
   if (userState === 'web') {
@@ -118,56 +111,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     );
   }
 
-  // Installed PWA (No License) - Upload/Manual entry, session warning
-  if (userState === 'installed-free') {
-    return (
-      <div className="h-full flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-500">
-        <div className="max-w-lg w-full text-center space-y-6">
-          {/* Header */}
-          <div className="space-y-2">
-            <h2 className="text-xl sm:text-2xl font-bold text-white">Start Your Analysis</h2>
-          </div>
-
-          {/* Upload and Manual Entry - Equal prominence */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Upload file */}
-            <label className="flex flex-col items-center justify-center p-6 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500 border-dashed rounded-2xl cursor-pointer transition-all group">
-              <Upload
-                size={28}
-                className="text-content-muted group-hover:text-blue-400 mb-3 transition-colors"
-              />
-              <span className="text-sm font-semibold text-white mb-1">Upload File</span>
-              <span className="text-xs text-content-muted text-center">CSV or Excel</span>
-              <input type="file" accept=".csv,.xlsx" onChange={onFileUpload} className="hidden" />
-            </label>
-
-            {/* Manual entry */}
-            <button
-              onClick={onOpenManualEntry}
-              className="flex flex-col items-center justify-center p-6 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500 rounded-2xl transition-all group"
-            >
-              <PenLine
-                size={28}
-                className="text-content-muted group-hover:text-blue-400 mb-3 transition-colors"
-              />
-              <span className="text-sm font-semibold text-white mb-1">Enter Manually</span>
-              <span className="text-xs text-content-muted text-center">Paste from Excel</span>
-            </button>
-          </div>
-
-          {/* Session warning */}
-          <SessionWarning onUpgradeClick={onOpenSettings} />
-
-          {/* Sample datasets section - collapsed */}
-          <div className="max-w-lg mx-auto">
-            <SampleSection onLoadSample={onLoadSample} variant="installed" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Installed PWA (Licensed) - Recent projects, full functionality
+  // Installed PWA - Upload/Manual entry, recent projects, session warning
   return (
     <div className="h-full flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-500">
       <div className="max-w-xl w-full space-y-6">
@@ -276,6 +220,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             <span className="text-xs text-content-muted text-center">Paste from Excel</span>
           </button>
         </div>
+
+        {/* Session warning - PWA is demo only */}
+        <SessionWarning onUpgradeClick={onOpenSettings} />
 
         {/* Sample datasets section - collapsed */}
         <SampleSection onLoadSample={onLoadSample} variant="installed" />

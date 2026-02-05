@@ -2,9 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   Save,
-  Key,
-  CheckCircle,
-  AlertCircle,
   FolderOpen,
   Plus,
   BarChart3,
@@ -16,15 +13,8 @@ import {
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useTheme, type ChartFontScale } from '../context/ThemeContext';
-import { getEdition } from '../lib/edition';
 import ThemeToggle from './ThemeToggle';
 import CompanyColorPicker from './CompanyColorPicker';
-import {
-  hasValidLicense,
-  getStoredLicenseKey,
-  storeLicenseKey,
-  removeLicenseKey,
-} from '../lib/license';
 
 type AnalysisView = 'dashboard' | 'regression' | 'gagerr' | 'performance';
 
@@ -68,22 +58,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   // Local state for display options
   const [localDisplayOptions, setLocalDisplayOptions] = useState(displayOptions);
 
-  // License state
-  const [licenseKey, setLicenseKey] = useState('');
-  const [licenseStatus, setLicenseStatus] = useState<'none' | 'valid' | 'invalid'>('none');
-  const [edition, setEdition] = useState<string>('community');
-
   // Sync local state when panel opens
   useEffect(() => {
     if (isOpen) {
       setLocalDisplayOptions(displayOptions);
-      const currentEdition = getEdition();
-      setEdition(currentEdition);
-      const storedKey = getStoredLicenseKey();
-      if (storedKey) {
-        setLicenseKey(storedKey);
-        setLicenseStatus(hasValidLicense() ? 'valid' : 'invalid');
-      }
     }
   }, [isOpen, displayOptions]);
 
@@ -126,22 +104,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       document.removeEventListener('mousedown', handleClick);
     };
   }, [isOpen, onClose]);
-
-  const handleActivateLicense = () => {
-    if (storeLicenseKey(licenseKey)) {
-      setLicenseStatus('valid');
-      setEdition('licensed');
-    } else {
-      setLicenseStatus('invalid');
-    }
-  };
-
-  const handleRemoveLicense = () => {
-    removeLicenseKey();
-    setLicenseKey('');
-    setLicenseStatus('none');
-    setEdition('community');
-  };
 
   // View option component
   const ViewOption = ({
@@ -486,80 +448,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 <Plus size={16} />
                 New
               </button>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div className="h-px bg-surface-tertiary" />
-
-          {/* License Section */}
-          <div>
-            <h3 className="text-xs font-semibold text-content-secondary uppercase tracking-wider mb-3">
-              License
-            </h3>
-
-            <div className="bg-surface/50 rounded-lg p-3 border border-edge">
-              {/* Current Status */}
-              <div className="flex items-center gap-3 mb-3">
-                {edition === 'licensed' ? (
-                  <>
-                    <CheckCircle size={18} className="text-green-500" />
-                    <div>
-                      <div className="text-sm text-white font-medium">Licensed Edition</div>
-                      <div className="text-xs text-content-muted">Branding removed</div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Key size={18} className="text-content-muted" />
-                    <div>
-                      <div className="text-sm text-white font-medium">Community</div>
-                      <div className="text-xs text-content-muted">Free with branding</div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* License Key Input (only for community edition) */}
-              {edition === 'community' && (
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={licenseKey}
-                      onChange={e => {
-                        setLicenseKey(e.target.value.toUpperCase());
-                        setLicenseStatus('none');
-                      }}
-                      placeholder="VSL-XXXX-XXXX-XXXX"
-                      className="flex-1 bg-surface border border-edge rounded px-2 py-1.5 text-white text-xs font-mono outline-none focus:border-blue-500"
-                    />
-                    <button
-                      onClick={handleActivateLicense}
-                      disabled={!licenseKey || licenseKey.length < 19}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-surface-tertiary disabled:text-content-muted text-white rounded text-xs font-medium transition-colors"
-                    >
-                      Activate
-                    </button>
-                  </div>
-                  {licenseStatus === 'invalid' && (
-                    <div className="flex items-center gap-1 text-red-400 text-xs">
-                      <AlertCircle size={12} />
-                      Invalid license key
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Remove License */}
-              {edition === 'licensed' && licenseStatus === 'valid' && (
-                <button
-                  onClick={handleRemoveLicense}
-                  className="text-xs text-content-muted hover:text-red-400 transition-colors"
-                >
-                  Remove license
-                </button>
-              )}
             </div>
           </div>
         </div>

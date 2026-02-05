@@ -1,12 +1,14 @@
 /**
  * Edition configuration for VariScout
  *
- * Editions:
- * - community: Free with branding (default)
- * - licensed: Paid version, no branding (license key required)
+ * Editions (legacy, maps to tiers):
+ * - community: Free tier with branding (maps from 'free')
+ * - licensed: Paid tiers, no branding (maps from individual/team/enterprise)
+ *
+ * New code should use the tier system directly via tier.ts
  */
 
-import { hasValidLicense } from './license';
+import { getTier, isPaidTier, type LicenseTier } from './tier';
 
 export type Edition = 'community' | 'licensed';
 
@@ -18,27 +20,46 @@ export const EDITION_COLORS = {
 } as const;
 
 // Edition can be set by the app (e.g., from environment variables)
+// This is kept for backward compatibility - prefer configureTier() for new code
 let configuredEdition: Edition | null = null;
 
 /**
  * Configure the edition at app startup
  * Call this from your app's initialization code
+ *
+ * @deprecated Use configureTier() from tier.ts instead
  */
 export function configureEdition(edition: Edition | null): void {
   configuredEdition = edition;
 }
 
 /**
- * Get the current edition based on config and license status
+ * Map a license tier to the legacy edition system
+ *
+ * @param tier - The license tier
+ * @returns The corresponding edition
+ */
+export function tierToEdition(tier: LicenseTier): Edition {
+  return tier === 'free' ? 'community' : 'licensed';
+}
+
+/**
+ * Get the current edition based on tier or configuration
+ *
+ * Priority:
+ * 1. If tier is configured (not 'free'), use tier-based edition
+ * 2. If legacy configuredEdition is set, use that
+ * 3. Default to community
  */
 export function getEdition(): Edition {
-  // Check configured edition first (set by app from env vars)
-  if (configuredEdition === 'licensed') {
+  // Check tier system first (new approach)
+  const tier = getTier();
+  if (isPaidTier(tier)) {
     return 'licensed';
   }
 
-  // For community builds, check if user has activated a license
-  if (hasValidLicense()) {
+  // Check configured edition (legacy, set by app from env vars)
+  if (configuredEdition === 'licensed') {
     return 'licensed';
   }
 

@@ -7,9 +7,12 @@
     ".": "./src/index.ts",
     "./stats": "./src/stats.ts",
     "./parser": "./src/parser.ts",
-    "./license": "./src/license.ts",
     "./export": "./src/export.ts",
-    "./edition": "./src/edition.ts"
+    "./edition": "./src/edition.ts",
+    "./tier": "./src/tier.ts",
+    "./navigation": "./src/navigation.ts",
+    "./glossary": "./src/glossary/index.ts",
+    "./responsive": "./src/responsive.ts"
   },
   "scripts": {
     "test": "vitest"
