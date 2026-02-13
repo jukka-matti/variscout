@@ -1,43 +1,184 @@
-# Astro Starter Kit: Minimal
+# VaRiScout Marketing Website
 
-```sh
-npm create astro@latest -- --template minimal
+Static marketing, education, and conversion website for VaRiScout. Live at [variscout.com](https://variscout.com).
+
+**Stack:** Astro 5 + React 19 Islands + Tailwind CSS v4 + Visx charts
+
+## Quick Start
+
+```bash
+pnpm --filter @variscout/website dev      # Dev server (localhost:4321)
+pnpm --filter @variscout/website build    # Production build to dist/
+pnpm --filter @variscout/website preview  # Preview production build
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Project Structure
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```
+src/
+├── components/
+│   ├── islands/           # React islands (client-side interactive)
+│   │   ├── IChartIsland.tsx
+│   │   ├── BoxplotIsland.tsx
+│   │   ├── ParetoIsland.tsx
+│   │   ├── StatsIsland.tsx
+│   │   ├── PerformanceDemo.tsx
+│   │   ├── ToolChartIsland.tsx
+│   │   ├── CaseStudyChartsIsland.tsx
+│   │   ├── GlossaryTooltipIsland.tsx
+│   │   └── ChartContainer.tsx
+│   ├── *.astro            # Static Astro components (Header, Footer, Hero, etc.)
+│   └── *.tsx              # Non-island React components (CaseStepsDisplay, LensAnimation)
+├── data/
+│   ├── toolsData.ts       # 7 tool pages (I-Chart, Boxplot, Pareto, Capability, Regression, Gage R&R, Performance)
+│   ├── learnData.ts       # 10 learn topics (Two Voices, Four Pillars, EDA, Staged Analysis, methodologies, etc.)
+│   └── glossaryData.ts    # ~26 glossary terms extending @variscout/core glossary
+├── i18n/
+│   ├── ui.ts              # Translation strings for 5 languages
+│   └── utils.ts           # getLangFromUrl(), useTranslations(), getRouteFromUrl()
+├── layouts/
+│   └── BaseLayout.astro   # Root layout (SEO meta, OG tags, Schema.org, fonts)
+├── pages/
+│   ├── index.astro        # Root redirect to default locale
+│   ├── [lang]/            # Localized pages (en, de, es, fr, pt)
+│   │   ├── index.astro
+│   │   ├── pricing.astro
+│   │   ├── journey.astro
+│   │   ├── tools/         # Tool index + [tool].astro dynamic routes
+│   │   ├── learn/         # Learn index + [topic].astro dynamic routes
+│   │   ├── cases/         # Case index + [slug].astro dynamic routes
+│   │   ├── glossary/      # Glossary index + [term].astro dynamic routes
+│   │   ├── product/       # Product pages + compare.astro
+│   │   └── use-cases/     # Use case pages
+│   ├── resources/         # Tutorials, sample data (not localized)
+│   ├── legal/             # Privacy, terms (not localized)
+│   ├── about.astro
+│   ├── contact.astro
+│   ├── app.astro          # PWA redirect/embed
+│   └── 404.astro
+└── styles/
+    └── global.css         # Tailwind v4 + custom theme tokens
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Content Management
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Content lives in three TypeScript data files (no CMS). Each exports an array of typed objects and helper functions.
 
-Any static assets, like images, can be placed in the `public/` directory.
+### Adding a Tool Page
 
-## 🧞 Commands
+1. Add a `ToolData` entry to `src/data/toolsData.ts`
+2. The `[lang]/tools/[tool].astro` page generates routes automatically from `getAllToolSlugs()`
+3. Required fields: `slug`, `name`, `pillar`, `hero`, `whenToUse`, `dataRequirements`, `howToRead`, `patterns`, `features`, `sampleKey`, `nextTools`
 
-All commands are run from the root of the project, from a terminal:
+### Adding a Learn Topic
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+1. Add a `LearnTopic` entry to `src/data/learnData.ts`
+2. Routes generated from `getAllLearnSlugs()`
+3. Sections support visual types: `comparison`, `diagram`, `list`, `quote`, `chart`
+4. Chart visuals render live Visx charts using `@variscout/charts` and `@variscout/data`
 
-## 👀 Want to learn more?
+### Adding a Glossary Term
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+1. Add the base term to `packages/core/src/glossary/terms.ts` (shared across all apps)
+2. Add website extensions (SEO, sections, tips) to `src/data/glossaryData.ts` `GLOSSARY_EXTENSIONS`
+3. Routes generated from `getAllGlossaryTermIds()`
+
+## i18n
+
+Five languages: English (default), German, Spanish, French, Portuguese.
+
+### How Routing Works
+
+- Configured in `astro.config.mjs` with `prefixDefaultLocale: false`
+- English pages: `/tools/i-chart`, `/pricing`
+- Other languages: `/de/tools/i-chart`, `/fr/pricing`
+- `getLangFromUrl()` extracts the language from the URL path segment
+- `useTranslations(lang)` returns a `t()` function for UI string lookup
+
+### Adding Translations
+
+1. Add key-value pairs to each language object in `src/i18n/ui.ts`
+2. Use in Astro components: `const t = useTranslations(lang)`
+3. TypeScript enforces all keys exist for the default language (English)
+
+### Adding a Language
+
+1. Add the locale code to `astro.config.mjs` `i18n.locales` array
+2. Add the language entry to `languages` in `src/i18n/ui.ts`
+3. Add all translation keys for the new language in the `ui` object
+
+## React Islands
+
+Interactive components that hydrate on the client. Static content uses Astro components.
+
+**When to use an island vs Astro component:**
+
+- **Island** (React): needs client-side interactivity (hover, click, state, animation), chart rendering with Visx
+- **Astro component**: static content, layout, navigation, cards
+
+**Adding an island:**
+
+1. Create `src/components/islands/MyIsland.tsx` as a standard React component
+2. Export from `src/components/islands/index.ts`
+3. Use in Astro pages with a hydration directive: `<MyIsland client:visible />`
+
+**Hydration directives:**
+
+- `client:visible` — hydrate when scrolled into view (preferred for charts)
+- `client:load` — hydrate immediately on page load
+- `client:idle` — hydrate when browser is idle
+
+## Styling
+
+- **Tailwind CSS v4** via `@tailwindcss/vite` plugin
+- Custom theme tokens defined in `src/styles/global.css`
+- Brand fonts: Inter (body), JetBrains Mono (code) — self-hosted woff2 in `public/fonts/`, preloaded in BaseLayout
+- Color palette follows the design system: blue (CHANGE), orange (FLOW), red (FAILURE), green (VALUE)
+
+## Performance & Navigation
+
+The website uses Astro's View Transitions to feel like a SPA while remaining a static MPA.
+
+### View Transitions
+
+`ClientRouter` is added in `BaseLayout.astro`, enabling cross-fade transitions between pages. Header and Footer use `transition:persist` so they stay mounted across navigations. The mobile menu script re-initializes on `astro:after-swap` because persisted scripts don't re-run automatically.
+
+### Prefetching
+
+`astro.config.mjs` sets `prefetch.defaultStrategy: 'hover'`. When a user hovers a link, Astro prefetches that page in the background so navigation feels near-instant.
+
+### Loading Skeletons
+
+`ChartContainer.tsx` renders a pulse-animated skeleton placeholder while a `ResizeObserver` measures the container width. Charts only render once width is known, preventing layout shifts.
+
+### Accessibility
+
+`BaseLayout.astro` includes a skip-to-content link that targets `id="main-content"` on `<main>`. Focus is managed after view transitions to ensure keyboard users land in the right place.
+
+## Dependencies
+
+### Workspace Packages
+
+| Package             | Usage                                |
+| ------------------- | ------------------------------------ |
+| `@variscout/core`   | Glossary terms, types, tier system   |
+| `@variscout/charts` | Visx chart components for live demos |
+| `@variscout/data`   | Sample datasets for chart islands    |
+
+### Key External Dependencies
+
+| Package               | Version | Purpose                         |
+| --------------------- | ------- | ------------------------------- |
+| `astro`               | ^5.17   | Static site framework           |
+| `react` / `react-dom` | ^19.0   | Island hydration                |
+| `tailwindcss`         | ^4.1    | Utility-first CSS               |
+| `@visx/*`             | ^3.12   | Low-level chart primitives      |
+| `d3`                  | ^7.9    | Scale/math utilities for charts |
+| `lucide-astro`        | ^0.556  | Icon library (Astro variant)    |
+
+## Related Docs
+
+- [Product documentation](../../docs/08-products/website/index.md)
+- [User journeys & flows](../../docs/02-journeys/index.md)
+- [Design system](../../docs/06-design-system/index.md)
+- [Deployment guide](../../docs/05-technical/implementation/deployment.md)
