@@ -221,14 +221,20 @@ host: https://excel.variscout.com
 
 ### Marketing Website (Vercel)
 
-```yaml
-# vercel.json configuration
-{
-  'buildCommand': 'pnpm --filter @variscout/website build',
-  'outputDirectory': 'apps/website/dist',
-  'framework': 'astro',
-}
-```
+Static Astro 5 site deployed to Vercel:
+
+| Setting               | Value                                    |
+| --------------------- | ---------------------------------------- |
+| Framework             | Astro 5 (static output)                  |
+| Build command         | `pnpm --filter @variscout/website build` |
+| Output directory      | `apps/website/dist`                      |
+| Deploy trigger        | Push to `main` branch                    |
+| Environment variables | None required                            |
+| Pages generated       | 379 (5 languages × dynamic routes)       |
+
+The website is fully static — no server-side code, no database, no runtime environment variables. Workspace packages (`@variscout/core`, `@variscout/charts`, `@variscout/data`) are resolved at build time for chart demos.
+
+See [Website README](../../../apps/website/README.md) for development guide.
 
 ### PWA (Internal Hosting)
 

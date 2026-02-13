@@ -99,6 +99,7 @@ docs/
 | Testing                | docs/05-technical/implementation/testing.md, .claude/rules/testing.md         |
 | Licensing/Tiers        | docs/07-decisions/adr-007-azure-marketplace-distribution.md                   |
 | Deployment             | docs/05-technical/implementation/deployment.md                                |
+| Website changes        | docs/08-products/website/, apps/website/README.md, .claude/rules/charts.md    |
 | Nelson Rules/Runs      | docs/03-features/analysis/nelson-rules.md                                     |
 | Staged Analysis        | docs/03-features/analysis/staged-analysis.md                                  |
 | Probability Plots      | docs/03-features/analysis/probability-plot.md                                 |
