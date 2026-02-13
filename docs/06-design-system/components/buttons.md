@@ -109,6 +109,34 @@ For mobile, ensure minimum 44px touch targets:
 </button>
 ```
 
+## Website Buttons (CSS Classes)
+
+The website uses CSS component classes (defined in `apps/website/src/styles/global.css`) instead of inline Tailwind classes (PWA) or Fluent UI components (Excel).
+
+### Variants
+
+```html
+<!-- Primary — main CTAs -->
+<a class="btn btn-primary" href="/pricing">Get Started</a>
+
+<!-- Secondary — alternative actions on light backgrounds -->
+<a class="btn btn-secondary" href="/tools">Explore Tools</a>
+
+<!-- Outline — subtle actions on light backgrounds -->
+<a class="btn btn-outline" href="/learn">Learn More</a>
+
+<!-- Outline Light — actions on dark backgrounds (hero, footer) -->
+<a class="btn btn-outline-light" href="/cases">Case Studies</a>
+```
+
+### Touch Targets
+
+The base `.btn` class uses `py-2.5` (~40px height). For primary CTAs on landing pages, override to `py-3` to meet the 44px minimum touch target:
+
+```html
+<a class="btn btn-primary py-3">Start Free</a>
+```
+
 ## Excel Add-in Buttons (Fluent UI)
 
 ```tsx

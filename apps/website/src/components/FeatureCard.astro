@@ -15,7 +15,7 @@ const { icon, title, description } = Astro.props;
 // However, I'll try to use a few common ones.
 ---
 
-<div class="p-8 bg-white border border-neutral-200 rounded-xl hover:shadow-lg transition-shadow">
+<div class="p-6 md:p-8 bg-white border border-neutral-200 rounded-xl hover:shadow-lg transition-shadow">
 	<div class="inline-flex p-3 bg-brand-primary/10 rounded-lg text-brand-primary mb-6">
 		{icon === 'line-chart' && <Lucide.LineChart size={24} aria-hidden="true" />}
 		{icon === 'filter' && <Lucide.Filter size={24} aria-hidden="true" />}

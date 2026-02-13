@@ -135,6 +135,32 @@ Interactive components that hydrate on the client. Static content uses Astro com
 - Brand fonts: Inter (body), JetBrains Mono (code) — self-hosted woff2 in `public/fonts/`, preloaded in BaseLayout
 - Color palette follows the design system: blue (CHANGE), orange (FLOW), red (FAILURE), green (VALUE)
 
+### CSS Component Classes
+
+Reusable classes defined in `src/styles/global.css` (inside `@layer components`):
+
+| Class                | Description                                                       |
+| -------------------- | ----------------------------------------------------------------- |
+| `.btn`               | Base button — inline-flex, `px-4 py-2.5`, rounded-md, focus ring  |
+| `.btn-primary`       | Blue background (`bg-brand-primary`), white text                  |
+| `.btn-secondary`     | White background, neutral-900 text, neutral-300 border            |
+| `.btn-outline`       | Transparent with neutral-300 border — use on light backgrounds    |
+| `.btn-outline-light` | Transparent with white/30 border — use on dark backgrounds        |
+| `.container-wide`    | `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8` — main content container |
+
+Usage: `<a class="btn btn-primary" href="...">Get Started</a>`
+
+### Mobile & Responsiveness
+
+Foundations defined in `BaseLayout.astro` and `global.css`:
+
+- **Viewport:** `width=device-width, initial-scale=1.0` + `<meta name="theme-color" content="#2563eb">`
+- **Touch targets:** `--touch-target-min: 44px` CSS variable; base `.btn` uses `py-2.5` (~40px height), CTAs can override to `py-3` (44px+)
+- **Overscroll:** `overscroll-behavior: none` on `body` prevents pull-to-refresh interference
+- **Touch feedback:** `.touch-feedback` class applies `scale(0.97)` + blue tint on `:active` (touch devices)
+- **Responsive card padding:** `p-6 md:p-8` pattern for content cards
+- **Chart island heights:** 400px default (tool pages, learn pages); 500px for use-case pages
+
 ## Performance & Navigation
 
 The website uses Astro's View Transitions to feel like a SPA while remaining a static MPA.

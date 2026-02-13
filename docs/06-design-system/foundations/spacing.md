@@ -69,14 +69,23 @@ VariScout uses a 4px base unit spacing scale.
 ### Buttons
 
 ```jsx
-// Default
+// PWA — default (app context, mouse-primary)
 <button className="px-4 py-2">...</button>
 
-// Small
+// PWA — small
 <button className="px-3 py-1.5">...</button>
 
-// Icon button
+// PWA — icon button
 <button className="p-2">...</button>
+```
+
+```html
+<!-- Website — default (marketing site, larger touch targets) -->
+<a class="btn btn-primary">...</a>
+<!-- py-2.5, ~40px height -->
+
+<!-- Website — CTA override for 44px+ touch target -->
+<a class="btn btn-primary py-3">...</a>
 ```
 
 ### Inputs
