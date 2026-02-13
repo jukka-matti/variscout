@@ -1,154 +1,126 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ScrollReveal from "../../../components/ScrollReveal.astro";
+import UseCaseHero from "../../../components/UseCaseHero.astro";
+import UseCaseProblem from "../../../components/UseCaseProblem.astro";
+import UseCaseJourney from "../../../components/UseCaseJourney.astro";
+import UseCaseBeforeAfter from "../../../components/UseCaseBeforeAfter.astro";
+import UseCaseCTA from "../../../components/UseCaseCTA.astro";
+import RelatedCases from "../../../components/RelatedCases.astro";
 import { ui } from "../../../i18n/ui";
+import { USE_CASES, getUseCaseBySlug, type UseCase } from "../../../data/useCaseData";
 
-// React island components for charts
-import IChartIsland from "../../../components/islands/IChartIsland";
-import PerformanceDemo from "../../../components/islands/PerformanceDemo";
+// React island component for demo chart
+import ToolChartIsland from "../../../components/islands/ToolChartIsland";
 
 export function getStaticPaths() {
 	const languages = Object.keys(ui);
-	const useCases = [
-		{
-			slug: "lss-training",
-			props: {
-				title: "LSS Training & Projects",
-				description: "Teach methodology, not software menus. Simplified statistics for Green Belts and trainers.",
-				sampleKey: "pizza",
-				chartType: "ichart",
-				heroTitle: "Teach methodology, not software menus.",
-				heroSub: "Learn to find factors driving variation — not to navigate complex software. From training to tollgate presentations in minutes.",
-				recommended: { product: "Web App (Free)", reason: "Free, no signup. 16 sample datasets for training." },
-			}
-		},
-		{
-			slug: "operations",
-			props: {
-				title: "Quality & Operations",
-				description: "Live analysis for daily decisions. Answer questions in the meeting, not after.",
-				sampleKey: "mango-export",
-				chartType: "ichart",
-				heroTitle: "Real-time insights for the shop floor.",
-				heroSub: "Stop waiting for static reports. Analyze live with your team and make data-driven decisions during the daily huddle.",
-				recommended: { product: "Web App or Excel Add-in", reason: "Paste data for quick analysis, or work directly in Excel." },
-			}
-		},
-		{
-			slug: "equipment-maintenance",
-			props: {
-				title: "Equipment Maintenance",
-				description: "Find which filling heads need attention before they cause rejects.",
-				sampleKey: "sachets",
-				chartType: "performance",
-				heroTitle: "Which heads need attention?",
-				heroSub: "8-head sachet filler. 2 heads underperforming. Find them in seconds.",
-				recommended: { product: "Azure App", reason: "Performance Mode monitors all fill heads at once." },
-			}
-		},
-		{
-			slug: "high-density",
-			props: {
-				title: "High-Density Analysis",
-				description: "Scalable performance monitoring for 100+ channel systems.",
-				sampleKey: "large-scale",
-				chartType: "performance",
-				heroTitle: "Scalability for 100+ channels.",
-				heroSub: "Monitor massive sensor arrays. Identify outliers across hundreds of measurements in real-time.",
-				recommended: { product: "Azure App", reason: "Performance Mode scales to 100+ channels." },
-			}
-		},
-	];
+	const slugs = USE_CASES.map((uc) => uc.slug);
 
 	return languages.flatMap((lang) =>
-		useCases.map((useCase) => ({
-			params: { lang, slug: useCase.slug },
-			props: useCase.props
+		slugs.map((slug) => ({
+			params: { lang, slug },
+			props: { useCase: getUseCaseBySlug(slug)! },
 		}))
 	);
 }
 
-const { title, description, sampleKey, chartType, heroTitle, heroSub, recommended } = Astro.props;
-const lang = Astro.params.lang;
+interface Props {
+	useCase: UseCase;
+}
+
+const { useCase } = Astro.props;
+const { lang } = Astro.params;
+
+// Map chart types to tool slugs for ToolChartIsland
+const chartTypeToToolSlug: Record<string, string> = {
+	'i-chart': 'i-chart',
+	'boxplot': 'boxplot',
+	'capability': 'capability',
+	'pareto': 'pareto',
+	'performance': 'performance',
+};
 ---
 
-<BaseLayout title={`VaRiScout | ${title}`} description={description}>
-	<!-- Hero -->
-	<section class="py-20 bg-white border-b border-neutral-200">
-		<div class="container-wide">
-			<div class="max-w-3xl mb-12">
-				<a href={`/${lang}`} class="text-sm font-medium text-brand-primary mb-4 block">← Use Cases</a>
-				<h1 class="text-4xl md:text-5xl font-bold mb-6">{heroTitle}</h1>
-				<p class="text-xl text-neutral-600 leading-relaxed italic_text_shorthand">
-					{heroSub}
-				</p>
-			</div>
+<BaseLayout
+	title={`${useCase.title} | VaRiScout`}
+	description={useCase.metaDescription}
+>
+	{/* Section 1: Hero */}
+	<UseCaseHero
+		title={useCase.title}
+		subtitle={useCase.subtitle}
+		industry={useCase.industry}
+		role={useCase.role}
+		lang={lang as string}
+	/>
 
-			<div class="bg-slate-900 rounded-2xl overflow-hidden">
-				{chartType === "performance" ? (
-					<PerformanceDemo client:visible sampleKey={sampleKey} height={500} />
-				) : (
-					<IChartIsland client:visible sampleKey={sampleKey} height={500} />
-				)}
-			</div>
-		</div>
+	{/* Section 2: The Problem */}
+	<ScrollReveal animation="fade-up">
+		<UseCaseProblem
+			headline={useCase.problem.headline}
+			description={useCase.problem.description}
+			misleadingMetric={useCase.problem.misleadingMetric}
+			reality={useCase.problem.reality}
+		/>
+	</ScrollReveal>
 
-		<!-- Product Recommendation -->
+	{/* Section 3: Interactive Demo */}
+	<section class="py-16 bg-neutral-900">
 		<div class="container-wide">
-			<div class="bg-brand-primary/5 border border-brand-primary/20 rounded-xl p-6 mt-8">
-				<p class="text-sm font-medium text-brand-primary mb-1">Best experienced with</p>
-				<p class="font-bold text-lg">{recommended.product}</p>
-				<p class="text-sm text-neutral-600">{recommended.reason}</p>
-			</div>
-		</div>
-	</section>
-
-	<!-- Content Placeholder -->
-	<section class="py-20 bg-neutral-50">
-		<div class="container-wide">
-			<div class="grid md:grid-cols-2 gap-16">
-				<div>
-					<h2 class="text-2xl font-bold mb-6">The Problem</h2>
-					<div class="space-y-6">
-						<div class="p-6 bg-white border border-neutral-200 rounded-xl">
-							<h3 class="font-bold mb-2">Expensive Licenses</h3>
-							<p class="text-sm text-neutral-600">Traditional stats software costs thousands per user, making it inaccessible for many teams.</p>
-						</div>
-						<div class="p-6 bg-white border border-neutral-200 rounded-xl">
-							<h3 class="font-bold mb-2">Installation Friction</h3>
-							<p class="text-sm text-neutral-600">Waiting for IT approval and deployment slows down training and active projects.</p>
-						</div>
-					</div>
+			<ScrollReveal animation="fade-up">
+				<div class="text-center mb-8">
+					<h2 class="text-2xl font-bold text-white mb-2">See It in Action</h2>
+					<p class="text-neutral-400">{useCase.demo.caption}</p>
 				</div>
-				<div>
-					<h2 class="text-2xl font-bold mb-6">The VaRiScout Way</h2>
-					<div class="space-y-6">
-						<div class="flex gap-4">
-							<div class="shrink-0 w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold">1</div>
-							<div>
-								<h3 class="font-bold mb-1">Zero Learning Curve</h3>
-								<p class="text-sm text-neutral-600">No complex menus. If you can click, you can analyze.</p>
-							</div>
-						</div>
-						<div class="flex gap-4">
-							<div class="shrink-0 w-8 h-8 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold">2</div>
-							<div>
-								<h3 class="font-bold mb-1">Plain Language Insights</h3>
-								<p class="text-sm text-neutral-600">The software tells you if there's a difference in plain English.</p>
-							</div>
-						</div>
-					</div>
+				<div class="max-w-5xl mx-auto bg-slate-900 rounded-2xl overflow-hidden">
+					<ToolChartIsland
+						client:visible
+						toolSlug={chartTypeToToolSlug[useCase.demo.chartType]}
+						sampleKey={useCase.demo.sampleKey}
+						height={500}
+					/>
 				</div>
-			</div>
+			</ScrollReveal>
 		</div>
 	</section>
 
-	<section class="py-20 bg-white border-t border-neutral-200">
-		<div class="container-wide text-center">
-			<h2 class="text-3xl font-bold mb-8 italic_text_shorthand">Ready to try it with your own data?</h2>
-			<div class="flex gap-4 justify-center">
-				<a href="/app" class="btn btn-primary px-8 py-3">Try Free</a>
-				<a href={`/${lang}/pricing`} class="btn btn-secondary px-8 py-3">See Pricing</a>
+	{/* Section 4: The Journey */}
+	<ScrollReveal animation="fade-up">
+		<UseCaseJourney
+			steps={useCase.journey}
+			ahaQuote={useCase.ahaQuote}
+			lang={lang as string}
+		/>
+	</ScrollReveal>
+
+	{/* Section 5: Before / After */}
+	<ScrollReveal animation="fade-up">
+		<UseCaseBeforeAfter items={useCase.beforeAfter} />
+	</ScrollReveal>
+
+	{/* Related Case Studies */}
+	{useCase.relatedCases.length > 0 && (
+		<section class="py-16 bg-white border-b border-neutral-100">
+			<div class="container-wide">
+				<div class="max-w-3xl">
+					<ScrollReveal animation="fade-up">
+						<RelatedCases
+							cases={useCase.relatedCases}
+							title="See the Proof"
+							lang={lang as string}
+						/>
+					</ScrollReveal>
+				</div>
 			</div>
-		</div>
-	</section>
+		</section>
+	)}
+
+	{/* Section 6: What's Next + CTA */}
+	<UseCaseCTA
+		relatedCases={useCase.relatedCases}
+		relatedTools={useCase.relatedTools}
+		platformFit={useCase.platformFit}
+		lang={lang as string}
+	/>
 </BaseLayout>

@@ -33,6 +33,7 @@ export interface ToolData {
   sampleKey: string;
   nextTools: string[];
   relatedLearn: string[];
+  relatedCases?: string[];
 }
 
 export const TOOLS: ToolData[] = [
@@ -110,6 +111,7 @@ export const TOOLS: ToolData[] = [
     sampleKey: 'journey',
     nextTools: ['boxplot', 'capability'],
     relatedLearn: ['two-voices', 'four-pillars', 'staged-analysis'],
+    relatedCases: ['bottleneck', 'hospital-ward', 'coffee', 'cookie-weight'],
   },
   {
     slug: 'boxplot',
@@ -174,6 +176,7 @@ export const TOOLS: ToolData[] = [
     sampleKey: 'bottleneck',
     nextTools: ['pareto', 'i-chart'],
     relatedLearn: ['four-pillars'],
+    relatedCases: ['bottleneck', 'coffee', 'hospital-ward', 'call-wait'],
   },
   {
     slug: 'pareto',
@@ -238,6 +241,7 @@ export const TOOLS: ToolData[] = [
     sampleKey: 'packaging',
     nextTools: ['boxplot', 'i-chart'],
     relatedLearn: ['four-pillars'],
+    relatedCases: ['packaging', 'weld-defects', 'sock-mystery'],
   },
   {
     slug: 'capability',
@@ -303,6 +307,7 @@ export const TOOLS: ToolData[] = [
     sampleKey: 'mango-export',
     nextTools: ['i-chart', 'boxplot'],
     relatedLearn: ['two-voices', 'four-pillars'],
+    relatedCases: ['cookie-weight', 'coffee', 'avocado'],
   },
   {
     slug: 'regression',
@@ -364,6 +369,7 @@ export const TOOLS: ToolData[] = [
     sampleKey: 'avocado',
     nextTools: ['i-chart', 'capability'],
     relatedLearn: ['eda-philosophy'],
+    relatedCases: ['avocado'],
   },
   {
     slug: 'gage-rr',
@@ -425,6 +431,7 @@ export const TOOLS: ToolData[] = [
     sampleKey: 'journey',
     nextTools: ['i-chart', 'capability'],
     relatedLearn: ['eda-philosophy'],
+    relatedCases: ['coffee', 'avocado'],
   },
   {
     slug: 'performance',
@@ -494,6 +501,7 @@ export const TOOLS: ToolData[] = [
     sampleKey: 'sachets',
     nextTools: ['capability', 'i-chart'],
     relatedLearn: ['two-voices', 'four-pillars'],
+    relatedCases: ['bottleneck'],
   },
 ];
 

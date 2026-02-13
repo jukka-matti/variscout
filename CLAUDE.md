@@ -72,57 +72,60 @@ docs/
 │   └── patterns/        # layout, feedback, navigation
 ├── 07-decisions/        # Architecture Decision Records
 │   ├── index.md
-│   └── adr-001 through adr-007
+│   └── adr-001 through adr-008
 ├── 08-products/         # Product-specific specs
 │   ├── index.md
 │   ├── feature-parity.md # Platform × Feature availability matrix
 │   ├── azure/           # index, marketplace, pricing-tiers, arm-template, msal-auth, onedrive-sync
 │   ├── excel/           # index, architecture, design-system, strategy, appsource, license-detection
 │   ├── pwa/             # index (demo tool), storage
-│   ├── website/
+│   ├── website/         # index, design-philosophy, content-architecture
 │   └── powerbi/
 └── archive/             # HISTORICAL ONLY — removed features, do not reference for current work
 ```
 
 ## Task-to-Documentation Mapping
 
-| Task Type              | Read First                                                                    |
-| ---------------------- | ----------------------------------------------------------------------------- |
-| Statistics/Cpk changes | docs/03-features/analysis/capability.md, packages/core/src/stats.ts           |
-| Chart modifications    | docs/06-design-system/charts/, .claude/rules/charts.md                        |
-| Excel Add-in work      | docs/08-products/excel/, .claude/rules/excel-addin.md                         |
-| Azure app changes      | docs/08-products/azure/, packages/hooks/src/useDataState.ts                   |
-| Adding new feature     | docs/07-decisions/ (check ADRs), docs/05-technical/                           |
-| Parser/data input      | docs/03-features/data/data-input.md, packages/core/src/parser.ts              |
-| Design system          | docs/06-design-system/foundations/, packages/ui/src/colors.ts                 |
-| User personas          | docs/02-journeys/personas/, docs/01-vision/philosophy.md                      |
-| Use cases / SEO        | docs/02-journeys/use-cases/                                                   |
-| Performance Mode       | docs/03-features/analysis/performance-mode.md                                 |
-| Testing                | docs/05-technical/implementation/testing.md, .claude/rules/testing.md         |
-| Licensing/Tiers        | docs/07-decisions/adr-007-azure-marketplace-distribution.md                   |
-| Deployment             | docs/05-technical/implementation/deployment.md                                |
-| Website changes        | docs/08-products/website/, apps/website/README.md, .claude/rules/charts.md    |
-| Nelson Rules/Runs      | docs/03-features/analysis/nelson-rules.md                                     |
-| Staged Analysis        | docs/03-features/analysis/staged-analysis.md                                  |
-| Probability Plots      | docs/03-features/analysis/probability-plot.md                                 |
-| Data Flow/Architecture | docs/05-technical/architecture/data-flow.md                                   |
-| Hook Integration       | docs/05-technical/architecture/component-patterns.md                          |
-| Platform Comparison    | docs/08-products/feature-parity.md                                            |
-| Analysis Workflows     | docs/03-features/workflows/ (four-pillars, drill-down, decision-trees)        |
-| MSA/Gage R&R Study     | docs/03-features/workflows/msa-workflow.md                                    |
-| Quick Analysis         | docs/03-features/workflows/quick-check.md, deep-dive.md                       |
-| Drill-down workflow    | docs/03-features/workflows/drill-down-workflow.md                             |
-| Four Pillars workflow  | docs/03-features/workflows/four-pillars-workflow.md                           |
-| Decision trees         | docs/03-features/workflows/decision-trees.md                                  |
-| Glossary/terminology   | packages/core/src/glossary/terms.ts, docs/03-features/learning/glossary.md    |
-| Azure deployment/ARM   | docs/08-products/azure/marketplace.md, docs/08-products/azure/arm-template.md |
-| Azure MSAL/auth        | docs/08-products/azure/msal-auth.md                                           |
-| OneDrive sync          | docs/08-products/azure/onedrive-sync.md                                       |
-| AppSource submission   | docs/08-products/excel/appsource.md                                           |
-| UI components (modals) | docs/06-design-system/components/                                             |
-| Color/typography       | docs/06-design-system/foundations/                                            |
-| Case studies           | docs/04-cases/index.md                                                        |
-| Product specs/tagline  | docs/03-features/specifications.md                                            |
+| Task Type              | Read First                                                                             |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| Statistics/Cpk changes | docs/03-features/analysis/capability.md, packages/core/src/stats.ts                    |
+| Chart modifications    | docs/06-design-system/charts/, .claude/rules/charts.md                                 |
+| Excel Add-in work      | docs/08-products/excel/, .claude/rules/excel-addin.md                                  |
+| Azure app changes      | docs/08-products/azure/, packages/hooks/src/useDataState.ts                            |
+| Adding new feature     | docs/07-decisions/ (check ADRs), docs/05-technical/                                    |
+| Parser/data input      | docs/03-features/data/data-input.md, packages/core/src/parser.ts                       |
+| Design system          | docs/06-design-system/foundations/, packages/ui/src/colors.ts                          |
+| User personas          | docs/02-journeys/personas/, docs/01-vision/philosophy.md                               |
+| Use cases / SEO        | docs/02-journeys/use-cases/                                                            |
+| Performance Mode       | docs/03-features/analysis/performance-mode.md                                          |
+| Testing                | docs/05-technical/implementation/testing.md, .claude/rules/testing.md                  |
+| Licensing/Tiers        | docs/07-decisions/adr-007-azure-marketplace-distribution.md                            |
+| Deployment             | docs/05-technical/implementation/deployment.md                                         |
+| Website changes        | docs/08-products/website/, apps/website/README.md, .claude/rules/charts.md             |
+| Website design         | docs/08-products/website/design-philosophy.md                                          |
+| Website content arch   | docs/08-products/website/content-architecture.md, adr-008                              |
+| Use case pages         | docs/08-products/website/content-architecture.md, apps/website/src/data/useCaseData.ts |
+| Nelson Rules/Runs      | docs/03-features/analysis/nelson-rules.md                                              |
+| Staged Analysis        | docs/03-features/analysis/staged-analysis.md                                           |
+| Probability Plots      | docs/03-features/analysis/probability-plot.md                                          |
+| Data Flow/Architecture | docs/05-technical/architecture/data-flow.md                                            |
+| Hook Integration       | docs/05-technical/architecture/component-patterns.md                                   |
+| Platform Comparison    | docs/08-products/feature-parity.md                                                     |
+| Analysis Workflows     | docs/03-features/workflows/ (four-pillars, drill-down, decision-trees)                 |
+| MSA/Gage R&R Study     | docs/03-features/workflows/msa-workflow.md                                             |
+| Quick Analysis         | docs/03-features/workflows/quick-check.md, deep-dive.md                                |
+| Drill-down workflow    | docs/03-features/workflows/drill-down-workflow.md                                      |
+| Four Pillars workflow  | docs/03-features/workflows/four-pillars-workflow.md                                    |
+| Decision trees         | docs/03-features/workflows/decision-trees.md                                           |
+| Glossary/terminology   | packages/core/src/glossary/terms.ts, docs/03-features/learning/glossary.md             |
+| Azure deployment/ARM   | docs/08-products/azure/marketplace.md, docs/08-products/azure/arm-template.md          |
+| Azure MSAL/auth        | docs/08-products/azure/msal-auth.md                                                    |
+| OneDrive sync          | docs/08-products/azure/onedrive-sync.md                                                |
+| AppSource submission   | docs/08-products/excel/appsource.md                                                    |
+| UI components (modals) | docs/06-design-system/components/                                                      |
+| Color/typography       | docs/06-design-system/foundations/                                                     |
+| Case studies           | docs/04-cases/index.md                                                                 |
+| Product specs/tagline  | docs/03-features/specifications.md                                                     |
 
 ## Repository Structure
 

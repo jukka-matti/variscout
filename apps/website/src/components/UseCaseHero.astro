@@ -1,0 +1,30 @@
+---
+import { INDUSTRY_COLORS } from "../data/useCaseData";
+
+interface Props {
+	title: string;
+	subtitle: string;
+	industry: string;
+	role: string;
+	lang: string;
+}
+
+const { title, subtitle, industry, role, lang } = Astro.props;
+const colors = INDUSTRY_COLORS[industry] || INDUSTRY_COLORS['Cross-industry'];
+---
+
+<section class="py-20 bg-gradient-to-b from-neutral-50 to-white">
+	<div class="container-wide">
+		<div class="max-w-3xl">
+			<a href={`/${lang}/use-cases`} class="text-sm font-medium text-brand-primary mb-4 block">&larr; Use Cases</a>
+			<div class="flex items-center gap-3 mb-4">
+				<span class={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${colors.bg} ${colors.text} ${colors.border}`}>
+					{industry}
+				</span>
+				<span class="text-sm text-neutral-500">{role}</span>
+			</div>
+			<h1 class="text-4xl md:text-5xl font-bold mb-4">{title}</h1>
+			<p class="text-xl text-neutral-600 leading-relaxed">{subtitle}</p>
+		</div>
+	</div>
+</section>

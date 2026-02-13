@@ -10,6 +10,7 @@ export interface LearnTopic {
   sections: LearnSection[];
   relatedTools: string[];
   relatedTopics: string[];
+  relatedCases?: string[];
 }
 
 export interface LearnSection {
@@ -133,6 +134,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     ],
     relatedTools: ['i-chart', 'capability'],
     relatedTopics: ['four-pillars', 'eda-philosophy'],
+    relatedCases: ['coffee', 'cookie-weight'],
   },
   {
     slug: 'four-pillars',
@@ -238,6 +240,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     ],
     relatedTools: ['i-chart', 'boxplot', 'pareto', 'capability'],
     relatedTopics: ['two-voices', 'eda-philosophy'],
+    relatedCases: ['bottleneck', 'coffee'],
   },
   {
     slug: 'eda-philosophy',
@@ -386,6 +389,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     ],
     relatedTools: ['i-chart', 'boxplot', 'regression'],
     relatedTopics: ['four-pillars', 'two-voices'],
+    relatedCases: ['bottleneck', 'avocado'],
   },
   {
     slug: 'staged-analysis',
@@ -551,6 +555,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     ],
     relatedTools: ['i-chart', 'capability'],
     relatedTopics: ['two-voices', 'four-pillars'],
+    relatedCases: ['hospital-ward', 'coffee'],
   },
 
   // ===== METHODOLOGY PAGES =====
@@ -670,6 +675,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     ],
     relatedTools: ['i-chart'],
     relatedTopics: ['two-voices', 'staged-analysis'],
+    relatedCases: ['coffee'],
   },
   {
     slug: 'methodology-capability',
@@ -783,6 +789,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     ],
     relatedTools: ['capability', 'i-chart'],
     relatedTopics: ['two-voices', 'methodology-control-limits'],
+    relatedCases: ['cookie-weight', 'coffee'],
   },
   {
     slug: 'methodology-eta-squared',
@@ -912,6 +919,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     ],
     relatedTools: ['boxplot', 'pareto'],
     relatedTopics: ['four-pillars', 'eda-philosophy'],
+    relatedCases: ['bottleneck', 'coffee'],
   },
   {
     slug: 'methodology-our-approach',
@@ -1039,6 +1047,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     ],
     relatedTools: ['i-chart', 'boxplot', 'pareto', 'capability'],
     relatedTopics: ['eda-philosophy', 'four-pillars', 'two-voices'],
+    relatedCases: ['bottleneck', 'coffee'],
   },
   {
     slug: 'methodology-staged-analysis',
@@ -1162,6 +1171,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     ],
     relatedTools: ['i-chart'],
     relatedTopics: ['staged-analysis', 'methodology-control-limits', 'two-voices'],
+    relatedCases: ['hospital-ward'],
   },
   {
     slug: 'control-charts',
@@ -1391,6 +1401,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     ],
     relatedTools: ['i-chart', 'boxplot', 'capability'],
     relatedTopics: ['two-voices', 'four-pillars', 'eda-philosophy', 'staged-analysis'],
+    relatedCases: ['coffee', 'bottleneck', 'cookie-weight'],
   },
 ];
 

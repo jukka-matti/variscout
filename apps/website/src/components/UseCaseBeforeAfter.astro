@@ -1,0 +1,29 @@
+---
+interface Props {
+	items: Array<{ before: string; after: string }>;
+}
+
+const { items } = Astro.props;
+---
+
+<section class="py-16 bg-white border-b border-neutral-100">
+	<div class="container-wide">
+		<div class="max-w-3xl">
+			<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">The Transformation</h2>
+			<div class="space-y-4">
+				{items.map((item) => (
+					<div class="grid md:grid-cols-2 gap-4">
+						<div class="p-4 bg-neutral-100 rounded-lg">
+							<span class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Before</span>
+							<p class="text-neutral-700 mt-1">{item.before}</p>
+						</div>
+						<div class="p-4 bg-brand-primary/5 border border-brand-primary/10 rounded-lg">
+							<span class="text-xs font-bold text-brand-primary uppercase tracking-wider">After</span>
+							<p class="text-neutral-700 mt-1">{item.after}</p>
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	</div>
+</section>

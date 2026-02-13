@@ -4,6 +4,7 @@ import ScrollReveal from "../../../components/ScrollReveal.astro";
 import { ui } from "../../../i18n/ui";
 import { LEARN_TOPICS, getLearnTopicBySlug, type LearnTopic, type LearnSection } from "../../../data/learnData";
 import { getToolBySlug } from "../../../data/toolsData";
+import RelatedCases from "../../../components/RelatedCases.astro";
 import ToolChartIsland from "../../../components/islands/ToolChartIsland";
 
 export function getStaticPaths() {
@@ -222,6 +223,23 @@ function getComparisonClasses(color: string) {
 			</div>
 		</div>
 	</section>
+
+	{/* See It in Practice — Related Case Studies */}
+	{topic.relatedCases && topic.relatedCases.length > 0 && (
+		<section class="py-16 bg-white border-b border-neutral-100">
+			<div class="container-wide">
+				<div class="max-w-3xl">
+					<ScrollReveal animation="fade-up">
+						<RelatedCases
+							cases={topic.relatedCases}
+							title="See It in Practice"
+							lang={lang as string}
+						/>
+					</ScrollReveal>
+				</div>
+			</div>
+		</section>
+	)}
 
 	<!-- CTA -->
 	<section class="py-16 bg-neutral-900 text-white">

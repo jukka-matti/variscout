@@ -5,6 +5,7 @@ import JourneyToolBadge from "../../../components/JourneyToolBadge.astro";
 import JourneyToolNav from "../../../components/JourneyToolNav.astro";
 import { ui } from "../../../i18n/ui";
 import { TOOLS, getToolBySlug, type ToolData } from "../../../data/toolsData";
+import RelatedCases from "../../../components/RelatedCases.astro";
 
 // React island component for tool charts
 import ToolChartIsland from "../../../components/islands/ToolChartIsland";
@@ -356,6 +357,23 @@ const pillarAccentColors: Record<string, string> = {
 			</div>
 		</div>
 	</section>
+
+	{/* See It in Action — Related Case Studies */}
+	{tool.relatedCases && tool.relatedCases.length > 0 && (
+		<section class="py-16 bg-white border-b border-neutral-100">
+			<div class="container-wide">
+				<div class="max-w-3xl">
+					<ScrollReveal animation="fade-up">
+						<RelatedCases
+							cases={tool.relatedCases}
+							title="See It in Action"
+							lang={lang as string}
+						/>
+					</ScrollReveal>
+				</div>
+			</div>
+		</section>
+	)}
 
 	{/* Journey Navigation - only for pillar tools */}
 	{hasPillarJourney && (

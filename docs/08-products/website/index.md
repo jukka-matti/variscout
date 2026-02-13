@@ -18,6 +18,20 @@ The website does **not** contain the application itself. The PWA, Excel Add-in, 
 
 ---
 
+## Three Surfaces
+
+The website follows a **"Guided Problem Playground"** philosophy (see [ADR-008](../../07-decisions/adr-008-website-content-architecture.md)) organized into three content surfaces:
+
+| Surface                    | Pages                                             | Audience                                            | Character                                         |
+| -------------------------- | ------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
+| **Showcase (Acquisition)** | 13 use case pages, homepage, product pages        | Cold visitors from search                           | Problem-first, live demos, professional framing   |
+| **Reference (Learning)**   | 7 tool pages, 10 learn topics, 35+ glossary terms | Both cold searchers AND app users (via HelpTooltip) | Clean, focused, reference-first with live charts  |
+| **Proof (Case Studies)**   | 10 case studies                                   | Evaluators, curious visitors                        | 3-act narrative with interactive data exploration |
+
+All three surfaces cross-link bidirectionally. See [Design Philosophy](design-philosophy.md) and [Content Architecture](content-architecture.md) for details.
+
+---
+
 ## Technology Stack
 
 | Component   | Technology                   | Why                                                           |
@@ -74,7 +88,8 @@ Configured in `astro.config.mjs` with `prefixDefaultLocale: false`. Translation 
 | `[lang]/journey`          | -                             | 1              | 5               |
 | `[lang]/product/compare`  | -                             | 1              | 5               |
 | `[lang]/product/[slug]`   | hardcoded slugs               | ~3             | ~15             |
-| `[lang]/use-cases/[slug]` | hardcoded slugs               | ~4             | ~20             |
+| `[lang]/use-cases/index`  | `useCaseData.ts`              | 1              | 5               |
+| `[lang]/use-cases/[slug]` | `useCaseData.ts` (6 Phase 1)  | 6              | 30              |
 | `[lang]/tools/[tool]`     | `toolsData.ts` (7 tools)      | 7              | 35              |
 | `[lang]/learn/[topic]`    | `learnData.ts` (10 topics)    | 10             | 50              |
 | `[lang]/cases/[slug]`     | case data                     | varies         | varies          |
@@ -90,11 +105,12 @@ Configured in `astro.config.mjs` with `prefixDefaultLocale: false`. Translation 
 
 All content is managed through three TypeScript data files (no CMS, no Markdown):
 
-| File              | Interface          | Items | Content                                                                                              |
-| ----------------- | ------------------ | ----- | ---------------------------------------------------------------------------------------------------- |
-| `toolsData.ts`    | `ToolData`         | 7     | Tool name, pillar, hero, when-to-use, data requirements, how-to-read, patterns, features, sample key |
-| `learnData.ts`    | `LearnTopic`       | 10    | Topic title, sections with visuals (comparison, diagram, list, quote, chart)                         |
-| `glossaryData.ts` | `GlossaryPageData` | ~26   | Extends `@variscout/core` glossary with SEO metadata, rich sections, practical tips                  |
+| File              | Interface          | Items  | Content                                                                                              |
+| ----------------- | ------------------ | ------ | ---------------------------------------------------------------------------------------------------- |
+| `useCaseData.ts`  | `UseCase`          | 6 (13) | Problem, demo config, journey steps, before/after, cross-links, platform fit, SEO keywords           |
+| `toolsData.ts`    | `ToolData`         | 7      | Tool name, pillar, hero, when-to-use, data requirements, how-to-read, patterns, features, sample key |
+| `learnData.ts`    | `LearnTopic`       | 10     | Topic title, sections with visuals (comparison, diagram, list, quote, chart)                         |
+| `glossaryData.ts` | `GlossaryPageData` | ~26    | Extends `@variscout/core` glossary with SEO metadata, rich sections, practical tips                  |
 
 Each file exports helper functions (`getToolBySlug()`, `getLearnTopicBySlug()`, `getGlossaryPageData()`) used by dynamic route pages for static generation.
 
@@ -179,6 +195,9 @@ The website is fully static. No server-side code, no database, no environment va
 
 ## See Also
 
+- [ADR-008: Website Content Architecture](../../07-decisions/adr-008-website-content-architecture.md)
+- [Design Philosophy](design-philosophy.md)
+- [Content Architecture](content-architecture.md)
 - [Website README](../../../apps/website/README.md) (developer guide)
 - [User Journeys](../../02-journeys/index.md)
 - [Design System](../../06-design-system/index.md)

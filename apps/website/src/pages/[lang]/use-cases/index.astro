@@ -1,0 +1,132 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ScrollReveal from "../../../components/ScrollReveal.astro";
+import { ui } from "../../../i18n/ui";
+import {
+	USE_CASES,
+	INDUSTRY_GROUPS,
+	INDUSTRY_COLORS,
+} from "../../../data/useCaseData";
+
+export function getStaticPaths() {
+	return Object.keys(ui).map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+
+// Build industry-grouped use cases (only include those that exist in USE_CASES)
+const activeSlugs = new Set(USE_CASES.map((uc) => uc.slug));
+const groupedUseCases = INDUSTRY_GROUPS.map((group) => ({
+	...group,
+	cases: group.slugs
+		.filter((slug) => activeSlugs.has(slug))
+		.map((slug) => USE_CASES.find((uc) => uc.slug === slug)!)
+		.filter(Boolean),
+})).filter((group) => group.cases.length > 0);
+---
+
+<BaseLayout
+	title="Use Cases | VaRiScout"
+	description="Real-world quality analysis use cases across manufacturing, automotive, healthcare, education, and service operations. See how variation analysis solves specific industry problems."
+>
+	{/* Hero */}
+	<section class="pt-24 pb-16 bg-white">
+		<div class="container-wide">
+			<div class="max-w-3xl">
+				<a
+					href={`/${lang}`}
+					class="text-sm text-neutral-500 hover:text-neutral-700 transition-colors mb-4 inline-block"
+				>
+					&larr; Home
+				</a>
+				<h1 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">
+					Solutions by Industry
+				</h1>
+				<p class="text-lg text-neutral-600">
+					Every industry has variation. Here's how quality professionals use
+					VaRiScout to find the patterns their dashboards miss.
+				</p>
+			</div>
+		</div>
+	</section>
+
+	{/* Industry Groups */}
+	{groupedUseCases.map((group) => {
+		const colors = INDUSTRY_COLORS[group.industry] || {
+			bg: 'bg-neutral-500/10',
+			text: 'text-neutral-600',
+			border: 'border-neutral-500/20',
+		};
+		return (
+			<section class="py-12 border-b border-neutral-100">
+				<div class="container-wide">
+					<ScrollReveal animation="fade-up">
+						<div class="flex items-center gap-3 mb-8">
+							<span
+								class={`text-sm font-bold px-3 py-1 rounded-full ${colors.bg} ${colors.text} border ${colors.border}`}
+							>
+								{group.industry}
+							</span>
+							<span class="text-sm text-neutral-400">
+								{group.cases.length} use {group.cases.length === 1 ? 'case' : 'cases'}
+							</span>
+						</div>
+						<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+							{group.cases.map((uc) => (
+								<a
+									href={`/${lang}/use-cases/${uc.slug}`}
+									class="group p-6 bg-neutral-50 border border-neutral-200 rounded-xl hover:border-neutral-300 hover:shadow-md transition-all"
+								>
+									<div class="flex items-center gap-2 mb-3">
+										<span class="text-xs font-medium text-neutral-500">
+											{uc.role}
+										</span>
+									</div>
+									<h3 class="text-lg font-bold text-neutral-900 group-hover:text-brand-primary transition-colors mb-2">
+										{uc.title}
+									</h3>
+									<p class="text-sm text-neutral-600 mb-4 line-clamp-2">
+										{uc.subtitle}
+									</p>
+									<div class="flex flex-wrap gap-1">
+										{uc.relatedTools.slice(0, 3).map((toolSlug) => (
+											<span class="text-xs px-2 py-0.5 bg-neutral-200/50 rounded text-neutral-500">
+												{toolSlug}
+											</span>
+										))}
+									</div>
+								</a>
+							))}
+						</div>
+					</ScrollReveal>
+				</div>
+			</section>
+		);
+	})}
+
+	{/* CTA */}
+	<section class="py-20 bg-neutral-900 text-white">
+		<div class="container-wide">
+			<div class="max-w-2xl mx-auto text-center">
+				<h2 class="text-3xl md:text-4xl font-bold mb-4">
+					Don't see your industry?
+				</h2>
+				<p class="text-lg text-neutral-300 mb-8">
+					Variation analysis works everywhere data is collected. Paste your data
+					and see the pattern — free, no signup.
+				</p>
+				<div class="flex flex-col sm:flex-row gap-4 justify-center">
+					<a href="/app" class="btn btn-primary px-8 py-3">
+						Try Free - No Signup
+					</a>
+					<a
+						href={`/${lang}/cases`}
+						class="btn btn-outline-light px-8 py-3"
+					>
+						Practice with Cases
+					</a>
+				</div>
+			</div>
+		</div>
+	</section>
+</BaseLayout>

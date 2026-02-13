@@ -22,6 +22,18 @@ const navItems = [
 		],
 	},
 	{
+		label: t('nav.solutions'),
+		items: [
+			{ label: 'Assembly Bottleneck', href: `/${lang}/use-cases/bottleneck-analysis`, description: 'Manufacturing' },
+			{ label: 'Supplier Performance', href: `/${lang}/use-cases/supplier-performance`, description: 'Supply Chain' },
+			{ label: 'Supplier PPAP', href: `/${lang}/use-cases/supplier-ppap`, description: 'Automotive' },
+			{ label: 'University SPC', href: `/${lang}/use-cases/university-spc`, description: 'Education' },
+			{ label: 'COPQ Drill-Down', href: `/${lang}/use-cases/copq-drilldown`, description: 'Cross-industry', divider: true },
+			{ label: 'Customer Complaints', href: `/${lang}/use-cases/complaint-investigation`, description: 'Cross-industry' },
+			{ label: 'All Use Cases', href: `/${lang}/use-cases`, divider: true },
+		],
+	},
+	{
 		label: t('nav.product'),
 		items: [
 			{ label: t('nav.product.web'), href: `/${lang}/product/web-app` },
@@ -134,6 +146,15 @@ const navItems = [
 				<a href={`/${lang}/tools/boxplot`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">Boxplot</a>
 				<a href={`/${lang}/tools/pareto`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">Pareto</a>
 				<a href={`/${lang}/tools/capability`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">Capability</a>
+			</div>
+
+			<!-- Solutions -->
+			<div class="space-y-1">
+				<h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider px-2">{t('nav.solutions')}</h3>
+				<a href={`/${lang}/use-cases/bottleneck-analysis`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">Assembly Bottleneck</a>
+				<a href={`/${lang}/use-cases/supplier-performance`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">Supplier Performance</a>
+				<a href={`/${lang}/use-cases/university-spc`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">University SPC</a>
+				<a href={`/${lang}/use-cases`} class="block px-4 py-3 text-lg font-medium text-brand-primary rounded-lg hover:bg-neutral-50">All Use Cases</a>
 			</div>
 
 			<!-- Product -->
