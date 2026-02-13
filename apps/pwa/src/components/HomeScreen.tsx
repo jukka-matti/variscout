@@ -14,7 +14,6 @@ interface HomeScreenProps {
  * Landing screen shown when no data is loaded
  *
  * Free training tool: sample datasets + paste from Excel
- * No file upload, no .vrs import, no saved projects
  */
 const HomeScreen: React.FC<HomeScreenProps> = ({ onLoadSample, onOpenManualEntry }) => {
   return (

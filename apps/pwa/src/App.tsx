@@ -3,7 +3,6 @@ import { toPng } from 'html-to-image';
 import { useData } from './context/DataContext';
 import { downloadCSV } from './lib/export';
 import SettingsPanel from './components/SettingsPanel';
-import SavedProjectsModal from './components/SavedProjectsModal';
 import DataTableModal from './components/DataTableModal';
 import DataPanel from './components/DataPanel';
 import FunnelPanel from './components/FunnelPanel';
@@ -16,7 +15,6 @@ import AppHeader from './components/AppHeader';
 import AppFooter from './components/AppFooter';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
-import { useAutoSave } from './hooks/useAutoSave';
 import { SAMPLES } from '@variscout/data';
 import {
   validateData,
@@ -39,15 +37,10 @@ function App() {
     filteredData,
     outcome,
     specs,
-    currentProjectName,
-    hasUnsavedChanges,
     dataFilename,
     dataQualityReport,
     paretoMode,
     separateParetoFilename,
-    saveProject,
-    exportProject,
-    importProject,
     setRawData,
     setOutcome,
     setFactors,
@@ -114,15 +107,11 @@ function App() {
     extractHour: false,
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isProjectsOpen, setIsProjectsOpen] = useState(false);
   const [isDataTableOpen, setIsDataTableOpen] = useState(false);
   const [isDataPanelOpen, setIsDataPanelOpen] = useState(false);
   const [isFunnelPanelOpen, setIsFunnelPanelOpen] = useState(false);
   const [highlightRowIndex, setHighlightRowIndex] = useState<number | null>(null);
   const [showExcludedOnly, setShowExcludedOnly] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showSaveInput, setShowSaveInput] = useState(false);
-  const [saveInputName, setSaveInputName] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   const [activeView, setActiveView] = useState<AnalysisView>('dashboard');
@@ -151,20 +140,6 @@ function App() {
   // Embed messaging - handles postMessage communication with parent window
   const { highlightedChart, highlightIntensity, notifyChartClicked } =
     useEmbedMessaging(isEmbedMode);
-
-  // Auto-save hook - saves project after 2s debounce when changes detected
-  const { isSaving: isAutoSaving } = useAutoSave(
-    hasUnsavedChanges,
-    currentProjectName,
-    saveProject,
-    {
-      delay: 2000,
-      enabled: true,
-    }
-  );
-
-  // Combined saving state (manual or auto)
-  const isSavingAny = isSaving || isAutoSaving;
 
   // Track desktop/mobile for panel behavior
   useEffect(() => {
@@ -306,128 +281,26 @@ function App() {
   }, []);
 
   const handleExportCSV = useCallback(() => {
-    const filename = currentProjectName
-      ? `${currentProjectName.replace(/[^a-z0-9]/gi, '_')}.csv`
-      : `variscout-data-${new Date().toISOString().split('T')[0]}.csv`;
-
+    const filename = `variscout-data-${new Date().toISOString().split('T')[0]}.csv`;
     downloadCSV(filteredData, outcome, specs, { filename });
-  }, [filteredData, outcome, specs, currentProjectName]);
-
-  const handleSaveToBrowser = useCallback(async () => {
-    if (!isPaid) {
-      setShowUpgradePrompt('save');
-      return;
-    }
-    if (currentProjectName) {
-      // Quick save with existing name
-      setIsSaving(true);
-      try {
-        await saveProject(currentProjectName);
-      } finally {
-        setIsSaving(false);
-      }
-    } else {
-      // Show input for new project name
-      setShowSaveInput(true);
-      setSaveInputName(`Analysis ${new Date().toLocaleDateString()}`);
-    }
-  }, [currentProjectName, saveProject, isPaid]);
+  }, [filteredData, outcome, specs]);
 
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const isMod = e.metaKey || e.ctrlKey;
-
       // Escape: close any open modal
       if (e.key === 'Escape') {
         if (wideFormatDetection) setWideFormatDetection(null);
-        else if (showSaveInput) setShowSaveInput(false);
         else if (showResetConfirm) setShowResetConfirm(false);
         else if (isSettingsOpen) setIsSettingsOpen(false);
-        else if (isProjectsOpen) setIsProjectsOpen(false);
         else if (isDataTableOpen) setIsDataTableOpen(false);
         return;
-      }
-
-      // Only trigger shortcuts when not in an input/textarea
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
-
-      // ⌘/Ctrl+S: Save project
-      if (isMod && e.key === 's') {
-        e.preventDefault();
-        if (rawData.length > 0 && !isMapping) {
-          handleSaveToBrowser();
-        }
-      }
-
-      // ⌘/Ctrl+O: Open saved projects
-      if (isMod && e.key === 'o') {
-        e.preventDefault();
-        setIsProjectsOpen(true);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
-    wideFormatDetection,
-    showSaveInput,
-    showResetConfirm,
-    isSettingsOpen,
-    isProjectsOpen,
-    isDataTableOpen,
-    rawData.length,
-    isMapping,
-    handleSaveToBrowser,
-  ]);
-
-  const handleSaveWithName = useCallback(async () => {
-    if (!isPaid) {
-      setShowUpgradePrompt('save');
-      return;
-    }
-    if (!saveInputName.trim()) return;
-    setIsSaving(true);
-    try {
-      await saveProject(saveInputName.trim());
-      setShowSaveInput(false);
-      setSaveInputName('');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [saveInputName, saveProject, isPaid]);
-
-  const handleDownloadFile = useCallback(() => {
-    const filename = currentProjectName || `variscout-${new Date().toISOString().split('T')[0]}`;
-    exportProject(filename);
-  }, [currentProjectName, exportProject]);
-
-  const handleImportFile = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file && file.name.endsWith('.vrs')) {
-        try {
-          await importProject(file);
-        } catch (err) {
-          console.error('Import failed', err);
-          alert("Failed to import file. Make sure it's a valid .vrs file.");
-        }
-      }
-      e.target.value = '';
-    },
-    [importProject]
-  );
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const success = await ingestFile(e);
-    if (success) {
-      setIsMapping(true);
-    }
-    e.target.value = '';
-  };
+  }, [wideFormatDetection, showResetConfirm, isSettingsOpen, isDataTableOpen]);
 
   const handleMappingConfirm = (newOutcome: string, newFactors: string[]) => {
     setOutcome(newOutcome);
@@ -717,16 +590,11 @@ function App() {
       {/* Hide header in embed mode */}
       {!isEmbedMode && (
         <AppHeader
-          currentProjectName={currentProjectName}
-          hasUnsavedChanges={hasUnsavedChanges}
           hasData={rawData.length > 0}
           dataFilename={dataFilename}
           rowCount={rawData.length}
-          isSaving={isSavingAny}
           isDataPanelOpen={isDataPanelOpen}
           isFunnelPanelOpen={isFunnelPanelOpen}
-          onSaveToBrowser={handleSaveToBrowser}
-          onOpenProjects={() => setIsProjectsOpen(true)}
           onNewAnalysis={handleResetRequest}
           onToggleDataPanel={handleToggleDataPanel}
           onToggleFunnelPanel={handleToggleFunnelPanel}
@@ -734,7 +602,6 @@ function App() {
             setHighlightRowIndex(null);
             setIsDataTableOpen(true);
           }}
-          onDownloadFile={handleDownloadFile}
           onExportCSV={handleExportCSV}
           onExportImage={handleExport}
           onEnterPresentationMode={() => setIsPresentationMode(true)}
@@ -744,56 +611,13 @@ function App() {
         />
       )}
 
-      {/* Save name input modal */}
-      {showSaveInput && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-surface-secondary border border-edge rounded-xl shadow-xl p-4 w-full max-w-sm">
-            <h3 className="text-sm font-semibold text-white mb-3">Save Project</h3>
-            <input
-              type="text"
-              value={saveInputName}
-              onChange={e => setSaveInputName(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') handleSaveWithName();
-                if (e.key === 'Escape') setShowSaveInput(false);
-              }}
-              placeholder="Project name"
-              className="w-full px-3 py-2 bg-surface border border-edge-secondary rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 mb-3"
-              autoFocus
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowSaveInput(false)}
-                className="px-3 py-1.5 text-xs font-medium text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveWithName}
-                disabled={!saveInputName.trim() || isSaving}
-                className="px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors disabled:opacity-50"
-              >
-                {isSaving ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Reset confirmation modal */}
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-surface-secondary border border-edge rounded-xl shadow-xl p-4 w-full max-w-sm">
             <h3 className="text-sm font-semibold text-white mb-2">Reset Analysis?</h3>
             <p className="text-xs text-content-secondary mb-4">
-              {currentProjectName ? (
-                <>
-                  All unsaved changes to{' '}
-                  <strong className="text-content">{currentProjectName}</strong> will be lost.
-                </>
-              ) : (
-                <>All data will be cleared. This cannot be undone.</>
-              )}
+              All data will be cleared. This cannot be undone.
             </p>
             <div className="flex justify-end gap-2">
               <button
@@ -888,18 +712,11 @@ function App() {
         onClose={() => setIsSettingsOpen(false)}
         activeView={activeView}
         onViewChange={handleViewChange}
-        onOpenProjects={() => {
-          setIsSettingsOpen(false);
-          setIsProjectsOpen(true);
-        }}
         onNewAnalysis={() => {
           setIsSettingsOpen(false);
           handleResetRequest();
         }}
-        onSaveProject={handleSaveToBrowser}
         onConfigurePerformance={handleConfigurePerformance}
-        isSaving={isSavingAny}
-        hasUnsavedChanges={hasUnsavedChanges}
       />
 
       {/* Funnel Panel (slide-in from right) */}
@@ -918,7 +735,6 @@ function App() {
         />
       )}
 
-      <SavedProjectsModal isOpen={isProjectsOpen} onClose={() => setIsProjectsOpen(false)} />
       <DataTableModal
         isOpen={isDataTableOpen}
         onClose={handleCloseDataTable}

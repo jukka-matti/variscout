@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Upload, Crown, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { Download, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { useInstallPrompt } from '../hooks/useIsInstalled';
 
 interface InstallPromptProps {
@@ -7,14 +7,9 @@ interface InstallPromptProps {
 }
 
 /**
- * PWA install prompt with 3-step journey explanation
+ * PWA install prompt — free training & education tool
  *
- * Shows:
- * 1. Install the app (free) - works offline, no signup
- * 2. Upload your CSV/Excel - data stays local
- * 3. Upgrade to save (€99/yr) - keep projects, export files
- *
- * Plus a collapsible "What's a PWA?" explainer
+ * Shows install CTA with a collapsible "What's a PWA?" explainer.
  */
 const InstallPrompt: React.FC<InstallPromptProps> = ({ className = '' }) => {
   const { canInstall, triggerInstall } = useInstallPrompt();
@@ -37,60 +32,11 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ className = '' }) => {
 
   return (
     <div className={`bg-surface-secondary border border-edge rounded-2xl p-5 ${className}`}>
-      <h3 className="text-base font-semibold text-white mb-4">Want to analyze YOUR data?</h3>
-
-      {/* 3-step journey */}
-      <div className="space-y-4 mb-5">
-        {/* Step 1: Install */}
-        <div className="flex gap-3">
-          <div className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center">
-            <span className="text-xs font-bold text-blue-400">1</span>
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <Download size={14} className="text-blue-400" />
-              <span className="text-sm font-medium text-white">Install the app</span>
-              <span className="text-xs text-green-500 font-medium">free</span>
-            </div>
-            <p className="text-xs text-content-muted mt-0.5">Works offline, no signup required</p>
-          </div>
-        </div>
-
-        {/* Step 2: Upload */}
-        <div className="flex gap-3">
-          <div className="flex-shrink-0 w-7 h-7 rounded-full bg-surface-tertiary flex items-center justify-center">
-            <span className="text-xs font-bold text-content-muted">2</span>
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <Upload size={14} className="text-content-secondary" />
-              <span className="text-sm font-medium text-content-secondary">
-                Upload your CSV/Excel
-              </span>
-            </div>
-            <p className="text-xs text-content-muted mt-0.5">
-              Your data stays local, never sent to servers
-            </p>
-          </div>
-        </div>
-
-        {/* Step 3: Upgrade */}
-        <div className="flex gap-3">
-          <div className="flex-shrink-0 w-7 h-7 rounded-full bg-surface-tertiary flex items-center justify-center">
-            <span className="text-xs font-bold text-content-muted">3</span>
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <Crown size={14} className="text-content-secondary" />
-              <span className="text-sm font-medium text-content-secondary">Upgrade to save</span>
-              <span className="text-xs text-content-muted">€99/yr</span>
-            </div>
-            <p className="text-xs text-content-muted mt-0.5">
-              Keep projects, export files, remove watermark
-            </p>
-          </div>
-        </div>
-      </div>
+      <h3 className="text-base font-semibold text-white mb-2">Want to analyze YOUR data?</h3>
+      <p className="text-sm text-content-secondary mb-4">
+        Install VariScout as an app — paste your data and get instant SPC charts. Free forever,
+        works offline, no signup required.
+      </p>
 
       {/* Install button */}
       <button

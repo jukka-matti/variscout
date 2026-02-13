@@ -1,10 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { FileDown, FileSpreadsheet, Image, X } from 'lucide-react';
+import { FileSpreadsheet, Image, X } from 'lucide-react';
 
 interface SharePopoverProps {
   isOpen: boolean;
   onClose: () => void;
-  onDownloadFile: () => void;
   onExportCSV: () => void;
   onExportImage: () => void;
   anchorRef?: React.RefObject<HTMLButtonElement>;
@@ -13,7 +12,6 @@ interface SharePopoverProps {
 const SharePopover: React.FC<SharePopoverProps> = ({
   isOpen,
   onClose,
-  onDownloadFile,
   onExportCSV,
   onExportImage,
   anchorRef,
@@ -107,7 +105,7 @@ const SharePopover: React.FC<SharePopoverProps> = ({
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
-        <h3 className="text-sm font-semibold text-white">Share & Export</h3>
+        <h3 className="text-sm font-semibold text-white">Export</h3>
         <button
           onClick={onClose}
           className="p-1 text-content-secondary hover:text-white rounded transition-colors"
@@ -129,12 +127,6 @@ const SharePopover: React.FC<SharePopoverProps> = ({
           label="Export as CSV"
           description="Spreadsheet-compatible data file"
           onClick={onExportCSV}
-        />
-        <MenuItem
-          icon={<FileDown size={16} />}
-          label="Download Project"
-          description="Save .vrs file for backup or sharing"
-          onClick={onDownloadFile}
         />
       </div>
     </div>

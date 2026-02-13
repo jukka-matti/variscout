@@ -65,12 +65,13 @@ variscout-lite/
 - **Multi-Platform**: PWA, Excel Add-in, Azure Team App
 - **Privacy-First**: 100% browser-based, no data leaves your device
 
-## Editions
+## Products & Pricing
 
-| Edition       | Price    | Features                                      |
-| ------------- | -------- | --------------------------------------------- |
-| **Community** | Free     | Full features, "VariScout" branding on charts |
-| **Licensed**  | €99/year | No branding, theme customization (PWA only)   |
+| Product           | Distribution      | Price      | Features                                   |
+| ----------------- | ----------------- | ---------- | ------------------------------------------ |
+| **Web App (PWA)** | Public URL        | Free       | Training & education, core SPC, paste-only |
+| **Excel Add-in**  | AppSource         | Free       | Core SPC inside Excel                      |
+| **Azure App**     | Azure Marketplace | €150/month | All features, file upload, save, SSO       |
 
 ## Contributing
 

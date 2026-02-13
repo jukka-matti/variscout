@@ -1,54 +1,23 @@
 /**
- * PWA Persistence Adapter
+ * PWA Persistence Adapter (no-op)
  *
- * Wraps the existing persistence functions to conform to the PersistenceAdapter interface
- * from @variscout/hooks, enabling the shared useDataState hook.
+ * The PWA is a free training tool — save/load is not available.
+ * This no-op adapter satisfies the PersistenceAdapter interface
+ * required by useDataState without any IndexedDB dependency.
  */
 
-import type { PersistenceAdapter, AnalysisState, SavedProject } from '@variscout/hooks';
-import {
-  saveProject as saveProjectImpl,
-  loadProject as loadProjectImpl,
-  listProjects as listProjectsImpl,
-  deleteProject as deleteProjectImpl,
-  renameProject as renameProjectImpl,
-  exportToFile as exportToFileImpl,
-  importFromFile as importFromFileImpl,
-} from './persistence';
+import type { PersistenceAdapter } from '@variscout/hooks';
 
-/**
- * PWA persistence adapter implementation
- * Uses IndexedDB for projects
- */
 export const pwaPersistenceAdapter: PersistenceAdapter = {
-  saveProject: async (
-    name: string,
-    state: Omit<AnalysisState, 'version'>
-  ): Promise<SavedProject> => {
-    return saveProjectImpl(name, state);
+  saveProject: async () => {
+    throw new Error('Save is not available in the free PWA');
   },
-
-  loadProject: async (id: string): Promise<SavedProject | undefined> => {
-    return loadProjectImpl(id);
-  },
-
-  listProjects: async (): Promise<SavedProject[]> => {
-    return listProjectsImpl();
-  },
-
-  deleteProject: async (id: string): Promise<void> => {
-    return deleteProjectImpl(id);
-  },
-
-  renameProject: async (id: string, newName: string): Promise<void> => {
-    return renameProjectImpl(id, newName);
-  },
-
-  exportToFile: (state: Omit<AnalysisState, 'version'>, filename: string): void => {
-    exportToFileImpl(state, filename);
-  },
-
-  importFromFile: async (file: File): Promise<AnalysisState> => {
-    return importFromFileImpl(file);
+  loadProject: async () => undefined,
+  listProjects: async () => [],
+  deleteProject: async () => {},
+  renameProject: async () => {},
+  exportToFile: () => {},
+  importFromFile: async () => {
+    throw new Error('Import is not available in the free PWA');
   },
 };

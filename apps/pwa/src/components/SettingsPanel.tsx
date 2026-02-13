@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  X,
-  Save,
-  FolderOpen,
-  Plus,
-  BarChart3,
-  TrendingUp,
-  Target,
-  Gauge,
-  Activity,
-  Settings,
-} from 'lucide-react';
+import { X, Plus, BarChart3, TrendingUp, Target, Gauge, Activity, Settings } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useTheme, type ChartFontScale } from '../context/ThemeContext';
 import { useTier } from '@variscout/hooks';
@@ -25,12 +14,8 @@ interface SettingsPanelProps {
   onClose: () => void;
   activeView: AnalysisView;
   onViewChange: (view: AnalysisView) => void;
-  onOpenProjects: () => void;
   onNewAnalysis: () => void;
-  onSaveProject: () => void;
   onConfigurePerformance?: () => void;
-  isSaving?: boolean;
-  hasUnsavedChanges?: boolean;
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -38,12 +23,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onClose,
   activeView,
   onViewChange,
-  onOpenProjects,
   onNewAnalysis,
-  onSaveProject,
   onConfigurePerformance,
-  isSaving = false,
-  hasUnsavedChanges = false,
 }) => {
   const {
     displayOptions,
@@ -51,7 +32,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     isPerformanceMode,
     setPerformanceMode,
     measureColumns,
-    setMeasureColumns,
     measureLabel,
   } = useData();
   const { theme, setTheme } = useTheme();
@@ -434,51 +414,19 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           {/* Divider */}
           <div className="h-px bg-surface-tertiary" />
 
-          {/* Project Section */}
+          {/* New Analysis */}
           <div>
-            <h3 className="text-xs font-semibold text-content-secondary uppercase tracking-wider mb-3">
-              Project
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => {
-                  onOpenProjects();
-                  onClose();
-                }}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 bg-surface-tertiary hover:bg-surface-elevated text-content hover:text-white rounded-lg transition-colors text-sm"
-              >
-                <FolderOpen size={16} />
-                Open...
-              </button>
-              <button
-                onClick={() => {
-                  onNewAnalysis();
-                  onClose();
-                }}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 bg-surface-tertiary hover:bg-surface-elevated text-content hover:text-white rounded-lg transition-colors text-sm"
-              >
-                <Plus size={16} />
-                New
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                onNewAnalysis();
+                onClose();
+              }}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-surface-tertiary hover:bg-surface-elevated text-content hover:text-white rounded-lg transition-colors text-sm"
+            >
+              <Plus size={16} />
+              New Analysis
+            </button>
           </div>
-        </div>
-
-        {/* Footer - Save indicator */}
-        <div className="p-4 border-t border-edge bg-surface-secondary/50">
-          <button
-            onClick={onSaveProject}
-            disabled={isSaving || !hasUnsavedChanges}
-            className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              hasUnsavedChanges
-                ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                : 'bg-surface-tertiary text-content-secondary'
-            } disabled:opacity-50`}
-          >
-            <Save size={16} />
-            {isSaving ? 'Saving...' : hasUnsavedChanges ? 'Save Now' : 'All saved'}
-          </button>
-          <div className="text-center text-xs text-content-muted mt-2">Auto-save: On</div>
         </div>
       </div>
     </>

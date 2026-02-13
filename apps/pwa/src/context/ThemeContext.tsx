@@ -7,8 +7,6 @@ import React, {
   useMemo,
   type ReactNode,
 } from 'react';
-import { useLicenseStatus } from '../hooks/useLicenseStatus';
-
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 /** Chart font scale presets */
@@ -93,9 +91,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<ThemeConfig>(loadStoredTheme);
   const [systemPreference, setSystemPreference] = useState<'light' | 'dark'>('dark');
 
-  // Check if theming is enabled (requires PWA + valid license)
-  const { canUseLicensedFeatures } = useLicenseStatus();
-  const themingEnabled = canUseLicensedFeatures;
+  // Theming (theme switching, company accent) is not available in the free PWA
+  const themingEnabled = false;
 
   // Detect system color scheme preference
   useEffect(() => {

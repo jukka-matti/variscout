@@ -1,7 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  FolderOpen,
-  FileDown,
   FileSpreadsheet,
   Image,
   Presentation,
@@ -15,8 +13,6 @@ import {
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenProjects: () => void;
-  onDownloadFile: () => void;
   onExportCSV: () => void;
   onExportImage: () => void;
   onEnterPresentationMode: () => void;
@@ -32,8 +28,6 @@ interface MobileMenuProps {
 const MobileMenu: React.FC<MobileMenuProps> = ({
   isOpen,
   onClose,
-  onOpenProjects,
-  onDownloadFile,
   onExportCSV,
   onExportImage,
   onEnterPresentationMode,
@@ -134,11 +128,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           {/* Export Section */}
           <SectionHeader title="Export" />
           <MenuItem
-            icon={<FileDown size={18} />}
-            label="Download Project (.vrs)"
-            onClick={onDownloadFile}
-          />
-          <MenuItem
             icon={<FileSpreadsheet size={18} />}
             label="Export as CSV"
             onClick={onExportCSV}
@@ -167,12 +156,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               onClick={onOpenSpecEditor}
             />
           )}
-
-          <div className="h-px bg-surface-tertiary my-2" />
-
-          {/* Project Section */}
-          <SectionHeader title="Project" />
-          <MenuItem icon={<FolderOpen size={18} />} label="Open Project" onClick={onOpenProjects} />
           <MenuItem icon={<Plus size={18} />} label="New Analysis" onClick={onReset} />
 
           <div className="h-px bg-surface-tertiary my-2" />

@@ -1,24 +1,18 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Activity, Settings, MoreVertical, Maximize, Table2, Share2, Filter } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import SharePopover from './SharePopover';
 
 interface AppHeaderProps {
-  currentProjectName: string | null;
-  hasUnsavedChanges: boolean;
   hasData: boolean;
   dataFilename: string | null;
   rowCount: number;
-  isSaving: boolean;
   isDataPanelOpen?: boolean;
   isFunnelPanelOpen?: boolean;
-  onSaveToBrowser: () => void;
-  onOpenProjects: () => void;
   onNewAnalysis: () => void;
   onToggleDataPanel?: () => void;
   onToggleFunnelPanel?: () => void;
   onOpenDataTable: () => void;
-  onDownloadFile: () => void;
   onExportCSV: () => void;
   onExportImage: () => void;
   onEnterPresentationMode: () => void;
@@ -33,25 +27,18 @@ interface AppHeaderProps {
  * Design principles:
  * - Icons only for efficiency
  * - Logo clickable → new analysis (home screen)
- * - Unsaved indicator dot
  * - Data panel toggle persists
  */
 const AppHeader: React.FC<AppHeaderProps> = ({
-  currentProjectName,
-  hasUnsavedChanges,
   hasData,
   dataFilename,
   rowCount,
-  isSaving,
   isDataPanelOpen = false,
   isFunnelPanelOpen = false,
-  onSaveToBrowser,
-  onOpenProjects,
   onNewAnalysis,
   onToggleDataPanel,
   onToggleFunnelPanel,
   onOpenDataTable,
-  onDownloadFile,
   onExportCSV,
   onExportImage,
   onEnterPresentationMode,
@@ -94,7 +81,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
   return (
     <header className="h-14 border-b border-edge flex items-center justify-between px-4 sm:px-6 bg-surface/50 backdrop-blur-md z-10">
-      {/* Logo and project name - clickable to start new analysis */}
+      {/* Logo and dataset name - clickable to start new analysis */}
       <button
         onClick={onNewAnalysis}
         className="flex items-center gap-2 sm:gap-3 group hover:opacity-90 transition-opacity"
@@ -107,37 +94,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-white to-content-secondary bg-clip-text text-transparent">
             VariScout
           </h1>
-          {hasData && (currentProjectName || dataFilename) && (
+          {hasData && dataFilename && (
             <span className="text-[10px] sm:text-xs text-content-muted truncate max-w-[150px] sm:max-w-none flex items-center gap-1.5">
-              {currentProjectName ? (
-                <>
-                  {currentProjectName}
-                  {/* Save status indicator */}
-                  <span
-                    className={`inline-block w-2 h-2 rounded-full transition-all ${
-                      isSaving
-                        ? 'bg-blue-400 animate-pulse'
-                        : hasUnsavedChanges
-                          ? 'bg-amber-400 animate-pulse'
-                          : 'bg-blue-500'
-                    }`}
-                    title={
-                      isSaving
-                        ? 'Saving...'
-                        : hasUnsavedChanges
-                          ? 'Unsaved changes'
-                          : 'All changes saved'
-                    }
-                  />
-                </>
-              ) : dataFilename ? (
-                <>
-                  {dataFilename}
-                  {rowCount > 0 && (
-                    <span className="text-content-muted">({rowCount.toLocaleString()} rows)</span>
-                  )}
-                </>
-              ) : null}
+              {dataFilename}
+              {rowCount > 0 && (
+                <span className="text-content-muted">({rowCount.toLocaleString()} rows)</span>
+              )}
             </span>
           )}
         </div>
@@ -176,10 +138,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 onClick={onEnterPresentationMode}
               />
 
-              {/* Share / Export */}
+              {/* Export */}
               <IconButton
                 icon={<Share2 size={18} />}
-                title="Share & Export"
+                title="Export"
                 onClick={() => setIsShareOpen(true)}
                 buttonRef={shareButtonRef}
               />
@@ -204,7 +166,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <SharePopover
               isOpen={isShareOpen}
               onClose={() => setIsShareOpen(false)}
-              onDownloadFile={onDownloadFile}
               onExportCSV={onExportCSV}
               onExportImage={onExportImage}
               anchorRef={shareButtonRef}
@@ -214,8 +175,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <MobileMenu
               isOpen={isMobileMenuOpen}
               onClose={() => setIsMobileMenuOpen(false)}
-              onOpenProjects={onOpenProjects}
-              onDownloadFile={onDownloadFile}
               onExportCSV={onExportCSV}
               onExportImage={onExportImage}
               onEnterPresentationMode={onEnterPresentationMode}
