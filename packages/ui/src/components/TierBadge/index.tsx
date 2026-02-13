@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { Crown, Sparkles, Users, Building2, ExternalLink } from 'lucide-react';
+import { Sparkles, Building2, ExternalLink } from 'lucide-react';
 import type { LicenseTier } from '@variscout/core';
 
 export interface TierBadgeProps {
@@ -39,20 +39,6 @@ function getTierStyles(tier: LicenseTier): {
         border: 'border-slate-600/50',
         icon: <Sparkles size={12} className="text-slate-400" />,
       };
-    case 'individual':
-      return {
-        bg: 'bg-blue-600/20',
-        text: 'text-blue-300',
-        border: 'border-blue-600/50',
-        icon: <Crown size={12} className="text-blue-400" />,
-      };
-    case 'team':
-      return {
-        bg: 'bg-purple-600/20',
-        text: 'text-purple-300',
-        border: 'border-purple-600/50',
-        icon: <Users size={12} className="text-purple-400" />,
-      };
     case 'enterprise':
       return {
         bg: 'bg-amber-600/20',
@@ -77,10 +63,6 @@ function getDefaultDescription(tier: LicenseTier): string {
   switch (tier) {
     case 'free':
       return 'Free';
-    case 'individual':
-      return 'Individual';
-    case 'team':
-      return 'Team';
     case 'enterprise':
       return 'Enterprise';
     default:

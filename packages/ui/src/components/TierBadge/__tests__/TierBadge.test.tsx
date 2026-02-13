@@ -11,16 +11,6 @@ describe('TierBadge', () => {
     expect(screen.getByText('Free')).toBeDefined();
   });
 
-  it('renders individual tier badge', () => {
-    render(<TierBadge tier="individual" />);
-    expect(screen.getByText('Individual')).toBeDefined();
-  });
-
-  it('renders team tier badge', () => {
-    render(<TierBadge tier="team" />);
-    expect(screen.getByText('Team')).toBeDefined();
-  });
-
   it('renders enterprise tier badge', () => {
     render(<TierBadge tier="enterprise" />);
     expect(screen.getByText('Enterprise')).toBeDefined();
@@ -39,7 +29,7 @@ describe('TierBadge', () => {
   });
 
   it('does not render upgrade link for paid tiers', () => {
-    render(<TierBadge tier="team" upgradeUrl="https://example.com/upgrade" />);
+    render(<TierBadge tier="enterprise" upgradeUrl="https://example.com/upgrade" />);
     expect(screen.queryByRole('link')).toBeNull();
   });
 
@@ -60,9 +50,9 @@ describe('TierBadge', () => {
     const freeBadge = freeContainer.querySelector('span');
     expect(freeBadge?.className).toContain('bg-slate-600/20');
 
-    const { container: teamContainer } = render(<TierBadge tier="team" />);
-    const teamBadge = teamContainer.querySelector('span');
-    expect(teamBadge?.className).toContain('bg-purple-600/20');
+    const { container: enterpriseContainer } = render(<TierBadge tier="enterprise" />);
+    const enterpriseBadge = enterpriseContainer.querySelector('span');
+    expect(enterpriseBadge?.className).toContain('bg-amber-600/20');
   });
 
   it('applies additional className', () => {

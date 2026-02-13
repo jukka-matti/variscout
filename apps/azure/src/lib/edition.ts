@@ -1,16 +1,12 @@
 /**
  * Edition and Tier configuration for VariScout Azure app
  *
- * Azure deployments use the multi-tier licensing system:
- * - free: Demo tier (5 channels)
- * - individual: Single user (€99/yr, 1500 channels)
- * - team: Up to 10 users (€499/yr, 1500 channels)
- * - enterprise: Unlimited users (€1,790/yr, 1500 channels)
+ * Azure Managed Application — single enterprise tier, all features.
  *
  * Tier is determined by:
  * 1. Dev mode localStorage override (for testing)
  * 2. VITE_LICENSE_TIER environment variable
- * 3. Default: 'individual' (Azure deployments typically have subscription)
+ * 3. Default: 'enterprise' (Azure deployments always have subscription)
  */
 
 import {
@@ -51,7 +47,7 @@ function getDevTierOverride(): LicenseTier | null {
 
   try {
     const override = localStorage.getItem(DEV_TIER_OVERRIDE_KEY);
-    if (override && ['free', 'individual', 'team', 'enterprise'].includes(override)) {
+    if (override && ['free', 'enterprise'].includes(override)) {
       return override as LicenseTier;
     }
   } catch {
@@ -102,13 +98,13 @@ function determineTier(): LicenseTier {
 
   // 2. Check environment variable
   const envTier = import.meta.env.VITE_LICENSE_TIER as string | undefined;
-  if (envTier && ['free', 'individual', 'team', 'enterprise'].includes(envTier)) {
+  if (envTier && ['free', 'enterprise'].includes(envTier)) {
     return envTier as LicenseTier;
   }
 
-  // 3. Default to 'individual' for Azure deployments
-  // Azure deployments typically have a marketplace subscription
-  return 'individual';
+  // 3. Default to 'enterprise' for Azure deployments
+  // Azure Managed Application always has a subscription
+  return 'enterprise';
 }
 
 /**

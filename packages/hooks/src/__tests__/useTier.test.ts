@@ -21,26 +21,6 @@ describe('useTier hook', () => {
     expect(result.current.warningThreshold).toBe(700);
   });
 
-  it('returns correct tier info for individual tier', () => {
-    configureTier('individual');
-    const { result } = renderHook(() => useTier());
-
-    expect(result.current.tier).toBe('individual');
-    expect(result.current.isPaid).toBe(true);
-    expect(result.current.maxChannels).toBe(1500);
-    expect(result.current.description).toBe('Individual');
-  });
-
-  it('returns correct tier info for team tier', () => {
-    configureTier('team');
-    const { result } = renderHook(() => useTier());
-
-    expect(result.current.tier).toBe('team');
-    expect(result.current.isPaid).toBe(true);
-    expect(result.current.maxChannels).toBe(1500);
-    expect(result.current.description).toBe('Team');
-  });
-
   it('returns correct tier info for enterprise tier', () => {
     configureTier('enterprise');
     const { result } = renderHook(() => useTier());
@@ -76,8 +56,8 @@ describe('useTier hook', () => {
       expect(validation.max).toBe(5);
     });
 
-    it('shows warning at threshold for paid tier', () => {
-      configureTier('team');
+    it('shows warning at threshold for enterprise tier', () => {
+      configureTier('enterprise');
       const { result } = renderHook(() => useTier());
       const validation = result.current.validateChannels(700);
 
@@ -104,8 +84,8 @@ describe('useTier hook', () => {
       expect(warning!.showUpgrade).toBe(true);
     });
 
-    it('returns exceeded warning for paid tier over limit', () => {
-      configureTier('individual');
+    it('returns exceeded warning for enterprise tier over limit', () => {
+      configureTier('enterprise');
       const { result } = renderHook(() => useTier());
       const warning = result.current.getChannelWarning(1501);
 
@@ -116,7 +96,7 @@ describe('useTier hook', () => {
     });
 
     it('returns performance warning at threshold', () => {
-      configureTier('team');
+      configureTier('enterprise');
       const { result } = renderHook(() => useTier());
       const warning = result.current.getChannelWarning(800);
 

@@ -654,13 +654,11 @@ export interface BoxplotGroupData {
 // ============================================================================
 
 /**
- * License tier for Azure Marketplace distribution
- * - free: Demo tier (5 channels max)
- * - individual: Single user (€99/yr, 1500 channels)
- * - team: Up to 10 users (€499/yr, 1500 channels)
- * - enterprise: Unlimited users (€1,790/yr, 1500 channels)
+ * License tier for VariScout distribution
+ * - free: Demo tier (PWA, 5 channels max)
+ * - enterprise: Azure Managed Application (€150/month, all features, 1500 channels)
  */
-export type LicenseTier = 'free' | 'individual' | 'team' | 'enterprise';
+export type LicenseTier = 'free' | 'enterprise';
 
 /**
  * Tier-specific limits for feature gating

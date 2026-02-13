@@ -1,15 +1,13 @@
 /**
- * Tier configuration for VariScout Azure Marketplace distribution
+ * Tier configuration for VariScout distribution
  *
- * Multi-tier licensing system:
- * - free: Demo tier (5 channels, encourages upgrade)
- * - individual: Single user (€99/yr)
- * - team: Up to 10 users (€499/yr)
- * - enterprise: Unlimited users (€1,790/yr)
+ * Two-tier system:
+ * - free: Demo tier (PWA, 5 channels, encourages upgrade)
+ * - enterprise: Azure Managed Application (€150/month, all features)
  *
  * Channel limits:
  * - Free: 5 channels (demo only)
- * - Paid: 1,500 channels (browser architecture limit)
+ * - Enterprise: 1,500 channels (browser architecture limit)
  *
  * Why 1,500? Conservative limit to ensure smooth browser performance.
  * Soft warning appears at 700 channels.
@@ -23,12 +21,10 @@ export type { LicenseTier, TierLimits, ChannelLimitResult };
 /**
  * Channel limits by tier
  * - Free tier: 5 channels (demo only)
- * - Paid tiers: 1,500 channels (browser architecture limit)
+ * - Enterprise tier: 1,500 channels (browser architecture limit)
  */
 export const TIER_LIMITS: Record<LicenseTier, TierLimits> = {
   free: { maxChannels: 5 },
-  individual: { maxChannels: 1500 },
-  team: { maxChannels: 1500 },
   enterprise: { maxChannels: 1500 },
 } as const;
 
@@ -54,8 +50,7 @@ let configuredTier: LicenseTier | null = null;
  *
  * @example
  * // In app initialization
- * const tier = import.meta.env.VITE_LICENSE_TIER || 'individual';
- * configureTier(tier as LicenseTier);
+ * configureTier('enterprise');
  */
 export function configureTier(tier: LicenseTier | null): void {
   configuredTier = tier;
@@ -74,7 +69,7 @@ export function getTier(): LicenseTier {
  * Check if a tier is a paid tier
  *
  * @param tier - The tier to check (uses current tier if not specified)
- * @returns true if the tier is paid (individual, team, or enterprise)
+ * @returns true if the tier is paid (enterprise)
  */
 export function isPaidTier(tier?: LicenseTier): boolean {
   const t = tier ?? getTier();
@@ -157,10 +152,6 @@ export function getTierDescription(tier?: LicenseTier): string {
   switch (t) {
     case 'free':
       return 'Free (Demo)';
-    case 'individual':
-      return 'Individual';
-    case 'team':
-      return 'Team';
     case 'enterprise':
       return 'Enterprise';
     default:

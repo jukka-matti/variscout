@@ -18,7 +18,7 @@ describe('UpgradePrompt', () => {
     });
 
     it('renders limit reached title for paid tier', () => {
-      render(<UpgradePrompt {...defaultProps} tier="team" />);
+      render(<UpgradePrompt {...defaultProps} tier="enterprise" />);
       expect(screen.getByText(/Limit Reached/)).toBeDefined();
     });
 
@@ -29,7 +29,7 @@ describe('UpgradePrompt', () => {
     });
 
     it('does not show upgrade link for paid tier', () => {
-      render(<UpgradePrompt {...defaultProps} tier="team" />);
+      render(<UpgradePrompt {...defaultProps} tier="enterprise" />);
       expect(screen.queryByText('Upgrade now')).toBeNull();
     });
 
@@ -58,7 +58,7 @@ describe('UpgradePrompt', () => {
     });
 
     it('shows tier limit text for paid tiers', () => {
-      render(<UpgradePrompt {...defaultProps} tier="individual" variant="card" />);
+      render(<UpgradePrompt {...defaultProps} tier="enterprise" variant="card" />);
       expect(screen.getByText('Tier limit')).toBeDefined();
     });
   });

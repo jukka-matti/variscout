@@ -3,7 +3,7 @@
  *
  * Editions (legacy, maps to tiers):
  * - community: Free tier with branding (maps from 'free')
- * - licensed: Paid tiers, no branding (maps from individual/team/enterprise)
+ * - licensed: Enterprise tier, no branding (maps from 'enterprise')
  *
  * New code should use the tier system directly via tier.ts
  */

@@ -1,5 +1,5 @@
 /**
- * Tests for tier module (Azure Marketplace multi-tier licensing)
+ * Tests for tier module (VariScout two-tier licensing)
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
@@ -28,8 +28,6 @@ describe('tier module', () => {
   describe('TIER_LIMITS constants', () => {
     it('should define limits for all tiers', () => {
       expect(TIER_LIMITS.free).toBeDefined();
-      expect(TIER_LIMITS.individual).toBeDefined();
-      expect(TIER_LIMITS.team).toBeDefined();
       expect(TIER_LIMITS.enterprise).toBeDefined();
     });
 
@@ -37,9 +35,7 @@ describe('tier module', () => {
       expect(TIER_LIMITS.free.maxChannels).toBe(5);
     });
 
-    it('should have paid tiers limited to 1500 channels', () => {
-      expect(TIER_LIMITS.individual.maxChannels).toBe(1500);
-      expect(TIER_LIMITS.team.maxChannels).toBe(1500);
+    it('should have enterprise tier limited to 1500 channels', () => {
       expect(TIER_LIMITS.enterprise.maxChannels).toBe(1500);
     });
   });
@@ -62,19 +58,13 @@ describe('tier module', () => {
     });
 
     it('should return configured tier', () => {
-      configureTier('individual');
-      expect(getTier()).toBe('individual');
-
-      configureTier('team');
-      expect(getTier()).toBe('team');
-
       configureTier('enterprise');
       expect(getTier()).toBe('enterprise');
     });
 
     it('should reset to default when configured with null', () => {
-      configureTier('team');
-      expect(getTier()).toBe('team');
+      configureTier('enterprise');
+      expect(getTier()).toBe('enterprise');
 
       configureTier(null);
       expect(getTier()).toBe('free');
@@ -86,9 +76,7 @@ describe('tier module', () => {
       expect(isPaidTier('free')).toBe(false);
     });
 
-    it('should return true for paid tiers', () => {
-      expect(isPaidTier('individual')).toBe(true);
-      expect(isPaidTier('team')).toBe(true);
+    it('should return true for enterprise tier', () => {
       expect(isPaidTier('enterprise')).toBe(true);
     });
 
@@ -96,7 +84,7 @@ describe('tier module', () => {
       configureTier('free');
       expect(isPaidTier()).toBe(false);
 
-      configureTier('individual');
+      configureTier('enterprise');
       expect(isPaidTier()).toBe(true);
     });
   });
@@ -106,9 +94,7 @@ describe('tier module', () => {
       expect(getMaxChannels('free')).toBe(5);
     });
 
-    it('should return 1500 for paid tiers', () => {
-      expect(getMaxChannels('individual')).toBe(1500);
-      expect(getMaxChannels('team')).toBe(1500);
+    it('should return 1500 for enterprise tier', () => {
       expect(getMaxChannels('enterprise')).toBe(1500);
     });
 
@@ -116,14 +102,14 @@ describe('tier module', () => {
       configureTier('free');
       expect(getMaxChannels()).toBe(5);
 
-      configureTier('team');
+      configureTier('enterprise');
       expect(getMaxChannels()).toBe(1500);
     });
   });
 
   describe('getTierLimits', () => {
     it('should return full limits object', () => {
-      const limits = getTierLimits('individual');
+      const limits = getTierLimits('enterprise');
       expect(limits).toEqual({ maxChannels: 1500 });
     });
 
@@ -137,17 +123,17 @@ describe('tier module', () => {
   describe('isChannelLimitExceeded', () => {
     it('should return false when under limit', () => {
       expect(isChannelLimitExceeded(3, 'free')).toBe(false);
-      expect(isChannelLimitExceeded(1000, 'individual')).toBe(false);
+      expect(isChannelLimitExceeded(1000, 'enterprise')).toBe(false);
     });
 
     it('should return false when at limit', () => {
       expect(isChannelLimitExceeded(5, 'free')).toBe(false);
-      expect(isChannelLimitExceeded(1500, 'individual')).toBe(false);
+      expect(isChannelLimitExceeded(1500, 'enterprise')).toBe(false);
     });
 
     it('should return true when over limit', () => {
       expect(isChannelLimitExceeded(6, 'free')).toBe(true);
-      expect(isChannelLimitExceeded(1501, 'individual')).toBe(true);
+      expect(isChannelLimitExceeded(1501, 'enterprise')).toBe(true);
     });
 
     it('should use current tier when no argument provided', () => {
@@ -155,7 +141,7 @@ describe('tier module', () => {
       expect(isChannelLimitExceeded(6)).toBe(true);
       expect(isChannelLimitExceeded(5)).toBe(false);
 
-      configureTier('individual');
+      configureTier('enterprise');
       expect(isChannelLimitExceeded(6)).toBe(false);
       expect(isChannelLimitExceeded(1501)).toBe(true);
     });
@@ -197,7 +183,7 @@ describe('tier module', () => {
     });
 
     it('should show warning when at threshold but not exceeded', () => {
-      const result = validateChannelCount(700, 'individual');
+      const result = validateChannelCount(700, 'enterprise');
       expect(result).toEqual({
         exceeded: false,
         current: 700,
@@ -220,7 +206,7 @@ describe('tier module', () => {
     });
 
     it('should use current tier when no argument provided', () => {
-      configureTier('individual');
+      configureTier('enterprise');
       const result = validateChannelCount(1000);
       expect(result.max).toBe(1500);
     });
@@ -229,14 +215,12 @@ describe('tier module', () => {
   describe('getTierDescription', () => {
     it('should return correct descriptions', () => {
       expect(getTierDescription('free')).toBe('Free (Demo)');
-      expect(getTierDescription('individual')).toBe('Individual');
-      expect(getTierDescription('team')).toBe('Team');
       expect(getTierDescription('enterprise')).toBe('Enterprise');
     });
 
     it('should use current tier when no argument provided', () => {
-      configureTier('team');
-      expect(getTierDescription()).toBe('Team');
+      configureTier('enterprise');
+      expect(getTierDescription()).toBe('Enterprise');
     });
   });
 
@@ -262,8 +246,8 @@ describe('tier module', () => {
       expect(validateChannelCount(5).showWarning).toBe(false);
     });
 
-    it('should handle paid tier large dataset scenario', () => {
-      configureTier('team');
+    it('should handle enterprise tier large dataset scenario', () => {
+      configureTier('enterprise');
 
       // User can analyze many channels
       expect(isChannelLimitExceeded(500)).toBe(false);
@@ -280,8 +264,8 @@ describe('tier module', () => {
     });
 
     it('should correctly map tier to paid status', () => {
-      const tiers: LicenseTier[] = ['free', 'individual', 'team', 'enterprise'];
-      const expectedPaid = [false, true, true, true];
+      const tiers: LicenseTier[] = ['free', 'enterprise'];
+      const expectedPaid = [false, true];
 
       tiers.forEach((tier, i) => {
         expect(isPaidTier(tier)).toBe(expectedPaid[i]);

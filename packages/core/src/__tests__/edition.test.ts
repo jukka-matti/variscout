@@ -51,7 +51,7 @@ describe('edition module', () => {
     });
 
     it('should return licensed when tier is paid', () => {
-      vi.spyOn(tierModule, 'getTier').mockReturnValue('individual');
+      vi.spyOn(tierModule, 'getTier').mockReturnValue('enterprise');
       vi.spyOn(tierModule, 'isPaidTier').mockReturnValue(true);
       configureEdition(null);
       expect(getEdition()).toBe('licensed');
@@ -63,7 +63,7 @@ describe('edition module', () => {
     });
 
     it('should prioritize paid tier over community config', () => {
-      vi.spyOn(tierModule, 'getTier').mockReturnValue('team');
+      vi.spyOn(tierModule, 'getTier').mockReturnValue('enterprise');
       vi.spyOn(tierModule, 'isPaidTier').mockReturnValue(true);
       configureEdition('community');
       // Paid tier takes precedence

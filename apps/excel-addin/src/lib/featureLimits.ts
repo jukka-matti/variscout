@@ -17,8 +17,6 @@ import { getCurrentTier, hasPaidSubscription } from './licenseDetection';
  */
 export const EXCEL_CHANNEL_LIMITS: Record<LicenseTier, number> = {
   free: 5,
-  individual: 1500,
-  team: 1500,
   enterprise: 1500,
 } as const;
 

@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Settings, X, Crown, Users, Building2, Sparkles } from 'lucide-react';
+import { Settings, X, Building2, Sparkles } from 'lucide-react';
 import type { LicenseTier } from '@variscout/core';
 import {
   getTier,
@@ -28,18 +28,6 @@ const TIER_OPTIONS: TierOption[] = [
     label: 'Free',
     icon: <Sparkles size={14} />,
     color: 'bg-slate-600 hover:bg-slate-500',
-  },
-  {
-    tier: 'individual',
-    label: 'Individual',
-    icon: <Crown size={14} />,
-    color: 'bg-blue-600 hover:bg-blue-500',
-  },
-  {
-    tier: 'team',
-    label: 'Team',
-    icon: <Users size={14} />,
-    color: 'bg-purple-600 hover:bg-purple-500',
   },
   {
     tier: 'enterprise',
