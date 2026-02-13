@@ -85,9 +85,9 @@ const lang = Astro.params.lang;
 
 			<div class="bg-slate-900 rounded-2xl overflow-hidden">
 				{chartType === "performance" ? (
-					<PerformanceDemo client:only="react" sampleKey={sampleKey} height={500} />
+					<PerformanceDemo client:visible sampleKey={sampleKey} height={500} />
 				) : (
-					<IChartIsland client:only="react" sampleKey={sampleKey} height={500} />
+					<IChartIsland client:visible sampleKey={sampleKey} height={500} />
 				)}
 			</div>
 		</div>

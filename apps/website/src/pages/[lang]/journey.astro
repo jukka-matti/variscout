@@ -1,14 +1,9 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import JourneySection from "../../components/JourneySection.astro";
 import JourneyProgress from "../../components/JourneyProgress.astro";
 import ScrollReveal from "../../components/ScrollReveal.astro";
+import LensAnimation from "../../components/LensAnimation";
 import { ui } from "../../i18n/ui";
-
-// React island components for charts
-import IChartIsland from "../../components/islands/IChartIsland";
-import BoxplotIsland from "../../components/islands/BoxplotIsland";
-import ParetoIsland from "../../components/islands/ParetoIsland";
 
 export function getStaticPaths() {
 	return Object.keys(ui).map((lang) => ({ params: { lang } }));
@@ -19,636 +14,235 @@ const { lang } = Astro.params;
 
 <BaseLayout
 	title="See Beyond Averages | VaRiScout Journey"
-	description="Discover how averages hide 46% of your improvement potential. An interactive journey through variation analysis."
+	description="Discover how averages hide variation. An interactive journey through the four lenses of process knowledge."
 >
 	<!-- Progress Indicator -->
 	<JourneyProgress />
 
-	<!-- Section 1: AVERAGES -->
-	<JourneySection id="averages" pillar="AVERAGES" question="What does the dashboard show?" number={1}>
-		<ScrollReveal animation="fade-up">
-			<div class="max-w-3xl">
-				<p class="text-2xl md:text-3xl text-neutral-300 mb-8">
-					The dashboard says <span class="text-white font-bold">95% pass rate</span>.
-				</p>
+	<!-- ============================================ -->
+	<!-- STORY 1: THE VARIATION DETECTIVE (scroll-driven) -->
+	<!-- ============================================ -->
+	<section id="detective" class="journey-section relative bg-neutral-900" data-pillar="DETECTIVE">
+		<LensAnimation client:visible />
+	</section>
 
-				<!-- Animated bar chart visualization -->
-				<div class="bar-chart-container bg-neutral-800/50 rounded-2xl p-8 mb-8">
-					<div class="relative h-48 mb-4">
-						<div class="absolute inset-0 flex items-end justify-around gap-6">
-							<!-- Factor A: 96% -->
-							<div class="flex-1 flex flex-col items-center">
-								<div class="animated-bar w-16 bg-green-500/80 rounded-t-lg" style="--target-height: 184px; --delay: 0ms;"></div>
-								<span class="text-sm text-neutral-400 mt-2">Factor A</span>
-								<span class="text-lg font-bold text-white">96%</span>
+	<!-- ============================================ -->
+	<!-- STORY 2: THE VALUE PERSPECTIVE -->
+	<!-- ============================================ -->
+	<section id="value-lens" class="journey-section min-h-screen flex flex-col justify-center relative bg-gradient-to-b from-neutral-900 to-slate-900" data-pillar="VALUE">
+		<div class="container-wide py-16 md:py-24">
+			<ScrollReveal animation="fade-up">
+				<div class="max-w-3xl mx-auto text-center">
+					<span class="text-sm font-bold uppercase tracking-widest text-green-500">THE VALUE LENS</span>
+					<h2 class="text-3xl md:text-5xl font-bold text-white mt-4 mb-8">
+						But does it matter to the customer?
+					</h2>
+					<p class="text-xl text-neutral-300 mb-8">
+						The detective found the source. But there's another lens entirely.
+					</p>
+				</div>
+			</ScrollReveal>
+
+			<ScrollReveal animation="fade-up" delay={200}>
+				<div class="max-w-3xl mx-auto">
+					<div class="bg-green-500/10 border border-green-500/30 rounded-2xl p-8 md:p-12">
+						<div class="flex items-start gap-6">
+							<div class="w-16 h-16 rounded-2xl bg-green-500/20 flex items-center justify-center flex-shrink-0">
+								<svg class="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+								</svg>
 							</div>
-							<!-- Factor B: 94% -->
-							<div class="flex-1 flex flex-col items-center">
-								<div class="animated-bar w-16 bg-green-500/70 rounded-t-lg" style="--target-height: 180px; --delay: 100ms;"></div>
-								<span class="text-sm text-neutral-400 mt-2">Factor B</span>
-								<span class="text-lg font-bold text-white">94%</span>
+							<div>
+								<p class="text-lg text-neutral-300 mb-4">
+									CHANGE, FLOW, and FAILURE analyze <span class="text-white font-semibold">internal</span> process behavior &mdash; what the process is doing.
+								</p>
+								<p class="text-lg text-neutral-300 mb-4">
+									The VALUE lens brings in an <span class="text-green-400 font-semibold">external reference</span> &mdash; the customer's specification. It asks a fundamentally different question:
+								</p>
+								<p class="text-2xl text-white font-bold">
+									"Does the variation we found actually matter?"
+								</p>
 							</div>
-							<!-- Factor C: 95% -->
-							<div class="flex-1 flex flex-col items-center">
-								<div class="animated-bar w-16 bg-green-500/75 rounded-t-lg" style="--target-height: 182px; --delay: 200ms;"></div>
-								<span class="text-sm text-neutral-400 mt-2">Factor C</span>
-								<span class="text-lg font-bold text-white">95%</span>
+						</div>
+
+						<div class="mt-8 grid md:grid-cols-2 gap-4">
+							<div class="bg-black/20 rounded-xl p-5">
+								<div class="text-sm text-green-400 font-medium mb-2">Capability Histogram</div>
+								<p class="text-neutral-400 text-sm">Compares your distribution to customer specs. Shows Cp/Cpk &mdash; are you meeting needs?</p>
+							</div>
+							<div class="bg-black/20 rounded-xl p-5">
+								<div class="text-sm text-green-400 font-medium mb-2">The "So What?" Test</div>
+								<p class="text-neutral-400 text-sm">High variation might not matter if it's within spec. Low variation might still fail if the process is off-center.</p>
 							</div>
 						</div>
 					</div>
 				</div>
+			</ScrollReveal>
 
-				<p class="text-xl text-neutral-400">
-					Everything looks fine. Management is satisfied.
-				</p>
-				<p class="text-2xl text-white font-semibold mt-4">
-					But is it?
-				</p>
-			</div>
-		</ScrollReveal>
-
-		<div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-			<svg class="w-6 h-6 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-			</svg>
-		</div>
-	</JourneySection>
-
-	<!-- Section 2: VALUE (Voice of the Customer) -->
-	<JourneySection id="value" pillar="VALUE" question="What does the customer need?" number={2}>
-		<ScrollReveal animation="fade-up">
-			<p class="text-xl text-neutral-300 mb-8 max-w-2xl">
-				Before we analyze, let's be clear about what <span class="text-green-400 font-semibold">matters</span>.
-			</p>
-		</ScrollReveal>
-
-		<ScrollReveal animation="fade-up" delay={200}>
-			<!-- Histogram with spec lines showing tails outside -->
-			<div class="max-w-3xl bg-neutral-800/50 rounded-2xl p-8">
-				<div class="flex items-center justify-between mb-4">
-					<span class="text-sm font-bold text-green-400 uppercase tracking-wider">Voice of the Customer</span>
-					<span class="text-sm text-neutral-500">Specification: 10 - 14</span>
-				</div>
-
-				<!-- Animated histogram visualization with spec lines -->
-				<div class="histogram-container relative h-48">
-					<!-- LSL line -->
-					<div class="absolute left-[15%] top-0 bottom-0 border-l-2 border-dashed border-red-500/70">
-						<span class="absolute -top-6 -left-3 text-xs text-red-400">LSL</span>
-					</div>
-					<!-- USL line -->
-					<div class="absolute right-[15%] top-0 bottom-0 border-l-2 border-dashed border-red-500/70">
-						<span class="absolute -top-6 -left-3 text-xs text-red-400">USL</span>
-					</div>
-
-					<!-- Histogram bars (distribution) -->
-					<div class="absolute inset-0 flex items-end justify-center gap-1 px-8">
-						<!-- Left tail (outside LSL) -->
-						<div class="histogram-bar w-4 bg-red-500/60 rounded-t" style="--target-height: 15%; --delay: 0ms;"></div>
-						<div class="histogram-bar w-4 bg-red-500/60 rounded-t" style="--target-height: 25%; --delay: 30ms;"></div>
-						<!-- Within spec -->
-						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 40%; --delay: 60ms;"></div>
-						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 55%; --delay: 90ms;"></div>
-						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 75%; --delay: 120ms;"></div>
-						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 90%; --delay: 150ms;"></div>
-						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 100%; --delay: 180ms;"></div>
-						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 95%; --delay: 210ms;"></div>
-						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 80%; --delay: 240ms;"></div>
-						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 60%; --delay: 270ms;"></div>
-						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 45%; --delay: 300ms;"></div>
-						<div class="histogram-bar w-4 bg-green-500/60 rounded-t" style="--target-height: 30%; --delay: 330ms;"></div>
-						<!-- Right tail (outside USL) -->
-						<div class="histogram-bar w-4 bg-red-500/60 rounded-t" style="--target-height: 20%; --delay: 360ms;"></div>
-						<div class="histogram-bar w-4 bg-red-500/60 rounded-t" style="--target-height: 10%; --delay: 390ms;"></div>
-					</div>
-				</div>
-
-				<!-- Legend -->
-				<div class="flex justify-center gap-6 mt-4 pt-4 border-t border-neutral-700">
-					<div class="flex items-center gap-2">
-						<div class="w-3 h-3 bg-green-500/60 rounded"></div>
-						<span class="text-sm text-neutral-400">Within spec</span>
-					</div>
-					<div class="flex items-center gap-2">
-						<div class="w-3 h-3 bg-red-500/60 rounded"></div>
-						<span class="text-sm text-neutral-400">Outside spec</span>
-					</div>
-				</div>
-			</div>
-		</ScrollReveal>
-
-		<ScrollReveal animation="fade-up" delay={400}>
-			<div class="mt-8 max-w-2xl">
-				<p class="text-xl text-neutral-300">
-					See those <span class="text-red-400 font-semibold">tails</span> outside the spec lines?
-				</p>
-				<p class="text-lg text-neutral-400 mt-2">
-					Not all customers are happy. Where is this variation coming from?
-				</p>
-			</div>
-		</ScrollReveal>
-	</JourneySection>
-
-	<!-- Section 3: CHANGE -->
-	<JourneySection id="change" pillar="CHANGE" question="What patterns does time reveal?" number={3}>
-		<ScrollReveal animation="fade-up">
-			<p class="text-xl text-neutral-300 mb-8 max-w-2xl">
-				What if we look at <span class="text-blue-400 font-semibold">time</span>?
-			</p>
-		</ScrollReveal>
-
-		<ScrollReveal animation="fade-up" delay={200}>
-			<div class="max-w-4xl bg-slate-900 rounded-2xl overflow-hidden">
-				<IChartIsland client:only="react" sampleKey="journey" height={450} />
-			</div>
-		</ScrollReveal>
-
-		<ScrollReveal animation="fade-up" delay={400}>
-			<div class="mt-8 max-w-2xl">
-				<p class="text-xl text-neutral-300">
-					Factor C has a <span class="text-white font-semibold">pattern</span> the average hides.
-				</p>
-				<p class="text-lg text-neutral-400 mt-2">
-					Something changed around observation 15.
-				</p>
-			</div>
-		</ScrollReveal>
-	</JourneySection>
-
-	<!-- Section 4: FLOW -->
-	<JourneySection id="flow" pillar="FLOW" question="Which factors drive variation?" number={4}>
-		<ScrollReveal animation="fade-up">
-			<p class="text-xl text-neutral-300 mb-8 max-w-2xl">
-				Where is the <span class="text-orange-400 font-semibold">variation</span> hiding?
-			</p>
-		</ScrollReveal>
-
-		<ScrollReveal animation="fade-up" delay={200}>
-			<div class="max-w-4xl bg-slate-900 rounded-2xl overflow-hidden">
-				<BoxplotIsland client:only="react" sampleKey="journey" height={450} />
-			</div>
-		</ScrollReveal>
-
-		<ScrollReveal animation="fade-up" delay={400}>
-			<div class="mt-8 max-w-2xl">
-				<p class="text-xl text-neutral-300">
-					Factor C has <span class="text-white font-semibold">3x the variation</span> of the others.
-				</p>
-				<p class="text-lg text-neutral-400 mt-2">
-					The average was the same. The spread was not.
-				</p>
-			</div>
-		</ScrollReveal>
-	</JourneySection>
-
-	<!-- Section 5: FAILURE -->
-	<JourneySection id="failure" pillar="FAILURE" question="Where do problems concentrate?" number={5}>
-		<ScrollReveal animation="fade-up">
-			<p class="text-xl text-neutral-300 mb-8 max-w-2xl">
-				What's the <span class="text-red-400 font-semibold">impact</span>?
-			</p>
-		</ScrollReveal>
-
-		<ScrollReveal animation="fade-up" delay={200}>
-			<div class="max-w-4xl bg-slate-900 rounded-2xl overflow-hidden">
-				<ParetoIsland client:only="react" sampleKey="journey" height={450} />
-			</div>
-		</ScrollReveal>
-
-		<ScrollReveal animation="fade-up" delay={400}>
-			<div class="mt-8 max-w-2xl">
-				<p class="text-2xl text-white font-bold">
-					46% of all defects come from Factor C.
-				</p>
-				<p class="text-lg text-neutral-400 mt-2">
-					One factor. Nearly half the problem.
-				</p>
-			</div>
-		</ScrollReveal>
-	</JourneySection>
-
-	<!-- Section 6: FIND IT -->
-	<JourneySection id="find-it" pillar="FIND IT" question="Where's the 46%?" number={6}>
-		<ScrollReveal animation="fade-up">
-			<div class="max-w-3xl">
-				<p class="text-xl text-neutral-300 mb-8">
-					Click. Drill down. <span class="text-purple-400 font-semibold">Find it.</span>
-				</p>
-
-				<!-- Breadcrumb trail visualization -->
-				<div class="bg-purple-500/10 border border-purple-500/30 rounded-2xl p-8 mb-8">
-					<div class="flex items-center gap-2 mb-6 text-sm text-neutral-400">
-						<span>Analysis Path</span>
-					</div>
-
-					<!-- Breadcrumb -->
-					<div class="flex flex-wrap items-center gap-3 text-lg mb-8">
-						<span class="text-neutral-400">All Data</span>
-						<svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-						</svg>
-						<span class="text-white">Shift <span class="text-purple-400">(67%)</span></span>
-						<svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-						</svg>
-						<span class="text-white">Night <span class="text-purple-400">(89%)</span></span>
-						<svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-						</svg>
-						<span class="text-white font-bold">Machine C <span class="text-purple-400">(78%)</span></span>
-					</div>
-
-					<!-- Result -->
-					<div class="bg-purple-500/20 rounded-xl p-6 text-center">
-						<p class="text-4xl font-bold text-white mb-2">46%</p>
-						<p class="text-purple-300">of total variation isolated to ONE condition</p>
-					</div>
-				</div>
-
-				<p class="text-2xl text-white font-bold">
-					Machine C on Night Shift.
-				</p>
-				<p class="text-lg text-neutral-400 mt-2">
-					This is where Lean thinking belongs. This is where to do your 5 Whys.
-				</p>
-			</div>
-		</ScrollReveal>
-	</JourneySection>
-
-	<!-- Section 7: FIX IT -->
-	<JourneySection id="fix-it" pillar="FIX IT" question="What action did you take?" number={7}>
-		<ScrollReveal animation="fade-up">
-			<div class="max-w-3xl">
-				<p class="text-xl text-neutral-300 mb-8">
-					VaRiScout found <span class="text-amber-400 font-semibold">where</span> to focus.
-				</p>
-
-				<div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-8 mb-8">
-					<div class="flex items-center gap-4 mb-6">
-						<div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center">
-							<svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-							</svg>
-						</div>
-						<div>
-							<p class="text-lg font-semibold text-white">You investigated. You found why.</p>
-							<p class="text-neutral-400">And you fixed it.</p>
-						</div>
-					</div>
-
-					<div class="pl-16 border-l-2 border-amber-500/30">
-						<p class="text-neutral-300 italic">
-							"Night shift setup procedure wasn't standardized.<br/>
-							Now it is."
-						</p>
-					</div>
-				</div>
-
-				<p class="text-lg text-neutral-400">
-					VaRiScout finds WHERE. You find WHY — and what to do about it.
-				</p>
-			</div>
-		</ScrollReveal>
-	</JourneySection>
-
-	<!-- Section 8: CHECK IT -->
-	<JourneySection id="check-it" pillar="CHECK IT" question="Did the fix work?" number={8}>
-		<ScrollReveal animation="fade-up">
-			<p class="text-xl text-neutral-300 mb-8 max-w-2xl">
-				Run the analysis again. <span class="text-teal-400 font-semibold">Check</span> the improvement.
-			</p>
-		</ScrollReveal>
-
-		<ScrollReveal animation="fade-up" delay={200}>
-			<!-- Animated I-Chart showing before → after -->
-			<div class="check-animation max-w-4xl bg-neutral-800/50 rounded-2xl p-8 overflow-hidden">
-				<div class="flex items-center justify-between mb-6">
-					<span class="text-sm font-bold text-teal-400 uppercase tracking-wider">I-Chart: After Fix</span>
-					<span class="check-status text-sm font-medium text-green-400 opacity-0 transition-opacity duration-500">
-						Process Stable
-					</span>
-				</div>
-
-				<!-- Simplified animated chart visualization -->
-				<div class="relative h-64">
-					<!-- Control limits -->
-					<div class="absolute top-4 left-0 right-0 border-t-2 border-dashed border-slate-400/50">
-						<span class="absolute -top-5 right-0 text-xs text-slate-400">UCL</span>
-					</div>
-					<div class="absolute bottom-4 left-0 right-0 border-t-2 border-dashed border-slate-400/50">
-						<span class="absolute -bottom-5 right-0 text-xs text-slate-400">LCL</span>
-					</div>
-					<div class="absolute top-1/2 left-0 right-0 border-t border-blue-500">
-						<span class="absolute -top-3 right-0 text-xs text-blue-500">x̄</span>
-					</div>
-
-					<!-- Data points - animate from chaotic to stable (in-control = blue) -->
-					<div class="check-points absolute inset-0 flex items-center justify-around px-4">
-						<div class="check-point w-3 h-3 rounded-full bg-blue-500 transition-all duration-700" style="--start-y: -60px; --end-y: 10px;"></div>
-						<div class="check-point w-3 h-3 rounded-full bg-blue-500 transition-all duration-700" style="--start-y: 45px; --end-y: -5px;"></div>
-						<div class="check-point w-3 h-3 rounded-full bg-blue-500 transition-all duration-700" style="--start-y: -30px; --end-y: 8px;"></div>
-						<div class="check-point w-3 h-3 rounded-full bg-blue-500 transition-all duration-700" style="--start-y: 70px; --end-y: -12px;"></div>
-						<div class="check-point w-3 h-3 rounded-full bg-blue-500 transition-all duration-700" style="--start-y: -55px; --end-y: 3px;"></div>
-						<div class="check-point w-3 h-3 rounded-full bg-blue-500 transition-all duration-700" style="--start-y: 25px; --end-y: -8px;"></div>
-						<div class="check-point w-3 h-3 rounded-full bg-blue-500 transition-all duration-700" style="--start-y: -40px; --end-y: 6px;"></div>
-						<div class="check-point w-3 h-3 rounded-full bg-blue-500 transition-all duration-700" style="--start-y: 50px; --end-y: -4px;"></div>
-						<div class="check-point w-3 h-3 rounded-full bg-blue-500 transition-all duration-700" style="--start-y: -20px; --end-y: 9px;"></div>
-						<div class="check-point w-3 h-3 rounded-full bg-blue-500 transition-all duration-700" style="--start-y: 35px; --end-y: -7px;"></div>
-					</div>
-				</div>
-
-				<!-- Cpk improvement -->
-				<div class="flex justify-center gap-8 mt-6 pt-6 border-t border-neutral-700">
-					<div class="text-center">
-						<span class="text-sm text-neutral-500">Before</span>
-						<p class="text-2xl font-bold text-red-400">0.8</p>
-						<span class="text-xs text-neutral-500">Cpk</span>
-					</div>
-					<div class="flex items-center">
-						<svg class="w-8 h-8 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<ScrollReveal animation="fade-up" delay={400}>
+				<div class="max-w-xl mx-auto text-center mt-12">
+					<p class="text-neutral-400">
+						The VALUE lens is a different story &mdash; and it deserves its own case.
+					</p>
+					<a href={`/${lang}/cases/coffee`} class="inline-flex items-center gap-2 text-green-400 font-medium mt-4 hover:text-green-300 transition-colors">
+						See the Coffee Case: spec compliance in action
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
 						</svg>
+					</a>
+				</div>
+			</ScrollReveal>
+		</div>
+	</section>
+
+	<!-- ============================================ -->
+	<!-- CTA: BUSINESS VALUE + BREADTH -->
+	<!-- ============================================ -->
+	<section id="business-value" class="journey-section min-h-screen flex flex-col justify-center relative bg-gradient-to-b from-slate-900 to-neutral-900" data-pillar="VALUE">
+		<div class="container-wide py-16 md:py-24">
+			<!-- ROI examples -->
+			<ScrollReveal animation="fade-up">
+				<div class="text-center mb-12">
+					<span class="text-sm font-bold uppercase tracking-widest text-amber-400">REAL RESULTS</span>
+					<h2 class="text-3xl md:text-5xl font-bold text-white mt-4">
+						How valuable is this analysis?
+					</h2>
+				</div>
+			</ScrollReveal>
+
+			<ScrollReveal animation="fade-up" delay={200}>
+				<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto mb-16">
+					<div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 text-center">
+						<p class="text-3xl font-bold text-white mb-1">&euro;180K</p>
+						<p class="text-sm text-amber-300">machine purchase avoided</p>
+						<p class="text-xs text-neutral-500 mt-2">Machine Utilization case</p>
 					</div>
-					<div class="text-center">
-						<span class="text-sm text-neutral-500">After</span>
-						<p class="text-2xl font-bold text-green-400">1.5</p>
-						<span class="text-xs text-neutral-500">Cpk</span>
+					<div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 text-center">
+						<p class="text-3xl font-bold text-white mb-1">85%</p>
+						<p class="text-sm text-amber-300">complaint reduction</p>
+						<p class="text-xs text-neutral-500 mt-2">Bottleneck case</p>
+					</div>
+					<div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 text-center">
+						<p class="text-3xl font-bold text-white mb-1">0.67 &rarr; 1.45</p>
+						<p class="text-sm text-amber-300">Cpk improvement</p>
+						<p class="text-xs text-neutral-500 mt-2">Process capability</p>
+					</div>
+					<div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 text-center">
+						<p class="text-3xl font-bold text-white mb-1">46%</p>
+						<p class="text-sm text-amber-300">of defects traced to one condition</p>
+						<p class="text-xs text-neutral-500 mt-2">Core methodology</p>
 					</div>
 				</div>
-			</div>
-		</ScrollReveal>
+			</ScrollReveal>
 
-		<ScrollReveal animation="fade-up" delay={400}>
-			<div class="mt-8 max-w-2xl">
-				<p class="text-2xl text-white font-bold">
-					Checked. The pattern is gone.
-				</p>
-				<p class="text-lg text-neutral-400 mt-2">
-					Process stable. Improvement sustained. Now continue.
-				</p>
-			</div>
-		</ScrollReveal>
-	</JourneySection>
-
-	<!-- Section 9: CONTINUE -->
-	<JourneySection id="continue" pillar="CONTINUE" question="Where's YOUR 46%?" number={9} class="bg-gradient-to-b from-neutral-900 to-brand-primary/20">
-		<ScrollReveal animation="fade-up">
-			<div class="max-w-3xl mb-12">
-				<h3 class="text-2xl font-bold text-white mb-8">The VaRiScout Journey</h3>
-
-				<div class="space-y-4">
-					<div class="flex items-start gap-4">
-						<span class="w-8 h-8 rounded-full bg-neutral-700 flex items-center justify-center text-sm font-bold text-neutral-400">1</span>
-						<div>
-							<span class="text-neutral-500 font-medium">AVERAGES</span>
-							<span class="text-neutral-300"> said "95% - all good"</span>
-						</div>
-					</div>
-
-					<div class="flex items-start gap-4">
-						<span class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-sm font-bold text-green-400">2</span>
-						<div>
-							<span class="text-green-400 font-medium">VALUE</span>
-							<span class="text-neutral-300"> showed not all customers are happy</span>
-						</div>
-					</div>
-
-					<div class="flex items-start gap-4">
-						<span class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400">3</span>
-						<div>
-							<span class="text-blue-400 font-medium">CHANGE</span>
-							<span class="text-neutral-300"> revealed the hidden pattern</span>
-						</div>
-					</div>
-
-					<div class="flex items-start gap-4">
-						<span class="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-sm font-bold text-orange-400">4</span>
-						<div>
-							<span class="text-orange-400 font-medium">FLOW</span>
-							<span class="text-neutral-300"> found where variation hides</span>
-						</div>
-					</div>
-
-					<div class="flex items-start gap-4">
-						<span class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-sm font-bold text-red-400">5</span>
-						<div>
-							<span class="text-red-400 font-medium">FAILURE</span>
-							<span class="text-neutral-300"> showed where problems concentrate</span>
-						</div>
-					</div>
-
-					<div class="flex items-start gap-4">
-						<span class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-sm font-bold text-purple-400">6</span>
-						<div>
-							<span class="text-purple-400 font-medium">FIND IT</span>
-							<span class="text-neutral-300"> drilled down to the 46%</span>
-						</div>
-					</div>
-
-					<div class="flex items-start gap-4">
-						<span class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-sm font-bold text-amber-400">7</span>
-						<div>
-							<span class="text-amber-400 font-medium">FIX IT</span>
-							<span class="text-neutral-300"> addressed the root cause</span>
-						</div>
-					</div>
-
-					<div class="flex items-start gap-4">
-						<span class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-sm font-bold text-teal-400">8</span>
-						<div>
-							<span class="text-teal-400 font-medium">CHECK IT</span>
-							<span class="text-neutral-300"> verified the improvement</span>
-						</div>
-					</div>
+			<!-- Industry breadth -->
+			<ScrollReveal animation="fade-up" delay={300}>
+				<div class="text-center mb-8">
+					<h3 class="text-2xl font-bold text-white">What else can you analyze?</h3>
+					<p class="text-neutral-400 mt-2">Variation analysis applies everywhere data varies.</p>
 				</div>
+			</ScrollReveal>
 
-				<div class="mt-8 p-6 bg-brand-primary/10 border border-brand-primary/30 rounded-2xl">
-					<p class="text-2xl font-bold text-white">
-						46% of improvement potential in one place.
+			<ScrollReveal animation="fade-up" delay={400}>
+				<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto mb-16">
+					<a href={`/${lang}/cases/packaging`} class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-all">
+						<div class="text-2xl mb-3">&#9881;</div>
+						<h4 class="text-lg font-bold text-white mb-1">Manufacturing</h4>
+						<p class="text-sm text-neutral-400">Fill weights, cycle times, dimensional accuracy</p>
+						<span class="text-xs text-brand-primary mt-3 block group-hover:underline">Packaging case &rarr;</span>
+					</a>
+					<a href={`/${lang}/cases/hospital-ward`} class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-all">
+						<div class="text-2xl mb-3">&#9764;</div>
+						<h4 class="text-lg font-bold text-white mb-1">Healthcare</h4>
+						<p class="text-sm text-neutral-400">Wait times, bed utilization, staffing variation</p>
+						<span class="text-xs text-brand-primary mt-3 block group-hover:underline">Hospital Ward case &rarr;</span>
+					</a>
+					<a href={`/${lang}/cases/avocado`} class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-all">
+						<div class="text-2xl mb-3">&#127793;</div>
+						<h4 class="text-lg font-bold text-white mb-1">Agriculture</h4>
+						<p class="text-sm text-neutral-400">Crop quality, moisture content, coating uniformity</p>
+						<span class="text-xs text-brand-primary mt-3 block group-hover:underline">Avocado case &rarr;</span>
+					</a>
+					<a href={`/${lang}/cases/coffee`} class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-all">
+						<div class="text-2xl mb-3">&#9749;</div>
+						<h4 class="text-lg font-bold text-white mb-1">Food & Beverage</h4>
+						<p class="text-sm text-neutral-400">Temperature control, spec compliance, shelf life</p>
+						<span class="text-xs text-brand-primary mt-3 block group-hover:underline">Coffee case &rarr;</span>
+					</a>
+					<a href={`/${lang}/cases/bottleneck`} class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-all">
+						<div class="text-2xl mb-3">&#128295;</div>
+						<h4 class="text-lg font-bold text-white mb-1">Operations</h4>
+						<p class="text-sm text-neutral-400">Bottleneck analysis, flow optimization, capacity</p>
+						<span class="text-xs text-brand-primary mt-3 block group-hover:underline">Bottleneck case &rarr;</span>
+					</a>
+					<a href={`/${lang}/cases/sock-mystery`} class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-6 transition-all">
+						<div class="text-2xl mb-3">&#127891;</div>
+						<h4 class="text-lg font-bold text-white mb-1">Training & Education</h4>
+						<p class="text-sm text-neutral-400">LSS courses, student projects, experiential learning</p>
+						<span class="text-xs text-brand-primary mt-3 block group-hover:underline">Sock Mystery case &rarr;</span>
+					</a>
+				</div>
+			</ScrollReveal>
+		</div>
+	</section>
+
+	<!-- ============================================ -->
+	<!-- PRODUCT CTA -->
+	<!-- ============================================ -->
+	<section id="products" class="journey-section min-h-[80vh] flex flex-col justify-center relative bg-gradient-to-b from-neutral-900 to-brand-primary/10" data-pillar="PRODUCTS">
+		<div class="container-wide py-16 md:py-24">
+			<ScrollReveal animation="scale">
+				<div class="text-center max-w-4xl mx-auto">
+					<h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+						Start finding variation
+					</h2>
+					<p class="text-xl text-neutral-300 mb-12">
+						Your data is hiding opportunity. Let's find it.
 					</p>
-					<p class="text-xl text-brand-primary mt-2">
-						Find it. Fix it. Check it. Continue.
+
+					<div class="grid md:grid-cols-3 gap-6 mb-12">
+						<!-- PWA -->
+						<a href="/app" class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-8 transition-all">
+							<div class="text-4xl mb-4">&#127760;</div>
+							<h3 class="text-xl font-bold text-white mb-2">Web App</h3>
+							<span class="text-xs font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">FREE</span>
+							<p class="text-neutral-400 text-sm mt-4 mb-4">Training & education tool. Works in your browser.</p>
+							<span class="text-brand-primary font-semibold group-hover:underline">Try Free &rarr;</span>
+						</a>
+
+						<!-- Excel -->
+						<a href="https://appsource.microsoft.com" target="_blank" rel="noopener noreferrer" class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-8 transition-all">
+							<div class="text-4xl mb-4">&#128202;</div>
+							<h3 class="text-xl font-bold text-white mb-2">Excel Add-in</h3>
+							<span class="text-xs font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">FREE</span>
+							<p class="text-neutral-400 text-sm mt-4 mb-4">Charts inside your spreadsheet. Core SPC.</p>
+							<span class="text-brand-primary font-semibold group-hover:underline">Get Add-in &rarr;</span>
+						</a>
+
+						<!-- Azure -->
+						<a href={`/${lang}/product/azure`} class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-8 transition-all">
+							<div class="text-4xl mb-4">&#127970;</div>
+							<h3 class="text-xl font-bold text-white mb-2">Azure App</h3>
+							<span class="text-xs font-semibold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">&euro;150/month</span>
+							<p class="text-neutral-400 text-sm mt-4 mb-4">Full analysis for teams. All features.</p>
+							<span class="text-brand-primary font-semibold group-hover:underline">Learn More &rarr;</span>
+						</a>
+					</div>
+
+					<p class="text-sm text-neutral-500">
+						No signup required. Your data stays on your device.
 					</p>
 				</div>
-			</div>
-		</ScrollReveal>
-
-		<ScrollReveal animation="scale">
-			<div class="text-center max-w-4xl mx-auto">
-				<p class="text-xl text-neutral-300 mb-12">
-					Your data is hiding opportunity. Let's find it.
-				</p>
-
-				<div class="grid md:grid-cols-3 gap-6 mb-12">
-					<!-- PWA -->
-					<a href="/app" class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-8 transition-all">
-						<div class="text-4xl mb-4">🌐</div>
-						<h3 class="text-xl font-bold text-white mb-2">Web App</h3>
-						<span class="text-xs font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">FREE</span>
-						<p class="text-neutral-400 text-sm mb-4">Works in your browser. No install needed.</p>
-						<span class="text-brand-primary font-semibold group-hover:underline">Try Free →</span>
-					</a>
-
-					<!-- Excel -->
-					<a href="https://appsource.microsoft.com" target="_blank" class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-8 transition-all">
-						<div class="text-4xl mb-4">📊</div>
-						<h3 class="text-xl font-bold text-white mb-2">Excel Add-in</h3>
-						<span class="text-xs font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">FREE</span>
-						<p class="text-neutral-400 text-sm mb-4">Charts inside your spreadsheet.</p>
-						<span class="text-brand-primary font-semibold group-hover:underline">Get Add-in →</span>
-					</a>
-
-					<!-- Enterprise -->
-					<a href={`/${lang}/product/azure`} class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-8 transition-all">
-						<div class="text-4xl mb-4">🏢</div>
-						<h3 class="text-xl font-bold text-white mb-2">Azure App</h3>
-						<span class="text-xs font-semibold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">€150/month</span>
-						<p class="text-neutral-400 text-sm mb-4">Full analysis for teams. €150/month.</p>
-						<span class="text-brand-primary font-semibold group-hover:underline">Learn More →</span>
-					</a>
-				</div>
-
-				<p class="text-sm text-neutral-500">
-					No signup required. Your data stays on your device.
-				</p>
-			</div>
-		</ScrollReveal>
-	</JourneySection>
+			</ScrollReveal>
+		</div>
+	</section>
 </BaseLayout>
 
 <style is:global>
-	/* Smooth scroll for the whole journey */
-	html {
-		scroll-behavior: smooth;
-		scroll-snap-type: y proximity;
-	}
-
 	/* Disable snap on reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		html {
 			scroll-snap-type: none;
 		}
 	}
-
-	/* Animated bar chart styles */
-	.animated-bar {
-		height: 0;
-		transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-		transition-delay: var(--delay, 0ms);
-	}
-
-	.bar-chart-container.is-animating .animated-bar {
-		height: var(--target-height);
-	}
-
-	/* Animated histogram styles */
-	.histogram-bar {
-		height: 0;
-		transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-		transition-delay: var(--delay, 0ms);
-	}
-
-	.histogram-container.is-animating .histogram-bar {
-		height: var(--target-height);
-	}
-
-	/* CHECK IT section animation */
-	.check-point {
-		transform: translateY(var(--start-y));
-	}
-
-	.check-animation.is-animating .check-point {
-		transform: translateY(var(--end-y));
-	}
-
-	.check-animation.is-animating .check-status {
-		opacity: 1;
-	}
-
-	/* Stagger the point animations */
-	.check-point:nth-child(1) { transition-delay: 0ms; }
-	.check-point:nth-child(2) { transition-delay: 70ms; }
-	.check-point:nth-child(3) { transition-delay: 140ms; }
-	.check-point:nth-child(4) { transition-delay: 210ms; }
-	.check-point:nth-child(5) { transition-delay: 280ms; }
-	.check-point:nth-child(6) { transition-delay: 350ms; }
-	.check-point:nth-child(7) { transition-delay: 420ms; }
-	.check-point:nth-child(8) { transition-delay: 490ms; }
-	.check-point:nth-child(9) { transition-delay: 560ms; }
-	.check-point:nth-child(10) { transition-delay: 630ms; }
 </style>
-
-<script>
-	// Animate bar charts and histograms when they come into view
-	function initChartAnimations() {
-		const observerOptions: IntersectionObserverInit = {
-			root: null,
-			rootMargin: '-10% 0px',
-			threshold: 0.1,
-		};
-
-		// Observe bar chart containers
-		const barCharts = document.querySelectorAll('.bar-chart-container');
-		const histograms = document.querySelectorAll('.histogram-container');
-
-		const chartObserver = new IntersectionObserver((entries) => {
-			entries.forEach((entry) => {
-				if (entry.isIntersecting) {
-					// Delay slightly for smoother experience
-					setTimeout(() => {
-						entry.target.classList.add('is-animating');
-					}, 200);
-					chartObserver.unobserve(entry.target);
-				}
-			});
-		}, observerOptions);
-
-		barCharts.forEach((chart) => chartObserver.observe(chart));
-		histograms.forEach((chart) => chartObserver.observe(chart));
-	}
-
-	// Animate the CHECK IT section when it comes into view
-	function initCheckAnimation() {
-		const checkSection = document.getElementById('check-it');
-		if (!checkSection) return;
-
-		const animation = checkSection.querySelector('.check-animation');
-		if (!animation) return;
-
-		const observer = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
-						// Delay the animation slightly for effect
-						setTimeout(() => {
-							animation.classList.add('is-animating');
-						}, 500);
-					}
-				});
-			},
-			{
-				root: null,
-				rootMargin: '-20% 0px',
-				threshold: 0,
-			}
-		);
-
-		observer.observe(checkSection);
-	}
-
-	function initAllAnimations() {
-		initChartAnimations();
-		initCheckAnimation();
-	}
-
-	// Run on page load
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', initAllAnimations);
-	} else {
-		initAllAnimations();
-	}
-
-	// Re-run on Astro page transitions
-	document.addEventListener('astro:page-load', initAllAnimations);
-</script>

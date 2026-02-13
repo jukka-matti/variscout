@@ -13,7 +13,7 @@ interface ChartContainerProps {
  */
 export default function ChartContainer({ height, className = '', children }: ChartContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(800); // Default width for SSR
+  const [width, setWidth] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -38,7 +38,14 @@ export default function ChartContainer({ height, className = '', children }: Cha
     <div ref={containerRef} className={`relative ${className}`} style={{ height, width: '100%' }}>
       {/* Dark background matching PWA/Azure charts */}
       <div className="absolute inset-0 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
-        {width > 0 && children({ width, height })}
+        {width > 0 ? (
+          children({ width, height })
+        ) : (
+          <div className="animate-pulse flex flex-col items-center justify-center h-full px-8">
+            <div className="h-4 bg-slate-700 rounded w-1/3 mb-6" />
+            <div className="flex-1 w-full bg-slate-700/50 rounded" />
+          </div>
+        )}
       </div>
     </div>
   );

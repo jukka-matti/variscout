@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 
@@ -35,12 +36,10 @@ const {
 		<link rel="canonical" href={canonicalURL} />
 		{noIndex && <meta name="robots" content="noindex, nofollow" />}
 
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap"
-			rel="stylesheet"
-		/>
+		<ClientRouter />
+
+		<link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href="/fonts/inter-600.woff2" as="font" type="font/woff2" crossorigin />
 
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="website" />
@@ -77,10 +76,27 @@ const {
 		})} />
 	</head>
 	<body class="min-h-screen flex flex-col">
+		<a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:text-slate-900 focus:px-4 focus:py-2 focus:rounded focus:shadow-lg">
+			Skip to main content
+		</a>
 		<Header />
-		<main class="flex-1">
+		<main id="main-content" class="flex-1">
 			<slot />
 		</main>
 		<Footer />
+
+		<script>
+			document.addEventListener('astro:after-swap', () => {
+				window.scrollTo({ top: 0, behavior: 'instant' });
+			});
+			document.addEventListener('astro:page-load', () => {
+				const main = document.querySelector('main');
+				if (main) {
+					main.setAttribute('tabindex', '-1');
+					main.focus();
+					main.removeAttribute('tabindex');
+				}
+			});
+		</script>
 	</body>
 </html>
