@@ -32,7 +32,7 @@ journey
       Try case studies: 5: Sara
     section Practice
       Use demo with samples: 5: Sara
-      Upload course data: 4: Sara
+      Paste course data: 4: Sara
     section Application
       Complete assignment: 5: Sara
       Share with study group: 4: Sara
@@ -78,7 +78,7 @@ journey
 │ /learn     │  │ /cases     │
 │            │  │            │
 │ Four       │  │ Practice   │
-│ Pillars    │  │ examples   │
+│ Lenses     │  │ examples   │
 │ Two Voices │  │            │
 └─────┬──────┘  └─────┬──────┘
       │               │
@@ -94,7 +94,7 @@ journey
               │
               ▼
      ┌─────────────────┐
-     │ Upload own      │
+     │ Paste own       │
      │ course data     │
      │                 │
      │ Complete        │
@@ -121,8 +121,7 @@ journey
 
 ### Assignment Support
 
-- Export capabilities for reports
-- Screenshot-friendly interface
+- Screenshot-friendly interface for reports
 - Clear interpretation guidance
 
 ---

@@ -19,6 +19,30 @@ How different users find, navigate, and convert on VariScout.
 
 ---
 
+## Use Cases
+
+Strategic use cases grounded in VariScout's capabilities — the specific problems that bring searchers in.
+
+| #   | Use Case                                                        | SEO Score | Industry              | Theme               |
+| --- | --------------------------------------------------------------- | --------- | --------------------- | ------------------- |
+| 1   | [Supplier Performance](use-cases/supplier-performance.md)       | 24        | Supply Chain          | Drill-down          |
+| 2   | [University SPC](use-cases/university-spc.md)                   | 24        | Education             | Education           |
+| 3   | [Assembly Bottleneck](use-cases/bottleneck-analysis.md)         | 22        | Manufacturing         | Aggregation trap    |
+| 4   | [Supplier PPAP](use-cases/supplier-ppap.md)                     | 22        | Automotive            | Multi-channel       |
+| 5   | [COPQ Drill-Down](use-cases/copq-drilldown.md)                  | 21        | Cross-industry        | Drill-down          |
+| 6   | [Customer Complaint](use-cases/complaint-investigation.md)      | 21        | Cross-industry        | Investigation       |
+| 7   | [Patient Wait Time](use-cases/patient-wait-time.md)             | 18        | Healthcare            | Aggregation trap    |
+| 8   | [Call Center Performance](use-cases/call-center-performance.md) | 18        | Service Ops           | Drill-down          |
+| 9   | [On-Time Delivery](use-cases/on-time-delivery.md)               | 15        | Logistics             | Capability vs SLA   |
+| 10  | [Pharma OOS](use-cases/pharma-oos.md)                           | 19        | Pharma                | MSA + Investigation |
+| 11  | [Consultant Delivery](use-cases/consultant-delivery.md)         | 17        | Professional Services | Education           |
+| 12  | [Batch Consistency](use-cases/batch-consistency.md)             | 18        | Food / Chemical       | Drill-down          |
+| 13  | [Lead Time Variation](use-cases/lead-time-variation.md)         | 19        | Supply Chain          | Aggregation trap    |
+
+See [use-cases/index.md](use-cases/index.md) for full SEO scoring, theme groupings, and content phasing.
+
+---
+
 ## Entry Points
 
 ### Flow Interconnection Diagram
@@ -291,7 +315,7 @@ flowchart TB
 3. **Cross-linking** — No dead ends, always "what's next"
 4. **Progressive depth** — Surface → Middle → Deep layers
 5. **Mobile-first** — Sticky CTAs, simplified navigation
-6. **No login needed** — License stored locally, "We don't have your data"
+6. **No login needed** — PWA and Excel work without accounts, data stays in your browser
 
 > **The website is a collection of interconnected experiences, not a linear funnel.**
 >

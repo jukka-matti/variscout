@@ -88,7 +88,7 @@ journey
 │   └── Audit logging
 ├── Deployment
 │   ├── Prerequisites
-│   ├── ARM template
+│   ├── Azure Marketplace
 │   └── Configuration
 ├── Integration
 │   ├── Azure AD

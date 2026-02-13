@@ -104,9 +104,8 @@ journey
                  │
                  ▼
         ┌─────────────────┐
-        │ CONVERSION      │
-        │ or              │
-        │ EMAIL CAPTURE   │
+        │ Opens PWA to    │
+        │ try own data    │
         └─────────────────┘
 ```
 
@@ -135,7 +134,7 @@ Every case page follows this narrative arc:
 - Scroll-based reveal of the analysis journey
 - Step by step: I-Chart → Boxplot → Pareto → Drill-down
 - The "aha moment": "46% was in Machine C, Shift 2, Operator X"
-- Methodology connection: This is the Four Pillars in action
+- Methodology connection: This is the Four Lenses in action
 
 ---
 
@@ -147,7 +146,7 @@ Every case page follows this narrative arc:
 | Case Act 2 → Act 3        | >70%   |
 | Case → Product page       | >20%   |
 | Case → Another case       | >30%   |
-| Email capture rate        | >5%    |
+| Case → PWA conversion     | >5%    |
 
 ---
 

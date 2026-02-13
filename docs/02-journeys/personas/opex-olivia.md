@@ -100,29 +100,30 @@ journey
  ┌────┴────────────────┐
  │                     │
  ▼                     ▼
-┌────────────┐  ┌─────────────────┐
-│ SELF-SERVE │  │ NEED HELP?      │
-│            │  │                 │
-│ Purchase   │  │ Your existing   │
-│ online     │  │ consultants     │
-│ Deploy     │  │ can deploy it   │
-└────────────┘  └─────────────────┘
+┌────────────────┐  ┌─────────────────┐
+│ SUBSCRIBE      │  │ NEED HELP?      │
+│                │  │                 │
+│ Azure          │  │ Your existing   │
+│ Marketplace    │  │ consultants     │
+│ Managed App    │  │ can assist      │
+│ deploys auto   │  │                 │
+└────────────────┘  └─────────────────┘
 ```
 
 ---
 
 ## Information Olivia Needs
 
-| Question                    | Answer Location      |
-| --------------------------- | -------------------- |
-| What does it do?            | /journey, /tools     |
-| Is it secure?               | /products/enterprise |
-| Where's my data?            | /products/enterprise |
-| How much does it cost?      | /pricing             |
-| How do I deploy?            | /products/enterprise |
-| Who supports it?            | /support             |
-| Can I try it first?         | /app (free tier)     |
-| What training is available? | Training links       |
+| Question                    | Answer Location          |
+| --------------------------- | ------------------------ |
+| What does it do?            | /journey, /tools         |
+| Is it secure?               | /products/enterprise     |
+| Where's my data?            | /products/enterprise     |
+| How much does it cost?      | /pricing                 |
+| How do I deploy?            | /products/enterprise     |
+| Who supports it?            | /support                 |
+| Can I try it first?         | /app (free, permanently) |
+| What training is available? | Training links           |
 
 ---
 
@@ -139,17 +140,16 @@ The /products/enterprise page must answer:
 
 ### 2. Deployment
 
-- How to deploy? → 1-click ARM template
-- Time to deploy? → Under 1 hour
-- Who deploys? → Your IT team or consultant
+- How to deploy? → Azure Marketplace Managed Application
+- Time to deploy? → Minutes (Managed Application)
+- Who deploys? → Azure Marketplace handles it
 - Updates? → Automatic via Azure
 
 ### 3. Pricing
 
-- Transparent pricing online
-- Per-user or site license options
-- No hidden fees
-- Volume discounts visible
+- €150/month flat — all features, unlimited users in your tenant
+- No per-user fees, no hidden costs
+- Single plan, transparent pricing
 
 ### 4. Support
 
@@ -167,7 +167,7 @@ The /products/enterprise page must answer:
 | Homepage → Enterprise page   | Track  |
 | Enterprise page → Deployment | >5%    |
 | Enterprise page → Contact    | >2%    |
-| ARM template downloads       | Track  |
+| Marketplace subscriptions    | Track  |
 
 ---
 

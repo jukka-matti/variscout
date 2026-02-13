@@ -37,7 +37,8 @@ docs/
 │   ├── index.md
 │   ├── ux-research.md
 │   ├── personas/        # green-belt-gary, student-sara, curious-carlos, etc.
-│   └── flows/           # seo-learner, social-discovery, enterprise, return-visitor
+│   ├── flows/           # seo-learner, social-discovery, enterprise, return-visitor
+│   └── use-cases/       # 13 strategic use cases with SEO keyword clusters
 ├── 03-features/         # Feature documentation
 │   ├── index.md
 │   ├── specifications.md
@@ -95,6 +96,7 @@ docs/
 | Parser/data input      | docs/03-features/data/data-input.md, packages/core/src/parser.ts              |
 | Design system          | docs/06-design-system/foundations/, packages/ui/src/colors.ts                 |
 | User personas          | docs/02-journeys/personas/, docs/01-vision/philosophy.md                      |
+| Use cases / SEO        | docs/02-journeys/use-cases/                                                   |
 | Performance Mode       | docs/03-features/analysis/performance-mode.md                                 |
 | Testing                | docs/05-technical/implementation/testing.md, .claude/rules/testing.md         |
 | Licensing/Tiers        | docs/07-decisions/adr-007-azure-marketplace-distribution.md                   |

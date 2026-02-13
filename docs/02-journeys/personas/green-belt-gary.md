@@ -31,10 +31,10 @@ journey
       Read methodology content: 5: Gary
     section Decision
       Compare pricing options: 4: Gary
-      Evaluate PWA vs Excel: 4: Gary
+      Evaluate free tools (PWA, Excel Add-in): 4: Gary
     section Adoption
       Install PWA application: 5: Gary
-      Upload first dataset: 5: Gary
+      Paste first dataset: 5: Gary
 ```
 
 ---
@@ -79,7 +79,7 @@ journey
          │
          ▼
 ┌─────────────────┐
-│ "Two Mindsets"  │
+│ "Two Voices"    │
 │                 │
 │ Resonates with  │
 │ EDA approach    │
@@ -98,8 +98,9 @@ journey
 ┌─────────────────┐
 │ CONVERSION      │
 │                 │
-│ Installs PWA    │
-│ or Excel add-in │
+│ Opens PWA or    │
+│ installs Excel  │
+│ add-in          │
 └─────────────────┘
 ```
 
@@ -116,7 +117,7 @@ Page structure:
 1. **Hero:** Interactive I-Chart with sample data
 2. **What it shows:** Clear explanation of control limits, patterns
 3. **Try it section:** Demo with pre-loaded data
-4. **Two Mindsets:** EDA vs traditional approach (resonance point)
+4. **Two Voices:** EDA vs traditional approach (resonance point)
 5. **Next steps:** Links to related tools
 
 ### Demo Interaction
@@ -131,8 +132,8 @@ Gary clicks around, explores the demo:
 
 Gary evaluates:
 
-- Free tier vs paid
-- PWA vs Excel add-in
+- Free tools (PWA, Excel Add-in) vs Azure App (€150/month)
+- PWA (web, paste data) vs Excel Add-in (native)
 - Comparison to Minitab
 
 ---

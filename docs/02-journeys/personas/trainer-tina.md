@@ -29,7 +29,7 @@ journey
       Explore methodology content: 5: Tina
     section Evaluation
       Test with own data: 5: Tina
-      Review Four Pillars alignment: 5: Tina
+      Review Four Lenses alignment: 5: Tina
     section Adoption
       Use in training session: 5: Tina
       Collect student feedback: 4: Tina
@@ -42,13 +42,13 @@ journey
 
 ## Entry Points
 
-| Source                   | Context                     | Lands On            |
-| ------------------------ | --------------------------- | ------------------- |
-| LinkedIn                 | LSS community posts         | / or /learn         |
-| YouTube                  | Tutorial content            | /tools/X            |
-| Watson network           | Methodology reference       | /learn/four-pillars |
-| Conference               | Tool demonstration          | /                   |
-| Colleague recommendation | "Works great in my courses" | /                   |
+| Source                   | Context                     | Lands On           |
+| ------------------------ | --------------------------- | ------------------ |
+| LinkedIn                 | LSS community posts         | / or /learn        |
+| YouTube                  | Tutorial content            | /tools/X           |
+| Watson network           | Methodology reference       | /learn/four-lenses |
+| Conference               | Tool demonstration          | /                  |
+| Colleague recommendation | "Works great in my courses" | /                  |
 
 ---
 
@@ -58,7 +58,7 @@ journey
 
 | Criterion     | Question                                       |
 | ------------- | ---------------------------------------------- |
-| Methodology   | Does it teach the Four Pillars?                |
+| Methodology   | Does it teach the Four Lenses?                 |
 | Visualization | Does it show relationships, not just numbers?  |
 | Exploration   | Does it encourage "clicking around" to learn?  |
 | Narrative     | Does it support the "find the story" approach? |
@@ -68,7 +68,7 @@ journey
 
 | Criterion          | Question                                       |
 | ------------------ | ---------------------------------------------- |
-| Student cost       | Can students afford it? (Free tier essential)  |
+| Student cost       | Can students use it? (Permanently free PWA)    |
 | Classroom use      | Can I demo live without internet issues?       |
 | Assignment support | Can students complete exercises with it?       |
 | Export             | Can students include screenshots in reports?   |
@@ -89,7 +89,7 @@ journey
 ┌─────────────────┐
 │ /learn          │
 │                 │
-│ Four Pillars    │
+│ Four Lenses     │
 │ Two Voices      │
 │ EDA philosophy  │
 └────────┬────────┘
@@ -113,9 +113,10 @@ journey
 ┌─────────────────┐
 │ /app            │
 │                 │
-│ Test with       │
-│ real client     │
-│ data            │
+│ Test with real  │
+│ client data     │
+│ (paste from     │
+│ Excel)          │
 └────────┬────────┘
          │
     ┌────┴────────────┐
@@ -139,7 +140,7 @@ journey
 
 1. **Methodology-first** - Not just charts, but the thinking behind them
 2. **EDA approach** - Aligned with practical process improvement
-3. **Free tier for students** - No barrier to classroom use
+3. **Permanently free PWA for students** - No barrier to classroom use
 4. **Case-based learning** - Ready-made teaching materials
 5. **Visual exploration** - Students "discover" rather than calculate
 
@@ -147,7 +148,7 @@ journey
 
 - Curriculum integration materials
 - Custom branding for training organizations
-- Volume licensing for training programs
+- Azure App recommendation for client teams (€150/month)
 - Co-marketing with training courses
 
 ---
