@@ -10,7 +10,6 @@
  */
 
 import {
-  configureEdition,
   configureTier,
   getEdition as getCoreEdition,
   getTier as getCoreTier,
@@ -114,9 +113,6 @@ function determineTier(): LicenseTier {
 export function initializeTier(): void {
   const tier = determineTier();
   configureTier(tier);
-
-  // Also set legacy edition for backward compatibility
-  configureEdition(tier === 'free' ? 'community' : 'licensed');
 }
 
 // Initialize on module load

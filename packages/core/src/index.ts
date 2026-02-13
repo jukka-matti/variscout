@@ -75,20 +75,7 @@ export {
 export type { Matrix } from './matrix';
 export { transpose, multiply, inverse, solve } from './matrix';
 
-// Edition (legacy - prefer tier module for new code)
-export type { Edition } from './edition';
-export {
-  EDITION_COLORS,
-  configureEdition,
-  getEdition,
-  shouldShowBranding,
-  getBrandingText,
-  getSignatureText,
-  isThemingEnabled,
-  tierToEdition,
-} from './edition';
-
-// Tier (Azure Marketplace multi-tier licensing)
+// Tier (Azure Marketplace multi-tier licensing) — primary module
 export type { LicenseTier, TierLimits, ChannelLimitResult } from './tier';
 export {
   TIER_LIMITS,
@@ -104,7 +91,22 @@ export {
   validateChannelCount,
   getTierDescription,
   getUpgradeUrl,
+  // Branding helpers (canonical source)
+  BRANDING_COLORS,
+  shouldShowBranding,
+  getBrandingText,
+  getSignatureText,
 } from './tier';
+
+// Edition (legacy — all functions deprecated, prefer tier.ts for new code)
+export type { Edition } from './edition';
+export {
+  EDITION_COLORS,
+  configureEdition,
+  getEdition,
+  isThemingEnabled,
+  tierToEdition,
+} from './edition';
 
 // Export utilities
 export { getSpecStatus, generateCSV, downloadCSV } from './export';

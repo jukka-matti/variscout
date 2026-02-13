@@ -144,8 +144,7 @@ Customers deploy via ARM template:
 ```bash
 az deployment group create \
   --resource-group rg-variscout \
-  --template-uri https://raw.githubusercontent.com/variscout/azure-deploy/main/azuredeploy.json \
-  --parameters tier=team
+  --template-uri https://raw.githubusercontent.com/variscout/azure-deploy/main/azuredeploy.json
 ```
 
 See [ARM Template Documentation](../../08-products/azure/arm-template.md) for template details.
@@ -258,13 +257,9 @@ The ARM template creates an App Registration with:
 | `User.Read`       | Delegated | Get user profile      |
 | `Files.ReadWrite` | Delegated | OneDrive project sync |
 
-### Required for Excel Add-in
+### Excel Add-in
 
-The Excel Add-in App Registration needs:
-
-| Permission             | Type      | Admin Consent | Purpose                         |
-| ---------------------- | --------- | ------------- | ------------------------------- |
-| `Application.Read.All` | Delegated | Yes           | License detection via Graph API |
+The Excel Add-in requires no app registration — it is a free tool with no authentication or license detection.
 
 ---
 
@@ -291,16 +286,13 @@ The Excel Add-in App Registration needs:
 
 - [ ] Manifest.xml validates
 - [ ] HTTPS hosting configured
-- [ ] Graph API permissions documented
 - [ ] Screenshots prepared (1280x720 min)
 - [ ] Accessibility requirements met (WCAG AA)
 
 ### Azure App Deployment (Per-Customer)
 
 - [ ] Customer has Azure subscription
-- [ ] Customer selects pricing tier
 - [ ] ARM template deploys successfully
-- [ ] Admin consent granted for Graph API
 - [ ] MSAL authentication works
 
 ---

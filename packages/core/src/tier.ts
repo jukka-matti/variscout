@@ -168,3 +168,45 @@ export function getUpgradeUrl(): string {
   // TODO: Replace with actual Azure Marketplace URL when available
   return 'https://azuremarketplace.microsoft.com/en-us/marketplace/apps/variscout';
 }
+
+// ---------------------------------------------------------------------------
+// Branding helpers (migrated from edition.ts)
+// ---------------------------------------------------------------------------
+
+/**
+ * Brand accent colors
+ */
+export const BRANDING_COLORS = {
+  variscout: '#3b82f6', // blue-500 (VariScout blue)
+} as const;
+
+/**
+ * Check if branding should be shown on charts.
+ * Free tier shows branding; paid tiers hide it.
+ *
+ * @param tier - The tier to check (uses current tier if not specified)
+ * @returns true if branding should be displayed
+ */
+export function shouldShowBranding(tier?: LicenseTier): boolean {
+  return !isPaidTier(tier);
+}
+
+/**
+ * Get the branding text for the current tier.
+ *
+ * @param tier - The tier to check (uses current tier if not specified)
+ * @returns 'VariScout Lite' for free tier, empty string for paid tiers
+ */
+export function getBrandingText(tier?: LicenseTier): string {
+  return shouldShowBranding(tier) ? 'VariScout Lite' : '';
+}
+
+/**
+ * Get the signature text for the current tier.
+ *
+ * @param tier - The tier to check (uses current tier if not specified)
+ * @returns 'VariScout' for free tier, empty string for paid tiers
+ */
+export function getSignatureText(tier?: LicenseTier): string {
+  return shouldShowBranding(tier) ? 'VariScout' : '';
+}

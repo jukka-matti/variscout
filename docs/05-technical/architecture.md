@@ -45,6 +45,7 @@ variscout-lite/
 - **Persistence**: IndexedDB + localStorage (PWA), Custom Document Properties (Excel)
 - **PWA**: [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) with Workbox
 - **Excel Integration**: [Office.js](https://learn.microsoft.com/en-us/office/dev/add-ins/) for Excel Add-in
+- **Marketing Website**: [Astro 5](https://astro.build/) with React Islands (chart demos)
 - **Package Manager**: [pnpm](https://pnpm.io/) with workspaces
 
 ## 3. Package Architecture
@@ -550,37 +551,7 @@ Data colors (`chartColors.pass`, `chartColors.fail`, etc.) remain constant acros
 
 ## 10. Building & Deployment
 
-### Development
-
-```bash
-pnpm dev             # Start PWA dev server at localhost:5173
-pnpm dev:excel       # Start Excel Add-in dev server at localhost:3000
-```
-
-### Production Build
-
-```bash
-pnpm build           # Build all packages and apps
-pnpm build:pwa       # Build PWA only
-pnpm build:excel     # Build Excel Add-in only
-pnpm preview         # Preview production build locally
-```
-
-### Deployment
-
-Both apps deploy as static sites to any hosting provider.
-
-**PWA (Vercel Recommended):**
-
-```bash
-npx vercel
-```
-
-Deploy `apps/pwa/dist/` to any static host (Netlify, GitHub Pages, S3, etc.)
-
-**Excel Add-in:**
-
-Deploy `apps/excel-addin/dist/` to any HTTPS host (required for Office Add-ins). Update `manifest.xml` with production URLs.
+All apps build as static sites. See [Deployment Guide](implementation/deployment.md) for build commands, environment variables, publication processes, and per-platform deployment targets.
 
 ## 11. Excel Add-in Architecture
 
