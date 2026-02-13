@@ -34,10 +34,6 @@ import { getAllSlicerSelections, clearAllSlicerSelections } from '../lib/slicerM
 
 interface ContentDashboardProps {
   state: AddInState;
-  /** Drill navigation from Performance Mode */
-  drillFromPerformance?: string | null;
-  /** Callback to return to Performance Mode */
-  onBackToPerformance?: () => void;
 }
 
 /**
@@ -318,39 +314,6 @@ const createStyles = (theme: ThemeTokens): Record<string, React.CSSProperties> =
     color: theme.colorNeutralForeground2,
     fontSize: theme.fontSizeSmall,
   },
-  drillBanner: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: `${theme.spacingS}px ${theme.spacingM}px`,
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    borderBottom: '1px solid rgba(59, 130, 246, 0.3)',
-    marginBottom: theme.spacingS,
-  },
-  drillBannerText: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacingS,
-    fontSize: theme.fontSizeSmall,
-    color: '#93c5fd',
-  },
-  drillBannerLabel: {
-    color: '#93c5fd',
-  },
-  drillBannerMeasure: {
-    color: theme.colorNeutralForeground1,
-    fontWeight: theme.fontWeightSemibold,
-  },
-  drillBannerButton: {
-    padding: `${theme.spacingXS}px ${theme.spacingS}px`,
-    backgroundColor: 'transparent',
-    border: 'none',
-    borderRadius: theme.borderRadiusS,
-    color: '#93c5fd',
-    fontSize: theme.fontSizeSmall,
-    fontWeight: theme.fontWeightSemibold,
-    cursor: 'pointer',
-  },
 });
 
 /**
@@ -361,11 +324,7 @@ const createStyles = (theme: ThemeTokens): Record<string, React.CSSProperties> =
  */
 type ExportStatus = 'idle' | 'copying' | 'inserting' | 'writing' | 'done' | 'error';
 
-const ContentDashboard: React.FC<ContentDashboardProps> = ({
-  state,
-  drillFromPerformance,
-  onBackToPerformance,
-}) => {
+const ContentDashboard: React.FC<ContentDashboardProps> = ({ state }) => {
   const { theme } = useContentTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -771,19 +730,6 @@ const ContentDashboard: React.FC<ContentDashboardProps> = ({
 
   return (
     <div style={styles.container}>
-      {/* Back to Performance banner when drilled from Performance Mode */}
-      {drillFromPerformance && onBackToPerformance && (
-        <div style={styles.drillBanner}>
-          <div style={styles.drillBannerText}>
-            <span style={styles.drillBannerLabel}>Viewing:</span>
-            <span style={styles.drillBannerMeasure}>{drillFromPerformance}</span>
-          </div>
-          <button onClick={onBackToPerformance} style={styles.drillBannerButton}>
-            &larr; Back to Performance
-          </button>
-        </div>
-      )}
-
       {/* Header with stats summary and export toolbar */}
       <div style={styles.header}>
         <div style={styles.statsRow}>

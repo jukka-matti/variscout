@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ContentDashboard from './ContentDashboard';
-import ContentPerformanceDashboard from './ContentPerformanceDashboard';
-import { loadAddInState, saveAddInState, updateState, type AddInState } from '../lib/stateBridge';
+import { loadAddInState, type AddInState } from '../lib/stateBridge';
 import { useContentTheme, type ThemeTokens } from './ThemeContext';
 
 /**
@@ -139,44 +138,6 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // Handle drilling from Performance Mode to I-Chart for a specific measure
-  const handleDrillToMeasure = useCallback(
-    async (measureId: string) => {
-      if (!state) return;
-
-      try {
-        const updatedState = updateState(state, {
-          drillContext: {
-            measureId,
-            returnToPerformance: true,
-          },
-          // Update outcomeColumn to the selected measure
-          outcomeColumn: measureId,
-        });
-        await saveAddInState(updatedState);
-        setState(updatedState);
-      } catch (err) {
-        console.error('Failed to set drill context:', err);
-      }
-    },
-    [state]
-  );
-
-  // Handle returning to Performance Mode from drilled I-Chart
-  const handleBackToPerformance = useCallback(async () => {
-    if (!state) return;
-
-    try {
-      const updatedState = updateState(state, {
-        drillContext: null,
-      });
-      await saveAddInState(updatedState);
-      setState(updatedState);
-    } catch (err) {
-      console.error('Failed to clear drill context:', err);
-    }
-  }, [state]);
-
   if (isLoading) {
     return (
       <div style={styles.loadingContainer}>
@@ -222,22 +183,6 @@ const App: React.FC = () => {
         </ol>
       </div>
     );
-  }
-
-  // If drilling from Performance Mode, show ContentDashboard with back navigation
-  if (state.drillContext?.returnToPerformance) {
-    return (
-      <ContentDashboard
-        state={state}
-        drillFromPerformance={state.drillContext.measureId}
-        onBackToPerformance={handleBackToPerformance}
-      />
-    );
-  }
-
-  // Render Performance Dashboard if in performance mode
-  if (state.isPerformanceMode && state.measureColumns?.length) {
-    return <ContentPerformanceDashboard state={state} onDrillToMeasure={handleDrillToMeasure} />;
   }
 
   return <ContentDashboard state={state} />;

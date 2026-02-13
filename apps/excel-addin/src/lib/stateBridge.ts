@@ -39,19 +39,6 @@ export interface AddInState {
   };
   /** Full data Y-axis domain (stored when first calculated) */
   fullDataDomain?: { min: number; max: number } | null;
-  /** Performance mode - multi-measure analysis */
-  isPerformanceMode?: boolean;
-  /** Column names selected as measure columns for performance mode */
-  measureColumns?: string[];
-  /** Custom label for measures (e.g., "Head", "Valve", "Nozzle") */
-  measureLabel?: string;
-  /** Currently selected measure in performance mode */
-  selectedMeasure?: string | null;
-  /** Drill context for navigating from Performance Mode to I-Chart */
-  drillContext?: {
-    measureId: string;
-    returnToPerformance: boolean;
-  } | null;
   /** ISO timestamp of last update */
   lastUpdated: string;
 }
