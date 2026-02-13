@@ -13,22 +13,60 @@ export interface LearnTopic {
   relatedCases?: string[];
 }
 
+// Visual data types for learn sections (discriminated union)
+interface ComparisonSide {
+  title: string;
+  subtitle: string;
+  items: string[];
+  color: string;
+}
+
+interface ComparisonVisual {
+  type: 'comparison';
+  data: { left: ComparisonSide; right: ComparisonSide };
+}
+
+interface ListVisual {
+  type: 'list';
+  data: { items: { title: string; description: string }[] };
+}
+
+interface QuoteVisual {
+  type: 'quote';
+  data: { quote: string; author: string };
+}
+
+interface DiagramVisual {
+  type: 'diagram';
+  data: { steps: { label: string; description?: string; tool?: string }[] };
+}
+
+export interface ChartVisualData {
+  toolSlug:
+    | 'i-chart'
+    | 'boxplot'
+    | 'pareto'
+    | 'capability'
+    | 'regression'
+    | 'gage-rr'
+    | 'performance';
+  sampleKey: string;
+  height?: number;
+  caption?: string;
+}
+
+interface ChartVisual {
+  type: 'chart';
+  data: ChartVisualData;
+}
+
+type SectionVisual = ComparisonVisual | ListVisual | QuoteVisual | DiagramVisual | ChartVisual;
+
 export interface LearnSection {
   id: string;
   title: string;
   content: string;
-  visual?: {
-    type: 'comparison' | 'diagram' | 'list' | 'quote' | 'chart';
-    data: any;
-  };
-}
-
-// Chart visual data structure for type safety
-export interface ChartVisualData {
-  toolSlug: 'i-chart' | 'capability' | 'boxplot';
-  sampleKey: string;
-  height?: number;
-  caption?: string;
+  visual?: SectionVisual;
 }
 
 export const LEARN_TOPICS: LearnTopic[] = [

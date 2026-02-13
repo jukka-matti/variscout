@@ -5,6 +5,8 @@
  * Used on: use case pages, tool pages, learn pages.
  */
 
+import { getCaseBySlug } from "../data/casesData";
+
 interface Props {
 	cases: string[];
 	title?: string;
@@ -13,83 +15,14 @@ interface Props {
 
 const { cases, title = "See It in Action", lang } = Astro.props;
 
-// Lightweight case metadata for cross-linking (avoids importing from page template)
-const CASE_META: Record<string, {
-	title: string;
-	subtitle: string;
-	difficulty: 'beginner' | 'intermediate' | 'advanced';
-	tools: string[];
-}> = {
-	bottleneck: {
-		title: 'The Bottleneck',
-		subtitle: 'Finding the Hidden Constraint',
-		difficulty: 'beginner',
-		tools: ['I-Chart', 'Boxplot'],
-	},
-	'hospital-ward': {
-		title: 'Hospital Ward',
-		subtitle: 'The Aggregation Trap',
-		difficulty: 'beginner',
-		tools: ['I-Chart', 'Boxplot', 'Stats'],
-	},
-	coffee: {
-		title: 'Coffee Quality',
-		subtitle: 'East Africa Washing Station',
-		difficulty: 'intermediate',
-		tools: ['Boxplot', 'I-Chart', 'Gage R&R'],
-	},
-	packaging: {
-		title: 'Packaging Defects',
-		subtitle: 'Africa Manufacturing',
-		difficulty: 'intermediate',
-		tools: ['Pareto', 'Boxplot', 'I-Chart'],
-	},
-	avocado: {
-		title: 'Avocado Coating',
-		subtitle: 'Post-Harvest Optimization',
-		difficulty: 'advanced',
-		tools: ['Regression', 'Gage R&R', 'Stats'],
-	},
-	'cookie-weight': {
-		title: 'Cookie Weight',
-		subtitle: 'Classic SPC in Action',
-		difficulty: 'beginner',
-		tools: ['I-Chart', 'Boxplot', 'Stats'],
-	},
-	'weld-defects': {
-		title: 'Weld Defects',
-		subtitle: 'Robot Cell Investigation',
-		difficulty: 'intermediate',
-		tools: ['Pareto', 'Boxplot', 'I-Chart'],
-	},
-	'call-wait': {
-		title: 'Call Wait Time',
-		subtitle: 'Service Center Analysis',
-		difficulty: 'beginner',
-		tools: ['Boxplot', 'I-Chart', 'Stats'],
-	},
-	delivery: {
-		title: 'Delivery Performance',
-		subtitle: 'Logistics Route Analysis',
-		difficulty: 'intermediate',
-		tools: ['Boxplot', 'I-Chart', 'Stats'],
-	},
-	'sock-mystery': {
-		title: 'The Sock Mystery',
-		subtitle: 'Classic Training Case',
-		difficulty: 'beginner',
-		tools: ['Boxplot', 'Pareto', 'I-Chart'],
-	},
-};
-
 const difficultyColors: Record<string, string> = {
 	beginner: 'bg-green-500/10 text-green-600',
 	intermediate: 'bg-amber-500/10 text-amber-600',
 	advanced: 'bg-red-500/10 text-red-600',
 };
 
-// Filter to only cases that exist in our metadata
-const validCases = cases.filter(slug => CASE_META[slug]);
+// Filter to only cases that exist in our data
+const validCases = cases.filter(slug => getCaseBySlug(slug));
 ---
 
 {validCases.length > 0 && (
@@ -97,7 +30,7 @@ const validCases = cases.filter(slug => CASE_META[slug]);
 		<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-6">{title}</h2>
 		<div class="grid md:grid-cols-2 gap-4">
 			{validCases.slice(0, 4).map((slug) => {
-				const meta = CASE_META[slug]!;
+				const meta = getCaseBySlug(slug)!;
 				return (
 					<a
 						href={`/${lang}/cases/${slug}`}
@@ -113,7 +46,7 @@ const validCases = cases.filter(slug => CASE_META[slug]);
 						</h3>
 						<p class="text-sm text-neutral-500 mb-2">{meta.subtitle}</p>
 						<div class="flex flex-wrap gap-1">
-							{meta.tools.map((tool) => (
+							{meta.toolNames.map((tool) => (
 								<span class="text-xs px-2 py-0.5 bg-neutral-200/50 rounded text-neutral-600">{tool}</span>
 							))}
 						</div>

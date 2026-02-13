@@ -8,10 +8,7 @@
  * @prop lang - Current language for links
  */
 
-interface CaseInfo {
-	slug: string;
-	title: string;
-}
+import { CASE_STUDIES } from "../data/casesData";
 
 interface Props {
 	currentCase: string;
@@ -21,17 +18,8 @@ interface Props {
 
 const { currentCase, currentAct = 1, lang } = Astro.props;
 
-// All cases in order
-const cases: CaseInfo[] = [
-	{ slug: 'bottleneck', title: 'The Bottleneck' },
-	{ slug: 'hospital-ward', title: 'Hospital Ward' },
-	{ slug: 'coffee', title: 'Coffee Quality' },
-	{ slug: 'packaging', title: 'Packaging Defects' },
-	{ slug: 'avocado', title: 'Avocado Coating' },
-];
-
+const cases = CASE_STUDIES;
 const currentIndex = cases.findIndex(c => c.slug === currentCase);
-const currentCaseInfo = cases[currentIndex];
 
 const acts = [
 	{ num: 1, label: 'Problem', id: 'problem-section' },

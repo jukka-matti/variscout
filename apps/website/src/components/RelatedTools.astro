@@ -2,68 +2,49 @@
 /**
  * RelatedTools - Links to tool pages used in the case study
  *
- * @prop tools - Array of tool IDs to display
+ * @prop tools - Array of case chart IDs to display
  * @prop lang - Current language for links
  */
 
-type ToolId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
+import { getToolBySlug } from "../data/toolsData";
 
-interface ToolInfo {
-	id: ToolId;
-	name: string;
-	description: string;
-	icon: string;
-}
+type CaseChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
 
 interface Props {
-	tools: ToolId[];
+	tools: CaseChartId[];
 	lang: string;
 }
 
 const { tools, lang } = Astro.props;
 
-// Tool metadata
-const toolData: Record<ToolId, ToolInfo> = {
-	ichart: {
-		id: 'ichart',
-		name: 'I-Chart',
-		description: 'Monitor process variation over time',
-		icon: '📈',
-	},
-	boxplot: {
-		id: 'boxplot',
-		name: 'Boxplot',
-		description: 'Compare groups and find outliers',
-		icon: '📊',
-	},
-	pareto: {
-		id: 'pareto',
-		name: 'Pareto Chart',
-		description: 'Prioritize problems by impact',
-		icon: '📉',
-	},
-	stats: {
-		id: 'stats',
-		name: 'Statistics Panel',
-		description: 'Summary stats and capability indices',
-		icon: '🔢',
-	},
-	regression: {
-		id: 'regression',
-		name: 'Regression',
-		description: 'Analyze relationships between variables',
-		icon: '📐',
-	},
-	gagerr: {
-		id: 'gagerr',
-		name: 'Gage R&R',
-		description: 'Measure system analysis',
-		icon: '🎯',
-	},
+// Map case chart IDs to tool page slugs
+const CHART_TO_TOOL_SLUG: Record<CaseChartId, string | null> = {
+	ichart: 'i-chart',
+	boxplot: 'boxplot',
+	pareto: 'pareto',
+	stats: null,         // Stats panel has no dedicated tool page
+	regression: 'regression',
+	gagerr: 'gage-rr',
 };
 
-// Filter to only valid tools
-const displayTools = tools.map((id) => toolData[id]).filter(Boolean);
+const TOOL_ICONS: Record<string, string> = {
+	'i-chart': '📈',
+	boxplot: '📊',
+	pareto: '📉',
+	regression: '📐',
+	'gage-rr': '🎯',
+};
+
+// Resolve each case chart ID to a tool page entry
+const displayTools = tools
+	.map(id => {
+		const toolSlug = CHART_TO_TOOL_SLUG[id];
+		if (!toolSlug) return null;
+		const tool = getToolBySlug(toolSlug);
+		if (!tool) return null;
+		return { slug: tool.slug, name: tool.name, description: tool.hero.subtitle, icon: TOOL_ICONS[tool.slug] ?? '📊' };
+	})
+	.filter(Boolean) as { slug: string; name: string; description: string; icon: string }[];
 ---
 
 {displayTools.length > 0 && (
@@ -74,7 +55,7 @@ const displayTools = tools.map((id) => toolData[id]).filter(Boolean);
 		<div class="grid gap-3 sm:grid-cols-2">
 			{displayTools.map((tool) => (
 				<a
-					href={`/${lang}/tools/${tool.id}`}
+					href={`/${lang}/tools/${tool.slug}`}
 					class="group flex items-start gap-3 p-3 bg-white border border-neutral-200 rounded-lg hover:border-brand-primary hover:shadow-sm transition-all"
 				>
 					<span class="text-2xl" aria-hidden="true">{tool.icon}</span>

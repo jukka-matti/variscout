@@ -7,13 +7,7 @@
  * @prop lang - Current language for links
  */
 
-interface CaseInfo {
-	slug: string;
-	title: string;
-	subtitle: string;
-	phase: number;
-	week: number;
-}
+import { CASE_STUDIES, getCaseBySlug } from "../data/casesData";
 
 interface Props {
 	nextCase: string | null;
@@ -23,16 +17,8 @@ interface Props {
 
 const { nextCase, currentCase, lang } = Astro.props;
 
-// All cases for reference
-const allCases: CaseInfo[] = [
-	{ slug: 'bottleneck', title: 'The Bottleneck', subtitle: 'Finding the Hidden Constraint', phase: 1, week: 1 },
-	{ slug: 'hospital-ward', title: 'Hospital Ward', subtitle: 'The Aggregation Trap', phase: 2, week: 5 },
-	{ slug: 'coffee', title: 'Coffee Quality', subtitle: 'East Africa Washing Station', phase: 3, week: 9 },
-	{ slug: 'packaging', title: 'Packaging Defects', subtitle: 'Africa Manufacturing', phase: 3, week: 9 },
-	{ slug: 'avocado', title: 'Avocado Coating', subtitle: 'Post-Harvest Optimization', phase: 3, week: 12 },
-];
-
-const nextCaseInfo = nextCase ? allCases.find((c) => c.slug === nextCase) : null;
+const allCases = CASE_STUDIES;
+const nextCaseInfo = nextCase ? getCaseBySlug(nextCase) : null;
 const currentIndex = allCases.findIndex((c) => c.slug === currentCase);
 
 // Get related cases (not current, not next)

@@ -1,20 +1,14 @@
-import {
-  IChartBase,
-  BoxplotBase,
-  ParetoChartBase,
-  ScatterPlotBase,
-  GageRRChartBase,
-  InteractionPlotBase,
-} from '@variscout/charts';
+import { GageRRChartBase, InteractionPlotBase, BoxplotBase } from '@variscout/charts';
 import { getSample, getCachedComputedData } from '@variscout/data';
 import ChartContainer from './ChartContainer';
 import StatsIsland from './StatsIsland';
+import { renderChartContent } from './renderChart';
 
-type ChartType = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
+type CaseChartType = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
 
 interface CaseStudyChartsIslandProps {
   sampleKey: string;
-  tools: ChartType[];
+  tools: CaseChartType[];
   height?: number;
   showBranding?: boolean;
 }
@@ -43,127 +37,72 @@ export default function CaseStudyChartsIsland({
     );
   }
 
-  const renderChart = (chartType: ChartType, chartHeight: number) => {
-    switch (chartType) {
-      case 'ichart':
-        return (
-          <ChartContainer height={chartHeight}>
-            {({ width, height: containerHeight }) => (
-              <IChartBase
-                data={computed.ichartData}
-                stats={computed.stats}
-                specs={computed.specs}
-                parentWidth={width}
-                parentHeight={containerHeight}
-                showBranding={showBranding}
-              />
-            )}
-          </ChartContainer>
-        );
-
-      case 'boxplot':
-        return (
-          <ChartContainer height={chartHeight}>
-            {({ width, height: containerHeight }) => (
-              <BoxplotBase
-                data={computed.boxplotData}
-                specs={computed.specs}
-                parentWidth={width}
-                parentHeight={containerHeight}
-                showBranding={showBranding}
-              />
-            )}
-          </ChartContainer>
-        );
-
-      case 'pareto':
-        const totalCount = computed.paretoData.reduce((sum, item) => sum + item.value, 0);
-        return (
-          <ChartContainer height={chartHeight}>
-            {({ width, height: containerHeight }) => (
-              <ParetoChartBase
-                data={computed.paretoData}
-                totalCount={totalCount}
-                parentWidth={width}
-                parentHeight={containerHeight}
-                showBranding={showBranding}
-              />
-            )}
-          </ChartContainer>
-        );
-
-      case 'stats':
-        return <StatsIsland sampleKey={sampleKey} />;
-
-      case 'regression':
-        const scatterData = sample.data.map((row, i) => ({
-          x: i,
-          y: computed.ichartData[i]?.value ?? 0,
-        }));
-        return (
-          <ChartContainer height={chartHeight}>
-            {({ width, height: containerHeight }) => (
-              <ScatterPlotBase
-                data={scatterData}
-                xLabel="Observation"
-                yLabel={sample.config.outcome}
-                parentWidth={width}
-                parentHeight={containerHeight}
-                showBranding={showBranding}
-              />
-            )}
-          </ChartContainer>
-        );
-
-      case 'gagerr':
-        // GageRR requires pre-computed data with parts and operators
-        if (computed.gagerr) {
-          return (
-            <div className="flex flex-col gap-2">
-              <ChartContainer height={Math.floor(chartHeight * 0.45)}>
-                {({ width, height: containerHeight }) => (
-                  <GageRRChartBase
-                    pctPart={computed.gagerr!.pctPart}
-                    pctRepeatability={computed.gagerr!.pctRepeatability}
-                    pctReproducibility={computed.gagerr!.pctReproducibility}
-                    pctGRR={computed.gagerr!.pctGRR}
-                    parentWidth={width}
-                    parentHeight={containerHeight}
-                    showBranding={false}
-                  />
-                )}
-              </ChartContainer>
-              <ChartContainer height={Math.floor(chartHeight * 0.55)}>
-                {({ width, height: containerHeight }) => (
-                  <InteractionPlotBase
-                    data={computed.gagerr!.interactionData}
-                    parentWidth={width}
-                    parentHeight={containerHeight}
-                    showBranding={showBranding}
-                  />
-                )}
-              </ChartContainer>
-            </div>
-          );
-        }
-        // Fallback to boxplot if no GageRR data available
-        return (
-          <ChartContainer height={chartHeight}>
-            {({ width, height: containerHeight }) => (
-              <BoxplotBase
-                data={computed.boxplotData}
-                specs={computed.specs}
-                parentWidth={width}
-                parentHeight={containerHeight}
-                showBranding={showBranding}
-              />
-            )}
-          </ChartContainer>
-        );
-
-      default:
-        return null;
+  const renderChart = (chartType: CaseChartType, chartHeight: number) => {
+    if (chartType === 'stats') {
+      return <StatsIsland sampleKey={sampleKey} />;
     }
+
+    // GageRR needs two separate ChartContainers for proper resizing
+    if (chartType === 'gagerr') {
+      if (computed.gagerr) {
+        return (
+          <div className="flex flex-col gap-2">
+            <ChartContainer height={Math.floor(chartHeight * 0.45)}>
+              {({ width, height: containerHeight }) => (
+                <GageRRChartBase
+                  pctPart={computed.gagerr!.pctPart}
+                  pctRepeatability={computed.gagerr!.pctRepeatability}
+                  pctReproducibility={computed.gagerr!.pctReproducibility}
+                  pctGRR={computed.gagerr!.pctGRR}
+                  parentWidth={width}
+                  parentHeight={containerHeight}
+                  showBranding={false}
+                />
+              )}
+            </ChartContainer>
+            <ChartContainer height={Math.floor(chartHeight * 0.55)}>
+              {({ width, height: containerHeight }) => (
+                <InteractionPlotBase
+                  data={computed.gagerr!.interactionData}
+                  parentWidth={width}
+                  parentHeight={containerHeight}
+                  showBranding={showBranding}
+                />
+              )}
+            </ChartContainer>
+          </div>
+        );
+      }
+      return (
+        <ChartContainer height={chartHeight}>
+          {({ width, height: containerHeight }) => (
+            <BoxplotBase
+              data={computed.boxplotData}
+              specs={computed.specs}
+              parentWidth={width}
+              parentHeight={containerHeight}
+              showBranding={showBranding}
+            />
+          )}
+        </ChartContainer>
+      );
+    }
+
+    // All other chart types use the shared renderer
+    return (
+      <ChartContainer height={chartHeight}>
+        {({ width, height: containerHeight }) =>
+          renderChartContent({
+            chartType,
+            computed,
+            sample,
+            width,
+            height: containerHeight,
+            showBranding,
+          })
+        }
+      </ChartContainer>
+    );
   };
 
   // Get primary charts (first 2-3) and secondary
