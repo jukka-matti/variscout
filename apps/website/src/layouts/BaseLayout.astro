@@ -56,6 +56,25 @@ const {
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={new URL(ogImage, Astro.site ?? "https://variscout.com")} />
+
+		<!-- Structured Data -->
+		<script type="application/ld+json" set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "SoftwareApplication",
+			"name": "VaRiScout",
+			"applicationCategory": "BusinessApplication",
+			"operatingSystem": "Web",
+			"description": "Variation analysis tool for quality professionals. Find what's driving variation in your data.",
+			"offers": [
+				{ "@type": "Offer", "price": "0", "priceCurrency": "EUR", "description": "Web App — Free Training Tool" },
+				{ "@type": "Offer", "price": "0", "priceCurrency": "EUR", "description": "Excel Add-in — Free Core SPC" },
+				{ "@type": "Offer", "price": "150", "priceCurrency": "EUR", "description": "Azure App — Teams", "billingIncrement": "P1M" }
+			],
+			"publisher": {
+				"@type": "Organization",
+				"name": "RDMAIC Oy"
+			}
+		})} />
 	</head>
 	<body class="min-h-screen flex flex-col">
 		<Header />

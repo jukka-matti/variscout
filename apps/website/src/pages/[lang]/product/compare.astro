@@ -1,0 +1,126 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { Check, Minus } from "lucide-astro";
+import { ui } from "../../../i18n/ui";
+import { getLangFromUrl } from "../../../i18n/utils";
+
+export function getStaticPaths() {
+	const languages = Object.keys(ui);
+	return languages.map((lang) => ({ params: { lang } }));
+}
+
+const lang = getLangFromUrl(Astro.url);
+
+const features = [
+	{ name: "Price", web: "FREE", excel: "FREE", azure: "\u20AC150/month" },
+	{ name: "Distribution", web: "Browser", excel: "AppSource", azure: "Azure Marketplace" },
+	{ name: "I-Chart", web: true, excel: true, azure: true },
+	{ name: "Boxplot", web: true, excel: true, azure: true },
+	{ name: "Pareto", web: true, excel: true, azure: true },
+	{ name: "Capability", web: true, excel: true, azure: true },
+	{ name: "Regression", web: true, excel: false, azure: true },
+	{ name: "Gage R&R", web: true, excel: false, azure: true },
+	{ name: "ANOVA", web: true, excel: false, azure: true },
+	{ name: "Performance Mode", web: false, excel: false, azure: true },
+	{ name: "File Upload", web: false, excel: "N/A", azure: true },
+	{ name: "Save / Persistence", web: false, excel: "Workbook", azure: true },
+	{ name: "OneDrive Sync", web: false, excel: false, azure: true },
+	{ name: "SSO (Azure AD)", web: false, excel: false, azure: true },
+	{ name: "No Branding on Charts", web: false, excel: true, azure: true },
+	{ name: "Works Offline", web: true, excel: true, azure: false },
+	{ name: "Sample Datasets", web: true, excel: false, azure: true },
+];
+---
+
+<BaseLayout title="VaRiScout | Compare Products" description="Compare VaRiScout Web App, Excel Add-in, and Azure App features side by side.">
+	<section class="py-20 bg-white">
+		<div class="container-wide">
+			<div class="text-center mb-16">
+				<a href={`/${lang}`} class="text-sm font-medium text-brand-primary mb-4 block hover:underline">
+					&larr; Back to Home
+				</a>
+				<h1 class="text-4xl font-bold mb-4">Compare Products</h1>
+				<p class="text-neutral-600 max-w-2xl mx-auto">
+					Three products, one methodology. Choose what fits your workflow.
+				</p>
+			</div>
+
+			<!-- Decision Helper -->
+			<div class="grid md:grid-cols-3 gap-6 mb-16 max-w-4xl mx-auto">
+				<div class="bg-neutral-50 border border-neutral-200 rounded-xl p-6 text-center">
+					<p class="text-2xl mb-3">&#127891;</p>
+					<p class="font-bold mb-1">Learning SPC?</p>
+					<p class="text-sm text-neutral-600 mb-4">Start with the Web App. Free, no signup.</p>
+					<a href="/app" class="btn btn-secondary text-sm w-full">Try Free</a>
+				</div>
+				<div class="bg-neutral-50 border border-neutral-200 rounded-xl p-6 text-center">
+					<p class="text-2xl mb-3">&#128202;</p>
+					<p class="font-bold mb-1">Already in Excel?</p>
+					<p class="text-sm text-neutral-600 mb-4">Get the Excel Add-in. Free from AppSource.</p>
+					<a href="https://appsource.microsoft.com/" target="_blank" rel="noopener" class="btn btn-secondary text-sm w-full">Get Add-in</a>
+				</div>
+				<div class="bg-neutral-50 border border-neutral-200 rounded-xl p-6 text-center">
+					<p class="text-2xl mb-3">&#128101;</p>
+					<p class="font-bold mb-1">Team analysis?</p>
+					<p class="text-sm text-neutral-600 mb-4">Deploy the Azure App. &euro;150/month, all features.</p>
+					<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-primary text-sm w-full">Azure Marketplace</a>
+				</div>
+			</div>
+
+			<!-- Product Headers -->
+			<div class="max-w-4xl mx-auto overflow-x-auto">
+				<div class="min-w-[600px]">
+				<div class="grid grid-cols-4 gap-4 mb-8">
+					<div></div>
+					<div class="text-center">
+						<h3 class="font-bold text-lg">Web App</h3>
+						<p class="text-sm text-neutral-500">FREE forever</p>
+					</div>
+					<div class="text-center">
+						<h3 class="font-bold text-lg">Excel Add-in</h3>
+						<p class="text-sm text-neutral-500">FREE forever</p>
+					</div>
+					<div class="text-center">
+						<h3 class="font-bold text-lg text-brand-primary">Azure App</h3>
+						<p class="text-sm text-neutral-500">&euro;150/month</p>
+					</div>
+				</div>
+
+				<!-- Feature Rows -->
+				<div class="border border-neutral-200 rounded-2xl overflow-hidden">
+					{features.map((feature, i) => (
+						<div class={`grid grid-cols-4 gap-4 px-6 py-4 ${i % 2 === 0 ? 'bg-neutral-50' : 'bg-white'} ${i > 0 ? 'border-t border-neutral-100' : ''}`}>
+							<div class="font-medium text-sm text-neutral-900">{feature.name}</div>
+							{[feature.web, feature.excel, feature.azure].map((val) => (
+								<div class="text-center">
+									{val === true ? (
+										<Check size={18} class="inline-block text-green-600" />
+									) : val === false ? (
+										<Minus size={18} class="inline-block text-neutral-300" />
+									) : (
+										<span class="text-sm text-neutral-700 font-medium">{val}</span>
+									)}
+								</div>
+							))}
+						</div>
+					))}
+				</div>
+
+				<!-- CTAs -->
+				<div class="grid grid-cols-4 gap-4 mt-8">
+					<div></div>
+					<div class="text-center">
+						<a href="/app" class="btn btn-secondary w-full">Try Free</a>
+					</div>
+					<div class="text-center">
+						<a href="https://appsource.microsoft.com/" target="_blank" rel="noopener" class="btn btn-secondary w-full">Get Add-in</a>
+					</div>
+					<div class="text-center">
+						<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-primary w-full">Azure Marketplace</a>
+					</div>
+				</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</BaseLayout>

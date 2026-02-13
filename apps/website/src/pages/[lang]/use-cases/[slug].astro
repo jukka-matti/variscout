@@ -18,6 +18,7 @@ export function getStaticPaths() {
 				chartType: "ichart",
 				heroTitle: "Teach methodology, not software menus.",
 				heroSub: "Learn to find factors driving variation — not to navigate complex software. From training to tollgate presentations in minutes.",
+				recommended: { product: "Web App (Free)", reason: "Free, no signup. 16 sample datasets for training." },
 			}
 		},
 		{
@@ -29,6 +30,7 @@ export function getStaticPaths() {
 				chartType: "ichart",
 				heroTitle: "Real-time insights for the shop floor.",
 				heroSub: "Stop waiting for static reports. Analyze live with your team and make data-driven decisions during the daily huddle.",
+				recommended: { product: "Web App or Excel Add-in", reason: "Paste data for quick analysis, or work directly in Excel." },
 			}
 		},
 		{
@@ -40,6 +42,7 @@ export function getStaticPaths() {
 				chartType: "performance",
 				heroTitle: "Which heads need attention?",
 				heroSub: "8-head sachet filler. 2 heads underperforming. Find them in seconds.",
+				recommended: { product: "Azure App", reason: "Performance Mode monitors all fill heads at once." },
 			}
 		},
 		{
@@ -51,6 +54,7 @@ export function getStaticPaths() {
 				chartType: "performance",
 				heroTitle: "Scalability for 100+ channels.",
 				heroSub: "Monitor massive sensor arrays. Identify outliers across hundreds of measurements in real-time.",
+				recommended: { product: "Azure App", reason: "Performance Mode scales to 100+ channels." },
 			}
 		},
 	];
@@ -63,7 +67,8 @@ export function getStaticPaths() {
 	);
 }
 
-const { title, description, sampleKey, chartType, heroTitle, heroSub } = Astro.props;
+const { title, description, sampleKey, chartType, heroTitle, heroSub, recommended } = Astro.props;
+const lang = Astro.params.lang;
 ---
 
 <BaseLayout title={`VaRiScout | ${title}`} description={description}>
@@ -71,7 +76,7 @@ const { title, description, sampleKey, chartType, heroTitle, heroSub } = Astro.p
 	<section class="py-20 bg-white border-b border-neutral-200">
 		<div class="container-wide">
 			<div class="max-w-3xl mb-12">
-				<a href="/" class="text-sm font-medium text-brand-primary mb-4 block">← Use Cases</a>
+				<a href={`/${lang}`} class="text-sm font-medium text-brand-primary mb-4 block">← Use Cases</a>
 				<h1 class="text-4xl md:text-5xl font-bold mb-6">{heroTitle}</h1>
 				<p class="text-xl text-neutral-600 leading-relaxed italic_text_shorthand">
 					{heroSub}
@@ -84,6 +89,15 @@ const { title, description, sampleKey, chartType, heroTitle, heroSub } = Astro.p
 				) : (
 					<IChartIsland client:only="react" sampleKey={sampleKey} height={500} />
 				)}
+			</div>
+		</div>
+
+		<!-- Product Recommendation -->
+		<div class="container-wide">
+			<div class="bg-brand-primary/5 border border-brand-primary/20 rounded-xl p-6 mt-8">
+				<p class="text-sm font-medium text-brand-primary mb-1">Best experienced with</p>
+				<p class="font-bold text-lg">{recommended.product}</p>
+				<p class="text-sm text-neutral-600">{recommended.reason}</p>
 			</div>
 		</div>
 	</section>
@@ -133,7 +147,7 @@ const { title, description, sampleKey, chartType, heroTitle, heroSub } = Astro.p
 			<h2 class="text-3xl font-bold mb-8 italic_text_shorthand">Ready to try it with your own data?</h2>
 			<div class="flex gap-4 justify-center">
 				<a href="/app" class="btn btn-primary px-8 py-3">Try Free</a>
-				<a href="/pricing" class="btn btn-secondary px-8 py-3">See Pricing</a>
+				<a href={`/${lang}/pricing`} class="btn btn-secondary px-8 py-3">See Pricing</a>
 			</div>
 		</div>
 	</section>

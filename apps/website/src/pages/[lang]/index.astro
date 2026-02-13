@@ -21,7 +21,7 @@ const hero = {
 	subhead: "46% of your improvement potential may be hiding in one place. VaRiScout finds WHERE to focus. Simple enough for anyone. Rigorous enough for experts.",
 	primaryCTA: { text: "Try Free", href: "/app" },
 	secondaryCTA: { text: "Take the Journey", href: `/${lang}/journey` },
-	primaryCTANote: "Demo with samples • Install to upload",
+	primaryCTANote: "Free — no signup required",
 	showAveragesHook: true,
 };
 
@@ -31,29 +31,28 @@ const useCases = [
 		title: "LSS Training & Projects",
 		description: "Simplified statistics for Green Belts and trainers. Learn the methodology, not the software.",
 		bullets: ["Zero learning curve", "Plain language insights", "Perfect for tollgate presentations"],
-		cta: { text: "Learn More", href: "/use-cases/lss-training" },
+		cta: { text: "Learn More", href: `/${lang}/use-cases/lss-training` },
 	},
 	{
 		id: "operations",
 		title: "Quality & Operations",
 		description: "Live analysis for daily decisions. Answer questions in the meeting, not after.",
 		bullets: ["Analyze live with your team", "No waiting for reports", "Visual clarity for everyone"],
-		cta: { text: "Learn More", href: "/use-cases/operations" },
+		cta: { text: "Learn More", href: `/${lang}/use-cases/operations` },
 	},
 	{
 		id: "high-density",
 		title: "High-Density Analysis",
 		description: "Monitor 100+ channels simultaneously. Scalable performance tracking for massive systems.",
 		bullets: ["100+ channel ranking", "Auto-outlier detection", "Real-time scalability"],
-		cta: { text: "Learn More", href: "/use-cases/high-density" },
+		cta: { text: "Learn More", href: `/${lang}/use-cases/high-density` },
 	},
 ];
 
 const products = [
-	{ id: "web", title: "Web App", description: "Demo in browser. Install to upload.", price: "Demo → Free → €49", cta: { text: "Try Demo", href: "/app" } },
-	{ id: "excel", title: "Excel", description: "Add-in for Excel users.", price: "Free / €49", cta: { text: "Get Add-in", href: "/product/excel" } },
-	{ id: "powerbi", title: "Power BI", description: "Custom visuals for dashboards.", price: "From €399", cta: { text: "View Suite", href: "/product/power-bi" } },
-	{ id: "azure", title: "Azure", description: "Self-deploy to your tenant.", price: "€999", cta: { text: "Learn More", href: "/product/azure" } },
+	{ id: "pwa", title: "Web App", description: "Free training & education tool. Paste data or explore samples.", price: "FREE forever", cta: { text: "Try Free", href: "/app" }, badge: "Best for Learning" },
+	{ id: "excel", title: "Excel Add-in", description: "Core SPC charts inside Excel.", price: "FREE forever", cta: { text: "Get Add-in", href: `/${lang}/product/excel` } },
+	{ id: "azure", title: "Azure App", description: "Full analysis for teams. All features, unlimited users.", price: "€150/month", cta: { text: "Learn More", href: `/${lang}/product/azure` }, badge: "Full Power" },
 ];
 ---
 
@@ -63,19 +62,6 @@ const products = [
 	<!-- Mini Journey: The Transformation -->
 	<MiniJourney lang={lang} />
 
-	<!-- Four Pillars: The Framework -->
-	<FourPillars lang={lang} />
-
-	<!-- Use Cases -->
-	<section class="py-24 bg-neutral-50 overflow-hidden">
-		<div class="container-wide">
-			<h2 class="text-3xl font-bold text-center mb-16">Two Worlds, One Tool</h2>
-			<div class="grid md:grid-cols-2 gap-8">
-				{useCases.map((useCase) => <UseCaseCard {...useCase} />)}
-			</div>
-		</div>
-	</section>
-
 	<!-- Products -->
 	<section class="py-24 bg-white border-b border-neutral-200">
 		<div class="container-wide">
@@ -83,11 +69,24 @@ const products = [
 				<h2 class="text-3xl font-bold mb-4">Choose Your Platform</h2>
 				<p class="text-neutral-600">Same analysis, wherever you work</p>
 			</div>
-			<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+			<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
 				{products.map((product) => <ProductCard {...product} />)}
 			</div>
 		</div>
 	</section>
+
+	<!-- Use Cases -->
+	<section class="py-24 bg-neutral-50 overflow-hidden">
+		<div class="container-wide">
+			<h2 class="text-3xl font-bold text-center mb-16">Built for Every Quality Role</h2>
+			<div class="grid md:grid-cols-3 gap-8">
+				{useCases.map((useCase) => <UseCaseCard {...useCase} />)}
+			</div>
+		</div>
+	</section>
+
+	<!-- Four Pillars: The Framework -->
+	<FourPillars lang={lang} />
 
 	<!-- Final CTA -->
 	<section class="py-24 bg-brand-primary text-white overflow-hidden relative">

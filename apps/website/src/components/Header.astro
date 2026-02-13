@@ -9,28 +9,16 @@ const route = getRouteFromUrl(Astro.url);
 
 const navItems = [
 	{
-		label: 'Explore',
-		items: [
-			{ label: 'Journey', href: `/${lang}/journey`, description: 'See the 46% story unfold' },
-			{ label: 'Case Studies', href: `/${lang}/cases`, description: 'Practice with real scenarios' },
-		],
-	},
-	{
-		label: 'Tools',
+		label: 'Methods',
 		items: [
 			{ label: 'I-Chart', href: `/${lang}/tools/i-chart`, description: 'Patterns over time' },
 			{ label: 'Boxplot', href: `/${lang}/tools/boxplot`, description: 'Compare factors' },
 			{ label: 'Pareto', href: `/${lang}/tools/pareto`, description: 'Prioritize problems' },
 			{ label: 'Capability', href: `/${lang}/tools/capability`, description: 'Meet specs' },
-			{ label: 'All Tools', href: `/${lang}/tools`, divider: true },
-		],
-	},
-	{
-		label: 'Learn',
-		items: [
-			{ label: 'Two Voices', href: `/${lang}/learn/two-voices`, description: 'Control vs Spec' },
+			{ label: 'Two Voices', href: `/${lang}/learn/two-voices`, description: 'Control vs Spec', divider: true },
 			{ label: 'Four Pillars', href: `/${lang}/learn/four-pillars`, description: 'Watson framework' },
 			{ label: 'EDA Philosophy', href: `/${lang}/learn/eda-philosophy`, description: 'Visual exploration' },
+			{ label: 'All Methods', href: `/${lang}/tools`, divider: true },
 		],
 	},
 	{
@@ -38,7 +26,6 @@ const navItems = [
 		items: [
 			{ label: t('nav.product.web'), href: `/${lang}/product/web-app` },
 			{ label: t('nav.product.excel'), href: `/${lang}/product/excel` },
-			{ label: t('nav.product.powerbi'), href: `/${lang}/product/power-bi` },
 			{ label: t('nav.product.azure'), href: `/${lang}/product/azure` },
 			{ label: t('nav.product.compare'), href: `/${lang}/product/compare`, divider: true },
 		],
@@ -140,35 +127,34 @@ const navItems = [
 				Take the Journey
 			</a>
 
-			{navItems.map((group) => (
-				<div class="space-y-2">
-					<h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider px-2">{group.label}</h3>
-					<div class="space-y-1">
-						{group.items.map((item) => (
-							<>
-								{!item.divider && (
-									<a
-										href={item.href}
-										class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50"
-									>
-										{item.label}
-									</a>
-								)}
-							</>
-						))}
-					</div>
-				</div>
-			))}
+			<!-- Methods -->
+			<div class="space-y-1">
+				<h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider px-2">Methods</h3>
+				<a href={`/${lang}/tools/i-chart`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">I-Chart</a>
+				<a href={`/${lang}/tools/boxplot`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">Boxplot</a>
+				<a href={`/${lang}/tools/pareto`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">Pareto</a>
+				<a href={`/${lang}/tools/capability`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">Capability</a>
+			</div>
+
+			<!-- Product -->
+			<div class="space-y-1">
+				<h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider px-2">{t('nav.product')}</h3>
+				<a href={`/${lang}/product/web-app`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">{t('nav.product.web')}</a>
+				<a href={`/${lang}/product/excel`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">{t('nav.product.excel')}</a>
+				<a href={`/${lang}/product/azure`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">{t('nav.product.azure')}</a>
+				<a href={`/${lang}/product/compare`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">{t('nav.product.compare')}</a>
+			</div>
+
 			<hr class="border-neutral-200 my-4" />
 			<a href={`/${lang}/pricing`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">
 				{t('nav.pricing')}
 			</a>
-			
+
 			<div class="flex items-center gap-2 px-4 py-2">
 				<Globe size={18} class="text-neutral-500" />
 				<div class="flex flex-wrap gap-2">
 					{Object.entries(languages).map(([code, label]) => (
-						<a 
+						<a
 							href={`/${code}${route ? `/${route}` : ''}`}
 							class={`text-sm px-2 py-1 rounded ${code === lang ? 'bg-brand-primary text-white' : 'bg-neutral-100 text-neutral-700'}`}
 						>

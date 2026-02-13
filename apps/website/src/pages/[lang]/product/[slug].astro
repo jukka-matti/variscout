@@ -33,15 +33,45 @@ export function getStaticPaths() {
 	const languages = Object.keys(ui);
 	const products: Array<{ slug: string; props: ProductProps }> = [
 		{
-			slug: "excel",
+			slug: "web-app",
 			props: {
-				title: "VaRiScout for Excel",
-				description: "Analyze without leaving your spreadsheet. The power of VaRiScout, integrated directly into Excel.",
-				heroTitle: "Find variation where your data lives.",
-				heroSub: "The VaRiScout Excel Add-in brings professional variation analysis to your everyday spreadsheets. No more fighting with chart menus.",
+				title: "VaRiScout Web App",
+				description: "Free training & education tool for quality professionals worldwide.",
+				heroTitle: "Professional SPC analysis. Free forever.",
+				heroSub: "Core SPC + Green Belt tools for training, education, and quality practitioners. Copy-paste from Excel, explore sample datasets, analyze in your browser. No signup required.",
 				journeyFeatures: {
 					findIt: {
 						pillars: { change: true, flow: true, failure: true, value: true },
+						extras: ["16 sample datasets", "Copy-paste from Excel"],
+					},
+					fixIt: [
+						"Visual drill-down to root cause",
+						"Filter and compare factors",
+						"Plain language insights",
+					],
+					checkIt: [
+						"Before/after comparison",
+						"Statistical validation",
+					],
+					continue: [
+						"Works offline after first visit",
+						"No signup required",
+						"Session-based (no persistence)",
+					],
+				},
+				cta: { text: "Try Free", href: "/app" },
+			}
+		},
+		{
+			slug: "excel",
+			props: {
+				title: "VaRiScout for Excel",
+				description: "Core SPC charts directly in your Excel spreadsheets. Free forever.",
+				heroTitle: "Find variation where your data lives.",
+				heroSub: "The VaRiScout Excel Add-in brings core SPC charts to your everyday spreadsheets. I-Chart, Boxplot, Pareto, and Capability — free forever from Microsoft AppSource.",
+				journeyFeatures: {
+					findIt: {
+						pillars: { change: true, flow: true, failure: true, value: false },
 						extras: ["Auto-refresh when data changes", "Range selection wizard"],
 					},
 					fixIt: [
@@ -58,50 +88,20 @@ export function getStaticPaths() {
 						"Share analysis with colleagues",
 					],
 				},
-				cta: { text: "Get from AppSource", href: "https://appsource.microsoft.com/..." },
-			}
-		},
-		{
-			slug: "power-bi",
-			props: {
-				title: "VaRiScout for Power BI",
-				description: "Professional variation analysis visuals for your Power BI dashboards.",
-				heroTitle: "Dashboards that actually explain variation.",
-				heroSub: "Standard Power BI charts often hide variation. VaRiScout custom visuals bring I-Charts, Boxplots, and Pareto charts to your team's reporting.",
-				journeyFeatures: {
-					findIt: {
-						pillars: { change: true, flow: true, failure: true, value: true },
-						extras: ["Cross-visual filtering", "DAX measure support"],
-					},
-					fixIt: [
-						"Drill through to detail pages",
-						"Cross-filter other visuals on click",
-						"Export insights to PDF or PowerPoint",
-					],
-					checkIt: [
-						"Refresh data to see latest state",
-						"Compare time periods with slicers",
-					],
-					continue: [
-						"Embed in team dashboards",
-						"Schedule automated reports",
-						"Share via Power BI Service",
-					],
-				},
-				cta: { text: "View in AppSource", href: "https://appsource.microsoft.com/..." },
+				cta: { text: "Get from AppSource", href: "https://appsource.microsoft.com/" },
 			}
 		},
 		{
 			slug: "azure",
 			props: {
 				title: "VaRiScout for Azure",
-				description: "Deploy VaRiScout to your own Azure tenant for total control and privacy.",
-				heroTitle: "Your infrastructure. Your data. Your control.",
-				heroSub: "For organizations with strict security requirements. Deploy a dedicated instance of VaRiScout to your Azure subscription in minutes.",
+				description: "Full analysis platform for teams. All features, unlimited users. €150/month.",
+				heroTitle: "Your infrastructure. Your data. Full power.",
+				heroSub: "Managed Application from Azure Marketplace. All features including Performance Mode, file upload, save and persistence, OneDrive sync, and SSO — deployed in your Azure tenant at €150/month.",
 				journeyFeatures: {
 					findIt: {
 						pillars: { change: true, flow: true, failure: true, value: true },
-						extras: ["Team collaboration", "Role-based access"],
+						extras: ["Performance Mode (100+ channels)", "File upload (CSV, Excel)"],
 					},
 					fixIt: [
 						"Create action items from findings",
@@ -109,17 +109,17 @@ export function getStaticPaths() {
 						"Track resolution status",
 					],
 					checkIt: [
-						"Version history of all analyses",
+						"Save and persistence",
 						"Before/after snapshots",
-						"Audit trail for compliance",
+						"OneDrive sync across devices",
 					],
 					continue: [
-						"Save projects to OneDrive",
-						"Sync across devices",
+						"SSO via Azure AD / Entra ID",
+						"Unlimited team members",
 						"Data stays in your tenant",
 					],
 				},
-				cta: { text: "View in Marketplace", href: "https://azuremarketplace.microsoft.com/..." },
+				cta: { text: "Azure Marketplace", href: "https://azuremarketplace.microsoft.com/" },
 			}
 		},
 	];

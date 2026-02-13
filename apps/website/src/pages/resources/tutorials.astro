@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { BookOpen } from "lucide-astro";
+---
+
+<BaseLayout title="VaRiScout | Tutorials" description="Learn variation analysis with VaRiScout tutorials and guides.">
+	<section class="py-24 bg-white">
+		<div class="container-wide text-center max-w-2xl mx-auto">
+			<div class="p-4 bg-brand-primary/10 rounded-2xl inline-block mb-8">
+				<BookOpen size={48} class="text-brand-primary" />
+			</div>
+			<h1 class="text-4xl font-bold mb-6">Tutorials</h1>
+			<p class="text-neutral-600 text-lg mb-10">
+				Tutorials are coming soon. In the meantime, explore our built-in sample datasets — each one tells a story about variation and how to find its source.
+			</p>
+			<a href="/app" class="btn btn-primary px-8 py-3">
+				Explore Sample Datasets
+			</a>
+		</div>
+	</section>
+</BaseLayout>
