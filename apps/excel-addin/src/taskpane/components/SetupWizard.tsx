@@ -28,8 +28,6 @@ import {
 import { ensureTable, detectColumnTypes } from '../../lib/tableManager';
 import { createSlicerRow, isSlicerSupported } from '../../lib/slicerManager';
 import { saveAddInState, createInitialState, type AddInState } from '../../lib/stateBridge';
-import { hasPaidSubscription } from '../../lib/licenseDetection';
-import { UpgradePrompt } from './UpgradePrompt';
 
 const useStyles = makeStyles({
   container: {
@@ -128,9 +126,6 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
   const [currentStep, setCurrentStep] = useState<WizardStep>('data');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const [pendingState, setPendingState] = useState<AddInState | null>(null);
-
   // Step 1: Data state
   const [rangeAddress, setRangeAddress] = useState<string>('');
   const [dataSheetName, setDataSheetName] = useState<string>('');
@@ -331,16 +326,10 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
       state.stageColumn = stageColumn;
       state.stageOrderMode = stageOrderMode;
 
-      // Check subscription status - only paid users can save configuration
-      if (hasPaidSubscription()) {
-        await saveAddInState(state);
-        setCurrentStep('complete');
-        onComplete(state);
-      } else {
-        // Store state and show upgrade prompt
-        setPendingState(state);
-        setShowUpgradePrompt(true);
-      }
+      // Excel Add-in is free forever — always save directly
+      await saveAddInState(state);
+      setCurrentStep('complete');
+      onComplete(state);
     } catch (err: unknown) {
       console.error('Error saving state:', err);
       setError(
@@ -372,37 +361,12 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete, onCancel }
     }
   };
 
-  // Handle "Continue without saving" from upgrade prompt
-  const handleContinueWithoutSaving = useCallback(() => {
-    if (pendingState) {
-      setShowUpgradePrompt(false);
-      setCurrentStep('complete');
-      // Complete without saving to document properties - config will be lost on close
-      onComplete(pendingState);
-      setPendingState(null);
-    }
-  }, [pendingState, onComplete]);
-
-  // Handle closing upgrade prompt without action
-  const handleCloseUpgradePrompt = useCallback(() => {
-    setShowUpgradePrompt(false);
-    setIsLoading(false);
-  }, []);
-
   const toggleFactorColumn = (col: string) => {
     setFactorColumns(prev => (prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col]));
   };
 
   return (
     <div className={styles.container}>
-      {/* Upgrade prompt dialog */}
-      <UpgradePrompt
-        open={showUpgradePrompt}
-        onClose={handleCloseUpgradePrompt}
-        onContinueWithoutSaving={handleContinueWithoutSaving}
-        feature="save your configuration to the workbook"
-      />
-
       {/* Progress */}
       <div className={styles.progressContainer}>
         <Caption1>

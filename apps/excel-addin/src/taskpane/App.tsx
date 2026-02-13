@@ -25,7 +25,6 @@ import { StatsDisplay } from './components/StatsDisplay';
 import { SetupWizard } from './components/SetupWizard';
 import { SelectedData } from '../lib/excelData';
 import { loadAddInState, clearAddInState, type AddInState } from '../lib/stateBridge';
-import { hasPaidSubscription, getCurrentTier } from '../lib/licenseDetection';
 
 const useStyles = makeStyles({
   root: {
@@ -113,10 +112,6 @@ const App: React.FC = () => {
   const [selectedData, setSelectedData] = useState<SelectedData | null>(null);
   const [specs, setSpecs] = useState<{ usl?: number; lsl?: number }>({});
   const [savedState, setSavedState] = useState<AddInState | null>(null);
-
-  // License tier detection (via Azure Marketplace)
-  const isLicensed = hasPaidSubscription();
-  const currentTier = getCurrentTier();
 
   // Check for existing configuration on mount
   useEffect(() => {
@@ -306,15 +301,6 @@ const App: React.FC = () => {
               Reset
             </Button>
           </div>
-
-          {/* License tier info - shows current Azure Marketplace subscription status */}
-          {isLicensed && (
-            <Body2
-              style={{ marginTop: tokens.spacingVerticalL, color: tokens.colorNeutralForeground2 }}
-            >
-              Tier: {currentTier}
-            </Body2>
-          )}
         </div>
       </div>
     );
