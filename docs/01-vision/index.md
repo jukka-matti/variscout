@@ -61,6 +61,18 @@ The critical insight: These two voices are independent. The process doesn't know
 
 [:octicons-arrow-right-24: Two Voices](two-voices/index.md)
 
+### Progressive Stratification
+
+The conceptual bridge between VariScout's UI design and its statistical methodology. Why filter chips with contribution percentages, why one-factor-at-a-time drilling, and where the current design may be insufficient.
+
+[:octicons-arrow-right-24: Progressive Stratification](progressive-stratification.md)
+
+### Design Evaluations
+
+Product strategy evaluations for the 6 design tensions and 7 alternative patterns identified in Progressive Stratification. Each evaluation assesses fit against VariScout's philosophy, personas, and competitive positioning to inform roadmap decisions.
+
+[:octicons-arrow-right-24: Evaluations](evaluations/index.md)
+
 ---
 
 ## Target Audience
