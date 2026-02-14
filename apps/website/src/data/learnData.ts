@@ -942,7 +942,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'in-variscout',
         title: 'Where to See η² in VariScout',
         content:
-          'η² appears in the ANOVA results below Boxplot charts. The Variation Funnel shows cumulative η² as you drill down. The Pareto chart ranking uses η² to order factors by explanatory power.',
+          'η² appears in the ANOVA results below Boxplot charts. The Investigation Mindmap shows cumulative η² as you drill down. The Pareto chart ranking uses η² to order factors by explanatory power.',
         visual: {
           type: 'chart',
           data: {

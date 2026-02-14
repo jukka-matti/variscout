@@ -60,7 +60,8 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Linked filtering**      |     ✓     | Via slicers  |     ✓      | Excel uses native slicers  |
 | **Breadcrumb navigation** |     ✓     |      -       |     ✓      | Not applicable in Excel    |
 | **Multi-select filters**  |     ✓     |      ✓       |     ✓      |                            |
-| **Variation funnel**      |     ✓     |      -       |     ✓      |                            |
+| **Investigation Mindmap** |     ✓     |      -       |     ✓      |                            |
+| **What-If Simulator**     |     ✓     |      -       |     ✓      |                            |
 | **Keyboard navigation**   |     ✓     |   Partial    |     ✓      | Excel has its own patterns |
 
 ---

@@ -68,7 +68,7 @@ export interface DrillLevelVariation {
  * 1. Local η² - how much variation the factor explains at that level
  * 2. Cumulative η² - product of all local η² values
  *
- * This enables the "variation funnel" insight: drilling 3 levels deep
+ * This enables the "Investigation Mindmap" insight: drilling 3 levels deep
  * to isolate e.g. 46% of total variation into one specific condition.
  *
  * @param rawData - Original unfiltered data
@@ -230,7 +230,7 @@ export const DRILL_SWITCH_THRESHOLD = 5;
  *
  * After drilling into a factor (e.g., filtering to Machine A), this function
  * finds the remaining factor with highest variation in the filtered data.
- * This guides users through a "variation funnel" by automatically suggesting
+ * This guides users through an "Investigation Mindmap" by automatically suggesting
  * the next most impactful analysis direction.
  *
  * @param factorVariations - Map of factor name to variation percentage (0-100)
@@ -288,7 +288,7 @@ export interface OptimalFactorResult {
  * Find the optimal combination of factors that explain a target percentage of variation
  *
  * Uses a greedy algorithm to select factors by highest η² contribution.
- * This enables the "variation funnel" feature by identifying the 1-3 factors
+ * This enables the "Investigation Mindmap" feature by identifying the 1-3 factors
  * that explain ~70% of total variation.
  *
  * @param data - Raw data array
