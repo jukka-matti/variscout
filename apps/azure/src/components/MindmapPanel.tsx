@@ -3,7 +3,7 @@ import { InvestigationMindmapBase } from '@variscout/charts';
 import { useMindmapState, type DrillStep } from '@variscout/hooks';
 import type { FilterAction } from '@variscout/core';
 import { toPng } from 'html-to-image';
-import { X, Download } from 'lucide-react';
+import { X, Download, ExternalLink } from 'lucide-react';
 
 interface MindmapPanelProps {
   /** Whether the panel is open */
@@ -22,6 +22,8 @@ interface MindmapPanelProps {
   specs?: { usl?: number; lsl?: number; target?: number };
   /** Called when user selects a category to drill into */
   onDrillCategory: (factor: string, value: string | number) => void;
+  /** Called when user clicks the popout button */
+  onOpenPopout?: () => void;
 }
 
 /**
@@ -40,6 +42,7 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
   filterStack,
   specs,
   onDrillCategory,
+  onOpenPopout,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const mindmapRef = useRef<HTMLDivElement>(null);
@@ -148,6 +151,16 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
                 aria-label="Export as PNG"
               >
                 <Download size={14} />
+              </button>
+            )}
+            {onOpenPopout && (
+              <button
+                onClick={onOpenPopout}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                title="Open in new window"
+                aria-label="Open in new window"
+              >
+                <ExternalLink size={14} />
               </button>
             )}
             <button

@@ -4,11 +4,18 @@ import { loginRequest } from './auth/msalConfig';
 import { DataProvider } from './context/DataContext';
 import { Dashboard as ProjectDashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
+import MindmapWindow from './components/MindmapWindow';
 import { Cloud, LogOut } from 'lucide-react';
 
 type View = 'dashboard' | 'editor';
 
 function App() {
+  // Detect popout mode from URL — render standalone mindmap without auth
+  const [isMindmapPopout] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('view') === 'mindmap';
+  });
+
   const { instance, accounts } = useMsal();
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [currentProject, setCurrentProject] = useState<string | null>(null);
@@ -32,6 +39,10 @@ function App() {
   };
 
   const userName = accounts[0]?.name || accounts[0]?.username || 'User';
+
+  if (isMindmapPopout) {
+    return <MindmapWindow />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">

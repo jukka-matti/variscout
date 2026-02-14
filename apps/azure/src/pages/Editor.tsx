@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useMemo } from 'react';
+import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { useStorage } from '../services/storage';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
@@ -6,6 +6,7 @@ import { useFilterNavigation } from '../hooks';
 import Dashboard from '../components/Dashboard';
 import DataPanel from '../components/DataPanel';
 import MindmapPanel from '../components/MindmapPanel';
+import { openMindmapPopout } from '../components/MindmapWindow';
 import ManualEntry from '../components/ManualEntry';
 import WhatIfPage from '../components/WhatIfPage';
 import { validateData, getNelsonRule2ViolationPoints, calculateStats } from '@variscout/core';
@@ -48,6 +49,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     outcome,
     factors,
     specs,
+    columnAliases,
     isPerformanceMode,
     measureColumns,
     measureLabel,
@@ -86,6 +88,32 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     enableHistory: false,
     enableUrlSync: false,
   });
+
+  // Handle opening mindmap in a popout window
+  const handleOpenMindmapPopout = useCallback(() => {
+    if (outcome) {
+      openMindmapPopout(rawData, factors, outcome, columnAliases, specs, filterNav.filterStack);
+      setIsMindmapOpen(false);
+    }
+  }, [rawData, factors, outcome, columnAliases, specs, filterNav.filterStack]);
+
+  // Listen for drill commands from popout mindmap window
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type === 'MINDMAP_DRILL_CATEGORY') {
+        const { factor, value } = event.data;
+        filterNav.applyFilter({
+          type: 'filter',
+          source: 'mindmap',
+          factor,
+          values: [value],
+        });
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [filterNav]);
 
   // Handle drilling from Performance Mode to standard I-Chart for a specific measure
   const handleDrillToMeasure = useCallback(
@@ -501,6 +529,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             <MindmapPanel
               isOpen={isMindmapOpen}
               onClose={() => setIsMindmapOpen(false)}
+              onOpenPopout={handleOpenMindmapPopout}
               data={rawData}
               factors={factors}
               outcome={outcome}

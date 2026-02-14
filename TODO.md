@@ -7,7 +7,7 @@ All 816 tests pass. Both features functional across PWA and Azure.
 
 ## 1. Azure Mindmap Gaps
 
-- [ ] **No popout window** — PWA has MindmapWindow.tsx with cross-window localStorage sync; Azure renders inline only. Decision needed: is popout relevant for Azure?
+- [x] **No popout window** — Ported MindmapWindow.tsx with localStorage sync + postMessage drill commands; popout detected via `?view=mindmap` before MSAL auth
 
 ## 2. Azure What-If Gaps
 
