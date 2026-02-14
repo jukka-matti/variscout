@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import {
   InvestigationMindmapBase,
   type MindmapNode,
   type MindmapEdge,
   type MindmapMode,
+  type NarrativeStep,
   type CategoryData,
 } from '@variscout/charts';
 import { useDrillPath } from '@variscout/hooks';
@@ -17,6 +18,8 @@ import {
   filterStackToFilters,
   createFilterAction,
 } from '@variscout/core';
+import { toPng } from 'html-to-image';
+import { Download } from 'lucide-react';
 
 /**
  * Storage key for cross-window data sync
@@ -67,6 +70,7 @@ function computeInteractionEdges(data: any[], factors: string[], outcome: string
  * 3. Category selections are communicated back via postMessage + localStorage fallback
  */
 const MindmapWindow: React.FC = () => {
+  const mindmapRef = useRef<HTMLDivElement>(null);
   const [syncData, setSyncData] = useState<MindmapSyncData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [localFilterStack, setLocalFilterStack] = useState<FilterAction[]>([]);
@@ -157,9 +161,10 @@ const MindmapWindow: React.FC = () => {
     setInteractionEdges(null);
   }, [filteredData, factors, outcome]);
 
-  // Compute interaction edges on demand when switching to interactions mode
+  // Compute interaction edges on demand when switching to interactions or narrative mode
   useEffect(() => {
-    if (mode !== 'interactions' || interactionEdges !== null) return;
+    if (mode !== 'interactions' && mode !== 'narrative') return;
+    if (interactionEdges !== null) return;
     if (filteredData.length < 5 || factors.length < 2) {
       setInteractionEdges([]);
       return;
@@ -260,6 +265,39 @@ const MindmapWindow: React.FC = () => {
     });
   }, [factors, filteredData, outcome, drilledFactors, drillPath, localFilterStack]);
 
+  // Narrative steps mapped from drillPath
+  const narrativeSteps: NarrativeStep[] = useMemo(
+    () =>
+      drillPath.map(step => ({
+        factor: step.factor,
+        values: step.values,
+        etaSquared: step.etaSquared,
+        cumulativeEtaSquared: step.cumulativeEtaSquared,
+        meanBefore: step.meanBefore,
+        meanAfter: step.meanAfter,
+        cpkBefore: step.cpkBefore,
+        cpkAfter: step.cpkAfter,
+        countBefore: step.countBefore,
+        countAfter: step.countAfter,
+      })),
+    [drillPath]
+  );
+
+  // PNG export for narrative mode
+  const handleExportPng = useCallback(async () => {
+    const node = mindmapRef.current;
+    if (!node) return;
+    const dataUrl = await toPng(node, {
+      cacheBust: true,
+      backgroundColor: '#0f172a',
+      pixelRatio: 2,
+    });
+    const link = document.createElement('a');
+    link.download = `investigation-${new Date().toISOString().split('T')[0]}.png`;
+    link.href = dataUrl;
+    link.click();
+  }, []);
+
   // Error state
   if (error) {
     return (
@@ -309,19 +347,43 @@ const MindmapWindow: React.FC = () => {
           >
             Interactions
           </button>
+          <button
+            onClick={() => setMode('narrative')}
+            className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+              mode === 'narrative'
+                ? 'bg-green-500/20 text-green-400'
+                : 'text-content-secondary hover:text-white'
+            }`}
+          >
+            Narrative
+          </button>
         </div>
+
+        {mode === 'narrative' && (
+          <button
+            onClick={handleExportPng}
+            className="p-1.5 text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
+            title="Export as PNG"
+            aria-label="Export as PNG"
+          >
+            <Download size={14} />
+          </button>
+        )}
       </div>
 
-      <InvestigationMindmapBase
-        nodes={nodes}
-        drillTrail={drillTrail}
-        cumulativeVariationPct={cumulativeVariationPct}
-        onCategorySelect={handleDrillCategory}
-        mode={mode}
-        edges={interactionEdges ?? undefined}
-        width={380}
-        height={600}
-      />
+      <div ref={mindmapRef}>
+        <InvestigationMindmapBase
+          nodes={nodes}
+          drillTrail={drillTrail}
+          cumulativeVariationPct={cumulativeVariationPct}
+          onCategorySelect={handleDrillCategory}
+          mode={mode}
+          edges={interactionEdges ?? undefined}
+          narrativeSteps={narrativeSteps}
+          width={380}
+          height={600}
+        />
+      </div>
     </div>
   );
 };

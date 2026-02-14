@@ -51,7 +51,23 @@ export interface MindmapEdge {
 /**
  * Mindmap display mode
  */
-export type MindmapMode = 'drilldown' | 'interactions';
+export type MindmapMode = 'drilldown' | 'interactions' | 'narrative';
+
+/**
+ * Data for a single step in the narrative timeline
+ */
+export interface NarrativeStep {
+  factor: string;
+  values: (string | number)[];
+  etaSquared: number;
+  cumulativeEtaSquared: number;
+  meanBefore: number;
+  meanAfter: number;
+  cpkBefore: number | undefined;
+  cpkAfter: number | undefined;
+  countBefore: number;
+  countAfter: number;
+}
 
 export interface InvestigationMindmapProps {
   /** Factor nodes to display */
@@ -72,6 +88,8 @@ export interface InvestigationMindmapProps {
   edges?: MindmapEdge[];
   /** Called when an interaction edge is clicked */
   onEdgeClick?: (factorA: string, factorB: string) => void;
+  /** Drill step data for narrative mode annotations */
+  narrativeSteps?: NarrativeStep[];
   /** Container width from withParentSize */
   parentWidth?: number;
   /** Container height from withParentSize */
@@ -214,6 +232,186 @@ function computeLayout(
 
   return positions;
 }
+
+/**
+ * Arrange drilled factor nodes in a horizontal timeline (left → right)
+ * Only includes active drill steps — available/exhausted nodes are hidden.
+ */
+function computeTimelineLayout(
+  steps: NarrativeStep[],
+  width: number,
+  height: number,
+  margin: typeof MARGIN
+): { factor: string; x: number; y: number }[] {
+  if (steps.length === 0) return [];
+
+  const usableWidth = width - margin.left - margin.right;
+  const centerY = margin.top + (height - margin.top - margin.bottom - PROGRESS_BAR_HEIGHT - 20) / 2;
+
+  // Evenly space nodes across the horizontal axis
+  const positions: { factor: string; x: number; y: number }[] = [];
+  const count = steps.length;
+  const padding = Math.min(60, usableWidth / (count + 2));
+
+  for (let i = 0; i < count; i++) {
+    const t = count === 1 ? 0.5 : i / (count - 1);
+    const x = margin.left + padding + t * (usableWidth - 2 * padding);
+    positions.push({ factor: steps[i].factor, x, y: centerY });
+  }
+
+  return positions;
+}
+
+// ============================================================================
+// Narrative Sub-components
+// ============================================================================
+
+const ANNOTATION_BOX_WIDTH = 140;
+
+interface StepAnnotationProps {
+  step: NarrativeStep;
+  stepIndex: number;
+  x: number;
+  y: number;
+  nodeRadius: number;
+  svgWidth: number;
+  chrome: ReturnType<typeof useChartTheme>['chrome'];
+}
+
+const StepAnnotation: React.FC<StepAnnotationProps> = ({
+  step,
+  stepIndex,
+  x,
+  y,
+  nodeRadius,
+  svgWidth,
+  chrome,
+}) => {
+  const boxLeft = Math.max(
+    4,
+    Math.min(x - ANNOTATION_BOX_WIDTH / 2, svgWidth - ANNOTATION_BOX_WIDTH - 4)
+  );
+  const boxTop = y + nodeRadius + 20;
+
+  const meanImproved =
+    step.meanAfter !== step.meanBefore
+      ? Math.abs(step.meanAfter) < Math.abs(step.meanBefore)
+      : false;
+  const cpkImproved =
+    step.cpkAfter !== undefined && step.cpkBefore !== undefined
+      ? step.cpkAfter > step.cpkBefore
+      : false;
+
+  const valuesLabel =
+    step.values.length <= 2
+      ? step.values.map(String).join(', ')
+      : `${step.values[0]} +${step.values.length - 1}`;
+
+  return (
+    <>
+      {/* Step number label above node */}
+      <text
+        x={x}
+        y={y - nodeRadius - 18}
+        textAnchor="middle"
+        fontSize={9}
+        fontWeight={600}
+        fill={chrome.labelSecondary}
+        style={{ pointerEvents: 'none' }}
+      >
+        Step {stepIndex + 1}
+      </text>
+
+      {/* Annotation card below node */}
+      <foreignObject x={boxLeft} y={boxTop} width={ANNOTATION_BOX_WIDTH} height={120}>
+        <div
+          style={{
+            background: 'rgba(30,41,59,0.85)',
+            border: '1px solid #334155',
+            borderRadius: 6,
+            padding: '6px 8px',
+            fontSize: 10,
+            lineHeight: 1.5,
+          }}
+        >
+          <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 2 }}>
+            {step.factor} = {valuesLabel}
+          </div>
+          <div style={{ color: '#94a3b8' }}>
+            Explains {(step.etaSquared * 100).toFixed(0)}% of variation
+          </div>
+          <div style={{ color: meanImproved ? chartColors.pass : '#e2e8f0', marginTop: 2 }}>
+            Mean: {step.meanBefore.toFixed(1)} &rarr; {step.meanAfter.toFixed(1)}
+          </div>
+          {step.cpkBefore !== undefined && step.cpkAfter !== undefined && (
+            <div style={{ color: cpkImproved ? chartColors.pass : chartColors.fail }}>
+              Cpk: {step.cpkBefore.toFixed(2)} &rarr; {step.cpkAfter.toFixed(2)}
+            </div>
+          )}
+          <div style={{ color: '#94a3b8' }}>
+            n: {step.countBefore} &rarr; {step.countAfter}
+          </div>
+        </div>
+      </foreignObject>
+    </>
+  );
+};
+
+interface ConclusionPanelProps {
+  steps: NarrativeStep[];
+  x: number;
+  y: number;
+  svgWidth: number;
+  targetPct: number;
+  chrome: ReturnType<typeof useChartTheme>['chrome'];
+}
+
+const ConclusionPanel: React.FC<ConclusionPanelProps> = ({
+  steps,
+  x,
+  y,
+  svgWidth,
+  targetPct,
+  chrome,
+}) => {
+  if (steps.length === 0) return null;
+
+  const lastStep = steps[steps.length - 1];
+  const cumPct = lastStep.cumulativeEtaSquared * 100;
+  const reachedTarget = cumPct >= targetPct;
+  const panelWidth = 160;
+  const left = Math.max(4, Math.min(x - panelWidth / 2, svgWidth - panelWidth - 4));
+
+  return (
+    <foreignObject x={left} y={y} width={panelWidth} height={80}>
+      <div
+        style={{
+          background: reachedTarget ? 'rgba(34,197,94,0.12)' : 'rgba(59,130,246,0.12)',
+          border: `1px solid ${reachedTarget ? 'rgba(34,197,94,0.3)' : 'rgba(59,130,246,0.3)'}`,
+          borderRadius: 8,
+          padding: '8px 10px',
+          fontSize: 10,
+          lineHeight: 1.5,
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ color: '#e2e8f0', fontWeight: 600 }}>
+          {steps.length} factor{steps.length !== 1 ? 's' : ''} explain {cumPct.toFixed(0)}%
+        </div>
+        <div
+          style={{
+            color: reachedTarget ? chartColors.pass : chrome.labelSecondary,
+            marginTop: 2,
+          }}
+        >
+          {reachedTarget
+            ? 'Investigation target reached'
+            : `${(100 - cumPct).toFixed(0)}% unexplained \u2014 consider additional factors`}
+        </div>
+      </div>
+    </foreignObject>
+  );
+};
 
 // ============================================================================
 // Sub-components
@@ -513,6 +711,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
   mode = 'drilldown',
   edges,
   onEdgeClick,
+  narrativeSteps,
   parentWidth,
   parentHeight,
   width: explicitWidth,
@@ -599,9 +798,9 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
     return segments;
   }, [mode, drillTrail, posMap, centerX, centerY]);
 
-  // Visible interaction edges (only used in interactions mode)
+  // Visible interaction edges (used in interactions mode AND narrative cross-connections)
   const visibleEdges = useMemo(() => {
-    if (mode !== 'interactions' || !edges) return [];
+    if ((mode !== 'interactions' && mode !== 'narrative') || !edges) return [];
     return getVisibleEdges(edges);
   }, [mode, edges]);
 
@@ -619,8 +818,213 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
     return map;
   }, [visibleEdges]);
 
+  // ── Narrative timeline layout ──
+  const steps = narrativeSteps ?? [];
+  const timelinePositions = useMemo(
+    () => (mode === 'narrative' ? computeTimelineLayout(steps, width, height, MARGIN) : []),
+    [mode, steps, width, height]
+  );
+
+  const timelinePosMap = useMemo(() => {
+    const map = new Map<string, { x: number; y: number }>();
+    timelinePositions.forEach(p => map.set(p.factor, { x: p.x, y: p.y }));
+    return map;
+  }, [timelinePositions]);
+
+  // Cross-connection arcs: edges where both factors are in the timeline
+  const narrativeCrossEdges = useMemo(() => {
+    if (mode !== 'narrative' || steps.length < 2) return [];
+    const timelineFactors = new Set(steps.map(s => s.factor));
+    return visibleEdges.filter(
+      e => timelineFactors.has(e.factorA) && timelineFactors.has(e.factorB)
+    );
+  }, [mode, steps, visibleEdges]);
+
   if (width < 100 || height < 100) return null;
 
+  // === NARRATIVE MODE ===
+  if (mode === 'narrative') {
+    return (
+      <svg width={width} height={height} style={{ overflow: 'visible' }}>
+        <Group>
+          {/* Empty state */}
+          {steps.length === 0 && (
+            <text
+              x={centerX}
+              y={centerY}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={12}
+              fill={chrome.labelSecondary}
+            >
+              Drill into factors to build the investigation timeline
+            </text>
+          )}
+
+          {/* Cross-connection arcs (dashed bezier above nodes) */}
+          {narrativeCrossEdges.map(edge => {
+            const pA = timelinePosMap.get(edge.factorA);
+            const pB = timelinePosMap.get(edge.factorB);
+            if (!pA || !pB) return null;
+
+            const midX = (pA.x + pB.x) / 2;
+            const dist = Math.abs(pB.x - pA.x);
+            const arcHeight = Math.max(30, dist * 0.3);
+            const cpY = Math.min(pA.y, pB.y) - arcHeight;
+
+            return (
+              <path
+                key={`narc-${edge.factorA}-${edge.factorB}`}
+                d={`M ${pA.x},${
+                  pA.y - getNodeRadius(steps.find(s => s.factor === edge.factorA)?.etaSquared ?? 0)
+                } Q ${midX},${cpY} ${pB.x},${
+                  pB.y - getNodeRadius(steps.find(s => s.factor === edge.factorB)?.etaSquared ?? 0)
+                }`}
+                fill="none"
+                stroke={chartColors.warning}
+                strokeWidth={1.5}
+                strokeOpacity={0.4}
+                strokeDasharray="4,3"
+              />
+            );
+          })}
+
+          {/* Arc labels */}
+          {narrativeCrossEdges.map(edge => {
+            const pA = timelinePosMap.get(edge.factorA);
+            const pB = timelinePosMap.get(edge.factorB);
+            if (!pA || !pB) return null;
+
+            const midX = (pA.x + pB.x) / 2;
+            const dist = Math.abs(pB.x - pA.x);
+            const arcHeight = Math.max(30, dist * 0.3);
+            const labelY = Math.min(pA.y, pB.y) - arcHeight + 4;
+
+            return (
+              <text
+                key={`narclbl-${edge.factorA}-${edge.factorB}`}
+                x={midX}
+                y={labelY}
+                textAnchor="middle"
+                fontSize={8}
+                fill={chartColors.warning}
+                fillOpacity={0.7}
+              >
+                &Delta;R&sup2; = {(edge.deltaRSquared * 100).toFixed(1)}%
+              </text>
+            );
+          })}
+
+          {/* Timeline connector line */}
+          {timelinePositions.length >= 2 && (
+            <line
+              x1={timelinePositions[0].x}
+              y1={timelinePositions[0].y}
+              x2={timelinePositions[timelinePositions.length - 1].x}
+              y2={timelinePositions[timelinePositions.length - 1].y}
+              stroke={chartColors.mean}
+              strokeWidth={2}
+              strokeOpacity={0.4}
+            />
+          )}
+
+          {/* Timeline nodes */}
+          {timelinePositions.map(pos => {
+            const step = steps.find(s => s.factor === pos.factor);
+            if (!step) return null;
+            const radius = getNodeRadius(step.etaSquared);
+
+            return (
+              <Group key={`tl-${pos.factor}`}>
+                <circle
+                  cx={pos.x}
+                  cy={pos.y}
+                  r={radius}
+                  fill={chartColors.mean}
+                  stroke={chartColors.mean}
+                  strokeWidth={2.5}
+                  style={{ transition: 'fill 0.2s' }}
+                />
+                {/* Factor label above */}
+                <text
+                  x={pos.x}
+                  y={pos.y - radius - 6}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fontWeight={600}
+                  fill={chrome.labelPrimary}
+                  style={{ pointerEvents: 'none' }}
+                >
+                  {step.factor}
+                </text>
+                {/* η² inside */}
+                <text
+                  x={pos.x}
+                  y={pos.y + 1}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize={10}
+                  fontWeight={600}
+                  fill="#ffffff"
+                  style={{ pointerEvents: 'none' }}
+                >
+                  {(step.etaSquared * 100).toFixed(0)}%
+                </text>
+              </Group>
+            );
+          })}
+
+          {/* Step annotations */}
+          {timelinePositions.map((pos, i) => {
+            const step = steps[i];
+            if (!step) return null;
+            return (
+              <StepAnnotation
+                key={`ann-${pos.factor}`}
+                step={step}
+                stepIndex={i}
+                x={pos.x}
+                y={pos.y}
+                nodeRadius={getNodeRadius(step.etaSquared)}
+                svgWidth={width}
+                chrome={chrome}
+              />
+            );
+          })}
+
+          {/* Conclusion panel (right of last node, or below center if only 1 step) */}
+          {steps.length > 0 &&
+            (() => {
+              const last = timelinePositions[timelinePositions.length - 1];
+              if (!last) return null;
+              const conclusionX = steps.length === 1 ? last.x : Math.min(last.x + 60, width - 90);
+              const conclusionY = MARGIN.top + 4;
+              return (
+                <ConclusionPanel
+                  steps={steps}
+                  x={conclusionX}
+                  y={conclusionY}
+                  svgWidth={width}
+                  targetPct={targetPct}
+                  chrome={chrome}
+                />
+              );
+            })()}
+
+          {/* Progress bar */}
+          <ProgressFooter
+            width={width}
+            y={height - PROGRESS_BAR_HEIGHT - MARGIN.bottom}
+            cumulativeVariationPct={cumulativeVariationPct}
+            targetPct={targetPct}
+            chrome={chrome}
+          />
+        </Group>
+      </svg>
+    );
+  }
+
+  // === DRILLDOWN / INTERACTIONS MODE (existing) ===
   return (
     <svg width={width} height={height} style={{ overflow: 'visible' }}>
       <Group>

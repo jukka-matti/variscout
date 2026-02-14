@@ -4,6 +4,7 @@ import {
   type MindmapNode,
   type MindmapEdge,
   type MindmapMode,
+  type NarrativeStep,
   type CategoryData,
 } from '@variscout/charts';
 import { useDrillPath } from '@variscout/hooks';
@@ -15,7 +16,8 @@ import {
   applyFilters,
   filterStackToFilters,
 } from '@variscout/core';
-import { X, ExternalLink } from 'lucide-react';
+import { toPng } from 'html-to-image';
+import { X, ExternalLink, Download } from 'lucide-react';
 
 interface MindmapPanelProps {
   /** Whether the panel is open */
@@ -82,6 +84,7 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
   onOpenPopout,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
+  const mindmapRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<MindmapMode>('drilldown');
   const [interactionEdges, setInteractionEdges] = useState<MindmapEdge[] | null>(null);
 
@@ -130,9 +133,10 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
     setInteractionEdges(null);
   }, [filteredData, factors, outcome]);
 
-  // Compute interaction edges on demand when switching to interactions mode
+  // Compute interaction edges on demand when switching to interactions or narrative mode
   useEffect(() => {
-    if (mode !== 'interactions' || interactionEdges !== null) return;
+    if (mode !== 'interactions' && mode !== 'narrative') return;
+    if (interactionEdges !== null) return;
     if (filteredData.length < 5 || factors.length < 2) {
       setInteractionEdges([]);
       return;
@@ -251,6 +255,39 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
     [onDrillCategory]
   );
 
+  // Narrative steps mapped from drillPath
+  const narrativeSteps: NarrativeStep[] = useMemo(
+    () =>
+      drillPath.map(step => ({
+        factor: step.factor,
+        values: step.values,
+        etaSquared: step.etaSquared,
+        cumulativeEtaSquared: step.cumulativeEtaSquared,
+        meanBefore: step.meanBefore,
+        meanAfter: step.meanAfter,
+        cpkBefore: step.cpkBefore,
+        cpkAfter: step.cpkAfter,
+        countBefore: step.countBefore,
+        countAfter: step.countAfter,
+      })),
+    [drillPath]
+  );
+
+  // PNG export for narrative mode
+  const handleExportPng = useCallback(async () => {
+    const node = mindmapRef.current;
+    if (!node) return;
+    const dataUrl = await toPng(node, {
+      cacheBust: true,
+      backgroundColor: '#0f172a',
+      pixelRatio: 2,
+    });
+    const link = document.createElement('a');
+    link.download = `investigation-${new Date().toISOString().split('T')[0]}.png`;
+    link.href = dataUrl;
+    link.click();
+  }, []);
+
   if (!isOpen) return null;
 
   return (
@@ -289,9 +326,29 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
             >
               Interactions
             </button>
+            <button
+              onClick={() => setMode('narrative')}
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                mode === 'narrative'
+                  ? 'bg-green-500/20 text-green-400'
+                  : 'text-content-secondary hover:text-white'
+              }`}
+            >
+              Narrative
+            </button>
           </div>
 
           <div className="flex items-center gap-1">
+            {mode === 'narrative' && (
+              <button
+                onClick={handleExportPng}
+                className="p-1.5 text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
+                title="Export as PNG"
+                aria-label="Export as PNG"
+              >
+                <Download size={14} />
+              </button>
+            )}
             {onOpenPopout && (
               <button
                 onClick={onOpenPopout}
@@ -314,7 +371,7 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
         </div>
 
         {/* Mindmap chart */}
-        <div className="flex-1 overflow-hidden px-2 py-2">
+        <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">
           <InvestigationMindmapBase
             nodes={nodes}
             drillTrail={drillTrail}
@@ -323,6 +380,7 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
             onCategorySelect={handleCategorySelect}
             mode={mode}
             edges={interactionEdges ?? undefined}
+            narrativeSteps={narrativeSteps}
             width={368}
             height={500}
           />

@@ -145,6 +145,7 @@ export {
   type MindmapEdge,
   type MindmapMode,
   type CategoryData,
+  type NarrativeStep,
 } from './InvestigationMindmap';
 
 // Performance chart components
