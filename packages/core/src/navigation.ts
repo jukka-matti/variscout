@@ -17,7 +17,7 @@ export type FilterType = 'highlight' | 'filter';
 /**
  * Source chart that initiated the filter action
  */
-export type FilterSource = 'ichart' | 'boxplot' | 'pareto' | 'histogram' | 'funnel';
+export type FilterSource = 'ichart' | 'boxplot' | 'pareto' | 'histogram' | 'funnel' | 'mindmap';
 
 /**
  * A single filter action in the navigation history

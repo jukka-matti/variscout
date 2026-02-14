@@ -136,6 +136,15 @@ export { default as InteractionPlot, InteractionPlotBase } from './InteractionPl
 export { default as ChartSourceBar, getSourceBarHeight } from './ChartSourceBar';
 export { default as ChartLegend, type ChartLegendProps } from './ChartLegend';
 
+// Investigation Mindmap (drilldown spatial view)
+export {
+  default as InvestigationMindmap,
+  InvestigationMindmapBase,
+  type InvestigationMindmapProps,
+  type MindmapNode,
+  type CategoryData,
+} from './InvestigationMindmap';
+
 // Performance chart components
 export { default as PerformanceIChart, PerformanceIChartBase } from './PerformanceIChart';
 export { default as PerformanceBoxplot, PerformanceBoxplotBase } from './PerformanceBoxplot';

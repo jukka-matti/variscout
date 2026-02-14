@@ -125,11 +125,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   />
                 )}
 
-                {/* Variation Funnel Toggle */}
+                {/* Investigation Toggle */}
                 {onToggleFunnelPanel && (
                   <IconButton
                     icon={<Filter size={18} />}
-                    title={isFunnelPanelOpen ? 'Hide Variation Funnel' : 'Show Variation Funnel'}
+                    title={isFunnelPanelOpen ? 'Hide Investigation' : 'Show Investigation'}
                     onClick={onToggleFunnelPanel}
                     isActive={isFunnelPanelOpen}
                   />

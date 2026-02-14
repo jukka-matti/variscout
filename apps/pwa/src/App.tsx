@@ -7,6 +7,9 @@ import DataTableModal from './components/DataTableModal';
 import DataPanel from './components/DataPanel';
 import FunnelPanel from './components/FunnelPanel';
 import FunnelWindow, { openFunnelPopout } from './components/FunnelWindow';
+import MindmapPanel from './components/MindmapPanel';
+import MindmapWindow, { openMindmapPopout } from './components/MindmapWindow';
+import { useFilterNavigation } from './hooks/useFilterNavigation';
 import { ColumnMapping } from '@variscout/ui';
 import Dashboard from './components/Dashboard';
 import HomeScreen from './components/HomeScreen';
@@ -98,6 +101,7 @@ function App() {
   const [isDataTableOpen, setIsDataTableOpen] = useState(false);
   const [isDataPanelOpen, setIsDataPanelOpen] = useState(false);
   const [isFunnelPanelOpen, setIsFunnelPanelOpen] = useState(false);
+  const [isMindmapPanelOpen, setIsMindmapPanelOpen] = useState(false);
   const [highlightRowIndex, setHighlightRowIndex] = useState<number | null>(null);
   const [showExcludedOnly, setShowExcludedOnly] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -116,6 +120,8 @@ function App() {
   const [isEmbedMode, setIsEmbedMode] = useState(false);
   // Funnel popout mode - renders only the FunnelWindow component
   const [isFunnelPopoutMode, setIsFunnelPopoutMode] = useState(false);
+  // Mindmap popout mode - renders only the MindmapWindow component
+  const [isMindmapPopoutMode, setIsMindmapPopoutMode] = useState(false);
   // Embed focus chart - when set, Dashboard shows only this chart
   const [embedFocusChart, setEmbedFocusChart] = useState<
     'ichart' | 'boxplot' | 'pareto' | 'stats' | null
@@ -128,6 +134,10 @@ function App() {
   // Embed messaging - handles postMessage communication with parent window
   const { highlightedChart, highlightIntensity, notifyChartClicked } =
     useEmbedMessaging(isEmbedMode);
+
+  // Filter navigation for mindmap panel (provides filterStack and applyFilter)
+  const { filterStack: mindmapFilterStack, applyFilter: mindmapApplyFilter } =
+    useFilterNavigation();
 
   // Track desktop/mobile for panel behavior
   useEffect(() => {
@@ -146,10 +156,14 @@ function App() {
     const tabParam = params.get('tab');
     const viewParam = params.get('view');
 
-    // Set funnel popout mode if specified
+    // Set popout modes if specified
     if (viewParam === 'funnel') {
       setIsFunnelPopoutMode(true);
-      return; // Don't process other params in funnel mode
+      return; // Don't process other params in popout mode
+    }
+    if (viewParam === 'mindmap') {
+      setIsMindmapPopoutMode(true);
+      return; // Don't process other params in popout mode
     }
 
     // Set embed mode if specified
@@ -403,6 +417,52 @@ function App() {
     return () => window.removeEventListener('message', handleMessage);
   }, [setFilters]);
 
+  // Toggle mindmap panel
+  const handleToggleMindmapPanel = useCallback(() => {
+    setIsMindmapPanelOpen(prev => !prev);
+  }, []);
+
+  // Close mindmap panel
+  const handleCloseMindmapPanel = useCallback(() => {
+    setIsMindmapPanelOpen(false);
+  }, []);
+
+  // Open mindmap in popout window
+  const handleOpenMindmapPopout = useCallback(() => {
+    if (outcome) {
+      openMindmapPopout(rawData, factors, outcome, columnAliases, specs, mindmapFilterStack);
+      setIsMindmapPanelOpen(false);
+    }
+  }, [rawData, factors, outcome, columnAliases, specs, mindmapFilterStack]);
+
+  // Handle drill category from mindmap (applies filter via navigation)
+  const handleMindmapDrillCategory = useCallback(
+    (factor: string, value: string | number) => {
+      mindmapApplyFilter({
+        type: 'filter',
+        source: 'mindmap',
+        factor,
+        values: [value],
+      });
+    },
+    [mindmapApplyFilter]
+  );
+
+  // Listen for messages from mindmap popout window
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data?.type === 'MINDMAP_DRILL_CATEGORY') {
+        const { factor, value } = event.data;
+        handleMindmapDrillCategory(factor, value);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [handleMindmapDrillCategory]);
+
   // Close data table and clear highlight
   const handleCloseDataTable = useCallback(() => {
     setIsDataTableOpen(false);
@@ -494,9 +554,12 @@ function App() {
     setIsManualEntry(true);
   }, []);
 
-  // Render only FunnelWindow in popout mode
+  // Render only popout windows in popout mode
   if (isFunnelPopoutMode) {
     return <FunnelWindow />;
+  }
+  if (isMindmapPopoutMode) {
+    return <MindmapWindow />;
   }
 
   return (
@@ -514,10 +577,10 @@ function App() {
           dataFilename={dataFilename}
           rowCount={rawData.length}
           isDataPanelOpen={isDataPanelOpen}
-          isFunnelPanelOpen={isFunnelPanelOpen}
+          isFunnelPanelOpen={isMindmapPanelOpen}
           onNewAnalysis={handleResetRequest}
           onToggleDataPanel={handleToggleDataPanel}
-          onToggleFunnelPanel={handleToggleFunnelPanel}
+          onToggleFunnelPanel={handleToggleMindmapPanel}
           onOpenDataTable={() => {
             setHighlightRowIndex(null);
             setIsDataTableOpen(true);
@@ -635,7 +698,23 @@ function App() {
         }}
       />
 
-      {/* Funnel Panel (slide-in from right) */}
+      {/* Investigation Mindmap Panel (slide-in from right) */}
+      {outcome && (
+        <MindmapPanel
+          isOpen={isMindmapPanelOpen}
+          onClose={handleCloseMindmapPanel}
+          data={rawData}
+          factors={factors}
+          outcome={outcome}
+          filterStack={mindmapFilterStack}
+          specs={specs}
+          columnAliases={columnAliases}
+          onDrillCategory={handleMindmapDrillCategory}
+          onOpenPopout={handleOpenMindmapPopout}
+        />
+      )}
+
+      {/* Funnel Panel (kept as fallback — will be removed after mindmap validation) */}
       {outcome && (
         <FunnelPanel
           isOpen={isFunnelPanelOpen}

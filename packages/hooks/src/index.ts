@@ -124,5 +124,8 @@ export {
   type UseDataIngestionReturn,
 } from './useDataIngestion';
 
+// Drill Path (Investigation Mindmap)
+export { useDrillPath, type DrillStep, type UseDrillPathReturn } from './useDrillPath';
+
 // Tier (Azure Marketplace licensing)
 export { useTier, type UseTierResult, type ChannelWarningMessage } from './useTier';
