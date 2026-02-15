@@ -57,6 +57,8 @@ export interface MindmapPanelContentProps {
   children: React.ReactNode;
   /** Color scheme */
   colorScheme?: MindmapPanelColorScheme;
+  /** Column aliases for display names */
+  columnAliases?: Record<string, string>;
 }
 
 /**
@@ -75,6 +77,7 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
   onExportPng,
   children,
   colorScheme = mindmapPanelDefaultColorScheme,
+  columnAliases,
 }) => {
   const c = colorScheme;
 
@@ -159,7 +162,7 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
                 key={step.factor}
                 className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[11px] rounded-full"
               >
-                {step.factor}
+                {columnAliases?.[step.factor] || step.factor}
                 <span className="text-blue-300/60">{(step.etaSquared * 100).toFixed(0)}%</span>
                 {i < drillPath.length - 1 && (
                   <span className={`${c.mutedText} ml-0.5`}>&rarr;</span>

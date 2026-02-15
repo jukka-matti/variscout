@@ -30,6 +30,7 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
   outcome,
   filterStack,
   specs,
+  columnAliases,
   onDrillCategory,
   onOpenPopout,
 }) => {
@@ -46,7 +47,7 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
     mode,
     setMode,
     handleAnnotationChange,
-  } = useMindmapState({ data, factors, outcome, filterStack, specs });
+  } = useMindmapState({ data, factors, outcome, filterStack, specs, columnAliases });
 
   // Close on escape
   useEffect(() => {
@@ -114,6 +115,7 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           onClose={onClose}
           onOpenPopout={onOpenPopout}
           onExportPng={handleExportPng}
+          columnAliases={columnAliases}
         >
           <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">
             <InvestigationMindmapBase
@@ -126,6 +128,7 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
               edges={interactionEdges}
               narrativeSteps={narrativeSteps}
               onAnnotationChange={handleAnnotationChange}
+              columnAliases={columnAliases}
               width={368}
               height={500}
             />

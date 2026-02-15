@@ -25,6 +25,8 @@ export interface CategoryData {
 export interface MindmapNode {
   /** Factor/column name */
   factor: string;
+  /** Display name (alias) — falls back to factor if not set */
+  displayName?: string;
   /** η² (0–1), drives node size */
   etaSquared: number;
   /** Node state: active = drilled, available = can drill, exhausted = too few rows */
@@ -102,6 +104,8 @@ export interface InvestigationMindmapProps {
   width?: number;
   /** Explicit height (overrides parentHeight) */
   height?: number;
+  /** Column aliases for display (used on edge labels) */
+  columnAliases?: Record<string, string>;
 }
 
 // ============================================================================
@@ -281,6 +285,7 @@ interface StepAnnotationProps {
   svgWidth: number;
   chrome: ReturnType<typeof useChartTheme>['chrome'];
   onAnnotationChange?: (stepIndex: number, text: string) => void;
+  columnAliases?: Record<string, string>;
 }
 
 const StepAnnotation: React.FC<StepAnnotationProps> = ({
@@ -292,6 +297,7 @@ const StepAnnotation: React.FC<StepAnnotationProps> = ({
   svgWidth,
   chrome,
   onAnnotationChange,
+  columnAliases,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(step.annotation ?? '');
@@ -362,7 +368,7 @@ const StepAnnotation: React.FC<StepAnnotationProps> = ({
           onClick={onAnnotationChange && !isEditing ? handleStartEdit : undefined}
         >
           <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 2 }}>
-            {step.factor} = {valuesLabel}
+            {columnAliases?.[step.factor] || step.factor} = {valuesLabel}
           </div>
           <div style={{ color: '#94a3b8' }}>
             Explains {(step.etaSquared * 100).toFixed(0)}% of variation
@@ -569,7 +575,7 @@ const CategoryPopover: React.FC<CategoryPopoverProps> = ({
             borderBottom: '1px solid #334155',
           }}
         >
-          {node.factor}
+          {node.displayName || node.factor}
         </div>
         {categories.map(cat => (
           <button
@@ -623,9 +629,18 @@ interface EdgeTooltipProps {
   svgWidth: number;
   svgHeight: number;
   onClose: () => void;
+  columnAliases?: Record<string, string>;
 }
 
-const EdgeTooltip: React.FC<EdgeTooltipProps> = ({ edge, x, y, svgWidth, svgHeight, onClose }) => {
+const EdgeTooltip: React.FC<EdgeTooltipProps> = ({
+  edge,
+  x,
+  y,
+  svgWidth,
+  svgHeight,
+  onClose,
+  columnAliases,
+}) => {
   const tooltipWidth = 170;
   const tooltipHeight = 80;
 
@@ -671,7 +686,8 @@ const EdgeTooltip: React.FC<EdgeTooltipProps> = ({ edge, x, y, svgWidth, svgHeig
             borderBottom: '1px solid #334155',
           }}
         >
-          {edge.factorA} &times; {edge.factorB}
+          {columnAliases?.[edge.factorA] || edge.factorA} &times;{' '}
+          {columnAliases?.[edge.factorB] || edge.factorB}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -800,6 +816,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
   parentHeight,
   width: explicitWidth,
   height: explicitHeight,
+  columnAliases,
 }) => {
   const width = explicitWidth ?? parentWidth ?? 360;
   const height = explicitHeight ?? parentHeight ?? 400;
@@ -1039,7 +1056,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                   fill={chrome.labelPrimary}
                   style={{ pointerEvents: 'none' }}
                 >
-                  {step.factor}
+                  {columnAliases?.[step.factor] || step.factor}
                 </text>
                 {/* η² inside */}
                 <text
@@ -1073,6 +1090,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 svgWidth={width}
                 chrome={chrome}
                 onAnnotationChange={onAnnotationChange}
+                columnAliases={columnAliases}
               />
             );
           })}
@@ -1231,7 +1249,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 fill={chrome.labelPrimary}
                 style={{ pointerEvents: 'none' }}
               >
-                {node.factor}
+                {node.displayName || node.factor}
               </text>
 
               {/* η² percentage inside node */}
@@ -1305,6 +1323,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 svgWidth={width}
                 svgHeight={height}
                 onClose={() => setHoveredEdge(null)}
+                columnAliases={columnAliases}
               />
             );
           })()}

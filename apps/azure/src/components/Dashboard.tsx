@@ -10,6 +10,7 @@ import PerformanceDashboard from './PerformanceDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import FilterBreadcrumb from './FilterBreadcrumb';
 import FactorSelector from './FactorSelector';
+import SpecsPopover from './SpecsPopover';
 import { useData } from '../context/DataContext';
 import { useFilterNavigation, useVariationTracking } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
@@ -63,9 +64,11 @@ const Dashboard = ({
     rawData,
     stats,
     specs,
+    setSpecs,
     filteredData,
     filters,
     setFilters,
+    isPerformanceMode,
     columnAliases,
     stageColumn,
     stageOrderMode,
@@ -301,17 +304,19 @@ const Dashboard = ({
             <Target size={16} />
             Gage R&R
           </button>
-          <button
-            onClick={() => setActiveTab('performance')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'performance'
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
-            }`}
-          >
-            <Gauge size={16} />
-            Performance
-          </button>
+          {isPerformanceMode && (
+            <button
+              onClick={() => setActiveTab('performance')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'performance'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              <Gauge size={16} />
+              Performance
+            </button>
+          )}
         </div>
       </div>
 
@@ -434,6 +439,7 @@ const Dashboard = ({
                         </span>
                       )}
                     </div>
+                    <SpecsPopover specs={specs} onSave={setSpecs} />
                     <button
                       onClick={() => setFocusedChart('ichart')}
                       className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
@@ -612,6 +618,7 @@ const Dashboard = ({
                           </option>
                         ))}
                       </select>
+                      <SpecsPopover specs={specs} onSave={setSpecs} />
                       <button
                         onClick={() => setFocusedChart(null)}
                         className="p-2 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors ml-4 bg-slate-700/50"
@@ -620,6 +627,40 @@ const Dashboard = ({
                         <Minimize2 size={20} />
                       </button>
                     </div>
+                    {/* Stats display in focus mode */}
+                    {stageColumn && stagedStats ? (
+                      <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                        <span className="text-blue-400 font-medium">
+                          {stagedStats.stageOrder.length} stages
+                        </span>
+                        <span className="text-slate-400">
+                          Overall Mean:{' '}
+                          <span className="text-white font-mono">
+                            {stagedStats.overallStats.mean.toFixed(2)}
+                          </span>
+                        </span>
+                      </div>
+                    ) : (
+                      stats && (
+                        <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                          <span className="text-slate-400 flex items-center gap-1">
+                            UCL:{' '}
+                            <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
+                            <HelpTooltip term={getTerm('ucl')} iconSize={12} />
+                          </span>
+                          <span className="text-slate-400 flex items-center gap-1">
+                            Mean:{' '}
+                            <span className="text-white font-mono">{stats.mean.toFixed(2)}</span>
+                            <HelpTooltip term={getTerm('mean')} iconSize={12} />
+                          </span>
+                          <span className="text-slate-400 flex items-center gap-1">
+                            LCL:{' '}
+                            <span className="text-white font-mono">{stats.lcl.toFixed(2)}</span>
+                            <HelpTooltip term={getTerm('lcl')} iconSize={12} />
+                          </span>
+                        </div>
+                      )
+                    )}
                   </div>
                   <div className="flex-1 min-h-0 w-full">
                     <ErrorBoundary componentName="I-Chart">

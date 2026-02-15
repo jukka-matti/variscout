@@ -49,6 +49,8 @@ export interface UseMindmapStateOptions {
   filterStack: FilterAction[];
   /** Specification limits for Cpk projection */
   specs?: { usl?: number; lsl?: number; target?: number };
+  /** Column aliases for display names */
+  columnAliases?: Record<string, string>;
 }
 
 export interface UseMindmapStateReturn {
@@ -81,7 +83,7 @@ export interface UseMindmapStateReturn {
  * Consumers only need to provide a thin UI shell around InvestigationMindmapBase.
  */
 export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStateReturn {
-  const { data, factors, outcome, filterStack, specs } = options;
+  const { data, factors, outcome, filterStack, specs, columnAliases } = options;
 
   const [mode, setMode] = useState<MindmapMode>('drilldown');
   const [interactionEdges, setInteractionEdges] = useState<MindmapEdge[] | null>(null);
@@ -202,6 +204,7 @@ export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStat
 
       return {
         factor,
+        displayName: columnAliases?.[factor] || undefined,
         etaSquared: eta,
         state,
         filteredValue,
@@ -209,7 +212,7 @@ export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStat
         categoryData,
       };
     });
-  }, [factors, filteredData, outcome, drilledFactors, drillPath, filterStack]);
+  }, [factors, filteredData, outcome, drilledFactors, drillPath, filterStack, columnAliases]);
 
   // Annotation handler
   const handleAnnotationChange = useCallback((stepIndex: number, text: string) => {
