@@ -14,8 +14,7 @@ import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
 import { IChartBase, type IChartDataPoint } from '@variscout/charts';
 import { formatTimeValue } from '@variscout/core';
-import AxisEditor from '../AxisEditor';
-import YAxisPopover from '../YAxisPopover';
+import { AxisEditor, YAxisPopover } from '@variscout/ui';
 import { shouldShowBranding, getBrandingText } from '../../lib/edition';
 
 interface IChartProps {

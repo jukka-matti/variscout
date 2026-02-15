@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import WhatIfSimulator from '../WhatIfSimulator';
-import type { SimulatorPreset } from '../WhatIfSimulator';
+import { WhatIfSimulator } from '@variscout/ui';
+import type { SimulatorPreset } from '@variscout/ui';
 
 // Mock simulateDirectAdjustment
 const mockProjection = {

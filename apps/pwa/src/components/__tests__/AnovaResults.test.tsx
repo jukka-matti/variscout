@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import AnovaResults from '../AnovaResults';
+import { AnovaResults } from '@variscout/ui';
 import type { AnovaResult } from '@variscout/core';
 
 describe('AnovaResults', () => {

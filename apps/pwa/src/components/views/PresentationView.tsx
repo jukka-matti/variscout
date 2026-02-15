@@ -3,7 +3,7 @@ import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
 import StatsPanel from '../StatsPanel';
-import ErrorBoundary from '../ErrorBoundary';
+import { ErrorBoundary } from '@variscout/ui';
 import { EditableChartTitle } from '@variscout/charts';
 import { Activity } from 'lucide-react';
 import type { StatsResult, SpecLimits } from '@variscout/core';

@@ -15,7 +15,7 @@ import { withParentSize } from '@visx/responsive';
 import * as d3 from 'd3';
 import { useData } from '../../context/DataContext';
 import { ParetoChartBase, type ParetoDataPoint } from '@variscout/charts';
-import AxisEditor from '../AxisEditor';
+import { AxisEditor } from '@variscout/ui';
 import { shouldShowBranding, getBrandingText } from '../../lib/edition';
 import {
   Eye,

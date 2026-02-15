@@ -13,12 +13,9 @@ import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
-import AnovaResults from './AnovaResults';
 import RegressionPanel from './RegressionPanel';
 import GageRRPanel from './GageRRPanel';
-import ErrorBoundary from './ErrorBoundary';
-import FactorSelector from './FactorSelector';
-import FilterBreadcrumb from './FilterBreadcrumb';
+import { AnovaResults, ErrorBoundary, FactorSelector, FilterBreadcrumb } from '@variscout/ui';
 import type { StatsResult, AnovaResult } from '@variscout/core';
 import type { FilterChipData } from '@variscout/hooks';
 

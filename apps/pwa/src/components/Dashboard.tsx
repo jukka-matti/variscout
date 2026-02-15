@@ -4,17 +4,21 @@ import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
 import MobileDashboard from './MobileDashboard';
-import AnovaResults from './AnovaResults';
 import RegressionPanel from './RegressionPanel';
 import GageRRPanel from './GageRRPanel';
-import ErrorBoundary from './ErrorBoundary';
-import FilterBreadcrumb from './FilterBreadcrumb';
-import FactorSelector from './FactorSelector';
 import SpecEditor from './settings/SpecEditor';
 import SpecsPopover from './settings/SpecsPopover';
 import { PresentationView, EmbedFocusView, FocusedChartView } from './views';
 import { EditableChartTitle } from '@variscout/charts';
-import { SelectionPanel, CreateFactorModal, useIsMobile } from '@variscout/ui';
+import {
+  AnovaResults,
+  ErrorBoundary,
+  FilterBreadcrumb,
+  FactorSelector,
+  SelectionPanel,
+  CreateFactorModal,
+  useIsMobile,
+} from '@variscout/ui';
 import { useKeyboardNavigation } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
@@ -460,6 +464,7 @@ const Dashboard = ({
                           onChange={e => setStageColumn(e.target.value || null)}
                           className="bg-surface border border-edge text-xs text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
                           title="Divide chart into stages"
+                          aria-label="Select stage column"
                         >
                           <option value="">No stages</option>
                           {availableStageColumns.map(col => (
@@ -473,6 +478,7 @@ const Dashboard = ({
                             value={stageOrderMode}
                             onChange={e => setStageOrderMode(e.target.value as StageOrderMode)}
                             className="bg-surface border border-edge text-xs text-content-secondary rounded px-1 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
+                            aria-label="Stage order mode"
                           >
                             <option value="auto">Auto</option>
                             <option value="data-order">Data order</option>
@@ -515,6 +521,7 @@ const Dashboard = ({
                             : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
                         }`}
                         title="Copy I-Chart to clipboard"
+                        aria-label="Copy I-Chart to clipboard"
                       >
                         {copyFeedback === 'ichart' ? <Check size={14} /> : <Copy size={14} />}
                       </button>
@@ -522,6 +529,7 @@ const Dashboard = ({
                         onClick={() => setFocusedChart('ichart')}
                         className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
                         title="Maximize Chart"
+                        aria-label="Maximize chart"
                       >
                         <Maximize2 size={14} />
                       </button>
@@ -571,6 +579,7 @@ const Dashboard = ({
                               : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
                           }`}
                           title="Copy Boxplot to clipboard"
+                          aria-label="Copy Boxplot to clipboard"
                         >
                           {copyFeedback === 'boxplot' ? <Check size={14} /> : <Copy size={14} />}
                         </button>
@@ -578,6 +587,7 @@ const Dashboard = ({
                           onClick={() => setFocusedChart('boxplot')}
                           className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
                           title="Maximize Chart"
+                          aria-label="Maximize chart"
                         >
                           <Maximize2 size={14} />
                         </button>
@@ -627,6 +637,7 @@ const Dashboard = ({
                                 : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
                             }`}
                             title="Copy Pareto Chart to clipboard"
+                            aria-label="Copy Pareto chart to clipboard"
                           >
                             {copyFeedback === 'pareto' ? <Check size={14} /> : <Copy size={14} />}
                           </button>
@@ -634,6 +645,7 @@ const Dashboard = ({
                             onClick={() => setFocusedChart('pareto')}
                             className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
                             title="Maximize Chart"
+                            aria-label="Maximize chart"
                           >
                             <Maximize2 size={14} />
                           </button>

@@ -14,7 +14,7 @@ import * as d3 from 'd3';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotBase, type BoxplotGroupData } from '@variscout/charts';
-import AxisEditor from '../AxisEditor';
+import { AxisEditor } from '@variscout/ui';
 import { shouldShowBranding, getBrandingText } from '../../lib/edition';
 
 interface BoxplotProps {
