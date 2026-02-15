@@ -145,6 +145,3 @@ export interface ThemeTokens {
   fontWeightSemibold: number;
   fontWeightBold: number;
 }
-
-/** Type for darkTheme token values (kept for backwards compatibility) */
-export type DarkThemeTokens = ThemeTokens;

@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { FluentProvider, webLightTheme } from '@fluentui/react-components';
 import App from './taskpane/App';
-import './i18n'; // Import i18n configuration
 
 // Office.js initialization
 Office.onReady(info => {

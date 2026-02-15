@@ -104,6 +104,3 @@ export const lightTheme = {
   /** Bold weight: 700 */
   fontWeightBold: 700,
 } as const;
-
-/** Type for lightTheme token values */
-export type LightThemeTokens = typeof lightTheme;

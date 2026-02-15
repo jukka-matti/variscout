@@ -59,12 +59,3 @@ export function useSystemTheme(): UseSystemThemeResult {
 
   return { isDark, theme };
 }
-
-/**
- * Get the initial theme synchronously (for use before React renders)
- * This is used in the inline script in content.html to prevent flash
- */
-export function getInitialTheme(): 'dark' | 'light' {
-  if (typeof window === 'undefined') return 'dark';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}

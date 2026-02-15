@@ -165,7 +165,18 @@ const App: React.FC = () => {
         <div className={styles.modeSelector}>
           <Body2>Choose how you want to analyze your data:</Body2>
 
-          <Card className={styles.modeCard} onClick={() => setMode('wizard')}>
+          <Card
+            className={styles.modeCard}
+            onClick={() => setMode('wizard')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setMode('wizard');
+              }
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM }}>
               <ChartMultiple24Regular />
               <div>
@@ -178,7 +189,18 @@ const App: React.FC = () => {
             </div>
           </Card>
 
-          <Card className={styles.modeCard} onClick={() => setMode('simple')}>
+          <Card
+            className={styles.modeCard}
+            onClick={() => setMode('simple')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setMode('simple');
+              }
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalM }}>
               <Settings24Regular />
               <div>
