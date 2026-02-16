@@ -264,6 +264,7 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
                   else chipRefs.current.delete(chipData.factor);
                 }}
                 onClick={e => handleChipClick(chipData.factor, e)}
+                data-testid={`filter-chip-${chipData.factor}`}
                 className={`
                   flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-full text-xs
                   transition-colors
@@ -301,6 +302,7 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
               {/* Remove button */}
               <button
                 onClick={e => handleRemoveChip(chipData.factor, e)}
+                data-testid={`filter-chip-remove-${chipData.factor}`}
                 className={`
                   px-1.5 py-1.5 rounded-r-full ${colorScheme.textMuted}
                   hover:text-red-400 hover:bg-red-400/10
@@ -319,6 +321,7 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
         {onClearAll && chips.length > 0 && (
           <button
             onClick={onClearAll}
+            data-testid="filter-clear-all"
             className={`
               flex items-center gap-1 px-2 py-1 ml-auto
               text-xs ${colorScheme.textSecondary}

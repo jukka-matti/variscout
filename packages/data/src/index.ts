@@ -59,4 +59,4 @@ export {
 } from './computed';
 
 // Utilities
-export { generateNormal, clamp, round, dateOffset } from './utils';
+export { generateNormal, clamp, round, dateOffset, seedRandom, mulberry32 } from './utils';

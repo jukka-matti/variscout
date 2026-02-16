@@ -435,6 +435,7 @@ const Dashboard = ({
               {/* I-Chart Section */}
               <div
                 id="ichart-card"
+                data-testid="chart-ichart"
                 className="min-h-[400px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col"
               >
                 <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
@@ -571,6 +572,7 @@ const Dashboard = ({
                   {/* Boxplot */}
                   <div
                     id="boxplot-card"
+                    data-testid="chart-boxplot"
                     className="flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col"
                   >
                     <div className="flex justify-between items-center mb-4">
@@ -626,6 +628,7 @@ const Dashboard = ({
                   {/* Pareto */}
                   <div
                     id="pareto-card"
+                    data-testid="chart-pareto"
                     className="flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col"
                   >
                     <div className="flex justify-between items-center mb-4">

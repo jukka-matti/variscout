@@ -23,12 +23,15 @@ const MetricCard = ({
   labelClass,
   valueClass,
 }: MetricCardProps) => (
-  <div className={bgClass}>
+  <div className={bgClass} data-testid={`stat-${label.toLowerCase().replace(/\s+/g, '-')}`}>
     <div className={labelClass}>
       {label}
       {helpTerm && <HelpTooltip term={helpTerm} iconSize={12} />}
     </div>
-    <div className={valueClass}>
+    <div
+      className={valueClass}
+      data-testid={`stat-value-${label.toLowerCase().replace(/\s+/g, '-')}`}
+    >
       {value}
       {unit}
     </div>

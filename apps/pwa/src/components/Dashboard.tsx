@@ -415,6 +415,7 @@ const Dashboard = ({
               <div
                 id="ichart-card"
                 data-chart-id="ichart"
+                data-testid="chart-ichart"
                 onClick={() => handleChartWrapperClick('ichart')}
                 className={`min-h-[400px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 flex flex-col transition-all ${getHighlightClass('ichart')}`}
               >
@@ -543,6 +544,7 @@ const Dashboard = ({
                   <div
                     id="boxplot-card"
                     data-chart-id="boxplot"
+                    data-testid="chart-boxplot"
                     onClick={() => handleChartWrapperClick('boxplot')}
                     className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('boxplot')}`}
                   >
@@ -601,6 +603,7 @@ const Dashboard = ({
                     <div
                       id="pareto-card"
                       data-chart-id="pareto"
+                      data-testid="chart-pareto"
                       onClick={() => handleChartWrapperClick('pareto')}
                       className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('pareto')}`}
                     >
@@ -670,6 +673,7 @@ const Dashboard = ({
                 {/* Stats Panel */}
                 <div
                   data-chart-id="stats"
+                  data-testid="chart-stats"
                   onClick={() => handleChartWrapperClick('stats')}
                   className={`transition-all ${getHighlightClass('stats')}`}
                 >

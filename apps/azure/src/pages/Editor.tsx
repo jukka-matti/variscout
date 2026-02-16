@@ -626,6 +626,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                     .map(sample => (
                       <button
                         key={sample.urlKey}
+                        data-testid={`sample-${sample.urlKey}`}
                         onClick={() => loadSample(sample)}
                         className="text-left p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg transition-all group"
                       >

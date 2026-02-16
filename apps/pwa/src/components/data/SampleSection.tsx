@@ -81,6 +81,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
             {featuredSamples.map(sample => (
               <button
                 key={sample.urlKey}
+                data-testid={`sample-featured-${sample.urlKey}`}
                 onClick={() => onLoadSample(sample)}
                 className="flex flex-col items-start p-4 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500/50 rounded-xl text-left transition-all group"
               >
@@ -133,6 +134,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
                       {samples.map(sample => (
                         <button
                           key={sample.urlKey}
+                          data-testid={`sample-${sample.urlKey}`}
                           onClick={() => onLoadSample(sample)}
                           className="w-full flex items-center justify-between p-2 hover:bg-surface-secondary rounded-lg transition-colors group text-left"
                         >
@@ -216,6 +218,7 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
                     {samples.map(sample => (
                       <button
                         key={sample.urlKey}
+                        data-testid={`sample-${sample.urlKey}`}
                         onClick={() => onLoadSample(sample)}
                         className="w-full flex items-center justify-between p-2 hover:bg-surface-secondary rounded-lg transition-colors group text-left"
                       >
