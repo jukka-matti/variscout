@@ -347,6 +347,7 @@ The template requests only necessary permissions:
 
 ## See Also
 
+- [How It Works](how-it-works.md) — end-to-end architecture guide
 - [Azure Marketplace Guide](marketplace.md)
 - [Pricing](pricing-tiers.md)
 - [Authentication](authentication.md)

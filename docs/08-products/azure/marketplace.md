@@ -167,8 +167,8 @@ Analyze hundreds of measurement channels simultaneously:
 
 ### Integration
 
-Works alongside the FREE VariScout Excel Add-in from AppSource
-for Excel-native SPC analysis.
+Try the FREE VariScout Web App for training and learning SPC fundamentals
+before upgrading to the full Azure App for team use.
 ```
 
 ### Screenshots (Required: 5-10)
@@ -259,6 +259,7 @@ for Excel-native SPC analysis.
 
 ## See Also
 
+- [How It Works](how-it-works.md) — end-to-end architecture guide
 - [Pricing Tiers](pricing-tiers.md)
 - [ARM Template](arm-template.md)
 - [Authentication](authentication.md)

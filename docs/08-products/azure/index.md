@@ -210,6 +210,7 @@ The Azure app includes a development-only tier switching component at `apps/azur
 
 ## See Also
 
+- [How It Works](how-it-works.md) — end-to-end architecture guide
 - [Azure Marketplace Guide](marketplace.md)
 - [Pricing](pricing-tiers.md)
 - [ARM Template](arm-template.md)
