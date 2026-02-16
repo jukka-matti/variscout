@@ -20,7 +20,7 @@ interface EasyAuthProvider {
   expires_on: string;
 }
 
-function isLocalDev(): boolean {
+export function isLocalDev(): boolean {
   return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 }
 

@@ -1,6 +1,6 @@
 // src/services/storage.ts
 import { useState, useEffect, useCallback } from 'react';
-import { getAccessToken } from '../auth/easyAuth';
+import { getAccessToken, isLocalDev } from '../auth/easyAuth';
 import { addToSyncQueue, getPendingSyncItems, removeFromSyncQueue, db } from '../db/schema';
 
 // Placeholder types - these would come from @variscout/core
@@ -237,7 +237,7 @@ export function useStorage() {
   const listProjects = useCallback(async (): Promise<CloudProject[]> => {
     const localProjects = await listFromIndexedDB();
 
-    if (!navigator.onLine) {
+    if (!navigator.onLine || isLocalDev()) {
       return localProjects;
     }
 
