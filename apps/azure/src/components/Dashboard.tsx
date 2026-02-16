@@ -6,7 +6,6 @@ import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
 import AnovaResults from './AnovaResults';
 import RegressionPanel from './RegressionPanel';
-import GageRRPanel from './GageRRPanel';
 import PerformanceDashboard from './PerformanceDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import FilterBreadcrumb from './FilterBreadcrumb';
@@ -31,7 +30,6 @@ import {
   Activity,
   BarChart3,
   TrendingUp,
-  Target,
   Maximize2,
   Minimize2,
   ChevronLeft,
@@ -43,7 +41,7 @@ import {
   Check,
 } from 'lucide-react';
 
-type DashboardTab = 'analysis' | 'regression' | 'gagerr' | 'performance';
+type DashboardTab = 'analysis' | 'regression' | 'performance';
 
 interface DashboardProps {
   onPointClick?: (index: number) => void;
@@ -365,19 +363,6 @@ const Dashboard = ({
             <TrendingUp size={16} />
             Regression
           </button>
-          <button
-            role="tab"
-            aria-selected={activeTab === 'gagerr'}
-            onClick={() => setActiveTab('gagerr')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'gagerr'
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
-            }`}
-          >
-            <Target size={16} />
-            Gage R&R
-          </button>
           {isPerformanceMode && (
             <button
               role="tab"
@@ -410,15 +395,6 @@ const Dashboard = ({
         <div className="flex-1 m-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
           <ErrorBoundary componentName="Regression Panel">
             <RegressionPanel />
-          </ErrorBoundary>
-        </div>
-      )}
-
-      {/* Gage R&R Tab */}
-      {activeTab === 'gagerr' && (
-        <div className="flex-1 m-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
-          <ErrorBoundary componentName="Gage R&R Panel">
-            <GageRRPanel />
           </ErrorBoundary>
         </div>
       )}
