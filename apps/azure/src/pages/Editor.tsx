@@ -8,8 +8,16 @@ import DataPanel from '../components/data/DataPanel';
 import MindmapPanel from '../components/MindmapPanel';
 import { openMindmapPopout } from '../components/MindmapWindow';
 import ManualEntry, { type ManualEntryConfig } from '../components/data/ManualEntry';
+import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
-import { validateData, getNelsonRule2ViolationPoints, calculateStats } from '@variscout/core';
+import {
+  validateData,
+  getNelsonRule2ViolationPoints,
+  calculateStats,
+  parseText,
+  detectColumns,
+  detectWideFormat,
+} from '@variscout/core';
 import { downloadCSV } from '@variscout/core';
 import { SAMPLES } from '@variscout/data';
 import type { SampleDataset } from '@variscout/data';
@@ -21,6 +29,7 @@ import {
   Cloud,
   CloudOff,
   PenLine,
+  ClipboardPaste,
   Table2,
   Plus,
   Network,
@@ -158,6 +167,10 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   // State for manual entry view
   const [isManualEntry, setIsManualEntry] = useState(false);
   const [appendMode, setAppendMode] = useState(false);
+
+  // State for paste data view
+  const [isPasteMode, setIsPasteMode] = useState(false);
+  const [pasteError, setPasteError] = useState<string | null>(null);
 
   // State for drill navigation from Performance Mode to standard I-Chart
   const [drillFromPerformance, setDrillFromPerformance] = useState<string | null>(null);
@@ -445,6 +458,67 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     setIsManualEntry(true);
   }, []);
 
+  // Handle paste → parse → detect → dashboard flow
+  const handlePasteAnalyze = useCallback(
+    async (text: string) => {
+      setPasteError(null);
+      try {
+        const data = await parseText(text);
+
+        // Set raw data and filename
+        setRawData(data);
+        setDataFilename('Pasted Data');
+
+        // Auto-detect columns
+        const detected = detectColumns(data);
+        if (detected.outcome) {
+          setOutcome(detected.outcome);
+        }
+        if (detected.factors.length > 0) {
+          setFactors(detected.factors);
+        }
+
+        // Validate data quality
+        const report = validateData(data, detected.outcome);
+        setDataQualityReport(report);
+
+        // Check for wide format (Performance Mode)
+        const wideFormat = detectWideFormat(data);
+        if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
+          setMeasureColumns(wideFormat.channels.map(c => c.id));
+          setMeasureLabel('Channel');
+          setPerformanceMode(true);
+        }
+
+        setIsPasteMode(false);
+      } catch (err) {
+        setPasteError(err instanceof Error ? err.message : 'Failed to parse data');
+      }
+    },
+    [
+      setRawData,
+      setDataFilename,
+      setOutcome,
+      setFactors,
+      setDataQualityReport,
+      setMeasureColumns,
+      setMeasureLabel,
+      setPerformanceMode,
+    ]
+  );
+
+  const handlePasteCancel = useCallback(() => {
+    setIsPasteMode(false);
+    setPasteError(null);
+  }, []);
+
+  // If in paste mode, show PasteScreen full screen
+  if (isPasteMode) {
+    return (
+      <PasteScreen onAnalyze={handlePasteAnalyze} onCancel={handlePasteCancel} error={pasteError} />
+    );
+  }
+
   // If in manual entry mode, show ManualEntry full screen
   if (isManualEntry) {
     return (
@@ -514,6 +588,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               onClick={() => downloadCSV(filteredData, outcome, specs)}
               className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
               title="Export filtered data as CSV"
+              data-testid="btn-csv-export"
             >
               <Download size={18} />
             </button>
@@ -525,6 +600,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               onClick={() => setIsWhatIfOpen(true)}
               className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
               title="What-If Simulator"
+              data-testid="btn-what-if"
             >
               <Beaker size={18} />
             </button>
@@ -540,6 +616,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                   : 'text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
               title={isMindmapOpen ? 'Hide Investigation' : 'Show Investigation'}
+              data-testid="btn-investigation"
             >
               <Network size={18} />
             </button>
@@ -555,6 +632,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                   : 'text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
               title={isDataPanelOpen ? 'Hide Data Panel' : 'Show Data Panel'}
+              data-testid="btn-data-panel"
             >
               <Table2 size={18} />
             </button>
@@ -565,6 +643,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             onClick={handleSave}
             disabled={rawData.length === 0}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            data-testid="btn-save"
           >
             <Save size={16} />
             Save
@@ -583,7 +662,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">Start Your Analysis</h3>
               <p className="text-slate-400 mb-6">
-                Upload your data, enter manually, or try a sample dataset.
+                Upload your data, paste from Excel, enter manually, or try a sample dataset.
               </p>
 
               <input
@@ -601,6 +680,14 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 >
                   <Upload size={20} />
                   Upload File
+                </button>
+
+                <button
+                  onClick={() => setIsPasteMode(true)}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+                >
+                  <ClipboardPaste size={20} />
+                  Paste Data
                 </button>
 
                 <button

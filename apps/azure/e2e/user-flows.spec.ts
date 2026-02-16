@@ -17,7 +17,7 @@ async function loadSampleInEditor(page: import('@playwright/test').Page) {
   await page.goto('/');
   await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
-  await page.locator('text=New Analysis').click();
+  await page.getByRole('button', { name: 'New Analysis' }).first().click();
   await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
   const sampleButton = page.locator('[data-testid^="sample-"]').first();
@@ -87,7 +87,7 @@ test.describe('Azure: Manual Entry', () => {
     await page.goto('/');
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
-    await page.locator('text=New Analysis').click();
+    await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
     // Click Manual Entry button

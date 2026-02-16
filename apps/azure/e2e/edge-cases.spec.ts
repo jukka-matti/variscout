@@ -16,7 +16,7 @@ test.describe('Azure Edge Case: Empty Editor State', () => {
     await page.goto('/');
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
-    await page.locator('text=New Analysis').click();
+    await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
     // Upload and Manual Entry should be available
@@ -33,7 +33,7 @@ test.describe('Azure Edge Case: Empty Editor State', () => {
     await page.goto('/');
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
-    await page.locator('text=New Analysis').click();
+    await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
     // Charts should NOT be visible
@@ -50,7 +50,7 @@ test.describe('Azure Edge Case: No Factors', () => {
     await page.goto('/');
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
-    await page.locator('text=New Analysis').click();
+    await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
     await page.locator('text=Manual Entry').click();
@@ -92,7 +92,7 @@ test.describe('Azure Edge Case: Replace Data', () => {
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
     // Load first analysis
-    await page.locator('text=New Analysis').click();
+    await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
     const sampleButtons = page.locator('[data-testid^="sample-"]');
@@ -113,9 +113,11 @@ test.describe('Azure Edge Case: Replace Data', () => {
     // Go back and load second sample
     const backBtn = page.locator('text=Back').first();
     await backBtn.click();
-    await expect(page.locator('text=New Analysis')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: 'New Analysis' }).first()).toBeVisible({
+      timeout: 5000,
+    });
 
-    await page.locator('text=New Analysis').click();
+    await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
     await sampleButtons.nth(1).click();
@@ -133,7 +135,7 @@ test.describe('Azure Edge Case: Back Navigation', () => {
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
     // Go to editor
-    await page.locator('text=New Analysis').click();
+    await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
     // Load a sample
@@ -146,7 +148,9 @@ test.describe('Azure Edge Case: Back Navigation', () => {
     await backBtn.click();
 
     // Should see analyses dashboard
-    await expect(page.locator('text=New Analysis')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: 'New Analysis' }).first()).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   test('should navigate back from empty editor', async ({ page }) => {
@@ -154,7 +158,7 @@ test.describe('Azure Edge Case: Back Navigation', () => {
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
     // Go to editor
-    await page.locator('text=New Analysis').click();
+    await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
     // Navigate back without loading any data
@@ -162,7 +166,9 @@ test.describe('Azure Edge Case: Back Navigation', () => {
     await backBtn.click();
 
     // Should see analyses dashboard
-    await expect(page.locator('text=New Analysis')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: 'New Analysis' }).first()).toBeVisible({
+      timeout: 5000,
+    });
   });
 });
 

@@ -76,6 +76,20 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
       setParetoMode('derived');
       setSeparateParetoData(null);
       setSeparateParetoFilename(null);
+      // Handle performance mode samples
+      if (
+        sample.config.performanceMode &&
+        sample.config.measureColumns &&
+        sample.config.measureColumns.length >= 3
+      ) {
+        setPerformanceMode(true);
+        setMeasureColumns(sample.config.measureColumns);
+        setMeasureLabel('Channel');
+      } else {
+        setPerformanceMode(false);
+        setMeasureColumns([]);
+        setMeasureLabel('Channel');
+      }
     },
     [
       setRawData,
@@ -88,6 +102,9 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
       setParetoMode,
       setSeparateParetoData,
       setSeparateParetoFilename,
+      setPerformanceMode,
+      setMeasureColumns,
+      setMeasureLabel,
     ]
   );
 

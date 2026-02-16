@@ -36,7 +36,7 @@ test.describe('Azure App: Editor', () => {
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
     // Click "New Analysis" to go to editor
-    const newAnalysisBtn = page.locator('text=New Analysis');
+    const newAnalysisBtn = page.getByRole('button', { name: 'New Analysis' }).first();
     await expect(newAnalysisBtn).toBeVisible({ timeout: 5000 });
     await newAnalysisBtn.click();
 
@@ -111,6 +111,8 @@ test.describe('Azure App: Editor', () => {
     await backBtn.click();
 
     // Should see analyses dashboard again
-    await expect(page.locator('text=New Analysis')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: 'New Analysis' }).first()).toBeVisible({
+      timeout: 5000,
+    });
   });
 });

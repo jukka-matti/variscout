@@ -12,7 +12,7 @@ test.describe('Azure App: Sample Datasets', () => {
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
     // Navigate to editor
-    const newAnalysisBtn = page.locator('text=New Analysis');
+    const newAnalysisBtn = page.getByRole('button', { name: 'New Analysis' }).first();
     await expect(newAnalysisBtn).toBeVisible({ timeout: 5000 });
     await newAnalysisBtn.click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
@@ -73,10 +73,12 @@ test.describe('Azure App: Sample Datasets', () => {
     if (count > 1) {
       const backBtn = page.locator('text=Back').first();
       await backBtn.click();
-      await expect(page.locator('text=New Analysis')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByRole('button', { name: 'New Analysis' }).first()).toBeVisible({
+        timeout: 5000,
+      });
 
       // Navigate to editor again
-      await page.locator('text=New Analysis').click();
+      await page.getByRole('button', { name: 'New Analysis' }).first().click();
       await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
       // Load second sample

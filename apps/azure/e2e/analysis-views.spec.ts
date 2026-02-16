@@ -15,7 +15,7 @@ test.describe('Azure Analysis View Switching', () => {
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
     // Navigate to editor with new analysis
-    await page.locator('text=New Analysis').click();
+    await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
     // Load first sample dataset
