@@ -78,7 +78,7 @@ vi.mock('@variscout/ui', () => {
               </button>
             </div>
           ))}
-          {props.onClearAll && (
+          {typeof props.onClearAll === 'function' && (
             <button data-testid="clear-all" onClick={props.onClearAll as () => void}>
               Clear All
             </button>
