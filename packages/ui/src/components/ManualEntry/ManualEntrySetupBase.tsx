@@ -3,7 +3,7 @@ import { ArrowRight, Plus, Trash2 } from 'lucide-react';
 
 type EntryMode = 'standard' | 'performance';
 
-interface ManualEntrySetupProps {
+export interface ManualEntrySetupBaseProps {
   outcomeName: string;
   factors: string[];
   usl: string;
@@ -14,7 +14,8 @@ interface ManualEntrySetupProps {
   onLslChange: (value: string) => void;
   onCancel: () => void;
   onContinue: () => void;
-  // Performance mode props
+  // Performance mode props (hidden when enablePerformanceMode=false)
+  enablePerformanceMode?: boolean;
   isPerformanceMode?: boolean;
   measureLabel?: string;
   channelCount?: number;
@@ -23,12 +24,7 @@ interface ManualEntrySetupProps {
   onChannelCountChange?: (count: number) => void;
 }
 
-/**
- * Configuration step for Manual Entry
- * Allows users to define outcome, factors, and optional spec limits
- * Supports both Standard Analysis and Performance Mode (multi-channel)
- */
-const ManualEntrySetup: React.FC<ManualEntrySetupProps> = ({
+const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
   outcomeName,
   factors,
   usl,
@@ -39,6 +35,7 @@ const ManualEntrySetup: React.FC<ManualEntrySetupProps> = ({
   onLslChange,
   onCancel,
   onContinue,
+  enablePerformanceMode = false,
   isPerformanceMode = false,
   measureLabel = 'Head',
   channelCount = 8,
@@ -51,7 +48,12 @@ const ManualEntrySetup: React.FC<ManualEntrySetupProps> = ({
     isPerformanceMode ? 'performance' : 'standard'
   );
 
-  const mode = isPerformanceMode ? 'performance' : localMode;
+  const mode =
+    enablePerformanceMode && isPerformanceMode
+      ? 'performance'
+      : enablePerformanceMode
+        ? localMode
+        : 'standard';
 
   const handleModeChange = (newMode: EntryMode) => {
     setLocalMode(newMode);
@@ -92,54 +94,56 @@ const ManualEntrySetup: React.FC<ManualEntrySetupProps> = ({
       <div className="w-full max-w-lg bg-surface-secondary rounded-xl border border-edge p-8 shadow-2xl">
         <h2 className="text-2xl font-bold text-white mb-6">Step 1: What are you measuring?</h2>
 
-        {/* Mode Toggle */}
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-content-secondary mb-3">
-            Analysis Mode
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => handleModeChange('standard')}
-              className={`p-3 rounded-lg border text-left transition-all ${
-                mode === 'standard'
-                  ? 'border-blue-500 bg-blue-900/20 text-white'
-                  : 'border-edge bg-surface hover:bg-surface-tertiary text-content-secondary'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <div
-                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    mode === 'standard' ? 'border-blue-500' : 'border-content-muted'
-                  }`}
-                >
-                  {mode === 'standard' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+        {/* Mode Toggle — only shown when enablePerformanceMode is true */}
+        {enablePerformanceMode && (
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-content-secondary mb-3">
+              Analysis Mode
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleModeChange('standard')}
+                className={`p-3 rounded-lg border text-left transition-all ${
+                  mode === 'standard'
+                    ? 'border-blue-500 bg-blue-900/20 text-white'
+                    : 'border-edge bg-surface hover:bg-surface-tertiary text-content-secondary'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                      mode === 'standard' ? 'border-blue-500' : 'border-content-muted'
+                    }`}
+                  >
+                    {mode === 'standard' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+                  </div>
+                  <span className="font-semibold text-sm">Standard Analysis</span>
                 </div>
-                <span className="font-semibold text-sm">Standard Analysis</span>
-              </div>
-              <p className="text-xs text-content-muted pl-6">1 outcome + factors</p>
-            </button>
-            <button
-              onClick={() => handleModeChange('performance')}
-              className={`p-3 rounded-lg border text-left transition-all ${
-                mode === 'performance'
-                  ? 'border-blue-500 bg-blue-900/20 text-white'
-                  : 'border-edge bg-surface hover:bg-surface-tertiary text-content-secondary'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <div
-                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    mode === 'performance' ? 'border-blue-500' : 'border-content-muted'
-                  }`}
-                >
-                  {mode === 'performance' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+                <p className="text-xs text-content-muted pl-6">1 outcome + factors</p>
+              </button>
+              <button
+                onClick={() => handleModeChange('performance')}
+                className={`p-3 rounded-lg border text-left transition-all ${
+                  mode === 'performance'
+                    ? 'border-blue-500 bg-blue-900/20 text-white'
+                    : 'border-edge bg-surface hover:bg-surface-tertiary text-content-secondary'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                      mode === 'performance' ? 'border-blue-500' : 'border-content-muted'
+                    }`}
+                  >
+                    {mode === 'performance' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+                  </div>
+                  <span className="font-semibold text-sm">Performance Mode</span>
                 </div>
-                <span className="font-semibold text-sm">Performance Mode</span>
-              </div>
-              <p className="text-xs text-content-muted pl-6">Multiple channels</p>
-            </button>
+                <p className="text-xs text-content-muted pl-6">Multiple channels</p>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Standard Mode Configuration */}
         {mode === 'standard' && (
@@ -293,4 +297,4 @@ const ManualEntrySetup: React.FC<ManualEntrySetupProps> = ({
   );
 };
 
-export default ManualEntrySetup;
+export default ManualEntrySetupBase;

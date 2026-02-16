@@ -155,6 +155,14 @@ export {
   type MindmapPanelContentProps,
 } from './components/MindmapPanel';
 
+export {
+  ManualEntryBase,
+  ManualEntrySetupBase,
+  type ManualEntryBaseProps,
+  type ManualEntryConfig,
+  type ManualEntrySetupBaseProps,
+} from './components/ManualEntry';
+
 // Services
 export {
   errorService,

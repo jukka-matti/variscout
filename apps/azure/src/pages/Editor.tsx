@@ -7,7 +7,7 @@ import Dashboard from '../components/Dashboard';
 import DataPanel from '../components/data/DataPanel';
 import MindmapPanel from '../components/MindmapPanel';
 import { openMindmapPopout } from '../components/MindmapWindow';
-import ManualEntry from '../components/data/ManualEntry';
+import ManualEntry, { type ManualEntryConfig } from '../components/data/ManualEntry';
 import WhatIfPage from '../components/WhatIfPage';
 import { validateData, getNelsonRule2ViolationPoints, calculateStats } from '@variscout/core';
 import { downloadCSV } from '@variscout/core';
@@ -122,15 +122,6 @@ const OutcomeSelector: React.FC<OutcomeSelectorProps> = ({ rawData, onStart }) =
     </div>
   );
 };
-
-interface ManualEntryConfig {
-  outcome: string;
-  factors: string[];
-  specs?: { usl?: number; lsl?: number };
-  isPerformanceMode?: boolean;
-  measureColumns?: string[];
-  measureLabel?: string;
-}
 
 interface EditorProps {
   projectId: string | null;
