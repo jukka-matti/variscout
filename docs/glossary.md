@@ -54,7 +54,7 @@ Target represents the ideal value customers want. Process centering is assessed 
 
 Process Capability. Measures how well your process fits within spec limits.
 
-Cp compares the width of specification limits to 6 standard deviations of the process. Cp = (USL - LSL) / (6σ). Higher values mean the process has room to spare within specs. Does not account for centering.
+Cp compares the width of specification limits to 6σ_within of the process. Cp = (USL - LSL) / (6σ_within), where σ_within is estimated from the moving range (MR̄/d2). Higher values mean the process has room to spare within specs. Does not account for centering.
 
 **Related:** [Cpk](#cpk), [USL](#usl-upper-specification-limit), [LSL](#lsl-lower-specification-limit), [Std Dev](#std-dev)
 
@@ -62,7 +62,7 @@ Cp compares the width of specification limits to 6 standard deviations of the pr
 
 Process Capability Index. Like Cp, but accounts for how well centered the process is.
 
-Cpk considers both spread and centering. It takes the minimum of CPU and CPL. A Cpk much lower than Cp indicates the process mean is shifted toward one spec limit.
+Cpk = min(CPU, CPL), where CPU = (USL - Mean) / 3σ_within and CPL = (Mean - LSL) / 3σ_within. σ_within is estimated from the moving range (MR̄/d2). A Cpk much lower than Cp indicates the process mean is shifted toward one spec limit.
 
 **Related:** [Cp](#cp), [USL](#usl-upper-specification-limit), [LSL](#lsl-lower-specification-limit), [Mean](#mean)
 

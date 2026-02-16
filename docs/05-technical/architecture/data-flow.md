@@ -187,7 +187,7 @@ flowchart TD
         M[mean = Σx/n]
         SD[stdDev = √(Σ(x-μ)²/n)]
         CL[UCL = μ + 3σ<br/>LCL = μ - 3σ]
-        CP[Cp = (USL-LSL)/6σ]
+        CP[Cp = (USL-LSL)/6σ_within]
         CPK[Cpk = min(CPU, CPL)]
     end
 

@@ -19,11 +19,63 @@ Capability reveals:
 
 ## Key Metrics
 
-| Metric    | Formula          | Interpretation                         |
-| --------- | ---------------- | -------------------------------------- |
-| Cp        | (USL - LSL) / 6σ | Potential capability (spread only)     |
-| Cpk       | min(CPU, CPL)    | Actual capability (spread + centering) |
-| Pass Rate | % within specs   | Conformance rate                       |
+| Metric    | Formula                 | Interpretation                         |
+| --------- | ----------------------- | -------------------------------------- |
+| Cp        | (USL - LSL) / 6σ_within | Potential capability (spread only)     |
+| Cpk       | min(CPU, CPL)           | Actual capability (spread + centering) |
+| Pass Rate | % within specs          | Conformance rate                       |
+
+---
+
+## Sigma Estimation (σ_within)
+
+VariScout uses **σ_within** (within-subgroup standard deviation) for Cp/Cpk and I-Chart control limits, not the overall standard deviation. This is the industry standard approach used by Minitab, JMP, and other SPC software.
+
+### How σ_within is estimated
+
+σ_within is estimated from the **moving range** of consecutive observations:
+
+```
+σ_within = MR̄ / d2
+```
+
+Where:
+
+- **MR̄** = mean of absolute differences between consecutive points: mean(|x*i - x*{i-1}|)
+- **d2** = 1.128 (unbiasing constant for span of 2)
+
+### Why subgroup size = 1 (individuals)
+
+VariScout always uses subgroup size n=1 because data arrives as individual measurements (flat rows), not rational subgroups. This means:
+
+- Chart type is always **I-MR** (Individuals and Moving Range)
+- The moving range span is 2 (consecutive pairs), giving d2 = 1.128
+- No subgroup size selector is needed (unlike Minitab, which supports X̄-R charts with larger subgroups)
+
+**Reference — Minitab d2 constants by subgroup size:**
+
+| n               | d2    | Chart type |
+| --------------- | ----- | ---------- |
+| 1 (individuals) | 1.128 | I-MR       |
+| 2               | 1.128 | X̄-R        |
+| 3               | 1.693 | X̄-R        |
+| 4               | 2.059 | X̄-R        |
+| 5               | 2.326 | X̄-R        |
+
+### Data order matters
+
+The moving range assumes data is in **time or production order**. If rows are shuffled or sorted by value, MR̄ will be inflated and σ_within will overestimate true short-term variation.
+
+### σ_within vs σ_overall
+
+|                      | σ_within (MR̄/d2)                  | σ_overall (sample std dev)       |
+| -------------------- | --------------------------------- | -------------------------------- |
+| **Used for**         | Cp, Cpk, control limits (UCL/LCL) | Pp, Ppk (not currently computed) |
+| **Captures**         | Short-term, inherent variation    | All variation including shifts   |
+| **Sensitive to**     | Consecutive-point differences     | All data points equally          |
+| **When they differ** | Process has shifts or trends      | —                                |
+
+VariScout computes Cp/Cpk only (using σ_within). Pp/Ppk (using σ_overall) are not currently reported.
 
 ---
 
@@ -87,10 +139,13 @@ VariScout's implementation:
 import { calculateStats } from '@variscout/core';
 
 const stats = calculateStats(values, usl, lsl);
-// Returns: { mean, stdDev, cp, cpk, outOfSpecPercentage, ... }
+// Returns: { mean, stdDev, sigmaWithin, mrBar, ucl, lcl, cp, cpk, outOfSpecPercentage, ... }
 
-// Cp = (USL - LSL) / (6 * stdDev)
-// Cpk = min((USL - mean) / (3 * stdDev), (mean - LSL) / (3 * stdDev))
+// σ_within = MR̄ / d2 (d2 = 1.128 for individuals chart)
+// Cp  = (USL - LSL) / (6 * sigmaWithin)
+// Cpk = min((USL - mean) / (3 * sigmaWithin), (mean - LSL) / (3 * sigmaWithin))
+// UCL = mean + 3 * sigmaWithin
+// LCL = mean - 3 * sigmaWithin
 ```
 
 **Test coverage:** See `packages/core/src/__tests__/stats.test.ts` for capability tests.

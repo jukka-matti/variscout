@@ -96,7 +96,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
       {
         type: 'formula',
         title: 'Formula',
-        content: 'UCL = x̄ + 3σ  or  UCL = x̄ + 2.66 × MR̄ (for I-Charts)',
+        content: 'UCL = x̄ + 3σ_within  (equivalently: x̄ + 2.66 × MR̄, since 3/d2 ≈ 2.66)',
       },
       {
         type: 'interpretation',
@@ -129,7 +129,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
       {
         type: 'formula',
         title: 'Formula',
-        content: 'LCL = x̄ - 3σ  or  LCL = x̄ - 2.66 × MR̄ (for I-Charts)',
+        content: 'LCL = x̄ - 3σ_within  (equivalently: x̄ - 2.66 × MR̄, since 3/d2 ≈ 2.66)',
       },
     ],
     practicalTip:
@@ -197,7 +197,8 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
       {
         type: 'formula',
         title: 'Formula',
-        content: 'Cp = (USL - LSL) / 6σ',
+        content:
+          'Cp = (USL - LSL) / 6σ_within, where σ_within = MR̄/d2 (estimated from the moving range)',
       },
       {
         type: 'interpretation',
@@ -227,7 +228,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
         type: 'formula',
         title: 'Formula',
         content:
-          'Cpk = min(CPU, CPL)\nwhere: CPU = (USL - Mean) / 3σ\n       CPL = (Mean - LSL) / 3σ',
+          'Cpk = min(CPU, CPL)\nwhere: CPU = (USL - Mean) / 3σ_within\n       CPL = (Mean - LSL) / 3σ_within\n\nσ_within = MR̄/d2 (estimated from the moving range)',
       },
       {
         type: 'interpretation',

@@ -596,7 +596,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     title: 'How We Calculate Control Limits',
     subtitle: 'The Math Behind UCL, Mean, and LCL',
     description:
-      'Understand how VariScout calculates control limits and why we chose the standard 3-sigma approach.',
+      'Understand how VariScout calculates control limits using σ_within estimated from the moving range.',
     color: '#3b82f6',
     colorClass: 'text-lens-change',
     icon: '📐',
@@ -605,51 +605,51 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'quick-answer',
         title: 'Quick Answer',
         content:
-          'VariScout calculates UCL and LCL as ±3 standard deviations from the mean. This simple method works well for most quality data and is intuitive for users familiar with basic statistics.',
+          'VariScout calculates UCL and LCL as mean ± 3σ_within, where σ_within is estimated from the moving range (MR̄/d2). This is the standard method used by Minitab, JMP, and other SPC software for individual measurements.',
       },
       {
         id: 'formula',
         title: 'The Formula',
         content:
-          'UCL = x̄ + 3σ, LCL = x̄ - 3σ. Where x̄ (x-bar) is the mean of all data points, and σ (sigma) is the standard deviation. The center line is simply the mean (x̄).',
+          'UCL = x̄ + 3σ_within, LCL = x̄ - 3σ_within. Where x̄ is the mean, and σ_within = MR̄/d2 (d2 = 1.128 for individuals). MR̄ is the average of consecutive absolute differences |x_i - x_{i-1}|. The center line is the mean (x̄).',
         visual: {
           type: 'list',
           data: {
             items: [
-              { title: 'UCL', description: 'Mean + 3 × Standard Deviation' },
+              { title: 'UCL', description: 'Mean + 3 × σ_within (from moving range)' },
               { title: 'Center Line', description: 'Mean (average of all points)' },
-              { title: 'LCL', description: 'Mean - 3 × Standard Deviation' },
+              { title: 'LCL', description: 'Mean - 3 × σ_within (from moving range)' },
             ],
           },
         },
       },
       {
         id: 'why-this-method',
-        title: 'Why This Method?',
+        title: 'Why Moving Range?',
         content:
-          "We chose the standard deviation method because it's intuitive (3σ covers 99.7% of normal data), it works with any sample size, and it matches what most spreadsheet users expect. For a stable, normally distributed process, about 3 in 1000 points will naturally fall outside these limits by chance alone.",
+          'VariScout uses σ_within estimated from the moving range (MR̄/d2) because it captures short-term, inherent process variation — filtering out shifts and trends that inflate the overall standard deviation. This is the industry-standard approach for individuals charts (I-MR). For a stable, normally distributed process, about 3 in 1000 points will naturally fall outside these limits by chance alone.',
         visual: {
           type: 'comparison',
           data: {
             left: {
-              title: 'Our Method (3σ)',
-              subtitle: 'Standard Deviation Based',
+              title: 'σ_within (MR̄/d2)',
+              subtitle: 'What VariScout Uses',
               items: [
-                'Intuitive: ±3σ from mean',
-                'Works with any sample size',
-                'Familiar to spreadsheet users',
-                'Good for normally distributed data',
+                'Captures short-term variation',
+                'Robust to process shifts',
+                'Industry standard for I-MR charts',
+                'Used for Cp/Cpk and control limits',
               ],
               color: 'blue',
             },
             right: {
-              title: 'Alternative (MR̄)',
-              subtitle: 'Moving Range Based',
+              title: 'σ_overall (Sample Std Dev)',
+              subtitle: 'Alternative Approach',
               items: [
-                'UCL = x̄ + 2.66 × MR̄',
-                'More robust to outliers',
-                'Preferred by some practitioners',
-                'Common in Minitab/JMP',
+                'Includes all sources of variation',
+                'Inflated by shifts and trends',
+                'Used for Pp/Ppk (not in VariScout)',
+                'Simpler to calculate manually',
               ],
               color: 'neutral',
             },
@@ -660,7 +660,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'worked-example',
         title: 'Worked Example',
         content:
-          'Coffee fill weights: 250.1, 249.8, 250.3, 249.9, 250.2 grams. Step 1: Calculate mean (x̄) = 250.06g. Step 2: Calculate standard deviation (σ) = 0.19g. Step 3: UCL = 250.06 + (3 × 0.19) = 250.63g. LCL = 250.06 - (3 × 0.19) = 249.49g.',
+          'Coffee fill weights: 250.1, 249.8, 250.3, 249.9, 250.2 grams. Step 1: Calculate mean (x̄) = 250.06g. Step 2: Moving ranges: |249.8-250.1|=0.3, |250.3-249.8|=0.5, |249.9-250.3|=0.4, |250.2-249.9|=0.3. MR̄ = 0.375. Step 3: σ_within = 0.375/1.128 = 0.33g. Step 4: UCL = 250.06 + (3 × 0.33) = 251.06g. LCL = 250.06 - (3 × 0.33) = 249.06g.',
         visual: {
           type: 'chart',
           data: {
@@ -701,7 +701,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'when-to-use-minitab',
         title: 'When to Use Specialized Tools',
         content:
-          'VariScout is designed for exploration and teaching. For formal SPC with moving range calculations, Xbar-R charts, or CUSUM charts, consider Minitab, JMP, or similar statistical software. VariScout excels at quick visual exploration and hypothesis generation.',
+          'VariScout uses industry-standard moving range methods for control limits and capability. For advanced SPC requiring X̄-R charts, CUSUM, EWMA, or rational subgroups, consider Minitab, JMP, or similar statistical software. VariScout excels at quick visual exploration and hypothesis generation.',
       },
     ],
     relatedTools: ['i-chart'],
@@ -728,7 +728,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'cp-formula',
         title: 'Cp Formula',
         content:
-          'Cp = (USL - LSL) / (6σ). This compares the specification width to 6 standard deviations of your process. A Cp of 1.0 means your process just fits within specs. Cp ≥ 1.33 is typically considered "capable".',
+          'Cp = (USL - LSL) / (6σ_within). This compares the specification width to 6 times σ_within (estimated from the moving range). A Cp of 1.0 means your process just fits within specs. Cp ≥ 1.33 is typically considered "capable".',
         visual: {
           type: 'list',
           data: {
@@ -744,7 +744,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'cpk-formula',
         title: 'Cpk Formula',
         content:
-          'Cpk = min(CPU, CPL) where CPU = (USL - mean)/(3σ) and CPL = (mean - LSL)/(3σ). Cpk penalizes off-center processes. If Cpk is much lower than Cp, your process is shifted toward one spec limit.',
+          'Cpk = min(CPU, CPL) where CPU = (USL - mean)/(3σ_within) and CPL = (mean - LSL)/(3σ_within). Cpk penalizes off-center processes. If Cpk is much lower than Cp, your process is shifted toward one spec limit.',
         visual: {
           type: 'comparison',
           data: {
@@ -777,7 +777,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'worked-example',
         title: 'Worked Example',
         content:
-          'Coffee fill: LSL=249g, USL=251g, mean=250.2g, σ=0.3g. Cp = (251-249)/(6×0.3) = 2/1.8 = 1.11. CPU = (251-250.2)/(3×0.3) = 0.8/0.9 = 0.89. CPL = (250.2-249)/(3×0.3) = 1.2/0.9 = 1.33. Cpk = min(0.89, 1.33) = 0.89. The process is shifted high, reducing capability.',
+          'Coffee fill: LSL=249g, USL=251g, mean=250.2g, σ_within=0.3g (from moving range). Cp = (251-249)/(6×0.3) = 2/1.8 = 1.11. CPU = (251-250.2)/(3×0.3) = 0.8/0.9 = 0.89. CPL = (250.2-249)/(3×0.3) = 1.2/0.9 = 1.33. Cpk = min(0.89, 1.33) = 0.89. The process is shifted high, reducing capability.',
         visual: {
           type: 'chart',
           data: {
@@ -815,7 +815,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'ppk-note',
         title: 'Note on Pp/Ppk',
         content:
-          'VariScout calculates Cp/Cpk (within-group variation). For long-term performance indices (Pp/Ppk), which include all sources of variation, use specialized SPC software. The difference matters when your process has between-subgroup variation.',
+          'VariScout calculates Cp/Cpk using σ_within (short-term, inherent variation from the moving range). For long-term performance indices (Pp/Ppk), which use the overall standard deviation and capture all sources of variation, use specialized SPC software.',
       },
     ],
     relatedTools: ['capability', 'i-chart'],
@@ -987,31 +987,31 @@ export const LEARN_TOPICS: LearnTopic[] = [
       },
       {
         id: 'simpler-methods',
-        title: 'Why Simpler Calculations?',
+        title: 'Industry-Standard Foundations',
         content:
-          "We chose simpler calculation methods (like 3σ for control limits instead of moving range) because they're easier to explain, match what spreadsheet users expect, and work well for the exploratory use case. When exact methodology matters, use specialized tools.",
+          'VariScout uses the same statistical methods as professional SPC software: σ_within from the moving range (MR̄/d2) for control limits and Cp/Cpk. Where VariScout stays simpler is in scope: no subgroup charts (X̄-R), no long-term indices (Pp/Ppk), and no multi-factor DOE. This keeps the tool accessible while ensuring the statistics you do see are calculated correctly.',
         visual: {
           type: 'comparison',
           data: {
             left: {
-              title: 'VariScout Approach',
-              subtitle: 'Simple & Accessible',
+              title: 'VariScout',
+              subtitle: 'Accessible & Correct',
               items: [
-                'Standard 3σ control limits',
-                'Sample standard deviation',
-                'Cp/Cpk (short-term)',
+                'Moving range (σ_within) control limits',
+                'Cp/Cpk (short-term capability)',
                 'One-way ANOVA with η²',
+                'Individual measurements (I-MR)',
               ],
               color: 'purple',
             },
             right: {
               title: 'Specialized SPC',
-              subtitle: 'Industry Standard',
+              subtitle: 'Advanced Features',
               items: [
-                'Moving range (MR̄) based limits',
-                'Xbar-R, Xbar-S charts',
-                'Pp/Ppk (long-term)',
+                'X̄-R, X̄-S charts (subgroup support)',
+                'Pp/Ppk (long-term performance)',
                 'Multi-factor ANOVA, DOE',
+                'CUSUM, EWMA charts',
               ],
               color: 'neutral',
             },
@@ -1094,25 +1094,26 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'quick-answer',
         title: 'Quick Answer',
         content:
-          "Each stage gets its own mean and control limits (mean ± 3σ) calculated from only that stage's data. This reveals improvements that combined analysis hides.",
+          "Each stage gets its own mean and control limits (mean ± 3σ_within) calculated from only that stage's data. σ_within is estimated from the moving range within each stage. This reveals improvements that combined analysis hides.",
       },
       {
         id: 'formula',
         title: 'The Formulas',
         content:
-          'For each stage independently: Mean_stage = Σ(values) / n, σ_stage = standard deviation of stage values, UCL_stage = Mean_stage + 3σ_stage, LCL_stage = Mean_stage - 3σ_stage. Each stage is treated as a separate process.',
+          'For each stage independently: Mean_stage = Σ(values) / n, σ_within_stage = MR̄_stage / d2, UCL_stage = Mean_stage + 3σ_within_stage, LCL_stage = Mean_stage - 3σ_within_stage. Each stage is treated as a separate process with its own moving range.',
         visual: {
           type: 'list',
           data: {
             items: [
               { title: 'Mean per stage', description: 'Average of values within that stage only' },
               {
-                title: 'σ per stage',
-                description: "Standard deviation of that stage's values only",
+                title: 'σ_within per stage',
+                description:
+                  "Moving range estimate (MR̄/d2) using that stage's consecutive differences",
               },
               {
                 title: 'UCL/LCL per stage',
-                description: "Mean ± 3σ using that stage's statistics",
+                description: "Mean ± 3σ_within using that stage's statistics",
               },
             ],
           },
@@ -1371,16 +1372,16 @@ export const LEARN_TOPICS: LearnTopic[] = [
                 description: 'X̄ = Average of all data points. Shows process center.',
               },
               {
-                title: 'Standard Deviation',
-                description: 'σ = Measure of spread. Quantifies variation magnitude.',
+                title: 'Within-Subgroup Variation',
+                description: 'σ_within = MR̄/d2. Estimated from moving range of consecutive points.',
               },
               {
                 title: 'Upper Control Limit (UCL)',
-                description: 'UCL = X̄ + 3σ. Upper boundary of natural variation.',
+                description: 'UCL = X̄ + 3σ_within. Upper boundary of natural variation.',
               },
               {
                 title: 'Lower Control Limit (LCL)',
-                description: 'LCL = X̄ - 3σ. Lower boundary of natural variation.',
+                description: 'LCL = X̄ - 3σ_within. Lower boundary of natural variation.',
               },
             ],
           },
