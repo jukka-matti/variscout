@@ -47,7 +47,7 @@ All charts use a dark theme matching the application:
 | Chart               | Purpose                     | Key Features                                                    |
 | ------------------- | --------------------------- | --------------------------------------------------------------- |
 | **IChart**          | Individual values over time | UCL/LCL lines, out-of-spec highlighting                         |
-| **Boxplot**         | Distribution by category    | Quartiles, whiskers, outliers                                   |
+| **Boxplot**         | Distribution by category    | Quartiles, whiskers, outliers, Violin Mode (density overlay)    |
 | **ParetoChart**     | Defect frequency/value      | Sorted bars, cumulative line, 80% reference, aggregation toggle |
 | **Histogram**       | Value distribution          | Bins, normal curve overlay                                      |
 | **ScatterPlot**     | X-Y relationship            | Regression line, R² display                                     |

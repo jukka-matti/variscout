@@ -28,6 +28,7 @@ Complete feature availability across VariScout platforms.
 | **Probability Plot**     |     ✓     |      -       |     ✓      |    -     |
 | **Scatter/Regression**   |     ✓     |      -       |     ✓      |    -     |
 | **Gage R&R**             |     ✓     |      -       |     ✓      |    -     |
+| **Violin Mode**          |     ✓     |      -       |     ✓      |    -     |
 | **Performance Mode**     |     ✓     |      -       |     -      |    -     |
 
 > Excel Add-in provides the four core SPC charts. PWA adds Regression, Gage R&R, and Probability Plot for training. Performance Mode requires the Azure App.

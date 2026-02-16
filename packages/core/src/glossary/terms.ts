@@ -366,6 +366,18 @@ export const glossaryTerms: GlossaryTerm[] = [
     learnMorePath: '/tools/probability-plot',
     relatedTerms: ['mean', 'stdDev', 'cp', 'cpk'],
   },
+
+  // Charts
+  {
+    id: 'violinPlot',
+    label: 'Violin Plot',
+    definition:
+      'Distribution visualization showing kernel density estimation alongside boxplot summary statistics.',
+    description:
+      'Reveals distribution shape, bimodality, and skewness. Toggle on boxplot charts to see the full density curve behind standard box-and-whisker elements.',
+    category: 'charts',
+    relatedTerms: ['boxplot', 'stdDev'],
+  },
 ];
 
 /**

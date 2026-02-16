@@ -115,6 +115,10 @@ Performance charts analyze multiple measurement channels (fill heads, cavities, 
 - PWA/Azure: Use responsive wrapper (auto-sizing)
 - Excel: Use Base variant (explicit sizing with darkTheme tokens)
 
+## Violin Mode
+
+Both `Boxplot` and `PerformanceBoxplot` support `showViolin?: boolean` prop. When true, renders `@visx/stats` `<ViolinPlot>` behind box elements using KDE data from `calculateKDE()` in `@variscout/core`. Controlled via `displayOptions.showViolin` in the app wrappers.
+
 ## Adding New Charts
 
 1. Create `NewChart.tsx` with `NewChartBase` export

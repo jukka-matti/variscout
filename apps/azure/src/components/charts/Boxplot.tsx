@@ -109,6 +109,7 @@ const Boxplot = ({
       <BoxplotBase
         data={data}
         specs={displayOptions.showSpecs !== false ? specs : {}}
+        showViolin={displayOptions.showViolin}
         yAxisLabel={columnAliases[outcome] || outcome}
         xAxisLabel={alias}
         yDomainOverride={{ min, max }}

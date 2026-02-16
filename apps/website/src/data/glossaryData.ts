@@ -636,6 +636,44 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
       'When Nelson Rule 2 triggers, check your timeline: What changed when the sequence started? Look at batch numbers, shift changes, material lots, maintenance events, and environmental conditions.',
   },
 
+  violinPlot: {
+    seoTitle: 'Violin Plot | VaRiScout Glossary',
+    seoDescription:
+      'Violin plot overlays a kernel density estimate on a boxplot, revealing distribution shape, bimodality, and skewness that box-and-whisker summaries alone can miss.',
+    relatedTools: ['boxplot'],
+    relatedLearn: ['four-pillars', 'eda-philosophy'],
+    sections: [
+      {
+        type: 'interpretation',
+        title: 'Reading the Shape',
+        content:
+          'The violin width shows data density — wider sections mean more data points at that level.',
+        items: [
+          {
+            value: 'Symmetric',
+            label: 'Symmetric Shape',
+            description:
+              'Data is evenly distributed around the median — typical of a stable, single-source process',
+          },
+          {
+            value: 'Bimodal',
+            label: 'Two Bumps',
+            description:
+              'Two distinct peaks — likely two populations mixed together (e.g., day vs night shift)',
+          },
+          {
+            value: 'Skewed',
+            label: 'Asymmetric Shape',
+            description:
+              'Data concentrated on one side — process may have a natural bound or constraint',
+          },
+        ],
+      },
+    ],
+    practicalTip:
+      'Toggle violin mode when a boxplot looks normal but you suspect hidden subgroups. Two bumps in the violin reveal mixed populations that the box summary hides.',
+  },
+
   inControl: {
     seoTitle: 'In-Control Process | VariScout Glossary',
     seoDescription:

@@ -11,6 +11,7 @@ import {
   calculateProbabilityPlotData,
   normalQuantile,
   getInteractionStrength,
+  calculateKDE,
 } from '../stats';
 
 describe('Stats Engine', () => {
@@ -1049,6 +1050,102 @@ describe('Probability Plot', () => {
       expect(result!.deltaRSquared).toBeGreaterThanOrEqual(0);
       expect(result!.pValue).toBeGreaterThanOrEqual(0);
       expect(result!.pValue).toBeLessThanOrEqual(1);
+    });
+  });
+
+  // ============================================================================
+  // calculateKDE - Kernel Density Estimation
+  // ============================================================================
+  describe('calculateKDE', () => {
+    it('should return empty array for fewer than 2 values', () => {
+      expect(calculateKDE([])).toEqual([]);
+      expect(calculateKDE([5])).toEqual([]);
+    });
+
+    it('should return the requested number of points', () => {
+      const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      const result = calculateKDE(values, 30);
+      expect(result).toHaveLength(30);
+    });
+
+    it('should default to 100 points', () => {
+      const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      const result = calculateKDE(values);
+      expect(result).toHaveLength(100);
+    });
+
+    it('should return { value, count } objects with non-negative density', () => {
+      const values = [10, 12, 11, 13, 10, 14, 9, 11, 12, 10];
+      const result = calculateKDE(values);
+      for (const point of result) {
+        expect(point).toHaveProperty('value');
+        expect(point).toHaveProperty('count');
+        expect(typeof point.value).toBe('number');
+        expect(typeof point.count).toBe('number');
+        expect(point.count).toBeGreaterThanOrEqual(0);
+      }
+    });
+
+    it('should peak near the mean for a normal-like distribution', () => {
+      // Values centered around 50
+      const values = [48, 49, 49, 50, 50, 50, 50, 51, 51, 52];
+      const result = calculateKDE(values, 100);
+
+      // Find the peak
+      let peakIdx = 0;
+      for (let i = 1; i < result.length; i++) {
+        if (result[i].count > result[peakIdx].count) peakIdx = i;
+      }
+      // Peak should be near 50
+      expect(result[peakIdx].value).toBeCloseTo(50, 0);
+    });
+
+    it('should show two peaks for bimodal data', () => {
+      // Two clusters: around 20 and around 80
+      const values = [18, 19, 20, 20, 21, 22, 78, 79, 80, 80, 81, 82];
+      const result = calculateKDE(values, 100);
+
+      // Find local maxima
+      const peaks: number[] = [];
+      for (let i = 1; i < result.length - 1; i++) {
+        if (result[i].count > result[i - 1].count && result[i].count > result[i + 1].count) {
+          peaks.push(result[i].value);
+        }
+      }
+      expect(peaks.length).toBeGreaterThanOrEqual(2);
+      // First peak near 20, second near 80
+      expect(peaks[0]).toBeCloseTo(20, -1);
+      expect(peaks[peaks.length - 1]).toBeCloseTo(80, -1);
+    });
+
+    it('should handle zero variance (all identical values)', () => {
+      const values = [5, 5, 5, 5, 5];
+      const result = calculateKDE(values);
+      // Should not crash; returns points (density may be narrow spike)
+      expect(result.length).toBeGreaterThan(0);
+      for (const point of result) {
+        expect(isFinite(point.count)).toBe(true);
+      }
+    });
+
+    it('should handle two identical values', () => {
+      const values = [10, 10];
+      const result = calculateKDE(values);
+      expect(result.length).toBeGreaterThan(0);
+      for (const point of result) {
+        expect(isFinite(point.count)).toBe(true);
+      }
+    });
+
+    it('should span 3 bandwidths beyond data range (R/ggplot2 standard)', () => {
+      const values = [10, 20, 30, 40, 50];
+      const result = calculateKDE(values);
+      // First point should be well below min, last well above max (3h extension)
+      expect(result[0].value).toBeLessThan(10);
+      expect(result[result.length - 1].value).toBeGreaterThan(50);
+      // With 3h extension, tails should extend significantly — density near zero at edges
+      expect(result[0].count).toBeLessThan(0.01);
+      expect(result[result.length - 1].count).toBeLessThan(0.01);
     });
   });
 });

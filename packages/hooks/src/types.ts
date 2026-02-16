@@ -95,6 +95,8 @@ export interface DisplayOptions {
   showControlLimits?: boolean;
   /** Show category contribution labels below boxplot boxes (default: false) */
   showContributionLabels?: boolean;
+  /** Show violin (density) overlay on boxplot charts (default: false) */
+  showViolin?: boolean;
 }
 
 /**

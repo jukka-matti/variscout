@@ -154,6 +154,8 @@ export interface BoxplotProps extends BaseChartProps {
   onXAxisClick?: () => void;
   /** Custom tick formatter for X-axis (e.g., value labels) */
   xTickFormat?: (value: string) => string;
+  /** Show violin (density) overlay behind box elements (default: false) */
+  showViolin?: boolean;
 }
 
 /**
@@ -286,6 +288,8 @@ export interface PerformanceBoxplotProps extends BaseChartProps {
   showStatsTable?: boolean;
   /** Custom Cpk thresholds for health classification in stats table (defaults to industry standards) */
   cpkThresholds?: CpkThresholds;
+  /** Show violin (density) overlay behind box elements (default: false) */
+  showViolin?: boolean;
 }
 
 /**

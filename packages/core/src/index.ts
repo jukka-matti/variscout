@@ -75,6 +75,8 @@ export {
   getInteractionStrength,
   // Model reduction
   suggestTermRemoval,
+  // Kernel density estimation (for violin plots)
+  calculateKDE,
 } from './stats';
 
 // Matrix utilities (for advanced use)

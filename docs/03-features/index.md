@@ -8,15 +8,15 @@ Centralized feature specifications for VariScout.
 
 The core statistical charts based on Watson's Four Pillars:
 
-| Chart                                            | Pillar  | Purpose                       |
-| ------------------------------------------------ | ------- | ----------------------------- |
-| [I-Chart](analysis/i-chart.md)                   | CHANGE  | Time-based stability analysis |
-| [Boxplot](analysis/boxplot.md)                   | FLOW    | Factor comparison             |
-| [Pareto](analysis/pareto.md)                     | FAILURE | Problem concentration         |
-| [Capability](analysis/capability.md)             | VALUE   | Specification compliance      |
-| [Regression](analysis/regression.md)             | -       | Correlation analysis          |
-| [Gage R&R](analysis/gage-rr.md)                  | -       | Measurement system analysis   |
-| [Performance Mode](analysis/performance-mode.md) | -       | Multi-channel analysis        |
+| Chart                                            | Pillar  | Purpose                                  |
+| ------------------------------------------------ | ------- | ---------------------------------------- |
+| [I-Chart](analysis/i-chart.md)                   | CHANGE  | Time-based stability analysis            |
+| [Boxplot](analysis/boxplot.md)                   | FLOW    | Factor comparison (includes Violin Mode) |
+| [Pareto](analysis/pareto.md)                     | FAILURE | Problem concentration                    |
+| [Capability](analysis/capability.md)             | VALUE   | Specification compliance                 |
+| [Regression](analysis/regression.md)             | -       | Correlation analysis                     |
+| [Gage R&R](analysis/gage-rr.md)                  | -       | Measurement system analysis              |
+| [Performance Mode](analysis/performance-mode.md) | -       | Multi-channel analysis                   |
 
 ---
 

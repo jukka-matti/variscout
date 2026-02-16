@@ -50,6 +50,8 @@ interface BoxplotProps extends BaseChartProps {
   categoryContributions?: Map<string | number, number>;
   /** Show contribution labels below boxes (default: false) */
   showContributionLabels?: boolean;
+  /** Show violin (density) overlay behind box elements (default: false) */
+  showViolin?: boolean;
 }
 ```
 
@@ -140,6 +142,23 @@ Highlights specific groups while dimming others:
 ```
 
 Selection uses `useSelectionState` hook with `selectionOpacity.dimmed` (0.3) for unselected items.
+
+#### Violin Mode
+
+Overlays KDE-based density curves behind box elements to reveal distribution shape:
+
+```tsx
+<Boxplot data={groupedData} specs={specs} showViolin={true} />
+```
+
+When enabled, each group's `values` array is passed to `calculateKDE()` from `@variscout/core`, which returns `{ value, count }[]` data for `@visx/stats` `<ViolinPlot>`. Uses **violin-primary rendering** (industry standard, matching Seaborn/Plotly/ggplot2):
+
+- Density curve is the dominant shape (0.35 fill opacity, 0.7 stroke opacity)
+- Thin inner IQR box (20% of band width) shows Q1-Q3 inside the violin
+- Median line spans thin box only; mean diamond centered
+- Whiskers, whisker caps, and outlier circles are hidden
+
+Requires `values.length >= 2` per group. Groups with fewer than 2 values skip violin rendering.
 
 #### Y-Axis Lock Mode
 

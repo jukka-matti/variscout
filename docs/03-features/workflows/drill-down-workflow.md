@@ -109,7 +109,7 @@ Shift: Night, Evening ▼ 52%
 
 ### Step 1: Start with Full Data
 
-View the Boxplot with all data. Note which factor has highest η².
+View the Boxplot with all data. Note which factor has highest η². Consider enabling **Show distribution shape** in Settings to reveal bimodal distributions before filtering.
 
 ### Step 2: Click to Filter
 

@@ -51,6 +51,23 @@ When comparing factors, VariScout calculates:
 
 ---
 
+## Violin Mode (Distribution Shape)
+
+Toggle **Show distribution shape** in Settings to switch to violin-primary rendering (industry standard, matching Seaborn/Plotly/ggplot2). This uses Kernel Density Estimation (KDE) with a Gaussian kernel and Silverman's rule-of-thumb bandwidth.
+
+| Pattern           | What the violin reveals                              |
+| ----------------- | ---------------------------------------------------- |
+| Single peak       | Unimodal process, well-centered                      |
+| Two peaks         | Bimodal distribution — likely two process conditions |
+| Skewed shape      | Asymmetric process — investigate cause               |
+| Wide/narrow shape | Variation magnitude at a glance                      |
+
+When enabled, the density curve becomes the dominant shape with a thin IQR box inside showing Q1-Q3 range, median line, and mean diamond. Whiskers and outliers are hidden since the density curve conveys the full distribution shape.
+
+Available in PWA and Azure App. Not available in Excel Add-in (core SPC only).
+
+---
+
 ## Linked Filtering
 
 Click any box to:

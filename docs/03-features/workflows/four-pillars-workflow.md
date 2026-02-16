@@ -84,6 +84,10 @@ The η² value shows what percentage of total variation is explained by a factor
 | 10-30%   | Moderate       | May contribute to problem |
 | < 10%    | Minimal        | Likely not the issue      |
 
+### Distribution Shape
+
+Enable **Show distribution shape** in Settings to overlay density curves (violin plots) on boxplots. This reveals bimodal distributions, skewness, or clustering that standard box elements alone cannot show.
+
 ### The Drill-Down
 
 1. **Identify highest η² factor** - Click on it

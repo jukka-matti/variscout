@@ -49,6 +49,7 @@ interface GlossaryTerm {
 | capability     | Cp, Cpk, Pass Rate, Rejected            |
 | statistics     | Mean, Std Dev, F-Statistic, p-value, η² |
 | regression     | R², Slope, Intercept, VIF               |
+| charts         | Violin Plot                             |
 | methodology    | Staged Analysis, Probability Plot       |
 
 ---

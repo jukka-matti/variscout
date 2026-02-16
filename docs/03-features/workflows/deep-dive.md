@@ -120,6 +120,7 @@ Identify what factors explain the variation.
 1. **Review Boxplot η² values**
    - Which factor explains most?
    - Are there multiple significant factors?
+   - Enable **Show distribution shape** to check for bimodal patterns before drilling
 
 2. **Drill down systematically**
    - Start with highest η²

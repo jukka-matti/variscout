@@ -116,16 +116,16 @@ Pure TypeScript logic with no React dependencies:
 
 Props-based React components using Visx for data visualization:
 
-| Module                    | Purpose                                           |
-| ------------------------- | ------------------------------------------------- |
-| `IChart.tsx`              | Individual control chart with `IChartBase` export |
-| `Boxplot.tsx`             | Factor comparison with `BoxplotBase` export       |
-| `ParetoChart.tsx`         | Frequency analysis with `ParetoChartBase` export  |
-| `CapabilityHistogram.tsx` | Distribution histogram with spec limits           |
-| `ProbabilityPlot.tsx`     | Normal probability plot with CI bands             |
-| `ChartSourceBar.tsx`      | Branding footer component                         |
-| `responsive.ts`           | `getResponsiveMargins`, `getResponsiveFonts`      |
-| `types.ts`                | Chart prop interfaces, `calculateBoxplotStats()`  |
+| Module                    | Purpose                                                         |
+| ------------------------- | --------------------------------------------------------------- |
+| `IChart.tsx`              | Individual control chart with `IChartBase` export               |
+| `Boxplot.tsx`             | Factor comparison with `BoxplotBase` export (`showViolin` prop) |
+| `ParetoChart.tsx`         | Frequency analysis with `ParetoChartBase` export                |
+| `CapabilityHistogram.tsx` | Distribution histogram with spec limits                         |
+| `ProbabilityPlot.tsx`     | Normal probability plot with CI bands                           |
+| `ChartSourceBar.tsx`      | Branding footer component                                       |
+| `responsive.ts`           | `getResponsiveMargins`, `getResponsiveFonts`                    |
+| `types.ts`                | Chart prop interfaces, `calculateBoxplotStats()`                |
 
 ### @variscout/data
 

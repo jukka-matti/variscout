@@ -122,6 +122,7 @@ const Boxplot = ({
         variationPct={variationPct}
         categoryContributions={categoryContributions}
         showContributionLabels={displayOptions.showContributionLabels}
+        showViolin={displayOptions.showViolin}
         parentWidth={parentWidth}
         parentHeight={parentHeight}
         showBranding={showBranding}

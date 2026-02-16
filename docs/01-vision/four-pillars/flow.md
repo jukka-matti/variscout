@@ -34,6 +34,7 @@ Participants initially measured output (sock length) without understanding input
 - Compare any factor column (Machine, Shift, Operator, etc.)
 - IQR-based outlier detection
 - Visual median/spread comparison
+- Violin mode: toggle density curves to reveal distribution shape (bimodality, skewness)
 - Click any box → filters all other charts to that subgroup
 
 ---

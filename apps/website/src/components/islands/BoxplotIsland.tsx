@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BoxplotBase } from '@variscout/charts';
 import { getSample, getCachedComputedData } from '@variscout/data';
 import ChartContainer from './ChartContainer';
@@ -17,6 +18,7 @@ export default function BoxplotIsland({
   height = 400,
   showBranding = true,
 }: BoxplotIslandProps) {
+  const [showViolin, setShowViolin] = useState(false);
   const sample = getSample(sampleKey);
   const computed = getCachedComputedData(sampleKey);
 
@@ -32,16 +34,31 @@ export default function BoxplotIsland({
   }
 
   return (
-    <ChartContainer height={height}>
-      {({ width, height: containerHeight }) => (
-        <BoxplotBase
-          data={computed.boxplotData}
-          specs={computed.specs}
-          parentWidth={width}
-          parentHeight={containerHeight}
-          showBranding={showBranding}
-        />
-      )}
-    </ChartContainer>
+    <div>
+      <div className="flex justify-end mb-2">
+        <button
+          onClick={() => setShowViolin(v => !v)}
+          className={`text-xs px-3 py-1.5 rounded-md border transition-colors ${
+            showViolin
+              ? 'bg-orange-500/20 border-orange-500/40 text-orange-400'
+              : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'
+          }`}
+        >
+          {showViolin ? 'Violin On' : 'Violin Off'}
+        </button>
+      </div>
+      <ChartContainer height={height}>
+        {({ width, height: containerHeight }) => (
+          <BoxplotBase
+            data={computed.boxplotData}
+            specs={computed.specs}
+            parentWidth={width}
+            parentHeight={containerHeight}
+            showBranding={showBranding}
+            showViolin={showViolin}
+          />
+        )}
+      </ChartContainer>
+    </div>
   );
 }

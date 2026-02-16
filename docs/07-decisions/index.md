@@ -16,6 +16,7 @@ This section captures key architectural decisions made during VariScout developm
 | [006](adr-006-edition-system.md)                 | Edition System                 | Superseded | 2024-03-01 |
 | [007](adr-007-azure-marketplace-distribution.md) | Azure Marketplace Distribution | Accepted   | 2026-02-05 |
 | [008](adr-008-website-content-architecture.md)   | Website Content Architecture   | Accepted   | 2026-02-13 |
+| [009](adr-009-boxplot-violin-mode.md)            | Boxplot Violin Mode            | Accepted   | 2026-02-16 |
 
 ---
 
@@ -47,10 +48,10 @@ What becomes easier or harder as a result?
 
 ## Pending Decisions
 
-### ADR-009: Testing Strategy (Proposed)
+### ADR-010: Testing Strategy (Proposed)
 
 See `05-technical/implementation/testing.md` for current approach. May formalize as ADR.
 
-### ADR-010: State Management Pattern (Proposed)
+### ADR-011: State Management Pattern (Proposed)
 
 Currently using React Context. May evaluate alternatives if complexity grows.

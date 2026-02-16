@@ -144,11 +144,17 @@ export const TOOLS: ToolData[] = [
         { name: 'Middle Line', description: 'Median (middle value)' },
         { name: 'Whiskers', description: 'Range of typical values' },
         { name: 'Dots', description: 'Outliers beyond 1.5x IQR' },
+        {
+          name: 'Violin Shape',
+          description:
+            'Density curve showing where data concentrates — wider means more values at that level (toggle on/off)',
+        },
       ],
       quickCheck: [
         'Which box is tallest? (most variation)',
         'Are the medians at different heights? (location shift)',
         'Any outliers that need investigation?',
+        'With violin on: any shape with two bumps? (bimodal — mixed populations)',
       ],
     },
     patterns: [
@@ -167,11 +173,25 @@ export const TOOLS: ToolData[] = [
         description: 'Special causes are common in this group',
         action: 'Look for what these outliers have in common',
       },
+      {
+        name: 'Bimodal Violin',
+        description: 'Violin shape has two bumps — data has two distinct peaks',
+        action: 'Investigate if two different populations are mixed (e.g., day vs night shift)',
+      },
+      {
+        name: 'Skewed Violin',
+        description: 'Violin is asymmetric — data concentrated on one side',
+        action: 'Check if process has a natural bound creating the skew',
+      },
     ],
     features: [
       { name: 'Click to filter', description: 'Click any box to filter the I-Chart' },
       { name: 'Factor selector', description: 'Switch between different grouping factors' },
       { name: 'Cross-chart sync', description: 'Stays in sync with Pareto factor selection' },
+      {
+        name: 'Violin mode',
+        description: 'Toggle distribution shape overlay to spot bimodal data and skewness',
+      },
     ],
     sampleKey: 'bottleneck',
     nextTools: ['pareto', 'i-chart'],

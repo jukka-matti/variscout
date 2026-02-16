@@ -19,7 +19,7 @@ const PerformanceBoxplot: React.FC<PerformanceBoxplotProps> = ({
   onChannelClick,
   maxDisplayed,
 }) => {
-  const { performanceResult, selectedMeasure, specs } = useData();
+  const { performanceResult, selectedMeasure, specs, displayOptions } = useData();
 
   return (
     <PerformanceBoxplotBase
@@ -28,6 +28,7 @@ const PerformanceBoxplot: React.FC<PerformanceBoxplotProps> = ({
       selectedMeasure={selectedMeasure}
       onChannelClick={onChannelClick}
       maxDisplayed={maxDisplayed}
+      showViolin={displayOptions?.showViolin}
     />
   );
 };

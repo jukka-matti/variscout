@@ -15,12 +15,13 @@ import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
-import { getWorstChannels, CPK_THRESHOLDS } from '@variscout/core';
+import { getWorstChannels, CPK_THRESHOLDS, calculateKDE } from '@variscout/core';
 import type { PerformanceBoxplotProps, ChannelResult } from './types';
 import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { getResponsiveMargins, getScaledFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
+import ViolinPlot from '@visx/stats/lib/ViolinPlot';
 import * as d3 from 'd3';
 
 const DEFAULT_MAX_DISPLAYED = 5;
@@ -64,6 +65,7 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
   showBranding = true,
   showStatsTable = false,
   cpkThresholds = CPK_THRESHOLDS,
+  showViolin = false,
 }) => {
   const { chrome, fontScale } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
@@ -133,6 +135,18 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
       nice: true,
     });
   }, [boxplotData, height, specs]);
+
+  // Pre-compute KDE data for all channels when violin mode is enabled
+  const violinData = useMemo(() => {
+    if (!showViolin) return new Map<string, Array<{ value: number; count: number }>>();
+    const map = new Map<string, Array<{ value: number; count: number }>>();
+    for (const { channel } of boxplotData) {
+      if (channel.values.length >= 2) {
+        map.set(channel.id, calculateKDE(channel.values));
+      }
+    }
+    return map;
+  }, [boxplotData, showViolin]);
 
   const showTooltip = (data: { channel: ChannelResult; stats: BoxplotStats }, x: number) => {
     setTooltipData(data);
@@ -204,60 +218,114 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
                 onMouseEnter={() => showTooltip({ channel, stats }, x + boxWidth / 2)}
                 onMouseLeave={hideTooltip}
               >
-                {/* Vertical line (whiskers) */}
-                <Line
-                  from={{ x: x + boxWidth / 2, y: yScale(stats.min) }}
-                  to={{ x: x + boxWidth / 2, y: yScale(stats.max) }}
-                  stroke={chrome.whisker}
-                  strokeWidth={isSelected ? 2 : 1}
-                />
+                {showViolin && violinData.has(channel.id) ? (
+                  <>
+                    {/* Violin-primary mode: prominent density curve with thin inner box */}
+                    <ViolinPlot
+                      data={violinData.get(channel.id)!}
+                      left={x + boxWidth / 2}
+                      width={boxWidth}
+                      valueScale={yScale}
+                      value={(d: { value: number; count: number }) => d.value}
+                      count={(d: { value: number; count: number }) => d.count}
+                      fill={chrome.boxDefault}
+                      fillOpacity={0.35}
+                      stroke={chrome.boxBorder}
+                      strokeWidth={1.5}
+                      strokeOpacity={0.7}
+                    />
 
-                {/* Min whisker cap */}
-                <Line
-                  from={{ x: x + boxWidth * 0.25, y: yScale(stats.min) }}
-                  to={{ x: x + boxWidth * 0.75, y: yScale(stats.min) }}
-                  stroke={chrome.whisker}
-                  strokeWidth={isSelected ? 2 : 1}
-                />
+                    {/* Thin inner box (20% of boxWidth, centered) */}
+                    <Bar
+                      x={x + boxWidth * 0.4}
+                      y={yScale(stats.q3)}
+                      width={boxWidth * 0.2}
+                      height={Math.max(0, yScale(stats.q1) - yScale(stats.q3))}
+                      fill={chrome.boxDefault}
+                      fillOpacity={0.6}
+                      stroke={chrome.boxBorder}
+                      rx={1}
+                    />
 
-                {/* Max whisker cap */}
-                <Line
-                  from={{ x: x + boxWidth * 0.25, y: yScale(stats.max) }}
-                  to={{ x: x + boxWidth * 0.75, y: yScale(stats.max) }}
-                  stroke={chrome.whisker}
-                  strokeWidth={isSelected ? 2 : 1}
-                />
+                    {/* Median line (spans thin box) */}
+                    <Line
+                      from={{ x: x + boxWidth * 0.4, y: yScale(stats.median) }}
+                      to={{ x: x + boxWidth * 0.6, y: yScale(stats.median) }}
+                      stroke={chartColors.cumulative}
+                      strokeWidth={2}
+                    />
 
-                {/* Box (Q1 to Q3) */}
-                <Bar
-                  x={x}
-                  y={yScale(stats.q3)}
-                  width={boxWidth}
-                  height={Math.max(0, yScale(stats.q1) - yScale(stats.q3))}
-                  fill={isSelected ? chartColors.selected : chrome.boxDefault}
-                  stroke={isSelected ? chartColors.selectedBorder : chrome.boxBorder}
-                  strokeWidth={isSelected ? 2 : 1}
-                  rx={2}
-                />
+                    {/* Mean marker (diamond, centered) */}
+                    <polygon
+                      points={`
+                        ${x + boxWidth / 2},${yScale(stats.mean) - 4}
+                        ${x + boxWidth / 2 + 4},${yScale(stats.mean)}
+                        ${x + boxWidth / 2},${yScale(stats.mean) + 4}
+                        ${x + boxWidth / 2 - 4},${yScale(stats.mean)}
+                      `}
+                      fill={chrome.labelPrimary}
+                    />
+                  </>
+                ) : (
+                  <>
+                    {/* Standard boxplot mode: full box, whiskers */}
 
-                {/* Median line */}
-                <Line
-                  from={{ x: x, y: yScale(stats.median) }}
-                  to={{ x: x + boxWidth, y: yScale(stats.median) }}
-                  stroke={chartColors.cumulative}
-                  strokeWidth={2}
-                />
+                    {/* Vertical line (whiskers) */}
+                    <Line
+                      from={{ x: x + boxWidth / 2, y: yScale(stats.min) }}
+                      to={{ x: x + boxWidth / 2, y: yScale(stats.max) }}
+                      stroke={chrome.whisker}
+                      strokeWidth={isSelected ? 2 : 1}
+                    />
 
-                {/* Mean marker (diamond) */}
-                <polygon
-                  points={`
-                    ${x + boxWidth / 2},${yScale(stats.mean) - 4}
-                    ${x + boxWidth / 2 + 4},${yScale(stats.mean)}
-                    ${x + boxWidth / 2},${yScale(stats.mean) + 4}
-                    ${x + boxWidth / 2 - 4},${yScale(stats.mean)}
-                  `}
-                  fill={chrome.labelPrimary}
-                />
+                    {/* Min whisker cap */}
+                    <Line
+                      from={{ x: x + boxWidth * 0.25, y: yScale(stats.min) }}
+                      to={{ x: x + boxWidth * 0.75, y: yScale(stats.min) }}
+                      stroke={chrome.whisker}
+                      strokeWidth={isSelected ? 2 : 1}
+                    />
+
+                    {/* Max whisker cap */}
+                    <Line
+                      from={{ x: x + boxWidth * 0.25, y: yScale(stats.max) }}
+                      to={{ x: x + boxWidth * 0.75, y: yScale(stats.max) }}
+                      stroke={chrome.whisker}
+                      strokeWidth={isSelected ? 2 : 1}
+                    />
+
+                    {/* Box (Q1 to Q3) */}
+                    <Bar
+                      x={x}
+                      y={yScale(stats.q3)}
+                      width={boxWidth}
+                      height={Math.max(0, yScale(stats.q1) - yScale(stats.q3))}
+                      fill={isSelected ? chartColors.selected : chrome.boxDefault}
+                      stroke={isSelected ? chartColors.selectedBorder : chrome.boxBorder}
+                      strokeWidth={isSelected ? 2 : 1}
+                      rx={2}
+                    />
+
+                    {/* Median line */}
+                    <Line
+                      from={{ x: x, y: yScale(stats.median) }}
+                      to={{ x: x + boxWidth, y: yScale(stats.median) }}
+                      stroke={chartColors.cumulative}
+                      strokeWidth={2}
+                    />
+
+                    {/* Mean marker (diamond) */}
+                    <polygon
+                      points={`
+                        ${x + boxWidth / 2},${yScale(stats.mean) - 4}
+                        ${x + boxWidth / 2 + 4},${yScale(stats.mean)}
+                        ${x + boxWidth / 2},${yScale(stats.mean) + 4}
+                        ${x + boxWidth / 2 - 4},${yScale(stats.mean)}
+                      `}
+                      fill={chrome.labelPrimary}
+                    />
+                  </>
+                )}
               </Group>
             );
           })}

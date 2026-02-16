@@ -58,6 +58,7 @@ A lightweight, offline variation analysis tool for quality professionals. No AI,
 │  LSL ═══════════════════════════════════════════════════ 🔴 │
 ├─────────────────────────────┬───────────────────────────────┤
 │  BOXPLOT (factor compare)   │  PARETO (categories)          │
+│  [Violin Mode: density]     │                               │
 │                             │                               │
 │    ┌─┐                      │  ████████████  Station 3      │
 │  ──┼─┼──   ┌─┐              │  ████████      Operator B     │

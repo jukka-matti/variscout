@@ -72,6 +72,7 @@ You can toggle visibility of chart elements and change display settings in the *
 3.  In the **"Display Options"** section, toggle:
     - **Lock Y-axis when drilling**: Keep the Y-axis scale consistent when filtering data.
     - **Show Control Limits**: Display UCL/Mean/LCL lines on the I-Chart (statistical process control limits based on 3-sigma rule).
+    - **Show distribution shape**: Overlay density curves (violin plots) on boxplots to reveal distribution shape, bimodality, and skewness.
 4.  In the **"Y-Axis Scale Mode"** section, choose:
     - **Auto**: Automatically fit scale to data and specification limits.
     - **Start at Zero**: Force Y-axis minimum to zero (useful for ratio data).
