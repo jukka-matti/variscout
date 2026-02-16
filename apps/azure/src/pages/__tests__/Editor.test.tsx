@@ -1,0 +1,309 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { Editor } from '../Editor';
+import * as DataContextModule from '../../context/DataContext';
+import * as StorageModule from '../../services/storage';
+
+// ── Mock child components ──
+
+vi.mock('../../components/Dashboard', () => ({
+  default: () => <div data-testid="dashboard">Dashboard</div>,
+}));
+
+vi.mock('../../components/data/DataPanel', () => ({
+  default: () => <div data-testid="data-panel">DataPanel</div>,
+}));
+
+vi.mock('../../components/MindmapPanel', () => ({
+  default: () => <div data-testid="mindmap-panel">MindmapPanel</div>,
+}));
+
+vi.mock('../../components/MindmapWindow', () => ({
+  openMindmapPopout: vi.fn(),
+}));
+
+vi.mock('../../components/data/ManualEntry', () => ({
+  default: () => <div data-testid="manual-entry">ManualEntry</div>,
+}));
+
+vi.mock('../../components/WhatIfPage', () => ({
+  default: () => <div data-testid="what-if-page">WhatIfPage</div>,
+}));
+
+// ── Mock @variscout/core ──
+
+vi.mock('@variscout/core', () => ({
+  validateData: vi.fn(() => ({ isValid: true, errors: [], warnings: [] })),
+  downloadCSV: vi.fn(),
+  getNelsonRule2ViolationPoints: vi.fn(() => []),
+  calculateStats: vi.fn(() => ({ mean: 10, ucl: 12, lcl: 8 })),
+}));
+
+// ── Mock @variscout/data ──
+
+vi.mock('@variscout/data', () => ({
+  SAMPLES: [
+    {
+      name: 'Coffee Roast',
+      description: 'Coffee roasting temperature data',
+      icon: 'Coffee',
+      urlKey: 'coffee',
+      category: 'cases',
+      featured: true,
+      data: [{ Temp: 200, Roaster: 'A' }],
+      config: { outcome: 'Temp', factors: ['Roaster'], specs: {} },
+    },
+    {
+      name: 'Bottleneck',
+      description: 'Production bottleneck analysis',
+      icon: 'Factory',
+      urlKey: 'bottleneck',
+      category: 'cases',
+      featured: true,
+      data: [{ CycleTime: 30, Line: 'L1' }],
+      config: { outcome: 'CycleTime', factors: ['Line'], specs: {} },
+    },
+  ],
+}));
+
+// ── Mock hooks ──
+
+vi.mock('../../hooks/useDataIngestion', () => ({
+  useDataIngestion: () => ({
+    handleFileUpload: vi.fn(),
+    loadSample: vi.fn(),
+  }),
+}));
+
+vi.mock('../../hooks', () => ({
+  useFilterNavigation: () => ({
+    filterStack: [],
+    applyFilter: vi.fn(),
+    clearFilters: vi.fn(),
+    updateFilterValues: vi.fn(),
+    removeFilter: vi.fn(),
+  }),
+}));
+
+// ── Mock storage ──
+
+vi.mock('../../services/storage', () => ({
+  useStorage: vi.fn(() => ({
+    saveProject: vi.fn(),
+    syncStatus: { status: 'synced', message: 'Synced' },
+  })),
+}));
+
+// ── Mock DataContext ──
+
+vi.mock('../../context/DataContext', () => ({
+  useData: vi.fn(),
+}));
+
+// ── Test helpers ──
+
+const baseDataCtx = {
+  rawData: [] as Record<string, any>[],
+  filteredData: [] as Record<string, any>[],
+  outcome: null as string | null,
+  factors: [] as string[],
+  specs: {} as Record<string, any>,
+  stats: null,
+  filters: {},
+  columnAliases: {},
+  isPerformanceMode: false,
+  measureColumns: null,
+  measureLabel: null,
+  currentProjectName: 'Test Project',
+  currentProjectLocation: 'team' as const,
+  hasUnsavedChanges: false,
+  stageColumn: null,
+  stageOrderMode: 'auto' as const,
+  stagedStats: null,
+  paretoAggregation: 'count' as const,
+  chartTitles: {},
+  timeColumn: null,
+  selectedPoints: new Set<number>(),
+  displayOptions: {},
+  dataFilename: null,
+  dataQualityReport: null,
+  setOutcome: vi.fn(),
+  setRawData: vi.fn(),
+  setFactors: vi.fn(),
+  setSpecs: vi.fn(),
+  setFilters: vi.fn(),
+  setDataFilename: vi.fn(),
+  setDataQualityReport: vi.fn(),
+  setPerformanceMode: vi.fn(),
+  setMeasureColumns: vi.fn(),
+  setMeasureLabel: vi.fn(),
+  setStageColumn: vi.fn(),
+  setStageOrderMode: vi.fn(),
+  setParetoAggregation: vi.fn(),
+  setChartTitles: vi.fn(),
+  setColumnAliases: vi.fn(),
+  saveProject: vi.fn(),
+  clearSelection: vi.fn(),
+};
+
+const defaultProps = {
+  projectId: 'test-123',
+  onBack: vi.fn(),
+};
+
+function renderEditor(dataOverrides: Partial<typeof baseDataCtx> = {}) {
+  vi.mocked(DataContextModule.useData).mockReturnValue({
+    ...baseDataCtx,
+    ...dataOverrides,
+  } as any);
+
+  return render(<Editor {...defaultProps} />);
+}
+
+// ── Tests ──
+
+describe('Editor', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+
+    // Re-apply storage mock after restoreAllMocks
+    vi.mocked(StorageModule.useStorage).mockReturnValue({
+      saveProject: vi.fn(),
+      syncStatus: { status: 'synced', message: 'Synced' },
+    } as any);
+  });
+
+  it('renders empty state when rawData is empty', () => {
+    renderEditor();
+
+    expect(screen.getByText('Start Your Analysis')).toBeInTheDocument();
+    expect(screen.getByText('Upload File')).toBeInTheDocument();
+    expect(screen.getByText('Manual Entry')).toBeInTheDocument();
+    expect(screen.getByText('Sample Datasets')).toBeInTheDocument();
+  });
+
+  it('shows Back button and project name in header', () => {
+    renderEditor({ currentProjectName: 'My Analysis' });
+
+    expect(screen.getByLabelText('Back to dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Back')).toBeInTheDocument();
+    expect(screen.getByText('My Analysis')).toBeInTheDocument();
+  });
+
+  it('shows sync status indicator', () => {
+    renderEditor();
+
+    expect(screen.getByText('Synced')).toBeInTheDocument();
+  });
+
+  it('shows CSV export button when data is loaded', () => {
+    renderEditor({
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      filteredData: [{ Weight: 10, Machine: 'A' }],
+      outcome: 'Weight',
+      factors: ['Machine'],
+    });
+
+    expect(screen.getByTitle('Export filtered data as CSV')).toBeInTheDocument();
+  });
+
+  it('shows What-If Simulator button when data is loaded', () => {
+    renderEditor({
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      filteredData: [{ Weight: 10, Machine: 'A' }],
+      outcome: 'Weight',
+      factors: ['Machine'],
+    });
+
+    expect(screen.getByTitle('What-If Simulator')).toBeInTheDocument();
+  });
+
+  it('shows Investigation toggle when data and factors are loaded', () => {
+    renderEditor({
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      filteredData: [{ Weight: 10, Machine: 'A' }],
+      outcome: 'Weight',
+      factors: ['Machine'],
+    });
+
+    expect(screen.getByTitle('Show Investigation')).toBeInTheDocument();
+  });
+
+  it('does not show Investigation toggle when factors are empty', () => {
+    renderEditor({
+      rawData: [{ Weight: 10 }],
+      filteredData: [{ Weight: 10 }],
+      outcome: 'Weight',
+      factors: [],
+    });
+
+    expect(screen.queryByTitle('Show Investigation')).not.toBeInTheDocument();
+  });
+
+  it('shows Data Panel toggle when data is loaded', () => {
+    renderEditor({
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      filteredData: [{ Weight: 10, Machine: 'A' }],
+      outcome: 'Weight',
+      factors: ['Machine'],
+    });
+
+    expect(screen.getByTitle('Show Data Panel')).toBeInTheDocument();
+  });
+
+  it('shows Save button', () => {
+    renderEditor();
+
+    const saveButton = screen.getByRole('button', { name: /save/i });
+    expect(saveButton).toBeInTheDocument();
+  });
+
+  it('disables Save button when no data is loaded', () => {
+    renderEditor();
+
+    const saveButton = screen.getByRole('button', { name: /save/i });
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('shows outcome selector when data is loaded but no outcome selected', () => {
+    renderEditor({
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      filteredData: [{ Weight: 10, Machine: 'A' }],
+      outcome: null,
+    });
+
+    expect(screen.getByText('Configure Your Analysis')).toBeInTheDocument();
+    expect(screen.getByLabelText('Select outcome variable')).toBeInTheDocument();
+  });
+
+  it('shows Dashboard when data is loaded and outcome selected', () => {
+    renderEditor({
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      filteredData: [{ Weight: 10, Machine: 'A' }],
+      outcome: 'Weight',
+      factors: ['Machine'],
+    });
+
+    expect(screen.getByTestId('dashboard')).toBeInTheDocument();
+  });
+
+  it('shows Add Data button when data is loaded', () => {
+    renderEditor({
+      rawData: [{ Weight: 10, Machine: 'A' }],
+      filteredData: [{ Weight: 10, Machine: 'A' }],
+      outcome: 'Weight',
+      factors: ['Machine'],
+    });
+
+    expect(screen.getByText('Add Data')).toBeInTheDocument();
+  });
+
+  it('renders sample dataset tiles in empty state', () => {
+    renderEditor();
+
+    expect(screen.getByText('Coffee Roast')).toBeInTheDocument();
+    expect(screen.getByText('Bottleneck')).toBeInTheDocument();
+    expect(screen.getByText('Coffee roasting temperature data')).toBeInTheDocument();
+    expect(screen.getByText('Production bottleneck analysis')).toBeInTheDocument();
+  });
+});
