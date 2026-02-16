@@ -63,14 +63,14 @@ test.describe('Sample Loading via Home Screen Click', () => {
     await expect(meanValue).toBeVisible({ timeout: 5000 });
   });
 
-  test('should load featured packaging sample by clicking card', async ({ page }) => {
+  test('should load featured bottleneck sample by clicking card', async ({ page }) => {
     await page.goto('/');
 
     await expect(page.locator('text=Try a Sample Dataset')).toBeVisible({ timeout: 10000 });
 
-    const packagingSample = page.locator('[data-testid="sample-featured-packaging"]');
-    await expect(packagingSample).toBeVisible({ timeout: 5000 });
-    await packagingSample.click();
+    const bottleneckSample = page.locator('[data-testid="sample-featured-bottleneck"]');
+    await expect(bottleneckSample).toBeVisible({ timeout: 5000 });
+    await bottleneckSample.click();
 
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
   });

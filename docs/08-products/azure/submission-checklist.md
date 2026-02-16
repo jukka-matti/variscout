@@ -21,15 +21,15 @@ Living tracker for Azure Marketplace Managed Application submission. Single sour
 
 ## 2. Technical Package
 
-| Item                              | Status        | Notes                                                                                              |
-| --------------------------------- | ------------- | -------------------------------------------------------------------------------------------------- |
-| `mainTemplate.json` written       | ✅ Done       | `infra/mainTemplate.json` — App Service + EasyAuth, customer-provided App Registration             |
-| `createUiDefinition.json` written | ✅ Done       | `infra/createUiDefinition.json` — portal wizard with Authentication step (clientId + clientSecret) |
-| ARM TTK validation passes         | ⬜ Not tested | Run `Test-AzTemplate` or `arm-ttk` against `infra/mainTemplate.json`                               |
-| createUiDefinition sandbox test   | ⬜ Not tested | Test at `https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/SandboxBlade`                 |
-| Package `.zip` created            | ⬜ Not done   | Zip `mainTemplate.json` + `createUiDefinition.json` → `variscout-managed-app.zip`                  |
-| Publisher management disabled     | ✅ Done       | ARM template sets no publisher access to managed RG                                                |
-| Customer access enabled           | ✅ Done       | Full customer control over deployed resources                                                      |
+| Item                              | Status                  | Notes                                                                                              |
+| --------------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------- |
+| `mainTemplate.json` written       | ✅ Done                 | `infra/mainTemplate.json` — App Service + EasyAuth, customer-provided App Registration             |
+| `createUiDefinition.json` written | ✅ Done                 | `infra/createUiDefinition.json` — portal wizard with Authentication step (clientId + clientSecret) |
+| ARM TTK validation passes         | ⚠️ Manual review passed | All key rules pass; automated `Test-AzTemplate` needs PowerShell                                   |
+| createUiDefinition sandbox test   | ⬜ Not tested           | Test at `https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/SandboxBlade`                 |
+| Package `.zip` created            | ⬜ Not done             | Zip `mainTemplate.json` + `createUiDefinition.json` → `variscout-managed-app.zip`                  |
+| Publisher management disabled     | ✅ Done                 | ARM template sets no publisher access to managed RG                                                |
+| Customer access enabled           | ✅ Done                 | Full customer control over deployed resources                                                      |
 
 ---
 
@@ -96,15 +96,15 @@ The ARM template uses `WEBSITE_RUN_FROM_PACKAGE` to deploy the app as a static z
 
 ## 7. Deployment Validation
 
-| Item                                      | Status      | Notes                                             |
-| ----------------------------------------- | ----------- | ------------------------------------------------- |
-| Deploy ARM template to fresh subscription | ⬜ Not done | End-to-end test in clean Azure environment        |
-| App loads after deployment                | ⬜ Not done | Verify `WEBSITE_RUN_FROM_PACKAGE` serves the app  |
-| EasyAuth redirects to Azure AD login      | ⬜ Not done | Verify unauthenticated → login flow               |
-| Post-login app is fully functional        | ⬜ Not done | Upload data, view charts, save to OneDrive        |
-| OneDrive sync works post-deployment       | ⬜ Not done | Save project, close, reopen, verify data persists |
-| createUiDefinition renders in portal      | ⬜ Not done | Test via sandbox blade                            |
-| Deployment completes in <10 minutes       | ⬜ Not done | Microsoft may flag slow deployments               |
+| Item                                      | Status      | Notes                                              |
+| ----------------------------------------- | ----------- | -------------------------------------------------- |
+| Deploy ARM template to fresh subscription | ⬜ Not done | End-to-end test in clean Azure environment         |
+| App loads after deployment                | ⬜ Not done | Verify `WEBSITE_RUN_FROM_PACKAGE` serves the app   |
+| EasyAuth redirects to Azure AD login      | ⬜ Not done | Verify unauthenticated → login flow                |
+| Post-login app is fully functional        | ⬜ Not done | Upload data, view charts, save to OneDrive         |
+| OneDrive sync works post-deployment       | ⬜ Not done | Save analysis, close, reopen, verify data persists |
+| createUiDefinition renders in portal      | ⬜ Not done | Test via sandbox blade                             |
+| Deployment completes in <10 minutes       | ⬜ Not done | Microsoft may flag slow deployments                |
 
 ---
 

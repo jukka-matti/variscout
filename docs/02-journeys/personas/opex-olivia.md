@@ -42,12 +42,12 @@ journey
 
 ## Entry Points
 
-| Source              | Arrives Via         | Lands On       |
-| ------------------- | ------------------- | -------------- |
-| Colleague referral  | Direct link         | / or /products |
-| Conference          | QR code / card      | /              |
-| LinkedIn            | Company page / post | / or /products |
-| Team member request | "Check this out"    | /products      |
+| Source              | Arrives Via         | Lands On      |
+| ------------------- | ------------------- | ------------- |
+| Colleague referral  | Direct link         | / or /pricing |
+| Conference          | QR code / card      | /             |
+| LinkedIn            | Company page / post | / or /pricing |
+| Team member request | "Check this out"    | /pricing      |
 
 ---
 
@@ -73,7 +73,7 @@ journey
     │                 │
     ▼                 ▼
 ┌────────────┐  ┌────────────┐
-│ /journey   │  │ /products  │
+│ /journey   │  │ /pricing   │
 │            │  │            │
 │ See the    │  │ Jump to    │
 │ methodology│  │ enterprise │
@@ -88,7 +88,7 @@ journey
       │
       ▼
 ┌─────────────────┐
-│ /products/      │
+│ /product/       │
 │ enterprise      │
 │                 │
 │ Features        │
@@ -117,10 +117,10 @@ journey
 | Question                    | Answer Location          |
 | --------------------------- | ------------------------ |
 | What does it do?            | /journey, /tools         |
-| Is it secure?               | /products/enterprise     |
-| Where's my data?            | /products/enterprise     |
+| Is it secure?               | /product/enterprise      |
+| Where's my data?            | /product/enterprise      |
 | How much does it cost?      | /pricing                 |
-| How do I deploy?            | /products/enterprise     |
+| How do I deploy?            | /getting-started         |
 | Who supports it?            | /support                 |
 | Can I try it first?         | /app (free, permanently) |
 | What training is available? | Training links           |
@@ -129,7 +129,7 @@ journey
 
 ## Enterprise Page Requirements
 
-The /products/enterprise page must answer:
+The /product/enterprise page must answer:
 
 ### 1. Security & Compliance
 

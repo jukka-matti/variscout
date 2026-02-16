@@ -12,7 +12,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import type { DataRow } from '../../types';
 import { loadCsv } from './fixtures/loadCsv';
-import { calculateStats, calculateAnova, getEtaSquared } from '../stats';
+import { calculateStats, calculateAnova, getEtaSquared, calculateRegression } from '../stats';
 import {
   applyFilters,
   calculateDrillVariation,
@@ -51,17 +51,19 @@ describe('Golden Data: Coffee Washing Station', () => {
 
       expect(stats.mean).toBeCloseTo(11.8933, 2);
       expect(stats.stdDev).toBeCloseTo(1.0178, 2);
-      expect(stats.ucl).toBeCloseTo(14.9466, 1);
-      expect(stats.lcl).toBeCloseTo(8.8401, 1);
+      // UCL/LCL use σ_within (MR̄/d2), not σ_overall
+      expect(stats.ucl).toBeCloseTo(13.6817, 1);
+      expect(stats.lcl).toBeCloseTo(10.105, 1);
     });
 
     it('should calculate correct Cp and Cpk', () => {
       const values = data.map(r => r.Moisture_pct as number);
       const stats = calculateStats(values, USL, LSL);
 
-      // Process is not capable: Cp ≈ 0.33, Cpk ≈ 0.035 (near USL)
-      expect(stats.cp).toBeCloseTo(0.3275, 2);
-      expect(stats.cpk).toBeCloseTo(0.0349, 2);
+      // Cp/Cpk use σ_within (≈0.596 vs σ_overall ≈1.018)
+      // Process is not capable: Cp ≈ 0.56, Cpk ≈ 0.06 (near USL)
+      expect(stats.cp).toBeCloseTo(0.5592, 2);
+      expect(stats.cpk).toBeCloseTo(0.0596, 2);
     });
 
     it('should report 33.3% out of spec', () => {
@@ -90,9 +92,9 @@ describe('Golden Data: Coffee Washing Station', () => {
 
       expect(stats.mean).toBeCloseTo(11.05, 2);
       expect(stats.stdDev).toBeCloseTo(0.3028, 2);
-      // Bed A is well within spec: Cpk ≈ 1.05
-      expect(stats.cpk).toBeCloseTo(1.0459, 2);
-      expect(stats.cpk!).toBeGreaterThan(1.0);
+      // Bed A Cpk with σ_within ≈ 0.748 (σ_within > σ_overall due to row ordering)
+      expect(stats.cpk).toBeCloseTo(0.7476, 2);
+      expect(stats.cpk!).toBeGreaterThan(0.5);
     });
   });
 
@@ -113,8 +115,8 @@ describe('Golden Data: Coffee Washing Station', () => {
 
       expect(stats.mean).toBeCloseTo(13.18, 2);
       expect(stats.stdDev).toBeCloseTo(0.5329, 2);
-      // Bed C is far above USL: Cpk is negative
-      expect(stats.cpk).toBeCloseTo(-0.7381, 2);
+      // Bed C is far above USL: Cpk is negative (σ_within ≈ 0.739)
+      expect(stats.cpk).toBeCloseTo(-0.5324, 2);
       expect(stats.cpk!).toBeLessThan(0);
     });
   });
@@ -334,7 +336,7 @@ describe('Golden Data: Pipeline Verification', () => {
 
     // Same values as the dedicated Bed A test above — confirms consistency
     expect(stats.mean).toBeCloseTo(11.05, 2);
-    expect(stats.cpk).toBeCloseTo(1.0459, 2);
+    expect(stats.cpk).toBeCloseTo(0.7476, 2);
   });
 
   it('should show stats worsen when including Bed C', () => {
@@ -368,5 +370,41 @@ describe('Golden Data: Pipeline Verification', () => {
 
     // Both should give the same η²
     expect(eta1).toBeCloseTo(anova!.etaSquared, 6);
+  });
+});
+
+// ============================================================================
+// Avocado dataset — coating-regression.csv
+// ============================================================================
+
+describe('Golden Data: Avocado Coating Regression', () => {
+  let data: DataRow[];
+
+  beforeAll(() => {
+    data = loadCsv('docs/04-cases/avocado/coating-regression.csv');
+  });
+
+  it('should load data with expected columns', () => {
+    expect(data.length).toBeGreaterThanOrEqual(10);
+    expect(Object.keys(data[0])).toEqual(
+      expect.arrayContaining(['Coating_ml_kg', 'Shelf_Life_Days'])
+    );
+  });
+
+  it('should find significant linear relationship (Coating → Shelf Life)', () => {
+    const result = calculateRegression(data, 'Coating_ml_kg', 'Shelf_Life_Days');
+
+    expect(result).not.toBeNull();
+    expect(result!.linear.isSignificant).toBe(true);
+    expect(result!.linear.slope).toBeGreaterThan(0); // more coating → longer shelf life
+    expect(result!.linear.rSquared).toBeGreaterThan(0.5);
+    expect(result!.recommendedFit).not.toBe('none');
+  });
+
+  it('should have strength rating ≥ 3 (moderate to strong)', () => {
+    const result = calculateRegression(data, 'Coating_ml_kg', 'Shelf_Life_Days');
+
+    expect(result).not.toBeNull();
+    expect(result!.strengthRating).toBeGreaterThanOrEqual(3);
   });
 });

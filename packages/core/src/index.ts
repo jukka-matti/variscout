@@ -49,6 +49,7 @@ export type {
 // Statistics
 export {
   calculateStats,
+  calculateMovingRangeSigma,
   getEtaSquared,
   calculateProbabilityPlotData,
   normalQuantile,

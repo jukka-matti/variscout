@@ -157,18 +157,20 @@ describe('calculateChannelStats', () => {
   });
 
   it('should calculate Cp and Cpk with two-sided specs', () => {
-    // Centered data with known stdDev
+    // Centered data: σ_within from MR = [1,1], MR̄ = 1, σ_within = 1/1.128
+    // Cp = (13-7)/(6×σ_within) = 1.128
     const data = [{ V1: 9 }, { V1: 10 }, { V1: 11 }];
     const specs = { usl: 13, lsl: 7 };
 
     const result = calculateChannelStats(data, 'V1', specs);
 
     expect(result).not.toBeNull();
-    expect(result!.cp).toBeCloseTo(1.0, 1);
-    expect(result!.cpk).toBeCloseTo(1.0, 1);
+    expect(result!.cp).toBeCloseTo(1.128, 1);
+    expect(result!.cpk).toBeCloseTo(1.128, 1);
   });
 
   it('should calculate Cpk with one-sided spec (USL only)', () => {
+    // σ_within = 1/1.128, Cpu = (13-10)/(3×σ_within) = 1.128
     const data = [{ V1: 9 }, { V1: 10 }, { V1: 11 }];
     const specs = { usl: 13 };
 
@@ -176,7 +178,7 @@ describe('calculateChannelStats', () => {
 
     expect(result).not.toBeNull();
     expect(result!.cp).toBeUndefined();
-    expect(result!.cpk).toBeCloseTo(1.0, 1);
+    expect(result!.cpk).toBeCloseTo(1.128, 1);
   });
 
   it('should calculate out of spec percentage', () => {
@@ -234,8 +236,9 @@ describe('calculateChannelStats', () => {
 
   it('should assign correct health classification', () => {
     // Create data that results in specific Cpk values
-    // Low Cpk (high variation)
-    const badData = Array.from({ length: 20 }, (_, i) => ({ V1: 5 + i })); // Large spread
+    // Low Cpk: oscillating data has large moving ranges → high σ_within
+    // MR = [15, 15, ...], σ_within = 15/1.128 ≈ 13.3, Cp ≈ 0.31
+    const badData = Array.from({ length: 20 }, (_, i) => ({ V1: i % 2 === 0 ? 5 : 20 }));
     const badResult = calculateChannelStats(badData, 'V1', { usl: 25, lsl: 0 });
     expect(badResult!.health).toBe('critical');
 

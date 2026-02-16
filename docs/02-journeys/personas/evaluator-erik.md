@@ -42,11 +42,11 @@ journey
 
 ## Entry Points
 
-| Source          | Context                      | Lands On             |
-| --------------- | ---------------------------- | -------------------- |
-| OpEx request    | "Evaluate this for the team" | / or /products       |
-| Direct link     | From colleague               | /products/enterprise |
-| Security review | Due diligence                | /products/enterprise |
+| Source          | Context                      | Lands On            |
+| --------------- | ---------------------------- | ------------------- |
+| OpEx request    | "Evaluate this for the team" | / or /pricing       |
+| Direct link     | From colleague               | /product/enterprise |
+| Security review | Due diligence                | /product/enterprise |
 
 ---
 
@@ -58,7 +58,7 @@ journey
 | Data residency?            | Your choice of Azure region       |
 | Authentication?            | Azure AD SSO                      |
 | Compliance certifications? | Azure compliance + our docs       |
-| SLA?                       | Azure SLA + our support tiers     |
+| SLA?                       | Azure SLA                         |
 | Exit strategy?             | Export all data, standard formats |
 | Audit logging?             | Azure native logging              |
 | Encryption?                | At rest and in transit            |
@@ -79,7 +79,7 @@ journey
 ### Page Structure Needs
 
 ```
-/products/enterprise
+/product/enterprise
 ├── Overview (skim)
 ├── Security & Compliance (FOCUS)
 │   ├── Data residency
@@ -111,7 +111,7 @@ journey
          │
          ▼
 ┌─────────────────┐
-│ /products/      │
+│ /product/       │
 │ enterprise      │
 │                 │
 │ Quick scan:     │

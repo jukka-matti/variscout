@@ -1,6 +1,6 @@
 # Marketing Website
 
-The variscout.com website serves three strategic purposes: **lead generation** through SEO-optimized educational content, **product education** through interactive chart demos, and **conversion** by funneling visitors toward the PWA (free), Excel Add-in (free), and Azure App (paid).
+The variscout.com website serves three strategic purposes: **lead generation** through SEO-optimized educational content, **product education** through interactive chart demos, and **conversion** by funneling visitors toward the PWA (free) and Azure App (paid).
 
 ---
 
@@ -14,7 +14,7 @@ The website is the top of the VaRiScout funnel. It targets quality professionals
 | Product education | Live Visx chart demos show VaRiScout in action without signup    |
 | Conversion        | Every page funnels toward "Try Now" CTA linking to the PWA       |
 
-The website does **not** contain the application itself. The PWA, Excel Add-in, and Azure App are separate products with their own codebases and deployment.
+The website does **not** contain the application itself. The PWA and Azure App are separate products with their own codebases and deployment.
 
 ---
 
@@ -22,11 +22,11 @@ The website does **not** contain the application itself. The PWA, Excel Add-in, 
 
 The website follows a **"Guided Problem Playground"** philosophy (see [ADR-008](../../07-decisions/adr-008-website-content-architecture.md)) organized into three content surfaces:
 
-| Surface                    | Pages                                             | Audience                                            | Character                                         |
-| -------------------------- | ------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
-| **Showcase (Acquisition)** | 13 use case pages, homepage, product pages        | Cold visitors from search                           | Problem-first, live demos, professional framing   |
-| **Reference (Learning)**   | 7 tool pages, 10 learn topics, 35+ glossary terms | Both cold searchers AND app users (via HelpTooltip) | Clean, focused, reference-first with live charts  |
-| **Proof (Case Studies)**   | 10 case studies                                   | Evaluators, curious visitors                        | 3-act narrative with interactive data exploration |
+| Surface                    | Pages                                                      | Audience                                            | Character                                         |
+| -------------------------- | ---------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
+| **Showcase (Acquisition)** | 6 use case pages (7 more planned), homepage, product pages | Cold visitors from search                           | Problem-first, live demos, professional framing   |
+| **Reference (Learning)**   | 6 tool pages, 10 learn topics, 35+ glossary terms          | Both cold searchers AND app users (via HelpTooltip) | Clean, focused, reference-first with live charts  |
+| **Proof (Case Studies)**   | 10 case studies                                            | Evaluators, curious visitors                        | 3-act narrative with interactive data exploration |
 
 All three surfaces cross-link bidirectionally. See [Design Philosophy](design-philosophy.md) and [Content Architecture](content-architecture.md) for details.
 
@@ -86,11 +86,11 @@ Configured in `astro.config.mjs` with `prefixDefaultLocale: false`. Translation 
 | `[lang]/index`            | -                             | 1              | 5               |
 | `[lang]/pricing`          | -                             | 1              | 5               |
 | `[lang]/journey`          | -                             | 1              | 5               |
-| `[lang]/product/compare`  | -                             | 1              | 5               |
-| `[lang]/product/[slug]`   | hardcoded slugs               | ~3             | ~15             |
+| `[lang]/getting-started`  | inline in template            | 1              | 5               |
+| `[lang]/product/[slug]`   | hardcoded slugs               | 2              | ~10             |
 | `[lang]/use-cases/index`  | `useCaseData.ts`              | 1              | 5               |
 | `[lang]/use-cases/[slug]` | `useCaseData.ts` (6 Phase 1)  | 6              | 30              |
-| `[lang]/tools/[tool]`     | `toolsData.ts` (7 tools)      | 7              | 35              |
+| `[lang]/tools/[tool]`     | `toolsData.ts` (6 tools)      | 6              | 30              |
 | `[lang]/learn/[topic]`    | `learnData.ts` (10 topics)    | 10             | 50              |
 | `[lang]/cases/[slug]`     | case data                     | varies         | varies          |
 | `[lang]/glossary/[term]`  | `glossaryData.ts` (~26 terms) | ~26            | ~130            |
@@ -108,7 +108,7 @@ All content is managed through three TypeScript data files (no CMS, no Markdown)
 | File              | Interface          | Items  | Content                                                                                            |
 | ----------------- | ------------------ | ------ | -------------------------------------------------------------------------------------------------- |
 | `useCaseData.ts`  | `UseCase`          | 6 (13) | Problem, demo config, journey steps, before/after, cross-links, platform fit, SEO keywords         |
-| `toolsData.ts`    | `ToolData`         | 7      | Tool name, lens, hero, when-to-use, data requirements, how-to-read, patterns, features, sample key |
+| `toolsData.ts`    | `ToolData`         | 6      | Tool name, lens, hero, when-to-use, data requirements, how-to-read, patterns, features, sample key |
 | `learnData.ts`    | `LearnTopic`       | 10     | Topic title, sections with visuals (comparison, diagram, list, quote, chart)                       |
 | `glossaryData.ts` | `GlossaryPageData` | ~26    | Extends `@variscout/core` glossary with SEO metadata, rich sections, practical tips                |
 
@@ -128,10 +128,10 @@ Search / Social / Referral
   ├── Glossary ──────────── Cross-links ──► Tool & Learn pages
   ├── Case studies ───── "See it in action" ──► PWA (free, instant)
   ├── Use cases ────── "For your workflow" ──► Product pages
-  └── Pricing ────────── "Get started" ──► Azure Marketplace / AppSource
+  └── Pricing ────────── "Get started" ──► Azure Marketplace
 ```
 
-Every page includes a CTA. Tool and learn pages link to the free PWA for immediate engagement. Pricing and product pages link to the Azure Marketplace (paid) and AppSource (free Excel Add-in).
+Every page includes a CTA. Tool and learn pages link to the free PWA for immediate engagement. Pricing and product pages link to the Azure Marketplace (€150/month).
 
 ---
 
@@ -158,7 +158,7 @@ See [User Journeys](../../02-journeys/index.md) and [Flow Documentation](../../0
 - **Meta tags:** title, description, canonical URL (per-page)
 - **Open Graph:** og:title, og:description, og:image, og:locale (per language)
 - **Twitter Cards:** summary_large_image with per-page content
-- **Schema.org:** `SoftwareApplication` structured data with pricing (Free web/Excel, 150/month Azure)
+- **Schema.org:** `SoftwareApplication` structured data with pricing (Free Web App, €150/month Azure App)
 - **Sitemap:** auto-generated via `@astrojs/sitemap` integration
 - **Canonical URLs:** resolve to `https://variscout.com` with correct locale paths
 - **Self-hosted fonts:** woff2 files in `public/fonts/` (GDPR-clean — no requests to Google)

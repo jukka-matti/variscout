@@ -91,8 +91,9 @@ describe('Pipeline Integration: Coffee Washing Station', () => {
       expect(step.countAfter).toBe(10);
 
       // Cpk worsens after filtering to Bed C (was already bad, but now negative)
-      expect(step.cpkBefore).toBeCloseTo(0.0349, 2);
-      expect(step.cpkAfter).toBeCloseTo(-0.7381, 2);
+      // Cp/Cpk use σ_within (MR̄/d2)
+      expect(step.cpkBefore).toBeCloseTo(0.0596, 2);
+      expect(step.cpkAfter).toBeCloseTo(-0.5324, 2);
 
       // Cumulative variation percentage ≈ 85.3%
       expect(result.current.cumulativeVariationPct).toBeCloseTo(85.33, 0);
@@ -104,10 +105,10 @@ describe('Pipeline Integration: Coffee Washing Station', () => {
 
       const step = result.current.drillPath[0];
 
-      // After filtering to Bed A: mean ≈ 11.05, Cpk > 1.0
+      // After filtering to Bed A: mean ≈ 11.05, Cpk with σ_within ≈ 0.748
       expect(step.meanAfter).toBeCloseTo(11.05, 2);
-      expect(step.cpkAfter).toBeCloseTo(1.0459, 2);
-      expect(step.cpkAfter!).toBeGreaterThan(1.0);
+      expect(step.cpkAfter).toBeCloseTo(0.7476, 2);
+      expect(step.cpkAfter!).toBeGreaterThan(0.5);
     });
 
     it('should show empty drillPath with no filters', () => {

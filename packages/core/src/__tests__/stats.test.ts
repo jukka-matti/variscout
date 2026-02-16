@@ -16,38 +16,41 @@ import {
 describe('Stats Engine', () => {
   it('should calculate basic stats for a normal distribution', () => {
     // Simple dataset: 10, 12, 11, 13, 10
-    // Mean: 11.2, StdDev: ~1.303
+    // Mean: 11.2, StdDev (σ_overall): ~1.303
+    // MR = [2, 1, 2, 3], MR̄ = 2.0, σ_within = 2.0/1.128 ≈ 1.773
     const data = [10, 12, 11, 13, 10];
     const stats = calculateStats(data);
 
     expect(stats.mean).toBeCloseTo(11.2, 1);
     expect(stats.stdDev).toBeCloseTo(1.3, 2);
-    expect(stats.ucl).toBeCloseTo(11.2 + 3 * 1.3038, 1);
-    expect(stats.lcl).toBeCloseTo(11.2 - 3 * 1.3038, 1);
+    // UCL/LCL use σ_within (moving range)
+    expect(stats.ucl).toBeCloseTo(11.2 + 3 * (2.0 / 1.128), 1);
+    expect(stats.lcl).toBeCloseTo(11.2 - 3 * (2.0 / 1.128), 1);
   });
 
   it('should calculate Cp and Cpk correctly', () => {
-    // Data centered at 10, sigma ~= 1
+    // Data centered at 10, σ_overall ~= 1
     const data = [9, 10, 11];
     const usl = 13;
     const lsl = 7;
-    // Tolerance = 6, 6-sigma = 6 -> Cp = 1.0
+    // σ_within: MR = [1, 1], MR̄ = 1, σ_within = 1/1.128 ≈ 0.887
+    // Cp = (13-7)/(6×σ_within) = 6/(6/1.128) = 1.128
 
     const stats = calculateStats(data, usl, lsl);
-    expect(stats.cp).toBeCloseTo(1.0, 1);
-    expect(stats.cpk).toBeCloseTo(1.0, 1); // Centered, so Cpk = Cp
+    expect(stats.cp).toBeCloseTo(1.128, 2);
+    expect(stats.cpk).toBeCloseTo(1.128, 2); // Centered, so Cpk = Cp
   });
 
   it('should calculate Cpk correctly when off-center', () => {
-    // Data centered at 12, sigma ~= 1
-    // USL = 13 (1 sigma away), LSL = 7 (5 sigma away)
-    // Cpk = min((13-12)/3, (12-7)/3) = 1/3 = 0.33
+    // Data centered at 12, σ_overall ~= 1
+    // σ_within: MR = [1, 1], σ_within = 1/1.128
+    // Cpu = (13-12)/(3×σ_within) = 1.128/3 ≈ 0.376
     const data = [11, 12, 13];
     const usl = 13;
     const lsl = 7;
 
     const stats = calculateStats(data, usl, lsl);
-    expect(stats.cpk).toBeCloseTo(0.33, 2);
+    expect(stats.cpk).toBeCloseTo(0.376, 2);
   });
 
   it('should handle one-sided specs', () => {
@@ -58,7 +61,8 @@ describe('Stats Engine', () => {
 
     const stats = calculateStats(scattered, usl, undefined);
     expect(stats.cp).toBeUndefined(); // Cannot calc Cp with one limit
-    expect(stats.cpk).toBeCloseTo((13 - 10) / (3 * 1), 1); // Cpu = 1.0
+    // σ_within = 1/1.128, Cpu = (13-10)/(3×σ_within) = 1.128
+    expect(stats.cpk).toBeCloseTo(1.128, 1);
   });
 
   it('should handle empty data', () => {

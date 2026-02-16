@@ -105,12 +105,12 @@ test.describe('Azure App: Editor', () => {
     }
   });
 
-  test('should navigate back to project dashboard', async ({ page }) => {
+  test('should navigate back to analyses dashboard', async ({ page }) => {
     // Click "Back" button
     const backBtn = page.locator('text=Back').first();
     await backBtn.click();
 
-    // Should see project dashboard again
+    // Should see analyses dashboard again
     await expect(page.locator('text=New Analysis')).toBeVisible({ timeout: 5000 });
   });
 });

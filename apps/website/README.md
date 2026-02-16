@@ -44,6 +44,7 @@ src/
 │   │   ├── index.astro
 │   │   ├── pricing.astro
 │   │   ├── journey.astro
+│   │   ├── getting-started.astro
 │   │   ├── tools/         # Tool index + [tool].astro dynamic routes
 │   │   ├── learn/         # Learn index + [topic].astro dynamic routes
 │   │   ├── cases/         # Case index + [slug].astro dynamic routes

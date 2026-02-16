@@ -13,7 +13,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Critical Workflow', () => {
   test('should load the application', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('text=VariScout')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'VariScout' })).toBeVisible({ timeout: 10000 });
   });
 
   test('should show sample datasets on home screen', async ({ page }) => {
@@ -94,7 +94,7 @@ test.describe('Data Validation', () => {
     await page.goto('/');
 
     // App should remain functional
-    await expect(page.locator('text=VariScout')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'VariScout' })).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -103,7 +103,7 @@ test.describe('PWA', () => {
     await page.goto('/');
 
     // Verify the app is functional
-    await expect(page.locator('text=VariScout')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'VariScout' })).toBeVisible({ timeout: 10000 });
 
     // Check that the page has no console errors on load
     const errors: string[] = [];

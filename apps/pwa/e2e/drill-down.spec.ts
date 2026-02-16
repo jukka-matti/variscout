@@ -135,19 +135,19 @@ test.describe('Drill-Down: Packaging Dataset', () => {
   });
 
   test('should load packaging data with correct sample count', async ({ page }) => {
-    // Packaging has 120 rows
+    // Packaging Defects has 56 rows (14 weekdays × 4 products)
     const samplesValue = page.locator('[data-testid="stat-value-samples"]');
     await expect(samplesValue).toBeVisible({ timeout: 5000 });
     const text = await samplesValue.textContent();
-    expect(text).toContain('120');
+    expect(text).toContain('56');
   });
 
   test('should show mean close to expected value', async ({ page }) => {
-    // Packaging overall mean ≈ 497.54
+    // Packaging Defects overall mean ≈ 86 (3 products ~55 + 1 product ~180)
     const meanValue = page.locator('[data-testid="stat-value-mean"]');
     await expect(meanValue).toBeVisible({ timeout: 5000 });
     const mean = parseFloat((await meanValue.textContent())!);
-    expect(mean).toBeGreaterThan(496);
-    expect(mean).toBeLessThan(499);
+    expect(mean).toBeGreaterThan(70);
+    expect(mean).toBeLessThan(110);
   });
 });

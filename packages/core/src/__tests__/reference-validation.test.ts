@@ -13,6 +13,7 @@ import { describe, it, expect } from 'vitest';
 import {
   normalQuantile,
   calculateStats,
+  calculateMovingRangeSigma,
   calculateAnova,
   calculateRegression,
   calculateBoxplotStats,
@@ -100,12 +101,13 @@ describe('Section 2: NIST Univariate Statistics (calculateStats)', () => {
     expect(stats.stdDev).toBeCloseTo(0.1, 8);
   });
 
-  it('control limits are 3-sigma from mean', () => {
+  it('control limits use σ_within (3 × MR̄/d2 from mean)', () => {
     const data = [10000001, 10000003, 10000002];
     const stats = calculateStats(data);
 
-    expect(stats.ucl).toBeCloseTo(stats.mean + 3 * stats.stdDev, 9);
-    expect(stats.lcl).toBeCloseTo(stats.mean - 3 * stats.stdDev, 9);
+    // Control limits use σ_within (moving range), not σ_overall
+    expect(stats.ucl).toBeCloseTo(stats.mean + 3 * stats.sigmaWithin, 9);
+    expect(stats.lcl).toBeCloseTo(stats.mean - 3 * stats.sigmaWithin, 9);
   });
 });
 
@@ -446,6 +448,87 @@ describe('Section 5: Boxplot Quantiles (calculateBoxplotStats vs R type=7)', () 
     expect(result.mean).toBeCloseTo(5.0, 10);
     expect(result.stdDev).toBeCloseTo(Math.sqrt(32 / 7), 10);
   });
+
+  // Edge cases
+
+  it('empty values → all zeroes, no outliers', () => {
+    const result = calculateBoxplotStats({ group: 'empty', values: [] });
+
+    expect(result.min).toBe(0);
+    expect(result.max).toBe(0);
+    expect(result.q1).toBe(0);
+    expect(result.median).toBe(0);
+    expect(result.mean).toBe(0);
+    expect(result.q3).toBe(0);
+    expect(result.stdDev).toBe(0);
+    expect(result.outliers).toEqual([]);
+    expect(result.values).toEqual([]);
+  });
+
+  it('single value [42] → all stats equal 42, stdDev=0, no outliers', () => {
+    const result = calculateBoxplotStats({ group: 'single', values: [42] });
+
+    expect(result.min).toBe(42);
+    expect(result.max).toBe(42);
+    expect(result.q1).toBe(42);
+    expect(result.median).toBe(42);
+    expect(result.mean).toBe(42);
+    expect(result.q3).toBe(42);
+    expect(result.stdDev).toBe(0);
+    expect(result.outliers).toEqual([]);
+  });
+
+  it('two values [10, 20] → median=15, proper q1/q3', () => {
+    const result = calculateBoxplotStats({ group: 'two', values: [10, 20] });
+
+    expect(result.median).toBeCloseTo(15, 10);
+    expect(result.mean).toBeCloseTo(15, 10);
+    // q1Index = (2-1)*0.25 = 0.25 → 10 + 0.25*(20-10) = 12.5
+    expect(result.q1).toBeCloseTo(12.5, 10);
+    // q3Index = (2-1)*0.75 = 0.75 → 10 + 0.75*(20-10) = 17.5
+    expect(result.q3).toBeCloseTo(17.5, 10);
+  });
+
+  it('all identical [5,5,5,5] → IQR=0, no outliers, stdDev=0', () => {
+    const result = calculateBoxplotStats({ group: 'identical', values: [5, 5, 5, 5] });
+
+    expect(result.q1).toBe(5);
+    expect(result.q3).toBe(5);
+    expect(result.median).toBe(5);
+    expect(result.mean).toBe(5);
+    expect(result.stdDev).toBe(0);
+    expect(result.outliers).toEqual([]);
+  });
+
+  it('whisker clamping: min/max clamped to fences when outliers present', () => {
+    // Data with lower and upper outlier
+    // Core: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], outliers: [0, 40]
+    const values = [0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 40];
+    const result = calculateBoxplotStats({ group: 'clamped', values });
+
+    // The reported min and max should be clamped to fences, not raw extremes
+    expect(result.min).toBeGreaterThan(0); // not the raw min of 0
+    expect(result.max).toBeLessThan(40); // not the raw max of 40
+    expect(result.outliers).toContain(0);
+    expect(result.outliers).toContain(40);
+  });
+
+  it('multiple outliers on both sides → all captured, whiskers clamped', () => {
+    // Core data: 45-55 (tight cluster), outliers on both sides
+    // n=17: q1Index=4→46, q3Index=12→54, IQR=8
+    // lowerFence = 46 - 12 = 34, upperFence = 54 + 12 = 66
+    const values = [10, 20, 30, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 70, 80, 90];
+    const result = calculateBoxplotStats({ group: 'multi-outlier', values });
+
+    // Lower outliers: 10, 20, 30 (below 34)
+    // Upper outliers: 70, 80, 90 (above 66)
+    expect(result.outliers.length).toBeGreaterThanOrEqual(4);
+    expect(result.outliers).toContain(10);
+    expect(result.outliers).toContain(90);
+    // Whiskers should be clamped to fences, not raw extremes
+    expect(result.min).toBeGreaterThan(10);
+    expect(result.max).toBeLessThan(90);
+  });
 });
 
 // =============================================================================
@@ -698,5 +781,104 @@ describe('Section 8: Probability Plot (Benard formula + z-scores)', () => {
       // CI width should be positive
       expect(point.upperCI).toBeGreaterThan(point.lowerCI);
     }
+  });
+});
+
+// =============================================================================
+// Section 9: Moving Range σ_within (MR̄/d2 estimation)
+// =============================================================================
+
+describe('Section 9: Moving Range σ_within (calculateMovingRangeSigma)', () => {
+  // d2 = 1.128 (unbiasing constant for subgroup size 2, individuals chart)
+  const D2 = 1.128;
+
+  it('known data: [10, 12, 11, 13, 10] → MR = [2,1,2,3], MR̄ = 2.0', () => {
+    const { sigmaWithin, mrBar } = calculateMovingRangeSigma([10, 12, 11, 13, 10]);
+
+    expect(mrBar).toBeCloseTo(2.0, 10);
+    expect(sigmaWithin).toBeCloseTo(2.0 / D2, 10);
+  });
+
+  it('constant data: [5,5,5,5] → MR = [0,0,0], σ_within = 0', () => {
+    const { sigmaWithin, mrBar } = calculateMovingRangeSigma([5, 5, 5, 5]);
+
+    expect(mrBar).toBe(0);
+    expect(sigmaWithin).toBe(0);
+  });
+
+  it('two points: [10, 20] → MR = [10], σ_within = 10/1.128', () => {
+    const { sigmaWithin, mrBar } = calculateMovingRangeSigma([10, 20]);
+
+    expect(mrBar).toBeCloseTo(10, 10);
+    expect(sigmaWithin).toBeCloseTo(10 / D2, 10);
+  });
+
+  it('single point: fallback to σ_overall (which is 0 for n=1)', () => {
+    const { sigmaWithin, mrBar } = calculateMovingRangeSigma([42]);
+
+    // No moving ranges possible — falls back to d3.deviation which is 0 for n=1
+    expect(mrBar).toBe(0);
+    expect(sigmaWithin).toBe(0);
+  });
+
+  it('empty array: returns zeros', () => {
+    const { sigmaWithin, mrBar } = calculateMovingRangeSigma([]);
+
+    expect(mrBar).toBe(0);
+    expect(sigmaWithin).toBe(0);
+  });
+
+  it('stable process: σ_within ≈ σ_overall (within 30%)', () => {
+    // Well-behaved stationary data — no shifts or trends
+    // Golden angle spacing produces uncorrelated pseudo-random values
+    const data = Array.from({ length: 100 }, (_, i) => {
+      const x = Math.sin(i * 137.508) * 10000;
+      return 50 + (x - Math.floor(x) - 0.5) * 6;
+    });
+
+    const { sigmaWithin } = calculateMovingRangeSigma(data);
+    const stats = calculateStats(data);
+
+    // For a stable process, σ_within and σ_overall should be close
+    const ratio = sigmaWithin / stats.stdDev;
+    expect(ratio).toBeGreaterThan(0.7);
+    expect(ratio).toBeLessThan(1.3);
+  });
+
+  it('unstable process (mean shift): σ_within < σ_overall', () => {
+    // First 25 points around 50, next 25 around 60 — level shift
+    const data = [
+      ...Array.from({ length: 25 }, (_, i) => 50 + Math.sin(i * 1.7) * 2),
+      ...Array.from({ length: 25 }, (_, i) => 60 + Math.sin(i * 1.7) * 2),
+    ];
+
+    const { sigmaWithin } = calculateMovingRangeSigma(data);
+    const stats = calculateStats(data);
+
+    // σ_overall is inflated by the mean shift; σ_within captures only local variation
+    // except at the single transition point
+    expect(sigmaWithin).toBeLessThan(stats.stdDev);
+  });
+
+  it('calculateStats includes sigmaWithin and mrBar in result', () => {
+    const stats = calculateStats([10, 12, 11, 13, 10]);
+
+    expect(stats.sigmaWithin).toBeCloseTo(2.0 / D2, 10);
+    expect(stats.mrBar).toBeCloseTo(2.0, 10);
+    // UCL/LCL use σ_within
+    expect(stats.ucl).toBeCloseTo(stats.mean + 3 * stats.sigmaWithin, 10);
+    expect(stats.lcl).toBeCloseTo(stats.mean - 3 * stats.sigmaWithin, 10);
+  });
+
+  it('Cp/Cpk use σ_within, not σ_overall', () => {
+    // [9, 10, 11] with USL=13, LSL=7
+    // σ_overall = 1.0, σ_within = 1/1.128
+    const stats = calculateStats([9, 10, 11], 13, 7);
+
+    // Cp with σ_overall would be 1.0; with σ_within it's 1.128
+    expect(stats.cp).toBeCloseTo(1.128, 6);
+    expect(stats.cpk).toBeCloseTo(1.128, 6);
+    // Verify: Cp = (USL-LSL) / (6×σ_within)
+    expect(stats.cp).toBeCloseTo((13 - 7) / (6 * stats.sigmaWithin), 10);
   });
 });

@@ -82,9 +82,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-white">Projects</h2>
+          <h2 className="text-2xl font-bold text-white">Analyses</h2>
           <p className="text-slate-400 text-sm mt-1">
-            Manage your analysis projects across team and personal storage
+            Manage your analyses across team and personal storage
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -94,7 +94,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             <Plus size={18} />
-            New Project
+            New Analysis
           </button>
         </div>
       </div>
@@ -106,7 +106,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
-            placeholder="Search projects..."
+            placeholder="Search analyses..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
@@ -135,13 +135,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
           onClick={loadProjects}
           disabled={isLoading}
           className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
-          title="Refresh projects"
+          title="Refresh analyses"
         >
           <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
         </button>
       </div>
 
-      {/* Projects List */}
+      {/* Analyses List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <RefreshCw size={32} className="text-slate-500 animate-spin" />
@@ -150,11 +150,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <FolderOpen size={48} className="text-slate-600 mb-4" />
           <h3 className="text-lg font-medium text-white mb-2">
-            {projects.length === 0 ? 'No projects yet' : 'No matching projects'}
+            {projects.length === 0 ? 'No analyses yet' : 'No matching analyses'}
           </h3>
           <p className="text-slate-400 text-sm max-w-md">
             {projects.length === 0
-              ? 'Create your first project to start analyzing variation data with your team.'
+              ? 'Create your first analysis to start exploring variation data with your team.'
               : "Try adjusting your search or filter to find what you're looking for."}
           </p>
           {projects.length === 0 && (
@@ -163,7 +163,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
               className="mt-6 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               <Plus size={18} />
-              Create Project
+              New Analysis
             </button>
           )}
         </div>

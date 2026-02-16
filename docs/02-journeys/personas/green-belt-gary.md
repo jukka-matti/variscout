@@ -31,7 +31,7 @@ journey
       Read methodology content: 5: Gary
     section Decision
       Compare pricing options: 4: Gary
-      Evaluate free tools (PWA, Excel Add-in): 4: Gary
+      Evaluate free PWA: 4: Gary
     section Adoption
       Install PWA application: 5: Gary
       Paste first dataset: 5: Gary
@@ -47,7 +47,7 @@ journey
 | "boxplot interpretation"       | /tools/boxplot    | Specific tool help        |
 | "capability analysis tutorial" | /tools/capability | Learning Cp/Cpk           |
 | "free control chart software"  | /tools/i-chart    | Tool shopping             |
-| "Minitab alternative"          | / or /products    | Direct comparison         |
+| "Minitab alternative"          | / or /pricing     | Direct comparison         |
 
 ---
 
@@ -87,8 +87,8 @@ journey
          │
          ▼
 ┌─────────────────┐
-│ /products or    │
 │ /pricing        │
+│                 │
 │                 │
 │ Evaluates       │
 │ options         │
@@ -98,9 +98,9 @@ journey
 ┌─────────────────┐
 │ CONVERSION      │
 │                 │
-│ Opens PWA or    │
-│ installs Excel  │
-│ add-in          │
+│ Tries PWA (free)│
+│ or Azure App    │
+│                 │
 └─────────────────┘
 ```
 
@@ -132,8 +132,7 @@ Gary clicks around, explores the demo:
 
 Gary evaluates:
 
-- Free tools (PWA, Excel Add-in) vs Azure App (€150/month)
-- PWA (web, paste data) vs Excel Add-in (native)
+- PWA (free) vs Azure App (€150/month)
 - Comparison to Minitab
 
 ---

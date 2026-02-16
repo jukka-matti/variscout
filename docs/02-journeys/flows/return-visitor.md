@@ -139,7 +139,7 @@ journey
 
 VaRiScout is 100% client-side:
 
-- Auth state stored locally (MSAL cache for Azure App)
+- Auth state stored locally (EasyAuth for Azure App)
 - Data stored in IndexedDB
 - No server-side accounts
 - "We don't have your data" (GDPR simple)
@@ -168,10 +168,10 @@ For frequent users:
 
 | What's Saved      | Where           | Retention     |
 | ----------------- | --------------- | ------------- |
-| Auth session      | IndexedDB/MSAL  | Until cleared |
+| Auth session      | EasyAuth/cookie | Until cleared |
 | Uploaded datasets | IndexedDB       | Until deleted |
 | Analysis settings | IndexedDB       | Per dataset   |
-| Edition branding  | License-derived | N/A           |
+| Tier setting      | Config-derived  | N/A           |
 
 ---
 
@@ -201,7 +201,7 @@ For frequent users:
 ### Scenario D: New Device
 
 1. User goes to variscout.com on new device
-2. Signs in via Azure SSO (Azure App) or starts fresh (PWA/Excel)
+2. Signs in via Azure SSO (Azure App) or starts fresh (PWA)
 3. Uploads data fresh
 4. Continue working
 
@@ -228,11 +228,11 @@ But return visitors:
 
 For free tier users returning:
 
-| Trigger              | Prompt                                   |
-| -------------------- | ---------------------------------------- |
-| Large dataset upload | "Unlock unlimited rows with Pro"         |
-| Export attempt       | "Get full export with Pro"               |
-| 30-day usage         | "You've analyzed 50 datasets - upgrade?" |
+| Trigger              | Prompt                                               |
+| -------------------- | ---------------------------------------------------- |
+| File upload attempt  | "Upload files with Azure App — €150/month for teams" |
+| Save/project attempt | "Save projects with Azure App"                       |
+| Performance Mode     | "Performance Mode available in Azure App"            |
 
 Upgrade prompts should be helpful, not blocking.
 
@@ -243,7 +243,7 @@ Upgrade prompts should be helpful, not blocking.
 | Location           | CTA               | Purpose       |
 | ------------------ | ----------------- | ------------- |
 | Header (all pages) | [Try VaRiScout]   | Direct to app |
-| PWA (free tier)    | [Upgrade to Pro]  | Conversion    |
+| PWA (free)         | [Try Azure App]   | Conversion    |
 | Cases (new)        | "New case study!" | Re-engagement |
 | Blog (new)         | "New content"     | Re-engagement |
 
@@ -276,7 +276,7 @@ Upgrade prompts should be helpful, not blocking.
 
 - Datasets stored per-project
 - Settings stored globally
-- Auth tokens managed by MSAL (Azure App)
+- Auth tokens managed by EasyAuth (Azure App)
 - Clear browser data = lose everything (warn users)
 
 ### PWA Manifest
@@ -290,7 +290,7 @@ Upgrade prompts should be helpful, not blocking.
 
 Since there are no accounts:
 
-- New device = fresh start (Azure App: sign in via SSO; PWA/Excel: upload fresh)
+- New device = fresh start (Azure App: sign in via SSO; PWA: paste data fresh)
 - No "forgot password" flow
 - No email verification
 - Privacy-friendly design

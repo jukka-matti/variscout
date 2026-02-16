@@ -482,7 +482,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             <span>Back</span>
           </button>
           <h2 className="text-xl font-semibold text-white">
-            {currentProjectName || (projectId ? `Project ${projectId}` : 'New Analysis')}
+            {currentProjectName || (projectId ? `Analysis ${projectId}` : 'New Analysis')}
             {hasUnsavedChanges && <span className="text-amber-400 ml-2">•</span>}
           </h2>
         </div>

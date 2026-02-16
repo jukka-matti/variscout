@@ -69,7 +69,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     label: 'Cp',
     definition: 'Process Capability. Measures how well your process fits within spec limits.',
     description:
-      'Cp compares the width of specification limits to 6 standard deviations of the process. Cp = (USL - LSL) / (6\u03c3). Higher values mean the process has room to spare within specs. Does not account for centering.',
+      'Cp compares the width of specification limits to 6\u03c3_within of the process. Cp = (USL - LSL) / (6\u03c3_within), where \u03c3_within is estimated from the moving range (MR\u0304/d2). This captures short-term, inherent variation. Higher values mean the process has room to spare within specs. Does not account for centering.',
     category: 'capability',
     learnMorePath: '/tools/capability',
     relatedTerms: ['cpk', 'usl', 'lsl', 'stdDev'],
@@ -80,7 +80,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Process Capability Index. Like Cp, but accounts for how well centered the process is.',
     description:
-      'Cpk considers both spread and centering. It takes the minimum of CPU and CPL. A Cpk much lower than Cp indicates the process mean is shifted toward one spec limit.',
+      'Cpk considers both spread and centering using \u03c3_within (estimated from the moving range). Cpk = min(CPU, CPL) where CPU = (USL - mean) / (3\u03c3_within) and CPL = (mean - LSL) / (3\u03c3_within). A Cpk much lower than Cp indicates the process mean is shifted toward one spec limit.',
     category: 'capability',
     learnMorePath: '/tools/capability',
     relatedTerms: ['cp', 'usl', 'lsl', 'mean'],

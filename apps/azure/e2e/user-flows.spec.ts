@@ -225,16 +225,18 @@ test.describe('Azure: Stats Panel', () => {
     await expect(meanValue).toBeVisible({ timeout: 5000 });
     expect(parseFloat((await meanValue.textContent())!)).not.toBeNaN();
 
-    // Sigma
-    const sigmaValue = page.locator('[data-testid="stat-value-sigma"]');
-    await expect(sigmaValue).toBeVisible({ timeout: 5000 });
-    expect(parseFloat((await sigmaValue.textContent())!)).not.toBeNaN();
+    // Std Dev
+    const stdDevValue = page.locator('[data-testid="stat-value-std-dev"]');
+    await expect(stdDevValue).toBeVisible({ timeout: 5000 });
+    expect(parseFloat((await stdDevValue.textContent())!)).not.toBeNaN();
 
-    // Samples
+    // Samples (displayed as "n=30")
     const samplesValue = page.locator('[data-testid="stat-value-samples"]');
     await expect(samplesValue).toBeVisible({ timeout: 5000 });
     const samplesText = await samplesValue.textContent();
-    expect(parseInt(samplesText!, 10)).toBeGreaterThan(0);
+    const samplesMatch = samplesText!.match(/(\d+)/);
+    expect(samplesMatch).toBeTruthy();
+    expect(parseInt(samplesMatch![1], 10)).toBeGreaterThan(0);
   });
 });
 

@@ -92,15 +92,19 @@ export function toNumericValue(value: DataCellValue): number | undefined {
 export interface StatsResult {
   /** Arithmetic mean of all values */
   mean: number;
-  /** Sample standard deviation */
+  /** Sample standard deviation (σ_overall) — used by ANOVA, variation tracking, etc. */
   stdDev: number;
-  /** Upper Control Limit (mean + 3σ) */
+  /** Within-subgroup standard deviation estimated from moving range (MR̄/d2) */
+  sigmaWithin: number;
+  /** Mean moving range (MR̄ = mean of |x_i - x_{i-1}|) */
+  mrBar: number;
+  /** Upper Control Limit (mean + 3 × σ_within) */
   ucl: number;
-  /** Lower Control Limit (mean - 3σ) */
+  /** Lower Control Limit (mean - 3 × σ_within) */
   lcl: number;
-  /** Process Capability index - requires both USL and LSL */
+  /** Process Capability index (uses σ_within) - requires both USL and LSL */
   cp?: number;
-  /** Process Capability index accounting for centering */
+  /** Process Capability index accounting for centering (uses σ_within) */
   cpk?: number;
   /** Percentage of values outside specification limits */
   outOfSpecPercentage: number;

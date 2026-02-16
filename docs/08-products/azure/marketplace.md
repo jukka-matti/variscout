@@ -179,7 +179,7 @@ before upgrading to the full Azure App for team use.
 4. Boxplot Comparison - Category comparison
 5. Pareto Chart - Improvement prioritization
 6. Drill-Down Navigation - Filter breadcrumbs
-7. OneDrive Sync - Project saving
+7. OneDrive Sync - Analysis saving
 
 ### Videos (Optional but Recommended)
 
@@ -208,7 +208,7 @@ before upgrading to the full Azure App for team use.
 - [ ] createUiDefinition.json renders correctly in sandbox
 - [ ] App deploys without errors from marketplace flow
 - [ ] EasyAuth authentication works post-deployment
-- [ ] OneDrive sync works (save/load projects)
+- [ ] OneDrive sync works (save/load analyses)
 - [ ] Privacy policy URL accessible
 - [ ] Terms of service URL accessible
 - [ ] Support contact information complete

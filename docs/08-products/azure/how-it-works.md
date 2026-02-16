@@ -201,14 +201,14 @@ CUSTOMER TENANT                          PUBLISHER (VariScout)
 │  (authenticates users) │               │  - Customer data   │
 │                        │               │  - App resources   │
 │  OneDrive              │               │  - User identities │
-│  (stores projects)     │               │  - Usage telemetry │
+│  (stores analyses)     │               │  - Usage telemetry │
 │                        │               │                    │
 └────────────────────────┘               └────────────────────┘
 ```
 
 - **Publisher management is disabled** — we have zero access to the customer's deployment
 - **No telemetry** — the app makes no outbound calls to publisher systems
-- **Data survives cancellation** — projects remain in the user's OneDrive even if the subscription ends
+- **Data survives cancellation** — analyses remain in the user's OneDrive even if the subscription ends
 - **Each deployment is tenant-isolated** — no cross-tenant data access
 
 ### Least-Privilege Permissions
@@ -216,7 +216,7 @@ CUSTOMER TENANT                          PUBLISHER (VariScout)
 | Permission        | Type      | Purpose                   |
 | ----------------- | --------- | ------------------------- |
 | `User.Read`       | Delegated | Display user name & email |
-| `Files.ReadWrite` | Delegated | OneDrive project sync     |
+| `Files.ReadWrite` | Delegated | OneDrive analysis sync    |
 
 No admin consent is required — users grant consent on first login. No `Sites.ReadWrite.All`, no SharePoint access, no mail access.
 

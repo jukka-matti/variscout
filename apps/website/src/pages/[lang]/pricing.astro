@@ -105,9 +105,13 @@ const trustBadges = [
 				{pricingTiers.map((tier) => <PricingCard {...tier} />)}
 			</div>
 
-			<div class="text-center mt-8">
+			<div class="text-center mt-8 space-y-3">
 				<a href={`/${lang}/product/enterprise`} class="inline-flex items-center gap-2 text-brand-primary font-medium hover:gap-3 transition-all text-sm">
 					See enterprise & IT details <ArrowRight size={16} />
+				</a>
+				<br />
+				<a href={`/${lang}/getting-started`} class="inline-flex items-center gap-2 text-neutral-500 hover:text-brand-primary font-medium hover:gap-3 transition-all text-sm">
+					View deployment guide <ArrowRight size={16} />
 				</a>
 			</div>
 

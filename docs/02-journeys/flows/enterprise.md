@@ -30,12 +30,12 @@
 
 ## Entry Points
 
-| Source              | Arrives Via         | Lands On       |
-| ------------------- | ------------------- | -------------- |
-| Colleague referral  | Direct link         | / or /products |
-| Conference          | QR code / card      | /              |
-| LinkedIn            | Company page / post | / or /products |
-| Team member request | "Check this out"    | /products      |
+| Source              | Arrives Via         | Lands On      |
+| ------------------- | ------------------- | ------------- |
+| Colleague referral  | Direct link         | / or /pricing |
+| Conference          | QR code / card      | /             |
+| LinkedIn            | Company page / post | / or /pricing |
+| Team member request | "Check this out"    | /pricing      |
 
 ---
 
@@ -48,10 +48,10 @@ flowchart TD
     A[Referral from colleague<br/>or conference] --> B[Homepage<br/>What is this? Who is it for?]
     B --> C{Path Choice}
     C -->|Learn more| D[/journey<br/>See methodology]
-    C -->|Direct| E[/products]
+    C -->|Direct| E[/pricing]
     D --> F[I get it - now eval for team]
     F --> E
-    E --> G[/products/enterprise]
+    E --> G[/product/enterprise]
     G --> H{Evaluation Questions}
     H -->|SSO/Security?| I[Documentation]
     H -->|Data hosting?| J[Your Azure, your data]
@@ -126,7 +126,7 @@ flowchart LR
     │                 │
     ▼                 ▼
 ┌────────────┐  ┌────────────┐
-│ /journey   │  │ /products  │
+│ /journey   │  │ /pricing   │
 │            │  │            │
 │ See the    │  │ Jump to    │
 │ methodology│  │ enterprise │
@@ -142,7 +142,7 @@ flowchart LR
       │
       ▼
 ┌─────────────────┐
-│ /products/      │
+│ /product/       │
 │ enterprise      │
 │                 │
 │ Features        │
@@ -177,7 +177,7 @@ flowchart LR
 
 ## Enterprise Page Requirements
 
-The /products/enterprise page must answer:
+The /product/enterprise page must answer:
 
 ### 1. Security & Compliance
 
@@ -188,23 +188,21 @@ The /products/enterprise page must answer:
 
 ### 2. Deployment
 
-- How to deploy? → 1-click ARM template
-- Time to deploy? → Under 1 hour
-- Who deploys? → Your IT team or consultant
+- How to deploy? → Azure Marketplace Managed Application
+- Time to deploy? → Minutes (Managed Application)
+- Who deploys? → Azure Marketplace handles it
 - Updates? → Automatic via Azure
 
 ### 3. Pricing
 
-- Transparent pricing online
-- Per-user or site license options
-- No hidden fees
-- Volume discounts visible
+- €150/month flat — all features, unlimited users in your tenant
+- No per-user fees, no hidden costs
+- Single plan, transparent pricing
 
 ### 4. Support
 
 - Documentation-first
-- Community support (free tier)
-- Email support (paid tier)
+- Email support (support@rdmaic.com)
 - "Your existing LSS/IT consultants can assist"
 
 ---
@@ -213,42 +211,41 @@ The /products/enterprise page must answer:
 
 Key principle: **No sales calls required**
 
-| Step           | How It Works                                         |
-| -------------- | ---------------------------------------------------- |
-| Discover       | Website, referral, content                           |
-| Evaluate       | Free tier, documentation, case studies               |
-| Purchase       | Azure Marketplace (Individual/Team/Enterprise tiers) |
-| Deploy         | 1-click ARM template                                 |
-| Support        | Documentation + email                                |
-| Implementation | Your existing consultants can help                   |
+| Step           | How It Works                                                  |
+| -------------- | ------------------------------------------------------------- |
+| Discover       | Website, referral, content                                    |
+| Evaluate       | PWA (free), documentation, case studies                       |
+| Purchase       | Azure Marketplace (€150/month, all features, unlimited users) |
+| Deploy         | Managed Application (automatic)                               |
+| Support        | Documentation + email (support@rdmaic.com)                    |
+| Implementation | Your existing consultants can help                            |
 
 ---
 
 ## CTAs on This Journey
 
-| Location          | CTA Text                         | Destination          |
-| ----------------- | -------------------------------- | -------------------- |
-| Homepage          | "For Teams" or "Enterprise"      | /products/enterprise |
-| Journey page      | "Deploy for your team"           | /products/enterprise |
-| Products overview | "Compare options"                | /products            |
-| Enterprise page   | "Deploy Now" (ARM template link) | Azure deployment     |
-| Enterprise page   | "Contact for volume pricing"     | /support/contact     |
-| Pricing page      | "Enterprise options"             | /products/enterprise |
+| Location        | CTA Text                         | Destination         |
+| --------------- | -------------------------------- | ------------------- |
+| Homepage        | "For Teams" or "Enterprise"      | /product/enterprise |
+| Journey page    | "Deploy for your team"           | /product/enterprise |
+| Pricing page    | "Enterprise details"             | /product/enterprise |
+| Enterprise page | "Deploy Now" (Marketplace link)  | Azure Marketplace   |
+| Enterprise page | "Get Started" (deployment guide) | /getting-started    |
 
 ---
 
 ## Information Olivia Needs
 
-| Question                    | Answer Location         |
-| --------------------------- | ----------------------- |
-| What does it do?            | /journey, /tools        |
-| Is it secure?               | /products/enterprise    |
-| Where's my data?            | /products/enterprise    |
-| How much does it cost?      | /pricing                |
-| How do I deploy?            | /products/enterprise    |
-| Who supports it?            | /support                |
-| Can I try it first?         | /app (free tier)        |
-| What training is available? | Link to RDMAIC training |
+| Question                    | Answer Location          |
+| --------------------------- | ------------------------ |
+| What does it do?            | /journey, /tools         |
+| Is it secure?               | /product/enterprise      |
+| Where's my data?            | /product/enterprise      |
+| How much does it cost?      | /pricing                 |
+| How do I deploy?            | /getting-started         |
+| Who supports it?            | support@rdmaic.com       |
+| Can I try it first?         | /app (free, permanently) |
+| What training is available? | Link to RDMAIC training  |
 
 ---
 
@@ -262,7 +259,7 @@ IT/Procurement evaluator may also be involved:
 | Data residency?            | Your choice of Azure region       |
 | Authentication?            | Azure AD SSO                      |
 | Compliance certifications? | Azure compliance + our docs       |
-| SLA?                       | Azure SLA + our support tiers     |
+| SLA?                       | Azure SLA                         |
 | Exit strategy?             | Export all data, standard formats |
 
 ---

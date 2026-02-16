@@ -4,9 +4,9 @@ import { test, expect } from '@playwright/test';
  * E2E Test: Stats Panel & ANOVA Display
  *
  * Tests statistics display and ANOVA results:
- * 1. Load packaging sample (has spec limits) → verify Cp/Cpk
- * 2. Verify mean, samples, sigma values
- * 3. Verify ANOVA results section
+ * 1. Load packaging sample (has spec limits) → verify Cpk
+ * 2. Verify mean, samples, std dev values
+ * 3. Verify ANOVA results section (via focused/maximized boxplot view)
  * 4. Load coffee sample → verify ANOVA for drying beds
  */
 
@@ -25,31 +25,24 @@ test.describe('Stats Panel: Packaging Dataset', () => {
   });
 
   test('should display sample count', async ({ page }) => {
+    // Packaging Defects has 56 rows (14 weekdays × 4 products)
     const samplesValue = page.locator('[data-testid="stat-value-samples"]');
     await expect(samplesValue).toBeVisible({ timeout: 5000 });
     const text = await samplesValue.textContent();
-    expect(text).toContain('120');
+    expect(text).toContain('56');
   });
 
-  test('should display sigma value', async ({ page }) => {
-    const sigmaValue = page.locator('[data-testid="stat-value-sigma"]');
-    await expect(sigmaValue).toBeVisible({ timeout: 5000 });
-    const sigmaText = await sigmaValue.textContent();
-    expect(sigmaText).toBeTruthy();
-    expect(parseFloat(sigmaText!)).not.toBeNaN();
-    expect(parseFloat(sigmaText!)).toBeGreaterThan(0);
-  });
-
-  test('should display Cp value when spec limits exist', async ({ page }) => {
-    // Packaging dataset has spec limits, so Cp should be shown
-    const cpValue = page.locator('[data-testid="stat-value-cp"]');
-    await expect(cpValue).toBeVisible({ timeout: 5000 });
-    const cpText = await cpValue.textContent();
-    expect(cpText).toBeTruthy();
-    expect(parseFloat(cpText!)).not.toBeNaN();
+  test('should display std dev value', async ({ page }) => {
+    const stdDevValue = page.locator('[data-testid="stat-value-std-dev"]');
+    await expect(stdDevValue).toBeVisible({ timeout: 5000 });
+    const stdDevText = await stdDevValue.textContent();
+    expect(stdDevText).toBeTruthy();
+    expect(parseFloat(stdDevText!)).not.toBeNaN();
+    expect(parseFloat(stdDevText!)).toBeGreaterThan(0);
   });
 
   test('should display Cpk value when spec limits exist', async ({ page }) => {
+    // Packaging has USL=100 (no LSL), so Cpk should be shown
     const cpkValue = page.locator('[data-testid="stat-value-cpk"]');
     await expect(cpkValue).toBeVisible({ timeout: 5000 });
     const cpkText = await cpkValue.textContent();
@@ -62,10 +55,17 @@ test.describe('ANOVA Results: Coffee Dataset', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/?sample=coffee');
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+
+    // ANOVA renders in focused/maximized boxplot view — maximize the boxplot
+    const maximizeButton = page.locator(
+      '[data-testid="chart-boxplot"] button[aria-label="Maximize chart"]'
+    );
+    await expect(maximizeButton).toBeVisible({ timeout: 5000 });
+    await maximizeButton.click();
   });
 
   test('should display ANOVA results section', async ({ page }) => {
-    // Coffee dataset has 3 drying beds — ANOVA should show below boxplot
+    // Coffee dataset has 3 drying beds — ANOVA should show in focused boxplot view
     const anovaResults = page.locator('[data-testid="anova-results"]');
     await expect(anovaResults).toBeVisible({ timeout: 5000 });
   });

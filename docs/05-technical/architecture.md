@@ -278,7 +278,7 @@ The application uses a centralized React Context to manage the entire analysis s
 
 - **State (`filteredData`)**: Derived from `rawData` based on active global filters.
 - **Performance**: Uses `useMemo` extensively to prevent re-calculating statistics on every render.
-- **Persistence**: Exposes methods for IndexedDB project management (explicit save/load).
+- **Persistence**: Exposes methods for IndexedDB analysis management (explicit save/load).
 - **Flow**: Import → `setRawData` → `detectColumns` → `DataContext` Updates → Charts Render.
 
 ### 4.2 Statistics Engine (`packages/core/src/stats.ts`)
@@ -309,14 +309,14 @@ Built with Visx to ensure complete control over rendering behavior and interacti
 
 Handles all data storage operations in the browser.
 
-- **Project Storage**: Named projects saved to IndexedDB via explicit save/load actions.
+- **Analysis Storage**: Named analyses saved to IndexedDB via explicit save/load actions.
 - **File Export/Import**: Download/upload `.vrs` JSON files for portability.
 
 ## 5. Data Persistence
 
-The app always starts on the HomeScreen. Users must explicitly save and load projects.
+The app always starts on the HomeScreen. Users must explicitly save and load analyses.
 
-### Named Projects (IndexedDB)
+### Named Analyses (IndexedDB)
 
 - Save multiple analyses with custom names
 - List, load, rename, delete operations
@@ -669,6 +669,6 @@ The `@variscout/charts` `BoxplotBase` component accepts optional `variationPct` 
 
 ### Required APIs
 
-- IndexedDB (project storage)
+- IndexedDB (analysis storage)
 - Service Workers (offline capability)
 - ES2020+

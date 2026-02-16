@@ -15,6 +15,7 @@ import type {
   PerformanceSummary,
 } from './types';
 import { toNumericValue } from './types';
+import { calculateMovingRangeSigma } from './stats';
 
 // ============================================================================
 // Constants
@@ -149,23 +150,24 @@ export function calculateChannelStats(
   const n = values.length;
   const mean = d3.mean(values) || 0;
   const stdDev = d3.deviation(values) || 0;
+  const { sigmaWithin } = calculateMovingRangeSigma(values);
   const min = d3.min(values) || 0;
   const max = d3.max(values) || 0;
 
-  // Calculate capability indices
+  // Cp/Cpk use σ_within (short-term capability, industry standard)
   let cp: number | undefined;
   let cpk: number | undefined;
 
-  if (stdDev > 0) {
+  if (sigmaWithin > 0) {
     if (specs.usl !== undefined && specs.lsl !== undefined) {
-      cp = (specs.usl - specs.lsl) / (6 * stdDev);
-      const cpu = (specs.usl - mean) / (3 * stdDev);
-      const cpl = (mean - specs.lsl) / (3 * stdDev);
+      cp = (specs.usl - specs.lsl) / (6 * sigmaWithin);
+      const cpu = (specs.usl - mean) / (3 * sigmaWithin);
+      const cpl = (mean - specs.lsl) / (3 * sigmaWithin);
       cpk = Math.min(cpu, cpl);
     } else if (specs.usl !== undefined) {
-      cpk = (specs.usl - mean) / (3 * stdDev);
+      cpk = (specs.usl - mean) / (3 * sigmaWithin);
     } else if (specs.lsl !== undefined) {
-      cpk = (mean - specs.lsl) / (3 * stdDev);
+      cpk = (mean - specs.lsl) / (3 * sigmaWithin);
     }
   }
 

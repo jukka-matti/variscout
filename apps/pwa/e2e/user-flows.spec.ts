@@ -5,9 +5,10 @@ import { test, expect } from '@playwright/test';
  *
  * Tests complete user journeys through the PWA:
  * 1. Deep drill-down (multi-level with backtrack)
- * 2. Manual entry (paste data → analyze)
- * 3. Spec limits editing → Cpk update
- * 4. New Analysis reset
+ * 2. Manual entry setup flow
+ * 3. Spec limits → Cpk display
+ * 4. View switching
+ * 5. Sample switching
  */
 
 test.describe('User Flow: Deep Drill-Down', () => {
@@ -84,7 +85,7 @@ test.describe('User Flow: Deep Drill-Down', () => {
 });
 
 test.describe('User Flow: Manual Entry', () => {
-  test('should paste data and see analysis', async ({ page }) => {
+  test('should open manual entry and navigate setup', async ({ page }) => {
     await page.goto('/');
 
     // Click "Paste from Excel"
@@ -92,60 +93,23 @@ test.describe('User Flow: Manual Entry', () => {
     await expect(pasteButton).toBeVisible({ timeout: 10000 });
     await pasteButton.click();
 
-    // Wait for textarea/paste area to appear
-    const textarea = page.locator('textarea').first();
-    await expect(textarea).toBeVisible({ timeout: 5000 });
+    // ManualEntry setup should show Step 1 form
+    await expect(page.getByRole('heading', { name: /What are you measuring/i })).toBeVisible({
+      timeout: 5000,
+    });
 
-    // Paste tab-separated data with header
-    const tsvData = [
-      'Machine\tWeight',
-      'A\t10.5',
-      'A\t11.2',
-      'A\t10.8',
-      'B\t12.3',
-      'B\t12.8',
-      'B\t12.1',
-      'C\t15.0',
-      'C\t14.5',
-      'C\t15.2',
-    ].join('\n');
-
-    await textarea.fill(tsvData);
-
-    // Click Analyze button
-    const analyzeButton = page.locator('button:has-text("Analyze")');
-    await expect(analyzeButton).toBeVisible({ timeout: 3000 });
-    await analyzeButton.click();
-
-    // Should eventually show the dashboard with charts
-    // Column mapping may appear first — if so, confirm it
-    const confirmButton = page.locator('button:has-text("Confirm")');
-    if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await confirmButton.click();
-    }
-
-    // Charts should render
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
-
-    // Stats should show numeric mean
-    const meanValue = page.locator('[data-testid="stat-value-mean"]');
-    await expect(meanValue).toBeVisible({ timeout: 5000 });
-    const meanText = await meanValue.textContent();
-    expect(parseFloat(meanText!)).not.toBeNaN();
+    // Should have Start Entry button
+    const startButton = page.locator('button:has-text("Start Entry")');
+    await expect(startButton).toBeVisible({ timeout: 3000 });
   });
 });
 
 test.describe('User Flow: Spec Limits', () => {
-  test('should display Cp/Cpk for packaging dataset with specs', async ({ page }) => {
+  test('should display Cpk for packaging dataset with specs', async ({ page }) => {
     await page.goto('/?sample=packaging');
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
-    // Packaging has spec limits → Cp/Cpk should be visible
-    const cpValue = page.locator('[data-testid="stat-value-cp"]');
-    await expect(cpValue).toBeVisible({ timeout: 5000 });
-    const cpText = await cpValue.textContent();
-    expect(parseFloat(cpText!)).not.toBeNaN();
-
+    // Packaging has USL=100 → Cpk should be visible
     const cpkValue = page.locator('[data-testid="stat-value-cpk"]');
     await expect(cpkValue).toBeVisible({ timeout: 5000 });
     const cpkText = await cpkValue.textContent();

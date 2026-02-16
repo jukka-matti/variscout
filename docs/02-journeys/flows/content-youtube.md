@@ -70,7 +70,7 @@ flowchart TD
     F --> G
     G -->|Try demo| H[Interactive exploration]
     G -->|Read more| I[Deeper content]
-    H --> J[/products]
+    H --> J[/pricing]
     I --> J
     J --> K{Outcome}
     K --> L[CONVERSION]
@@ -161,7 +161,7 @@ flowchart LR
             │
             ▼
    ┌─────────────────┐
-   │ /products       │
+   │ /pricing        │
    │                 │
    │ Warm from video │
    │ Ready to try    │

@@ -10,7 +10,7 @@ The Azure App is the **only paid VariScout product**, offering:
 
 - Full-featured variation analysis (all chart types + Performance Mode)
 - Microsoft Entra ID (Azure AD) authentication
-- OneDrive sync for projects
+- OneDrive sync for analyses
 - Team collaboration features
 - Customer-controlled data (stays in their Azure tenant)
 
@@ -36,7 +36,7 @@ All features included:
 - All chart types and analysis features
 - Performance Mode (multi-channel Cpk analysis)
 - Microsoft Entra ID SSO
-- OneDrive project sync
+- OneDrive analysis sync
 - Offline support (cached)
 - Data stays in customer's Azure tenant
 
@@ -70,7 +70,7 @@ All features included:
 │                              ▼                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │                      ONEDRIVE                             │  │
-│  │              (Project sync & sharing)                     │  │
+│  │              (Analysis sync & sharing)                    │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -102,7 +102,7 @@ Unlike traditional SaaS, VariScout Azure App:
 
 - Deploys entirely to customer's Azure tenant
 - Processes all data in-browser
-- Stores projects in customer's OneDrive
+- Stores analyses in customer's OneDrive
 - Makes zero calls to external servers
 
 This architecture ensures:
@@ -136,8 +136,8 @@ const tier = import.meta.env.VITE_LICENSE_TIER; // Always 'enterprise' for Manag
 | Feature          | Description                                |
 | ---------------- | ------------------------------------------ |
 | SSO              | Microsoft Entra ID via MSAL                |
-| Cloud Sync       | Projects saved to OneDrive                 |
-| Sharing          | Share projects with team members           |
+| Cloud Sync       | Analyses saved to OneDrive                 |
+| Sharing          | Share analyses with team members           |
 | Offline          | Cached locally, syncs when online          |
 | All Chart Types  | I-Chart, Boxplot, Pareto, Capability, etc. |
 | Performance Mode | Multi-channel Cpk analysis                 |
@@ -176,7 +176,7 @@ All data stays in the customer's tenant:
 | Data Type      | Location                        |
 | -------------- | ------------------------------- |
 | App hosting    | Customer's Azure Static Web App |
-| Projects       | User's OneDrive                 |
+| Analyses       | User's OneDrive                 |
 | Settings       | Browser localStorage            |
 | Authentication | Customer's Entra ID             |
 

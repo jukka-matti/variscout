@@ -70,7 +70,7 @@ function App() {
           </div>
           <p className="mb-8 text-slate-400 text-lg max-w-md text-center">
             Collaborative variation analysis for quality teams. Sign in with your Microsoft account
-            to access shared projects.
+            to access shared analyses.
           </p>
           <button
             onClick={login}
@@ -117,7 +117,7 @@ function App() {
                   <>
                     <span className="text-slate-600">/</span>
                     <span className="text-slate-400">
-                      {currentProject ? `Project ${currentProject}` : 'New Analysis'}
+                      {currentProject ? `Analysis ${currentProject}` : 'New Analysis'}
                     </span>
                   </>
                 )}

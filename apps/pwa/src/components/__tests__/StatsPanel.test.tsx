@@ -12,6 +12,8 @@ describe('StatsPanel', () => {
   const mockStats = {
     mean: 10.5,
     stdDev: 1.2,
+    sigmaWithin: 1.1,
+    mrBar: 1.24,
     ucl: 14.1,
     lcl: 6.9,
     cp: 1.5,

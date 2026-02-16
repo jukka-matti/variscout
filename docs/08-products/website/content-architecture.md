@@ -198,25 +198,41 @@ The `[lang]/use-cases/[slug].astro` template renders 6 sections:
 ### Header
 
 ```
-[Home] [Journey] [Methods v] [Solutions v] [Product v] [Pricing] [Try Now]
+[Home] [Journey] [Methods v] [Solutions v] [Product v] [Try Now]
+
+Methods dropdown:
++-- TOOLS (heading)
+|   +-- I-Chart          Patterns over time
+|   +-- Boxplot          Compare factors
+|   +-- Pareto           Prioritize problems
+|   +-- Capability       Meet specs
++-- FRAMEWORKS (heading)
+|   +-- Two Voices       Control vs Spec
+|   +-- Four Lenses      Watson framework
+|   +-- EDA Philosophy   Visual exploration
++-- All Methods
 
 Solutions dropdown:
-+-- By Industry
-|   +-- Manufacturing
-|   +-- Automotive
-|   +-- Healthcare
-|   +-- Education
-|   +-- Service Operations
-+-- By Challenge
-|   +-- Cost of Poor Quality
-|   +-- Customer Complaints
-|   +-- Supplier Capability
++-- Assembly Bottleneck  Manufacturing
++-- Supplier Performance Supply Chain
++-- Supplier PPAP        Automotive
++-- University SPC       Education
++-- COPQ Drill-Down      Cross-industry
++-- Customer Complaints  Cross-industry
 +-- All Use Cases
+
+Product dropdown:
++-- Web App              Free training tool
++-- Azure App            Full power for teams
++-- Pricing
++-- Enterprise & IT      Security & compliance
 ```
+
+Note: Pricing is inside the Product dropdown (no standalone nav link). Getting Started is removed from navigation but remains in footer and linked from enterprise/pricing pages.
 
 ### Footer
 
-Expand "Use Cases" section from 2 items to industry groupings matching the Solutions dropdown.
+Product section includes Getting Started (translated via `nav.gettingStarted`). Use Cases section lists top use cases with "All Use Cases" link.
 
 ---
 

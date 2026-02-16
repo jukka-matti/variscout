@@ -84,15 +84,15 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Persistence & Storage
 
-| Feature               | Azure App | PWA (Free) | Notes                    |
-| --------------------- | :-------: | :--------: | ------------------------ |
-| **Local storage**     | IndexedDB |     -      | PWA is session-only      |
-| **Cloud sync**        | OneDrive  |     -      |                          |
-| **Offline support**   |  Cached   |     ✓      | Azure caches for offline |
-| **Project save/load** |     ✓     |     -      | PWA is session-only      |
-| **Export CSV**        |     ✓     |     ✓      |                          |
-| **Export JSON**       |     ✓     |     -      | Azure App only           |
-| **Screenshot export** |     ✓     |     ✓      |                          |
+| Feature                | Azure App | PWA (Free) | Notes                    |
+| ---------------------- | :-------: | :--------: | ------------------------ |
+| **Local storage**      | IndexedDB |     -      | PWA is session-only      |
+| **Cloud sync**         | OneDrive  |     -      |                          |
+| **Offline support**    |  Cached   |     ✓      | Azure caches for offline |
+| **Analysis save/load** |     ✓     |     -      | PWA is session-only      |
+| **Export CSV**         |     ✓     |     ✓      |                          |
+| **Export JSON**        |     ✓     |     -      | Azure App only           |
+| **Screenshot export**  |     ✓     |     ✓      |                          |
 
 ---
 
@@ -149,7 +149,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - Performance Mode (multi-channel Cpk analysis)
 - File upload (CSV/Excel)
 - Save/persistence (OneDrive sync)
-- OneDrive project sync
+- OneDrive analysis sync
 - Team collaboration
 - EasyAuth authentication flow
 - Company accent color / branding removal

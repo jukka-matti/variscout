@@ -1,12 +1,12 @@
 # OneDrive Sync
 
-Project synchronization with Microsoft OneDrive.
+Analysis synchronization with Microsoft OneDrive.
 
 ---
 
 ## Overview
 
-The Azure app syncs projects to OneDrive:
+The Azure app syncs analyses to OneDrive:
 
 - Automatic sync when online
 - Offline-first with local cache

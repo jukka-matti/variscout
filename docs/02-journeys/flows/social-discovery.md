@@ -51,7 +51,7 @@ flowchart TD
     E --> F{Next Action}
     F -->|Explore more| G[Another case study]
     F -->|Ready to try| H[CTA: What's YOUR 46%?]
-    G --> I[/products]
+    G --> I[/pricing]
     H --> I
     I --> J{Outcome}
     J --> K[CONVERSION]
@@ -132,7 +132,7 @@ journey
      │           │
      │           ▼
      │    ┌─────────────────┐
-     │    │ /products       │
+     │    │ /pricing        │
      │    │                 │
      │    │ Evaluates       │
      └───▶│                 │
@@ -238,7 +238,7 @@ Carlos learns the methodology:
 | /cases/bottleneck | /tools/i-chart       | "Learn more about I-Chart" |
 | /cases/bottleneck | /cases/hospital-ward | "Next case"                |
 | /cases/bottleneck | /learn/four-lenses   | "The methodology"          |
-| Any case          | /products            | "Do this with your data"   |
+| Any case          | /pricing             | "Do this with your data"   |
 
 ---
 

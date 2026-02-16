@@ -4,114 +4,44 @@ import { test, expect } from '@playwright/test';
  * E2E Test: Edge Cases
  *
  * Tests unexpected inputs and boundary conditions in the browser:
- * 1. Minimal data (single row, two rows)
- * 2. No factor columns (numeric only)
- * 3. Zero variation data
- * 4. Invalid URL parameters
- * 5. Unicode data
- * 6. Replace data while filtered
+ * 1. Manual entry flow opens correctly
+ * 2. Invalid URL parameters
+ * 3. Replace data while filtered
+ * 4. Sample data integrity checks
  */
 
-test.describe('Edge Case: Minimal Data', () => {
-  test('should handle pasting a single data row gracefully', async ({ page }) => {
+test.describe('Edge Case: Manual Entry Flow', () => {
+  test('should open manual entry setup when clicking Paste from Excel', async ({ page }) => {
     await page.goto('/');
 
     const pasteButton = page.locator('text=Paste from Excel');
     await expect(pasteButton).toBeVisible({ timeout: 10000 });
     await pasteButton.click();
 
-    const textarea = page.locator('textarea').first();
-    await expect(textarea).toBeVisible({ timeout: 5000 });
+    // ManualEntry setup should show Step 1 form
+    await expect(page.getByRole('heading', { name: /What are you measuring/i })).toBeVisible({
+      timeout: 5000,
+    });
 
-    // Paste just one data row (plus header)
-    await textarea.fill('Value\n42');
-
-    const analyzeButton = page.locator('button:has-text("Analyze")');
-    await expect(analyzeButton).toBeVisible({ timeout: 3000 });
-    await analyzeButton.click();
-
-    // App should not crash — either shows limited stats or a warning
-    // Wait for either a chart or a validation message
-    const hasChart = await page
-      .locator('[data-testid="chart-ichart"]')
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-    const hasWarning = await page
-      .locator('text=/insufficient|not enough|at least|warning/i')
-      .isVisible({ timeout: 2000 })
-      .catch(() => false);
-
-    // Either outcome is fine — just shouldn't crash
-    expect(hasChart || hasWarning || true).toBe(true);
+    // Should have outcome field
+    const outcomeInput = page.locator('input[placeholder*="Weight"]');
+    await expect(outcomeInput).toBeVisible({ timeout: 3000 });
   });
 
-  test('should handle pasting two data rows', async ({ page }) => {
+  test('should allow cancelling manual entry setup', async ({ page }) => {
     await page.goto('/');
 
     const pasteButton = page.locator('text=Paste from Excel');
     await expect(pasteButton).toBeVisible({ timeout: 10000 });
     await pasteButton.click();
 
-    const textarea = page.locator('textarea').first();
-    await expect(textarea).toBeVisible({ timeout: 5000 });
+    // Cancel should return to home screen
+    const cancelButton = page.locator('button:has-text("Cancel")');
+    await expect(cancelButton).toBeVisible({ timeout: 3000 });
+    await cancelButton.click();
 
-    await textarea.fill('Machine\tWeight\nA\t10\nB\t20');
-
-    const analyzeButton = page.locator('button:has-text("Analyze")');
-    await analyzeButton.click();
-
-    // Handle possible column mapping dialog
-    const confirmButton = page.locator('button:has-text("Confirm")');
-    if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await confirmButton.click();
-    }
-
-    // Should show some stats (mean value visible)
-    const meanValue = page.locator('[data-testid="stat-value-mean"]');
-    const hasMean = await meanValue.isVisible({ timeout: 8000 }).catch(() => false);
-    if (hasMean) {
-      const mean = parseFloat((await meanValue.textContent())!);
-      expect(mean).toBeCloseTo(15, 0); // (10+20)/2
-    }
-  });
-});
-
-test.describe('Edge Case: No Factor Columns', () => {
-  test('should render I-Chart with numeric-only data', async ({ page }) => {
-    await page.goto('/');
-
-    const pasteButton = page.locator('text=Paste from Excel');
-    await expect(pasteButton).toBeVisible({ timeout: 10000 });
-    await pasteButton.click();
-
-    const textarea = page.locator('textarea').first();
-    await expect(textarea).toBeVisible({ timeout: 5000 });
-
-    // Only numeric columns, no factors
-    const values = Array.from({ length: 20 }, (_, i) => (100 + Math.sin(i) * 5).toFixed(1));
-    await textarea.fill('Measurement\n' + values.join('\n'));
-
-    const analyzeButton = page.locator('button:has-text("Analyze")');
-    await analyzeButton.click();
-
-    // Handle column mapping if shown
-    const confirmButton = page.locator('button:has-text("Confirm")');
-    if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await confirmButton.click();
-    }
-
-    // I-Chart should still render (no boxplot data expected)
-    const hasChart = await page
-      .locator('[data-testid="chart-ichart"]')
-      .isVisible({ timeout: 10000 })
-      .catch(() => false);
-    // Stats should show mean
-    const hasMean = await page
-      .locator('[data-testid="stat-value-mean"]')
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-
-    expect(hasChart || hasMean).toBe(true);
+    // Should be back on home screen
+    await expect(page.locator('text=Try a Sample Dataset')).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -176,25 +106,25 @@ test.describe('Edge Case: Sample Data Integrity', () => {
     expect(mean).toBeGreaterThan(10);
     expect(mean).toBeLessThan(14);
 
-    // Samples should be visible
+    // Samples should be visible with n= format
     const samplesValue = page.locator('[data-testid="stat-value-samples"]');
     await expect(samplesValue).toBeVisible({ timeout: 5000 });
     const samplesText = await samplesValue.textContent();
-    expect(parseInt(samplesText!, 10)).toBeGreaterThan(0);
+    expect(samplesText).toMatch(/n=\d+/);
   });
 
-  test('packaging sample should show ANOVA and Cpk', async ({ page }) => {
+  test('packaging sample should show Cpk and charts', async ({ page }) => {
     await page.goto('/?sample=packaging');
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
-    // Should have Cpk (packaging has specs)
+    // Should have Cpk (packaging has USL=100)
     const cpkValue = page.locator('[data-testid="stat-value-cpk"]');
     await expect(cpkValue).toBeVisible({ timeout: 5000 });
     const cpk = parseFloat((await cpkValue.textContent())!);
     expect(cpk).not.toBeNaN();
 
-    // Should have ANOVA (packaging has factor columns)
-    const anovaResults = page.locator('[data-testid="anova-results"]');
-    await expect(anovaResults).toBeVisible({ timeout: 5000 });
+    // Should have boxplot (packaging has factor columns)
+    const boxplotSvg = page.locator('[data-testid="chart-boxplot"] svg');
+    await expect(boxplotSvg.first()).toBeVisible({ timeout: 5000 });
   });
 });

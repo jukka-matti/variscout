@@ -128,7 +128,7 @@ test.describe('Azure Edge Case: Replace Data', () => {
 });
 
 test.describe('Azure Edge Case: Back Navigation', () => {
-  test('should navigate back to project dashboard from editor', async ({ page }) => {
+  test('should navigate back to analyses dashboard from editor', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
 
@@ -145,7 +145,7 @@ test.describe('Azure Edge Case: Back Navigation', () => {
     const backBtn = page.locator('text=Back').first();
     await backBtn.click();
 
-    // Should see project dashboard
+    // Should see analyses dashboard
     await expect(page.locator('text=New Analysis')).toBeVisible({ timeout: 5000 });
   });
 
@@ -161,7 +161,7 @@ test.describe('Azure Edge Case: Back Navigation', () => {
     const backBtn = page.locator('text=Back').first();
     await backBtn.click();
 
-    // Should see project dashboard
+    // Should see analyses dashboard
     await expect(page.locator('text=New Analysis')).toBeVisible({ timeout: 5000 });
   });
 });

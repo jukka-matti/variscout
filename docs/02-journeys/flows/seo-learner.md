@@ -35,7 +35,7 @@
 | "boxplot interpretation"       | /tools/boxplot    | Specific tool help        |
 | "capability analysis tutorial" | /tools/capability | Learning Cp/Cpk           |
 | "free control chart software"  | /tools/i-chart    | Tool shopping             |
-| "Minitab alternative"          | / or /products    | Direct comparison         |
+| "Minitab alternative"          | / or /pricing     | Direct comparison         |
 
 ---
 
@@ -51,10 +51,10 @@ flowchart TD
     C -->|Clicks demo| E[Try It Demo]
     D --> F[Two Mindsets<br/>Resonates with EDA]
     E --> G[I like this!<br/>Clicks CTA]
-    F --> H[/products or /pricing]
+    F --> H[/pricing]
     G --> H
     H --> I[Evaluates options]
-    I --> J[CONVERSION<br/>Azure App or Excel]
+    I --> J[CONVERSION<br/>PWA or Azure App]
 ```
 
 ### User Satisfaction Journey
@@ -117,7 +117,6 @@ journey
                      │
                      ▼
          ┌─────────────────┐
-         │ /products or    │
          │ /pricing        │
          │                 │
          │ Evaluates       │
@@ -128,8 +127,8 @@ journey
          ┌─────────────────┐
          │ CONVERSION      │
          │                 │
-         │ Signs up for    │
-         │ PWA or Excel    │
+         │ Tries PWA (free)│
+         │ or Azure App    │
          └─────────────────┘
 ```
 
@@ -167,8 +166,7 @@ Gary clicks around, explores the demo:
 
 Gary evaluates:
 
-- Free tier vs paid
-- PWA vs Excel add-in
+- PWA (free) vs Azure App (€150/month)
 - Comparison to Minitab
 
 ---

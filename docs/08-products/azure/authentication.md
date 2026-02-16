@@ -160,10 +160,10 @@ See [ARM Template](arm-template.md) for the complete deployment configuration.
 
 ## Required Permissions
 
-| Permission      | Type      | Purpose               |
-| --------------- | --------- | --------------------- |
-| User.Read       | Delegated | Get user profile      |
-| Files.ReadWrite | Delegated | OneDrive project sync |
+| Permission      | Type      | Purpose                |
+| --------------- | --------- | ---------------------- |
+| User.Read       | Delegated | Get user profile       |
+| Files.ReadWrite | Delegated | OneDrive analysis sync |
 
 No admin consent required — users grant consent on first login.
 

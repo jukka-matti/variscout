@@ -74,7 +74,6 @@ flowchart TB
     end
 
     subgraph Conversion["Conversion"]
-        P[/products]
         PR[/pricing]
         AZ[Azure Marketplace]
     end
@@ -95,13 +94,12 @@ flowchart TB
     H --> F4
     A --> F5
 
-    F1 --> P
-    F2 --> P
-    F3 --> P
-    F4 --> P
+    F1 --> PR
+    F2 --> PR
+    F3 --> PR
+    F4 --> PR
     F5 --> A
 
-    P --> PR
     PR --> AZ
 ```
 
@@ -244,7 +242,6 @@ flowchart TB
     end
 
     subgraph Conversion["Conversion Path"]
-        P[Products]
         PR[Pricing]
         AZ[CONVERSION]
     end
@@ -258,12 +255,11 @@ flowchart TB
     T <-->|deeper concepts| L
     T <-->|workflow: I-Chart→Box| T
 
-    J --> P
-    C --> P
-    T --> P
-    L --> P
+    J --> PR
+    C --> PR
+    T --> PR
+    L --> PR
 
-    P --> PR
     PR --> AZ
 ```
 
@@ -275,7 +271,7 @@ flowchart TB
 | Cases        | Tools    | Tool used in the case      |
 | Tools        | Learn    | Deeper concept explanation |
 | Tools        | Tools    | Workflow progression       |
-| All sections | Products | CTA on every page          |
+| All sections | Pricing  | CTA on every page          |
 
 ### ASCII Reference
 
@@ -298,11 +294,11 @@ flowchart TB
             Cases ←→ Tools (tool used in case)
             Tools ←→ Learn (deeper concepts)
             Tools ←→ Tools (workflow: I-Chart→Box)
-            All ──→ Products (CTA)
+            All ──→ Pricing (CTA)
                        │
                        ▼
                 ┌─────────────┐
-                │  Products   │ → Pricing → CONVERSION
+                │   Pricing   │ → CONVERSION
                 └─────────────┘
 ```
 
@@ -315,7 +311,7 @@ flowchart TB
 3. **Cross-linking** — No dead ends, always "what's next"
 4. **Progressive depth** — Surface → Middle → Deep layers
 5. **Mobile-first** — Sticky CTAs, simplified navigation
-6. **No login needed** — PWA and Excel work without accounts, data stays in your browser
+6. **No login needed** — PWA works without accounts, data stays in your browser
 
 > **The website is a collection of interconnected experiences, not a linear funnel.**
 >

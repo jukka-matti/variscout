@@ -40,17 +40,19 @@ test.describe('Azure Stats Panel', () => {
     await expect(samplesValue).toBeVisible({ timeout: 5000 });
     const text = await samplesValue.textContent();
     expect(text).toBeTruthy();
-    // Sample count should be a positive number
-    expect(parseInt(text!, 10)).toBeGreaterThan(0);
+    // Sample count is displayed as "n=30" — extract the number
+    const match = text!.match(/(\d+)/);
+    expect(match).toBeTruthy();
+    expect(parseInt(match![1], 10)).toBeGreaterThan(0);
   });
 
-  test('should display sigma value', async ({ page }) => {
-    const sigmaValue = page.locator('[data-testid="stat-value-sigma"]');
-    await expect(sigmaValue).toBeVisible({ timeout: 5000 });
-    const sigmaText = await sigmaValue.textContent();
-    expect(sigmaText).toBeTruthy();
-    expect(parseFloat(sigmaText!)).not.toBeNaN();
-    expect(parseFloat(sigmaText!)).toBeGreaterThan(0);
+  test('should display std dev value', async ({ page }) => {
+    const stdDevValue = page.locator('[data-testid="stat-value-std-dev"]');
+    await expect(stdDevValue).toBeVisible({ timeout: 5000 });
+    const stdDevText = await stdDevValue.textContent();
+    expect(stdDevText).toBeTruthy();
+    expect(parseFloat(stdDevText!)).not.toBeNaN();
+    expect(parseFloat(stdDevText!)).toBeGreaterThan(0);
   });
 
   test('should display ANOVA results when groups exist', async ({ page }) => {
