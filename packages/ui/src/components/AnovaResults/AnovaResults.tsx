@@ -94,7 +94,10 @@ const AnovaResults = ({
   const { groups, pValue, etaSquared, fStatistic } = result;
 
   return (
-    <div className={`${colorScheme.background} border ${colorScheme.border} rounded-lg p-3 mt-2`}>
+    <div
+      data-testid="anova-results"
+      className={`${colorScheme.background} border ${colorScheme.border} rounded-lg p-3 mt-2`}
+    >
       <div className="flex items-center justify-between mb-2">
         <span
           className={`text-xs font-semibold ${colorScheme.headerText} uppercase tracking-wider`}
@@ -117,13 +120,16 @@ const AnovaResults = ({
       {/* Significance result */}
       <div className={`flex items-center gap-4 text-sm mt-2 border-t ${colorScheme.border} pt-2`}>
         <span className={`${colorScheme.secondaryText} flex items-center gap-1`}>
-          <span className={`font-mono ${colorScheme.contentText}`}>
+          <span data-testid="anova-significance" className={`font-mono ${colorScheme.contentText}`}>
             F = {fStatistic.toFixed(2)}, p = {formatPValue(pValue)}
           </span>
           <HelpTooltip term={getTerm('fStatistic')} iconSize={12} />
         </span>
         {etaSquared > 0 && (
-          <span className={`${colorScheme.mutedText} text-xs flex items-center gap-1`}>
+          <span
+            data-testid="anova-eta-squared"
+            className={`${colorScheme.mutedText} text-xs flex items-center gap-1`}
+          >
             η² = {etaSquared.toFixed(2)}
             <HelpTooltip term={getTerm('etaSquared')} iconSize={12} />
           </span>

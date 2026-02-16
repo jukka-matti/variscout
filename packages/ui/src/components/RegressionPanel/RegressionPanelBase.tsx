@@ -242,7 +242,10 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
   }
 
   return (
-    <div className={`flex flex-col h-full ${colorScheme.containerBg} overflow-hidden`}>
+    <div
+      data-testid="regression-panel"
+      className={`flex flex-col h-full ${colorScheme.containerBg} overflow-hidden`}
+    >
       {/* Mode toggle */}
       <div
         className={`flex-none px-4 py-2 border-b ${colorScheme.border} ${colorScheme.modeToggleBg}`}

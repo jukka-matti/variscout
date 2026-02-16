@@ -21,26 +21,34 @@ VariScout Lite testing follows these principles:
 | Tool                          | Purpose                                                  |
 | :---------------------------- | :------------------------------------------------------- |
 | **Vitest**                    | Test runner (Vite-native, fast)                          |
-| **React Testing Library**     | Component testing (PWA)                                  |
+| **Playwright**                | E2E browser testing (Chromium)                           |
+| **React Testing Library**     | Component testing (PWA, Azure)                           |
 | **@testing-library/jest-dom** | DOM assertions                                           |
 | **Antigravity (Agent)**       | **Visual Verification, E2E Flows, Manual QA Automation** |
 
 ### Running Tests
 
 ```bash
-# Run all tests across monorepo
+# Run all vitest tests across monorepo
 pnpm test
 
 # Run tests in specific package
 pnpm --filter @variscout/core test
 pnpm --filter @variscout/pwa test
 pnpm --filter @variscout/azure-app test
+pnpm --filter @variscout/hooks test
+pnpm --filter @variscout/charts test
+pnpm --filter @variscout/ui test
 
 # Watch mode (during development)
 pnpm --filter @variscout/core test -- --watch
 
 # Coverage report
 pnpm --filter @variscout/core test -- --coverage
+
+# Playwright E2E tests
+pnpm --filter @variscout/pwa test:e2e
+pnpm --filter @variscout/azure-app test:e2e
 ```
 
 ### Agentic Testing
@@ -54,14 +62,16 @@ To run agentic tests, issue a prompt to the agent:
 
 ## Test Ownership by Package
 
-| Package                | Test Type        | What to Test                                                                                                   |
-| :--------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------- |
-| `@variscout/core`      | **Unit**         | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities |
-| `@variscout/pwa`       | **Component**    | UI components (StatsPanel, Dashboard, DataTableModal, RegressionPanel, AnovaResults)                           |
-| `@variscout/pwa`       | **Agent E2E**    | **Visual verification of charts**, full user flows, persistence layer checks                                   |
-| `@variscout/azure-app` | **Component**    | UI components (Dashboard, StatsPanel, RegressionPanel, AnovaResults) - mirrors PWA tests                       |
-| `@variscout/azure-app` | **Agent E2E**    | **EasyAuth flows**, OneDrive sync, team collaboration features                                                 |
-| `@variscout/charts`    | **Agent Visual** | **Render quality**, responsiveness, interaction handling                                                       |
+| Package                | Test Type          | What to Test                                                                                                                                                                   |
+| :--------------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@variscout/core`      | **Unit**           | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities                                                                 |
+| `@variscout/charts`    | **Unit**           | Color constants, accessibility utilities, multi-selection hook                                                                                                                 |
+| `@variscout/hooks`     | **Unit**           | Hooks (useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useRegressionState, useVariationTracking), pipeline integration                         |
+| `@variscout/ui`        | **Unit**           | UpgradePrompt, HelpTooltip, DataQualityBanner                                                                                                                                  |
+| `@variscout/pwa`       | **Component**      | UI components (StatsPanel, Dashboard, DataTableModal, RegressionPanel, AnovaResults, MindmapPanel, WhatIfPage, WhatIfSimulator), hooks (useFilterNavigation), export utilities |
+| `@variscout/pwa`       | **Playwright E2E** | Critical workflow, drill-down, samples, analysis views, stats/ANOVA                                                                                                            |
+| `@variscout/azure-app` | **Component**      | UI components (Dashboard, StatsPanel, RegressionPanel, AnovaResults, MindmapWindow, WhatIfPage, FilterBreadcrumb, Editor, SettingsPanel), auth (easyAuth), storage             |
+| `@variscout/azure-app` | **Playwright E2E** | Editor workflow, samples, analysis views, stats/ANOVA                                                                                                                          |
 
 ---
 
@@ -124,59 +134,118 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ## Current Coverage
 
-### @variscout/core (550+ test cases)
+**Total: 55 vitest files, 989 test cases + 9 Playwright E2E spec files**
+
+### @variscout/core (19 files, 610 test cases)
 
 | Function/Module                   | Tested | Cases                                                                                                               |
 | :-------------------------------- | :----- | :------------------------------------------------------------------------------------------------------------------ |
-| `calculateStats()`                | ✅     | Basic stats, Cp/Cpk, one-sided specs, empty data                                                                    |
+| `calculateStats()`                | ✅     | Basic stats, Cp/Cpk, one-sided specs, empty data, sigma within (MR/d2)                                              |
 | `calculateAnova()`                | ✅     | Significant/non-significant, group stats, eta-squared                                                               |
-| `calculateRegression()`           | ✅     | Linear, quadratic, weak relationships, optimum detection                                                            |
+| `calculateRegression()`           | ✅     | Linear, quadratic, weak relationships, optimum detection, column selection                                          |
+| `calculateMultipleRegression()`   | ✅     | GLM, categorical predictors, interaction terms, model reduction                                                     |
 | `getNelsonRule2ViolationPoints()` | ✅     | Run detection, edge cases (8 vs 9 points), mean breaks run, staged mode                                             |
 | Reference validation (NIST/R)     | ✅     | normalQuantile, mean/stdDev, ANOVA F, regression coefficients, boxplot quantiles, matrix ops, KDE, probability plot |
+| Golden data tests                 | ✅     | Static CSV cases (coffee, packaging, avocado) with known expected values                                            |
 | `tier.ts`                         | ✅     | Tier configuration, channel limits, validation                                                                      |
 | `parser.ts`                       | ✅     | CSV/Excel parsing, auto-mapping, validation, data types                                                             |
 | `export.ts`                       | ✅     | CSV generation, special characters, escaping                                                                        |
 | `edition.ts`                      | ✅     | Edition detection, feature flags, theming gates                                                                     |
+| `performance.ts`                  | ✅     | Multi-channel analysis, performance metrics                                                                         |
 
-### @variscout/pwa (25+ test cases)
+### @variscout/charts (3 files, 44 test cases)
 
-| Component         | Tested | Focus                                      |
-| :---------------- | :----- | :----------------------------------------- |
-| `StatsPanel`      | ✅     | Conditional display, Cp/Cpk formatting     |
-| `Dashboard`       | ✅     | Tab switching, chart rendering, ANOVA      |
-| `DataTableModal`  | ✅     | Cell editing, row operations               |
-| `RegressionPanel` | ✅     | Empty states, chart expansion, ranking     |
-| `AnovaResults`    | ✅     | Null state, F-stat display, p-value format |
-| `export.ts`       | ✅     | CSV generation, special characters         |
+| Module              | Tested | Focus                                        |
+| :------------------ | :----- | :------------------------------------------- |
+| `colors.ts`         | ✅     | Chart color constants, theme color functions |
+| `accessibility.ts`  | ✅     | Accessible color generation, contrast ratios |
+| `useMultiSelection` | ✅     | Multi-selection hook for Performance charts  |
 
-### @variscout/hooks
+### @variscout/hooks (9 files, 91 test cases)
 
-| Hook      | Tested | Focus                                           |
-| :-------- | :----- | :---------------------------------------------- |
-| `useTier` | ✅     | Tier info, channel validation, warning messages |
+| Hook/Module                      | Tested | Focus                                                        |
+| :------------------------------- | :----- | :----------------------------------------------------------- |
+| `useTier`                        | ✅     | Tier info, channel validation, warning messages              |
+| `useChartScale`                  | ✅     | Y-axis scale calculation, locked vs dynamic ranges           |
+| `useColumnClassification`        | ✅     | Numeric vs categorical column detection, threshold tuning    |
+| `useDrillPath`                   | ✅     | DrillStep computation from filterStack, node contributions   |
+| `useMindmapState`                | ✅     | Radial tree layout, eta-squared labels, progress tracking    |
+| `useRegressionState`             | ✅     | Mode switching, column selection, reduction history          |
+| `useVariationTracking`           | ✅     | Cumulative eta-squared, filter chip data with contribution % |
+| `index.ts` (exports)             | ✅     | All public exports resolve correctly                         |
+| Integration: filterStatsPipeline | ✅     | End-to-end: CSV parse → filter → stats → ANOVA pipeline      |
 
-### @variscout/ui
+### @variscout/ui (3 files, 33 test cases)
 
-| Component       | Tested | Focus                                         |
-| :-------------- | :----- | :-------------------------------------------- |
-| `TierBadge`     | ✅     | Tier rendering, colors, upgrade link, sizing  |
-| `UpgradePrompt` | ✅     | Variants (inline/banner/card), tier messaging |
+| Component           | Tested | Focus                                           |
+| :------------------ | :----- | :---------------------------------------------- |
+| `UpgradePrompt`     | ✅     | Variants (inline/banner/card), tier messaging   |
+| `HelpTooltip`       | ✅     | Tooltip rendering, glossary term display, icons |
+| `DataQualityBanner` | ✅     | Validation summary, warning/error states        |
 
-### @variscout/azure-app (31 test cases)
+### @variscout/pwa (10 vitest files, 97 test cases)
 
-| Component         | Tested | Focus                                      |
-| :---------------- | :----- | :----------------------------------------- |
-| `AnovaResults`    | ✅     | Null state, F-stat display, p-value format |
-| `RegressionPanel` | ✅     | Empty states, chart expansion, ranking     |
-| `Dashboard`       | ✅     | Tab switching, ANOVA integration, stats    |
-| `StatsPanel`      | ✅     | Conditional display, Cp/Cpk, tabs          |
+| Component/Module      | Tested | Focus                                              |
+| :-------------------- | :----- | :------------------------------------------------- |
+| `StatsPanel`          | ✅     | Conditional display, Cp/Cpk formatting, tabs       |
+| `Dashboard`           | ✅     | View switching, chart rendering, ANOVA integration |
+| `DataTableModal`      | ✅     | Cell editing, row operations, paste handling       |
+| `RegressionPanel`     | ✅     | Empty states, chart expansion, ranking display     |
+| `AnovaResults`        | ✅     | Null state, F-stat display, p-value format         |
+| `MindmapPanel`        | ✅     | Panel open/close, backdrop, slide-in animation     |
+| `WhatIfPage`          | ✅     | Simulator rendering, navigation, spec limits       |
+| `WhatIfSimulator`     | ✅     | Slider interaction, predicted values, reset        |
+| `useFilterNavigation` | ✅     | Multi-select, updateFilterValues, removeFilter     |
+| `export.ts`           | ✅     | CSV generation, special characters                 |
 
-### @variscout/charts
+### @variscout/azure-app (11 vitest files, 114 test cases)
 
-| Item                 | Tested                                                |
-| :------------------- | :---------------------------------------------------- |
-| Chart components     | **Agent Verified** (Visual analysis via browser tool) |
-| Responsive utilities | **Agent Verified** (Browser resize testing)           |
+| Component/Module   | Tested | Focus                                                  |
+| :----------------- | :----- | :----------------------------------------------------- |
+| `AnovaResults`     | ✅     | Null state, F-stat display, p-value format             |
+| `RegressionPanel`  | ✅     | Empty states, chart expansion, ranking                 |
+| `Dashboard`        | ✅     | Tab switching (Analysis/Regression/Performance), stats |
+| `StatsPanel`       | ✅     | Conditional display, Cp/Cpk, sigma within              |
+| `MindmapWindow`    | ✅     | Window rendering, popout behavior, localStorage sync   |
+| `WhatIfPage`       | ✅     | Simulator integration, navigation, predictions         |
+| `FilterBreadcrumb` | ✅     | Chip rendering, remove button, contribution %          |
+| `Editor`           | ✅     | Empty state, sample loading, navigation                |
+| `SettingsPanel`    | ✅     | Theme toggle, display options, panel open/close        |
+| `easyAuth`         | ✅     | Mock user on localhost, token retrieval, login/logout  |
+| `storage`          | ✅     | Offline-first storage, IndexedDB operations            |
+
+---
+
+## Playwright E2E Coverage
+
+### PWA (5 spec files)
+
+| Spec File                   | Tests                                                             |
+| :-------------------------- | :---------------------------------------------------------------- |
+| `critical-workflow.spec.ts` | App load, home screen, sample load, stats display, SVG rendering  |
+| `drill-down.spec.ts`        | Boxplot click → filter chip, stats update, chip remove, clear all |
+| `samples.spec.ts`           | All sample datasets load, chart rendering, expected stats values  |
+| `analysis-views.spec.ts`    | Dashboard → Regression view switch via Settings, SVG rendering    |
+| `stats-anova.spec.ts`       | Cp/Cpk display, mean/sigma/samples, ANOVA F-stat/p-value/eta²     |
+
+```bash
+# Run PWA E2E tests
+pnpm --filter @variscout/pwa test:e2e
+```
+
+### Azure App (4 spec files)
+
+| Spec File                 | Tests                                                              |
+| :------------------------ | :----------------------------------------------------------------- |
+| `editor-workflow.spec.ts` | Auth, empty state, sample load, chart rendering, filter drill-down |
+| `samples.spec.ts`         | Sample dataset loading, chart rendering, expected values           |
+| `analysis-views.spec.ts`  | Analysis → Regression tab switch, SVG rendering, switch back       |
+| `stats-anova.spec.ts`     | Mean/sigma/samples display, ANOVA F-stat/p-value/eta²              |
+
+```bash
+# Run Azure E2E tests
+pnpm --filter @variscout/azure-app test:e2e
+```
 
 ---
 
@@ -245,7 +314,7 @@ When asking the agent to verify a feature:
 
 ```
 packages/core/
-├── reference-data/          # NIST StRD CSV files for Minitab cross-validation
+├── reference-data/              # NIST StRD CSV files for Minitab cross-validation
 │   ├── README.md
 │   ├── nist-numacc1.csv
 │   ├── nist-numacc4.csv
@@ -255,36 +324,107 @@ packages/core/
 ├── src/
 │   ├── stats.ts
 │   ├── parser.ts
+│   ├── performance.ts
 │   └── __tests__/
-│       ├── stats.test.ts
-│       ├── reference-validation.test.ts  # NIST StRD + R reference values
-│       ├── navigation.test.ts
-│       └── variation.test.ts
+│       ├── stats.test.ts                # Core statistics engine
+│       ├── regression.test.ts           # Simple regression
+│       ├── multiRegression.test.ts      # GLM / multiple regression
+│       ├── modelReduction.test.ts       # Term removal suggestions
+│       ├── reference-validation.test.ts # NIST StRD + R reference values
+│       ├── goldenData.test.ts           # Static CSV golden data tests
+│       ├── performance.test.ts          # Multi-channel performance
+│       ├── projectedStats.test.ts       # Projected what-if stats
+│       ├── directAdjustment.test.ts     # Direct adjustment calculations
+│       ├── nelson.test.ts               # Nelson rules violation detection
+│       ├── categoryStats.test.ts        # Category-level statistics
+│       ├── parser.test.ts               # CSV/Excel parsing
+│       ├── export.test.ts               # CSV export
+│       ├── navigation.test.ts           # Navigation utilities
+│       ├── variation.test.ts            # Variation tracking
+│       ├── tier.test.ts                 # Tier configuration
+│       ├── edition.test.ts              # Edition detection
+│       ├── time.test.ts                 # Time utilities
+│       └── urlParams.test.ts            # URL parameter parsing
+
+packages/charts/
+└── src/
+    ├── __tests__/
+    │   └── colors.test.ts               # Chart color constants
+    ├── hooks/__tests__/
+    │   └── useMultiSelection.test.ts    # Multi-selection hook
+    └── utils/__tests__/
+        └── accessibility.test.ts        # Accessible color generation
+
+packages/hooks/
+└── src/
+    └── __tests__/
+        ├── index.test.ts                # Export verification
+        ├── useTier.test.ts              # Tier hook
+        ├── useChartScale.test.ts        # Y-axis scale
+        ├── useColumnClassification.test.ts # Column type detection
+        ├── useDrillPath.test.ts         # Drill path computation
+        ├── useMindmapState.test.ts      # Mindmap state
+        ├── useRegressionState.test.ts   # Regression state management
+        ├── useVariationTracking.test.ts # Cumulative eta-squared
+        └── integration/
+            └── filterStatsPipeline.test.ts  # End-to-end pipeline
+
+packages/ui/
+└── src/components/
+    ├── UpgradePrompt/__tests__/
+    │   └── UpgradePrompt.test.tsx
+    ├── HelpTooltip/__tests__/
+    │   └── HelpTooltip.test.tsx
+    └── DataQualityBanner/__tests__/
+        └── DataQualityBanner.test.tsx
 
 apps/pwa/
+├── e2e/                                 # Playwright E2E tests
+│   ├── critical-workflow.spec.ts
+│   ├── drill-down.spec.ts
+│   ├── samples.spec.ts
+│   ├── analysis-views.spec.ts
+│   └── stats-anova.spec.ts
 ├── src/
-│   ├── components/
-│   │   ├── StatsPanel.tsx
-│   │   ├── Dashboard.tsx
-│   │   └── __tests__/
-│   │       ├── StatsPanel.test.tsx
-│   │       ├── Dashboard.test.tsx
-│   │       ├── RegressionPanel.test.tsx
-│   │       └── AnovaResults.test.tsx
-│   └── lib/
-│       └── __tests__/
-│           └── export.test.ts
+│   ├── components/__tests__/
+│   │   ├── StatsPanel.test.tsx
+│   │   ├── Dashboard.test.tsx
+│   │   ├── RegressionPanel.test.tsx
+│   │   ├── AnovaResults.test.tsx
+│   │   ├── MindmapPanel.test.tsx
+│   │   ├── WhatIfPage.test.tsx
+│   │   ├── WhatIfSimulator.test.tsx
+│   │   └── DataTableModal.test.tsx
+│   ├── hooks/__tests__/
+│   │   └── useFilterNavigation.test.tsx
+│   └── lib/__tests__/
+│       └── export.test.ts
 
 apps/azure/
-├── vitest.config.ts
+├── e2e/                                 # Playwright E2E tests
+│   ├── editor-workflow.spec.ts
+│   ├── samples.spec.ts
+│   ├── analysis-views.spec.ts
+│   └── stats-anova.spec.ts
+├── vitest.config.ts                     # Excludes e2e/** and api/**
 ├── src/
 │   ├── setupTests.ts
-│   └── components/
-│       └── __tests__/
-│           ├── AnovaResults.test.tsx
-│           ├── RegressionPanel.test.tsx
-│           ├── Dashboard.test.tsx
-│           └── StatsPanel.test.tsx
+│   ├── auth/__tests__/
+│   │   └── easyAuth.test.ts
+│   ├── services/__tests__/
+│   │   └── storage.test.ts
+│   ├── components/__tests__/
+│   │   ├── AnovaResults.test.tsx
+│   │   ├── RegressionPanel.test.tsx
+│   │   ├── Dashboard.test.tsx
+│   │   ├── StatsPanel.test.tsx
+│   │   ├── MindmapWindow.test.tsx
+│   │   ├── WhatIfPage.test.tsx
+│   │   └── FilterBreadcrumb.test.tsx
+│   ├── components/settings/__tests__/
+│   │   └── SettingsPanel.test.tsx
+│   └── pages/__tests__/
+│       └── Editor.test.tsx
 ```
 
 ---
@@ -337,6 +477,138 @@ Specific prompts to use with the Antigravity Browser Agent for verifying complex
 - [ ] Boxplot showing distribution comparison
 - [ ] Pareto showing ranking
 - [ ] Interactive cross-filtering between charts
+
+### 4. Regression Workflow Verification
+
+**Goal:** Verify both Simple and Advanced regression modes render correctly with meaningful statistical output.
+
+**Agent Prompt:**
+
+> "Load the 'Coffee Moisture' sample. Open Settings and switch to Regression view. In Simple mode, verify that scatter plots appear for the auto-selected X columns with R² values displayed. Toggle column checkboxes to add/remove predictors. Click 'Expand' on a scatter plot to verify the expanded modal opens with a larger chart. Switch to Advanced (GLM) mode. Select 2-3 predictors and verify the coefficient table renders with p-values. If a term removal suggestion appears, click it and verify the model updates."
+
+**Success Criteria:**
+
+- [ ] Simple mode: scatter plots with regression lines render
+- [ ] R² values displayed for each predictor
+- [ ] Column toggles add/remove scatter plots
+- [ ] Expanded scatter modal opens and closes
+- [ ] Advanced mode: coefficient table with p-values renders
+- [ ] Term removal updates the model
+
+### 5. Capability Chart Verification
+
+**Goal:** Verify the capability histogram renders correctly with spec limit indicators.
+
+**Agent Prompt:**
+
+> "Load the 'Packaging' sample (it has spec limits defined). Navigate to the Stats panel and look for the histogram/capability view. Verify that the histogram shows the data distribution, spec limit lines (USL/LSL) are drawn as vertical markers, bars are colored green (in-spec) vs red (out-of-spec), and Cp/Cpk values are displayed numerically."
+
+**Success Criteria:**
+
+- [ ] Histogram renders with data distribution bars
+- [ ] Spec limit lines visible (USL and/or LSL)
+- [ ] Pass/fail coloring on histogram bars
+- [ ] Cp and Cpk values displayed
+
+### 6. ANOVA Results Verification
+
+**Goal:** Verify ANOVA results display correctly below boxplot with all statistical values.
+
+**Agent Prompt:**
+
+> "Load the 'Coffee Moisture' sample. Scroll to the boxplot chart area. Below the boxplot, verify the ANOVA results section appears. Check that it shows the factor name (e.g., 'Drying_Bed'), the F-statistic and p-value on the significance line, and the eta-squared (η²) value. Verify the p-value formats correctly (e.g., '< 0.001' for very small values). Check that group means and sample sizes (n=) are listed for each category."
+
+**Success Criteria:**
+
+- [ ] ANOVA section visible below boxplot (`data-testid="anova-results"`)
+- [ ] F-statistic displayed with 2 decimal places
+- [ ] p-value displayed (formatted, e.g., `< 0.001`)
+- [ ] Eta-squared (η²) shown with percentage
+- [ ] Factor name mentioned in header
+- [ ] Group means and n= values listed
+
+### 7. Multi-Level Drill-Down Verification
+
+**Goal:** Verify drilling through 2+ filter levels with cumulative filter chips and stats updates.
+
+**Agent Prompt:**
+
+> "Load a sample with multiple categorical columns (e.g., 'Bottleneck' or 'Oven Zones'). Click a boxplot category to apply the first filter — verify a filter chip appears and stats update. Then click another category in the boxplot at the second level — verify a second filter chip appears alongside the first. Confirm that cumulative contribution percentages update. Click 'Clear All' and verify all filters are removed and stats revert to the original values."
+
+**Success Criteria:**
+
+- [ ] First filter chip appears after boxplot click
+- [ ] Stats (mean, sigma) update to reflect filtered subset
+- [ ] Second filter chip appears at second drill level
+- [ ] Both chips visible simultaneously
+- [ ] Cumulative contribution % updates
+- [ ] Clear All removes all chips and reverts stats
+
+### 8. Manual Data Entry Verification
+
+**Goal:** Verify the manual data entry workflow from setup to analysis.
+
+**Agent Prompt:**
+
+> "Click 'Manual Entry' on the home screen (or 'Paste from Excel' for the PWA). In the setup modal, enter a column name and configure measurement type. Verify the data entry grid appears. Type values into cells, press Enter/Tab to navigate. After entering 10+ values, click 'Analyze' and verify the dashboard renders with charts based on the entered data. Test paste mode by pasting a column of numbers from clipboard."
+
+**Success Criteria:**
+
+- [ ] Setup modal renders with column name input
+- [ ] Data grid appears after setup
+- [ ] Cell editing works (type, Enter, Tab navigation)
+- [ ] 'Analyze' button triggers dashboard rendering
+- [ ] Pasting multi-line data populates grid
+
+### 9. What-If Simulation Verification
+
+**Goal:** Verify the What-If Simulator sliders, predicted values, and real-time updates.
+
+**Agent Prompt:**
+
+> "Load a sample dataset, then open Settings and select 'What-If Simulator'. Verify that the simulator page renders with sliders for each predictor variable. Move a slider and verify the predicted outcome value updates in real-time. If spec limits exist, verify the predicted value is colored according to pass/fail status. Click 'Reset' and verify all sliders return to their default positions."
+
+**Success Criteria:**
+
+- [ ] Simulator page renders with predictor sliders
+- [ ] Predicted outcome value shown
+- [ ] Moving slider updates prediction in real-time
+- [ ] Spec limit pass/fail coloring on predicted value (if applicable)
+- [ ] Reset returns sliders to defaults
+
+### 10. Mindmap Panel Verification
+
+**Goal:** Verify the Investigation Mindmap renders with correct structure and interaction.
+
+**Agent Prompt:**
+
+> "Load a sample with multiple categorical columns. Apply a drill-down filter by clicking a boxplot category. Open the Mindmap panel (look for a tree/mindmap icon). Verify that a radial tree renders with the root node (outcome variable) at center and child nodes for each factor. Check that nodes show eta-squared (η²) labels. Verify the drill trail highlights the path taken. Check the progress bar at the bottom. If available, test the 'Open in new window' popout button."
+
+**Success Criteria:**
+
+- [ ] Radial tree SVG renders with nodes
+- [ ] Root node at center shows outcome variable name
+- [ ] Child nodes labeled with factor names
+- [ ] Eta-squared (η²) values on nodes
+- [ ] Drill trail highlighted for active path
+- [ ] Progress bar visible
+
+### 11. Theme Switching (Azure) Verification
+
+**Goal:** Verify light/dark/system theme switching with chart color updates and persistence.
+
+**Agent Prompt:**
+
+> "In the Azure app, click the Settings gear icon. Find the theme toggle and switch from Dark to Light mode. Verify that the entire UI updates: backgrounds become light, text becomes dark, and chart chrome (axes, grid lines, labels) changes to light-theme colors. Switch to System mode and verify it follows the OS preference. Close and reopen the app — verify the theme persists."
+
+**Success Criteria:**
+
+- [ ] Theme toggle visible in Settings
+- [ ] Light mode: white/light backgrounds, dark text
+- [ ] Dark mode: dark backgrounds, light text
+- [ ] Chart colors update (grid lines, axis labels, tooltip backgrounds)
+- [ ] System mode follows OS preference
+- [ ] Theme persists across page reload
 
 ---
 
