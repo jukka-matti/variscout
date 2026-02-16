@@ -25,7 +25,7 @@ packages/
                #   Slider, WhatIfSimulator, WhatIfPageBase,
                #   ErrorBoundary, AxisEditor, FactorSelector, StatsPanelBase,
                #   MindmapWindow, MindmapPanelContent,
-               #   useGlossary, useIsMobile, gradeColors, errorService
+               #   useGlossary, useIsMobile, errorService
 
 apps/
 ├── pwa/          # @variscout/pwa - PWA website
@@ -40,7 +40,7 @@ apps/
 - `@variscout/core` has no React dependencies (exports stats, parser, glossary, tier)
 - `@variscout/charts` depends on `@variscout/core`
 - `@variscout/hooks` depends on `@variscout/core` (for types, utilities, and tier)
-- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `PerformanceSetupPanelBase`, `RegressionPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `MindmapWindow`, `MindmapPanelContent`, `useGlossary`, `useIsMobile`, `gradeColors`, `errorService`
+- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `PerformanceSetupPanelBase`, `RegressionPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `MindmapWindow`, `MindmapPanelContent`, `useGlossary`, `useIsMobile`, `errorService`
 
 ## Build Commands
 

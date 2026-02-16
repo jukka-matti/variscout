@@ -31,8 +31,6 @@ interface IChartProps extends BaseChartProps {
   stagedStats?: StagedStatsResult;
   /** Specification limits */
   specs: SpecLimits;
-  /** Grade tiers for multi-tier grading */
-  grades?: GradeTier[];
   /** Y-axis label */
   yAxisLabel?: string;
   /** Axis settings for manual scaling */
@@ -98,25 +96,6 @@ Features in staged mode:
 - Stage labels above each section
 - Independent UCL/Mean/LCL per stage
 - Nelson Rule 2 detection computed per stage
-
-#### Grade Bands Mode
-
-Multi-tier grading with colored background bands:
-
-```tsx
-<IChart
-  data={chartData}
-  stats={statsResult}
-  specs={specs}
-  grades={[
-    { label: 'A', max: 95, color: '#22c55e' },
-    { label: 'B', max: 100, color: '#3b82f6' },
-    { label: 'C', max: 105, color: '#f59e0b' },
-  ]}
-/>
-```
-
-Grade bands render as semi-transparent rectangles behind the data.
 
 #### Y-Axis Lock Mode
 

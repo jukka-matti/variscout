@@ -191,7 +191,7 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/charts/src/colors.ts`                        | Chart color constants (chartColors, chromeColors)                         |
 | `packages/data/src/`                                   | Sample datasets with pre-computed stats and chart data                    |
 | `packages/data/src/samples/`                           | Individual sample files (coffee, journey, bottleneck, sachets)            |
-| `packages/ui/src/colors.ts`                            | Shared UI colors (gradeColors)                                            |
+| `packages/ui/src/colors.ts`                            | Shared UI colors (statusColors)                                           |
 | `packages/ui/src/hooks/useMediaQuery.ts`               | Responsive hooks (useIsMobile)                                            |
 | `packages/ui/src/components/HelpTooltip/`              | Help tooltip component with CSS theming and "Learn more"                  |
 | `packages/ui/src/hooks/useGlossary.ts`                 | Hook for accessing glossary terms and definitions                         |

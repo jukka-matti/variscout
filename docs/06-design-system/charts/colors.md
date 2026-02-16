@@ -60,19 +60,6 @@ const getPointColor = (value: number, index: number): string => {
 };
 ```
 
-### Graded Data (Multi-tier Classification)
-
-When grade tiers are defined, points use grade-specific colors instead of the 2-color scheme:
-
-```tsx
-// Example grade tiers
-const grades = [
-  { max: 80, label: 'Grade A', color: '#22c55e' },
-  { max: 85, label: 'Grade B', color: '#eab308' },
-  { max: 90, label: 'Grade C', color: '#f97316' },
-];
-```
-
 ### Nelson Rule 2 Detection
 
 Nelson Rule 2 identifies when 9 or more consecutive points fall on the same side of the center line (mean). This indicates a shift in the process, even if individual points remain within control limits.

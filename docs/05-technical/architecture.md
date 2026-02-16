@@ -155,7 +155,6 @@ Shared UI component library for PWA and Azure apps.
 - **Components**: `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `PerformanceSetupPanelBase`, `RegressionPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `TierBadge`, `UpgradePrompt`.
 - **Hooks**: `useIsMobile`, `useGlossary`.
 - **Services**: `errorService`.
-- **Utilities**: `gradeColors`.
 
 ### @variscout/hooks
 
@@ -163,7 +162,7 @@ Shared React hooks for cross-platform functionality:
 
 | Hook                        | Purpose                                                       |
 | --------------------------- | ------------------------------------------------------------- |
-| `useChartScale`             | Calculate Y-axis range from data, specs, and grades           |
+| `useChartScale`             | Calculate Y-axis range from data, specs, and axis settings    |
 | `useFilterNavigation`       | Filter navigation with multi-select and filter chip support   |
 | `useVariationTracking`      | Cumulative η² tracking + filter chip data with contribution % |
 | `useKeyboardNavigation`     | Arrow key navigation and focus management                     |
@@ -359,7 +358,7 @@ variscout-lite/
 │   └── ui/                      # @variscout/ui
 │       ├── src/
 │       │   ├── index.ts         # Barrel export
-│       │   ├── colors.ts        # UI color constants (gradeColors)
+│       │   ├── colors.ts        # UI color constants (statusColors)
 │       │   ├── hooks/           # useMediaQuery, useGlossary
 │       │   ├── services/        # errorService
 │       │   ├── components/      # Shared UI components

@@ -166,7 +166,7 @@ import { HelpTooltip, ChartCard } from '@variscout/ui';
 import { useGlossary, useIsMobile } from '@variscout/ui';
 
 // Colors
-import { gradeColors } from '@variscout/ui';
+import { statusColors } from '@variscout/ui';
 
 // Services
 import { errorService } from '@variscout/ui';

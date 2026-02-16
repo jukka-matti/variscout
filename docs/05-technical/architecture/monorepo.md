@@ -71,7 +71,7 @@ Shared UI components and utilities:
 - `HelpTooltip` - Contextual help with glossary integration
 - `useGlossary` hook
 - `useIsMobile` responsive hook
-- Color constants (gradeColors)
+- Color constants (statusColors)
 - Error service utilities
 
 ### @variscout/data

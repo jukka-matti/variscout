@@ -22,14 +22,13 @@ VariScout Lite targets WCAG 2.1 AA compliance to ensure quality professionals wi
 
 ### Chart Colors
 
-Grade colors maintain contrast against chart backgrounds:
+Status colors maintain contrast against chart backgrounds:
 
 ```typescript
 // packages/ui/src/colors.ts
-gradeColors.world_class; // #22c55e - Green for excellent Cpk
-gradeColors.good; // #84cc16 - Lime for good Cpk
-gradeColors.marginal; // #f59e0b - Amber for marginal Cpk
-gradeColors.poor; // #ef4444 - Red for poor Cpk
+statusColors.pass; // #22c55e - Green for within spec
+statusColors.fail; // #ef4444 - Red for above USL
+statusColors.warning; // #f59e0b - Amber for below LSL
 ```
 
 All chart colors are tested against both dark (`#1e293b`) and light (`#f8fafc`) chart backgrounds.
