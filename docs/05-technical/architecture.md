@@ -16,9 +16,8 @@ variscout-lite/
 │   └── ui/                # @variscout/ui - Shared UI components, colors, and hooks
 ├── apps/
 │   ├── pwa/               # PWA website (React + Vite + PWA)
-│   ├── azure/             # Azure Team App (React + MSAL + Azure Functions)
-│   ├── website/           # Marketing website (Astro + React Islands)
-│   └── excel-addin/       # Excel Add-in (Office.js + React + Fluent UI)
+│   ├── azure/             # Azure Team App (EasyAuth + OneDrive sync)
+│   └── website/           # Marketing website (Astro + React Islands)
 ├── docs/
 │   ├── 01-vision/         # Product philosophy, Four Lenses, Two Voices
 │   ├── 02-journeys/       # User research, personas, flows
@@ -27,7 +26,7 @@ variscout-lite/
 │   ├── 05-technical/      # Technical architecture and implementation
 │   ├── 06-design-system/  # Design tokens, components, charts
 │   ├── 07-decisions/      # Architecture Decision Records
-│   └── 08-products/       # Product specs (Azure, Excel, PWA, Website, Power BI)
+│   └── 08-products/       # Product specs (Azure, PWA, Website)
 ├── pnpm-workspace.yaml    # Workspace configuration
 ├── tsconfig.base.json     # Shared TypeScript config
 └── package.json           # Root scripts
@@ -39,12 +38,11 @@ variscout-lite/
 
 - **Runtime**: Progressive Web App (PWA) with Service Worker
 - **Frontend**: [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) + [Vite](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Utility-first), [Fluent UI](https://developer.microsoft.com/en-us/fluentui) (Excel Add-in)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Utility-first)
 - **Visualization**: [Visx](https://airbnb.io/visx/) (Low-level D3 primitives for React) via `@variscout/charts`
 - **Shared Logic**: `@variscout/core` package (stats, parser, tier, glossary)
-- **Persistence**: IndexedDB + localStorage (PWA), Custom Document Properties (Excel)
+- **Persistence**: IndexedDB + OneDrive sync (Azure App), session-only (PWA)
 - **PWA**: [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) with Workbox
-- **Excel Integration**: [Office.js](https://learn.microsoft.com/en-us/office/dev/add-ins/) for Excel Add-in
 - **Marketing Website**: [Astro 5](https://astro.build/) with React Islands (chart demos)
 - **Package Manager**: [pnpm](https://pnpm.io/) with workspaces
 
@@ -53,21 +51,14 @@ variscout-lite/
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                  APPS                                        │
-├────────────────────────────────────┬────────────────────────────────────────┤
-│         @variscout/pwa             │        @variscout/excel-addin          │
-│        (apps/pwa/)                 │       (apps/excel-addin/)              │
-│  ┌──────────┐ ┌──────┐ ┌────────┐  │  ┌──────────┐ ┌─────────┐ ┌─────────┐  │
-│  │Components│ │Context│ │Persist │  │  │TaskPane  │ │Content  │ │Office.js│  │
-│  │(Mobile)  │ │(Data) │ │(IDB)   │  │  │(Wizard)  │ │(Charts) │ │(Bridge) │  │
-│  └────┬─────┘ └───┬───┘ └───┬────┘  │  └────┬─────┘ └────┬────┘ └────┬────┘  │
-│       └───────────┼─────────┘       │       └────────────┼───────────┘       │
-│                   │                 │                    │                   │
-│         @variscout/azure-app        │                    │                   │
-│         (apps/azure/)               │                    │                   │
-│  ┌──────────┐ ┌──────┐ ┌─────────┐  │                    │                   │
-│  │Components│ │ MSAL │ │Sync(IDB)│  │                    │                   │
-│  └────┬─────┘ └───┬──┘ └────┬────┘  │                    │                   │
-│       └───────────┼─────────┘       │                    │                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│         @variscout/pwa             │        @variscout/azure-app            │
+│        (apps/pwa/)                 │       (apps/azure/)                    │
+│  ┌──────────┐ ┌──────┐ ┌────────┐  │  ┌──────────┐ ┌────────┐ ┌─────────┐  │
+│  │Components│ │Context│ │Session │  │  │Components│ │EasyAuth│ │Sync(IDB)│  │
+│  │(Mobile)  │ │(Data) │ │ only   │  │  │(Editor)  │ │(SSO)   │ │+OneDrive│  │
+│  └────┬─────┘ └───┬───┘ └───┬────┘  │  └────┬─────┘ └───┬────┘ └────┬────┘  │
+│       └───────────┼─────────┘       │       └───────────┼───────────┘       │
 │                   │                 │                    │                   │
 └───────────────────┼─────────────────┴────────────────────┼───────────────────┘
                     │                                      │
@@ -157,7 +148,7 @@ const sample = getSample('coffee');
 
 ### @variscout/ui
 
-Shared UI component library for PWA and Azure apps (not Excel Add-in).
+Shared UI component library for PWA and Azure apps.
 
 - **Stack**: React + Tailwind CSS + Radix UI + Lucide React.
 - **Goal**: Ensure consistent design system implementation across web properties.
@@ -230,29 +221,16 @@ React application with PWA capabilities:
 | `lib/persistence.ts`              | IndexedDB + localStorage        |
 | `hooks/useResponsive*.ts`         | Responsive sizing hooks         |
 
-### @variscout/excel-addin
-
-Excel Add-in with hybrid approach (native slicers + Visx charts):
-
-| Module                   | Purpose                                        |
-| ------------------------ | ---------------------------------------------- |
-| `taskpane/TaskPane.tsx`  | 4-step setup wizard (Data→Factor→Outcome→Spec) |
-| `content/ContentApp.tsx` | Embedded chart panel in worksheet              |
-| `utils/stateBridge.ts`   | State sync via Custom Document Properties      |
-| `utils/tableManager.ts`  | Excel Table creation from data ranges          |
-| `utils/slicerManager.ts` | Native slicer creation and management          |
-| `utils/dataFilter.ts`    | Data filtering logic for slicer changes        |
-
 ### @variscout/azure-app
 
 Cloud-connected team application:
 
-| Module                    | Purpose                                   |
-| ------------------------- | ----------------------------------------- |
-| `src/auth/msalConfig.ts`  | Microsoft Entra ID configuration          |
-| `src/services/storage.ts` | Offline-first storage service with sync   |
-| `src/db/schema.ts`        | Dexie.js schema for offline data          |
-| `api/projects/`           | Azure Functions for Graph API integration |
+| Module                    | Purpose                                |
+| ------------------------- | -------------------------------------- |
+| `src/auth/easyAuth.ts`    | App Service EasyAuth helper (SSO)      |
+| `src/services/storage.ts` | Offline-first storage + OneDrive sync  |
+| `src/context/DataContext` | Central state management (mirrors PWA) |
+| `src/components/Editor`   | Main editor with data panel + charts   |
 
 ### @variscout/website
 
@@ -278,7 +256,7 @@ The application uses a centralized React Context to manage the entire analysis s
 
 - **State (`filteredData`)**: Derived from `rawData` based on active global filters.
 - **Performance**: Uses `useMemo` extensively to prevent re-calculating statistics on every render.
-- **Persistence**: Exposes methods for IndexedDB analysis management (explicit save/load).
+- **Persistence**: Azure App exposes methods for IndexedDB save/load. PWA is session-only.
 - **Flow**: Import → `setRawData` → `detectColumns` → `DataContext` Updates → Charts Render.
 
 ### 4.2 Statistics Engine (`packages/core/src/stats.ts`)
@@ -314,19 +292,19 @@ Handles all data storage operations in the browser.
 
 ## 5. Data Persistence
 
-The app always starts on the HomeScreen. Users must explicitly save and load analyses.
+### Azure App
 
-### Named Analyses (IndexedDB)
-
-- Save multiple analyses with custom names
+- Named analyses saved to IndexedDB + synced to OneDrive
+- .vrs file export/import for portability across devices/browsers
 - List, load, rename, delete operations
-- Handles larger datasets than localStorage
+- App starts on HomeScreen with recent analyses list
 
-### File Export/Import (.vrs)
+### PWA (Free)
 
-- Download analysis as portable JSON file
-- Share analyses across devices or browsers
-- Backup and restore functionality
+- Session-only — data lives in React state, cleared on refresh
+- No save, no IndexedDB projects, no .vrs files
+- Users paste data or load samples each session
+- CSV/PNG export available during session
 
 ## 6. Directory Structure
 
@@ -423,28 +401,15 @@ variscout-lite/
 │   │   ├── package.json
 │   │   └── dist/                # PWA build output (gitignored)
 │   │
-│   ├── azure/                   # @variscout/azure-app
-│   │   ├── src/
-│   │   │   ├── components/      # UI components (Dashboard, FilterBreadcrumb, etc.)
-│   │   │   ├── context/         # DataContext (mirrors PWA)
-│   │   │   ├── services/        # Offline-first storage + OneDrive sync
-│   │   │   ├── auth/            # MSAL configuration
-│   │   │   └── lib/             # Edition detection, utilities
-│   │   ├── vite.config.ts
-│   │   └── package.json
-│   │
-│   └── excel-addin/             # @variscout/excel-addin
+│   └── azure/                   # @variscout/azure-app
 │       ├── src/
-│       │   ├── taskpane/        # Task Pane UI (sidebar)
-│       │   │   └── TaskPane.tsx # 4-step setup wizard
-│       │   ├── content/         # Content Add-in (embedded)
-│       │   │   └── ContentApp.tsx
-│       │   ├── lib/             # stateBridge, licenseDetection, featureLimits
-│       │   └── commands/        # Excel ribbon commands
-│       ├── manifest.xml         # Office Add-in manifest
+│       │   ├── components/      # UI components (Editor, FilterBreadcrumb, etc.)
+│       │   ├── context/         # DataContext (mirrors PWA)
+│       │   ├── services/        # Offline-first storage + OneDrive sync
+│       │   ├── auth/            # EasyAuth configuration
+│       │   └── lib/             # Utilities
 │       ├── vite.config.ts
-│       ├── package.json
-│       └── dist/                # Add-in build output (gitignored)
+│       └── package.json
 │
 ├── docs/                        # Documentation
 │   ├── 01-vision/               # Product philosophy, Four Lenses, Two Voices
@@ -553,32 +518,7 @@ Data colors (`chartColors.pass`, `chartColors.fail`, etc.) remain constant acros
 
 All apps build as static sites. See [Deployment Guide](implementation/deployment.md) for build commands, environment variables, publication processes, and per-platform deployment targets.
 
-## 11. Excel Add-in Architecture
-
-The Excel Add-in uses a **Hybrid Approach**: native Excel slicers for filtering combined with Visx charts in a Content Add-in.
-
-### Task Pane (Sidebar)
-
-- 4-step setup wizard: Data Selection → Factor Config → Outcome → Spec Config
-- Stats display with conformance analysis
-- Chart panel with I-Chart and Boxplot
-- Configurable Cpk target threshold
-- Fluent UI components for native Office look
-
-### Content Add-in (Embedded in Worksheet)
-
-- Embedded I-Chart and Boxplot charts
-- Live data filtering via native Excel slicers
-- Polls for slicer changes (respects Excel Table filtering)
-- Stats header with n, Mean, StdDev, Cpk
-
-### State Bridge
-
-Configuration is persisted in Excel document via Custom Document Properties, allowing the analysis to survive document save/reload cycles.
-
-> **See also:** [Excel Strategy](../08-products/excel/strategy.md) for the full strategic analysis.
-
-## 12. Variation Tracking Architecture
+## 11. Variation Tracking Architecture
 
 VariScout implements **cumulative variation tracking** to help users identify the most impactful factors during drill-down analysis. This feature is shared across all platforms.
 
@@ -612,14 +552,14 @@ When drilling down through factors, variation percentages (η² / eta-squared) a
                                     │
         ┌───────────────────────────┼───────────────────────────┐
         ▼                           ▼                           ▼
-┌───────────────────┐   ┌───────────────────────┐   ┌───────────────────┐
-│    PWA            │   │    Excel Add-in       │   │    Azure App      │
-│                   │   │                       │   │                   │
-│ useVariationTracking │ │ calculateFactorVariations │ │ useVariationTracking │
-│       ↓           │   │         ↓             │   │       ↓           │
-│ FilterBreadcrumb  │   │    BoxplotBase        │   │ FilterBreadcrumb  │
-│ (cumulative %)    │   │   (variation % label) │   │ (cumulative %)    │
-└───────────────────┘   └───────────────────────┘   └───────────────────┘
+┌───────────────────────────┐   ┌───────────────────────────┐
+│    PWA                    │   │    Azure App              │
+│                           │   │                           │
+│ useVariationTracking      │   │ useVariationTracking      │
+│       ↓                   │   │       ↓                   │
+│ FilterBreadcrumb          │   │ FilterBreadcrumb          │
+│ (cumulative %)            │   │ (cumulative %)            │
+└───────────────────────────┘   └───────────────────────────┘
 ```
 
 ### Platform-Specific Implementation
@@ -628,7 +568,6 @@ When drilling down through factors, variation percentages (η² / eta-squared) a
 | --------- | --------------------------------- | ------------------------------------------------ |
 | **PWA**   | Full breadcrumb with cumulative % | `useVariationTracking` hook → `FilterBreadcrumb` |
 | **PWA**   | Filter suggestions on boxplot     | `factorVariations` → `Boxplot.tsx`               |
-| **Excel** | Variation % on boxplot axis label | `calculateFactorVariations` → `BoxplotBase`      |
 | **Azure** | Full breadcrumb with cumulative % | `useVariationTracking` hook → `FilterBreadcrumb` |
 
 ### Visual Indicators
@@ -647,7 +586,7 @@ The `@variscout/charts` `BoxplotBase` component accepts optional `variationPct` 
 - Shows "↓ drill here" indicator when `variationPct ≥ variationThreshold`
 - Red highlighting for high-impact factors
 
-## 13. Performance Budget
+## 12. Performance Budget
 
 | Metric              | Budget          |
 | ------------------- | --------------- |
@@ -658,7 +597,7 @@ The `@variscout/charts` `BoxplotBase` component accepts optional `variationPct` 
 | CLS                 | < 0.1           |
 | Time to Interactive | < 3s            |
 
-## 14. Browser Support
+## 13. Browser Support
 
 | Browser | Minimum Version |
 | ------- | --------------- |

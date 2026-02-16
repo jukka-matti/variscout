@@ -32,7 +32,7 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 
 - **PNG Export**: Save charts as images for reports
 - **CSV Export**: Excel-compatible data export with row numbers and spec status
-- **Project Files**: Save/load as .vrs files for sharing
+- **Project Files**: Save/load as .vrs files for sharing (Azure App only)
 
 ### Display Modes
 
@@ -56,9 +56,8 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 
 ### Persistence
 
-- **Named Projects**: Save analyses to browser storage (IndexedDB) via explicit save action
-- **File Backup**: Download .vrs files for external backup
-- **Session**: App always starts on HomeScreen
+- **Azure App**: Named analyses saved to IndexedDB + synced to OneDrive. Download .vrs files for portability.
+- **PWA (Free)**: Session-only — data lives in React state, cleared on refresh. No save, no .vrs files.
 
 ---
 
@@ -129,16 +128,16 @@ VariScout is a pnpm monorepo with shared packages and multiple apps:
 ```
 variscout-lite/
 ├── packages/
-│   ├── core/              # @variscout/core - Stats, parser, license (pure TypeScript)
-│   └── charts/            # @variscout/charts - Visx chart components
+│   ├── core/              # @variscout/core - Stats, parser, tier, glossary (pure TypeScript)
+│   ├── charts/            # @variscout/charts - Visx chart components
+│   ├── data/              # @variscout/data - Sample datasets with pre-computed chart data
+│   ├── hooks/             # @variscout/hooks - Shared React hooks
+│   └── ui/                # @variscout/ui - Shared UI components
 ├── apps/
-│   ├── pwa/               # PWA website (React + Vite)
-│   └── excel-addin/       # Excel Add-in (Office.js + Fluent UI)
-└── docs/
-    ├── concepts/          # Strategic decisions (LSS, Power BI, Licensing)
-    ├── design-system/     # Design tokens, components
-    ├── technical/         # Implementation guides
-    └── products/          # Product specs (PWA, Website, Excel, Power BI, Azure)
+│   ├── pwa/               # PWA website (React + Vite) — free training tool
+│   ├── azure/             # Azure Team App (EasyAuth + OneDrive sync)
+│   └── website/           # Marketing website (Astro + React Islands)
+└── docs/                  # Documentation (vision, journeys, features, technical, decisions)
 ```
 
 ---

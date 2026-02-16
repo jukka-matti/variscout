@@ -87,8 +87,8 @@ VariScout Lite includes a touch-optimized data entry mode for field use or when 
 
 ### Accessing Manual Entry
 
-1. From the home screen (before uploading data), click **"Enter Data Manually"**
-2. Or use the **Manual Entry** option in the upload area dropdown
+1. From the home screen, click **"Or enter data manually"** (below the Paste button)
+2. In the Azure App, also available via the **Manual Entry** option in the data menu
 
 ### Step 1: Choose Analysis Mode
 
@@ -303,7 +303,7 @@ You can always override these suggestions in the column mapping screen.
 - **Linked Filtering**: Click any bar in Pareto or group in Boxplot to filter all charts instantly.
 - **Focus Mode**: Click the fullscreen icon (⛶) to maximize. **Use Arrow Keys (Left/Right)** or on-screen buttons to cycle through charts like a slideshow.
 - **Data Table**: Toggle the Data Panel (📊) to view raw data alongside your charts. Click a row to highlight it in the chart.
-- **Save Project**: Use the Save button to save your work to the browser. The app always starts on HomeScreen - unsaved work will be lost on page close.
+- **Save Project** (Azure App): Use the Save button to save your work to the browser. The PWA is session-only — data is cleared on refresh.
 
 ---
 
@@ -350,14 +350,12 @@ A: Yes! After visiting once, the app caches itself for offline use. You can even
 
 **Q: Where is my data stored?**
 
-A: All data stays in your browser:
+A: All data stays in your browser — nothing is sent to any server.
 
-- **Explicit save**: Click **"Save"** in the toolbar to save your project to IndexedDB
-- **Saved Projects**: Stored in IndexedDB (larger storage, persists across sessions)
-- **Session start**: App always starts on HomeScreen - load saved projects from there
-- **No cloud**: Nothing is sent to any server
+- **Azure App**: Save analyses to IndexedDB + sync to OneDrive. Click **"Save"** in the toolbar.
+- **PWA (Free)**: Session-only — data lives in memory and is cleared on refresh. No save feature.
 
-### Projects & Export
+### Export
 
 **Q: How do I share my analysis?**
 
@@ -365,10 +363,6 @@ A: Click the **Share icon (↗)** in the header to see export options:
 
 - **Export Image (PNG)**: Save charts as images for presentations
 - **Export Data (CSV)**: Download the filtered data as a spreadsheet
-- **Download Project (.vrs)**: Save the complete analysis for sharing
+- **Download Project (.vrs)**: Save the complete analysis for sharing (Azure App only)
 
-Others can import .vrs files by clicking the **Logo** and selecting **"Open Project"**.
-
-**Q: Can I open .vrs files in Excel?**
-
-A: Not directly. Use the **Share icon (↗)** and select **"Export Data (CSV)"** to export your data in a format Excel can open.
+In the Azure App, others can import .vrs files by clicking the **Logo** and selecting **"Open Project"**.

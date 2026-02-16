@@ -1,6 +1,6 @@
 # Data Input
 
-How VariScout handles file uploads and data parsing.
+How VariScout handles data input — paste (PWA) and file upload (Azure App).
 
 ---
 
@@ -50,7 +50,36 @@ Keywords trigger automatic column assignment:
 
 ---
 
-## Upload Flow
+## Paste Flow (PWA)
+
+The PWA uses a paste-first flow — users paste tab- or comma-separated text from Excel or Google Sheets.
+
+```
+TEXT PASTED
+     │
+     ▼
+PARSE (tab/comma auto-detected via parseText())
+     │
+     ▼
+DETECT COLUMNS (keyword matching via detectColumns())
+     │
+     ▼
+VALIDATE DATA
+     │
+     ▼
+USER CONFIRMS/ADJUSTS MAPPING (ColumnMapping component)
+     │
+     ▼
+LOAD INTO ANALYSIS
+```
+
+The paste flow uses the same `parseText()` → `detectColumns()` → `ColumnMapping` pipeline as file upload. Tab and comma delimiters are auto-detected. The PWA HomeScreen also offers sample datasets as an alternative entry point.
+
+---
+
+## Upload Flow (Azure App)
+
+File upload (CSV/Excel drag-and-drop) is available in the Azure App.
 
 ```
 FILE SELECTED

@@ -239,7 +239,7 @@ Best for: Process improvement, ongoing monitoring, supplier qualification
 - Configurable Cpk target threshold (default: 1.33)
   - Values below target shown in warning color (yellow/amber)
   - Values at or above target shown in success color (green)
-  - Currently available in Excel Add-in; PWA uses fixed 1.33 threshold
+  - Configurable threshold available in Azure App; PWA uses fixed 1.33 threshold
 
 **Capability Histogram (Stats Panel → Histogram tab):**
 
@@ -359,7 +359,9 @@ When configured:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 6. Save & Load Analysis
+### 6. Save & Load Analysis (Azure App)
+
+> Save/load and .vrs files are **Azure App only**. The PWA is session-only — data is cleared on refresh.
 
 **Save Analysis (.vrs file):**
 
@@ -406,30 +408,28 @@ When configured:
 }
 ```
 
-**Load Analysis:**
+**Load Analysis (Azure App):**
 
 - File → Open (or drag-drop .vrs file)
-- Recent files list on home screen
-- Double-click .vrs file opens in VaRiScout
+- Recent analyses list on home screen
+- Double-click .vrs file opens in VariScout
 
-**Home Screen:**
+**Home Screen (PWA):**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  VariScout                                                  │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  [  Import New Data (CSV/Excel)  ]                          │
+│  Try a Sample Dataset:                                      │
+│                                                             │
+│  [☕ Coffee]  [🏭 Bottleneck]  [🏥 Hospital]  [📦 Packaging] │
 │                                                             │
 │  ─────────────────────────────────────────────────────────  │
 │                                                             │
-│  Recent Analyses:                                           │
+│  [  Paste from Excel  ]  (primary action)                   │
 │                                                             │
-│  📊 Shift 2 Investigation          Modified: Today 14:45   │
-│  📊 Q4 Capability Study            Modified: Yesterday     │
-│  📊 Station 3 Baseline             Modified: Dec 20        │
-│                                                             │
-│  [Open Other...]                                            │
+│  Or enter data manually                                     │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -772,23 +772,23 @@ NO backend. NO API calls. Works offline after first visit.
 
 ## Products & Pricing
 
-| Product      | Distribution      | Pricing                                        | Status      |
-| ------------ | ----------------- | ---------------------------------------------- | ----------- |
-| Azure App    | Azure Marketplace | €150/month (Managed Application, all features) | **PRIMARY** |
-| Excel Add-in | AppSource         | FREE (forever, core SPC only)                  | Production  |
-| PWA          | Public URL        | FREE (forever, training & education)           | Production  |
+| Product   | Distribution      | Pricing                                        | Status      |
+| --------- | ----------------- | ---------------------------------------------- | ----------- |
+| Azure App | Azure Marketplace | €150/month (Managed Application, all features) | **PRIMARY** |
+| PWA       | Public URL        | FREE (forever, training & education)           | Production  |
 
-### Free (PWA Demo / Excel Add-in)
+### Free (PWA)
 
-- All core chart types (I-Chart, Boxplot, Pareto, Capability)
-- Full analysis features
-- VariScout branding on exports
-- Session-only storage (PWA)
+- All core chart types (I-Chart, Boxplot, Pareto, Capability, Regression, ANOVA)
+- Copy-paste data input + sample datasets
+- VariScout branding on charts
+- Session-only storage (no save)
 
 ### Enterprise (Azure App — €150/month)
 
 - All features, unlimited users
-- MSAL authentication + OneDrive sync
+- EasyAuth (Microsoft SSO) + OneDrive sync
+- File upload (CSV/Excel), save/persistence, .vrs export
 - Performance Mode (multi-channel analysis)
 - Watermark-free exports, custom theming
 - Managed Application deployment via Azure Marketplace
@@ -797,7 +797,6 @@ NO backend. NO API calls. Works offline after first visit.
 
 ```bash
 pnpm build              # Build all packages and apps
-pnpm build:excel        # Excel Add-in build
 ```
 
 ---
@@ -816,8 +815,7 @@ pnpm build:excel        # Excel Add-in build
 | Manual Entry          | Done   | Touch-optimized data entry                    |
 | Data Table            | Done   | Inline editing                                |
 | Shared charts package | Done   | @variscout/charts with props-based components |
-| Excel Add-in          | Done   | Task Pane wizard + Content Add-in charts      |
-| **Completed**         | ✓      | Core features + Excel Add-in implemented      |
+| **Completed**         | ✓      | Core features implemented                     |
 
 ---
 

@@ -217,7 +217,7 @@ Carlos learns the methodology:
 | Location      | CTA Text                    | Destination          | Note                           |
 | ------------- | --------------------------- | -------------------- | ------------------------------ |
 | After Act 3   | "Find YOUR 46%"             | /app                 | Opens demo to try with samples |
-| After Act 3   | "Install to Upload"         | /app                 | For users ready for own data   |
+| After Act 3   | "Paste Your Data"           | /app                 | For users ready for own data   |
 | After Act 3   | "Try another case"          | /cases               |                                |
 | After Act 3   | "Get case studies by email" | Email capture        |                                |
 | Sidebar       | "Learn the methodology"     | /learn/four-lenses   |                                |
@@ -226,7 +226,7 @@ Carlos learns the methodology:
 **Updated Journey:**
 
 1. Case study → "Find YOUR 46%" → Try Demo with samples
-2. Like it? → "Install to Upload" → Install PWA (free training tool)
+2. Like it? → "Paste Your Data" → Try with own data (free)
 3. Need team features? → Azure App (€150/month)
 
 ---

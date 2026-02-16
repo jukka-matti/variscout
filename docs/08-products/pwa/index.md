@@ -17,11 +17,11 @@ The PWA is a **free SPC training tool** that provides:
 
 ```mermaid
 flowchart LR
-    A[Paste Data or Load Sample] --> B[Analyze with Full SPC]
-    B --> C[Learn Methodology]
-    C --> D{Need More?}
-    D -->|File upload, save, teams| E[Azure App]
-    D -->|Excel-native SPC| F[Excel Add-in]
+    A[Paste Data or Load Sample] --> B[Auto-Detect Columns]
+    B --> C[Confirm Mapping]
+    C --> D[Analyze with Full SPC]
+    D --> E{Need More?}
+    E -->|File upload, save, teams| F[Azure App]
 ```
 
 ---
@@ -149,7 +149,6 @@ The PWA serves as the **feature development sandbox**:
 1. **New features** are prototyped in the PWA first
 2. **Shared packages** are developed against PWA use cases
 3. **Azure App** adopts features after PWA validation
-4. **Excel Add-in** adapts features for Office.js constraints
 
 ---
 
@@ -158,14 +157,12 @@ The PWA serves as the **feature development sandbox**:
 | Ready For...             | Next Step                                                 |
 | ------------------------ | --------------------------------------------------------- |
 | File upload, save, teams | [Azure App](../azure/index.md) (€150/month, all features) |
-| Excel-native SPC         | [Excel Add-in](../excel/index.md) (FREE, core SPC charts) |
 
 ---
 
 ## See Also
 
 - [Azure App (Primary Product)](../azure/index.md) - Production platform
-- [Excel Add-in](../excel/index.md) - Excel-native option
 - [Feature Parity](../feature-parity.md) - Platform comparison
 - [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [ADR-004: Offline-First](../../07-decisions/adr-004-offline-first.md)

@@ -173,18 +173,18 @@ Gary evaluates:
 
 ## CTAs on This Journey
 
-| Location       | CTA Text                   | Destination        | Note                    |
-| -------------- | -------------------------- | ------------------ | ----------------------- |
-| Tool page hero | "Try Demo"                 | /app               | Opens browser demo      |
-| After demo     | "Install to Upload"        | /app               | Leads to install prompt |
-| Two Mindsets   | "See the full methodology" | /learn or /journey |                         |
-| End of page    | "Try Demo - No Signup"     | /app               | Opens browser demo      |
-| Related tools  | "Next: Boxplot"            | /tools/boxplot     |                         |
+| Location       | CTA Text                   | Destination        | Note               |
+| -------------- | -------------------------- | ------------------ | ------------------ |
+| Tool page hero | "Try Demo"                 | /app               | Opens browser demo |
+| After demo     | "Paste Your Data"          | /app               | Try with own data  |
+| Two Mindsets   | "See the full methodology" | /learn or /journey |                    |
+| End of page    | "Try Demo - No Signup"     | /app               | Opens browser demo |
+| Related tools  | "Next: Boxplot"            | /tools/boxplot     |                    |
 
 **Updated Journey:**
 
 1. Tool page → "Try Demo" → Explore with samples
-2. Like it? → "Install to Upload" → Install PWA (free training tool)
+2. Like it? → "Paste Your Data" → Try with own data (free)
 3. Need team features? → Azure App (€150/month)
 
 ---
