@@ -1,51 +1,16 @@
+@import '@variscout/ui/styles/theme.css';
+@import '@variscout/ui/styles/components.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ========================================
-   Theme CSS Variables
+   PWA-specific: shadcn CSS Variables
    ======================================== */
 
 :root,
 [data-theme='dark'] {
-  /* Surface colors (backgrounds) - slate palette */
-  --surface-primary: 15 23 42; /* slate-900 #0f172a */
-  --surface-secondary: 30 41 59; /* slate-800 #1e293b */
-  --surface-tertiary: 51 65 85; /* slate-700 #334155 */
-  --surface-elevated: 71 85 105; /* slate-600 #475569 */
-
-  /* Content colors (text) */
-  --content-primary: 226 232 240; /* slate-200 #e2e8f0 */
-  --content-secondary: 148 163 184; /* slate-400 #94a3b8 */
-  --content-muted: 100 116 139; /* slate-500 #64748b */
-
-  /* Edge colors (borders) */
-  --edge-primary: 51 65 85; /* slate-700 #334155 */
-  --edge-secondary: 71 85 105; /* slate-600 #475569 */
-
-  /* Interactive states */
-  --interactive-hover: 51 65 85; /* slate-700 */
-  --interactive-active: 71 85 105; /* slate-600 */
-
-  /* Accent/Brand colors */
-  --accent: 59 130 246; /* blue-500 #3b82f6 */
-  --accent-hover: 37 99 235; /* blue-600 #2563eb */
-  --accent-foreground: 255 255 255; /* white */
-
-  /* HelpTooltip link color (uses accent by default) */
-  --help-link-color: var(--accent);
-
-  /* Status colors (universal - same in light/dark) */
-  --status-pass: 34 197 94; /* green-500 #22c55e */
-  --status-fail: 239 68 68; /* red-500 #ef4444 */
-  --status-warning: 245 158 11; /* amber-500 #f59e0b */
-
-  /* Chart chrome colors */
-  --chart-grid: 30 41 59; /* slate-800 */
-  --chart-axis: 100 116 139; /* slate-500 */
-  --chart-tooltip-bg: 30 41 59; /* slate-800 */
-  --chart-tooltip-border: 51 65 85; /* slate-700 */
-
   /* Existing shadcn variables (for compatibility) */
   --background: 222.2 84% 4.9%;
   --foreground: 210 40% 98%;
@@ -67,50 +32,9 @@
   --input: 217.2 32.6% 17.5%;
   --ring: 224.3 76.3% 48%;
   --radius: 0.5rem;
-
-  color-scheme: dark;
 }
 
-/* Light theme (for licensed users) */
 [data-theme='light'] {
-  /* Surface colors (backgrounds) */
-  --surface-primary: 248 250 252; /* slate-50 #f8fafc */
-  --surface-secondary: 241 245 249; /* slate-100 #f1f5f9 */
-  --surface-tertiary: 226 232 240; /* slate-200 #e2e8f0 */
-  --surface-elevated: 255 255 255; /* white */
-
-  /* Content colors (text) */
-  --content-primary: 15 23 42; /* slate-900 #0f172a */
-  --content-secondary: 71 85 105; /* slate-600 #475569 */
-  --content-muted: 100 116 139; /* slate-500 #64748b */
-
-  /* Edge colors (borders) */
-  --edge-primary: 226 232 240; /* slate-200 #e2e8f0 */
-  --edge-secondary: 203 213 225; /* slate-300 #cbd5e1 */
-
-  /* Interactive states */
-  --interactive-hover: 241 245 249; /* slate-100 */
-  --interactive-active: 226 232 240; /* slate-200 */
-
-  /* Accent colors (same as dark) */
-  --accent: 59 130 246; /* blue-500 */
-  --accent-hover: 37 99 235; /* blue-600 */
-  --accent-foreground: 255 255 255; /* white */
-
-  /* HelpTooltip link color (uses accent by default) */
-  --help-link-color: var(--accent);
-
-  /* Status colors (universal) */
-  --status-pass: 34 197 94;
-  --status-fail: 239 68 68;
-  --status-warning: 245 158 11;
-
-  /* Chart chrome colors */
-  --chart-grid: 241 245 249; /* slate-100 */
-  --chart-axis: 100 116 139; /* slate-500 */
-  --chart-tooltip-bg: 255 255 255; /* white */
-  --chart-tooltip-border: 226 232 240; /* slate-200 */
-
   /* Existing shadcn variables */
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
@@ -131,9 +55,11 @@
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
   --ring: 224.3 76.3% 48%;
-
-  color-scheme: light;
 }
+
+/* ========================================
+   PWA-specific: Root & Body
+   ======================================== */
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -161,36 +87,10 @@ body {
   width: 100%;
 }
 
-/* Custom Scrollbar - uses theme variables */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgb(var(--surface-primary));
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgb(var(--edge-primary));
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--edge-secondary));
-}
-
-/* Smooth scrolling for dashboard */
-.overflow-y-auto {
-  scroll-behavior: smooth;
-  overscroll-behavior: contain;
-}
-
 /* ========================================
-   Mobile Responsive Styles
+   PWA-specific: Responsive Chart Margins
    ======================================== */
 
-/* CSS Custom Properties for responsive chart margins */
 :root {
   /* Mobile-first (default) values */
   --chart-margin-top: 20px;
@@ -222,35 +122,6 @@ body {
   }
 }
 
-/* Touch feedback for touch devices */
-@media (hover: none) and (pointer: coarse) {
-  .touch-feedback {
-    transition:
-      transform 0.1s ease-out,
-      background-color 0.1s ease-out;
-  }
-
-  .touch-feedback:active {
-    transform: scale(0.97);
-    background-color: rgba(59, 130, 246, 0.15);
-  }
-}
-
-/* Focus-visible states for accessibility */
-button:focus-visible,
-select:focus-visible,
-input:focus-visible,
-.interactive:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-/* Active states for all devices */
-button:active:not(:disabled),
-.interactive:active {
-  transform: scale(0.98);
-}
-
 /* Safe area support for notched phones */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -260,332 +131,8 @@ button:active:not(:disabled),
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Mobile-optimized scrolling */
-.scroll-touch {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-/* Bottom sheet animation */
-@keyframes slideInFromBottom {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-up {
-  animation: slideInFromBottom 0.3s ease-out;
-}
-
-/* Slide in from right animation (for settings panel) */
-@keyframes slideInFromRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-in-right {
-  animation: slideInFromRight 0.25s ease-out;
-}
-
-/* Mindmap suggested-next node pulse */
-@keyframes mindmapPulse {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 0 rgba(34, 197, 94, 0));
-  }
-  50% {
-    filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.5));
-  }
-}
-
-.mindmap-pulse {
-  animation: mindmapPulse 2s ease-in-out infinite;
-}
-
-/* Fade in animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.15s ease-out;
-}
-
-/* CSS-only Tooltips */
-.tooltip-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.tooltip {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 8px);
-  transform: translateX(-50%);
-  padding: 8px 12px;
-  background-color: rgb(var(--surface-secondary));
-  border: 1px solid rgb(var(--edge-primary));
-  border-radius: 8px;
-  color: rgb(var(--content-primary));
-  font-size: 12px;
-  line-height: 1.4;
-  white-space: normal;
-  width: max-content;
-  max-width: 220px;
-  text-align: left;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    opacity 0.15s ease-out,
-    visibility 0.15s ease-out;
-  z-index: 50;
-  pointer-events: none;
-}
-
-.tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: rgb(var(--edge-primary));
-}
-
-.tooltip-wrapper:hover .tooltip {
-  opacity: 1;
-  visibility: visible;
-}
-
 /* ========================================
-   HelpTooltip Component Styles
-   ======================================== */
-
-/* Wrapper */
-.help-tooltip-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  cursor: help;
-}
-
-.help-tooltip-wrapper:focus {
-  outline: none;
-}
-
-.help-tooltip-wrapper:focus-visible {
-  outline: 2px solid rgb(var(--accent));
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* Icon */
-.help-tooltip-icon {
-  color: rgb(var(--content-muted));
-  transition: color 0.15s ease;
-}
-
-.help-tooltip-wrapper:hover .help-tooltip-icon,
-.help-tooltip-wrapper:focus .help-tooltip-icon {
-  color: rgb(var(--content-primary));
-}
-
-/* Tooltip Container */
-.help-tooltip {
-  position: absolute;
-  padding: 10px 14px;
-  background-color: rgb(var(--surface-secondary));
-  border: 1px solid rgb(var(--edge-primary));
-  border-radius: 8px;
-  color: rgb(var(--content-primary));
-  font-size: 12px;
-  line-height: 1.5;
-  white-space: normal;
-  width: max-content;
-  max-width: 260px;
-  text-align: left;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    opacity 0.15s ease-out,
-    visibility 0.15s ease-out;
-  z-index: 100;
-  pointer-events: none;
-}
-
-.help-tooltip--visible {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-/* Position: Top (default) */
-.help-tooltip--top {
-  left: 50%;
-  bottom: calc(100% + 10px);
-  transform: translateX(-50%);
-}
-
-.help-tooltip--top .help-tooltip__arrow {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: rgb(var(--edge-primary));
-}
-
-.help-tooltip--top .help-tooltip__arrow::after {
-  content: '';
-  position: absolute;
-  top: -7px;
-  left: -5px;
-  border: 5px solid transparent;
-  border-top-color: rgb(var(--surface-secondary));
-}
-
-/* Position: Bottom */
-.help-tooltip--bottom {
-  left: 50%;
-  top: calc(100% + 10px);
-  transform: translateX(-50%);
-}
-
-.help-tooltip--bottom .help-tooltip__arrow {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-bottom-color: rgb(var(--edge-primary));
-}
-
-.help-tooltip--bottom .help-tooltip__arrow::after {
-  content: '';
-  position: absolute;
-  top: 1px;
-  left: -5px;
-  border: 5px solid transparent;
-  border-bottom-color: rgb(var(--surface-secondary));
-}
-
-/* Position: Left */
-.help-tooltip--left {
-  top: 50%;
-  right: calc(100% + 10px);
-  transform: translateY(-50%);
-}
-
-.help-tooltip--left .help-tooltip__arrow {
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 6px solid transparent;
-  border-left-color: rgb(var(--edge-primary));
-}
-
-.help-tooltip--left .help-tooltip__arrow::after {
-  content: '';
-  position: absolute;
-  left: -7px;
-  top: -5px;
-  border: 5px solid transparent;
-  border-left-color: rgb(var(--surface-secondary));
-}
-
-/* Position: Right */
-.help-tooltip--right {
-  top: 50%;
-  left: calc(100% + 10px);
-  transform: translateY(-50%);
-}
-
-.help-tooltip--right .help-tooltip__arrow {
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 6px solid transparent;
-  border-right-color: rgb(var(--edge-primary));
-}
-
-.help-tooltip--right .help-tooltip__arrow::after {
-  content: '';
-  position: absolute;
-  right: -7px;
-  top: -5px;
-  border: 5px solid transparent;
-  border-right-color: rgb(var(--surface-secondary));
-}
-
-/* Tooltip Content */
-.help-tooltip__content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.help-tooltip__label {
-  font-weight: 600;
-  font-size: 13px;
-  color: rgb(var(--content-primary));
-}
-
-.help-tooltip__definition {
-  margin: 0;
-  color: rgb(var(--content-secondary));
-  font-size: 12px;
-}
-
-/* Learn More Link */
-.help-tooltip__link {
-  display: inline-block;
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid rgb(var(--edge-primary) / 0.5);
-  color: rgb(var(--help-link-color));
-  font-size: 11px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.help-tooltip__link:hover,
-.help-tooltip__link:focus {
-  color: rgb(var(--help-link-color) / 0.8);
-  text-decoration: underline;
-}
-
-.help-tooltip__link:focus-visible {
-  outline: 2px solid rgb(var(--accent));
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-/* ========================================
-   Embed Mode Chart Highlighting
+   PWA-specific: Embed Mode Chart Highlighting
    ======================================== */
 
 /* Pulse animation - attention-grabbing */

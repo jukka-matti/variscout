@@ -163,6 +163,29 @@ export {
   type ManualEntrySetupBaseProps,
 } from './components/ManualEntry';
 
+export {
+  SpecsPopover,
+  specsPopoverDefaultColorScheme,
+  specsPopoverAzureColorScheme,
+  type SpecsPopoverProps,
+  type SpecsPopoverColorScheme,
+} from './components/SpecsPopover';
+
+export {
+  SpecEditor,
+  specEditorDefaultColorScheme,
+  specEditorAzureColorScheme,
+  type SpecEditorProps,
+  type SpecEditorColorScheme,
+} from './components/SpecEditor';
+
+export {
+  CapabilityHistogram,
+  type CapabilityHistogramProps,
+} from './components/CapabilityHistogram';
+
+export { ProbabilityPlot, type ProbabilityPlotProps } from './components/ProbabilityPlot';
+
 // Services
 export {
   errorService,
