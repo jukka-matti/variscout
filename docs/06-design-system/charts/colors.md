@@ -130,17 +130,6 @@ const CATEGORY_COLORS = [
 | Cumulative line | `#f97316` | 80% reference         |
 | 80% threshold   | `#f97316` | Horizontal line       |
 
-## Gage R&R Chart
-
-| Component       | Hex       | Usage                   |
-| --------------- | --------- | ----------------------- |
-| Part-to-Part    | `#22c55e` | Good (actual variation) |
-| Repeatability   | `#3b82f6` | Equipment variation     |
-| Reproducibility | `#f59e0b` | Operator variation      |
-| Background bar  | `#334155` | 100% reference          |
-| 10% threshold   | `#22c55e` | Excellent GRR line      |
-| 30% threshold   | `#ef4444` | Acceptable limit line   |
-
 ## Tooltip
 
 ```tsx

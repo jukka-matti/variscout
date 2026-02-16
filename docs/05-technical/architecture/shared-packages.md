@@ -24,7 +24,7 @@ The monorepo contains several shared packages that provide common functionality 
 
 ```typescript
 // Statistics
-import { calculateStats, calculateAnova, calculateGageRR } from '@variscout/core';
+import { calculateStats, calculateAnova } from '@variscout/core';
 
 // Parsing
 import { parseCSV, validateData, detectColumns } from '@variscout/core';
@@ -46,7 +46,7 @@ import type { DrillLevel, BreadcrumbItem } from '@variscout/core';
 
 | File                | Purpose                                          |
 | ------------------- | ------------------------------------------------ |
-| `stats.ts`          | Statistics engine (mean, Cp, Cpk, ANOVA, GageRR) |
+| `stats.ts`          | Statistics engine (mean, Cp, Cpk, ANOVA)         |
 | `parser.ts`         | CSV/Excel parsing, validation, keyword detection |
 | `types.ts`          | Shared TypeScript interfaces                     |
 | `glossary/terms.ts` | Glossary content (~20 terms)                     |
@@ -62,7 +62,7 @@ import type { DrillLevel, BreadcrumbItem } from '@variscout/core';
 
 ```typescript
 // Standard charts
-import { IChart, Boxplot, ParetoChart, ScatterPlot, GageRRChart } from '@variscout/charts';
+import { IChart, Boxplot, ParetoChart, ScatterPlot } from '@variscout/charts';
 
 // Performance charts (multi-channel)
 import {

@@ -18,9 +18,6 @@ vi.mock('../StatsPanel', () => ({
 vi.mock('../RegressionPanel', () => ({
   default: () => <div data-testid="regression-panel">Regression Panel</div>,
 }));
-vi.mock('../GageRRPanel', () => ({
-  default: () => <div data-testid="gagerr-panel">Gage R&R Panel</div>,
-}));
 vi.mock('../AnovaResults', () => ({
   default: () => <div data-testid="anova-results">ANOVA Results</div>,
 }));
@@ -126,15 +123,6 @@ describe('Dashboard', () => {
     render(<Dashboard activeView="regression" />);
 
     expect(screen.getByTestId('regression-panel')).toBeInTheDocument();
-    expect(screen.queryByTestId('i-chart')).not.toBeInTheDocument();
-  });
-
-  it('renders gagerr view when activeView is gagerr', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
-
-    render(<Dashboard activeView="gagerr" />);
-
-    expect(screen.getByTestId('gagerr-panel')).toBeInTheDocument();
     expect(screen.queryByTestId('i-chart')).not.toBeInTheDocument();
   });
 

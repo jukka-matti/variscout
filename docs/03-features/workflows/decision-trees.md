@@ -13,7 +13,6 @@ flowchart TD
     B -->|"Where do defects concentrate?"| E[Pareto]
     B -->|"Do we meet specs?"| F[Capability]
     B -->|"Is X related to Y?"| G[Regression]
-    B -->|"Can I trust this measurement?"| H[Gage R&R]
     B -->|"Compare multiple channels?"| I[Performance Mode]
 
     C --> C1["Shows: Control limits, trends, outliers"]
@@ -21,7 +20,6 @@ flowchart TD
     E --> E1["Shows: Ranked categories, 80/20"]
     F --> F1["Shows: Cp, Cpk, histogram vs specs"]
     G --> G1["Shows: Correlation, R², prediction"]
-    H --> H1["Shows: %GRR, repeatability, reproducibility"]
     I --> I1["Shows: All channels ranked by Cpk"]
 ```
 
@@ -156,35 +154,6 @@ flowchart TD
     F1 --> F2["Document and monitor"]
 ```
 
-## MSA Decision - Should I Do Gage R&R?
-
-```mermaid
-flowchart TD
-    A["Should I validate measurement?"] --> B{Situation?}
-
-    B -->|"Found operator effect"| C[Is it real or measurement?]
-    B -->|"New gage/method"| D[Validate before use]
-    B -->|"Cpk doesn't match reality"| E[Measurement bias?]
-    B -->|"High unexplained variation"| F[Could be gage]
-    B -->|"Routine check"| G[Annual MSA]
-
-    C --> C1["Run Gage R&R"]
-    D --> C1
-    E --> C1
-    F --> C1
-    G --> C1
-
-    C1 --> H{Result?}
-
-    H -->|"<10% GRR"| I["Measurement OK"]
-    H -->|"10-30% GRR"| J["Acceptable, but improve"]
-    H -->|">30% GRR"| K["Fix measurement first"]
-
-    I --> I1["Return to process analysis"]
-    J --> J1["Proceed with caution"]
-    K --> K1["Stop - fix gage before analysis"]
-```
-
 ## After Drill-Down - What Action?
 
 ```mermaid
@@ -217,15 +186,14 @@ flowchart TD
 
 ### Chart Selection
 
-| Question           | Chart            |
-| ------------------ | ---------------- |
-| Stable over time?  | I-Chart          |
-| Which factor?      | Boxplot          |
-| Which defects?     | Pareto           |
-| Meet specs?        | Capability       |
-| X vs Y related?    | Regression       |
-| Trust measurement? | Gage R&R         |
-| Compare channels?  | Performance Mode |
+| Question          | Chart            |
+| ----------------- | ---------------- |
+| Stable over time? | I-Chart          |
+| Which factor?     | Boxplot          |
+| Which defects?    | Pareto           |
+| Meet specs?       | Capability       |
+| X vs Y related?   | Regression       |
+| Compare channels? | Performance Mode |
 
 ### Next Steps
 
@@ -240,13 +208,12 @@ flowchart TD
 
 ### Warning Signs
 
-| Sign               | Investigate         |
-| ------------------ | ------------------- |
-| Bimodal histogram  | Mixed populations   |
-| Cp >> Cpk          | Centering issue     |
-| All factors low η² | Missing factor      |
-| All channels poor  | Systematic cause    |
-| GRR > 30%          | Measurement problem |
+| Sign               | Investigate       |
+| ------------------ | ----------------- |
+| Bimodal histogram  | Mixed populations |
+| Cp >> Cpk          | Centering issue   |
+| All factors low η² | Missing factor    |
+| All channels poor  | Systematic cause  |
 
 ## Related Documentation
 
@@ -254,4 +221,3 @@ flowchart TD
 - [Drill-Down Workflow](drill-down-workflow.md)
 - [Quick Check](quick-check.md)
 - [Deep Dive](deep-dive.md)
-- [MSA Workflow](msa-workflow.md)

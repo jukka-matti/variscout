@@ -102,7 +102,7 @@ The fundamental limitation: Power BI is a reporting tool, not an analysis tool. 
 | Pareto chart                 | Available (sorted bar chart)                      | Integrated with drill-down filtering                                     |
 | ANOVA                        | Not available                                     | Yes, with eta-squared ranking                                            |
 | Regression                   | Trend lines; R/Python scripts for full regression | Simple and multiple regression                                           |
-| Gage R&R                     | Not available                                     | Crossed Gage R&R                                                         |
+| Gage R&R                     | Not available                                     | Not available                                                            |
 | Small multiples              | Yes (added 2021, grid layout)                     | Planned feature                                                          |
 | Slicers / filter panel       | Core paradigm                                     | Rejected pattern (see [evaluation](../patterns/sidebar-filter-panel.md)) |
 | Cross-filtering              | Yes (visual-level interaction)                    | Yes (linked filtering, investigation-driven)                             |

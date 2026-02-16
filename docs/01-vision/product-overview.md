@@ -161,13 +161,12 @@ VaRiScout Lite is positioned as a lightweight alternative to Minitab for Lean Si
 
 ### Planned Features
 
-Three features required for complete Green Belt training coverage:
+Two features required for complete Green Belt training coverage:
 
 | Feature             | Purpose                                       |
 | ------------------- | --------------------------------------------- |
 | ANOVA integration   | Statistical confirmation of group differences |
 | Regression analysis | Multi-factor comparison with auto-fit         |
-| Gage R&R            | Measurement system analysis                   |
 
 These features are planned for future releases.
 

@@ -10,7 +10,7 @@ import type { ChartId } from '../useChartNavigation';
 /**
  * Analysis view types across all dashboards
  */
-export type AnalysisView = 'dashboard' | 'regression' | 'gagerr' | 'performance';
+export type AnalysisView = 'dashboard' | 'regression' | 'performance';
 
 /**
  * Highlight intensity options for embed mode

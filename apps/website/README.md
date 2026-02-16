@@ -30,7 +30,7 @@ src/
 │   ├── *.astro            # Static Astro components (Header, Footer, Hero, etc.)
 │   └── *.tsx              # Non-island React components (CaseStepsDisplay, LensAnimation)
 ├── data/
-│   ├── toolsData.ts       # 7 tool pages (I-Chart, Boxplot, Pareto, Capability, Regression, Gage R&R, Performance)
+│   ├── toolsData.ts       # 6 tool pages (I-Chart, Boxplot, Pareto, Capability, Regression, Performance)
 │   ├── learnData.ts       # 10 learn topics (Two Voices, Four Lenses, EDA, Staged Analysis, methodologies, etc.)
 │   └── glossaryData.ts    # ~26 glossary terms extending @variscout/core glossary
 ├── i18n/

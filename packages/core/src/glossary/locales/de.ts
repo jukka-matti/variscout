@@ -130,28 +130,5 @@ export const deGlossary: GlossaryLocale = {
       description:
         'Der y-Achsenabschnitt ist der Punkt, an dem die Regressionslinie die Y-Achse schneidet.',
     },
-
-    // Gage R&R Statistics
-    grr: {
-      label: '%GRR',
-      definition:
-        'Messsystemvariation als Prozentsatz der Studienvariation. <10% ausgezeichnet, 10-30% grenzwertig, >30% nicht akzeptabel.',
-      description:
-        'Gage R&R (Wiederholbarkeit & Reproduzierbarkeit) bewertet die Messsystemfähigkeit. Es kombiniert Variation vom Gerät und von Bedienern.',
-    },
-    repeatability: {
-      label: 'Wiederholbarkeit',
-      definition:
-        'Gerätevariation. Die Variation, wenn derselbe Bediener dasselbe Teil mehrfach misst.',
-      description:
-        'Wiederholbarkeit (EV) misst die Präzision des Messgeräts. Hohe Wiederholbarkeitsvariation deutet auf Kalibrierungs- oder Austauschbedarf hin.',
-    },
-    reproducibility: {
-      label: 'Reproduzierbarkeit',
-      definition:
-        'Bedienervariation. Die Variation, wenn verschiedene Bediener dieselben Teile messen.',
-      description:
-        'Reproduzierbarkeit (AV) misst die Konsistenz zwischen Bedienern. Hohe Reproduzierbarkeitsvariation deutet auf Schulungsbedarf hin.',
-    },
   },
 };

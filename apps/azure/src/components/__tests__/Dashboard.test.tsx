@@ -146,14 +146,6 @@ describe('Dashboard', () => {
     expect(screen.queryByTestId('i-chart')).not.toBeInTheDocument();
   });
 
-  it('does not show Gage R&R tab (deferred per ADR-010)', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
-
-    render(<Dashboard />);
-
-    expect(screen.queryByText('Gage R&R')).not.toBeInTheDocument();
-  });
-
   it('does not render AnovaResults when calculation returns null', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
 

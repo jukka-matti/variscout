@@ -99,7 +99,7 @@ The filter interaction model is fundamentally different from VariScout's progres
 | Pareto chart                        | Available (sorted bar chart)                   | Integrated with drill-down filtering                                     |
 | ANOVA                               | Not available                                  | Yes, with eta-squared ranking                                            |
 | Regression                          | Trend line only (no model diagnostics)         | Simple and multiple regression                                           |
-| Gage R&R                            | Not available                                  | Crossed Gage R&R                                                         |
+| Gage R&R                            | Not available                                  | Not available                                                            |
 | Small multiples                     | Native (rows/columns shelf)                    | Planned feature                                                          |
 | Sidebar filters                     | Core paradigm (checkboxes, sliders, dropdowns) | Rejected pattern (see [evaluation](../patterns/sidebar-filter-panel.md)) |
 | Cross-filtering                     | Yes (dashboard-level action)                   | Yes (linked filtering, investigation-driven)                             |

@@ -338,69 +338,6 @@ export interface RegressionResult {
 }
 
 /**
- * Interaction data point for Operator × Part plot
- */
-export interface GageRRInteraction {
-  /** Part identifier */
-  part: string;
-  /** Operator identifier */
-  operator: string;
-  /** Mean measurement for this Part × Operator combination */
-  mean: number;
-}
-
-/**
- * Result of Gage R&R (Measurement System Analysis)
- */
-export interface GageRRResult {
-  // Input summary
-  /** Number of unique parts measured */
-  partCount: number;
-  /** Number of operators */
-  operatorCount: number;
-  /** Number of replicate measurements per Part × Operator */
-  replicates: number;
-  /** Total number of measurements */
-  totalMeasurements: number;
-
-  // Variance components (σ² values)
-  /** Part-to-part variance */
-  varPart: number;
-  /** Operator variance */
-  varOperator: number;
-  /** Operator × Part interaction variance */
-  varInteraction: number;
-  /** Repeatability variance (equipment variation) */
-  varRepeatability: number;
-  /** Reproducibility variance (operator + interaction) */
-  varReproducibility: number;
-  /** Total Gage R&R variance */
-  varGRR: number;
-  /** Total variance (Part + GRR) */
-  varTotal: number;
-
-  // Percentage contributions (based on σ, not σ²)
-  /** % contribution from Part-to-Part */
-  pctPart: number;
-  /** % contribution from Repeatability */
-  pctRepeatability: number;
-  /** % contribution from Reproducibility */
-  pctReproducibility: number;
-  /** % Gage R&R (main result) */
-  pctGRR: number;
-
-  // Verdict
-  /** Overall assessment */
-  verdict: 'excellent' | 'marginal' | 'unacceptable';
-  /** Plain-language verdict description */
-  verdictText: string;
-
-  // For interaction plot
-  /** Data for Operator × Part interaction chart */
-  interactionData: GageRRInteraction[];
-}
-
-/**
  * Stage order determination mode for I-Chart with stages
  * - 'auto': Detects numeric patterns and sorts accordingly, otherwise uses data order
  * - 'data-order': Preserves original data sequence (as in data)

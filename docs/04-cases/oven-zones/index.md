@@ -304,7 +304,7 @@ Export from VariScout via **Settings → Export Analysis** for use in Minitab, J
 - **Tolerance:** ±10°C for all zones (2σ approach)
 - **Sample Size:** n=100 per zone (adequate for capability analysis)
 - **Distribution:** Normal (validated via probability plots)
-- **Measurement System:** Assumed capable (no Gage R&R issues)
+- **Measurement System:** Assumed capable (no MSA issues)
 
 ### Data Generation
 

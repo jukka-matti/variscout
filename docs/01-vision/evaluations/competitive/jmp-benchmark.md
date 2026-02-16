@@ -107,7 +107,7 @@ Each step requires opening a new platform. The platforms don't share filter stat
 | ANOVA / factor ranking          | Fit Model with Effect Summary                    | One-way with eta-squared visual ranking    |
 | Interaction detection           | Fit Model (explicit interaction terms)           | Planned: interaction heatmap               |
 | Regression                      | Fit Model, Fit Y by X                            | Simple and multiple regression             |
-| Gage R&R                        | MSA platform (Variability / Attribute charts)    | Crossed Gage R&R                           |
+| Gage R&R                        | MSA platform (Variability / Attribute charts)    | Not available                              |
 | Prediction Profiler             | Yes (interactive model profiling)                | Not available (different approach)         |
 | DOE                             | Full suite (custom design, definitive screening) | Not available (different problem domain)   |
 | Linked filtering across charts  | No (each platform is independent)                | Yes (core differentiator)                  |

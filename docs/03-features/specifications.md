@@ -466,13 +466,12 @@ Comprehensive hover tooltips explain statistical terms throughout the app. Hover
 
 **Coverage:**
 
-| Component        | Terms Explained                             |
-| ---------------- | ------------------------------------------- |
-| Stats Panel      | Pass Rate, Rejected %, Cp, Cpk              |
-| ANOVA Results    | p-value, F-statistic, η² (eta-squared)      |
-| Dashboard        | UCL, LCL, Mean (control limits)             |
-| Regression Panel | R², p-value, slope                          |
-| Gage R&R Panel   | %GRR, variance components, interaction plot |
+| Component        | Terms Explained                        |
+| ---------------- | -------------------------------------- |
+| Stats Panel      | Pass Rate, Rejected %, Cp, Cpk         |
+| ANOVA Results    | p-value, F-statistic, η² (eta-squared) |
+| Dashboard        | UCL, LCL, Mean (control limits)        |
+| Regression Panel | R², p-value, slope                     |
 
 **Example Tooltips:**
 
@@ -485,9 +484,6 @@ p-value: "Probability the observed difference happened by chance.
 
 UCL: "Upper Control Limit. Points above this indicate special cause
       variation (something changed in the process)."
-
-%GRR: "Total measurement system variation as a percentage of study
-       variation. <10% excellent, 10-30% marginal, >30% needs work."
 ```
 
 **Design:** Tooltips appear on hover/tap with minimal delay. Uses HelpCircle icon next to terms. No clutter when not engaged.
@@ -622,7 +618,7 @@ The dashboard uses a scrollable layout with minimum chart heights for comfortabl
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  🏠 All Data > Machine: A  [Clear All]    (sticky header)   │
-│  [Analysis] [Gage R&R]                                      │
+│  [Analysis] [Regression]                                     │
 ├─────────────────────────────────────────────────────────────┤
 │  I-Chart                                    [Outcome ▼]     │
 │                                                             │
@@ -838,7 +834,7 @@ pnpm build:excel        # Excel Add-in build
 
 ## Planned Features (Green Belt Training)
 
-For complete Green Belt training coverage, three features are planned.
+For complete Green Belt training coverage, two features are planned.
 
 ### Feature Summary
 
@@ -846,7 +842,6 @@ For complete Green Belt training coverage, three features are planned.
 | ------------------- | ----------- | ------ | -------------------------------------------------- |
 | ANOVA under Boxplot | Enhancement | Small  | Statistical confirmation of group differences      |
 | Regression Tab      | New Tab     | Medium | Multi-factor comparison with auto-fit intelligence |
-| Gage R&R Tab        | New Tab     | Medium | Measurement system analysis                        |
 
 ### ANOVA Integration
 
@@ -865,15 +860,6 @@ A new tab with 2×2 grid of scatter plots:
 - R² value with star rating (★★★★★ for > 0.9)
 - Auto-fit intelligence (recommends quadratic when appropriate)
 - Summary ranking: "Temperature → Speed → Pressure" by R² strength
-
-### Gage R&R Tab
-
-Measurement System Analysis (MSA) tab:
-
-- Input: Part ID, Operator ID, Measurement columns
-- Variance breakdown chart (Part-to-Part vs Repeatability vs Reproducibility)
-- %GRR result with verdict (< 10% Excellent, 10-30% Marginal, > 30% Unacceptable)
-- Operator × Part interaction plot
 
 ---
 

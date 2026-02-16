@@ -14,7 +14,7 @@ A practical case demonstrating variation analysis with both continuous measureme
 This case has two analysis modules:
 
 1. **Moisture Analysis:** Process variation by drying bed
-2. **Gage R&R:** Measurement system validation for moisture meters
+2. **MSA:** Measurement system validation for moisture meters
 
 ---
 
@@ -38,7 +38,7 @@ After VaRiScout: "Bed C has a moisture problem - check airflow, shade, or draina
 Before investigating Bed C's airflow, drainage, or shade... can we trust our moisture readings? Do different operators get the same reading on the same sample?
 
 **The answer:**
-A Gage R&R study validates the moisture meter. With %GRR around 8%, the 2% difference between Bed C (~13%) and Beds A/B (~11%) is real, not measurement error.
+An MSA study validates the moisture meter. With ~8% measurement variation, the 2% difference between Bed C (~13%) and Beds A/B (~11%) is real, not measurement error.
 
 ---
 
@@ -75,7 +75,7 @@ A Gage R&R study validates the moisture meter. With %GRR around 8%, the 2% diffe
 - Bed C: Mean ~13.2%, all OUT of spec
 - Defect counts correlate with moisture (Bed C higher)
 
-### 2. Moisture Gage R&R Data (`moisture-grr.csv`)
+### 2. Moisture MSA Data (`moisture-grr.csv`)
 
 | Column       | Type    | Description                        |
 | ------------ | ------- | ---------------------------------- |
@@ -98,7 +98,7 @@ A Gage R&R study validates the moisture meter. With %GRR around 8%, the 2% diffe
 2. **Boxplot** - Moisture % by Drying Bed (A, B, C) - the "aha" moment
 3. **Pareto** - Defect counts showing Broken >> Floater >> Insect >> Full Black
 4. **Linked filtering** - Click Bed C, see its defect profile vs others
-5. **Gage R&R Chart** - Variance breakdown and operator comparison
+5. **MSA Chart** - Variance breakdown and operator comparison
 
 ---
 
@@ -137,12 +137,12 @@ Known industry issues:
 4. Click Bed C → see instant filtering
 5. Create Pareto of defect types
 
-### Module 2: Gage R&R
+### Module 2: MSA
 
 1. Load `moisture-grr.csv`
 2. Configure: Part column, Operator column, Measurement column
 3. View variance breakdown (~88% part-to-part, ~7% repeatability, ~5% reproducibility)
-4. Verdict: %GRR = 8.2% → Excellent
+4. Verdict: ~8% measurement variation → Excellent
 
 **Key message:** "The moisture meter is reliable. The variation we see between drying beds is real process variation, not measurement error."
 

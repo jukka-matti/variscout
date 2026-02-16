@@ -39,14 +39,6 @@ Compare all channels at once, then drill into the worst performer.
 
 ## Specialized Workflows
 
-### [MSA/Gage R&R Study](msa-workflow.md)
-
-Validate your measurement system before drawing conclusions:
-
-- When to run MSA
-- Study design (operators × parts × trials)
-- Interpreting %GRR results
-
 ### [Decision Trees](decision-trees.md)
 
 "Which chart should I use?"
@@ -91,15 +83,14 @@ Systematic investigation for problem-solving:
 
 ## Workflow Selection Guide
 
-| Your Question                   | Start Here                                            |
-| ------------------------------- | ----------------------------------------------------- |
-| "Is my process stable?"         | [Four Lenses](four-lenses-workflow.md)                |
-| "What's causing variation?"     | [Drill-Down](drill-down-workflow.md)                  |
-| "Which channel is worst?"       | [Performance Mode](performance-mode-workflow.md)      |
-| "Can I trust this measurement?" | [MSA Workflow](msa-workflow.md)                       |
-| "Quick shift check needed"      | [Quick Check](quick-check.md)                         |
-| "Need to solve this problem"    | [Deep Dive](deep-dive.md)                             |
-| "Full root cause to action"     | [Investigation to Action](investigation-to-action.md) |
+| Your Question                | Start Here                                            |
+| ---------------------------- | ----------------------------------------------------- |
+| "Is my process stable?"      | [Four Lenses](four-lenses-workflow.md)                |
+| "What's causing variation?"  | [Drill-Down](drill-down-workflow.md)                  |
+| "Which channel is worst?"    | [Performance Mode](performance-mode-workflow.md)      |
+| "Quick shift check needed"   | [Quick Check](quick-check.md)                         |
+| "Need to solve this problem" | [Deep Dive](deep-dive.md)                             |
+| "Full root cause to action"  | [Investigation to Action](investigation-to-action.md) |
 
 ## Related Documentation
 

@@ -52,7 +52,6 @@ All charts use a dark theme matching the application:
 | **Histogram**       | Value distribution          | Bins, normal curve overlay                                      |
 | **ScatterPlot**     | X-Y relationship            | Regression line, R² display                                     |
 | **ProbabilityPlot** | Normality assessment        | Reference line, confidence bands                                |
-| **GageRRChart**     | Variance breakdown          | Horizontal bars, threshold lines                                |
 | **InteractionPlot** | Factor interaction          | Multi-series lines                                              |
 
 ### I-Chart Data Point Coloring

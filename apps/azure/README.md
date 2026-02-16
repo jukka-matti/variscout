@@ -4,7 +4,7 @@ Team-enabled variation analysis with Azure AD authentication and OneDrive/ShareP
 
 ## Features
 
-- Full analysis capabilities (I-Chart, Boxplot, Pareto, ANOVA, Regression, Gage R&R)
+- Full analysis capabilities (I-Chart, Boxplot, Pareto, ANOVA, Regression)
 - Azure AD single sign-on
 - OneDrive personal storage
 - SharePoint team storage

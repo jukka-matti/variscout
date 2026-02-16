@@ -13,7 +13,7 @@ A practical case from real work in Africa, demonstrating:
 
 1. **Defect Analysis:** Prioritization using Pareto and tracking over time
 2. **Process Diagnosis:** Connecting defect outcomes to process parameters
-3. **Gage R&R:** Validating the fill weight measurement system
+3. **MSA:** Validating the fill weight measurement system
 
 ---
 
@@ -58,7 +58,7 @@ Defect counts can't tell us _why_ the underfills happen. What's driving the vari
 Before we retrain Night shift operators or adjust their filling equipment... is our QC scale giving consistent readings?
 
 **The answer:**
-A Gage R&R study validates the scale. With %GRR around 12% (marginal but acceptable), the 3g difference between Night and Day shifts is real, not measurement error.
+An MSA study validates the scale. With ~12% measurement variation (marginal but acceptable), the 3g difference between Night and Day shifts is real, not measurement error.
 
 ---
 
@@ -110,7 +110,7 @@ A Gage R&R study validates the scale. With %GRR around 12% (marginal but accepta
 - Night shift: Mean ~495.5g, more variable
 - Night shift has Cpk below 1.0
 
-### 3. Fill Weight Gage R&R Data (`fillweight-grr.csv`)
+### 3. Fill Weight MSA Data (`fillweight-grr.csv`)
 
 | Column   | Type    | Description                                |
 | -------- | ------- | ------------------------------------------ |
@@ -133,7 +133,7 @@ A Gage R&R study validates the scale. With %GRR around 12% (marginal but accepta
 2. **I-Chart** - Fill weights over time with control limits
 3. **Boxplot** - Fill weight by Shift (Night shift lower and wider)
 4. **Capability Analysis** - Distribution vs. spec limits (LSL = 493g)
-5. **Gage R&R Chart** - Variance breakdown by source
+5. **MSA Chart** - Variance breakdown by source
 
 ---
 
@@ -181,7 +181,7 @@ Different questions need different data:
 ### Module 3: Measurement Validation
 
 1. Load `fillweight-grr.csv`
-2. Configure Gage R&R
+2. Configure MSA study
 3. View variance breakdown
 4. Verdict: %GRR = 12% → Marginal but acceptable
 5. Confirm: The 3g Night shift offset is real

@@ -165,7 +165,7 @@ Date,Hour,Day_of_Week,Time_Period,Beds_Occupied,Utilization_pct
 - "Try VaRiScout at variscout.com"
 - "See what your averages don't show."
 
-## Gage R&R Applicability
+## MSA Applicability
 
 **Not applicable** - bed counts are counts, not continuous measurements. No measurement system to validate.
 

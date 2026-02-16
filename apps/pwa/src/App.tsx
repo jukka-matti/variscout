@@ -25,7 +25,7 @@ import {
 } from '@variscout/core';
 import type { WideFormatDetection } from '@variscout/core';
 
-type AnalysisView = 'dashboard' | 'regression' | 'gagerr';
+type AnalysisView = 'dashboard' | 'regression';
 
 // Breakpoint for desktop panel (vs modal on mobile)
 const DESKTOP_BREAKPOINT = 1024;

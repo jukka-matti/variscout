@@ -1,7 +1,7 @@
 // Case study content and metadata — single source of truth
 // Used by: [slug].astro, RelatedCases.astro, WhatsNext.astro, CaseProgress.astro
 
-export type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
+export type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 
 export interface CaseStep {
@@ -156,8 +156,8 @@ export const CASE_STUDIES: CaseStudy[] = [
       'Drying Bed C consistently fails export spec. Is it the bed, the operator, or the measurement?',
     difficulty: 'intermediate',
     time: '7 min',
-    tools: ['boxplot', 'ichart', 'gagerr'],
-    toolNames: ['Boxplot', 'I-Chart', 'Gage R&R'],
+    tools: ['boxplot', 'ichart'],
+    toolNames: ['Boxplot', 'I-Chart'],
     problem: {
       lead: 'Which drying bed is causing the moisture problems?',
       context:
@@ -193,9 +193,9 @@ export const CASE_STUDIES: CaseStudy[] = [
       {
         title: 'The MSA Connection',
         content:
-          "Before blaming the bed, check the measurement system. A Gage R&R study reveals the moisture meter has ~8% variation - that's acceptable. The problem IS the bed.",
+          'Before blaming the bed, check the measurement system. Verifying the moisture meter has acceptable variation confirms the problem IS the bed.',
         interactive: false,
-        targetChart: 'gagerr',
+        targetChart: 'ichart',
       },
     ],
     insight: 'Before you blame the process, verify your measurement.',
@@ -267,8 +267,8 @@ export const CASE_STUDIES: CaseStudy[] = [
     description: 'More coating means longer shelf life. But can operators apply it consistently?',
     difficulty: 'advanced',
     time: '10 min',
-    tools: ['regression', 'gagerr', 'stats'],
-    toolNames: ['Regression', 'Gage R&R', 'Stats'],
+    tools: ['regression', 'stats'],
+    toolNames: ['Regression', 'Stats'],
     problem: {
       lead: "What's the optimal coating level for maximum shelf life?",
       context:
@@ -297,9 +297,9 @@ export const CASE_STUDIES: CaseStudy[] = [
       {
         title: 'The MSA Reveals',
         content:
-          'A Gage R&R study shows operator reproducibility is ~22%. Joseph consistently under-applies by 20%.',
+          'A measurement study shows operator variation is ~22%. Joseph consistently under-applies by 20%.',
         interactive: false,
-        targetChart: 'gagerr',
+        targetChart: 'stats',
       },
       {
         title: 'The Business Decision',

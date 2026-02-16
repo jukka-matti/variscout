@@ -16,7 +16,6 @@ export { pizza } from './pizza';
 export { sachets } from './sachets';
 export { largeScale } from './large-scale';
 export { ovenZonesData } from './ovenZones';
-export { gagerr } from './gagerr';
 
 // Re-export types
 export type { SampleDataset, SampleConfig, SpecLimits, GradeDefinition } from '../types';
@@ -39,7 +38,6 @@ import { pizza } from './pizza';
 import { sachets } from './sachets';
 import { largeScale } from './large-scale';
 import { ovenZonesData } from './ovenZones';
-import { gagerr } from './gagerr';
 import type { SampleDataset } from '../types';
 
 /**
@@ -65,8 +63,6 @@ export const SAMPLES: SampleDataset[] = [
   // Performance Mode (Multi-Channel Analysis)
   sachets,
   ovenZonesData,
-  // Gage R&R (Measurement System Analysis)
-  gagerr,
   // Journey/Training
   journey,
   journeyBefore,

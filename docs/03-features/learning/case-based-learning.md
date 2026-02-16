@@ -64,9 +64,9 @@ WEEK N: Analysis reveals a problem
          ↓
 WEEK N+1: "But wait..."
          ↓
-"Can we trust this measurement?"
+"Which factor explains most of the variation?"
          ↓
-GAGE R&R STUDY → Validate or fix MSA
+DRILL-DOWN ANALYSIS → Isolate the root cause
 ```
 
 ---

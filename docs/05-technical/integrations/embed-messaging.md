@@ -61,7 +61,7 @@ interface EmbedResponse {
 ## Chart IDs
 
 ```typescript
-type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
+type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
 ```
 
 | ID           | Chart                               |
@@ -71,7 +71,6 @@ type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gager
 | `pareto`     | Pareto Chart                        |
 | `stats`      | Statistics Panel                    |
 | `regression` | Regression Panel                    |
-| `gagerr`     | Gage R&R Panel                      |
 
 ## Highlight Intensities
 

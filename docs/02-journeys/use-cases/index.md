@@ -64,7 +64,7 @@ Use cases that leverage Performance Mode to compare parallel processes.
 | Use Case                          | The Channels                        | Key Metric                                  |
 | --------------------------------- | ----------------------------------- | ------------------------------------------- |
 | [Supplier PPAP](supplier-ppap.md) | Critical characteristics / cavities | Cpk per characteristic, worst-first ranking |
-| [Pharma OOS](pharma-oos.md)       | Batches / analysts / instruments    | Cpk vs acceptance criteria, Gage R&R        |
+| [Pharma OOS](pharma-oos.md)       | Batches / analysts / instruments    | Cpk vs acceptance criteria                  |
 
 ### Capability vs SLA
 

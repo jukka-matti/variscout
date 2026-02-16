@@ -10,7 +10,7 @@
 
 The PWA is a **free SPC training tool** that provides:
 
-1. **Core analysis for everyone** — I-Chart, Boxplot, Pareto, Capability, Regression, Gage R&R, ANOVA
+1. **Core analysis for everyone** — I-Chart, Boxplot, Pareto, Capability, Regression, ANOVA
 2. **Pre-loaded case study datasets** — Same datasets as documentation
 3. **Copy-paste from Excel/Sheets** — No file upload, paste data directly
 4. **Zero friction** — No signup, no payment, no installation required
@@ -57,7 +57,7 @@ The PWA comes with datasets from the documentation case studies:
 All core SPC analysis features:
 
 - I-Chart, Boxplot, Pareto, Capability Histogram
-- Regression analysis, Gage R&R, ANOVA
+- Regression analysis, ANOVA
 - Drill-down with breadcrumb navigation
 - Linked filtering across charts
 - Data input: copy-paste from Excel/Sheets + sample datasets

@@ -125,28 +125,5 @@ export const ptGlossary: GlossaryLocale = {
       definition: 'O valor previsto de Y quando X é igual a zero.',
       description: 'O intercepto-y é onde a linha de regressão cruza o eixo Y.',
     },
-
-    // Gage R&R Statistics
-    grr: {
-      label: '%GRR',
-      definition:
-        'Variação do sistema de medição como porcentagem da variação do estudo. <10% excelente, 10-30% marginal, >30% inaceitável.',
-      description:
-        'Gage R&R (Repetibilidade e Reprodutibilidade) avalia a capacidade do sistema de medição. Combina a variação do equipamento e dos operadores.',
-    },
-    repeatability: {
-      label: 'Repetibilidade',
-      definition:
-        'Variação do equipamento. A variação quando o mesmo operador mede a mesma peça múltiplas vezes.',
-      description:
-        'A repetibilidade (EV) mede a precisão do equipamento de medição. Alta variação de repetibilidade sugere necessidade de calibração ou substituição.',
-    },
-    reproducibility: {
-      label: 'Reprodutibilidade',
-      definition:
-        'Variação do operador. A variação quando diferentes operadores medem as mesmas peças.',
-      description:
-        'A reprodutibilidade (AV) mede a consistência entre operadores. Alta variação de reprodutibilidade sugere necessidade de treinamento.',
-    },
   },
 };

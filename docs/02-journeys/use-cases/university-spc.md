@@ -93,5 +93,5 @@ The lecturer wants students to paste homework data and see results instantly, wi
 | Stage               | Product                | Why                                                                         |
 | ------------------- | ---------------------- | --------------------------------------------------------------------------- |
 | Course delivery     | **PWA** (free forever) | No license, no install, works on student laptops and phones                 |
-| Advanced projects   | **PWA** (free)         | Regression, Gage R&R, ANOVA cover Green Belt curriculum                     |
+| Advanced projects   | **PWA** (free)         | Regression, ANOVA cover Green Belt curriculum                               |
 | Department adoption | **Azure App** (paid)   | Research groups, shared datasets, Performance Mode for multi-factor studies |

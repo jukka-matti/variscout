@@ -16,7 +16,6 @@ const TOOL_CHART_MAP: Record<string, ChartType | 'performance'> = {
   pareto: 'pareto',
   capability: 'capability',
   regression: 'scatter',
-  'gage-rr': 'gagerr',
   performance: 'performance',
 };
 

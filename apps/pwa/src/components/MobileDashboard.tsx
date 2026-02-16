@@ -7,19 +7,17 @@ import {
   PieChart,
   TrendingUp,
   LineChart,
-  Target,
 } from 'lucide-react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
 import RegressionPanel from './RegressionPanel';
-import GageRRPanel from './GageRRPanel';
 import { AnovaResults, ErrorBoundary, FactorSelector, FilterBreadcrumb } from '@variscout/ui';
 import type { StatsResult, AnovaResult } from '@variscout/core';
 import type { FilterChipData } from '@variscout/hooks';
 
-type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
+type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
 
 interface MobileDashboardProps {
   outcome: string | null;
@@ -86,7 +84,6 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
     { key: 'pareto', label: 'Pareto', icon: <PieChart size={18} /> },
     { key: 'stats', label: 'Stats', icon: <TrendingUp size={18} /> },
     { key: 'regression', label: 'Regr', icon: <LineChart size={18} /> },
-    { key: 'gagerr', label: 'GR&R', icon: <Target size={18} /> },
   ];
 
   const currentIndex = views.findIndex(v => v.key === activeView);
@@ -241,7 +238,6 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
               />
             )}
             {activeView === 'regression' && <RegressionPanel />}
-            {activeView === 'gagerr' && <GageRRPanel />}
           </ErrorBoundary>
         </div>
         {activeView === 'boxplot' && anovaResult && (

@@ -4,19 +4,10 @@ import {
   ParetoChartBase,
   CapabilityHistogramBase,
   ScatterPlotBase,
-  GageRRChartBase,
-  InteractionPlotBase,
 } from '@variscout/charts';
 import type { SampleDataset, ComputedChartData } from '@variscout/data';
 
-export type ChartType =
-  | 'ichart'
-  | 'boxplot'
-  | 'pareto'
-  | 'capability'
-  | 'scatter'
-  | 'regression'
-  | 'gagerr';
+export type ChartType = 'ichart' | 'boxplot' | 'pareto' | 'capability' | 'scatter' | 'regression';
 
 interface RenderChartParams {
   chartType: ChartType;
@@ -105,45 +96,6 @@ export function renderChartContent({
         />
       );
     }
-
-    case 'gagerr':
-      if (computed.gagerr) {
-        const gagerrHeight = Math.floor(height * 0.38);
-        const interactionHeight = Math.floor(height * 0.55);
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ height: gagerrHeight }}>
-              <GageRRChartBase
-                pctPart={computed.gagerr.pctPart}
-                pctRepeatability={computed.gagerr.pctRepeatability}
-                pctReproducibility={computed.gagerr.pctReproducibility}
-                pctGRR={computed.gagerr.pctGRR}
-                parentWidth={width}
-                parentHeight={gagerrHeight}
-                showBranding={false}
-              />
-            </div>
-            <div style={{ height: interactionHeight }}>
-              <InteractionPlotBase
-                data={computed.gagerr.interactionData}
-                parentWidth={width}
-                parentHeight={interactionHeight}
-                showBranding={showBranding}
-              />
-            </div>
-          </div>
-        );
-      }
-      // Fallback to boxplot if no GageRR data available
-      return (
-        <BoxplotBase
-          data={computed.boxplotData}
-          specs={computed.specs}
-          parentWidth={width}
-          parentHeight={height}
-          showBranding={showBranding}
-        />
-      );
 
     default:
       return null;

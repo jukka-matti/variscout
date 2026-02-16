@@ -47,7 +47,6 @@ Currently, the SQE opens each supplier's Excel file, manually calculates Cpk in 
 4. **Performance Mode** — all characteristics ranked by Cpk, worst first. Red/amber/green coding against 1.67 threshold
 5. **Drill into worst characteristic** — Cpk = 0.98 (claimed 1.72 by supplier). I-Chart shows drift — supplier's data was cherry-picked from a good period
 6. **Staged analysis** — if supplier claims improvement: before/after comparison validates (or disputes) the claim
-7. **Gage R&R** — if measurements seem suspicious: is the measurement method consistent enough to distinguish good from bad?
 
 **Aha moment:** "The supplier reported Cpk = 1.72. Our independent analysis shows 0.98 — and the process isn't even stable. They measured during a good run. Performance Mode flagged it in 10 seconds across 25 characteristics."
 

@@ -42,9 +42,9 @@ docs/
 │   ├── index.md
 │   ├── specifications.md
 │   ├── user-guide.md
-│   ├── analysis/        # boxplot, capability, i-chart, pareto, gage-rr, performance-mode,
+│   ├── analysis/        # boxplot, capability, i-chart, pareto, performance-mode,
 │   │                    # nelson-rules, staged-analysis, probability-plot, regression
-│   ├── workflows/       # four-lenses, drill-down, performance-mode, msa, quick-check,
+│   ├── workflows/       # four-lenses, drill-down, performance-mode, quick-check,
 │   │                    # deep-dive, decision-trees (analyst workflows & decision guides)
 │   ├── data/            # data-input, storage, validation
 │   ├── navigation/      # drill-down, breadcrumbs, linked-filtering
@@ -109,7 +109,6 @@ docs/
 | Hook Integration       | docs/05-technical/architecture/component-patterns.md                                   |
 | Platform Comparison    | docs/08-products/feature-parity.md                                                     |
 | Analysis Workflows     | docs/03-features/workflows/ (four-lenses, drill-down, decision-trees)                  |
-| MSA/Gage R&R Study     | docs/03-features/workflows/msa-workflow.md                                             |
 | Quick Analysis         | docs/03-features/workflows/quick-check.md, deep-dive.md                                |
 | Drill-down workflow    | docs/03-features/workflows/drill-down-workflow.md                                      |
 | Four Lenses workflow   | docs/03-features/workflows/four-lenses-workflow.md                                     |
@@ -172,7 +171,7 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 
 | File                                                   | Purpose                                                                   |
 | ------------------------------------------------------ | ------------------------------------------------------------------------- |
-| `packages/core/src/stats.ts`                           | Statistics engine (mean, Cp, Cpk, ANOVA, GageRR)                          |
+| `packages/core/src/stats.ts`                           | Statistics engine (mean, Cp, Cpk, ANOVA)                                  |
 | `packages/core/src/__tests__/stats.test.ts`            | Unit tests for statistics engine                                          |
 | `packages/core/src/types.ts`                           | Shared TypeScript interfaces                                              |
 | `packages/core/src/navigation.ts`                      | Navigation types and utilities                                            |
@@ -181,7 +180,7 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/hooks/src/useTier.ts`                        | React hook for tier state and limits                                      |
 | `packages/ui/src/components/TierBadge/`                | Tier indicator badge component                                            |
 | `packages/ui/src/components/UpgradePrompt/`            | Upgrade call-to-action component                                          |
-| `packages/charts/src/`                                 | IChart, Boxplot, ParetoChart, ScatterPlot, GageRRChart                    |
+| `packages/charts/src/`                                 | IChart, Boxplot, ParetoChart, ScatterPlot                                 |
 | `packages/charts/src/PerformanceIChart.tsx`            | Multi-channel Cpk scatter plot (shared)                                   |
 | `packages/charts/src/PerformanceBoxplot.tsx`           | Multi-channel distribution comparison (shared)                            |
 | `packages/charts/src/PerformancePareto.tsx`            | Multi-channel Cpk ranking chart (shared)                                  |
@@ -205,7 +204,7 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `apps/pwa/src/context/DataContext.tsx`                 | Central state management                                                  |
 | `apps/pwa/src/context/ThemeContext.tsx`                | Theme state (light/dark/system, company accent)                           |
 | `packages/charts/src/useChartTheme.ts`                 | Theme-aware chart colors hook                                             |
-| `apps/pwa/src/components/__tests__/`                   | Component tests (Dashboard, RegressionPanel, GageRRPanel)                 |
+| `apps/pwa/src/components/__tests__/`                   | Component tests (Dashboard, RegressionPanel)                              |
 | `packages/core/src/parser.ts`                          | CSV/Excel parsing, validation, keyword detection (shared)                 |
 | `apps/pwa/src/hooks/useDataIngestion.ts`               | PWA wrapper (adds loadSample to shared hook)                              |
 | `packages/ui/src/components/DataQualityBanner/`        | Shared validation summary UI component                                    |

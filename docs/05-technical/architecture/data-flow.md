@@ -26,7 +26,6 @@ flowchart TB
         E --> F1[Statistics]
         E --> F2[ANOVA]
         E --> F3[Regression]
-        E --> F4[Gage R&R]
         E --> F5[Performance]
     end
 
@@ -36,7 +35,6 @@ flowchart TB
         F2 --> G3[Pareto]
         F1 --> G4[Capability]
         F3 --> G5[Scatter]
-        F4 --> G6[Gage R&R]
         F5 --> G7[Performance Dashboard]
     end
 
@@ -105,13 +103,13 @@ flowchart LR
 
 The parser detects special columns by keywords:
 
-| Keyword Pattern          | Column Type         | Example         |
-| ------------------------ | ------------------- | --------------- |
-| `operator`, `inspector`  | Operator (Gage R&R) | "Operator Name" |
-| `part`, `sample`, `item` | Part ID (Gage R&R)  | "Sample ID"     |
-| `usl`, `upper spec`      | Specification       | "USL_Weight"    |
-| `lsl`, `lower spec`      | Specification       | "LSL_Weight"    |
-| `target`                 | Specification       | "Target Value"  |
+| Keyword Pattern          | Column Type    | Example         |
+| ------------------------ | -------------- | --------------- |
+| `operator`, `inspector`  | Operator (MSA) | "Operator Name" |
+| `part`, `sample`, `item` | Part ID (MSA)  | "Sample ID"     |
+| `usl`, `upper spec`      | Specification  | "USL_Weight"    |
+| `lsl`, `lower spec`      | Specification  | "LSL_Weight"    |
+| `target`                 | Specification  | "Target Value"  |
 
 ### Data Quality Report
 

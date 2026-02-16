@@ -42,14 +42,7 @@ interface DiagramVisual {
 }
 
 export interface ChartVisualData {
-  toolSlug:
-    | 'i-chart'
-    | 'boxplot'
-    | 'pareto'
-    | 'capability'
-    | 'regression'
-    | 'gage-rr'
-    | 'performance';
+  toolSlug: 'i-chart' | 'boxplot' | 'pareto' | 'capability' | 'regression' | 'performance';
   sampleKey: string;
   height?: number;
   caption?: string;

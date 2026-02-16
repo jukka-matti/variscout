@@ -15,7 +15,6 @@ The core statistical charts based on Watson's Four Lenses:
 | [Pareto](analysis/pareto.md)                     | FAILURE | Problem concentration                    |
 | [Capability](analysis/capability.md)             | VALUE   | Specification compliance                 |
 | [Regression](analysis/regression.md)             | -       | Correlation analysis                     |
-| [Gage R&R](analysis/gage-rr.md)                  | -       | Measurement system analysis              |
 | [Performance Mode](analysis/performance-mode.md) | -       | Multi-channel analysis                   |
 
 ---

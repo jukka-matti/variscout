@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 // Chart IDs that can be highlighted
-export type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
+export type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
 
 // Highlight intensity/style
 export type HighlightIntensity = 'pulse' | 'glow' | 'border';

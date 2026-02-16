@@ -12,9 +12,9 @@ Case studies mapped to the marketing content calendar. Each case provides data, 
 | ---- | ----------------- | -------------------- | ------------------------------------- | --------------- |
 | 1-4  | **Bottleneck**    | ESTIEM training      | Process flow, I-Chart, Boxplot        | Phase 1: Launch |
 | 5-8  | **Hospital Ward** | Healthcare           | Aggregation trap, time patterns       | Phase 2: Deepen |
-| 9-12 | **Coffee**        | East Africa          | Factor comparison, Gage R&R           | Phase 3: Apply  |
+| 9-12 | **Coffee**        | East Africa          | Factor comparison, MSA                | Phase 3: Apply  |
 | 9-12 | **Packaging**     | Africa manufacturing | Pareto, capability, process diagnosis | Phase 3: Apply  |
-| 12   | **Avocado**       | Post-harvest         | Regression, Gage R&R                  | Phase 3: Apply  |
+| 12   | **Avocado**       | Post-harvest         | Regression, MSA                       | Phase 3: Apply  |
 
 ---
 
@@ -68,13 +68,13 @@ Drying Bed C consistently fails export spec. Is it the bed, the operator, or the
 | --------------------- | -------------------------------------------- |
 | `README.md`           | Merged overview covering process and MSA     |
 | `washing-station.csv` | 30 batches with moisture % and defect counts |
-| `moisture-grr.csv`    | 60 measurements for Gage R&R study           |
+| `moisture-grr.csv`    | 60 measurements for MSA study                |
 
 **Teaching points:**
 
 - Factor comparison (Boxplot by drying bed)
 - Spec limits in context (I-Chart)
-- MSA validation (Gage R&R ~8%)
+- MSA validation (~8% measurement variation)
 
 **Website:** `/cases/coffee`
 
@@ -89,13 +89,13 @@ Night shift is systematically underfilling. Is it the operators, the equipment, 
 | `README.md`          | Merged overview covering defects, process, and MSA |
 | `defects.csv`        | Daily defect tracking by product and type          |
 | `fillweights.csv`    | 120 fill weight measurements by shift              |
-| `fillweight-grr.csv` | 90 measurements for Gage R&R study                 |
+| `fillweight-grr.csv` | 90 measurements for MSA study                      |
 
 **Teaching points:**
 
 - Pareto prioritization (defect types)
 - Process diagnosis (connecting defects to measurements)
-- MSA validation (Gage R&R ~12%)
+- MSA validation (~12% measurement variation)
 
 **Website:** `/cases/packaging`
 
@@ -109,7 +109,7 @@ Regression shows coating amount predicts shelf life. But can operators apply coa
 | ------------------------ | -------------------------------------------------- |
 | `README.md`              | Merged overview covering regression and MSA        |
 | `coating-regression.csv` | 120 observations with coating, process, shelf life |
-| `coating-grr.csv`        | 60 measurements for Gage R&R study                 |
+| `coating-grr.csv`        | 60 measurements for MSA study                      |
 
 **Teaching points:**
 
@@ -195,7 +195,7 @@ WEEK N+1: "But wait..."
          ↓
 "Can we trust this measurement?"
          ↓
-GAGE R&R STUDY
+MSA STUDY
          ↓
 ┌─────────────────┬─────────────────┬─────────────────┐
 │   %GRR < 10%    │  %GRR 10-30%    │   %GRR > 30%    │

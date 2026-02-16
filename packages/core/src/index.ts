@@ -22,8 +22,6 @@ export type {
   RegressionResult,
   LinearFit,
   QuadraticFit,
-  GageRRResult,
-  GageRRInteraction,
   StageOrderMode,
   StagedStatsResult,
   StageBoundary,
@@ -58,7 +56,6 @@ export {
   groupDataByFactor,
   calculateAnova,
   calculateRegression,
-  calculateGageRR,
   // Multiple regression (GLM)
   calculateMultipleRegression,
   // Staged stats functions

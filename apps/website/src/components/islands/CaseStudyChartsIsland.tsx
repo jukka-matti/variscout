@@ -1,10 +1,9 @@
-import { GageRRChartBase, InteractionPlotBase, BoxplotBase } from '@variscout/charts';
 import { getSample, getCachedComputedData } from '@variscout/data';
 import ChartContainer from './ChartContainer';
 import StatsIsland from './StatsIsland';
 import { renderChartContent } from './renderChart';
 
-type CaseChartType = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression' | 'gagerr';
+type CaseChartType = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
 
 interface CaseStudyChartsIslandProps {
   sampleKey: string;
@@ -40,52 +39,6 @@ export default function CaseStudyChartsIsland({
   const renderChart = (chartType: CaseChartType, chartHeight: number) => {
     if (chartType === 'stats') {
       return <StatsIsland sampleKey={sampleKey} />;
-    }
-
-    // GageRR needs two separate ChartContainers for proper resizing
-    if (chartType === 'gagerr') {
-      if (computed.gagerr) {
-        return (
-          <div className="flex flex-col gap-2">
-            <ChartContainer height={Math.floor(chartHeight * 0.45)}>
-              {({ width, height: containerHeight }) => (
-                <GageRRChartBase
-                  pctPart={computed.gagerr!.pctPart}
-                  pctRepeatability={computed.gagerr!.pctRepeatability}
-                  pctReproducibility={computed.gagerr!.pctReproducibility}
-                  pctGRR={computed.gagerr!.pctGRR}
-                  parentWidth={width}
-                  parentHeight={containerHeight}
-                  showBranding={false}
-                />
-              )}
-            </ChartContainer>
-            <ChartContainer height={Math.floor(chartHeight * 0.55)}>
-              {({ width, height: containerHeight }) => (
-                <InteractionPlotBase
-                  data={computed.gagerr!.interactionData}
-                  parentWidth={width}
-                  parentHeight={containerHeight}
-                  showBranding={showBranding}
-                />
-              )}
-            </ChartContainer>
-          </div>
-        );
-      }
-      return (
-        <ChartContainer height={chartHeight}>
-          {({ width, height: containerHeight }) => (
-            <BoxplotBase
-              data={computed.boxplotData}
-              specs={computed.specs}
-              parentWidth={width}
-              parentHeight={containerHeight}
-              showBranding={showBranding}
-            />
-          )}
-        </ChartContainer>
-      );
     }
 
     // All other chart types use the shared renderer

@@ -27,7 +27,6 @@ All features are included in the single plan:
 | Capability (Cp/Cpk)      |    ✓     |
 | Probability Plot         |    ✓     |
 | Regression               |    ✓     |
-| Gage R&R                 |    ✓     |
 | **Performance Mode**     |          |
 | Multi-channel analysis   |    ✓     |
 | Channel limit            |  1,500   |
@@ -123,7 +122,7 @@ Non-paying users still get value through:
 | **Excel Add-in** | Free  | Core SPC: I-Chart, Boxplot, Pareto, Capability |
 | **PWA**          | Free  | Demo only: all features with sample data       |
 
-The Excel Add-in serves as a marketing funnel — users who need Performance Mode, Gage R&R, or team collaboration upgrade to the Azure App.
+The Excel Add-in serves as a marketing funnel — users who need Performance Mode or team collaboration upgrade to the Azure App.
 
 ---
 

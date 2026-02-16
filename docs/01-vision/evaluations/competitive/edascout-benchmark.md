@@ -203,7 +203,7 @@ These statistical issues are significant because:
 | **Pareto**                      | Yes                       | Yes                                 |
 | **Capability analysis**         | Yes                       | Yes (Cp, Cpk, Pp, Ppk)              |
 | **Regression**                  | No                        | Yes                                 |
-| **Gage R&R**                    | No                        | Yes                                 |
+| **Gage R&R**                    | No                        | No                                  |
 | **ANOVA**                       | Yes (flawed p-value)      | Yes (proper F-distribution)         |
 | **Nelson rules**                | Limited                   | Full 8-rule implementation          |
 | **Multi-measure (Performance)** | No                        | Yes (Azure/Excel)                   |

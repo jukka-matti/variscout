@@ -176,34 +176,6 @@ VIF = 1 means no correlation with other predictors. VIF 1-5 is acceptable. VIF 5
 
 ---
 
-## Gage R&R Statistics
-
-### %GRR
-
-Total measurement system variation as percentage of study variation. <10% excellent, 10-30% marginal, >30% unacceptable.
-
-Gage R&R (Repeatability & Reproducibility) assesses measurement system capability. It combines variation from the equipment (repeatability) and operators (reproducibility).
-
-**Related:** [Repeatability](#repeatability), [Reproducibility](#reproducibility)
-
-### Repeatability
-
-Equipment variation. The variation when the same operator measures the same part multiple times.
-
-Repeatability (EV) measures precision of the measurement equipment. High repeatability variation suggests the gage needs calibration or replacement.
-
-**Related:** [%GRR](#grr), [Reproducibility](#reproducibility)
-
-### Reproducibility
-
-Operator variation. The variation when different operators measure the same parts.
-
-Reproducibility (AV) measures consistency between operators. High reproducibility variation suggests a need for operator training or clearer measurement procedures.
-
-**Related:** [%GRR](#grr), [Repeatability](#repeatability)
-
----
-
 ## Methodology
 
 ### Staged Analysis

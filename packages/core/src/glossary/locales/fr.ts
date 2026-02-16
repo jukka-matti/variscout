@@ -129,28 +129,5 @@ export const frGlossary: GlossaryLocale = {
       definition: 'La valeur prédite de Y lorsque X est égal à zéro.',
       description: "L'ordonnée à l'origine est le point où la droite de régression coupe l'axe Y.",
     },
-
-    // Gage R&R Statistics
-    grr: {
-      label: '%GRR',
-      definition:
-        "Variation du système de mesure en pourcentage de la variation de l'étude. <10% excellent, 10-30% marginal, >30% inacceptable.",
-      description:
-        "Gage R&R (Répétabilité et Reproductibilité) évalue la capabilité du système de mesure. Il combine la variation de l'équipement et des opérateurs.",
-    },
-    repeatability: {
-      label: 'Répétabilité',
-      definition:
-        "Variation de l'équipement. La variation quand le même opérateur mesure la même pièce plusieurs fois.",
-      description:
-        "La répétabilité (EV) mesure la précision de l'équipement de mesure. Une haute variation de répétabilité suggère un besoin de calibration ou de remplacement.",
-    },
-    reproducibility: {
-      label: 'Reproductibilité',
-      definition:
-        "Variation de l'opérateur. La variation quand différents opérateurs mesurent les mêmes pièces.",
-      description:
-        'La reproductibilité (AV) mesure la consistance entre opérateurs. Une haute variation de reproductibilité suggère un besoin de formation.',
-    },
   },
 };

@@ -82,14 +82,6 @@ export {
 } from './components/RegressionPanel';
 
 export {
-  GageRRPanelBase,
-  gageRRPanelDefaultColorScheme,
-  gageRRPanelAzureColorScheme,
-  type GageRRPanelColorScheme,
-  type GageRRPanelBaseProps,
-} from './components/GageRRPanel';
-
-export {
   Slider,
   sliderDefaultColorScheme,
   sliderAzureColorScheme,

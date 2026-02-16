@@ -14,7 +14,7 @@ A research-based case demonstrating regression analysis for process optimization
 This case has two analysis modules:
 
 1. **Regression Analysis:** Coating amount vs. shelf life and weight loss
-2. **Gage R&R:** Operator consistency in coating application
+2. **MSA:** Operator consistency in coating application
 
 ---
 
@@ -41,7 +41,7 @@ Regression shows a clear positive relationship between coating amount and shelf 
 Before optimizing the formula... can operators actually apply coating consistently? If Maria applies 1.5 ml and Joseph applies 1.2 ml, we have a problem.
 
 **The answer:**
-A Gage R&R study reveals operator reproducibility issues (~22% GRR). Joseph consistently under-applies by ~20%. The "unexplained" 28% in our regression is partly from inconsistent application.
+An MSA study reveals operator reproducibility issues (~22% measurement variation). Joseph consistently under-applies by ~20%. The "unexplained" 28% in our regression is partly from inconsistent application.
 
 ---
 
@@ -83,7 +83,7 @@ A Gage R&R study reveals operator reproducibility issues (~22% GRR). Joseph cons
 - Carnauba: Better weight retention, lower optimal point
 - Polyethylene: Longer shelf life, higher optimal point
 
-### 2. Coating Gage R&R Data (`coating-grr.csv`)
+### 2. Coating MSA Data (`coating-grr.csv`)
 
 | Column            | Type    | Description                          |
 | ----------------- | ------- | ------------------------------------ |
@@ -143,7 +143,7 @@ A Gage R&R study reveals operator reproducibility issues (~22% GRR). Joseph cons
 1. **Scatter Plot** - Coating amount vs. shelf life with regression line
 2. **Multiple Regression Lines** - By Process (Spray vs. Dip)
 3. **Residual Plot** - Checking regression assumptions
-4. **Gage R&R Chart** - Variance breakdown
+4. **MSA Chart** - Variance breakdown
 5. **Interaction Plot** - Operator × Part showing reproducibility issue
 
 ---
@@ -159,7 +159,7 @@ A Gage R&R study reveals operator reproducibility issues (~22% GRR). Joseph cons
 5. Add Process as factor → see two parallel lines
 6. Identify optimal range: 1.5-2.5 ml/kg
 
-### Module 2: Gage R&R
+### Module 2: MSA
 
 1. Load `coating-grr.csv`
 2. Configure: Part, Operator, Measurement columns

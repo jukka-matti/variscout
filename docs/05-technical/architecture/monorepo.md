@@ -30,7 +30,7 @@ variscout-lite/
 
 Pure logic with no React dependencies:
 
-- Statistical calculations (mean, Cp, Cpk, ANOVA, GageRR)
+- Statistical calculations (mean, Cp, Cpk, ANOVA)
 - CSV/Excel parsing and validation
 - License key generation and validation
 - TypeScript type definitions
@@ -42,7 +42,6 @@ React + Visx chart components:
 
 - IChart, Boxplot, ParetoChart, ScatterPlot
 - Performance charts (multi-channel analysis)
-- GageRR charts
 - Theme-aware colors via `useChartTheme`
 - Responsive utilities
 

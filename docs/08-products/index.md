@@ -63,7 +63,6 @@ flowchart LR
 | Pareto           | ✓         | ✓          | Planned          |
 | Capability       | ✓         | ✓          | Planned          |
 | Regression       | ✓         | ✓          | -                |
-| Gage R&R         | ✓         | ✓          | -                |
 | Performance Mode | ✓         | -          | -                |
 | File Upload      | ✓         | -          | -                |
 | Save/Persistence | ✓         | -          | Power BI Service |

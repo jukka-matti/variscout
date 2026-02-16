@@ -165,7 +165,7 @@ variscout-managed-app.zip
 
 3. **PWA as free training tool**
    - PWA repositioned as free SPC training and education tool
-   - Core analysis (I-Chart, Boxplot, Pareto, Capability, Regression, Gage R&R) included
+   - Core analysis (I-Chart, Boxplot, Pareto, Capability, Regression) included
    - No file upload, no save, no Performance Mode (Azure App differentiators)
    - Copy-paste from Excel/Sheets + pre-loaded sample datasets
 

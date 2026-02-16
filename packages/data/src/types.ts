@@ -38,13 +38,6 @@ export interface SampleConfig {
   performanceMode?: boolean;
   /** Column names for measure variables (wide format data) */
   measureColumns?: string[];
-  // GageRR-specific configuration
-  /** Column name for Part identifier (for Gage R&R) */
-  partColumn?: string;
-  /** Column name for Operator identifier (for Gage R&R) */
-  operatorColumn?: string;
-  /** Column name for Measurement value (for Gage R&R) */
-  measurementColumn?: string;
 }
 
 export interface SpecLimits {
@@ -81,39 +74,6 @@ export interface ComputedChartData {
   stats: PrecomputedStats;
   /** Specs from the sample config */
   specs: SpecLimits;
-  /** Pre-computed Gage R&R results (if sample has required structure) */
-  gagerr?: GageRRData;
-}
-
-/**
- * Pre-computed Gage R&R data for charts
- * Subset of GageRRResult from @variscout/core
- */
-export interface GageRRData {
-  /** % contribution from Part-to-Part */
-  pctPart: number;
-  /** % contribution from Repeatability */
-  pctRepeatability: number;
-  /** % contribution from Reproducibility */
-  pctReproducibility: number;
-  /** Total %GRR */
-  pctGRR: number;
-  /** Overall assessment */
-  verdict: 'excellent' | 'marginal' | 'unacceptable';
-  /** Data for Operator × Part interaction chart */
-  interactionData: GageRRInteractionData[];
-}
-
-/**
- * Interaction data point for Gage R&R interaction plot
- */
-export interface GageRRInteractionData {
-  /** Part identifier */
-  part: string;
-  /** Operator identifier */
-  operator: string;
-  /** Mean measurement for this Part × Operator combination */
-  mean: number;
 }
 
 export interface IChartPoint {

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, BarChart3, TrendingUp, Target, Beaker } from 'lucide-react';
+import { X, Plus, BarChart3, TrendingUp, Beaker } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useTheme, type ChartFontScale } from '../../context/ThemeContext';
 import ThemeToggle from './ThemeToggle';
 import CompanyColorPicker from './CompanyColorPicker';
 
-type AnalysisView = 'dashboard' | 'regression' | 'gagerr';
+type AnalysisView = 'dashboard' | 'regression';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -167,12 +167,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 icon={<TrendingUp size={18} />}
                 label="Regression"
                 description="Correlation and trend analysis"
-              />
-              <ViewOption
-                view="gagerr"
-                icon={<Target size={18} />}
-                label="Gage R&R"
-                description="Measurement system analysis"
               />
             </div>
 

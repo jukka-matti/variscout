@@ -35,7 +35,6 @@ All features included:
 
 - All chart types and analysis features
 - Performance Mode (multi-channel Cpk analysis)
-- Gage R&R (measurement system analysis)
 - Microsoft Entra ID SSO
 - OneDrive project sync
 - Offline support (cached)
@@ -142,7 +141,6 @@ const tier = import.meta.env.VITE_LICENSE_TIER; // Always 'enterprise' for Manag
 | Offline          | Cached locally, syncs when online          |
 | All Chart Types  | I-Chart, Boxplot, Pareto, Capability, etc. |
 | Performance Mode | Multi-channel Cpk analysis                 |
-| Gage R&R         | Measurement system analysis                |
 | Drill-Down       | Interactive filter navigation              |
 
 ---

@@ -392,68 +392,6 @@ export const TOOLS: ToolData[] = [
     relatedCases: ['avocado'],
   },
   {
-    slug: 'gage-rr',
-    name: 'Gage R&R',
-    lens: null,
-    color: '#14b8a6',
-    colorClass: 'text-teal-500',
-    hero: {
-      title: 'Is your measurement system trustworthy?',
-      subtitle: 'Gage R&R separates measurement variation from process variation.',
-    },
-    whenToUse: [
-      'Before any analysis (is the data valid?)',
-      'Evaluating new measurement equipment',
-      'Comparing operators measuring the same thing',
-      'When you suspect measurement problems',
-    ],
-    dataRequirements: {
-      minimum: { count: 30, description: '3 operators × 10 parts × 2-3 trials' },
-      better: { count: 60, description: 'More parts or trials' },
-      sweet: { count: 90, description: '3 operators × 10 parts × 3 trials' },
-    },
-    howToRead: {
-      description: 'Charts show variation by part, operator, and their interaction.',
-      elements: [
-        { name: '%GRR', description: 'Measurement system variation as % of total' },
-        { name: 'Repeatability', description: 'Same person, same part variation' },
-        { name: 'Reproducibility', description: 'Between-operator variation' },
-        { name: 'Part-to-Part', description: 'Actual process variation' },
-      ],
-      quickCheck: [
-        '%GRR < 10% = excellent',
-        '%GRR 10-30% = acceptable',
-        '%GRR > 30% = needs improvement',
-      ],
-    },
-    patterns: [
-      {
-        name: 'High Repeatability',
-        description: 'Equipment has excessive variation',
-        action: 'Calibrate or replace equipment',
-      },
-      {
-        name: 'High Reproducibility',
-        description: 'Operators measure differently',
-        action: 'Standardize technique, train operators',
-      },
-      {
-        name: 'Interaction',
-        description: 'Some operators struggle with certain parts',
-        action: 'Investigate specific combinations',
-      },
-    ],
-    features: [
-      { name: 'Variance components', description: 'See breakdown of all sources' },
-      { name: 'Interaction plot', description: 'Operator × Part visualization' },
-      { name: '%GRR calculation', description: 'Industry-standard metric' },
-    ],
-    sampleKey: 'journey',
-    nextTools: ['i-chart', 'capability'],
-    relatedLearn: ['eda-philosophy'],
-    relatedCases: ['coffee', 'avocado'],
-  },
-  {
     slug: 'performance',
     name: 'Performance Analysis',
     lens: null,

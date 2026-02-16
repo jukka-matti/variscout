@@ -1,7 +1,7 @@
 # Testing Strategy
 
 **Status:** Active
-**Last Updated:** January 2026
+**Last Updated:** February 2026
 
 ---
 
@@ -54,15 +54,14 @@ To run agentic tests, issue a prompt to the agent:
 
 ## Test Ownership by Package
 
-| Package                  | Test Type        | What to Test                                                                                                                    |
-| :----------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `@variscout/core`        | **Unit**         | Statistics (calculateStats, calculateAnova, calculateRegression, calculateGageRR), parser, license validation, export utilities |
-| `@variscout/pwa`         | **Component**    | UI components (StatsPanel, Dashboard, DataTableModal, RegressionPanel, GageRRPanel, AnovaResults)                               |
-| `@variscout/pwa`         | **Agent E2E**    | **Visual verification of charts**, full user flows, persistence layer checks                                                    |
-| `@variscout/azure-app`   | **Component**    | UI components (Dashboard, StatsPanel, RegressionPanel, GageRRPanel, AnovaResults) - mirrors PWA tests                           |
-| `@variscout/azure-app`   | **Agent E2E**    | **MSAL auth flows**, OneDrive sync, team collaboration features                                                                 |
-| `@variscout/charts`      | **Agent Visual** | **Render quality**, responsiveness, interaction handling                                                                        |
-| `@variscout/excel-addin` | **Agent E2E**    | State bridge, Office.js integration simulation                                                                                  |
+| Package                | Test Type        | What to Test                                                                                                   |
+| :--------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------- |
+| `@variscout/core`      | **Unit**         | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities |
+| `@variscout/pwa`       | **Component**    | UI components (StatsPanel, Dashboard, DataTableModal, RegressionPanel, AnovaResults)                           |
+| `@variscout/pwa`       | **Agent E2E**    | **Visual verification of charts**, full user flows, persistence layer checks                                   |
+| `@variscout/azure-app` | **Component**    | UI components (Dashboard, StatsPanel, RegressionPanel, AnovaResults) - mirrors PWA tests                       |
+| `@variscout/azure-app` | **Agent E2E**    | **EasyAuth flows**, OneDrive sync, team collaboration features                                                 |
+| `@variscout/charts`    | **Agent Visual** | **Render quality**, responsiveness, interaction handling                                                       |
 
 ---
 
@@ -77,21 +76,67 @@ To run agentic tests, issue a prompt to the agent:
 
 ---
 
+## Reference Validation (NIST StRD + R)
+
+VariScout's statistics engine is validated against **NIST Statistical Reference Datasets** (StRD) and **R statistical software** reference values. This provides independent, externally certified ground truth for statistical accuracy.
+
+### Why NIST StRD?
+
+The National Institute of Standards and Technology publishes datasets with certified statistical values computed to 15+ significant digits. Software that produces correct results on these datasets is unlikely to have systematic numerical errors. Several datasets are specifically designed to expose flaws in naive algorithms (e.g., catastrophic cancellation in variance computation).
+
+### Datasets Used
+
+| Dataset | NIST Category     | What It Validates                                                    | Difficulty |
+| :------ | :---------------- | :------------------------------------------------------------------- | :--------- |
+| NumAcc1 | Univariate        | `calculateStats` mean/stdDev with large offset                       | Lower      |
+| NumAcc4 | Univariate        | `calculateStats` mean/stdDev — catastrophic cancellation stress test | Higher     |
+| SiRstv  | ANOVA             | `calculateAnova` F-statistic, eta-squared, residual SD, p-value      | Average    |
+| Norris  | Linear Regression | `calculateRegression` slope, intercept, R²                           | Lower      |
+| Pontius | Linear Regression | `calculateRegression` quadratic R² with large x values               | Average    |
+
+### Indirect Validation Strategy
+
+Private helper functions (`normalPDF`, `incompleteBeta`, `lnGamma`, `fDistributionPValue`, `tDistributionPValue`) are not exported and cannot be tested directly. They are validated **indirectly** through end-to-end chains:
+
+- **F-distribution chain:** ANOVA p-value = `fDistributionPValue(F, df1, df2)` → `incompleteBeta()` → `lnGamma()`. If the SiRstv p-value matches R's `pf()` output, the entire chain is correct.
+- **t-distribution chain:** Regression p-value = `tDistributionPValue(t, df)` → `fDistributionPValue()` → `incompleteBeta()`. If the Norris slope p-value is < 1e-10 (matching R), the chain is correct.
+- **Normal quantile:** `normalQuantile()` is validated against R's `qnorm()` at 11 standard percentile points to 8 decimal places.
+
+### Achieved Tolerances
+
+| Section         | Function                                   | Tolerance           | Notes                               |
+| :-------------- | :----------------------------------------- | :------------------ | :---------------------------------- |
+| Normal quantile | `normalQuantile` vs R `qnorm()`            | 8 decimal places    | Acklam's algorithm                  |
+| NumAcc1         | `calculateStats` mean, stdDev              | 9 decimal places    | Well-conditioned                    |
+| NumAcc4         | `calculateStats` mean                      | 7 decimal places    | d3.mean loses ~2 digits at 10^7     |
+| NumAcc4         | `calculateStats` stdDev                    | 8 decimal places    | Welford's algorithm in d3.deviation |
+| SiRstv          | `calculateAnova` F, eta², residual SD      | 6 decimal places    | Standard conditioning               |
+| Norris          | `calculateRegression` slope, intercept, R² | 10 decimal places   | Well-conditioned OLS                |
+| Pontius         | `calculateRegression` quadratic R²         | 6 decimal places    | Large x values (up to 3×10^6)       |
+| Boxplot         | `calculateBoxplotStats` Q1, median, Q3     | 10 decimal places   | R type=7 linear interpolation       |
+| Matrix          | `inverse`, `multiply`, `solve`             | 6–10 decimal places | Depends on condition number         |
+
+### Cross-Validation with Minitab
+
+CSV reference data files are available in `packages/core/reference-data/` for independent verification in Minitab or any statistics package. See the [README](../../../packages/core/reference-data/README.md) in that directory for certified values and step-by-step Minitab instructions.
+
+---
+
 ## Current Coverage
 
-### @variscout/core (140+ test cases)
+### @variscout/core (550+ test cases)
 
-| Function/Module                   | Tested | Cases                                                                   |
-| :-------------------------------- | :----- | :---------------------------------------------------------------------- |
-| `calculateStats()`                | ✅     | Basic stats, Cp/Cpk, one-sided specs, empty data                        |
-| `calculateAnova()`                | ✅     | Significant/non-significant, group stats, eta-squared                   |
-| `calculateRegression()`           | ✅     | Linear, quadratic, weak relationships, optimum detection                |
-| `calculateGageRR()`               | ✅     | Excellent/unacceptable systems, variance components                     |
-| `getNelsonRule2ViolationPoints()` | ✅     | Run detection, edge cases (8 vs 9 points), mean breaks run, staged mode |
-| `tier.ts`                         | ✅     | Tier configuration, channel limits, validation                          |
-| `parser.ts`                       | ✅     | CSV/Excel parsing, auto-mapping, validation, data types                 |
-| `export.ts`                       | ✅     | CSV generation, special characters, escaping                            |
-| `edition.ts`                      | ✅     | Edition detection, feature flags, theming gates                         |
+| Function/Module                   | Tested | Cases                                                                                                               |
+| :-------------------------------- | :----- | :------------------------------------------------------------------------------------------------------------------ |
+| `calculateStats()`                | ✅     | Basic stats, Cp/Cpk, one-sided specs, empty data                                                                    |
+| `calculateAnova()`                | ✅     | Significant/non-significant, group stats, eta-squared                                                               |
+| `calculateRegression()`           | ✅     | Linear, quadratic, weak relationships, optimum detection                                                            |
+| `getNelsonRule2ViolationPoints()` | ✅     | Run detection, edge cases (8 vs 9 points), mean breaks run, staged mode                                             |
+| Reference validation (NIST/R)     | ✅     | normalQuantile, mean/stdDev, ANOVA F, regression coefficients, boxplot quantiles, matrix ops, KDE, probability plot |
+| `tier.ts`                         | ✅     | Tier configuration, channel limits, validation                                                                      |
+| `parser.ts`                       | ✅     | CSV/Excel parsing, auto-mapping, validation, data types                                                             |
+| `export.ts`                       | ✅     | CSV generation, special characters, escaping                                                                        |
+| `edition.ts`                      | ✅     | Edition detection, feature flags, theming gates                                                                     |
 
 ### @variscout/pwa (25+ test cases)
 
@@ -101,7 +146,6 @@ To run agentic tests, issue a prompt to the agent:
 | `Dashboard`       | ✅     | Tab switching, chart rendering, ANOVA      |
 | `DataTableModal`  | ✅     | Cell editing, row operations               |
 | `RegressionPanel` | ✅     | Empty states, chart expansion, ranking     |
-| `GageRRPanel`     | ✅     | Column validation, verdict display         |
 | `AnovaResults`    | ✅     | Null state, F-stat display, p-value format |
 | `export.ts`       | ✅     | CSV generation, special characters         |
 
@@ -124,7 +168,6 @@ To run agentic tests, issue a prompt to the agent:
 | :---------------- | :----- | :----------------------------------------- |
 | `AnovaResults`    | ✅     | Null state, F-stat display, p-value format |
 | `RegressionPanel` | ✅     | Empty states, chart expansion, ranking     |
-| `GageRRPanel`     | ✅     | Column validation, verdict display         |
 | `Dashboard`       | ✅     | Tab switching, ANOVA integration, stats    |
 | `StatsPanel`      | ✅     | Conditional display, Cp/Cpk, tabs          |
 
@@ -134,13 +177,6 @@ To run agentic tests, issue a prompt to the agent:
 | :------------------- | :---------------------------------------------------- |
 | Chart components     | **Agent Verified** (Visual analysis via browser tool) |
 | Responsive utilities | **Agent Verified** (Browser resize testing)           |
-
-### @variscout/excel-addin
-
-| Item                  | Tested                                          |
-| :-------------------- | :---------------------------------------------- |
-| State bridge          | **Agent Verified** (End-to-End flow simulation) |
-| Office.js integration | **Agent Verified** (Mocked environment checks)  |
 
 ---
 
@@ -152,6 +188,11 @@ To run agentic tests, issue a prompt to the agent:
 // Use toBeCloseTo for floating-point math
 expect(stats.mean).toBeCloseTo(11.2, 1); // 1 decimal precision
 expect(stats.cpk).toBeCloseTo(0.33, 2); // 2 decimal precision
+
+// NIST-grade: 10 decimal places for well-conditioned OLS
+expect(result.linear.slope).toBeCloseTo(1.00211681802045, 10);
+// Stress test: 7-8 decimal places for large-offset data
+expect(stats.mean).toBeCloseTo(10000000.2, 7);
 ```
 
 ### Component Testing with Context
@@ -204,11 +245,19 @@ When asking the agent to verify a feature:
 
 ```
 packages/core/
+├── reference-data/          # NIST StRD CSV files for Minitab cross-validation
+│   ├── README.md
+│   ├── nist-numacc1.csv
+│   ├── nist-numacc4.csv
+│   ├── nist-sirstv.csv
+│   ├── nist-norris.csv
+│   └── nist-pontius.csv
 ├── src/
 │   ├── stats.ts
 │   ├── parser.ts
 │   └── __tests__/
 │       ├── stats.test.ts
+│       ├── reference-validation.test.ts  # NIST StRD + R reference values
 │       ├── navigation.test.ts
 │       └── variation.test.ts
 
@@ -221,7 +270,6 @@ apps/pwa/
 │   │       ├── StatsPanel.test.tsx
 │   │       ├── Dashboard.test.tsx
 │   │       ├── RegressionPanel.test.tsx
-│   │       ├── GageRRPanel.test.tsx
 │   │       └── AnovaResults.test.tsx
 │   └── lib/
 │       └── __tests__/
@@ -235,7 +283,6 @@ apps/azure/
 │       └── __tests__/
 │           ├── AnovaResults.test.tsx
 │           ├── RegressionPanel.test.tsx
-│           ├── GageRRPanel.test.tsx
 │           ├── Dashboard.test.tsx
 │           └── StatsPanel.test.tsx
 ```
@@ -271,8 +318,6 @@ Specific prompts to use with the Antigravity Browser Agent for verifying complex
 **Success Criteria:**
 
 - [ ] No header/toolbar visible
-- [ ] No footer visible
-- [ ] Charts render full-width/height
 - [ ] No footer visible
 - [ ] Charts render full-width/height
 - [ ] No console errors related to missing context
@@ -312,9 +357,9 @@ Instead of a manual checklist, assign the following tasks to the Agent for relea
 
 ### Azure Team App
 
-- [ ] **Auth Flow**: Verify MSAL login/logout works correctly.
-- [ ] **Tab Navigation**: Switch between Analysis, Regression, and Gage R&R tabs.
-- [ ] **Chart Rendering**: Verify I-Chart, Boxplot, Pareto, ScatterPlot, and GageRR charts render.
+- [ ] **Auth Flow**: Verify EasyAuth login/logout works correctly.
+- [ ] **Tab Navigation**: Switch between Analysis and Regression tabs.
+- [ ] **Chart Rendering**: Verify I-Chart, Boxplot, Pareto, and ScatterPlot charts render.
 - [ ] **ANOVA Integration**: Confirm ANOVA results display below Boxplot.
 - [ ] **Sync Status**: Verify offline/online sync indicator updates.
 

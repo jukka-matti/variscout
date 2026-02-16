@@ -196,41 +196,6 @@ export const glossaryTerms: GlossaryTerm[] = [
     relatedTerms: ['slope', 'rSquared'],
   },
 
-  // Gage R&R Statistics
-  {
-    id: 'grr',
-    label: '%GRR',
-    definition:
-      'Total measurement system variation as percentage of study variation. <10% excellent, 10-30% marginal, >30% unacceptable.',
-    description:
-      'Gage R&R (Repeatability & Reproducibility) assesses measurement system capability. It combines variation from the equipment (repeatability) and operators (reproducibility).',
-    category: 'statistics',
-    learnMorePath: '/tools/gage-rr',
-    relatedTerms: ['repeatability', 'reproducibility'],
-  },
-  {
-    id: 'repeatability',
-    label: 'Repeatability',
-    definition:
-      'Equipment variation. The variation when the same operator measures the same part multiple times.',
-    description:
-      'Repeatability (EV) measures precision of the measurement equipment. High repeatability variation suggests the gage needs calibration or replacement.',
-    category: 'statistics',
-    learnMorePath: '/tools/gage-rr',
-    relatedTerms: ['grr', 'reproducibility'],
-  },
-  {
-    id: 'reproducibility',
-    label: 'Reproducibility',
-    definition:
-      'Operator variation. The variation when different operators measure the same parts.',
-    description:
-      'Reproducibility (AV) measures consistency between operators. High reproducibility variation suggests a need for operator training or clearer measurement procedures.',
-    category: 'statistics',
-    learnMorePath: '/tools/gage-rr',
-    relatedTerms: ['grr', 'repeatability'],
-  },
-
   // Multiple Regression Statistics
   {
     id: 'adjustedRSquared',

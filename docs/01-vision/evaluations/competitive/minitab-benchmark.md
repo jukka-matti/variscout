@@ -102,7 +102,7 @@ This requires 6+ separate analysis steps, each initiated from menus. VariScout's
 | Pareto chart                         | Yes, as standalone analysis                 | Yes, integrated with filtering           |
 | ANOVA                                | GLM, one-way, multi-way, nested             | One-way with eta-squared ranking         |
 | Regression                           | Full suite (simple through logistic)        | Simple and multiple regression           |
-| Gage R&R                             | Full MSA suite (crossed, nested, expanded)  | Crossed Gage R&R                         |
+| Gage R&R                             | Full MSA suite (crossed, nested, expanded)  | Not available                            |
 | DOE                                  | Full factorial, response surface, mixture   | Not available (different problem domain) |
 | Linked filtering across charts       | No                                          | Yes (core differentiator)                |
 | Progressive drill-down               | No                                          | Yes (core differentiator)                |

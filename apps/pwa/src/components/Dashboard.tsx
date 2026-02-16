@@ -5,7 +5,6 @@ import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
 import MobileDashboard from './MobileDashboard';
 import RegressionPanel from './RegressionPanel';
-import GageRRPanel from './GageRRPanel';
 import SpecEditor from './settings/SpecEditor';
 import SpecsPopover from './settings/SpecsPopover';
 import { PresentationView, EmbedFocusView, FocusedChartView } from './views';
@@ -27,7 +26,7 @@ import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
 
-type AnalysisView = 'dashboard' | 'regression' | 'gagerr';
+type AnalysisView = 'dashboard' | 'regression';
 
 const MOBILE_BREAKPOINT = 640; // sm breakpoint
 
@@ -402,15 +401,6 @@ const Dashboard = ({
         <div className="flex-1 m-4 bg-surface-secondary border border-edge rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
           <ErrorBoundary componentName="Regression Panel">
             <RegressionPanel />
-          </ErrorBoundary>
-        </div>
-      )}
-
-      {/* Gage R&R View */}
-      {activeView === 'gagerr' && (
-        <div className="flex-1 m-4 bg-surface-secondary border border-edge rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
-          <ErrorBoundary componentName="Gage R&R Panel">
-            <GageRRPanel />
           </ErrorBoundary>
         </div>
       )}

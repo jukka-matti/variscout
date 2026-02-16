@@ -437,57 +437,6 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
       'The intercept may not have practical meaning if X=0 is outside your data range. Focus on the slope for interpretation.',
   },
 
-  // Gage R&R Statistics
-  grr: {
-    seoTitle: '%GRR - Gage Repeatability and Reproducibility | VaRiScout Glossary',
-    seoDescription:
-      'Gage R&R measures total measurement system variation as a percentage of study variation. <10% is excellent, 10-30% is acceptable, >30% needs improvement.',
-    relatedTools: ['gage-rr'],
-    relatedLearn: ['eda-philosophy'],
-    sections: [
-      {
-        type: 'interpretation',
-        title: 'Assessment Guidelines',
-        content: '%GRR indicates measurement system capability.',
-        items: [
-          { value: '< 10%', label: 'Excellent', description: 'Measurement system is capable' },
-          {
-            value: '10-30%',
-            label: 'Acceptable',
-            description: 'May be acceptable depending on application',
-          },
-          {
-            value: '> 30%',
-            label: 'Unacceptable',
-            description: 'Measurement system needs improvement',
-          },
-        ],
-      },
-    ],
-    practicalTip:
-      'Before analyzing process variation, verify %GRR < 30%. Otherwise, you might be chasing measurement noise.',
-  },
-
-  repeatability: {
-    seoTitle: 'Repeatability (Equipment Variation) | VaRiScout Glossary',
-    seoDescription:
-      'Repeatability measures equipment variation - the variation when the same operator measures the same part multiple times.',
-    relatedTools: ['gage-rr'],
-    relatedLearn: ['eda-philosophy'],
-    practicalTip:
-      'High repeatability suggests equipment issues - calibration, maintenance, or replacement needed.',
-  },
-
-  reproducibility: {
-    seoTitle: 'Reproducibility (Operator Variation) | VaRiScout Glossary',
-    seoDescription:
-      'Reproducibility measures operator variation - the variation when different operators measure the same parts.',
-    relatedTools: ['gage-rr'],
-    relatedLearn: ['eda-philosophy'],
-    practicalTip:
-      'High reproducibility suggests training issues - standardize procedures, train operators on technique.',
-  },
-
   // Special Cause and Common Cause Variation
   specialCause: {
     seoTitle: 'Special Cause Variation | VariScout Glossary',
