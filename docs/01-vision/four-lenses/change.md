@@ -50,9 +50,9 @@ Questions to ask:
 
 ---
 
-## Chart-to-Pillar Reference
+## Chart-to-Lens Reference
 
-| Pillar | Chart   | Key Metric                    | Key Visual                  | User Action               |
+| Lens   | Chart   | Key Metric                    | Key Visual                  | User Action               |
 | ------ | ------- | ----------------------------- | --------------------------- | ------------------------- |
 | CHANGE | I-Chart | Stability (in/out of control) | Points vs UCL/LCL over time | Click point → see factors |
 
@@ -60,5 +60,5 @@ Questions to ask:
 
 ## See Also
 
-- [Four Pillars Overview](index.md)
+- [Four Lenses Overview](index.md)
 - [Two Voices](../two-voices/index.md) — Control limits vs specification limits

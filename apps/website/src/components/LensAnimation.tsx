@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 
-/** Pillar identity colors — matches CSS --color-pillar-* tokens in global.css */
-const PILLAR_HEX = {
+/** Lens identity colors — matches CSS --color-lens-* tokens in global.css */
+const LENS_HEX = {
   change: '#3b82f6',
   changeLight: '#60a5fa',
   flow: '#f97316',
@@ -9,7 +9,7 @@ const PILLAR_HEX = {
   value: '#22c55e',
 } as const;
 
-/** Non-pillar animation colors */
+/** Non-lens animation colors */
 const ACCENT_HEX = {
   neutral: '#94a3b8',
   staged: '#a855f7',
@@ -82,11 +82,11 @@ const PHASE_LABELS: Record<Phase, string> = {
 
 const PHASE_COLORS: Record<Phase, string> = {
   bars: ACCENT_HEX.neutral,
-  boxplot: PILLAR_HEX.flow,
-  ichart: PILLAR_HEX.change,
+  boxplot: LENS_HEX.flow,
+  ichart: LENS_HEX.change,
   staged: ACCENT_HEX.staged,
-  pareto: PILLAR_HEX.failure,
-  conclusion: PILLAR_HEX.value,
+  pareto: LENS_HEX.failure,
+  conclusion: LENS_HEX.value,
 };
 
 // --- Scroll thresholds ---
@@ -246,8 +246,8 @@ export default function LensAnimation() {
   // Stable data for Factors A and C (used in bar/boxplot phases)
   const sideFactors = useMemo(() => {
     return [
-      { label: 'Factor A', mean: 96, color: PILLAR_HEX.value },
-      { label: 'Factor C', mean: 95, color: PILLAR_HEX.value },
+      { label: 'Factor A', mean: 96, color: LENS_HEX.value },
+      { label: 'Factor C', mean: 95, color: LENS_HEX.value },
     ];
   }, []);
 
@@ -416,7 +416,7 @@ export default function LensAnimation() {
                   className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 rounded-t-lg transition-all duration-700 z-10"
                   style={{
                     height: `${stats.mean}%`,
-                    backgroundColor: PILLAR_HEX.change,
+                    backgroundColor: LENS_HEX.change,
                     opacity: phase === 'bars' ? 1 : 0,
                     transform: `translateX(-50%) scaleY(${phase === 'bars' ? 1 : 0})`,
                     transformOrigin: 'bottom',
@@ -546,7 +546,7 @@ export default function LensAnimation() {
                         .map(d => `${d.chartX},${100 - scaleY(d.val)}`)
                         .join(' ')}
                       fill="none"
-                      stroke={phase === 'staged' ? ACCENT_HEX.stagedLight : PILLAR_HEX.changeLight}
+                      stroke={phase === 'staged' ? ACCENT_HEX.stagedLight : LENS_HEX.changeLight}
                       strokeWidth="0.5"
                       vectorEffect="non-scaling-stroke"
                       strokeLinecap="round"
@@ -585,9 +585,9 @@ export default function LensAnimation() {
                               height: `${barHeight * paretoProg}%`,
                               backgroundColor:
                                 i === 0
-                                  ? PILLAR_HEX.failure
+                                  ? LENS_HEX.failure
                                   : i === 1
-                                    ? PILLAR_HEX.flow
+                                    ? LENS_HEX.flow
                                     : i === 2
                                       ? ACCENT_HEX.paretoWarn
                                       : ACCENT_HEX.paretoNeutral,
@@ -658,7 +658,7 @@ export default function LensAnimation() {
                     let y: number;
                     let opacity = 1;
                     let size = 6;
-                    let color = PILLAR_HEX.changeLight;
+                    let color = LENS_HEX.changeLight;
 
                     if (phase === 'bars') {
                       // Hidden in bar phase
@@ -678,7 +678,7 @@ export default function LensAnimation() {
                       y = scaleY(d.val);
                       size = 6;
                       // Color by whether OOC
-                      if (d.isOutOfControl) color = PILLAR_HEX.failure;
+                      if (d.isOutOfControl) color = LENS_HEX.failure;
                     } else if (phase === 'staged') {
                       // I-chart positions, color by shift
                       x = d.chartX;
@@ -689,7 +689,7 @@ export default function LensAnimation() {
                         color = ACCENT_HEX.stagedLight; // purple for Night
                         opacity = 1;
                       } else {
-                        color = PILLAR_HEX.changeLight; // blue for Day
+                        color = LENS_HEX.changeLight; // blue for Day
                         opacity = Math.max(0.15, 1 - nightFilterProg * 1.2);
                       }
                     } else if (phase === 'pareto') {
@@ -698,7 +698,7 @@ export default function LensAnimation() {
                       y = scaleY(d.val);
                       opacity = Math.max(0, 1 - paretoProg * 2);
                       if (d.isOutOfControl) {
-                        color = PILLAR_HEX.failure;
+                        color = LENS_HEX.failure;
                         opacity = Math.max(0.3, 1 - paretoProg * 1.5);
                       }
                     } else {

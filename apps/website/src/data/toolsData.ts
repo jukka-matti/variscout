@@ -2,10 +2,10 @@
 export interface ToolData {
   slug: string;
   name: string;
-  pillar: 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE' | null;
+  lens: 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE' | null;
   color: string;
   colorClass: string;
-  // Journey integration (only for pillar tools)
+  // Journey integration (only for lens tools)
   journeySection?: number;
   journeyPrevTool?: string;
   journeyNextTool?: string;
@@ -40,9 +40,9 @@ export const TOOLS: ToolData[] = [
   {
     slug: 'i-chart',
     name: 'I-Chart',
-    pillar: 'CHANGE',
+    lens: 'CHANGE',
     color: '#3b82f6',
-    colorClass: 'text-pillar-change',
+    colorClass: 'text-lens-change',
     journeySection: 3,
     journeyPrevTool: 'capability',
     journeyNextTool: 'boxplot',
@@ -110,15 +110,15 @@ export const TOOLS: ToolData[] = [
     ],
     sampleKey: 'journey',
     nextTools: ['boxplot', 'capability'],
-    relatedLearn: ['two-voices', 'four-pillars', 'staged-analysis'],
+    relatedLearn: ['two-voices', 'four-lenses', 'staged-analysis'],
     relatedCases: ['bottleneck', 'hospital-ward', 'coffee', 'cookie-weight'],
   },
   {
     slug: 'boxplot',
     name: 'Boxplot',
-    pillar: 'FLOW',
+    lens: 'FLOW',
     color: '#f97316',
-    colorClass: 'text-pillar-flow',
+    colorClass: 'text-lens-flow',
     journeySection: 4,
     journeyPrevTool: 'i-chart',
     journeyNextTool: 'pareto',
@@ -195,15 +195,15 @@ export const TOOLS: ToolData[] = [
     ],
     sampleKey: 'bottleneck',
     nextTools: ['pareto', 'i-chart'],
-    relatedLearn: ['four-pillars'],
+    relatedLearn: ['four-lenses'],
     relatedCases: ['bottleneck', 'coffee', 'hospital-ward', 'call-wait'],
   },
   {
     slug: 'pareto',
     name: 'Pareto Chart',
-    pillar: 'FAILURE',
+    lens: 'FAILURE',
     color: '#ef4444',
-    colorClass: 'text-pillar-failure',
+    colorClass: 'text-lens-failure',
     journeySection: 5,
     journeyPrevTool: 'boxplot',
     journeyNextTool: undefined,
@@ -260,15 +260,15 @@ export const TOOLS: ToolData[] = [
     ],
     sampleKey: 'packaging',
     nextTools: ['boxplot', 'i-chart'],
-    relatedLearn: ['four-pillars'],
+    relatedLearn: ['four-lenses'],
     relatedCases: ['packaging', 'weld-defects', 'sock-mystery'],
   },
   {
     slug: 'capability',
     name: 'Capability Analysis',
-    pillar: 'VALUE',
+    lens: 'VALUE',
     color: '#22c55e',
-    colorClass: 'text-pillar-value',
+    colorClass: 'text-lens-value',
     journeySection: 2,
     journeyPrevTool: undefined,
     journeyNextTool: 'i-chart',
@@ -326,13 +326,13 @@ export const TOOLS: ToolData[] = [
     ],
     sampleKey: 'mango-export',
     nextTools: ['i-chart', 'boxplot'],
-    relatedLearn: ['two-voices', 'four-pillars'],
+    relatedLearn: ['two-voices', 'four-lenses'],
     relatedCases: ['cookie-weight', 'coffee', 'avocado'],
   },
   {
     slug: 'regression',
     name: 'Regression Analysis',
-    pillar: null,
+    lens: null,
     color: '#8b5cf6',
     colorClass: 'text-purple-500',
     hero: {
@@ -394,7 +394,7 @@ export const TOOLS: ToolData[] = [
   {
     slug: 'gage-rr',
     name: 'Gage R&R',
-    pillar: null,
+    lens: null,
     color: '#14b8a6',
     colorClass: 'text-teal-500',
     hero: {
@@ -456,7 +456,7 @@ export const TOOLS: ToolData[] = [
   {
     slug: 'performance',
     name: 'Performance Analysis',
-    pillar: null,
+    lens: null,
     color: '#06b6d4',
     colorClass: 'text-cyan-500',
     hero: {
@@ -520,7 +520,7 @@ export const TOOLS: ToolData[] = [
     ],
     sampleKey: 'sachets',
     nextTools: ['capability', 'i-chart'],
-    relatedLearn: ['two-voices', 'four-pillars'],
+    relatedLearn: ['two-voices', 'four-lenses'],
     relatedCases: ['bottleneck'],
   },
 ];

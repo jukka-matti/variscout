@@ -5,10 +5,10 @@
  */
 
 const sections = [
-	{ id: 'detective', pillar: 'DETECTIVE', color: 'bg-pillar-change' },
-	{ id: 'value-lens', pillar: 'VALUE', color: 'bg-pillar-value' },
-	{ id: 'business-value', pillar: 'RESULTS', color: 'bg-amber-500' },
-	{ id: 'products', pillar: 'START', color: 'bg-brand-primary' },
+	{ id: 'detective', label: 'DETECTIVE', color: 'bg-lens-change' },
+	{ id: 'value-lens', label: 'VALUE', color: 'bg-lens-value' },
+	{ id: 'business-value', label: 'RESULTS', color: 'bg-amber-500' },
+	{ id: 'products', label: 'START', color: 'bg-brand-primary' },
 ];
 ---
 
@@ -21,7 +21,7 @@ const sections = [
 			href={`#${section.id}`}
 			class="journey-progress-item group flex items-center gap-3"
 			data-section={section.id}
-			aria-label={`Go to ${section.pillar} section`}
+			aria-label={`Go to ${section.label} section`}
 		>
 			<!-- Dot -->
 			<span
@@ -34,7 +34,7 @@ const sections = [
 			/>
 			<!-- Label (desktop only) -->
 			<span class="text-xs font-medium text-neutral-500 opacity-0 group-hover:opacity-100 group-[.is-active]:opacity-100 transition-opacity whitespace-nowrap">
-				{section.pillar}
+				{section.label}
 			</span>
 		</a>
 	))}
@@ -48,7 +48,7 @@ const sections = [
 			class="journey-progress-dot w-2 h-2 rounded-full bg-neutral-600 transition-all"
 			data-section={section.id}
 			data-active-color={section.color}
-			aria-label={`Go to ${section.pillar} section`}
+			aria-label={`Go to ${section.label} section`}
 		/>
 	))}
 </div>

@@ -1,6 +1,6 @@
 # Pareto Chart
 
-The Pareto Chart is VariScout's tool for the **FAILURE** pillar - finding where problems concentrate.
+The Pareto Chart is VariScout's tool for the **FAILURE** lens - finding where problems concentrate.
 
 ---
 
@@ -75,7 +75,7 @@ Pareto charts in VariScout use sorted category counts with cumulative percentage
 
 ## See Also
 
-- [FAILURE Pillar](../../01-vision/four-pillars/failure.md) - Problem concentration concepts
+- [FAILURE Lens](../../01-vision/four-lenses/failure.md) - Problem concentration concepts
 - [Boxplot](boxplot.md) - Previous step: compare variation by factor
 - [Capability](capability.md) - Next step: assess capability of focused subset
 - [Drill-Down](../navigation/drill-down.md) - Navigate into top categories

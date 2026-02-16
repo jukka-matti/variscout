@@ -22,14 +22,14 @@ const { lang } = Astro.params;
 	<!-- ============================================ -->
 	<!-- STORY 1: THE VARIATION DETECTIVE (scroll-driven) -->
 	<!-- ============================================ -->
-	<section id="detective" class="journey-section relative bg-neutral-900" data-pillar="DETECTIVE">
+	<section id="detective" class="journey-section relative bg-neutral-900" data-lens="DETECTIVE">
 		<LensAnimation client:visible />
 	</section>
 
 	<!-- ============================================ -->
 	<!-- STORY 2: THE VALUE PERSPECTIVE -->
 	<!-- ============================================ -->
-	<section id="value-lens" class="journey-section min-h-screen flex flex-col justify-center relative bg-gradient-to-b from-neutral-900 to-slate-900" data-pillar="VALUE">
+	<section id="value-lens" class="journey-section min-h-screen flex flex-col justify-center relative bg-gradient-to-b from-neutral-900 to-slate-900" data-lens="VALUE">
 		<div class="container-wide py-16 md:py-24">
 			<ScrollReveal animation="fade-up">
 				<div class="max-w-3xl mx-auto text-center">
@@ -98,7 +98,7 @@ const { lang } = Astro.params;
 	<!-- ============================================ -->
 	<!-- CTA: BUSINESS VALUE + BREADTH -->
 	<!-- ============================================ -->
-	<section id="business-value" class="journey-section min-h-screen flex flex-col justify-center relative bg-gradient-to-b from-slate-900 to-neutral-900" data-pillar="VALUE">
+	<section id="business-value" class="journey-section min-h-screen flex flex-col justify-center relative bg-gradient-to-b from-slate-900 to-neutral-900" data-lens="VALUE">
 		<div class="container-wide py-16 md:py-24">
 			<!-- ROI examples -->
 			<ScrollReveal animation="fade-up">
@@ -189,7 +189,7 @@ const { lang } = Astro.params;
 	<!-- ============================================ -->
 	<!-- PRODUCT CTA -->
 	<!-- ============================================ -->
-	<section id="products" class="journey-section min-h-[80vh] flex flex-col justify-center relative bg-gradient-to-b from-neutral-900 to-brand-primary/10" data-pillar="PRODUCTS">
+	<section id="products" class="journey-section min-h-[80vh] flex flex-col justify-center relative bg-gradient-to-b from-neutral-900 to-brand-primary/10" data-lens="PRODUCTS">
 		<div class="container-wide py-16 md:py-24">
 			<ScrollReveal animation="scale">
 				<div class="text-center max-w-4xl mx-auto">

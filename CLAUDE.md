@@ -27,11 +27,11 @@ npx claude-flow@v3alpha security cve --check        # CVE check
 
 ```
 docs/
-├── 01-vision/           # Product philosophy, Four Pillars, Two Voices methodology
+├── 01-vision/           # Product philosophy, Four Lenses, Two Voices methodology
 │   ├── index.md
 │   ├── philosophy.md
 │   ├── product-overview.md
-│   ├── four-pillars/    # change, failure, flow, value, drilldown
+│   ├── four-lenses/     # change, failure, flow, value, drilldown
 │   └── two-voices/      # control-limits, spec-limits, variation-types
 ├── 02-journeys/         # User research, personas, flows
 │   ├── index.md
@@ -45,7 +45,7 @@ docs/
 │   ├── user-guide.md
 │   ├── analysis/        # boxplot, capability, i-chart, pareto, gage-rr, performance-mode,
 │   │                    # nelson-rules, staged-analysis, probability-plot, regression
-│   ├── workflows/       # four-pillars, drill-down, performance-mode, msa, quick-check,
+│   ├── workflows/       # four-lenses, drill-down, performance-mode, msa, quick-check,
 │   │                    # deep-dive, decision-trees (analyst workflows & decision guides)
 │   ├── data/            # data-input, storage, validation
 │   ├── navigation/      # drill-down, breadcrumbs, linked-filtering
@@ -111,11 +111,11 @@ docs/
 | Data Flow/Architecture | docs/05-technical/architecture/data-flow.md                                            |
 | Hook Integration       | docs/05-technical/architecture/component-patterns.md                                   |
 | Platform Comparison    | docs/08-products/feature-parity.md                                                     |
-| Analysis Workflows     | docs/03-features/workflows/ (four-pillars, drill-down, decision-trees)                 |
+| Analysis Workflows     | docs/03-features/workflows/ (four-lenses, drill-down, decision-trees)                  |
 | MSA/Gage R&R Study     | docs/03-features/workflows/msa-workflow.md                                             |
 | Quick Analysis         | docs/03-features/workflows/quick-check.md, deep-dive.md                                |
 | Drill-down workflow    | docs/03-features/workflows/drill-down-workflow.md                                      |
-| Four Pillars workflow  | docs/03-features/workflows/four-pillars-workflow.md                                    |
+| Four Lenses workflow   | docs/03-features/workflows/four-lenses-workflow.md                                     |
 | Decision trees         | docs/03-features/workflows/decision-trees.md                                           |
 | Glossary/terminology   | packages/core/src/glossary/terms.ts, docs/03-features/learning/glossary.md             |
 | Azure deployment/ARM   | docs/08-products/azure/marketplace.md, docs/08-products/azure/arm-template.md          |

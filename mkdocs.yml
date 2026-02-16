@@ -69,13 +69,13 @@ nav:
   - Vision:
     - 01-vision/index.md
     - Philosophy: 01-vision/philosophy.md
-    - Four Pillars:
-      - 01-vision/four-pillars/index.md
-      - Change: 01-vision/four-pillars/change.md
-      - Flow: 01-vision/four-pillars/flow.md
-      - Failure: 01-vision/four-pillars/failure.md
-      - Value: 01-vision/four-pillars/value.md
-      - Drill-Down: 01-vision/four-pillars/drilldown.md
+    - Four Lenses:
+      - 01-vision/four-lenses/index.md
+      - Change: 01-vision/four-lenses/change.md
+      - Flow: 01-vision/four-lenses/flow.md
+      - Failure: 01-vision/four-lenses/failure.md
+      - Value: 01-vision/four-lenses/value.md
+      - Drill-Down: 01-vision/four-lenses/drilldown.md
     - Two Voices:
       - 01-vision/two-voices/index.md
       - Control Limits: 01-vision/two-voices/control-limits.md
@@ -112,7 +112,7 @@ nav:
       - Staged Analysis: 03-features/analysis/staged-analysis.md
     - Workflows:
       - Overview: 03-features/workflows/index.md
-      - Four Pillars: 03-features/workflows/four-pillars-workflow.md
+      - Four Lenses: 03-features/workflows/four-lenses-workflow.md
       - Drill-Down: 03-features/workflows/drill-down-workflow.md
       - Performance Mode: 03-features/workflows/performance-mode-workflow.md
       - MSA/Gage R&R: 03-features/workflows/msa-workflow.md

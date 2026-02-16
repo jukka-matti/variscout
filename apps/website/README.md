@@ -31,7 +31,7 @@ src/
 │   └── *.tsx              # Non-island React components (CaseStepsDisplay, LensAnimation)
 ├── data/
 │   ├── toolsData.ts       # 7 tool pages (I-Chart, Boxplot, Pareto, Capability, Regression, Gage R&R, Performance)
-│   ├── learnData.ts       # 10 learn topics (Two Voices, Four Pillars, EDA, Staged Analysis, methodologies, etc.)
+│   ├── learnData.ts       # 10 learn topics (Two Voices, Four Lenses, EDA, Staged Analysis, methodologies, etc.)
 │   └── glossaryData.ts    # ~26 glossary terms extending @variscout/core glossary
 ├── i18n/
 │   ├── ui.ts              # Translation strings for 5 languages
@@ -68,7 +68,7 @@ Content lives in three TypeScript data files (no CMS). Each exports an array of 
 
 1. Add a `ToolData` entry to `src/data/toolsData.ts`
 2. The `[lang]/tools/[tool].astro` page generates routes automatically from `getAllToolSlugs()`
-3. Required fields: `slug`, `name`, `pillar`, `hero`, `whenToUse`, `dataRequirements`, `howToRead`, `patterns`, `features`, `sampleKey`, `nextTools`
+3. Required fields: `slug`, `name`, `lens`, `hero`, `whenToUse`, `dataRequirements`, `howToRead`, `patterns`, `features`, `sampleKey`, `nextTools`
 
 ### Adding a Learn Topic
 

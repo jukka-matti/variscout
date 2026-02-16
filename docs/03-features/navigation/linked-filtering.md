@@ -20,7 +20,7 @@ When you click on one chart, all others respond:
 
 ## Why It Matters
 
-This isn't just a UI feature — it's how the Four Pillars interconnect:
+This isn't just a UI feature — it's how the Four Lenses interconnect:
 
 ```
         ┌─────────┐
@@ -136,4 +136,4 @@ const handleMultiSelect = (factor: string, value: string, currentValues: string[
 
 - [Drill-Down](drill-down.md)
 - [Filter Chips](breadcrumbs.md)
-- [Four Pillars](../../01-vision/four-pillars/index.md)
+- [Four Lenses](../../01-vision/four-lenses/index.md)

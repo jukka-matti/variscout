@@ -129,4 +129,4 @@ const sequences = getNelsonRule2Sequences(values, mean);
 - [Staged Analysis](staged-analysis.md) - Handling legitimate process shifts
 - [Glossary: Nelson Rule 2](../../glossary.md#nelson-rule-2)
 - [Glossary: Special Cause](../../glossary.md#special-cause)
-- [CHANGE Pillar](../../01-vision/four-pillars/change.md) - Time-based stability
+- [CHANGE Lens](../../01-vision/four-lenses/change.md) - Time-based stability

@@ -38,7 +38,7 @@ flowchart TD
     G -->|"Yes"| H[Done - Equipment qualified]
     G -->|"No"| I[Click worst Cpk channel]
     I --> J[Drill to Standard Dashboard]
-    J --> K[Analyze with Four Pillars]
+    J --> K[Analyze with Four Lenses]
     K --> L[Fix channel-specific issue]
     L --> M[Return to Performance overview]
     M --> F
@@ -166,9 +166,9 @@ Head_8  Cpk: 1.72  [Excellent]
 
 Click Head_3 bar → Transitions to Standard Dashboard
 
-Now viewing only Head_3 data with full Four Pillars analysis.
+Now viewing only Head_3 data with full Four Lenses analysis.
 
-### Step 4: Analyze with Four Pillars
+### Step 4: Analyze with Four Lenses
 
 **I-Chart:** Shows instability around 10am each day
 
@@ -288,6 +288,6 @@ Head_7, Head_8: Good
 ## Related Documentation
 
 - [Performance Mode Feature](../analysis/performance-mode.md)
-- [Four Pillars Workflow](four-pillars-workflow.md)
+- [Four Lenses Workflow](four-lenses-workflow.md)
 - [Capability Analysis](../analysis/capability.md)
 - [Oven Zones Case Study](../../04-cases/oven-zones/index.md)

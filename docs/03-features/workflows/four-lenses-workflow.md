@@ -1,17 +1,17 @@
-# Four Pillars Analysis Workflow
+# Four Lenses Analysis Workflow
 
 The core VariScout methodology: **CHANGE → FLOW → FAILURE → VALUE**
 
 ## Overview
 
-The Four Pillars represent a systematic progression through variation analysis:
+The Four Lenses represent a systematic progression through variation analysis:
 
 1. **CHANGE** (I-Chart) - Is the process stable over time?
 2. **FLOW** (Boxplot) - Which factors drive variation?
 3. **FAILURE** (Pareto) - Where do problems concentrate?
 4. **VALUE** (Capability) - Do we meet specifications?
 
-Each pillar answers a specific question, and together they form a complete investigation.
+Each lens answers a specific question, and together they form a complete investigation.
 
 ## The Analysis Flow
 
@@ -47,7 +47,7 @@ flowchart TD
     end
 ```
 
-## Pillar 1: CHANGE (I-Chart)
+## Lens 1: CHANGE (I-Chart)
 
 **Question:** Is the process stable over time?
 
@@ -69,7 +69,7 @@ flowchart TD
 !!! tip "Start Here"
 Always check stability first. Analyzing an unstable process as if it were stable leads to wrong conclusions.
 
-## Pillar 2: FLOW (Boxplot)
+## Lens 2: FLOW (Boxplot)
 
 **Question:** Which factors explain the variation?
 
@@ -104,7 +104,7 @@ Shift explains 45% → Filter to "Night Shift"
           └─ 95% of variation now isolated
 ```
 
-## Pillar 3: FAILURE (Pareto)
+## Lens 3: FAILURE (Pareto)
 
 **Question:** Where do problems concentrate?
 
@@ -129,7 +129,7 @@ After drilling down in Boxplot:
 2. See which defect types dominate in that subset
 3. Combine insights: "Operator B on Machine 3 primarily has alignment defects"
 
-## Pillar 4: VALUE (Capability)
+## Lens 4: VALUE (Capability)
 
 **Question:** Do we meet specifications?
 
@@ -206,9 +206,9 @@ Fill Head 3 had worn seals causing inconsistent fills. After repair:
 - Cpk improved from 0.89 (overall) to 1.52
 - Customer complaints dropped 85%
 
-## When to Use Each Pillar
+## When to Use Each Lens
 
-| Situation                 | Primary Pillar     |
+| Situation                 | Primary Lens       |
 | ------------------------- | ------------------ |
 | "Something changed"       | CHANGE (I-Chart)   |
 | "Why is there variation?" | FLOW (Boxplot)     |
@@ -243,5 +243,5 @@ Too many filters leave too little data for reliable statistics. Balance detail w
 - [Boxplot Feature](../analysis/boxplot.md)
 - [Pareto Feature](../analysis/pareto.md)
 - [Capability Feature](../analysis/capability.md)
-- [Four Pillars Philosophy](../../01-vision/four-pillars/index.md)
+- [Four Lenses Philosophy](../../01-vision/four-lenses/index.md)
 - [Drill-Down Workflow](drill-down-workflow.md)

@@ -168,4 +168,4 @@ Filter to Store C + Weekend, then use What-If:
 - [Drill-Down Workflow](drill-down-workflow.md) — Phase 1 mechanics
 - [Deep Dive](deep-dive.md) — 30-minute investigation pattern
 - [Decision Trees](decision-trees.md) — Which analysis to use when
-- [Four Pillars Workflow](four-pillars-workflow.md) — Foundational methodology
+- [Four Lenses Workflow](four-lenses-workflow.md) — Foundational methodology

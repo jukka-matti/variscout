@@ -33,9 +33,9 @@ VariScout is built on a philosophy of **EDA for process improvement** — not st
 
 ## Core Frameworks
 
-### Watson's Four Pillars — Four Lenses on Variation
+### Watson's Four Lenses of Variation
 
-Watson's Four Pillars of Process Knowledge give you four distinct **lenses** — each revealing a different dimension of your process:
+Watson's Four Lenses give you four distinct perspectives — each revealing a different dimension of your process:
 
 | Chart                    | Lens        | What You See Through It           |
 | ------------------------ | ----------- | --------------------------------- |
@@ -46,7 +46,7 @@ Watson's Four Pillars of Process Knowledge give you four distinct **lenses** —
 
 No single lens tells the full story — you need all four to see clearly.
 
-[:octicons-arrow-right-24: Four Pillars](four-pillars/index.md)
+[:octicons-arrow-right-24: Four Lenses](four-lenses/index.md)
 
 ### Two Voices
 
@@ -138,7 +138,7 @@ When you click on one chart, all others respond. This isn't just a UI feature �
 
 Based on:
 
-- Watson's Four Pillars of Process Knowledge
+- Watson's Four Lenses of Process Knowledge
 - The Sock Mystery experiential exercise
 - ITC Quality Control principles
 - Shewhart's foundational work on control charts

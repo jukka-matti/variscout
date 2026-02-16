@@ -1,6 +1,6 @@
 # Capability Analysis
 
-Capability Analysis is VariScout's tool for the **VALUE** pillar - comparing process output to customer specifications.
+Capability Analysis is VariScout's tool for the **VALUE** lens - comparing process output to customer specifications.
 
 ---
 
@@ -99,7 +99,7 @@ const stats = calculateStats(values, usl, lsl);
 
 ## See Also
 
-- [VALUE Pillar](../../01-vision/four-pillars/value.md) - Customer value concepts
+- [VALUE Lens](../../01-vision/four-lenses/value.md) - Customer value concepts
 - [Two Voices](../../01-vision/two-voices/index.md) - Control limits vs specs
 - [Probability Plot](probability-plot.md) - Check normality assumption
 - [Performance Mode](performance-mode.md) - Multi-channel capability comparison

@@ -52,15 +52,15 @@ Questions to ask:
 
 ---
 
-## Chart-to-Pillar Reference
+## Chart-to-Lens Reference
 
-| Pillar | Chart      | Key Metric | Key Visual              | User Action        |
-| ------ | ---------- | ---------- | ----------------------- | ------------------ |
-| VALUE  | Capability | Cp/Cpk     | Histogram vs spec lines | Set USL/LSL/Target |
+| Lens  | Chart      | Key Metric | Key Visual              | User Action        |
+| ----- | ---------- | ---------- | ----------------------- | ------------------ |
+| VALUE | Capability | Cp/Cpk     | Histogram vs spec lines | Set USL/LSL/Target |
 
 ---
 
 ## See Also
 
-- [Four Pillars Overview](index.md)
+- [Four Lenses Overview](index.md)
 - [Two Voices](../two-voices/index.md) — Control limits vs specification limits

@@ -296,5 +296,5 @@ flowchart TD
 ## Related Documentation
 
 - [Gage R&R Feature](../analysis/gage-rr.md)
-- [Four Pillars Workflow](four-pillars-workflow.md)
+- [Four Lenses Workflow](four-lenses-workflow.md)
 - [Data Validation](../data/validation.md)

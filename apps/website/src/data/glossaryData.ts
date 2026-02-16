@@ -48,14 +48,14 @@ export const GLOSSARY_CATEGORIES: Record<GlossaryCategory, CategoryMeta> = {
     description: 'Boundaries that define expected process behavior and customer requirements',
     icon: '🎯',
     color: '#3b82f6',
-    colorClass: 'text-pillar-change',
+    colorClass: 'text-lens-change',
   },
   capability: {
     name: 'Capability',
     description: 'Metrics that compare process performance to customer specifications',
     icon: '📊',
     color: '#22c55e',
-    colorClass: 'text-pillar-value',
+    colorClass: 'text-lens-value',
   },
   statistics: {
     name: 'Statistics',
@@ -69,7 +69,7 @@ export const GLOSSARY_CATEGORIES: Record<GlossaryCategory, CategoryMeta> = {
     description: 'Visual tools for exploring and understanding process variation',
     icon: '📈',
     color: '#f97316',
-    colorClass: 'text-pillar-flow',
+    colorClass: 'text-lens-flow',
   },
   methodology: {
     name: 'Methodology',
@@ -91,7 +91,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     seoDescription:
       'Upper Control Limit (UCL) is the statistical boundary showing the upper range of expected process behavior, calculated at mean + 3 standard deviations.',
     relatedTools: ['i-chart', 'capability'],
-    relatedLearn: ['two-voices', 'four-pillars'],
+    relatedLearn: ['two-voices', 'four-lenses'],
     sections: [
       {
         type: 'formula',
@@ -124,7 +124,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     seoDescription:
       'Lower Control Limit (LCL) is the statistical boundary showing the lower range of expected process behavior, calculated at mean - 3 standard deviations.',
     relatedTools: ['i-chart', 'capability'],
-    relatedLearn: ['two-voices', 'four-pillars'],
+    relatedLearn: ['two-voices', 'four-lenses'],
     sections: [
       {
         type: 'formula',
@@ -280,7 +280,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     seoDescription:
       'The mean is the arithmetic average - the sum of all measurements divided by the count. It represents the center of your data.',
     relatedTools: ['i-chart', 'capability', 'boxplot'],
-    relatedLearn: ['four-pillars', 'eda-philosophy'],
+    relatedLearn: ['four-lenses', 'eda-philosophy'],
     sections: [
       {
         type: 'formula',
@@ -297,7 +297,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     seoDescription:
       'Standard Deviation (σ) measures the spread or variability of measurements around the mean. Smaller values indicate more consistent processes.',
     relatedTools: ['i-chart', 'capability'],
-    relatedLearn: ['two-voices', 'four-pillars'],
+    relatedLearn: ['two-voices', 'four-lenses'],
     sections: [
       {
         type: 'interpretation',
@@ -320,7 +320,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     seoDescription:
       'The F-Statistic measures the ratio of between-group variance to within-group variance in ANOVA, indicating whether groups differ significantly.',
     relatedTools: ['boxplot'],
-    relatedLearn: ['four-pillars', 'eda-philosophy'],
+    relatedLearn: ['four-lenses', 'eda-philosophy'],
     sections: [
       {
         type: 'interpretation',
@@ -369,7 +369,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     seoDescription:
       'Eta-squared (η²) measures effect size - how much of the total variation is explained by the factor. Small < 0.06, medium 0.06-0.14, large > 0.14.',
     relatedTools: ['boxplot'],
-    relatedLearn: ['four-pillars', 'eda-philosophy'],
+    relatedLearn: ['four-lenses', 'eda-philosophy'],
     sections: [
       {
         type: 'interpretation',
@@ -494,7 +494,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     seoDescription:
       'Special cause variation in Statistical Process Control (SPC): Learn how to detect unusual events through control charts and Nelson rules, and why investigation is required.',
     relatedTools: ['i-chart', 'boxplot'],
-    relatedLearn: ['control-charts', 'two-voices', 'four-pillars'],
+    relatedLearn: ['control-charts', 'two-voices', 'four-lenses'],
     sections: [
       {
         type: 'interpretation',
@@ -641,7 +641,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     seoDescription:
       'Violin plot overlays a kernel density estimate on a boxplot, revealing distribution shape, bimodality, and skewness that box-and-whisker summaries alone can miss.',
     relatedTools: ['boxplot'],
-    relatedLearn: ['four-pillars', 'eda-philosophy'],
+    relatedLearn: ['four-lenses', 'eda-philosophy'],
     sections: [
       {
         type: 'interpretation',
@@ -679,7 +679,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     seoDescription:
       'In-control process in SPC: A stable, predictable process with only common cause variation. Learn the difference between in-control and capable.',
     relatedTools: ['i-chart', 'capability'],
-    relatedLearn: ['control-charts', 'two-voices', 'four-pillars'],
+    relatedLearn: ['control-charts', 'two-voices', 'four-lenses'],
     sections: [
       {
         type: 'interpretation',

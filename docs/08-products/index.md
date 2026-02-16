@@ -122,7 +122,7 @@ This ensures:
 
 - Identical statistical calculations across platforms
 - Consistent chart appearance
-- Shared methodology (Four Pillars)
+- Shared methodology (Four Lenses)
 
 ---
 

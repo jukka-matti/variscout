@@ -171,12 +171,12 @@ export const LEARN_TOPICS: LearnTopic[] = [
       },
     ],
     relatedTools: ['i-chart', 'capability'],
-    relatedTopics: ['four-pillars', 'eda-philosophy'],
+    relatedTopics: ['four-lenses', 'eda-philosophy'],
     relatedCases: ['coffee', 'cookie-weight'],
   },
   {
-    slug: 'four-pillars',
-    title: 'The Four Pillars',
+    slug: 'four-lenses',
+    title: 'The Four Lenses',
     subtitle: "Watson's Framework for Variation Analysis",
     description:
       'A systematic approach to understanding variation: CHANGE over time, FLOW through factors, FAILURE concentration, and VALUE delivery.',
@@ -186,15 +186,15 @@ export const LEARN_TOPICS: LearnTopic[] = [
     sections: [
       {
         id: 'intro',
-        title: 'Why Four Pillars?',
+        title: 'Why Four Lenses?',
         content:
-          "Different questions require different tools. The Four Pillars framework helps you pick the right visualization for your question. It's not about which tool is 'best' - it's about which question you're asking.",
+          "Different questions require different tools. The Four Lenses framework helps you pick the right visualization for your question. It's not about which tool is 'best' - it's about which question you're asking.",
       },
       {
         id: 'change',
         title: 'CHANGE: Time Patterns',
         content:
-          'The first pillar looks at how your data changes over time. This reveals trends, shifts, cycles, and special causes that averages hide.',
+          'The first lens looks at how your data changes over time. This reveals trends, shifts, cycles, and special causes that averages hide.',
         visual: {
           type: 'list',
           data: {
@@ -211,7 +211,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'flow',
         title: 'FLOW: Factor Comparison',
         content:
-          'The second pillar compares groups to find where variation hides. Which machine, operator, shift, or material has the most spread?',
+          'The second lens compares groups to find where variation hides. Which machine, operator, shift, or material has the most spread?',
         visual: {
           type: 'list',
           data: {
@@ -228,7 +228,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'failure',
         title: 'FAILURE: Problem Concentration',
         content:
-          'The third pillar prioritizes where problems concentrate. The 80/20 rule: a vital few categories often cause most issues. Find them first.',
+          'The third lens prioritizes where problems concentrate. The 80/20 rule: a vital few categories often cause most issues. Find them first.',
         visual: {
           type: 'list',
           data: {
@@ -245,7 +245,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'value',
         title: 'VALUE: Customer Requirements',
         content:
-          'The fourth pillar connects process performance to customer needs. Capability analysis answers: does my process meet spec?',
+          'The fourth lens connects process performance to customer needs. Capability analysis answers: does my process meet spec?',
         visual: {
           type: 'list',
           data: {
@@ -361,7 +361,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'variscout-eda',
         title: 'VaRiScout is EDA',
         content:
-          'VaRiScout is designed for EDA. Click to filter, drag to explore, hover to investigate. The Four Pillars give you multiple views of the same data. Cross-chart filtering lets you follow hunches instantly.',
+          'VaRiScout is designed for EDA. Click to filter, drag to explore, hover to investigate. The Four Lenses give you multiple views of the same data. Cross-chart filtering lets you follow hunches instantly.',
         visual: {
           type: 'list',
           data: {
@@ -426,7 +426,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
       },
     ],
     relatedTools: ['i-chart', 'boxplot', 'regression'],
-    relatedTopics: ['four-pillars', 'two-voices'],
+    relatedTopics: ['four-lenses', 'two-voices'],
     relatedCases: ['bottleneck', 'avocado'],
   },
   {
@@ -436,7 +436,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     description:
       'When your process changes, your control limits should too. Staged analysis reveals improvements that combined data hides.',
     color: '#3b82f6',
-    colorClass: 'text-pillar-change',
+    colorClass: 'text-lens-change',
     icon: '📊',
     sections: [
       {
@@ -592,7 +592,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
       },
     ],
     relatedTools: ['i-chart', 'capability'],
-    relatedTopics: ['two-voices', 'four-pillars'],
+    relatedTopics: ['two-voices', 'four-lenses'],
     relatedCases: ['hospital-ward', 'coffee'],
   },
 
@@ -605,7 +605,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     description:
       'Understand how VariScout calculates control limits and why we chose the standard 3-sigma approach.',
     color: '#3b82f6',
-    colorClass: 'text-pillar-change',
+    colorClass: 'text-lens-change',
     icon: '📐',
     sections: [
       {
@@ -722,7 +722,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     description:
       'Learn how VariScout calculates process capability indices and when to trust them.',
     color: '#22c55e',
-    colorClass: 'text-pillar-value',
+    colorClass: 'text-lens-value',
     icon: '🎯',
     sections: [
       {
@@ -956,7 +956,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
       },
     ],
     relatedTools: ['boxplot', 'pareto'],
-    relatedTopics: ['four-pillars', 'eda-philosophy'],
+    relatedTopics: ['four-lenses', 'eda-philosophy'],
     relatedCases: ['bottleneck', 'coffee'],
   },
   {
@@ -979,7 +979,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'what-variscout-is',
         title: 'What VariScout Is For',
         content:
-          'VariScout is an exploration and teaching tool. It makes quality analysis accessible without statistical software expertise. The Four Pillars framework helps users ask the right questions. Cross-chart filtering enables rapid hypothesis testing.',
+          'VariScout is an exploration and teaching tool. It makes quality analysis accessible without statistical software expertise. The Four Lenses framework helps users ask the right questions. Cross-chart filtering enables rapid hypothesis testing.',
         visual: {
           type: 'list',
           data: {
@@ -1084,7 +1084,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
       },
     ],
     relatedTools: ['i-chart', 'boxplot', 'pareto', 'capability'],
-    relatedTopics: ['eda-philosophy', 'four-pillars', 'two-voices'],
+    relatedTopics: ['eda-philosophy', 'four-lenses', 'two-voices'],
     relatedCases: ['bottleneck', 'coffee'],
   },
   {
@@ -1094,7 +1094,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     description:
       'When you enable staged analysis, each phase gets its own control limits calculated independently, revealing improvements that combined analysis hides.',
     color: '#3b82f6',
-    colorClass: 'text-pillar-change',
+    colorClass: 'text-lens-change',
     icon: '📊',
     sections: [
       {
@@ -1218,7 +1218,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
     description:
       'Learn how control charts distinguish special cause variation (unusual events) from common cause variation (random noise), enabling data-driven process improvement.',
     color: '#ef4444',
-    colorClass: 'text-pillar-change',
+    colorClass: 'text-lens-change',
     icon: '🎯',
     sections: [
       {
@@ -1438,7 +1438,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
       },
     ],
     relatedTools: ['i-chart', 'boxplot', 'capability'],
-    relatedTopics: ['two-voices', 'four-pillars', 'eda-philosophy', 'staged-analysis'],
+    relatedTopics: ['two-voices', 'four-lenses', 'eda-philosophy', 'staged-analysis'],
     relatedCases: ['coffee', 'bottleneck', 'cookie-weight'],
   },
 ];

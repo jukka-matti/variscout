@@ -6,7 +6,7 @@
 
 ## Why Lenses?
 
-The Four Pillars are not sequential steps — they are **parallel lenses** on the same data. Each lens asks a fundamentally different question. Apply them in any order, combine them through drill-down, and the same dataset reveals different truths depending on which lens you look through.
+The Four Lenses are not sequential steps — they are **parallel lenses** on the same data. Each lens asks a fundamentally different question. Apply them in any order, combine them through drill-down, and the same dataset reveals different truths depending on which lens you look through.
 
 Think of a detective examining a crime scene: the same evidence looks different under UV light, through a magnifying glass, or in a timeline reconstruction. VariScout's four charts work the same way — four lenses, one dataset, four kinds of insight.
 
@@ -14,7 +14,7 @@ Think of a detective examining a crime scene: the same evidence looks different 
 
 ## The Core Insight
 
-VariScout's four core charts aren't random statistical outputs. Each chart directly maps to one of Watson's Four Pillars of Process Knowledge — each a distinct **lens** on your data:
+VariScout's four core charts aren't random statistical outputs. Each chart directly maps to one of Watson's Four Lenses of Process Knowledge — each a distinct **lens** on your data:
 
 | Chart                    | Lens        | Core Question                     |
 | ------------------------ | ----------- | --------------------------------- |
@@ -30,7 +30,7 @@ VariScout's four core charts aren't random statistical outputs. Each chart direc
 | **Regression** | Correlation Check | "Is there even a relationship between X and Y?" |
 
 !!! note
-Regression in VariScout serves as a **first step** to visually check if correlation exists between two continuous variables. It answers "is there a relationship?" before investing in deeper predictive modeling. For most variation analysis, the Four Pillars are sufficient.
+Regression in VariScout serves as a **first step** to visually check if correlation exists between two continuous variables. It answers "is there a relationship?" before investing in deeper predictive modeling. For most variation analysis, the Four Lenses are sufficient.
 
 ---
 
@@ -129,4 +129,4 @@ The lenses support progressive analysis through drill-down:
 
 ## Reference
 
-Based on Watson's Four Pillars framework (reframed as four lenses), the Sock Mystery experiential exercise, and the VariScout product design.
+Based on Watson's Four Lenses framework, the Sock Mystery experiential exercise, and the VariScout product design.

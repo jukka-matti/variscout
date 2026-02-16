@@ -1,6 +1,6 @@
 # I-Chart (Individuals Chart)
 
-The I-Chart is VariScout's tool for the **CHANGE** pillar - analyzing time-based stability.
+The I-Chart is VariScout's tool for the **CHANGE** lens - analyzing time-based stability.
 
 ---
 
@@ -74,7 +74,7 @@ const violations = getNelsonRule2ViolationPoints(values, stats.mean);
 
 ## See Also
 
-- [CHANGE Pillar](../../01-vision/four-pillars/change.md) - Time-based stability concepts
+- [CHANGE Lens](../../01-vision/four-lenses/change.md) - Time-based stability concepts
 - [Two Voices](../../01-vision/two-voices/index.md) - Control limits vs specs
 - [Nelson Rules](nelson-rules.md) - Pattern detection (9-point runs)
 - [Staged Analysis](staged-analysis.md) - Per-stage control limits

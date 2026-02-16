@@ -132,4 +132,4 @@ interface FilterChipData {
 ## See Also
 
 - [Drill-Down](drill-down.md)
-- [Four Pillars: Drill-Down](../../01-vision/four-pillars/drilldown.md)
+- [Four Lenses: Drill-Down](../../01-vision/four-lenses/drilldown.md)

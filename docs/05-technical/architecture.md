@@ -20,7 +20,7 @@ variscout-lite/
 │   ├── website/           # Marketing website (Astro + React Islands)
 │   └── excel-addin/       # Excel Add-in (Office.js + React + Fluent UI)
 ├── docs/
-│   ├── 01-vision/         # Product philosophy, Four Pillars, Two Voices
+│   ├── 01-vision/         # Product philosophy, Four Lenses, Two Voices
 │   ├── 02-journeys/       # User research, personas, flows
 │   ├── 03-features/       # Feature documentation (analysis, workflows, data, navigation)
 │   ├── 04-cases/          # Case studies with demo data
@@ -260,7 +260,7 @@ Marketing and education website (Astro 5 + React 19 Islands):
 
 | Module                         | Purpose                                              |
 | ------------------------------ | ---------------------------------------------------- |
-| `src/data/toolsData.ts`        | 7 tool page definitions (slug, pillar, content)      |
+| `src/data/toolsData.ts`        | 7 tool page definitions (slug, lens, content)        |
 | `src/data/learnData.ts`        | 10 learn topic definitions with visual sections      |
 | `src/data/glossaryData.ts`     | ~26 glossary terms extending @variscout/core         |
 | `src/i18n/ui.ts`               | Translation strings for 5 languages (en/de/es/fr/pt) |
@@ -447,7 +447,7 @@ variscout-lite/
 │       └── dist/                # Add-in build output (gitignored)
 │
 ├── docs/                        # Documentation
-│   ├── 01-vision/               # Product philosophy, Four Pillars, Two Voices
+│   ├── 01-vision/               # Product philosophy, Four Lenses, Two Voices
 │   ├── 02-journeys/             # User research, personas, flows
 │   ├── 03-features/             # Feature documentation
 │   ├── 04-cases/                # Case studies with demo data

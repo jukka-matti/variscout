@@ -171,7 +171,7 @@ Every case page follows this narrative arc:
 - Scroll-based reveal of the analysis journey
 - Step by step: I-Chart → Boxplot → Pareto → Drill-down
 - The "aha moment": "46% was in Machine C, Shift 2, Operator X"
-- Methodology connection: This is the Four Pillars in action
+- Methodology connection: This is the Four Lenses in action
 
 ---
 
@@ -220,7 +220,7 @@ Carlos learns the methodology:
 | After Act 3   | "Install to Upload"         | /app                 | For users ready for own data   |
 | After Act 3   | "Try another case"          | /cases               |                                |
 | After Act 3   | "Get case studies by email" | Email capture        |                                |
-| Sidebar       | "Learn the methodology"     | /learn/four-pillars  |                                |
+| Sidebar       | "Learn the methodology"     | /learn/four-lenses   |                                |
 | Related cases | "Next: Hospital Ward Case"  | /cases/hospital-ward |                                |
 
 **Updated Journey:**
@@ -237,7 +237,7 @@ Carlos learns the methodology:
 | ----------------- | -------------------- | -------------------------- |
 | /cases/bottleneck | /tools/i-chart       | "Learn more about I-Chart" |
 | /cases/bottleneck | /cases/hospital-ward | "Next case"                |
-| /cases/bottleneck | /learn/four-pillars  | "The methodology"          |
+| /cases/bottleneck | /learn/four-lenses   | "The methodology"          |
 | Any case          | /products            | "Do this with your data"   |
 
 ---

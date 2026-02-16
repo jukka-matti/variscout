@@ -6,7 +6,7 @@
 
 ## Context
 
-Boxplots are the primary chart in the FLOW pillar for factor comparison. They show quartiles, median, whiskers, and outliers but completely hide the distribution shape. Bimodal data, skewness, and clustering are invisible in standard box elements.
+Boxplots are the primary chart in the FLOW lens for factor comparison. They show quartiles, median, whiskers, and outliers but completely hide the distribution shape. Bimodal data, skewness, and clustering are invisible in standard box elements.
 
 Quality professionals need to see distribution shape to identify mixed populations (e.g., two operators with different settings creating bimodal output) before drilling down.
 
@@ -53,4 +53,4 @@ Add a violin plot toggle to boxplot charts that overlays KDE-based density curve
 
 - [Boxplot Feature](../03-features/analysis/boxplot.md)
 - [Boxplot Design System](../06-design-system/charts/boxplot.md)
-- [FLOW Pillar](../01-vision/four-pillars/flow.md)
+- [FLOW Lens](../01-vision/four-lenses/flow.md)

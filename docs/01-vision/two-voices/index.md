@@ -114,14 +114,14 @@ LSL ━━━━━━━━━━━━━━━━━━━━━━━━━�
 
 ## Summary
 
-| Concept              | Control Limits           | Specification Limits                      |
-| -------------------- | ------------------------ | ----------------------------------------- |
-| **Voice**            | Process                  | Customer                                  |
-| **Source**           | Calculated from data     | Defined by requirements                   |
-| **Question**         | "Is it stable?"          | "Does it meet needs?"                     |
-| **Chart**            | I-Chart                  | Capability (and I-Chart when specs added) |
-| **Can change?**      | Only by changing process | Only by negotiating                       |
-| **VariScout Pillar** | CHANGE                   | VALUE                                     |
+| Concept            | Control Limits           | Specification Limits                      |
+| ------------------ | ------------------------ | ----------------------------------------- |
+| **Voice**          | Process                  | Customer                                  |
+| **Source**         | Calculated from data     | Defined by requirements                   |
+| **Question**       | "Is it stable?"          | "Does it meet needs?"                     |
+| **Chart**          | I-Chart                  | Capability (and I-Chart when specs added) |
+| **Can change?**    | Only by changing process | Only by negotiating                       |
+| **VariScout Lens** | CHANGE                   | VALUE                                     |
 
 **The key insight:**
 
@@ -145,7 +145,7 @@ Based on quality control principles as documented in:
 - ITC Quality Control Manual for Coffee
 - Shewhart's foundational work on control charts
 - Wheeler's "Understanding Variation"
-- Watson's Four Pillars of Process Knowledge
+- Watson's Four Lenses of Process Knowledge
 
 ---
 

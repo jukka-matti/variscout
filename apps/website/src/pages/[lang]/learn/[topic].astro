@@ -29,10 +29,10 @@ const { lang } = Astro.params;
 // Helper to render visual components
 function getComparisonClasses(color: string) {
 	const colorMap: Record<string, { bg: string; text: string; border: string }> = {
-		blue: { bg: 'bg-pillar-change/10', text: 'text-pillar-change', border: 'border-pillar-change/20' },
-		green: { bg: 'bg-pillar-value/10', text: 'text-pillar-value', border: 'border-pillar-value/20' },
-		orange: { bg: 'bg-pillar-flow/10', text: 'text-pillar-flow', border: 'border-pillar-flow/20' },
-		red: { bg: 'bg-pillar-failure/10', text: 'text-pillar-failure', border: 'border-pillar-failure/20' },
+		blue: { bg: 'bg-lens-change/10', text: 'text-lens-change', border: 'border-lens-change/20' },
+		green: { bg: 'bg-lens-value/10', text: 'text-lens-value', border: 'border-lens-value/20' },
+		orange: { bg: 'bg-lens-flow/10', text: 'text-lens-flow', border: 'border-lens-flow/20' },
+		red: { bg: 'bg-lens-failure/10', text: 'text-lens-failure', border: 'border-lens-failure/20' },
 		purple: { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/20' },
 		cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-500', border: 'border-cyan-500/20' },
 		amber: { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' },
@@ -192,7 +192,7 @@ function getComparisonClasses(color: string) {
 											</div>
 											<div>
 												<div class="font-semibold text-neutral-900 group-hover:text-brand-primary transition-colors">{tool.name}</div>
-												<p class="text-sm text-neutral-500">{tool.pillar ? `${tool.pillar} Pillar` : 'Additional Tool'}</p>
+												<p class="text-sm text-neutral-500">{tool.lens ? `${tool.lens} Lens` : 'Additional Tool'}</p>
 											</div>
 										</a>
 									);

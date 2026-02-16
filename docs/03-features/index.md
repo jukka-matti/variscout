@@ -6,9 +6,9 @@ Centralized feature specifications for VariScout.
 
 ## Analysis Tools
 
-The core statistical charts based on Watson's Four Pillars:
+The core statistical charts based on Watson's Four Lenses:
 
-| Chart                                            | Pillar  | Purpose                                  |
+| Chart                                            | Lens    | Purpose                                  |
 | ------------------------------------------------ | ------- | ---------------------------------------- |
 | [I-Chart](analysis/i-chart.md)                   | CHANGE  | Time-based stability analysis            |
 | [Boxplot](analysis/boxplot.md)                   | FLOW    | Factor comparison (includes Violin Mode) |

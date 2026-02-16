@@ -1,14 +1,14 @@
 ---
 /**
  * JourneyFeatures - Features organized by journey phases
- * FIND IT (pillars) → FIX IT → CHECK IT → CONTINUE
+ * FIND IT (lenses) → FIX IT → CHECK IT → CONTINUE
  */
 
 import { Check } from 'lucide-astro';
 
 interface JourneyFeaturesData {
 	findIt: {
-		pillars: {
+		lenses: {
 			change: boolean;
 			flow: boolean;
 			failure: boolean;
@@ -27,11 +27,11 @@ interface Props {
 
 const { features } = Astro.props;
 
-const pillars = [
-	{ key: 'change' as const, name: 'I-Chart', pillarLabel: 'CHANGE', color: 'blue', description: 'See patterns over time' },
-	{ key: 'flow' as const, name: 'Boxplot', pillarLabel: 'FLOW', color: 'orange', description: 'Compare factors' },
-	{ key: 'failure' as const, name: 'Pareto', pillarLabel: 'FAILURE', color: 'red', description: 'Find concentration' },
-	{ key: 'value' as const, name: 'Capability', pillarLabel: 'VALUE', color: 'green', description: 'Check against specs' },
+const lenses = [
+	{ key: 'change' as const, name: 'I-Chart', lensLabel: 'CHANGE', color: 'blue', description: 'See patterns over time' },
+	{ key: 'flow' as const, name: 'Boxplot', lensLabel: 'FLOW', color: 'orange', description: 'Compare factors' },
+	{ key: 'failure' as const, name: 'Pareto', lensLabel: 'FAILURE', color: 'red', description: 'Find concentration' },
+	{ key: 'value' as const, name: 'Capability', lensLabel: 'VALUE', color: 'green', description: 'Check against specs' },
 ];
 
 const phases = [
@@ -72,7 +72,7 @@ const phases = [
 			<p class="text-neutral-600 mt-2">Features organized by the VaRiScout journey</p>
 		</div>
 
-		<!-- FIND IT: Pillar capability grid -->
+		<!-- FIND IT: Lens capability grid -->
 		<div class="mb-12">
 			<div class="flex items-center gap-3 mb-6">
 				<div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
@@ -87,11 +87,11 @@ const phases = [
 			</div>
 
 			<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-				{pillars.map((p) => (
+				{lenses.map((p) => (
 					<div
 						class:list={[
 							'p-5 rounded-xl border-2 transition-all',
-							features.findIt.pillars[p.key]
+							features.findIt.lenses[p.key]
 								? `bg-${p.color}-500/10 border-${p.color}-500/30`
 								: 'bg-neutral-100 border-neutral-200 opacity-50',
 						]}
@@ -100,12 +100,12 @@ const phases = [
 							<span
 								class:list={[
 									'text-xs font-bold uppercase tracking-wider',
-									features.findIt.pillars[p.key] ? `text-${p.color}-500` : 'text-neutral-400',
+									features.findIt.lenses[p.key] ? `text-${p.color}-500` : 'text-neutral-400',
 								]}
 							>
-								{p.pillarLabel}
+								{p.lensLabel}
 							</span>
-							{features.findIt.pillars[p.key] && (
+							{features.findIt.lenses[p.key] && (
 								<div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
 									<Check class="w-3 h-3 text-green-600" />
 								</div>

@@ -95,7 +95,7 @@ VariScout is **the first step** — finding where to focus before investing in d
 
 ## See Also
 
-- [Four Lenses](four-pillars/index.md) — The methodology framework
+- [Four Lenses](four-lenses/index.md) — The methodology framework
 - [Two Voices](two-voices/index.md) — Control limits vs specification limits
-- [Drill-Down](four-pillars/drilldown.md) — Progressive analysis methodology
+- [Drill-Down](four-lenses/drilldown.md) — Progressive analysis methodology
 - [Progressive Stratification](progressive-stratification.md) — Why this UI design is the right answer for variation analysis

@@ -49,7 +49,7 @@
 
 @theme {
   /* Brand blue (#2563eb / blue-600) is for CTAs, links, and focus rings.
-     Pillar CHANGE blue (#3b82f6 / blue-500) is for data identity.
+     Lens CHANGE blue (#3b82f6 / blue-500) is for data identity.
      These are intentionally different shades — don't unify them. */
   --color-brand-primary: #2563eb;
   --color-brand-primary-dark: #1d4ed8;
@@ -66,11 +66,11 @@
   --color-neutral-100: #f1f5f9;
   --color-neutral-50: #f8fafc;
 
-  /* Four Pillar identity colors (see also brand-primary for CTA/link blue) */
-  --color-pillar-change: #3b82f6;
-  --color-pillar-flow: #f97316;
-  --color-pillar-failure: #ef4444;
-  --color-pillar-value: #22c55e;
+  /* Four Lenses identity colors (see also brand-primary for CTA/link blue) */
+  --color-lens-change: #3b82f6;
+  --color-lens-flow: #f97316;
+  --color-lens-failure: #ef4444;
+  --color-lens-value: #22c55e;
 
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;

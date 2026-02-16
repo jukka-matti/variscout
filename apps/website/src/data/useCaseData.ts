@@ -163,7 +163,7 @@ export const USE_CASES: UseCase[] = [
     ],
     relatedCases: ['bottleneck'],
     relatedTools: ['boxplot', 'i-chart', 'pareto'],
-    relatedLearn: ['four-pillars', 'eda-philosophy'],
+    relatedLearn: ['four-lenses', 'eda-philosophy'],
     platformFit: [
       { stage: 'Quick check', product: 'pwa', reason: 'Paste data, see variation in 60 seconds' },
       {
@@ -251,7 +251,7 @@ export const USE_CASES: UseCase[] = [
     ],
     relatedCases: ['coffee', 'bottleneck'],
     relatedTools: ['i-chart', 'capability', 'boxplot'],
-    relatedLearn: ['two-voices', 'four-pillars'],
+    relatedLearn: ['two-voices', 'four-lenses'],
     platformFit: [
       {
         stage: 'Quick audit',
@@ -347,7 +347,7 @@ export const USE_CASES: UseCase[] = [
     ],
     relatedCases: ['coffee', 'bottleneck', 'cookie-weight'],
     relatedTools: ['i-chart', 'boxplot', 'capability'],
-    relatedLearn: ['four-pillars', 'two-voices', 'eda-philosophy'],
+    relatedLearn: ['four-lenses', 'two-voices', 'eda-philosophy'],
     platformFit: [
       {
         stage: 'Classroom',
@@ -531,7 +531,7 @@ export const USE_CASES: UseCase[] = [
     ],
     relatedCases: ['packaging', 'weld-defects'],
     relatedTools: ['pareto', 'boxplot', 'i-chart'],
-    relatedLearn: ['four-pillars', 'methodology-eta-squared'],
+    relatedLearn: ['four-lenses', 'methodology-eta-squared'],
     platformFit: [
       {
         stage: 'Quick Pareto',

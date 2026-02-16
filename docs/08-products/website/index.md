@@ -59,7 +59,7 @@ Page request
 
 **9 React islands:** IChartIsland, BoxplotIsland, ParetoIsland, StatsIsland, PerformanceDemo, ToolChartIsland, CaseStudyChartsIsland, GlossaryTooltipIsland, ChartContainer
 
-**23 Astro components:** Header, Footer, Hero, FourPillars, PricingCard, ProductCard, UseCaseCard, FeatureCard, and more (static, zero JS)
+**23 Astro components:** Header, Footer, Hero, FourLenses, PricingCard, ProductCard, UseCaseCard, FeatureCard, and more (static, zero JS)
 
 ---
 
@@ -105,12 +105,12 @@ Configured in `astro.config.mjs` with `prefixDefaultLocale: false`. Translation 
 
 All content is managed through three TypeScript data files (no CMS, no Markdown):
 
-| File              | Interface          | Items  | Content                                                                                              |
-| ----------------- | ------------------ | ------ | ---------------------------------------------------------------------------------------------------- |
-| `useCaseData.ts`  | `UseCase`          | 6 (13) | Problem, demo config, journey steps, before/after, cross-links, platform fit, SEO keywords           |
-| `toolsData.ts`    | `ToolData`         | 7      | Tool name, pillar, hero, when-to-use, data requirements, how-to-read, patterns, features, sample key |
-| `learnData.ts`    | `LearnTopic`       | 10     | Topic title, sections with visuals (comparison, diagram, list, quote, chart)                         |
-| `glossaryData.ts` | `GlossaryPageData` | ~26    | Extends `@variscout/core` glossary with SEO metadata, rich sections, practical tips                  |
+| File              | Interface          | Items  | Content                                                                                            |
+| ----------------- | ------------------ | ------ | -------------------------------------------------------------------------------------------------- |
+| `useCaseData.ts`  | `UseCase`          | 6 (13) | Problem, demo config, journey steps, before/after, cross-links, platform fit, SEO keywords         |
+| `toolsData.ts`    | `ToolData`         | 7      | Tool name, lens, hero, when-to-use, data requirements, how-to-read, patterns, features, sample key |
+| `learnData.ts`    | `LearnTopic`       | 10     | Topic title, sections with visuals (comparison, diagram, list, quote, chart)                       |
+| `glossaryData.ts` | `GlossaryPageData` | ~26    | Extends `@variscout/core` glossary with SEO metadata, rich sections, practical tips                |
 
 Each file exports helper functions (`getToolBySlug()`, `getLearnTopicBySlug()`, `getGlossaryPageData()`) used by dynamic route pages for static generation.
 

@@ -51,15 +51,15 @@ Questions to ask:
 
 ---
 
-## Chart-to-Pillar Reference
+## Chart-to-Lens Reference
 
-| Pillar | Chart   | Key Metric                | Key Visual                     | User Action                    |
-| ------ | ------- | ------------------------- | ------------------------------ | ------------------------------ |
-| FLOW   | Boxplot | Between-group variation % | Box position/spread comparison | Click box → filter to subgroup |
+| Lens | Chart   | Key Metric                | Key Visual                     | User Action                    |
+| ---- | ------- | ------------------------- | ------------------------------ | ------------------------------ |
+| FLOW | Boxplot | Between-group variation % | Box position/spread comparison | Click box → filter to subgroup |
 
 ---
 
 ## See Also
 
-- [Four Pillars Overview](index.md)
+- [Four Lenses Overview](index.md)
 - [Drill-Down](drilldown.md) — How to drill into variation sources

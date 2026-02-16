@@ -29,23 +29,23 @@ interface Props {
 const { tool } = Astro.props;
 const { lang } = Astro.params;
 
-// Check if this is a pillar tool with journey integration
-const hasPillarJourney = tool.pillar && tool.journeySection;
+// Check if this is a lens tool with journey integration
+const hasLensJourney = tool.lens && tool.journeySection;
 
-// Pillar badge colors
-const pillarBadgeColors: Record<string, string> = {
-	CHANGE: "bg-pillar-change/10 text-pillar-change border-pillar-change/20",
-	FLOW: "bg-pillar-flow/10 text-pillar-flow border-pillar-flow/20",
-	FAILURE: "bg-pillar-failure/10 text-pillar-failure border-pillar-failure/20",
-	VALUE: "bg-pillar-value/10 text-pillar-value border-pillar-value/20",
+// Lens badge colors
+const lensBadgeColors: Record<string, string> = {
+	CHANGE: "bg-lens-change/10 text-lens-change border-lens-change/20",
+	FLOW: "bg-lens-flow/10 text-lens-flow border-lens-flow/20",
+	FAILURE: "bg-lens-failure/10 text-lens-failure border-lens-failure/20",
+	VALUE: "bg-lens-value/10 text-lens-value border-lens-value/20",
 };
 
-// Section background colors based on pillar
-const pillarAccentColors: Record<string, string> = {
-	CHANGE: "from-pillar-change/5",
-	FLOW: "from-pillar-flow/5",
-	FAILURE: "from-pillar-failure/5",
-	VALUE: "from-pillar-value/5",
+// Section background colors based on lens
+const lensAccentColors: Record<string, string> = {
+	CHANGE: "from-lens-change/5",
+	FLOW: "from-lens-flow/5",
+	FAILURE: "from-lens-failure/5",
+	VALUE: "from-lens-value/5",
 };
 ---
 
@@ -53,24 +53,24 @@ const pillarAccentColors: Record<string, string> = {
 	title={`${tool.name} | VaRiScout`}
 	description={tool.hero.subtitle}
 >
-	{/* Journey Badge - only for pillar tools */}
-	{hasPillarJourney && (
+	{/* Journey Badge - only for lens tools */}
+	{hasLensJourney && (
 		<JourneyToolBadge
-			pillar={tool.pillar as 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE'}
+			lens={tool.lens as 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE'}
 			journeySection={tool.journeySection!}
 			lang={lang as string}
 		/>
 	)}
 
 	<!-- Section 1: Hero -->
-	<section class={`py-20 bg-gradient-to-b ${tool.pillar ? pillarAccentColors[tool.pillar] : 'from-purple-500/5'} to-white`}>
+	<section class={`py-20 bg-gradient-to-b ${tool.lens ? lensAccentColors[tool.lens] : 'from-purple-500/5'} to-white`}>
 		<div class="container-wide">
 			<ScrollReveal animation="fade-up">
 				<div class="max-w-3xl">
 					<a href={`/${lang}/tools`} class="text-sm font-medium text-brand-primary mb-4 block">&larr; All Tools</a>
-					{tool.pillar && (
-						<span class={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border mb-4 ${pillarBadgeColors[tool.pillar]}`}>
-							{tool.pillar} Pillar
+					{tool.lens && (
+						<span class={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border mb-4 ${lensBadgeColors[tool.lens]}`}>
+							{tool.lens} Lens
 						</span>
 					)}
 					<h1 class="text-4xl md:text-5xl font-bold mb-4">{tool.name}</h1>
@@ -331,7 +331,7 @@ const pillarAccentColors: Record<string, string> = {
 									</div>
 									<div>
 										<div class="font-semibold text-neutral-900 group-hover:text-brand-primary transition-colors">{nextTool.name}</div>
-										<p class="text-sm text-neutral-500">{nextTool.pillar ? `${nextTool.pillar} Pillar` : 'Additional Tool'}</p>
+										<p class="text-sm text-neutral-500">{nextTool.lens ? `${nextTool.lens} Lens` : 'Additional Tool'}</p>
 									</div>
 								</a>
 							);
@@ -375,10 +375,10 @@ const pillarAccentColors: Record<string, string> = {
 		</section>
 	)}
 
-	{/* Journey Navigation - only for pillar tools */}
-	{hasPillarJourney && (
+	{/* Journey Navigation - only for lens tools */}
+	{hasLensJourney && (
 		<JourneyToolNav
-			currentPillar={tool.pillar as 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE'}
+			currentLens={tool.lens as 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE'}
 			prevToolSlug={tool.journeyPrevTool}
 			nextToolSlug={tool.journeyNextTool}
 			journeySection={tool.journeySection!}

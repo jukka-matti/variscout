@@ -50,9 +50,9 @@ Questions to ask:
 
 ---
 
-## Chart-to-Pillar Reference
+## Chart-to-Lens Reference
 
-| Pillar  | Chart  | Key Metric         | Key Visual                   | User Action                    |
+| Lens    | Chart  | Key Metric         | Key Visual                   | User Action                    |
 | ------- | ------ | ------------------ | ---------------------------- | ------------------------------ |
 | FAILURE | Pareto | Category frequency | Bar height + cumulative line | Click bar → filter to category |
 
@@ -60,5 +60,5 @@ Questions to ask:
 
 ## See Also
 
-- [Four Pillars Overview](index.md)
+- [Four Lenses Overview](index.md)
 - [Drill-Down](drilldown.md) — Progressive analysis methodology

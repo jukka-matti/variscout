@@ -5,19 +5,19 @@
  */
 
 interface Props {
-	pillar: 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE';
+	lens: 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE';
 	journeySection: number;
 	lang: string;
 }
 
-const { pillar, journeySection, lang } = Astro.props;
+const { lens, journeySection, lang } = Astro.props;
 
 const sections = [
 	{ id: 'averages', label: 'AVG', name: 'AVERAGES', color: 'bg-neutral-400', textColor: 'text-neutral-400' },
-	{ id: 'value', label: 'VAL', name: 'VALUE', color: 'bg-pillar-value', textColor: 'text-pillar-value' },
-	{ id: 'change', label: 'CHG', name: 'CHANGE', color: 'bg-pillar-change', textColor: 'text-pillar-change' },
-	{ id: 'flow', label: 'FLO', name: 'FLOW', color: 'bg-pillar-flow', textColor: 'text-pillar-flow' },
-	{ id: 'failure', label: 'FAI', name: 'FAILURE', color: 'bg-pillar-failure', textColor: 'text-pillar-failure' },
+	{ id: 'value', label: 'VAL', name: 'VALUE', color: 'bg-lens-value', textColor: 'text-lens-value' },
+	{ id: 'change', label: 'CHG', name: 'CHANGE', color: 'bg-lens-change', textColor: 'text-lens-change' },
+	{ id: 'flow', label: 'FLO', name: 'FLOW', color: 'bg-lens-flow', textColor: 'text-lens-flow' },
+	{ id: 'failure', label: 'FAI', name: 'FAILURE', color: 'bg-lens-failure', textColor: 'text-lens-failure' },
 	{ id: 'find-it', label: 'FND', name: 'FIND IT', color: 'bg-purple-500', textColor: 'text-purple-500' },
 	{ id: 'fix-it', label: 'FIX', name: 'FIX IT', color: 'bg-amber-500', textColor: 'text-amber-500' },
 	{ id: 'check-it', label: 'CHK', name: 'CHECK IT', color: 'bg-teal-500', textColor: 'text-teal-500' },

@@ -7,7 +7,7 @@ import JourneyFeatures from "../../../components/JourneyFeatures.astro";
 
 interface JourneyFeaturesData {
 	findIt: {
-		pillars: {
+		lenses: {
 			change: boolean;
 			flow: boolean;
 			failure: boolean;
@@ -41,7 +41,7 @@ export function getStaticPaths() {
 				heroSub: "Core SPC + Green Belt tools for training, education, and quality practitioners. Copy-paste from Excel, explore sample datasets, analyze in your browser. No signup required.",
 				journeyFeatures: {
 					findIt: {
-						pillars: { change: true, flow: true, failure: true, value: true },
+						lenses: { change: true, flow: true, failure: true, value: true },
 						extras: ["16 sample datasets", "Copy-paste from Excel"],
 					},
 					fixIt: [
@@ -71,7 +71,7 @@ export function getStaticPaths() {
 				heroSub: "The VaRiScout Excel Add-in brings core SPC charts to your everyday spreadsheets. I-Chart, Boxplot, Pareto, and Capability — free forever from Microsoft AppSource.",
 				journeyFeatures: {
 					findIt: {
-						pillars: { change: true, flow: true, failure: true, value: false },
+						lenses: { change: true, flow: true, failure: true, value: false },
 						extras: ["Auto-refresh when data changes", "Range selection wizard"],
 					},
 					fixIt: [
@@ -100,7 +100,7 @@ export function getStaticPaths() {
 				heroSub: "Managed Application from Azure Marketplace. All features including Performance Mode, file upload, save and persistence, OneDrive sync, and SSO — deployed in your Azure tenant at €150/month.",
 				journeyFeatures: {
 					findIt: {
-						pillars: { change: true, flow: true, failure: true, value: true },
+						lenses: { change: true, flow: true, failure: true, value: true },
 						extras: ["Performance Mode (100+ channels)", "File upload (CSV, Excel)"],
 					},
 					fixIt: [

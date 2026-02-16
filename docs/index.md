@@ -25,13 +25,13 @@ pnpm --filter @variscout/azure-app dev
 
 <div class="grid cards" markdown>
 
-- :material-chart-line:{ .lg .middle } **Four Pillars**
+- :material-chart-line:{ .lg .middle } **Four Lenses**
 
   ***
 
-  Watson's Four Pillars of Process Knowledge: Change, Flow, Failure, Value
+  Watson's Four Lenses of Process Knowledge: Change, Flow, Failure, Value
 
-  [:octicons-arrow-right-24: Learn more](01-vision/four-pillars/index.md)
+  [:octicons-arrow-right-24: Learn more](01-vision/four-lenses/index.md)
 
 - :material-bullseye:{ .lg .middle } **Two Voices**
 

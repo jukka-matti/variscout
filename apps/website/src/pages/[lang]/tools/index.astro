@@ -10,16 +10,16 @@ export function getStaticPaths() {
 
 const { lang } = Astro.params;
 
-// Group tools by pillar
-const pillarTools = TOOLS.filter((t) => t.pillar !== null);
-const additionalTools = TOOLS.filter((t) => t.pillar === null);
+// Group tools by lens
+const lensTools = TOOLS.filter((t) => t.lens !== null);
+const additionalTools = TOOLS.filter((t) => t.lens === null);
 
-// Pillar info for section headers
-const pillars = [
-	{ id: "CHANGE", name: "CHANGE", color: "text-pillar-change", bgColor: "bg-pillar-change/10", description: "See patterns over time" },
-	{ id: "FLOW", name: "FLOW", color: "text-pillar-flow", bgColor: "bg-pillar-flow/10", description: "Compare factors and groups" },
-	{ id: "FAILURE", name: "FAILURE", color: "text-pillar-failure", bgColor: "bg-pillar-failure/10", description: "Find where problems concentrate" },
-	{ id: "VALUE", name: "VALUE", color: "text-pillar-value", bgColor: "bg-pillar-value/10", description: "Meet customer requirements" },
+// Lens info for section headers
+const lenses = [
+	{ id: "CHANGE", name: "CHANGE", color: "text-lens-change", bgColor: "bg-lens-change/10", description: "See patterns over time" },
+	{ id: "FLOW", name: "FLOW", color: "text-lens-flow", bgColor: "bg-lens-flow/10", description: "Compare factors and groups" },
+	{ id: "FAILURE", name: "FAILURE", color: "text-lens-failure", bgColor: "bg-lens-failure/10", description: "Find where problems concentrate" },
+	{ id: "VALUE", name: "VALUE", color: "text-lens-value", bgColor: "bg-lens-value/10", description: "Meet customer requirements" },
 ];
 ---
 
@@ -44,40 +44,40 @@ const pillars = [
 		</div>
 	</section>
 
-	<!-- Four Pillars Tools -->
+	<!-- Four Lenses Tools -->
 	<section class="py-16 bg-white">
 		<div class="container-wide">
 			<ScrollReveal animation="fade-up">
-				<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-8">The Four Pillars</h2>
+				<h2 class="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-8">The Four Lenses</h2>
 			</ScrollReveal>
 
 			<div class="grid md:grid-cols-2 gap-8">
-				{pillars.map((pillar) => {
-					const tool = pillarTools.find((t) => t.pillar === pillar.id);
+				{lenses.map((lens) => {
+					const tool = lensTools.find((t) => t.lens === lens.id);
 					if (!tool) return null;
 
 					return (
-						<ScrollReveal animation="fade-up" delay={pillars.indexOf(pillar) * 100}>
+						<ScrollReveal animation="fade-up" delay={lenses.indexOf(lens) * 100}>
 							<a
 								href={`/${lang}/tools/${tool.slug}`}
 								class="block group"
 							>
-								<div class={`rounded-2xl p-8 border-2 border-transparent ${pillar.bgColor} hover:border-current ${pillar.color} transition-all`}>
+								<div class={`rounded-2xl p-8 border-2 border-transparent ${lens.bgColor} hover:border-current ${lens.color} transition-all`}>
 									<div class="flex items-start justify-between mb-4">
 										<div>
-											<span class={`text-xs font-bold uppercase tracking-wider ${pillar.color}`}>
-												{pillar.name}
+											<span class={`text-xs font-bold uppercase tracking-wider ${lens.color}`}>
+												{lens.name}
 											</span>
 											<h3 class="text-2xl font-bold mt-1 group-hover:text-brand-primary transition-colors">
 												{tool.name}
 											</h3>
 										</div>
-										<div class={`w-12 h-12 rounded-full ${pillar.bgColor} ${pillar.color} flex items-center justify-center text-2xl font-bold`}>
+										<div class={`w-12 h-12 rounded-full ${lens.bgColor} ${lens.color} flex items-center justify-center text-2xl font-bold`}>
 											{tool.name[0]}
 										</div>
 									</div>
 									<p class="text-neutral-600 mb-4">{tool.hero.title}</p>
-									<p class="text-sm text-neutral-500">{pillar.description}</p>
+									<p class="text-sm text-neutral-500">{lens.description}</p>
 									<div class="mt-4 flex items-center gap-2 text-sm font-medium text-brand-primary opacity-0 group-hover:opacity-100 transition-opacity">
 										Learn more <span>&rarr;</span>
 									</div>
@@ -129,7 +129,7 @@ const pillars = [
 					<h2 class="text-2xl font-bold text-center mb-8">How They Work Together</h2>
 					<div class="space-y-4">
 						<div class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg">
-							<span class="shrink-0 w-8 h-8 rounded-full bg-pillar-change/10 text-pillar-change flex items-center justify-center font-bold">1</span>
+							<span class="shrink-0 w-8 h-8 rounded-full bg-lens-change/10 text-lens-change flex items-center justify-center font-bold">1</span>
 							<div>
 								<span class="font-semibold">I-Chart</span>
 								<span class="text-neutral-600"> reveals patterns over time</span>
@@ -141,7 +141,7 @@ const pillars = [
 							</svg>
 						</div>
 						<div class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg">
-							<span class="shrink-0 w-8 h-8 rounded-full bg-pillar-flow/10 text-pillar-flow flex items-center justify-center font-bold">2</span>
+							<span class="shrink-0 w-8 h-8 rounded-full bg-lens-flow/10 text-lens-flow flex items-center justify-center font-bold">2</span>
 							<div>
 								<span class="font-semibold">Boxplot</span>
 								<span class="text-neutral-600"> compares factors to find the source</span>
@@ -153,7 +153,7 @@ const pillars = [
 							</svg>
 						</div>
 						<div class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg">
-							<span class="shrink-0 w-8 h-8 rounded-full bg-pillar-failure/10 text-pillar-failure flex items-center justify-center font-bold">3</span>
+							<span class="shrink-0 w-8 h-8 rounded-full bg-lens-failure/10 text-lens-failure flex items-center justify-center font-bold">3</span>
 							<div>
 								<span class="font-semibold">Pareto</span>
 								<span class="text-neutral-600"> prioritizes which category matters most</span>
@@ -165,7 +165,7 @@ const pillars = [
 							</svg>
 						</div>
 						<div class="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg">
-							<span class="shrink-0 w-8 h-8 rounded-full bg-pillar-value/10 text-pillar-value flex items-center justify-center font-bold">4</span>
+							<span class="shrink-0 w-8 h-8 rounded-full bg-lens-value/10 text-lens-value flex items-center justify-center font-bold">4</span>
 							<div>
 								<span class="font-semibold">Capability</span>
 								<span class="text-neutral-600"> proves the improvement to stakeholders</span>

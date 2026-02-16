@@ -1,7 +1,7 @@
 ---
 /**
- * FourPillars - Color-coded pillar cards representing the VaRiScout methodology
- * Each pillar links to its respective tool page
+ * FourLenses - Color-coded lens cards representing the VaRiScout methodology
+ * Each lens links to its respective tool page
  */
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 
 const { lang } = Astro.props;
 
-const pillars = [
+const lenses = [
 	{
 		id: 'change',
 		name: 'CHANGE',
@@ -56,28 +56,28 @@ const pillars = [
 // Color mappings for Tailwind classes
 const colorClasses: Record<string, { bg: string; border: string; text: string; hover: string }> = {
 	blue: {
-		bg: 'bg-pillar-change/10',
-		border: 'border-pillar-change/30 hover:border-pillar-change/60',
-		text: 'text-pillar-change',
-		hover: 'group-hover:bg-pillar-change/20',
+		bg: 'bg-lens-change/10',
+		border: 'border-lens-change/30 hover:border-lens-change/60',
+		text: 'text-lens-change',
+		hover: 'group-hover:bg-lens-change/20',
 	},
 	orange: {
-		bg: 'bg-pillar-flow/10',
-		border: 'border-pillar-flow/30 hover:border-pillar-flow/60',
-		text: 'text-pillar-flow',
-		hover: 'group-hover:bg-pillar-flow/20',
+		bg: 'bg-lens-flow/10',
+		border: 'border-lens-flow/30 hover:border-lens-flow/60',
+		text: 'text-lens-flow',
+		hover: 'group-hover:bg-lens-flow/20',
 	},
 	red: {
-		bg: 'bg-pillar-failure/10',
-		border: 'border-pillar-failure/30 hover:border-pillar-failure/60',
-		text: 'text-pillar-failure',
-		hover: 'group-hover:bg-pillar-failure/20',
+		bg: 'bg-lens-failure/10',
+		border: 'border-lens-failure/30 hover:border-lens-failure/60',
+		text: 'text-lens-failure',
+		hover: 'group-hover:bg-lens-failure/20',
 	},
 	green: {
-		bg: 'bg-pillar-value/10',
-		border: 'border-pillar-value/30 hover:border-pillar-value/60',
-		text: 'text-pillar-value',
-		hover: 'group-hover:bg-pillar-value/20',
+		bg: 'bg-lens-value/10',
+		border: 'border-lens-value/30 hover:border-lens-value/60',
+		text: 'text-lens-value',
+		hover: 'group-hover:bg-lens-value/20',
 	},
 };
 ---
@@ -93,33 +93,33 @@ const colorClasses: Record<string, { bg: string; border: string; text: string; h
 			</p>
 		</div>
 
-		<!-- Pillar Cards -->
+		<!-- Lens Cards -->
 		<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-			{pillars.map((pillar) => {
-				const colors = colorClasses[pillar.color];
+			{lenses.map((lens) => {
+				const colors = colorClasses[lens.color];
 				return (
 					<a
-						href={pillar.href}
+						href={lens.href}
 						class={`group block rounded-2xl border-2 ${colors.border} ${colors.bg} p-6 transition-all hover:shadow-lg`}
 					>
 						<!-- Icon -->
 						<div class={`w-14 h-14 rounded-xl ${colors.bg} ${colors.hover} flex items-center justify-center mb-4 transition-colors`}>
-							<span class={colors.text} set:html={pillar.icon} />
+							<span class={colors.text} set:html={lens.icon} />
 						</div>
 
-						<!-- Pillar Name -->
+						<!-- Lens Name -->
 						<div class="flex items-center gap-2 mb-2">
-							<span class={`text-xs font-bold uppercase tracking-widest ${colors.text}`}>{pillar.name}</span>
+							<span class={`text-xs font-bold uppercase tracking-widest ${colors.text}`}>{lens.name}</span>
 						</div>
 
 						<!-- Question -->
-						<h3 class="text-lg font-bold text-neutral-900 mb-2">{pillar.question}</h3>
+						<h3 class="text-lg font-bold text-neutral-900 mb-2">{lens.question}</h3>
 
 						<!-- Tool -->
-						<p class="text-sm text-neutral-500 mb-3">Tool: {pillar.tool}</p>
+						<p class="text-sm text-neutral-500 mb-3">Tool: {lens.tool}</p>
 
 						<!-- Description -->
-						<p class="text-sm text-neutral-600 italic">{pillar.description}</p>
+						<p class="text-sm text-neutral-600 italic">{lens.description}</p>
 
 						<!-- Arrow -->
 						<div class={`mt-4 flex items-center gap-1 text-sm font-medium ${colors.text}`}>
@@ -135,7 +135,7 @@ const colorClasses: Record<string, { bg: string; border: string; text: string; h
 
 		<!-- Journey Link -->
 		<div class="mt-12 text-center">
-			<p class="text-neutral-600 mb-4">See all four pillars work together in the VaRiScout Journey.</p>
+			<p class="text-neutral-600 mb-4">See all four lenses work together in the VaRiScout Journey.</p>
 			<a href={`/${lang}/journey`} class="inline-flex items-center gap-2 text-brand-primary hover:underline font-medium">
 				<span>Experience the full journey</span>
 				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

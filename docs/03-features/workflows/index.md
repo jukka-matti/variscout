@@ -8,7 +8,7 @@ Workflows describe **what analysts actually DO** inside VariScout—the sequence
 
 ## Core Workflows
 
-### [Four Pillars Analysis](four-pillars-workflow.md)
+### [Four Lenses Analysis](four-lenses-workflow.md)
 
 The foundational methodology: **CHANGE → FLOW → FAILURE → VALUE**
 
@@ -93,7 +93,7 @@ Systematic investigation for problem-solving:
 
 | Your Question                   | Start Here                                            |
 | ------------------------------- | ----------------------------------------------------- |
-| "Is my process stable?"         | [Four Pillars](four-pillars-workflow.md)              |
+| "Is my process stable?"         | [Four Lenses](four-lenses-workflow.md)                |
 | "What's causing variation?"     | [Drill-Down](drill-down-workflow.md)                  |
 | "Which channel is worst?"       | [Performance Mode](performance-mode-workflow.md)      |
 | "Can I trust this measurement?" | [MSA Workflow](msa-workflow.md)                       |
@@ -105,4 +105,4 @@ Systematic investigation for problem-solving:
 
 - [Feature Documentation](../index.md) - What each chart does
 - [Case Studies](../../04-cases/index.md) - Teaching examples
-- [Four Pillars Philosophy](../../01-vision/four-pillars/index.md) - Why this methodology
+- [Four Lenses Philosophy](../../01-vision/four-lenses/index.md) - Why this methodology

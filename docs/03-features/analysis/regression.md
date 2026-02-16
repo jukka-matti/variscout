@@ -45,7 +45,7 @@ Regression answers:
 !!! note
 Regression in VariScout serves as a **first step** to visually check if correlation exists. It answers "is there a relationship?" before investing in deeper predictive modeling.
 
-For most variation analysis, the Four Pillars (I-Chart, Boxplot, Pareto, Capability) are sufficient.
+For most variation analysis, the Four Lenses (I-Chart, Boxplot, Pareto, Capability) are sufficient.
 
 ---
 

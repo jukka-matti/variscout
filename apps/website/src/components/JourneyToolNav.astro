@@ -7,24 +7,24 @@
 import { getToolBySlug } from '../data/toolsData';
 
 interface Props {
-	currentPillar: 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE';
+	currentLens: 'CHANGE' | 'FLOW' | 'FAILURE' | 'VALUE';
 	prevToolSlug?: string;
 	nextToolSlug?: string;
 	journeySection: number;
 	lang: string;
 }
 
-const { currentPillar, prevToolSlug, nextToolSlug, journeySection, lang } = Astro.props;
+const { currentLens, prevToolSlug, nextToolSlug, journeySection, lang } = Astro.props;
 
 const prevTool = prevToolSlug ? getToolBySlug(prevToolSlug) : null;
 const nextTool = nextToolSlug ? getToolBySlug(nextToolSlug) : null;
 
-// Pillar color classes
-const pillarColors: Record<string, { bg: string; text: string; border: string }> = {
-	VALUE: { bg: 'bg-pillar-value/10', text: 'text-pillar-value', border: 'border-pillar-value/30' },
-	CHANGE: { bg: 'bg-pillar-change/10', text: 'text-pillar-change', border: 'border-pillar-change/30' },
-	FLOW: { bg: 'bg-pillar-flow/10', text: 'text-pillar-flow', border: 'border-pillar-flow/30' },
-	FAILURE: { bg: 'bg-pillar-failure/10', text: 'text-pillar-failure', border: 'border-pillar-failure/30' },
+// Lens color classes
+const lensColors: Record<string, { bg: string; text: string; border: string }> = {
+	VALUE: { bg: 'bg-lens-value/10', text: 'text-lens-value', border: 'border-lens-value/30' },
+	CHANGE: { bg: 'bg-lens-change/10', text: 'text-lens-change', border: 'border-lens-change/30' },
+	FLOW: { bg: 'bg-lens-flow/10', text: 'text-lens-flow', border: 'border-lens-flow/30' },
+	FAILURE: { bg: 'bg-lens-failure/10', text: 'text-lens-failure', border: 'border-lens-failure/30' },
 };
 
 // Journey section IDs for anchor links
@@ -51,8 +51,8 @@ const sectionIds: Record<string, string> = {
 					href={`/${lang}/tools/${prevTool.slug}`}
 					class:list={[
 						'flex-1 group flex items-center gap-4 p-4 rounded-xl border-2 transition-all hover:shadow-lg',
-						pillarColors[prevTool.pillar || 'VALUE'].bg,
-						pillarColors[prevTool.pillar || 'VALUE'].border,
+						lensColors[prevTool.lens || 'VALUE'].bg,
+						lensColors[prevTool.lens || 'VALUE'].border,
 					]}
 				>
 					<div class="flex-shrink-0">
@@ -61,8 +61,8 @@ const sectionIds: Record<string, string> = {
 						</svg>
 					</div>
 					<div class="text-left">
-						<span class={`text-xs font-bold uppercase tracking-wider ${pillarColors[prevTool.pillar || 'VALUE'].text}`}>
-							{prevTool.pillar}
+						<span class={`text-xs font-bold uppercase tracking-wider ${lensColors[prevTool.lens || 'VALUE'].text}`}>
+							{prevTool.lens}
 						</span>
 						<p class="font-semibold text-neutral-900">{prevTool.name}</p>
 					</div>
@@ -79,13 +79,13 @@ const sectionIds: Record<string, string> = {
 					href={`/${lang}/tools/${nextTool.slug}`}
 					class:list={[
 						'flex-1 group flex items-center justify-end gap-4 p-4 rounded-xl border-2 transition-all hover:shadow-lg',
-						pillarColors[nextTool.pillar || 'VALUE'].bg,
-						pillarColors[nextTool.pillar || 'VALUE'].border,
+						lensColors[nextTool.lens || 'VALUE'].bg,
+						lensColors[nextTool.lens || 'VALUE'].border,
 					]}
 				>
 					<div class="text-right">
-						<span class={`text-xs font-bold uppercase tracking-wider ${pillarColors[nextTool.pillar || 'VALUE'].text}`}>
-							{nextTool.pillar}
+						<span class={`text-xs font-bold uppercase tracking-wider ${lensColors[nextTool.lens || 'VALUE'].text}`}>
+							{nextTool.lens}
 						</span>
 						<p class="font-semibold text-neutral-900">{nextTool.name}</p>
 					</div>
@@ -105,7 +105,7 @@ const sectionIds: Record<string, string> = {
 		<!-- Journey CTA -->
 		<div class="text-center">
 			<a
-				href={`/${lang}/journey#${sectionIds[currentPillar]}`}
+				href={`/${lang}/journey#${sectionIds[currentLens]}`}
 				class="inline-flex items-center gap-2 text-brand-primary hover:underline font-medium"
 			>
 				<span>See this step in the full journey</span>

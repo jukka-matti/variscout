@@ -353,6 +353,6 @@ Total time: _____ minutes
 ## Related Documentation
 
 - [Quick Check Workflow](quick-check.md)
-- [Four Pillars Workflow](four-pillars-workflow.md)
+- [Four Lenses Workflow](four-lenses-workflow.md)
 - [Drill-Down Workflow](drill-down-workflow.md)
 - [Decision Trees](decision-trees.md)

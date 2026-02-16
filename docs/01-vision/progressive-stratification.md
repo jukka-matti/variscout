@@ -53,7 +53,7 @@ The UI choices in VariScout's drill-down are not arbitrary. Each design decision
 
 Progressive stratification is the mechanism that makes VariScout's core frameworks actionable.
 
-**Four Lenses.** The Boxplot (FLOW lens) is the natural entry point --- it shows eta-squared by factor, immediately revealing where variation concentrates. But the drill-down doesn't happen in one lens alone. Linked filtering means that drilling in the Boxplot simultaneously updates the I-Chart (CHANGE), Pareto (FAILURE), and Capability (VALUE). The analyst sees not just "Machine C has high variation" but also "Machine C's timeline shows a drift starting in week 3" (I-Chart), "Machine C's failure mode is predominantly oversized" (Pareto), and "Machine C's Cpk is 0.4 vs the overall 0.8" (Capability). The Four Pillars become a coordinated investigation team rather than four independent displays.
+**Four Lenses.** The Boxplot (FLOW lens) is the natural entry point --- it shows eta-squared by factor, immediately revealing where variation concentrates. But the drill-down doesn't happen in one lens alone. Linked filtering means that drilling in the Boxplot simultaneously updates the I-Chart (CHANGE), Pareto (FAILURE), and Capability (VALUE). The analyst sees not just "Machine C has high variation" but also "Machine C's timeline shows a drift starting in week 3" (I-Chart), "Machine C's failure mode is predominantly oversized" (Pareto), and "Machine C's Cpk is 0.4 vs the overall 0.8" (Capability). The Four Lenses become a coordinated investigation team rather than four independent displays.
 
 **Two Voices.** The drill-down finds process-voice patterns --- which factors drive variation in the process itself. The Capability lens (VALUE) then asks the customer-voice question: "does this variation actually matter to the customer?" A factor might explain 40% of process variation but the filtered Cpk might still be 1.5 --- meaning the process easily meets spec even with this factor active. Conversely, a factor explaining only 15% of variation might push Cpk below 1.0 for that subset, making it the real priority despite its lower statistical contribution. Progressive stratification surfaces both perspectives simultaneously.
 
@@ -104,7 +104,7 @@ This document describes the _why_ behind VariScout's drill-down design. The _wha
 | Topic                               | Document                                                                        |
 | ----------------------------------- | ------------------------------------------------------------------------------- |
 | Product philosophy and EDA mindset  | [EDA for Process Improvement](philosophy.md)                                    |
-| Four Lenses drill-down methodology  | [Drill-Down: Progressive Variation Analysis](four-pillars/drilldown.md)         |
+| Four Lenses drill-down methodology  | [Drill-Down: Progressive Variation Analysis](four-lenses/drilldown.md)          |
 | Drill-down implementation and hooks | [Drill-Down Navigation](../03-features/navigation/drill-down.md)                |
 | Filter chip UI specification        | [Filter Chips Navigation](../03-features/navigation/breadcrumbs.md)             |
 | Linked filtering across charts      | [Linked Filtering](../03-features/navigation/linked-filtering.md)               |

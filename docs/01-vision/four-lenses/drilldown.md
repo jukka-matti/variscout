@@ -270,5 +270,5 @@ The filter chips should always show:
 
 ## See Also
 
-- [Four Pillars Overview](index.md)
+- [Four Lenses Overview](index.md)
 - [FLOW](flow.md) — Boxplot for factor comparison

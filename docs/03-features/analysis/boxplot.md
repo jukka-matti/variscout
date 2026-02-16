@@ -1,6 +1,6 @@
 # Boxplot
 
-The Boxplot is VariScout's tool for the **FLOW** pillar - comparing variation across factors.
+The Boxplot is VariScout's tool for the **FLOW** lens - comparing variation across factors.
 
 ---
 
@@ -101,7 +101,7 @@ const etaSq = getEtaSquared(data, 'Machine', 'Weight');
 
 ## See Also
 
-- [FLOW Pillar](../../01-vision/four-pillars/flow.md) - Upstream factor concepts
+- [FLOW Lens](../../01-vision/four-lenses/flow.md) - Upstream factor concepts
 - [Drill-Down](../navigation/drill-down.md) - Multi-level factor exploration
 - [I-Chart](i-chart.md) - Previous step: detect instability over time
 - [Pareto](pareto.md) - Next step: rank contribution of factors

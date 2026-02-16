@@ -228,14 +228,14 @@ Content → Tool → Training → Coaching → Referral → Content
 
 ## Content to Website Links
 
-| Content Topic            | Website Page        | Reason                |
-| ------------------------ | ------------------- | --------------------- |
-| "How to read I-Chart"    | /tools/i-chart      | Deep dive + demo      |
-| "Boxplot interpretation" | /tools/boxplot      | Interactive learning  |
-| "The 46% story"          | /cases/bottleneck   | Full case study       |
-| "Four Pillars method"    | /learn/four-pillars | Methodology deep dive |
-| "AI vs EDA"              | /blog/ai-vs-eda     | Thought leadership    |
-| General awareness        | /                   | Full journey          |
+| Content Topic            | Website Page       | Reason                |
+| ------------------------ | ------------------ | --------------------- |
+| "How to read I-Chart"    | /tools/i-chart     | Deep dive + demo      |
+| "Boxplot interpretation" | /tools/boxplot     | Interactive learning  |
+| "The 46% story"          | /cases/bottleneck  | Full case study       |
+| "Four Lenses method"     | /learn/four-lenses | Methodology deep dive |
+| "AI vs EDA"              | /blog/ai-vs-eda    | Thought leadership    |
+| General awareness        | /                  | Full journey          |
 
 ---
 

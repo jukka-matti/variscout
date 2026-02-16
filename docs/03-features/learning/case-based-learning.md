@@ -39,7 +39,7 @@ Every case follows this narrative arc:
 - Scroll-based reveal of the analysis journey
 - Step by step: I-Chart → Boxplot → Pareto → Drill-down
 - The "aha moment": "46% was in Machine C, Shift 2"
-- Methodology connection: This is the Four Pillars in action
+- Methodology connection: This is the Four Lenses in action
 
 ---
 
@@ -74,4 +74,4 @@ GAGE R&R STUDY → Validate or fix MSA
 ## See Also
 
 - [Cases](../../04-cases/index.md)
-- [Four Pillars](../../01-vision/four-pillars/index.md)
+- [Four Lenses](../../01-vision/four-lenses/index.md)

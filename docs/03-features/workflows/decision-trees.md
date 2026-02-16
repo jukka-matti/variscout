@@ -141,7 +141,7 @@ flowchart TD
     B -->|"All similar (good)"| F[Equipment qualified]
 
     C --> C1["Drill into that channel"]
-    C1 --> C2["Use Four Pillars analysis"]
+    C1 --> C2["Use Four Lenses analysis"]
     C2 --> C3["Fix channel-specific issue"]
 
     D --> D1["Check physical arrangement"]
@@ -229,14 +229,14 @@ flowchart TD
 
 ### Next Steps
 
-| Finding              | Action                       |
-| -------------------- | ---------------------------- |
-| Point outside limits | Investigate that sample      |
-| High η² factor       | Drill down                   |
-| Poor Cpk             | Check Cp vs Cpk              |
-| New defect type      | Find when it started         |
-| Channel worst        | Four Pillars on that channel |
-| Operator effect      | Consider MSA first           |
+| Finding              | Action                      |
+| -------------------- | --------------------------- |
+| Point outside limits | Investigate that sample     |
+| High η² factor       | Drill down                  |
+| Poor Cpk             | Check Cp vs Cpk             |
+| New defect type      | Find when it started        |
+| Channel worst        | Four Lenses on that channel |
+| Operator effect      | Consider MSA first          |
 
 ### Warning Signs
 
@@ -250,7 +250,7 @@ flowchart TD
 
 ## Related Documentation
 
-- [Four Pillars Workflow](four-pillars-workflow.md)
+- [Four Lenses Workflow](four-lenses-workflow.md)
 - [Drill-Down Workflow](drill-down-workflow.md)
 - [Quick Check](quick-check.md)
 - [Deep Dive](deep-dive.md)
