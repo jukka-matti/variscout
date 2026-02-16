@@ -78,6 +78,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Paste data**      |     ✓     |     ✓      |                           |
 | **Sample datasets** |     ✓     |     ✓      | PWA pre-loaded with cases |
 | **Column mapping**  |     ✓     |     ✓      |                           |
+| **Manual entry**    |     ✓     |     -      | Azure App only            |
 | **Data validation** |     ✓     |     ✓      |                           |
 
 ---
@@ -158,7 +159,6 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 ### PWA Only
 
 - Free forever (training & education)
-- Copy-paste data input from Excel/Sheets
 - Pre-loaded case study datasets
 - PWA installation (Add to Home Screen)
 - Service Worker offline caching

@@ -1,6 +1,6 @@
 # Data Input
 
-How VariScout handles data input — paste (PWA) and file upload (Azure App).
+How VariScout handles data input — paste (PWA and Azure App) and file upload (Azure App).
 
 ---
 
@@ -50,9 +50,9 @@ Keywords trigger automatic column assignment:
 
 ---
 
-## Paste Flow (PWA)
+## Paste Flow (PWA and Azure App)
 
-The PWA uses a paste-first flow — users paste tab- or comma-separated text from Excel or Google Sheets.
+Both the PWA and Azure App support paste input — users paste tab- or comma-separated text from Excel or Google Sheets.
 
 ```
 TEXT PASTED

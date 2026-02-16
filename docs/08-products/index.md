@@ -20,7 +20,7 @@ flowchart LR
         C[PWA<br/>Free Training Tool]
     end
 
-    C -->|"Need file upload, save, teams"| A
+    C -->|"Need file upload, save, teams, Performance Mode"| A
 ```
 
 ## Product Matrix

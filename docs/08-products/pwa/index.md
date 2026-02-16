@@ -2,7 +2,7 @@
 
 > **Role**: Free SPC training and education tool for quality professionals, students, and developing countries.
 >
-> Per [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md), the PWA provides free access to core analysis features. The [Azure App](../azure/index.md) adds file upload, save/persistence, Performance Mode, and team features.
+> Per [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md), the PWA provides free access to core analysis features. The [Azure App](../azure/index.md) adds file upload (alongside paste), save/persistence, Performance Mode, and team features.
 
 ---
 
@@ -69,6 +69,7 @@ All core SPC analysis features:
 
 | Feature                 | PWA (Free)   | Azure App (Paid) |
 | ----------------------- | ------------ | ---------------- |
+| Paste data              | ✓            | ✓                |
 | File upload (CSV/Excel) | -            | ✓                |
 | .vrs import/export      | -            | ✓                |
 | Save/persistence        | Session only | OneDrive sync    |
