@@ -152,11 +152,29 @@ const ManualEntry = ({ onAnalyze, onCancel }: ManualEntryProps) => {
     // Filter empty rows
     const validRows = rows.filter(r => r[outcomeName] && r[outcomeName] !== '');
 
-    // Convert outcome to number
-    const formattedData = validRows.map(r => ({
-      ...r,
-      [outcomeName]: parseFloat(r[outcomeName]),
-    }));
+    // Detect which factor columns are numeric continuous predictors
+    // (all non-empty values parse as numbers AND >10 unique → continuous)
+    const numericFactors = new Set<string>();
+    for (const factor of factors) {
+      const values = validRows.map(r => r[factor]).filter(v => v && v.trim() !== '');
+      const allNumeric = values.length > 0 && values.every(v => !isNaN(parseFloat(v)));
+      if (allNumeric) {
+        const uniqueCount = new Set(values).size;
+        if (uniqueCount > 10) {
+          numericFactors.add(factor);
+        }
+      }
+    }
+
+    // Convert outcome and numeric factors to numbers
+    const formattedData = validRows.map(r => {
+      const row: Record<string, any> = { ...r };
+      row[outcomeName] = parseFloat(r[outcomeName]);
+      for (const factor of numericFactors) {
+        row[factor] = parseFloat(row[factor]);
+      }
+      return row;
+    });
 
     const specs =
       usl || lsl
