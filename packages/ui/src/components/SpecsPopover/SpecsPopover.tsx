@@ -130,9 +130,12 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const popoverWidth = 256; // w-64
+      const padding = 8;
+      const maxLeft = window.innerWidth - popoverWidth - padding;
       setPosition({
         top: rect.bottom + 8,
-        left: rect.left,
+        left: Math.min(rect.left, maxLeft),
       });
     }
   }, [isOpen]);
@@ -231,7 +234,7 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
                   onOpenAdvanced();
                 }}
                 className={cs.advancedButton}
-                title="Advanced settings (Grades)"
+                title="Advanced settings"
               >
                 <Settings2 size={14} />
               </button>
