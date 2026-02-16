@@ -26,11 +26,11 @@ Complete feature availability across VariScout platforms.
 | **Capability Histogram** |     ✓     |     ✓      | Planned  |
 | **Probability Plot**     |     ✓     |     ✓      |    -     |
 | **Scatter/Regression**   |     ✓     |     ✓      |    -     |
-| **Gage R&R**             |     ✓     |     ✓      |    -     |
+| **Gage R&R**             |     -     |     ✓      |    -     |
 | **Violin Mode**          |     ✓     |     ✓      |    -     |
 | **Performance Mode**     |     ✓     |     -      |    -     |
 
-> PWA includes core SPC plus Green Belt tools for training. Performance Mode requires the Azure App.
+> PWA includes core SPC plus Green Belt tools for training. Performance Mode requires the Azure App. Gage R&R is deferred from Azure v1 per [ADR-010](../07-decisions/adr-010-gagerr-deferral.md).
 
 ---
 
@@ -162,6 +162,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - Free forever (training & education)
 - Copy-paste data input from Excel/Sheets
 - Pre-loaded case study datasets
+- Gage R&R (learning-appropriate; deferred from Azure v1 per [ADR-010](../07-decisions/adr-010-gagerr-deferral.md))
 - PWA installation (Add to Home Screen)
 - Service Worker offline caching
 
