@@ -51,7 +51,6 @@ const useCases = [
 
 const products = [
 	{ id: "pwa", title: "Web App", description: "Free training & education tool. Paste data or explore samples.", price: "FREE forever", cta: { text: "Try Free", href: "/app" }, badge: "Best for Learning" },
-	{ id: "excel", title: "Excel Add-in", description: "Core SPC charts inside Excel.", price: "FREE forever", cta: { text: "Get Add-in", href: `/${lang}/product/excel` } },
 	{ id: "azure", title: "Azure App", description: "Full analysis for teams. All features, unlimited users.", price: "€150/month", cta: { text: "Learn More", href: `/${lang}/product/azure` }, badge: "Full Power" },
 ];
 ---
@@ -66,10 +65,10 @@ const products = [
 	<section class="py-24 bg-white border-b border-neutral-200">
 		<div class="container-wide">
 			<div class="text-center mb-16">
-				<h2 class="text-3xl font-bold mb-4">Choose Your Platform</h2>
-				<p class="text-neutral-600">Same analysis, wherever you work</p>
+				<h2 class="text-3xl font-bold mb-4">Two Ways to Start</h2>
+				<p class="text-neutral-600">Try it free. When you're ready for your team, get it on Azure Marketplace.</p>
 			</div>
-			<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+			<div class="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
 				{products.map((product) => <ProductCard {...product} />)}
 			</div>
 		</div>

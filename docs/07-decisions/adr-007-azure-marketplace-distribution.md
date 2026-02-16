@@ -62,11 +62,12 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 
 ### Product Hierarchy
 
-| Product          | Role                        | Distribution      | Price                                                                |
-| ---------------- | --------------------------- | ----------------- | -------------------------------------------------------------------- |
-| **Azure App**    | ONLY PAID PRODUCT           | Azure Marketplace | €150/month (Managed Application)                                     |
-| **Excel Add-in** | FREE (marketing funnel)     | AppSource         | Free forever, core SPC only                                          |
-| **PWA**          | FREE (training & education) | Public website    | Free forever (core SPC + Green Belt, copy-paste input, session-only) |
+| Product       | Role                        | Distribution      | Price                                                                |
+| ------------- | --------------------------- | ----------------- | -------------------------------------------------------------------- |
+| **Azure App** | ONLY PAID PRODUCT           | Azure Marketplace | €150/month (Managed Application)                                     |
+| **PWA**       | FREE (training & education) | Public website    | Free forever (core SPC + Green Belt, copy-paste input, session-only) |
+
+> **Note (Feb 2026):** Excel Add-in shelved — cost with no revenue, unproven funnel. The PWA serves the same funnel role (free, no friction, shows the methodology) at zero marginal cost. See original 3-product strategy below for historical context.
 
 ### Pricing Rationale
 
@@ -135,10 +136,10 @@ variscout-managed-app.zip
    - Monthly billing with automatic renewal
 
 3. **Simplified product model**
-   - One paid product, one free product
+   - One paid product (Azure App), one free product (PWA)
    - No per-user tier confusion
    - No license detection complexity
-   - Excel Add-in just works, always free
+   - GTM: "Try it free at variscout.com. When you're ready for your team, get it on Azure Marketplace."
 
 4. **Distribution advantage**
    - Azure Marketplace visibility to enterprise buyers
@@ -193,31 +194,16 @@ The existing `tier.ts` infrastructure remains, with Managed Application deployme
 
 ---
 
-## Excel Add-in: Free Forever
+## Excel Add-in: Shelved (Feb 2026)
 
-The Excel Add-in is **always free** with no license detection:
+The Excel Add-in was originally planned as a free marketing funnel product on AppSource. It was shelved because:
 
-- **Core charts**: I-Chart, Boxplot, Pareto, Capability Histogram
-- **No Performance Mode**: Multi-channel analysis is Azure App exclusive
-- **No Gage R&R**: Measurement system analysis is Azure App exclusive
-- **No Graph API**: No `Application.Read.All` permission needed
-- **No admin consent**: Zero friction for IT departments
+1. **Cost with no revenue** — AppSource certification, Office.js maintenance, Fluent UI theming
+2. **Unproven funnel** — No evidence Excel users convert to Azure App purchasers
+3. **PWA does the same job** — Free, no friction, shows the methodology, costs nothing extra to maintain
+4. **Simpler GTM** — Two products (free PWA + paid Azure) is easier to explain than three
 
-### Strategic Rationale
-
-1. **Marketing funnel**: Free Add-in brings users into the ecosystem
-2. **Upsell path**: Power users who need Performance Mode upgrade to Azure App
-3. **Zero friction**: No permission popups, no admin consent, no license detection
-4. **Lower support burden**: No Graph API debugging, no "license not detected" issues
-
-### Previous Approach (Superseded)
-
-The original ADR-007 proposed using Graph API to detect Azure App registration in the tenant and automatically unlock full Excel features. This was abandoned because:
-
-- `Application.Read.All` requires admin consent (blocks adoption)
-- The correct endpoint is `/servicePrincipals`, not `/applications` (the original plan used the wrong API)
-- Over-engineered for the business value delivered
-- Simpler to make Excel always-free and reserve advanced features for Azure App
+The codebase (`apps/excel-addin/`) was removed. Historical documentation preserved in this ADR for context.
 
 ---
 
@@ -232,9 +218,9 @@ The original ADR-007 proposed using Graph API to detect Azure App registration i
 
 ### For New Customers
 
-1. Start with free PWA (training) or free Excel Add-in (core SPC)
+1. Start with free PWA at variscout.com (training & education)
 2. Azure Marketplace for full-featured deployment (€150/month)
-3. Clear upgrade path from free tools to Azure App
+3. Clear upgrade path from free PWA to Azure App
 
 ---
 
@@ -262,18 +248,11 @@ The original ADR-007 proposed using Graph API to detect Azure App registration i
 - Single plan at €150/month
 - Certification and launch
 
-### Phase 4: Excel AppSource (Q2 2026)
+### Phase 4: Excel Add-in Shelved (Feb 2026)
 
-- Partner Center submission
-- Hardcode to free tier (no license detection)
-- Remove Performance Mode from Excel Add-in
-- Certification and launch
-
-### Phase 5: Code Cleanup (Post-Launch)
-
-- Remove `licenseDetection.ts` from Excel Add-in
-- Hardcode `featureLimits.ts` to free tier
-- Remove Graph API dependencies from Excel Add-in
+- Excel Add-in codebase removed
+- AppSource submission cancelled
+- PWA serves as the sole free funnel product
 
 ---
 
@@ -289,5 +268,3 @@ The original ADR-007 proposed using Graph API to detect Azure App registration i
 - [Azure Marketplace Guide](../08-products/azure/marketplace.md)
 - [Pricing Tiers](../08-products/azure/pricing-tiers.md)
 - [ARM Template](../08-products/azure/arm-template.md)
-- [Excel AppSource Guide](../08-products/excel/appsource.md)
-- [Excel Add-in License Model](../08-products/excel/license-detection.md)

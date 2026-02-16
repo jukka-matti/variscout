@@ -6,7 +6,7 @@ interface Props {
 	relatedTools: string[];
 	platformFit: Array<{
 		stage: string;
-		product: 'pwa' | 'excel' | 'azure';
+		product: 'pwa' | 'azure';
 		reason: string;
 	}>;
 	lang: string;
@@ -16,13 +16,11 @@ const { relatedTools, platformFit, lang } = Astro.props;
 
 const productLabels: Record<string, string> = {
 	pwa: 'Web App (Free)',
-	excel: 'Excel Add-in (Free)',
 	azure: 'Azure App',
 };
 
 const productLinks: Record<string, string> = {
 	pwa: '/app',
-	excel: `/${lang}/product/excel`,
 	azure: `/${lang}/product/azure`,
 };
 ---

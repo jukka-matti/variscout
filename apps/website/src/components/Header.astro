@@ -37,10 +37,8 @@ const navItems = [
 		label: t('nav.product'),
 		items: [
 			{ label: t('nav.product.web'), href: `/${lang}/product/web-app` },
-			{ label: t('nav.product.excel'), href: `/${lang}/product/excel` },
 			{ label: t('nav.product.azure'), href: `/${lang}/product/azure` },
-			{ label: t('nav.product.compare'), href: `/${lang}/product/compare`, divider: true },
-		{ label: t('nav.product.enterprise'), href: `/${lang}/product/enterprise` },
+		{ label: t('nav.product.enterprise'), href: `/${lang}/product/enterprise`, divider: true },
 		],
 	},
 ];
@@ -162,9 +160,7 @@ const navItems = [
 			<div class="space-y-1">
 				<h3 class="text-xs font-bold text-neutral-500 uppercase tracking-wider px-2">{t('nav.product')}</h3>
 				<a href={`/${lang}/product/web-app`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">{t('nav.product.web')}</a>
-				<a href={`/${lang}/product/excel`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">{t('nav.product.excel')}</a>
 				<a href={`/${lang}/product/azure`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">{t('nav.product.azure')}</a>
-				<a href={`/${lang}/product/compare`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">{t('nav.product.compare')}</a>
 			<a href={`/${lang}/product/enterprise`} class="block px-4 py-3 text-lg font-medium text-neutral-900 rounded-lg hover:bg-neutral-50">{t('nav.product.enterprise')}</a>
 			</div>
 

@@ -39,7 +39,7 @@ export interface UseCase {
   // Platform fit
   platformFit: Array<{
     stage: string;
-    product: 'pwa' | 'excel' | 'azure';
+    product: 'pwa' | 'azure';
     reason: string;
   }>;
   // SEO
@@ -167,11 +167,6 @@ export const USE_CASES: UseCase[] = [
     platformFit: [
       { stage: 'Quick check', product: 'pwa', reason: 'Paste data, see variation in 60 seconds' },
       {
-        stage: 'Live in Excel',
-        product: 'excel',
-        reason: 'Connect directly to your process data sheet',
-      },
-      {
         stage: 'Team analysis',
         product: 'azure',
         reason: 'Share findings, save projects, unlimited channels',
@@ -257,11 +252,6 @@ export const USE_CASES: UseCase[] = [
         stage: 'Quick audit',
         product: 'pwa',
         reason: 'Paste incoming inspection data, assess in minutes',
-      },
-      {
-        stage: 'In your spreadsheet',
-        product: 'excel',
-        reason: 'Analyze directly from your inspection log',
       },
       {
         stage: 'Supplier monitoring',
@@ -447,11 +437,6 @@ export const USE_CASES: UseCase[] = [
         reason: 'Paste incoming data, check Cpk in 60 seconds',
       },
       {
-        stage: 'From your inspection sheet',
-        product: 'excel',
-        reason: 'Analyze directly in your Excel inspection log',
-      },
-      {
         stage: 'Full PPAP review',
         product: 'azure',
         reason: 'Performance Mode: 25+ characteristics, Cpk ranking, drill-down',
@@ -539,11 +524,6 @@ export const USE_CASES: UseCase[] = [
         reason: 'Paste defect data, see Pareto in seconds',
       },
       {
-        stage: 'From your quality log',
-        product: 'excel',
-        reason: 'Analyze directly from your defect tracking sheet',
-      },
-      {
         stage: 'Full drill-down',
         product: 'azure',
         reason: 'Multi-level drill-down with saved analysis and team access',
@@ -628,11 +608,6 @@ export const USE_CASES: UseCase[] = [
         stage: 'Quick investigation',
         product: 'pwa',
         reason: 'Paste complaint-period data, see the pattern instantly',
-      },
-      {
-        stage: 'From production log',
-        product: 'excel',
-        reason: 'Analyze directly from your production tracking sheet',
       },
       {
         stage: 'Customer response',

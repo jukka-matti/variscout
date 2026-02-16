@@ -67,6 +67,12 @@ The conceptual bridge between VariScout's UI design and its statistical methodol
 
 [:octicons-arrow-right-24: Progressive Stratification](progressive-stratification.md)
 
+### Market Analysis & TAM
+
+Total Addressable Market estimate across three segments: SPC software replacement, LSS training funnel, and Excel-native quality analytics.
+
+[:octicons-arrow-right-24: Market Analysis](market-analysis.md)
+
 ### Design Evaluations
 
 Product strategy evaluations for the 6 design tensions and 7 alternative patterns identified in Progressive Stratification. Each evaluation assesses fit against VariScout's philosophy, personas, and competitive positioning to inform roadmap decisions.

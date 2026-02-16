@@ -6,32 +6,31 @@ Complete feature availability across VariScout platforms.
 
 ## Platform Overview
 
-| Platform         | Primary Use                | Status      | Distribution      |
-| ---------------- | -------------------------- | ----------- | ----------------- |
-| **Azure App**    | Production (full features) | **PRIMARY** | Azure Marketplace |
-| **Excel Add-in** | Excel-native core SPC      | Production  | AppSource (FREE)  |
-| **PWA**          | Training & education       | Production  | Direct URL (FREE) |
-| **Power BI**     | Dashboard integration      | Planned     | AppSource         |
+| Platform      | Primary Use                | Status      | Distribution      |
+| ------------- | -------------------------- | ----------- | ----------------- |
+| **Azure App** | Production (full features) | **PRIMARY** | Azure Marketplace |
+| **PWA**       | Training & education       | Production  | Direct URL (FREE) |
+| **Power BI**  | Dashboard integration      | Planned     | AppSource         |
 
-> Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md), Azure App is the only paid product (€150/month as Managed Application). Excel Add-in and PWA are free forever.
+> Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md), Azure App is the only paid product (€150/month as Managed Application). PWA is free forever.
 
 ---
 
 ## Core Analysis Features
 
-| Feature                  | Azure App | Excel Add-in | PWA (Free) | Power BI |
-| ------------------------ | :-------: | :----------: | :--------: | :------: |
-| **I-Chart**              |     ✓     |      ✓       |     ✓      | Planned  |
-| **Boxplot**              |     ✓     |      ✓       |     ✓      | Planned  |
-| **Pareto**               |     ✓     |      ✓       |     ✓      | Planned  |
-| **Capability Histogram** |     ✓     |      ✓       |     ✓      | Planned  |
-| **Probability Plot**     |     ✓     |      -       |     ✓      |    -     |
-| **Scatter/Regression**   |     ✓     |      -       |     ✓      |    -     |
-| **Gage R&R**             |     ✓     |      -       |     ✓      |    -     |
-| **Violin Mode**          |     ✓     |      -       |     ✓      |    -     |
-| **Performance Mode**     |     ✓     |      -       |     -      |    -     |
+| Feature                  | Azure App | PWA (Free) | Power BI |
+| ------------------------ | :-------: | :--------: | :------: |
+| **I-Chart**              |     ✓     |     ✓      | Planned  |
+| **Boxplot**              |     ✓     |     ✓      | Planned  |
+| **Pareto**               |     ✓     |     ✓      | Planned  |
+| **Capability Histogram** |     ✓     |     ✓      | Planned  |
+| **Probability Plot**     |     ✓     |     ✓      |    -     |
+| **Scatter/Regression**   |     ✓     |     ✓      |    -     |
+| **Gage R&R**             |     ✓     |     ✓      |    -     |
+| **Violin Mode**          |     ✓     |     ✓      |    -     |
+| **Performance Mode**     |     ✓     |     -      |    -     |
 
-> Excel Add-in provides the four core SPC charts. PWA adds Regression, Gage R&R, and Probability Plot for training. Performance Mode requires the Azure App.
+> PWA includes core SPC plus Green Belt tools for training. Performance Mode requires the Azure App.
 
 ---
 
@@ -39,104 +38,109 @@ Complete feature availability across VariScout platforms.
 
 All platforms share `@variscout/core` and produce **identical results** for the features they support.
 
-| Calculation          | Azure | Excel | PWA | Formula Reference   |
-| -------------------- | :---: | :---: | :-: | ------------------- |
-| Mean, Std Dev        |   ✓   |   ✓   |  ✓  | Standard            |
-| UCL/LCL (3σ)         |   ✓   |   ✓   |  ✓  | x̄ ± 3σ              |
-| Cp, Cpk              |   ✓   |   ✓   |  ✓  | (USL-LSL)/6σ        |
-| η² (Eta-squared)     |   ✓   |   -   |  ✓  | SS_between/SS_total |
-| F-statistic, p-value |   ✓   |   -   |  ✓  | ANOVA               |
-| R², Adjusted R²      |   ✓   |   -   |  ✓  | Regression          |
-| VIF                  |   ✓   |   -   |  ✓  | Multicollinearity   |
-| %GRR                 |   ✓   |   -   |  ✓  | AIAG standard       |
-| Nelson Rule 2        |   ✓   |   ✓   |  ✓  | 9-point run         |
+| Calculation          | Azure | PWA | Formula Reference   |
+| -------------------- | :---: | :-: | ------------------- |
+| Mean, Std Dev        |   ✓   |  ✓  | Standard            |
+| UCL/LCL (3σ)         |   ✓   |  ✓  | x̄ ± 3σ              |
+| Cp, Cpk              |   ✓   |  ✓  | (USL-LSL)/6σ        |
+| η² (Eta-squared)     |   ✓   |  ✓  | SS_between/SS_total |
+| F-statistic, p-value |   ✓   |  ✓  | ANOVA               |
+| R², Adjusted R²      |   ✓   |  ✓  | Regression          |
+| VIF                  |   ✓   |  ✓  | Multicollinearity   |
+| %GRR                 |   ✓   |  ✓  | AIAG standard       |
+| Nelson Rule 2        |   ✓   |  ✓  | 9-point run         |
 
 ---
 
 ## Navigation & Interaction
 
-| Feature                   | Azure App | Excel Add-in | PWA (Free) | Notes                      |
-| ------------------------- | :-------: | :----------: | :--------: | -------------------------- |
-| **Drill-down**            |     ✓     | Via slicers  |     ✓      | Excel uses native slicers  |
-| **Linked filtering**      |     ✓     | Via slicers  |     ✓      | Excel uses native slicers  |
-| **Breadcrumb navigation** |     ✓     |      -       |     ✓      | Not applicable in Excel    |
-| **Multi-select filters**  |     ✓     |      ✓       |     ✓      |                            |
-| **Investigation Mindmap** |     ✓     |      -       |     ✓      |                            |
-| **What-If Simulator**     |     ✓     |      -       |     ✓      |                            |
-| **Keyboard navigation**   |     ✓     |   Partial    |     ✓      | Excel has its own patterns |
+| Feature                           | Azure App | PWA (Free) | Notes                        |
+| --------------------------------- | :-------: | :--------: | ---------------------------- |
+| **Drill-down**                    |     ✓     |     ✓      |                              |
+| **Linked filtering**              |     ✓     |     ✓      |                              |
+| **Breadcrumb navigation**         |     ✓     |     ✓      |                              |
+| **Multi-select filters**          |     ✓     |     ✓      |                              |
+| **Investigation Mindmap**         |     ✓     |     ✓      |                              |
+| **What-If Simulator**             |     ✓     |     ✓      |                              |
+| **Keyboard navigation**           |     ✓     |     ✓      |                              |
+| **Copy chart to clipboard**       |     ✓     |     ✓      |                              |
+| **Editable chart titles**         |     ✓     |     ✓      |                              |
+| **Selection panel**               |     ✓     |     ✓      | Minitab-style point brushing |
+| **Create Factor**                 |     ✓     |     ✓      | From point selection         |
+| **Focus mode (fullscreen chart)** |     ✓     |     ✓      |                              |
 
 ---
 
 ## Data Handling
 
-| Feature             | Azure App | Excel Add-in | PWA (Free) | Notes                     |
-| ------------------- | :-------: | :----------: | :--------: | ------------------------- |
-| **CSV upload**      |     ✓     |      -       |     -      | Azure App + Excel native  |
-| **Excel upload**    |     ✓     |    Native    |     -      | Azure App + Excel native  |
-| **Paste data**      |     ✓     |      -       |     ✓      |                           |
-| **Sample datasets** |     ✓     |      -       |     ✓      | PWA pre-loaded with cases |
-| **Column mapping**  |     ✓     |      -       |     ✓      | Excel auto-detects        |
-| **Data validation** |     ✓     |      ✓       |     ✓      |                           |
+| Feature             | Azure App | PWA (Free) | Notes                     |
+| ------------------- | :-------: | :--------: | ------------------------- |
+| **CSV upload**      |     ✓     |     -      | Azure App only            |
+| **Excel upload**    |     ✓     |     -      | Azure App only            |
+| **Paste data**      |     ✓     |     ✓      |                           |
+| **Sample datasets** |     ✓     |     ✓      | PWA pre-loaded with cases |
+| **Column mapping**  |     ✓     |     ✓      |                           |
+| **Data validation** |     ✓     |     ✓      |                           |
 
 ---
 
 ## Persistence & Storage
 
-| Feature               | Azure App | Excel Add-in | PWA (Free) | Notes                    |
-| --------------------- | :-------: | :----------: | :--------: | ------------------------ |
-| **Local storage**     | IndexedDB |  Doc Props   |     -      | PWA is session-only      |
-| **Cloud sync**        | OneDrive  |   OneDrive   |     -      |                          |
-| **Offline support**   |  Cached   |      ✓       |     ✓      | Azure caches for offline |
-| **Project save/load** |     ✓     | In workbook  |     -      | PWA is session-only      |
-| **Export CSV**        |     ✓     |      -       |     -      | Azure App only           |
-| **Export JSON**       |     ✓     |      -       |     -      | Azure App only           |
-| **Screenshot export** |     ✓     |      ✓       |     ✓      |                          |
+| Feature               | Azure App | PWA (Free) | Notes                    |
+| --------------------- | :-------: | :--------: | ------------------------ |
+| **Local storage**     | IndexedDB |     -      | PWA is session-only      |
+| **Cloud sync**        | OneDrive  |     -      |                          |
+| **Offline support**   |  Cached   |     ✓      | Azure caches for offline |
+| **Project save/load** |     ✓     |     -      | PWA is session-only      |
+| **Export CSV**        |     ✓     |     ✓      |                          |
+| **Export JSON**       |     ✓     |     -      | Azure App only           |
+| **Screenshot export** |     ✓     |     ✓      |                          |
 
 ---
 
 ## Authentication & Security
 
-| Feature                     | Azure App | Excel Add-in | PWA (Free) | Notes                 |
-| --------------------------- | :-------: | :----------: | :--------: | --------------------- |
-| **Microsoft SSO**           |     ✓     |      -       |     -      | Excel: no auth needed |
-| **Azure AD / Entra ID**     |     ✓     |      -       |     -      |                       |
-| **Data in customer tenant** |     ✓     |      ✓       |    N/A     | PWA is local only     |
-| **No data transmission**    |     ✓     |      ✓       |     ✓      | All client-side       |
-
-> Excel Add-in no longer requires SSO or Graph API permissions. It operates without authentication.
+| Feature                     | Azure App | PWA (Free) | Notes             |
+| --------------------------- | :-------: | :--------: | ----------------- |
+| **Microsoft SSO**           |     ✓     |     -      |                   |
+| **Azure AD / Entra ID**     |     ✓     |     -      |                   |
+| **Data in customer tenant** |     ✓     |    N/A     | PWA is local only |
+| **No data transmission**    |     ✓     |     ✓      | All client-side   |
 
 ---
 
 ## Theming & Customization
 
-| Feature                  | Azure App | Excel Add-in | PWA (Free) | Notes                  |
-| ------------------------ | :-------: | :----------: | :--------: | ---------------------- |
-| **Dark/Light theme**     |     ✓     |  Dark only   |     ✓      | Content add-in is dark |
-| **System theme follow**  |     ✓     |      -       |     ✓      |                        |
-| **Company accent color** |     ✓     |      -       |     ✓      | Azure App only         |
-| **Branding removal**     |     ✓     |      -       |     -      | Azure App only         |
+| Feature                  | Azure App | PWA (Free) | Notes          |
+| ------------------------ | :-------: | :--------: | -------------- |
+| **Dark/Light theme**     |     ✓     |     ✓      |                |
+| **System theme follow**  |     ✓     |     ✓      |                |
+| **Company accent color** |     ✓     |     -      | Azure App only |
+| **Chart font scale**     |     ✓     |     -      | Azure App only |
+| **Settings panel**       |     ✓     |     -      | Azure App only |
+| **Branding removal**     |     ✓     |     -      | Azure App only |
 
 ---
 
 ## Learning & Help
 
-| Feature                  | Azure App | Excel Add-in | PWA (Demo) | Notes           |
-| ------------------------ | :-------: | :----------: | :--------: | --------------- |
-| **Help tooltips**        |     ✓     |      ✓       |     ✓      |                 |
-| **Glossary integration** |     ✓     |      ✓       |     ✓      |                 |
-| **"Learn more" links**   |     ✓     |      ✓       |     ✓      | Link to website |
-| **Sample case studies**  |     ✓     |      -       |     ✓      | PWA pre-loaded  |
+| Feature                  | Azure App | PWA (Demo) | Notes           |
+| ------------------------ | :-------: | :--------: | --------------- |
+| **Help tooltips**        |     ✓     |     ✓      |                 |
+| **Glossary integration** |     ✓     |     ✓      |                 |
+| **"Learn more" links**   |     ✓     |     ✓      | Link to website |
+| **Sample case studies**  |     ✓     |     ✓      | PWA pre-loaded  |
 
 ---
 
 ## Licensing & Pricing
 
-| Aspect           | Azure App         | Excel Add-in   | PWA (Free)                                           |
-| ---------------- | ----------------- | -------------- | ---------------------------------------------------- |
-| **Distribution** | Azure Marketplace | AppSource      | Direct URL                                           |
-| **Pricing**      | €150/month        | FREE (forever) | FREE (forever)                                       |
-| **Features**     | All (full)        | Core SPC only  | Core SPC + Green Belt (no Performance Mode, no save) |
-| **Auth**         | MSAL / Entra ID   | None required  | None                                                 |
+| Aspect           | Azure App         | PWA (Free)                                           |
+| ---------------- | ----------------- | ---------------------------------------------------- |
+| **Distribution** | Azure Marketplace | Direct URL                                           |
+| **Pricing**      | €150/month        | FREE (forever)                                       |
+| **Features**     | All (full)        | Core SPC + Green Belt (no Performance Mode, no save) |
+| **Auth**         | EasyAuth / Entra  | None                                                 |
 
 ---
 
@@ -149,16 +153,9 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - Save/persistence (OneDrive sync)
 - OneDrive project sync
 - Team collaboration
-- MSAL authentication flow
+- EasyAuth authentication flow
 - Company accent color / branding removal
 - ARM template deployment (Managed Application)
-
-### Excel Add-in Only
-
-- Native Excel table integration
-- Native Excel slicer integration
-- Worksheet-embedded charts
-- Task pane setup wizard
 
 ### PWA Only
 
@@ -172,10 +169,9 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Planned Features (Roadmap)
 
-| Feature                | Target Platform | Status  |
-| ---------------------- | --------------- | ------- |
-| Power BI visuals       | Power BI        | Planned |
-| Real-time data binding | Excel           | Backlog |
+| Feature          | Target Platform | Status  |
+| ---------------- | --------------- | ------- |
+| Power BI visuals | Power BI        | Planned |
 
 ---
 
@@ -183,6 +179,5 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 - [Products Overview](index.md)
 - [Azure App](azure/index.md)
-- [Excel Add-in](excel/index.md)
 - [PWA (Free Training Tool)](pwa/index.md)
 - [ADR-007: Distribution Strategy](../07-decisions/adr-007-azure-marketplace-distribution.md)

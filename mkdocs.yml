@@ -69,6 +69,7 @@ nav:
   - Vision:
     - 01-vision/index.md
     - Philosophy: 01-vision/philosophy.md
+    - Market Analysis: 01-vision/market-analysis.md
     - Four Lenses:
       - 01-vision/four-lenses/index.md
       - Change: 01-vision/four-lenses/change.md
@@ -204,14 +205,6 @@ nav:
     - PWA:
       - 08-products/pwa/index.md
       - Storage: 08-products/pwa/storage.md
-    - Excel:
-      - 08-products/excel/index.md
-      - Architecture: 08-products/excel/architecture.md
-      - Office.js API: 08-products/excel/office-js-api.md
-      - Design System: 08-products/excel/design-system.md
-      - Strategy: 08-products/excel/strategy.md
-      - AppSource: 08-products/excel/appsource.md
-      - License Detection: 08-products/excel/license-detection.md
     - Azure:
       - 08-products/azure/index.md
       - MSAL Auth: 08-products/azure/msal-auth.md

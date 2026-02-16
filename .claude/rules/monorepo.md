@@ -21,14 +21,16 @@ packages/
                #   PerformanceSetupPanelBase, RegressionPanelBase, VariationBar,
                #   YAxisPopover, ChartCard, ColumnMapping, MeasureColumnSelector,
                #   PerformanceDetectedModal, DataQualityBanner, HelpTooltip,
-               #   SelectionPanel, CreateFactorModal, TierBadge, UpgradePrompt,
+               #   SelectionPanel, CreateFactorModal, UpgradePrompt,
+               #   GageRRPanelBase, Slider, WhatIfSimulator, WhatIfPageBase,
+               #   ErrorBoundary, AxisEditor, FactorSelector, StatsPanelBase,
+               #   MindmapWindow, MindmapPanelContent,
                #   useGlossary, useIsMobile, gradeColors, errorService
 
 apps/
 ├── pwa/          # @variscout/pwa - PWA website
 ├── azure/        # @variscout/azure-app - Azure Team App
-├── website/      # @variscout/website - Marketing website (Astro + React Islands)
-└── excel-addin/  # @variscout/excel-addin - Excel Add-in
+└── website/      # @variscout/website - Marketing website (Astro + React Islands)
 ```
 
 ## Import Rules

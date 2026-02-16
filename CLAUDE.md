@@ -6,7 +6,6 @@ Lightweight, offline-first variation analysis tool for quality professionals.
 
 ```bash
 pnpm dev             # PWA dev server (localhost:5173)
-pnpm dev:excel       # Excel Add-in dev server (localhost:3000)
 pnpm --filter @variscout/azure-app dev  # Azure app dev server
 
 pnpm build           # Build all packages and apps
@@ -77,7 +76,6 @@ docs/
 │   ├── index.md
 │   ├── feature-parity.md # Platform × Feature availability matrix
 │   ├── azure/           # index, marketplace, pricing-tiers, arm-template, authentication, onedrive-sync
-│   ├── excel/           # index, architecture, design-system, strategy, appsource, license-detection
 │   ├── pwa/             # index (demo tool), storage
 │   ├── website/         # index, design-philosophy, content-architecture
 │   └── powerbi/
@@ -90,7 +88,6 @@ docs/
 | ---------------------- | -------------------------------------------------------------------------------------- |
 | Statistics/Cpk changes | docs/03-features/analysis/capability.md, packages/core/src/stats.ts                    |
 | Chart modifications    | docs/06-design-system/charts/, .claude/rules/charts.md                                 |
-| Excel Add-in work      | docs/08-products/excel/, .claude/rules/excel-addin.md                                  |
 | Azure app changes      | docs/08-products/azure/, packages/hooks/src/useDataState.ts                            |
 | Adding new feature     | docs/07-decisions/ (check ADRs), docs/05-technical/                                    |
 | Parser/data input      | docs/03-features/data/data-input.md, packages/core/src/parser.ts                       |
@@ -121,7 +118,6 @@ docs/
 | Azure deployment/ARM   | docs/08-products/azure/marketplace.md, docs/08-products/azure/arm-template.md          |
 | Azure auth (EasyAuth)  | docs/08-products/azure/authentication.md                                               |
 | OneDrive sync          | docs/08-products/azure/onedrive-sync.md                                                |
-| AppSource submission   | docs/08-products/excel/appsource.md                                                    |
 | UI components (modals) | docs/06-design-system/components/                                                      |
 | Color/typography       | docs/06-design-system/foundations/                                                     |
 | Case studies           | docs/04-cases/index.md                                                                 |
@@ -141,9 +137,8 @@ variscout-lite/
 │   └── ui/            # @variscout/ui - Shared UI utilities, colors, and hooks
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite)
-│   ├── azure/         # Azure Team App (MSAL + OneDrive sync)
-│   ├── website/       # Marketing website (Astro + React Islands)
-│   └── excel-addin/   # Excel Add-in (Office.js + Fluent UI)
+│   ├── azure/         # Azure Team App (EasyAuth + OneDrive sync)
+│   └── website/       # Marketing website (Astro + React Islands)
 └── docs/              # Documentation (see index above)
 ```
 
@@ -152,7 +147,7 @@ variscout-lite/
 - **TypeScript** strict mode enabled
 - **React** functional components with hooks
 - **State**: Context API (DataContext.tsx) - no Redux
-- **Styling**: Tailwind CSS (PWA), Fluent UI (Excel Add-in)
+- **Styling**: Tailwind CSS (PWA, Azure)
 - **Charts**: Visx low-level primitives via @variscout/charts
 - **Naming**: PascalCase components, `use` prefix hooks, camelCase utils
 
@@ -161,81 +156,77 @@ variscout-lite/
 - **No Backend**: All processing in browser, data stays local
 - **Shared Logic**: Statistics in `@variscout/core`, charts in `@variscout/charts`
 - **Props-based Charts**: Chart components accept data via props (not context)
-- **Persistence**: IndexedDB + localStorage (PWA), Custom Document Properties (Excel)
+- **Persistence**: IndexedDB + localStorage (PWA/Azure)
 - **Offline-first**: PWA works without internet after first visit
 
 ## Products & Pricing
 
-| Product      | Distribution      | Pricing                                        | Status      |
-| ------------ | ----------------- | ---------------------------------------------- | ----------- |
-| Azure App    | Azure Marketplace | €150/month (Managed Application, all features) | **PRIMARY** |
-| Excel Add-in | AppSource         | FREE (forever, core SPC only)                  | Production  |
-| PWA          | Public URL        | FREE (forever, training & education)           | Production  |
+| Product   | Distribution      | Pricing                                        | Status      |
+| --------- | ----------------- | ---------------------------------------------- | ----------- |
+| Azure App | Azure Marketplace | €150/month (Managed Application, all features) | **PRIMARY** |
+| PWA       | Public URL        | FREE (forever, training & education)           | Production  |
 
 See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for the distribution strategy.
 
 ## Key Files
 
-| File                                                           | Purpose                                                                          |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `packages/core/src/stats.ts`                                   | Statistics engine (mean, Cp, Cpk, ANOVA, GageRR)                                 |
-| `packages/core/src/__tests__/stats.test.ts`                    | Unit tests for statistics engine                                                 |
-| `packages/core/src/types.ts`                                   | Shared TypeScript interfaces                                                     |
-| `packages/core/src/navigation.ts`                              | Navigation types and utilities                                                   |
-| `packages/core/src/tier.ts`                                    | Tier configuration (`getTier()`, `isPaidTier()`, channel limits)                 |
-| `packages/core/src/edition.ts`                                 | Edition detection (deprecated, use tier.ts for new code)                         |
-| `packages/hooks/src/useTier.ts`                                | React hook for tier state and limits                                             |
-| `packages/ui/src/components/TierBadge/`                        | Tier indicator badge component                                                   |
-| `packages/ui/src/components/UpgradePrompt/`                    | Upgrade call-to-action component                                                 |
-| `packages/charts/src/`                                         | IChart, Boxplot, ParetoChart, ScatterPlot, GageRRChart                           |
-| `packages/charts/src/PerformanceIChart.tsx`                    | Multi-channel Cpk scatter plot (shared)                                          |
-| `packages/charts/src/PerformanceBoxplot.tsx`                   | Multi-channel distribution comparison (shared)                                   |
-| `packages/charts/src/PerformancePareto.tsx`                    | Multi-channel Cpk ranking chart (shared)                                         |
-| `packages/charts/src/PerformanceCapability.tsx`                | Single channel histogram (shared)                                                |
-| `packages/charts/src/colors.ts`                                | Chart color constants (chartColors, chromeColors)                                |
-| `packages/data/src/`                                           | Sample datasets with pre-computed stats and chart data                           |
-| `packages/data/src/samples/`                                   | Individual sample files (coffee, journey, bottleneck, sachets)                   |
-| `packages/ui/src/colors.ts`                                    | Shared UI colors (gradeColors)                                                   |
-| `packages/ui/src/hooks/useMediaQuery.ts`                       | Responsive hooks (useIsMobile)                                                   |
-| `packages/ui/src/components/HelpTooltip/`                      | Help tooltip component with CSS theming and "Learn more"                         |
-| `packages/ui/src/hooks/useGlossary.ts`                         | Hook for accessing glossary terms and definitions                                |
-| `packages/core/src/glossary/types.ts`                          | Glossary term type definitions (GlossaryTerm, etc.)                              |
-| `packages/core/src/glossary/terms.ts`                          | Glossary content (~20 terms for capability, statistics)                          |
-| `apps/excel-addin/src/components/HelpTooltip.tsx`              | Fluent UI variant of HelpTooltip for Excel Add-in                                |
-| `packages/hooks/src/useChartScale.ts`                          | Chart Y-axis scale calculation                                                   |
-| `packages/hooks/src/useFilterNavigation.ts`                    | Filter navigation with multi-select, updateFilterValues(), removeFilter()        |
-| `packages/hooks/src/useDataIngestion.ts`                       | Shared file upload and data parsing                                              |
-| `packages/hooks/src/useVariationTracking.ts`                   | Cumulative η² tracking + filterChipData with contribution %                      |
-| `packages/hooks/src/useKeyboardNavigation.ts`                  | Keyboard navigation (arrow keys, focus management)                               |
-| `packages/hooks/src/useResponsiveChartMargins.ts`              | Dynamic chart margins based on container width                                   |
-| `packages/hooks/src/useDataState.ts`                           | Shared DataContext state (used by PWA & Azure)                                   |
-| `apps/pwa/src/context/DataContext.tsx`                         | Central state management                                                         |
-| `apps/pwa/src/context/ThemeContext.tsx`                        | Theme state (light/dark/system, company accent)                                  |
-| `packages/charts/src/useChartTheme.ts`                         | Theme-aware chart colors hook                                                    |
-| `apps/pwa/src/components/__tests__/`                           | Component tests (Dashboard, RegressionPanel, GageRRPanel)                        |
-| `packages/core/src/parser.ts`                                  | CSV/Excel parsing, validation, keyword detection (shared)                        |
-| `apps/pwa/src/hooks/useDataIngestion.ts`                       | PWA wrapper (adds loadSample to shared hook)                                     |
-| `packages/ui/src/components/DataQualityBanner/`                | Shared validation summary UI component                                           |
-| `packages/ui/src/components/ColumnMapping/`                    | Shared column mapping UI component                                               |
-| `packages/ui/src/components/MeasureColumnSelector/`            | Shared measure column selector                                                   |
-| `packages/ui/src/components/PerformanceDetectedModal/`         | Shared wide-format detection modal                                               |
-| `apps/pwa/src/components/FilterBreadcrumb.tsx`                 | Filter chips UI component (multi-select, contribution %)                         |
-| `apps/pwa/src/components/MobileMenu.tsx`                       | Mobile navigation hamburger menu                                                 |
-| `apps/pwa/src/components/FunnelPanel.tsx`                      | Variation funnel visualization panel                                             |
-| `apps/pwa/src/components/VariationFunnel.tsx`                  | Funnel chart showing drill-down progress                                         |
-| `apps/pwa/src/components/PerformanceSetupPanel.tsx`            | Setup panel for multi-measure analysis                                           |
-| `apps/pwa/src/components/PerformanceDashboard.tsx`             | Performance Mode dashboard (Cp/Cpk toggle, drill navigation)                     |
-| `apps/pwa/src/components/Dashboard.tsx`                        | Main dashboard (drillFromPerformance, onBackToPerformance)                       |
-| `apps/pwa/src/components/views/`                               | Extracted view components (chart containers)                                     |
-| `apps/azure/src/context/DataContext.tsx`                       | Azure app central state (mirrors PWA)                                            |
-| `apps/azure/src/services/storage.ts`                           | Offline-first storage + OneDrive sync                                            |
-| `apps/azure/src/components/__tests__/`                         | Azure app component tests                                                        |
-| `apps/azure/src/components/PerformanceDashboard.tsx`           | Azure Performance Mode dashboard (Cp/Cpk toggle, drill navigation)               |
-| `apps/azure/src/components/DataPanel.tsx`                      | Azure data table panel (resizable, bi-directional sync)                          |
-| `apps/azure/src/components/FilterBreadcrumb.tsx`               | Azure filter chips UI component                                                  |
-| `apps/azure/src/components/FilterChips.tsx`                    | Azure active filter chips display                                                |
-| `apps/excel-addin/src/content/ContentPerformanceDashboard.tsx` | Excel Performance Mode (Cpk target input, control-based coloring, Cp/Cpk toggle) |
-| `apps/excel-addin/src/lib/stateBridge.ts`                      | Excel state sync with Custom Document Properties                                 |
-| `docs/04-cases/`                                               | Case studies with demo data and teaching briefs                                  |
+| File                                                   | Purpose                                                                   |
+| ------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `packages/core/src/stats.ts`                           | Statistics engine (mean, Cp, Cpk, ANOVA, GageRR)                          |
+| `packages/core/src/__tests__/stats.test.ts`            | Unit tests for statistics engine                                          |
+| `packages/core/src/types.ts`                           | Shared TypeScript interfaces                                              |
+| `packages/core/src/navigation.ts`                      | Navigation types and utilities                                            |
+| `packages/core/src/tier.ts`                            | Tier configuration (`getTier()`, `isPaidTier()`, channel limits)          |
+| `packages/core/src/edition.ts`                         | Edition detection (deprecated, use tier.ts for new code)                  |
+| `packages/hooks/src/useTier.ts`                        | React hook for tier state and limits                                      |
+| `packages/ui/src/components/TierBadge/`                | Tier indicator badge component                                            |
+| `packages/ui/src/components/UpgradePrompt/`            | Upgrade call-to-action component                                          |
+| `packages/charts/src/`                                 | IChart, Boxplot, ParetoChart, ScatterPlot, GageRRChart                    |
+| `packages/charts/src/PerformanceIChart.tsx`            | Multi-channel Cpk scatter plot (shared)                                   |
+| `packages/charts/src/PerformanceBoxplot.tsx`           | Multi-channel distribution comparison (shared)                            |
+| `packages/charts/src/PerformancePareto.tsx`            | Multi-channel Cpk ranking chart (shared)                                  |
+| `packages/charts/src/PerformanceCapability.tsx`        | Single channel histogram (shared)                                         |
+| `packages/charts/src/colors.ts`                        | Chart color constants (chartColors, chromeColors)                         |
+| `packages/data/src/`                                   | Sample datasets with pre-computed stats and chart data                    |
+| `packages/data/src/samples/`                           | Individual sample files (coffee, journey, bottleneck, sachets)            |
+| `packages/ui/src/colors.ts`                            | Shared UI colors (gradeColors)                                            |
+| `packages/ui/src/hooks/useMediaQuery.ts`               | Responsive hooks (useIsMobile)                                            |
+| `packages/ui/src/components/HelpTooltip/`              | Help tooltip component with CSS theming and "Learn more"                  |
+| `packages/ui/src/hooks/useGlossary.ts`                 | Hook for accessing glossary terms and definitions                         |
+| `packages/core/src/glossary/types.ts`                  | Glossary term type definitions (GlossaryTerm, etc.)                       |
+| `packages/core/src/glossary/terms.ts`                  | Glossary content (~20 terms for capability, statistics)                   |
+| `packages/hooks/src/useChartScale.ts`                  | Chart Y-axis scale calculation                                            |
+| `packages/hooks/src/useFilterNavigation.ts`            | Filter navigation with multi-select, updateFilterValues(), removeFilter() |
+| `packages/hooks/src/useDataIngestion.ts`               | Shared file upload and data parsing                                       |
+| `packages/hooks/src/useVariationTracking.ts`           | Cumulative η² tracking + filterChipData with contribution %               |
+| `packages/hooks/src/useKeyboardNavigation.ts`          | Keyboard navigation (arrow keys, focus management)                        |
+| `packages/hooks/src/useResponsiveChartMargins.ts`      | Dynamic chart margins based on container width                            |
+| `packages/hooks/src/useDataState.ts`                   | Shared DataContext state (used by PWA & Azure)                            |
+| `apps/pwa/src/context/DataContext.tsx`                 | Central state management                                                  |
+| `apps/pwa/src/context/ThemeContext.tsx`                | Theme state (light/dark/system, company accent)                           |
+| `packages/charts/src/useChartTheme.ts`                 | Theme-aware chart colors hook                                             |
+| `apps/pwa/src/components/__tests__/`                   | Component tests (Dashboard, RegressionPanel, GageRRPanel)                 |
+| `packages/core/src/parser.ts`                          | CSV/Excel parsing, validation, keyword detection (shared)                 |
+| `apps/pwa/src/hooks/useDataIngestion.ts`               | PWA wrapper (adds loadSample to shared hook)                              |
+| `packages/ui/src/components/DataQualityBanner/`        | Shared validation summary UI component                                    |
+| `packages/ui/src/components/ColumnMapping/`            | Shared column mapping UI component                                        |
+| `packages/ui/src/components/MeasureColumnSelector/`    | Shared measure column selector                                            |
+| `packages/ui/src/components/PerformanceDetectedModal/` | Shared wide-format detection modal                                        |
+| `apps/pwa/src/components/FilterBreadcrumb.tsx`         | Filter chips UI component (multi-select, contribution %)                  |
+| `apps/pwa/src/components/MobileMenu.tsx`               | Mobile navigation hamburger menu                                          |
+| `apps/pwa/src/components/FunnelPanel.tsx`              | Variation funnel visualization panel                                      |
+| `apps/pwa/src/components/VariationFunnel.tsx`          | Funnel chart showing drill-down progress                                  |
+| `apps/pwa/src/components/PerformanceSetupPanel.tsx`    | Setup panel for multi-measure analysis                                    |
+| `apps/pwa/src/components/PerformanceDashboard.tsx`     | Performance Mode dashboard (Cp/Cpk toggle, drill navigation)              |
+| `apps/pwa/src/components/Dashboard.tsx`                | Main dashboard (drillFromPerformance, onBackToPerformance)                |
+| `apps/pwa/src/components/views/`                       | Extracted view components (chart containers)                              |
+| `apps/azure/src/context/DataContext.tsx`               | Azure app central state (mirrors PWA)                                     |
+| `apps/azure/src/services/storage.ts`                   | Offline-first storage + OneDrive sync                                     |
+| `apps/azure/src/components/__tests__/`                 | Azure app component tests                                                 |
+| `apps/azure/src/components/PerformanceDashboard.tsx`   | Azure Performance Mode dashboard (Cp/Cpk toggle, drill navigation)        |
+| `apps/azure/src/components/DataPanel.tsx`              | Azure data table panel (resizable, bi-directional sync)                   |
+| `apps/azure/src/components/FilterBreadcrumb.tsx`       | Azure filter chips UI component                                           |
+| `apps/azure/src/components/FilterChips.tsx`            | Azure active filter chips display                                         |
+| `docs/04-cases/`                                       | Case studies with demo data and teaching briefs                           |
 
 > Use `Read` tool to examine these files when needed.

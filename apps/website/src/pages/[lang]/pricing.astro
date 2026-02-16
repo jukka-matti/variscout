@@ -36,21 +36,6 @@ const pricingTiers = [
 		ctaNote: "No signup required",
 	},
 	{
-		name: "Excel Add-in",
-		price: "€0",
-		period: "forever",
-		description: "Core SPC charts inside your Excel spreadsheets",
-		features: [
-			"I-Chart, Boxplot, Pareto, Capability",
-			"Analyze data directly in Excel",
-			"Save settings in workbook",
-			"Works on Windows, Mac, and Web",
-		],
-		cta: { text: "Get from AppSource", href: "https://appsource.microsoft.com/", external: true },
-		ctaNote: "Via Microsoft AppSource",
-		whereToGet: "Microsoft AppSource",
-	},
-	{
 		name: "Azure App",
 		price: "€150",
 		period: "/month",
@@ -77,7 +62,7 @@ const pricingTiers = [
 const faqs = [
 	{
 		question: "What can I do for free?",
-		answer: "Both the Web App and Excel Add-in are free forever. The Web App gives you core SPC plus Green Belt tools (I-Chart, Boxplot, Pareto, Capability, Regression, Gage R&R, ANOVA) with sample datasets and copy-paste input. The Excel Add-in provides core SPC charts (I-Chart, Boxplot, Pareto, Capability) directly in your spreadsheets.",
+		answer: "The Web App is free forever. It gives you core SPC plus Green Belt tools (I-Chart, Boxplot, Pareto, Capability, Regression, Gage R&R, ANOVA) with 16 sample datasets and copy-paste input. No signup required — just open it and start analyzing.",
 	},
 	{
 		question: "What does the Azure App add?",
@@ -106,17 +91,17 @@ const trustBadges = [
 ---
 
 <BaseLayout
-	title="VaRiScout Pricing | Two Free Tools + Azure App for Teams"
-	description="VaRiScout pricing: Web App and Excel Add-in free forever. Azure App for teams at €150/month with all features."
+	title="VaRiScout Pricing | Free Web App + Azure App for Teams"
+	description="VaRiScout pricing: Web App free forever for training and education. Azure App for teams at €150/month with all features."
 >
 	<section class="py-20 bg-white border-b border-neutral-200">
 		<div class="container-wide text-center">
 			<h1 class="text-4xl md:text-5xl font-bold mb-6">Simple pricing. <span class="text-brand-primary">Start free.</span></h1>
 			<p class="text-xl text-neutral-600 max-w-2xl mx-auto mb-16 italic">
-				Two free tools for everyone. Azure App for teams that need more.
+				Try it free at variscout.com. When you're ready for your team, get it on Azure Marketplace.
 			</p>
 
-			<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+			<div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto text-left">
 				{pricingTiers.map((tier) => <PricingCard {...tier} />)}
 			</div>
 
@@ -164,7 +149,7 @@ const trustBadges = [
 				<div class="flex-1 text-center md:text-left">
 					<h2 class="text-2xl font-bold mb-4">Your Data Stays Yours</h2>
 					<p class="text-neutral-400 max-w-2xl italic">
-						VaRiScout is designed for sensitive operational data. It runs entirely on your side — in your browser, your Excel, or your Azure tenant. We never see your data.
+						VaRiScout is designed for sensitive operational data. It runs entirely on your side — in your browser or your Azure tenant. We never see your data.
 					</p>
 				</div>
 				<div>

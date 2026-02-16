@@ -104,7 +104,7 @@ export interface UseCase {
   relatedLearn: string[];
   platformFit: Array<{
     stage: string;
-    product: 'pwa' | 'excel' | 'azure';
+    product: 'pwa' | 'azure';
     reason: string;
   }>;
   keywords: string[];
@@ -168,7 +168,7 @@ The `[lang]/use-cases/[slug].astro` template renders 6 sections:
 
 - Related case studies ("See the proof")
 - Related tools (linked cards)
-- Platform fit table (PWA vs Excel vs Azure)
+- Platform fit table (PWA vs Azure)
 - Primary CTA: "Try with your data"
 
 ---

@@ -12,9 +12,7 @@ export const ui = {
   en: {
     'nav.product': 'Product',
     'nav.product.web': 'Web App',
-    'nav.product.excel': 'Excel',
     'nav.product.azure': 'Azure',
-    'nav.product.compare': 'Compare All',
     'nav.product.enterprise': 'Enterprise',
     'nav.useCases': 'Use Cases',
     'nav.useCases.lss': 'LSS Training & Projects',
@@ -47,9 +45,7 @@ export const ui = {
   de: {
     'nav.product': 'Produkt',
     'nav.product.web': 'Web App',
-    'nav.product.excel': 'Excel',
     'nav.product.azure': 'Azure',
-    'nav.product.compare': 'Alle vergleichen',
     'nav.product.enterprise': 'Unternehmen',
     'nav.useCases': 'Anwendungsfälle',
     'nav.useCases.lss': 'LSS Training & Projekte',
@@ -82,9 +78,7 @@ export const ui = {
   es: {
     'nav.product': 'Producto',
     'nav.product.web': 'Aplicación Web',
-    'nav.product.excel': 'Excel',
     'nav.product.azure': 'Azure',
-    'nav.product.compare': 'Comparar todo',
     'nav.product.enterprise': 'Empresas',
     'nav.useCases': 'Casos de uso',
     'nav.useCases.lss': 'Formación y proyectos LSS',
@@ -117,9 +111,7 @@ export const ui = {
   fr: {
     'nav.product': 'Produit',
     'nav.product.web': 'Application Web',
-    'nav.product.excel': 'Excel',
     'nav.product.azure': 'Azure',
-    'nav.product.compare': 'Tout comparer',
     'nav.product.enterprise': 'Entreprise',
     'nav.useCases': "Cas d'utilisation",
     'nav.useCases.lss': 'Formation et projets LSS',
@@ -152,9 +144,7 @@ export const ui = {
   pt: {
     'nav.product': 'Produto',
     'nav.product.web': 'Web App',
-    'nav.product.excel': 'Excel',
     'nav.product.azure': 'Azure',
-    'nav.product.compare': 'Comparar tudo',
     'nav.product.enterprise': 'Empresas',
     'nav.useCases': 'Casos de uso',
     'nav.useCases.lss': 'Treinamento e Projetos LSS',
