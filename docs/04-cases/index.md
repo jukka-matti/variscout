@@ -12,9 +12,9 @@ Case studies mapped to the marketing content calendar. Each case provides data, 
 | ---- | ----------------- | -------------------- | ------------------------------------- | --------------- |
 | 1-4  | **Bottleneck**    | ESTIEM training      | Process flow, I-Chart, Boxplot        | Phase 1: Launch |
 | 5-8  | **Hospital Ward** | Healthcare           | Aggregation trap, time patterns       | Phase 2: Deepen |
-| 9-12 | **Coffee**        | East Africa          | Factor comparison, MSA                | Phase 3: Apply  |
+| 9-12 | **Coffee**        | East Africa          | Factor comparison                     | Phase 3: Apply  |
 | 9-12 | **Packaging**     | Africa manufacturing | Pareto, capability, process diagnosis | Phase 3: Apply  |
-| 12   | **Avocado**       | Post-harvest         | Regression, MSA                       | Phase 3: Apply  |
+| 12   | **Avocado**       | Post-harvest         | Regression                            | Phase 3: Apply  |
 
 ---
 
@@ -66,15 +66,13 @@ Drying Bed C consistently fails export spec. Is it the bed, the operator, or the
 
 | File                  | Description                                  |
 | --------------------- | -------------------------------------------- |
-| `README.md`           | Merged overview covering process and MSA     |
+| `README.md`           | Case overview and teaching points            |
 | `washing-station.csv` | 30 batches with moisture % and defect counts |
-| `moisture-grr.csv`    | 60 measurements for MSA study                |
 
 **Teaching points:**
 
 - Factor comparison (Boxplot by drying bed)
 - Spec limits in context (I-Chart)
-- MSA validation (~8% measurement variation)
 
 **Website:** `/cases/coffee`
 
@@ -84,18 +82,16 @@ Drying Bed C consistently fails export spec. Is it the bed, the operator, or the
 
 Night shift is systematically underfilling. Is it the operators, the equipment, or the measurement? Two datasets tell the complete story.
 
-| File                 | Description                                        |
-| -------------------- | -------------------------------------------------- |
-| `README.md`          | Merged overview covering defects, process, and MSA |
-| `defects.csv`        | Daily defect tracking by product and type          |
-| `fillweights.csv`    | 120 fill weight measurements by shift              |
-| `fillweight-grr.csv` | 90 measurements for MSA study                      |
+| File              | Description                                         |
+| ----------------- | --------------------------------------------------- |
+| `README.md`       | Case overview covering defects and process analysis |
+| `defects.csv`     | Daily defect tracking by product and type           |
+| `fillweights.csv` | 120 fill weight measurements by shift               |
 
 **Teaching points:**
 
 - Pareto prioritization (defect types)
 - Process diagnosis (connecting defects to measurements)
-- MSA validation (~12% measurement variation)
 
 **Website:** `/cases/packaging`
 
@@ -103,19 +99,17 @@ Night shift is systematically underfilling. Is it the operators, the equipment, 
 
 **Week 12 Featured Case - AI Comparison**
 
-Regression shows coating amount predicts shelf life. But can operators apply coating consistently? The MSA reveals why 28% of variation is "unexplained."
+Regression shows coating amount predicts shelf life (R² ~ 0.72). What factors explain the remaining variation?
 
 | File                     | Description                                        |
 | ------------------------ | -------------------------------------------------- |
-| `README.md`              | Merged overview covering regression and MSA        |
+| `README.md`              | Case overview covering regression analysis         |
 | `coating-regression.csv` | 120 observations with coating, process, shelf life |
-| `coating-grr.csv`        | 60 measurements for MSA study                      |
 
 **Teaching points:**
 
 - Regression interpretation (slope, R², prediction)
 - Categorical factors (Spray vs. Dip, Carnauba vs. Polyethylene)
-- MSA connection (operator reproducibility ~22%)
 
 **Website:** `/cases/avocado`
 
@@ -150,17 +144,14 @@ docs/cases/
 │   └── data.csv
 ├── coffee/                # Week 9 - Africa
 │   ├── README.md
-│   ├── washing-station.csv
-│   └── moisture-grr.csv
+│   └── washing-station.csv
 ├── packaging/             # Week 9 - Africa
 │   ├── README.md
 │   ├── defects.csv
-│   ├── fillweights.csv
-│   └── fillweight-grr.csv
+│   └── fillweights.csv
 ├── avocado/               # Week 12 - Regression
 │   ├── README.md
-│   ├── coating-regression.csv
-│   └── coating-grr.csv
+│   └── coating-regression.csv
 └── machine-utilization/   # Future use
     ├── README.md
     └── *.csv
@@ -180,36 +171,6 @@ docs/cases/
 
 ---
 
-## Teaching Flow: The MSA Question
-
-Each case with measurements follows the pattern:
-
-```
-WEEK N: Analysis reveals a problem
-         ↓
-"Bed C has high moisture"
-"Night shift underfills"
-"More coating = longer shelf life"
-         ↓
-WEEK N+1: "But wait..."
-         ↓
-"Can we trust this measurement?"
-         ↓
-MSA STUDY
-         ↓
-┌─────────────────┬─────────────────┬─────────────────┐
-│   %GRR < 10%    │  %GRR 10-30%    │   %GRR > 30%    │
-│   EXCELLENT     │    MARGINAL     │  UNACCEPTABLE   │
-├─────────────────┼─────────────────┼─────────────────┤
-│ Measurement OK  │ Proceed with    │ STOP - fix the  │
-│ Problem is real │ caution         │ measurement     │
-│ Investigate     │                 │ system first    │
-│ process         │                 │                 │
-└─────────────────┴─────────────────┴─────────────────┘
-```
-
----
-
 ## AI Comparison Videos (Week 4, 8, 12)
 
 Every 4th week features a 3-way comparison:
@@ -218,7 +179,7 @@ Every 4th week features a 3-way comparison:
 | ---- | ------------- | ------------------------------------------------------ |
 | 4    | Bottleneck    | "VaRiScout vs Copilot Analyst: Finding the Bottleneck" |
 | 8    | Hospital Ward | "Can AI Find Hidden Patterns?"                         |
-| 12   | Avocado       | "Can AI Find the Relationship?" + "Can AI Assess MSA?" |
+| 12   | Avocado       | "Can AI Find the Relationship?"                        |
 
 ---
 

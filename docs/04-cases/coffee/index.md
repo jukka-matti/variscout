@@ -9,12 +9,9 @@
 
 ## Overview
 
-A practical case demonstrating variation analysis with both continuous measurements and defect classification, plus measurement system validation.
+A practical case demonstrating variation analysis with both continuous measurements and defect classification.
 
-This case has two analysis modules:
-
-1. **Moisture Analysis:** Process variation by drying bed
-2. **MSA:** Measurement system validation for moisture meters
+**Analysis module:** Moisture Analysis — Process variation by drying bed
 
 ---
 
@@ -32,14 +29,6 @@ VaRiScout instantly shows Bed C is the problem - consistently running 12-14% moi
 Before VaRiScout: "We have a moisture problem"
 After VaRiScout: "Bed C has a moisture problem - check airflow, shade, or drainage"
 
-### Part 2: "Can We Trust the Moisture Reading?"
-
-**The question:**
-Before investigating Bed C's airflow, drainage, or shade... can we trust our moisture readings? Do different operators get the same reading on the same sample?
-
-**The answer:**
-An MSA study validates the moisture meter. With ~8% measurement variation, the 2% difference between Bed C (~13%) and Beds A/B (~11%) is real, not measurement error.
-
 ---
 
 ## Teaching Points
@@ -50,7 +39,6 @@ An MSA study validates the moisture meter. With ~8% measurement variation, the 2
 | Spec limits in context | I-Chart shows _where_ failures occur, not just _that_ they occur |
 | Two data types         | Continuous (moisture %) + Categorical (defect counts)            |
 | Root cause direction   | Variation pattern points to equipment/location, not operator     |
-| MSA validation         | Verify measurement system before blaming process                 |
 
 ---
 
@@ -75,21 +63,6 @@ An MSA study validates the moisture meter. With ~8% measurement variation, the 2
 - Bed C: Mean ~13.2%, all OUT of spec
 - Defect counts correlate with moisture (Bed C higher)
 
-### 2. Moisture MSA Data (`moisture-grr.csv`)
-
-| Column       | Type    | Description                        |
-| ------------ | ------- | ---------------------------------- |
-| Part         | Integer | Sample ID (1-10)                   |
-| Operator     | String  | Operator name (Anna, Ben, Charles) |
-| Trial        | Integer | Trial number (1, 2)                |
-| Moisture_pct | Float   | Moisture reading (%)               |
-
-**Study design:**
-
-- 10 parts spanning moisture range (9.8% - 13.5%)
-- 3 operators × 2 trials = 60 measurements
-- Expected %GRR: ~8% (Excellent)
-
 ---
 
 ## Key Visuals
@@ -98,7 +71,6 @@ An MSA study validates the moisture meter. With ~8% measurement variation, the 2
 2. **Boxplot** - Moisture % by Drying Bed (A, B, C) - the "aha" moment
 3. **Pareto** - Defect counts showing Broken >> Floater >> Insect >> Full Black
 4. **Linked filtering** - Click Bed C, see its defect profile vs others
-5. **MSA Chart** - Variance breakdown and operator comparison
 
 ---
 
@@ -113,20 +85,6 @@ An MSA study validates the moisture meter. With ~8% measurement variation, the 2
 - Used at washing stations, dry mills, and roasteries worldwide
 - Published tolerance: ±0.5% moisture
 
-### Why MSA Matters
-
-Known industry issues:
-
-- "Erratic readings between devices"
-- Packing density variation from operator technique
-- Temperature sensitivity
-- Calibration drift
-
-> "If your measurements aren't consistent with your suppliers, you may have inconsistencies with contract standards."
-> — Sucafina industry report
-
----
-
 ## VaRiScout Demo Flow
 
 ### Module 1: Process Analysis
@@ -137,22 +95,11 @@ Known industry issues:
 4. Click Bed C → see instant filtering
 5. Create Pareto of defect types
 
-### Module 2: MSA
-
-1. Load `moisture-grr.csv`
-2. Configure: Part column, Operator column, Measurement column
-3. View variance breakdown (~88% part-to-part, ~7% repeatability, ~5% reproducibility)
-4. Verdict: ~8% measurement variation → Excellent
-
-**Key message:** "The moisture meter is reliable. The variation we see between drying beds is real process variation, not measurement error."
-
 ---
 
 ## Core Message
 
 _"The variation pattern tells you where to look."_
-
-_"Before you blame the process, make sure you can measure it."_
 
 ---
 

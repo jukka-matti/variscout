@@ -166,7 +166,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     objectives: [
       'Compare factors using Boxplot',
       'Identify the outlier group',
-      'Consider measurement system validity',
+      'Use linked filtering to explore subgroups',
     ],
     steps: [
       {
@@ -190,15 +190,8 @@ export const CASE_STUDIES: CaseStudy[] = [
         interactive: false,
         targetChart: 'ichart',
       },
-      {
-        title: 'The MSA Connection',
-        content:
-          'Before blaming the bed, check the measurement system. Verifying the moisture meter has acceptable variation confirms the problem IS the bed.',
-        interactive: false,
-        targetChart: 'ichart',
-      },
     ],
-    insight: 'Before you blame the process, verify your measurement.',
+    insight: 'The variation pattern tells you where to look.',
     nextCase: 'packaging',
   },
   {
@@ -277,7 +270,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     objectives: [
       'Understand regression relationships',
       'Interpret R-squared values',
-      'Connect MSA to unexplained variation',
+      'Investigate residual patterns for unexplained variation',
     ],
     steps: [
       {
@@ -295,21 +288,14 @@ export const CASE_STUDIES: CaseStudy[] = [
         targetChart: 'regression',
       },
       {
-        title: 'The MSA Reveals',
-        content:
-          'A measurement study shows operator variation is ~22%. Joseph consistently under-applies by 20%.',
-        interactive: false,
-        targetChart: 'stats',
-      },
-      {
         title: 'The Business Decision',
         content:
-          'Fix operator technique first, then re-run the regression. The coating formula might be fine when applied consistently.',
+          'Standardize application technique and control environmental factors, then re-run the regression for tighter predictions.',
         interactive: false,
         targetChart: 'stats',
       },
     ],
-    insight: 'Before optimizing the formula, verify you can apply it consistently.',
+    insight: 'The equation is easy. The insight is in the pattern.',
     nextCase: 'cookie-weight',
   },
   {

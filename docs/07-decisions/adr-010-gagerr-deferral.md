@@ -1,6 +1,6 @@
 # ADR-010: Defer Gage R&R from Azure App v1
 
-**Status:** Accepted
+**Status:** Superseded
 **Date:** 2026-02-16
 **Supersedes:** None
 **Related:** [ADR-007](adr-007-azure-marketplace-distribution.md) (distribution strategy)
@@ -99,3 +99,9 @@ Then re-add `'gagerr'` to `DashboardTab` union in `Dashboard.tsx`.
 
 - Shared package code (`@variscout/core` GageRR calculations) is maintained regardless
 - GageRRPanel.tsx stays in Azure codebase, just not navigable
+
+---
+
+## Post-Decision Update
+
+**Update (2026-02-16):** Decision evolved beyond deferral. Gage R&R was fully removed from all products, shared packages, and documentation (commit 87bb072). The feature proved unnecessary — no customer demand, and PWA serves training needs without it. ADR kept as historical record of the evaluation and gap analysis.

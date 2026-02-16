@@ -9,12 +9,9 @@
 
 ## Overview
 
-A research-based case demonstrating regression analysis for process optimization, plus measurement system validation for coating application.
+A research-based case demonstrating regression analysis for process optimization.
 
-This case has two analysis modules:
-
-1. **Regression Analysis:** Coating amount vs. shelf life and weight loss
-2. **MSA:** Operator consistency in coating application
+**Analysis module:** Regression Analysis — Coating amount vs. shelf life and weight loss
 
 ---
 
@@ -35,14 +32,6 @@ Regression shows a clear positive relationship between coating amount and shelf 
 - Dip method gives +1.5 days vs. Spray method
 - Carnauba has lower optimal point than Polyethylene
 
-### Part 2: "Is Our Application Consistent?"
-
-**The question:**
-Before optimizing the formula... can operators actually apply coating consistently? If Maria applies 1.5 ml and Joseph applies 1.2 ml, we have a problem.
-
-**The answer:**
-An MSA study reveals operator reproducibility issues (~22% measurement variation). Joseph consistently under-applies by ~20%. The "unexplained" 28% in our regression is partly from inconsistent application.
-
 ---
 
 ## Teaching Points
@@ -54,7 +43,6 @@ An MSA study reveals operator reproducibility issues (~22% measurement variation
 | Prediction             | At 1.5 ml/kg, expect ~14 days shelf life                 |
 | Categorical predictors | Process (Spray/Dip) and Material as factors              |
 | Trade-off analysis     | Shelf life vs. weight loss optimization                  |
-| MSA connection         | Unexplained variation partly from operator inconsistency |
 
 ---
 
@@ -82,27 +70,6 @@ An MSA study reveals operator reproducibility issues (~22% measurement variation
 - Dip method: +1.5 days vs. Spray
 - Carnauba: Better weight retention, lower optimal point
 - Polyethylene: Longer shelf life, higher optimal point
-
-### 2. Coating MSA Data (`coating-grr.csv`)
-
-| Column            | Type    | Description                          |
-| ----------------- | ------- | ------------------------------------ |
-| Part              | Integer | Avocado ID (1-10)                    |
-| Operator          | String  | Operator name (Maria, Joseph, Grace) |
-| Trial             | Integer | Trial number (1, 2)                  |
-| Coating_Applied_g | Float   | Coating weight applied (grams)       |
-
-**Study design:**
-
-- 10 similar-sized avocados (240-260g)
-- 3 operators × 2 trials = 60 measurements
-- Expected %GRR: ~22% (Marginal, reproducibility-driven)
-
-**Built-in pattern (operator issue):**
-
-- Maria: ~0.42g average (on target)
-- Joseph: ~0.35g average (under-applies by ~20%)
-- Grace: ~0.45g average (slightly over)
 
 ---
 
@@ -143,8 +110,6 @@ An MSA study reveals operator reproducibility issues (~22% measurement variation
 1. **Scatter Plot** - Coating amount vs. shelf life with regression line
 2. **Multiple Regression Lines** - By Process (Spray vs. Dip)
 3. **Residual Plot** - Checking regression assumptions
-4. **MSA Chart** - Variance breakdown
-5. **Interaction Plot** - Operator × Part showing reproducibility issue
 
 ---
 
@@ -159,32 +124,19 @@ An MSA study reveals operator reproducibility issues (~22% measurement variation
 5. Add Process as factor → see two parallel lines
 6. Identify optimal range: 1.5-2.5 ml/kg
 
-### Module 2: MSA
-
-1. Load `coating-grr.csv`
-2. Configure: Part, Operator, Measurement columns
-3. View variance breakdown
-4. Note: Reproducibility dominates (~75%)
-5. View interaction plot: Joseph's line is lower
-6. Verdict: Standardize technique before optimizing formula
-
 ---
 
 ## The Key Insight
 
-**Regression finding:** Coating amount strongly predicts shelf life (R² = 0.72)
+**Regression finding:** Coating amount strongly predicts shelf life (R² = 0.72), but 28% remains unexplained — factors like application method, environmental conditions, and fruit variability all contribute.
 
-**MSA finding:** But 28% is "unexplained" — some of that is from inconsistent application
-
-**Business decision:** Fix operator technique first, then re-run regression. The coating formula might be fine when applied consistently.
+**Business decision:** Standardize application technique and control environmental factors, then re-run regression for tighter predictions.
 
 ---
 
 ## Core Message
 
 _"The equation is easy. The insight is in the pattern."_
-
-_"Before you optimize the formula, verify you can apply it consistently."_
 
 ---
 

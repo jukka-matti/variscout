@@ -13,7 +13,6 @@ A practical case from real work in Africa, demonstrating:
 
 1. **Defect Analysis:** Prioritization using Pareto and tracking over time
 2. **Process Diagnosis:** Connecting defect outcomes to process parameters
-3. **MSA:** Validating the fill weight measurement system
 
 ---
 
@@ -52,25 +51,16 @@ Defect counts can't tell us _why_ the underfills happen. What's driving the vari
 **The insight:**
 "Night shift is systematically underfilling - averaging 495.5g while Day and Evening shifts average 498.5g. Night shift Cpk is below 1.0."
 
-### Part 3: "Is Our Scale Consistent?"
-
-**The question:**
-Before we retrain Night shift operators or adjust their filling equipment... is our QC scale giving consistent readings?
-
-**The answer:**
-An MSA study validates the scale. With ~12% measurement variation (marginal but acceptable), the 3g difference between Night and Day shifts is real, not measurement error.
-
 ---
 
 ## Teaching Points
 
-| Concept               | What VaRiScout Shows                                |
-| --------------------- | --------------------------------------------------- |
-| Pareto prioritization | Focus on the vital few defect types                 |
-| Factor comparison     | Boxplot reveals Night shift is different            |
-| Two data types        | Counts (defects) vs. measurements (fill weights)    |
-| Process vs. outcome   | Defects show _what_, measurements show _why_        |
-| MSA validation        | Confirm measurement system before blaming operators |
+| Concept               | What VaRiScout Shows                             |
+| --------------------- | ------------------------------------------------ |
+| Pareto prioritization | Focus on the vital few defect types              |
+| Factor comparison     | Boxplot reveals Night shift is different         |
+| Two data types        | Counts (defects) vs. measurements (fill weights) |
+| Process vs. outcome   | Defects show _what_, measurements show _why_     |
 
 ---
 
@@ -110,21 +100,6 @@ An MSA study validates the scale. With ~12% measurement variation (marginal but 
 - Night shift: Mean ~495.5g, more variable
 - Night shift has Cpk below 1.0
 
-### 3. Fill Weight MSA Data (`fillweight-grr.csv`)
-
-| Column   | Type    | Description                                |
-| -------- | ------- | ------------------------------------------ |
-| Part     | Integer | Package ID (1-10)                          |
-| Operator | String  | Operator ID (Day_Op, Evening_Op, Night_Op) |
-| Trial    | Integer | Trial number (1, 2, 3)                     |
-| Weight_g | Float   | Weight reading (grams)                     |
-
-**Study design:**
-
-- 10 packages spanning weight range (493.8g - 502.3g)
-- 3 operators × 3 trials = 90 measurements
-- Expected %GRR: ~12% (Marginal - acceptable for this application)
-
 ---
 
 ## Key Visuals
@@ -133,7 +108,6 @@ An MSA study validates the scale. With ~12% measurement variation (marginal but 
 2. **I-Chart** - Fill weights over time with control limits
 3. **Boxplot** - Fill weight by Shift (Night shift lower and wider)
 4. **Capability Analysis** - Distribution vs. spec limits (LSL = 493g)
-5. **MSA Chart** - Variance breakdown by source
 
 ---
 
@@ -152,11 +126,10 @@ This case reflects real constraints in developing economies:
 
 Different questions need different data:
 
-| Question               | Data Type            | Example                    |
-| ---------------------- | -------------------- | -------------------------- |
-| What is happening?     | Defect counts        | Underfill rate trending up |
-| Why is it happening?   | Process measurements | Night shift running 3g low |
-| Can we trust the data? | MSA study            | Scale is reliable          |
+| Question             | Data Type            | Example                    |
+| -------------------- | -------------------- | -------------------------- |
+| What is happening?   | Defect counts        | Underfill rate trending up |
+| Why is it happening? | Process measurements | Night shift running 3g low |
 
 ---
 
@@ -178,21 +151,11 @@ Different questions need different data:
 4. Run Capability analysis (LSL = 493g)
 5. Identify: Night shift is the problem
 
-### Module 3: Measurement Validation
-
-1. Load `fillweight-grr.csv`
-2. Configure MSA study
-3. View variance breakdown
-4. Verdict: %GRR = 12% → Marginal but acceptable
-5. Confirm: The 3g Night shift offset is real
-
 ---
 
 ## Core Message
 
 _"Defect counts tell you WHAT is happening. Process measurements tell you WHY."_
-
-_"Before you blame operators, verify your measurement system."_
 
 ---
 

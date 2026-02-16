@@ -107,7 +107,6 @@ nav:
       - Capability: 03-features/analysis/capability.md
       - Probability Plot: 03-features/analysis/probability-plot.md
       - Regression: 03-features/analysis/regression.md
-      - Gage R&R: 03-features/analysis/gage-rr.md
       - Performance Mode: 03-features/analysis/performance-mode.md
       - Nelson Rules: 03-features/analysis/nelson-rules.md
       - Staged Analysis: 03-features/analysis/staged-analysis.md
@@ -116,7 +115,6 @@ nav:
       - Four Lenses: 03-features/workflows/four-lenses-workflow.md
       - Drill-Down: 03-features/workflows/drill-down-workflow.md
       - Performance Mode: 03-features/workflows/performance-mode-workflow.md
-      - MSA/Gage R&R: 03-features/workflows/msa-workflow.md
       - Quick Check: 03-features/workflows/quick-check.md
       - Deep Dive: 03-features/workflows/deep-dive.md
       - Decision Trees: 03-features/workflows/decision-trees.md
@@ -171,7 +169,6 @@ nav:
       - Pareto: 06-design-system/charts/pareto.md
       - Capability: 06-design-system/charts/capability.md
       - Scatter: 06-design-system/charts/scatter.md
-      - Gage R&R: 06-design-system/charts/gage-rr.md
       - Probability Plot: 06-design-system/charts/probability-plot.md
       - Performance Mode: 06-design-system/charts/performance-mode.md
       - Colors: 06-design-system/charts/colors.md
@@ -207,7 +204,7 @@ nav:
       - Storage: 08-products/pwa/storage.md
     - Azure:
       - 08-products/azure/index.md
-      - MSAL Auth: 08-products/azure/msal-auth.md
+      - Authentication: 08-products/azure/authentication.md
       - OneDrive Sync: 08-products/azure/onedrive-sync.md
       - Marketplace: 08-products/azure/marketplace.md
       - ARM Template: 08-products/azure/arm-template.md
