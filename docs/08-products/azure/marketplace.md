@@ -26,14 +26,14 @@ Azure Marketplace is Microsoft's enterprise application store. Publishing VariSc
 
 ### Technical Requirements
 
-| Requirement          | Status   |
-| -------------------- | -------- |
-| Azure Static Web App | Required |
-| ARM template         | Required |
-| MSAL integration     | Required |
-| Privacy policy URL   | Required |
-| Terms of service URL | Required |
-| Support URL          | Required |
+| Requirement                           | Status   |
+| ------------------------------------- | -------- |
+| Azure App Service                     | Required |
+| ARM template (mainTemplate.json)      | Required |
+| EasyAuth (App Service Authentication) | Required |
+| Privacy policy URL                    | Required |
+| Terms of service URL                  | Required |
+| Support URL                           | Required |
 
 ---
 
@@ -133,7 +133,7 @@ who need to analyze manufacturing variation without complex setup or cloud depen
 
 ### Key Features
 
-**Four Pillars of Variation Analysis**
+**Four Lenses of Variation Analysis**
 
 - Change: I-Charts with Nelson Rules for process stability
 - Failure: Capability analysis (Cp/Cpk) against specifications
@@ -207,7 +207,8 @@ for Excel-native SPC analysis.
 - [ ] mainTemplate.json passes ARM TTK validation
 - [ ] createUiDefinition.json renders correctly in sandbox
 - [ ] App deploys without errors from marketplace flow
-- [ ] MSAL authentication works post-deployment
+- [ ] EasyAuth authentication works post-deployment
+- [ ] OneDrive sync works (save/load projects)
 - [ ] Privacy policy URL accessible
 - [ ] Terms of service URL accessible
 - [ ] Support contact information complete
@@ -260,4 +261,5 @@ for Excel-native SPC analysis.
 
 - [Pricing Tiers](pricing-tiers.md)
 - [ARM Template](arm-template.md)
+- [Authentication](authentication.md)
 - [Partner Center Documentation](https://docs.microsoft.com/partner-center/)

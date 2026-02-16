@@ -11,9 +11,8 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@azure/msal-browser": "^2.37.0",
-    "@azure/msal-react": "^1.5.0",
     "@variscout/charts": "workspace:*",
+    "jszip": "^3.10.1",
     "@variscout/core": "workspace:*",
     "@variscout/hooks": "workspace:*",
     "@variscout/ui": "workspace:*",

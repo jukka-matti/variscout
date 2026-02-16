@@ -8,11 +8,12 @@ Azure Resource Manager (ARM) template for VariScout Managed Application deployme
 
 The ARM template deploys VariScout to a customer's Azure subscription as a Managed Application with:
 
-- Azure Static Web App (hosting)
-- App Registration (authentication via deployment script)
+- Azure App Service (hosting via `WEBSITE_RUN_FROM_PACKAGE`)
+- App Service Authentication (EasyAuth) with Azure AD
+- App Registration (created via deployment script)
 - Configuration settings (all features enabled)
 
-**No backend resources** - the app runs entirely in the browser.
+**No backend resources** - the app runs entirely in the browser. The App Service serves the static build as a zip package.
 
 ### Managed Application Package
 
@@ -33,7 +34,7 @@ variscout-managed-app.zip
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "metadata": {
-    "description": "Deploys VariScout Azure App as a Managed Application"
+    "description": "Deploys VariScout Azure App as a Managed Application with App Service and EasyAuth"
   },
   "parameters": {
     /* ... */
@@ -59,147 +60,128 @@ variscout-managed-app.zip
 | Parameter  | Type   | Default                 | Description                 |
 | ---------- | ------ | ----------------------- | --------------------------- |
 | `location` | string | Resource group location | Azure region for deployment |
-| `appName`  | string | `variscout-{unique}`    | Name for Static Web App     |
-| `sku`      | string | `Standard`              | Static Web App SKU          |
+| `appName`  | string | `variscout-{unique}`    | Name for App Service (3-24) |
 
 All Managed Application deployments get full features — no tier parameter needed.
-
-### Parameter Definitions
-
-```json
-{
-  "parameters": {
-    "location": {
-      "type": "string",
-      "defaultValue": "[resourceGroup().location]",
-      "metadata": {
-        "description": "Azure region for deployment"
-      }
-    },
-    "appName": {
-      "type": "string",
-      "defaultValue": "[concat('variscout-', uniqueString(resourceGroup().id))]",
-      "metadata": {
-        "description": "Name for the Static Web App"
-      }
-    },
-    "sku": {
-      "type": "string",
-      "defaultValue": "Standard",
-      "allowedValues": ["Free", "Standard"],
-      "metadata": {
-        "description": "Static Web App pricing tier"
-      }
-    }
-  }
-}
-```
-
----
-
-## Variables
-
-```json
-{
-  "variables": {
-    "staticWebAppName": "[parameters('appName')]",
-    "appRegistrationName": "[concat(parameters('appName'), '-app')]"
-  }
-}
-```
 
 ---
 
 ## Resources
 
-### 1. Static Web App
+### 1. App Service Plan
+
+Linux B1 plan for hosting the App Service:
 
 ```json
 {
-  "type": "Microsoft.Web/staticSites",
+  "type": "Microsoft.Web/serverfarms",
   "apiVersion": "2022-09-01",
-  "name": "[variables('staticWebAppName')]",
+  "name": "[variables('appServicePlanName')]",
   "location": "[parameters('location')]",
+  "kind": "linux",
   "sku": {
-    "name": "[parameters('sku')]",
-    "tier": "[parameters('sku')]"
+    "name": "B1",
+    "tier": "Basic"
   },
   "properties": {
-    "repositoryUrl": "",
-    "branch": "",
-    "buildProperties": {
-      "appLocation": "/",
-      "outputLocation": "dist"
+    "reserved": true
+  }
+}
+```
+
+### 2. App Service
+
+Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`:
+
+```json
+{
+  "type": "Microsoft.Web/sites",
+  "apiVersion": "2022-09-01",
+  "name": "[variables('webAppName')]",
+  "location": "[parameters('location')]",
+  "properties": {
+    "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+    "httpsOnly": true,
+    "siteConfig": {
+      "linuxFxVersion": "NODE|20-lts",
+      "appSettings": [
+        { "name": "WEBSITE_RUN_FROM_PACKAGE", "value": "[variables('packageUrl')]" },
+        { "name": "VITE_LICENSE_TIER", "value": "enterprise" }
+      ],
+      "minTlsVersion": "1.2",
+      "ftpsState": "Disabled"
     }
   }
 }
 ```
 
-### 2. Static Web App Configuration
+### 3. EasyAuth Configuration (authsettingsV2)
+
+App Service Authentication configured for Azure AD:
 
 ```json
 {
-  "type": "Microsoft.Web/staticSites/config",
+  "type": "Microsoft.Web/sites/config",
   "apiVersion": "2022-09-01",
-  "name": "[concat(variables('staticWebAppName'), '/appsettings')]",
-  "dependsOn": ["[resourceId('Microsoft.Web/staticSites', variables('staticWebAppName'))]"],
+  "name": "[concat(variables('webAppName'), '/authsettingsV2')]",
   "properties": {
-    "VITE_LICENSE_TIER": "enterprise",
-    "VITE_MAX_CHANNELS": "1500",
-    "VITE_AZURE_CLIENT_ID": "[reference('createAppRegistration').outputs.appId]"
+    "platform": { "enabled": true },
+    "globalValidation": {
+      "requireAuthentication": true,
+      "unauthenticatedClientAction": "RedirectToLoginPage",
+      "redirectToProvider": "azureactivedirectory"
+    },
+    "identityProviders": {
+      "azureActiveDirectory": {
+        "enabled": true,
+        "registration": {
+          "openIdIssuer": "[concat('https://sts.windows.net/', subscription().tenantId, '/v2.0')]",
+          "clientId": "[reference('createAppRegistration').outputs.appId]",
+          "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+        },
+        "login": {
+          "loginParameters": ["scope=openid profile email User.Read Files.ReadWrite"]
+        }
+      }
+    },
+    "login": {
+      "tokenStore": { "enabled": true }
+    }
   }
 }
 ```
 
-All Managed Application deployments are configured as `enterprise` tier with full features.
+Key configuration:
 
-### 3. App Registration (via Deployment Script)
+- **Token store enabled**: tokens available at `/.auth/me` for Graph API calls
+- **Login parameters**: requests `User.Read` and `Files.ReadWrite` scopes for OneDrive access
+- **Redirect to login**: unauthenticated users are automatically redirected to Azure AD sign-in
 
-App Registration requires Microsoft Graph API, deployed via deployment script:
+### 4. App Registration (via Deployment Script)
+
+Creates the App Registration with the correct redirect URI and permissions:
 
 ```json
 {
   "type": "Microsoft.Resources/deploymentScripts",
   "apiVersion": "2020-10-01",
   "name": "createAppRegistration",
-  "location": "[parameters('location')]",
   "kind": "AzurePowerShell",
   "properties": {
     "azPowerShellVersion": "9.0",
     "timeout": "PT30M",
-    "arguments": "[format('-appName \"{0}\" -redirectUri \"{1}\"', variables('appRegistrationName'), reference(resourceId('Microsoft.Web/staticSites', variables('staticWebAppName'))).defaultHostname)]",
-    "scriptContent": "
-      param($appName, $redirectUri)
-
-      $app = New-AzADApplication `
-        -DisplayName $appName `
-        -SignInAudience 'AzureADMyOrg' `
-        -Web @{
-          RedirectUris = @(\"https://$redirectUri\")
-          ImplicitGrantSettings = @{
-            EnableIdTokenIssuance = $true
-          }
-        }
-
-      # Add required API permissions (User.Read, Files.ReadWrite)
-      Add-AzADAppPermission -ObjectId $app.Id `
-        -ApiId '00000003-0000-0000-c000-000000000000' `
-        -PermissionId 'e1fe6dd8-ba31-4d61-89e7-88639da4683d' `
-        -Type 'Scope'
-
-      $DeploymentScriptOutputs = @{
-        appId = $app.AppId
-        objectId = $app.Id
-      }
-    ",
-    "cleanupPreference": "OnSuccess",
-    "retentionInterval": "P1D"
-  },
-  "dependsOn": [
-    "[resourceId('Microsoft.Web/staticSites', variables('staticWebAppName'))]"
-  ]
+    "scriptContent": "..."
+  }
 }
 ```
+
+The script:
+
+1. Creates an App Registration with `AzureADMyOrg` sign-in audience
+2. Sets redirect URI to `https://{app-url}/.auth/login/aad/callback`
+3. Adds `User.Read` and `Files.ReadWrite` delegated permissions
+4. Creates a client secret for EasyAuth
+5. Outputs `appId` and `clientSecret` for the auth configuration
 
 ---
 
@@ -208,9 +190,9 @@ App Registration requires Microsoft Graph API, deployed via deployment script:
 ```json
 {
   "outputs": {
-    "staticWebAppUrl": {
+    "appUrl": {
       "type": "string",
-      "value": "[concat('https://', reference(resourceId('Microsoft.Web/staticSites', variables('staticWebAppName'))).defaultHostname)]"
+      "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
     },
     "appRegistrationId": {
       "type": "string",
@@ -276,7 +258,7 @@ az group create --name rg-variscout --location westeurope
 # Deploy template
 az deployment group create \
   --resource-group rg-variscout \
-  --template-file mainTemplate.json
+  --template-file infra/mainTemplate.json
 
 # Get outputs
 az deployment group show \
@@ -287,27 +269,30 @@ az deployment group show \
 
 ---
 
-## Post-Deployment Configuration
+## Post-Deployment
 
-### 1. Admin Consent (Required)
+No manual post-deployment configuration is required. EasyAuth is fully configured by the ARM template:
 
-An admin must grant consent for MSAL authentication:
+- Users visit the app URL and are redirected to Azure AD sign-in
+- Consent for `User.Read` and `Files.ReadWrite` is requested on first login
+- Tokens are stored in the EasyAuth token store and accessible via `/.auth/me`
 
-```
-https://login.microsoftonline.com/{tenant-id}/adminconsent
-  ?client_id={app-registration-id}
-  &redirect_uri={static-web-app-url}
-```
+### Custom Domain (Optional)
 
-### 2. Custom Domain (Optional)
-
-Add custom domain to Static Web App:
+Add a custom domain to the App Service:
 
 ```bash
-az staticwebapp hostname set \
-  --name variscout-xyz123 \
+az webapp config hostname add \
+  --webapp-name variscout-xyz123 \
+  --resource-group rg-variscout \
   --hostname variscout.contoso.com
 ```
+
+A custom domain also enables seamless Teams SSO (without it, users get a one-time login redirect because Microsoft blocks SSO on `*.azurewebsites.net`).
+
+### Teams Integration (Optional)
+
+The app includes an Admin page (Admin > Teams Setup) that generates a Teams app package. See the in-app instructions for uploading to your Teams admin center.
 
 ---
 
@@ -315,33 +300,21 @@ az staticwebapp hostname set \
 
 ### Deployment Fails
 
-| Error                   | Cause                            | Fix                                    |
-| ----------------------- | -------------------------------- | -------------------------------------- |
-| `ResourceNotFound`      | Invalid location                 | Use supported region                   |
-| `AuthorizationFailed`   | Insufficient permissions         | Requires Contributor + AD Admin        |
-| `DeploymentScriptError` | App Registration creation failed | Check Graph API permissions            |
-| `QuotaExceeded`         | Static Web App limit             | Delete unused apps or request increase |
+| Error                   | Cause                            | Fix                                     |
+| ----------------------- | -------------------------------- | --------------------------------------- |
+| `ResourceNotFound`      | Invalid location                 | Use supported region                    |
+| `AuthorizationFailed`   | Insufficient permissions         | Requires Contributor + AD permissions   |
+| `DeploymentScriptError` | App Registration creation failed | Check Graph API permissions             |
+| `QuotaExceeded`         | App Service Plan limit           | Delete unused plans or request increase |
 
-### App Registration Issues
-
-```bash
-# Check if app was created
-az ad app list --display-name "variscout-*" --query "[].{name:displayName, id:appId}"
-
-# Manually create if needed
-az ad app create \
-  --display-name "variscout-manual" \
-  --sign-in-audience AzureADMyOrg \
-  --web-redirect-uris "https://variscout-xyz123.azurestaticapps.net"
-```
-
-### MSAL Authentication Errors
+### Authentication Issues
 
 If users can't sign in:
 
-1. Verify redirect URI matches Static Web App URL
-2. Check admin consent was granted
+1. Verify the App Registration redirect URI matches the App Service URL + `/.auth/login/aad/callback`
+2. Check the EasyAuth configuration in Azure Portal > App Service > Authentication
 3. Verify user is in the correct tenant
+4. Check `/.auth/me` returns a valid response (should return JSON array)
 
 ---
 
@@ -360,9 +333,9 @@ The template requests only necessary permissions:
 
 The template:
 
-- Does not contain secrets
+- Creates a client secret via deployment script (stored as app setting, not in template)
 - Does not create service principals with passwords
-- Uses managed identities where possible
+- Uses the EasyAuth token store (server-side) for access tokens
 
 ### Customer Data Isolation
 
@@ -375,12 +348,11 @@ The template:
 
 ## Template Versioning
 
-| Version | Date       | Changes                                 |
-| ------- | ---------- | --------------------------------------- |
-| 1.0.0   | 2026-02-01 | Initial release (Solution Template)     |
-| 2.0.0   | 2026-02-13 | Managed Application format, single plan |
-| 2.1.0   | TBD        | Add custom domain support               |
-| 2.2.0   | TBD        | Add Application Insights (optional)     |
+| Version | Date       | Changes                                                 |
+| ------- | ---------- | ------------------------------------------------------- |
+| 1.0.0   | 2026-02-01 | Initial release (Solution Template)                     |
+| 2.0.0   | 2026-02-13 | Managed Application format, single plan                 |
+| 3.0.0   | 2026-02-16 | App Service + EasyAuth (replaces Static Web App + MSAL) |
 
 ---
 
@@ -388,5 +360,5 @@ The template:
 
 - [Azure Marketplace Guide](marketplace.md)
 - [Pricing](pricing-tiers.md)
-- [MSAL Authentication](msal-auth.md)
+- [Authentication](authentication.md)
 - [Azure ARM Template Reference](https://docs.microsoft.com/azure/azure-resource-manager/templates/)

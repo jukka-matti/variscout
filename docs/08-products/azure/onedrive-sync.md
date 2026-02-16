@@ -104,5 +104,5 @@ When both local and cloud versions exist:
 
 ## See Also
 
-- [MSAL Authentication](msal-auth.md)
+- [Authentication (EasyAuth)](authentication.md)
 - [Offline-First Architecture](../../05-technical/architecture/offline-first.md)

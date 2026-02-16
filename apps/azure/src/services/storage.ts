@@ -1,6 +1,6 @@
 // src/services/storage.ts
 import { useState, useEffect, useCallback } from 'react';
-import { useMsal } from '@azure/msal-react';
+import { getAccessToken } from '../auth/easyAuth';
 import { addToSyncQueue, getPendingSyncItems, removeFromSyncQueue, db } from '../db/schema';
 
 // Placeholder types - these would come from @variscout/core
@@ -29,11 +29,8 @@ const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 
 // Get the appropriate API path for the location
 function getApiPath(location: StorageLocation): string {
-  if (location === 'team') {
-    // SharePoint site path - would be configured via env
-    return '/sites/root:/VaRiScout/Projects';
-  }
-  return '/me/drive/root:/VaRiScout/Projects';
+  // v1: personal OneDrive only (no SharePoint)
+  return '/me/drive/root:/VariScout/Projects';
 }
 
 // Save to IndexedDB (offline-first)
@@ -166,32 +163,10 @@ async function markAsSynced(name: string, cloudId: string, etag: string) {
 }
 
 export function useStorage() {
-  const { instance, accounts } = useMsal();
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
     status: 'saved',
     message: '',
   });
-
-  // Get access token for Graph API
-  const getAccessToken = useCallback(async () => {
-    if (!accounts[0]) {
-      throw new Error('No authenticated account');
-    }
-
-    const request = {
-      scopes: ['Files.ReadWrite', 'Sites.ReadWrite.All'],
-      account: accounts[0],
-    };
-
-    try {
-      const response = await instance.acquireTokenSilent(request);
-      return response.accessToken;
-    } catch (error) {
-      // If silent acquisition fails, try interactive
-      const response = await instance.acquireTokenPopup(request);
-      return response.accessToken;
-    }
-  }, [instance, accounts]);
 
   // Save project (offline-first)
   const saveProject = useCallback(
@@ -232,7 +207,7 @@ export function useStorage() {
         });
       }
     },
-    [getAccessToken]
+    []
   );
 
   // Load project (cloud first if online)
@@ -255,7 +230,7 @@ export function useStorage() {
       // Fallback to local
       return loadFromIndexedDB(name);
     },
-    [getAccessToken]
+    []
   );
 
   // List all projects (merge local and cloud)
@@ -268,14 +243,11 @@ export function useStorage() {
 
     try {
       const token = await getAccessToken();
-      const [teamProjects, personalProjects] = await Promise.all([
-        listFromCloud(token, 'team').catch(() => []),
-        listFromCloud(token, 'personal').catch(() => []),
-      ]);
+      const personalProjects = await listFromCloud(token, 'personal').catch(() => []);
 
       // Merge cloud projects with local, preferring cloud version
       const cloudProjectMap = new Map<string, CloudProject>();
-      [...teamProjects, ...personalProjects].forEach(p => {
+      personalProjects.forEach(p => {
         cloudProjectMap.set(p.name, p);
       });
 
@@ -293,7 +265,7 @@ export function useStorage() {
       console.warn('Failed to list cloud projects:', error);
       return localProjects;
     }
-  }, [getAccessToken]);
+  }, []);
 
   // Background sync when coming online
   useEffect(() => {
@@ -317,7 +289,6 @@ export function useStorage() {
             await removeFromSyncQueue(item.name);
           } catch (error) {
             console.error('Sync failed for:', item.name, error);
-            // Keep in queue for next attempt
           }
         }
       } catch (e) {
@@ -343,12 +314,12 @@ export function useStorage() {
     window.addEventListener('online', handleOnline);
 
     // Also try sync on mount if online
-    if (navigator.onLine && accounts.length > 0) {
+    if (navigator.onLine) {
       handleOnline();
     }
 
     return () => window.removeEventListener('online', handleOnline);
-  }, [instance, accounts, getAccessToken]);
+  }, []);
 
   return {
     saveProject,

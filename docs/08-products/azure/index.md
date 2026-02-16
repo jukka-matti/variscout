@@ -215,6 +215,6 @@ The Azure app includes a development-only tier switching component at `apps/azur
 - [Azure Marketplace Guide](marketplace.md)
 - [Pricing](pricing-tiers.md)
 - [ARM Template](arm-template.md)
-- [MSAL Authentication](msal-auth.md)
+- [Authentication (EasyAuth)](authentication.md)
 - [OneDrive Sync](onedrive-sync.md)
 - [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md)

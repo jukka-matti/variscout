@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+  "handler": "Microsoft.Azure.CreateUIDef",
+  "version": "0.1.2-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "appName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Application Name",
+        "toolTip": "A unique name for your VariScout deployment (3-24 lowercase letters, numbers, or hyphens).",
+        "defaultValue": "variscout",
+        "constraints": {
+          "required": true,
+          "regex": "^[a-z0-9-]{3,24}$",
+          "validationMessage": "Name must be 3-24 lowercase letters, numbers, or hyphens."
+        }
+      }
+    ],
+    "steps": [],
+    "outputs": {
+      "appName": "[basics('appName')]",
+      "location": "[location()]"
+    }
+  }
+}

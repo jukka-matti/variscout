@@ -76,7 +76,7 @@ docs/
 ├── 08-products/         # Product-specific specs
 │   ├── index.md
 │   ├── feature-parity.md # Platform × Feature availability matrix
-│   ├── azure/           # index, marketplace, pricing-tiers, arm-template, msal-auth, onedrive-sync
+│   ├── azure/           # index, marketplace, pricing-tiers, arm-template, authentication, onedrive-sync
 │   ├── excel/           # index, architecture, design-system, strategy, appsource, license-detection
 │   ├── pwa/             # index (demo tool), storage
 │   ├── website/         # index, design-philosophy, content-architecture
@@ -119,7 +119,7 @@ docs/
 | Decision trees         | docs/03-features/workflows/decision-trees.md                                           |
 | Glossary/terminology   | packages/core/src/glossary/terms.ts, docs/03-features/learning/glossary.md             |
 | Azure deployment/ARM   | docs/08-products/azure/marketplace.md, docs/08-products/azure/arm-template.md          |
-| Azure MSAL/auth        | docs/08-products/azure/msal-auth.md                                                    |
+| Azure auth (EasyAuth)  | docs/08-products/azure/authentication.md                                               |
 | OneDrive sync          | docs/08-products/azure/onedrive-sync.md                                                |
 | AppSource submission   | docs/08-products/excel/appsource.md                                                    |
 | UI components (modals) | docs/06-design-system/components/                                                      |
