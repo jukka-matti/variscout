@@ -1,11 +1,11 @@
 import React from 'react';
-import { BarChart2, PenLine } from 'lucide-react';
+import { BarChart2, ClipboardPaste, PenLine } from 'lucide-react';
 import type { SampleDataset } from '@variscout/data';
 import SampleSection from './data/SampleSection';
-import InstallPrompt from './InstallPrompt';
 
 interface HomeScreenProps {
   onLoadSample: (sample: SampleDataset) => void;
+  onOpenPaste: () => void;
   onOpenManualEntry: () => void;
   onOpenSettings?: () => void;
 }
@@ -15,7 +15,11 @@ interface HomeScreenProps {
  *
  * Free training tool: sample datasets + paste from Excel
  */
-const HomeScreen: React.FC<HomeScreenProps> = ({ onLoadSample, onOpenManualEntry }) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({
+  onLoadSample,
+  onOpenPaste,
+  onOpenManualEntry,
+}) => {
   return (
     <div className="h-full flex flex-col items-center justify-start p-4 sm:p-8 overflow-auto animate-in fade-in duration-500">
       <div className="max-w-xl w-full space-y-6 sm:space-y-8 py-4">
@@ -43,30 +47,38 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onLoadSample, onOpenManualEntry
           </div>
           <div className="relative flex justify-center">
             <span className="px-3 bg-surface text-xs text-content-muted uppercase tracking-wider">
-              or
+              or use your own data
             </span>
           </div>
         </div>
 
-        {/* Paste from Excel button */}
+        {/* Paste from Excel button — primary action */}
         <button
-          onClick={onOpenManualEntry}
-          className="w-full flex items-center justify-center gap-3 p-5 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500 rounded-2xl transition-all group"
+          onClick={onOpenPaste}
+          className="w-full flex items-center justify-center gap-3 p-5 bg-gradient-to-r from-blue-600/20 to-blue-500/10 hover:from-blue-600/30 hover:to-blue-500/20 border border-blue-500/30 hover:border-blue-400/50 rounded-2xl transition-all group"
         >
-          <PenLine
+          <ClipboardPaste
             size={24}
-            className="text-content-muted group-hover:text-blue-400 transition-colors"
+            className="text-blue-400 group-hover:text-blue-300 transition-colors"
           />
           <div className="text-left">
             <span className="text-sm font-semibold text-white block">Paste from Excel</span>
-            <span className="text-xs text-content-muted">
-              Copy rows from Excel or Google Sheets
+            <span className="text-xs text-content-secondary">
+              Copy rows and paste — we'll detect columns automatically
             </span>
           </div>
         </button>
 
-        {/* Install prompt */}
-        <InstallPrompt />
+        {/* Secondary: manual entry link */}
+        <div className="text-center">
+          <button
+            onClick={onOpenManualEntry}
+            className="inline-flex items-center gap-1.5 text-xs text-content-muted hover:text-content-secondary transition-colors"
+          >
+            <PenLine size={12} />
+            Or enter data manually
+          </button>
+        </div>
       </div>
     </div>
   );

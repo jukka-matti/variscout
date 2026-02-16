@@ -1,8 +1,66 @@
 import { describe, it, expect } from 'vitest';
-import { detectColumns, validateData } from '../parser';
+import { detectColumns, validateData, parseText } from '../parser';
 import type { DataRow } from '../types';
 
 describe('parser module', () => {
+  describe('parseText', () => {
+    it('should parse tab-separated data (Excel paste)', async () => {
+      const text = 'Weight\tShift\tOperator\n12.1\tDay\tAlice\n11.8\tNight\tBob';
+      const rows = await parseText(text);
+      expect(rows).toHaveLength(2);
+      expect(rows[0]).toEqual({ Weight: 12.1, Shift: 'Day', Operator: 'Alice' });
+      expect(rows[1]).toEqual({ Weight: 11.8, Shift: 'Night', Operator: 'Bob' });
+    });
+
+    it('should parse comma-separated data (CSV)', async () => {
+      const text = 'Weight,Shift,Operator\n12.1,Day,Alice\n11.8,Night,Bob';
+      const rows = await parseText(text);
+      expect(rows).toHaveLength(2);
+      expect(rows[0]).toEqual({ Weight: 12.1, Shift: 'Day', Operator: 'Alice' });
+    });
+
+    it('should reject empty text', async () => {
+      await expect(parseText('')).rejects.toThrow('No data to parse');
+      await expect(parseText('   ')).rejects.toThrow('No data to parse');
+    });
+
+    it('should handle quoted values with commas', async () => {
+      const text = 'Name,Value\n"Smith, John",42\n"Doe, Jane",38';
+      const rows = await parseText(text);
+      expect(rows).toHaveLength(2);
+      expect(rows[0].Name).toBe('Smith, John');
+      expect(rows[0].Value).toBe(42);
+    });
+
+    it('should apply dynamic typing (numbers not strings)', async () => {
+      const text = 'Value\tCategory\n10.5\tA\n20\tB\n-3.14\tC';
+      const rows = await parseText(text);
+      expect(typeof rows[0].Value).toBe('number');
+      expect(rows[0].Value).toBe(10.5);
+      expect(typeof rows[1].Value).toBe('number');
+      expect(rows[1].Value).toBe(20);
+      expect(typeof rows[2].Value).toBe('number');
+      expect(rows[2].Value).toBe(-3.14);
+    });
+
+    it('should skip empty lines', async () => {
+      const text = 'Value\n10\n\n20\n\n30';
+      const rows = await parseText(text);
+      expect(rows).toHaveLength(3);
+    });
+
+    it('should reject header-only data with no rows', async () => {
+      const text = 'Weight\tShift\tOperator';
+      await expect(parseText(text)).rejects.toThrow('No data rows found');
+    });
+
+    it('should trim whitespace around text', async () => {
+      const text = '\n  Weight\tShift\n  12.1\tDay\n  ';
+      const rows = await parseText(text);
+      expect(rows).toHaveLength(1);
+    });
+  });
+
   describe('detectColumns', () => {
     it('should return empty result for empty data', () => {
       const result = detectColumns([]);

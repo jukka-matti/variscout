@@ -10,6 +10,7 @@ import { useFilterNavigation } from './hooks/useFilterNavigation';
 import { ColumnMapping, MindmapWindow, openMindmapPopout } from '@variscout/ui';
 import Dashboard from './components/Dashboard';
 import HomeScreen from './components/HomeScreen';
+import PasteScreen from './components/data/PasteScreen';
 import ManualEntry from './components/data/ManualEntry';
 import AppHeader from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
@@ -19,6 +20,9 @@ import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
 import {
   validateData,
+  parseText,
+  detectColumns,
+  detectWideFormat,
   getNelsonRule2ViolationPoints,
   calculateStats,
   type ExclusionReason,
@@ -58,6 +62,9 @@ function App() {
   const [wideFormatDetection, setWideFormatDetection] = useState<WideFormatDetection | null>(null);
   // State for manual data entry view
   const [isManualEntry, setIsManualEntry] = useState(false);
+  // State for paste mode
+  const [isPasteMode, setIsPasteMode] = useState(false);
+  const [pasteError, setPasteError] = useState<string | null>(null);
   // Callback for wide format detection
   const handleWideFormatDetected = useCallback((result: WideFormatDetection) => {
     setWideFormatDetection(result);
@@ -443,6 +450,70 @@ function App() {
     setWideFormatDetection(null);
   }, []);
 
+  // Handle paste → parse → detect → mapping flow
+  const handlePasteAnalyze = useCallback(
+    async (text: string) => {
+      setPasteError(null);
+      try {
+        const data = await parseText(text);
+
+        // Set raw data and filename
+        setRawData(data);
+        setDataFilename('Pasted Data');
+
+        // Auto-detect columns
+        const detected = detectColumns(data);
+        if (detected.outcome) {
+          setOutcome(detected.outcome);
+        }
+        if (detected.factors.length > 0) {
+          setFactors(detected.factors);
+        }
+
+        // Validate data quality
+        const report = validateData(data, detected.outcome);
+        setDataQualityReport(report);
+
+        // Check for wide format (Performance Mode is Azure-only)
+        const wideFormat = detectWideFormat(data);
+        if (wideFormat.isWideFormat) {
+          setWideFormatDetection(wideFormat);
+        }
+
+        // Check for time column
+        if (detected.timeColumn) {
+          setTimeExtractionPrompt({
+            timeColumn: detected.timeColumn,
+            hasTimeComponent: detected.columnAnalysis.some(
+              c =>
+                c.name === detected.timeColumn &&
+                c.sampleValues.some(v => v.includes('T') || v.includes(':'))
+            ),
+          });
+        }
+
+        // Transition: close paste, open column mapping
+        setIsPasteMode(false);
+        setIsMapping(true);
+      } catch (err) {
+        setPasteError(err instanceof Error ? err.message : 'Failed to parse data');
+      }
+    },
+    [setRawData, setDataFilename, setOutcome, setFactors, setDataQualityReport]
+  );
+
+  // Handle canceling paste mode
+  const handlePasteCancel = useCallback(() => {
+    setIsPasteMode(false);
+    setPasteError(null);
+  }, []);
+
+  // Handle opening paste mode from home screen
+  const handleOpenPaste = useCallback(() => {
+    setIsPasteMode(true);
+    setPasteError(null);
+  }, []);
+
   // Handle manual data entry completion
   const handleManualDataAnalyze = useCallback(
     (
@@ -554,11 +625,18 @@ function App() {
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
         {/* Main content area */}
         <div className="flex-1 overflow-hidden flex flex-col">
-          {isManualEntry ? (
+          {isPasteMode ? (
+            <PasteScreen
+              onAnalyze={handlePasteAnalyze}
+              onCancel={handlePasteCancel}
+              error={pasteError}
+            />
+          ) : isManualEntry ? (
             <ManualEntry onAnalyze={handleManualDataAnalyze} onCancel={handleManualEntryCancel} />
           ) : rawData.length === 0 ? (
             <HomeScreen
               onLoadSample={loadSample}
+              onOpenPaste={handleOpenPaste}
               onOpenManualEntry={handleOpenManualEntry}
               onOpenSettings={() => setIsSettingsOpen(true)}
             />

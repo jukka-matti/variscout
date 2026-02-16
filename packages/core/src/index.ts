@@ -134,6 +134,7 @@ export type {
 // Parser functions
 export {
   parseCSV,
+  parseText,
   parseExcel,
   detectColumns,
   validateData,
