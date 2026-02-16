@@ -6,6 +6,18 @@ How analysts use VariScout to solve real problems.
 
 Workflows describe **what analysts actually DO** inside VariScout—the sequence of charts, filters, and decisions that lead to actionable insights. While feature documentation explains what each tool does, workflows show how to combine them effectively.
 
+## Visual Process Maps
+
+**[Process Maps](process-maps.md)** — Step-by-step visual maps showing exactly how many user actions each workflow requires. Start here for a quick overview of all analysis flows with PWA and Azure variants.
+
+| Flow                  | Actions | Time    | Question                 |
+| --------------------- | ------- | ------- | ------------------------ |
+| Stability Check       | 5-6     | ~2 min  | Is it stable?            |
+| Root Cause            | 6-8     | ~5 min  | What causes variation?   |
+| Capability Check      | 12-13   | ~3 min  | Do we meet specs?        |
+| Process Investigation | ~15     | ~10 min | Why is quality dropping? |
+| Predict Improvement   | ~12     | ~8 min  | Can we fix it?           |
+
 ## Core Workflows
 
 ### [Four Lenses Analysis](four-lenses-workflow.md)

@@ -2,6 +2,62 @@
 
 VariScout's signature interaction pattern—progressive stratification using filter chips to isolate variation sources.
 
+<div class="process-map">
+  <div class="process-step">
+    <div class="process-step__box process-step__box--input">
+      <div class="process-step__title">Paste Data</div>
+      <div class="process-step__detail">Ctrl+V in paste area</div>
+    </div>
+    <div class="process-step__clicks">2 actions</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--navigate">
+      <div class="process-step__title">Analyze</div>
+      <div class="process-step__detail">Click "Analyze Data"</div>
+    </div>
+    <div class="process-step__clicks">1 click</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--navigate">
+      <div class="process-step__title">Map Columns</div>
+      <div class="process-step__detail">Outcome + 2 factors + "Start"</div>
+    </div>
+    <div class="process-step__clicks">4 clicks</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--read">
+      <div class="process-step__title">Read ANOVA</div>
+      <div class="process-step__detail">Check eta-squared under Boxplot</div>
+    </div>
+    <div class="process-step__clicks">0 clicks</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--analyze">
+      <div class="process-step__title">Filter Top Factor</div>
+      <div class="process-step__detail">Click highest-eta bar</div>
+    </div>
+    <div class="process-step__clicks">1 click</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--read">
+      <div class="process-step__title">Read Filtered</div>
+      <div class="process-step__detail">Variation explained? Cpk improved?</div>
+    </div>
+    <div class="process-step__clicks">0 clicks</div>
+  </div>
+  <div class="process-summary">
+    <div class="process-summary__total">8 actions</div>
+    <div class="process-summary__time">~5 min</div>
+  </div>
+</div>
+
+_See [all process maps](process-maps.md) for PWA and Azure variants._
+
 ## Overview
 
 Drill-down analysis lets you progressively filter data to isolate specific variation sources. Each filter shows how much variation it explains, building a cumulative picture of your data.

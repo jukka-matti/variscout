@@ -2,6 +2,70 @@
 
 From root cause discovery to projected improvement — the three-phase analyst workflow.
 
+<div class="process-map">
+  <div class="process-step">
+    <div class="process-step__box process-step__box--input">
+      <div class="process-step__title">Load Data</div>
+      <div class="process-step__detail">Paste or upload</div>
+    </div>
+    <div class="process-step__clicks">2-3 actions</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--navigate">
+      <div class="process-step__title">Start Analysis</div>
+      <div class="process-step__detail">Map columns, Start</div>
+    </div>
+    <div class="process-step__clicks">3-4 clicks</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--read">
+      <div class="process-step__title">Scan I-Chart</div>
+      <div class="process-step__detail">Red dots, runs?</div>
+    </div>
+    <div class="process-step__clicks">0 clicks</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--decision">
+      <div class="process-step__title">Stable?</div>
+      <div class="process-step__detail">Blue → skip. Red → investigate</div>
+    </div>
+    <div class="process-step__clicks">0 clicks</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--analyze">
+      <div class="process-step__title">Drill Factors</div>
+      <div class="process-step__detail">ANOVA → filter top eta</div>
+    </div>
+    <div class="process-step__clicks">1-2 clicks</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--navigate">
+      <div class="process-step__title">Enter Specs</div>
+      <div class="process-step__detail">USL, LSL, Apply</div>
+    </div>
+    <div class="process-step__clicks">6 actions</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--navigate">
+      <div class="process-step__title">Export / Save</div>
+      <div class="process-step__detail">Copy chart or save</div>
+    </div>
+    <div class="process-step__clicks">1 click</div>
+  </div>
+  <div class="process-summary">
+    <div class="process-summary__total">~15 actions</div>
+    <div class="process-summary__time">~10 min</div>
+  </div>
+</div>
+
+_See [full process map](process-maps.md#analyst-flow-a-process-investigation) with all decision points._
+
 ## Overview
 
 A quality investigation has three distinct mental modes:

@@ -133,6 +133,46 @@ After drilling down in Boxplot:
 
 **Question:** Do we meet specifications?
 
+<div class="process-map">
+  <div class="process-step">
+    <div class="process-step__box process-step__box--navigate">
+      <div class="process-step__title">Enter Specs</div>
+      <div class="process-step__detail">+ Specs, USL, LSL, Apply</div>
+    </div>
+    <div class="process-step__clicks">6 actions</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--read">
+      <div class="process-step__title">Read Cp/Cpk</div>
+      <div class="process-step__detail">Capability indices in stats panel</div>
+    </div>
+    <div class="process-step__clicks">0 clicks</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--navigate">
+      <div class="process-step__title">View Histogram</div>
+      <div class="process-step__detail">Click "Histogram" tab</div>
+    </div>
+    <div class="process-step__clicks">1 click</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--read">
+      <div class="process-step__title">Read Distribution</div>
+      <div class="process-step__detail">Shape vs spec lines</div>
+    </div>
+    <div class="process-step__clicks">0 clicks</div>
+  </div>
+  <div class="process-summary">
+    <div class="process-summary__total">7 actions</div>
+    <div class="process-summary__time">~1 min</div>
+  </div>
+</div>
+
+_See [full Capability Check flow](process-maps.md#flow-3-capability-check) including data entry steps._
+
 ### Key Metrics
 
 | Metric | What It Measures                       | Target |

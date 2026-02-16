@@ -2,6 +2,54 @@
 
 A 5-minute analysis pattern for daily/shift-level monitoring.
 
+<div class="process-map">
+  <div class="process-step">
+    <div class="process-step__box process-step__box--input">
+      <div class="process-step__title">Paste Data</div>
+      <div class="process-step__detail">Ctrl+V in paste area</div>
+    </div>
+    <div class="process-step__clicks">2 actions</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--navigate">
+      <div class="process-step__title">Analyze</div>
+      <div class="process-step__detail">Click "Analyze Data"</div>
+    </div>
+    <div class="process-step__clicks">1 click</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--navigate">
+      <div class="process-step__title">Map Columns</div>
+      <div class="process-step__detail">Outcome + factor + "Start"</div>
+    </div>
+    <div class="process-step__clicks">3 clicks</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--read">
+      <div class="process-step__title">Read I-Chart</div>
+      <div class="process-step__detail">Red dots = unstable</div>
+    </div>
+    <div class="process-step__clicks">0 clicks</div>
+  </div>
+  <div class="process-arrow"></div>
+  <div class="process-step">
+    <div class="process-step__box process-step__box--read">
+      <div class="process-step__title">Check Stats</div>
+      <div class="process-step__detail">Mean, sigma, UCL, LCL</div>
+    </div>
+    <div class="process-step__clicks">0 clicks</div>
+  </div>
+  <div class="process-summary">
+    <div class="process-summary__total">6 actions</div>
+    <div class="process-summary__time">~2 min</div>
+  </div>
+</div>
+
+_See [all process maps](process-maps.md) for PWA and Azure variants._
+
 ## Overview
 
 The Quick Check is a rapid assessment pattern for routine monitoring. Use it to catch problems early before they become major issues.

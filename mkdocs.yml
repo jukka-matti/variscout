@@ -112,6 +112,7 @@ nav:
       - Staged Analysis: 03-features/analysis/staged-analysis.md
     - Workflows:
       - Overview: 03-features/workflows/index.md
+      - Process Maps: 03-features/workflows/process-maps.md
       - Four Lenses: 03-features/workflows/four-lenses-workflow.md
       - Drill-Down: 03-features/workflows/drill-down-workflow.md
       - Performance Mode: 03-features/workflows/performance-mode-workflow.md
