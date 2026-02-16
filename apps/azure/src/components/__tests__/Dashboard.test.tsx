@@ -22,6 +22,67 @@ vi.mock('../GageRRPanel', () => ({
 vi.mock('../AnovaResults', () => ({
   default: () => <div data-testid="anova-results">ANOVA Results</div>,
 }));
+vi.mock('../PerformanceDashboard', () => ({
+  default: () => <div data-testid="performance-dashboard">Performance Dashboard</div>,
+}));
+vi.mock('../ErrorBoundary', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+vi.mock('../FilterBreadcrumb', () => ({
+  default: () => <div data-testid="filter-breadcrumb">Breadcrumb</div>,
+}));
+vi.mock('../FactorSelector', () => ({
+  default: ({ factors, selected, onChange }: any) => (
+    <select data-testid="factor-selector" value={selected} onChange={e => onChange(e.target.value)}>
+      {factors.map((f: string) => (
+        <option key={f} value={f}>
+          {f}
+        </option>
+      ))}
+    </select>
+  ),
+}));
+vi.mock('../settings/SpecsPopover', () => ({
+  default: () => <div data-testid="specs-popover">Specs</div>,
+}));
+
+// Mock html-to-image
+vi.mock('html-to-image', () => ({
+  toBlob: vi.fn(),
+}));
+
+// Mock @variscout/charts
+vi.mock('@variscout/charts', () => ({
+  EditableChartTitle: ({ defaultTitle }: { defaultTitle: string }) => (
+    <span data-testid="editable-title">{defaultTitle}</span>
+  ),
+  calculateBoxplotStats: vi.fn(() => ({ key: 'A', min: 0, max: 10, median: 5, q1: 2.5, q3: 7.5 })),
+  BoxplotStatsTable: () => <div data-testid="boxplot-stats-table">Stats Table</div>,
+}));
+
+// Mock @variscout/ui
+vi.mock('@variscout/ui', () => ({
+  SelectionPanel: () => <div data-testid="selection-panel">Selection Panel</div>,
+  CreateFactorModal: () => <div data-testid="create-factor-modal">Create Factor</div>,
+  HelpTooltip: () => null,
+  useGlossary: () => ({ getTerm: () => undefined }),
+}));
+
+// Mock hooks
+vi.mock('../../hooks', () => ({
+  useFilterNavigation: () => ({
+    filterStack: [],
+    applyFilter: vi.fn(),
+    clearFilters: vi.fn(),
+    updateFilterValues: vi.fn(),
+    removeFilter: vi.fn(),
+  }),
+  useVariationTracking: () => ({
+    cumulativeVariationPct: 0,
+    factorVariations: new Map(),
+    filterChipData: [],
+  }),
+}));
 
 // Mock core functions
 vi.mock('@variscout/core', async () => {
@@ -47,7 +108,22 @@ describe('Dashboard', () => {
     filters: {},
     setOutcome: vi.fn(),
     setFilters: vi.fn(),
+    setSpecs: vi.fn(),
+    setRawData: vi.fn(),
     columnAliases: {},
+    isPerformanceMode: false,
+    stageColumn: null,
+    stageOrderMode: 'auto' as const,
+    stagedStats: null,
+    setStageColumn: vi.fn(),
+    setStageOrderMode: vi.fn(),
+    paretoAggregation: 'count' as const,
+    setParetoAggregation: vi.fn(),
+    chartTitles: {},
+    setChartTitles: vi.fn(),
+    timeColumn: null,
+    selectedPoints: new Set<number>(),
+    clearSelection: vi.fn(),
   };
 
   it('renders Analysis tab by default', () => {
@@ -116,5 +192,42 @@ describe('Dashboard', () => {
     expect(screen.getByText('10.00')).toBeInTheDocument();
     expect(screen.getByText('LCL:')).toBeInTheDocument();
     expect(screen.getByText('8.00')).toBeInTheDocument();
+  });
+
+  it('shows Performance tab when isPerformanceMode is true', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+      ...mockDataCtx,
+      isPerformanceMode: true,
+    } as any);
+
+    render(<Dashboard />);
+
+    expect(screen.getByText('Performance')).toBeInTheDocument();
+  });
+
+  it('does not show Performance tab by default', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+
+    render(<Dashboard />);
+
+    expect(screen.queryByText('Performance')).not.toBeInTheDocument();
+  });
+
+  it('renders copy buttons for each chart', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+
+    render(<Dashboard />);
+
+    const copyButtons = screen.getAllByTitle(/Copy .* to clipboard/);
+    expect(copyButtons).toHaveLength(3); // I-Chart, Boxplot, Pareto
+  });
+
+  it('renders editable chart titles', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+
+    render(<Dashboard />);
+
+    const titles = screen.getAllByTestId('editable-title');
+    expect(titles.length).toBeGreaterThanOrEqual(3);
   });
 });

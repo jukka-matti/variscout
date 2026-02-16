@@ -10,6 +10,7 @@ import { openMindmapPopout } from '../components/MindmapWindow';
 import ManualEntry from '../components/data/ManualEntry';
 import WhatIfPage from '../components/WhatIfPage';
 import { validateData, getNelsonRule2ViolationPoints, calculateStats } from '@variscout/core';
+import { downloadCSV } from '@variscout/core';
 import {
   Upload,
   ArrowLeft,
@@ -22,6 +23,7 @@ import {
   Plus,
   Network,
   Beaker,
+  Download,
 } from 'lucide-react';
 
 // ── Inline column selector for empty state (no outcome detected) ──
@@ -509,6 +511,17 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             >
               <Plus size={16} />
               <span className="text-sm">Add Data</span>
+            </button>
+          )}
+
+          {/* CSV Export */}
+          {rawData.length > 0 && outcome && (
+            <button
+              onClick={() => downloadCSV(filteredData, outcome, specs)}
+              className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
+              title="Export filtered data as CSV"
+            >
+              <Download size={18} />
             </button>
           )}
 

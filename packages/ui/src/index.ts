@@ -148,6 +148,14 @@ export {
 } from './components/MindmapWindow';
 
 export {
+  StatsPanelBase,
+  statsPanelDefaultColorScheme,
+  statsPanelAzureColorScheme,
+  type StatsPanelBaseProps,
+  type StatsPanelColorScheme,
+} from './components/StatsPanel';
+
+export {
   MindmapPanelContent,
   mindmapPanelDefaultColorScheme,
   mindmapPanelAzureColorScheme,

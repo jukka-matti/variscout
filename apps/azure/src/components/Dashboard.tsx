@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { toBlob } from 'html-to-image';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -14,9 +15,18 @@ import SpecsPopover from './settings/SpecsPopover';
 import { useData } from '../context/DataContext';
 import { useFilterNavigation, useVariationTracking } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
-import { calculateAnova, type AnovaResult, getNextDrillFactor } from '@variscout/core';
-import type { FilterAction } from '@variscout/core';
+import { EditableChartTitle } from '@variscout/charts';
+import { SelectionPanel, CreateFactorModal } from '@variscout/ui';
+import {
+  calculateAnova,
+  type AnovaResult,
+  getNextDrillFactor,
+  createFactorFromSelection,
+  getColumnNames,
+} from '@variscout/core';
 import { calculateBoxplotStats, BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
+import { HelpTooltip, useGlossary } from '@variscout/ui';
+import type { StageOrderMode } from '@variscout/core';
 import {
   Activity,
   BarChart3,
@@ -29,23 +39,18 @@ import {
   Layers,
   Gauge,
   ArrowLeft,
+  Copy,
+  Check,
 } from 'lucide-react';
-import { HelpTooltip, useGlossary } from '@variscout/ui';
-import type { StageOrderMode } from '@variscout/core';
 
 type DashboardTab = 'analysis' | 'regression' | 'gagerr' | 'performance';
 
 interface DashboardProps {
   onPointClick?: (index: number) => void;
-  /** Highlighted point index from data panel (bi-directional sync) */
   highlightedPointIndex?: number | null;
-  /** Drill navigation from Performance Mode */
   drillFromPerformance?: string | null;
-  /** Callback to return to Performance Mode */
   onBackToPerformance?: () => void;
-  /** Callback to drill to a specific measure */
   onDrillToMeasure?: (measureId: string) => void;
-  /** Filter navigation (lifted to Editor for mindmap integration) */
   filterNav?: UseFilterNavigationReturn;
 }
 
@@ -62,6 +67,7 @@ const Dashboard = ({
     factors,
     setOutcome,
     rawData,
+    setRawData,
     stats,
     specs,
     setSpecs,
@@ -77,6 +83,11 @@ const Dashboard = ({
     setStageOrderMode,
     paretoAggregation,
     setParetoAggregation,
+    chartTitles,
+    setChartTitles,
+    timeColumn,
+    selectedPoints,
+    clearSelection,
   } = useData();
   const { getTerm } = useGlossary();
 
@@ -93,10 +104,16 @@ const Dashboard = ({
   const [boxplotFactor, setBoxplotFactor] = useState<string>('');
   const [paretoFactor, setParetoFactor] = useState<string>('');
   const [focusedChart, setFocusedChart] = useState<'ichart' | 'boxplot' | 'pareto' | null>(null);
-  // Toggle for showing full population comparison (ghost bars) on Pareto
   const [showParetoComparison, setShowParetoComparison] = useState(false);
 
-  // Determine focused chart navigation
+  // Copy-to-clipboard feedback state
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Modal state for Create Factor
+  const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
+
+  // Chart navigation
   const CHART_ORDER = ['ichart', 'boxplot', 'pareto'] as const;
 
   const handleNextChart = useCallback(() => {
@@ -117,18 +134,32 @@ const Dashboard = ({
     });
   }, []);
 
-  // Keyboard navigation for Focus Mode
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!focusedChart) return;
-      if (e.key === 'ArrowRight') handleNextChart();
-      if (e.key === 'ArrowLeft') handlePrevChart();
-      if (e.key === 'Escape') setFocusedChart(null);
+      if (focusedChart) {
+        if (e.key === 'ArrowRight') handleNextChart();
+        if (e.key === 'ArrowLeft') handlePrevChart();
+        if (e.key === 'Escape') setFocusedChart(null);
+      }
+      // Clear selection on Escape
+      if (e.key === 'Escape' && selectedPoints.size > 0) {
+        clearSelection();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [focusedChart, handleNextChart, handlePrevChart]);
+  }, [focusedChart, handleNextChart, handlePrevChart, selectedPoints, clearSelection]);
+
+  // Cleanup copy feedback timeout
+  useEffect(() => {
+    return () => {
+      if (copyFeedbackTimeoutRef.current) {
+        clearTimeout(copyFeedbackTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Derive available numeric outcomes
   const availableOutcomes = useMemo(() => {
@@ -137,21 +168,14 @@ const Dashboard = ({
     return Object.keys(row).filter(key => typeof row[key] === 'number');
   }, [rawData]);
 
-  // Derive available stage columns (categorical with 2-10 unique values)
+  // Derive available stage columns
   const availableStageColumns = useMemo(() => {
     if (rawData.length === 0) return [];
-
     const columns = Object.keys(rawData[0]);
     return columns.filter(col => {
-      // Skip the outcome column
       if (col === outcome) return false;
-
-      // Get unique values
       const uniqueValues = new Set(rawData.map(row => row[col]));
-      const uniqueCount = uniqueValues.size;
-
-      // Suitable for stages: 2-10 unique values (categorical-like)
-      return uniqueCount >= 2 && uniqueCount <= 10;
+      return uniqueValues.size >= 2 && uniqueValues.size <= 10;
     });
   }, [rawData, outcome]);
 
@@ -167,17 +191,15 @@ const Dashboard = ({
     }
   }, [factors, boxplotFactor, paretoFactor]);
 
-  // Compute ANOVA for the selected boxplot factor
+  // Compute ANOVA
   const anovaResult: AnovaResult | null = useMemo(() => {
     if (!outcome || !boxplotFactor || filteredData.length === 0) return null;
     return calculateAnova(filteredData, outcome, boxplotFactor);
   }, [filteredData, outcome, boxplotFactor]);
 
-  // Compute boxplot data for the selected factor (for stats table in fullscreen mode)
+  // Compute boxplot data (for stats table in fullscreen mode)
   const boxplotData: BoxplotGroupData[] = useMemo(() => {
     if (!outcome || !boxplotFactor || filteredData.length === 0) return [];
-
-    // Group data by factor
     const groups = new Map<string, number[]>();
     for (const row of filteredData) {
       const key = String(row[boxplotFactor] ?? '');
@@ -187,14 +209,12 @@ const Dashboard = ({
         groups.get(key)!.push(value);
       }
     }
-
-    // Calculate stats for each group
     return Array.from(groups.entries())
       .map(([group, values]) => calculateBoxplotStats({ group, values }))
       .sort((a, b) => a.key.localeCompare(b.key));
   }, [filteredData, outcome, boxplotFactor]);
 
-  // Use filter navigation hook (from parent when lifted, or local fallback)
+  // Filter navigation
   const localFilterNav = useFilterNavigation({
     enableHistory: false,
     enableUrlSync: false,
@@ -202,7 +222,7 @@ const Dashboard = ({
   const { filterStack, applyFilter, clearFilters, updateFilterValues, removeFilter } =
     externalFilterNav ?? localFilterNav;
 
-  // Use variation tracking hook
+  // Variation tracking
   const { cumulativeVariationPct, factorVariations, filterChipData } = useVariationTracking(
     rawData,
     filterStack,
@@ -210,28 +230,14 @@ const Dashboard = ({
     factors
   );
 
-  // Handle clear all filters
-  const handleClearAllFilters = useCallback(() => {
-    clearFilters();
-  }, [clearFilters]);
-
-  // Handle remove specific filter
-  const handleRemoveFilter = useCallback(
-    (factor: string) => {
-      removeFilter(factor);
-    },
-    [removeFilter]
-  );
-
-  // Handle update filter values (for multi-select)
+  const handleClearAllFilters = useCallback(() => clearFilters(), [clearFilters]);
+  const handleRemoveFilter = useCallback((factor: string) => removeFilter(factor), [removeFilter]);
   const handleUpdateFilterValues = useCallback(
-    (factor: string, newValues: (string | number)[]) => {
-      updateFilterValues(factor, newValues);
-    },
+    (factor: string, newValues: (string | number)[]) => updateFilterValues(factor, newValues),
     [updateFilterValues]
   );
 
-  // Handle drill-down from chart click - auto-switches to highest variation factor
+  // Drill-down handler
   const handleDrillDown = useCallback(
     (factor: string, value: string) => {
       applyFilter({
@@ -240,8 +246,6 @@ const Dashboard = ({
         factor,
         values: [value],
       });
-
-      // Auto-switch to factor with highest variation in filtered data
       const nextFactor = getNextDrillFactor(factorVariations, factor);
       if (nextFactor) {
         setBoxplotFactor(nextFactor);
@@ -252,6 +256,52 @@ const Dashboard = ({
       }
     },
     [applyFilter, factorVariations]
+  );
+
+  // Copy chart to clipboard
+  const handleCopyChart = useCallback(async (containerId: string, chartName: string) => {
+    const node = document.getElementById(containerId);
+    if (!node) return;
+    try {
+      const blob = await toBlob(node, {
+        cacheBust: true,
+        backgroundColor: '#0f172a',
+      });
+      if (blob) {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        setCopyFeedback(chartName);
+        if (copyFeedbackTimeoutRef.current) {
+          clearTimeout(copyFeedbackTimeoutRef.current);
+        }
+        copyFeedbackTimeoutRef.current = setTimeout(() => setCopyFeedback(null), 2000);
+      }
+    } catch (err) {
+      console.error('Failed to copy chart', err);
+    }
+  }, []);
+
+  // Chart title change handler
+  const handleChartTitleChange = useCallback(
+    (chart: 'ichart' | 'boxplot' | 'pareto', title: string) => {
+      setChartTitles({ ...chartTitles, [chart]: title });
+    },
+    [chartTitles, setChartTitles]
+  );
+
+  // Create Factor handlers
+  const handleOpenCreateFactorModal = useCallback(() => {
+    setShowCreateFactorModal(true);
+  }, []);
+
+  const handleCreateFactor = useCallback(
+    (factorName: string) => {
+      const updatedData = createFactorFromSelection(rawData, selectedPoints, factorName);
+      setRawData(updatedData);
+      setFilters({ ...filters, [factorName]: [factorName] });
+      clearSelection();
+      setShowCreateFactorModal(false);
+    },
+    [rawData, selectedPoints, filters, setRawData, setFilters, clearSelection]
   );
 
   if (!outcome) return null;
@@ -268,6 +318,20 @@ const Dashboard = ({
           onClearAll={handleClearAllFilters}
           cumulativeVariationPct={cumulativeVariationPct}
         />
+
+        {/* Selection Panel */}
+        {selectedPoints.size > 0 && (
+          <SelectionPanel
+            selectedIndices={selectedPoints}
+            data={filteredData}
+            outcome={outcome}
+            columnAliases={columnAliases}
+            factors={factors}
+            timeColumn={timeColumn}
+            onClearSelection={clearSelection}
+            onCreateFactor={handleOpenCreateFactorModal}
+          />
+        )}
 
         {/* Tab Navigation */}
         <div
@@ -332,6 +396,15 @@ const Dashboard = ({
         </div>
       </div>
 
+      {/* Create Factor Modal */}
+      <CreateFactorModal
+        isOpen={showCreateFactorModal}
+        onClose={() => setShowCreateFactorModal(false)}
+        selectedCount={selectedPoints.size}
+        existingFactors={getColumnNames(rawData)}
+        onCreateFactor={handleCreateFactor}
+      />
+
       {/* Regression Tab */}
       {activeTab === 'regression' && (
         <div className="flex-1 m-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
@@ -362,7 +435,7 @@ const Dashboard = ({
       {/* Analysis Tab */}
       {activeTab === 'analysis' && (
         <div className="flex-1 flex flex-col min-h-0">
-          {/* Back to Performance banner when drilled from Performance Mode */}
+          {/* Back to Performance banner */}
           {drillFromPerformance && onBackToPerformance && (
             <div className="flex items-center justify-between px-4 py-2 bg-blue-600/20 border-b border-blue-600/30">
               <div className="flex items-center gap-2 text-blue-300 text-sm">
@@ -384,18 +457,25 @@ const Dashboard = ({
             // Scrollable Layout
             <div className="flex flex-col gap-4 p-4">
               {/* I-Chart Section */}
-              <div className="min-h-[400px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col">
+              <div
+                id="ichart-card"
+                className="min-h-[400px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col"
+              >
                 <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
                   <div className="flex items-center gap-4">
                     <h2 className="text-xl font-bold flex items-center gap-2 text-white">
                       <Activity className="text-blue-400" />
-                      I-Chart:
+                      <EditableChartTitle
+                        defaultTitle={`I-Chart: ${outcome}`}
+                        value={chartTitles.ichart || ''}
+                        onChange={title => handleChartTitleChange('ichart', title)}
+                      />
                     </h2>
                     <select
                       value={outcome}
                       onChange={e => setOutcome(e.target.value)}
                       aria-label="Select outcome variable"
-                      className="bg-slate-900 border border-slate-700 text-lg font-bold text-white rounded px-3 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                      className="bg-slate-900 border border-slate-700 text-sm font-medium text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
                     >
                       {availableOutcomes.map(o => (
                         <option key={o} value={o}>
@@ -403,56 +483,92 @@ const Dashboard = ({
                         </option>
                       ))}
                     </select>
-                    {/* Stage Column Selector - always visible for discoverability */}
-                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-700">
-                      <span
-                        className="tooltip-wrapper"
-                        title="Divide chart into stages (e.g., Before/After, Phase 1/2/3)"
-                      >
+                    {/* Stage Column Selector */}
+                    {availableStageColumns.length > 0 && (
+                      <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-700">
                         <Layers
                           size={16}
                           className={
                             availableStageColumns.length > 0 ? 'text-blue-400' : 'text-slate-600'
                           }
                         />
-                      </span>
-                      {availableStageColumns.length > 0 ? (
-                        <>
-                          <select
-                            value={stageColumn || ''}
-                            onChange={e => setStageColumn(e.target.value || null)}
-                            className="bg-slate-900 border border-slate-700 text-sm text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
-                            title="Select a column to divide the chart into stages"
-                          >
-                            <option value="">No stages</option>
-                            {availableStageColumns.map(col => (
-                              <option key={col} value={col}>
-                                {columnAliases[col] || col}
-                              </option>
-                            ))}
-                          </select>
-                          {stageColumn && (
-                            <select
-                              value={stageOrderMode}
-                              onChange={e => setStageOrderMode(e.target.value as StageOrderMode)}
-                              className="bg-slate-900 border border-slate-700 text-xs text-slate-400 rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
-                              title="Stage ordering method"
-                            >
-                              <option value="auto">Auto order</option>
-                              <option value="data-order">As in data</option>
-                            </select>
-                          )}
-                        </>
-                      ) : (
-                        <span
-                          className="text-xs text-slate-500 cursor-help"
-                          title="Staging requires a column with 2-10 unique categorical values"
+                        <select
+                          value={stageColumn || ''}
+                          onChange={e => setStageColumn(e.target.value || null)}
+                          className="bg-slate-900 border border-slate-700 text-sm text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                          title="Select a column to divide the chart into stages"
                         >
-                          No stage columns
-                        </span>
-                      )}
-                    </div>
+                          <option value="">No stages</option>
+                          {availableStageColumns.map(col => (
+                            <option key={col} value={col}>
+                              {columnAliases[col] || col}
+                            </option>
+                          ))}
+                        </select>
+                        {stageColumn && (
+                          <select
+                            value={stageOrderMode}
+                            onChange={e => setStageOrderMode(e.target.value as StageOrderMode)}
+                            className="bg-slate-900 border border-slate-700 text-xs text-slate-400 rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                            title="Stage ordering method"
+                          >
+                            <option value="auto">Auto order</option>
+                            <option value="data-order">As in data</option>
+                          </select>
+                        )}
+                      </div>
+                    )}
                     <SpecsPopover specs={specs} onSave={setSpecs} />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    {/* Stats display */}
+                    {stageColumn && stagedStats ? (
+                      <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                        <span className="text-blue-400 font-medium">
+                          {stagedStats.stageOrder.length} stages
+                        </span>
+                        <span className="text-slate-400">
+                          Overall Mean:{' '}
+                          <span className="text-white font-mono">
+                            {stagedStats.overallStats.mean.toFixed(2)}
+                          </span>
+                        </span>
+                      </div>
+                    ) : (
+                      stats && (
+                        <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                          <span className="text-slate-400 flex items-center gap-1">
+                            UCL:{' '}
+                            <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
+                            <HelpTooltip term={getTerm('ucl')} iconSize={12} />
+                          </span>
+                          <span className="text-slate-400 flex items-center gap-1">
+                            Mean:{' '}
+                            <span className="text-white font-mono">{stats.mean.toFixed(2)}</span>
+                            <HelpTooltip term={getTerm('mean')} iconSize={12} />
+                          </span>
+                          <span className="text-slate-400 flex items-center gap-1">
+                            LCL:{' '}
+                            <span className="text-white font-mono">{stats.lcl.toFixed(2)}</span>
+                            <HelpTooltip term={getTerm('lcl')} iconSize={12} />
+                          </span>
+                        </div>
+                      )
+                    )}
+                    <button
+                      onClick={() => handleCopyChart('ichart-card', 'ichart')}
+                      className={`p-1.5 rounded transition-all ${
+                        copyFeedback === 'ichart'
+                          ? 'bg-green-500/20 text-green-400'
+                          : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                      }`}
+                      title="Copy I-Chart to clipboard"
+                      aria-label="Copy I-Chart to clipboard"
+                    >
+                      {copyFeedback === 'ichart' ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
                     <button
                       onClick={() => setFocusedChart('ichart')}
                       className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
@@ -462,38 +578,6 @@ const Dashboard = ({
                       <Maximize2 size={16} />
                     </button>
                   </div>
-                  {/* Stats display - show staged info when staging is active */}
-                  {stageColumn && stagedStats ? (
-                    <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
-                      <span className="text-blue-400 font-medium">
-                        {stagedStats.stageOrder.length} stages
-                      </span>
-                      <span className="text-slate-400">
-                        Overall Mean:{' '}
-                        <span className="text-white font-mono">
-                          {stagedStats.overallStats.mean.toFixed(2)}
-                        </span>
-                      </span>
-                    </div>
-                  ) : (
-                    stats && (
-                      <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
-                        <span className="text-slate-400 flex items-center gap-1">
-                          UCL: <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
-                          <HelpTooltip term={getTerm('ucl')} iconSize={12} />
-                        </span>
-                        <span className="text-slate-400 flex items-center gap-1">
-                          Mean:{' '}
-                          <span className="text-white font-mono">{stats.mean.toFixed(2)}</span>
-                          <HelpTooltip term={getTerm('mean')} iconSize={12} />
-                        </span>
-                        <span className="text-slate-400 flex items-center gap-1">
-                          LCL: <span className="text-white font-mono">{stats.lcl.toFixed(2)}</span>
-                          <HelpTooltip term={getTerm('lcl')} iconSize={12} />
-                        </span>
-                      </div>
-                    )
-                  )}
                 </div>
                 <div className="flex-1 min-h-[300px] w-full">
                   <ErrorBoundary componentName="I-Chart">
@@ -507,12 +591,19 @@ const Dashboard = ({
 
               {/* Bottom Section: Boxplot, Pareto, Stats */}
               <div className="flex flex-col lg:flex-row gap-4 min-h-[350px]">
-                {/* Secondary Charts Container */}
                 <div className="flex flex-1 flex-col md:flex-row gap-4">
-                  <div className="flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col">
+                  {/* Boxplot */}
+                  <div
+                    id="boxplot-card"
+                    className="flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col"
+                  >
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
-                        Boxplot
+                        <EditableChartTitle
+                          defaultTitle={`Boxplot: ${boxplotFactor}`}
+                          value={chartTitles.boxplot || ''}
+                          onChange={title => handleChartTitleChange('boxplot', title)}
+                        />
                       </h3>
                       <div className="flex items-center gap-2">
                         <FactorSelector
@@ -521,6 +612,18 @@ const Dashboard = ({
                           onChange={setBoxplotFactor}
                           hasActiveFilter={!!filters?.[boxplotFactor]?.length}
                         />
+                        <button
+                          onClick={() => handleCopyChart('boxplot-card', 'boxplot')}
+                          className={`p-1.5 rounded transition-all ${
+                            copyFeedback === 'boxplot'
+                              ? 'bg-green-500/20 text-green-400'
+                              : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                          }`}
+                          title="Copy Boxplot to clipboard"
+                          aria-label="Copy Boxplot to clipboard"
+                        >
+                          {copyFeedback === 'boxplot' ? <Check size={14} /> : <Copy size={14} />}
+                        </button>
                         <button
                           onClick={() => setFocusedChart('boxplot')}
                           className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
@@ -544,10 +647,18 @@ const Dashboard = ({
                     </div>
                   </div>
 
-                  <div className="flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col">
+                  {/* Pareto */}
+                  <div
+                    id="pareto-card"
+                    className="flex-1 min-h-[280px] bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col"
+                  >
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
-                        Pareto
+                        <EditableChartTitle
+                          defaultTitle={`Pareto: ${paretoFactor}`}
+                          value={chartTitles.pareto || ''}
+                          onChange={title => handleChartTitleChange('pareto', title)}
+                        />
                       </h3>
                       <div className="flex items-center gap-2">
                         <FactorSelector
@@ -556,6 +667,18 @@ const Dashboard = ({
                           onChange={setParetoFactor}
                           hasActiveFilter={!!filters?.[paretoFactor]?.length}
                         />
+                        <button
+                          onClick={() => handleCopyChart('pareto-card', 'pareto')}
+                          className={`p-1.5 rounded transition-all ${
+                            copyFeedback === 'pareto'
+                              ? 'bg-green-500/20 text-green-400'
+                              : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                          }`}
+                          title="Copy Pareto Chart to clipboard"
+                          aria-label="Copy Pareto chart to clipboard"
+                        >
+                          {copyFeedback === 'pareto' ? <Check size={14} /> : <Copy size={14} />}
+                        </button>
                         <button
                           onClick={() => setFocusedChart('pareto')}
                           className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
@@ -623,7 +746,11 @@ const Dashboard = ({
                     <div className="flex items-center gap-4">
                       <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
                         <Activity className="text-blue-400" size={24} />
-                        I-Chart:
+                        <EditableChartTitle
+                          defaultTitle={`I-Chart: ${outcome}`}
+                          value={chartTitles.ichart || ''}
+                          onChange={title => handleChartTitleChange('ichart', title)}
+                        />
                       </h2>
                       <select
                         value={outcome}
@@ -647,7 +774,6 @@ const Dashboard = ({
                         <Minimize2 size={20} />
                       </button>
                     </div>
-                    {/* Stats display in focus mode */}
                     {stageColumn && stagedStats ? (
                       <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
                         <span className="text-blue-400 font-medium">
@@ -697,7 +823,11 @@ const Dashboard = ({
                 <div className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full overflow-hidden">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-slate-200 uppercase tracking-wider">
-                      Boxplot
+                      <EditableChartTitle
+                        defaultTitle={`Boxplot: ${boxplotFactor}`}
+                        value={chartTitles.boxplot || ''}
+                        onChange={title => handleChartTitleChange('boxplot', title)}
+                      />
                     </h3>
                     <div className="flex items-center gap-4">
                       <FactorSelector
@@ -728,7 +858,6 @@ const Dashboard = ({
                       )}
                     </ErrorBoundary>
                   </div>
-                  {/* Stats Table (fullscreen only) */}
                   {boxplotData.length > 0 && (
                     <div className="mt-2 max-h-[200px] overflow-y-auto">
                       <BoxplotStatsTable data={boxplotData} />
@@ -742,7 +871,11 @@ const Dashboard = ({
                 <div className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-slate-200 uppercase tracking-wider">
-                      Pareto
+                      <EditableChartTitle
+                        defaultTitle={`Pareto: ${paretoFactor}`}
+                        value={chartTitles.pareto || ''}
+                        onChange={title => handleChartTitleChange('pareto', title)}
+                      />
                     </h3>
                     <div className="flex items-center gap-4">
                       <FactorSelector
