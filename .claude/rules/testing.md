@@ -9,6 +9,12 @@
 - **React Testing Library** for component tests
 - Test files in `__tests__/` directories alongside source
 
+## Browser Testing
+
+- **Claude Code Chrome** — Interactive E2E verification (`claude --chrome`)
+- **Antigravity (Agent)** — AI-driven visual verification and QA automation
+- **Playwright** — Automated regression (CI/CD safety net)
+
 ## Test Ownership
 
 | Package                | Test Type            | What to Test                                                        |
@@ -23,12 +29,15 @@
 ## Commands
 
 ```bash
+# Chrome Browser Testing
+claude --chrome              # Enable Chrome browser access
+
 # Vitest
 pnpm test              # Run all tests
 pnpm test -- --watch   # Watch mode
 pnpm test -- --coverage # Coverage report
 
-# Playwright E2E
+# Playwright E2E (automated regression)
 pnpm --filter @variscout/pwa test:e2e
 pnpm --filter @variscout/azure-app test:e2e
 ```
@@ -62,3 +71,19 @@ Key `data-testid` attributes used in Playwright E2E tests:
 | Regression panel | `[data-testid="regression-panel"]`          |
 | Filter chip      | `[data-testid^="filter-chip-"]`             |
 | Sample button    | `[data-testid^="sample-"]`                  |
+
+## Feature Verification Protocols
+
+Executable via Antigravity agents or `claude --chrome`. Full protocol details in [testing.md](../../docs/05-technical/implementation/testing.md#feature-verification-protocols).
+
+1. Staged Analysis Verification
+2. PWA Embed Mode Verification
+3. Performance Module Verification
+4. Regression Workflow Verification
+5. Capability Chart Verification
+6. ANOVA Results Verification
+7. Multi-Level Drill-Down Verification
+8. Manual Data Entry Verification
+9. What-If Simulation Verification
+10. Mindmap Panel Verification
+11. Theme Switching (Azure) Verification

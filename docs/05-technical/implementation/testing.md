@@ -12,19 +12,20 @@ VariScout Lite testing follows these principles:
 1.  **Test critical paths first** - Statistical accuracy is business-critical
 2.  **Behavior over implementation** - Test what the code does, not how it does it
 3.  **Local-first** - All tests run locally without CI/CD dependencies
-4.  **Agent-Augmented** - Leverage AI agents ("Antigravity") for complex E2E, visual, and regression testing
+4.  **Agent-Augmented & Chrome-Verified** — Leverage AI agents ("Antigravity") and Claude Code Chrome browser integration for complex E2E, visual, and regression testing
 
 ---
 
 ## Framework
 
-| Tool                          | Purpose                                                  |
-| :---------------------------- | :------------------------------------------------------- |
-| **Vitest**                    | Test runner (Vite-native, fast)                          |
-| **Playwright**                | E2E browser testing (Chromium)                           |
-| **React Testing Library**     | Component testing (PWA, Azure)                           |
-| **@testing-library/jest-dom** | DOM assertions                                           |
-| **Antigravity (Agent)**       | **Visual Verification, E2E Flows, Manual QA Automation** |
+| Tool                          | Purpose                                                        |
+| :---------------------------- | :------------------------------------------------------------- |
+| **Vitest**                    | Test runner (Vite-native, fast)                                |
+| **Playwright**                | E2E browser testing (Chromium)                                 |
+| **React Testing Library**     | Component testing (PWA, Azure)                                 |
+| **@testing-library/jest-dom** | DOM assertions                                                 |
+| **Antigravity (Agent)**       | Visual verification, E2E flows, manual QA automation           |
+| **Claude Code Chrome**        | Interactive browser testing, visual checks, protocol execution |
 
 ### Running Tests
 
@@ -46,17 +47,42 @@ pnpm --filter @variscout/core test -- --watch
 # Coverage report
 pnpm --filter @variscout/core test -- --coverage
 
-# Playwright E2E tests
+# Chrome Browser Testing
+claude --chrome              # Enable Chrome browser access
+# Then use prompts like: "Run the staged analysis verification protocol"
+
+# Playwright E2E (automated regression)
 pnpm --filter @variscout/pwa test:e2e
 pnpm --filter @variscout/azure-app test:e2e
 ```
 
-### Agentic Testing
+### Agentic & Chrome Browser Testing
 
-To run agentic tests, issue a prompt to the agent:
+**Antigravity (Agent)** — Issue a prompt to the AI agent for autonomous verification:
 
 > "Run the smoke test protocol on the PWA"
 > "Verify the StatsPanel visualization matches the data"
+
+**Claude Code Chrome** — Interactive browser testing via Claude Code's native Chrome integration:
+
+**Prerequisites:**
+
+- Claude Code CLI v2.0.73+ with Chrome extension v1.0.36+
+- Enable with `claude --chrome` to launch a visible Chrome window
+
+**Usage examples:**
+
+> "Open localhost:5173, load the Coffee sample, and verify the I-Chart renders with control limits"
+> "Run the staged analysis verification protocol"
+> "Switch to the Azure app at localhost:5174 and verify the theme toggle works"
+
+**When to use each:**
+
+| Method      | Best For                                                              |
+| :---------- | :-------------------------------------------------------------------- |
+| Antigravity | AI-driven verification, complex multi-step flows, batch QA runs       |
+| Chrome      | Interactive visual checks, debugging, authenticated session testing   |
+| Playwright  | Automated CI regression, headless pipelines, deterministic assertions |
 
 ---
 
@@ -82,7 +108,7 @@ To run agentic tests, issue a prompt to the agent:
 | **P0**   | Statistics engine | Business-critical accuracy - wrong Cpk could lead to bad decisions |
 | **P1**   | Data persistence  | User data integrity - losing projects is unacceptable              |
 | **P2**   | Export/Import     | Data portability - .vrs files must work reliably                   |
-| **P3**   | UI & Visuals      | **Agent-verified** visuals and interactions                        |
+| **P3**   | UI & Visuals      | **Agent/Chrome-verified** visuals and interactions                 |
 
 ---
 
@@ -134,9 +160,9 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ## Current Coverage
 
-**Total: 55 vitest files, 989 test cases + 9 Playwright E2E spec files**
+**Total: 57 vitest files, 1,053 test cases + 13 Playwright E2E spec files**
 
-### @variscout/core (19 files, 610 test cases)
+### @variscout/core (20 files, 650 test cases)
 
 | Function/Module                   | Tested | Cases                                                                                                               |
 | :-------------------------------- | :----- | :------------------------------------------------------------------------------------------------------------------ |
@@ -161,7 +187,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `accessibility.ts`  | ✅     | Accessible color generation, contrast ratios |
 | `useMultiSelection` | ✅     | Multi-selection hook for Performance charts  |
 
-### @variscout/hooks (9 files, 91 test cases)
+### @variscout/hooks (10 files, 115 test cases)
 
 | Hook/Module                      | Tested | Focus                                                        |
 | :------------------------------- | :----- | :----------------------------------------------------------- |
@@ -218,7 +244,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ## Playwright E2E Coverage
 
-### PWA (5 spec files)
+### PWA (7 spec files)
 
 | Spec File                   | Tests                                                             |
 | :-------------------------- | :---------------------------------------------------------------- |
@@ -227,13 +253,15 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `samples.spec.ts`           | All sample datasets load, chart rendering, expected stats values  |
 | `analysis-views.spec.ts`    | Dashboard → Regression view switch via Settings, SVG rendering    |
 | `stats-anova.spec.ts`       | Cp/Cpk display, mean/sigma/samples, ANOVA F-stat/p-value/eta²     |
+| `user-flows.spec.ts`        | End-to-end user journeys, navigation flows, multi-step workflows  |
+| `edge-cases.spec.ts`        | Boundary conditions, empty states, error handling, edge scenarios |
 
 ```bash
 # Run PWA E2E tests
 pnpm --filter @variscout/pwa test:e2e
 ```
 
-### Azure App (4 spec files)
+### Azure App (6 spec files)
 
 | Spec File                 | Tests                                                              |
 | :------------------------ | :----------------------------------------------------------------- |
@@ -241,11 +269,36 @@ pnpm --filter @variscout/pwa test:e2e
 | `samples.spec.ts`         | Sample dataset loading, chart rendering, expected values           |
 | `analysis-views.spec.ts`  | Analysis → Regression tab switch, SVG rendering, switch back       |
 | `stats-anova.spec.ts`     | Mean/sigma/samples display, ANOVA F-stat/p-value/eta²              |
+| `user-flows.spec.ts`      | End-to-end user journeys, editor navigation, multi-step workflows  |
+| `edge-cases.spec.ts`      | Boundary conditions, empty states, error handling, edge scenarios  |
 
 ```bash
 # Run Azure E2E tests
 pnpm --filter @variscout/azure-app test:e2e
 ```
+
+---
+
+## Playwright vs Agentic/Chrome Testing
+
+VariScout uses three complementary E2E verification methods:
+
+| Aspect            | Antigravity (Agent)                | Claude Code Chrome                    | Playwright                          |
+| :---------------- | :--------------------------------- | :------------------------------------ | :---------------------------------- |
+| **Execution**     | AI-driven, autonomous              | Interactive, human-guided             | Automated, headless                 |
+| **Best for**      | Complex multi-step flows, batch QA | Visual debugging, authenticated flows | CI regression, deterministic checks |
+| **Speed**         | Medium (AI reasoning overhead)     | Slow (interactive)                    | Fast (scripted)                     |
+| **Flakiness**     | Low (adaptive)                     | None (human-observed)                 | Medium (timing-sensitive)           |
+| **CI/CD**         | No                                 | No                                    | Yes                                 |
+| **Visual checks** | Yes (screenshot analysis)          | Yes (live observation)                | Limited (snapshot comparison)       |
+
+**Why three methods coexist:**
+
+- **Playwright** catches regressions automatically in CI — deterministic, fast, scriptable
+- **Antigravity** handles complex verification that's hard to script — AI adapts to UI changes
+- **Chrome** enables interactive debugging and visual spot-checks during development
+
+**When they disagree:** Playwright is the source of truth for CI gates. If Antigravity or Chrome finds an issue Playwright misses, add a Playwright test to cover it.
 
 ---
 
@@ -300,9 +353,9 @@ vi.mock('../charts/IChart', () => ({
 }));
 ```
 
-### Agentic Verification Pattern
+### Verification Pattern
 
-When asking the agent to verify a feature:
+When asking the agent (or using Chrome) to verify a feature:
 
 1.  **State the Goal**: "Verify the new Pareto Chart rendering."
 2.  **Define Success**: "It should show bars sorted by frequency and a cumulative line."
@@ -384,7 +437,9 @@ apps/pwa/
 │   ├── drill-down.spec.ts
 │   ├── samples.spec.ts
 │   ├── analysis-views.spec.ts
-│   └── stats-anova.spec.ts
+│   ├── stats-anova.spec.ts
+│   ├── user-flows.spec.ts
+│   └── edge-cases.spec.ts
 ├── src/
 │   ├── components/__tests__/
 │   │   ├── StatsPanel.test.tsx
@@ -405,7 +460,9 @@ apps/azure/
 │   ├── editor-workflow.spec.ts
 │   ├── samples.spec.ts
 │   ├── analysis-views.spec.ts
-│   └── stats-anova.spec.ts
+│   ├── stats-anova.spec.ts
+│   ├── user-flows.spec.ts
+│   └── edge-cases.spec.ts
 ├── vitest.config.ts                     # Excludes e2e/** and api/**
 ├── src/
 │   ├── setupTests.ts
@@ -429,9 +486,9 @@ apps/azure/
 
 ---
 
-## Feature-Specific Agent Protocols
+## Feature Verification Protocols
 
-Specific prompts to use with the Antigravity Browser Agent for verifying complex features.
+Specific prompts for verifying complex features. These protocols can be executed via Antigravity agents or interactively with `claude --chrome`.
 
 ### 1. Staged Analysis Verification
 
@@ -612,9 +669,9 @@ Specific prompts to use with the Antigravity Browser Agent for verifying complex
 
 ---
 
-## Agent-Verified QA Checklist
+## QA Verification Checklist
 
-Instead of a manual checklist, assign the following tasks to the Agent for release verification:
+Assign the following tasks to an Antigravity agent or execute interactively via `claude --chrome` for release verification:
 
 ### PWA
 
