@@ -1,0 +1,263 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { ArrowRight, ShieldCheck, Server, Users, MessageSquare, ChevronDown } from "lucide-astro";
+import { ui } from "../../../i18n/ui";
+import { getLangFromUrl } from "../../../i18n/utils";
+
+export function getStaticPaths() {
+	const languages = Object.keys(ui);
+	return languages.map((lang) => ({ params: { lang } }));
+}
+
+const lang = getLangFromUrl(Astro.url);
+
+const faqs = [
+	{
+		question: "Where is my data stored?",
+		answer: "Your data stays in your Azure tenant. VaRiScout is deployed as a Managed Application in your subscription. No data leaves your environment — there are no external API calls, no telemetry, no third-party analytics.",
+	},
+	{
+		question: "How does SSO work?",
+		answer: "VaRiScout uses Azure App Service Authentication (EasyAuth) with Microsoft Entra ID. Users sign in with their existing organizational accounts. No separate identity provider or MSAL configuration needed — EasyAuth handles it at the platform level.",
+	},
+	{
+		question: "How are users provisioned?",
+		answer: "Any user in your Entra ID tenant with access to the App Service can sign in. Control access through Entra ID groups and App Service access restrictions. No per-user licenses or seat management required — the plan covers unlimited users.",
+	},
+	{
+		question: "What compliance certifications apply?",
+		answer: "VaRiScout inherits Azure's compliance posture. Your deployment runs on Azure infrastructure covered by SOC 2, ISO 27001, and GDPR. Since data never leaves your tenant, your existing Azure compliance investments apply directly.",
+	},
+	{
+		question: "What is the support model?",
+		answer: "Documentation-first support. The Azure App includes comprehensive in-app guidance, help tooltips, and sample datasets. For deployment assistance, your existing IT team or Lean Six Sigma consultants can deploy using the ARM template.",
+	},
+	{
+		question: "How are updates delivered?",
+		answer: "Updates are delivered through Azure Marketplace as new versions of the Managed Application. Your IT team controls when to apply updates — there are no forced upgrades or breaking changes to your running instance.",
+	},
+	{
+		question: "Can we integrate with Microsoft Teams?",
+		answer: "Yes. The Azure App includes an admin setup page that generates a Teams manifest package. Upload the .zip to your Teams admin center to make VaRiScout available as a Teams tab for your organization.",
+	},
+	{
+		question: "What is the exit strategy?",
+		answer: "All your data is stored in standard formats in your Azure tenant. Export analysis results, datasets, and configurations at any time. There is no vendor lock-in — your data is always yours.",
+	},
+];
+---
+
+<BaseLayout
+	title="VaRiScout | Enterprise-Ready Variation Analysis"
+	description="Deploy VaRiScout in your Azure tenant. EasyAuth SSO, data residency, ARM template deployment, Teams integration. Built for IT evaluators and enterprise teams."
+>
+	<!-- Hero -->
+	<section class="py-20 md:py-28 bg-white">
+		<div class="container-wide">
+			<div class="max-w-3xl">
+				<a href={`/${lang}/product/azure`} class="text-sm font-medium text-brand-primary mb-4 block hover:underline">
+					&larr; Back to Azure App
+				</a>
+				<h1 class="text-4xl md:text-5xl font-bold mb-6 text-neutral-900">
+					Enterprise-Ready Variation Analysis
+				</h1>
+				<p class="text-xl text-neutral-600 mb-8 leading-relaxed">
+					Deploy in your Azure tenant. Authenticate with Entra ID. Keep data where it belongs — with you. One ARM template, unlimited users, no external dependencies.
+				</p>
+				<div class="flex flex-wrap gap-4">
+					<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">
+						Deploy from Azure Marketplace
+					</a>
+					<a href={`/${lang}/pricing`} class="btn btn-secondary px-8 py-3">
+						View Pricing
+					</a>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Security & Compliance -->
+	<section class="py-20 bg-neutral-50 border-y border-neutral-200">
+		<div class="container-wide">
+			<div class="flex items-center gap-3 mb-12">
+				<div class="p-2.5 bg-brand-primary/10 rounded-xl">
+					<ShieldCheck size={28} class="text-brand-primary" />
+				</div>
+				<h2 class="text-3xl font-bold text-neutral-900">Security & Compliance</h2>
+			</div>
+			<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<h3 class="font-bold text-lg mb-2 text-neutral-900">Data Residency</h3>
+					<p class="text-neutral-600 text-sm leading-relaxed">
+						All data stays in your Azure tenant. No external API calls, no telemetry sent to third parties. You choose the Azure region — your data never leaves your environment.
+					</p>
+				</div>
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<h3 class="font-bold text-lg mb-2 text-neutral-900">SSO via Entra ID</h3>
+					<p class="text-neutral-600 text-sm leading-relaxed">
+						Azure App Service Authentication (EasyAuth) provides SSO at the platform level. Users sign in with existing organizational accounts. No MSAL libraries or custom auth code.
+					</p>
+				</div>
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<h3 class="font-bold text-lg mb-2 text-neutral-900">No External Dependencies</h3>
+					<p class="text-neutral-600 text-sm leading-relaxed">
+						VaRiScout runs entirely in the browser. No server-side processing, no database calls to external services. The App Service hosts static files — your browser does the work.
+					</p>
+				</div>
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<h3 class="font-bold text-lg mb-2 text-neutral-900">GDPR-Friendly</h3>
+					<p class="text-neutral-600 text-sm leading-relaxed">
+						Since data never leaves your tenant, GDPR data processing agreements are straightforward. No sub-processors handle your operational data.
+					</p>
+				</div>
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<h3 class="font-bold text-lg mb-2 text-neutral-900">Azure Compliance</h3>
+					<p class="text-neutral-600 text-sm leading-relaxed">
+						Inherits your Azure infrastructure's compliance posture — SOC 2, ISO 27001, and more. Your existing Azure compliance investments apply directly.
+					</p>
+				</div>
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<h3 class="font-bold text-lg mb-2 text-neutral-900">Marketplace Billing</h3>
+					<p class="text-neutral-600 text-sm leading-relaxed">
+						Billed through Azure Marketplace on your existing Enterprise Agreement. No separate procurement process, no new vendor onboarding.
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Deployment -->
+	<section class="py-20 bg-white">
+		<div class="container-wide">
+			<div class="flex items-center gap-3 mb-12">
+				<div class="p-2.5 bg-brand-primary/10 rounded-xl">
+					<Server size={28} class="text-brand-primary" />
+				</div>
+				<h2 class="text-3xl font-bold text-neutral-900">Deployment</h2>
+			</div>
+			<div class="grid md:grid-cols-2 gap-12 items-start">
+				<div>
+					<h3 class="font-bold text-xl mb-4 text-neutral-900">One ARM Template, Ready in Minutes</h3>
+					<p class="text-neutral-600 mb-6 leading-relaxed">
+						VaRiScout deploys as a Managed Application from Azure Marketplace. The ARM template provisions an App Service Plan, Web App, and EasyAuth configuration — nothing else.
+					</p>
+					<ul class="space-y-3">
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5">1.</span>
+							<span class="text-neutral-700">Find VaRiScout in Azure Marketplace and click Deploy</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5">2.</span>
+							<span class="text-neutral-700">Select your subscription, resource group, and region</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5">3.</span>
+							<span class="text-neutral-700">ARM template provisions App Service + EasyAuth SSO</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5">4.</span>
+							<span class="text-neutral-700">Users sign in with their Entra ID accounts — done</span>
+						</li>
+					</ul>
+				</div>
+				<div class="bg-neutral-50 border border-neutral-200 rounded-xl p-8">
+					<h3 class="font-bold text-lg mb-4 text-neutral-900">Architecture</h3>
+					<ul class="space-y-4 text-sm">
+						<li class="flex items-start gap-3">
+							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">Hosting</span>
+							<span class="text-neutral-600">Azure App Service (WEBSITE_RUN_FROM_PACKAGE)</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">Auth</span>
+							<span class="text-neutral-600">EasyAuth (App Service Authentication) with Entra ID</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">Storage</span>
+							<span class="text-neutral-600">OneDrive via Graph API (user's personal files)</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">Teams</span>
+							<span class="text-neutral-600">Admin-generated manifest for Teams tab integration</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">Compute</span>
+							<span class="text-neutral-600">Client-side only — browser does all processing</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Teams Integration -->
+	<section class="py-20 bg-neutral-50 border-y border-neutral-200">
+		<div class="container-wide">
+			<div class="flex items-center gap-3 mb-12">
+				<div class="p-2.5 bg-brand-primary/10 rounded-xl">
+					<MessageSquare size={28} class="text-brand-primary" />
+				</div>
+				<h2 class="text-3xl font-bold text-neutral-900">Microsoft Teams Integration</h2>
+			</div>
+			<div class="max-w-3xl">
+				<p class="text-neutral-600 mb-6 leading-relaxed">
+					Make VaRiScout available as a Teams tab for your organization. The Azure App includes an admin setup page that generates a Teams manifest package — download the .zip and upload it to your Teams admin center.
+				</p>
+				<ul class="space-y-3 text-neutral-700">
+					<li class="flex items-start gap-3">
+						<Users size={18} class="text-brand-primary mt-0.5 shrink-0" />
+						<span>Team members access VaRiScout directly from their Teams workspace</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<ShieldCheck size={18} class="text-brand-primary mt-0.5 shrink-0" />
+						<span>Same EasyAuth SSO — no additional login required</span>
+					</li>
+					<li class="flex items-start gap-3">
+						<Server size={18} class="text-brand-primary mt-0.5 shrink-0" />
+						<span>Manifest generated from your deployment URL — fully self-contained</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</section>
+
+	<!-- IT FAQ -->
+	<section class="py-20 bg-white">
+		<div class="container-wide">
+			<h2 class="text-3xl font-bold text-center mb-16 text-neutral-900">IT & Procurement FAQ</h2>
+			<div class="max-w-3xl mx-auto space-y-4">
+				{faqs.map((faq) => (
+					<details class="group border border-neutral-200 rounded-xl overflow-hidden">
+						<summary class="flex items-center justify-between cursor-pointer px-6 py-4 bg-neutral-50 hover:bg-neutral-100 transition-colors">
+							<span class="font-medium text-neutral-900">{faq.question}</span>
+							<ChevronDown size={18} class="text-neutral-400 group-open:rotate-180 transition-transform shrink-0 ml-4" />
+						</summary>
+						<div class="px-6 py-4 text-neutral-600 text-sm leading-relaxed border-t border-neutral-100">
+							{faq.answer}
+						</div>
+					</details>
+				))}
+			</div>
+		</div>
+	</section>
+
+	<!-- CTA -->
+	<section class="py-20 bg-brand-secondary text-white">
+		<div class="container-wide text-center">
+			<h2 class="text-3xl font-bold mb-4">Ready to Deploy?</h2>
+			<p class="text-neutral-400 mb-10 max-w-2xl mx-auto">
+				One Managed Application, unlimited users, &euro;150/month on your Azure EA. No sales calls, no demos required — deploy directly from Azure Marketplace.
+			</p>
+			<div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+				<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">
+					Deploy from Azure Marketplace
+				</a>
+				<a href={`/${lang}/product/compare`} class="btn btn-outline border-white/20 text-white hover:bg-white/10 px-8 py-3">
+					Compare Products
+				</a>
+			</div>
+			<p class="mt-8 text-neutral-500 text-sm">
+				Questions? Contact <a href="mailto:support@rdmaic.com" class="text-neutral-400 underline hover:text-white">support@rdmaic.com</a>
+			</p>
+		</div>
+	</section>
+</BaseLayout>

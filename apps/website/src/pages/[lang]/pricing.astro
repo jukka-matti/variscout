@@ -2,13 +2,16 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PricingCard from "../../components/PricingCard.astro";
 import PricingFAQ from "../../components/PricingFAQ.astro";
-import { ShieldCheck, Zap, FileText, Lock } from "lucide-astro";
+import { ShieldCheck, Zap, FileText, Lock, ArrowRight } from "lucide-astro";
 import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
 
 export function getStaticPaths() {
   const languages = Object.keys(ui);
   return languages.map((lang) => ({ params: { lang } }));
 }
+
+const lang = getLangFromUrl(Astro.url);
 
 const pricingTiers = [
 	{
@@ -59,6 +62,7 @@ const pricingTiers = [
 			"Save & persistence",
 			"OneDrive sync",
 			"SSO (Azure AD / Entra ID)",
+			"Microsoft Teams integration",
 			"No branding on charts",
 			"Unlimited team members",
 		],
@@ -77,7 +81,7 @@ const faqs = [
 	},
 	{
 		question: "What does the Azure App add?",
-		answer: "The Azure App unlocks Performance Mode for multi-channel analysis (100+ channels), file upload (CSV/Excel), save and persistence, OneDrive sync, SSO via Azure AD/Entra ID, no branding on charts, and unlimited team members. It's deployed as a Managed Application in your Azure tenant.",
+		answer: "The Azure App unlocks Performance Mode for multi-channel analysis (100+ channels), file upload (CSV/Excel), save and persistence, OneDrive sync, SSO via Azure AD/Entra ID, Microsoft Teams integration, no branding on charts, and unlimited team members. It's deployed as a Managed Application in your Azure tenant.",
 	},
 	{
 		question: "Where does my data go?",
@@ -116,7 +120,13 @@ const trustBadges = [
 				{pricingTiers.map((tier) => <PricingCard {...tier} />)}
 			</div>
 
-			<p class="text-center text-sm text-neutral-500 mt-8 italic">
+			<div class="text-center mt-8">
+				<a href={`/${lang}/product/enterprise`} class="inline-flex items-center gap-2 text-brand-primary font-medium hover:gap-3 transition-all text-sm">
+					See enterprise & IT details <ArrowRight size={16} />
+				</a>
+			</div>
+
+			<p class="text-center text-sm text-neutral-500 mt-4 italic">
 				All prices exclude VAT where applicable. Azure App billed through Azure Marketplace.
 			</p>
 		</div>

@@ -71,7 +71,7 @@ export function getStaticPaths() {
 				heroSub: "The VaRiScout Excel Add-in brings core SPC charts to your everyday spreadsheets. I-Chart, Boxplot, Pareto, and Capability — free forever from Microsoft AppSource.",
 				journeyFeatures: {
 					findIt: {
-						lenses: { change: true, flow: true, failure: true, value: false },
+						lenses: { change: true, flow: true, failure: true, value: true },
 						extras: ["Auto-refresh when data changes", "Range selection wizard"],
 					},
 					fixIt: [
@@ -115,6 +115,7 @@ export function getStaticPaths() {
 					],
 					continue: [
 						"SSO via Azure AD / Entra ID",
+						"Microsoft Teams integration",
 						"Unlimited team members",
 						"Data stays in your tenant",
 					],
@@ -132,7 +133,7 @@ export function getStaticPaths() {
 	);
 }
 
-const { lang } = Astro.params;
+const { lang, slug } = Astro.params;
 const { title, description, heroTitle, heroSub, journeyFeatures, cta } = Astro.props;
 ---
 
@@ -156,6 +157,11 @@ const { title, description, heroTitle, heroSub, journeyFeatures, cta } = Astro.p
 						<a href={cta.href} target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">{cta.text}</a>
 						<a href={`/${lang}/pricing`} class="btn btn-secondary px-8 py-3">View Pricing</a>
 					</div>
+					{slug === "azure" && (
+						<a href={`/${lang}/product/enterprise`} class="inline-flex items-center gap-2 text-brand-primary font-medium hover:gap-3 transition-all text-sm mt-4">
+							Enterprise & IT details <ArrowRight size={16} />
+						</a>
+					)}
 				</div>
 				<div class="bg-neutral-100 rounded-3xl aspect-[4/3] flex items-center justify-center border border-neutral-200">
 					<span class="text-neutral-400 font-medium">[Product UI Screenshot]</span>
