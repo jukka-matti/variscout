@@ -20,12 +20,23 @@
       "metadata": {
         "description": "Name for the App Service (3-24 lowercase letters, numbers, or hyphens)"
       }
+    },
+    "clientId": {
+      "type": "string",
+      "metadata": {
+        "description": "Client ID of the Azure AD App Registration for authentication"
+      }
+    },
+    "clientSecret": {
+      "type": "secureString",
+      "metadata": {
+        "description": "Client secret of the Azure AD App Registration"
+      }
     }
   },
   "variables": {
     "appServicePlanName": "[concat(parameters('appName'), '-plan')]",
     "webAppName": "[parameters('appName')]",
-    "appRegistrationName": "[concat(parameters('appName'), '-app')]",
     "packageUrl": "https://variscout.blob.core.windows.net/releases/variscout-azure-latest.zip"
   },
   "resources": [
@@ -62,6 +73,10 @@
             {
               "name": "VITE_LICENSE_TIER",
               "value": "enterprise"
+            },
+            {
+              "name": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET",
+              "value": "[parameters('clientSecret')]"
             }
           ],
           "minTlsVersion": "1.2",
@@ -70,33 +85,10 @@
       }
     },
     {
-      "type": "Microsoft.Resources/deploymentScripts",
-      "apiVersion": "2020-10-01",
-      "name": "createAppRegistration",
-      "location": "[parameters('location')]",
-      "kind": "AzurePowerShell",
-      "dependsOn": ["[resourceId('Microsoft.Web/sites', variables('webAppName'))]"],
-      "identity": {
-        "type": "UserAssigned",
-        "userAssignedIdentities": {}
-      },
-      "properties": {
-        "azPowerShellVersion": "9.0",
-        "timeout": "PT30M",
-        "arguments": "[format('-appName \"{0}\" -webAppUrl \"{1}\"', variables('appRegistrationName'), reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]",
-        "scriptContent": "param($appName, $webAppUrl)\n\n$redirectUri = \"https://$webAppUrl/.auth/login/aad/callback\"\n\n$app = New-AzADApplication `\n  -DisplayName $appName `\n  -SignInAudience 'AzureADMyOrg' `\n  -Web @{\n    RedirectUris = @($redirectUri)\n    ImplicitGrantSettings = @{\n      EnableIdTokenIssuance = $true\n    }\n  }\n\n# User.Read (e1fe6dd8-ba31-4d61-89e7-88639da4683d)\nAdd-AzADAppPermission -ObjectId $app.Id `\n  -ApiId '00000003-0000-0000-c000-000000000000' `\n  -PermissionId 'e1fe6dd8-ba31-4d61-89e7-88639da4683d' `\n  -Type 'Scope'\n\n# Files.ReadWrite (ef54d2bf-783f-4e0f-bdd1-0f8548e95de1)\nAdd-AzADAppPermission -ObjectId $app.Id `\n  -ApiId '00000003-0000-0000-c000-000000000000' `\n  -PermissionId 'ef54d2bf-783f-4e0f-bdd1-0f8548e95de1' `\n  -Type 'Scope'\n\n# Create client secret for EasyAuth\n$secret = New-AzADAppCredential -ObjectId $app.Id -EndDate (Get-Date).AddYears(2)\n\n$DeploymentScriptOutputs = @{\n  appId = $app.AppId\n  objectId = $app.Id\n  clientSecret = $secret.SecretText\n}",
-        "cleanupPreference": "OnSuccess",
-        "retentionInterval": "P1D"
-      }
-    },
-    {
       "type": "Microsoft.Web/sites/config",
       "apiVersion": "2022-09-01",
       "name": "[concat(variables('webAppName'), '/authsettingsV2')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', variables('webAppName'))]",
-        "createAppRegistration"
-      ],
+      "dependsOn": ["[resourceId('Microsoft.Web/sites', variables('webAppName'))]"],
       "properties": {
         "platform": {
           "enabled": true
@@ -111,7 +103,7 @@
             "enabled": true,
             "registration": {
               "openIdIssuer": "[concat('https://sts.windows.net/', subscription().tenantId, '/v2.0')]",
-              "clientId": "[reference('createAppRegistration').outputs.appId]",
+              "clientId": "[parameters('clientId')]",
               "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
             },
             "login": {
@@ -125,30 +117,12 @@
           }
         }
       }
-    },
-    {
-      "type": "Microsoft.Web/sites/config",
-      "apiVersion": "2022-09-01",
-      "name": "[concat(variables('webAppName'), '/appsettings')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', variables('webAppName'))]",
-        "createAppRegistration"
-      ],
-      "properties": {
-        "WEBSITE_RUN_FROM_PACKAGE": "[variables('packageUrl')]",
-        "VITE_LICENSE_TIER": "enterprise",
-        "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET": "[reference('createAppRegistration').outputs.clientSecret]"
-      }
     }
   ],
   "outputs": {
     "appUrl": {
       "type": "string",
       "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
-    },
-    "appRegistrationId": {
-      "type": "string",
-      "value": "[reference('createAppRegistration').outputs.appId]"
     }
   }
 }

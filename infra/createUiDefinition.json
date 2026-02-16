@@ -17,10 +17,53 @@
         }
       }
     ],
-    "steps": [],
+    "steps": [
+      {
+        "name": "authentication",
+        "label": "Authentication",
+        "elements": [
+          {
+            "name": "authInfo",
+            "type": "Microsoft.Common.InfoBox",
+            "visible": true,
+            "options": {
+              "text": "VariScout uses Azure AD for authentication. You must create an App Registration before deploying. Go to Azure Portal > Azure Active Directory > App registrations > New registration. Set the redirect URI to: https://<your-app-name>.azurewebsites.net/.auth/login/aad/callback (Web platform). Under API permissions, add Microsoft Graph delegated permissions: User.Read and Files.ReadWrite. Under Certificates & secrets, create a new client secret and copy the value below.",
+              "style": "Info"
+            }
+          },
+          {
+            "name": "clientId",
+            "type": "Microsoft.Common.TextBox",
+            "label": "App Registration Client ID",
+            "toolTip": "The Application (client) ID from your App Registration. Found on the Overview page of the App Registration.",
+            "constraints": {
+              "required": true,
+              "regex": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+              "validationMessage": "Must be a valid GUID (e.g., 12345678-1234-1234-1234-123456789abc)."
+            }
+          },
+          {
+            "name": "clientSecret",
+            "type": "Microsoft.Common.PasswordBox",
+            "label": {
+              "password": "App Registration Client Secret"
+            },
+            "toolTip": "A client secret from your App Registration. Found under Certificates & secrets.",
+            "constraints": {
+              "required": true
+            },
+            "options": {
+              "hideConfirmation": true
+            }
+          }
+        ]
+      }
+    ],
     "outputs": {
       "appName": "[basics('appName')]",
-      "location": "[location()]"
+      "location": "[location()]",
+      "clientId": "[steps('authentication').clientId]",
+      "clientSecret": "[steps('authentication').clientSecret]"
     }
   }
 }

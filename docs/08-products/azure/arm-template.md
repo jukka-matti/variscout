@@ -10,8 +10,9 @@ The ARM template deploys VariScout to a customer's Azure subscription as a Manag
 
 - Azure App Service (hosting via `WEBSITE_RUN_FROM_PACKAGE`)
 - App Service Authentication (EasyAuth) with Azure AD
-- App Registration (created via deployment script)
 - Configuration settings (all features enabled)
+
+The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users and access OneDrive via Graph API.
 
 **No backend resources** - the app runs entirely in the browser. The App Service serves the static build as a zip package.
 
@@ -27,33 +28,48 @@ variscout-managed-app.zip
 
 ---
 
-## Template Structure
+## Pre-Deployment: Create App Registration
 
-```json
-{
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "metadata": {
-    "description": "Deploys VariScout Azure App as a Managed Application with App Service and EasyAuth"
-  },
-  "parameters": {
-    /* ... */
-  },
-  "variables": {
-    /* ... */
-  },
-  "resources": [
-    /* ... */
-  ],
-  "outputs": {
-    /* ... */
-  }
-}
-```
+Before deploying VariScout, the customer must create an App Registration in Azure AD. This is required because Managed Applications cannot create App Registrations in the customer's tenant.
+
+### Step-by-Step
+
+1. Go to **Azure Portal > Azure Active Directory > App registrations > New registration**
+2. Set **Name** to something like `VariScout`
+3. Set **Supported account types** to "Accounts in this organizational directory only" (single tenant)
+4. Set **Redirect URI** (Web platform) to:
+   ```
+   https://<your-app-name>.azurewebsites.net/.auth/login/aad/callback
+   ```
+   Replace `<your-app-name>` with the App Service name you'll use during deployment.
+5. Click **Register**
+6. Copy the **Application (client) ID** from the Overview page — you'll need this during deployment
+
+### Add API Permissions
+
+1. Go to **API permissions > Add a permission > Microsoft Graph > Delegated permissions**
+2. Add:
+   - `User.Read` — sign-in and read user profile
+   - `Files.ReadWrite` — read and write user's OneDrive files (for project sync)
+3. Click **Grant admin consent** (optional, otherwise users consent on first login)
+
+### Create Client Secret
+
+1. Go to **Certificates & secrets > Client secrets > New client secret**
+2. Set a description (e.g., "VariScout EasyAuth") and expiration (recommended: 24 months)
+3. Click **Add**
+4. **Copy the secret value immediately** — it won't be shown again. You'll need this during deployment.
 
 ---
 
 ## Parameters
+
+### Required Parameters
+
+| Parameter      | Type         | Description                                       |
+| -------------- | ------------ | ------------------------------------------------- |
+| `clientId`     | string       | Application (client) ID from the App Registration |
+| `clientSecret` | secureString | Client secret value from the App Registration     |
 
 ### Optional Parameters
 
@@ -91,7 +107,7 @@ Linux B1 plan for hosting the App Service:
 
 ### 2. App Service
 
-Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`:
+Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`. The client secret is stored as an app setting for EasyAuth to use:
 
 ```json
 {
@@ -106,7 +122,11 @@ Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`:
       "linuxFxVersion": "NODE|20-lts",
       "appSettings": [
         { "name": "WEBSITE_RUN_FROM_PACKAGE", "value": "[variables('packageUrl')]" },
-        { "name": "VITE_LICENSE_TIER", "value": "enterprise" }
+        { "name": "VITE_LICENSE_TIER", "value": "enterprise" },
+        {
+          "name": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET",
+          "value": "[parameters('clientSecret')]"
+        }
       ],
       "minTlsVersion": "1.2",
       "ftpsState": "Disabled"
@@ -117,7 +137,7 @@ Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`:
 
 ### 3. EasyAuth Configuration (authsettingsV2)
 
-App Service Authentication configured for Azure AD:
+App Service Authentication configured for Azure AD, referencing the customer-provided App Registration:
 
 ```json
 {
@@ -136,7 +156,7 @@ App Service Authentication configured for Azure AD:
         "enabled": true,
         "registration": {
           "openIdIssuer": "[concat('https://sts.windows.net/', subscription().tenantId, '/v2.0')]",
-          "clientId": "[reference('createAppRegistration').outputs.appId]",
+          "clientId": "[parameters('clientId')]",
           "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
         },
         "login": {
@@ -157,32 +177,6 @@ Key configuration:
 - **Login parameters**: requests `User.Read` and `Files.ReadWrite` scopes for OneDrive access
 - **Redirect to login**: unauthenticated users are automatically redirected to Azure AD sign-in
 
-### 4. App Registration (via Deployment Script)
-
-Creates the App Registration with the correct redirect URI and permissions:
-
-```json
-{
-  "type": "Microsoft.Resources/deploymentScripts",
-  "apiVersion": "2020-10-01",
-  "name": "createAppRegistration",
-  "kind": "AzurePowerShell",
-  "properties": {
-    "azPowerShellVersion": "9.0",
-    "timeout": "PT30M",
-    "scriptContent": "..."
-  }
-}
-```
-
-The script:
-
-1. Creates an App Registration with `AzureADMyOrg` sign-in audience
-2. Sets redirect URI to `https://{app-url}/.auth/login/aad/callback`
-3. Adds `User.Read` and `Files.ReadWrite` delegated permissions
-4. Creates a client secret for EasyAuth
-5. Outputs `appId` and `clientSecret` for the auth configuration
-
 ---
 
 ## Outputs
@@ -193,10 +187,6 @@ The script:
     "appUrl": {
       "type": "string",
       "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
-    },
-    "appRegistrationId": {
-      "type": "string",
-      "value": "[reference('createAppRegistration').outputs.appId]"
     }
   }
 }
@@ -208,35 +198,19 @@ The script:
 
 The `createUiDefinition.json` defines the Azure portal wizard shown to customers during deployment:
 
-```json
-{
-  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
-  "handler": "Microsoft.Azure.CreateUIDef",
-  "version": "0.1.2-preview",
-  "parameters": {
-    "basics": [
-      {
-        "name": "appName",
-        "type": "Microsoft.Common.TextBox",
-        "label": "Application Name",
-        "defaultValue": "variscout",
-        "constraints": {
-          "required": true,
-          "regex": "^[a-z0-9-]{3,24}$",
-          "validationMessage": "Name must be 3-24 lowercase letters, numbers, or hyphens."
-        }
-      }
-    ],
-    "steps": [],
-    "outputs": {
-      "appName": "[basics('appName')]",
-      "location": "[location()]"
-    }
-  }
-}
-```
+### Basics Step
 
-The wizard is intentionally minimal — there are no tiers or configuration options to choose. The customer provides an app name and selects a region, then the template deploys everything.
+The customer provides an app name and selects a region.
+
+### Authentication Step
+
+The customer provides their App Registration credentials:
+
+- **InfoBox** with step-by-step instructions for creating an App Registration
+- **Client ID** text box with GUID validation
+- **Client Secret** password box (hidden input, no confirmation)
+
+The wizard outputs `clientId` and `clientSecret` to the ARM template parameters.
 
 ---
 
@@ -244,10 +218,12 @@ The wizard is intentionally minimal — there are no tiers or configuration opti
 
 ### Azure Marketplace (Primary)
 
-1. Customer finds VariScout on Azure Marketplace
-2. Clicks "Create"
-3. Enters app name and selects region
-4. ARM template deploys automatically to managed resource group
+1. Customer creates an App Registration (see [Pre-Deployment](#pre-deployment-create-app-registration))
+2. Customer finds VariScout on Azure Marketplace
+3. Clicks "Create"
+4. Enters app name, selects region
+5. Enters App Registration Client ID and Client Secret
+6. ARM template deploys automatically to managed resource group
 
 ### Azure CLI (Development/Testing)
 
@@ -255,10 +231,11 @@ The wizard is intentionally minimal — there are no tiers or configuration opti
 # Create resource group
 az group create --name rg-variscout --location westeurope
 
-# Deploy template
+# Deploy template (will prompt for clientId and clientSecret)
 az deployment group create \
   --resource-group rg-variscout \
-  --template-file infra/mainTemplate.json
+  --template-file infra/mainTemplate.json \
+  --parameters clientId=<your-client-id> clientSecret=<your-client-secret>
 
 # Get outputs
 az deployment group show \
@@ -271,11 +248,21 @@ az deployment group show \
 
 ## Post-Deployment
 
-No manual post-deployment configuration is required. EasyAuth is fully configured by the ARM template:
+After deployment, EasyAuth is fully configured:
 
 - Users visit the app URL and are redirected to Azure AD sign-in
 - Consent for `User.Read` and `Files.ReadWrite` is requested on first login
 - Tokens are stored in the EasyAuth token store and accessible via `/.auth/me`
+
+### Verify Redirect URI
+
+After deployment, confirm the App Registration redirect URI matches the deployed App Service URL:
+
+```
+https://<deployed-app-name>.azurewebsites.net/.auth/login/aad/callback
+```
+
+If the app name was auto-generated (e.g., `variscout-abc123`), update the App Registration redirect URI to match.
 
 ### Custom Domain (Optional)
 
@@ -287,6 +274,8 @@ az webapp config hostname add \
   --resource-group rg-variscout \
   --hostname variscout.contoso.com
 ```
+
+When adding a custom domain, also add the new redirect URI to the App Registration.
 
 A custom domain also enables seamless Teams SSO (without it, users get a one-time login redirect because Microsoft blocks SSO on `*.azurewebsites.net`).
 
@@ -300,21 +289,21 @@ The app includes an Admin page (Admin > Teams Setup) that generates a Teams app 
 
 ### Deployment Fails
 
-| Error                   | Cause                            | Fix                                     |
-| ----------------------- | -------------------------------- | --------------------------------------- |
-| `ResourceNotFound`      | Invalid location                 | Use supported region                    |
-| `AuthorizationFailed`   | Insufficient permissions         | Requires Contributor + AD permissions   |
-| `DeploymentScriptError` | App Registration creation failed | Check Graph API permissions             |
-| `QuotaExceeded`         | App Service Plan limit           | Delete unused plans or request increase |
+| Error                 | Cause                    | Fix                                     |
+| --------------------- | ------------------------ | --------------------------------------- |
+| `ResourceNotFound`    | Invalid location         | Use supported region                    |
+| `AuthorizationFailed` | Insufficient permissions | Requires Contributor role               |
+| `QuotaExceeded`       | App Service Plan limit   | Delete unused plans or request increase |
 
 ### Authentication Issues
 
 If users can't sign in:
 
 1. Verify the App Registration redirect URI matches the App Service URL + `/.auth/login/aad/callback`
-2. Check the EasyAuth configuration in Azure Portal > App Service > Authentication
-3. Verify user is in the correct tenant
-4. Check `/.auth/me` returns a valid response (should return JSON array)
+2. Check the client secret hasn't expired
+3. Check the EasyAuth configuration in Azure Portal > App Service > Authentication
+4. Verify user is in the correct tenant
+5. Check `/.auth/me` returns a valid response (should return JSON array)
 
 ---
 
@@ -329,13 +318,12 @@ The template requests only necessary permissions:
 | `User.Read`       | Delegated | Get user profile      |
 | `Files.ReadWrite` | Delegated | OneDrive project sync |
 
-### No Secrets in Template
+### Secret Handling
 
-The template:
-
-- Creates a client secret via deployment script (stored as app setting, not in template)
-- Does not create service principals with passwords
-- Uses the EasyAuth token store (server-side) for access tokens
+- The client secret is passed as a `secureString` parameter — ARM never logs it
+- The secret is stored as an App Service app setting (server-side, not in client code)
+- The secret is not included in template outputs
+- EasyAuth uses the token store (server-side) for access tokens
 
 ### Customer Data Isolation
 
@@ -348,11 +336,12 @@ The template:
 
 ## Template Versioning
 
-| Version | Date       | Changes                                                 |
-| ------- | ---------- | ------------------------------------------------------- |
-| 1.0.0   | 2026-02-01 | Initial release (Solution Template)                     |
-| 2.0.0   | 2026-02-13 | Managed Application format, single plan                 |
-| 3.0.0   | 2026-02-16 | App Service + EasyAuth (replaces Static Web App + MSAL) |
+| Version | Date       | Changes                                                        |
+| ------- | ---------- | -------------------------------------------------------------- |
+| 1.0.0   | 2026-02-01 | Initial release (Solution Template)                            |
+| 2.0.0   | 2026-02-13 | Managed Application format, single plan                        |
+| 3.0.0   | 2026-02-16 | App Service + EasyAuth (replaces Static Web App + MSAL)        |
+| 4.0.0   | 2026-02-16 | Customer-provided App Registration (removes deployment script) |
 
 ---
 
