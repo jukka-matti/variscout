@@ -56,6 +56,9 @@ importers:
       '@variscout/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@variscout/data':
+        specifier: workspace:*
+        version: link:../../packages/data
       '@variscout/hooks':
         specifier: workspace:*
         version: link:../../packages/hooks

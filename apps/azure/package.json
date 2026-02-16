@@ -14,6 +14,7 @@
     "@variscout/charts": "workspace:*",
     "jszip": "^3.10.1",
     "@variscout/core": "workspace:*",
+    "@variscout/data": "workspace:*",
     "@variscout/hooks": "workspace:*",
     "@variscout/ui": "workspace:*",
     "@visx/responsive": "^3.12.0",

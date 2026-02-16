@@ -1,14 +1,19 @@
 /**
  * useDataIngestion - Azure wrapper for shared data ingestion hook
  *
- * This wrapper integrates the shared hook with Azure's DataContext.
+ * This wrapper adds Azure-specific functionality:
+ * - loadSample() for loading built-in sample datasets
+ * - Integration with Azure's DataContext via useData()
  */
 
+import { useCallback } from 'react';
 import { useData } from '../context/DataContext';
 import {
   useDataIngestion as useDataIngestionBase,
   type UseDataIngestionOptions,
 } from '@variscout/hooks';
+import { validateData } from '@variscout/core';
+import type { SampleDataset } from '@variscout/data';
 
 export const useDataIngestion = (options?: UseDataIngestionOptions) => {
   const {
@@ -47,5 +52,51 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
   };
 
   // Use the shared hook for common functionality
-  return useDataIngestionBase(actions, options);
+  const {
+    handleFileUpload,
+    handleParetoFileUpload,
+    clearParetoFile,
+    clearData,
+    applyTimeExtraction,
+  } = useDataIngestionBase(actions, options);
+
+  // Load a built-in sample dataset
+  const loadSample = useCallback(
+    (sample: SampleDataset) => {
+      setRawData(sample.data as any[]);
+      setDataFilename(sample.name);
+      setOutcome(sample.config.outcome);
+      setFactors(sample.config.factors);
+      setSpecs(sample.config.specs);
+      setGrades(sample.config.grades || []);
+      // Run validation for sample data too
+      const report = validateData(sample.data as any[], sample.config.outcome);
+      setDataQualityReport(report);
+      // Reset Pareto to derived mode
+      setParetoMode('derived');
+      setSeparateParetoData(null);
+      setSeparateParetoFilename(null);
+    },
+    [
+      setRawData,
+      setDataFilename,
+      setOutcome,
+      setFactors,
+      setSpecs,
+      setGrades,
+      setDataQualityReport,
+      setParetoMode,
+      setSeparateParetoData,
+      setSeparateParetoFilename,
+    ]
+  );
+
+  return {
+    handleFileUpload,
+    handleParetoFileUpload,
+    clearParetoFile,
+    loadSample,
+    clearData,
+    applyTimeExtraction,
+  };
 };

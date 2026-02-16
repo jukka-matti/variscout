@@ -11,6 +11,8 @@ import ManualEntry from '../components/data/ManualEntry';
 import WhatIfPage from '../components/WhatIfPage';
 import { validateData, getNelsonRule2ViolationPoints, calculateStats } from '@variscout/core';
 import { downloadCSV } from '@variscout/core';
+import { SAMPLES } from '@variscout/data';
+import type { SampleDataset } from '@variscout/data';
 import {
   Upload,
   ArrowLeft,
@@ -24,6 +26,7 @@ import {
   Network,
   Beaker,
   Download,
+  Database,
 } from 'lucide-react';
 
 // ── Inline column selector for empty state (no outcome detected) ──
@@ -413,7 +416,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     ]
   );
 
-  const { handleFileUpload } = useDataIngestion();
+  const { handleFileUpload, loadSample } = useDataIngestion();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = async () => {
@@ -581,15 +584,15 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
         {rawData.length === 0 ? (
-          // Empty State - Upload Data
-          <div className="flex-1 flex flex-col items-center justify-center p-8">
-            <div className="max-w-md text-center">
+          // Empty State - Upload Data + Sample Datasets
+          <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-y-auto">
+            <div className="max-w-lg w-full text-center">
               <div className="w-16 h-16 mx-auto mb-6 bg-slate-800 rounded-full flex items-center justify-center">
                 <FileText size={32} className="text-slate-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">No Data Loaded</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Start Your Analysis</h3>
               <p className="text-slate-400 mb-6">
-                Upload a CSV or Excel file to start your analysis. Your data stays local and secure.
+                Upload your data, enter manually, or try a sample dataset.
               </p>
 
               <input
@@ -600,25 +603,51 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 className="hidden"
               />
 
-              <div className="flex flex-col gap-3">
+              <div className="flex gap-3 mb-8">
                 <button
                   onClick={triggerFileUpload}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   <Upload size={20} />
-                  Upload Data File
+                  Upload File
                 </button>
 
                 <button
                   onClick={() => setIsManualEntry(true)}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
                 >
                   <PenLine size={20} />
-                  Enter Data Manually
+                  Manual Entry
                 </button>
               </div>
 
-              <p className="text-xs text-slate-500 mt-4">Supports CSV, XLSX, and XLS files</p>
+              <p className="text-xs text-slate-500 mb-6">Supports CSV, XLSX, and XLS files</p>
+
+              {/* Sample Datasets */}
+              <div className="text-left">
+                <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+                  <Database size={14} />
+                  Sample Datasets
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {SAMPLES.filter(s => s.featured || s.category === 'cases')
+                    .slice(0, 8)
+                    .map(sample => (
+                      <button
+                        key={sample.urlKey}
+                        onClick={() => loadSample(sample)}
+                        className="text-left p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg transition-all group"
+                      >
+                        <span className="text-sm font-medium text-white group-hover:text-blue-300 block truncate">
+                          {sample.name}
+                        </span>
+                        <span className="text-xs text-slate-500 line-clamp-1">
+                          {sample.description}
+                        </span>
+                      </button>
+                    ))}
+                </div>
+              </div>
             </div>
           </div>
         ) : outcome ? (
