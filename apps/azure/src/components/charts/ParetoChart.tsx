@@ -15,7 +15,7 @@ import * as d3 from 'd3';
 import { useData } from '../../context/DataContext';
 import { ParetoChartBase, type ParetoDataPoint } from '@variscout/charts';
 import AxisEditor from '../AxisEditor';
-import { shouldShowBranding, getBrandingText } from '../../lib/edition';
+
 import { Eye, EyeOff, Hash, Sigma, Info } from 'lucide-react';
 
 interface ParetoChartProps {
@@ -160,7 +160,6 @@ const ParetoChart = ({
 
   if (!outcome || data.length === 0) return null;
 
-  const showBranding = shouldShowBranding();
   const yAxisLabel =
     aggregation === 'value' && outcome ? columnAliases[outcome] || outcome : 'Count';
   const xAxisLabel = columnAliases[factor] || factor;
@@ -222,8 +221,7 @@ const ParetoChart = ({
         onBarClick={handleBarClick}
         parentWidth={parentWidth}
         parentHeight={parentHeight}
-        showBranding={showBranding}
-        brandingText={showBranding ? getBrandingText() : undefined}
+        showBranding={false}
         onYAxisClick={() => setEditingAxis(aggregation === 'value' ? outcome || 'Count' : 'Count')}
         onXAxisClick={() => setEditingAxis(factor)}
         comparisonData={ghostBarData}

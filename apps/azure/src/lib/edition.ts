@@ -13,8 +13,6 @@ import {
   configureTier,
   getEdition as getCoreEdition,
   getTier as getCoreTier,
-  shouldShowBranding as coreShouldShowBranding,
-  getBrandingText as coreGetBrandingText,
   getSignatureText as coreGetSignatureText,
   isPaidTier as coreIsPaidTier,
   getMaxChannels as coreGetMaxChannels,
@@ -122,8 +120,7 @@ initializeTier();
 export type { Edition, LicenseTier, ChannelLimitResult };
 export const getEdition = getCoreEdition;
 export const getTier = getCoreTier;
-export const shouldShowBranding = coreShouldShowBranding;
-export const getBrandingText = coreGetBrandingText;
+
 export const getSignatureText = coreGetSignatureText;
 export const isPaidTier = coreIsPaidTier;
 export const getMaxChannels = coreGetMaxChannels;

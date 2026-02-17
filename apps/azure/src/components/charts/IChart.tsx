@@ -36,7 +36,6 @@ const IChart = ({
     timeColumn,
     stats,
     specs,
-    grades,
     axisSettings,
     setAxisSettings,
     columnAliases,
@@ -107,12 +106,11 @@ const IChart = ({
         stats={stats}
         stagedStats={stagedStats ?? undefined}
         specs={specs}
-        grades={grades}
         yAxisLabel={columnAliases[outcome] || outcome}
         axisSettings={axisSettings}
         parentWidth={parentWidth}
         parentHeight={parentHeight}
-        showBranding={true}
+        showBranding={false}
         onPointClick={handlePointClick}
         onYAxisClick={handleYAxisClick}
         highlightedPointIndex={highlightedPointIndex}

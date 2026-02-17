@@ -14,7 +14,6 @@ import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotBase, type BoxplotGroupData } from '@variscout/charts';
 import AxisEditor from '../AxisEditor';
-import { shouldShowBranding, getBrandingText } from '../../lib/edition';
 
 interface BoxplotProps {
   factor: string;
@@ -101,7 +100,6 @@ const Boxplot = ({
 
   const alias = columnAliases[factor] || factor;
   const factorLabels = valueLabels[factor] || {};
-  const showBranding = shouldShowBranding();
   const selectedGroups = (filters[factor] || []).map(String);
 
   return (
@@ -119,8 +117,7 @@ const Boxplot = ({
         variationPct={variationPct}
         parentWidth={parentWidth}
         parentHeight={parentHeight}
-        showBranding={showBranding}
-        brandingText={showBranding ? getBrandingText() : undefined}
+        showBranding={false}
         onYAxisClick={() => setIsEditingLabel(true)}
         onXAxisClick={() => setIsEditingLabel(true)}
         xTickFormat={(val: string) => factorLabels[val] || val}
