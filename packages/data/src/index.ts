@@ -13,7 +13,6 @@ export type {
   SampleCategory,
   SampleConfig,
   SpecLimits,
-  GradeDefinition,
   ComputedChartData,
   IChartPoint,
   BoxplotGroup,

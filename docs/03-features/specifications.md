@@ -74,34 +74,12 @@ Legend:
   ─── Center line (CL) — mean, solid
 ```
 
-**Multi-tier grades view (e.g., coffee defects):**
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  DEFECTS per 300g (by shipment)                             │
-│  ────────────────────────────────────────────────────────── │
-│  Off Grade   ══════════════════════════════════════════ 86  │
-│  Below Std   ══════════════════════════════════════════ 24  │
-│  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │
-│  Exchange    ══════════════════════════════════════════ 9   │
-│  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │
-│  Premium     ══════════════════════════════════════════ 5   │
-│  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  │
-│  Specialty   ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ target│
-│              🟢  🟢  🟢  🟡  🟢  🟢  🟡  🟢  🟢               │
-│               2   3   2   7   4   3   8   2   3             │
-└─────────────────────────────────────────────────────────────┘
-
-🟢 Specialty (≤5)  🟡 Premium (6-8)  🟠 Exchange (9-23)  🔴 Below
-```
-
 **Specification Limits (optional):**
 
 - User inputs USL, LSL, and/or Target
-- OR configures multi-tier grades
-- Shown as distinct colored bands/lines
-- Points colored by grade achieved
-- Enables grade summary calculations
+- Shown as distinct colored lines
+- Points colored by pass/fail status
+- Enables conformance summary calculations
 
 **Staged I-Chart (optional):**
 
@@ -156,7 +134,6 @@ Legend:
 | Pass count | Batches within spec |
 | Fail count | Batches outside spec |
 | Pass rate % | Overall success rate |
-| Grade breakdown | Count per grade tier |
 | Failures by factor | Which supplier/station has problems |
 
 Best for: Incoming inspection, export certification, lot acceptance
@@ -177,49 +154,6 @@ Best for: Incoming inspection, export certification, lot acceptance
 │  • Supplier A: 1 (33% of failures)  │
 └─────────────────────────────────────┘
 ```
-
-**Multi-tier grades (e.g., coffee defects):**
-
-```
-┌─────────────────────────────────────┐
-│  GRADE SUMMARY (50 shipments)       │
-│                                     │
-│  🟢 Specialty (≤5):   42 (84%)      │
-│  🟡 Premium (6-8):     5 (10%)      │
-│  🟠 Exchange (9-23):   2 (4%)       │
-│  🔴 Below/Off (>23):   1 (2%)       │
-│                                     │
-│  Target: 90% Specialty              │
-│  Actual: 84% ⚠️                     │
-│                                     │
-│  Below target by Supplier:          │
-│  • Supplier B: 3 of 4 downgrades    │
-└─────────────────────────────────────┘
-```
-
-**Grade configuration:**
-
-```
-┌─────────────────────────────────────┐
-│  GRADING TIERS                      │
-│                                     │
-│  Grade        Max Value    Color    │
-│  ─────────────────────────────────  │
-│  Specialty    5            🟢       │
-│  Premium      8            🟡       │
-│  Exchange     23           🟠       │
-│  Below Std    86           🔴       │
-│  [+ Add tier]                       │
-│                                     │
-│  Target grade: [Specialty ▼]        │
-└─────────────────────────────────────┘
-```
-
-Works for any multi-tier classification:
-
-- Coffee: Specialty → Off Grade
-- Textiles: Grade A → Reject
-- Food safety: Premium → Unacceptable
 
 **Capability Mode** — "Can our process reliably meet specs?"
 | Metric | Description |
@@ -295,31 +229,12 @@ Option A: Simple limits (continuous data)
 └─────────────────────────────────────┘
 ```
 
-Option B: Multi-tier grades (count/quality data)
-
-```
-┌─────────────────────────────────────┐
-│  Grade Tiers (lower is better)      │
-│                                     │
-│  Grade        Max Value    Color    │
-│  ─────────────────────────────────  │
-│  Specialty    5            🟢       │
-│  Premium      8            🟡       │
-│  Exchange     23           🟠       │
-│  Below Std    86           🔴       │
-│  [+ Add tier]                       │
-│                                     │
-│  Target grade: [Specialty ▼]        │
-│  ☑ Color points by grade            │
-└─────────────────────────────────────┘
-```
-
 When configured:
 
-- I-Chart shows spec lines OR grade bands
-- Points colored by pass/fail OR grade achieved
-- Summary shows pass rate OR grade breakdown
-- Boxplot/Pareto filter shows impact on grades
+- I-Chart shows spec lines
+- Points colored by pass/fail
+- Summary shows pass rate and conformance
+- Boxplot/Pareto filter shows impact on out-of-spec rates
 
 ### 5. Data Table (View/Edit Data)
 
@@ -577,7 +492,7 @@ The PWA supports URL parameters for embedding in website case studies or sharing
 | ------------------- | ------------------------- | ---------------------------- |
 | `mango-export`      | Agri-Food: Mango Export   | Factor identification, ANOVA |
 | `textiles-strength` | Textiles: Fabric Strength | Process capability, Cpk      |
-| `coffee-defects`    | Coffee: Defect Analysis   | Pareto, grade breakdown      |
+| `coffee-defects`    | Coffee: Defect Analysis   | Pareto, defect analysis      |
 
 **Embed Example:**
 
@@ -807,7 +722,7 @@ pnpm build              # Build all packages and apps
 | --------------------- | ------ | --------------------------------------------- |
 | Chart components      | Done   | Already built                                 |
 | Linked filtering      | Done   | Already built                                 |
-| Statistics engine     | Done   | Cp/Cpk, grade counts, conformance             |
+| Statistics engine     | Done   | Cp/Cpk, conformance                           |
 | Data import           | Done   | CSV + Excel parsing                           |
 | Save/Load (.vrs)      | Done   | JSON serialization + file handling            |
 | Export (PNG/CSV)      | Done   | DOM-based capture, CSV generation             |

@@ -102,6 +102,10 @@ export const TOOLS: ToolData[] = [
     features: [
       { name: 'Auto-calculated limits', description: 'UCL and LCL computed from your data' },
       { name: 'Click to filter', description: 'Click any point to filter other charts' },
+      {
+        name: 'Point selection',
+        description: 'Drag-select points to create ad-hoc grouping factors',
+      },
       { name: 'Two Voices', description: 'Show spec limits alongside control limits' },
       {
         name: 'Staged Analysis',

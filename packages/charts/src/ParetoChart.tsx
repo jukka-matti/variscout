@@ -241,18 +241,18 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
           >
             {xAxisLabel}
           </text>
-
-          {/* Source Bar (branding) */}
-          {showBranding && (
-            <ChartSourceBar
-              width={width}
-              top={height + margin.bottom - sourceBarHeight}
-              n={totalCount}
-              brandingText={brandingText}
-              fontSize={fonts.brandingText}
-            />
-          )}
         </Group>
+
+        {/* Source Bar (branding) */}
+        {showBranding && (
+          <ChartSourceBar
+            width={parentWidth}
+            top={parentHeight - sourceBarHeight}
+            n={totalCount}
+            brandingText={brandingText}
+            fontSize={fonts.brandingText}
+          />
+        )}
       </svg>
 
       {/* Tooltip */}

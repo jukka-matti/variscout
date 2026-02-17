@@ -51,6 +51,31 @@ Click any point to:
 
 ---
 
+## Point Selection & Create Factor
+
+When instability patterns don't align with any existing factor, you can create an ad-hoc grouping variable directly from the time series.
+
+### Selecting Points
+
+- **Drag-select (brush)**: Click and drag on the chart to draw a blue selection rectangle. All points inside the rectangle are selected.
+- **Ctrl+click**: Toggle individual points in/out of the selection.
+- **Shift+click**: Add individual points to the current selection.
+- **Esc**: Clear the selection.
+
+### What Happens Next
+
+1. A **Selection Panel** appears showing the count and details of selected points.
+2. Click **"Create Factor"** to open the naming modal.
+3. Enter a name for the group (e.g., "Monday anomalies", "Startup batch").
+4. VariScout creates a new factor column with two levels: your named group and "Other".
+5. The new factor is auto-applied as a filter, showing only the selected points.
+
+### When to Use
+
+- Special causes on the I-Chart that no existing factor explains
+- A cluster of points that "look different" but don't map to Shift, Operator, or Machine
+- Bridging from the **CHANGE** lens (time-series instability) to the **FLOW** lens (factor-based stratification): select the anomalous points, create a factor, then drill down with Boxplot to quantify the difference
+
 ---
 
 ## Technical Reference

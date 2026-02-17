@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import type { StatsResult, GradeTier } from '../types';
+import type { StatsResult } from '../types';
 
 /**
  * d2 unbiasing constant for moving range span of 2 (individuals / I-MR chart).
@@ -59,27 +59,14 @@ export function calculateMovingRangeSigma(data: number[]): {
  * @param data - Array of numeric measurement values
  * @param usl - Upper Specification Limit (optional)
  * @param lsl - Lower Specification Limit (optional)
- * @param grades - Multi-tier grade definitions for classification (optional)
- * @returns StatsResult with mean, stdDev, control limits, capability indices, and grade counts
+ * @returns StatsResult with mean, stdDev, control limits, and capability indices
  *
  * @example
  * // Basic usage with specs
  * const stats = calculateStats([10, 12, 11, 13], 15, 8);
  * console.log(stats.cpk); // Process capability
- *
- * @example
- * // With grade tiers
- * const stats = calculateStats(values, undefined, undefined, [
- *   { max: 5, label: 'Grade A', color: '#22c55e' },
- *   { max: 10, label: 'Grade B', color: '#eab308' }
- * ]);
  */
-export function calculateStats(
-  data: number[],
-  usl?: number,
-  lsl?: number,
-  grades?: GradeTier[]
-): StatsResult {
+export function calculateStats(data: number[], usl?: number, lsl?: number): StatsResult {
   if (data.length === 0) {
     return { mean: 0, stdDev: 0, sigmaWithin: 0, mrBar: 0, ucl: 0, lcl: 0, outOfSpecPercentage: 0 };
   }
@@ -115,37 +102,6 @@ export function calculateStats(
 
   const outOfSpecPercentage = (outOfSpec.length / data.length) * 100;
 
-  // Calculate Grade Counts if grades exist
-  let gradeCounts:
-    | { label: string; count: number; percentage: number; color: string }[]
-    | undefined;
-  if (grades && grades.length > 0) {
-    // Initialize counts
-    const counts = new Map<string, number>();
-    grades.forEach(g => counts.set(g.label, 0));
-
-    // Count each data point
-    data.forEach(val => {
-      const grade = grades.find(g => val <= g.max);
-      if (grade) {
-        counts.set(grade.label, (counts.get(grade.label) || 0) + 1);
-      } else {
-        // Should technically be caught by last grade if it's high enough,
-        // but if not, it falls into the last bucket or a "Below" bucket implied
-        // For this logic, we'll attribute to the last grade if > all max
-        const lastGrade = grades[grades.length - 1];
-        counts.set(lastGrade.label, (counts.get(lastGrade.label) || 0) + 1);
-      }
-    });
-
-    gradeCounts = grades.map(g => ({
-      label: g.label,
-      color: g.color,
-      count: counts.get(g.label) || 0,
-      percentage: ((counts.get(g.label) || 0) / data.length) * 100,
-    }));
-  }
-
   return {
     mean,
     stdDev,
@@ -156,6 +112,5 @@ export function calculateStats(
     cp,
     cpk,
     outOfSpecPercentage,
-    gradeCounts,
   };
 }

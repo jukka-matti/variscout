@@ -3,12 +3,14 @@ import { Group } from '@visx/group';
 import type { ChartSourceBarProps } from './types';
 import { chromeColors } from './colors';
 
-const BAR_HEIGHT = 18;
-const ACCENT_WIDTH = 3;
+const BAR_HEIGHT = 20;
+const BADGE_WIDTH = 140; // Estimated width for "VariScout Lite | n=..."
 
 /**
  * Chart source bar component - shows branding and sample size
  * Props-based version for sharing across platforms
+ *
+ * Option 2: Floating Badge Design
  */
 const ChartSourceBar: React.FC<ChartSourceBarProps> = ({
   width,
@@ -25,51 +27,61 @@ const ChartSourceBar: React.FC<ChartSourceBarProps> = ({
     return null;
   }
 
+  // Position: Bottom-Right of the chart/footer area
+  // We align it to the right side
+  const badgeX = width - BADGE_WIDTH;
+  const badgeY = 0;
+
   return (
     <Group left={left} top={top}>
-      {/* Background */}
-      <rect
-        x={0}
-        y={0}
-        width={width}
-        height={BAR_HEIGHT}
-        fill={chromeColors.barBackground}
-        opacity={0.6}
-        rx={2}
-      />
+      {/* Badge container group */}
+      <Group left={badgeX} top={badgeY}>
+        {/* Pill-shaped Background */}
+        <rect
+          x={0}
+          y={0}
+          width={BADGE_WIDTH}
+          height={BAR_HEIGHT}
+          fill={chromeColors.barBackground}
+          opacity={0.8}
+          rx={BAR_HEIGHT / 2}
+          stroke={chromeColors.tooltipBorder}
+          strokeWidth={1}
+        />
 
-      {/* Accent bar on left */}
-      <rect x={0} y={0} width={ACCENT_WIDTH} height={BAR_HEIGHT} fill={accentColor} rx={1} />
+        {/* Accent dot on left */}
+        <circle cx={10} cy={BAR_HEIGHT / 2} r={3} fill={accentColor} />
 
-      {/* Branding text */}
-      {brandingText && (
-        <text
-          x={ACCENT_WIDTH + 8}
-          y={BAR_HEIGHT / 2}
-          fill={chromeColors.labelSecondary}
-          fontSize={fontSize}
-          fontWeight={500}
-          dominantBaseline="central"
-          fontFamily="system-ui, -apple-system, sans-serif"
-        >
-          {brandingText}
-        </text>
-      )}
+        {/* Branding text */}
+        {brandingText && (
+          <text
+            x={18}
+            y={BAR_HEIGHT / 2}
+            fill={chromeColors.labelPrimary}
+            fontSize={fontSize}
+            fontWeight={600}
+            dominantBaseline="central"
+            fontFamily="system-ui, -apple-system, sans-serif"
+          >
+            {brandingText}
+          </text>
+        )}
 
-      {/* Sample size on right */}
-      {n !== undefined && (
-        <text
-          x={width - 8}
-          y={BAR_HEIGHT / 2}
-          fill={chromeColors.labelMuted}
-          fontSize={fontSize}
-          textAnchor="end"
-          dominantBaseline="central"
-          fontFamily="system-ui, -apple-system, sans-serif"
-        >
-          n={n}
-        </text>
-      )}
+        {/* Sample size on right */}
+        {n !== undefined && (
+          <text
+            x={BADGE_WIDTH - 12}
+            y={BAR_HEIGHT / 2}
+            fill={chromeColors.labelMuted}
+            fontSize={fontSize}
+            textAnchor="end"
+            dominantBaseline="central"
+            fontFamily="system-ui, -apple-system, sans-serif"
+          >
+            n={n}
+          </text>
+        )}
+      </Group>
     </Group>
   );
 };
@@ -83,5 +95,5 @@ export function getSourceBarHeight(showBranding: boolean = true): number {
   if (!showBranding) {
     return 0;
   }
-  return BAR_HEIGHT + 4; // Bar height + small gap
+  return BAR_HEIGHT + 8; // Bar height + padding
 }

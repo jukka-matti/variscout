@@ -54,7 +54,6 @@ export interface DataState {
   specs: { usl?: number; lsl?: number; target?: number };
   /** Per-measure spec overrides for Performance Mode (keyed by measure column name) */
   measureSpecs: Record<string, { usl?: number; lsl?: number; target?: number }>;
-  grades: { max: number; label: string; color: string }[];
   stats: StatsResult | null;
 
   // Multi-point selection (Minitab-style brushing)
@@ -132,7 +131,6 @@ export interface DataActions {
     measureId: string,
     specs: { usl?: number; lsl?: number; target?: number }
   ) => void;
-  setGrades: (grades: { max: number; label: string; color: string }[]) => void;
   setFilters: (filters: Record<string, (string | number)[]>) => void;
   setAxisSettings: (settings: { min?: number; max?: number; scaleMode?: ScaleMode }) => void;
   setChartTitles: (titles: ChartTitles) => void;
@@ -201,7 +199,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   const [measureSpecs, setMeasureSpecs] = useState<
     Record<string, { usl?: number; lsl?: number; target?: number }>
   >({});
-  const [grades, setGrades] = useState<{ max: number; label: string; color: string }[]>([]);
   const [filters, setFilters] = useState<Record<string, (string | number)[]>>({});
   const [axisSettings, setAxisSettings] = useState<{
     min?: number;
@@ -316,8 +313,8 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
         return typeof v === 'number' ? v : Number(v);
       })
       .filter(v => !isNaN(v));
-    return calculateStats(values, specs.usl, specs.lsl, grades);
-  }, [filteredData, outcome, specs, grades]);
+    return calculateStats(values, specs.usl, specs.lsl);
+  }, [filteredData, outcome, specs]);
 
   // Full dataset Y domain (for Y-axis lock feature)
   const fullDataYDomain = useMemo(() => {
@@ -364,8 +361,8 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   const stagedStats = useMemo(() => {
     if (!stageColumn || !outcome || filteredData.length === 0) return null;
 
-    return calculateStatsByStage(filteredData, outcome, stageColumn, specs, undefined, grades);
-  }, [filteredData, outcome, stageColumn, specs, grades]);
+    return calculateStatsByStage(filteredData, outcome, stageColumn, specs);
+  }, [filteredData, outcome, stageColumn, specs]);
 
   // Performance result - calculated for all measures in performance mode
   const performanceResult = useMemo(() => {
@@ -412,7 +409,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       factors,
       specs,
       measureSpecs: Object.keys(measureSpecs).length > 0 ? measureSpecs : undefined,
-      grades,
       filters,
       axisSettings,
       columnAliases,
@@ -425,7 +421,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       factors,
       specs,
       measureSpecs,
-      grades,
       filters,
       axisSettings,
       columnAliases,
@@ -459,7 +454,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
         setFactors(state.factors);
         setSpecs(state.specs);
         setMeasureSpecs(state.measureSpecs || {});
-        setGrades(state.grades);
         setFilters(state.filters);
         setAxisSettings(state.axisSettings);
         setColumnAliases(state.columnAliases || {});
@@ -512,7 +506,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       if (state.outcome) setOutcome(state.outcome);
       if (state.factors) setFactors(state.factors);
       if (state.specs) setSpecs(state.specs);
-      if (state.grades) setGrades(state.grades);
       if (state.filters) setFilters(state.filters);
       if (state.axisSettings) setAxisSettings(state.axisSettings);
       if (state.columnAliases) setColumnAliases(state.columnAliases);
@@ -532,7 +525,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     setTimeColumn(null);
     setSpecs({});
     setMeasureSpecs({});
-    setGrades([]);
     setFilters({});
     setAxisSettings({});
     setChartTitles({});
@@ -573,7 +565,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       timeColumn,
       specs,
       measureSpecs,
-      grades,
       stats,
       stageColumn,
       stageOrderMode,
@@ -614,7 +605,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       timeColumn,
       specs,
       measureSpecs,
-      grades,
       stats,
       stageColumn,
       stageOrderMode,
@@ -658,7 +648,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setSpecs,
       setMeasureSpecs,
       setMeasureSpec,
-      setGrades,
+
       setFilters,
       setAxisSettings,
       setChartTitles,
@@ -700,7 +690,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setSpecs,
       setMeasureSpecs,
       setMeasureSpec,
-      setGrades,
+
       setFilters,
       setAxisSettings,
       setChartTitles,

@@ -434,7 +434,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               return (
                 <rect
                   key={`bar-${d.key}`}
-                  x={x + (boxWidth - contribBarWidth) / 2}
+                  x={x}
                   y={barY}
                   width={contribBarWidth}
                   height={4}
@@ -470,18 +470,18 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               ↓ drill here
             </text>
           )}
-
-          {/* Source Bar (branding) */}
-          {showBranding && (
-            <ChartSourceBar
-              width={width}
-              top={height + margin.bottom - sourceBarHeight}
-              n={totalSampleSize}
-              brandingText={brandingText}
-              fontSize={fonts.brandingText}
-            />
-          )}
         </Group>
+
+        {/* Source Bar (branding) */}
+        {showBranding && (
+          <ChartSourceBar
+            width={parentWidth}
+            top={parentHeight - sourceBarHeight}
+            n={totalSampleSize}
+            brandingText={brandingText}
+            fontSize={fonts.brandingText}
+          />
+        )}
       </svg>
 
       {/* Tooltip */}

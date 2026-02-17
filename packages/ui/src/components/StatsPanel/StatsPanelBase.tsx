@@ -48,18 +48,6 @@ export const statsPanelDefaultColorScheme: StatsPanelColorScheme = {
   metricCardBg: 'bg-surface-secondary/50 border border-edge/50 rounded-lg p-3 text-center',
   metricLabel: 'flex items-center justify-center gap-1 text-xs text-content-secondary mb-1',
   metricValue: 'text-xl font-bold font-mono text-white',
-  gradeRow:
-    'grid grid-cols-[1fr_40px_45px] gap-4 items-center p-2 rounded hover:bg-surface-tertiary/30 transition-colors',
-  gradeLabel: 'text-content text-sm font-medium truncate',
-  gradeCount: 'text-right text-content-muted text-xs font-mono',
-  gradePercent: 'text-right text-white font-bold font-mono',
-  gradeHeader:
-    'grid grid-cols-[1fr_auto_auto] gap-4 px-2 text-[10px] text-content-muted uppercase tracking-wider font-semibold',
-  gradeCompactCard:
-    'flex items-center justify-between p-3 rounded-xl bg-surface-secondary/50 border border-edge/50',
-  gradeCompactLabel: 'text-content text-sm font-medium',
-  gradeCompactPercent: 'text-white font-bold',
-  gradeCompactCount: 'text-content-muted text-xs ml-2',
   emptyState: 'flex items-center justify-center h-full text-content-muted italic text-sm',
   specEditButton:
     'mt-auto p-3 text-center bg-surface/80 rounded-lg text-xs text-content-muted border border-dashed border-edge cursor-pointer hover:border-edge-secondary hover:text-content hover:bg-surface-tertiary/50 transition-all flex items-center justify-center gap-2',
@@ -75,18 +63,6 @@ export const statsPanelAzureColorScheme: StatsPanelColorScheme = {
   metricCardBg: 'bg-slate-900/50 border border-slate-700/50 rounded-lg p-3 text-center',
   metricLabel: 'flex items-center justify-center gap-1 text-xs text-slate-400 mb-1',
   metricValue: 'text-xl font-bold font-mono text-white',
-  gradeRow:
-    'grid grid-cols-[1fr_40px_45px] gap-4 items-center p-2 rounded hover:bg-slate-700/30 transition-colors',
-  gradeLabel: 'text-slate-300 text-sm font-medium truncate',
-  gradeCount: 'text-right text-slate-500 text-xs font-mono',
-  gradePercent: 'text-right text-white font-bold font-mono',
-  gradeHeader:
-    'grid grid-cols-[1fr_auto_auto] gap-4 px-2 text-[10px] text-slate-500 uppercase tracking-wider font-semibold',
-  gradeCompactCard:
-    'flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-slate-700/50',
-  gradeCompactLabel: 'text-slate-300 text-sm font-medium',
-  gradeCompactPercent: 'text-white font-bold',
-  gradeCompactCount: 'text-slate-500 text-xs ml-2',
   emptyState: 'flex items-center justify-center h-full text-slate-500 italic text-sm',
   specEditButton:
     'mt-auto p-3 text-center bg-slate-900/80 rounded-lg text-xs text-slate-500 border border-dashed border-slate-700 cursor-pointer hover:border-slate-600 hover:text-slate-300 hover:bg-slate-800/50 transition-all flex items-center justify-center gap-2',
@@ -118,58 +94,6 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   }, [filteredData, outcome]);
 
   const emptyState = (message: string) => <div className={cs.emptyState}>{message}</div>;
-
-  // Grade summary rows
-  const renderGrades = () => {
-    if (!stats?.gradeCounts || stats.gradeCounts.length === 0) return null;
-
-    if (compact) {
-      return (
-        <div className="space-y-2">
-          {stats.gradeCounts.map((grade, i) => (
-            <div key={i} className={cs.gradeCompactCard} style={{ minHeight: 56 }}>
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: grade.color }}
-                />
-                <span className={cs.gradeCompactLabel}>{grade.label}</span>
-              </div>
-              <div className="text-right">
-                <span className={cs.gradeCompactPercent}>{grade.percentage.toFixed(1)}%</span>
-                <span className={cs.gradeCompactCount}>({grade.count})</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-2">
-        <div className={cs.gradeHeader}>
-          <span>Grade</span>
-          <span>Count</span>
-          <span>%</span>
-        </div>
-        {stats.gradeCounts.map((grade, i) => (
-          <div key={i} className={cs.gradeRow}>
-            <div className="flex items-center gap-2 overflow-hidden">
-              <div
-                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                style={{ backgroundColor: grade.color }}
-              />
-              <span className={cs.gradeLabel} title={grade.label}>
-                {grade.label}
-              </span>
-            </div>
-            <div className={cs.gradeCount}>{grade.count}</div>
-            <div className={cs.gradePercent}>{grade.percentage.toFixed(1)}%</div>
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   const renderMetricGrid = () => {
     const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
@@ -275,9 +199,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
         </div>
 
         <div className="flex-1 min-h-0">
-          {activeTab === 'summary' && (
-            <div className="space-y-3">{renderGrades() || renderMetricGrid()}</div>
-          )}
+          {activeTab === 'summary' && <div className="space-y-3">{renderMetricGrid()}</div>}
           {activeTab === 'histogram' && (
             <div className="h-full min-h-[200px]">{renderHistogramContent()}</div>
           )}
@@ -303,7 +225,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
 
       {activeTab === 'summary' ? (
         <>
-          <div className="flex-1">{renderGrades() || renderMetricGrid()}</div>
+          <div className="flex-1">{renderMetricGrid()}</div>
           {stats && renderSummaryFooter?.(stats, specs)}
         </>
       ) : activeTab === 'histogram' ? (

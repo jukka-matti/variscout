@@ -26,16 +26,12 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   className,
   compact = false,
 }) => {
-  const { displayOptions, setDisplayOptions, setSpecs, setGrades, grades } = useData();
+  const { displayOptions, setDisplayOptions, setSpecs } = useData();
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
-  const handleSaveSpecs = (
-    newSpecs: { usl?: number; lsl?: number; target?: number },
-    newGrades: { max: number; label: string; color: string }[]
-  ) => {
+  const handleSaveSpecs = (newSpecs: { usl?: number; lsl?: number; target?: number }) => {
     setSpecs(newSpecs);
-    setGrades(newGrades);
 
     // Auto-enable Cp display when both USL and LSL are set
     if (newSpecs.usl !== undefined && newSpecs.lsl !== undefined && !displayOptions.showCp) {
@@ -49,7 +45,6 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
       {isEditingSpecs && (
         <SpecEditor
           specs={specs}
-          grades={grades}
           onSave={handleSaveSpecs}
           onClose={() => setIsEditingSpecs(false)}
           style={{ top: '70px', right: '0px', width: '100%', maxWidth: '320px', zIndex: 20 }}

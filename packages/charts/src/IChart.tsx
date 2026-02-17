@@ -33,7 +33,6 @@ const IChartBase: React.FC<IChartProps> = ({
   stats,
   stagedStats,
   specs,
-  grades,
   yAxisLabel = 'Value',
   axisSettings,
   yDomainOverride,
@@ -105,16 +104,10 @@ const IChartBase: React.FC<IChartProps> = ({
     if (specs.usl !== undefined) maxVal = Math.max(maxVal, specs.usl);
     if (specs.lsl !== undefined) minVal = Math.min(minVal, specs.lsl);
 
-    // Include grade thresholds
-    if (grades && grades.length > 0) {
-      const gradeMax = Math.max(...grades.map(g => g.max));
-      maxVal = Math.max(maxVal, gradeMax);
-    }
-
     // Add padding
     const padding = (maxVal - minVal) * 0.1;
     return [minVal - padding, maxVal + padding] as [number, number];
-  }, [data, stats, isStaged, stageBoundaries, specs, grades, axisSettings, yDomainOverride]);
+  }, [data, stats, isStaged, stageBoundaries, specs, axisSettings, yDomainOverride]);
 
   const xScale = useMemo(
     () =>
@@ -169,11 +162,6 @@ const IChartBase: React.FC<IChartProps> = ({
 
   // Compute Nelson Rule 2 violations (9+ consecutive points on same side of mean)
   const nelsonRule2Violations = useMemo(() => {
-    if (grades && grades.length > 0) {
-      // Skip Nelson Rule 2 for graded data
-      return new Set<number>();
-    }
-
     if (isStaged && stagedStats) {
       // For staged mode, compute violations per stage
       const allViolations = new Set<number>();
@@ -206,15 +194,10 @@ const IChartBase: React.FC<IChartProps> = ({
     }
 
     return new Set<number>();
-  }, [data, stats, isStaged, stagedStats, stageBoundaries, grades]);
+  }, [data, stats, isStaged, stagedStats, stageBoundaries]);
 
   // Compute Nelson Rule 2 sequences for visual highlighting
   const nelsonRule2Sequences = useMemo(() => {
-    if (grades && grades.length > 0) {
-      // Skip Nelson Rule 2 for graded data
-      return [];
-    }
-
     if (isStaged && stagedStats) {
       // For staged mode, compute sequences per stage
       const allSequences: NelsonRule2Sequence[] = [];
@@ -257,7 +240,7 @@ const IChartBase: React.FC<IChartProps> = ({
     }
 
     return [];
-  }, [data, stats, isStaged, stagedStats, stageBoundaries, grades]);
+  }, [data, stats, isStaged, stagedStats, stageBoundaries]);
 
   // Get violation reason for tooltip display
   const getViolationReason = (value: number, index: number, stage?: string): string | null => {
@@ -307,13 +290,7 @@ const IChartBase: React.FC<IChartProps> = ({
     // Priority 3: Check Nelson Rule 2 violations -> Red (process pattern)
     if (nelsonRule2Violations.has(index)) return chartColors.fail;
 
-    // Priority 4: Check grades (multi-tier) - use grade colors when in control
-    if (grades && grades.length > 0) {
-      const grade = grades.find(g => value <= g.max);
-      return grade?.color || chartColors.spec; // Default orange if above all grades
-    }
-
-    // Priority 5: In-control default -> Blue (healthy process)
+    // Priority 4: In-control default -> Blue (healthy process)
     return chartColors.mean;
   };
 
@@ -334,25 +311,6 @@ const IChartBase: React.FC<IChartProps> = ({
       >
         <Group left={margin.left} top={margin.top}>
           <GridRows scale={yScale} width={width} stroke={chrome.gridLine} />
-
-          {/* Grade bands (if defined) */}
-          {grades &&
-            grades.map((grade, i) => {
-              const prevMax = i === 0 ? yDomain[0] : grades[i - 1].max;
-              const y1 = yScale(grade.max);
-              const y2 = yScale(prevMax);
-              return (
-                <rect
-                  key={grade.label}
-                  x={0}
-                  y={Math.min(y1, y2)}
-                  width={width}
-                  height={Math.abs(y2 - y1)}
-                  fill={grade.color}
-                  opacity={0.1}
-                />
-              );
-            })}
 
           {/* Control limits - Staged mode */}
           {isStaged &&
@@ -791,8 +749,8 @@ const IChartBase: React.FC<IChartProps> = ({
           {/* Source Bar (branding) */}
           {showBranding && (
             <ChartSourceBar
-              width={width}
-              top={height + margin.bottom - sourceBarHeight}
+              width={parentWidth}
+              top={parentHeight - sourceBarHeight}
               n={sampleSize ?? data.length}
               brandingText={brandingText}
               fontSize={fonts.brandingText}

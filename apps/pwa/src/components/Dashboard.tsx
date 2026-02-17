@@ -77,8 +77,6 @@ const Dashboard = ({
     stats,
     specs,
     setSpecs,
-    grades,
-    setGrades,
     filteredData,
     filters,
     setFilters,
@@ -170,14 +168,10 @@ const Dashboard = ({
 
   // Handler for saving specs from SpecEditor
   const handleSaveSpecs = useCallback(
-    (
-      newSpecs: { usl?: number; lsl?: number; target?: number },
-      newGrades: { max: number; label: string; color: string }[]
-    ) => {
+    (newSpecs: { usl?: number; lsl?: number; target?: number }) => {
       setSpecs(newSpecs);
-      setGrades(newGrades);
     },
-    [setSpecs, setGrades]
+    [setSpecs]
   );
 
   // Keyboard navigation for Focus Mode
@@ -420,15 +414,22 @@ const Dashboard = ({
                 className={`min-h-[400px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 flex flex-col transition-all ${getHighlightClass('ichart')}`}
               >
                 <div className="flex justify-between items-center mb-2 gap-4">
-                  {/* Left: Editable Title */}
-                  <h2 className="text-xl font-bold flex items-center gap-2 text-white">
-                    <Activity className="text-blue-400" />
-                    <EditableChartTitle
-                      defaultTitle={`I-Chart: ${outcome}`}
-                      value={chartTitles.ichart || ''}
-                      onChange={title => setChartTitles({ ...chartTitles, ichart: title })}
-                    />
-                  </h2>
+                  {/* Left: Editable Title with Subtitle Branding */}
+                  <div className="flex items-center gap-2">
+                    <Activity className="text-blue-400 self-start mt-1" />
+                    <div className="flex flex-col">
+                      <h2 className="text-xl font-bold text-white leading-none">
+                        <EditableChartTitle
+                          defaultTitle={`I-Chart: ${outcome}`}
+                          value={chartTitles.ichart || ''}
+                          onChange={title => setChartTitles({ ...chartTitles, ichart: title })}
+                        />
+                      </h2>
+                      <span className="text-xs font-bold text-blue-400 opacity-80 tracking-widest mt-1">
+                        VARISCOUT
+                      </span>
+                    </div>
+                  </div>
 
                   {/* Right: All Controls */}
                   <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -532,6 +533,7 @@ const Dashboard = ({
                     <IChart
                       onPointClick={onPointClick}
                       onSpecClick={() => setShowSpecEditor(true)}
+                      showBranding={false}
                     />
                   </ErrorBoundary>
                 </div>
@@ -549,13 +551,18 @@ const Dashboard = ({
                     className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('boxplot')}`}
                   >
                     <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                        <EditableChartTitle
-                          defaultTitle={`Boxplot: ${boxplotFactor}`}
-                          value={chartTitles.boxplot || ''}
-                          onChange={title => setChartTitles({ ...chartTitles, boxplot: title })}
-                        />
-                      </h3>
+                      <div className="flex flex-col">
+                        <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider leading-none">
+                          <EditableChartTitle
+                            defaultTitle={`Boxplot: ${boxplotFactor}`}
+                            value={chartTitles.boxplot || ''}
+                            onChange={title => setChartTitles({ ...chartTitles, boxplot: title })}
+                          />
+                        </h3>
+                        <span className="text-[10px] font-bold text-blue-400 opacity-80 tracking-widest mt-1">
+                          VARISCOUT
+                        </span>
+                      </div>
                       <div className="flex items-center gap-2">
                         <FactorSelector
                           factors={factors}
@@ -593,6 +600,7 @@ const Dashboard = ({
                             onDrillDown={handleDrillDown}
                             variationPct={factorVariations.get(boxplotFactor)}
                             categoryContributions={categoryContributions?.get(boxplotFactor)}
+                            showBranding={false}
                           />
                         )}
                       </ErrorBoundary>
@@ -608,13 +616,18 @@ const Dashboard = ({
                       className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('pareto')}`}
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                          <EditableChartTitle
-                            defaultTitle={`Pareto: ${paretoFactor}`}
-                            value={chartTitles.pareto || ''}
-                            onChange={title => setChartTitles({ ...chartTitles, pareto: title })}
-                          />
-                        </h3>
+                        <div className="flex flex-col">
+                          <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider leading-none">
+                            <EditableChartTitle
+                              defaultTitle={`Pareto: ${paretoFactor}`}
+                              value={chartTitles.pareto || ''}
+                              onChange={title => setChartTitles({ ...chartTitles, pareto: title })}
+                            />
+                          </h3>
+                          <span className="text-[10px] font-bold text-blue-400 opacity-80 tracking-widest mt-1">
+                            VARISCOUT
+                          </span>
+                        </div>
                         <div className="flex items-center gap-2">
                           <FactorSelector
                             factors={factors}
@@ -662,6 +675,7 @@ const Dashboard = ({
                                   paretoAggregation === 'count' ? 'value' : 'count'
                                 )
                               }
+                              showBranding={false}
                             />
                           )}
                         </ErrorBoundary>
@@ -727,7 +741,6 @@ const Dashboard = ({
       {showSpecEditor && (
         <SpecEditor
           specs={specs}
-          grades={grades}
           onSave={handleSaveSpecs}
           onClose={() => setShowSpecEditor(false)}
           style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}

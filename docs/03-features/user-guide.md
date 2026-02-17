@@ -47,20 +47,6 @@ Specifications (Spec Limits) define what is considered "acceptable" quality. Var
     - Cp, Cpk, and Pass/Fail rates are instantly calculated in the Stats Panel.
     - Histogram updates to show spec boundaries.
 
-### Multi-Tier Grading
-
-For industries like Coffee or Textiles, simple Pass/Fail isn't enough. You can define multiple grades (e.g., Specialty, Premium, Commercial).
-
-1.  In the **I-Chart header**, click the **"Specs"** dropdown.
-2.  Click the **gear icon** in the popover to open the full **Spec Editor** modal.
-3.  In the "Grades" section, click **"+ Add"**.
-4.  Define a grade:
-    - **Label**: e.g., "Grade A".
-    - **Max**: The upper limit for this grade (inclusive).
-    - **Color**: Pick a color for visualization.
-5.  Add as many grades as needed. Ensure they are sorted logically (the editor usually handles sorting by max value).
-6.  **Result**: Charts will show colored background bands corresponding to these grades.
-
 ---
 
 ## Visualization Options
@@ -291,6 +277,31 @@ The detection algorithm also:
 - Limits factors to 3 columns maximum
 
 You can always override these suggestions in the column mapping screen.
+
+---
+
+## Point Selection (Brushing)
+
+You can select points directly on the I-Chart to create ad-hoc grouping factors.
+
+### How to Select
+
+| Action        | Effect                                    |
+| ------------- | ----------------------------------------- |
+| Drag on chart | Draw a selection rectangle (brush)        |
+| Ctrl+click    | Toggle a single point in/out of selection |
+| Shift+click   | Add a single point to the selection       |
+| Esc           | Clear the selection                       |
+
+### Create Factor Workflow
+
+1. Select points on the I-Chart using any combination of drag and click
+2. The **Selection Panel** appears showing the count of selected points
+3. Click **"Create Factor"** and enter a name (e.g., "Startup batch")
+4. A new factor column is created with your named group and "Other"
+5. The dashboard auto-filters to show your selected points — continue analysis with Boxplot, Pareto, and Capability
+
+This is useful when you spot instability patterns on the I-Chart that don't align with any existing factor in your data.
 
 ---
 

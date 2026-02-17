@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { X, Save, Plus, Trash2 } from 'lucide-react';
-import { gradeColors } from '../../colors';
+import { X, Save } from 'lucide-react';
 import { useIsMobile } from '../../hooks';
 import type { SpecEditorColorScheme, SpecEditorProps } from './types';
 
@@ -10,12 +9,6 @@ export const specEditorDefaultColorScheme: SpecEditorColorScheme = {
   label: 'block text-[10px] sm:text-xs text-content-secondary mb-1',
   input:
     'w-full bg-surface border border-edge rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500',
-  addButton:
-    'text-xs bg-surface-tertiary hover:bg-surface-elevated text-white px-3 py-1.5 sm:px-2 sm:py-0.5 rounded flex items-center gap-1 transition-colors touch-feedback',
-  removeButton: 'p-2 sm:p-0 text-content-muted hover:text-red-400 transition-colors touch-feedback',
-  gradesEmpty:
-    'text-center p-4 border border-dashed border-edge rounded text-content-muted text-xs italic',
-  gradesHeader: 'hidden sm:flex gap-2 text-[10px] text-content-muted px-1',
   mobileSheet:
     'fixed inset-x-0 bottom-0 z-50 bg-surface-secondary border-t border-edge-secondary rounded-t-2xl shadow-2xl animate-slide-up',
   mobileDragHandle: 'w-10 h-1 bg-surface-elevated rounded-full',
@@ -31,12 +24,6 @@ export const specEditorAzureColorScheme: SpecEditorColorScheme = {
   label: 'block text-[10px] sm:text-xs text-slate-400 mb-1',
   input:
     'w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500',
-  addButton:
-    'text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 sm:px-2 sm:py-0.5 rounded flex items-center gap-1 transition-colors touch-feedback',
-  removeButton: 'p-2 sm:p-0 text-slate-500 hover:text-red-400 transition-colors touch-feedback',
-  gradesEmpty:
-    'text-center p-4 border border-dashed border-slate-700 rounded text-slate-600 text-xs italic',
-  gradesHeader: 'hidden sm:flex gap-2 text-[10px] text-slate-500 px-1',
   mobileSheet:
     'fixed inset-x-0 bottom-0 z-50 bg-slate-800 border-t border-slate-600 rounded-t-2xl shadow-2xl animate-slide-up',
   mobileDragHandle: 'w-10 h-1 bg-slate-600 rounded-full',
@@ -50,7 +37,6 @@ export const specEditorAzureColorScheme: SpecEditorColorScheme = {
 
 const SpecEditor = ({
   specs,
-  grades,
   onSave,
   onClose,
   style,
@@ -62,7 +48,6 @@ const SpecEditor = ({
     lsl: specs.lsl?.toString() || '',
     target: specs.target?.toString() || '',
   });
-  const [localGrades, setLocalGrades] = useState(grades || []);
   const isMobile = useIsMobile(MOBILE_BREAKPOINT);
 
   const handleSave = () => {
@@ -71,23 +56,8 @@ const SpecEditor = ({
       lsl: localSpecs.lsl ? parseFloat(localSpecs.lsl) : undefined,
       target: localSpecs.target ? parseFloat(localSpecs.target) : undefined,
     };
-    const sortedGrades = [...localGrades].sort((a, b) => a.max - b.max);
-    onSave(parsedSpecs, sortedGrades);
+    onSave(parsedSpecs);
     onClose();
-  };
-
-  const addGrade = () => {
-    setLocalGrades([...localGrades, { max: 0, label: 'New Grade', color: gradeColors.default }]);
-  };
-
-  const updateGrade = (index: number, field: keyof (typeof localGrades)[0], value: any) => {
-    const newGrades = [...localGrades];
-    newGrades[index] = { ...newGrades[index], [field]: value };
-    setLocalGrades(newGrades);
-  };
-
-  const removeGrade = (index: number) => {
-    setLocalGrades(localGrades.filter((_, i) => i !== index));
   };
 
   const formContent = (
@@ -136,70 +106,6 @@ const SpecEditor = ({
               />
             </div>
           </div>
-        </div>
-
-        {/* Grades */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Grades</h4>
-            <button
-              onClick={addGrade}
-              className={cs.addButton}
-              style={{ minHeight: isMobile ? 36 : undefined }}
-            >
-              <Plus size={12} /> Add
-            </button>
-          </div>
-
-          {localGrades.length === 0 ? (
-            <div className={cs.gradesEmpty}>No grades defined.</div>
-          ) : (
-            <div className="space-y-3 sm:space-y-2">
-              <div className={cs.gradesHeader}>
-                <span className="flex-1">Label</span>
-                <span className="w-12 text-right">Max</span>
-                <span className="w-6"></span>
-                <span className="w-4"></span>
-              </div>
-              {localGrades.map((grade, idx) => (
-                <div key={idx} className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    value={grade.label}
-                    onChange={e => updateGrade(idx, 'label', e.target.value)}
-                    className={`flex-1 ${cs.input}`}
-                    placeholder="Name"
-                    style={{ minHeight: isMobile ? 44 : undefined }}
-                  />
-                  <input
-                    type="number"
-                    step="any"
-                    value={grade.max}
-                    onChange={e => updateGrade(idx, 'max', parseFloat(e.target.value))}
-                    className={`w-16 sm:w-12 ${cs.input} text-right`}
-                    style={{ minHeight: isMobile ? 44 : undefined }}
-                  />
-                  <input
-                    type="color"
-                    value={grade.color}
-                    onChange={e => updateGrade(idx, 'color', e.target.value)}
-                    className="w-10 h-10 sm:w-6 sm:h-6 rounded cursor-pointer border-none bg-transparent p-0"
-                  />
-                  <button
-                    onClick={() => removeGrade(idx)}
-                    aria-label="Remove grade"
-                    className={cs.removeButton}
-                    style={{
-                      minWidth: isMobile ? 44 : undefined,
-                      minHeight: isMobile ? 44 : undefined,
-                    }}
-                  >
-                    <Trash2 size={isMobile ? 18 : 12} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 

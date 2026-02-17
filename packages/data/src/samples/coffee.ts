@@ -1,14 +1,6 @@
 import type { SampleDataset } from '../types';
 import { generateNormal, round } from '../utils';
 
-// Grade colors (matching @variscout/ui for coffee grading)
-const gradeColors = {
-  specialty: '#22c55e', // green-500 - highest quality
-  premium: '#eab308', // yellow-500 - good quality
-  exchange: '#f97316', // orange-500 - acceptable
-  offGrade: '#ef4444', // red-500 - below standard
-};
-
 // Coffee Moisture: Drying Bed Comparison (Africa Case)
 // Story: Bed C consistently fails export spec (10-12% moisture)
 const generateCoffeeMoistureData = () => {
@@ -81,11 +73,5 @@ export const coffeeDefects: SampleDataset = {
     outcome: 'Total Defects (per 300g)',
     factors: ['Cooperative', 'Processing Method'],
     specs: { target: 0 },
-    grades: [
-      { max: 5, label: 'Specialty', color: gradeColors.specialty },
-      { max: 8, label: 'Premium', color: gradeColors.premium },
-      { max: 23, label: 'Exchange', color: gradeColors.exchange },
-      { max: 999, label: 'Off-Grade', color: gradeColors.offGrade },
-    ],
   },
 };

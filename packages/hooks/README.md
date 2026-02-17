@@ -328,7 +328,6 @@ const scale = useChartScale({
   filteredData,
   outcome,
   specs,
-  grades,
   axisSettings,
 });
 // Returns: { min: 8.5, max: 11.5 }

@@ -21,7 +21,6 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setOutcome,
     setFactors,
     setSpecs,
-    setGrades,
     setFilters,
     setDataFilename,
     setDataQualityReport,
@@ -39,7 +38,6 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     setOutcome,
     setFactors,
     setSpecs,
-    setGrades,
     setFilters,
     setDataFilename,
     setDataQualityReport,
@@ -68,7 +66,6 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
       setOutcome(sample.config.outcome);
       setFactors(sample.config.factors);
       setSpecs(sample.config.specs);
-      setGrades(sample.config.grades || []);
       // Run validation for sample data too
       const report = validateData(sample.data as any[], sample.config.outcome);
       setDataQualityReport(report);
@@ -84,7 +81,7 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
       ) {
         setPerformanceMode(true);
         setMeasureColumns(sample.config.measureColumns);
-        setMeasureLabel(sample.config.measureLabel || 'Channel');
+        setMeasureLabel('Channel');
       } else {
         setPerformanceMode(false);
         setMeasureColumns([]);
@@ -97,7 +94,6 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
       setOutcome,
       setFactors,
       setSpecs,
-      setGrades,
       setDataQualityReport,
       setParetoMode,
       setSeparateParetoData,

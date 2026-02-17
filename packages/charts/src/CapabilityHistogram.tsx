@@ -231,18 +231,18 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
             dy: 4,
           })}
         />
-
-        {/* Source Bar (branding) */}
-        {showBranding && (
-          <ChartSourceBar
-            width={width}
-            top={height + margin.bottom - sourceBarHeight}
-            n={data.length}
-            brandingText={brandingText}
-            fontSize={fonts.brandingText}
-          />
-        )}
       </Group>
+
+      {/* Source Bar (branding) */}
+      {showBranding && (
+        <ChartSourceBar
+          width={parentWidth}
+          top={parentHeight - sourceBarHeight}
+          n={data.length}
+          brandingText={brandingText}
+          fontSize={fonts.brandingText}
+        />
+      )}
     </svg>
   );
 };

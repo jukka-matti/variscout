@@ -316,8 +316,8 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
           {/* Source Bar (branding) */}
           {showBranding && (
             <ChartSourceBar
-              width={width}
-              top={height + margin.bottom - sourceBarHeight}
+              width={parentWidth}
+              top={parentHeight - sourceBarHeight}
               n={points.length}
               brandingText={brandingText}
               fontSize={fonts.brandingText}

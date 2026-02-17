@@ -91,6 +91,7 @@ interface ParetoChartProps {
   availableFactors?: string[];
   aggregation?: 'count' | 'value';
   onToggleAggregation?: () => void;
+  showBranding?: boolean;
 }
 
 const ParetoChart = ({
@@ -106,6 +107,7 @@ const ParetoChart = ({
   availableFactors = [],
   aggregation = 'count',
   onToggleAggregation,
+  showBranding: showBrandingProp,
 }: ParetoChartProps) => {
   const {
     rawData,
@@ -233,7 +235,7 @@ const ParetoChart = ({
     );
   }
 
-  const showBranding = shouldShowBranding();
+  const showBranding = showBrandingProp ?? shouldShowBranding();
   const yAxisLabel =
     aggregation === 'value' && outcome ? columnAliases[outcome] || outcome : 'Count';
   const xAxisLabel = columnAliases[factor] || factor;

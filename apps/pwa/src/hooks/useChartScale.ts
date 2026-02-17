@@ -14,13 +14,12 @@ export type { ChartScaleResult } from '@variscout/hooks';
  * For the context-injection version, use @variscout/hooks directly.
  */
 export const useChartScale = () => {
-  const { filteredData, outcome, specs, grades, axisSettings } = useData();
+  const { filteredData, outcome, specs, axisSettings } = useData();
 
   return useChartScaleBase({
     filteredData,
     outcome,
     specs,
-    grades,
     axisSettings,
   });
 };

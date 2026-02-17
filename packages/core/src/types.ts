@@ -108,27 +108,6 @@ export interface StatsResult {
   cpk?: number;
   /** Percentage of values outside specification limits */
   outOfSpecPercentage: number;
-  /** Distribution across grade tiers (if grades defined) */
-  gradeCounts?: GradeCount[];
-}
-
-/**
- * Grade tier for multi-tier classification
- */
-export interface GradeTier {
-  max: number;
-  label: string;
-  color: string;
-}
-
-/**
- * Grade count result after classification
- */
-export interface GradeCount {
-  label: string;
-  count: number;
-  percentage: number;
-  color: string;
 }
 
 /**

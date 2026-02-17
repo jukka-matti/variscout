@@ -42,7 +42,6 @@ export interface DataIngestionActions {
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
   setSpecs: (specs: { usl?: number; lsl?: number; target?: number }) => void;
-  setGrades: (grades: { max: number; label: string; color: string }[]) => void;
   setFilters: (filters: Record<string, (string | number)[]>) => void;
   setDataFilename: (filename: string | null) => void;
   setDataQualityReport: (report: DataQualityReport | null) => void;
@@ -103,7 +102,6 @@ export function useDataIngestion(
     setOutcome,
     setFactors,
     setSpecs,
-    setGrades,
     setFilters,
     setDataFilename,
     setDataQualityReport,
@@ -224,7 +222,6 @@ export function useDataIngestion(
     setOutcome('');
     setFactors([]);
     setSpecs({});
-    setGrades([]);
     setFilters({});
     setDataQualityReport(null);
     setParetoMode('derived');
@@ -240,7 +237,6 @@ export function useDataIngestion(
     setOutcome,
     setFactors,
     setSpecs,
-    setGrades,
     setFilters,
     setDataQualityReport,
     setParetoMode,

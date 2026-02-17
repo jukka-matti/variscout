@@ -24,6 +24,7 @@ interface BoxplotProps {
   onDrillDown?: (factor: string, value: string) => void;
   variationPct?: number;
   categoryContributions?: Map<string | number, number>;
+  showBranding?: boolean;
 }
 
 const Boxplot = ({
@@ -33,6 +34,7 @@ const Boxplot = ({
   onDrillDown,
   variationPct,
   categoryContributions,
+  showBranding: showBrandingProp,
 }: BoxplotProps) => {
   const {
     filteredData,
@@ -104,7 +106,7 @@ const Boxplot = ({
 
   const alias = columnAliases[factor] || factor;
   const factorLabels = valueLabels[factor] || {};
-  const showBranding = shouldShowBranding();
+  const showBranding = showBrandingProp ?? shouldShowBranding();
   const selectedGroups = (filters[factor] || []).map(String);
   const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
 

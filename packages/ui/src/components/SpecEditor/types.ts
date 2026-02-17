@@ -3,12 +3,6 @@ export interface SpecEditorColorScheme {
   label: string;
   // Inputs
   input: string;
-  // Buttons
-  addButton: string;
-  removeButton: string;
-  // Grades empty state
-  gradesEmpty: string;
-  gradesHeader: string;
   // Mobile bottom sheet
   mobileSheet: string;
   mobileDragHandle: string;
@@ -22,11 +16,7 @@ export interface SpecEditorColorScheme {
 
 export interface SpecEditorProps {
   specs: { usl?: number; lsl?: number; target?: number };
-  grades: { max: number; label: string; color: string }[];
-  onSave: (
-    specs: { usl?: number; lsl?: number; target?: number },
-    grades: { max: number; label: string; color: string }[]
-  ) => void;
+  onSave: (specs: { usl?: number; lsl?: number; target?: number }) => void;
   onClose: () => void;
   style?: React.CSSProperties;
   colorScheme?: SpecEditorColorScheme;

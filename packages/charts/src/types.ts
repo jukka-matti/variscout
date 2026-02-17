@@ -6,7 +6,6 @@
 import type {
   StatsResult,
   SpecLimits,
-  GradeTier,
   StagedStatsResult,
   StageBoundary,
   ChannelResult,
@@ -20,7 +19,6 @@ import type {
 // Re-export types from core for convenience
 export type {
   SpecLimits,
-  GradeTier,
   StagedStatsResult,
   StageBoundary,
   ChannelResult,
@@ -86,8 +84,6 @@ export interface IChartProps extends BaseChartProps {
   stagedStats?: StagedStatsResult;
   /** Specification limits */
   specs: SpecLimits;
-  /** Grade tiers for multi-tier grading */
-  grades?: GradeTier[];
   /** Y-axis label */
   yAxisLabel?: string;
   /** Axis settings for manual scaling */

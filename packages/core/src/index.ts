@@ -10,8 +10,6 @@ export { isNumericValue, isStringValue, toNumericValue, inferCharacteristicType 
 // Types - Statistics and Analysis
 export type {
   StatsResult,
-  GradeTier,
-  GradeCount,
   SpecLimits,
   CharacteristicType,
   ProbabilityPlotPoint,

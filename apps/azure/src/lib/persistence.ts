@@ -23,7 +23,6 @@ export interface AnalysisState {
   outcome: string | null;
   factors: string[];
   specs: { usl?: number; lsl?: number; target?: number };
-  grades: { max: number; label: string; color: string }[];
   filters: Record<string, any[]>;
   axisSettings: { min?: number; max?: number };
   columnAliases?: Record<string, string>;

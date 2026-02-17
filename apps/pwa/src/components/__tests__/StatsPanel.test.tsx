@@ -248,33 +248,4 @@ describe('StatsPanel', () => {
       expect(screen.getByTestId('capability-histogram')).toBeInTheDocument();
     });
   });
-
-  it('shows grade counts when provided', () => {
-    const statsWithGrades = {
-      ...mockStats,
-      gradeCounts: [
-        { label: 'Grade A', count: 50, percentage: 50, color: '#22c55e' },
-        { label: 'Grade B', count: 30, percentage: 30, color: '#eab308' },
-        { label: 'Grade C', count: 20, percentage: 20, color: '#ef4444' },
-      ],
-    };
-
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: true },
-    } as any);
-
-    render(
-      <StatsPanel
-        stats={statsWithGrades}
-        specs={mockSpecs}
-        filteredData={mockFilteredData}
-        outcome="value"
-      />
-    );
-
-    expect(screen.getByText('Grade A')).toBeInTheDocument();
-    expect(screen.getByText('Grade B')).toBeInTheDocument();
-    expect(screen.getByText('Grade C')).toBeInTheDocument();
-    expect(screen.getByText('50.0%')).toBeInTheDocument();
-  });
 });

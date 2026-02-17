@@ -43,7 +43,6 @@ interface DataContextType extends Omit<DataState, 'saveProject' | 'loadProject'>
   setFactors: DataActions['setFactors'];
   setTimeColumn: DataActions['setTimeColumn'];
   setSpecs: DataActions['setSpecs'];
-  setGrades: DataActions['setGrades'];
   setFilters: DataActions['setFilters'];
   setAxisSettings: DataActions['setAxisSettings'];
   setChartTitles: DataActions['setChartTitles'];
@@ -168,7 +167,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       factors: state.factors,
       timeColumn: state.timeColumn,
       specs: state.specs,
-      grades: state.grades,
       stats: state.stats,
       stageColumn: state.stageColumn,
       stageOrderMode: state.stageOrderMode,
@@ -216,7 +214,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setFactors: actions.setFactors,
       setTimeColumn: actions.setTimeColumn,
       setSpecs: actions.setSpecs,
-      setGrades: actions.setGrades,
       setFilters: actions.setFilters,
       setAxisSettings: actions.setAxisSettings,
       setChartTitles: actions.setChartTitles,

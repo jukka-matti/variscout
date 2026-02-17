@@ -83,7 +83,12 @@ Determine if the process is in statistical control.
    - How many are there?
    - Single events or recurring?
 
-3. **Assess stability**
+3. **If special causes don't align with existing factors**
+   - Use **point selection** (drag-brush) on the I-Chart to select the anomalous points
+   - Click **Create Factor** to name the group
+   - This bridges the CHANGE lens (time-series instability) to the FLOW lens (factor-based stratification)
+
+4. **Assess stability**
    - Stable: Common cause variation only
    - Unstable: Special causes present
 

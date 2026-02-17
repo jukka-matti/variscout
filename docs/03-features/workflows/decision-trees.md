@@ -38,6 +38,9 @@ flowchart TD
     C --> C1[Investigate that specific point]
     C1 --> C2[What happened at that time?]
     C2 --> C3[Check process logs, material, operator]
+    C3 --> C4{Existing factor explains it?}
+    C4 -->|Yes| C5[Drill down on that factor]
+    C4 -->|No| C6[Brush anomalous points → Create Factor → drill down]
 
     D --> D1[Find when shift occurred]
     D1 --> D2[What changed then?]
@@ -76,7 +79,7 @@ flowchart TD
 
     E --> E1[Consider what's not in the data]
     E1 --> E2[Material batch? Environment? Supplier?]
-    E2 --> E3[Collect additional data]
+    E2 --> E3[Collect additional data or brush anomalous points on I-Chart to create a new factor]
 ```
 
 ## Poor Capability - Why?

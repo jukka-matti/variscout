@@ -27,7 +27,7 @@ import type { ChartScaleContext, ChartScaleResult } from './types';
  * ```
  */
 export function useChartScale(context: ChartScaleContext): ChartScaleResult {
-  const { filteredData, outcome, specs, grades, axisSettings } = context;
+  const { filteredData, outcome, specs, axisSettings } = context;
   const scaleMode = axisSettings.scaleMode ?? 'auto';
 
   return useMemo(() => {
@@ -49,20 +49,6 @@ export function useChartScale(context: ChartScaleContext): ChartScaleResult {
     if (specs.usl !== undefined) values.push(specs.usl);
     if (specs.lsl !== undefined) values.push(specs.lsl);
 
-    // Include grades smartly (cap infinity)
-    if (grades && grades.length > 0) {
-      const dataMax = Math.max(...values);
-      grades.forEach(g => {
-        if (g.max < Math.max(20, dataMax * 1.5)) {
-          values.push(g.max);
-        }
-      });
-      // Ensure bottom grade is visible if data is tiny
-      if (values.length > 0 && Math.max(...values) < grades[0].max) {
-        values.push(grades[0].max);
-      }
-    }
-
     let min = Math.min(...values);
     let max = Math.max(...values);
     const padding = (max - min) * 0.1 || 1;
@@ -82,7 +68,7 @@ export function useChartScale(context: ChartScaleContext): ChartScaleResult {
     }
 
     return { min: finalMin, max: finalMax };
-  }, [filteredData, outcome, specs, grades, axisSettings, scaleMode]);
+  }, [filteredData, outcome, specs, axisSettings, scaleMode]);
 }
 
 export default useChartScale;

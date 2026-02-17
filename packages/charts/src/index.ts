@@ -10,7 +10,6 @@
 export type {
   BaseChartProps,
   SpecLimits,
-  GradeTier,
   StagedStatsResult,
   StageBoundary,
   ChannelResult,

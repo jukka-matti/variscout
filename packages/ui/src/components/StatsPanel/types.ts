@@ -12,17 +12,6 @@ export interface StatsPanelColorScheme {
   metricCardBg: string;
   metricLabel: string;
   metricValue: string;
-  // Grade rows
-  gradeRow: string;
-  gradeLabel: string;
-  gradeCount: string;
-  gradePercent: string;
-  gradeHeader: string;
-  // Grade compact (mobile)
-  gradeCompactCard: string;
-  gradeCompactLabel: string;
-  gradeCompactPercent: string;
-  gradeCompactCount: string;
   // Empty state
   emptyState: string;
   // Spec editor

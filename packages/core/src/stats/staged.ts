@@ -1,6 +1,5 @@
 import type {
   SpecLimits,
-  GradeTier,
   StatsResult,
   StagedStatsResult,
   StageBoundary,
@@ -131,7 +130,6 @@ export function sortDataByStage<T extends Record<string, unknown>>(
  * @param stageColumn - Column name for the stage identifier
  * @param specs - Specification limits (USL, LSL, target)
  * @param stageOrder - Optional pre-determined stage order (otherwise auto-detected)
- * @param grades - Optional grade tiers for classification
  * @returns StagedStatsResult with per-stage stats and overall stats
  *
  * @example
@@ -144,8 +142,7 @@ export function calculateStatsByStage<T extends Record<string, unknown>>(
   outcomeColumn: string,
   stageColumn: string,
   specs: SpecLimits,
-  stageOrder?: string[],
-  grades?: GradeTier[]
+  stageOrder?: string[]
 ): StagedStatsResult | null {
   if (data.length === 0) return null;
 
@@ -174,7 +171,7 @@ export function calculateStatsByStage<T extends Record<string, unknown>>(
   order.forEach(stage => {
     const values = stageGroups.get(stage) ?? [];
     if (values.length > 0) {
-      const stats = calculateStats(values, specs.usl, specs.lsl, grades);
+      const stats = calculateStats(values, specs.usl, specs.lsl);
       stageStats.set(stage, stats);
     }
   });
@@ -187,7 +184,7 @@ export function calculateStatsByStage<T extends Record<string, unknown>>(
   // Calculate overall stats for reference
   const allValues: number[] = [];
   stageGroups.forEach(values => allValues.push(...values));
-  const overallStats = calculateStats(allValues, specs.usl, specs.lsl, grades);
+  const overallStats = calculateStats(allValues, specs.usl, specs.lsl);
 
   return {
     stages: stageStats,

@@ -32,8 +32,6 @@ export interface SampleConfig {
   factors: string[];
   /** Specification limits */
   specs: SpecLimits;
-  /** Optional grade definitions (e.g., coffee quality grades) */
-  grades?: GradeDefinition[];
   /** Enable performance mode (multi-measure Cpk analysis) */
   performanceMode?: boolean;
   /** Column names for measure variables (wide format data) */
@@ -47,15 +45,6 @@ export interface SpecLimits {
   lsl?: number;
   /** Target value */
   target?: number;
-}
-
-export interface GradeDefinition {
-  /** Maximum value for this grade (exclusive upper bound) */
-  max: number;
-  /** Grade label */
-  label: string;
-  /** Display color (hex) */
-  color: string;
 }
 
 /**

@@ -32,7 +32,6 @@ export interface ChartScaleContext {
   filteredData: DataRow[];
   outcome: string | null;
   specs: SpecLimits;
-  grades?: { max: number; label: string; color: string }[];
   axisSettings: { min?: number; max?: number; scaleMode?: ScaleMode };
 }
 
@@ -67,7 +66,6 @@ export interface DataContextInterface {
   outcome: string | null;
   factors: string[];
   specs: SpecLimits;
-  grades?: { max: number; label: string; color: string }[];
   stats: StatsResult | null;
 
   // Filters & Settings
@@ -133,7 +131,6 @@ export interface AnalysisState {
   specs: { usl?: number; lsl?: number; target?: number };
   /** Per-measure spec overrides for Performance Mode (keyed by measure column name) */
   measureSpecs?: Record<string, { usl?: number; lsl?: number; target?: number }>;
-  grades: { max: number; label: string; color: string }[];
   filters: Record<string, (string | number)[]>;
   axisSettings: { min?: number; max?: number; scaleMode?: ScaleMode };
   columnAliases?: Record<string, string>;

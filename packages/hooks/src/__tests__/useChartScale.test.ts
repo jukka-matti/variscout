@@ -99,19 +99,6 @@ describe('useChartScale', () => {
     expect(result.current.max).toBe(11);
   });
 
-  it('includes grades in range when reasonable', () => {
-    const ctx = makeContext({
-      grades: [
-        { max: 15, label: 'Low', color: '#red' },
-        { max: 25, label: 'Mid', color: '#yellow' },
-      ],
-    });
-    const { result } = renderHook(() => useChartScale(ctx));
-    // Grades 15, 25 are within reasonable range of data (10-30)
-    expect(result.current.min).toBeLessThanOrEqual(10);
-    expect(result.current.max).toBeGreaterThanOrEqual(25);
-  });
-
   it('respects partial axisSettings.min override in auto mode', () => {
     const ctx = makeContext({
       axisSettings: { min: 0 },

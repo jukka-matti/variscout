@@ -22,16 +22,22 @@ interface IChartProps {
   parentHeight: number;
   onPointClick?: (index: number) => void;
   onSpecClick?: (spec: 'usl' | 'lsl' | 'target') => void;
+  showBranding?: boolean;
 }
 
-const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChartProps) => {
+const IChart = ({
+  parentWidth,
+  parentHeight,
+  onPointClick,
+  onSpecClick,
+  showBranding: showBrandingProp,
+}: IChartProps) => {
   const {
     filteredData,
     outcome,
     timeColumn,
     stats,
     specs,
-    grades,
     axisSettings,
     setAxisSettings,
     columnAliases,
@@ -40,6 +46,8 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
     stageColumn,
     stagedStats,
     stagedData,
+    selectedPoints,
+    setSelectedPoints,
   } = useData();
 
   const [isEditingScale, setIsEditingScale] = useState(false);
@@ -81,7 +89,7 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
     );
   }
 
-  const showBranding = shouldShowBranding();
+  const showBranding = showBrandingProp ?? shouldShowBranding();
   // Apply displayOptions toggles: hide spec/control lines by passing empty data
   const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
   const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
@@ -95,7 +103,6 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
         stats={effectiveStats}
         stagedStats={effectiveStagedStats}
         specs={effectiveSpecs}
-        grades={grades}
         yAxisLabel={columnAliases[outcome] || outcome}
         axisSettings={axisSettings}
         parentWidth={parentWidth}
@@ -105,6 +112,9 @@ const IChart = ({ parentWidth, parentHeight, onPointClick, onSpecClick }: IChart
         onPointClick={onPointClick}
         onSpecClick={onSpecClick}
         onYAxisClick={() => setIsEditingScale(true)}
+        enableBrushSelection={true}
+        selectedPoints={selectedPoints}
+        onSelectionChange={setSelectedPoints}
         showLimitLabels
       />
 

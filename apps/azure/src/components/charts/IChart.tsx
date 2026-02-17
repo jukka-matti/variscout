@@ -43,6 +43,8 @@ const IChart = ({
     stageColumn,
     stagedData,
     stagedStats,
+    selectedPoints,
+    setSelectedPoints,
   } = useData();
 
   const [isEditingScale, setIsEditingScale] = useState(false);
@@ -113,6 +115,9 @@ const IChart = ({
         showBranding={false}
         onPointClick={handlePointClick}
         onYAxisClick={handleYAxisClick}
+        enableBrushSelection={true}
+        selectedPoints={selectedPoints}
+        onSelectionChange={setSelectedPoints}
         highlightedPointIndex={highlightedPointIndex}
         showLimitLabels={false}
       />

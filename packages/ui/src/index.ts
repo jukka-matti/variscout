@@ -1,5 +1,3 @@
-export { gradeColors, type GradeColor } from './colors';
-
 // Components
 export { HelpTooltip, type HelpTooltipProps, type TooltipPosition } from './components/HelpTooltip';
 export { ChartCard, type ChartCardProps, type ChartId } from './components/ChartCard';

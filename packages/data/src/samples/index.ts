@@ -18,7 +18,7 @@ export { largeScale } from './large-scale';
 export { ovenZonesData } from './ovenZones';
 
 // Re-export types
-export type { SampleDataset, SampleConfig, SpecLimits, GradeDefinition } from '../types';
+export type { SampleDataset, SampleConfig, SpecLimits } from '../types';
 
 // Import all for SAMPLES array
 import { journey, journeyBefore, journeyAfter } from './journey';
