@@ -129,6 +129,10 @@ dist
 .swarm/
 .mcp.json
 
+# Playwright
+playwright-report/
+test-results/
+
 # Build output
 site/
 

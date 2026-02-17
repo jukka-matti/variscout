@@ -1,0 +1,326 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { ArrowRight, CheckCircle, KeyRound, Rocket, LogIn, Globe, MessageSquare, Mail } from "lucide-astro";
+import { ui } from "../../i18n/ui";
+import { getLangFromUrl } from "../../i18n/utils";
+
+export function getStaticPaths() {
+	const languages = Object.keys(ui);
+	return languages.map((lang) => ({ params: { lang } }));
+}
+
+const lang = getLangFromUrl(Astro.url);
+---
+
+<BaseLayout
+	title="VaRiScout | Getting Started — Deploy in Minutes"
+	description="Step-by-step deployment guide for VaRiScout Azure App. Create an App Registration, deploy from Azure Marketplace, and start analyzing in under 10 minutes."
+>
+	<!-- Hero -->
+	<section class="py-20 md:py-28 bg-white">
+		<div class="container-wide">
+			<div class="max-w-3xl">
+				<h1 class="text-4xl md:text-5xl font-bold mb-6 text-neutral-900">
+					Deploy VaRiScout
+				</h1>
+				<p class="text-xl text-neutral-600 mb-8 leading-relaxed">
+					Self-service deployment from Azure Marketplace. No sales calls, no demos. Create an App Registration, click Deploy, and your team is analyzing in under 10 minutes.
+				</p>
+				<div class="flex flex-wrap gap-4">
+					<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">
+						Deploy from Marketplace
+					</a>
+					<a href="/app" class="btn btn-secondary px-8 py-3">
+						Try the Free Web App First
+					</a>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- What You'll Need -->
+	<section class="py-20 bg-neutral-50 border-y border-neutral-200">
+		<div class="container-wide">
+			<div class="flex items-center gap-3 mb-12">
+				<div class="p-2.5 bg-brand-primary/10 rounded-xl">
+					<CheckCircle size={28} class="text-brand-primary" />
+				</div>
+				<h2 class="text-3xl font-bold text-neutral-900">What You'll Need</h2>
+			</div>
+			<div class="grid md:grid-cols-3 gap-8 max-w-4xl">
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<h3 class="font-bold text-lg mb-2 text-neutral-900">Azure Subscription</h3>
+					<p class="text-neutral-600 text-sm leading-relaxed">
+						Any Azure subscription with Contributor access. The app deploys as a Managed Application billed through your existing Azure agreement.
+					</p>
+				</div>
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<h3 class="font-bold text-lg mb-2 text-neutral-900">Admin Role</h3>
+					<p class="text-neutral-600 text-sm leading-relaxed">
+						Global Administrator or Application Administrator role in Azure AD to create the App Registration. This is a one-time setup step.
+					</p>
+				</div>
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<h3 class="font-bold text-lg mb-2 text-neutral-900">10 Minutes</h3>
+					<p class="text-neutral-600 text-sm leading-relaxed">
+						About 5 minutes for the App Registration, then 2 minutes for the Marketplace deployment. That's it.
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Step 1: App Registration -->
+	<section class="py-20 bg-white">
+		<div class="container-wide">
+			<div class="flex items-center gap-3 mb-12">
+				<div class="p-2.5 bg-brand-primary/10 rounded-xl">
+					<KeyRound size={28} class="text-brand-primary" />
+				</div>
+				<h2 class="text-3xl font-bold text-neutral-900">Step 1: Create App Registration</h2>
+			</div>
+			<div class="grid md:grid-cols-2 gap-12 items-start">
+				<div>
+					<p class="text-neutral-600 mb-6 leading-relaxed">
+						VaRiScout needs an App Registration in your Azure AD tenant to authenticate users and access OneDrive. This is required because Managed Applications cannot create registrations in the customer's tenant.
+					</p>
+					<ol class="space-y-4">
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5 shrink-0">1.</span>
+							<span class="text-neutral-700">Go to <strong>Azure Portal &gt; Azure Active Directory &gt; App registrations &gt; New registration</strong></span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5 shrink-0">2.</span>
+							<span class="text-neutral-700">Set <strong>Name</strong> to "VariScout" and <strong>Supported account types</strong> to "Accounts in this organizational directory only"</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5 shrink-0">3.</span>
+							<div class="text-neutral-700">
+								<span>Set <strong>Redirect URI</strong> (Web) to:</span>
+								<code class="block mt-2 px-3 py-2 bg-neutral-100 rounded-lg text-sm text-neutral-700 break-all">
+									https://&lt;your-app-name&gt;.azurewebsites.net/.auth/login/aad/callback
+								</code>
+								<span class="text-sm text-neutral-500 mt-1 block">Replace &lt;your-app-name&gt; with the name you'll use in Step 2</span>
+							</div>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5 shrink-0">4.</span>
+							<span class="text-neutral-700">Click <strong>Register</strong>, then copy the <strong>Application (client) ID</strong> from the Overview page</span>
+						</li>
+					</ol>
+				</div>
+				<div class="space-y-6">
+					<div class="bg-neutral-50 border border-neutral-200 rounded-xl p-6">
+						<h3 class="font-bold text-lg mb-4 text-neutral-900">Add API Permissions</h3>
+						<ol class="space-y-3 text-sm text-neutral-700">
+							<li class="flex items-start gap-3">
+								<span class="text-brand-primary font-bold mt-0.5 shrink-0">1.</span>
+								<span>Go to <strong>API permissions &gt; Add a permission &gt; Microsoft Graph &gt; Delegated permissions</strong></span>
+							</li>
+							<li class="flex items-start gap-3">
+								<span class="text-brand-primary font-bold mt-0.5 shrink-0">2.</span>
+								<span>Add <strong>User.Read</strong> (sign-in and user profile) and <strong>Files.ReadWrite</strong> (OneDrive project sync)</span>
+							</li>
+							<li class="flex items-start gap-3">
+								<span class="text-brand-primary font-bold mt-0.5 shrink-0">3.</span>
+								<span>Optionally click <strong>Grant admin consent</strong> (otherwise users consent on first login)</span>
+							</li>
+						</ol>
+					</div>
+					<div class="bg-neutral-50 border border-neutral-200 rounded-xl p-6">
+						<h3 class="font-bold text-lg mb-4 text-neutral-900">Create Client Secret</h3>
+						<ol class="space-y-3 text-sm text-neutral-700">
+							<li class="flex items-start gap-3">
+								<span class="text-brand-primary font-bold mt-0.5 shrink-0">1.</span>
+								<span>Go to <strong>Certificates &amp; secrets &gt; Client secrets &gt; New client secret</strong></span>
+							</li>
+							<li class="flex items-start gap-3">
+								<span class="text-brand-primary font-bold mt-0.5 shrink-0">2.</span>
+								<span>Set description (e.g., "VariScout EasyAuth") and expiration (recommended: 24 months)</span>
+							</li>
+							<li class="flex items-start gap-3">
+								<span class="text-brand-primary font-bold mt-0.5 shrink-0">3.</span>
+								<span><strong>Copy the secret value immediately</strong> &mdash; it won't be shown again</span>
+							</li>
+						</ol>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Step 2: Deploy -->
+	<section class="py-20 bg-neutral-50 border-y border-neutral-200">
+		<div class="container-wide">
+			<div class="flex items-center gap-3 mb-12">
+				<div class="p-2.5 bg-brand-primary/10 rounded-xl">
+					<Rocket size={28} class="text-brand-primary" />
+				</div>
+				<h2 class="text-3xl font-bold text-neutral-900">Step 2: Deploy from Azure Marketplace</h2>
+			</div>
+			<div class="grid md:grid-cols-2 gap-12 items-start">
+				<div>
+					<p class="text-neutral-600 mb-6 leading-relaxed">
+						Find VaRiScout on Azure Marketplace and click Create. The deployment wizard asks for four things:
+					</p>
+					<ol class="space-y-4">
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5 shrink-0">1.</span>
+							<span class="text-neutral-700"><strong>App name</strong> &mdash; becomes your URL (e.g., variscout-contoso)</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5 shrink-0">2.</span>
+							<span class="text-neutral-700"><strong>Region</strong> &mdash; choose the Azure region closest to your team</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5 shrink-0">3.</span>
+							<span class="text-neutral-700"><strong>Client ID</strong> &mdash; from the App Registration you just created</span>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="text-brand-primary font-bold mt-0.5 shrink-0">4.</span>
+							<span class="text-neutral-700"><strong>Client Secret</strong> &mdash; the secret value you copied</span>
+						</li>
+					</ol>
+					<p class="text-neutral-600 mt-6 leading-relaxed">
+						Click <strong>Review + Create</strong>. The ARM template deploys in about 2 minutes.
+					</p>
+				</div>
+				<div class="bg-white border border-neutral-200 rounded-xl p-8">
+					<h3 class="font-bold text-lg mb-4 text-neutral-900">What Gets Created</h3>
+					<ul class="space-y-4 text-sm">
+						<li class="flex items-start gap-3">
+							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">1</span>
+							<div>
+								<span class="font-medium text-neutral-900">App Service Plan</span>
+								<span class="text-neutral-500 block">Linux B1 compute host</span>
+							</div>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">2</span>
+							<div>
+								<span class="font-medium text-neutral-900">App Service</span>
+								<span class="text-neutral-500 block">Serves VaRiScout as a static build (no backend)</span>
+							</div>
+						</li>
+						<li class="flex items-start gap-3">
+							<span class="font-mono text-xs bg-neutral-200 text-neutral-700 px-2 py-0.5 rounded mt-0.5 shrink-0">3</span>
+							<div>
+								<span class="font-medium text-neutral-900">EasyAuth Configuration</span>
+								<span class="text-neutral-500 block">Platform-level Azure AD authentication + token store</span>
+							</div>
+						</li>
+					</ul>
+					<p class="mt-6 text-xs text-neutral-500 leading-relaxed">
+						No database, no storage account, no backend API. All computation happens in the browser.
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Step 3: First Login -->
+	<section class="py-20 bg-white">
+		<div class="container-wide">
+			<div class="flex items-center gap-3 mb-12">
+				<div class="p-2.5 bg-brand-primary/10 rounded-xl">
+					<LogIn size={28} class="text-brand-primary" />
+				</div>
+				<h2 class="text-3xl font-bold text-neutral-900">Step 3: First Login</h2>
+			</div>
+			<div class="max-w-3xl">
+				<p class="text-neutral-600 mb-8 leading-relaxed">
+					Once deployment is complete, visit your app URL. EasyAuth handles everything from here:
+				</p>
+				<div class="space-y-4">
+					<div class="flex items-start gap-4 bg-neutral-50 border border-neutral-200 rounded-xl p-6">
+						<span class="text-brand-primary font-bold text-lg mt-0.5 shrink-0">1.</span>
+						<div>
+							<h3 class="font-bold text-neutral-900 mb-1">Visit Your App URL</h3>
+							<p class="text-neutral-600 text-sm">
+								Navigate to <code class="px-1.5 py-0.5 bg-neutral-200 rounded text-xs">https://your-app-name.azurewebsites.net</code>
+							</p>
+						</div>
+					</div>
+					<div class="flex items-start gap-4 bg-neutral-50 border border-neutral-200 rounded-xl p-6">
+						<span class="text-brand-primary font-bold text-lg mt-0.5 shrink-0">2.</span>
+						<div>
+							<h3 class="font-bold text-neutral-900 mb-1">Azure AD Redirect</h3>
+							<p class="text-neutral-600 text-sm">
+								EasyAuth automatically redirects to your organization's Azure AD sign-in page. Users log in with their existing work accounts.
+							</p>
+						</div>
+					</div>
+					<div class="flex items-start gap-4 bg-neutral-50 border border-neutral-200 rounded-xl p-6">
+						<span class="text-brand-primary font-bold text-lg mt-0.5 shrink-0">3.</span>
+						<div>
+							<h3 class="font-bold text-neutral-900 mb-1">Consent &amp; Go</h3>
+							<p class="text-neutral-600 text-sm">
+								On first login, users consent to User.Read and Files.ReadWrite permissions. After that, the session is platform-managed &mdash; no password to remember, no separate account to create.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Optional: Custom Domain & Teams -->
+	<section class="py-20 bg-neutral-50 border-y border-neutral-200">
+		<div class="container-wide">
+			<div class="flex items-center gap-3 mb-12">
+				<div class="p-2.5 bg-brand-primary/10 rounded-xl">
+					<Globe size={28} class="text-brand-primary" />
+				</div>
+				<h2 class="text-3xl font-bold text-neutral-900">Optional: Custom Domain &amp; Teams</h2>
+			</div>
+			<div class="grid md:grid-cols-2 gap-8 max-w-4xl">
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<div class="flex items-center gap-2 mb-3">
+						<Globe size={18} class="text-brand-primary shrink-0" />
+						<h3 class="font-bold text-lg text-neutral-900">Custom Domain</h3>
+					</div>
+					<p class="text-neutral-600 text-sm leading-relaxed mb-3">
+						Add a custom domain (e.g., variscout.contoso.com) to your App Service for a branded URL. This also enables seamless Teams SSO &mdash; without a custom domain, users get a one-time login redirect on <code class="text-xs px-1 py-0.5 bg-neutral-100 rounded">*.azurewebsites.net</code>.
+					</p>
+					<p class="text-neutral-500 text-xs">
+						Remember to add the new redirect URI to your App Registration.
+					</p>
+				</div>
+				<div class="bg-white border border-neutral-200 rounded-xl p-6">
+					<div class="flex items-center gap-2 mb-3">
+						<MessageSquare size={18} class="text-brand-primary shrink-0" />
+						<h3 class="font-bold text-lg text-neutral-900">Microsoft Teams</h3>
+					</div>
+					<p class="text-neutral-600 text-sm leading-relaxed mb-3">
+						VaRiScout includes a built-in Teams manifest generator. Go to Admin &gt; Teams Setup, download the .zip package, and upload it to your Teams admin center. Your team can then add VaRiScout as a tab in any Teams channel.
+					</p>
+					<p class="text-neutral-500 text-xs">
+						Same EasyAuth SSO &mdash; no additional login required.
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Need Help? -->
+	<section class="py-20 bg-brand-secondary text-white">
+		<div class="container-wide text-center">
+			<h2 class="text-3xl font-bold mb-4">Need Help?</h2>
+			<p class="text-neutral-400 mb-6 max-w-2xl mx-auto">
+				VaRiScout is designed for self-service deployment. If you get stuck on any step, we're here to help.
+			</p>
+			<div class="flex items-center justify-center gap-2 mb-10 text-neutral-400">
+				<Mail size={18} />
+				<a href="mailto:support@rdmaic.com" class="text-neutral-300 underline hover:text-white transition-colors">support@rdmaic.com</a>
+			</div>
+			<div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+				<a href="https://azuremarketplace.microsoft.com/" target="_blank" rel="noopener" class="btn btn-primary px-8 py-3">
+					Deploy from Azure Marketplace
+				</a>
+				<a href={`/${lang}/product/enterprise`} class="btn btn-outline border-white/20 text-white hover:bg-white/10 px-8 py-3">
+					Enterprise &amp; IT Details
+				</a>
+			</div>
+		</div>
+	</section>
+</BaseLayout>
