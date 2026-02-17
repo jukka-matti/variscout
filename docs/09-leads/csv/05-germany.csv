@@ -1,0 +1,56 @@
+Country,Rank,Company,Industry,Location,Employees,Revenue_EUR_M,S1_OpEx,S2_Size,S3_Minitab,S4_Azure,S5_Reach,Total_Score,Market_Tier,Segment,Pitch_Angle,Notes
+Germany,1,Harting Tech,Electronics,Espelkamp,6000,1000,5,4,5,5,5,24,2,HOT,Azure Beachhead,Explicit Azure AI case study. Industrial connectivity.
+Germany,2,Elmos Semiconductor,Electronics,Dortmund,1300,575,5,5,5,4,4,23,2,HOT,Zero-defect auto,AEC-Q100 standards. Digital fab.
+Germany,3,NETZSCH Group,Machinery,Selb,4000,850,4,5,4,5,5,23,2,HOT,Azure Beachhead,Explicit Azure Data Lake case study.
+Germany,4,Stratec SE,MedTech,Birkenfeld,1500,270,5,5,5,4,4,23,2,HOT,GMP/Validation,IVD analyzers. FDA/ISO regulated.
+Germany,5,Witzenmann,Automotive,Pforzheim,4600,750,5,5,5,4,4,23,2,HOT,IATF 16949,Flexible metal elements. Aero/Auto.
+Germany,6,Oechsler AG,Plastics/Auto,Ansbach,3000,500,5,5,5,4,3,22,2,HOT,Precision molding,3D printing innovator. Global Quality.
+Germany,7,Sennheiser,Electronics,Wedemark,2800,700,4,5,4,4,5,22,2,HOT,Precision audio,Manufacturing engineering focus.
+Germany,8,Weidmüller,Electronics,Detmold,6000,1100,5,4,5,4,4,22,2,HOT,Smart Factory,Industrial connectivity. OpEx team.
+Germany,9,Bionorica,Pharma,Neumarkt,1800,400,5,5,5,4,3,22,2,HOT,GMP/Pharma,Phytopharmaceuticals. Regulated.
+Germany,10,SÜDPACK,Packaging,Ochsenhausen,1700,600,5,5,4,4,4,22,2,HOT,Med packaging,High-perf films. Pharma-grade.
+Germany,11,Coroplast Group,Automotive,Wuppertal,7000,700,5,5,5,3,3,21,2,HOT,IATF 16949,Wiring harnesses. High volume.
+Germany,12,Basler AG,Electronics,Ahrensburg,1000,250,4,5,4,4,4,21,2,HOT,Vision/tech,Vision sensors. High tech mfg.
+Germany,13,Poppe + Potthoff,Automotive,Werther,1600,250,5,5,5,3,3,21,2,HOT,IATF 16949,Precision steel tubes. Diesel injection.
+Germany,14,Kern-Liebers,Automotive,Schramberg,7000,800,5,5,5,3,3,21,2,HOT,IATF 16949,Springs/Stamping. LSS Master BB.
+Germany,15,Scherdel,Automotive,Marktredwitz,6000,850,5,5,5,3,3,21,2,HOT,IATF 16949,Springs/Bending. Quality Planning.
+Germany,16,Eckert & Ziegler,MedTech,Berlin,900,250,5,5,5,3,3,21,2,HOT,Radiation safety,Isotope technology. Very High regulation.
+Germany,17,Lohmann GmbH,Chemicals,Neuwied,1800,300,4,5,4,3,4,20,2,HOT,Innovation,Bonding processes. Digital transformation.
+Germany,18,Amazonen-Werke,Machinery (Agri),Hasbergen,2500,800,4,5,4,3,4,20,2,HOT,Lean Production,Agricultural machinery.
+Germany,19,Mennekes,Electronics,Kirchhundem,1200,200,5,5,4,3,3,20,2,HOT,E-Mobility,High volume/reliability plugs.
+Germany,20,Brita GmbH,Consumer,Taunusstein,2200,650,3,5,3,4,5,20,2,HOT,Process consistency,Filter manufacturing.
+Germany,21,Aerzen,Machinery,Aerzen,2500,500,4,5,3,4,4,20,2,HOT,Global process,Blowers/Compressors.
+Germany,22,DSI Aerospace,Aerospace,Bremen,100,50,5,5,5,3,2,20,2,HOT,Space reliability,Mass storage for space. Very High reg.
+Germany,23,microfab,Microsystems,Bremen,100,50,5,5,5,3,2,20,2,HOT,MEMS precision,Silicon machining/Sensors.
+Germany,24,Acandis,MedTech,Pforzheim,200,60,5,5,5,3,2,20,2,HOT,Stroke devices,Stents/Coils. Very High regulation.
+Germany,25,Medios AG,Pharma,Berlin,500,1600,5,3,4,4,4,20,2,HOT,GMP compounding,Specialty Pharma.
+Germany,26,4JET,Machinery,Alsdorf,150,60,5,5,4,3,3,20,2,HOT,Laser precision,Laser surface processing.
+Germany,27,Schreiner Group,Packaging,Oberschleißheim,1200,200,4,5,4,3,3,19,2,WARM,Pharma labels,Functional labels. Pharma-grade.
+Germany,28,Schwan-Stabilo,Consumer,Heroldsberg,5000,800,4,5,3,3,4,19,2,WARM,OpEx,Pens/Outdoor/Cosmetics.
+Germany,29,Stockert,MedTech,Freiburg,300,80,5,5,4,3,2,19,2,WARM,Med electronics,Innovation leader.
+Germany,30,3DQR,Tech/Mfg,Magdeburg,100,50,3,5,2,5,4,19,2,WARM,AR for Mfg,AR for manufacturing/maintenance.
+Germany,31,Sikora AG,Machinery,Bremen,350,100,4,5,3,3,3,18,2,WARM,Measuring tech,Wire/cable production niche leader.
+Germany,32,Grimme,Machinery (Agri),Damme,2800,550,4,5,3,3,3,18,2,WARM,Welding/Assembly,Harvesting tech.
+Germany,33,Lemken,Machinery (Agri),Alpen,1700,500,4,5,3,3,3,18,2,WARM,Ind. Engineering,Soil cultivation.
+Germany,34,ProMinent,Machinery,Heidelberg,2700,350,4,5,3,3,3,18,2,WARM,Water treatment,Metering pumps.
+Germany,35,KOBRA Formen,Machinery,Lennestadt,400,80,4,5,3,3,3,18,2,WARM,Precision tools,Concrete block molds.
+Germany,36,Boge Kompressoren,Machinery,Bielefeld,800,180,4,5,3,3,3,18,2,WARM,Precision,Compressors.
+Germany,37,Faber-Castell,Consumer,Stein,6500,650,3,5,3,3,4,18,2,WARM,Wood/Chemical,Pencils. Chemical process.
+Germany,38,Ritter Sport,Food,Waldenbuch,1700,500,3,5,2,3,4,17,2,WARM,Giveaway reducer,Temper/Mixing control.
+Germany,39,SAACKE GmbH,Machinery,Bremen,1000,200,4,5,3,2,3,17,2,WARM,Hidden Champion,Burners. Precision engineering.
+Germany,40,Meggle,Food (Dairy),Wasserburg,2500,1000,4,4,3,3,3,17,2,WARM,Dairy/Pharma,Lactose. Regulated.
+Germany,41,Bahlsen,Food,Hannover,2600,540,3,5,2,3,4,17,2,WARM,Baking control,Biscuit mfg. CI Manager exists.
+Germany,42,Waldner,Lab/Pkg,Wangen,1600,270,3,5,3,3,3,17,2,WARM,Manufacturing,Lab furniture/Packaging machines.
+Germany,43,HWH,Materials,Braunschweig,50,100,4,5,4,2,2,17,2,WARM,Titanium,Titanium melting/alloys. Metallurgy.
+Germany,44,Zott SE & Co,Food (Dairy),Mertingen,3000,900,3,5,2,3,3,16,2,WARM,Dairy variance,High volume dairy. Process control.
+Germany,45,Ehrmann,Food (Dairy),Oberschönegg,2500,800,3,5,2,3,3,16,2,WARM,Dairy process,Dairy processing.
+Germany,46,Lamy,Consumer,Heidelberg,400,120,3,5,3,2,3,16,2,WARM,Design/Quality,Writing instruments. Injection molding.
+Germany,47,Vector Foiltec,Construction,Bremen,500,150,3,5,3,3,2,16,2,WARM,Extrusion,ETFE cladding.
+Germany,48,Geratherm,MedTech,Geschwenda,200,25,4,4,4,2,2,16,2,WARM,Med diagnostics,Temp management.
+Germany,49,Kieselstein,Machinery,Chemnitz,100,50,4,5,3,2,2,16,2,WARM,Wire drawing,Hidden Champion.
+Germany,50,Seeberger,Food,Ulm,900,300,2,5,2,3,3,15,2,WARM,Snacks,Natural snacks. Packaging lines.
+Germany,51,Teekanne,Food,Düsseldorf,1500,200,2,5,2,3,3,15,2,WARM,Packing,Tea. High speed lines.
+Germany,52,Saturn Petcare,Food (Pet),Bremen,500,500,3,5,2,3,2,15,2,WARM,Canning,Wet food. Retort processes.
+Germany,53,Wickert,Machinery,Landau,200,80,4,5,2,2,2,15,2,WARM,Presses,Hydraulic presses. Cleanroom.
+Germany,54,Kölln,Food,Elmshorn,400,160,2,5,1,2,3,13,2,COOL,Oat processing,Mill technology.
+Germany,55,Rapunzel,Food,Legau,500,250,2,5,1,2,3,13,2,COOL,Organic,Sourcing/Processing.

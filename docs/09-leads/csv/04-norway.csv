@@ -1,0 +1,53 @@
+Country,Rank,Company,Industry,Location,Employees,S1_OpEx,S2_Size,S3_Minitab,S4_Azure,S5_Reach,Total_Score,Market_Tier,Segment,Pitch_Angle,Notes
+Norway,1,Kongsberg Gruppen,Defense/Maritime,Kongsberg,14800,5,5,5,5,5,25,1,HOT,Zero-defect,World-class systems engineering. Zero tolerance for variation.
+Norway,2,Equinor,Energy,Stavanger,24000,5,5,5,5,5,25,1,HOT,Azure Hook,Massive OpEx programs; Azure user; digital twin leader.
+Norway,3,Norsk Hydro,Aluminum,Oslo,32000,5,5,5,5,5,25,1,HOT,Energy Pitch,Hydro Business System benchmark. Variation = energy waste.
+Norway,4,Yara International,Chemicals,Oslo,17000,5,5,5,5,5,25,1,HOT,Energy Pitch,Continuous process; OpEx core strategy.
+Norway,5,Elkem,Silicon,Oslo,7200,4,5,5,4,5,23,1,HOT,Energy Pitch,Elkem Business System (EBS) Lean/Six Sigma.
+Norway,6,Aker Solutions,Oil Services,Fornebu,11000,5,5,5,5,4,24,1,HOT,Azure Hook,Engineering perfection. Strong digital focus.
+Norway,7,Mowi,Seafood,Bergen,11500,5,4,5,4,5,23,1,HOT,Yield Pitch,Mowi Operational Excellence. Biological variation is key cost.
+Norway,8,Jotun,Chemicals/Paint,Sandefjord,10000,5,5,4,5,4,23,1,HOT,Azure Hook,Azure case study. Batch consistency = brand value.
+Norway,9,Nammo,Defense/Ammo,Raufoss,2700,4,5,5,4,5,23,1,HOT,Zero-defect,Heart of Raufoss cluster. Safety-critical precision.
+Norway,10,Orkla,Food & Beverage,Oslo,19000,5,4,5,4,5,23,1,HOT,Cost/Yield,One Orkla OpEx program. Extensive production network.
+Norway,11,GE Healthcare (NO),Pharma/MedTech,Oslo,900,4,5,5,4,4,22,1,HOT,GMP/Compliance,Contrast media production. GMP environment.
+Norway,12,Aker BP,Energy,Fornebu,2500,4,4,5,5,4,22,1,HOT,Azure Hook,Digital Oilfield pioneer. Predictive maintenance.
+Norway,13,AutoStore,Robotics,Nedre Vats,900,4,5,4,4,5,22,1,HOT,Precision,Extreme precision for warehouse robots.
+Norway,14,Kongsberg Automotive,Auto Parts,Kongsberg,4700,4,5,5,4,4,22,1,HOT,Zero-defect,OpEx Academy exists. Auto margins require Six Sigma.
+Norway,15,Benteler Automotive,Automotive,Raufoss,500,3,5,5,4,4,21,1,HOT,IATF 16949,High volume aluminum extrusion. Zero defect.
+Norway,16,SalMar,Seafood,Frøya,2500,4,4,4,4,5,21,1,HOT,Yield Pitch,InnovaMar: world's most advanced salmon processing.
+Norway,17,Tomra Systems,Tech/Sorting,Asker,4600,4,4,4,4,5,21,1,HOT,Precision,Sensor/assembly precision in sorting machines.
+Norway,18,Fresenius Kabi,Pharma,Halden,600,3,5,5,4,4,21,1,HOT,GMP/Compliance,Sterile manufacturing. Process validation mandatory.
+Norway,19,Takeda Nycomed,Pharma,Asker,300,3,5,5,4,4,21,1,HOT,GMP/Compliance,Tablet/liquid production high standards.
+Norway,20,Borregaard,Bio-Refinery,Sarpsborg,1100,4,5,4,4,4,21,1,HOT,Energy Pitch,Advanced bio-refinery. Chemical process control.
+Norway,21,Lerøy Seafood,Seafood,Bergen,6000,5,4,4,4,4,21,1,HOT,Yield Pitch,Lerøy Way CI. Large processing volumes.
+Norway,22,TINE SA,Food & Beverage,Oslo,5300,5,4,4,4,4,21,1,HOT,Bio-variation,Dairy co-op. Lean programs. Seasonal milk variation.
+Norway,23,Laerdal Medical,MedTech,Stavanger,1400,4,4,4,4,5,21,1,HOT,Precision,Medical training equipment. Molding/assembly.
+Norway,24,Ekornes,Furniture,Sykkylven,1200,4,4,5,4,4,21,1,HOT,Automation,Automated furniture production (Stressless).
+Norway,25,Nexans Norway,Cables/Energy,Oslo,1600,4,5,4,4,4,21,1,HOT,Zero-defect,Subsea cables. Defects catastrophic.
+Norway,26,Brunvoll,Maritime,Molde,500,3,5,4,4,4,20,1,HOT,Precision,Precision naval thrusters.
+Norway,27,Kitron,Electronics (EMS),Arendal,2800,4,5,4,4,4,21,1,HOT,Six Sigma,"5S Lean Six Sigma PFMEA core methods."
+Norway,28,Glencore Nikkelverk,Metal (Nickel),Kristiansand,500,3,5,4,4,4,20,1,HOT,Energy Pitch,Nickel refinery. Continuous process.
+Norway,29,Skretting (Nutreco),Aqua Feed,Stavanger,600,3,4,4,4,4,19,1,WARM,SPC/Extrusion,Nutreco OpEx. Pellet density precision.
+Norway,30,Hexagon Ragasco,Manufacturing,Raufoss,150,2,5,5,4,4,20,1,HOT,Raufoss cluster,Automated composite cylinder production.
+Norway,31,Ringnes (Carlsberg),Beverage,Oslo,900,4,4,4,4,4,20,1,HOT,Batch control,Carlsberg Excellence Lean. Brewing consistency.
+Norway,32,Nortura,Food & Beverage,Oslo,5000,5,3,4,3,4,19,1,WARM,Yield,Meat processing cooperative.
+Norway,33,Ulstein Group,Shipbuilding,Ulsteinvik,500,3,4,4,4,4,19,1,WARM,Lean Ship,Lean Shipbuilding focus.
+Norway,34,Vard Group,Shipbuilding,Ålesund,1300,4,4,4,4,3,19,1,WARM,Project var.,Customized vessels. Variation is costly.
+Norway,35,Moelven Industrier,Wood,Moelv,3300,4,3,4,4,4,19,1,WARM,Lean Constr.,Industrialized wood/module production.
+Norway,36,Veidekke,Construction,Oslo,7900,5,3,4,4,4,20,1,HOT,Process ctrl,Asphalt and industrial production.
+Norway,37,Norautron,Electronics (EMS),Horten,500,3,5,4,3,4,19,1,WARM,Defense EMS,Defense electronics manufacturing.
+Norway,38,Eramet Norway,Manganese,Porsgrunn,500,3,5,4,3,4,19,1,WARM,Process ind.,Manganese processing. Digital projects.
+Norway,39,BioMar,Aqua Feed,Myre,300,3,4,4,4,4,19,1,WARM,Pellet QC,Pellet quality and consistency.
+Norway,40,Bama Gruppen,Food Logistics,Oslo,2500,4,3,4,4,4,19,1,WARM,Food proc.,Fruit/vegetable processing division.
+Norway,41,Hapro,Electronics (EMS),Jaren,400,3,5,4,3,4,19,1,WARM,Raufoss,Raufoss cluster high-tech EMS.
+Norway,42,Fjordland,Food & Beverage,Oslo,150,3,4,4,4,4,19,1,WARM,Food safety,Ready meals. Food safety critical.
+Norway,43,Curida,Pharma (CDMO),Elverum,150,2,5,4,3,4,18,1,WARM,GMP/CDMO,Contract pharma manufacturing.
+Norway,44,Vestre,Furniture,Magnor,100,2,4,4,5,4,19,1,WARM,Automation,The Plus factory: automated/environmental.
+Norway,45,Hansa Borg,Beverage,Bergen,300,3,4,4,3,4,18,1,WARM,Batch ctrl,Large-scale brewing.
+Norway,46,Diplom-Is,Food (Ice Cream),Gjelleråsen,450,3,4,4,3,4,18,1,WARM,Seasonal,Seasonal production. Rapid changeovers.
+Norway,47,Pelagia,Seafood (Pelagic),Bergen,500,3,4,3,3,4,17,1,WARM,Bio-mass,Fish meal/oil processing.
+Norway,48,Hofseth International,Seafood,Ålesund,400,3,4,3,3,4,17,1,WARM,Yield,Value-added salmon processing.
+Norway,49,Q-Meieriene,Food & Beverage,Bergen,250,2,4,4,3,4,17,1,WARM,Lean dairy,Challenger dairy. Innovation focus.
+Norway,50,Washington Mills,Materials,Orkanger,150,2,4,4,3,3,16,1,WARM,SiC process,Silicon carbide. Energy intensive.
+Norway,51,O.B. Wiik,Structures,Skedsmokorset,100,2,3,3,3,3,14,1,COOL,,Halls/tents manufacturing.
+Norway,52,Wonderland,Furniture,Åndalsnes,100,2,3,4,3,3,15,1,WARM,Assembly,Mattress production.

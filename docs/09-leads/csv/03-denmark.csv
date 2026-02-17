@@ -1,0 +1,53 @@
+Country,Rank,Company,Industry,Location,Employees,S1_OpEx,S2_Size,S3_Minitab,S4_Azure,S5_Reach,Total_Score,Market_Tier,Segment,Pitch_Angle,Notes
+Denmark,1,Carlsberg Group,Beverages,Copenhagen,37000,5,5,5,5,5,25,1,HOT,Azure + OpEx,Full Azure migration 2018. Robust global CI programs.
+Denmark,2,Rockwool,Building Materials,Hedehusene,12900,5,5,5,4,5,24,1,HOT,Energy/process,Mature OpEx team. Non-energy mineral processing.
+Denmark,3,Novonesis (Chr. Hansen),Biotechnology,Hørsholm,10500,5,5,4,5,5,24,1,HOT,Bioprocess,Enzyme/microbial production. LSS core competency.
+Denmark,4,Lundbeck,Pharmaceuticals,Valby,5200,5,5,4,5,5,24,1,HOT,GMP/Pharma,High regulatory demand for variation analysis.
+Denmark,5,LEO Pharma,Pharmaceuticals,Ballerup,4500,5,5,4,5,5,24,1,HOT,GMP/Pharma,Dedicated OpEx and Supply Chain teams.
+Denmark,6,FLSmidth,Industrial Machinery,Valby,7700,5,5,4,4,5,23,1,HOT,Process opt.,Confirmed Azure. Global process optimization.
+Denmark,7,Demant,Health Technology,Smørum,26000,4,5,4,5,5,23,1,HOT,Precision,High-precision manufacturing variation.
+Denmark,8,Ambu,Health Technology,Ballerup,5300,4,5,4,5,5,23,1,HOT,Med device QC,Single-use medical devices. Azure for supply chain.
+Denmark,9,Danish Crown,Food Processing,Randers,26000,5,5,4,4,5,23,1,HOT,Yield/Lean,Lean culture. Yield optimization. Cloud migration.
+Denmark,10,GN Audio (Jabra),Electronics,Ballerup,7000,4,5,4,5,4,22,1,HOT,Precision,Cloud-first. M365 + Azure analytics.
+Denmark,11,Topsoe,Chemicals,Lyngby,2800,5,4,5,4,4,22,1,HOT,Catalyst QC,Catalyst efficiency. Variation analysis critical.
+Denmark,12,Velux,Building Materials,Hørsholm,10000,5,5,3,4,5,22,1,HOT,Lean Way,"The Velux Way" deep Lean integration.
+Denmark,13,Royal Unibrew,Beverages,Faxe,4200,4,5,4,4,5,22,1,HOT,Batch ctrl,Production line CI and waste reduction.
+Denmark,14,NKT,Manufacturing,Brøndby,6000,4,5,4,4,5,22,1,HOT,Cable QC,Power cable manufacturing. Material variation.
+Denmark,15,Nilfisk,Industrial Machinery,Brøndby,4700,4,5,4,4,5,22,1,HOT,OpEx/IoT,Azure IoT for product performance.
+Denmark,16,Linak,Industrial Machinery,Nordborg,2400,4,4,4,4,5,21,1,HOT,Lean precision,High-precision actuator manufacturing.
+Denmark,17,Terma,Defense & Aero,Lystrup,1500,4,4,4,4,5,21,1,HOT,Aero compliance,Aerospace variation control.
+Denmark,18,GPV International,Electronics,Vejle,7500,4,5,3,4,5,21,1,HOT,EMS Lean,Contract electronics. OpEx and Lean.
+Denmark,19,Foss Analytical,Industrial Machinery,Hillerød,1500,4,4,4,4,5,21,1,HOT,Instruments,Analytical instruments. Variation = core product.
+Denmark,20,Nissens,Industrial Machinery,Horsens,1300,4,4,4,4,5,21,1,HOT,Lean cooling,Automotive/wind cooling. Lean-driven.
+Denmark,21,Bang & Olufsen,Consumer Goods,Struer,1000,3,4,5,4,5,21,1,HOT,Luxury QC,High aesthetic + quality variation control.
+Denmark,22,ALK-Abelló,Health Care,Hørsholm,2700,4,4,4,4,5,21,1,HOT,Pharma,Allergy pharmaceuticals. Process stability.
+Denmark,23,Adapa Flexibles,Packaging,Middelfart,500,5,4,3,4,5,21,1,HOT,Hiring OpEx!,Actively hiring OpEx Manager CI/LEAN.
+Denmark,24,Scan Global Logistics,Logistics/Mfg,Copenhagen,3000,3,4,3,5,5,20,1,HOT,Logistics,Growing OpEx focus in global assembly.
+Denmark,25,Hempel Group,Coatings,Copenhagen,7000,4,5,3,4,4,20,1,HOT,Batch chem,Chemical batch stability for coatings.
+Denmark,26,Thomas Concrete,Construction,Copenhagen,2400,3,4,4,5,4,20,1,HOT,Azure IoT!,Confirmed Azure IoT Central user.
+Denmark,27,DLG Group,Agri-Mfg,Fredericia,6500,3,5,2,5,5,20,1,HOT,Azure std,Confirmed Azure standards. IT OpEx Lead roles.
+Denmark,28,Solar A/S,Distribution/Mfg,Kolding,3000,4,4,3,4,5,20,1,HOT,OpEx,Logistics and assembly OpEx.
+Denmark,29,Per Aarsleff,Construction/Mfg,Aarhus,9800,3,5,3,4,5,20,1,HOT,Engineering,Engineering performance and project excellence.
+Denmark,30,Maersk Container,Industrials,Copenhagen,2000,4,4,3,4,5,20,1,HOT,Lean mfg,Refrigeration units. Azure for telemetry.
+Denmark,31,Semco Maritime,Industrials,Esbjerg,1500,3,4,3,4,5,19,1,WARM,Energy proj,Large-scale energy projects.
+Denmark,32,Welcon,Industrials,Give,500,3,4,4,3,5,19,1,WARM,Wind tower,Wind turbine towers. Material variation.
+Denmark,33,Multi-Wing Group,Industrials,Herlev,300,3,3,5,3,5,19,1,WARM,Design var,High design-to-production variation.
+Denmark,34,EKTOS,Industrials,Kolding,200,3,3,4,4,5,19,1,WARM,IoT mfg,IoT contract manufacturing.
+Denmark,35,Brødrene Hartmann,Packaging,Lyngby,2500,4,4,3,3,5,19,1,WARM,Sust. pkg,Sustainable packaging. Throughput focus.
+Denmark,36,ECCO,Consumer Goods,Bredebro,20000,4,5,2,3,5,19,1,WARM,Leather var,Vertically integrated. Leather processing.
+Denmark,37,Schouw & Co,Process Ind.,Aarhus,14900,4,5,2,3,5,19,1,WARM,Group OpEx,Diversified group. Process efficiency.
+Denmark,38,Posten Bring,Logistics/Ops,Copenhagen,12000,3,5,2,5,4,19,1,WARM,Azure!,Confirmed Azure migration.
+Denmark,39,Cembrit,Industrials,Aalborg,1000,3,4,4,3,5,19,1,WARM,Material var,Fiber cement. Material batch variation.
+Denmark,40,Louis Poulsen,Building Mtls,Copenhagen,400,3,3,4,3,5,18,1,WARM,Precision,Lighting precision manufacturing.
+Denmark,41,Martin Professional,Building Mtls,Frederikssund,400,3,3,4,3,5,18,1,WARM,Reliability,Specialty lighting reliability.
+Denmark,42,Dynaudio,Electronics,Skanderborg,300,3,3,4,3,5,18,1,WARM,Audio QC,Precision audio manufacturing.
+Denmark,43,Karstensens,Industrials,Skagen,400,2,3,4,4,5,18,1,WARM,Shipbuilding,Project and process efficiency.
+Denmark,44,Simonsen & Weel,Health Care,Vallensbæk,200,3,3,3,4,5,18,1,WARM,Med device,Medical equipment compliance.
+Denmark,45,Royal Copenhagen,Consumer Goods,Glostrup,500,2,3,3,4,5,17,1,WARM,Ceramic QC,Porcelain quality vs process variation.
+Denmark,46,Elwis,Building Mtls,Slagelse,100,2,2,4,4,5,17,1,WARM,,Manufacturing efficiency.
+Denmark,47,Gryphon Audio,Electronics,Brøndby,50,2,2,4,3,5,16,1,WARM,Niche audio,Small batch high-end audio.
+Denmark,48,Carmo A/S,Industrials,Holstebro,100,3,2,4,3,4,16,1,WARM,Moulding,Technical plastic moulding.
+Denmark,49,FIPROS A/S,Food Processing,Greve,100,3,2,3,3,4,15,1,WARM,Food safety,Contract food manufacturing.
+Denmark,50,Altrad,Industrials,Herlev,500,2,4,2,3,4,15,1,WARM,,Industrial services.
+Denmark,51,ENABL,Industrials,Odense,400,2,3,3,3,4,15,1,WARM,Wind mfg,Wind energy equipment.
+Denmark,52,PSC,Industrials,Hillerød,50,2,2,3,3,4,14,1,COOL,,Precision acrylic.

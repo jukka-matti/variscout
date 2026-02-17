@@ -1,0 +1,51 @@
+Country,Rank,Company,Industry,Location,Employees,S1_OpEx,S2_Size,S3_Minitab,S4_Azure,S5_Reach,Total_Score,Scale,Normalized_Total,Market_Tier,Segment,Pitch_Angle,Notes
+Austria,1,RHI Magnesita,Steel/Refractories,Vienna,12000,10,9,9,10,10,48,1-10,24,3,HOT,Azure Beachhead,Won MS Intelligent Mfg Award. Strategic Azure partnership.
+Austria,2,Magna Steyr,Automotive,Graz,13000,10,10,9,9,9,47,1-10,24,3,HOT,IATF + Minitab,LSS + Minitab in job ads. Cloud-based simulation.
+Austria,3,voestalpine,Steel,Linz,51200,10,10,8,9,9,46,1-10,23,3,HOT,Smart Factory AI,Dedicated Data Science team. LSS training global.
+Austria,4,Andritz AG,Machinery,Graz,29700,9,10,9,9,8,45,1-10,23,3,HOT,Azure IoT Metris,CI Specialist needs Minitab + LSS BB. Metris on Azure.
+Austria,5,Infineon Austria,Electronics,Villach,5400,10,8,8,9,10,45,1-10,23,3,HOT,Zero Defect,Six Sigma for maintenance. Data-rich environment.
+Austria,6,Red Bull,Food/Bev,Salzburg,13000,9,9,8,8,10,44,1-10,22,3,HOT,LSS at scale,"Lead large-scale Lean Six Sigma projects."
+Austria,7,AT&S,Electronics,Leoben,13000,9,9,9,8,9,44,1-10,22,3,HOT,LSS Consultant,LSS Consultant roles. Minitab usage. Expanding capacity.
+Austria,8,Mondi Group,Paper/Pkg,Vienna,26000,9,10,8,8,8,43,1-10,22,3,HOT,CI Engineer,MyMondi digital platform. CI Engineer roles.
+Austria,9,AVL List,Automotive,Graz,11500,9,9,8,9,8,43,1-10,22,3,HOT,Azure AI/DevOps,OpEx focus. Azure AI pilot. Test data volumes.
+Austria,10,Sandoz Austria,Pharma,Kundl,4000,9,8,9,8,8,42,1-10,21,3,HOT,Post-Novartis window,Biz Process Excellence Specialist. Independent IT buildup.
+Austria,11,ZKW Group,Automotive,Wieselburg,10000,9,9,7,8,8,41,1-10,21,3,HOT,LG subsidiary push,Patent leader. High-tech LED manufacturing.
+Austria,12,Palfinger,Machinery,Bergheim,12350,9,9,7,9,7,41,1-10,21,3,HOT,Azure PALSHOW,Lean Management Leading Company award. Azure platform.
+Austria,13,Sappi Austria,Paper,Gratkorn,0,8,8,8,9,7,40,1-10,20,3,HOT,Honeywell+Azure,Honeywell virtualized control platform.
+Austria,14,Greiner AG,Materials,Kremsmünster,11000,8,9,8,8,7,40,1-10,20,3,HOT,Global Dir OpEx,Global Director OpEx role. Digitization trainee program.
+Austria,15,AMAG Austria Metall,Steel,Ranshofen,2200,8,7,8,9,7,39,1-10,20,3,WARM,Azure SQL Smart,ibaPDA + Azure SQL. Smart factory.
+Austria,16,Takeda Austria,Pharma,Vienna,4500,9,8,7,8,7,39,1-10,20,3,WARM,OpEx Champion,OpEx Champion role. Agile/Lean coaching.
+Austria,17,Wienerberger,Materials,Vienna,19000,8,9,7,7,7,38,1-10,19,3,WARM,LSS BB programs,LSS Black Belt programs. Digital building solutions.
+Austria,18,AMS-OSRAM,Electronics,Premstätten,20000,8,10,7,8,5,38,1-10,19,3,WARM,GenAI ready,GenAI implementation. Strong IT/Cloud.
+Austria,19,Rosenbauer,Machinery,Leonding,4100,8,7,7,8,7,37,1-10,19,3,WARM,Digital fire,System provider. Digital applications.
+Austria,20,Plansee Group,Steel/Metals,Reutte,2500,9,6,7,8,7,37,1-10,19,3,WARM,Head Group OpEx,Laurent Federspiel Head of Group OpEx. Dir Data & AI.
+Austria,21,Boehringer Ingelheim,Pharma,Vienna,3000,9,7,7,7,7,37,1-10,19,3,WARM,Smart Process,Smart Process Design team. BioXcellence.
+Austria,22,Agrana,Food,Vienna,9000,9,8,7,6,6,36,1-10,18,3,WARM,Head OpEx Fruit,Head of OpEx role. LSS Master Black Belt.
+Austria,23,Borealis,Chemicals,Vienna,6000,7,8,7,8,6,36,1-10,18,3,WARM,Azure PostgreSQL,OpEx in job ads. Azure PostgreSQL. Digital focus.
+Austria,24,Octapharma,Pharma,Vienna,11000,8,9,7,6,6,36,1-10,18,3,WARM,Head OpEx LSS BB,Head of OpEx requires LSS BB. Global data focus.
+Austria,25,Stoelzle Glass,Glass,Köflach,3100,8,7,7,6,7,35,1-10,18,3,WARM,CI Leader,CI Leader role. R&D focus.
+Austria,26,ALPLA Group,Materials,Hard,23300,8,10,6,6,5,35,1-10,18,3,WARM,OpEx methodology,Azure DevOps engineer roles. Global QM.
+Austria,27,BMW Motoren Steyr,Automotive,Steyr,4500,8,8,6,8,5,35,1-10,18,3,WARM,Open Mfg Platform,BMW Azure Open Manufacturing Platform.
+Austria,28,Engel Austria,Machinery,Schwertberg,6500,8,8,6,7,5,34,1-10,17,3,WARM,Lean + CI,VP Global Quality Mgmt. Lean Management.
+Austria,29,Miba Group,Automotive,Laakirchen,7500,7,8,7,6,6,34,1-10,17,3,WARM,OpEx maintenance,Group CIO. Digitalization focus.
+Austria,30,FACC AG,Aerospace,Ried,3000,9,6,6,6,6,33,1-10,17,3,WARM,AS9100 aero,Aerospace quality standards. Digital mfg.
+Austria,31,Egger,Wood,St. Johann,11000,7,9,6,6,5,33,1-10,17,3,WARM,Process opt,Sustainable HR. Process optimization.
+Austria,32,Lenzing AG,Materials,Lenzing,8000,7,8,6,6,6,33,1-10,17,3,WARM,VP Global Quality,Sustainable production. Supply chain digital.
+Austria,33,Rauch Fruchtsäfte,Food,Rankweil,2000,7,6,7,6,6,32,1-10,16,3,WARM,Automation CI,Troubleshoot to support CI. Automation roles.
+Austria,34,Fresenius Kabi,Pharma,Graz,1600,8,5,7,6,6,32,1-10,16,3,WARM,LSS Manager,LSS Manager history. Healthcare IT.
+Austria,35,Constantia Flexibles,Materials,Vienna,8500,8,8,6,5,5,32,1-10,16,3,WARM,LSS suppliers,LSS aligned with suppliers. M&A integration.
+Austria,36,Starlinger & Co,Machinery,Vienna,800,7,4,7,6,7,31,1-10,16,3,WARM,CI targets,Continuous improvement targets. IT security focus.
+Austria,37,Bosch Austria,Automotive,Vienna,3000,8,7,5,6,5,31,1-10,16,3,WARM,IoT + Azure,Bosch IoT cloud + Azure partnership.
+Austria,38,Plasser & Theurer,Machinery,Vienna,2000,6,6,6,6,6,30,1-10,15,3,WARM,After-sales data,World leader track machines. Digital tamping.
+Austria,39,Polytec Group,Automotive,Hörsching,3400,7,7,6,5,5,30,1-10,15,3,WARM,VP Operations,Employee skills + productivity focus.
+Austria,40,Zumtobel Group,Electronics,Dornbirn,5800,7,7,5,6,5,30,1-10,15,3,WARM,Efficiency,Smart building technology. Head of Ops.
+Austria,41,Semperit AG,Materials,Vienna,6900,7,8,5,5,4,29,1-10,15,3,COOL,Industrial rubber,Process efficiency. SAP integration.
+Austria,42,Mayr-Melnhof Holz,Wood,Leoben,2000,6,6,6,5,6,29,1-10,15,3,COOL,Sawmill automation,High automation. Digital process control.
+Austria,43,Binderholz,Wood,Fügen,3000,6,7,5,5,5,28,1-10,14,3,COOL,Lean Green,SAP usage. Lean & Green initiatives.
+Austria,44,Donau Chemie,Chemicals,Vienna,900,6,4,6,5,7,28,1-10,14,3,COOL,Water tech CI,CI of environmental protection.
+Austria,45,Hasslacher Norica,Wood,Sachsenburg,1800,6,5,5,5,6,27,1-10,14,3,COOL,Timber innovation,Innovative timber construction.
+Austria,46,S. Spitz,Food,Attnang-Puchheim,700,6,4,6,5,6,27,1-10,14,3,COOL,FMCG efficiency,FMCG requires low waste.
+Austria,47,GL Pharma,Pharma,Lannach,1000,6,4,5,5,6,26,1-10,13,3,COOL,Generic drugs,Cost efficiency focus.
+Austria,48,KTM (Pierer),Automotive,Mattighofen,5000,7,8,4,4,3,26,1-10,13,3,COOL,High-perf mfg,Digital dashboarding.
+Austria,49,Fronius,Electronics,Pettenbach,6700,7,8,4,4,3,26,1-10,13,3,COOL,R&D welding,Solar energy + digital tools.
+Austria,50,Doppelmayr,Machinery,Wolfurt,3000,7,7,4,4,4,26,1-10,13,3,COOL,Ropeway reliability,IT for control systems.
