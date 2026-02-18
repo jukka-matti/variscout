@@ -16,6 +16,13 @@ import { calculateKDE } from '@variscout/core';
 /** Default threshold for high variation highlight (50%) */
 const DEFAULT_VARIATION_THRESHOLD = 50;
 
+/** Map highlight color name to hex fill color */
+const highlightFillColors: Record<string, string> = {
+  red: chartColors.fail,
+  amber: chartColors.warning,
+  green: chartColors.pass,
+};
+
 /**
  * Boxplot Chart - Props-based version
  * Shows distribution comparison across groups
@@ -42,6 +49,8 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
   onXAxisClick,
   xTickFormat,
   showViolin = false,
+  highlightedCategories,
+  onBoxContextMenu,
 }) => {
   // Show contribution bars by default when categoryContributions is provided
   const shouldShowBars = showContributionBars ?? categoryContributions !== undefined;
@@ -190,9 +199,17 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               <Group
                 key={i}
                 onClick={() => onBoxClick?.(d.key)}
+                onContextMenu={
+                  onBoxContextMenu
+                    ? (e: React.MouseEvent) => {
+                        e.preventDefault();
+                        onBoxContextMenu(d.key, e);
+                      }
+                    : undefined
+                }
                 onMouseOver={() => showTooltipAtCoords(x + barWidth, yScale(d.median), d)}
                 onMouseLeave={hideTooltip}
-                className={onBoxClick ? interactionStyles.clickable : ''}
+                className={onBoxClick || onBoxContextMenu ? interactionStyles.clickable : ''}
                 opacity={getOpacity(d.key)}
                 {...getBoxplotA11yProps(
                   d.key,
@@ -294,9 +311,20 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                       y={yScale(d.q3)}
                       width={barWidth}
                       height={Math.abs(yScale(d.q1) - yScale(d.q3))}
-                      fill={isSelected(d.key) ? chartColors.selected : chromeColors.boxDefault}
+                      fill={
+                        highlightedCategories?.[d.key]
+                          ? highlightFillColors[highlightedCategories[d.key]]
+                          : isSelected(d.key)
+                            ? chartColors.selected
+                            : chromeColors.boxDefault
+                      }
+                      fillOpacity={highlightedCategories?.[d.key] ? 0.7 : 1}
                       stroke={
-                        isSelected(d.key) ? chartColors.selectedBorder : chromeColors.boxBorder
+                        highlightedCategories?.[d.key]
+                          ? highlightFillColors[highlightedCategories[d.key]]
+                          : isSelected(d.key)
+                            ? chartColors.selectedBorder
+                            : chromeColors.boxBorder
                       }
                       rx={2}
                     />

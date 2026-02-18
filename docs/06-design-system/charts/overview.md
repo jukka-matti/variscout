@@ -71,6 +71,55 @@ The I-Chart uses a Minitab-style 2-color scheme for clarity:
 
 See [colors.md](colors.md) for implementation details and graded data handling.
 
+## Chart Annotations
+
+Boxplot and Pareto charts support user annotations via right-click context menu.
+
+### Components
+
+| Component               | Package         | Purpose                                     |
+| ----------------------- | --------------- | ------------------------------------------- |
+| `ChartAnnotationLayer`  | `@variscout/ui` | HTML overlay for draggable text annotations |
+| `AnnotationBox`         | `@variscout/ui` | Individual annotation (edit, drag, resize)  |
+| `AnnotationContextMenu` | `@variscout/ui` | Right-click menu (highlight + add note)     |
+
+### Data Types (from `@variscout/hooks`)
+
+```typescript
+type HighlightColor = 'red' | 'amber' | 'green';
+
+interface ChartAnnotation {
+  id: string;
+  anchorCategory: string;
+  text: string;
+  offsetX: number;
+  offsetY: number;
+  width: number;
+  color: 'red' | 'amber' | 'green' | 'neutral';
+}
+```
+
+### Chart Base Props
+
+Both `BoxplotBase` and `ParetoChartBase` accept:
+
+- `highlightedCategories?: Record<string, HighlightColor>` — per-category fill color override
+- `onBoxContextMenu?: (key: string, event: React.MouseEvent) => void` — right-click handler (Boxplot)
+- `onBarContextMenu?: (key: string, event: React.MouseEvent) => void` — right-click handler (Pareto)
+
+### Hook: `useAnnotations`
+
+Shared hook from `@variscout/hooks` managing annotation state:
+
+- `contextMenu` state (open, position, category, chart type)
+- `handleContextMenu(chartType, key, event)` — opens context menu
+- `setHighlight(chartType, key, color)` — direct color setting
+- `createAnnotation(chartType, key)` — creates text annotation
+- `clearAnnotations(chartType)` — clears all for a chart
+- Data fingerprint offset reset (annotations snap back on data changes)
+
+---
+
 ## Common Elements
 
 ### Spec Limit Lines

@@ -5,16 +5,19 @@
  * 1. Gets data from DataContext via useData()
  * 2. Computes BoxplotGroupData[] from filtered data
  * 3. Manages Azure-specific UI (axis label editing)
- * 4. Passes everything to shared BoxplotBase
+ * 4. Supports annotations (highlight colors + text overlay via right-click)
+ * 5. Passes everything to shared BoxplotBase
  */
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
-import { BoxplotBase } from '@variscout/charts';
+import { BoxplotBase, getResponsiveMargins, getScaledFonts } from '@variscout/charts';
+import { ChartAnnotationLayer } from '@variscout/ui';
 import { useBoxplotData } from '@variscout/hooks';
 import { sortBoxplotData } from '@variscout/core';
 import AxisEditor from '../AxisEditor';
+import type { HighlightColor, ChartAnnotation } from '@variscout/hooks';
 
 interface BoxplotProps {
   factor: string;
@@ -23,6 +26,11 @@ interface BoxplotProps {
   onDrillDown?: (factor: string, value: string) => void;
   variationPct?: number;
   categoryContributions?: Map<string | number, number>;
+  // Annotation support
+  highlightedCategories?: Record<string, HighlightColor>;
+  onContextMenu?: (key: string, event: React.MouseEvent) => void;
+  annotations?: ChartAnnotation[];
+  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
 }
 
 const Boxplot = ({
@@ -32,6 +40,10 @@ const Boxplot = ({
   onDrillDown,
   variationPct,
   categoryContributions,
+  highlightedCategories,
+  onContextMenu,
+  annotations = [],
+  onAnnotationsChange,
 }: BoxplotProps) => {
   const {
     filteredData,
@@ -74,11 +86,33 @@ const Boxplot = ({
     }
   };
 
+  // Compute category positions for annotation layer
+  const categoryPositions = useMemo(() => {
+    const positions = new Map<string, { x: number; y: number }>();
+    if (data.length === 0 || parentWidth === 0) return positions;
+
+    const margin = getResponsiveMargins(parentWidth, 'boxplot');
+    const chartWidth = parentWidth - margin.left - margin.right;
+    const padding = 0.4;
+    const step = chartWidth / data.length;
+    const bandwidth = step * (1 - padding);
+    const offset = (step * padding) / 2;
+
+    for (const d of data) {
+      const idx = data.indexOf(d);
+      const x = margin.left + idx * step + offset + bandwidth / 2;
+      const y = margin.top;
+      positions.set(d.key, { x, y });
+    }
+    return positions;
+  }, [data, parentWidth]);
+
   if (!outcome || data.length === 0) return null;
 
   const alias = columnAliases[factor] || factor;
   const factorLabels = valueLabels[factor] || {};
   const selectedGroups = (filters[factor] || []).map(String);
+  const fonts = getScaledFonts(parentWidth);
 
   return (
     <div className="relative w-full h-full">
@@ -101,7 +135,22 @@ const Boxplot = ({
         onYAxisClick={() => setIsEditingLabel(true)}
         onXAxisClick={() => setIsEditingLabel(true)}
         xTickFormat={(val: string) => factorLabels[val] || val}
+        highlightedCategories={highlightedCategories}
+        onBoxContextMenu={onContextMenu}
       />
+
+      {/* Annotation text overlay — always active (no mode toggle) */}
+      {annotations.length > 0 && onAnnotationsChange && (
+        <ChartAnnotationLayer
+          annotations={annotations}
+          onAnnotationsChange={onAnnotationsChange}
+          isActive={true}
+          categoryPositions={categoryPositions}
+          maxWidth={parentWidth * 0.7}
+          textColor="#cbd5e1"
+          fontSize={fonts.statLabel}
+        />
+      )}
 
       {isEditingLabel && (
         <AxisEditor

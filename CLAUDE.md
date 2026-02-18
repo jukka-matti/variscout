@@ -212,6 +212,9 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/hooks/src/useDataState.ts`                   | Shared DataContext state (used by PWA & Azure)                            |
 | `packages/hooks/src/useBoxplotData.ts`                 | Shared boxplot d3 computation hook                                        |
 | `packages/hooks/src/useIChartData.ts`                  | Shared I-Chart data transform hook                                        |
+| `packages/hooks/src/useAnnotationMode.ts`              | Chart annotation state (highlights, text notes, context menu)             |
+| `packages/ui/src/components/ChartAnnotationLayer/`     | Draggable text annotation overlay for charts                              |
+| `packages/ui/src/components/AnnotationContextMenu/`    | Right-click menu for chart annotations (highlight + add note)             |
 | `apps/pwa/src/hooks/useDashboardCharts.ts`             | PWA dashboard chart state                                                 |
 | `apps/azure/src/hooks/useDashboardCharts.ts`           | Azure dashboard chart state (categoryContributions)                       |
 | `apps/pwa/src/context/DataContext.tsx`                 | Central state management                                                  |

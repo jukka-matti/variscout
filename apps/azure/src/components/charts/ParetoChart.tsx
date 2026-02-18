@@ -7,14 +7,22 @@
  * 3. Handles comparison mode (ghost bars via comparisonData)
  * 4. Handles separate Pareto file data
  * 5. Manages Azure-specific UI (toggle buttons, axis label editing)
- * 6. Passes everything to shared ParetoChartBase
+ * 6. Supports annotations (highlight colors + text overlay via right-click)
+ * 7. Passes everything to shared ParetoChartBase
  */
 import React, { useMemo, useState } from 'react';
 import { withParentSize } from '@visx/responsive';
 import * as d3 from 'd3';
 import { useData } from '../../context/DataContext';
-import { ParetoChartBase, type ParetoDataPoint } from '@variscout/charts';
+import {
+  ParetoChartBase,
+  type ParetoDataPoint,
+  getResponsiveMargins,
+  getScaledFonts,
+} from '@variscout/charts';
+import { ChartAnnotationLayer } from '@variscout/ui';
 import AxisEditor from '../AxisEditor';
+import type { HighlightColor, ChartAnnotation } from '@variscout/hooks';
 
 import { Eye, EyeOff, Hash, Sigma, Info } from 'lucide-react';
 
@@ -31,6 +39,11 @@ interface ParetoChartProps {
   aggregation?: 'count' | 'value';
   /** Callback to toggle aggregation mode */
   onToggleAggregation?: () => void;
+  // Annotation support
+  highlightedCategories?: Record<string, HighlightColor>;
+  onContextMenu?: (key: string, event: React.MouseEvent) => void;
+  annotations?: ChartAnnotation[];
+  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
 }
 
 const ParetoChart = ({
@@ -42,6 +55,10 @@ const ParetoChart = ({
   onToggleComparison,
   aggregation = 'count',
   onToggleAggregation,
+  highlightedCategories,
+  onContextMenu,
+  annotations = [],
+  onAnnotationsChange,
 }: ParetoChartProps) => {
   const {
     rawData,
@@ -139,6 +156,27 @@ const ParetoChart = ({
     return expectedValues;
   }, [comparisonData, totalCount]);
 
+  // Compute category positions for annotation layer
+  const categoryPositions = useMemo(() => {
+    const positions = new Map<string, { x: number; y: number }>();
+    if (data.length === 0 || parentWidth === 0) return positions;
+
+    const margin = getResponsiveMargins(parentWidth, 'pareto');
+    const chartWidth = parentWidth - margin.left - margin.right;
+    const padding = 0.2;
+    const step = chartWidth / data.length;
+    const bandwidth = step * (1 - padding);
+    const offset = (step * padding) / 2;
+
+    for (let i = 0; i < data.length; i++) {
+      const d = data[i];
+      const x = margin.left + i * step + offset + bandwidth / 2;
+      const y = margin.top;
+      positions.set(d.key, { x, y });
+    }
+    return positions;
+  }, [data, parentWidth]);
+
   const handleBarClick = (key: string) => {
     if (onDrillDown) {
       onDrillDown(factor, key);
@@ -164,6 +202,7 @@ const ParetoChart = ({
     aggregation === 'value' && outcome ? columnAliases[outcome] || outcome : 'Count';
   const xAxisLabel = columnAliases[factor] || factor;
   const selectedBars = (filters[factor] || []).map(String);
+  const fonts = getScaledFonts(parentWidth);
 
   return (
     <div className="relative w-full h-full">
@@ -225,6 +264,8 @@ const ParetoChart = ({
         onYAxisClick={() => setEditingAxis(aggregation === 'value' ? outcome || 'Count' : 'Count')}
         onXAxisClick={() => setEditingAxis(factor)}
         comparisonData={ghostBarData}
+        highlightedCategories={highlightedCategories}
+        onBarContextMenu={onContextMenu}
         tooltipContent={d => {
           const filteredPct = (d.value / totalCount) * 100;
           const fullPct = comparisonData?.get(d.key) || 0;
@@ -260,6 +301,19 @@ const ParetoChart = ({
           );
         }}
       />
+
+      {/* Annotation text overlay — always active (no mode toggle) */}
+      {annotations.length > 0 && onAnnotationsChange && (
+        <ChartAnnotationLayer
+          annotations={annotations}
+          onAnnotationsChange={onAnnotationsChange}
+          isActive={true}
+          categoryPositions={categoryPositions}
+          maxWidth={parentWidth * 0.7}
+          textColor="#cbd5e1"
+          fontSize={fonts.statLabel}
+        />
+      )}
 
       {editingAxis && (
         <AxisEditor

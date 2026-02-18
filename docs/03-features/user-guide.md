@@ -306,6 +306,41 @@ You can always override these suggestions in the column mapping screen.
 
 ---
 
+## Annotating Charts
+
+You can highlight boxplot boxes and pareto bars with colors and add text notes — useful for marking findings before exporting charts for reports.
+
+### Highlighting a Category
+
+1. **Right-click** any boxplot box or pareto bar
+2. A context menu appears with color options: Red, Amber, Green
+3. **Click a color** to apply the highlight — the box/bar fills with that color
+4. To remove a highlight, right-click and choose **Clear highlight**
+
+### Adding a Text Note
+
+1. **Right-click** the box/bar you want to annotate
+2. Click **"+ Add note"** in the context menu
+3. A text box appears anchored to that category
+4. **Click the text** to edit it — type your note, then click away to save
+5. **Drag the text box** to reposition it relative to the anchor
+6. **Drag the right edge** to resize the width
+7. **Hover** and click **×** to delete the note
+
+### Clearing All Annotations
+
+- Each chart card shows a small **×** button in the header when annotations exist
+- Click it to clear all highlights and text notes for that chart
+
+### Important Behavior
+
+- **Left-click always does drill-down** — annotations don't interfere with normal navigation
+- When you filter, sort, or drill-down, text notes **snap back to their default position** (offsets reset)
+- Notes are **hidden** when their anchor category is filtered out
+- Annotations appear in **copy-to-clipboard** chart images (PNG)
+
+---
+
 ## Point Selection (Brushing)
 
 You can select points directly on the I-Chart to create ad-hoc grouping factors.

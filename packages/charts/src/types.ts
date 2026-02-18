@@ -16,6 +16,9 @@ import type {
   ChartFonts,
 } from '@variscout/core';
 
+/** Highlight color for annotated chart elements */
+export type HighlightColor = 'red' | 'amber' | 'green';
+
 // Re-export types from core for convenience
 export type {
   SpecLimits,
@@ -152,6 +155,10 @@ export interface BoxplotProps extends BaseChartProps {
   xTickFormat?: (value: string) => string;
   /** Show violin (density) overlay behind box elements (default: false) */
   showViolin?: boolean;
+  /** Highlighted categories with annotation colors (category key → color) */
+  highlightedCategories?: Record<string, HighlightColor>;
+  /** Callback when a box is right-clicked (for annotation context menu) */
+  onBoxContextMenu?: (key: string, event: React.MouseEvent) => void;
 }
 
 /**
@@ -188,6 +195,10 @@ export interface ParetoChartProps extends BaseChartProps {
   comparisonData?: Map<string, number>;
   /** Custom tooltip content renderer. Replaces default tooltip when provided. */
   tooltipContent?: (data: ParetoDataPoint) => React.ReactNode;
+  /** Highlighted categories with annotation colors (category key → color) */
+  highlightedCategories?: Record<string, HighlightColor>;
+  /** Callback when a bar is right-clicked (for annotation context menu) */
+  onBarContextMenu?: (key: string, event: React.MouseEvent) => void;
 }
 
 /**

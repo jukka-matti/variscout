@@ -8,6 +8,7 @@
 
 // Types
 export type {
+  HighlightColor,
   BaseChartProps,
   SpecLimits,
   StagedStatsResult,

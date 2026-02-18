@@ -200,6 +200,21 @@ export {
   type BoxplotDisplayToggleColorScheme,
 } from './components/BoxplotDisplayToggle';
 
+export {
+  ChartAnnotationLayer,
+  AnnotationBox,
+  annotationColors,
+  type ChartAnnotationLayerProps,
+  type ChartAnnotation as UIChartAnnotation,
+  type HighlightColor as UIHighlightColor,
+  type AnnotationColorDef,
+} from './components/ChartAnnotationLayer';
+
+export {
+  AnnotationContextMenu,
+  type AnnotationContextMenuProps,
+} from './components/AnnotationContextMenu';
+
 // Services
 export {
   errorService,

@@ -295,6 +295,27 @@ PerformanceBoxplotBase (renders SVG)
 
 ## Interactions
 
+### Right-Click Annotations
+
+Standard Boxplot supports annotations via right-click context menu:
+
+```tsx
+// App wrapper wires right-click to annotation system
+<BoxplotBase
+  data={data}
+  specs={specs}
+  onBoxClick={handleClick} // left-click → drill-down (always)
+  onBoxContextMenu={handleRightClick} // right-click → annotation menu
+  highlightedCategories={highlights} // per-box fill color override
+/>
+```
+
+When `highlightedCategories` is provided, matching boxes use the highlight fill color instead of the default. Available colors: `red`, `amber`, `green` (from `HighlightColor` type in `@variscout/hooks`).
+
+Text annotations are rendered by `ChartAnnotationLayer` (from `@variscout/ui`) as an HTML overlay positioned above the SVG chart. The layer is always active — no mode toggle needed.
+
+See [Chart Annotations](./overview.md#chart-annotations) for full component details.
+
 ### Click Behavior
 
 Both variants support click-based selection:

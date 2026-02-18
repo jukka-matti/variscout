@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -24,9 +24,11 @@ import {
   filterContextBarAzureColorScheme,
   BoxplotDisplayToggle,
   boxplotDisplayToggleAzureColorScheme,
+  AnnotationContextMenu,
 } from '@variscout/ui';
 import { getColumnNames, createFactorFromSelection } from '@variscout/core';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
+import { useAnnotations } from '@variscout/hooks';
 import {
   Activity,
   BarChart3,
@@ -39,6 +41,7 @@ import {
   ArrowLeft,
   Copy,
   Check,
+  X,
 } from 'lucide-react';
 
 type DashboardTab = 'analysis' | 'regression' | 'performance';
@@ -129,6 +132,33 @@ const Dashboard = ({
     handleDrillDown,
     handleChartTitleChange,
   } = useDashboardCharts({ externalFilterNav });
+
+  // Annotations (right-click context menu, no mode toggle)
+  const dataFingerprint = useMemo(
+    () =>
+      `${filteredData.length}-${JSON.stringify(filters)}-${displayOptions.boxplotSortBy}-${displayOptions.boxplotSortDirection}`,
+    [
+      filteredData.length,
+      filters,
+      displayOptions.boxplotSortBy,
+      displayOptions.boxplotSortDirection,
+    ]
+  );
+  const {
+    hasAnnotations,
+    clearAnnotations,
+    contextMenu,
+    handleContextMenu,
+    closeContextMenu,
+    boxplotHighlights,
+    paretoHighlights,
+    setHighlight,
+    boxplotAnnotations,
+    paretoAnnotations,
+    createAnnotation,
+    setBoxplotAnnotations,
+    setParetoAnnotations,
+  } = useAnnotations({ displayOptions, setDisplayOptions, dataFingerprint });
 
   // Keyboard: clear selection on Escape (complement to hook's focused-mode ESC)
   useEffect(() => {
@@ -490,6 +520,16 @@ const Dashboard = ({
                           }
                           colorScheme={boxplotDisplayToggleAzureColorScheme}
                         />
+                        {hasAnnotations && (
+                          <button
+                            onClick={() => clearAnnotations('boxplot')}
+                            className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-slate-700 transition-colors"
+                            title="Clear boxplot annotations"
+                            aria-label="Clear boxplot annotations"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleCopyChart('boxplot-card', 'boxplot')}
                           className={`p-1.5 rounded transition-all ${
@@ -527,6 +567,10 @@ const Dashboard = ({
                             onDrillDown={handleDrillDown}
                             variationPct={factorVariations.get(boxplotFactor)}
                             categoryContributions={categoryContributions?.get(boxplotFactor)}
+                            highlightedCategories={boxplotHighlights}
+                            onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
+                            annotations={boxplotAnnotations}
+                            onAnnotationsChange={setBoxplotAnnotations}
                           />
                         )}
                       </ErrorBoundary>
@@ -554,6 +598,17 @@ const Dashboard = ({
                           onChange={setParetoFactor}
                           hasActiveFilter={!!filters?.[paretoFactor]?.length}
                         />
+                        {((paretoHighlights && Object.keys(paretoHighlights).length > 0) ||
+                          paretoAnnotations.length > 0) && (
+                          <button
+                            onClick={() => clearAnnotations('pareto')}
+                            className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-slate-700 transition-colors"
+                            title="Clear pareto annotations"
+                            aria-label="Clear pareto annotations"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleCopyChart('pareto-card', 'pareto')}
                           className={`p-1.5 rounded transition-all ${
@@ -599,6 +654,10 @@ const Dashboard = ({
                                 paretoAggregation === 'count' ? 'value' : 'count'
                               )
                             }
+                            highlightedCategories={paretoHighlights}
+                            onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+                            annotations={paretoAnnotations}
+                            onAnnotationsChange={setParetoAnnotations}
                           />
                         )}
                       </ErrorBoundary>
@@ -708,6 +767,29 @@ const Dashboard = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* Annotation Context Menu (right-click on boxplot/pareto elements) */}
+      {contextMenu.isOpen && (
+        <AnnotationContextMenu
+          categoryKey={contextMenu.categoryKey}
+          currentHighlight={
+            contextMenu.chartType === 'boxplot'
+              ? boxplotHighlights[contextMenu.categoryKey]
+              : paretoHighlights[contextMenu.categoryKey]
+          }
+          hasAnnotation={
+            contextMenu.chartType === 'boxplot'
+              ? boxplotAnnotations.some(a => a.anchorCategory === contextMenu.categoryKey)
+              : paretoAnnotations.some(a => a.anchorCategory === contextMenu.categoryKey)
+          }
+          position={contextMenu.position}
+          onSetHighlight={color =>
+            setHighlight(contextMenu.chartType, contextMenu.categoryKey, color)
+          }
+          onAddNote={() => createAnnotation(contextMenu.chartType, contextMenu.categoryKey)}
+          onClose={closeContextMenu}
+        />
       )}
     </div>
   );

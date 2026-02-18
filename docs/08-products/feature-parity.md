@@ -69,6 +69,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Focus mode (fullscreen chart)** |     ✓     |     ✓      |                                                             |
 | **Median in Stats Panel**         |     ✓     |     ✓      | Always shown alongside Mean                                 |
 | **Inline spec inputs (Stats)**    |     ✓     |     ✓      | `onSaveSpecs` prop; Target-first progressive disclosure     |
+| **Chart annotations**             |     ✓     |     ✓      | Right-click context menu: highlight colors + text notes     |
 
 ---
 

@@ -79,6 +79,30 @@ export interface DataContextInterface {
 }
 
 // ============================================================================
+// Annotation Types
+// ============================================================================
+
+/** Highlight color for annotated chart elements */
+export type HighlightColor = 'red' | 'amber' | 'green';
+
+/** A text annotation anchored to a chart category */
+export interface ChartAnnotation {
+  id: string;
+  /** Category key this annotation is anchored to */
+  anchorCategory: string;
+  /** User's note text */
+  text: string;
+  /** Pixel offset from anchor default position (resets on data change) */
+  offsetX: number;
+  /** Pixel offset from anchor default position (resets on data change) */
+  offsetY: number;
+  /** Width of the text box in pixels */
+  width: number;
+  /** Color of the annotation box */
+  color: HighlightColor | 'neutral';
+}
+
+// ============================================================================
 // Persistence Types - For shared DataContext hook
 // ============================================================================
 
@@ -100,6 +124,14 @@ export interface DisplayOptions {
   boxplotSortBy?: BoxplotSortBy;
   /** Boxplot category sort direction (default: 'asc') */
   boxplotSortDirection?: BoxplotSortDirection;
+  /** Highlighted boxplot categories (category key → color) */
+  boxplotHighlights?: Record<string, HighlightColor>;
+  /** Highlighted pareto categories (category key → color) */
+  paretoHighlights?: Record<string, HighlightColor>;
+  /** Text annotations anchored to boxplot categories */
+  boxplotAnnotations?: ChartAnnotation[];
+  /** Text annotations anchored to pareto categories */
+  paretoAnnotations?: ChartAnnotation[];
 }
 
 /**

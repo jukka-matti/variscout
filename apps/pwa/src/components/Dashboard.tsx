@@ -18,9 +18,10 @@ import {
   SelectionPanel,
   CreateFactorModal,
   BoxplotDisplayToggle,
+  AnnotationContextMenu,
   useIsMobile,
 } from '@variscout/ui';
-import { useKeyboardNavigation } from '@variscout/hooks';
+import { useKeyboardNavigation, useAnnotations } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import {
@@ -32,6 +33,7 @@ import {
   Check,
   Maximize2,
   Layers,
+  X,
 } from 'lucide-react';
 import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '@variscout/core';
 
@@ -114,6 +116,33 @@ const Dashboard = ({
 
   // Modal state for Create Factor
   const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
+
+  // Annotations (right-click context menu, no mode toggle)
+  const dataFingerprint = useMemo(
+    () =>
+      `${filteredData.length}-${JSON.stringify(filters)}-${displayOptions.boxplotSortBy}-${displayOptions.boxplotSortDirection}`,
+    [
+      filteredData.length,
+      filters,
+      displayOptions.boxplotSortBy,
+      displayOptions.boxplotSortDirection,
+    ]
+  );
+  const {
+    hasAnnotations,
+    clearAnnotations,
+    contextMenu,
+    handleContextMenu,
+    closeContextMenu,
+    boxplotHighlights,
+    paretoHighlights,
+    setHighlight,
+    boxplotAnnotations,
+    paretoAnnotations,
+    createAnnotation,
+    setBoxplotAnnotations,
+    setParetoAnnotations,
+  } = useAnnotations({ displayOptions, setDisplayOptions, dataFingerprint });
 
   // Use the consolidated chart state hook
   const {
@@ -654,6 +683,16 @@ const Dashboard = ({
                             })
                           }
                         />
+                        {hasAnnotations && (
+                          <button
+                            onClick={() => clearAnnotations('boxplot')}
+                            className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
+                            title="Clear boxplot annotations"
+                            aria-label="Clear boxplot annotations"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleCopyChart('boxplot-card', 'boxplot')}
                           className={`p-1.5 rounded transition-all ${
@@ -691,6 +730,10 @@ const Dashboard = ({
                             variationPct={factorVariations.get(boxplotFactor)}
                             categoryContributions={categoryContributions?.get(boxplotFactor)}
                             showBranding={false}
+                            highlightedCategories={boxplotHighlights}
+                            onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
+                            annotations={boxplotAnnotations}
+                            onAnnotationsChange={setBoxplotAnnotations}
                           />
                         )}
                       </ErrorBoundary>
@@ -725,6 +768,17 @@ const Dashboard = ({
                             onChange={setParetoFactor}
                             hasActiveFilter={!!filters?.[paretoFactor]?.length}
                           />
+                          {((paretoHighlights && Object.keys(paretoHighlights).length > 0) ||
+                            paretoAnnotations.length > 0) && (
+                            <button
+                              onClick={() => clearAnnotations('pareto')}
+                              className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
+                              title="Clear pareto annotations"
+                              aria-label="Clear pareto annotations"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
                           <button
                             onClick={() => handleCopyChart('pareto-card', 'pareto')}
                             className={`p-1.5 rounded transition-all ${
@@ -772,6 +826,12 @@ const Dashboard = ({
                                 )
                               }
                               showBranding={false}
+                              highlightedCategories={paretoHighlights}
+                              onContextMenu={(key, event) =>
+                                handleContextMenu('pareto', key, event)
+                              }
+                              annotations={paretoAnnotations}
+                              onAnnotationsChange={setParetoAnnotations}
                             />
                           )}
                         </ErrorBoundary>
@@ -835,6 +895,29 @@ const Dashboard = ({
             />
           )}
         </div>
+      )}
+
+      {/* Annotation Context Menu (right-click on boxplot/pareto elements) */}
+      {contextMenu.isOpen && (
+        <AnnotationContextMenu
+          categoryKey={contextMenu.categoryKey}
+          currentHighlight={
+            contextMenu.chartType === 'boxplot'
+              ? boxplotHighlights[contextMenu.categoryKey]
+              : paretoHighlights[contextMenu.categoryKey]
+          }
+          hasAnnotation={
+            contextMenu.chartType === 'boxplot'
+              ? boxplotAnnotations.some(a => a.anchorCategory === contextMenu.categoryKey)
+              : paretoAnnotations.some(a => a.anchorCategory === contextMenu.categoryKey)
+          }
+          position={contextMenu.position}
+          onSetHighlight={color =>
+            setHighlight(contextMenu.chartType, contextMenu.categoryKey, color)
+          }
+          onAddNote={() => createAnnotation(contextMenu.chartType, contextMenu.categoryKey)}
+          onClose={closeContextMenu}
+        />
       )}
 
       {/* Spec Editor Popover */}

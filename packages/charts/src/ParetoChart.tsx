@@ -13,6 +13,13 @@ import { useChartLayout, useChartTooltip, useSelectionState } from './hooks';
 import { interactionStyles } from './styles/interactionStyles';
 import { getBarA11yProps, getInteractiveA11yProps } from './utils/accessibility';
 
+/** Map highlight color name to hex fill color */
+const highlightFillColors: Record<string, string> = {
+  red: chartColors.fail,
+  amber: chartColors.warning,
+  green: chartColors.pass,
+};
+
 /**
  * Pareto Chart - Props-based version
  * Shows frequency analysis with cumulative percentage line
@@ -32,6 +39,8 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
   onXAxisClick,
   comparisonData,
   tooltipContent,
+  highlightedCategories,
+  onBarContextMenu,
 }) => {
   const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
     parentWidth,
@@ -108,14 +117,29 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
               y={yScale(d.value)}
               width={xScale.bandwidth()}
               height={height - yScale(d.value)}
-              fill={isSelected(d.key) ? chartColors.selected : chromeColors.boxDefault}
+              fill={
+                highlightedCategories?.[d.key]
+                  ? highlightFillColors[highlightedCategories[d.key]]
+                  : isSelected(d.key)
+                    ? chartColors.selected
+                    : chromeColors.boxDefault
+              }
+              fillOpacity={highlightedCategories?.[d.key] ? 0.7 : 1}
               rx={4}
               onClick={() => onBarClick?.(d.key)}
+              onContextMenu={
+                onBarContextMenu
+                  ? (e: React.MouseEvent) => {
+                      e.preventDefault();
+                      onBarContextMenu(d.key, e);
+                    }
+                  : undefined
+              }
               onMouseOver={() =>
                 showTooltipAtCoords((xScale(d.key) || 0) + xScale.bandwidth(), yScale(d.value), d)
               }
               onMouseLeave={hideTooltip}
-              className={onBarClick ? interactionStyles.clickable : ''}
+              className={onBarClick || onBarContextMenu ? interactionStyles.clickable : ''}
               opacity={getOpacity(d.key)}
               {...getBarA11yProps(d.key, d.value, onBarClick ? () => onBarClick(d.key) : undefined)}
             />

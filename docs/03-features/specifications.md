@@ -410,15 +410,59 @@ Once specs are entered and the field loses focus (on blur), the inline area tran
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 7. Export
+### 7. Chart Annotations
+
+Analysts can mark boxplot boxes and pareto bars with highlight colors and add text annotations for reports — all via right-click context menu.
+
+**Right-Click Context Menu:**
+
+Right-click any boxplot box or pareto bar to open the annotation context menu:
+
+```
+┌────────────────────────┐
+│  ● Red highlight       │
+│  ● Amber highlight     │
+│  ● Green highlight     │
+│  ○ Clear highlight     │
+│  ─────────────────     │
+│  + Add note            │
+└────────────────────────┘
+```
+
+- **Highlight colors**: Mark categories with red, amber, or green fill
+- **Add note**: Creates a text annotation anchored to that category
+- **Clear highlight**: Removes the highlight color
+- Left-click always does drill-down (unchanged)
+
+**Text Annotations:**
+
+- Click text to edit (contentEditable)
+- Drag body to reposition (offset from anchor)
+- Drag right edge to resize width
+- Hover to reveal delete button (×) and color dots
+- Click outside to deselect
+
+**Data Change Behavior:**
+
+- Filter, sort, or drill-down → annotation offsets reset to (0, 0) (snap back to anchor)
+- Hidden if anchor category is filtered out
+
+**Clear All:**
+
+- Small × button in chart card header (visible when annotations exist for that chart)
+- Clears both highlights and text annotations for the specific chart
+
+**Available in:** Both PWA and Azure App.
+
+### 8. Export
 
 **Implemented:**
 
-- PNG (individual charts or dashboard)
+- PNG (individual charts or dashboard, includes annotations)
 - CSV (with spec status column)
 - .vrs project files (JSON format)
 
-### 8. Branding (Implemented)
+### 9. Branding (Implemented)
 
 **Chart Footer Source Bar:**
 
@@ -436,7 +480,7 @@ Once specs are entered and the field loses focus (on blur), the inline area tran
 - Visible in free tier
 - Hidden for paid tiers (`isPaidTier()` from `@variscout/core/tier`)
 
-### 9. Statistical Tooltips
+### 10. Statistical Tooltips
 
 Comprehensive hover tooltips explain statistical terms throughout the app. Hover over any metric label or the help icon (?) to see a plain-language explanation.
 
@@ -464,7 +508,7 @@ UCL: "Upper Control Limit. Points above this indicate special cause
 
 **Design:** Tooltips appear on hover/tap with minimal delay. Uses HelpCircle icon next to terms. No clutter when not engaged.
 
-### 10. Control Violation Explanations & Special Cause Education
+### 11. Control Violation Explanations & Special Cause Education
 
 **Purpose:** Help users understand why points are flagged red (special cause variation) in control charts, supporting the core SPC learning journey from common vs. special cause distinction.
 
@@ -536,7 +580,7 @@ Matches Minitab, QI Macros, and Six Sigma tool patterns:
 - Data table annotations
 - Pattern highlighting for Nelson rules
 
-### 11. Embed Mode & Deep Linking
+### 12. Embed Mode & Deep Linking
 
 The PWA supports URL parameters for embedding in website case studies or sharing specific analyses.
 

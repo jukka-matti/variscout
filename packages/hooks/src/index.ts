@@ -27,6 +27,8 @@ export type {
   DataQualityReport,
   ParetoRow,
   ScaleMode,
+  HighlightColor,
+  ChartAnnotation,
 } from './types';
 
 // Data State Hook (shared DataContext logic)
@@ -152,3 +154,6 @@ export { useResizablePanel, type UseResizablePanelReturn } from './useResizableP
 // Chart Data Hooks (shared computation for app wrappers)
 export { useBoxplotData } from './useBoxplotData';
 export { useIChartData } from './useIChartData';
+
+// Annotations (right-click context menu)
+export { useAnnotations, useAnnotationMode } from './useAnnotationMode';

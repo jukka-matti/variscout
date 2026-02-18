@@ -448,6 +448,8 @@ import { filterBreadcrumbAzureColorScheme } from '@variscout/ui';
 | `CapabilityHistogram`         | ✓    | default, azure              | ✓                                         |
 | `ProbabilityPlot`             | ✓    | default, azure              | ✓                                         |
 | `BoxplotDisplayToggle`        | ✓    | default, azure              | Popover with checkboxes + sort controls   |
+| `ChartAnnotationLayer`        | ✓    | -                           | HTML overlay for draggable text notes     |
+| `AnnotationContextMenu`       | ✓    | -                           | Right-click menu (highlight + add note)   |
 
 ### Base Components with Render Props
 
@@ -466,6 +468,70 @@ Some components use render props to delegate app-specific rendering:
 ```
 
 See [Colors > Shared Component Color Schemes](../../06-design-system/foundations/colors.md#shared-component-color-schemes) for the complete color mapping.
+
+---
+
+## useAnnotations
+
+**Manages chart annotation state (highlights + text notes) via right-click context menu.**
+
+### Input
+
+| Parameter           | Type                             | Description                                |
+| ------------------- | -------------------------------- | ------------------------------------------ |
+| `displayOptions`    | `DisplayOptions`                 | Current display options state              |
+| `setDisplayOptions` | `(opts: DisplayOptions) => void` | Setter for display options                 |
+| `dataFingerprint`   | `string`                         | Changes when data changes (resets offsets) |
+
+### Output
+
+| Property                | Type                                           | Description                         |
+| ----------------------- | ---------------------------------------------- | ----------------------------------- |
+| `contextMenu`           | `{ isOpen, position, categoryKey, chartType }` | Context menu state                  |
+| `handleContextMenu`     | `(chartType, key, event) => void`              | Opens context menu                  |
+| `closeContextMenu`      | `() => void`                                   | Closes context menu                 |
+| `setHighlight`          | `(chartType, key, color?) => void`             | Sets/clears highlight color         |
+| `createAnnotation`      | `(chartType, key) => void`                     | Creates text annotation             |
+| `setBoxplotAnnotations` | `(annotations: ChartAnnotation[]) => void`     | Updates boxplot annotations         |
+| `setParetoAnnotations`  | `(annotations: ChartAnnotation[]) => void`     | Updates pareto annotations          |
+| `clearAnnotations`      | `(chartType) => void`                          | Clears all for chart type           |
+| `hasAnnotations`        | `boolean`                                      | Any annotations or highlights exist |
+
+### Usage Example
+
+```tsx
+const {
+  contextMenu,
+  handleContextMenu,
+  closeContextMenu,
+  setHighlight,
+  createAnnotation,
+  clearAnnotations,
+  hasAnnotations,
+} = useAnnotations({ displayOptions, setDisplayOptions, dataFingerprint });
+
+// Wire to chart wrapper
+<BoxplotBase onBoxContextMenu={(key, e) => handleContextMenu('boxplot', key, e)} />;
+
+// Render context menu
+{
+  contextMenu.isOpen && (
+    <AnnotationContextMenu
+      categoryKey={contextMenu.categoryKey}
+      position={contextMenu.position}
+      onSetHighlight={color => {
+        setHighlight(contextMenu.chartType, contextMenu.categoryKey, color);
+        closeContextMenu();
+      }}
+      onAddNote={() => {
+        createAnnotation(contextMenu.chartType, contextMenu.categoryKey);
+        closeContextMenu();
+      }}
+      onClose={closeContextMenu}
+    />
+  );
+}
+```
 
 ---
 
