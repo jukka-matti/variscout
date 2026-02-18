@@ -70,4 +70,69 @@ describe('ColumnMapping', () => {
       expect(screen.getByText('4/6 selected')).toBeTruthy();
     });
   });
+
+  describe('optional specs section', () => {
+    it('shows collapsed specs section by default', () => {
+      render(<ColumnMapping {...defaultProps} />);
+
+      expect(screen.getByText('Set Specification Limits')).toBeTruthy();
+      // Specs inputs should not be visible yet
+      expect(screen.queryByTestId('specs-section')).toBeNull();
+    });
+
+    it('expands specs section on click', () => {
+      render(<ColumnMapping {...defaultProps} />);
+
+      fireEvent.click(screen.getByText('Set Specification Limits'));
+
+      // Specs section should now be visible
+      expect(screen.getByTestId('specs-section')).toBeTruthy();
+      expect(screen.getByLabelText('Target specification')).toBeTruthy();
+      expect(screen.getByLabelText('LSL specification')).toBeTruthy();
+      expect(screen.getByLabelText('USL specification')).toBeTruthy();
+    });
+
+    it('passes specs to onConfirm when values are entered', () => {
+      const onConfirm = vi.fn();
+      render(<ColumnMapping {...defaultProps} onConfirm={onConfirm} />);
+
+      // Expand specs
+      fireEvent.click(screen.getByText('Set Specification Limits'));
+
+      // Enter spec values
+      fireEvent.change(screen.getByLabelText('Target specification'), { target: { value: '10' } });
+      fireEvent.change(screen.getByLabelText('LSL specification'), { target: { value: '8' } });
+      fireEvent.change(screen.getByLabelText('USL specification'), { target: { value: '12' } });
+
+      // Click Start Analysis
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], { target: 10, lsl: 8, usl: 12 });
+    });
+
+    it('passes undefined specs when no values entered', () => {
+      const onConfirm = vi.fn();
+      render(<ColumnMapping {...defaultProps} onConfirm={onConfirm} />);
+
+      // Click Start Analysis without entering specs
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], undefined);
+    });
+
+    it('passes partial specs when only some values entered', () => {
+      const onConfirm = vi.fn();
+      render(<ColumnMapping {...defaultProps} onConfirm={onConfirm} />);
+
+      // Expand specs and enter only target
+      fireEvent.click(screen.getByText('Set Specification Limits'));
+      fireEvent.change(screen.getByLabelText('Target specification'), {
+        target: { value: '10.5' },
+      });
+
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], { target: 10.5 });
+    });
+  });
 });

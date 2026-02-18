@@ -92,6 +92,8 @@ export function toNumericValue(value: DataCellValue): number | undefined {
 export interface StatsResult {
   /** Arithmetic mean of all values */
   mean: number;
+  /** Median (50th percentile) */
+  median: number;
   /** Sample standard deviation (σ_overall) — used by ANOVA, variation tracking, etc. */
   stdDev: number;
   /** Within-subgroup standard deviation estimated from moving range (MR̄/d2) */

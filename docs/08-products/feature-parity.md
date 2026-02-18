@@ -10,7 +10,6 @@ Complete feature availability across VariScout platforms.
 | ------------- | -------------------------- | ----------- | ----------------- |
 | **Azure App** | Production (full features) | **PRIMARY** | Azure Marketplace |
 | **PWA**       | Training & education       | Production  | Direct URL (FREE) |
-| **Power BI**  | Dashboard integration      | Planned     | AppSource         |
 
 > Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md), Azure App is the only paid product (€150/month as Managed Application). PWA is free forever.
 
@@ -37,52 +36,55 @@ Complete feature availability across VariScout platforms.
 
 All platforms share `@variscout/core` and produce **identical results** for the features they support.
 
-| Calculation          | Azure | PWA | Formula Reference   |
-| -------------------- | :---: | :-: | ------------------- |
-| Mean, Std Dev        |   ✓   |  ✓  | Standard            |
-| UCL/LCL (3σ)         |   ✓   |  ✓  | x̄ ± 3σ              |
-| Cp, Cpk              |   ✓   |  ✓  | (USL-LSL)/6σ        |
-| η² (Eta-squared)     |   ✓   |  ✓  | SS_between/SS_total |
-| F-statistic, p-value |   ✓   |  ✓  | ANOVA               |
-| R², Adjusted R²      |   ✓   |  ✓  | Regression          |
-| VIF                  |   ✓   |  ✓  | Multicollinearity   |
-| Nelson Rule 2        |   ✓   |  ✓  | 9-point run         |
+| Calculation           | Azure | PWA | Formula Reference   |
+| --------------------- | :---: | :-: | ------------------- |
+| Mean, Median, Std Dev |   ✓   |  ✓  | Standard            |
+| UCL/LCL (3σ)          |   ✓   |  ✓  | x̄ ± 3σ              |
+| Cp, Cpk               |   ✓   |  ✓  | (USL-LSL)/6σ        |
+| η² (Eta-squared)      |   ✓   |  ✓  | SS_between/SS_total |
+| F-statistic, p-value  |   ✓   |  ✓  | ANOVA               |
+| R², Adjusted R²       |   ✓   |  ✓  | Regression          |
+| VIF                   |   ✓   |  ✓  | Multicollinearity   |
+| Nelson Rule 2         |   ✓   |  ✓  | 9-point run         |
 
 ---
 
 ## Navigation & Interaction
 
-| Feature                           | Azure App | PWA (Free) | Notes                        |
-| --------------------------------- | :-------: | :--------: | ---------------------------- |
-| **Drill-down**                    |     ✓     |     ✓      |                              |
-| **Linked filtering**              |     ✓     |     ✓      |                              |
-| **Breadcrumb navigation**         |     ✓     |     ✓      |                              |
-| **Multi-select filters**          |     ✓     |     ✓      |                              |
-| **Investigation Mindmap**         |     ✓     |     ✓      |                              |
-| **What-If Simulator**             |     ✓     |     ✓      |                              |
-| **Keyboard navigation**           |     ✓     |     ✓      |                              |
-| **Copy chart to clipboard**       |     ✓     |     ✓      |                              |
-| **Editable chart titles**         |     ✓     |     ✓      |                              |
-| **Selection panel**               |     ✓     |     ✓      | Minitab-style point brushing |
-| **Create Factor**                 |     ✓     |     ✓      | From point selection         |
-| **Focus mode (fullscreen chart)** |     ✓     |     ✓      |                              |
+| Feature                           | Azure App | PWA (Free) | Notes                                                   |
+| --------------------------------- | :-------: | :--------: | ------------------------------------------------------- |
+| **Drill-down**                    |     ✓     |     ✓      |                                                         |
+| **Linked filtering**              |     ✓     |     ✓      |                                                         |
+| **Breadcrumb navigation**         |     ✓     |     ✓      |                                                         |
+| **Multi-select filters**          |     ✓     |     ✓      |                                                         |
+| **Investigation Mindmap**         |     ✓     |     ✓      |                                                         |
+| **What-If Simulator**             |     ✓     |     ✓      |                                                         |
+| **Keyboard navigation**           |     ✓     |     ✓      |                                                         |
+| **Copy chart to clipboard**       |     ✓     |     ✓      |                                                         |
+| **Editable chart titles**         |     ✓     |     ✓      |                                                         |
+| **Selection panel**               |     ✓     |     ✓      | Minitab-style point brushing                            |
+| **Create Factor**                 |     ✓     |     ✓      | From point selection                                    |
+| **Focus mode (fullscreen chart)** |     ✓     |     ✓      |                                                         |
+| **Median in Stats Panel**         |     ✓     |     ✓      | Always shown alongside Mean                             |
+| **Inline spec inputs (Stats)**    |     ✓     |     ✓      | `onSaveSpecs` prop; Target-first progressive disclosure |
 
 ---
 
 ## Data Handling
 
-| Feature                           | Azure App | PWA (Free) | Notes                                    |
-| --------------------------------- | :-------: | :--------: | ---------------------------------------- |
-| **CSV upload**                    |     ✓     |     -      | Azure App only                           |
-| **Excel upload**                  |     ✓     |     -      | Azure App only                           |
-| **Paste data**                    |     ✓     |     ✓      |                                          |
-| **Sample datasets**               |     ✓     |     ✓      | PWA pre-loaded with cases                |
-| **Column mapping**                |     ✓     |     ✓      |                                          |
-| **Manual entry**                  |     ✓     |     -      | Azure App only                           |
-| **Data validation**               |     ✓     |     ✓      |                                          |
-| **Row limit**                     |  100,000  |   50,000   | Configurable via `DataIngestionConfig`   |
-| **Max factors**                   |     6     |     3      | Configurable via `maxFactors` prop       |
-| **Factor management in analysis** |     ✓     |     -      | Azure: FactorManagerPopover in Dashboard |
+| Feature                           | Azure App | PWA (Free) | Notes                                              |
+| --------------------------------- | :-------: | :--------: | -------------------------------------------------- |
+| **CSV upload**                    |     ✓     |     -      | Azure App only                                     |
+| **Excel upload**                  |     ✓     |     -      | Azure App only                                     |
+| **Paste data**                    |     ✓     |     ✓      |                                                    |
+| **Sample datasets**               |     ✓     |     ✓      | PWA pre-loaded with cases                          |
+| **Column mapping**                |     ✓     |     ✓      |                                                    |
+| **Spec entry at column mapping**  |     -     |     ✓      | PWA ColumnMapping only; Azure sets specs post-load |
+| **Manual entry**                  |     ✓     |     ✓      |                                                    |
+| **Data validation**               |     ✓     |     ✓      |                                                    |
+| **Row limit**                     |  100,000  |   50,000   | Configurable via `DataIngestionConfig`             |
+| **Max factors**                   |     6     |     3      | Configurable via `maxFactors` prop                 |
+| **Factor management in analysis** |     ✓     |     -      | Azure: FactorManagerPopover in Dashboard           |
 
 ---
 
@@ -164,7 +166,6 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 - Free forever (training & education)
 - Pre-loaded case study datasets
-- PWA installation (Add to Home Screen)
 - Service Worker offline caching
 
 ---

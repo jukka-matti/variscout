@@ -59,6 +59,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         defaultTab={defaultTab}
         className={className}
         compact={compact}
+        onSaveSpecs={handleSaveSpecs}
         getTerm={getTerm}
         renderHistogram={(data, specLimits, mean) => (
           <CapabilityHistogram data={data} specs={specLimits} mean={mean} />

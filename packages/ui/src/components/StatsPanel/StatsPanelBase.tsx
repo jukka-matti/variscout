@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useCallback } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
 import type { StatsPanelBaseProps, StatsPanelColorScheme } from './types';
@@ -35,6 +36,41 @@ const MetricCard = ({
       {value}
       {unit}
     </div>
+  </div>
+);
+
+// Inline spec input for Target-first progressive disclosure
+interface InlineSpecInputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+  placeholder?: string;
+  inputClass: string;
+  labelClass: string;
+}
+
+const InlineSpecInput = ({
+  label,
+  value,
+  onChange,
+  onBlur,
+  placeholder,
+  inputClass,
+  labelClass,
+}: InlineSpecInputProps) => (
+  <div className="flex items-center gap-2">
+    <label className={`${labelClass} w-20 text-right shrink-0`}>{label}</label>
+    <input
+      type="number"
+      step="any"
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      onBlur={onBlur}
+      placeholder={placeholder || ''}
+      className={inputClass}
+      aria-label={label}
+    />
   </div>
 );
 
@@ -77,6 +113,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   className,
   compact = false,
   colorScheme = statsPanelDefaultColorScheme,
+  onSaveSpecs,
   renderHistogram,
   renderProbabilityPlot,
   renderSummaryFooter,
@@ -87,6 +124,13 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     defaultTab || 'summary'
   );
 
+  // Inline spec input state
+  const [targetInput, setTargetInput] = useState('');
+  const [lslInput, setLslInput] = useState('');
+  const [uslInput, setUslInput] = useState('');
+  const [limitsExpanded, setLimitsExpanded] = useState(false);
+  const targetAppliedRef = useRef(false);
+
   // Extract numeric values for histogram
   const histogramData = useMemo(() => {
     if (!outcome || filteredData.length === 0) return [];
@@ -95,62 +139,156 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
 
   const emptyState = (message: string) => <div className={cs.emptyState}>{message}</div>;
 
+  const applyInlineSpecs = useCallback(() => {
+    if (!onSaveSpecs) return;
+    const target = targetInput.trim() ? parseFloat(targetInput) : undefined;
+    const lsl = lslInput.trim() ? parseFloat(lslInput) : undefined;
+    const usl = uslInput.trim() ? parseFloat(uslInput) : undefined;
+    // Only apply if at least one value is set
+    if (target !== undefined || lsl !== undefined || usl !== undefined) {
+      const newSpecs: { lsl?: number; target?: number; usl?: number } = {};
+      if (target !== undefined && !isNaN(target)) newSpecs.target = target;
+      if (lsl !== undefined && !isNaN(lsl)) newSpecs.lsl = lsl;
+      if (usl !== undefined && !isNaN(usl)) newSpecs.usl = usl;
+      onSaveSpecs(newSpecs);
+      targetAppliedRef.current = true;
+    }
+  }, [onSaveSpecs, targetInput, lslInput, uslInput]);
+
+  const isAzure = cs === statsPanelAzureColorScheme;
+  const inputClass = isAzure
+    ? 'flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 placeholder-slate-600'
+    : 'flex-1 bg-surface border border-edge rounded px-2 py-1.5 text-sm text-white font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 placeholder-content-muted';
+  const inlineLabelClass = isAzure ? 'text-xs text-slate-400' : 'text-xs text-content-secondary';
+  const inlineHeadingClass = isAzure ? 'text-sm text-slate-300' : 'text-sm text-content';
+  const inlineSubtextClass = isAzure ? 'text-xs text-slate-500' : 'text-xs text-content-muted';
+  const chevronClass = isAzure ? 'text-slate-400' : 'text-content-secondary';
+  const expandButtonClass = isAzure
+    ? 'flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-300 cursor-pointer transition-colors'
+    : 'flex items-center gap-1.5 text-xs text-content-secondary hover:text-content cursor-pointer transition-colors';
+  const inlineContainerClass = isAzure
+    ? 'bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 space-y-3'
+    : 'bg-surface-secondary/50 border border-edge/50 rounded-lg p-4 space-y-3';
+
+  const renderInlineSpecInputs = () => {
+    if (!onSaveSpecs) return null;
+    return (
+      <div className={inlineContainerClass} data-testid="inline-spec-inputs">
+        <p className={inlineHeadingClass}>What should this measure be?</p>
+        <InlineSpecInput
+          label="Target"
+          value={targetInput}
+          onChange={setTargetInput}
+          onBlur={applyInlineSpecs}
+          inputClass={inputClass}
+          labelClass={inlineLabelClass}
+        />
+        <button
+          onClick={() => setLimitsExpanded(!limitsExpanded)}
+          className={expandButtonClass}
+          type="button"
+        >
+          {limitsExpanded ? (
+            <ChevronDown size={14} className={chevronClass} />
+          ) : (
+            <ChevronRight size={14} className={chevronClass} />
+          )}
+          <span>Set tolerance limits (LSL / USL)</span>
+        </button>
+        {limitsExpanded && (
+          <div className="space-y-2 pt-1">
+            <InlineSpecInput
+              label="LSL (Min)"
+              value={lslInput}
+              onChange={setLslInput}
+              onBlur={applyInlineSpecs}
+              inputClass={inputClass}
+              labelClass={inlineLabelClass}
+            />
+            <InlineSpecInput
+              label="USL (Max)"
+              value={uslInput}
+              onChange={setUslInput}
+              onBlur={applyInlineSpecs}
+              inputClass={inputClass}
+              labelClass={inlineLabelClass}
+            />
+          </div>
+        )}
+        <p className={inlineSubtextClass}>Values apply when you tab or click away.</p>
+      </div>
+    );
+  };
+
   const renderMetricGrid = () => {
     const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
     return (
-      <div className={compact ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 sm:grid-cols-3 gap-2'}>
-        {hasSpecs && (
-          <>
-            <MetricCard
-              label="Pass Rate"
-              value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
-              unit="%"
-              helpTerm={getTerm('passRate')}
-              bgClass={cs.metricCardBg}
-              labelClass={cs.metricLabel}
-              valueClass={cs.metricValue}
-            />
-            <MetricCard
-              label="Cp"
-              value={stats?.cp?.toFixed(2) ?? 'N/A'}
-              helpTerm={getTerm('cp')}
-              bgClass={cs.metricCardBg}
-              labelClass={cs.metricLabel}
-              valueClass={cs.metricValue}
-            />
-            <MetricCard
-              label="Cpk"
-              value={stats?.cpk?.toFixed(2) ?? 'N/A'}
-              helpTerm={getTerm('cpk')}
-              bgClass={cs.metricCardBg}
-              labelClass={cs.metricLabel}
-              valueClass={cs.metricValue}
-            />
-          </>
-        )}
-        <MetricCard
-          label="Mean"
-          value={stats?.mean?.toFixed(2) ?? 'N/A'}
-          helpTerm={getTerm('mean')}
-          bgClass={cs.metricCardBg}
-          labelClass={cs.metricLabel}
-          valueClass={cs.metricValue}
-        />
-        <MetricCard
-          label="Std Dev"
-          value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
-          helpTerm={getTerm('stdDev')}
-          bgClass={cs.metricCardBg}
-          labelClass={cs.metricLabel}
-          valueClass={cs.metricValue}
-        />
-        <MetricCard
-          label="Samples"
-          value={`n=${filteredData?.length ?? 0}`}
-          bgClass={cs.metricCardBg}
-          labelClass={cs.metricLabel}
-          valueClass={cs.metricValue}
-        />
+      <div className="space-y-3">
+        <div
+          className={compact ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 sm:grid-cols-3 gap-2'}
+        >
+          {hasSpecs && (
+            <>
+              <MetricCard
+                label="Pass Rate"
+                value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
+                unit="%"
+                helpTerm={getTerm('passRate')}
+                bgClass={cs.metricCardBg}
+                labelClass={cs.metricLabel}
+                valueClass={cs.metricValue}
+              />
+              <MetricCard
+                label="Cp"
+                value={stats?.cp?.toFixed(2) ?? 'N/A'}
+                helpTerm={getTerm('cp')}
+                bgClass={cs.metricCardBg}
+                labelClass={cs.metricLabel}
+                valueClass={cs.metricValue}
+              />
+              <MetricCard
+                label="Cpk"
+                value={stats?.cpk?.toFixed(2) ?? 'N/A'}
+                helpTerm={getTerm('cpk')}
+                bgClass={cs.metricCardBg}
+                labelClass={cs.metricLabel}
+                valueClass={cs.metricValue}
+              />
+            </>
+          )}
+          <MetricCard
+            label="Mean"
+            value={stats?.mean?.toFixed(2) ?? 'N/A'}
+            helpTerm={getTerm('mean')}
+            bgClass={cs.metricCardBg}
+            labelClass={cs.metricLabel}
+            valueClass={cs.metricValue}
+          />
+          <MetricCard
+            label="Median"
+            value={stats?.median?.toFixed(2) ?? 'N/A'}
+            helpTerm={getTerm('median')}
+            bgClass={cs.metricCardBg}
+            labelClass={cs.metricLabel}
+            valueClass={cs.metricValue}
+          />
+          <MetricCard
+            label="Std Dev"
+            value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
+            helpTerm={getTerm('stdDev')}
+            bgClass={cs.metricCardBg}
+            labelClass={cs.metricLabel}
+            valueClass={cs.metricValue}
+          />
+          <MetricCard
+            label="Samples"
+            value={`n=${filteredData?.length ?? 0}`}
+            bgClass={cs.metricCardBg}
+            labelClass={cs.metricLabel}
+            valueClass={cs.metricValue}
+          />
+        </div>
+        {!hasSpecs && renderInlineSpecInputs()}
       </div>
     );
   };

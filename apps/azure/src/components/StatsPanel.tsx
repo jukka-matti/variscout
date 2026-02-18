@@ -10,9 +10,16 @@ interface StatsPanelProps {
   specs: { usl?: number; lsl?: number; target?: number };
   filteredData?: any[];
   outcome?: string | null;
+  onSaveSpecs?: (specs: { lsl?: number; target?: number; usl?: number }) => void;
 }
 
-const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = [], outcome }) => {
+const StatsPanel: React.FC<StatsPanelProps> = ({
+  stats,
+  specs,
+  filteredData = [],
+  outcome,
+  onSaveSpecs,
+}) => {
   const { getTerm } = useGlossary();
 
   return (
@@ -22,6 +29,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ stats, specs, filteredData = []
       filteredData={filteredData}
       outcome={outcome}
       colorScheme={statsPanelAzureColorScheme}
+      onSaveSpecs={onSaveSpecs}
       getTerm={getTerm}
       renderHistogram={(data, specLimits, mean) => (
         <CapabilityHistogram data={data} specs={specLimits} mean={mean} />

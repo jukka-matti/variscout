@@ -158,7 +158,9 @@ Best for: Incoming inspection, export certification, lot acceptance
 **Capability Mode** — "Can our process reliably meet specs?"
 | Metric | Description |
 |--------|-------------|
-| Mean, Std Dev | Central tendency and spread |
+| Mean | Central tendency |
+| Median | Midpoint value (always shown alongside Mean) |
+| Std Dev | Spread of the distribution |
 | Cp | Process capability (potential) — requires both USL and LSL |
 | Cpk | Process capability (actual, considers centering) |
 | % out of spec | Actual failure rate |
@@ -235,6 +237,61 @@ When configured:
 - Points colored by pass/fail
 - Summary shows pass rate and conformance
 - Boxplot/Pareto filter shows impact on out-of-spec rates
+
+### Spec Discovery Flow (Progressive Disclosure)
+
+Users can set specification limits at two points in the workflow:
+
+**1. During column mapping (optional)**
+
+The ColumnMapping component includes a collapsible "Set Specification Limits" section at the bottom. It is collapsed by default — users who already know their specs can expand it and enter Target, LSL, and USL before proceeding to analysis. Values are applied automatically; no Apply button is required.
+
+```
+┌─────────────────────────────────────┐
+│  Column Mapping                     │
+│  ...                                │
+│  ▶ Set Specification Limits         │  ← collapsed by default
+└─────────────────────────────────────┘
+
+Expanded:
+┌─────────────────────────────────────┐
+│  ▼ Set Specification Limits         │
+│                                     │
+│  Target: [________]   (optional)    │
+│  LSL:    [________]   (optional)    │
+│  USL:    [________]   (optional)    │
+└─────────────────────────────────────┘
+```
+
+**2. Inline in the Stats Panel (when no specs are set)**
+
+When the user reaches the dashboard without having set specs, the Stats Panel shows inline spec inputs in place of the silent omission of Cp/Cpk/Pass Rate. The entry is Target-first (lowest commitment), with LSL and USL accessible via an expand toggle.
+
+```
+┌─────────────────────────────────────┐
+│  STATS                              │
+│  Mean: 12.4    Median: 12.2         │
+│  Std Dev: 0.8  Samples: 50          │
+│                                     │
+│  Set a target to enable Cp/Cpk:     │
+│  Target: [________]  [▼ + LSL/USL]  │
+└─────────────────────────────────────┘
+```
+
+Once specs are entered and the field loses focus (on blur), the inline area transforms into the normal Cp/Cpk/Pass Rate cards — no button press required:
+
+```
+┌─────────────────────────────────────┐
+│  STATS                              │
+│  Mean: 12.4    Median: 12.2         │
+│  Std Dev: 0.8  Samples: 50          │
+│                                     │
+│  Cp:  1.42    Cpk: 0.91 ⚠️          │
+│  Pass Rate: 94%                     │
+└─────────────────────────────────────┘
+```
+
+**Design rationale:** Target is shown first because it requires the least commitment — a user who only knows their ideal value can still unlock partial capability feedback. LSL and USL expand progressively when needed.
 
 ### 5. Data Table (View/Edit Data)
 
@@ -681,7 +738,7 @@ NO backend. NO API calls. Works offline after first visit.
 
 - Vercel, Netlify, or any static host
 - Users access via URL
-- "Add to Home Screen" for app-like experience
+- Service Worker enables offline use after first visit
 
 ---
 

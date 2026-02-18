@@ -705,6 +705,7 @@ const Dashboard = ({
                   specs={specs}
                   filteredData={filteredData}
                   outcome={outcome}
+                  onSaveSpecs={setSpecs}
                 />
               </div>
             </div>

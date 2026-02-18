@@ -68,10 +68,20 @@ export function calculateMovingRangeSigma(data: number[]): {
  */
 export function calculateStats(data: number[], usl?: number, lsl?: number): StatsResult {
   if (data.length === 0) {
-    return { mean: 0, stdDev: 0, sigmaWithin: 0, mrBar: 0, ucl: 0, lcl: 0, outOfSpecPercentage: 0 };
+    return {
+      mean: 0,
+      median: 0,
+      stdDev: 0,
+      sigmaWithin: 0,
+      mrBar: 0,
+      ucl: 0,
+      lcl: 0,
+      outOfSpecPercentage: 0,
+    };
   }
 
   const mean = d3.mean(data) || 0;
+  const median = d3.median(data) || 0;
   const stdDev = d3.deviation(data) || 0; // σ_overall
   const { sigmaWithin, mrBar } = calculateMovingRangeSigma(data);
 
@@ -104,6 +114,7 @@ export function calculateStats(data: number[], usl?: number, lsl?: number): Stat
 
   return {
     mean,
+    median,
     stdDev,
     sigmaWithin,
     mrBar,

@@ -32,7 +32,32 @@ If your data has cryptic codes (e.g., "M1", "M2"), you can rename them to meanin
 
 Specifications (Spec Limits) define what is considered "acceptable" quality. VariScout Lite supports both standard limits and complex multi-tier grading.
 
-### Setting Standard Limits (USL/LSL)
+### Setting Specifications — Two Entry Points
+
+You can set specification limits at two points in the workflow. Both approaches auto-apply on blur; there is no separate Apply button.
+
+**Option 1: During Column Mapping (optional, at setup time)**
+
+The ColumnMapping screen includes a collapsible **"Set Specification Limits"** section at the bottom, collapsed by default.
+
+1. After pasting or uploading data, scroll to the bottom of the column mapping screen.
+2. Click **"Set Specification Limits"** to expand the section.
+3. Enter any combination of **Target**, **LSL**, and **USL** — all three are optional.
+4. Continue to analysis. The values carry over automatically.
+
+This is the fastest path when you already know your spec limits before starting.
+
+**Option 2: Inline in the Stats Panel (at analysis time)**
+
+If you reach the dashboard without specs set, the Stats Panel shows an inline entry area instead of silently omitting Cp/Cpk/Pass Rate.
+
+1. Look for the **"Set a target to enable Cp/Cpk"** prompt in the Stats Panel.
+2. Enter a **Target** value first (lowest commitment — unlocks partial feedback).
+3. Click **"+ LSL/USL"** to expand and add the full specification range.
+4. Click or tab away from the field — values apply immediately.
+5. The inline entry area transforms into the normal Cp/Cpk/Pass Rate stat cards.
+
+**Option 3: Via the Specs dropdown in the I-Chart header**
 
 1.  In the **I-Chart header**, click the **"Specs"** dropdown button.
 2.  A popover will appear with checkboxes and input fields for each limit.
@@ -41,11 +66,12 @@ Specifications (Spec Limits) define what is considered "acceptable" quality. Var
     - **LSL (Lower Spec Limit)**: Minimum acceptable value.
     - **Target**: Ideal value (optional, drawn in green).
 4.  Use the checkboxes to toggle visibility of each limit on the chart.
-5.  Click **"Apply Changes"** to update the chart.
-6.  **Result**:
-    - Red dotted lines appear on charts (I-Chart & Boxplot).
-    - Cp, Cpk, and Pass/Fail rates are instantly calculated in the Stats Panel.
-    - Histogram updates to show spec boundaries.
+
+**Result (any entry point):**
+
+- Red dotted lines appear on charts (I-Chart & Boxplot).
+- Cp, Cpk, and Pass/Fail rates are instantly calculated in the Stats Panel.
+- Histogram updates to show spec boundaries.
 
 ---
 
@@ -357,7 +383,7 @@ A: Enable **Large Mode** in Settings for 30% larger fonts and touch targets.
 
 **Q: Can I use VariScout without internet?**
 
-A: Yes! After visiting once, the app caches itself for offline use. You can even "Add to Home Screen" for an app-like experience.
+A: Yes! After visiting once, the app caches itself via Service Worker for offline use.
 
 **Q: Where is my data stored?**
 

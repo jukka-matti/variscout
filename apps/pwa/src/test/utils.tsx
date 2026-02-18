@@ -22,6 +22,7 @@ export const mockSpecs = {
 
 export const mockStats = {
   mean: 10.55,
+  median: 10.65,
   stdDev: 1.1,
   ucl: 13.85,
   lcl: 7.25,

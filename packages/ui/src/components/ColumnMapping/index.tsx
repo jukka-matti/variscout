@@ -13,7 +13,10 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckSquare,
+  ChevronDown,
+  ChevronRight,
   Settings2,
+  Target,
   Upload,
   X,
   BarChart3,
@@ -27,7 +30,11 @@ export interface ColumnMappingProps {
   initialOutcome: string | null;
   initialFactors: string[];
   datasetName?: string;
-  onConfirm: (outcome: string, factors: string[]) => void;
+  onConfirm: (
+    outcome: string,
+    factors: string[],
+    specs?: { target?: number; lsl?: number; usl?: number }
+  ) => void;
   onCancel: () => void;
   onBack?: () => void;
   // Validation integration
@@ -71,6 +78,12 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
   const [isDraggingPareto, setIsDraggingPareto] = useState(false);
   const paretoFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Optional specs state
+  const [specsExpanded, setSpecsExpanded] = useState(false);
+  const [specTarget, setSpecTarget] = useState('');
+  const [specLsl, setSpecLsl] = useState('');
+  const [specUsl, setSpecUsl] = useState('');
 
   // Time extraction state
   const [timeExtraction, setTimeExtraction] = useState<TimeExtractionConfig>({
@@ -259,6 +272,77 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             </div>
           </div>
 
+          {/* Specification Limits (Optional) */}
+          <div>
+            <button
+              onClick={() => setSpecsExpanded(!specsExpanded)}
+              className="flex items-center gap-2 w-full text-left group"
+              type="button"
+            >
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-600/20 text-amber-400">
+                <Target size={14} />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                Set Specification Limits
+              </h3>
+              <span className="text-xs text-slate-500 ml-auto mr-2">Optional</span>
+              {specsExpanded ? (
+                <ChevronDown size={16} className="text-slate-400" />
+              ) : (
+                <ChevronRight size={16} className="text-slate-400" />
+              )}
+            </button>
+
+            {specsExpanded && (
+              <div
+                className="mt-3 space-y-3 p-4 rounded-lg bg-slate-800/50 border border-slate-700"
+                data-testid="specs-section"
+              >
+                <div className="flex items-center gap-3">
+                  <label className="text-xs text-slate-400 w-20 text-right shrink-0">Target</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={specTarget}
+                    onChange={e => setSpecTarget(e.target.value)}
+                    placeholder="Ideal value"
+                    className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 placeholder-slate-600"
+                    aria-label="Target specification"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-xs text-slate-400 w-20 text-right shrink-0">
+                    LSL (Min)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={specLsl}
+                    onChange={e => setSpecLsl(e.target.value)}
+                    placeholder="Lower limit"
+                    className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 placeholder-slate-600"
+                    aria-label="LSL specification"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-xs text-slate-400 w-20 text-right shrink-0">
+                    USL (Max)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={specUsl}
+                    onChange={e => setSpecUsl(e.target.value)}
+                    placeholder="Upper limit"
+                    className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 placeholder-slate-600"
+                    aria-label="USL specification"
+                  />
+                </div>
+                <p className="text-xs text-slate-500">You can always change these later.</p>
+              </div>
+            )}
+          </div>
+
           {/* Pareto Source (Optional) */}
           {onParetoFileUpload && (
             <div>
@@ -395,7 +479,23 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
           </button>
 
           <button
-            onClick={() => onConfirm(outcome, factors)}
+            onClick={() => {
+              const target = specTarget.trim() ? parseFloat(specTarget) : undefined;
+              const lsl = specLsl.trim() ? parseFloat(specLsl) : undefined;
+              const usl = specUsl.trim() ? parseFloat(specUsl) : undefined;
+              const hasAnySpec =
+                (target !== undefined && !isNaN(target)) ||
+                (lsl !== undefined && !isNaN(lsl)) ||
+                (usl !== undefined && !isNaN(usl));
+              const specs = hasAnySpec
+                ? {
+                    ...(target !== undefined && !isNaN(target) ? { target } : {}),
+                    ...(lsl !== undefined && !isNaN(lsl) ? { lsl } : {}),
+                    ...(usl !== undefined && !isNaN(usl) ? { usl } : {}),
+                  }
+                : undefined;
+              onConfirm(outcome, factors, specs);
+            }}
             disabled={!isValid}
             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"
           >

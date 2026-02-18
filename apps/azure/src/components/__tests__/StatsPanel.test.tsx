@@ -10,6 +10,7 @@ vi.mock('../charts/CapabilityHistogram', () => ({
 describe('StatsPanel', () => {
   const mockStats = {
     mean: 10.5,
+    median: 10.4,
     stdDev: 1.2,
     sigmaWithin: 1.1,
     mrBar: 1.24,
@@ -117,7 +118,7 @@ describe('StatsPanel', () => {
     expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows Mean and Std Dev in the card grid', () => {
+  it('shows Mean, Median, and Std Dev in the card grid', () => {
     render(
       <StatsPanel
         stats={mockStats}
@@ -127,9 +128,11 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Mean and Std Dev are always shown in the new card grid
+    // Mean, Median, and Std Dev are always shown
     expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('10.50')).toBeInTheDocument();
+    expect(screen.getAllByText('Median').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('10.40')).toBeInTheDocument();
     expect(screen.getAllByText('Std Dev').length).toBeGreaterThanOrEqual(1);
     // Std Dev value (1.20) may appear multiple times if Cpk is same, use getAllByText
     expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
@@ -163,5 +166,21 @@ describe('StatsPanel', () => {
     expect(screen.getAllByText('Mean').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Std Dev').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Samples')).toBeInTheDocument();
+  });
+
+  it('shows inline spec inputs when onSaveSpecs provided and no specs', () => {
+    const onSaveSpecs = vi.fn();
+    render(
+      <StatsPanel
+        stats={mockStats}
+        specs={{}}
+        filteredData={mockFilteredData}
+        outcome="value"
+        onSaveSpecs={onSaveSpecs}
+      />
+    );
+
+    expect(screen.getByTestId('inline-spec-inputs')).toBeInTheDocument();
+    expect(screen.getByText('What should this measure be?')).toBeInTheDocument();
   });
 });

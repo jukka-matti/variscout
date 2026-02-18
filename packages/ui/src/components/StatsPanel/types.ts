@@ -27,6 +27,8 @@ export interface StatsPanelBaseProps {
   className?: string;
   compact?: boolean;
   colorScheme?: StatsPanelColorScheme;
+  /** Called when user sets specs via inline inputs (shown when no specs are set) */
+  onSaveSpecs?: (specs: { lsl?: number; target?: number; usl?: number }) => void;
   /** Render histogram chart content */
   renderHistogram?: (
     data: number[],

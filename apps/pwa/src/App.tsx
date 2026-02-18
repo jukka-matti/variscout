@@ -305,9 +305,16 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [wideFormatDetection, showResetConfirm, isSettingsOpen, isDataTableOpen]);
 
-  const handleMappingConfirm = (newOutcome: string, newFactors: string[]) => {
+  const handleMappingConfirm = (
+    newOutcome: string,
+    newFactors: string[],
+    newSpecs?: { target?: number; lsl?: number; usl?: number }
+  ) => {
     setOutcome(newOutcome);
     setFactors(newFactors);
+    if (newSpecs) {
+      setSpecs(newSpecs);
+    }
     setIsMapping(false);
 
     // Apply time extraction if timeColumn exists
