@@ -100,6 +100,10 @@ export interface ChartAnnotation {
   width: number;
   /** Color of the annotation box */
   color: HighlightColor | 'neutral';
+  /** Percentage X position within chart area (0.0–1.0), used for I-Chart free-floating notes */
+  anchorX?: number;
+  /** Percentage Y position within chart area (0.0–1.0), used for I-Chart free-floating notes */
+  anchorY?: number;
 }
 
 // ============================================================================
@@ -132,6 +136,8 @@ export interface DisplayOptions {
   boxplotAnnotations?: ChartAnnotation[];
   /** Text annotations anchored to pareto categories */
   paretoAnnotations?: ChartAnnotation[];
+  /** Free-floating text annotations on I-Chart (percentage-positioned) */
+  ichartAnnotations?: ChartAnnotation[];
 }
 
 /**

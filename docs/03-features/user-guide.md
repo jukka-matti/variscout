@@ -308,16 +308,16 @@ You can always override these suggestions in the column mapping screen.
 
 ## Annotating Charts
 
-You can highlight boxplot boxes and pareto bars with colors and add text notes — useful for marking findings before exporting charts for reports.
+You can add text notes to any chart and, on Boxplot and Pareto, apply highlight colors to categories — useful for marking findings before exporting charts for reports.
 
-### Highlighting a Category
+### Boxplot and Pareto: Highlighting a Category
 
 1. **Right-click** any boxplot box or pareto bar
 2. A context menu appears with color options: Red, Amber, Green
 3. **Click a color** to apply the highlight — the box/bar fills with that color
 4. To remove a highlight, right-click and choose **Clear highlight**
 
-### Adding a Text Note
+### Boxplot and Pareto: Adding a Text Note
 
 1. **Right-click** the box/bar you want to annotate
 2. Click **"+ Add note"** in the context menu
@@ -327,6 +327,19 @@ You can highlight boxplot boxes and pareto bars with colors and add text notes �
 6. **Drag the right edge** to resize the width
 7. **Hover** and click **×** to delete the note
 
+### I-Chart: Adding a Free-Floating Text Note
+
+1. **Right-click** anywhere in the I-Chart area
+2. A text note appears immediately at the click position — no context menu
+3. **Click the text** to edit it, then click away to save
+4. **Drag the note** to reposition it anywhere on the chart
+5. **Drag the right edge** to resize the width
+6. **Hover** and click **×** to delete the note
+
+I-Chart notes are **free-floating**: they are anchored to a percentage position within the chart area, not to a data point. Notes remain at their visual position when you filter data or change the time range.
+
+Note: I-Chart dots use fixed semantic colors (blue = in-control, red = violation). Highlight colors are not available for I-Chart dots.
+
 ### Clearing All Annotations
 
 - Each chart card shows a small **×** button in the header when annotations exist
@@ -335,8 +348,8 @@ You can highlight boxplot boxes and pareto bars with colors and add text notes �
 ### Important Behavior
 
 - **Left-click always does drill-down** — annotations don't interfere with normal navigation
-- When you filter, sort, or drill-down, text notes **snap back to their default position** (offsets reset)
-- Notes are **hidden** when their anchor category is filtered out
+- When you filter, sort, or drill-down Boxplot/Pareto notes **snap back to their default position** (offsets reset); I-Chart notes stay at their percentage position
+- Boxplot/Pareto notes are **hidden** when their anchor category is filtered out
 - Annotations appear in **copy-to-clipboard** chart images (PNG)
 
 ---

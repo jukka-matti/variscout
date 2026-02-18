@@ -73,7 +73,19 @@ See [colors.md](colors.md) for implementation details and graded data handling.
 
 ## Chart Annotations
 
-Boxplot and Pareto charts support user annotations via right-click context menu.
+I-Chart, Boxplot, and Pareto charts support user text annotations. Highlight colors are available on Boxplot and Pareto only.
+
+### Annotation Anchor Types
+
+| Chart   | Anchor Type       | Highlights | How to Create                                   |
+| ------- | ----------------- | ---------- | ----------------------------------------------- |
+| Boxplot | Category-based    | Yes        | Right-click box → context menu → Add note       |
+| Pareto  | Category-based    | Yes        | Right-click bar → context menu → Add note       |
+| I-Chart | Free-floating (%) | No         | Right-click chart area → note appears at cursor |
+
+**Category-based anchors** (Boxplot/Pareto): notes follow the named group and are hidden when that category is filtered out. Offsets reset to (0, 0) on data changes (snap back to anchor).
+
+**Free-floating anchors** (I-Chart): notes are stored as a percentage position within the chart area. They remain at their visual position when data is filtered or the time range changes. I-Chart dot colors carry semantic meaning (blue = in-control, red = violation) and are never overridden by highlight colors.
 
 ### Components
 
@@ -97,6 +109,15 @@ interface ChartAnnotation {
   width: number;
   color: 'red' | 'amber' | 'green' | 'neutral';
 }
+
+// I-Chart free-floating annotation (percentage-based position)
+interface IChartAnnotation {
+  id: string;
+  anchorX: number; // 0–1 fraction of chart width
+  anchorY: number; // 0–1 fraction of chart height
+  text: string;
+  width: number;
+}
 ```
 
 ### Chart Base Props
@@ -107,16 +128,26 @@ Both `BoxplotBase` and `ParetoChartBase` accept:
 - `onBoxContextMenu?: (key: string, event: React.MouseEvent) => void` — right-click handler (Boxplot)
 - `onBarContextMenu?: (key: string, event: React.MouseEvent) => void` — right-click handler (Pareto)
 
+`IChartBase` accepts:
+
+- `ichartAnnotations?: IChartAnnotation[]` — free-floating text notes to render
+- `onChartContextMenu?: (anchorX: number, anchorY: number, event: React.MouseEvent) => void` — right-click handler
+
 ### Hook: `useAnnotations`
 
 Shared hook from `@variscout/hooks` managing annotation state:
 
 - `contextMenu` state (open, position, category, chart type)
-- `handleContextMenu(chartType, key, event)` — opens context menu
+- `handleContextMenu(chartType, key, event)` — opens context menu (Boxplot/Pareto)
 - `setHighlight(chartType, key, color)` — direct color setting
-- `createAnnotation(chartType, key)` — creates text annotation
-- `clearAnnotations(chartType)` — clears all for a chart
-- Data fingerprint offset reset (annotations snap back on data changes)
+- `createAnnotation(chartType, key)` — creates text annotation anchored to a category
+- `createIChartAnnotation(anchorX, anchorY)` — creates free-floating annotation at % position
+- `setBoxplotAnnotations(annotations)` — updates boxplot annotation list
+- `setParetoAnnotations(annotations)` — updates pareto annotation list
+- `setIChartAnnotations(annotations)` — updates I-Chart annotation list
+- `ichartAnnotations` — current I-Chart annotation array
+- `clearAnnotations(chartType)` — clears all annotations for a chart (`'boxplot'`, `'pareto'`, or `'ichart'`)
+- Data fingerprint offset reset (Boxplot/Pareto annotations snap back on data changes)
 
 ---
 

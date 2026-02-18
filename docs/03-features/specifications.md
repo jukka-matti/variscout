@@ -412,9 +412,9 @@ Once specs are entered and the field loses focus (on blur), the inline area tran
 
 ### 7. Chart Annotations
 
-Analysts can mark boxplot boxes and pareto bars with highlight colors and add text annotations for reports — all via right-click context menu.
+Analysts can add text annotations and (on Boxplot/Pareto) highlight colors to charts for reporting. Annotation behavior varies by chart type.
 
-**Right-Click Context Menu:**
+#### Boxplot and Pareto: Right-Click Context Menu
 
 Right-click any boxplot box or pareto bar to open the annotation context menu:
 
@@ -434,25 +434,35 @@ Right-click any boxplot box or pareto bar to open the annotation context menu:
 - **Clear highlight**: Removes the highlight color
 - Left-click always does drill-down (unchanged)
 
-**Text Annotations:**
+Text notes are **category-anchored**: they follow the named group (e.g., "Shift 2") and are hidden when that category is filtered out.
 
-- Click text to edit (contentEditable)
-- Drag body to reposition (offset from anchor)
-- Drag right edge to resize width
-- Hover to reveal delete button (×) and color dots
-- Click outside to deselect
-
-**Data Change Behavior:**
+**Data Change Behavior (Boxplot/Pareto):**
 
 - Filter, sort, or drill-down → annotation offsets reset to (0, 0) (snap back to anchor)
 - Hidden if anchor category is filtered out
 
-**Clear All:**
+#### I-Chart: Free-Floating Text Notes
+
+Right-click anywhere in the I-Chart area to place a text note at that position. There is no intermediate context menu — the note appears immediately at the click location.
+
+- Notes are **free-floating**: anchored to a percentage position within the chart area (not to a data point)
+- Notes stay at their visual position when data is filtered or the time range changes
+- **No highlight colors** on I-Chart dots — dot color carries semantic meaning (blue = in-control, red = violation) and must not be overridden
+
+#### Text Note Editing (All Charts)
+
+- Click text to edit (contentEditable)
+- Drag body to reposition
+- Drag right edge to resize width
+- Hover to reveal delete button (×)
+- Click outside to deselect
+
+#### Clear All
 
 - Small × button in chart card header (visible when annotations exist for that chart)
-- Clears both highlights and text annotations for the specific chart
+- Clears all text annotations (and highlights, where applicable) for the specific chart
 
-**Available in:** Both PWA and Azure App.
+**Available in:** Both PWA and Azure App. Annotations appear in PNG exports (html-to-image).
 
 ### 8. Export
 

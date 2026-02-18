@@ -5,15 +5,18 @@
  * 1. Gets data from DataContext via useData()
  * 2. Transforms data to IChartDataPoint[] format
  * 3. Manages Azure-specific UI (scale/label editors)
- * 4. Passes everything to shared IChartBase
+ * 4. Supports free-floating text annotations (right-click → note)
+ * 5. Passes everything to shared IChartBase
  */
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
-import { IChartBase } from '@variscout/charts';
+import { IChartBase, getResponsiveMargins, getScaledFonts } from '@variscout/charts';
 import { useIChartData } from '@variscout/hooks';
+import { ChartAnnotationLayer } from '@variscout/ui';
 import YAxisPopover from '../YAxisPopover';
+import type { ChartAnnotation } from '@variscout/hooks';
 
 interface IChartProps {
   parentWidth: number;
@@ -21,6 +24,10 @@ interface IChartProps {
   onPointClick?: (index: number) => void;
   /** Highlighted point index from data panel (bi-directional sync) */
   highlightedPointIndex?: number | null;
+  // I-Chart annotation support
+  ichartAnnotations?: ChartAnnotation[];
+  onCreateAnnotation?: (anchorX: number, anchorY: number) => void;
+  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
 }
 
 const IChart = ({
@@ -28,6 +35,9 @@ const IChart = ({
   parentHeight,
   onPointClick,
   highlightedPointIndex,
+  ichartAnnotations = [],
+  onCreateAnnotation,
+  onAnnotationsChange,
 }: IChartProps) => {
   const {
     filteredData,
@@ -80,8 +90,61 @@ const IChart = ({
   // Calculate margin for popover positioning (simplified)
   const margin = { top: 20, left: 60 };
 
+  // Right-click handler: create free-floating annotation at % position
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!onCreateAnnotation) return;
+      e.preventDefault();
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      const chartMargin = getResponsiveMargins(parentWidth, 'ichart');
+      const chartWidth = parentWidth - chartMargin.left - chartMargin.right;
+      const chartHeight = parentHeight - chartMargin.top - chartMargin.bottom;
+
+      // Clamp to chart area (ignore clicks in margins)
+      if (
+        clickX < chartMargin.left ||
+        clickX > chartMargin.left + chartWidth ||
+        clickY < chartMargin.top ||
+        clickY > chartMargin.top + chartHeight
+      ) {
+        return;
+      }
+
+      const anchorX = (clickX - chartMargin.left) / chartWidth;
+      const anchorY = (clickY - chartMargin.top) / chartHeight;
+      onCreateAnnotation(anchorX, anchorY);
+    },
+    [onCreateAnnotation, parentWidth, parentHeight]
+  );
+
+  // Compute pixel positions from percentage anchors for annotation layer
+  const categoryPositions = useMemo(() => {
+    const positions = new Map<string, { x: number; y: number }>();
+    if (parentWidth === 0 || parentHeight === 0) return positions;
+
+    const chartMargin = getResponsiveMargins(parentWidth, 'ichart');
+    const chartWidth = parentWidth - chartMargin.left - chartMargin.right;
+    const chartHeight = parentHeight - chartMargin.top - chartMargin.bottom;
+
+    for (const a of ichartAnnotations) {
+      if (a.anchorX != null && a.anchorY != null) {
+        positions.set(a.id, {
+          x: a.anchorX * chartWidth + chartMargin.left,
+          y: a.anchorY * chartHeight + chartMargin.top,
+        });
+      }
+    }
+    return positions;
+  }, [ichartAnnotations, parentWidth, parentHeight]);
+
+  const fonts = getScaledFonts(parentWidth);
+
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full" onContextMenu={handleContextMenu}>
       <IChartBase
         data={data}
         stats={effectiveStats}
@@ -100,6 +163,19 @@ const IChart = ({
         highlightedPointIndex={highlightedPointIndex}
         showLimitLabels={false}
       />
+
+      {/* Free-floating annotation overlay */}
+      {ichartAnnotations.length > 0 && onAnnotationsChange && (
+        <ChartAnnotationLayer
+          annotations={ichartAnnotations}
+          onAnnotationsChange={onAnnotationsChange}
+          isActive={true}
+          categoryPositions={categoryPositions}
+          maxWidth={parentWidth * 0.7}
+          textColor="#cbd5e1"
+          fontSize={fonts.statLabel}
+        />
+      )}
 
       {/* Y-Axis Scale Popover */}
       <YAxisPopover

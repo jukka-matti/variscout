@@ -158,6 +158,9 @@ const Dashboard = ({
     createAnnotation,
     setBoxplotAnnotations,
     setParetoAnnotations,
+    ichartAnnotations,
+    createIChartAnnotation,
+    setIChartAnnotations,
   } = useAnnotations({ displayOptions, setDisplayOptions, dataFingerprint });
 
   // Keyboard: clear selection on Escape (complement to hook's focused-mode ESC)
@@ -403,6 +406,16 @@ const Dashboard = ({
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2">
+                    {ichartAnnotations.length > 0 && (
+                      <button
+                        onClick={() => clearAnnotations('ichart')}
+                        className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-slate-700 transition-colors"
+                        title="Clear I-Chart annotations"
+                        aria-label="Clear I-Chart annotations"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
                     {/* Stats display */}
                     {stageColumn && stagedStats ? (
                       <div className="flex gap-4 text-sm bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
@@ -471,6 +484,9 @@ const Dashboard = ({
                     <IChart
                       onPointClick={onPointClick}
                       highlightedPointIndex={highlightedPointIndex}
+                      ichartAnnotations={ichartAnnotations}
+                      onCreateAnnotation={createIChartAnnotation}
+                      onAnnotationsChange={setIChartAnnotations}
                     />
                   </ErrorBoundary>
                 </div>

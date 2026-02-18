@@ -142,6 +142,9 @@ const Dashboard = ({
     createAnnotation,
     setBoxplotAnnotations,
     setParetoAnnotations,
+    ichartAnnotations,
+    createIChartAnnotation,
+    setIChartAnnotations,
   } = useAnnotations({ displayOptions, setDisplayOptions, dataFingerprint });
 
   // Use the consolidated chart state hook
@@ -593,6 +596,16 @@ const Dashboard = ({
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-1 pl-2 border-l border-edge">
+                      {ichartAnnotations.length > 0 && (
+                        <button
+                          onClick={() => clearAnnotations('ichart')}
+                          className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
+                          title="Clear I-Chart annotations"
+                          aria-label="Clear I-Chart annotations"
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleCopyChart('ichart-card', 'ichart')}
                         className={`p-1.5 rounded transition-all ${
@@ -628,6 +641,9 @@ const Dashboard = ({
                       onPointClick={onPointClick}
                       onSpecClick={() => setShowSpecEditor(true)}
                       showBranding={false}
+                      ichartAnnotations={ichartAnnotations}
+                      onCreateAnnotation={createIChartAnnotation}
+                      onAnnotationsChange={setIChartAnnotations}
                     />
                   </ErrorBoundary>
                 </div>

@@ -52,24 +52,24 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Navigation & Interaction
 
-| Feature                           | Azure App | PWA (Free) | Notes                                                       |
-| --------------------------------- | :-------: | :--------: | ----------------------------------------------------------- |
-| **Drill-down**                    |     ✓     |     ✓      |                                                             |
-| **Linked filtering**              |     ✓     |     ✓      |                                                             |
-| **Breadcrumb navigation**         |     ✓     |     ✓      |                                                             |
-| **Multi-select filters**          |     ✓     |     ✓      |                                                             |
-| **Investigation Mindmap**         |     ✓     |     ✓      |                                                             |
-| **What-If Simulator**             |     ✓     |     ✓      |                                                             |
-| **Keyboard navigation**           |     ✓     |     ✓      |                                                             |
-| **Copy chart to clipboard**       |     ✓     |     ✓      | Includes filter context bar when active                     |
-| **Filter context on charts**      |     ✓     |     ✓      | Shows active filters inside chart cards; toggle in Settings |
-| **Editable chart titles**         |     ✓     |     ✓      |                                                             |
-| **Selection panel**               |     ✓     |     ✓      | Minitab-style point brushing                                |
-| **Create Factor**                 |     ✓     |     ✓      | From point selection                                        |
-| **Focus mode (fullscreen chart)** |     ✓     |     ✓      |                                                             |
-| **Median in Stats Panel**         |     ✓     |     ✓      | Always shown alongside Mean                                 |
-| **Inline spec inputs (Stats)**    |     ✓     |     ✓      | `onSaveSpecs` prop; Target-first progressive disclosure     |
-| **Chart annotations**             |     ✓     |     ✓      | Right-click context menu: highlight colors + text notes     |
+| Feature                           | Azure App | PWA (Free) | Notes                                                                                                         |
+| --------------------------------- | :-------: | :--------: | ------------------------------------------------------------------------------------------------------------- |
+| **Drill-down**                    |     ✓     |     ✓      |                                                                                                               |
+| **Linked filtering**              |     ✓     |     ✓      |                                                                                                               |
+| **Breadcrumb navigation**         |     ✓     |     ✓      |                                                                                                               |
+| **Multi-select filters**          |     ✓     |     ✓      |                                                                                                               |
+| **Investigation Mindmap**         |     ✓     |     ✓      |                                                                                                               |
+| **What-If Simulator**             |     ✓     |     ✓      |                                                                                                               |
+| **Keyboard navigation**           |     ✓     |     ✓      |                                                                                                               |
+| **Copy chart to clipboard**       |     ✓     |     ✓      | Includes filter context bar when active                                                                       |
+| **Filter context on charts**      |     ✓     |     ✓      | Shows active filters inside chart cards; toggle in Settings                                                   |
+| **Editable chart titles**         |     ✓     |     ✓      |                                                                                                               |
+| **Selection panel**               |     ✓     |     ✓      | Minitab-style point brushing                                                                                  |
+| **Create Factor**                 |     ✓     |     ✓      | From point selection                                                                                          |
+| **Focus mode (fullscreen chart)** |     ✓     |     ✓      |                                                                                                               |
+| **Median in Stats Panel**         |     ✓     |     ✓      | Always shown alongside Mean                                                                                   |
+| **Inline spec inputs (Stats)**    |     ✓     |     ✓      | `onSaveSpecs` prop; Target-first progressive disclosure                                                       |
+| **Chart annotations**             |     ✓     |     ✓      | Boxplot/Pareto: right-click context menu (highlight + note); I-Chart: right-click to place free-floating note |
 
 ---
 

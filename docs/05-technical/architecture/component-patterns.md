@@ -485,17 +485,20 @@ See [Colors > Shared Component Color Schemes](../../06-design-system/foundations
 
 ### Output
 
-| Property                | Type                                           | Description                         |
-| ----------------------- | ---------------------------------------------- | ----------------------------------- |
-| `contextMenu`           | `{ isOpen, position, categoryKey, chartType }` | Context menu state                  |
-| `handleContextMenu`     | `(chartType, key, event) => void`              | Opens context menu                  |
-| `closeContextMenu`      | `() => void`                                   | Closes context menu                 |
-| `setHighlight`          | `(chartType, key, color?) => void`             | Sets/clears highlight color         |
-| `createAnnotation`      | `(chartType, key) => void`                     | Creates text annotation             |
-| `setBoxplotAnnotations` | `(annotations: ChartAnnotation[]) => void`     | Updates boxplot annotations         |
-| `setParetoAnnotations`  | `(annotations: ChartAnnotation[]) => void`     | Updates pareto annotations          |
-| `clearAnnotations`      | `(chartType) => void`                          | Clears all for chart type           |
-| `hasAnnotations`        | `boolean`                                      | Any annotations or highlights exist |
+| Property                 | Type                                           | Description                                                     |
+| ------------------------ | ---------------------------------------------- | --------------------------------------------------------------- |
+| `contextMenu`            | `{ isOpen, position, categoryKey, chartType }` | Context menu state                                              |
+| `handleContextMenu`      | `(chartType, key, event) => void`              | Opens context menu (Boxplot/Pareto)                             |
+| `closeContextMenu`       | `() => void`                                   | Closes context menu                                             |
+| `setHighlight`           | `(chartType, key, color?) => void`             | Sets/clears highlight color                                     |
+| `createAnnotation`       | `(chartType, key) => void`                     | Creates text annotation anchored to a category                  |
+| `createIChartAnnotation` | `(anchorX: number, anchorY: number) => void`   | Creates free-floating annotation at % chart position            |
+| `setBoxplotAnnotations`  | `(annotations: ChartAnnotation[]) => void`     | Updates boxplot annotations                                     |
+| `setParetoAnnotations`   | `(annotations: ChartAnnotation[]) => void`     | Updates pareto annotations                                      |
+| `setIChartAnnotations`   | `(annotations: IChartAnnotation[]) => void`    | Updates I-Chart annotation list                                 |
+| `ichartAnnotations`      | `IChartAnnotation[]`                           | Current I-Chart annotation array                                |
+| `clearAnnotations`       | `(chartType) => void`                          | Clears all for chart type (`'boxplot'`, `'pareto'`, `'ichart'`) |
+| `hasAnnotations`         | `boolean`                                      | Any annotations or highlights exist                             |
 
 ### Usage Example
 

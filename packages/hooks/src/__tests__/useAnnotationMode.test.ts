@@ -267,4 +267,155 @@ describe('useAnnotations', () => {
     expect(result.current.contextMenu.categoryKey).toBe('CategoryY');
     expect(result.current.contextMenu.chartType).toBe('pareto');
   });
+
+  // I-Chart annotation tests
+
+  it('creates ichart annotation with percentage anchors', () => {
+    const opts = makeOptions();
+    const setOpts = vi.fn();
+    const { result } = renderHook(() =>
+      useAnnotations({ displayOptions: opts, setDisplayOptions: setOpts, dataFingerprint: 'a' })
+    );
+
+    act(() => result.current.createIChartAnnotation(0.5, 0.3));
+
+    expect(setOpts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ichartAnnotations: [
+          expect.objectContaining({
+            text: '',
+            offsetX: 0,
+            offsetY: 0,
+            width: 140,
+            color: 'neutral',
+            anchorX: 0.5,
+            anchorY: 0.3,
+          }),
+        ],
+      })
+    );
+
+    // anchorCategory should equal id (self-referencing)
+    const call = setOpts.mock.calls[0][0];
+    const annotation = call.ichartAnnotations[0];
+    expect(annotation.anchorCategory).toBe(annotation.id);
+  });
+
+  it('clears ichart annotations', () => {
+    const opts = makeOptions({
+      ichartAnnotations: [
+        {
+          id: 'i1',
+          anchorCategory: 'i1',
+          text: 'power outage',
+          offsetX: 0,
+          offsetY: 0,
+          width: 140,
+          color: 'neutral',
+          anchorX: 0.5,
+          anchorY: 0.3,
+        },
+      ],
+    });
+    const setOpts = vi.fn();
+    const { result } = renderHook(() =>
+      useAnnotations({ displayOptions: opts, setDisplayOptions: setOpts, dataFingerprint: 'a' })
+    );
+
+    expect(result.current.hasAnnotations).toBe(true);
+
+    act(() => result.current.clearAnnotations('ichart'));
+
+    expect(setOpts).toHaveBeenCalledWith(expect.objectContaining({ ichartAnnotations: [] }));
+  });
+
+  it('hasAnnotations includes ichart annotations', () => {
+    const opts = makeOptions({
+      ichartAnnotations: [
+        {
+          id: 'i1',
+          anchorCategory: 'i1',
+          text: 'note',
+          offsetX: 0,
+          offsetY: 0,
+          width: 140,
+          color: 'neutral',
+          anchorX: 0.2,
+          anchorY: 0.8,
+        },
+      ],
+    });
+    const setOpts = vi.fn();
+    const { result } = renderHook(() =>
+      useAnnotations({ displayOptions: opts, setDisplayOptions: setOpts, dataFingerprint: 'a' })
+    );
+
+    expect(result.current.hasAnnotations).toBe(true);
+    expect(result.current.ichartAnnotations).toHaveLength(1);
+  });
+
+  it('updates ichart annotations via setIChartAnnotations', () => {
+    const opts = makeOptions({
+      ichartAnnotations: [
+        {
+          id: 'i1',
+          anchorCategory: 'i1',
+          text: 'old',
+          offsetX: 0,
+          offsetY: 0,
+          width: 140,
+          color: 'neutral',
+          anchorX: 0.5,
+          anchorY: 0.5,
+        },
+      ],
+    });
+    const setOpts = vi.fn();
+    const { result } = renderHook(() =>
+      useAnnotations({ displayOptions: opts, setDisplayOptions: setOpts, dataFingerprint: 'a' })
+    );
+
+    const updated = [{ ...opts.ichartAnnotations![0], text: 'updated text' }];
+    act(() => result.current.setIChartAnnotations(updated));
+
+    expect(setOpts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ichartAnnotations: [expect.objectContaining({ text: 'updated text' })],
+      })
+    );
+  });
+
+  it('does not reset ichart annotation offsets on data fingerprint change', () => {
+    const annotation = {
+      id: 'i1',
+      anchorCategory: 'i1',
+      text: 'note',
+      offsetX: 50,
+      offsetY: 30,
+      width: 140,
+      color: 'neutral' as const,
+      anchorX: 0.5,
+      anchorY: 0.5,
+    };
+    let opts = makeOptions({ ichartAnnotations: [annotation] });
+    const setOpts = vi.fn((newOpts: DisplayOptions) => {
+      opts = newOpts;
+    });
+    let fingerprint = 'fp1';
+
+    const { rerender } = renderHook(() =>
+      useAnnotations({
+        displayOptions: opts,
+        setDisplayOptions: setOpts,
+        dataFingerprint: fingerprint,
+      })
+    );
+
+    // Change fingerprint — ichart annotations should NOT be reset
+    fingerprint = 'fp2';
+    rerender();
+
+    // setOpts should not be called (no boxplot/pareto annotations to reset)
+    expect(setOpts).not.toHaveBeenCalled();
+  });
 });

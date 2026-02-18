@@ -42,7 +42,7 @@ interface UseAnnotationsResult {
   /** Whether any annotations exist (highlights or text boxes) */
   hasAnnotations: boolean;
   /** Clear all annotations (highlights + text boxes) for a chart type */
-  clearAnnotations: (chartType: 'boxplot' | 'pareto') => void;
+  clearAnnotations: (chartType: 'boxplot' | 'pareto' | 'ichart') => void;
 
   // Context menu
   /** Current context menu state */
@@ -73,6 +73,12 @@ interface UseAnnotationsResult {
   createAnnotation: (chartType: 'boxplot' | 'pareto', key: string) => void;
   setBoxplotAnnotations: (annotations: ChartAnnotation[]) => void;
   setParetoAnnotations: (annotations: ChartAnnotation[]) => void;
+
+  // I-Chart annotations (free-floating, percentage-positioned)
+  ichartAnnotations: ChartAnnotation[];
+  /** Create a free-floating annotation at a % position on the I-Chart */
+  createIChartAnnotation: (anchorX: number, anchorY: number) => void;
+  setIChartAnnotations: (annotations: ChartAnnotation[]) => void;
 }
 
 export function useAnnotations({
@@ -87,6 +93,7 @@ export function useAnnotations({
   const paretoHighlights = displayOptions.paretoHighlights ?? {};
   const boxplotAnnotations = displayOptions.boxplotAnnotations ?? [];
   const paretoAnnotations = displayOptions.paretoAnnotations ?? [];
+  const ichartAnnotations = displayOptions.ichartAnnotations ?? [];
 
   // Reset annotation offsets when data changes
   useEffect(() => {
@@ -169,6 +176,30 @@ export function useAnnotations({
     [displayOptions, setDisplayOptions, boxplotAnnotations, paretoAnnotations]
   );
 
+  // I-Chart annotation creation (free-floating, % positioned)
+  const createIChartAnnotationFn = useCallback(
+    (anchorX: number, anchorY: number) => {
+      const id = crypto.randomUUID();
+      const newAnnotation: ChartAnnotation = {
+        id,
+        anchorCategory: id, // self-referencing — position map uses id as key
+        text: '',
+        offsetX: 0,
+        offsetY: 0,
+        width: 140,
+        color: 'neutral',
+        anchorX,
+        anchorY,
+      };
+
+      setDisplayOptions({
+        ...displayOptions,
+        ichartAnnotations: [...ichartAnnotations, newAnnotation],
+      });
+    },
+    [displayOptions, setDisplayOptions, ichartAnnotations]
+  );
+
   // Annotation setters (for update/delete from ChartAnnotationLayer)
   const setBoxplotAnnotations = useCallback(
     (annotations: ChartAnnotation[]) => {
@@ -184,20 +215,32 @@ export function useAnnotations({
     [displayOptions, setDisplayOptions]
   );
 
+  const setIChartAnnotations = useCallback(
+    (annotations: ChartAnnotation[]) => {
+      setDisplayOptions({ ...displayOptions, ichartAnnotations: annotations });
+    },
+    [displayOptions, setDisplayOptions]
+  );
+
   // Clear all
   const clearAnnotations = useCallback(
-    (chartType: 'boxplot' | 'pareto') => {
+    (chartType: 'boxplot' | 'pareto' | 'ichart') => {
       if (chartType === 'boxplot') {
         setDisplayOptions({
           ...displayOptions,
           boxplotHighlights: {},
           boxplotAnnotations: [],
         });
-      } else {
+      } else if (chartType === 'pareto') {
         setDisplayOptions({
           ...displayOptions,
           paretoHighlights: {},
           paretoAnnotations: [],
+        });
+      } else {
+        setDisplayOptions({
+          ...displayOptions,
+          ichartAnnotations: [],
         });
       }
     },
@@ -208,7 +251,8 @@ export function useAnnotations({
     Object.keys(boxplotHighlights).length > 0 ||
     Object.keys(paretoHighlights).length > 0 ||
     boxplotAnnotations.length > 0 ||
-    paretoAnnotations.length > 0;
+    paretoAnnotations.length > 0 ||
+    ichartAnnotations.length > 0;
 
   return {
     hasAnnotations,
@@ -227,6 +271,10 @@ export function useAnnotations({
     createAnnotation: createAnnotationFn,
     setBoxplotAnnotations,
     setParetoAnnotations,
+
+    ichartAnnotations,
+    createIChartAnnotation: createIChartAnnotationFn,
+    setIChartAnnotations,
   };
 }
 
