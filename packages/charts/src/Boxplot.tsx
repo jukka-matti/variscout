@@ -10,7 +10,7 @@ import ChartSourceBar from './ChartSourceBar';
 import { chartColors, chromeColors } from './colors';
 import { useChartLayout, useChartTooltip, useSelectionState } from './hooks';
 import { interactionStyles } from './styles/interactionStyles';
-import { getBoxplotA11yProps } from './utils/accessibility';
+import { getBoxplotA11yProps, getInteractiveA11yProps } from './utils/accessibility';
 import { calculateKDE } from '@variscout/core';
 
 /** Default threshold for high variation highlight (50%) */
@@ -364,8 +364,10 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             fontSize={fonts.axisLabel}
             fontWeight={500}
             onClick={onYAxisClick}
-            style={onYAxisClick ? { cursor: 'pointer' } : undefined}
+            className={onYAxisClick ? interactionStyles.clickableSubtle : ''}
+            {...getInteractiveA11yProps('Edit axis label', onYAxisClick)}
           >
+            {onYAxisClick && <title>Click to edit axis label</title>}
             {yAxisLabel}
           </text>
 
@@ -461,8 +463,10 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
             fontSize={fonts.axisLabel}
             fontWeight={isHighVariation ? 600 : 500}
             onClick={onXAxisClick}
-            style={onXAxisClick ? { cursor: 'pointer' } : undefined}
+            className={onXAxisClick ? interactionStyles.clickableSubtle : ''}
+            {...getInteractiveA11yProps('Edit axis label', onXAxisClick)}
           >
+            {onXAxisClick && <title>Click to edit axis label</title>}
             {xAxisLabel}
             {variationPct !== undefined && ` (${Math.round(variationPct)}%)`}
           </text>

@@ -11,7 +11,7 @@ import ChartSourceBar from './ChartSourceBar';
 import { chartColors, chromeColors } from './colors';
 import { useChartLayout, useChartTooltip, useSelectionState } from './hooks';
 import { interactionStyles } from './styles/interactionStyles';
-import { getBarA11yProps } from './utils/accessibility';
+import { getBarA11yProps, getInteractiveA11yProps } from './utils/accessibility';
 
 /**
  * Pareto Chart - Props-based version
@@ -187,8 +187,10 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             fontSize={fonts.axisLabel}
             fontWeight={500}
             onClick={onYAxisClick}
-            style={onYAxisClick ? { cursor: 'pointer' } : undefined}
+            className={onYAxisClick ? interactionStyles.clickableSubtle : ''}
+            {...getInteractiveA11yProps('Edit axis label', onYAxisClick)}
           >
+            {onYAxisClick && <title>Click to edit axis label</title>}
             {yAxisLabel}
           </text>
 
@@ -237,8 +239,10 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             fontSize={fonts.axisLabel}
             fontWeight={500}
             onClick={onXAxisClick}
-            style={onXAxisClick ? { cursor: 'pointer' } : undefined}
+            className={onXAxisClick ? interactionStyles.clickableSubtle : ''}
+            {...getInteractiveA11yProps('Edit axis label', onXAxisClick)}
           >
+            {onXAxisClick && <title>Click to edit axis label</title>}
             {xAxisLabel}
           </text>
         </Group>

@@ -467,6 +467,7 @@ const IChartBase: React.FC<IChartProps> = ({
                     onSpecClick ? () => onSpecClick('usl') : undefined
                   )}
                 >
+                  {onSpecClick && <title>Click to edit USL</title>}
                   USL: {specs.usl.toFixed(1)}
                 </text>
               )}
@@ -497,6 +498,7 @@ const IChartBase: React.FC<IChartProps> = ({
                     onSpecClick ? () => onSpecClick('lsl') : undefined
                   )}
                 >
+                  {onSpecClick && <title>Click to edit LSL</title>}
                   LSL: {specs.lsl.toFixed(1)}
                 </text>
               )}
@@ -527,6 +529,7 @@ const IChartBase: React.FC<IChartProps> = ({
                     onSpecClick ? () => onSpecClick('target') : undefined
                   )}
                 >
+                  {onSpecClick && <title>Click to edit Target</title>}
                   Tgt: {specs.target.toFixed(1)}
                 </text>
               )}

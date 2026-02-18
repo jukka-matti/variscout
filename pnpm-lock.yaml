@@ -407,6 +407,9 @@ importers:
       '@variscout/core':
         specifier: workspace:*
         version: link:../core
+      d3:
+        specifier: ^7.9.0
+        version: 7.9.0
       react:
         specifier: ^18.0.0 || ^19.0.0
         version: 19.2.3
@@ -417,6 +420,9 @@ importers:
       '@testing-library/react':
         specifier: ^16.3.1
         version: 16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@types/d3':
+        specifier: ^7.4.3
+        version: 7.4.3
       '@types/react':
         specifier: ^18.3.3
         version: 18.3.27

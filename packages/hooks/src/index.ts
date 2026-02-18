@@ -148,3 +148,7 @@ export {
 export { useHighlightFade, type UseHighlightFadeReturn } from './useHighlightFade';
 
 export { useResizablePanel, type UseResizablePanelReturn } from './useResizablePanel';
+
+// Chart Data Hooks (shared computation for app wrappers)
+export { useBoxplotData } from './useBoxplotData';
+export { useIChartData } from './useIChartData';

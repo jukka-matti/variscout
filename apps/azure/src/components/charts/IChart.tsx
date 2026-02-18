@@ -7,13 +7,12 @@
  * 3. Manages Azure-specific UI (scale/label editors)
  * 4. Passes everything to shared IChartBase
  */
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
-import { IChartBase, type IChartDataPoint } from '@variscout/charts';
-import { formatTimeValue } from '@variscout/core';
-import AxisEditor from '../AxisEditor';
+import { IChartBase } from '@variscout/charts';
+import { useIChartData } from '@variscout/hooks';
 import YAxisPopover from '../YAxisPopover';
 
 interface IChartProps {
@@ -39,7 +38,6 @@ const IChart = ({
     axisSettings,
     setAxisSettings,
     columnAliases,
-    setColumnAliases,
     stageColumn,
     stagedData,
     stagedStats,
@@ -49,7 +47,6 @@ const IChart = ({
   } = useData();
 
   const [isEditingScale, setIsEditingScale] = useState(false);
-  const [isEditingLabel, setIsEditingLabel] = useState(false);
 
   // Use stagedData when staging is active, otherwise filteredData
   const sourceData = stageColumn ? stagedData : filteredData;
@@ -57,30 +54,7 @@ const IChart = ({
   // Use existing hook for scale limits (for YAxisPopover)
   const { min: autoMin, max: autoMax } = useChartScale();
 
-  // Transform data to IChartDataPoint[] format
-  const data = useMemo<IChartDataPoint[]>(() => {
-    if (!outcome) return [];
-    return sourceData
-      .map(
-        (d: Record<string, unknown>, i: number): IChartDataPoint => ({
-          x: i,
-          y: Number(d[outcome]),
-          stage: stageColumn ? String(d[stageColumn] ?? '') : undefined,
-          timeValue: timeColumn ? formatTimeValue(d[timeColumn] as any) : undefined,
-          originalIndex: i,
-        })
-      )
-      .filter(d => !isNaN(d.y));
-  }, [sourceData, outcome, stageColumn, timeColumn]);
-
-  const handleSaveAlias = (newAlias: string) => {
-    if (outcome) {
-      setColumnAliases({
-        ...columnAliases,
-        [outcome]: newAlias,
-      });
-    }
-  };
+  const data = useIChartData(sourceData, outcome, stageColumn, timeColumn);
 
   const handleYAxisClick = () => {
     setIsEditingScale(true);
@@ -138,18 +112,6 @@ const IChart = ({
         onSave={setAxisSettings}
         anchorPosition={{ top: margin.top, left: 10 }}
       />
-
-      {/* In-Place Label Editor Popover */}
-      {isEditingLabel && (
-        <AxisEditor
-          title="Edit Axis Label"
-          originalName={outcome}
-          alias={columnAliases[outcome] || ''}
-          onSave={handleSaveAlias}
-          onClose={() => setIsEditingLabel(false)}
-          style={{ top: margin.top + parentHeight / 2 - 50, left: 10 }}
-        />
-      )}
     </div>
   );
 };

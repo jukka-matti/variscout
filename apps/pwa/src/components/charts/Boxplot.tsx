@@ -8,13 +8,13 @@
  * 4. Manages PWA-specific UI (axis label editing with value labels)
  * 5. Passes everything to shared BoxplotBase
  */
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { withParentSize } from '@visx/responsive';
-import * as d3 from 'd3';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
-import { BoxplotBase, type BoxplotGroupData } from '@variscout/charts';
+import { BoxplotBase } from '@variscout/charts';
 import { AxisEditor } from '@variscout/ui';
+import { useBoxplotData } from '@variscout/hooks';
 import { shouldShowBranding, getBrandingText } from '../../lib/edition';
 
 interface BoxplotProps {
@@ -51,37 +51,7 @@ const Boxplot = ({
 
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const { min, max } = useChartScale();
-
-  // Compute boxplot data from filtered data
-  const data = useMemo<BoxplotGroupData[]>(() => {
-    if (!outcome) return [];
-    const groups = d3.group(filteredData, (d: any) => d[factor]);
-    return Array.from(groups, ([key, groupValues]) => {
-      const v = groupValues
-        .map((d: any) => Number(d[outcome]))
-        .filter(val => !isNaN(val))
-        .sort(d3.ascending);
-      if (v.length === 0) return null;
-      const q1 = d3.quantile(v, 0.25) || 0;
-      const median = d3.quantile(v, 0.5) || 0;
-      const q3 = d3.quantile(v, 0.75) || 0;
-      const iqr = q3 - q1;
-      const whiskerMin = Math.max(v[0], q1 - 1.5 * iqr);
-      const whiskerMax = Math.min(v[v.length - 1], q3 + 1.5 * iqr);
-      const mean = d3.mean(v) || 0;
-      return {
-        key: String(key),
-        q1,
-        median,
-        q3,
-        min: whiskerMin,
-        max: whiskerMax,
-        mean,
-        outliers: v.filter(x => x < whiskerMin || x > whiskerMax),
-        values: v,
-      };
-    }).filter((d): d is BoxplotGroupData => d !== null);
-  }, [filteredData, factor, outcome]);
+  const data = useBoxplotData(filteredData, factor, outcome);
 
   const handleBoxClick = (key: string) => {
     if (onDrillDown) {
