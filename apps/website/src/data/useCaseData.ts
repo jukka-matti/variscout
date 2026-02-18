@@ -83,24 +83,12 @@ export const INDUSTRY_GROUPS: Array<{
   industry: string;
   slugs: string[];
 }> = [
-  {
-    industry: 'Manufacturing',
-    slugs: ['bottleneck-analysis', 'supplier-performance', 'supplier-ppap', 'batch-consistency'],
-  },
-  { industry: 'Automotive', slugs: ['supplier-ppap', 'supplier-performance'] },
-  { industry: 'Healthcare', slugs: ['patient-wait-time'] },
-  { industry: 'Education', slugs: ['university-spc'] },
-  {
-    industry: 'Service Operations',
-    slugs: ['call-center-performance', 'on-time-delivery', 'lead-time-variation'],
-  },
-  {
-    industry: 'Cross-industry',
-    slugs: ['copq-drilldown', 'complaint-investigation'],
-  },
+  { industry: 'Manufacturing', slugs: ['bottleneck-analysis'] },
+  { industry: 'Supply Chain', slugs: ['supplier-performance'] },
+  { industry: 'Cross-industry', slugs: ['complaint-investigation'] },
 ];
 
-// ─── Phase 1: 6 Use Cases (highest SEO score + data match) ─────────────────
+// ─── 3 Use Cases: Manufacturing, Supply Chain, Cross-industry ──────────────
 
 export const USE_CASES: UseCase[] = [
   // ── 1. Assembly Bottleneck (SEO 22, has case study + dataset) ──
@@ -197,7 +185,7 @@ export const USE_CASES: UseCase[] = [
         'Monthly pass rates look fine. But averages across suppliers hide the ones that are slowly drifting out of spec. By the time a lot fails incoming inspection, the damage is already done.',
       misleadingMetric: '"All suppliers maintain 95%+ pass rate"',
       reality:
-        'Supplier C is trending toward the spec limit — Cpk dropping from 1.4 to 0.9 over 6 months',
+        'Supplier C is drifting toward the spec limit — six months from comfortable margin to barely passing',
     },
     demo: {
       sampleKey: 'journey',
@@ -223,9 +211,10 @@ export const USE_CASES: UseCase[] = [
       {
         step: 3,
         tool: 'capability',
-        title: 'Calculate supplier Cpk',
+        title: 'Assess supplier capability',
         description: 'Quantify each supplier against your spec limits',
-        insight: 'Supplier C: Cpk 0.92 (not capable). Others: 1.3+',
+        insight:
+          'Supplier C barely meets spec. Others have comfortable margin. Now you know where to focus.',
       },
     ],
     ahaQuote:
@@ -233,11 +222,11 @@ export const USE_CASES: UseCase[] = [
     beforeAfter: [
       {
         before: 'Monthly pass/fail scorecard',
-        after: 'Real-time Cpk tracking per supplier',
+        after: 'See which suppliers are drifting — before lots fail',
       },
       {
         before: 'React when lots fail',
-        after: 'Intervene before capability drops below 1.0',
+        after: 'Intervene while there is still margin',
       },
       {
         before: 'All suppliers treated equally',
@@ -267,280 +256,10 @@ export const USE_CASES: UseCase[] = [
       'supplier comparison chart',
     ],
     metaDescription:
-      'Monitor supplier quality with real-time Cpk tracking. See which suppliers are drifting before lots fail incoming inspection.',
+      'Compare supplier quality from your incoming inspection data. See which suppliers are drifting before lots start failing.',
   },
 
-  // ── 3. University SPC (SEO 24, equal highest) ──
-  {
-    slug: 'university-spc',
-    title: 'Teach SPC Without the Software Barrier',
-    subtitle:
-      'Your students should learn the methodology, not navigate complex menus. Free, instant, no signup.',
-    industry: 'Education',
-    role: 'University Lecturer / Lean Six Sigma Trainer',
-    problem: {
-      headline: 'Expensive software licenses are blocking your students.',
-      description:
-        'Statistical software costs thousands per seat. IT approval takes weeks. By the time students have access, the semester is half over. And then they spend more time learning the menu structure than the methodology.',
-      misleadingMetric: '"Students completed the Minitab tutorial"',
-      reality:
-        'They learned to click buttons in a specific sequence. They cannot interpret a control chart from scratch.',
-    },
-    demo: {
-      sampleKey: 'coffee',
-      chartType: 'i-chart',
-      caption:
-        'I-Chart of coffee roasting data — a real case study your students can explore immediately',
-    },
-    journey: [
-      {
-        step: 1,
-        tool: 'i-chart',
-        title: 'See variation over time',
-        description: 'Students paste coffee batch data, see the control chart instantly',
-        insight: 'Some batches are outside control limits — why?',
-      },
-      {
-        step: 2,
-        tool: 'boxplot',
-        title: 'Compare drying beds',
-        description: 'Click to filter by drying bed, see which one has the problem',
-        insight: 'Bed C has higher moisture AND more variation',
-      },
-      {
-        step: 3,
-        tool: 'capability',
-        title: 'Assess against export spec',
-        description: 'Add spec limits (10-12% moisture) to calculate Cpk',
-        insight: 'Cpk < 1.0 for Bed C — it cannot reliably meet export requirements',
-      },
-    ],
-    ahaQuote:
-      'The methodology clicked when they could see the chart respond to their clicks. Not when they memorized a menu path.',
-    beforeAfter: [
-      {
-        before: 'Wait weeks for software licenses',
-        after: 'Students start analyzing in the first lecture',
-      },
-      {
-        before: 'Teach software navigation',
-        after: 'Teach variation thinking',
-      },
-      {
-        before: 'Static textbook examples',
-        after: '16 interactive case studies with real data',
-      },
-      {
-        before: 'Students forget after the exam',
-        after: 'Tool is always free — they keep using it in projects',
-      },
-    ],
-    relatedCases: ['coffee', 'bottleneck', 'cookie-weight'],
-    relatedTools: ['i-chart', 'boxplot', 'capability'],
-    relatedLearn: ['four-lenses', 'two-voices', 'eda-philosophy'],
-    platformFit: [
-      {
-        stage: 'Classroom',
-        product: 'pwa',
-        reason: 'Free forever. No signup. 16 sample datasets for teaching.',
-      },
-      {
-        stage: 'Assignments',
-        product: 'pwa',
-        reason: 'Students paste their own project data',
-      },
-      {
-        stage: 'Research teams',
-        product: 'azure',
-        reason: 'Save projects, collaborate, unlimited channels',
-      },
-    ],
-    keywords: [
-      'free SPC software education',
-      'SPC teaching tool',
-      'control chart software university',
-      'Lean Six Sigma training tool',
-      'statistical process control teaching',
-    ],
-    metaDescription:
-      'Free SPC tool for universities and training. Students learn control charts, Cpk, and variation analysis instantly — no license, no signup, no barriers.',
-  },
-
-  // ── 4. Supplier PPAP (SEO 22, automotive high-intent) ──
-  {
-    slug: 'supplier-ppap',
-    title: 'Verify Supplier Capability in Minutes',
-    subtitle:
-      'Your supplier says Cpk = 1.72. Your incoming data tells a different story. Find out in 60 seconds.',
-    industry: 'Automotive',
-    role: 'Supplier Quality Engineer',
-    problem: {
-      headline: "The supplier's PPAP report doesn't match your reality.",
-      description:
-        "PPAP submissions show impressive Cpk values. But those numbers come from the supplier's controlled study — cherry-picked samples, ideal conditions. Your incoming inspection data tells the real story about day-to-day capability.",
-      misleadingMetric: '"Supplier PPAP shows Cpk = 1.72 across all characteristics"',
-      reality:
-        'Your incoming data shows Cpk = 0.98 on dimension B — below the 1.33 minimum for production approval',
-    },
-    demo: {
-      sampleKey: 'mango-export',
-      chartType: 'capability',
-      caption:
-        'Capability histogram with spec limits — see where the distribution falls relative to requirements',
-    },
-    journey: [
-      {
-        step: 1,
-        tool: 'capability',
-        title: 'Check actual Cpk',
-        description: 'Enter your spec limits, see the real capability from incoming data',
-        insight: "Cpk 0.98 — below the 1.33 minimum. The supplier's study didn't reflect reality.",
-      },
-      {
-        step: 2,
-        tool: 'i-chart',
-        title: 'Check for stability',
-        description: 'Is the process stable, or is it drifting?',
-        insight: 'The I-Chart shows a gradual upward drift — capability is getting worse over time',
-      },
-      {
-        step: 3,
-        tool: 'performance',
-        title: 'Compare all characteristics',
-        description: 'For multi-characteristic PPAP, rank all dimensions by Cpk',
-        insight: '3 of 25 characteristics fail the 1.33 threshold — focused corrective action',
-      },
-    ],
-    ahaQuote:
-      "The supplier's Cpk was from a controlled study. Ours was from 6 months of incoming data. Guess which one predicts next month's quality.",
-    beforeAfter: [
-      {
-        before: "Trust supplier's PPAP numbers",
-        after: 'Verify with your own incoming data',
-      },
-      {
-        before: 'Review all 25 characteristics manually',
-        after: 'Performance Mode ranks worst-first automatically',
-      },
-      {
-        before: 'Discover problems at assembly',
-        after: 'Catch capability drift at incoming inspection',
-      },
-    ],
-    relatedCases: ['coffee', 'avocado'],
-    relatedTools: ['capability', 'i-chart', 'performance'],
-    relatedLearn: ['two-voices', 'methodology-capability'],
-    platformFit: [
-      {
-        stage: 'Quick verification',
-        product: 'pwa',
-        reason: 'Paste incoming data, check Cpk in 60 seconds',
-      },
-      {
-        stage: 'Full PPAP review',
-        product: 'azure',
-        reason: 'Performance Mode: 25+ characteristics, Cpk ranking, drill-down',
-      },
-    ],
-    keywords: [
-      'verify supplier Cpk',
-      'PPAP capability verification',
-      'supplier Cpk analysis',
-      'incoming inspection Cpk',
-      'PPAP capability study',
-    ],
-    metaDescription:
-      "Verify supplier PPAP capability with your own incoming data. Compare the supplier's Cpk claims against real performance in 60 seconds.",
-  },
-
-  // ── 5. COPQ Drill-Down (SEO 21, universal manufacturing) ──
-  {
-    slug: 'copq-drilldown',
-    title: 'Find Where Your Quality Costs Hide',
-    subtitle:
-      'Overall scrap rate looks manageable. But one product, one line, one shift holds 52% of the cost.',
-    industry: 'Cross-industry',
-    role: 'Quality Manager / Continuous Improvement Lead',
-    problem: {
-      headline: "Your COPQ report treats all waste equally. It shouldn't.",
-      description:
-        'The monthly quality report shows 3% scrap rate — within budget. But that 3% is not evenly distributed. Drill down by product, line, and shift, and you find massive concentration. A small number of combinations drive the majority of cost.',
-      misleadingMetric: '"Overall scrap rate is 3.0% — within the 3.5% budget"',
-      reality:
-        'Product X on Line 2 during night shift = 52% of total COPQ. Fix this one combination and cut waste in half.',
-    },
-    demo: {
-      sampleKey: 'packaging',
-      chartType: 'pareto',
-      caption: 'Pareto chart showing defect concentration — the vital few dominate',
-    },
-    journey: [
-      {
-        step: 1,
-        tool: 'pareto',
-        title: 'Find the vital few',
-        description: 'Pareto by product type shows which products drive the most scrap',
-        insight: 'One product accounts for 45% of total defects',
-      },
-      {
-        step: 2,
-        tool: 'boxplot',
-        title: 'Drill into the worst product',
-        description: 'Click the worst product, then compare lines and shifts',
-        insight: 'Line 2 has 3x the variation of Line 1 for this product',
-      },
-      {
-        step: 3,
-        tool: 'i-chart',
-        title: 'Find the time pattern',
-        description: 'Within Line 2, look at the time pattern — when does it get worse?',
-        insight:
-          'Night shift shows systematic drift. Equipment calibration schedule misses the 2am handover.',
-      },
-    ],
-    ahaQuote:
-      "3% scrap rate sounded fine. But 52% of that cost came from one combination we'd never isolated before.",
-    beforeAfter: [
-      {
-        before: 'Report overall scrap %',
-        after: 'Report COPQ by product x line x shift',
-      },
-      {
-        before: 'Spread improvement efforts thin',
-        after: 'Focus on the one combination that is 52% of cost',
-      },
-      {
-        before: 'Reactive — investigate after customer complaint',
-        after: 'Proactive — catch the pattern before it reaches the customer',
-      },
-    ],
-    relatedCases: ['packaging', 'weld-defects'],
-    relatedTools: ['pareto', 'boxplot', 'i-chart'],
-    relatedLearn: ['four-lenses', 'methodology-eta-squared'],
-    platformFit: [
-      {
-        stage: 'Quick Pareto',
-        product: 'pwa',
-        reason: 'Paste defect data, see Pareto in seconds',
-      },
-      {
-        stage: 'Full drill-down',
-        product: 'azure',
-        reason: 'Multi-level drill-down with saved analysis and team access',
-      },
-    ],
-    keywords: [
-      'cost of poor quality analysis',
-      'COPQ drill-down',
-      'scrap rate analysis',
-      'defect Pareto analysis',
-      'quality cost reduction',
-    ],
-    metaDescription:
-      'Drill down into your Cost of Poor Quality. Find the specific product-line-shift combination that drives most of your scrap costs.',
-  },
-
-  // ── 6. Customer Complaint Investigation (SEO 21, universal) ──
+  // ── 3. Customer Complaint Investigation (SEO 21, universal) ──
   {
     slug: 'complaint-investigation',
     title: 'Investigate Customer Complaints With Data',
@@ -553,7 +272,7 @@ export const USE_CASES: UseCase[] = [
         'A key customer reports increasing defects in recent shipments. Your monthly quality metrics show no change. But the customer is comparing specific lots to their earlier experience — and they are right. Something shifted.',
       misleadingMetric: '"Monthly average within spec. No trend detected."',
       reality:
-        'A process shift occurred at batch 47. Lots after that point have Cpk 0.85 — below capability.',
+        'A process shift occurred at batch 47. Everything shipped after that point fails to meet spec.',
     },
     demo: {
       sampleKey: 'cookie-weight',
@@ -581,7 +300,8 @@ export const USE_CASES: UseCase[] = [
         tool: 'capability',
         title: 'Quantify the impact',
         description: 'Calculate Cpk for the complaint period specifically',
-        insight: 'Before: Cpk 1.45 (capable). After: Cpk 0.85 (not capable). Customer was right.',
+        insight:
+          'Before the shift: meeting spec comfortably. After: not capable. The customer was right.',
       },
     ],
     ahaQuote:
