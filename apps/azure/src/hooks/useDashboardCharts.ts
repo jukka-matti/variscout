@@ -17,7 +17,12 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { toBlob } from 'html-to-image';
 import { useData } from '../context/DataContext';
-import { calculateAnova, type AnovaResult, getNextDrillFactor } from '@variscout/core';
+import {
+  calculateAnova,
+  type AnovaResult,
+  getNextDrillFactor,
+  sortBoxplotData,
+} from '@variscout/core';
 import { calculateBoxplotStats, type BoxplotGroupData } from '@variscout/charts';
 import { useFilterNavigation, useVariationTracking } from '../hooks';
 import type { UseFilterNavigationReturn, FilterChipData } from '../hooks';
@@ -75,7 +80,8 @@ export interface UseDashboardChartsResult {
 }
 
 export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboardChartsResult {
-  const { outcome, factors, rawData, filteredData, chartTitles, setChartTitles } = useData();
+  const { outcome, factors, rawData, filteredData, chartTitles, setChartTitles, displayOptions } =
+    useData();
 
   // Filter navigation — use external if provided, otherwise create local
   const localFilterNav = useFilterNavigation({
@@ -188,10 +194,21 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
         groups.get(key)!.push(value);
       }
     }
-    return Array.from(groups.entries())
-      .map(([group, values]) => calculateBoxplotStats({ group, values }))
-      .sort((a, b) => a.key.localeCompare(b.key));
-  }, [filteredData, outcome, boxplotFactor]);
+    const unsorted = Array.from(groups.entries()).map(([group, values]) =>
+      calculateBoxplotStats({ group, values })
+    );
+    return sortBoxplotData(
+      unsorted,
+      displayOptions.boxplotSortBy,
+      displayOptions.boxplotSortDirection
+    );
+  }, [
+    filteredData,
+    outcome,
+    boxplotFactor,
+    displayOptions.boxplotSortBy,
+    displayOptions.boxplotSortDirection,
+  ]);
 
   // Copy chart card to clipboard as PNG
   const handleCopyChart = useCallback(async (containerId: string, chartName: string) => {

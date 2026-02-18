@@ -13,7 +13,12 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useData } from '../context/DataContext';
-import { calculateAnova, type AnovaResult, getNextDrillFactor } from '@variscout/core';
+import {
+  calculateAnova,
+  type AnovaResult,
+  getNextDrillFactor,
+  sortBoxplotData,
+} from '@variscout/core';
 import { calculateBoxplotStats, type BoxplotGroupData } from '@variscout/charts';
 import { useFilterNavigation } from './useFilterNavigation';
 import { useVariationTracking } from '@variscout/hooks';
@@ -99,7 +104,7 @@ export function useDashboardCharts({
   highlightIntensity = 'pulse',
   onChartClick,
 }: UseDashboardChartsProps = {}): UseDashboardChartsResult {
-  const { outcome, factors, rawData, filteredData } = useData();
+  const { outcome, factors, rawData, filteredData, displayOptions } = useData();
 
   // Filter navigation
   const { filterStack, applyFilter, navigateTo, clearFilters, updateFilterValues, removeFilter } =
@@ -248,10 +253,21 @@ export function useDashboardCharts({
       }
     }
 
-    return Array.from(groups.entries())
-      .map(([group, values]) => calculateBoxplotStats({ group, values }))
-      .sort((a, b) => a.key.localeCompare(b.key));
-  }, [filteredData, outcome, boxplotFactor]);
+    const unsorted = Array.from(groups.entries()).map(([group, values]) =>
+      calculateBoxplotStats({ group, values })
+    );
+    return sortBoxplotData(
+      unsorted,
+      displayOptions.boxplotSortBy,
+      displayOptions.boxplotSortDirection
+    );
+  }, [
+    filteredData,
+    outcome,
+    boxplotFactor,
+    displayOptions.boxplotSortBy,
+    displayOptions.boxplotSortDirection,
+  ]);
 
   return {
     // Factor selection

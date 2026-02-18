@@ -119,6 +119,27 @@ Performance charts analyze multiple measurement channels (fill heads, cavities, 
 
 Both `Boxplot` and `PerformanceBoxplot` support `showViolin?: boolean` prop. When true, renders `@visx/stats` `<ViolinPlot>` behind box elements using KDE data from `calculateKDE()` in `@variscout/core`. Controlled via `displayOptions.showViolin` in the app wrappers.
 
+## Boxplot Sorting
+
+Categories in the standard Boxplot can be sorted via `sortBoxplotData()` from `@variscout/core`:
+
+```typescript
+import { sortBoxplotData } from '@variscout/core';
+import type { BoxplotSortBy, BoxplotSortDirection } from '@variscout/core';
+
+const sorted = sortBoxplotData(data, 'mean', 'desc');
+```
+
+| Criterion | `BoxplotSortBy` | Sorts by                      |
+| --------- | --------------- | ----------------------------- |
+| Name      | `'name'`        | Alphabetical (default)        |
+| Mean      | `'mean'`        | Group mean value              |
+| Spread    | `'spread'`      | IQR (Q3 - Q1)                |
+
+Direction: `'asc'` (ascending, default) or `'desc'` (descending).
+
+Sorting is applied in the **app Boxplot wrapper** (not `BoxplotBase`). State lives in `DisplayOptions.boxplotSortBy` / `boxplotSortDirection` (see `@variscout/hooks` types). `BoxplotDisplayToggle` exposes `sortBy`, `sortDirection`, and `onSortChange` props alongside the existing violin/contribution toggles.
+
 ## Adding New Charts
 
 1. Create `NewChart.tsx` with `NewChartBase` export

@@ -30,7 +30,16 @@ import { calculateStats, calculateAnova } from '@variscout/core';
 import { parseCSV, validateData, detectColumns } from '@variscout/core';
 
 // Types
-import type { StatsResult, SpecLimits, DataPoint } from '@variscout/core';
+import type {
+  StatsResult,
+  SpecLimits,
+  DataPoint,
+  BoxplotSortBy,
+  BoxplotSortDirection,
+} from '@variscout/core';
+
+// Boxplot sorting
+import { sortBoxplotData } from '@variscout/core';
 
 // Glossary
 import { glossaryTerms, getTerm, hasTerm } from '@variscout/core';

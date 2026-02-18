@@ -68,6 +68,22 @@ Available in PWA and Azure App. Not available in Excel Add-in (core SPC only).
 
 ---
 
+## Category Sorting
+
+Sort boxplot categories by **Name** (alphabetical, default), **Mean**, or **Spread** (IQR). Toggle ascending/descending direction.
+
+Access via the display options icon (SlidersHorizontal) in the Boxplot card header — the same popover that controls Violin Mode and Contribution Labels.
+
+| Sort Criterion | What it reveals                                            |
+| -------------- | ---------------------------------------------------------- |
+| Name (default) | Alphabetical order — stable reference view                 |
+| Mean           | Rank categories by center — find highest/lowest performers |
+| Spread         | Rank by IQR — find most/least consistent categories        |
+
+Available in both PWA and Azure App.
+
+---
+
 ## Linked Filtering
 
 Click any box to:

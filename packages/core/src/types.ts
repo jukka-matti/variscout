@@ -562,6 +562,12 @@ export interface InteractionEdge {
 // Boxplot Types - Statistical visualization
 // ============================================================================
 
+/** Boxplot sort criterion */
+export type BoxplotSortBy = 'name' | 'mean' | 'spread';
+
+/** Boxplot sort direction */
+export type BoxplotSortDirection = 'asc' | 'desc';
+
 /**
  * Simple boxplot input (just group name and values)
  * Use calculateBoxplotStats() to convert to BoxplotGroupData

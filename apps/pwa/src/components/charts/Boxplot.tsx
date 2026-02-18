@@ -15,6 +15,7 @@ import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotBase } from '@variscout/charts';
 import { AxisEditor } from '@variscout/ui';
 import { useBoxplotData } from '@variscout/hooks';
+import { sortBoxplotData } from '@variscout/core';
 import { shouldShowBranding, getBrandingText } from '../../lib/edition';
 
 interface BoxplotProps {
@@ -51,7 +52,12 @@ const Boxplot = ({
 
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const { min, max } = useChartScale();
-  const data = useBoxplotData(filteredData, factor, outcome);
+  const rawData = useBoxplotData(filteredData, factor, outcome);
+  const data = sortBoxplotData(
+    rawData,
+    displayOptions.boxplotSortBy,
+    displayOptions.boxplotSortDirection
+  );
 
   const handleBoxClick = (key: string) => {
     if (onDrillDown) {

@@ -15,7 +15,7 @@
  *   conformance.ts    — calculateConformance
  *   staged.ts         — determineStageOrder, sortDataByStage, calculateStatsByStage, getStageBoundaries
  *   nelson.ts         — getNelsonRule2ViolationPoints, getNelsonRule2Sequences
- *   boxplot.ts        — calculateBoxplotStats
+ *   boxplot.ts        — calculateBoxplotStats, sortBoxplotData
  *   kde.ts            — calculateKDE
  *   distributions.ts  — (internal) fDistributionPValue, tDistributionPValue, etc.
  */
@@ -78,7 +78,7 @@ export {
 export { getNelsonRule2ViolationPoints, getNelsonRule2Sequences } from './nelson';
 
 // Boxplot statistics
-export { calculateBoxplotStats } from './boxplot';
+export { calculateBoxplotStats, sortBoxplotData } from './boxplot';
 
 // Kernel density estimation
 export { calculateKDE } from './kde';

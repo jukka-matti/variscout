@@ -160,9 +160,9 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ## Current Coverage
 
-**Total: 71 vitest files, 1,182 test cases + 13 Playwright E2E spec files**
+**Total: 69 vitest files, 1,184 test cases + 13 Playwright E2E spec files**
 
-### @variscout/core (22 files, 691 test cases)
+### @variscout/core (23 files, 703 test cases)
 
 | Function/Module                   | Tested | Cases                                                                                                               |
 | :-------------------------------- | :----- | :------------------------------------------------------------------------------------------------------------------ |
@@ -207,15 +207,15 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `index.ts` (exports)             | ✅     | All public exports resolve correctly                         |
 | Integration: filterStatsPipeline | ✅     | End-to-end: CSV parse → filter → stats → ANOVA pipeline      |
 
-### @variscout/ui (5 files, 51 test cases)
+### @variscout/ui (5 files, 57 test cases)
 
-| Component              | Tested | Focus                                                  |
-| :--------------------- | :----- | :----------------------------------------------------- |
-| `UpgradePrompt`        | ✅     | Variants (inline/banner/card), tier messaging          |
-| `HelpTooltip`          | ✅     | Tooltip rendering, glossary term display, icons        |
-| `DataQualityBanner`    | ✅     | Validation summary, warning/error states               |
-| `ColumnMapping`        | ✅     | maxFactors enforcement, spec entry, column selection   |
-| `BoxplotDisplayToggle` | ✅     | Violin mode toggle, contribution label toggle, popover |
+| Component              | Tested | Focus                                                                                                   |
+| :--------------------- | :----- | :------------------------------------------------------------------------------------------------------ |
+| `UpgradePrompt`        | ✅     | Variants (inline/banner/card), tier messaging                                                           |
+| `HelpTooltip`          | ✅     | Tooltip rendering, glossary term display, icons                                                         |
+| `DataQualityBanner`    | ✅     | Validation summary, warning/error states                                                                |
+| `ColumnMapping`        | ✅     | maxFactors enforcement, spec entry, column selection                                                    |
+| `BoxplotDisplayToggle` | ✅     | Violin mode toggle, contribution label toggle, sort criterion selection, sort direction toggle, popover |
 
 ### @variscout/pwa (11 vitest files, 107 test cases)
 

@@ -27,6 +27,8 @@ export type {
   // Boxplot Types
   BoxplotGroupInput,
   BoxplotGroupData,
+  BoxplotSortBy,
+  BoxplotSortDirection,
   // Performance Module Types
   ChannelHealth,
   ChannelInfo,
@@ -67,6 +69,7 @@ export {
   getNelsonRule2Sequences,
   // Boxplot statistics
   calculateBoxplotStats,
+  sortBoxplotData,
   // Interaction strength (ΔR² between factor pairs)
   getInteractionStrength,
   // Model reduction

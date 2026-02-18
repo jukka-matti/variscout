@@ -160,6 +160,27 @@ When enabled, each group's `values` array is passed to `calculateKDE()` from `@v
 
 Requires `values.length >= 2` per group. Groups with fewer than 2 values skip violin rendering.
 
+#### Sorting
+
+Categories can be reordered using `sortBoxplotData()` from `@variscout/core`:
+
+```tsx
+import { sortBoxplotData } from '@variscout/core';
+
+const sorted = sortBoxplotData(groupedData, 'mean', 'desc');
+<Boxplot data={sorted} specs={specs} />;
+```
+
+| Criterion  | Sorts by               | Use case              |
+| ---------- | ---------------------- | --------------------- |
+| `'name'`   | Alphabetical (default) | Stable reference view |
+| `'mean'`   | Group mean value       | Rank by center        |
+| `'spread'` | IQR (Q3 - Q1)          | Rank by consistency   |
+
+Direction: `'asc'` (ascending, default) or `'desc'` (descending).
+
+Sorting is applied in the **app Boxplot wrapper** before passing `data` to `BoxplotBase`. The sort state is stored in `DisplayOptions.boxplotSortBy` / `boxplotSortDirection` and controlled via `BoxplotDisplayToggle`.
+
 #### Y-Axis Lock Mode
 
 Locks Y-axis scale to a fixed range (useful during drill-down to maintain reference):

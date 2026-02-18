@@ -1,4 +1,9 @@
-import type { BoxplotGroupInput, BoxplotGroupData } from '../types';
+import type {
+  BoxplotGroupInput,
+  BoxplotGroupData,
+  BoxplotSortBy,
+  BoxplotSortDirection,
+} from '../types';
 
 /**
  * Calculate boxplot statistics from raw values
@@ -72,4 +77,32 @@ export function calculateBoxplotStats(input: BoxplotGroupInput): BoxplotGroupDat
     outliers,
     stdDev,
   };
+}
+
+/**
+ * Sort boxplot group data by the given criterion and direction.
+ * Returns a new sorted array (no mutation).
+ *
+ * @param data - Array of BoxplotGroupData to sort
+ * @param sortBy - Sort criterion: 'name' (alphabetical), 'mean', or 'spread' (IQR)
+ * @param direction - 'asc' (ascending) or 'desc' (descending)
+ * @returns New sorted array
+ */
+export function sortBoxplotData(
+  data: BoxplotGroupData[],
+  sortBy: BoxplotSortBy = 'name',
+  direction: BoxplotSortDirection = 'asc'
+): BoxplotGroupData[] {
+  const dir = direction === 'asc' ? 1 : -1;
+  return [...data].sort((a, b) => {
+    switch (sortBy) {
+      case 'mean':
+        return (a.mean - b.mean) * dir;
+      case 'spread':
+        return (a.q3 - a.q1 - (b.q3 - b.q1)) * dir;
+      case 'name':
+      default:
+        return a.key.localeCompare(b.key) * dir;
+    }
+  });
 }

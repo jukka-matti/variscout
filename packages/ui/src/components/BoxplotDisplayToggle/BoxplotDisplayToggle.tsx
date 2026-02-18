@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, ArrowUpNarrowWide, ArrowDownWideNarrow } from 'lucide-react';
+import type { BoxplotSortBy } from '@variscout/core';
 import type { BoxplotDisplayToggleColorScheme, BoxplotDisplayToggleProps } from './types';
 
 export const boxplotDisplayToggleDefaultColorScheme: BoxplotDisplayToggleColorScheme = {
@@ -10,6 +11,10 @@ export const boxplotDisplayToggleDefaultColorScheme: BoxplotDisplayToggleColorSc
     'w-4 h-4 rounded border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500 focus:ring-offset-surface-secondary',
   checkboxLabel: 'text-sm text-content',
   description: 'text-xs text-content-muted',
+  radioActive: 'bg-blue-500/20 border-blue-500 text-blue-400',
+  radioInactive: 'bg-surface border-edge-secondary text-content-secondary hover:border-edge',
+  directionButton: 'text-content-secondary hover:text-content hover:bg-surface-tertiary/50',
+  sectionLabel: 'text-xs font-medium text-content-muted uppercase tracking-wider',
 };
 
 export const boxplotDisplayToggleAzureColorScheme: BoxplotDisplayToggleColorScheme = {
@@ -19,13 +24,26 @@ export const boxplotDisplayToggleAzureColorScheme: BoxplotDisplayToggleColorSche
     'w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900',
   checkboxLabel: 'text-sm text-slate-300',
   description: 'text-xs text-slate-500',
+  radioActive: 'bg-blue-500/20 border-blue-500 text-blue-400',
+  radioInactive: 'bg-slate-800 border-slate-600 text-slate-400 hover:border-slate-500',
+  directionButton: 'text-slate-400 hover:text-white hover:bg-slate-700/50',
+  sectionLabel: 'text-xs font-medium text-slate-500 uppercase tracking-wider',
 };
+
+const SORT_OPTIONS: { value: BoxplotSortBy; label: string }[] = [
+  { value: 'name', label: 'Name' },
+  { value: 'mean', label: 'Mean' },
+  { value: 'spread', label: 'Spread' },
+];
 
 const BoxplotDisplayToggle: React.FC<BoxplotDisplayToggleProps> = ({
   showViolin,
   showContributionLabels,
   onToggleViolin,
   onToggleContributionLabels,
+  sortBy = 'name',
+  sortDirection = 'asc',
+  onSortChange,
   colorScheme = boxplotDisplayToggleDefaultColorScheme,
 }) => {
   const cs = colorScheme;
@@ -126,6 +144,38 @@ const BoxplotDisplayToggle: React.FC<BoxplotDisplayToggleProps> = ({
                 <span className={`block ${cs.description}`}>Impact % below categories</span>
               </div>
             </label>
+
+            {onSortChange && (
+              <>
+                <div className={`pt-1 border-t border-edge ${cs.sectionLabel ?? ''}`}>Sort</div>
+                <div className="flex items-center gap-1.5">
+                  {SORT_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => onSortChange(opt.value, sortDirection)}
+                      className={`flex-1 px-2 py-1 text-xs rounded border transition-colors ${
+                        sortBy === opt.value ? (cs.radioActive ?? '') : (cs.radioInactive ?? '')
+                      }`}
+                      aria-pressed={sortBy === opt.value}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => onSortChange(sortBy, sortDirection === 'asc' ? 'desc' : 'asc')}
+                    className={`p-1 rounded transition-colors ${cs.directionButton ?? ''}`}
+                    title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+                    aria-label={`Sort ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
+                  >
+                    {sortDirection === 'asc' ? (
+                      <ArrowUpNarrowWide size={14} />
+                    ) : (
+                      <ArrowDownWideNarrow size={14} />
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

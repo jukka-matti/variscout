@@ -479,6 +479,15 @@ const Dashboard = ({
                           onToggleContributionLabels={value =>
                             setDisplayOptions({ ...displayOptions, showContributionLabels: value })
                           }
+                          sortBy={displayOptions.boxplotSortBy ?? 'name'}
+                          sortDirection={displayOptions.boxplotSortDirection ?? 'asc'}
+                          onSortChange={(sortBy, direction) =>
+                            setDisplayOptions({
+                              ...displayOptions,
+                              boxplotSortBy: sortBy,
+                              boxplotSortDirection: direction,
+                            })
+                          }
                           colorScheme={boxplotDisplayToggleAzureColorScheme}
                         />
                         <button

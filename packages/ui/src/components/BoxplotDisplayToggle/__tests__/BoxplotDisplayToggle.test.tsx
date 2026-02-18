@@ -8,6 +8,12 @@ vi.mock('lucide-react', () => ({
   SlidersHorizontal: ({ size }: { size?: number }) => (
     <span data-testid="icon-sliders" data-size={size} />
   ),
+  ArrowUpNarrowWide: ({ size }: { size?: number }) => (
+    <span data-testid="icon-arrow-up" data-size={size} />
+  ),
+  ArrowDownWideNarrow: ({ size }: { size?: number }) => (
+    <span data-testid="icon-arrow-down" data-size={size} />
+  ),
 }));
 
 describe('BoxplotDisplayToggle', () => {
@@ -105,5 +111,73 @@ describe('BoxplotDisplayToggle', () => {
 
     const popover = screen.getByRole('dialog');
     expect(popover.className).toContain('slate');
+  });
+
+  describe('sort controls', () => {
+    const sortProps = {
+      ...defaultProps,
+      sortBy: 'name' as const,
+      sortDirection: 'asc' as const,
+      onSortChange: vi.fn(),
+    };
+
+    it('does not render sort section when onSortChange is not provided', () => {
+      render(<BoxplotDisplayToggle {...defaultProps} />);
+      fireEvent.click(screen.getByLabelText('Boxplot display options'));
+
+      expect(screen.queryByText('Sort')).toBeNull();
+      expect(screen.queryByText('Name')).toBeNull();
+    });
+
+    it('renders sort section when onSortChange is provided', () => {
+      render(<BoxplotDisplayToggle {...sortProps} />);
+      fireEvent.click(screen.getByLabelText('Boxplot display options'));
+
+      expect(screen.getByText('Sort')).toBeTruthy();
+      expect(screen.getByText('Name')).toBeTruthy();
+      expect(screen.getByText('Mean')).toBeTruthy();
+      expect(screen.getByText('Spread')).toBeTruthy();
+    });
+
+    it('highlights the active sort criterion', () => {
+      render(<BoxplotDisplayToggle {...sortProps} sortBy="mean" />);
+      fireEvent.click(screen.getByLabelText('Boxplot display options'));
+
+      const meanButton = screen.getByText('Mean');
+      expect(meanButton.closest('button')?.getAttribute('aria-pressed')).toBe('true');
+
+      const nameButton = screen.getByText('Name');
+      expect(nameButton.closest('button')?.getAttribute('aria-pressed')).toBe('false');
+    });
+
+    it('fires onSortChange with new criterion when clicking a sort option', () => {
+      const onSortChange = vi.fn();
+      render(<BoxplotDisplayToggle {...sortProps} onSortChange={onSortChange} />);
+      fireEvent.click(screen.getByLabelText('Boxplot display options'));
+
+      fireEvent.click(screen.getByText('Spread'));
+
+      expect(onSortChange).toHaveBeenCalledWith('spread', 'asc');
+    });
+
+    it('fires onSortChange with toggled direction when clicking direction button', () => {
+      const onSortChange = vi.fn();
+      render(
+        <BoxplotDisplayToggle {...sortProps} sortDirection="asc" onSortChange={onSortChange} />
+      );
+      fireEvent.click(screen.getByLabelText('Boxplot display options'));
+
+      const dirButton = screen.getByLabelText('Sort ascending');
+      fireEvent.click(dirButton);
+
+      expect(onSortChange).toHaveBeenCalledWith('name', 'desc');
+    });
+
+    it('shows descending label when direction is desc', () => {
+      render(<BoxplotDisplayToggle {...sortProps} sortDirection="desc" />);
+      fireEvent.click(screen.getByLabelText('Boxplot display options'));
+
+      expect(screen.getByLabelText('Sort descending')).toBeTruthy();
+    });
   });
 });

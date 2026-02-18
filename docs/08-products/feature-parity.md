@@ -17,16 +17,17 @@ Complete feature availability across VariScout platforms.
 
 ## Core Analysis Features
 
-| Feature                  | Azure App | PWA (Free) | Power BI |
-| ------------------------ | :-------: | :--------: | :------: |
-| **I-Chart**              |     ✓     |     ✓      | Planned  |
-| **Boxplot**              |     ✓     |     ✓      | Planned  |
-| **Pareto**               |     ✓     |     ✓      | Planned  |
-| **Capability Histogram** |     ✓     |     ✓      | Planned  |
-| **Probability Plot**     |     ✓     |     ✓      |    -     |
-| **Scatter/Regression**   |     ✓     |     ✓      |    -     |
-| **Violin Mode**          |     ✓     |     ✓      |    -     |
-| **Performance Mode**     |     ✓     |     -      |    -     |
+| Feature                      | Azure App | PWA (Free) | Power BI |
+| ---------------------------- | :-------: | :--------: | :------: |
+| **I-Chart**                  |     ✓     |     ✓      | Planned  |
+| **Boxplot**                  |     ✓     |     ✓      | Planned  |
+| **Pareto**                   |     ✓     |     ✓      | Planned  |
+| **Capability Histogram**     |     ✓     |     ✓      | Planned  |
+| **Probability Plot**         |     ✓     |     ✓      |    -     |
+| **Scatter/Regression**       |     ✓     |     ✓      |    -     |
+| **Violin Mode**              |     ✓     |     ✓      |    -     |
+| **Boxplot category sorting** |     ✓     |     ✓      |    -     |
+| **Performance Mode**         |     ✓     |     -      |    -     |
 
 > PWA includes core SPC plus Green Belt tools for training. Performance Mode requires the Azure App.
 

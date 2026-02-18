@@ -11,6 +11,8 @@ import type {
   SpecLimits,
   DataQualityReport,
   ParetoRow,
+  BoxplotSortBy,
+  BoxplotSortDirection,
 } from '@variscout/core';
 
 // Re-export for convenience
@@ -94,6 +96,10 @@ export interface DisplayOptions {
   showViolin?: boolean;
   /** Show filter context bar inside chart cards for copy-to-clipboard (default: true) */
   showFilterContext?: boolean;
+  /** Boxplot category sort criterion (default: 'name') */
+  boxplotSortBy?: BoxplotSortBy;
+  /** Boxplot category sort direction (default: 'asc') */
+  boxplotSortDirection?: BoxplotSortDirection;
 }
 
 /**

@@ -447,7 +447,7 @@ import { filterBreadcrumbAzureColorScheme } from '@variscout/ui';
 | `SpecsPopover` / `SpecEditor` | ✓    | default, azure              | ✓                                         |
 | `CapabilityHistogram`         | ✓    | default, azure              | ✓                                         |
 | `ProbabilityPlot`             | ✓    | default, azure              | ✓                                         |
-| `BoxplotDisplayToggle`        | ✓    | default                     | Popover (no azure scheme needed)          |
+| `BoxplotDisplayToggle`        | ✓    | default, azure              | Popover with checkboxes + sort controls   |
 
 ### Base Components with Render Props
 
@@ -495,8 +495,9 @@ Attached directly to individual chart cards. These are chart-specific display op
 | ------------------- | ---------------------- | ------------------- |
 | Violin mode         | `BoxplotDisplayToggle` | Boxplot card header |
 | Contribution labels | `BoxplotDisplayToggle` | Boxplot card header |
+| Sort order          | `BoxplotDisplayToggle` | Boxplot card header |
 
-`BoxplotDisplayToggle` is a shared popover component from `@variscout/ui` (SlidersHorizontal icon triggering a 2-checkbox popover). It manages local state that feeds into the Boxplot's `showViolin` and `showContributionLabels` props.
+`BoxplotDisplayToggle` is a shared popover component from `@variscout/ui` (SlidersHorizontal icon triggering a popover with 2 checkboxes and sort controls). It manages local state that feeds into the Boxplot's `showViolin`, `showContributionLabels`, sort criterion (`boxplotSortBy`), and sort direction (`boxplotSortDirection`) props.
 
 ---
 

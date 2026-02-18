@@ -101,6 +101,10 @@ Legend:
 - **Click-to-Edit Axes**: Click Y-axis to manually set Min/Max or reset to Auto
   - **Scale Mode**: Auto (fit to data), Start at Zero, or Manual
   - **Control Limits Visibility**: Toggle UCL/Mean/LCL display in Settings
+- **Boxplot Display Options** (via SlidersHorizontal icon in card header):
+  - Violin mode (KDE density overlay)
+  - Contribution labels (category impact %)
+  - Category sorting: by Name (alphabetical), Mean, or Spread (IQR); ascending/descending
 - **Linked Filtering with Drill-Down**:
   - Click Boxplot category → filters to that factor level
   - Click Pareto bar → filters to that category
