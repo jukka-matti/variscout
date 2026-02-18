@@ -15,6 +15,12 @@ import {
 import { validateData } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 
+// Azure supports larger datasets than PWA
+const AZURE_LIMITS = {
+  rowHardLimit: 100_000,
+  rowWarningThreshold: 10_000,
+};
+
 export const useDataIngestion = (options?: UseDataIngestionOptions) => {
   const {
     setRawData,
@@ -56,7 +62,7 @@ export const useDataIngestion = (options?: UseDataIngestionOptions) => {
     clearParetoFile,
     clearData,
     applyTimeExtraction,
-  } = useDataIngestionBase(actions, options);
+  } = useDataIngestionBase(actions, { ...options, limits: AZURE_LIMITS });
 
   // Load a built-in sample dataset
   const loadSample = useCallback(

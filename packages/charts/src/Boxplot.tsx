@@ -72,8 +72,16 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     // Priority 2: Auto-calculate from data
     if (data.length === 0) return [0, 1] as [number, number];
 
-    let minVal = Math.min(...data.flatMap(d => [d.min, ...d.outliers]));
-    let maxVal = Math.max(...data.flatMap(d => [d.max, ...d.outliers]));
+    let minVal = Infinity;
+    let maxVal = -Infinity;
+    for (const d of data) {
+      if (d.min < minVal) minVal = d.min;
+      if (d.max > maxVal) maxVal = d.max;
+      for (const o of d.outliers) {
+        if (o < minVal) minVal = o;
+        if (o > maxVal) maxVal = o;
+      }
+    }
 
     // Include spec limits
     if (specs.usl !== undefined) maxVal = Math.max(maxVal, specs.usl);

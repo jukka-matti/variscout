@@ -42,6 +42,9 @@ vi.mock('../FactorSelector', () => ({
 vi.mock('../settings/SpecsPopover', () => ({
   default: () => <div data-testid="specs-popover">Specs</div>,
 }));
+vi.mock('../FactorManagerPopover', () => ({
+  default: () => <div data-testid="factor-manager">Factor Manager</div>,
+}));
 
 // Mock html-to-image
 vi.mock('html-to-image', () => ({
@@ -104,6 +107,7 @@ describe('Dashboard', () => {
     specs: {},
     filters: {},
     setOutcome: vi.fn(),
+    setFactors: vi.fn(),
     setFilters: vi.fn(),
     setSpecs: vi.fn(),
     setRawData: vi.fn(),

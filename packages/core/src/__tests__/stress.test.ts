@@ -10,7 +10,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { calculateStats, calculateAnova, getEtaSquared, calculateBoxplotStats } from '../stats';
+import {
+  calculateStats,
+  calculateAnova,
+  getEtaSquared,
+  calculateBoxplotStats,
+  calculateKDE,
+} from '../stats';
 import {
   calculateFactorVariations,
   calculateCategoryTotalSS,
@@ -382,6 +388,24 @@ describe('Timing budgets', () => {
 
     const { durationMs } = timedExec(() => getEtaSquared(data, 'Group', 'Value'));
     expect(durationMs).toBeLessThan(500);
+  });
+
+  it('calculateKDE(10K values) < 1000ms', { timeout: 30_000 }, () => {
+    const data = generateStressData({
+      rowCount: 10000,
+      factors: [],
+      measurement: { name: 'Value', baseMean: 100, baseStd: 5 },
+    });
+    const values = data.map(d => d.Value as number);
+
+    const { result, durationMs } = timedExec(() => calculateKDE(values));
+    expect(durationMs).toBeLessThan(1000);
+    expect(result.length).toBeGreaterThan(0);
+    // KDE should produce a smooth density estimate
+    for (const point of result) {
+      expect(point.count).toBeGreaterThanOrEqual(0);
+      expect(Number.isFinite(point.value)).toBe(true);
+    }
   });
 
   it('calculateCategoryTotalSS(50K, 50 levels) < 1000ms', { timeout: 30_000 }, () => {

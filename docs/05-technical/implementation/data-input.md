@@ -439,17 +439,20 @@ The parser auto-detects:
 
 ## Performance Limits
 
-| Threshold           | Behavior                              |
-| ------------------- | ------------------------------------- |
-| < 5,000 rows        | Loads immediately                     |
-| 5,000 - 50,000 rows | Warning prompt (may slow performance) |
-| > 50,000 rows       | Rejected with error message           |
+| Threshold                     | PWA Behavior                          | Azure Behavior                        |
+| ----------------------------- | ------------------------------------- | ------------------------------------- |
+| Below warning (5K / 10K)      | Loads immediately                     | Loads immediately                     |
+| Warning to hard limit         | Warning prompt (may slow performance) | Warning prompt (may slow performance) |
+| Above hard limit (50K / 100K) | Rejected with error message           | Rejected with error message           |
 
-Constants in `packages/hooks/src/useDataIngestion.ts`:
+Defaults in `packages/hooks/src/useDataIngestion.ts`, configurable via `DataIngestionConfig`:
 
 ```typescript
-const ROW_WARNING_THRESHOLD = 5000;
-const ROW_HARD_LIMIT = 50000;
+const DEFAULT_ROW_WARNING_THRESHOLD = 5000;
+const DEFAULT_ROW_HARD_LIMIT = 50000;
+
+// Azure wrapper overrides:
+{ rowHardLimit: 100_000, rowWarningThreshold: 10_000 }
 ```
 
 ---

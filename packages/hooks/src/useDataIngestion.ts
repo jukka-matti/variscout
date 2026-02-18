@@ -29,9 +29,9 @@ import {
   type TimeExtractionConfig,
 } from '@variscout/core';
 
-// Performance thresholds
-const ROW_WARNING_THRESHOLD = 5000;
-const ROW_HARD_LIMIT = 50000;
+// Default performance thresholds
+const DEFAULT_ROW_WARNING_THRESHOLD = 5000;
+const DEFAULT_ROW_HARD_LIMIT = 50000;
 
 /**
  * Minimal interface for the actions needed by useDataIngestion
@@ -58,6 +58,13 @@ export interface TimeExtractionPrompt {
   hasTimeComponent: boolean;
 }
 
+export interface DataIngestionConfig {
+  /** Maximum number of rows allowed (default: 50000) */
+  rowHardLimit?: number;
+  /** Row count above which a warning is shown (default: 5000) */
+  rowWarningThreshold?: number;
+}
+
 export interface UseDataIngestionOptions {
   /** Callback when wide-format (multi-measure) data is detected */
   onWideFormatDetected?: (result: WideFormatDetection) => void;
@@ -69,6 +76,8 @@ export interface UseDataIngestionOptions {
   getOutcome?: () => string | null;
   /** Getter for current factors list (needed for time extraction) */
   getFactors?: () => string[];
+  /** Row limit configuration */
+  limits?: DataIngestionConfig;
 }
 
 export interface UseDataIngestionReturn {
@@ -95,8 +104,10 @@ export function useDataIngestion(
   actions: DataIngestionActions,
   options?: UseDataIngestionOptions
 ): UseDataIngestionReturn {
-  const { onWideFormatDetected, onTimeColumnDetected, getRawData, getOutcome, getFactors } =
+  const { onWideFormatDetected, onTimeColumnDetected, getRawData, getOutcome, getFactors, limits } =
     options || {};
+  const rowHardLimit = limits?.rowHardLimit ?? DEFAULT_ROW_HARD_LIMIT;
+  const rowWarningThreshold = limits?.rowWarningThreshold ?? DEFAULT_ROW_WARNING_THRESHOLD;
   const {
     setRawData,
     setOutcome,
@@ -128,13 +139,13 @@ export function useDataIngestion(
 
         if (data.length > 0) {
           // Check row limits for performance
-          if (data.length > ROW_HARD_LIMIT) {
+          if (data.length > rowHardLimit) {
             alert(
-              `File too large (${data.length.toLocaleString()} rows). Maximum is ${ROW_HARD_LIMIT.toLocaleString()} rows.`
+              `File too large (${data.length.toLocaleString()} rows). Maximum is ${rowHardLimit.toLocaleString()} rows.`
             );
             return false;
           }
-          if (data.length > ROW_WARNING_THRESHOLD) {
+          if (data.length > rowWarningThreshold) {
             const proceed = window.confirm(
               `Large dataset (${data.length.toLocaleString()} rows) may slow performance. Continue?`
             );
@@ -188,6 +199,8 @@ export function useDataIngestion(
       setDataQualityReport,
       onWideFormatDetected,
       onTimeColumnDetected,
+      rowHardLimit,
+      rowWarningThreshold,
     ]
   );
 

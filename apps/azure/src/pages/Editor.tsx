@@ -65,7 +65,7 @@ const OutcomeSelector: React.FC<OutcomeSelectorProps> = ({ rawData, onStart }) =
 
   const toggleFactor = (col: string) => {
     setSelectedFactors(prev =>
-      prev.includes(col) ? prev.filter(f => f !== col) : prev.length < 5 ? [...prev, col] : prev
+      prev.includes(col) ? prev.filter(f => f !== col) : prev.length < 6 ? [...prev, col] : prev
     );
   };
 
@@ -95,7 +95,7 @@ const OutcomeSelector: React.FC<OutcomeSelectorProps> = ({ rawData, onStart }) =
       {categoricalCols.length > 0 && (
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
-            Factors (categorical, max 5)
+            Factors (categorical, max 6)
           </label>
           <div className="flex flex-wrap gap-2">
             {categoricalCols.map(col => (

@@ -58,9 +58,17 @@ export function useColumnClassification(
       if (typeof row[key] === 'number') {
         numeric.push(key);
       } else if (typeof row[key] === 'string') {
-        // Check if categorical (limited unique values)
-        const uniqueValues = new Set(data.map(r => r[key]));
-        if (uniqueValues.size <= maxCategoricalUnique) {
+        // Check if categorical (limited unique values) with early exit
+        const uniqueValues = new Set<unknown>();
+        let exceeds = false;
+        for (const r of data) {
+          uniqueValues.add(r[key]);
+          if (uniqueValues.size > maxCategoricalUnique) {
+            exceeds = true;
+            break;
+          }
+        }
+        if (!exceeds) {
           categorical.push(key);
         }
       }

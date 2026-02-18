@@ -121,6 +121,7 @@ export {
 export {
   useDataIngestion,
   type DataIngestionActions,
+  type DataIngestionConfig,
   type UseDataIngestionOptions,
   type UseDataIngestionReturn,
 } from './useDataIngestion';

@@ -161,20 +161,26 @@ export function useVariationTracking(
     return contributions;
   }, [rawData, filterStack, outcome, factors]);
 
+  // Pre-compute category contributions from ORIGINAL (unfiltered) data
+  // Separated from filterChipData so it doesn't recompute on every filter click
+  const originalContributions = useMemo(() => {
+    if (!outcome || rawData.length < 2) {
+      return new Map<string, Map<string | number, number>>();
+    }
+    const contributions = new Map<string, Map<string | number, number>>();
+    for (const factor of factors) {
+      const result = calculateCategoryTotalSS(rawData, factor, outcome);
+      if (result) {
+        contributions.set(factor, result.contributions);
+      }
+    }
+    return contributions;
+  }, [rawData, factors, outcome]);
+
   // Calculate filter chip data for the enhanced breadcrumb UI
   const filterChipData = useMemo((): FilterChipData[] => {
     if (filterStack.length === 0 || !outcome || rawData.length < 2) {
       return [];
-    }
-
-    // Get category contributions from ORIGINAL (unfiltered) data
-    // This ensures we show % of TOTAL variation, not local variation
-    const originalContributions = new Map<string, Map<string | number, number>>();
-    for (const factor of factors) {
-      const result = calculateCategoryTotalSS(rawData, factor, outcome);
-      if (result) {
-        originalContributions.set(factor, result.contributions);
-      }
     }
 
     // Build chip data for each active filter
@@ -227,7 +233,7 @@ export function useVariationTracking(
     }
 
     return chips;
-  }, [filterStack, outcome, factors, rawData]);
+  }, [filterStack, outcome, rawData, originalContributions]);
 
   // Calculate breadcrumbs with variation percentages
   const result = useMemo((): Omit<

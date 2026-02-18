@@ -43,6 +43,8 @@ export interface ColumnMappingProps {
   timeColumn?: string | null;
   hasTimeComponent?: boolean;
   onTimeExtractionChange?: (config: TimeExtractionConfig) => void;
+  /** Maximum number of factors that can be selected (default: 3) */
+  maxFactors?: number;
 }
 
 export const ColumnMapping: React.FC<ColumnMappingProps> = ({
@@ -63,6 +65,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   timeColumn,
   hasTimeComponent,
   onTimeExtractionChange,
+  maxFactors = 3,
 }) => {
   const [outcome, setOutcome] = useState<string>(initialOutcome || '');
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
@@ -84,7 +87,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
     if (factors.includes(col)) {
       setFactors(factors.filter(f => f !== col));
     } else {
-      if (factors.length < 3) {
+      if (factors.length < maxFactors) {
         setFactors([...factors, col]);
       }
     }
@@ -210,10 +213,13 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
               <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
                 Select Factors (Categories)
               </h3>
-              <span className="text-xs text-slate-500 ml-auto">{factors.length}/3 selected</span>
+              <span className="text-xs text-slate-500 ml-auto">
+                {factors.length}/{maxFactors} selected
+              </span>
             </div>
             <p className="text-xs text-slate-500 mb-3">
-              Choose up to 3 categorical variables to group by (e.g., Machine, Shift, Operator).
+              Choose up to {maxFactors} categorical variables to group by (e.g., Machine, Shift,
+              Operator).
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">

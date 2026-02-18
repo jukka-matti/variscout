@@ -4,13 +4,14 @@ Comprehensive reference for VariScout's data handling limits, classification thr
 
 ## Data Import Limits
 
-| Constraint             | Value         | Location                    | Behavior                          |
-| ---------------------- | ------------- | --------------------------- | --------------------------------- |
-| Row hard limit         | 50,000        | `useDataIngestion.ts`       | Alert shown, upload rejected      |
-| Row warning            | 5,000         | `useDataIngestion.ts`       | Confirm dialog, user can proceed  |
-| Column limit           | None enforced | —                           | All columns loaded                |
-| Auto-detected factors  | 3 suggested   | `parser.ts detectColumns()` | `.slice(0, 3)` default suggestion |
-| Max selectable factors | 3             | `ColumnMapping`             | UI enforces max 3                 |
+| Constraint                    | Value                          | Location                    | Behavior                                                                                     |
+| ----------------------------- | ------------------------------ | --------------------------- | -------------------------------------------------------------------------------------------- |
+| Row hard limit                | 50,000 (PWA) / 100,000 (Azure) | `useDataIngestion.ts`       | Alert shown, upload rejected. Configurable via `DataIngestionConfig.rowHardLimit`            |
+| Row warning                   | 5,000 (PWA) / 10,000 (Azure)   | `useDataIngestion.ts`       | Confirm dialog, user can proceed. Configurable via `DataIngestionConfig.rowWarningThreshold` |
+| Column limit                  | None enforced                  | —                           | All columns loaded                                                                           |
+| Auto-detected factors         | 3 suggested                    | `parser.ts detectColumns()` | `.slice(0, 3)` default suggestion                                                            |
+| Max selectable factors        | 3 (PWA) / 6 (Azure)            | `ColumnMapping`             | Configurable via `maxFactors` prop                                                           |
+| Factor change during analysis | Azure only                     | `FactorManagerPopover`      | Dashboard popover to add/remove factors                                                      |
 
 ## Categorical Classification
 
@@ -53,10 +54,12 @@ What VariScout handles well vs. what requires data pre-aggregation:
 | Multi-SKU packaging, 200 products, daily data            | ~5,000  | Product(200)       | Partially — products classified as `'text'` (>50 unique). Pre-filter to top 20-50 products before import. |
 | Supplier quality, 500 suppliers                          | ~10,000 | Supplier(500)      | No direct drill — supplier column excluded. Aggregate by supplier group/region first.                     |
 | High-frequency sensor data, 1 reading/sec for 8 hours    | 28,800  | Time-based         | Works for stats, but time column treated as numeric not categorical.                                      |
+| Large production dataset (Azure)                         | 80,000  | Head(12), Shift(3) | Azure only — 100K row limit accommodates larger datasets.                                                 |
 
 ## Browser Memory
 
 - IndexedDB quotas are browser-dependent (Chrome 60% of disk, Firefox 50%, Safari 1GB)
 - All computation is in-browser JavaScript — no server offload
-- 50K rows x 20 columns x ~100 bytes/cell = ~100MB working memory — well within modern browser limits
-- The `Math.min(...spread)` pattern in Boxplot could stack-overflow with >65K outlier values, but the 50K row limit and typical outlier rates (~5% = 2,500 values) keep this well within safe bounds
+- PWA: 50K rows x 20 columns x ~100 bytes/cell = ~100MB working memory — well within modern browser limits
+- Azure: 100K rows x 20 columns x ~100 bytes/cell = ~200MB working memory — acceptable for desktop browsers
+- Boxplot uses iterative min/max (no spread operator) to avoid stack-overflow with large outlier arrays

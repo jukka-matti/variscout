@@ -71,15 +71,18 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Data Handling
 
-| Feature             | Azure App | PWA (Free) | Notes                     |
-| ------------------- | :-------: | :--------: | ------------------------- |
-| **CSV upload**      |     ✓     |     -      | Azure App only            |
-| **Excel upload**    |     ✓     |     -      | Azure App only            |
-| **Paste data**      |     ✓     |     ✓      |                           |
-| **Sample datasets** |     ✓     |     ✓      | PWA pre-loaded with cases |
-| **Column mapping**  |     ✓     |     ✓      |                           |
-| **Manual entry**    |     ✓     |     -      | Azure App only            |
-| **Data validation** |     ✓     |     ✓      |                           |
+| Feature                           | Azure App | PWA (Free) | Notes                                    |
+| --------------------------------- | :-------: | :--------: | ---------------------------------------- |
+| **CSV upload**                    |     ✓     |     -      | Azure App only                           |
+| **Excel upload**                  |     ✓     |     -      | Azure App only                           |
+| **Paste data**                    |     ✓     |     ✓      |                                          |
+| **Sample datasets**               |     ✓     |     ✓      | PWA pre-loaded with cases                |
+| **Column mapping**                |     ✓     |     ✓      |                                          |
+| **Manual entry**                  |     ✓     |     -      | Azure App only                           |
+| **Data validation**               |     ✓     |     ✓      |                                          |
+| **Row limit**                     |  100,000  |   50,000   | Configurable via `DataIngestionConfig`   |
+| **Max factors**                   |     6     |     3      | Configurable via `maxFactors` prop       |
+| **Factor management in analysis** |     ✓     |     -      | Azure: FactorManagerPopover in Dashboard |
 
 ---
 
@@ -155,6 +158,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - EasyAuth authentication flow
 - Company accent color / branding removal
 - ARM template deployment (Managed Application)
+- Factor management during analysis (add/remove factors without restarting)
 
 ### PWA Only
 

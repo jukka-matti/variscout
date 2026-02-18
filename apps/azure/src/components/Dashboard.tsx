@@ -10,6 +10,7 @@ import PerformanceDashboard from './PerformanceDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import FilterBreadcrumb from './FilterBreadcrumb';
 import FactorSelector from './FactorSelector';
+import FactorManagerPopover from './FactorManagerPopover';
 import SpecsPopover from './settings/SpecsPopover';
 import { useData } from '../context/DataContext';
 import { useFilterNavigation, useVariationTracking } from '../hooks';
@@ -64,6 +65,7 @@ const Dashboard = ({
     outcome,
     factors,
     setOutcome,
+    setFactors,
     rawData,
     setRawData,
     stats,
@@ -496,6 +498,14 @@ const Dashboard = ({
                       </div>
                     )}
                     <SpecsPopover specs={specs} onSave={setSpecs} />
+                    <FactorManagerPopover
+                      rawData={rawData}
+                      outcome={outcome}
+                      factors={factors}
+                      filters={filters}
+                      onFactorsChange={setFactors}
+                      onFiltersChange={setFilters}
+                    />
                   </div>
 
                   {/* Action Buttons */}
