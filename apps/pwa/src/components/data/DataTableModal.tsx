@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { getSpecStatus } from '../../lib/export';
+import { useDataTablePagination, useHighlightFade } from '@variscout/hooks';
 import type { ExclusionReason } from '@variscout/core';
 
 // Pagination threshold - show pagination for datasets larger than this
@@ -58,21 +59,13 @@ const DataTableModal = ({
       .filter(item => excludedRowIndices.has(item.originalIndex));
   }, [localData, filterExcluded, excludedRowIndices]);
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(0);
-  const totalPages = Math.ceil(displayData.length / ROWS_PER_PAGE);
-  const needsPagination = displayData.length > ROWS_PER_PAGE;
+  // Pagination
+  const { currentPage, setCurrentPage, totalPages, needsPagination, pageData } =
+    useDataTablePagination(displayData, ROWS_PER_PAGE);
 
-  // Highlight animation state
-  const [highlightedRow, setHighlightedRow] = useState<number | null>(null);
+  // Highlight fade
+  const { highlightedRow, setHighlightedRow } = useHighlightFade(undefined);
   const highlightRowRef = useRef<HTMLTableRowElement>(null);
-
-  // Get current page data (from displayData which may be filtered)
-  const pageData = useMemo(() => {
-    if (!needsPagination) return displayData;
-    const start = currentPage * ROWS_PER_PAGE;
-    return displayData.slice(start, start + ROWS_PER_PAGE);
-  }, [displayData, currentPage, needsPagination]);
 
   // Refs for keyboard navigation
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +77,6 @@ const DataTableModal = ({
       setHasChanges(false);
       setEditingCell(null);
 
-      // If highlighting a specific row, navigate to its page
       if (
         highlightRowIndex !== undefined &&
         highlightRowIndex >= 0 &&
@@ -98,17 +90,15 @@ const DataTableModal = ({
         setHighlightedRow(null);
       }
     }
-  }, [isOpen, rawData, highlightRowIndex]);
+  }, [isOpen, rawData, highlightRowIndex, setCurrentPage, setHighlightedRow]);
 
   // Scroll to highlighted row and fade out animation
   useEffect(() => {
     if (highlightedRow !== null && highlightRowRef.current) {
-      // Small delay to ensure DOM is ready
       const scrollTimeout = setTimeout(() => {
         highlightRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 100);
 
-      // Clear highlight after animation
       const fadeTimeout = setTimeout(() => {
         setHighlightedRow(null);
       }, 3000);
@@ -118,7 +108,7 @@ const DataTableModal = ({
         clearTimeout(fadeTimeout);
       };
     }
-  }, [highlightedRow]);
+  }, [highlightedRow, setHighlightedRow]);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -162,7 +152,6 @@ const DataTableModal = ({
 
   // Start editing a cell (uses absolute index)
   const startEditing = (rowIdx: number, col: string) => {
-    // Safety check for async state updates
     if (rowIdx >= localData.length || !localData[rowIdx]) return;
     setEditingCell({ row: rowIdx, col });
     setEditValue(String(localData[rowIdx][col] ?? ''));
@@ -172,7 +161,6 @@ const DataTableModal = ({
   const saveEdit = () => {
     if (editingCell) {
       const newData = [...localData];
-      // Try to parse as number if it looks numeric
       const numValue = parseFloat(editValue);
       newData[editingCell.row] = {
         ...newData[editingCell.row],
@@ -194,7 +182,6 @@ const DataTableModal = ({
     if (e.key === 'Enter') {
       e.preventDefault();
       saveEdit();
-      // Move to next row, same column
       if (row < localData.length - 1) {
         setTimeout(() => startEditing(row + 1, col), 0);
       }
@@ -202,14 +189,12 @@ const DataTableModal = ({
       e.preventDefault();
       saveEdit();
       if (e.shiftKey) {
-        // Move to previous cell
         if (colIdx > 0) {
           setTimeout(() => startEditing(row, columns[colIdx - 1]), 0);
         } else if (row > 0) {
           setTimeout(() => startEditing(row - 1, columns[columns.length - 1]), 0);
         }
       } else {
-        // Move to next cell
         if (colIdx < columns.length - 1) {
           setTimeout(() => startEditing(row, columns[colIdx + 1]), 0);
         } else if (row < localData.length - 1) {
@@ -227,10 +212,9 @@ const DataTableModal = ({
     columns.forEach(col => {
       newRow[col] = '';
     });
-    const newIndex = localData.length; // Capture before state update
+    const newIndex = localData.length;
     setLocalData(prev => [...prev, newRow]);
     setHasChanges(true);
-    // Start editing first cell of new row (use captured index)
     setTimeout(() => startEditing(newIndex, columns[0]), 0);
   };
 

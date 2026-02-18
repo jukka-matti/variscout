@@ -13,6 +13,17 @@ export { useChartScale } from './useChartScale';
 export { useDataIngestion } from './useDataIngestion';
 
 export {
+  usePerformanceFocus,
+  type FocusedChart as PerformanceFocusedChart,
+  type UsePerformanceFocusReturn,
+} from './usePerformanceFocus';
+
+export { useDrillConfirmation, type UseDrillConfirmationReturn } from './useDrillConfirmation';
+
+export { useControlViolations } from './useControlViolations';
+export { useDataMerge } from './useDataMerge';
+
+export {
   useDashboardCharts,
   type UseDashboardChartsProps,
   type UseDashboardChartsResult,

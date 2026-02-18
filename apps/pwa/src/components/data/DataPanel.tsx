@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   X,
   ChevronLeft,
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { getSpecStatus } from '../../lib/export';
+import { useDataTablePagination, useHighlightFade, useResizablePanel } from '@variscout/hooks';
 import type { ExclusionReason } from '@variscout/core';
 
 // Pagination threshold
@@ -47,23 +48,16 @@ const DataPanel: React.FC<DataPanelProps> = ({
 }) => {
   const { filteredData, rawData, outcome, specs, columnAliases, filters } = useData();
 
-  // Panel width state (persisted to localStorage)
-  const [width, setWidth] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? Math.min(Math.max(parseInt(saved, 10), MIN_WIDTH), MAX_WIDTH) : DEFAULT_WIDTH;
-  });
-  const [isDragging, setIsDragging] = useState(false);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(0);
-
-  // Highlighted row with fade-out
-  const [highlightedRow, setHighlightedRow] = useState<number | null>(null);
-  const highlightRowRef = useRef<HTMLTableRowElement>(null);
+  // Panel width (persisted to localStorage) + drag resize
+  const { width, isDragging, handleMouseDown } = useResizablePanel(
+    STORAGE_KEY,
+    MIN_WIDTH,
+    MAX_WIDTH,
+    DEFAULT_WIDTH
+  );
 
   // Create index map from filteredData to rawData
   const dataWithIndices = useMemo(() => {
-    // Create a map of row content to indices for matching
     const rawIndices = new Map<string, number>();
     rawData.forEach((row, idx) => {
       const key = JSON.stringify(row);
@@ -79,36 +73,29 @@ const DataPanel: React.FC<DataPanelProps> = ({
     });
   }, [filteredData, rawData]);
 
-  const totalPages = Math.ceil(dataWithIndices.length / ROWS_PER_PAGE);
-  const needsPagination = dataWithIndices.length > ROWS_PER_PAGE;
+  // Pagination
+  const { currentPage, setCurrentPage, totalPages, needsPagination, pageData } =
+    useDataTablePagination(dataWithIndices, ROWS_PER_PAGE);
 
-  // Get current page data
-  const pageData = useMemo(() => {
-    const start = currentPage * ROWS_PER_PAGE;
-    return dataWithIndices.slice(start, start + ROWS_PER_PAGE);
-  }, [dataWithIndices, currentPage]);
+  // Highlight with fade-out (manages state + timeout)
+  const { highlightedRow, setHighlightedRow } = useHighlightFade(undefined);
 
-  // Save width to localStorage
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, width.toString());
-  }, [width]);
+  const highlightRowRef = useRef<HTMLTableRowElement>(null);
 
-  // Handle highlight changes from chart
+  // Handle highlight changes from chart (also navigates page)
   useEffect(() => {
     if (highlightRowIndex !== null && highlightRowIndex !== undefined) {
-      // Find the row in the filtered/paginated data
       const dataIndex = dataWithIndices.findIndex(d => d.originalIndex === highlightRowIndex);
       if (dataIndex >= 0) {
         const targetPage = Math.floor(dataIndex / ROWS_PER_PAGE);
         setCurrentPage(targetPage);
         setHighlightedRow(highlightRowIndex);
 
-        // Fade out after a delay
         const timeout = setTimeout(() => setHighlightedRow(null), 3000);
         return () => clearTimeout(timeout);
       }
     }
-  }, [highlightRowIndex, dataWithIndices]);
+  }, [highlightRowIndex, dataWithIndices, setCurrentPage, setHighlightedRow]);
 
   // Scroll to highlighted row
   useEffect(() => {
@@ -123,7 +110,6 @@ const DataPanel: React.FC<DataPanelProps> = ({
   // Scroll to first selected row when selection changes (Phase 3: Brushing)
   useEffect(() => {
     if (selectedIndices && selectedIndices.size > 0) {
-      // Find first selected row in filtered data
       const firstSelectedOriginalIndex = Array.from(selectedIndices).sort((a, b) => a - b)[0];
       const dataIndex = dataWithIndices.findIndex(
         d => d.originalIndex === firstSelectedOriginalIndex
@@ -134,55 +120,24 @@ const DataPanel: React.FC<DataPanelProps> = ({
         if (targetPage !== currentPage) {
           setCurrentPage(targetPage);
         }
-        // Scroll will happen automatically when page renders
       }
     }
-  }, [selectedIndices, dataWithIndices, currentPage]);
-
-  // Drag handlers for resizing
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = window.innerWidth - e.clientX;
-      setWidth(Math.min(Math.max(newWidth, MIN_WIDTH), MAX_WIDTH));
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
+  }, [selectedIndices, dataWithIndices, currentPage, setCurrentPage]);
 
   // Get columns (limited selection for panel view)
   const columns = useMemo(() => {
     if (filteredData.length === 0) return [];
     const allCols = Object.keys(filteredData[0]);
-    // Prioritize outcome column, then up to 4 other columns
     const prioritized: string[] = [];
     if (outcome && allCols.includes(outcome)) {
       prioritized.push(outcome);
     }
-    // Add factor columns first
     const factorCols = Object.keys(filters).filter(f => allCols.includes(f));
     factorCols.forEach(f => {
       if (!prioritized.includes(f) && prioritized.length < 5) {
         prioritized.push(f);
       }
     });
-    // Fill with remaining columns
     allCols.forEach(col => {
       if (!prioritized.includes(col) && prioritized.length < 5) {
         prioritized.push(col);
@@ -313,7 +268,6 @@ const DataPanel: React.FC<DataPanelProps> = ({
                   const hasViolation = hasControlViolation(originalIndex);
                   const violationReasons = getControlViolationReasons(originalIndex);
 
-                  // Handle row click: toggle selection if onToggleSelection provided, otherwise use onRowClick
                   const handleRowClick = () => {
                     if (onToggleSelection) {
                       onToggleSelection(originalIndex);

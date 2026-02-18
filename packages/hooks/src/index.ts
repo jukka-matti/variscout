@@ -138,3 +138,13 @@ export {
 
 // Tier (Azure Marketplace licensing)
 export { useTier, type UseTierResult, type ChannelWarningMessage } from './useTier';
+
+// Data Table Utilities
+export {
+  useDataTablePagination,
+  type UseDataTablePaginationReturn,
+} from './useDataTablePagination';
+
+export { useHighlightFade, type UseHighlightFadeReturn } from './useHighlightFade';
+
+export { useResizablePanel, type UseResizablePanelReturn } from './useResizablePanel';

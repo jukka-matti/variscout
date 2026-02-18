@@ -10,17 +10,12 @@ import { openMindmapPopout } from '../components/MindmapWindow';
 import ManualEntry, { type ManualEntryConfig } from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
-import {
-  validateData,
-  getNelsonRule2ViolationPoints,
-  calculateStats,
-  parseText,
-  detectColumns,
-  detectWideFormat,
-} from '@variscout/core';
+import OutcomeSelector from '../components/editor/OutcomeSelector';
+import { useControlViolations } from '../hooks/useControlViolations';
+import { useDataMerge } from '../hooks/useDataMerge';
+import { parseText, detectColumns, validateData, detectWideFormat } from '@variscout/core';
 import { downloadCSV } from '@variscout/core';
 import { SAMPLES } from '@variscout/data';
-import type { SampleDataset } from '@variscout/data';
 import {
   Upload,
   ArrowLeft,
@@ -37,100 +32,6 @@ import {
   Download,
   Database,
 } from 'lucide-react';
-
-// ── Inline column selector for empty state (no outcome detected) ──
-
-interface OutcomeSelectorProps {
-  rawData: Record<string, any>[];
-  onStart: (outcome: string, factors: string[]) => void;
-}
-
-const OutcomeSelector: React.FC<OutcomeSelectorProps> = ({ rawData, onStart }) => {
-  const [selectedOutcome, setSelectedOutcome] = useState('');
-  const [selectedFactors, setSelectedFactors] = useState<string[]>([]);
-
-  const numericCols = useMemo(() => {
-    if (rawData.length === 0) return [];
-    return Object.keys(rawData[0]).filter(k => typeof rawData[0][k] === 'number');
-  }, [rawData]);
-
-  const categoricalCols = useMemo(() => {
-    if (rawData.length === 0) return [];
-    return Object.keys(rawData[0]).filter(k => {
-      if (typeof rawData[0][k] === 'number') return false;
-      const uniq = new Set(rawData.map(r => r[k])).size;
-      return uniq >= 2 && uniq <= 20;
-    });
-  }, [rawData]);
-
-  const toggleFactor = (col: string) => {
-    setSelectedFactors(prev =>
-      prev.includes(col) ? prev.filter(f => f !== col) : prev.length < 6 ? [...prev, col] : prev
-    );
-  };
-
-  return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-5">
-      {/* Outcome dropdown */}
-      <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">
-          Outcome (numeric measurement)
-        </label>
-        <select
-          value={selectedOutcome}
-          onChange={e => setSelectedOutcome(e.target.value)}
-          aria-label="Select outcome variable"
-          className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-3 py-2 outline-none focus:border-blue-500 cursor-pointer"
-        >
-          <option value="">Select a column...</option>
-          {numericCols.map(col => (
-            <option key={col} value={col}>
-              {col}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Factor checkboxes */}
-      {categoricalCols.length > 0 && (
-        <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
-            Factors (categorical, max 6)
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {categoricalCols.map(col => (
-              <label
-                key={col}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm cursor-pointer transition-colors border ${
-                  selectedFactors.includes(col)
-                    ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
-                    : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-600'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedFactors.includes(col)}
-                  onChange={() => toggleFactor(col)}
-                  className="sr-only"
-                />
-                {col}
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Start button */}
-      <button
-        onClick={() => onStart(selectedOutcome, selectedFactors)}
-        disabled={!selectedOutcome}
-        className="w-full py-2.5 rounded-lg text-sm font-medium transition-colors bg-blue-600 hover:bg-blue-500 text-white disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed"
-      >
-        Start Analysis
-      </button>
-    </div>
-  );
-};
 
 interface EditorProps {
   projectId: string | null;
@@ -236,7 +137,6 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   const handlePointClick = useCallback(
     (index: number) => {
       setHighlightRowIndex(index);
-      // Auto-open data panel if not already open
       if (!isDataPanelOpen) {
         setIsDataPanelOpen(true);
       }
@@ -247,7 +147,6 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   // Handle data panel row click → highlight point in chart
   const handleRowClick = useCallback((index: number) => {
     setHighlightedChartPoint(index);
-    // Clear after brief highlight
     setTimeout(() => setHighlightedChartPoint(null), 2000);
   }, []);
 
@@ -267,158 +166,28 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     };
   }, [outcome, factors, specs, isPerformanceMode, measureColumns, measureLabel]);
 
-  // Compute control violations for DataPanel annotations
-  const controlViolations = useMemo(() => {
-    if (!outcome || filteredData.length === 0) return undefined;
+  // Control violations for DataPanel annotations
+  const controlViolations = useControlViolations(filteredData, outcome, specs);
 
-    const map = new Map<number, string[]>();
-
-    // Calculate stats for violation detection
-    const values = filteredData
-      .map(row => {
-        const val = row[outcome];
-        return typeof val === 'number' ? val : parseFloat(String(val));
-      })
-      .filter(v => !isNaN(v));
-
-    if (values.length === 0) return undefined;
-
-    const stats = calculateStats(values);
-
-    // Check each row for violations
-    filteredData.forEach((row, index) => {
-      const val = row[outcome];
-      const numValue = typeof val === 'number' ? val : parseFloat(String(val));
-      if (isNaN(numValue)) return;
-
-      const violations: string[] = [];
-
-      // Check control limit violations
-      if (numValue > stats.ucl) {
-        violations.push('Special Cause: Above UCL');
-      } else if (numValue < stats.lcl) {
-        violations.push('Special Cause: Below LCL');
-      }
-
-      // Check spec limit violations
-      if (specs.usl !== undefined && numValue > specs.usl) {
-        violations.push('Above USL');
-      }
-      if (specs.lsl !== undefined && numValue < specs.lsl) {
-        violations.push('Below LSL');
-      }
-
-      if (violations.length > 0) {
-        map.set(index, violations);
-      }
-    });
-
-    // Check Nelson Rule 2 violations
-    const nelsonViolations = getNelsonRule2ViolationPoints(values, stats.mean);
-    nelsonViolations.forEach(index => {
-      const existing = map.get(index) || [];
-      if (!existing.some(v => v.includes('Nelson Rule 2'))) {
-        existing.push('Special Cause: Nelson Rule 2 (9 consecutive points on same side of mean)');
-        map.set(index, existing);
-      }
-    });
-
-    return map;
-  }, [filteredData, outcome, specs]);
-
-  // Merge data utility - combines existing rows with new rows, handling column expansion
-  const mergeData = useCallback((existing: any[], incoming: any[]): any[] => {
-    const allColumns = new Set<string>();
-    [...existing, ...incoming].forEach(row => Object.keys(row).forEach(k => allColumns.add(k)));
-
-    return [...existing, ...incoming].map(row =>
-      Object.fromEntries([...allColumns].map(col => [col, row[col] ?? null]))
-    );
-  }, []);
-
-  // Merge configs - union of columns/factors
-  const mergeConfig = useCallback(
-    (existing: ManualEntryConfig, incoming: ManualEntryConfig): ManualEntryConfig => {
-      // For performance mode, union measure columns
-      if (existing.isPerformanceMode && incoming.isPerformanceMode) {
-        const allMeasureColumns = Array.from(
-          new Set([...(existing.measureColumns || []), ...(incoming.measureColumns || [])])
-        );
-        return {
-          ...incoming,
-          measureColumns: allMeasureColumns,
-          outcome: allMeasureColumns[0], // First channel as default
-        };
-      }
-
-      // For standard mode, union factors
-      const allFactors = Array.from(new Set([...existing.factors, ...incoming.factors]));
-
-      return {
-        ...incoming,
-        factors: allFactors,
-      };
-    },
-    []
-  );
-
-  // Handle manual data entry analyze
-  const handleManualDataAnalyze = useCallback(
-    (data: any[], config: ManualEntryConfig) => {
-      let finalData = data;
-      let finalConfig = config;
-
-      // If in append mode, merge with existing data
-      if (appendMode && existingConfig && rawData.length > 0) {
-        finalData = mergeData(rawData, data);
-        finalConfig = mergeConfig(existingConfig, config);
-        setDataFilename('Manual Entry (combined)');
-      } else {
-        setDataFilename('Manual Entry');
-      }
-
-      setRawData(finalData);
-      setOutcome(finalConfig.outcome);
-      setFactors(finalConfig.factors);
-      if (finalConfig.specs) {
-        setSpecs(finalConfig.specs);
-      }
-
-      // Run validation
-      const report = validateData(finalData, finalConfig.outcome);
-      setDataQualityReport(report);
-
-      // Handle performance mode
-      if (
-        finalConfig.isPerformanceMode &&
-        finalConfig.measureColumns &&
-        finalConfig.measureColumns.length >= 3
-      ) {
-        setMeasureColumns(finalConfig.measureColumns);
-        setMeasureLabel(finalConfig.measureLabel || 'Channel');
-        setPerformanceMode(true);
-      }
-
+  // Manual data analyze with append-mode merge
+  const { handleManualDataAnalyze } = useDataMerge({
+    appendMode,
+    existingConfig,
+    rawData,
+    setRawData,
+    setDataFilename,
+    setOutcome,
+    setFactors,
+    setSpecs,
+    setDataQualityReport,
+    setMeasureColumns,
+    setMeasureLabel,
+    setPerformanceMode,
+    onDone: () => {
       setIsManualEntry(false);
       setAppendMode(false);
     },
-    [
-      appendMode,
-      existingConfig,
-      rawData,
-      mergeData,
-      mergeConfig,
-      setRawData,
-      setDataFilename,
-      setOutcome,
-      setFactors,
-      setSpecs,
-      setDataQualityReport,
-      setMeasureColumns,
-      setMeasureLabel,
-      setPerformanceMode,
-    ]
-  );
+  });
 
   const { handleFileUpload, loadSample } = useDataIngestion();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -465,11 +234,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
       try {
         const data = await parseText(text);
 
-        // Set raw data and filename
         setRawData(data);
         setDataFilename('Pasted Data');
 
-        // Auto-detect columns
         const detected = detectColumns(data);
         if (detected.outcome) {
           setOutcome(detected.outcome);
@@ -478,11 +245,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           setFactors(detected.factors);
         }
 
-        // Validate data quality
         const report = validateData(data, detected.outcome);
         setDataQualityReport(report);
 
-        // Check for wide format (Performance Mode)
         const wideFormat = detectWideFormat(data);
         if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
           setMeasureColumns(wideFormat.channels.map(c => c.id));

@@ -1,28 +1,26 @@
 /**
- * useDashboardCharts - Hook for Dashboard chart state management
+ * useDashboardCharts - Composition hook for Dashboard chart state management
  *
- * This hook extracts chart-related state and handlers from Dashboard.tsx
- * to reduce the component's complexity and improve testability.
+ * Composes focused sub-hooks:
+ * - useFocusMode: focused chart navigation + keyboard
+ * - useChartCopy: clipboard copy + feedback
+ * - useChartFactors: boxplot/pareto factor selection
+ * - useFilterNavigation: filter stack management
+ * - useVariationTracking: η² tracking
  *
- * Manages:
- * - Factor selection for Boxplot and Pareto charts
- * - Focused chart mode navigation
- * - Pareto panel visibility and comparison toggle
- * - Copy-to-clipboard feedback
- * - Spec editor visibility
+ * Derived data: availableOutcomes, availableStageColumns, anovaResult, boxplotData
  */
 
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { toBlob } from 'html-to-image';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { calculateAnova, type AnovaResult, getNextDrillFactor } from '@variscout/core';
 import { calculateBoxplotStats, type BoxplotGroupData } from '@variscout/charts';
 import { useFilterNavigation } from './useFilterNavigation';
 import { useVariationTracking } from '@variscout/hooks';
+import { useFocusMode } from './useFocusMode';
+import { useChartCopy } from './useChartCopy';
+import { useChartFactors } from './useChartFactors';
 import type { ChartId } from '@variscout/ui';
-
-const CHART_ORDER = ['ichart', 'boxplot', 'pareto'] as const;
-type FocusedChart = (typeof CHART_ORDER)[number] | null;
 
 export interface UseDashboardChartsProps {
   /** External trigger to open spec editor (from MobileMenu) */
@@ -45,8 +43,8 @@ export interface UseDashboardChartsResult {
   setParetoFactor: (factor: string) => void;
 
   // Focus mode
-  focusedChart: FocusedChart;
-  setFocusedChart: (chart: FocusedChart) => void;
+  focusedChart: ReturnType<typeof useFocusMode>['focusedChart'];
+  setFocusedChart: ReturnType<typeof useFocusMode>['setFocusedChart'];
   handleNextChart: () => void;
   handlePrevChart: () => void;
 
@@ -119,32 +117,25 @@ export function useDashboardCharts({
     filterChipData,
   } = useVariationTracking(rawData, filterStack, outcome, factors);
 
-  // Factor selection state
-  const [boxplotFactor, setBoxplotFactor] = useState<string>('');
-  const [paretoFactor, setParetoFactor] = useState<string>('');
+  // Focus mode + keyboard navigation
+  const { focusedChart, setFocusedChart, handleNextChart, handlePrevChart } = useFocusMode();
 
-  // Focus mode state
-  const [focusedChart, setFocusedChart] = useState<FocusedChart>(null);
+  // Clipboard copy
+  const { copyFeedback, handleCopyChart } = useChartCopy();
+
+  // Factor selection (boxplot + pareto)
+  const {
+    boxplotFactor,
+    setBoxplotFactor,
+    paretoFactor,
+    setParetoFactor,
+    paretoFactorSelectorRef,
+  } = useChartFactors(factors);
 
   // Panel toggle states
   const [showParetoPanel, setShowParetoPanel] = useState(true);
   const [showParetoComparison, setShowParetoComparison] = useState(false);
   const [showSpecEditor, setShowSpecEditor] = useState(false);
-
-  // Copy feedback state
-  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-  const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Pareto factor selector ref
-  const paretoFactorSelectorRef = useRef<HTMLSelectElement>(null);
-
-  // Initialize factors when they change
-  useEffect(() => {
-    if (factors.length > 0) {
-      setBoxplotFactor(prev => (!prev || !factors.includes(prev) ? factors[0] : prev));
-      setParetoFactor(prev => (!prev || !factors.includes(prev) ? factors[1] || factors[0] : prev));
-    }
-  }, [factors]);
 
   // Reset Pareto panel on data change
   useEffect(() => {
@@ -159,60 +150,9 @@ export function useDashboardCharts({
     }
   }, [openSpecEditorRequested, onSpecEditorOpened]);
 
-  // Cleanup copy feedback timeout
-  useEffect(() => {
-    return () => {
-      if (copyFeedbackTimeoutRef.current) {
-        clearTimeout(copyFeedbackTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Chart navigation handlers
-  const handleNextChart = useCallback(() => {
-    setFocusedChart(current => {
-      if (!current) return null;
-      const index = CHART_ORDER.indexOf(current);
-      const nextIndex = (index + 1) % CHART_ORDER.length;
-      return CHART_ORDER[nextIndex];
-    });
-  }, []);
-
-  const handlePrevChart = useCallback(() => {
-    setFocusedChart(current => {
-      if (!current) return null;
-      const index = CHART_ORDER.indexOf(current);
-      const prevIndex = (index - 1 + CHART_ORDER.length) % CHART_ORDER.length;
-      return CHART_ORDER[prevIndex];
-    });
-  }, []);
-
   // Toggle handlers
   const toggleParetoComparison = useCallback(() => {
     setShowParetoComparison(prev => !prev);
-  }, []);
-
-  // Copy chart to clipboard
-  const handleCopyChart = useCallback(async (containerId: string, chartName: string) => {
-    const node = document.getElementById(containerId);
-    if (!node) return;
-
-    try {
-      const blob = await toBlob(node, {
-        cacheBust: true,
-        backgroundColor: '#0f172a',
-      });
-      if (blob) {
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        setCopyFeedback(chartName);
-        if (copyFeedbackTimeoutRef.current) {
-          clearTimeout(copyFeedbackTimeoutRef.current);
-        }
-        copyFeedbackTimeoutRef.current = setTimeout(() => setCopyFeedback(null), 2000);
-      }
-    } catch (err) {
-      console.error('Failed to copy chart', err);
-    }
   }, []);
 
   // Embed mode helpers
@@ -252,7 +192,7 @@ export function useDashboardCharts({
         setParetoFactor(factor);
       }
     },
-    [applyFilter, factorVariations]
+    [applyFilter, factorVariations, setBoxplotFactor, setParetoFactor]
   );
 
   // Computed: available outcome columns
