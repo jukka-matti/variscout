@@ -18,6 +18,11 @@ claude --chrome              # Enable Chrome browser for E2E testing
 
 npx claude-flow@v3alpha security scan --depth full  # OWASP security scan
 npx claude-flow@v3alpha security cve --check        # CVE check
+
+# Swarm dev workflows (ADR-013)
+# Parallel test: use Task agents to run vitest across all packages concurrently
+# Security scan: targeted OWASP on Azure auth/storage modules
+# Code review: multi-agent read-only review for cross-package changes
 ```
 
 ## Retrieval-Led Reasoning

@@ -70,3 +70,4 @@ Use claude-flow v3alpha as an MCP-integrated development tooling layer. It runs 
 - [claude-flow Technical Reference](../05-technical/implementation/claude-flow.md)
 - [Security Scanning](../05-technical/implementation/security-scanning.md)
 - [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md)
+- [ADR-013: Architecture Evaluation — DDD and Swarms](adr-013-architecture-evaluation-ddd-swarms.md)
