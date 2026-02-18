@@ -32,18 +32,18 @@ npx claude-flow@v3alpha swarm start --objective "Fix security issues identified 
 
 ## OWASP Top 10 Coverage
 
-| Category                       | What We Check                             |
-| ------------------------------ | ----------------------------------------- |
-| A01: Broken Access Control     | Edition feature gates, license validation |
-| A02: Cryptographic Failures    | License key handling                      |
-| A03: Injection                 | CSV/Excel parser input sanitization       |
-| A04: Insecure Design           | Architecture review                       |
-| A05: Security Misconfiguration | Build configs, env vars                   |
-| A06: Vulnerable Components     | npm audit, CVE database                   |
-| A07: Authentication Failures   | Azure MSAL configuration (Azure app)      |
-| A08: Data Integrity Failures   | Data validation, import/export            |
-| A09: Logging Failures          | Sensitive data exposure checks            |
-| A10: SSRF                      | External request handling                 |
+| Category                       | What We Check                                      |
+| ------------------------------ | -------------------------------------------------- |
+| A01: Broken Access Control     | Tier feature gates, Azure Marketplace subscription |
+| A02: Cryptographic Failures    | No sensitive keys (tier via ARM params)            |
+| A03: Injection                 | CSV parser input sanitization                      |
+| A04: Insecure Design           | Architecture review                                |
+| A05: Security Misconfiguration | Build configs, env vars                            |
+| A06: Vulnerable Components     | npm audit, CVE database                            |
+| A07: Authentication Failures   | Azure EasyAuth configuration (Azure app)           |
+| A08: Data Integrity Failures   | Data validation, import/export                     |
+| A09: Logging Failures          | Sensitive data exposure checks                     |
+| A10: SSRF                      | External request handling                          |
 
 ## Attack Surface
 
@@ -52,22 +52,22 @@ VariScout is offline-first with no backend. Key security areas:
 ### Parser Input Handling
 
 - CSV parsing via PapaParse (well-maintained, no known CVEs)
-- Excel parsing via ExcelJS (replaced vulnerable xlsx/SheetJS in Jan 2026)
+- Text paste parsing via `parseText()` in `@variscout/core/parser.ts`
 
 ### npm Dependencies
 
 - Regular `pnpm audit` for vulnerability scanning
 - Claude Flow CVE checks for additional coverage
 
-### License Validation System
+### Azure EasyAuth (Azure App Only)
 
-- Client-side only, no sensitive keys exposed
-- Edition detection via build-time flags
+- App Service Authentication (EasyAuth) -- no MSAL libraries
+- OneDrive API permissions (User.Read + Files.ReadWrite)
+- Token store via `/.auth/me` endpoint
 
-### Azure MSAL Configuration (Azure App Only)
+### Audit Scope Exclusions
 
-- OAuth token handling
-- OneDrive API permissions
+The security audit worker excludes non-application paths (`.venv/`, `node_modules/`, `dist/`, `site/`, minified files) to avoid false positives from build tooling and Python MkDocs dependencies.
 
 ## When to Run
 
@@ -101,7 +101,7 @@ The xlsx package was replaced with ExcelJS to resolve CVE-2023-30533 (Prototype 
 
 Some transitive dependencies have known issues but are low risk for this application:
 
-- `qs`, `devalue`, `h3` - vulnerabilities in dev/build tooling dependencies (astro, office-addin)
+- `qs`, `devalue`, `h3` - vulnerabilities in dev/build tooling dependencies (astro)
 - These do not affect runtime security of the PWA
 
 ## Running Verification

@@ -17,6 +17,7 @@ This section captures key architectural decisions made during VariScout developm
 | [007](adr-007-azure-marketplace-distribution.md) | Azure Marketplace Distribution | Accepted   | 2026-02-05 |
 | [008](adr-008-website-content-architecture.md)   | Website Content Architecture   | Accepted   | 2026-02-13 |
 | [009](adr-009-boxplot-violin-mode.md)            | Boxplot Violin Mode            | Accepted   | 2026-02-16 |
+| [011](adr-011-ai-development-tooling.md)         | AI Development Tooling         | Accepted   | 2026-02-18 |
 
 ---
 
@@ -52,6 +53,6 @@ What becomes easier or harder as a result?
 
 See `05-technical/implementation/testing.md` for current approach. May formalize as ADR.
 
-### ADR-011: State Management Pattern (Proposed)
+### ADR-012: State Management Pattern (Proposed)
 
 Currently using React Context. May evaluate alternatives if complexity grows.

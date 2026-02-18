@@ -128,6 +128,8 @@ dist
 .claude-flow/
 .swarm/
 .mcp.json
+.venv/
+agents/
 
 # Playwright
 playwright-report/

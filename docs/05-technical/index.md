@@ -64,9 +64,10 @@ VARISCOUT ARCHITECTURE (Browser-Only)
 
   ***
 
-  Deployment, testing strategy, data input handling
+  Deployment, testing strategy, data input handling, AI tooling
 
   [:octicons-arrow-right-24: Implementation](implementation/deployment.md)
+  [:octicons-arrow-right-24: AI Tooling](implementation/claude-flow.md)
 
 - :material-puzzle:{ .lg .middle } **Integrations**
 
@@ -82,13 +83,13 @@ VARISCOUT ARCHITECTURE (Browser-Only)
 
 ## Key Technical Decisions
 
-| Decision                 | Choice                | Rationale                                       |
-| ------------------------ | --------------------- | ----------------------------------------------- |
-| No backend for user data | Client-only           | GDPR simplicity, no hosting costs               |
-| IndexedDB for storage    | Dexie.js              | Large data support, async, persistent           |
-| Tier detection           | Azure Marketplace     | ARM template parameters, Graph API tenant check |
-| Distribution             | Azure Marketplace     | Per-seat SaaS subscriptions, Microsoft billing  |
-| Hosting                  | Azure Static Web Apps | Customer-tenant deployment, edge caching        |
+| Decision                 | Choice            | Rationale                                       |
+| ------------------------ | ----------------- | ----------------------------------------------- |
+| No backend for user data | Client-only       | GDPR simplicity, no hosting costs               |
+| IndexedDB for storage    | Dexie.js          | Large data support, async, persistent           |
+| Tier detection           | Azure Marketplace | ARM template parameters, Graph API tenant check |
+| Distribution             | Azure Marketplace | Per-seat SaaS subscriptions, Microsoft billing  |
+| Hosting                  | Azure App Service | WEBSITE_RUN_FROM_PACKAGE, EasyAuth              |
 
 See [Architecture Decision Records](../07-decisions/index.md) for detailed rationale.
 
@@ -120,9 +121,13 @@ pnpm preview
 
 ```bash
 pnpm dev             # PWA dev server (localhost:5173)
-pnpm dev:excel       # Excel Add-in dev server (localhost:3000)
 pnpm --filter @variscout/azure-app dev  # Azure app dev server
 
 pnpm build           # Build all packages and apps
 pnpm test            # Run Vitest tests (all packages)
+
+# AI development tooling
+npx claude-flow@v3alpha daemon status              # Check worker state
+npx claude-flow@v3alpha memory search --query "..."  # Semantic search
+npx claude-flow@v3alpha security scan --depth full   # OWASP scan
 ```

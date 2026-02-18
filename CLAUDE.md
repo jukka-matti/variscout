@@ -73,7 +73,7 @@ docs/
 │   └── patterns/        # layout, feedback, navigation
 ├── 07-decisions/        # Architecture Decision Records
 │   ├── index.md
-│   └── adr-001 through adr-008
+│   └── adr-001 through adr-011
 ├── 08-products/         # Product-specific specs
 │   ├── index.md
 │   ├── feature-parity.md # Platform × Feature availability matrix
@@ -86,44 +86,45 @@ docs/
 
 ## Task-to-Documentation Mapping
 
-| Task Type                | Read First                                                                             |
-| ------------------------ | -------------------------------------------------------------------------------------- |
-| Statistics/Cpk changes   | docs/03-features/analysis/capability.md, packages/core/src/stats.ts                    |
-| Chart modifications      | docs/06-design-system/charts/, .claude/rules/charts.md                                 |
-| Azure app changes        | docs/08-products/azure/, packages/hooks/src/useDataState.ts                            |
-| Adding new feature       | docs/07-decisions/ (check ADRs), docs/05-technical/                                    |
-| Parser/data input        | docs/03-features/data/data-input.md, packages/core/src/parser.ts                       |
-| Design system            | docs/06-design-system/foundations/, packages/ui/src/colors.ts                          |
-| User personas            | docs/02-journeys/personas/, docs/01-vision/philosophy.md                               |
-| Use cases / SEO          | docs/02-journeys/use-cases/                                                            |
-| Performance Mode         | docs/03-features/analysis/performance-mode.md                                          |
-| Testing (E2E/Chrome)     | docs/05-technical/implementation/testing.md Feature Verification Protocols             |
-| Testing (Unit/Component) | docs/05-technical/implementation/testing.md, .claude/rules/testing.md                  |
-| Licensing/Tiers          | docs/07-decisions/adr-007-azure-marketplace-distribution.md                            |
-| Deployment               | docs/05-technical/implementation/deployment.md                                         |
-| Website changes          | docs/08-products/website/, apps/website/README.md, .claude/rules/charts.md             |
-| Website design           | docs/08-products/website/design-philosophy.md                                          |
-| Website content arch     | docs/08-products/website/content-architecture.md, adr-008                              |
-| Use case pages           | docs/08-products/website/content-architecture.md, apps/website/src/data/useCaseData.ts |
-| Nelson Rules/Runs        | docs/03-features/analysis/nelson-rules.md                                              |
-| Staged Analysis          | docs/03-features/analysis/staged-analysis.md                                           |
-| Probability Plots        | docs/03-features/analysis/probability-plot.md                                          |
-| Data Flow/Architecture   | docs/05-technical/architecture/data-flow.md                                            |
-| Hook Integration         | docs/05-technical/architecture/component-patterns.md                                   |
-| Platform Comparison      | docs/08-products/feature-parity.md                                                     |
-| Analysis Workflows       | docs/03-features/workflows/ (four-lenses, drill-down, decision-trees)                  |
-| Quick Analysis           | docs/03-features/workflows/quick-check.md, deep-dive.md                                |
-| Drill-down workflow      | docs/03-features/workflows/drill-down-workflow.md                                      |
-| Four Lenses workflow     | docs/03-features/workflows/four-lenses-workflow.md                                     |
-| Decision trees           | docs/03-features/workflows/decision-trees.md                                           |
-| Glossary/terminology     | packages/core/src/glossary/terms.ts, docs/03-features/learning/glossary.md             |
-| Azure deployment/ARM     | docs/08-products/azure/marketplace.md, docs/08-products/azure/arm-template.md          |
-| Azure auth (EasyAuth)    | docs/08-products/azure/authentication.md                                               |
-| OneDrive sync            | docs/08-products/azure/onedrive-sync.md                                                |
-| UI components (modals)   | docs/06-design-system/components/                                                      |
-| Color/typography         | docs/06-design-system/foundations/                                                     |
-| Case studies             | docs/04-cases/index.md                                                                 |
-| Product specs/tagline    | docs/03-features/specifications.md                                                     |
+| Task Type                | Read First                                                                                           |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Statistics/Cpk changes   | docs/03-features/analysis/capability.md, packages/core/src/stats.ts                                  |
+| Chart modifications      | docs/06-design-system/charts/, .claude/rules/charts.md                                               |
+| Azure app changes        | docs/08-products/azure/, packages/hooks/src/useDataState.ts                                          |
+| Adding new feature       | docs/07-decisions/ (check ADRs), docs/05-technical/                                                  |
+| Parser/data input        | docs/03-features/data/data-input.md, packages/core/src/parser.ts                                     |
+| Design system            | docs/06-design-system/foundations/, packages/ui/src/colors.ts                                        |
+| User personas            | docs/02-journeys/personas/, docs/01-vision/philosophy.md                                             |
+| Use cases / SEO          | docs/02-journeys/use-cases/                                                                          |
+| Performance Mode         | docs/03-features/analysis/performance-mode.md                                                        |
+| Testing (E2E/Chrome)     | docs/05-technical/implementation/testing.md Feature Verification Protocols                           |
+| Testing (Unit/Component) | docs/05-technical/implementation/testing.md, .claude/rules/testing.md                                |
+| Licensing/Tiers          | docs/07-decisions/adr-007-azure-marketplace-distribution.md                                          |
+| Deployment               | docs/05-technical/implementation/deployment.md                                                       |
+| Website changes          | docs/08-products/website/, apps/website/README.md, .claude/rules/charts.md                           |
+| Website design           | docs/08-products/website/design-philosophy.md                                                        |
+| Website content arch     | docs/08-products/website/content-architecture.md, adr-008                                            |
+| Use case pages           | docs/08-products/website/content-architecture.md, apps/website/src/data/useCaseData.ts               |
+| Nelson Rules/Runs        | docs/03-features/analysis/nelson-rules.md                                                            |
+| Staged Analysis          | docs/03-features/analysis/staged-analysis.md                                                         |
+| Probability Plots        | docs/03-features/analysis/probability-plot.md                                                        |
+| Data Flow/Architecture   | docs/05-technical/architecture/data-flow.md                                                          |
+| Hook Integration         | docs/05-technical/architecture/component-patterns.md                                                 |
+| Platform Comparison      | docs/08-products/feature-parity.md                                                                   |
+| Analysis Workflows       | docs/03-features/workflows/ (four-lenses, drill-down, decision-trees)                                |
+| Quick Analysis           | docs/03-features/workflows/quick-check.md, deep-dive.md                                              |
+| Drill-down workflow      | docs/03-features/workflows/drill-down-workflow.md                                                    |
+| Four Lenses workflow     | docs/03-features/workflows/four-lenses-workflow.md                                                   |
+| Decision trees           | docs/03-features/workflows/decision-trees.md                                                         |
+| Glossary/terminology     | packages/core/src/glossary/terms.ts, docs/03-features/learning/glossary.md                           |
+| Azure deployment/ARM     | docs/08-products/azure/marketplace.md, docs/08-products/azure/arm-template.md                        |
+| Azure auth (EasyAuth)    | docs/08-products/azure/authentication.md                                                             |
+| OneDrive sync            | docs/08-products/azure/onedrive-sync.md                                                              |
+| UI components (modals)   | docs/06-design-system/components/                                                                    |
+| Color/typography         | docs/06-design-system/foundations/                                                                   |
+| Case studies             | docs/04-cases/index.md                                                                               |
+| Product specs/tagline    | docs/03-features/specifications.md                                                                   |
+| Claude-flow / AI tooling | docs/07-decisions/adr-011-ai-development-tooling.md, docs/05-technical/implementation/claude-flow.md |
 
 ## Repository Structure
 
