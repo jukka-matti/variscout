@@ -825,6 +825,13 @@ const Dashboard = ({
                       )
                     )}
                   </div>
+                  <FilterContextBar
+                    filterChipData={filterChipData}
+                    columnAliases={columnAliases}
+                    cumulativeVariationPct={cumulativeVariationPct}
+                    show={displayOptions.showFilterContext !== false}
+                    colorScheme={filterContextBarAzureColorScheme}
+                  />
                   <div className="flex-1 min-h-0 w-full">
                     <ErrorBoundary componentName="I-Chart">
                       <IChart
@@ -864,6 +871,13 @@ const Dashboard = ({
                       </button>
                     </div>
                   </div>
+                  <FilterContextBar
+                    filterChipData={filterChipData}
+                    columnAliases={columnAliases}
+                    cumulativeVariationPct={cumulativeVariationPct}
+                    show={displayOptions.showFilterContext !== false}
+                    colorScheme={filterContextBarAzureColorScheme}
+                  />
                   <div className="flex-1 min-h-0">
                     <ErrorBoundary componentName="Boxplot">
                       {boxplotFactor && (
@@ -912,6 +926,13 @@ const Dashboard = ({
                       </button>
                     </div>
                   </div>
+                  <FilterContextBar
+                    filterChipData={filterChipData}
+                    columnAliases={columnAliases}
+                    cumulativeVariationPct={cumulativeVariationPct}
+                    show={displayOptions.showFilterContext !== false}
+                    colorScheme={filterContextBarAzureColorScheme}
+                  />
                   <div className="flex-1 min-h-0">
                     <ErrorBoundary componentName="Pareto Chart">
                       {paretoFactor && (
