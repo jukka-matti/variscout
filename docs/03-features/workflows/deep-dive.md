@@ -225,8 +225,8 @@ Create actionable output that can be shared and tracked.
    - What's the impact?
 
 2. **Export evidence**
-   - Filter path used
-   - Key charts as images
+   - Filter path used (automatically included via filter context bar on chart copies)
+   - Key charts as images (copy chart includes filter provenance)
    - Statistical summary
 
 3. **Recommend actions**

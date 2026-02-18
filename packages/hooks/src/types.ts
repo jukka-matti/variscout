@@ -95,6 +95,8 @@ export interface DisplayOptions {
   showContributionLabels?: boolean;
   /** Show violin (density) overlay on boxplot charts (default: false) */
   showViolin?: boolean;
+  /** Show filter context bar inside chart cards for copy-to-clipboard (default: true) */
+  showFilterContext?: boolean;
 }
 
 /**

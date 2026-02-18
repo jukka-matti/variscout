@@ -1,7 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import SettingsPanel from '../SettingsPanel';
 import { ThemeProvider } from '../../../context/ThemeContext';
+
+// Mock DataContext BEFORE importing SettingsPanel
+const mockDisplayOptions = { showCp: true, showCpk: true, showFilterContext: true };
+const mockSetDisplayOptions = vi.fn();
+
+vi.mock('../../../context/DataContext', () => ({
+  useData: () => ({
+    displayOptions: mockDisplayOptions,
+    setDisplayOptions: mockSetDisplayOptions,
+  }),
+}));
+
+// Import component AFTER mocking its dependencies
+import SettingsPanel from '../SettingsPanel';
 
 // Mock lucide-react icons to simplify DOM output
 vi.mock('lucide-react', () => ({

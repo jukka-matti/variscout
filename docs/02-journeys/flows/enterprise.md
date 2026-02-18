@@ -285,14 +285,30 @@ IT/Procurement evaluator may also be involved:
 
 ---
 
+## After Purchase: In-App Journeys
+
+Once Olivia's team deploys via Azure Marketplace, the journey continues in-app:
+
+| Next Flow                                               | Who               | What happens                                             |
+| ------------------------------------------------------- | ----------------- | -------------------------------------------------------- |
+| [Azure First Analysis](azure-first-analysis.md)         | Gary (end user)   | First login → SSO → empty state → first chart in < 3 min |
+| [Azure Daily Use](azure-daily-use.md)                   | Gary (daily user) | Repeat analysis, Performance Mode, exports               |
+| [Azure Team Collaboration](azure-team-collaboration.md) | Olivia (admin)    | Teams setup, sharing, onboarding colleagues              |
+
+Users who tried the [PWA](return-visitor.md) before purchasing will find the same analysis workflow — skills transfer directly. The key differences are persistence (OneDrive), file upload, Performance Mode, and 6-factor support.
+
+---
+
 ## Gap: Enterprise Page Content Needed
 
-Current gap identified:
+**Status:** Content pending — the `/product/enterprise` website page does not yet exist. Journey flows currently route to this page, but visitors will land on a generic product page.
 
 The enterprise page needs:
 
-- Full security documentation
+- Full security documentation (data residency, encryption, compliance)
 - Deployment guide with screenshots
 - Pricing calculator
 - FAQ for IT/Procurement
 - Customer logos / testimonials (when available)
+
+Until this page is built, the [How It Works](../../08-products/azure/how-it-works.md) doc covers the technical architecture, and the [Marketplace Guide](../../08-products/azure/marketplace.md) covers deployment.

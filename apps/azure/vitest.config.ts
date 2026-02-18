@@ -8,5 +8,12 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.ts'],
     globals: true,
     exclude: ['e2e/**', 'node_modules/**', 'api/**'],
+    pool: 'forks',
+    fileParallelism: false,
+    poolOptions: {
+      forks: {
+        execArgv: ['--max-old-space-size=4096'],
+      },
+    },
   },
 });

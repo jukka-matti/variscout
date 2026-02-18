@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart2, ClipboardPaste, PenLine } from 'lucide-react';
+import { BarChart2, ClipboardPaste, PenLine, ArrowUpRight } from 'lucide-react';
 import type { SampleDataset } from '@variscout/data';
 import SampleSection from './data/SampleSection';
 
@@ -30,8 +30,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-white">Explore Variation Analysis</h2>
           <p className="text-sm text-content-secondary max-w-md mx-auto">
-            Free SPC training tool. Visualize variability, calculate capability, and identify root
-            causes — right in your browser.
+            Free variation analysis training tool. Visualize variability, calculate capability, and
+            find where to focus — right in your browser.
           </p>
         </div>
 
@@ -70,7 +70,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         </button>
 
         {/* Secondary: manual entry link */}
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <button
             onClick={onOpenManualEntry}
             className="inline-flex items-center gap-1.5 text-xs text-content-muted hover:text-content-secondary transition-colors"
@@ -78,6 +78,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             <PenLine size={12} />
             Or enter data manually
           </button>
+          <div>
+            <a
+              href="https://variscout.com/en/pricing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-content-muted/60 hover:text-blue-400 transition-colors"
+            >
+              Need team features, file upload, or saved projects?
+              <ArrowUpRight size={10} />
+            </a>
+          </div>
         </div>
       </div>
     </div>

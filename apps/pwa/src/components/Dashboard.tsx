@@ -13,6 +13,7 @@ import {
   AnovaResults,
   ErrorBoundary,
   FilterBreadcrumb,
+  FilterContextBar,
   FactorSelector,
   SelectionPanel,
   CreateFactorModal,
@@ -91,6 +92,7 @@ const Dashboard = ({
     paretoAggregation,
     setParetoAggregation,
     timeColumn,
+    displayOptions,
     // Selection state
     selectedPoints,
     clearSelection,
@@ -528,6 +530,12 @@ const Dashboard = ({
                     </div>
                   </div>
                 </div>
+                <FilterContextBar
+                  filterChipData={filterChipData}
+                  columnAliases={columnAliases}
+                  cumulativeVariationPct={cumulativeVariationPct}
+                  show={displayOptions.showFilterContext !== false}
+                />
                 <div id="ichart-container" className="flex-1 min-h-[300px] w-full">
                   <ErrorBoundary componentName="I-Chart">
                     <IChart
@@ -592,6 +600,12 @@ const Dashboard = ({
                         </button>
                       </div>
                     </div>
+                    <FilterContextBar
+                      filterChipData={filterChipData}
+                      columnAliases={columnAliases}
+                      cumulativeVariationPct={cumulativeVariationPct}
+                      show={displayOptions.showFilterContext !== false}
+                    />
                     <div id="boxplot-container" className="flex-1 min-h-[180px]">
                       <ErrorBoundary componentName="Boxplot">
                         {boxplotFactor && (
@@ -657,6 +671,12 @@ const Dashboard = ({
                           </button>
                         </div>
                       </div>
+                      <FilterContextBar
+                        filterChipData={filterChipData}
+                        columnAliases={columnAliases}
+                        cumulativeVariationPct={cumulativeVariationPct}
+                        show={displayOptions.showFilterContext !== false}
+                      />
                       <div id="pareto-container" className="flex-1 min-h-[180px]">
                         <ErrorBoundary componentName="Pareto Chart">
                           {paretoFactor && (
@@ -732,6 +752,10 @@ const Dashboard = ({
               onToggleParetoAggregation={() =>
                 setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
               }
+              filterChipData={filterChipData}
+              columnAliases={columnAliases}
+              cumulativeVariationPct={cumulativeVariationPct}
+              showFilterContext={displayOptions.showFilterContext !== false}
             />
           )}
         </div>

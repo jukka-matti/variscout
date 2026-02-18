@@ -122,14 +122,14 @@ VariScout - Statistical Process Control for Quality Teams
 ### Short Description (100 chars)
 
 ```
-Offline-first variation analysis with I-Charts, Boxplots, Pareto, and Cpk capability analysis.
+Offline-first variation analysis with I-Charts, Boxplots, Pareto, and process capability analysis.
 ```
 
 ### Long Description (3000 chars)
 
 ```markdown
-**VariScout** is a statistical process control (SPC) tool designed for quality professionals
-who need to analyze manufacturing variation without complex setup or cloud dependencies.
+**VariScout** is a variation analysis tool designed for quality professionals
+who need to understand process variation without complex setup or cloud dependencies.
 
 ### Key Features
 
@@ -143,7 +143,7 @@ who need to analyze manufacturing variation without complex setup or cloud depen
 **Performance Mode**
 Analyze hundreds of measurement channels simultaneously:
 
-- Multi-channel Cpk tracking
+- Multi-channel capability tracking (Cpk)
 - Worst-first Pareto ranking
 - Interactive drill-down to individual channels
 
@@ -173,7 +173,7 @@ before upgrading to the full Azure App for team use.
 
 ### Screenshots (Required: 5-10)
 
-1. Performance Dashboard - Multi-channel Cpk overview
+1. Performance Dashboard - Multi-channel capability overview
 2. I-Chart - Control chart with Nelson Rules
 3. Capability Histogram - Cp/Cpk analysis
 4. Boxplot Comparison - Category comparison

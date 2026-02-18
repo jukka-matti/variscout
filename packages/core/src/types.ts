@@ -218,6 +218,8 @@ export interface DisplayOptions {
   showCp: boolean;
   showCpk: boolean;
   showSpecs?: boolean;
+  /** Show filter context bar inside chart cards for copy-to-clipboard (default: true) */
+  showFilterContext?: boolean;
 }
 
 /**

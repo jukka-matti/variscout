@@ -139,7 +139,7 @@ The app supports:
 
 ## Data Persistence
 
-Data is saved locally first, then synced to OneDrive when online.
+Save is explicit — the user clicks **Save** in the editor header. Data is saved locally first, then synced to OneDrive when online. Unsaved work is lost if the browser tab closes.
 
 ```
 BROWSER                          USER'S ONEDRIVE
@@ -176,7 +176,7 @@ OneDrive/
 
 | State     | Behavior                                |
 | --------- | --------------------------------------- |
-| Online    | Auto-sync every 30s, immediate on save  |
+| Online    | Syncs to OneDrive on explicit save      |
 | Offline   | Full functionality with local IndexedDB |
 | Reconnect | Flush queued changes to OneDrive        |
 

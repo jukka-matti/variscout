@@ -1,6 +1,6 @@
 # PWA (Free Training Tool)
 
-> **Role**: Free SPC training and education tool for quality professionals, students, and developing countries.
+> **Role**: Free variation analysis training and education tool for quality professionals, students, and developing countries.
 >
 > Per [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md), the PWA provides free access to core analysis features. The [Azure App](../azure/index.md) adds file upload (alongside paste), save/persistence, Performance Mode, and team features.
 
@@ -8,7 +8,7 @@
 
 ## Purpose: Free Training & Education
 
-The PWA is a **free SPC training tool** that provides:
+The PWA is a **free variation analysis training tool** that provides:
 
 1. **Core analysis for everyone** — I-Chart, Boxplot, Pareto, Capability, Regression, ANOVA
 2. **Pre-loaded case study datasets** — Same datasets as documentation
@@ -19,7 +19,7 @@ The PWA is a **free SPC training tool** that provides:
 flowchart LR
     A[Paste Data or Load Sample] --> B[Auto-Detect Columns]
     B --> C[Confirm Mapping]
-    C --> D[Analyze with Full SPC]
+    C --> D[Analyze with Full Toolkit]
     D --> E{Need More?}
     E -->|File upload, save, teams| F[Azure App]
 ```
@@ -54,7 +54,7 @@ The PWA comes with datasets from the documentation case studies:
 
 ## Features (Free)
 
-All core SPC analysis features:
+All core analysis features:
 
 - I-Chart, Boxplot, Pareto, Capability Histogram
 - Regression analysis, ANOVA

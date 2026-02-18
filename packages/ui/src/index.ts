@@ -184,6 +184,14 @@ export {
 
 export { ProbabilityPlot, type ProbabilityPlotProps } from './components/ProbabilityPlot';
 
+export {
+  FilterContextBar,
+  filterContextBarDefaultColorScheme,
+  filterContextBarAzureColorScheme,
+  type FilterContextBarProps,
+  type FilterContextBarColorScheme,
+} from './components/FilterContextBar';
+
 // Services
 export {
   errorService,

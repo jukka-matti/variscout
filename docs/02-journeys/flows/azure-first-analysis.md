@@ -56,15 +56,17 @@ flowchart TD
     H -->|Sample| I[Load sample dataset]
     H -->|Paste| J[Paste from spreadsheet]
     H -->|Upload| K[Upload CSV or Excel file]
+    H -->|Manual| K2[Enter data manually]
     I --> L[Dashboard renders immediately]
     J --> M[Column mapping auto-detected]
     K --> M
+    K2 --> M
     M --> N[Select outcome + factors]
     N --> L
     L --> O[Explore: I-Chart, Boxplot, Stats, ANOVA]
     O --> P[First drill-down: click a filter]
     P --> Q[Charts recalculate, breadcrumbs appear]
-    Q --> R[Analysis auto-saves to OneDrive]
+    Q --> R[Click Save — persists to IndexedDB + OneDrive]
     R --> S[Return next day: analysis loads from cloud]
 ```
 
@@ -86,7 +88,7 @@ journey
       Read I-Chart and stats: 5: User
       First drill-down: 5: User
     section Save
-      Analysis saves to OneDrive: 5: User
+      Click Save to persist: 5: User
       Return next day: 5: User
 ```
 
@@ -107,13 +109,14 @@ See [Authentication](../../08-products/azure/authentication.md) for technical de
 
 ### 2. Empty State
 
-After login, the app shows an empty editor with three options:
+After login, the app shows an empty editor with four options:
 
 | Option         | Description                                         |
 | -------------- | --------------------------------------------------- |
 | Sample dataset | Pre-loaded data (coffee, bottleneck, sachets, etc.) |
 | Paste data     | Paste tab- or comma-separated text from clipboard   |
 | Upload file    | Upload CSV or Excel file (parsed in-browser)        |
+| Manual entry   | Type values directly into a spreadsheet-style grid  |
 
 For a first-time user, **sample datasets** are the fastest path to seeing value. Each sample includes pre-computed stats and meaningful variation patterns.
 
@@ -150,10 +153,12 @@ This is the "aha moment" — seeing how variation hides inside aggregated data.
 
 ### 6. Save and Return
 
-The analysis auto-saves:
+Gary clicks **Save** in the editor header to persist his work:
 
 1. **IndexedDB** — immediate local save (offline-first)
 2. **OneDrive** — syncs to `OneDrive/VariScout/Projects/` as a `.vrs` file (when online)
+
+The header shows sync status feedback (saved, syncing, offline). Save is explicit — unsaved work is lost if the tab closes.
 
 Next day, Gary opens the app and his analysis loads from OneDrive. No setup needed — EasyAuth session persists.
 
@@ -188,6 +193,30 @@ See [OneDrive Sync](../../08-products/azure/onedrive-sync.md) for sync details.
 
 ---
 
+## How Users Get Here
+
+The Azure App first-analysis experience follows different acquisition flows:
+
+| Prior Journey                          | Transition                                     | What the user already knows                         |
+| -------------------------------------- | ---------------------------------------------- | --------------------------------------------------- |
+| [Enterprise Evaluation](enterprise.md) | IT deploys via Marketplace → Gary gets app URL | Knows the product value prop, expects SSO           |
+| [PWA (free tool)](return-visitor.md)   | Outgrows PWA limits → team purchases Azure App | Knows drill-down, expects persistence + file upload |
+| Direct referral                        | Colleague shares app URL                       | May know nothing — empty state must onboard         |
+
+### Coming from the PWA
+
+Users who graduated from the free PWA will notice key differences:
+
+- **File upload** — CSV and Excel upload, not just paste and manual entry
+- **Save and sync** — analyses persist to OneDrive (PWA is session-only)
+- **Performance Mode** — multi-channel Cpk analysis (not available in PWA)
+- **6 factors** — up to 6 factors, manageable during analysis (PWA: 3, set at start only)
+- **No branding** — charts have no VariScout watermark
+
+The analysis workflow (drill-down, ANOVA, mindmap) is identical — skills transfer directly.
+
+---
+
 ## See Also
 
 - [Azure App Overview](../../08-products/azure/index.md)
@@ -196,3 +225,4 @@ See [OneDrive Sync](../../08-products/azure/onedrive-sync.md) for sync details.
 - [OneDrive Sync](../../08-products/azure/onedrive-sync.md) — persistence flow
 - [Enterprise Evaluation](enterprise.md) — how Olivia evaluated before Gary got access
 - [Azure Daily Use](azure-daily-use.md) — Gary's workflow after first analysis
+- [Return Visitor](return-visitor.md) — PWA return experience and upgrade triggers

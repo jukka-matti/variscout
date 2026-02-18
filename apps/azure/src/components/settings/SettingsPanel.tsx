@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Palette } from 'lucide-react';
 import { useTheme, CHART_FONT_SCALES, type ChartFontScale } from '../../context/ThemeContext';
+import { useData } from '../../context/DataContext';
 import ThemeToggle from './ThemeToggle';
 
 interface SettingsPanelProps {
@@ -26,6 +27,21 @@ const FONT_SCALE_OPTIONS: { value: ChartFontScale; label: string }[] = [
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
   const { theme, setTheme } = useTheme();
+  const { displayOptions, setDisplayOptions } = useData();
+
+  const [localDisplayOptions, setLocalDisplayOptions] = useState(displayOptions);
+
+  useEffect(() => {
+    if (isOpen) {
+      setLocalDisplayOptions(displayOptions);
+    }
+  }, [isOpen, displayOptions]);
+
+  useEffect(() => {
+    if (isOpen && JSON.stringify(localDisplayOptions) !== JSON.stringify(displayOptions)) {
+      setDisplayOptions(localDisplayOptions);
+    }
+  }, [localDisplayOptions, isOpen, setDisplayOptions, displayOptions]);
 
   if (!isOpen) return null;
 
@@ -99,6 +115,34 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                 aria-label="Custom accent color"
               />
               <span className="text-xs text-slate-400">Custom color</span>
+            </div>
+          </section>
+
+          {/* Display Options */}
+          <section>
+            <h3 className="text-sm font-medium text-slate-300 mb-3">Display Options</h3>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={localDisplayOptions.showFilterContext !== false}
+                  onChange={e =>
+                    setLocalDisplayOptions({
+                      ...localDisplayOptions,
+                      showFilterContext: e.target.checked,
+                    })
+                  }
+                  className="mt-0.5 w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                />
+                <div>
+                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors block">
+                    Show filter context on charts
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    Include active filters when copying charts to clipboard
+                  </span>
+                </div>
+              </label>
             </div>
           </section>
 

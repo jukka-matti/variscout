@@ -64,6 +64,8 @@ vi.mock('@variscout/charts', () => ({
 vi.mock('@variscout/ui', () => ({
   SelectionPanel: () => <div data-testid="selection-panel">Selection Panel</div>,
   CreateFactorModal: () => <div data-testid="create-factor-modal">Create Factor</div>,
+  FilterContextBar: () => null,
+  filterContextBarAzureColorScheme: {},
   HelpTooltip: () => null,
   useGlossary: () => ({ getTerm: () => undefined }),
 }));
@@ -123,6 +125,8 @@ describe('Dashboard', () => {
     chartTitles: {},
     setChartTitles: vi.fn(),
     timeColumn: null,
+    displayOptions: { showCp: true, showCpk: true, showFilterContext: true },
+    setDisplayOptions: vi.fn(),
     selectedPoints: new Set<number>(),
     clearSelection: vi.fn(),
   };

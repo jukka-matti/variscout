@@ -181,6 +181,7 @@ const DEFAULT_DISPLAY_OPTIONS: DisplayOptions = {
   lockYAxisToFullData: true,
   showControlLimits: true,
   showViolin: false,
+  showFilterContext: true,
 };
 
 // ============================================================================

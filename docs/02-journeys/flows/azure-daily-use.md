@@ -56,7 +56,7 @@ flowchart TD
     P -->|Export CSV| Q[Download filtered data]
     P -->|Copy chart| R[Clipboard: chart as image]
     P -->|Edit title| S[Custom chart title for report]
-    P -->|Done| T[Analysis auto-saves to OneDrive]
+    P -->|Done| T[Click Save — syncs to OneDrive]
 ```
 
 ### Daily Use Journey
@@ -79,7 +79,7 @@ journey
     section Export
       Copy chart to clipboard: 5: User
       Download CSV export: 5: User
-      Auto-save to OneDrive: 5: User
+      Save to OneDrive: 5: User
 ```
 
 ---

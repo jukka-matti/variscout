@@ -302,6 +302,27 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   </span>
                 </div>
               </label>
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={localDisplayOptions.showFilterContext !== false}
+                  onChange={e =>
+                    setLocalDisplayOptions({
+                      ...localDisplayOptions,
+                      showFilterContext: e.target.checked,
+                    })
+                  }
+                  className="mt-0.5 w-4 h-4 rounded border-edge-secondary bg-surface text-blue-500 focus:ring-blue-500 focus:ring-offset-surface-secondary"
+                />
+                <div>
+                  <span className="text-sm text-content group-hover:text-white transition-colors block">
+                    Show filter context on charts
+                  </span>
+                  <span className="text-xs text-content-muted">
+                    Include active filters when copying charts to clipboard
+                  </span>
+                </div>
+              </label>
             </div>
           </div>
 

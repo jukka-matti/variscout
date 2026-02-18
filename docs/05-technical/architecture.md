@@ -432,10 +432,7 @@ The app uses `vite-plugin-pwa` to generate a Service Worker that:
 - **Enables offline use** after the first visit
 - **Auto-updates** when new versions are deployed
 
-Users can "install" the app:
-
-- Mobile: "Add to Home Screen"
-- Desktop: Browser install prompt
+The PWA runs as a browser-only tool (no installation). See [ADR-012](../07-decisions/adr-012-pwa-browser-only.md).
 
 ## 8. Responsive Architecture
 

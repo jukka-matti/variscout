@@ -16,7 +16,7 @@ export default defineConfig({
         description: 'Offline-first manufacturing variation analysis for quality professionals',
         theme_color: '#1e3a5f',
         background_color: '#ffffff',
-        display: 'standalone',
+        display: 'browser',
         start_url: '/',
         icons: [
           {
@@ -64,6 +64,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     exclude: ['**/node_modules/**', '**/e2e/**'],
+    pool: 'forks',
+    fileParallelism: false,
   },
   build: {
     outDir: 'dist',

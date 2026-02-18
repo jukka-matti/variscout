@@ -2,9 +2,10 @@ import React from 'react';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
-import { ErrorBoundary, FactorSelector, AnovaResults } from '@variscout/ui';
+import { ErrorBoundary, FactorSelector, AnovaResults, FilterContextBar } from '@variscout/ui';
 import { Activity, ChevronLeft, ChevronRight, Minimize2 } from 'lucide-react';
 import type { AnovaResult } from '@variscout/core';
+import type { FilterChipData } from '@variscout/hooks';
 import { BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
 
 export type FocusableChart = 'ichart' | 'boxplot' | 'pareto';
@@ -37,6 +38,10 @@ export interface FocusedChartViewProps {
   onExitFocus: () => void;
   paretoAggregation?: 'count' | 'value';
   onToggleParetoAggregation?: () => void;
+  filterChipData?: FilterChipData[];
+  columnAliases?: Record<string, string>;
+  cumulativeVariationPct?: number | null;
+  showFilterContext?: boolean;
 }
 
 /**
@@ -71,6 +76,10 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
   onExitFocus,
   paretoAggregation = 'count',
   onToggleParetoAggregation,
+  filterChipData = [],
+  columnAliases = {},
+  cumulativeVariationPct,
+  showFilterContext = true,
 }) => {
   return (
     <div className="flex-1 flex p-4 h-full relative group/focus">
@@ -123,6 +132,12 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
               </button>
             </div>
           </div>
+          <FilterContextBar
+            filterChipData={filterChipData}
+            columnAliases={columnAliases}
+            cumulativeVariationPct={cumulativeVariationPct}
+            show={showFilterContext}
+          />
           <div className="flex-1 min-h-0 w-full">
             <ErrorBoundary componentName="I-Chart">
               <IChart onPointClick={onPointClick} onSpecClick={onSpecClick} />
@@ -155,6 +170,12 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
               </button>
             </div>
           </div>
+          <FilterContextBar
+            filterChipData={filterChipData}
+            columnAliases={columnAliases}
+            cumulativeVariationPct={cumulativeVariationPct}
+            show={showFilterContext}
+          />
           <div className="flex-1 min-h-0">
             <ErrorBoundary componentName="Boxplot">
               {boxplotFactor && (
@@ -204,6 +225,12 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
               </button>
             </div>
           </div>
+          <FilterContextBar
+            filterChipData={filterChipData}
+            columnAliases={columnAliases}
+            cumulativeVariationPct={cumulativeVariationPct}
+            show={showFilterContext}
+          />
           <div className="flex-1 min-h-0">
             <ErrorBoundary componentName="Pareto Chart">
               {paretoFactor && (

@@ -14,7 +14,7 @@ A lightweight, offline-first variation analysis tool for quality professionals. 
 # Prerequisites: Node.js v18+, pnpm v8+
 pnpm install
 pnpm dev             # PWA dev server (localhost:5173)
-pnpm dev:excel       # Excel Add-in (localhost:3000)
+pnpm --filter @variscout/azure-app dev  # Azure app dev server
 pnpm test            # Run all tests
 pnpm build           # Build all packages
 ```
@@ -44,7 +44,7 @@ pnpm build           # Build all packages
 ```
 variscout-lite/
 ├── packages/
-│   ├── core/          # @variscout/core - Stats, parser, license (pure TypeScript)
+│   ├── core/          # @variscout/core - Stats, parser, tier (pure TypeScript)
 │   ├── charts/        # @variscout/charts - Props-based Visx chart components
 │   ├── data/          # @variscout/data - Sample datasets with pre-computed chart data
 │   ├── hooks/         # @variscout/hooks - Shared React hooks
@@ -52,26 +52,24 @@ variscout-lite/
 ├── apps/
 │   ├── pwa/           # PWA website (mobile + desktop)
 │   ├── website/       # Marketing website (Astro + React Islands)
-│   ├── azure/         # Azure Team App (SharePoint, SSO)
-│   └── excel-addin/   # Excel Add-in (Task Pane + Content Add-in)
+│   └── azure/         # Azure Team App (EasyAuth, OneDrive sync)
 └── docs/              # Documentation (see table above)
 ```
 
 ## Features at a Glance
 
 - **Three-Chart Dashboard**: I-Chart, Boxplot, and Pareto with linked filtering
-- **Capability Analysis**: Cp, Cpk, and conformance metrics
+- **Process Capability**: Cp, Cpk indices and conformance metrics
 - **Offline-First**: Full PWA support, works without internet
-- **Multi-Platform**: PWA, Excel Add-in, Azure Team App
+- **Multi-Platform**: PWA, Azure Team App
 - **Privacy-First**: 100% browser-based, no data leaves your device
 
 ## Products & Pricing
 
-| Product           | Distribution      | Price      | Features                                   |
-| ----------------- | ----------------- | ---------- | ------------------------------------------ |
-| **Web App (PWA)** | Public URL        | Free       | Training & education, core SPC, paste-only |
-| **Excel Add-in**  | AppSource         | Free       | Core SPC inside Excel                      |
-| **Azure App**     | Azure Marketplace | €150/month | All features, file upload, save, SSO       |
+| Product           | Distribution      | Price      | Features                                        |
+| ----------------- | ----------------- | ---------- | ----------------------------------------------- |
+| **Web App (PWA)** | Public URL        | Free       | Training & education, core analysis, paste-only |
+| **Azure App**     | Azure Marketplace | €150/month | All features, file upload, save, SSO            |
 
 ## Contributing
 

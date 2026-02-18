@@ -26,11 +26,11 @@ function buildManifest(origin: string): object {
     },
     name: {
       short: 'VariScout',
-      full: 'VariScout - Statistical Process Control',
+      full: 'VariScout - Variation Analysis for Quality Teams',
     },
     description: {
       short: 'Variation analysis for quality teams',
-      full: 'Collaborative SPC tool with I-Charts, Boxplots, Pareto, Capability analysis, and Performance Mode for multi-channel tracking. Data stays in your OneDrive.',
+      full: 'Collaborative variation analysis with I-Charts, Boxplots, Pareto, Capability, and Performance Mode for multi-channel tracking. Data stays in your OneDrive.',
     },
     icons: {
       color: 'color.png',

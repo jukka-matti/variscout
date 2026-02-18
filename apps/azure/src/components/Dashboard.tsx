@@ -16,7 +16,12 @@ import { useData } from '../context/DataContext';
 import { useFilterNavigation, useVariationTracking } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
 import { EditableChartTitle } from '@variscout/charts';
-import { SelectionPanel, CreateFactorModal } from '@variscout/ui';
+import {
+  SelectionPanel,
+  CreateFactorModal,
+  FilterContextBar,
+  filterContextBarAzureColorScheme,
+} from '@variscout/ui';
 import {
   calculateAnova,
   type AnovaResult,
@@ -86,6 +91,7 @@ const Dashboard = ({
     chartTitles,
     setChartTitles,
     timeColumn,
+    displayOptions,
     selectedPoints,
     clearSelection,
   } = useData();
@@ -566,6 +572,13 @@ const Dashboard = ({
                     </button>
                   </div>
                 </div>
+                <FilterContextBar
+                  filterChipData={filterChipData}
+                  columnAliases={columnAliases}
+                  cumulativeVariationPct={cumulativeVariationPct}
+                  show={displayOptions.showFilterContext !== false}
+                  colorScheme={filterContextBarAzureColorScheme}
+                />
                 <div className="flex-1 min-h-[300px] w-full">
                   <ErrorBoundary componentName="I-Chart">
                     <IChart
@@ -622,6 +635,13 @@ const Dashboard = ({
                         </button>
                       </div>
                     </div>
+                    <FilterContextBar
+                      filterChipData={filterChipData}
+                      columnAliases={columnAliases}
+                      cumulativeVariationPct={cumulativeVariationPct}
+                      show={displayOptions.showFilterContext !== false}
+                      colorScheme={filterContextBarAzureColorScheme}
+                    />
                     <div className="flex-1 min-h-[180px]">
                       <ErrorBoundary componentName="Boxplot">
                         {boxplotFactor && (
@@ -678,6 +698,13 @@ const Dashboard = ({
                         </button>
                       </div>
                     </div>
+                    <FilterContextBar
+                      filterChipData={filterChipData}
+                      columnAliases={columnAliases}
+                      cumulativeVariationPct={cumulativeVariationPct}
+                      show={displayOptions.showFilterContext !== false}
+                      colorScheme={filterContextBarAzureColorScheme}
+                    />
                     <div className="flex-1 min-h-[180px]">
                       <ErrorBoundary componentName="Pareto Chart">
                         {paretoFactor && (

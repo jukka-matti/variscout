@@ -78,6 +78,12 @@ flowchart TB
         AZ[Azure Marketplace]
     end
 
+    subgraph InApp["In-App Flows"]
+        F6[First Analysis]
+        F7[Daily Use]
+        F8[Team Collaboration]
+    end
+
     G --> T
     G --> H
     L --> H
@@ -101,6 +107,11 @@ flowchart TB
     F5 --> A
 
     PR --> AZ
+
+    AZ --> F6
+    F6 --> F7
+    F7 --> F8
+    F5 -.->|upgrade| PR
 ```
 
 ### Entry Point Matrix

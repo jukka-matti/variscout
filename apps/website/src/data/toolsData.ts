@@ -404,7 +404,7 @@ export const TOOLS: ToolData[] = [
     hero: {
       title: 'See which filling heads need attention',
       subtitle:
-        'Compare Cpk across all packaging heads at a glance. Find underperformers before they cause rejects.',
+        'Compare process capability across all packaging heads at a glance. Find underperformers before they cause rejects.',
     },
     whenToUse: [
       'Sachet filling machines with multiple heads',

@@ -4,10 +4,10 @@ VariScout uses CSS variables with Tailwind semantic classes for theme-aware styl
 
 ## Theme Support
 
-| Edition                  | Dark | Light | System Pref | Company Accent |
-| ------------------------ | :--: | :---: | :---------: | :------------: |
-| Community                |  ✓   |   -   |      -      |       -        |
-| Licensed (PWA installed) |  ✓   |   ✓   |      ✓      |       ✓        |
+| Product    | Dark | Light | System Pref | Company Accent |
+| ---------- | :--: | :---: | :---------: | :------------: |
+| PWA (Free) |  ✓   |   -   |      -      |       -        |
+| Azure App  |  ✓   |   ✓   |      ✓      |       ✓        |
 
 ## CSS Variables
 
