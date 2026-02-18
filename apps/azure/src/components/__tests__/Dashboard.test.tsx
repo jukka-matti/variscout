@@ -66,6 +66,8 @@ vi.mock('@variscout/ui', () => ({
   CreateFactorModal: () => <div data-testid="create-factor-modal">Create Factor</div>,
   FilterContextBar: () => null,
   filterContextBarAzureColorScheme: {},
+  BoxplotDisplayToggle: () => <div data-testid="boxplot-display-toggle">Display Toggle</div>,
+  boxplotDisplayToggleAzureColorScheme: {},
   HelpTooltip: () => null,
   useGlossary: () => ({ getTerm: () => undefined }),
 }));
@@ -92,6 +94,7 @@ vi.mock('../../hooks', () => ({
     cumulativeVariationPct: 0,
     filterChipData: [],
     factorVariations: new Map(),
+    categoryContributions: new Map(),
     filterStack: [],
     applyFilter: vi.fn(),
     clearFilters: vi.fn(),
@@ -141,8 +144,15 @@ describe('Dashboard', () => {
     chartTitles: {},
     setChartTitles: vi.fn(),
     timeColumn: null,
-    displayOptions: { showCp: true, showCpk: true, showFilterContext: true },
+    displayOptions: {
+      showCp: true,
+      showCpk: true,
+      showFilterContext: true,
+      showSpecs: true,
+      lockYAxisToFullData: true,
+    },
     setDisplayOptions: vi.fn(),
+    categoryContributions: new Map(),
     selectedPoints: new Set<number>(),
     clearSelection: vi.fn(),
   };

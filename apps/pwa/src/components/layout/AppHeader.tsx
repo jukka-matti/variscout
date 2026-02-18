@@ -195,12 +195,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               onOpenSpecEditor={onOpenSpecEditor}
             />
           </>
-        ) : (
-          /* No data: Settings only */
-          <div className="flex items-center gap-1">
-            <IconButton icon={<Settings size={18} />} title="Settings" onClick={onOpenSettings} />
-          </div>
-        )}
+        ) : null}
       </div>
     </header>
   );

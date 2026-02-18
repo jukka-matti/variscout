@@ -192,6 +192,14 @@ export {
   type FilterContextBarColorScheme,
 } from './components/FilterContextBar';
 
+export {
+  BoxplotDisplayToggle,
+  boxplotDisplayToggleDefaultColorScheme,
+  boxplotDisplayToggleAzureColorScheme,
+  type BoxplotDisplayToggleProps,
+  type BoxplotDisplayToggleColorScheme,
+} from './components/BoxplotDisplayToggle';
+
 // Services
 export {
   errorService,

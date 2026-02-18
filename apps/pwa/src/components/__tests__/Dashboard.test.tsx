@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import Dashboard from '../Dashboard';
 import * as DataContextModule from '../../context/DataContext';
 import * as CoreModule from '@variscout/core';
@@ -103,14 +103,23 @@ describe('Dashboard', () => {
     chartTitles: { ichart: '', boxplot: '', pareto: '', histogram: '', scatter: '' },
     setChartTitles: vi.fn(),
     displayOptions: { showCp: true, showCpk: true, showFilterContext: true },
+    setDisplayOptions: vi.fn(),
     selectedPoints: new Set<number>(),
     clearSelection: vi.fn(),
   };
 
-  it('renders dashboard view by default', () => {
+  it('renders dashboard view by default with tab navigation', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
 
     render(<Dashboard />);
+
+    // Tab navigation present
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Regression')).toBeInTheDocument();
+
+    // Dashboard tab is active
+    expect(screen.getByText('Dashboard')).toHaveClass('bg-blue-600');
 
     // Dashboard view shows I-Chart, Boxplot, and Stats Panel
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
@@ -118,13 +127,37 @@ describe('Dashboard', () => {
     expect(screen.getByTestId('stats-panel')).toBeInTheDocument();
   });
 
-  it('renders regression view when activeView is regression', () => {
+  it('switches to regression view when Regression tab is clicked', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
 
-    render(<Dashboard activeView="regression" />);
+    render(<Dashboard />);
 
+    fireEvent.click(screen.getByText('Regression'));
+
+    expect(screen.getByText('Regression')).toHaveClass('bg-blue-600');
     expect(screen.getByTestId('regression-panel')).toBeInTheDocument();
     expect(screen.queryByTestId('i-chart')).not.toBeInTheDocument();
+  });
+
+  it('shows What-If button when onOpenWhatIf is provided', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+
+    const onOpenWhatIf = vi.fn();
+    render(<Dashboard onOpenWhatIf={onOpenWhatIf} />);
+
+    const whatIfButton = screen.getByText('What-If');
+    expect(whatIfButton).toBeInTheDocument();
+
+    fireEvent.click(whatIfButton);
+    expect(onOpenWhatIf).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show What-If button when onOpenWhatIf is not provided', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+
+    render(<Dashboard />);
+
+    expect(screen.queryByText('What-If')).not.toBeInTheDocument();
   });
 
   it('does not render AnovaResults when calculation returns null', () => {

@@ -21,6 +21,7 @@ interface BoxplotProps {
   parentHeight: number;
   onDrillDown?: (factor: string, value: string) => void;
   variationPct?: number;
+  categoryContributions?: Map<string | number, number>;
 }
 
 const Boxplot = ({
@@ -29,6 +30,7 @@ const Boxplot = ({
   parentHeight,
   onDrillDown,
   variationPct,
+  categoryContributions,
 }: BoxplotProps) => {
   const {
     filteredData,
@@ -108,6 +110,8 @@ const Boxplot = ({
         data={data}
         specs={displayOptions.showSpecs !== false ? specs : {}}
         showViolin={displayOptions.showViolin}
+        showContributionLabels={displayOptions.showContributionLabels}
+        categoryContributions={categoryContributions}
         yAxisLabel={columnAliases[outcome] || outcome}
         xAxisLabel={alias}
         yDomainOverride={{ min, max }}

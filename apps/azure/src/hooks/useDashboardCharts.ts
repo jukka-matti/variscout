@@ -60,6 +60,7 @@ export interface UseDashboardChartsResult {
   cumulativeVariationPct: number;
   filterChipData: FilterChipData[];
   factorVariations: Map<string, number>;
+  categoryContributions: Map<string, Map<string | number, number>>;
 
   // Filter navigation (resolved — external or internal)
   filterStack: UseFilterNavigationReturn['filterStack'];
@@ -88,6 +89,7 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   const {
     cumulativeVariationPct: rawCumulativeVariationPct,
     factorVariations,
+    categoryContributions,
     filterChipData,
   } = useVariationTracking(rawData, filterStack, outcome, factors);
   const cumulativeVariationPct = rawCumulativeVariationPct ?? 0;
@@ -262,6 +264,7 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     cumulativeVariationPct,
     filterChipData,
     factorVariations,
+    categoryContributions,
     filterStack,
     applyFilter,
     clearFilters,

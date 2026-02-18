@@ -43,6 +43,7 @@ const IChart = ({
     stageColumn,
     stagedData,
     stagedStats,
+    displayOptions,
     selectedPoints,
     setSelectedPoints,
   } = useData();
@@ -98,6 +99,12 @@ const IChart = ({
     );
   }
 
+  // Apply displayOptions toggles: hide spec/control lines by passing empty data
+  const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
+  const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
+  const effectiveStagedStats =
+    displayOptions.showControlLimits !== false ? (stagedStats ?? undefined) : undefined;
+
   // Calculate margin for popover positioning (simplified)
   const margin = { top: 20, left: 60 };
 
@@ -105,9 +112,9 @@ const IChart = ({
     <div className="relative w-full h-full">
       <IChartBase
         data={data}
-        stats={stats}
-        stagedStats={stagedStats ?? undefined}
-        specs={specs}
+        stats={effectiveStats}
+        stagedStats={effectiveStagedStats}
+        specs={effectiveSpecs}
         yAxisLabel={columnAliases[outcome] || outcome}
         axisSettings={axisSettings}
         parentWidth={parentWidth}

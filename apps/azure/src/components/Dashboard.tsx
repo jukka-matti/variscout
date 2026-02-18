@@ -22,6 +22,8 @@ import {
   CreateFactorModal,
   FilterContextBar,
   filterContextBarAzureColorScheme,
+  BoxplotDisplayToggle,
+  boxplotDisplayToggleAzureColorScheme,
 } from '@variscout/ui';
 import { getColumnNames, createFactorFromSelection } from '@variscout/core';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
@@ -83,6 +85,7 @@ const Dashboard = ({
     chartTitles,
     timeColumn,
     displayOptions,
+    setDisplayOptions,
     selectedPoints,
     clearSelection,
   } = useData();
@@ -119,6 +122,7 @@ const Dashboard = ({
     cumulativeVariationPct,
     filterChipData,
     factorVariations,
+    categoryContributions,
     clearFilters,
     updateFilterValues,
     removeFilter,
@@ -466,6 +470,17 @@ const Dashboard = ({
                           onChange={setBoxplotFactor}
                           hasActiveFilter={!!filters?.[boxplotFactor]?.length}
                         />
+                        <BoxplotDisplayToggle
+                          showViolin={displayOptions.showViolin ?? false}
+                          showContributionLabels={displayOptions.showContributionLabels ?? false}
+                          onToggleViolin={value =>
+                            setDisplayOptions({ ...displayOptions, showViolin: value })
+                          }
+                          onToggleContributionLabels={value =>
+                            setDisplayOptions({ ...displayOptions, showContributionLabels: value })
+                          }
+                          colorScheme={boxplotDisplayToggleAzureColorScheme}
+                        />
                         <button
                           onClick={() => handleCopyChart('boxplot-card', 'boxplot')}
                           className={`p-1.5 rounded transition-all ${
@@ -502,6 +517,7 @@ const Dashboard = ({
                             factor={boxplotFactor}
                             onDrillDown={handleDrillDown}
                             variationPct={factorVariations.get(boxplotFactor)}
+                            categoryContributions={categoryContributions?.get(boxplotFactor)}
                           />
                         )}
                       </ErrorBoundary>

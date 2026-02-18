@@ -3,7 +3,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider } from '../../../context/ThemeContext';
 
 // Mock DataContext BEFORE importing SettingsPanel
-const mockDisplayOptions = { showCp: true, showCpk: true, showFilterContext: true };
+const mockDisplayOptions = {
+  showCp: true,
+  showCpk: true,
+  showFilterContext: true,
+  lockYAxisToFullData: true,
+  showSpecs: true,
+};
 const mockSetDisplayOptions = vi.fn();
 
 vi.mock('../../../context/DataContext', () => ({
@@ -74,6 +80,16 @@ describe('SettingsPanel', () => {
     expect(screen.getByText('Appearance')).toBeInTheDocument();
     expect(screen.getByText('Company Accent')).toBeInTheDocument();
     expect(screen.getByText('Chart Text Size')).toBeInTheDocument();
+  });
+
+  it('shows Display Preferences section with all 4 global toggles', () => {
+    renderPanel(true);
+
+    expect(screen.getByText('Display Preferences')).toBeInTheDocument();
+    expect(screen.getByText('Lock Y-axis when drilling')).toBeInTheDocument();
+    expect(screen.getByText('Show specification limits')).toBeInTheDocument();
+    expect(screen.getByText('Show Cpk capability')).toBeInTheDocument();
+    expect(screen.getByText('Show filter context on charts')).toBeInTheDocument();
   });
 
   it('shows theme toggle with Light/Dark/System buttons', () => {

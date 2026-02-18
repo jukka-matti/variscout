@@ -29,8 +29,6 @@ import {
 } from '@variscout/core';
 import type { WideFormatDetection } from '@variscout/core';
 
-type AnalysisView = 'dashboard' | 'regression';
-
 // Breakpoint for desktop panel (vs modal on mobile)
 const DESKTOP_BREAKPOINT = 1024;
 
@@ -110,7 +108,6 @@ function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   const [isWhatIfPageOpen, setIsWhatIfPageOpen] = useState(false);
-  const [activeView, setActiveView] = useState<AnalysisView>('dashboard');
   // Trigger for opening spec editor from MobileMenu
   const [openSpecEditorRequested, setOpenSpecEditorRequested] = useState(false);
   // Track if desktop for panel vs modal
@@ -442,16 +439,6 @@ function App() {
     setShowResetConfirm(false);
   }, [clearData]);
 
-  // Handle view change from settings
-  const handleViewChange = useCallback(
-    (view: AnalysisView) => {
-      // Clear selection when switching views (Phase 4: Performance Mode Integration)
-      clearSelection();
-      setActiveView(view);
-    },
-    [clearSelection]
-  );
-
   // Handle dismissing wide format detection (Performance Mode is Azure-only)
   const handleDismissWideFormat = useCallback(() => {
     setWideFormatDetection(null);
@@ -544,7 +531,6 @@ function App() {
       setDataQualityReport(report);
 
       clearSelection();
-      setActiveView('dashboard');
       setIsManualEntry(false);
     },
     [setRawData, setDataFilename, setOutcome, setFactors, setSpecs, setDataQualityReport]
@@ -645,7 +631,6 @@ function App() {
               onLoadSample={loadSample}
               onOpenPaste={handleOpenPaste}
               onOpenManualEntry={handleOpenManualEntry}
-              onOpenSettings={() => setIsSettingsOpen(true)}
             />
           ) : isMapping ? (
             <ColumnMapping
@@ -679,7 +664,7 @@ function App() {
               onOpenColumnMapping={() => setIsMapping(true)}
               openSpecEditorRequested={openSpecEditorRequested}
               onSpecEditorOpened={() => setOpenSpecEditorRequested(false)}
-              activeView={activeView}
+              onOpenWhatIf={() => setIsWhatIfPageOpen(true)}
               highlightedPointIndex={highlightedChartPoint}
             />
           )}
@@ -702,17 +687,7 @@ function App() {
       </main>
 
       {/* Settings Panel (slide-in from right) */}
-      <SettingsPanel
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        activeView={activeView}
-        onViewChange={handleViewChange}
-        onNewAnalysis={() => {
-          setIsSettingsOpen(false);
-          handleResetRequest();
-        }}
-        onOpenWhatIf={() => setIsWhatIfPageOpen(true)}
-      />
+      <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       {/* Investigation Mindmap Panel (slide-in from right) */}
       {outcome && (

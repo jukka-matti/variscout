@@ -17,12 +17,22 @@ import {
   FactorSelector,
   SelectionPanel,
   CreateFactorModal,
+  BoxplotDisplayToggle,
   useIsMobile,
 } from '@variscout/ui';
 import { useKeyboardNavigation } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
-import { Activity, Copy, Check, Maximize2, Layers } from 'lucide-react';
+import {
+  Activity,
+  BarChart3,
+  TrendingUp,
+  Beaker,
+  Copy,
+  Check,
+  Maximize2,
+  Layers,
+} from 'lucide-react';
 import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '@variscout/core';
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -48,8 +58,8 @@ interface DashboardProps {
   // External trigger to open spec editor (from MobileMenu)
   openSpecEditorRequested?: boolean;
   onSpecEditorOpened?: () => void;
-  // Analysis view controlled from settings
-  activeView?: AnalysisView;
+  // Callback to open What-If page
+  onOpenWhatIf?: () => void;
   // Highlighted point index from data panel (bi-directional sync)
   highlightedPointIndex?: number | null;
 }
@@ -66,7 +76,7 @@ const Dashboard = ({
   onOpenColumnMapping,
   openSpecEditorRequested,
   onSpecEditorOpened,
-  activeView = 'dashboard',
+  onOpenWhatIf,
   highlightedPointIndex,
 }: DashboardProps) => {
   const {
@@ -93,10 +103,14 @@ const Dashboard = ({
     setParetoAggregation,
     timeColumn,
     displayOptions,
+    setDisplayOptions,
     // Selection state
     selectedPoints,
     clearSelection,
   } = useData();
+
+  // Internal tab navigation state
+  const [activeView, setActiveView] = useState<AnalysisView>('dashboard');
 
   // Modal state for Create Factor
   const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
@@ -356,7 +370,7 @@ const Dashboard = ({
       id="dashboard-export-container"
       className="flex flex-col h-full overflow-y-auto bg-surface relative"
     >
-      {/* Sticky Navigation - Breadcrumbs only (tabs moved to Settings) */}
+      {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface">
         {/* Filter Breadcrumb Navigation with Variation Tracking */}
         <FilterBreadcrumb
@@ -367,6 +381,49 @@ const Dashboard = ({
           onClearAll={handleClearAllFilters}
           cumulativeVariationPct={cumulativeVariationPct}
         />
+
+        {/* Tab Navigation */}
+        <div
+          className="flex items-center gap-2 px-4 pt-3 pb-2"
+          role="tablist"
+          aria-label="Dashboard tabs"
+        >
+          <button
+            role="tab"
+            aria-selected={activeView === 'dashboard'}
+            onClick={() => setActiveView('dashboard')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeView === 'dashboard'
+                ? 'bg-blue-600 text-white'
+                : 'bg-surface-tertiary text-content-secondary hover:text-white hover:bg-surface-elevated'
+            }`}
+          >
+            <BarChart3 size={16} />
+            Dashboard
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeView === 'regression'}
+            onClick={() => setActiveView('regression')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeView === 'regression'
+                ? 'bg-blue-600 text-white'
+                : 'bg-surface-tertiary text-content-secondary hover:text-white hover:bg-surface-elevated'
+            }`}
+          >
+            <TrendingUp size={16} />
+            Regression
+          </button>
+          {onOpenWhatIf && (
+            <button
+              onClick={onOpenWhatIf}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ml-auto bg-surface-tertiary text-content-secondary hover:text-white hover:bg-surface-elevated transition-colors"
+            >
+              <Beaker size={16} />
+              What-If
+            </button>
+          )}
+        </div>
 
         {/* Selection Panel - Shows when points are brushed in IChart */}
         {selectedPoints.size > 0 && (
@@ -577,6 +634,16 @@ const Dashboard = ({
                           selected={boxplotFactor}
                           onChange={setBoxplotFactor}
                           hasActiveFilter={!!filters?.[boxplotFactor]?.length}
+                        />
+                        <BoxplotDisplayToggle
+                          showViolin={displayOptions.showViolin ?? false}
+                          showContributionLabels={displayOptions.showContributionLabels ?? false}
+                          onToggleViolin={value =>
+                            setDisplayOptions({ ...displayOptions, showViolin: value })
+                          }
+                          onToggleContributionLabels={value =>
+                            setDisplayOptions({ ...displayOptions, showContributionLabels: value })
+                          }
                         />
                         <button
                           onClick={() => handleCopyChart('boxplot-card', 'boxplot')}
