@@ -12,6 +12,13 @@ export {
 export { useChartScale } from './useChartScale';
 export { useDataIngestion } from './useDataIngestion';
 
+export {
+  useDashboardCharts,
+  type UseDashboardChartsProps,
+  type UseDashboardChartsResult,
+  type FocusedChart,
+} from './useDashboardCharts';
+
 // Re-exported directly from @variscout/hooks (no Azure wrapper needed)
 export {
   useVariationTracking,

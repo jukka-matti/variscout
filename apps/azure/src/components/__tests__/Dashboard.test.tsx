@@ -72,17 +72,33 @@ vi.mock('@variscout/ui', () => ({
 
 // Mock hooks
 vi.mock('../../hooks', () => ({
-  useFilterNavigation: () => ({
+  useDashboardCharts: () => ({
+    boxplotFactor: 'Machine',
+    setBoxplotFactor: vi.fn(),
+    paretoFactor: 'Machine',
+    setParetoFactor: vi.fn(),
+    focusedChart: null,
+    setFocusedChart: vi.fn(),
+    handleNextChart: vi.fn(),
+    handlePrevChart: vi.fn(),
+    showParetoComparison: false,
+    setShowParetoComparison: vi.fn(),
+    copyFeedback: null,
+    handleCopyChart: vi.fn(),
+    availableOutcomes: ['Result'],
+    availableStageColumns: [],
+    anovaResult: null,
+    boxplotData: [],
+    cumulativeVariationPct: 0,
+    filterChipData: [],
+    factorVariations: new Map(),
     filterStack: [],
     applyFilter: vi.fn(),
     clearFilters: vi.fn(),
     updateFilterValues: vi.fn(),
     removeFilter: vi.fn(),
-  }),
-  useVariationTracking: () => ({
-    cumulativeVariationPct: 0,
-    factorVariations: new Map(),
-    filterChipData: [],
+    handleDrillDown: vi.fn(),
+    handleChartTitleChange: vi.fn(),
   }),
 }));
 
