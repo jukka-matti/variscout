@@ -211,6 +211,30 @@ flowchart LR
 
   [:octicons-arrow-right-24: Flow details](flows/return-visitor.md)
 
+- :material-rocket-launch:{ .lg .middle } **Azure First Analysis**
+
+  ***
+
+  First login → first saved analysis
+
+  [:octicons-arrow-right-24: Flow details](flows/azure-first-analysis.md)
+
+- :material-chart-line:{ .lg .middle } **Azure Daily Use**
+
+  ***
+
+  Repeat analysis, Performance Mode, exports
+
+  [:octicons-arrow-right-24: Flow details](flows/azure-daily-use.md)
+
+- :material-account-group:{ .lg .middle } **Azure Team Collaboration**
+
+  ***
+
+  Admin deployment, sharing, Teams integration
+
+  [:octicons-arrow-right-24: Flow details](flows/azure-team-collaboration.md)
+
 </div>
 
 ---
@@ -224,6 +248,9 @@ flowchart LR
 | 3        | YouTube/Content → Website | Authority + warm leads          |
 | 4        | Enterprise evaluation     | Self-serve, documentation-first |
 | 5        | Return user → App         | Retention/activation            |
+| 6        | Azure first analysis      | Activation (first value moment) |
+| 7        | Azure daily use           | Retention (ongoing value)       |
+| 8        | Azure team collaboration  | Expansion (team adoption)       |
 
 ---
 

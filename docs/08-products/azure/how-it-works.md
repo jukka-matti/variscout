@@ -165,13 +165,11 @@ BROWSER                          USER'S ONEDRIVE
 
 ```
 OneDrive/
-└── Apps/
-    └── VariScout/
-        ├── projects/
-        │   ├── project-001.json
-        │   ├── project-002.json
-        │   └── ...
-        └── settings.json
+└── VariScout/
+    └── Projects/
+        ├── analysis-001.vrs
+        ├── analysis-002.vrs
+        └── ...
 ```
 
 ### Offline Behavior

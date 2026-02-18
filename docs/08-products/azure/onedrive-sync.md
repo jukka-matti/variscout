@@ -19,13 +19,11 @@ The Azure app syncs analyses to OneDrive:
 
 ```
 OneDrive/
-└── Apps/
-    └── VariScout/
-        ├── projects/
-        │   ├── project-001.json
-        │   ├── project-002.json
-        │   └── ...
-        └── settings.json
+└── VariScout/
+    └── Projects/
+        ├── analysis-001.vrs
+        ├── analysis-002.vrs
+        └── ...
 ```
 
 ---
@@ -55,28 +53,40 @@ LOCAL (IndexedDB)               ONEDRIVE
 
 ## Graph API Calls
 
-### List Projects
+The app uses raw `fetch()` with EasyAuth bearer tokens (no Graph SDK).
+
+### List Analyses
 
 ```typescript
-const response = await graphClient
-  .api('/me/drive/special/approot:/VariScout/projects:/children')
-  .get();
+const token = await getAccessToken(); // from EasyAuth /.auth/me
+const response = await fetch(
+  `${GRAPH_BASE}/me/drive/root:/VariScout/Projects:/children?$filter=file ne null&$select=id,name,lastModifiedDateTime,lastModifiedBy,size`,
+  { headers: { Authorization: `Bearer ${token}` } }
+);
 ```
 
-### Save Project
+### Save Analysis
 
 ```typescript
-await graphClient
-  .api(`/me/drive/special/approot:/VariScout/projects/${filename}:/content`)
-  .put(JSON.stringify(project));
+const token = await getAccessToken();
+await fetch(`${GRAPH_BASE}/me/drive/root:/VariScout/Projects/${name}.vrs:/content`, {
+  method: 'PUT',
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(project),
+});
 ```
 
-### Read Project
+### Load Analysis
 
 ```typescript
-const content = await graphClient
-  .api(`/me/drive/special/approot:/VariScout/projects/${filename}:/content`)
-  .get();
+const token = await getAccessToken();
+const response = await fetch(
+  `${GRAPH_BASE}/me/drive/root:/VariScout/Projects/${name}.vrs:/content`,
+  { headers: { Authorization: `Bearer ${token}` } }
+);
 ```
 
 ---

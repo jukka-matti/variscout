@@ -52,25 +52,32 @@ All features included:
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │              AZURE STATIC WEB APP                         │  │
+│  │              AZURE APP SERVICE                            │  │
 │  │         (Deployed via Managed Application)                │  │
+│  │         (WEBSITE_RUN_FROM_PACKAGE — static zip)           │  │
 │  │                                                           │  │
 │  │   ┌─────────────────────────────────────────────────────┐ │  │
 │  │   │              VARISCOUT AZURE APP                    │ │  │
-│  │   │   React SPA + MSAL + OneDrive Integration          │ │  │
+│  │   │   React SPA + EasyAuth + OneDrive Integration      │ │  │
+│  │   └─────────────────────────────────────────────────────┘ │  │
+│  │                                                           │  │
+│  │   ┌─────────────────────────────────────────────────────┐ │  │
+│  │   │              EASYAUTH (authsettingsV2)              │ │  │
+│  │   │   Platform-level Azure AD authentication            │ │  │
+│  │   │   Token store for Graph API access                  │ │  │
 │  │   └─────────────────────────────────────────────────────┘ │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                              │                                   │
 │                              ▼                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │                 MICROSOFT ENTRA ID                        │  │
-│  │              (App Registration + MSAL)                    │  │
+│  │          (Customer-provided App Registration)             │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                              │                                   │
 │                              ▼                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │                      ONEDRIVE                             │  │
-│  │              (Analysis sync & sharing)                    │  │
+│  │              (Analysis sync via Graph API)                │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -135,7 +142,7 @@ const tier = import.meta.env.VITE_LICENSE_TIER; // Always 'enterprise' for Manag
 
 | Feature          | Description                                |
 | ---------------- | ------------------------------------------ |
-| SSO              | Microsoft Entra ID via MSAL                |
+| SSO              | Microsoft Entra ID via EasyAuth            |
 | Cloud Sync       | Analyses saved to OneDrive                 |
 | Sharing          | Share analyses with team members           |
 | Offline          | Cached locally, syncs when online          |
@@ -162,7 +169,7 @@ For development/testing, deploy directly with Azure CLI:
 ```bash
 az deployment group create \
   --resource-group rg-variscout \
-  --template-file mainTemplate.json
+  --template-file infra/mainTemplate.json
 ```
 
 See [ARM Template Documentation](arm-template.md) for details.
@@ -173,25 +180,14 @@ See [ARM Template Documentation](arm-template.md) for details.
 
 All data stays in the customer's tenant:
 
-| Data Type      | Location                        |
-| -------------- | ------------------------------- |
-| App hosting    | Customer's Azure Static Web App |
-| Analyses       | User's OneDrive                 |
-| Settings       | Browser localStorage            |
-| Authentication | Customer's Entra ID             |
+| Data Type      | Location                     |
+| -------------- | ---------------------------- |
+| App hosting    | Customer's Azure App Service |
+| Analyses       | User's OneDrive              |
+| Settings       | Browser localStorage         |
+| Authentication | Customer's Entra ID          |
 
 **No data sent to VariScout servers.**
-
----
-
-## Excel Add-in Companion
-
-The [Excel Add-in](../excel/index.md) is a **free companion product** available on AppSource:
-
-- Provides core SPC charts (I-Chart, Boxplot, Pareto, Capability)
-- Always free — no license detection needed
-- Performance Mode and advanced analysis are Azure App exclusive
-- Serves as a marketing funnel for users who need full features
 
 ---
 
