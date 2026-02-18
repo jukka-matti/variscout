@@ -99,8 +99,6 @@ const IChart = ({
     );
   }
 
-  // Apply displayOptions toggles: hide spec/control lines by passing empty data
-  const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
   const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
   const effectiveStagedStats =
     displayOptions.showControlLimits !== false ? (stagedStats ?? undefined) : undefined;
@@ -114,7 +112,7 @@ const IChart = ({
         data={data}
         stats={effectiveStats}
         stagedStats={effectiveStagedStats}
-        specs={effectiveSpecs}
+        specs={specs}
         yAxisLabel={columnAliases[outcome] || outcome}
         axisSettings={axisSettings}
         parentWidth={parentWidth}

@@ -108,7 +108,7 @@ const Boxplot = ({
     <div className="relative w-full h-full">
       <BoxplotBase
         data={data}
-        specs={displayOptions.showSpecs !== false ? specs : {}}
+        specs={specs}
         showViolin={displayOptions.showViolin}
         showContributionLabels={displayOptions.showContributionLabels}
         categoryContributions={categoryContributions}

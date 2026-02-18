@@ -4,7 +4,7 @@
  * This wrapper:
  * 1. Gets data from DataContext via useData()
  * 2. Transforms data to IChartDataPoint[] format
- * 3. Applies displayOptions toggles (showSpecs, showControlLimits)
+ * 3. Applies displayOptions toggles (showControlLimits)
  * 4. Manages PWA-specific UI (scale/label editors)
  * 5. Passes everything to shared IChartBase
  */
@@ -90,8 +90,6 @@ const IChart = ({
   }
 
   const showBranding = showBrandingProp ?? shouldShowBranding();
-  // Apply displayOptions toggles: hide spec/control lines by passing empty data
-  const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
   const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
   const effectiveStagedStats =
     displayOptions.showControlLimits !== false ? (stagedStats ?? undefined) : undefined;
@@ -102,7 +100,7 @@ const IChart = ({
         data={data}
         stats={effectiveStats}
         stagedStats={effectiveStagedStats}
-        specs={effectiveSpecs}
+        specs={specs}
         yAxisLabel={columnAliases[outcome] || outcome}
         axisSettings={axisSettings}
         parentWidth={parentWidth}

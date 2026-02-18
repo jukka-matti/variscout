@@ -48,7 +48,7 @@ export const defaultMockContext = {
   axisSettings: {},
   setAxisSettings: vi.fn(),
   setFilters: vi.fn(),
-  displayOptions: { showCp: true, showCpk: true },
+  displayOptions: {},
   setDisplayOptions: vi.fn(),
   currentProjectId: null,
   currentProjectName: null,

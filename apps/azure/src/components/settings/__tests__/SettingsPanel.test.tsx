@@ -4,11 +4,8 @@ import { ThemeProvider } from '../../../context/ThemeContext';
 
 // Mock DataContext BEFORE importing SettingsPanel
 const mockDisplayOptions = {
-  showCp: true,
-  showCpk: true,
   showFilterContext: true,
   lockYAxisToFullData: true,
-  showSpecs: true,
 };
 const mockSetDisplayOptions = vi.fn();
 
@@ -82,14 +79,15 @@ describe('SettingsPanel', () => {
     expect(screen.getByText('Chart Text Size')).toBeInTheDocument();
   });
 
-  it('shows Display Preferences section with all 4 global toggles', () => {
+  it('shows Display Preferences section with 2 global toggles', () => {
     renderPanel(true);
 
     expect(screen.getByText('Display Preferences')).toBeInTheDocument();
     expect(screen.getByText('Lock Y-axis when drilling')).toBeInTheDocument();
-    expect(screen.getByText('Show specification limits')).toBeInTheDocument();
-    expect(screen.getByText('Show Cpk capability')).toBeInTheDocument();
     expect(screen.getByText('Show filter context on charts')).toBeInTheDocument();
+    // Removed toggles should not be present
+    expect(screen.queryByText('Show specification limits')).not.toBeInTheDocument();
+    expect(screen.queryByText('Show Cpk capability')).not.toBeInTheDocument();
   });
 
   it('shows theme toggle with Light/Dark/System buttons', () => {

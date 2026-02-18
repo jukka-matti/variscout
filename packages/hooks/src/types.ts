@@ -84,9 +84,6 @@ export interface DataContextInterface {
  * Display options for capability metrics
  */
 export interface DisplayOptions {
-  showCp: boolean;
-  showCpk: boolean;
-  showSpecs?: boolean;
   /** Lock Y-axis to full dataset range when filtering (default: true) */
   lockYAxisToFullData?: boolean;
   /** Show control limits (UCL/Mean/LCL) on I-Chart (default: true) */

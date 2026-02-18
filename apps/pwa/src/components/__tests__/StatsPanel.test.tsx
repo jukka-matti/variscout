@@ -35,7 +35,7 @@ describe('StatsPanel', () => {
 
   it('shows Summary tab by default', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: true },
+      setSpecs: vi.fn(),
     } as any);
 
     render(
@@ -58,7 +58,7 @@ describe('StatsPanel', () => {
 
   it('switches to Histogram tab on click', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: true },
+      setSpecs: vi.fn(),
     } as any);
 
     render(
@@ -81,9 +81,9 @@ describe('StatsPanel', () => {
     expect(screen.getByTestId('capability-histogram')).toBeInTheDocument();
   });
 
-  it('displays Cp when showCp is true', () => {
+  it('displays Cp when specs are set', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: false },
+      setSpecs: vi.fn(),
     } as any);
 
     render(
@@ -100,9 +100,9 @@ describe('StatsPanel', () => {
     expect(screen.getByText('1.50')).toBeInTheDocument();
   });
 
-  it('always shows Cp in the card grid (regardless of displayOptions)', () => {
+  it('always shows Cp and Cpk in the card grid when specs are set', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: false, showCpk: true },
+      setSpecs: vi.fn(),
     } as any);
 
     render(
@@ -114,34 +114,16 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Cp is always shown in the new card grid
+    // Both Cp and Cpk always shown when specs exist
     expect(screen.getAllByText('Cp').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('1.50')).toBeInTheDocument();
-  });
-
-  it('displays Cpk in the card grid', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: false, showCpk: true },
-    } as any);
-
-    render(
-      <StatsPanel
-        stats={mockStats}
-        specs={mockSpecs}
-        filteredData={mockFilteredData}
-        outcome="value"
-      />
-    );
-
-    // Cpk label appears multiple times due to HelpTooltip
     expect(screen.getAllByText('Cpk').length).toBeGreaterThanOrEqual(1);
-    // Cpk value (1.20) may appear multiple times if Std Dev is same, use getAllByText
     expect(screen.getAllByText('1.20').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows Mean, Median, and Std Dev in the card grid', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: false },
+      setSpecs: vi.fn(),
     } as any);
 
     render(
@@ -165,7 +147,7 @@ describe('StatsPanel', () => {
 
   it('shows Samples count in the card grid', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: false, showCpk: false },
+      setSpecs: vi.fn(),
     } as any);
 
     render(
@@ -183,9 +165,7 @@ describe('StatsPanel', () => {
 
   it('shows inline spec inputs when no specs provided', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      displayOptions: { showCp: true, showCpk: true },
       setSpecs: vi.fn(),
-      setDisplayOptions: vi.fn(),
     } as any);
 
     render(
@@ -199,10 +179,107 @@ describe('StatsPanel', () => {
     expect(screen.getByText('Edit Specifications')).toBeInTheDocument();
   });
 
+  describe('inline spec editing', () => {
+    it('shows pencil edit button when specs are set', () => {
+      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+        setSpecs: vi.fn(),
+      } as any);
+
+      render(
+        <StatsPanel
+          stats={mockStats}
+          specs={mockSpecs}
+          filteredData={mockFilteredData}
+          outcome="value"
+        />
+      );
+
+      expect(screen.getByTestId('edit-specs-button')).toBeInTheDocument();
+      expect(screen.getByText('Edit spec limits')).toBeInTheDocument();
+    });
+
+    it('enters edit mode with pre-populated inputs on click', () => {
+      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+        setSpecs: vi.fn(),
+      } as any);
+
+      render(
+        <StatsPanel
+          stats={mockStats}
+          specs={{ ...mockSpecs, target: 10 }}
+          filteredData={mockFilteredData}
+          outcome="value"
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('edit-specs-button'));
+
+      // Should show edit mode inputs
+      expect(screen.getByTestId('inline-spec-inputs')).toBeInTheDocument();
+      expect(screen.getByText('Edit specification limits')).toBeInTheDocument();
+
+      // Target input should be pre-populated
+      const targetInput = screen.getByLabelText('Target') as HTMLInputElement;
+      expect(targetInput.value).toBe('10');
+
+      // LSL/USL should be expanded and pre-populated
+      const lslInput = screen.getByLabelText('LSL (Min)') as HTMLInputElement;
+      expect(lslInput.value).toBe('5');
+      const uslInput = screen.getByLabelText('USL (Max)') as HTMLInputElement;
+      expect(uslInput.value).toBe('15');
+
+      // Capability cards should be hidden during edit
+      expect(screen.queryByText('Pass Rate')).not.toBeInTheDocument();
+    });
+
+    it('shows Clear specs and Done buttons in edit mode', () => {
+      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+        setSpecs: vi.fn(),
+      } as any);
+
+      render(
+        <StatsPanel
+          stats={mockStats}
+          specs={mockSpecs}
+          filteredData={mockFilteredData}
+          outcome="value"
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('edit-specs-button'));
+
+      expect(screen.getByTestId('clear-specs-button')).toBeInTheDocument();
+      expect(screen.getByText('Clear specs')).toBeInTheDocument();
+      expect(screen.getByTestId('done-specs-button')).toBeInTheDocument();
+      expect(screen.getByText('Done')).toBeInTheDocument();
+    });
+
+    it('clears specs when Clear is clicked', () => {
+      const setSpecs = vi.fn();
+      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+        setSpecs,
+      } as any);
+
+      render(
+        <StatsPanel
+          stats={mockStats}
+          specs={mockSpecs}
+          filteredData={mockFilteredData}
+          outcome="value"
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('edit-specs-button'));
+      fireEvent.click(screen.getByTestId('clear-specs-button'));
+
+      expect(setSpecs).toHaveBeenCalledWith({});
+    });
+  });
+
   describe('compact mode', () => {
     it('hides Edit Specifications button in compact mode', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        displayOptions: { showCp: true, showCpk: true },
+        setSpecs: vi.fn(),
       } as any);
 
       render(
@@ -220,7 +297,7 @@ describe('StatsPanel', () => {
 
     it('shows metrics in compact mode', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        displayOptions: { showCp: true, showCpk: true },
+        setSpecs: vi.fn(),
       } as any);
 
       render(
@@ -240,7 +317,7 @@ describe('StatsPanel', () => {
 
     it('switches tabs in compact mode', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        displayOptions: { showCp: true, showCpk: true },
+        setSpecs: vi.fn(),
       } as any);
 
       render(

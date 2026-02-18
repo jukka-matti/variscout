@@ -9,9 +9,6 @@ import { db } from '../db/schema';
 
 // Display options for capability metrics
 export interface DisplayOptions {
-  showCp: boolean;
-  showCpk: boolean;
-  showSpecs?: boolean;
   /** Lock Y-axis to full dataset range when filtering (default: true) */
   lockYAxisToFullData?: boolean;
 }

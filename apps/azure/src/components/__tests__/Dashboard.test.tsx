@@ -145,10 +145,7 @@ describe('Dashboard', () => {
     setChartTitles: vi.fn(),
     timeColumn: null,
     displayOptions: {
-      showCp: true,
-      showCpk: true,
       showFilterContext: true,
-      showSpecs: true,
       lockYAxisToFullData: true,
     },
     setDisplayOptions: vi.fn(),

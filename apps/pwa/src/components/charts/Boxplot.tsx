@@ -4,7 +4,7 @@
  * This wrapper:
  * 1. Gets data from DataContext via useData()
  * 2. Computes BoxplotGroupData[] from filtered data
- * 3. Applies displayOptions toggles (showSpecs, showContributionLabels)
+ * 3. Applies displayOptions toggles (showContributionLabels)
  * 4. Manages PWA-specific UI (axis label editing with value labels)
  * 5. Passes everything to shared BoxplotBase
  */
@@ -108,13 +108,12 @@ const Boxplot = ({
   const factorLabels = valueLabels[factor] || {};
   const showBranding = showBrandingProp ?? shouldShowBranding();
   const selectedGroups = (filters[factor] || []).map(String);
-  const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
 
   return (
     <div className="relative w-full h-full">
       <BoxplotBase
         data={data}
-        specs={effectiveSpecs}
+        specs={specs}
         yAxisLabel={columnAliases[outcome] || outcome}
         xAxisLabel={alias}
         yDomainOverride={{ min, max }}

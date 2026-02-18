@@ -26,17 +26,12 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   className,
   compact = false,
 }) => {
-  const { displayOptions, setDisplayOptions, setSpecs } = useData();
+  const { setSpecs } = useData();
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
   const handleSaveSpecs = (newSpecs: { usl?: number; lsl?: number; target?: number }) => {
     setSpecs(newSpecs);
-
-    // Auto-enable Cp display when both USL and LSL are set
-    if (newSpecs.usl !== undefined && newSpecs.lsl !== undefined && !displayOptions.showCp) {
-      setDisplayOptions({ ...displayOptions, showCp: true });
-    }
   };
 
   return (

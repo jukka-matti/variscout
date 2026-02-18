@@ -102,7 +102,7 @@ describe('Dashboard', () => {
     columnAliases: {},
     chartTitles: { ichart: '', boxplot: '', pareto: '', histogram: '', scatter: '' },
     setChartTitles: vi.fn(),
-    displayOptions: { showCp: true, showCpk: true, showFilterContext: true },
+    displayOptions: { showFilterContext: true },
     setDisplayOptions: vi.fn(),
     selectedPoints: new Set<number>(),
     clearSelection: vi.fn(),

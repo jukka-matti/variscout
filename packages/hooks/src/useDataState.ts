@@ -175,9 +175,6 @@ export interface DataActions {
 // ============================================================================
 
 const DEFAULT_DISPLAY_OPTIONS: DisplayOptions = {
-  showCp: false,
-  showCpk: true,
-  showSpecs: true,
   lockYAxisToFullData: true,
   showControlLimits: true,
   showViolin: false,

@@ -146,44 +146,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
               <label className="flex items-start gap-3 cursor-pointer group">
                 <input
                   type="checkbox"
-                  checked={localDisplayOptions.showSpecs !== false}
-                  onChange={e =>
-                    setLocalDisplayOptions({
-                      ...localDisplayOptions,
-                      showSpecs: e.target.checked,
-                    })
-                  }
-                  className="mt-0.5 w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
-                />
-                <div>
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors block">
-                    Show specification limits
-                  </span>
-                  <span className="text-xs text-slate-500">Display USL/LSL/Target on charts</span>
-                </div>
-              </label>
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={localDisplayOptions.showCpk}
-                  onChange={e =>
-                    setLocalDisplayOptions({
-                      ...localDisplayOptions,
-                      showCpk: e.target.checked,
-                    })
-                  }
-                  className="mt-0.5 w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
-                />
-                <div>
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors block">
-                    Show Cpk capability
-                  </span>
-                  <span className="text-xs text-slate-500">Process capability index</span>
-                </div>
-              </label>
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
                   checked={localDisplayOptions.showFilterContext !== false}
                   onChange={e =>
                     setLocalDisplayOptions({

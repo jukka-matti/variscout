@@ -1,5 +1,5 @@
-import React, { useState, useRef, useMemo, useCallback } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { ChevronDown, ChevronRight, Pencil } from 'lucide-react';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
 import type { StatsPanelBaseProps, StatsPanelColorScheme } from './types';
@@ -131,6 +131,18 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   const [limitsExpanded, setLimitsExpanded] = useState(false);
   const targetAppliedRef = useRef(false);
 
+  // Edit mode for existing specs
+  const [isEditingSpecs, setIsEditingSpecs] = useState(false);
+
+  // Reset edit mode when specs change externally
+  const prevSpecsRef = useRef(specs);
+  useEffect(() => {
+    if (prevSpecsRef.current !== specs) {
+      setIsEditingSpecs(false);
+      prevSpecsRef.current = specs;
+    }
+  }, [specs]);
+
   // Extract numeric values for histogram
   const histogramData = useMemo(() => {
     if (!outcome || filteredData.length === 0) return [];
@@ -170,11 +182,43 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     ? 'bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 space-y-3'
     : 'bg-surface-secondary/50 border border-edge/50 rounded-lg p-4 space-y-3';
 
-  const renderInlineSpecInputs = () => {
+  const handleStartEditSpecs = () => {
+    setTargetInput(specs.target !== undefined ? String(specs.target) : '');
+    setLslInput(specs.lsl !== undefined ? String(specs.lsl) : '');
+    setUslInput(specs.usl !== undefined ? String(specs.usl) : '');
+    setLimitsExpanded(specs.lsl !== undefined || specs.usl !== undefined);
+    setIsEditingSpecs(true);
+  };
+
+  const handleClearSpecs = () => {
+    if (onSaveSpecs) {
+      onSaveSpecs({});
+    }
+    setIsEditingSpecs(false);
+    setTargetInput('');
+    setLslInput('');
+    setUslInput('');
+  };
+
+  const handleSaveAndClose = () => {
+    applyInlineSpecs();
+    setIsEditingSpecs(false);
+  };
+
+  const editButtonClass = isAzure
+    ? 'flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-400 cursor-pointer transition-colors'
+    : 'flex items-center gap-1.5 text-xs text-content-secondary hover:text-blue-400 cursor-pointer transition-colors';
+  const editActionButtonClass = isAzure
+    ? 'px-3 py-1.5 text-xs font-medium rounded transition-colors'
+    : 'px-3 py-1.5 text-xs font-medium rounded transition-colors';
+
+  const renderInlineSpecInputs = (isEditMode: boolean) => {
     if (!onSaveSpecs) return null;
     return (
       <div className={inlineContainerClass} data-testid="inline-spec-inputs">
-        <p className={inlineHeadingClass}>What should this measure be?</p>
+        <p className={inlineHeadingClass}>
+          {isEditMode ? 'Edit specification limits' : 'What should this measure be?'}
+        </p>
         <InlineSpecInput
           label="Target"
           value={targetInput}
@@ -215,7 +259,28 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             />
           </div>
         )}
-        <p className={inlineSubtextClass}>Values apply when you tab or click away.</p>
+        {isEditMode ? (
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={handleClearSpecs}
+              className={`${editActionButtonClass} ${isAzure ? 'text-red-400 hover:bg-red-900/30' : 'text-red-400 hover:bg-red-900/20'}`}
+              type="button"
+              data-testid="clear-specs-button"
+            >
+              Clear specs
+            </button>
+            <button
+              onClick={handleSaveAndClose}
+              className={`${editActionButtonClass} ${isAzure ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-500'}`}
+              type="button"
+              data-testid="done-specs-button"
+            >
+              Done
+            </button>
+          </div>
+        ) : (
+          <p className={inlineSubtextClass}>Values apply when you tab or click away.</p>
+        )}
       </div>
     );
   };
@@ -227,7 +292,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
         <div
           className={compact ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 sm:grid-cols-3 gap-2'}
         >
-          {hasSpecs && (
+          {hasSpecs && !isEditingSpecs && (
             <>
               <MetricCard
                 label="Pass Rate"
@@ -288,7 +353,19 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             valueClass={cs.metricValue}
           />
         </div>
-        {!hasSpecs && renderInlineSpecInputs()}
+        {isEditingSpecs && renderInlineSpecInputs(true)}
+        {!hasSpecs && !isEditingSpecs && renderInlineSpecInputs(false)}
+        {hasSpecs && !isEditingSpecs && onSaveSpecs && (
+          <button
+            onClick={handleStartEditSpecs}
+            className={editButtonClass}
+            type="button"
+            data-testid="edit-specs-button"
+          >
+            <Pencil size={12} />
+            <span>Edit spec limits</span>
+          </button>
+        )}
       </div>
     );
   };
