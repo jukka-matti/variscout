@@ -102,13 +102,38 @@ All charts are props-based:
 
 ```typescript
 import {
-  useChartScale, // Y-axis scale calculation
-  useFilterNavigation, // Filter navigation with multi-select support
-  useVariationTracking, // Cumulative η² tracking + filter chip data
-  useDataState, // Shared DataContext state
-  useKeyboardNavigation, // Arrow key focus
-  useResponsiveChartMargins, // Dynamic margins
-  type FilterChipData, // Filter chip data structure
+  // State management
+  useDataState,
+  useDataIngestion,
+  useTier,
+
+  // Navigation & filtering
+  useFilterNavigation,
+  useVariationTracking,
+  useChartNavigation,
+  useKeyboardNavigation,
+
+  // Chart helpers
+  useChartScale,
+  useResponsiveChartMargins,
+  useBoxplotData,
+  useIChartData,
+
+  // Column analysis
+  useAvailableOutcomes,
+  useAvailableStageColumns,
+  useColumnClassification,
+
+  // Analysis state
+  useRegressionState,
+  useDrillPath,
+  useMindmapState,
+
+  // UI utilities
+  useClipboardCopy,
+  useDataTablePagination,
+  useHighlightFade,
+  useResizablePanel,
 } from '@variscout/hooks';
 ```
 
@@ -159,17 +184,64 @@ actions.setMeasureSpec('FillHead_1', { usl: 105, lsl: 95 });
 ### Key Exports
 
 ```typescript
-// Components
-import { HelpTooltip, ChartCard } from '@variscout/ui';
+// Analysis
+import {
+  AnovaResults,
+  StatsPanelBase,
+  RegressionPanelBase,
+  SimpleRegressionView,
+  AdvancedRegressionView,
+  ExpandedScatterModal,
+  CapabilityHistogram,
+  ProbabilityPlot,
+} from '@variscout/ui';
 
-// Hooks
-import { useGlossary, useIsMobile } from '@variscout/ui';
+// Data Input
+import {
+  ColumnMapping,
+  MeasureColumnSelector,
+  ManualEntryBase,
+  ManualEntrySetupBase,
+  PerformanceDetectedModal,
+  DataQualityBanner,
+} from '@variscout/ui';
 
-// Colors
-import { statusColors } from '@variscout/ui';
+// Filtering
+import { FilterBreadcrumb, FilterChipDropdown, FilterContextBar } from '@variscout/ui';
 
-// Services
-import { errorService } from '@variscout/ui';
+// Navigation
+import { VariationBar, MindmapWindow, MindmapPanelContent } from '@variscout/ui';
+
+// Settings
+import {
+  BoxplotDisplayToggle,
+  SpecsPopover,
+  SpecEditor,
+  YAxisPopover,
+  AxisEditor,
+  FactorSelector,
+} from '@variscout/ui';
+
+// Interaction
+import {
+  Slider,
+  WhatIfSimulator,
+  WhatIfPageBase,
+  SelectionPanel,
+  CreateFactorModal,
+} from '@variscout/ui';
+
+// Layout
+import {
+  ChartCard,
+  ErrorBoundary,
+  UpgradePrompt,
+  HelpTooltip,
+  PerformanceSetupPanelBase,
+} from '@variscout/ui';
+
+// Hooks & Services
+import { useGlossary, useIsMobile, errorService } from '@variscout/ui';
 ```
 
 ---

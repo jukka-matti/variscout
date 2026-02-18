@@ -88,16 +88,16 @@ pnpm --filter @variscout/azure-app test:e2e
 
 ## Test Ownership by Package
 
-| Package                | Test Type          | What to Test                                                                                                                                                                   |
-| :--------------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@variscout/core`      | **Unit**           | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities                                                                 |
-| `@variscout/charts`    | **Unit**           | Color constants, accessibility utilities, multi-selection hook                                                                                                                 |
-| `@variscout/hooks`     | **Unit**           | Hooks (useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useRegressionState, useVariationTracking), pipeline integration                         |
-| `@variscout/ui`        | **Unit**           | UpgradePrompt, HelpTooltip, DataQualityBanner                                                                                                                                  |
-| `@variscout/pwa`       | **Component**      | UI components (StatsPanel, Dashboard, DataTableModal, RegressionPanel, AnovaResults, MindmapPanel, WhatIfPage, WhatIfSimulator), hooks (useFilterNavigation), export utilities |
-| `@variscout/pwa`       | **Playwright E2E** | Critical workflow, drill-down, samples, analysis views, stats/ANOVA                                                                                                            |
-| `@variscout/azure-app` | **Component**      | UI components (Dashboard, StatsPanel, RegressionPanel, AnovaResults, MindmapWindow, WhatIfPage, FilterBreadcrumb, Editor, SettingsPanel), auth (easyAuth), storage             |
-| `@variscout/azure-app` | **Playwright E2E** | Editor workflow, samples, analysis views, stats/ANOVA                                                                                                                          |
+| Package                | Test Type          | What to Test                                                                                                                                                                                                                                  |
+| :--------------------- | :----------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@variscout/core`      | **Unit**           | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities                                                                                                                                |
+| `@variscout/charts`    | **Unit**           | Color constants, accessibility utilities, multi-selection hook                                                                                                                                                                                |
+| `@variscout/hooks`     | **Unit**           | Hooks (useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useRegressionState, useVariationTracking, useDataTablePagination, useHighlightFade, useResizablePanel), pipeline integration, filter state transitions |
+| `@variscout/ui`        | **Unit**           | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle                                                                                                                                                            |
+| `@variscout/pwa`       | **Component**      | UI components (StatsPanel, Dashboard, DataTableModal, RegressionPanel, AnovaResults, MindmapPanel, WhatIfPage, WhatIfSimulator), hooks (useFilterNavigation), export utilities                                                                |
+| `@variscout/pwa`       | **Playwright E2E** | Critical workflow, drill-down, samples, analysis views, stats/ANOVA                                                                                                                                                                           |
+| `@variscout/azure-app` | **Component**      | UI components (Dashboard, StatsPanel, RegressionPanel, AnovaResults, MindmapWindow, WhatIfPage, FilterBreadcrumb, Editor, SettingsPanel), auth (easyAuth), storage                                                                            |
+| `@variscout/azure-app` | **Playwright E2E** | Editor workflow, samples, analysis views, stats/ANOVA                                                                                                                                                                                         |
 
 ---
 
@@ -160,9 +160,9 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ## Current Coverage
 
-**Total: 57 vitest files, 1,053 test cases + 13 Playwright E2E spec files**
+**Total: 71 vitest files, 1,182 test cases + 13 Playwright E2E spec files**
 
-### @variscout/core (20 files, 650 test cases)
+### @variscout/core (22 files, 691 test cases)
 
 | Function/Module                   | Tested | Cases                                                                                                               |
 | :-------------------------------- | :----- | :------------------------------------------------------------------------------------------------------------------ |
@@ -187,7 +187,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `accessibility.ts`  | ✅     | Accessible color generation, contrast ratios |
 | `useMultiSelection` | ✅     | Multi-selection hook for Performance charts  |
 
-### @variscout/hooks (10 files, 115 test cases)
+### @variscout/hooks (14 files, 140 test cases)
 
 | Hook/Module                      | Tested | Focus                                                        |
 | :------------------------------- | :----- | :----------------------------------------------------------- |
@@ -198,18 +198,26 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `useMindmapState`                | ✅     | Radial tree layout, eta-squared labels, progress tracking    |
 | `useRegressionState`             | ✅     | Mode switching, column selection, reduction history          |
 | `useVariationTracking`           | ✅     | Cumulative eta-squared, filter chip data with contribution % |
+| `useBoxplotData`                 | ✅     | Shared d3 boxplot computation (quartiles, outliers)          |
+| `useIChartData`                  | ✅     | Shared I-Chart data transform (control limits, points)       |
+| `useDataTablePagination`         | ✅     | Page state, row slicing, boundary conditions                 |
+| `useHighlightFade`               | ✅     | Highlight timeout, fade animation state                      |
+| `useResizablePanel`              | ✅     | Panel size state, drag interaction, constraints              |
+| `filterStateTransitions`         | ✅     | Filter add/remove/clear state machine transitions            |
 | `index.ts` (exports)             | ✅     | All public exports resolve correctly                         |
 | Integration: filterStatsPipeline | ✅     | End-to-end: CSV parse → filter → stats → ANOVA pipeline      |
 
-### @variscout/ui (3 files, 33 test cases)
+### @variscout/ui (5 files, 51 test cases)
 
-| Component           | Tested | Focus                                           |
-| :------------------ | :----- | :---------------------------------------------- |
-| `UpgradePrompt`     | ✅     | Variants (inline/banner/card), tier messaging   |
-| `HelpTooltip`       | ✅     | Tooltip rendering, glossary term display, icons |
-| `DataQualityBanner` | ✅     | Validation summary, warning/error states        |
+| Component              | Tested | Focus                                                  |
+| :--------------------- | :----- | :----------------------------------------------------- |
+| `UpgradePrompt`        | ✅     | Variants (inline/banner/card), tier messaging          |
+| `HelpTooltip`          | ✅     | Tooltip rendering, glossary term display, icons        |
+| `DataQualityBanner`    | ✅     | Validation summary, warning/error states               |
+| `ColumnMapping`        | ✅     | maxFactors enforcement, spec entry, column selection   |
+| `BoxplotDisplayToggle` | ✅     | Violin mode toggle, contribution label toggle, popover |
 
-### @variscout/pwa (10 vitest files, 97 test cases)
+### @variscout/pwa (11 vitest files, 107 test cases)
 
 | Component/Module      | Tested | Focus                                              |
 | :-------------------- | :----- | :------------------------------------------------- |
@@ -221,24 +229,27 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `MindmapPanel`        | ✅     | Panel open/close, backdrop, slide-in animation     |
 | `WhatIfPage`          | ✅     | Simulator rendering, navigation, spec limits       |
 | `WhatIfSimulator`     | ✅     | Slider interaction, predicted values, reset        |
+| `PasteScreen`         | ✅     | Paste input, parseText integration, column mapping |
 | `useFilterNavigation` | ✅     | Multi-select, updateFilterValues, removeFilter     |
 | `export.ts`           | ✅     | CSV generation, special characters                 |
 
-### @variscout/azure-app (11 vitest files, 114 test cases)
+### @variscout/azure-app (13 vitest files, 130 test cases)
 
-| Component/Module   | Tested | Focus                                                  |
-| :----------------- | :----- | :----------------------------------------------------- |
-| `AnovaResults`     | ✅     | Null state, F-stat display, p-value format             |
-| `RegressionPanel`  | ✅     | Empty states, chart expansion, ranking                 |
-| `Dashboard`        | ✅     | Tab switching (Analysis/Regression/Performance), stats |
-| `StatsPanel`       | ✅     | Conditional display, Cp/Cpk, sigma within              |
-| `MindmapWindow`    | ✅     | Window rendering, popout behavior, localStorage sync   |
-| `WhatIfPage`       | ✅     | Simulator integration, navigation, predictions         |
-| `FilterBreadcrumb` | ✅     | Chip rendering, remove button, contribution %          |
-| `Editor`           | ✅     | Empty state, sample loading, navigation                |
-| `SettingsPanel`    | ✅     | Theme toggle, display options, panel open/close        |
-| `easyAuth`         | ✅     | Mock user on localhost, token retrieval, login/logout  |
-| `storage`          | ✅     | Offline-first storage, IndexedDB operations            |
+| Component/Module       | Tested | Focus                                                  |
+| :--------------------- | :----- | :----------------------------------------------------- |
+| `AnovaResults`         | ✅     | Null state, F-stat display, p-value format             |
+| `RegressionPanel`      | ✅     | Empty states, chart expansion, ranking                 |
+| `Dashboard`            | ✅     | Tab switching (Analysis/Regression/Performance), stats |
+| `StatsPanel`           | ✅     | Conditional display, Cp/Cpk, sigma within              |
+| `MindmapWindow`        | ✅     | Window rendering, popout behavior, localStorage sync   |
+| `WhatIfPage`           | ✅     | Simulator integration, navigation, predictions         |
+| `FilterBreadcrumb`     | ✅     | Chip rendering, remove button, contribution %          |
+| `Editor`               | ✅     | Empty state, sample loading, navigation                |
+| `SettingsPanel`        | ✅     | Theme toggle, display options, panel open/close        |
+| `FactorManagerPopover` | ✅     | Factor add/remove, checkbox list, stale filter cleanup |
+| `PasteScreen`          | ✅     | Paste input, parseText integration, column mapping     |
+| `easyAuth`             | ✅     | Mock user on localhost, token retrieval, login/logout  |
+| `storage`              | ✅     | Offline-first storage, IndexedDB operations            |
 
 ---
 
@@ -353,6 +364,28 @@ vi.mock('../charts/IChart', () => ({
 }));
 ```
 
+### Common Pitfalls
+
+**Mock ordering (OOM prevention):** When mocking dependencies of imported components, place `vi.mock()` calls **before** the component import. This ensures stable mock references and prevents infinite re-render loops in `useEffect` dependency arrays.
+
+```typescript
+// ✅ Correct: mock BEFORE import
+vi.mock('../context/DataContext', () => ({
+  useData: vi.fn(() => mockDataValue),
+}));
+
+import { SettingsPanel } from '../components/SettingsPanel';
+
+// ❌ Wrong: import before mock — can cause OOM (infinite re-renders)
+import { SettingsPanel } from '../components/SettingsPanel';
+
+vi.mock('../context/DataContext', () => ({
+  useData: vi.fn(() => mockDataValue),
+}));
+```
+
+This pattern was identified fixing the Azure `SettingsPanel` test (165s OOM → 1s).
+
 ### Verification Pattern
 
 When asking the agent (or using Chrome) to verify a feature:
@@ -419,6 +452,12 @@ packages/hooks/
         ├── useMindmapState.test.ts      # Mindmap state
         ├── useRegressionState.test.ts   # Regression state management
         ├── useVariationTracking.test.ts # Cumulative eta-squared
+        ├── useBoxplotData.test.ts       # Shared boxplot computation
+        ├── useIChartData.test.ts         # Shared I-Chart data transform
+        ├── useDataTablePagination.test.ts # Pagination state
+        ├── useHighlightFade.test.ts     # Highlight fade animation
+        ├── useResizablePanel.test.ts    # Resizable panel state
+        ├── filterStateTransitions.test.ts # Filter state machine
         └── integration/
             └── filterStatsPipeline.test.ts  # End-to-end pipeline
 
@@ -428,8 +467,12 @@ packages/ui/
     │   └── UpgradePrompt.test.tsx
     ├── HelpTooltip/__tests__/
     │   └── HelpTooltip.test.tsx
-    └── DataQualityBanner/__tests__/
-        └── DataQualityBanner.test.tsx
+    ├── DataQualityBanner/__tests__/
+    │   └── DataQualityBanner.test.tsx
+    ├── ColumnMapping/__tests__/
+    │   └── ColumnMapping.test.tsx
+    └── BoxplotDisplayToggle/__tests__/
+        └── BoxplotDisplayToggle.test.tsx
 
 apps/pwa/
 ├── e2e/                                 # Playwright E2E tests
@@ -449,7 +492,8 @@ apps/pwa/
 │   │   ├── MindmapPanel.test.tsx
 │   │   ├── WhatIfPage.test.tsx
 │   │   ├── WhatIfSimulator.test.tsx
-│   │   └── DataTableModal.test.tsx
+│   │   ├── DataTableModal.test.tsx
+│   │   └── PasteScreen.test.tsx
 │   ├── hooks/__tests__/
 │   │   └── useFilterNavigation.test.tsx
 │   └── lib/__tests__/
@@ -477,7 +521,9 @@ apps/azure/
 │   │   ├── StatsPanel.test.tsx
 │   │   ├── MindmapWindow.test.tsx
 │   │   ├── WhatIfPage.test.tsx
-│   │   └── FilterBreadcrumb.test.tsx
+│   │   ├── FilterBreadcrumb.test.tsx
+│   │   ├── FactorManagerPopover.test.tsx
+│   │   └── PasteScreen.test.tsx
 │   ├── components/settings/__tests__/
 │   │   └── SettingsPanel.test.tsx
 │   └── pages/__tests__/

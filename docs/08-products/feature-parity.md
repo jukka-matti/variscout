@@ -116,14 +116,14 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Theming & Customization
 
-| Feature                  | Azure App | PWA (Free) | Notes          |
-| ------------------------ | :-------: | :--------: | -------------- |
-| **Dark/Light theme**     |     ✓     |     ✓      |                |
-| **System theme follow**  |     ✓     |     ✓      |                |
-| **Company accent color** |     ✓     |     -      | Azure App only |
-| **Chart font scale**     |     ✓     |     -      | Azure App only |
-| **Settings panel**       |     ✓     |     -      | Azure App only |
-| **Branding removal**     |     ✓     |     -      | Azure App only |
+| Feature                  | Azure App | PWA (Free) | Notes                                                                            |
+| ------------------------ | :-------: | :--------: | -------------------------------------------------------------------------------- |
+| **Dark/Light theme**     |     ✓     |     ✓      |                                                                                  |
+| **System theme follow**  |     ✓     |     ✓      |                                                                                  |
+| **Company accent color** |     ✓     |     -      | Azure App only                                                                   |
+| **Chart font scale**     |     ✓     |     ✓      | Compact / Normal / Large presets in both apps                                    |
+| **Settings panel**       |     ✓     |     ✓      | PWA: display toggles + chart text size; Azure: full (theme, accent, all toggles) |
+| **Branding removal**     |     ✓     |     -      | Azure App only                                                                   |
 
 ---
 

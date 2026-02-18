@@ -205,6 +205,10 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/hooks/src/useKeyboardNavigation.ts`          | Keyboard navigation (arrow keys, focus management)                        |
 | `packages/hooks/src/useResponsiveChartMargins.ts`      | Dynamic chart margins based on container width                            |
 | `packages/hooks/src/useDataState.ts`                   | Shared DataContext state (used by PWA & Azure)                            |
+| `packages/hooks/src/useBoxplotData.ts`                 | Shared boxplot d3 computation hook                                        |
+| `packages/hooks/src/useIChartData.ts`                  | Shared I-Chart data transform hook                                        |
+| `apps/pwa/src/hooks/useDashboardCharts.ts`             | PWA dashboard chart state                                                 |
+| `apps/azure/src/hooks/useDashboardCharts.ts`           | Azure dashboard chart state (categoryContributions)                       |
 | `apps/pwa/src/context/DataContext.tsx`                 | Central state management                                                  |
 | `apps/pwa/src/context/ThemeContext.tsx`                | Theme state (light/dark/system, company accent)                           |
 | `packages/charts/src/useChartTheme.ts`                 | Theme-aware chart colors hook                                             |

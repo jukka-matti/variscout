@@ -24,10 +24,17 @@ flowchart TB
         KN[useKeyboardNavigation]
     end
 
+    subgraph ChartData["Chart Data Layer"]
+        BD[useBoxplotData]
+        ID[useIChartData]
+    end
+
     DS --> FN
     DS --> VT
     FN --> VT
     DS --> CS
+    DS --> BD
+    DS --> ID
 ```
 
 ---
@@ -424,15 +431,23 @@ import { filterBreadcrumbAzureColorScheme } from '@variscout/ui';
 
 ### Available Components
 
-| Component                   | Base | Color Schemes  | Context-Free               |
-| --------------------------- | ---- | -------------- | -------------------------- |
-| `FilterBreadcrumb`          | ✓    | default, azure | ✓                          |
-| `FilterChipDropdown`        | ✓    | default, azure | ✓                          |
-| `VariationBar`              | ✓    | default, azure | ✓                          |
-| `AnovaResults`              | ✓    | default, azure | ✓                          |
-| `YAxisPopover`              | ✓    | default, azure | ✓                          |
-| `RegressionPanelBase`       | ✓    | default, azure | Uses render props          |
-| `PerformanceSetupPanelBase` | ✓    | default, pwa   | Props + optional tierProps |
+| Component                     | Base | Color Schemes               | Context-Free                              |
+| ----------------------------- | ---- | --------------------------- | ----------------------------------------- |
+| `FilterBreadcrumb`            | ✓    | default, azure              | ✓                                         |
+| `FilterChipDropdown`          | ✓    | default, azure              | ✓                                         |
+| `FilterContextBar`            | ✓    | default, azure              | ✓                                         |
+| `VariationBar`                | ✓    | default, azure              | ✓                                         |
+| `AnovaResults`                | ✓    | default, azure              | ✓                                         |
+| `YAxisPopover`                | ✓    | default, azure              | ✓                                         |
+| `RegressionPanelBase`         | ✓    | default, azure              | Uses render props                         |
+| `PerformanceSetupPanelBase`   | ✓    | default, pwa                | Props + optional tierProps                |
+| `StatsPanelBase`              | ✓    | default, azure              | Uses `onSaveSpecs` prop for inline inputs |
+| `ManualEntryBase`             | ✓    | semantic tokens (no scheme) | `enablePerformanceMode` prop              |
+| `ManualEntrySetupBase`        | ✓    | semantic tokens (no scheme) | ✓                                         |
+| `SpecsPopover` / `SpecEditor` | ✓    | default, azure              | ✓                                         |
+| `CapabilityHistogram`         | ✓    | default, azure              | ✓                                         |
+| `ProbabilityPlot`             | ✓    | default, azure              | ✓                                         |
+| `BoxplotDisplayToggle`        | ✓    | default                     | Popover (no azure scheme needed)          |
 
 ### Base Components with Render Props
 
@@ -451,6 +466,37 @@ Some components use render props to delegate app-specific rendering:
 ```
 
 See [Colors > Shared Component Color Schemes](../../06-design-system/foundations/colors.md#shared-component-color-schemes) for the complete color mapping.
+
+---
+
+## Settings Architecture
+
+Display settings are split into two categories based on scope:
+
+### Global Preferences (SettingsPanel)
+
+Accessible via the Settings gear icon. These apply to all charts and persist across sessions.
+
+| Setting             | Type    | Default | Effect                              |
+| ------------------- | ------- | ------- | ----------------------------------- |
+| Lock Y-axis to data | boolean | false   | Use full data range for chart scale |
+| Show spec limits    | boolean | true    | Display USL/LSL lines on charts     |
+| Show Cpk            | boolean | true    | Display Cpk in stats panel          |
+| Show filter context | boolean | true    | Display active filters on charts    |
+| Chart text size     | preset  | Normal  | Compact / Normal / Large            |
+
+**PWA** has a slim panel (4 display toggles + chart text size). **Azure** adds theme toggle, company accent color, and font scale.
+
+### Contextual Toggles (Chart Card Headers)
+
+Attached directly to individual chart cards. These are chart-specific display options.
+
+| Toggle              | Component              | Location            |
+| ------------------- | ---------------------- | ------------------- |
+| Violin mode         | `BoxplotDisplayToggle` | Boxplot card header |
+| Contribution labels | `BoxplotDisplayToggle` | Boxplot card header |
+
+`BoxplotDisplayToggle` is a shared popover component from `@variscout/ui` (SlidersHorizontal icon triggering a 2-checkbox popover). It manages local state that feeds into the Boxplot's `showViolin` and `showContributionLabels` props.
 
 ---
 
