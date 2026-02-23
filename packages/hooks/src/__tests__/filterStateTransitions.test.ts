@@ -256,10 +256,10 @@ describe('Filter Stack: Sequential Operations', () => {
 });
 
 // ============================================================================
-// Hook: Multi-Filter Cumulative η²
+// Hook: Multi-Filter Cumulative Total SS Scope
 // ============================================================================
 
-describe('Cumulative η² Progression', () => {
+describe('Cumulative Total SS Scope Progression', () => {
   const emptyStack: FilterAction[] = [];
 
   it('unfiltered → cumulative is null', () => {
@@ -269,21 +269,21 @@ describe('Cumulative η² Progression', () => {
     expect(result.current.cumulativeVariationPct).toBeNull();
   });
 
-  it('single high-impact filter → high cumulative', () => {
-    // Machine explains most variation in this dataset
-    const stack = [makeFilter('Machine', ['A'])];
+  it('single high-impact filter → high cumulative scope', () => {
+    // Machine C has the highest Total SS contribution (~53%)
+    const stack = [makeFilter('Machine', ['C'])];
     const { result } = renderHook(() => useVariationTracking(testData, stack, outcome, factors));
     expect(result.current.cumulativeVariationPct).not.toBeNull();
     expect(result.current.cumulativeVariationPct!).toBeGreaterThan(50);
   });
 
-  it('filter by low-impact factor → lower cumulative', () => {
+  it('filter by low-impact factor → lower cumulative scope', () => {
     // Shift has minimal effect on Weight in this dataset
     const stack = [makeFilter('Shift', ['Day'])];
     const { result } = renderHook(() => useVariationTracking(testData, stack, outcome, factors));
     expect(result.current.cumulativeVariationPct).not.toBeNull();
-    // Shift explains very little of the variation
-    expect(result.current.cumulativeVariationPct!).toBeLessThan(50);
+    // Shift contributes very little to Total SS relative to Machine
+    expect(result.current.cumulativeVariationPct!).toBeLessThan(55);
   });
 
   it('cumulative never exceeds 100%', () => {

@@ -66,11 +66,12 @@ describe('useDrillPath', () => {
     expect(step.factor).toBe('Machine');
     expect(step.values).toEqual(['A']);
 
-    // Machine has high η² (A mean ~10.5, B mean ~19.5, grand mean ~15)
-    expect(step.etaSquared).toBeGreaterThan(0.7);
+    // Machine A's Total SS scope fraction (A is the low group ~10.5, grand mean ~15)
+    expect(step.scopeFraction).toBeGreaterThan(0);
+    expect(step.scopeFraction).toBeLessThanOrEqual(1);
 
-    // Cumulative η² should equal the single step's η²
-    expect(step.cumulativeEtaSquared).toBeCloseTo(step.etaSquared, 5);
+    // Cumulative scope should equal the single step's scope fraction
+    expect(step.cumulativeScope).toBeCloseTo(step.scopeFraction, 5);
 
     // Before: all 8 rows, mean ~15
     expect(step.countBefore).toBe(8);
@@ -84,11 +85,11 @@ describe('useDrillPath', () => {
     expect(step.cpkBefore).toBeDefined();
     expect(step.cpkAfter).toBeDefined();
 
-    // cumulativeVariationPct should be step.cumulativeEtaSquared * 100
-    expect(result.current.cumulativeVariationPct).toBeCloseTo(step.cumulativeEtaSquared * 100, 5);
+    // cumulativeVariationPct should be step.cumulativeScope * 100
+    expect(result.current.cumulativeVariationPct).toBeCloseTo(step.cumulativeScope * 100, 5);
   });
 
-  it('computes two drill steps with cumulative η²', () => {
+  it('computes two drill steps with cumulative scope', () => {
     const stack = [makeFilterAction('Machine', ['A']), makeFilterAction('Shift', ['Morning'])];
     const { result } = renderHook(() => useDrillPath(testData, stack, 'Value', undefined));
 
@@ -100,15 +101,15 @@ describe('useDrillPath', () => {
     expect(step1.factor).toBe('Machine');
     expect(step2.factor).toBe('Shift');
 
-    // Step 2 cumulative should be product of both η² values
-    expect(step2.cumulativeEtaSquared).toBeCloseTo(step1.etaSquared * step2.etaSquared, 5);
+    // Step 2 cumulative should be product of both scope fractions
+    expect(step2.cumulativeScope).toBeCloseTo(step1.scopeFraction * step2.scopeFraction, 5);
 
     // Step 2 operates on Machine A data only (4 rows → 2 rows)
     expect(step2.countBefore).toBe(4);
     expect(step2.countAfter).toBe(2);
 
-    // cumulativeVariationPct tracks the final cumulative η²
-    expect(result.current.cumulativeVariationPct).toBeCloseTo(step2.cumulativeEtaSquared * 100, 5);
+    // cumulativeVariationPct tracks the final cumulative scope
+    expect(result.current.cumulativeVariationPct).toBeCloseTo(step2.cumulativeScope * 100, 5);
   });
 
   it('skips highlight-type actions in filterStack', () => {
@@ -149,8 +150,8 @@ describe('useDrillPath', () => {
     );
 
     for (const step of result.current.drillPath) {
-      expect(step.etaSquared).not.toBeNaN();
-      expect(step.cumulativeEtaSquared).not.toBeNaN();
+      expect(step.scopeFraction).not.toBeNaN();
+      expect(step.cumulativeScope).not.toBeNaN();
       expect(step.meanBefore).not.toBeNaN();
       expect(step.meanAfter).not.toBeNaN();
       expect(step.countBefore).toBeGreaterThan(0);

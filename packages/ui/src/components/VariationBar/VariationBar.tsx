@@ -84,19 +84,19 @@ function getTextColor(impactLevel: 'high' | 'moderate' | 'low'): string {
 }
 
 /**
- * Stacked bar showing isolated vs unexplained variation
+ * Stacked bar showing focused vs outside-scope variation
  *
  * Design:
- * [||||||||░░░░░░░░░░░░] 30% isolated | 70% unexplained
+ * [||||||||░░░░░░░░░░░░] 30% in focus | 70% outside scope
  *
- * The bar provides visual context for the cumulative variation percentage:
- * - Left segment (colored): isolated variation
- * - Right segment (gray): unexplained/remaining variation
+ * The bar provides visual context for the cumulative scope percentage:
+ * - Left segment (colored): variation in focus
+ * - Right segment (gray): variation outside current scope
  *
  * Color coding based on impact:
- * - Green (>= 50%): "More than half your problem is HERE"
- * - Amber (30-50%): "Significant chunk isolated"
- * - Blue (< 30%): "One of several contributors"
+ * - Green (>= 50%): "More than half your total variation in focus"
+ * - Amber (30-50%): "Significant slice of variation in focus"
+ * - Blue (< 30%): "Deep investigation — concentrated slice"
  *
  * @example
  * ```tsx
@@ -147,7 +147,7 @@ const VariationBar: React.FC<VariationBarProps> = ({
           `}
         >
           <div className={`font-semibold ${textColor} mb-1`}>
-            {Math.round(isolatedPct)}% of total variation isolated
+            Focused on {Math.round(isolatedPct)}% of total variation
           </div>
           <p className={colorScheme.contentText}>{insightText}</p>
           <div
@@ -167,8 +167,8 @@ const VariationBar: React.FC<VariationBarProps> = ({
       {/* Labels */}
       {showLabels && (
         <div className={`flex justify-between text-[10px] ${colorScheme.mutedText}`}>
-          <span className={textColor}>{Math.round(isolatedPct)}% isolated</span>
-          <span>{Math.round(unexplainedPct)}% unexplained</span>
+          <span className={textColor}>{Math.round(isolatedPct)}% in focus</span>
+          <span>{Math.round(unexplainedPct)}% outside scope</span>
         </div>
       )}
     </div>

@@ -196,13 +196,14 @@ describe('useVariationTracking — breadcrumbs and variation', () => {
     expect(result.current.cumulativeVariationPct).toBeGreaterThan(0);
   });
 
-  it('high η² → impactLevel "high"', () => {
-    // Machine explains >90% of variation — filtering by it should be high impact
+  it('scope percentage reflects Total SS contribution', () => {
+    // Machine A has ~46% of Total SS (low group, far from mean)
     const stack = [makeFilterAction('Machine', ['A'])];
     const { result } = renderHook(() => useVariationTracking(testData, stack, outcome, factors));
 
-    // Machine η² > 90% → cumulative > 50% → 'high'
-    expect(result.current.cumulativeVariationPct).toBeGreaterThan(50);
-    expect(result.current.impactLevel).toBe('high');
+    // Machine A scope → cumulative ~46% → 'moderate'
+    expect(result.current.cumulativeVariationPct).toBeGreaterThan(30);
+    expect(result.current.cumulativeVariationPct).toBeLessThan(50);
+    expect(result.current.impactLevel).toBe('moderate');
   });
 });

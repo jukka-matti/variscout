@@ -503,7 +503,6 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           >
             {onXAxisClick && <title>Click to edit axis label</title>}
             {xAxisLabel}
-            {variationPct !== undefined && ` (${Math.round(variationPct)}%)`}
           </text>
           {/* Drill suggestion indicator */}
           {isHighVariation && (

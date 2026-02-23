@@ -65,7 +65,7 @@ function formatValues(values: (string | number)[]): string {
  * Renders inside chart card containers so it gets captured by
  * html-to-image toBlob() when copying charts to clipboard.
  *
- * Format: `Shift: Night -> Machine: A, C   58% isolated`
+ * Format: `Shift: Night -> Machine: A, C   58% in focus`
  */
 const FilterContextBar: React.FC<FilterContextBarProps> = ({
   filterChipData,
@@ -106,7 +106,7 @@ const FilterContextBar: React.FC<FilterContextBarProps> = ({
           <span
             className={`ml-auto pl-2 whitespace-nowrap font-medium ${colorScheme.textVariation}`}
           >
-            {Math.round(cumulativeVariationPct!)}% isolated
+            {Math.round(cumulativeVariationPct!)}% in focus
           </span>
         </>
       )}

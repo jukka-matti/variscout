@@ -161,31 +161,31 @@ goToLevel(1); // Go back to first drill level
 
 ### Output
 
-| Property               | Type               | Description             |
-| ---------------------- | ------------------ | ----------------------- |
-| `cumulativeEtaSquared` | `number`           | Total η² explained      |
-| `filterChipData`       | `FilterChipData[]` | Per-filter contribution |
-| `remainingVariation`   | `number`           | 1 - cumulative η²       |
+| Property                 | Type               | Description                   |
+| ------------------------ | ------------------ | ----------------------------- |
+| `cumulativeVariationPct` | `number \| null`   | Cumulative Total SS scope (%) |
+| `filterChipData`         | `FilterChipData[]` | Per-filter contribution       |
+| `impactLevel`            | `string \| null`   | high / moderate / low         |
 
 ### FilterChipData Shape
 
 ```typescript
 interface FilterChipData {
   factor: string; // Factor name
-  values: string[]; // Selected values
-  etaSquared: number; // This factor's η²
-  contribution: number; // Percentage of total
-  cumulativeEtaSquared: number; // Running total
+  values: (string | number)[]; // Selected values
+  contributionPct: number; // Total SS contribution %
+  availableValues: AvailableValue[]; // All values with contribution %
 }
 ```
 
 ### Usage Example
 
 ```tsx
-const { cumulativeEtaSquared, filterChipData, remainingVariation } = useVariationTracking(
-  filteredData,
-  'Weight',
-  drillPath
+const { cumulativeVariationPct, filterChipData, impactLevel } = useVariationTracking(
+  rawData,
+  filterStack,
+  outcome,
+  factors
 );
 
 // Display in filter chips
@@ -353,11 +353,12 @@ function Dashboard() {
   // 2. Filter navigation
   const { filters, breadcrumbs, addFilter } = useFilterNavigation(state.rawData, state.filters);
 
-  // 3. Variation tracking
-  const { filterChipData, cumulativeEtaSquared } = useVariationTracking(
-    state.filteredData,
+  // 3. Variation tracking (Total SS scope)
+  const { filterChipData, cumulativeVariationPct } = useVariationTracking(
+    state.rawData,
+    state.filterStack,
     'Weight',
-    breadcrumbs.map(b => ({ factor: b.factor, values: b.values }))
+    factors
   );
 
   // 4. Chart scale
@@ -375,7 +376,7 @@ function Dashboard() {
       <FilterBreadcrumb
         chips={filterChipData}
         onRemove={removeFilter}
-        cumulativeEtaSquared={cumulativeEtaSquared}
+        cumulativeVariationPct={cumulativeVariationPct}
       />
       <IChart
         data={state.filteredData}

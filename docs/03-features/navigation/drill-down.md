@@ -81,10 +81,10 @@ FILTER CHIPS                      CONTRIBUTION TO TOTAL
 [Machine: C ▼ 24%]                (within Night Shift context)
 [Operator: Kim ▼ 9%]              (within Machine C + Night)
 
-CUMULATIVE: ~46% of TOTAL variation isolated
+CUMULATIVE: Focused on ~46% of TOTAL variation
 ```
 
-**Result:** Three filters isolate nearly half of ALL variation to ONE condition.
+**Result:** Three filters focus on nearly half of ALL variation in ONE condition.
 
 ---
 
@@ -103,9 +103,9 @@ const { filterStack, applyFilter, updateFilterValues, removeFilter, clearFilters
 // Variation tracking for filter chip data
 const {
   filterChipData, // Data for rendering filter chips
-  cumulativeVariationPct, // Total % isolated
+  cumulativeVariationPct, // Total SS scope % in focus
   impactLevel, // 'high' | 'moderate' | 'low'
-  factorVariations, // η² for each factor
+  factorVariations, // η² for each factor (internal drill suggestion)
 } = useVariationTracking(rawData, filterStack, outcome, factors);
 
 // Update filter with multiple values (multi-select)

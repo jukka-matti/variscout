@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import {
   type FilterAction,
   type DataRow,
-  getEtaSquared,
+  calculateCategoryTotalSS,
   calculateStats,
   applyFilters,
   toNumericValue,
@@ -20,10 +20,10 @@ export interface DrillStep {
   label: string;
   /** Timestamp from the filter action */
   timestamp: number;
-  /** η² of this factor at the point of drilling (0–1) */
-  etaSquared: number;
-  /** Running product of all η² values up to this step (0–1) */
-  cumulativeEtaSquared: number;
+  /** Scope fraction: selected categories' Total SS as fraction of current level (0–1) */
+  scopeFraction: number;
+  /** Running product of all scope fractions up to this step (0–1) */
+  cumulativeScope: number;
   /** Mean of the outcome before this filter was applied */
   meanBefore: number;
   /** Mean of the outcome after this filter was applied */
@@ -63,8 +63,8 @@ function getOutcomeValues(data: DataRow[], outcome: string): number[] {
  * Hook that retrospectively computes drill path statistics
  *
  * Iterates the filterStack, progressively filtering rawData, computing
- * η², mean, and Cpk at each step. Recalculates only when filterStack
- * or rawData changes.
+ * Total SS scope, mean, and Cpk at each step. Recalculates only when
+ * filterStack or rawData changes.
  *
  * @param rawData - Original unfiltered data
  * @param filterStack - Current filter navigation stack
@@ -84,7 +84,7 @@ export function useDrillPath(
 
     const drillPath: DrillStep[] = [];
     let currentData = rawData;
-    let cumulativeEtaSquared = 1;
+    let cumulativeScope = 1;
 
     // Only process filter-type actions that have a factor
     const filterActions = filterStack.filter(
@@ -97,8 +97,15 @@ export function useDrillPath(
       // Skip if not enough data to compute stats
       if (currentData.length < 2) break;
 
-      // Compute η² for this factor at current data level
-      const etaSquared = getEtaSquared(currentData, factor, outcome);
+      // Compute Total SS scope for this factor at current data level
+      const totalSSResult = calculateCategoryTotalSS(currentData, factor, outcome);
+      let scopeFraction = 0;
+      if (totalSSResult) {
+        for (const value of action.values) {
+          scopeFraction += totalSSResult.contributions.get(value) ?? 0;
+        }
+        scopeFraction = scopeFraction / 100; // Convert % to fraction (0–1)
+      }
 
       // Stats before applying this filter
       const valuesBefore = getOutcomeValues(currentData, outcome);
@@ -114,16 +121,16 @@ export function useDrillPath(
       const statsAfter =
         valuesAfter.length > 0 ? calculateStats(valuesAfter, specs?.usl, specs?.lsl) : null;
 
-      // Update cumulative η²
-      cumulativeEtaSquared *= etaSquared;
+      // Update cumulative scope (multiply fractions)
+      cumulativeScope *= scopeFraction;
 
       drillPath.push({
         factor,
         values: action.values,
         label: action.label,
         timestamp: action.timestamp,
-        etaSquared,
-        cumulativeEtaSquared,
+        scopeFraction,
+        cumulativeScope,
         meanBefore: statsBefore?.mean ?? 0,
         meanAfter: statsAfter?.mean ?? 0,
         cpkBefore: statsBefore?.cpk,
@@ -136,7 +143,7 @@ export function useDrillPath(
     }
 
     const cumulativeVariationPct =
-      drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeEtaSquared * 100 : null;
+      drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null;
 
     return { drillPath, cumulativeVariationPct };
   }, [rawData, filterStack, outcome, specs]);

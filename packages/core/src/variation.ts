@@ -2,14 +2,13 @@
  * Variation tracking calculations for drill-down analysis
  *
  * Provides pure, framework-agnostic functions for calculating:
- * - Cumulative variation through drill paths (multiplicative η²)
- * - Factor variations for drill suggestions
+ * - Cumulative Total SS scope through drill paths (multiplicative)
+ * - Factor variations for drill suggestions (η² — internal only)
  * - Direct adjustment simulations (what-if analysis)
  *
  * Used by:
  * - PWA: Full breadcrumb experience with useVariationTracking hook
- * - Excel Add-in: Variation % indicator on boxplot
- * - Azure: Future full breadcrumb experience
+ * - Azure: Full breadcrumb experience
  */
 
 import type { DataRow } from './types';
@@ -28,18 +27,18 @@ export interface DrillVariationResult {
   levels: DrillLevelVariation[];
 
   /**
-   * Final cumulative variation percentage (product of all η²)
-   * This is the total % of original variation isolated to current path
+   * Final cumulative scope percentage (product of all level scope fractions)
+   * Represents what fraction of total variation is in the current focus
    */
   cumulativeVariationPct: number;
 
   /**
-   * Impact level based on cumulative variation
+   * Impact level based on cumulative scope
    */
   impactLevel: 'high' | 'moderate' | 'low';
 
   /**
-   * Insight text for the current cumulative variation
+   * Insight text for the current cumulative scope
    */
   insightText: string;
 }
@@ -54,22 +53,22 @@ export interface DrillLevelVariation {
   /** Filter values at this level (null for root) */
   values: (string | number)[] | null;
 
-  /** Local η² at this level (100 for root) */
+  /** Local scope % at this level: selected categories' Total SS fraction (100 for root) */
   localVariationPct: number;
 
-  /** Cumulative η² up to and including this level */
+  /** Cumulative scope % up to and including this level */
   cumulativeVariationPct: number;
 }
 
 /**
- * Calculate cumulative variation percentages through a drill path
+ * Calculate cumulative Total SS scope through a drill path
  *
  * At each drill level, calculates:
- * 1. Local η² - how much variation the factor explains at that level
- * 2. Cumulative η² - product of all local η² values
+ * 1. Local scope — what fraction of the current level's Total SS the selected categories account for
+ * 2. Cumulative scope — product of all local scope values
  *
- * This enables the "Investigation Mindmap" insight: drilling 3 levels deep
- * to isolate e.g. 46% of total variation into one specific condition.
+ * This enables the "investigation scope" insight: drilling 3 levels deep
+ * narrows focus to e.g. 25% of total variation — a concentrated slice.
  *
  * @param rawData - Original unfiltered data
  * @param filters - Current filters as Record<factor, values[]>
@@ -78,8 +77,8 @@ export interface DrillLevelVariation {
  *
  * @example
  * const result = calculateDrillVariation(data, { Shift: ['Night'], Machine: ['C'] }, 'Weight');
- * // result.cumulativeVariationPct = 46.5
- * // result.insightText = "Fix this combination to address more than half..."
+ * // result.cumulativeVariationPct = 24.7
+ * // result.insightText = "Significant slice of variation in focus."
  */
 export function calculateDrillVariation(
   rawData: DataRow[],
@@ -109,17 +108,23 @@ export function calculateDrillVariation(
 
   // Process each filter level
   for (const [factor, values] of filterEntries) {
-    // Calculate local η² for this factor on the current data
-    const etaSquared = getEtaSquared(currentData, factor, outcome);
-    const localPct = etaSquared * 100;
+    // Calculate Total SS contributions for this factor on the current data
+    const totalSSResult = calculateCategoryTotalSS(currentData, factor, outcome);
+    if (!totalSSResult) break;
 
-    // Update cumulative (multiply, not add)
-    cumulativePct = (cumulativePct * localPct) / 100;
+    // Sum contributions of the selected categories
+    let selectedPct = 0;
+    for (const value of values) {
+      selectedPct += totalSSResult.contributions.get(value) ?? 0;
+    }
+
+    // Update cumulative scope (multiply, not add)
+    cumulativePct = (cumulativePct * selectedPct) / 100;
 
     levels.push({
       factor,
       values,
-      localVariationPct: localPct,
+      localVariationPct: selectedPct,
       cumulativeVariationPct: cumulativePct,
     });
 

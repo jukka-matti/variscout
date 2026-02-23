@@ -139,11 +139,13 @@ export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStat
     }
 
     // Compute eta-squared for each factor on current (filtered) data
+    // η² is used for node sizing and drill suggestion — stays as internal metric
     const etaMap = new Map<string, number>();
     for (const factor of factors) {
       if (drilledFactors.has(factor)) {
+        // For drilled factors, use scope fraction from drill path for node sizing
         const step = drillPath.find(s => s.factor === factor);
-        etaMap.set(factor, step?.etaSquared ?? 0);
+        etaMap.set(factor, step?.scopeFraction ?? 0);
       } else {
         etaMap.set(factor, getEtaSquared(filteredData, factor, outcome));
       }
@@ -233,8 +235,8 @@ export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStat
       drillPath.map((step, i) => ({
         factor: step.factor,
         values: step.values,
-        etaSquared: step.etaSquared,
-        cumulativeEtaSquared: step.cumulativeEtaSquared,
+        scopeFraction: step.scopeFraction,
+        cumulativeScope: step.cumulativeScope,
         meanBefore: step.meanBefore,
         meanAfter: step.meanAfter,
         cpkBefore: step.cpkBefore,

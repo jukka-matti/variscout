@@ -10,7 +10,7 @@ packages/
 ├── hooks/     # @variscout/hooks - Shared React hooks:
 │              #   useChartScale - Y-axis scale calculation
 │              #   useFilterNavigation - Filter navigation with breadcrumbs
-│              #   useVariationTracking - Cumulative η² tracking
+│              #   useVariationTracking - Cumulative Total SS scope tracking
 │              #   useDataState - Shared DataContext state management
 │              #   useDataIngestion - File upload and data parsing
 │              #   useKeyboardNavigation - Arrow key focus management

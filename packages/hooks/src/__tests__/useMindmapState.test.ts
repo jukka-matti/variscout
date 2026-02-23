@@ -322,8 +322,8 @@ describe('useMindmapState', () => {
     expect(result.current.narrativeSteps).toHaveLength(2);
     expect(result.current.narrativeSteps[0].factor).toBe('Machine');
     expect(result.current.narrativeSteps[1].factor).toBe('Shift');
-    expect(result.current.narrativeSteps[0].etaSquared).toBe(
-      result.current.drillPath[0].etaSquared
+    expect(result.current.narrativeSteps[0].scopeFraction).toBe(
+      result.current.drillPath[0].scopeFraction
     );
     expect(result.current.narrativeSteps[0].countBefore).toBe(
       result.current.drillPath[0].countBefore

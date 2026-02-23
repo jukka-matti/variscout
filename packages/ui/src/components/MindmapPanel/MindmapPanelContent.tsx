@@ -163,7 +163,7 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
                 className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[11px] rounded-full"
               >
                 {columnAliases?.[step.factor] || step.factor}
-                <span className="text-blue-300/60">{(step.etaSquared * 100).toFixed(0)}%</span>
+                <span className="text-blue-300/60">{(step.scopeFraction * 100).toFixed(0)}%</span>
                 {i < drillPath.length - 1 && (
                   <span className={`${c.mutedText} ml-0.5`}>&rarr;</span>
                 )}

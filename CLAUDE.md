@@ -216,7 +216,7 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/hooks/src/useChartScale.ts`                  | Chart Y-axis scale calculation                                            |
 | `packages/hooks/src/useFilterNavigation.ts`            | Filter navigation with multi-select, updateFilterValues(), removeFilter() |
 | `packages/hooks/src/useDataIngestion.ts`               | Shared file upload and data parsing                                       |
-| `packages/hooks/src/useVariationTracking.ts`           | Cumulative η² tracking + filterChipData with contribution %               |
+| `packages/hooks/src/useVariationTracking.ts`           | Cumulative Total SS scope tracking + filterChipData with contribution %   |
 | `packages/hooks/src/useKeyboardNavigation.ts`          | Keyboard navigation (arrow keys, focus management)                        |
 | `packages/hooks/src/useResponsiveChartMargins.ts`      | Dynamic chart margins based on container width                            |
 | `packages/hooks/src/useDataState.ts`                   | Shared DataContext state (used by PWA & Azure)                            |

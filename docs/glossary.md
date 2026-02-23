@@ -126,9 +126,19 @@ The p-value tests the null hypothesis that all group means are equal. Small p-va
 
 Effect size showing how much variation is explained by the factor. Small < 0.06, medium 0.06-0.14, large > 0.14.
 
-Eta-squared (η²) represents the proportion of total variance explained by the grouping factor. Unlike p-value, it indicates practical significance - how much the factor matters.
+Eta-squared (η²) represents the proportion of total variance explained by the grouping factor. Unlike p-value, it indicates practical significance - how much the factor matters. In VariScout, η² is shown in the ANOVA results panel and used internally to suggest the next drill-down factor.
 
-**Related:** [F-Statistic](#f-statistic), [p-value](#p-value)
+**Note:** The user-facing variation metric in filter chips, breadcrumbs, and the progress bar is **Total SS Contribution** (see below), not η².
+
+**Related:** [F-Statistic](#f-statistic), [p-value](#p-value), [Total SS Contribution](#total-ss-contribution)
+
+### Total SS Contribution
+
+The percentage of total variation (Sum of Squares) that a specific category or filter selection accounts for. Unlike η² (which only captures between-group variation), Total SS Contribution captures both mean shift and within-group spread.
+
+This is the primary user-facing metric in VariScout's drill-down workflow. Filter chips show each selection's Total SS Contribution, and the progress bar shows the cumulative scope — the product of contributions across drill levels.
+
+**Related:** [η² (Eta-squared)](#2-eta-squared)
 
 ---
 

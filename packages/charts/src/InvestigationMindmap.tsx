@@ -61,8 +61,10 @@ export type MindmapMode = 'drilldown' | 'interactions' | 'narrative';
 export interface NarrativeStep {
   factor: string;
   values: (string | number)[];
-  etaSquared: number;
-  cumulativeEtaSquared: number;
+  /** Scope fraction: selected categories' Total SS as fraction of current level (0–1) */
+  scopeFraction: number;
+  /** Running product of all scope fractions up to this step (0–1) */
+  cumulativeScope: number;
   meanBefore: number;
   meanAfter: number;
   cpkBefore: number | undefined;
@@ -371,7 +373,7 @@ const StepAnnotation: React.FC<StepAnnotationProps> = ({
             {columnAliases?.[step.factor] || step.factor} = {valuesLabel}
           </div>
           <div style={{ color: '#94a3b8' }}>
-            Explains {(step.etaSquared * 100).toFixed(0)}% of variation
+            {(step.scopeFraction * 100).toFixed(0)}% of variation in scope
           </div>
           <div style={{ color: meanImproved ? chartColors.pass : '#e2e8f0', marginTop: 2 }}>
             Mean: {step.meanBefore.toFixed(1)} &rarr; {step.meanAfter.toFixed(1)}
@@ -466,7 +468,7 @@ const ConclusionPanel: React.FC<ConclusionPanelProps> = ({
   if (steps.length === 0) return null;
 
   const lastStep = steps[steps.length - 1];
-  const cumPct = lastStep.cumulativeEtaSquared * 100;
+  const cumPct = lastStep.cumulativeScope * 100;
   const reachedTarget = cumPct >= targetPct;
   const panelWidth = 160;
   const left = Math.max(4, Math.min(x - panelWidth / 2, svgWidth - panelWidth - 4));
@@ -485,7 +487,7 @@ const ConclusionPanel: React.FC<ConclusionPanelProps> = ({
         }}
       >
         <div style={{ color: '#e2e8f0', fontWeight: 600 }}>
-          {steps.length} factor{steps.length !== 1 ? 's' : ''} explain {cumPct.toFixed(0)}%
+          Focused on {cumPct.toFixed(0)}% of variation
         </div>
         <div
           style={{
@@ -495,7 +497,7 @@ const ConclusionPanel: React.FC<ConclusionPanelProps> = ({
         >
           {reachedTarget
             ? 'Investigation target reached'
-            : `${(100 - cumPct).toFixed(0)}% unexplained \u2014 consider additional factors`}
+            : `${(100 - cumPct).toFixed(0)}% outside scope \u2014 consider additional factors`}
         </div>
       </div>
     </foreignObject>
@@ -750,7 +752,7 @@ const ProgressFooter: React.FC<ProgressFooterProps> = ({
     <Group>
       {/* Label */}
       <text x={barX} y={barY - 2} fontSize={10} fill={chrome.labelSecondary} textAnchor="start">
-        Variation isolated: {pct > 0 ? `${pct.toFixed(0)}%` : '—'}
+        Focused on {pct > 0 ? `${pct.toFixed(0)}%` : '—'} of variation
       </text>
 
       {/* Background bar */}
@@ -977,9 +979,11 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
               <path
                 key={`narc-${edge.factorA}-${edge.factorB}`}
                 d={`M ${pA.x},${
-                  pA.y - getNodeRadius(steps.find(s => s.factor === edge.factorA)?.etaSquared ?? 0)
+                  pA.y -
+                  getNodeRadius(steps.find(s => s.factor === edge.factorA)?.scopeFraction ?? 0)
                 } Q ${midX},${cpY} ${pB.x},${
-                  pB.y - getNodeRadius(steps.find(s => s.factor === edge.factorB)?.etaSquared ?? 0)
+                  pB.y -
+                  getNodeRadius(steps.find(s => s.factor === edge.factorB)?.scopeFraction ?? 0)
                 }`}
                 fill="none"
                 stroke={chartColors.warning}
@@ -1033,7 +1037,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
           {timelinePositions.map(pos => {
             const step = steps.find(s => s.factor === pos.factor);
             if (!step) return null;
-            const radius = getNodeRadius(step.etaSquared);
+            const radius = getNodeRadius(step.scopeFraction);
 
             return (
               <Group key={`tl-${pos.factor}`}>
@@ -1058,7 +1062,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 >
                   {columnAliases?.[step.factor] || step.factor}
                 </text>
-                {/* η² inside */}
+                {/* Scope fraction inside */}
                 <text
                   x={pos.x}
                   y={pos.y + 1}
@@ -1069,7 +1073,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                   fill="#ffffff"
                   style={{ pointerEvents: 'none' }}
                 >
-                  {(step.etaSquared * 100).toFixed(0)}%
+                  {(step.scopeFraction * 100).toFixed(0)}%
                 </text>
               </Group>
             );
@@ -1086,7 +1090,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 stepIndex={i}
                 x={pos.x}
                 y={pos.y}
-                nodeRadius={getNodeRadius(step.etaSquared)}
+                nodeRadius={getNodeRadius(step.scopeFraction)}
                 svgWidth={width}
                 chrome={chrome}
                 onAnnotationChange={onAnnotationChange}

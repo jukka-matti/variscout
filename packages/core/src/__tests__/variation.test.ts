@@ -170,7 +170,8 @@ describe('calculateDrillVariation', () => {
     expect(result!.levels[0].factor).toBeNull(); // Root
     expect(result!.levels[0].localVariationPct).toBe(100);
     expect(result!.levels[1].factor).toBe('Shift');
-    expect(result!.levels[1].localVariationPct).toBeGreaterThan(90);
+    // Day accounts for ~50% of Total SS (symmetric data: Day ~100, Night ~150)
+    expect(result!.levels[1].localVariationPct).toBeCloseTo(50, 0);
   });
 
   it('should calculate multi-level drill with cumulative multiplication', () => {
@@ -183,12 +184,12 @@ describe('calculateDrillVariation', () => {
     expect(result).not.toBeNull();
     expect(result!.levels).toHaveLength(3); // Root + 2 drill levels
 
-    // Level 1: Shift variation
+    // Level 1: Shift Day scope (~50% of Total SS in symmetric data)
     const shiftLevel = result!.levels[1];
     expect(shiftLevel.factor).toBe('Shift');
-    expect(shiftLevel.localVariationPct).toBeGreaterThan(80);
+    expect(shiftLevel.localVariationPct).toBeCloseTo(50, 0);
 
-    // Level 2: Machine variation within filtered data
+    // Level 2: Machine A scope within Day data (~50% of Day's Total SS)
     const machineLevel = result!.levels[2];
     expect(machineLevel.factor).toBe('Machine');
 
@@ -198,9 +199,9 @@ describe('calculateDrillVariation', () => {
     expect(result!.cumulativeVariationPct).toBeCloseTo(expectedCumulative, 1);
   });
 
-  it('should multiply percentages correctly (not add)', () => {
-    // Create data where we can predict the cumulative result
-    // If Shift = 60% and Machine = 50%, cumulative should be 30%, not 110%
+  it('should multiply scope fractions correctly (not add)', () => {
+    // With Total SS scope: Day ~50%, Machine A within Day ~50%
+    // Cumulative should be ~25%, not ~100%
     const result = calculateDrillVariation(
       multiLevelData,
       { Shift: ['Day'], Machine: ['A'] },
@@ -214,12 +215,12 @@ describe('calculateDrillVariation', () => {
     expect(result!.cumulativeVariationPct).toBeLessThanOrEqual(Math.min(level1Pct, level2Pct));
   });
 
-  it('should return high impact level for cumulative > 50%', () => {
-    // High variation data should give high impact
+  it('should return high impact level for cumulative >= 50%', () => {
+    // Night accounts for ~50% of Total SS → exactly at threshold → 'high'
     const result = calculateDrillVariation(highVariationData, { Shift: ['Night'] }, 'Weight');
 
     expect(result).not.toBeNull();
-    // Shift explains >90% of variation, so single drill should be high impact
+    expect(result!.cumulativeVariationPct).toBeCloseTo(50, 0);
     expect(result!.impactLevel).toBe('high');
   });
 

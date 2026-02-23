@@ -34,8 +34,8 @@ export interface VariationTrackingResult {
   breadcrumbsWithVariation: BreadcrumbItem[];
 
   /**
-   * Final cumulative variation percentage (product of all η²)
-   * This is the total % of original variation isolated to current path
+   * Final cumulative scope percentage (product of all level Total SS fractions)
+   * Represents what fraction of total variation is in the current focus
    */
   cumulativeVariationPct: number | null;
 
@@ -50,7 +50,7 @@ export interface VariationTrackingResult {
   insightText: string | null;
 
   /**
-   * Map of factor -> η² for recommending drill targets
+   * Map of factor -> η² for recommending drill targets (internal metric)
    * Factors with > 50% variation should be highlighted in charts
    */
   factorVariations: Map<string, number>;
@@ -76,11 +76,11 @@ export interface VariationTrackingResult {
  *
  * Wraps the pure functions from @variscout/core with React memoization.
  * At each filter level, calculates:
- * 1. Local η² - how much variation the factor explains at that level
- * 2. Cumulative η² - product of all local η² values
+ * 1. Local scope — selected categories' Total SS fraction at that level
+ * 2. Cumulative scope — product of all local scope fractions
  *
- * This enables the "variation funnel" insight: filtering 3 levels deep
- * to isolate e.g. 46% of total variation into one specific condition.
+ * This enables the "investigation scope" insight: filtering 3 levels deep
+ * focuses on e.g. 25% of total variation — a concentrated slice.
  *
  * @param rawData - Original unfiltered data
  * @param filterStack - Current filter navigation stack

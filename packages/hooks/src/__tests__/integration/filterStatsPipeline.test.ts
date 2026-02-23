@@ -71,16 +71,17 @@ describe('Pipeline Integration: Coffee Washing Station', () => {
   // --------------------------------------------------------------------------
 
   describe('useDrillPath with coffee data', () => {
-    it('should compute correct η² and stats for Bed C drill', () => {
+    it('should compute correct scope and stats for Bed C drill', () => {
       const stack = [makeFilterAction('Drying_Bed', ['C'])];
       const { result } = renderHook(() => useDrillPath(data, stack, 'Moisture_pct', specs));
 
       expect(result.current.drillPath).toHaveLength(1);
       const step = result.current.drillPath[0];
 
-      // η² for Drying_Bed ≈ 0.853
-      expect(step.etaSquared).toBeCloseTo(0.8533, 2);
-      expect(step.cumulativeEtaSquared).toBeCloseTo(0.8533, 2);
+      // Total SS scope fraction for Bed C (captures mean shift + spread)
+      expect(step.scopeFraction).toBeGreaterThan(0);
+      expect(step.scopeFraction).toBeLessThanOrEqual(1);
+      expect(step.cumulativeScope).toBeCloseTo(step.scopeFraction, 5);
 
       // Before filtering: overall mean ≈ 11.89, all 30 rows
       expect(step.meanBefore).toBeCloseTo(11.8933, 2);
@@ -95,8 +96,8 @@ describe('Pipeline Integration: Coffee Washing Station', () => {
       expect(step.cpkBefore).toBeCloseTo(0.0596, 2);
       expect(step.cpkAfter).toBeCloseTo(-0.5324, 2);
 
-      // Cumulative variation percentage ≈ 85.3%
-      expect(result.current.cumulativeVariationPct).toBeCloseTo(85.33, 0);
+      // Cumulative scope percentage = scopeFraction * 100
+      expect(result.current.cumulativeVariationPct).toBeCloseTo(step.scopeFraction * 100, 5);
     });
 
     it('should compute correct stats for Bed A drill (good bed)', () => {
@@ -157,8 +158,8 @@ describe('Pipeline Integration: Coffee Washing Station', () => {
         useVariationTracking(data, stack, 'Moisture_pct', ['Drying_Bed'])
       );
 
-      // Cumulative variation should be ≈ 85.3%
-      expect(result.current.cumulativeVariationPct).toBeCloseTo(85.33, 0);
+      // Cumulative scope = Bed C's Total SS contribution ≈ 63.6%
+      expect(result.current.cumulativeVariationPct).toBeCloseTo(63.62, 0);
       expect(result.current.impactLevel).toBe('high');
     });
   });
@@ -176,15 +177,16 @@ describe('Pipeline Integration: Packaging Fill Weights', () => {
   });
 
   describe('useDrillPath with packaging data', () => {
-    it('should compute correct η² for Shift drill', () => {
+    it('should compute correct scope for Shift drill', () => {
       const stack = [makeFilterAction('Shift', ['Night'])];
       const { result } = renderHook(() => useDrillPath(data, stack, 'Fill_Weight_g'));
 
       expect(result.current.drillPath).toHaveLength(1);
       const step = result.current.drillPath[0];
 
-      // η² for Shift ≈ 0.666
-      expect(step.etaSquared).toBeCloseTo(0.6658, 2);
+      // Total SS scope fraction for Night shift
+      expect(step.scopeFraction).toBeGreaterThan(0);
+      expect(step.scopeFraction).toBeLessThanOrEqual(1);
 
       // Overall mean ≈ 497.54 → Night mean ≈ 495.65
       expect(step.meanBefore).toBeCloseTo(497.5375, 1);

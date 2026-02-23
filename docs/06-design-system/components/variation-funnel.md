@@ -1,31 +1,31 @@
 # Variation Bar
 
-A visual progress bar showing isolated vs unexplained variation in the drill-down breadcrumb.
+A visual progress bar showing variation scope in the drill-down breadcrumb.
 
 ## Overview
 
-The Variation Bar provides immediate visual feedback about how much total variation has been isolated through the current filter path. It appears below the breadcrumb navigation when filters are active.
+The Variation Bar provides immediate visual feedback about what fraction of total variation is in focus through the current filter path. It appears below the breadcrumb navigation when filters are active.
 
 ## Usage
 
 ```tsx
 import VariationBar from './components/VariationBar';
 
-<VariationBar isolatedPct={60} showLabels={true} className="max-w-xs" />;
+<VariationBar scopePct={60} showLabels={true} className="max-w-xs" />;
 ```
 
 ## Props
 
 | Prop        | Type    | Default  | Description                              |
 | ----------- | ------- | -------- | ---------------------------------------- |
-| isolatedPct | number  | required | Percentage (0-100) of variation isolated |
+| isolatedPct | number  | required | Percentage (0-100) of variation in focus |
 | showLabels  | boolean | true     | Show text labels below bar               |
 | className   | string  | ''       | Additional CSS classes for container     |
 
 ## Visual Design
 
 ```
-[████████████░░░░░░░░] 60% isolated | 40% unexplained
+[████████████░░░░░░░░] 60% in focus | 40% outside scope
   ← colored →     ← gray →
 ```
 
@@ -61,8 +61,8 @@ Uses `getVariationImpactLevel()` from `@variscout/core`:
 
 On hover, displays a tooltip with:
 
-1. **Percentage header:** "60% of total variation isolated"
-2. **Insight text:** From `getVariationInsight()` (e.g., "Fix this combination to address more than half your quality problems.")
+1. **Percentage header:** "Focused on 60% of total variation"
+2. **Insight text:** From `getVariationInsight()` (e.g., "This combination accounts for more than half your total variation — strong focus.")
 3. **Impact description:** "High impact — strong case for action"
 
 **Tooltip styling:**

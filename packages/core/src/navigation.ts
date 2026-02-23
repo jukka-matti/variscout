@@ -194,9 +194,9 @@ export interface BreadcrumbItem {
   label: string;
   isActive: boolean;
   source: FilterSource;
-  /** Local variation % (η²) explained at this filter level (0-100) */
+  /** Local scope % (Total SS fraction) at this filter level (0-100) */
   localVariationPct?: number;
-  /** Cumulative variation % isolated by all filters up to this point (0-100) */
+  /** Cumulative scope % focused by all filters up to this point (0-100) */
   cumulativeVariationPct?: number;
 }
 
@@ -238,11 +238,11 @@ export const initialNavigationState: NavigationState = {
 };
 
 /**
- * Variation tracking thresholds for UI feedback
+ * Variation scope thresholds for UI feedback
  *
- * HIGH_IMPACT (>50%): Green - "More than half your problem is HERE"
- * MODERATE_IMPACT (30-50%): Amber - "Significant chunk isolated"
- * Below 30%: Gray - "One of several contributors"
+ * HIGH_IMPACT (>50%): Green - "More than half your total variation is in focus"
+ * MODERATE_IMPACT (30-50%): Amber - "Significant slice of variation in focus"
+ * Below 30%: Blue - "Deep investigation — narrowed to a concentrated slice"
  */
 export const VARIATION_THRESHOLDS = {
   /** Above this = high impact, green indicator, strong recommendation */
@@ -261,14 +261,14 @@ export function getVariationImpactLevel(variationPct: number): 'high' | 'moderat
 }
 
 /**
- * Get insight text for a cumulative variation percentage
+ * Get insight text for a cumulative scope percentage
  */
 export function getVariationInsight(cumulativePct: number): string {
   if (cumulativePct >= VARIATION_THRESHOLDS.HIGH_IMPACT) {
-    return `Fix this combination to address more than half your quality problems.`;
+    return `This combination accounts for more than half your total variation — strong focus.`;
   }
   if (cumulativePct >= VARIATION_THRESHOLDS.MODERATE_IMPACT) {
-    return `This combination represents a significant chunk of your variation.`;
+    return `Significant slice of variation in focus.`;
   }
-  return `This is one of several contributing factors.`;
+  return `Deep investigation — narrowed to a concentrated slice of variation.`;
 }
