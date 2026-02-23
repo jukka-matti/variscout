@@ -239,8 +239,6 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/ui/src/components/PerformanceDetectedModal/` | Shared wide-format detection modal                                        |
 | `apps/pwa/src/components/FilterBreadcrumb.tsx`         | Filter chips UI component (multi-select, contribution %)                  |
 | `apps/pwa/src/components/MobileMenu.tsx`               | Mobile navigation hamburger menu                                          |
-| `apps/pwa/src/components/FunnelPanel.tsx`              | Variation funnel visualization panel                                      |
-| `apps/pwa/src/components/VariationFunnel.tsx`          | Funnel chart showing drill-down progress                                  |
 | `apps/pwa/src/components/PerformanceSetupPanel.tsx`    | Setup panel for multi-measure analysis                                    |
 | `apps/pwa/src/components/PerformanceDashboard.tsx`     | Performance Mode dashboard (Cp/Cpk toggle, drill navigation)              |
 | `apps/pwa/src/components/Dashboard.tsx`                | Main dashboard (drillFromPerformance, onBackToPerformance)                |

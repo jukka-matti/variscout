@@ -1,5 +1,8 @@
 # Design Brief: Guided Investigation
 
+> **Historical document** — this design brief led to the Investigation Mindmap (Phases A-D).
+> See [design-spec-investigation-mindmap.md](./design-spec-investigation-mindmap.md) for final spec.
+
 > Synthesis document bridging competitive intelligence, existing codebase capabilities, and design questions for the Factor Suggestion (Phase 1) and Interaction Heatmap (Phase 2) features.
 
 ---

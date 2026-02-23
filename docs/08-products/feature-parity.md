@@ -58,7 +58,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Linked filtering**              |     ✓     |     ✓      |                                                                                                               |
 | **Breadcrumb navigation**         |     ✓     |     ✓      |                                                                                                               |
 | **Multi-select filters**          |     ✓     |     ✓      |                                                                                                               |
-| **Investigation Mindmap**         |     ✓     |     ✓      |                                                                                                               |
+| **Investigation Mindmap**         |     ✓     |     ✓      | Azure adds: SVG export, annotation persistence                                                                |
 | **What-If Simulator**             |     ✓     |     ✓      |                                                                                                               |
 | **Keyboard navigation**           |     ✓     |     ✓      |                                                                                                               |
 | **Copy chart to clipboard**       |     ✓     |     ✓      | Includes filter context bar when active                                                                       |

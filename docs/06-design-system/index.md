@@ -65,7 +65,7 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 - [Cards](./components/cards.md) - Cards and panels
 - [Modals](./components/modals.md) - Modal patterns
 - [Forms](./components/forms.md) - Form elements
-- [VariationFunnel](./components/variation-funnel.md) - Factor ranking with category breakdown
+- [VariationBar](./components/variation-funnel.md) - Variation scope progress bar
 - [What-If Simulator](./components/what-if-simulator.md) - Process improvement exploration
 - [Interaction Guidance](./components/interaction-guidance.md) - Contextual interaction hints
 

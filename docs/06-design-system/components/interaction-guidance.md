@@ -71,10 +71,10 @@ Column aliases are applied for user-friendly display names.
 
 ## Integration
 
-Located in `VariationFunnel.tsx`, below the cumulative summary section:
+Located in `InvestigationMindmap.tsx`, within the mindmap conclusion panel:
 
 ```tsx
-// apps/pwa/src/components/VariationFunnel.tsx
+// packages/charts/src/InvestigationMindmap.tsx
 <InteractionGuidance
   drillFactorCount={filterStack?.length ?? 0}
   drillFactors={filterStack?.map(f => f.factor) ?? []}
@@ -98,8 +98,8 @@ Located in `VariationFunnel.tsx`, below the cumulative summary section:
 
 ## Related Components
 
-- `VariationFunnel.tsx` — Parent component that renders InteractionGuidance
-- `FunnelPanel.tsx` — Passes navigation callback through to VariationFunnel
+- `InvestigationMindmap.tsx` — Parent component that renders InteractionGuidance
+- `MindmapPanel.tsx` — Passes navigation callback through to InvestigationMindmap
 - [Regression Panel](../../03-features/analysis/regression.md#interaction-effects) — Target destination
 
 ## See Also

@@ -1,5 +1,8 @@
 # Investigation Flow Map: Pizza Delivery
 
+> **Historical document** — describes the pre-Mindmap investigation flow using FunnelPanel.
+> See [design-spec-investigation-mindmap.md](./design-spec-investigation-mindmap.md) for the current implementation.
+
 > A step-by-step walkthrough of a complete variation investigation using the Pizza Delivery dataset, documenting what exists at each step, what guidance the analyst receives, and where enhanced/new elements would improve the flow.
 
 ---

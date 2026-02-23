@@ -116,5 +116,5 @@ import { getVariationImpactLevel, getVariationInsight } from '@variscout/core';
 ## Related Components
 
 - `FilterBreadcrumb.tsx` — Parent component that displays VariationBar
-- `VariationFunnel.tsx` — Uses same color scheme for factor bars
+- `InvestigationMindmap.tsx` — Uses same color scheme for node sizing
 - `@variscout/core` — Shared threshold constants and insight helpers
