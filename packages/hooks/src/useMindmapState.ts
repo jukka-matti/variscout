@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   type FilterAction,
   getCategoryStats,
-  getEtaSquared,
+  getMaxCategoryContribution,
   getInteractionStrength,
   applyFilters,
   filterStackToFilters,
@@ -132,33 +132,33 @@ export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStat
     if (!outcome || filteredData.length < 2) {
       return factors.map(f => ({
         factor: f,
-        etaSquared: 0,
+        maxContribution: 0,
         state: 'exhausted' as const,
         isSuggested: false,
       }));
     }
 
-    // Compute eta-squared for each factor on current (filtered) data
-    // η² is used for node sizing and drill suggestion — stays as internal metric
-    const etaMap = new Map<string, number>();
+    // Compute max category contribution for each factor on current (filtered) data
+    // This is the single largest category's Total SS % — same number shown in popover
+    const contributionMap = new Map<string, number>();
     for (const factor of factors) {
       if (drilledFactors.has(factor)) {
         // For drilled factors, use scope fraction from drill path for node sizing
         const step = drillPath.find(s => s.factor === factor);
-        etaMap.set(factor, step?.scopeFraction ?? 0);
+        contributionMap.set(factor, step?.scopeFraction ?? 0);
       } else {
-        etaMap.set(factor, getEtaSquared(filteredData, factor, outcome));
+        contributionMap.set(factor, getMaxCategoryContribution(filteredData, factor, outcome));
       }
     }
 
-    // Find the highest eta-squared among available factors for suggested-next
-    let maxEta = 0;
+    // Find the highest max contribution among available factors for suggested-next
+    let maxContrib = 0;
     let suggested: string | null = null;
     for (const factor of factors) {
       if (!drilledFactors.has(factor)) {
-        const eta = etaMap.get(factor) ?? 0;
-        if (eta > maxEta && eta > 0.05) {
-          maxEta = eta;
+        const contrib = contributionMap.get(factor) ?? 0;
+        if (contrib > maxContrib && contrib > 0.05) {
+          maxContrib = contrib;
           suggested = factor;
         }
       }
@@ -166,7 +166,7 @@ export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStat
 
     return factors.map(factor => {
       const isDrilled = drilledFactors.has(factor);
-      const eta = etaMap.get(factor) ?? 0;
+      const contrib = contributionMap.get(factor) ?? 0;
 
       // Get category data for available factors
       let categoryData: CategoryData[] | undefined;
@@ -198,7 +198,7 @@ export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStat
       let state: MindmapNode['state'];
       if (isDrilled) {
         state = 'active';
-      } else if (filteredData.length < 3 || eta < 0.01) {
+      } else if (filteredData.length < 3 || contrib < 0.01) {
         state = 'exhausted';
       } else {
         state = 'available';
@@ -207,7 +207,7 @@ export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStat
       return {
         factor,
         displayName: columnAliases?.[factor] || undefined,
-        etaSquared: eta,
+        maxContribution: contrib,
         state,
         filteredValue,
         isSuggested: factor === suggested,

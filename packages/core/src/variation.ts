@@ -3,7 +3,7 @@
  *
  * Provides pure, framework-agnostic functions for calculating:
  * - Cumulative Total SS scope through drill paths (multiplicative)
- * - Factor variations for drill suggestions (η² — internal only)
+ * - Factor variations for drill suggestions (max category contribution)
  * - Direct adjustment simulations (what-if analysis)
  *
  * Used by:
@@ -151,20 +151,48 @@ export function calculateDrillVariation(
 }
 
 /**
- * Calculate eta-squared for each factor on current filtered data
+ * Get the maximum single-category Total SS contribution for a factor.
+ * Used for drill suggestion ranking and mindmap node display.
  *
- * Used for drill suggestions - factors with >50% variation should be
- * highlighted in charts as recommended drill targets.
+ * This metric uses the same numbers visible in the category popover,
+ * making the suggestion logic transparent: "Machine is suggested because
+ * one category (C) accounts for 53% of total variation."
+ *
+ * @param data - Array of data rows
+ * @param factor - Column name for the grouping variable
+ * @param outcome - Column name for the numeric outcome variable
+ * @returns Max contribution as fraction (0–1), or 0 if insufficient data
+ */
+export function getMaxCategoryContribution(
+  data: DataRow[],
+  factor: string,
+  outcome: string
+): number {
+  const result = calculateCategoryTotalSS(data, factor, outcome);
+  if (!result) return 0;
+  let max = 0;
+  for (const pct of result.contributions.values()) {
+    if (pct > max) max = pct;
+  }
+  return max / 100; // Return as fraction (0–1)
+}
+
+/**
+ * Calculate max category Total SS contribution for each factor on current filtered data
+ *
+ * For each factor, finds the single largest category's share of Total SS.
+ * Used for drill suggestions — factors with >50% max category contribution
+ * should be highlighted in charts as recommended drill targets.
  *
  * @param data - Current (possibly filtered) data
  * @param factors - Available factor columns to analyze
  * @param outcome - The outcome column name
  * @param excludeFactors - Factors to exclude (e.g., already filtered)
- * @returns Map of factor name to variation percentage (0-100)
+ * @returns Map of factor name to max category contribution percentage (0-100)
  *
  * @example
  * const variations = calculateFactorVariations(filteredData, ['Shift', 'Machine', 'Operator'], 'Weight', ['Shift']);
- * // variations.get('Machine') = 67.5 -> highlight Machine in boxplot
+ * // variations.get('Machine') = 53.2 -> Machine's biggest category accounts for 53% of total variation
  */
 export function calculateFactorVariations(
   data: DataRow[],
@@ -184,9 +212,9 @@ export function calculateFactorVariations(
     // Skip excluded factors
     if (excludeSet.has(factor)) continue;
 
-    const etaSquared = getEtaSquared(data, factor, outcome);
-    if (etaSquared > 0) {
-      variations.set(factor, etaSquared * 100);
+    const maxContrib = getMaxCategoryContribution(data, factor, outcome);
+    if (maxContrib > 0) {
+      variations.set(factor, maxContrib * 100);
     }
   }
 
@@ -231,7 +259,7 @@ export function applyFilters(
 export const DRILL_SWITCH_THRESHOLD = 5;
 
 /**
- * Get the next recommended factor for drill-down based on eta-squared
+ * Get the next recommended factor for drill-down based on max category contribution
  *
  * After drilling into a factor (e.g., filtering to Machine A), this function
  * finds the remaining factor with highest variation in the filtered data.
@@ -281,7 +309,7 @@ export function getNextDrillFactor(
 export interface OptimalFactorResult {
   /** Factor name */
   factor: string;
-  /** Variation percentage explained by this factor (η² * 100) */
+  /** Variation percentage for this factor (η² * 100 in findOptimalFactors) */
   variationPct: number;
   /** Best value for this factor (highest variation category) */
   bestValue?: string | number;

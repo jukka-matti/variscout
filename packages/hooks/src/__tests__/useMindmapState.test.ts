@@ -64,7 +64,7 @@ describe('useMindmapState', () => {
     expect(result.current.nodes).toHaveLength(2);
     result.current.nodes.forEach(node => {
       expect(node.state).toBe('exhausted');
-      expect(node.etaSquared).toBe(0);
+      expect(node.maxContribution).toBe(0);
       expect(node.isSuggested).toBe(false);
     });
   });
@@ -97,11 +97,11 @@ describe('useMindmapState', () => {
 
     result.current.nodes.forEach(node => {
       expect(node.state).toBe('exhausted');
-      expect(node.etaSquared).toBe(0);
+      expect(node.maxContribution).toBe(0);
     });
   });
 
-  it('computes eta-squared for each factor and sets correct node state', () => {
+  it('computes max category contribution for each factor and sets correct node state', () => {
     const { result } = renderHook(() =>
       useMindmapState({
         data: testData,
@@ -114,12 +114,13 @@ describe('useMindmapState', () => {
     const machineNode = result.current.nodes.find(n => n.factor === 'Machine')!;
     const shiftNode = result.current.nodes.find(n => n.factor === 'Shift')!;
 
-    // Machine has high eta-squared (A ~10.5, B ~19.5)
-    expect(machineNode.etaSquared).toBeGreaterThan(0.7);
+    // Machine A and B each account for ~50% of Total SS
+    expect(machineNode.maxContribution).toBeGreaterThan(0.3);
     expect(machineNode.state).toBe('available');
 
-    // Shift has low eta-squared (similar means across shifts)
-    expect(shiftNode.etaSquared).toBeLessThan(0.1);
+    // Shift also has meaningful Total SS per category (spread is similar)
+    expect(shiftNode.maxContribution).toBeGreaterThan(0.3);
+    expect(shiftNode.state).toBe('available');
   });
 
   it('marks drilled factors as active with filteredValue', () => {
@@ -151,7 +152,7 @@ describe('useMindmapState', () => {
     expect(machineNode.filteredValue).toBe('A, B');
   });
 
-  it('suggests the highest-eta-squared available factor above 5% threshold', () => {
+  it('suggests the highest max-contribution available factor above 5% threshold', () => {
     const { result } = renderHook(() =>
       useMindmapState({
         data: testData,
@@ -161,11 +162,14 @@ describe('useMindmapState', () => {
       })
     );
 
-    const machineNode = result.current.nodes.find(n => n.factor === 'Machine')!;
-    expect(machineNode.isSuggested).toBe(true);
+    // Exactly one factor should be suggested
+    const suggestedNodes = result.current.nodes.filter(n => n.isSuggested);
+    expect(suggestedNodes).toHaveLength(1);
+    // The suggested factor has the highest max category contribution
+    expect(suggestedNodes[0].maxContribution).toBeGreaterThan(0.3);
   });
 
-  it('does not suggest when all available factors have eta < 5%', () => {
+  it('does not suggest drilled factors', () => {
     const { result } = renderHook(() =>
       useMindmapState({
         data: testData,
@@ -175,8 +179,9 @@ describe('useMindmapState', () => {
       })
     );
 
-    const shiftNode = result.current.nodes.find(n => n.factor === 'Shift')!;
-    expect(shiftNode.isSuggested).toBe(false);
+    const machineNode = result.current.nodes.find(n => n.factor === 'Machine')!;
+    expect(machineNode.state).toBe('active');
+    expect(machineNode.isSuggested).toBe(false);
   });
 
   it('builds drillTrail from drillPath factor names', () => {

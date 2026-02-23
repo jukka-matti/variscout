@@ -50,8 +50,8 @@ export interface VariationTrackingResult {
   insightText: string | null;
 
   /**
-   * Map of factor -> η² for recommending drill targets (internal metric)
-   * Factors with > 50% variation should be highlighted in charts
+   * Map of factor -> max category contribution for recommending drill targets
+   * Factors with > 50% max category contribution should be highlighted in charts
    */
   factorVariations: Map<string, number>;
 

@@ -72,21 +72,23 @@ const multiLevelData = [
 // =============================================================================
 
 describe('calculateFactorVariations', () => {
-  it('should return high variation for factor with clear group separation', () => {
+  it('should return meaningful max category contribution for factor with clear group separation', () => {
     const variations = calculateFactorVariations(highVariationData, ['Shift'], 'Weight');
 
     expect(variations.has('Shift')).toBe(true);
-    // Shift should explain >90% of variation (Day ~100, Night ~150)
-    expect(variations.get('Shift')).toBeGreaterThan(90);
+    // Day and Night each contribute ~50% of Total SS (symmetric data)
+    // Max category contribution is ~50%
+    expect(variations.get('Shift')).toBeGreaterThan(40);
+    expect(variations.get('Shift')).toBeLessThan(60);
   });
 
-  it('should return low variation for factor with overlapping groups', () => {
+  it('should return equal max contributions for factor with identical groups', () => {
     const variations = calculateFactorVariations(lowVariationData, ['Shift'], 'Weight');
 
-    // Groups are nearly identical, so eta-squared should be very low
-    // May be 0 or close to 0 since means are equal
+    // Groups are nearly identical in both mean and spread
+    // Each category still accounts for ~50% of Total SS (data is evenly split)
     const shiftVariation = variations.get('Shift') ?? 0;
-    expect(shiftVariation).toBeLessThan(10);
+    expect(shiftVariation).toBeGreaterThan(40);
   });
 
   it('should return Map with multiple factor percentages', () => {
@@ -94,8 +96,9 @@ describe('calculateFactorVariations', () => {
 
     expect(variations.has('Shift')).toBe(true);
     expect(variations.has('Machine')).toBe(true);
-    // Shift should be the dominant factor
-    expect(variations.get('Shift')).toBeGreaterThan(variations.get('Machine')!);
+    // Both factors have 2 symmetric categories, so max contributions are similar
+    expect(variations.get('Shift')).toBeGreaterThan(40);
+    expect(variations.get('Machine')).toBeGreaterThan(40);
   });
 
   it('should exclude factors in excludeFactors array', () => {
@@ -123,7 +126,7 @@ describe('calculateFactorVariations', () => {
     expect(variations.size).toBe(0);
   });
 
-  it('should handle factor with single group (no variation possible)', () => {
+  it('should return 100% max contribution for factor with single group', () => {
     const singleGroupData = [
       { Shift: 'Day', Weight: 100 },
       { Shift: 'Day', Weight: 101 },
@@ -131,10 +134,9 @@ describe('calculateFactorVariations', () => {
     ];
     const variations = calculateFactorVariations(singleGroupData, ['Shift'], 'Weight');
 
-    // Single group means SS_between = 0, so eta-squared = 0
-    // The function may not include 0 values in the Map
+    // Single group accounts for 100% of Total SS
     const shiftVariation = variations.get('Shift') ?? 0;
-    expect(shiftVariation).toBe(0);
+    expect(shiftVariation).toBeCloseTo(100, 0);
   });
 
   it('should handle missing outcome column gracefully', () => {
@@ -522,15 +524,14 @@ describe('calculateCategoryContributions', () => {
     expect(result!.contributions.has(2)).toBe(true);
   });
 
-  it('should return factorEtaSquared consistent with getEtaSquared', () => {
+  it('should return factorEtaSquared as between-group metric (independent of max category contribution)', () => {
     const result = calculateCategoryContributions(highVariationData, 'Shift', 'Weight');
-    const variations = calculateFactorVariations(highVariationData, ['Shift'], 'Weight');
 
     expect(result).not.toBeNull();
 
-    // factorEtaSquared from this function should match the factor variation percentage / 100
-    const etaSquaredFromVariations = (variations.get('Shift') ?? 0) / 100;
-    expect(result!.factorEtaSquared).toBeCloseTo(etaSquaredFromVariations, 5);
+    // factorEtaSquared is the between-group metric (η²) from this legacy function
+    // It should be high for this dataset (Day ~100, Night ~150)
+    expect(result!.factorEtaSquared).toBeGreaterThan(0.9);
   });
 
   it('should correctly identify which category to investigate', () => {

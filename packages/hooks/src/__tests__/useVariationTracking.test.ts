@@ -98,8 +98,8 @@ describe('useVariationTracking — basic behavior', () => {
 
     expect(result.current.factorVariations.size).toBeGreaterThan(0);
     expect(result.current.factorVariations.has('Machine')).toBe(true);
-    // Machine should explain most variation (A~10, B~50, C~100)
-    expect(result.current.factorVariations.get('Machine')).toBeGreaterThan(90);
+    // Machine C (Weight ~100) is the biggest single-category contributor (~54% of Total SS)
+    expect(result.current.factorVariations.get('Machine')).toBeGreaterThan(50);
   });
 });
 

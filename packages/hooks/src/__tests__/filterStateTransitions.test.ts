@@ -5,7 +5,7 @@
  * - Round-trip consistency (add → remove → state matches original)
  * - Middle filter removal and recalculation
  * - Edge transitions (empty results, single-category filters)
- * - Multi-filter cumulative η² progression
+ * - Multi-filter cumulative Total SS scope progression
  *
  * Uses both pure navigation functions from @variscout/core and
  * React hooks via renderHook for stateful behavior.
@@ -311,14 +311,15 @@ describe('Cumulative Total SS Scope Progression', () => {
     expect(result.current.factorVariations.has('Operator')).toBe(true);
   });
 
-  it('Machine η² >> Shift η² (known structure)', () => {
+  it('Machine max contribution > Shift max contribution (known structure)', () => {
     const { result } = renderHook(() =>
       useVariationTracking(testData, emptyStack, outcome, factors)
     );
 
     const machineVar = result.current.factorVariations.get('Machine') ?? 0;
     const shiftVar = result.current.factorVariations.get('Shift') ?? 0;
-    // Machine (A~10, B~50, C~100) explains vastly more than Shift
-    expect(machineVar).toBeGreaterThan(shiftVar * 5);
+    // Machine C (Weight ~100) is the biggest single-category contributor
+    // Shift categories split variation roughly evenly (max ~50%)
+    expect(machineVar).toBeGreaterThan(shiftVar);
   });
 });

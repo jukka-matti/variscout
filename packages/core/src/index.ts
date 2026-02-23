@@ -212,6 +212,7 @@ export {
   calculateFactorVariations,
   calculateCategoryContributions,
   calculateCategoryTotalSS,
+  getMaxCategoryContribution,
   getCategoryStats,
   calculateProjectedStats,
   shouldHighlightDrill,

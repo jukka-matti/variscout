@@ -27,8 +27,8 @@ export interface MindmapNode {
   factor: string;
   /** Display name (alias) — falls back to factor if not set */
   displayName?: string;
-  /** η² (0–1), drives node size */
-  etaSquared: number;
+  /** Max category Total SS contribution (0–1), drives node size and display % */
+  maxContribution: number;
   /** Node state: active = drilled, available = can drill, exhausted = too few rows */
   state: 'active' | 'available' | 'exhausted';
   /** Value shown below label when active (already filtered) */
@@ -128,11 +128,11 @@ const EDGE_MAX_WIDTH = 6;
 // ============================================================================
 
 /**
- * Compute node radius from η² (area encodes effect size)
+ * Compute node radius from max category contribution (area encodes magnitude)
  */
-function getNodeRadius(etaSquared: number): number {
+function getNodeRadius(contribution: number): number {
   // Clamp to [0, 1] and scale area proportionally
-  const clamped = Math.max(0, Math.min(1, etaSquared));
+  const clamped = Math.max(0, Math.min(1, contribution));
   const minArea = Math.PI * MIN_NODE_RADIUS * MIN_NODE_RADIUS;
   const maxArea = Math.PI * MAX_NODE_RADIUS * MAX_NODE_RADIUS;
   const area = minArea + clamped * (maxArea - minArea);
@@ -1218,7 +1218,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
           const node = nodeMap.get(pos.factor);
           if (!node) return null;
 
-          const radius = getNodeRadius(node.etaSquared);
+          const radius = getNodeRadius(node.maxContribution);
           const fill = getNodeFill(node.state, isDark);
           const stroke = getNodeStroke(node, isDark);
           const isClickable = node.state !== 'exhausted';
@@ -1256,7 +1256,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 {node.displayName || node.factor}
               </text>
 
-              {/* η² percentage inside node */}
+              {/* Contribution percentage inside node */}
               <text
                 x={pos.x}
                 y={pos.y + 1}
@@ -1267,7 +1267,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 fill={node.state === 'active' ? '#ffffff' : chrome.labelPrimary}
                 style={{ pointerEvents: 'none' }}
               >
-                {(node.etaSquared * 100).toFixed(0)}%
+                {(node.maxContribution * 100).toFixed(0)}%
               </text>
 
               {/* Filtered value label (when active) */}
