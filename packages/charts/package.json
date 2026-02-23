@@ -15,12 +15,9 @@
   "dependencies": {
     "@variscout/core": "workspace:*",
     "@visx/axis": "^3.12.0",
-    "@visx/brush": "^3.12.0",
-    "@visx/curve": "^3.12.0",
     "@visx/event": "^3.12.0",
     "@visx/grid": "^3.12.0",
     "@visx/group": "^3.12.0",
-    "@visx/legend": "^3.12.0",
     "@visx/responsive": "^3.12.0",
     "@visx/scale": "^3.12.0",
     "@visx/shape": "^3.12.0",
@@ -41,6 +38,6 @@
     "@types/react": "^18.3.3",
     "jsdom": "^27.4.0",
     "typescript": "^5.5.2",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.18"
   }
 }

@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import {
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
-  AlertTriangle,
-  AlertCircle,
-} from 'lucide-react';
+import { Trash2, ChevronLeft, ChevronRight, AlertTriangle, AlertCircle } from 'lucide-react';
 import { getSpecStatus } from '@variscout/core';
 import { useDataTablePagination, useHighlightFade } from '@variscout/hooks';
 import type { ExclusionReason } from '@variscout/core';
@@ -70,7 +64,11 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
 
   // Navigate to highlighted row when it changes
   useEffect(() => {
-    if (highlightRowIndex !== undefined && highlightRowIndex >= 0 && highlightRowIndex < data.length) {
+    if (
+      highlightRowIndex !== undefined &&
+      highlightRowIndex >= 0 &&
+      highlightRowIndex < data.length
+    ) {
       const targetPage = Math.floor(highlightRowIndex / rowsPerPage);
       setCurrentPage(targetPage);
       setHighlightedRow(highlightRowIndex);
@@ -126,8 +124,7 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
   const hasControlViolation = (originalIndex: number): boolean =>
     controlViolations?.has(originalIndex) ?? false;
 
-  const formatControlViolations = (violations: string[]): string =>
-    violations.join(', ');
+  const formatControlViolations = (violations: string[]): string => violations.join(', ');
 
   // Spec status helpers
   const getStatusColor = (value: any): string => {
@@ -252,7 +249,7 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
             </tr>
           </thead>
           <tbody>
-            {pageData.map((item) => {
+            {pageData.map(item => {
               const { row, originalIndex } = item;
               const isHighlighted = originalIndex === highlightedRow;
               const isExcluded = isRowExcluded(originalIndex);

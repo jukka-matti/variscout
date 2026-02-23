@@ -204,9 +204,7 @@ describe('DataTableBase', () => {
 
   it('shows excluded row indicators', () => {
     const excludedSet = new Set([1]);
-    const reasonsMap = new Map([
-      [1, [{ type: 'missing' as const, column: 'value' }]],
-    ]);
+    const reasonsMap = new Map([[1, [{ type: 'missing' as const, column: 'value' }]]]);
 
     render(
       <DataTableBase

@@ -1,5 +1,5 @@
 /**
- * Edition and Tier configuration for VariScout Azure app
+ * Tier configuration for VariScout Azure app
  *
  * Azure Managed Application — single enterprise tier, all features.
  *
@@ -11,7 +11,6 @@
 
 import {
   configureTier,
-  getEdition as getCoreEdition,
   getTier as getCoreTier,
   getSignatureText as coreGetSignatureText,
   isPaidTier as coreIsPaidTier,
@@ -19,7 +18,6 @@ import {
   validateChannelCount as coreValidateChannelCount,
   getTierDescription as coreGetTierDescription,
   getUpgradeUrl as coreGetUpgradeUrl,
-  type Edition,
   type LicenseTier,
   type ChannelLimitResult,
 } from '@variscout/core';
@@ -117,8 +115,7 @@ export function initializeTier(): void {
 initializeTier();
 
 // Re-export everything from core for convenience
-export type { Edition, LicenseTier, ChannelLimitResult };
-export const getEdition = getCoreEdition;
+export type { LicenseTier, ChannelLimitResult };
 export const getTier = getCoreTier;
 
 export const getSignatureText = coreGetSignatureText;

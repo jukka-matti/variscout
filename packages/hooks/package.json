@@ -24,6 +24,6 @@
     "@types/react": "^18.3.3",
     "jsdom": "^27.4.0",
     "typescript": "^5.5.2",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.18"
   }
 }

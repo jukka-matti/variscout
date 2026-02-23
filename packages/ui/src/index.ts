@@ -130,7 +130,6 @@ export {
 export {
   MindmapWindow,
   openMindmapPopout,
-  updateMindmapPopout,
   mindmapWindowDefaultColorScheme,
   mindmapWindowAzureColorScheme,
   type MindmapWindowColorScheme,
@@ -204,12 +203,9 @@ export {
 
 export {
   ChartAnnotationLayer,
-  AnnotationBox,
-  annotationColors,
   type ChartAnnotationLayerProps,
   type ChartAnnotation as UIChartAnnotation,
   type HighlightColor as UIHighlightColor,
-  type AnnotationColorDef,
 } from './components/ChartAnnotationLayer';
 
 export {
@@ -218,6 +214,14 @@ export {
 } from './components/AnnotationContextMenu';
 
 export { DataTableBase, type DataTableBaseProps } from './components/DataTable';
+
+export {
+  default as PasteScreenBase,
+  pasteScreenDefaultColorScheme,
+  pasteScreenAzureColorScheme,
+  type PasteScreenBaseProps,
+  type PasteScreenColorScheme,
+} from './components/PasteScreen';
 
 // Services
 export {

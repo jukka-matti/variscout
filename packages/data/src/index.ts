@@ -8,54 +8,10 @@
  */
 
 // Types
-export type {
-  SampleDataset,
-  SampleCategory,
-  SampleConfig,
-  SpecLimits,
-  ComputedChartData,
-  IChartPoint,
-  BoxplotGroup,
-  ParetoItem,
-  PrecomputedStats,
-} from './types';
+export type { SampleDataset, SampleCategory, ComputedChartData } from './types';
 
 // Sample datasets
-export {
-  SAMPLES,
-  SAMPLES_BY_KEY,
-  getSample,
-  // Individual samples
-  journey,
-  journeyBefore,
-  journeyAfter,
-  bottleneck,
-  hospitalWard,
-  coffee,
-  coffeeDefects,
-  packaging,
-  avocado,
-  cookieWeight,
-  weldDefects,
-  callWait,
-  delivery,
-  sockMystery,
-  mangoExport,
-  textiles,
-  pizza,
-  sachets,
-  ovenZonesData,
-} from './samples';
+export { SAMPLES, getSample } from './samples';
 
 // Computed data utilities
-export {
-  computeIChartData,
-  computeBoxplotData,
-  computeParetoData,
-  computeStats,
-  getComputedData,
-  getCachedComputedData,
-} from './computed';
-
-// Utilities
-export { generateNormal, clamp, round, dateOffset, seedRandom, mulberry32 } from './utils';
+export { getCachedComputedData } from './computed';

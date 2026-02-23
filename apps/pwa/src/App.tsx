@@ -23,10 +23,9 @@ import {
   parseText,
   detectColumns,
   detectWideFormat,
-  getNelsonRule2ViolationPoints,
-  calculateStats,
   type ExclusionReason,
 } from '@variscout/core';
+import { useControlViolations } from '@variscout/hooks';
 import type { WideFormatDetection } from '@variscout/core';
 
 // Breakpoint for desktop panel (vs modal on mobile)
@@ -50,6 +49,7 @@ function App() {
     setDataQualityReport,
     factors,
     columnAliases,
+    setColumnAliases,
     // Multi-point selection (Phase 3: Brushing)
     selectedPoints,
     togglePointSelection,
@@ -88,6 +88,28 @@ function App() {
     getFactors: () => factors,
   });
   const [isMapping, setIsMapping] = useState(false);
+
+  // Column analysis for ColumnMapping rich cards — computed from rawData
+  const mappingColumnAnalysis = useMemo(() => {
+    if (rawData.length === 0) return undefined;
+    return detectColumns(rawData).columnAnalysis;
+  }, [rawData]);
+
+  // Column rename handler for ColumnMapping
+  const handleColumnRename = useCallback(
+    (originalName: string, alias: string) => {
+      if (alias) {
+        setColumnAliases({ ...columnAliases, [originalName]: alias });
+      } else {
+        // Remove alias
+        const next = { ...columnAliases };
+        delete next[originalName];
+        setColumnAliases(next);
+      }
+    },
+    [columnAliases, setColumnAliases]
+  );
+
   const [timeExtractionPrompt, setTimeExtractionPrompt] = useState<{
     timeColumn: string;
     hasTimeComponent: boolean;
@@ -206,63 +228,7 @@ function App() {
   }, [dataQualityReport]);
 
   // Compute control violations for DataPanel annotations
-  const controlViolations = useMemo(() => {
-    if (!outcome || filteredData.length === 0) return undefined;
-
-    const map = new Map<number, string[]>();
-
-    // Calculate stats for violation detection
-    const values = filteredData
-      .map(row => {
-        const val = row[outcome];
-        return typeof val === 'number' ? val : parseFloat(String(val));
-      })
-      .filter(v => !isNaN(v));
-
-    if (values.length === 0) return undefined;
-
-    const stats = calculateStats(values);
-
-    // Check each row for violations
-    filteredData.forEach((row, index) => {
-      const val = row[outcome];
-      const numValue = typeof val === 'number' ? val : parseFloat(String(val));
-      if (isNaN(numValue)) return;
-
-      const violations: string[] = [];
-
-      // Check control limit violations
-      if (numValue > stats.ucl) {
-        violations.push('Special Cause: Above UCL');
-      } else if (numValue < stats.lcl) {
-        violations.push('Special Cause: Below LCL');
-      }
-
-      // Check spec limit violations
-      if (specs.usl !== undefined && numValue > specs.usl) {
-        violations.push('Above USL');
-      }
-      if (specs.lsl !== undefined && numValue < specs.lsl) {
-        violations.push('Below LSL');
-      }
-
-      if (violations.length > 0) {
-        map.set(index, violations);
-      }
-    });
-
-    // Check Nelson Rule 2 violations
-    const nelsonViolations = getNelsonRule2ViolationPoints(values, stats.mean);
-    nelsonViolations.forEach(index => {
-      const existing = map.get(index) || [];
-      if (!existing.some(v => v.includes('Nelson Rule 2'))) {
-        existing.push('Special Cause: Nelson Rule 2 (9 consecutive points on same side of mean)');
-        map.set(index, existing);
-      }
-    });
-
-    return map;
-  }, [filteredData, outcome, specs]);
+  const controlViolations = useControlViolations(filteredData, outcome, specs);
 
   const handleExport = useCallback(async () => {
     const node = document.getElementById('dashboard-export-container');
@@ -636,7 +602,12 @@ function App() {
             />
           ) : isMapping ? (
             <ColumnMapping
+              columnAnalysis={mappingColumnAnalysis}
               availableColumns={Object.keys(rawData[0])}
+              previewRows={rawData.slice(0, 5)}
+              totalRows={rawData.length}
+              columnAliases={columnAliases}
+              onColumnRename={handleColumnRename}
               initialOutcome={outcome}
               initialFactors={factors}
               datasetName={dataFilename || undefined}

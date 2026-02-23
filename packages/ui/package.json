@@ -21,14 +21,10 @@
     "tailwindcss": "^3.0.0"
   },
   "dependencies": {
-    "@radix-ui/react-slot": "^1.2.4",
     "@variscout/charts": "workspace:*",
     "@variscout/core": "workspace:*",
     "@variscout/hooks": "workspace:*",
-    "class-variance-authority": "^0.7.0",
-    "html-to-image": "^1.11.11",
-    "clsx": "^2.1.0",
-    "tailwind-merge": "^2.2.0",
+    "html-to-image": "^1.11.13",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
@@ -38,9 +34,9 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.2.0",
-    "autoprefixer": "^10.4.17",
+    "autoprefixer": "^10.4.23",
     "jsdom": "^27.4.0",
-    "postcss": "^8.4.35",
+    "postcss": "^8.5.6",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.2",
     "vite": "^5.1.0",

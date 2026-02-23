@@ -6,13 +6,8 @@
 @tailwind utilities;
 
 /* ========================================
-   Azure-specific: Force Executive Style
+   Azure-specific: Executive Style Overrides
    ======================================== */
-
-:root {
-  /* Force data-chart-mode to executive */
-  --chart-mode: 'executive';
-}
 
 /* Override chart/app background to pure white always */
 :root,
@@ -37,9 +32,4 @@
     sans-serif;
   letter-spacing: -0.01em;
   /* Slight tightening for modern feel */
-}
-
-/* Ensure data-chart-mode attribute is set (can be done via JS, but here we set default) */
-html {
-  font-family: 'Inter', system-ui, sans-serif;
 }

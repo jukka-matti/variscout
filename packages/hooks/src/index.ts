@@ -40,7 +40,7 @@ export {
 } from './useDataState';
 
 // Chart Scale
-export { useChartScale, default as useChartScaleDefault } from './useChartScale';
+export { useChartScale } from './useChartScale';
 
 // Responsive Chart Utilities
 export {
@@ -69,39 +69,6 @@ export {
 
 // Keyboard Navigation
 export { useKeyboardNavigation, type KeyboardNavigationOptions } from './useKeyboardNavigation';
-
-// Data Analysis Hooks
-export { useAvailableOutcomes } from './useAvailableOutcomes';
-export { useAvailableStageColumns, type StageColumnOptions } from './useAvailableStageColumns';
-
-// Chart Navigation
-export {
-  useChartNavigation,
-  DEFAULT_CHART_ORDER,
-  type ChartId,
-  type UseChartNavigationOptions,
-  type UseChartNavigationReturn,
-} from './useChartNavigation';
-
-// Clipboard
-export {
-  useClipboardCopy,
-  type UseClipboardCopyOptions,
-  type UseClipboardCopyReturn,
-} from './useClipboardCopy';
-
-// Dashboard Props Types
-export type {
-  AnalysisView,
-  HighlightIntensity,
-  DashboardModeProps,
-  DashboardEmbedProps,
-  DashboardPerformanceProps,
-  DashboardInteractionProps,
-  DashboardSpecEditorProps,
-  DashboardProps,
-  AzureDashboardProps,
-} from './types/dashboardProps';
 
 // Column Classification
 export {
@@ -155,5 +122,22 @@ export { useResizablePanel, type UseResizablePanelReturn } from './useResizableP
 export { useBoxplotData } from './useBoxplotData';
 export { useIChartData } from './useIChartData';
 
+// Focused Chart Navigation
+export { useFocusedChartNav, type UseFocusedChartNavReturn } from './useFocusedChartNav';
+
+// Control Violations
+export { useControlViolations } from './useControlViolations';
+
 // Annotations (right-click context menu)
-export { useAnnotations, useAnnotationMode } from './useAnnotationMode';
+export { useAnnotations } from './useAnnotationMode';
+
+// Theme State
+export {
+  useThemeState,
+  CHART_FONT_SCALES,
+  type ThemeMode,
+  type ChartFontScale,
+  type ThemeConfig,
+  type UseThemeStateOptions,
+  type UseThemeStateReturn,
+} from './useThemeState';

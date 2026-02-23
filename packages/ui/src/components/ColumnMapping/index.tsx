@@ -1,23 +1,43 @@
 /**
- * ColumnMapping - Column mapping UI for data setup
+ * ColumnMapping - Data-rich column mapping UI for data setup
  *
  * Allows users to:
- * - Select outcome (Y) column
- * - Select factor (X) columns (up to 3)
+ * - Preview first rows of data in a collapsible table
+ * - Select outcome (Y) column with type-filtered cards
+ * - Select factor (X) columns with type-filtered cards
+ * - Rename columns (writes to columnAliases)
  * - Optionally upload separate Pareto file
  * - Shows data quality validation results
  */
 
-import React, { useState } from 'react';
-import { ArrowLeft, ArrowRight, CheckSquare, Settings2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowLeft, ArrowRight, Settings2, Eye } from 'lucide-react';
 import { DataQualityBanner } from '../DataQualityBanner';
+import { ColumnCard } from './ColumnCard';
+import { DataPreviewTable } from './DataPreviewTable';
 import SpecsSection from './SpecsSection';
 import ParetoUpload from './ParetoUpload';
 import TimeExtractionPanel from './TimeExtractionPanel';
-import type { DataQualityReport, TimeExtractionConfig } from '@variscout/core';
+import type {
+  ColumnAnalysis,
+  DataQualityReport,
+  DataRow,
+  TimeExtractionConfig,
+} from '@variscout/core';
 
 export interface ColumnMappingProps {
-  availableColumns: string[];
+  /** Rich column metadata from detectColumns(). Preferred over availableColumns. */
+  columnAnalysis?: ColumnAnalysis[];
+  /** Fallback: plain column names (used when columnAnalysis is not available) */
+  availableColumns?: string[];
+  /** Optional preview rows for the collapsible data table */
+  previewRows?: DataRow[];
+  /** Total number of rows in the dataset (for summary display) */
+  totalRows?: number;
+  /** Existing column aliases (for displaying renamed columns) */
+  columnAliases?: Record<string, string>;
+  /** Callback when user renames a column */
+  onColumnRename?: (originalName: string, alias: string) => void;
   initialOutcome: string | null;
   initialFactors: string[];
   datasetName?: string;
@@ -45,8 +65,27 @@ export interface ColumnMappingProps {
   maxFactors?: number;
 }
 
+/**
+ * Build ColumnAnalysis stubs from plain column names (backwards compat).
+ */
+function buildStubAnalysis(names: string[]): ColumnAnalysis[] {
+  return names.map(name => ({
+    name,
+    type: 'text' as const,
+    uniqueCount: 0,
+    hasVariation: true,
+    missingCount: 0,
+    sampleValues: [],
+  }));
+}
+
 export const ColumnMapping: React.FC<ColumnMappingProps> = ({
+  columnAnalysis: columnAnalysisProp,
   availableColumns,
+  previewRows,
+  totalRows,
+  columnAliases,
+  onColumnRename,
   initialOutcome,
   initialFactors,
   datasetName = 'Uploaded Dataset',
@@ -67,6 +106,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
 }) => {
   const [outcome, setOutcome] = useState<string>(initialOutcome || '');
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
+  const [showAllOutcome, setShowAllOutcome] = useState(false);
+  const [showAllFactors, setShowAllFactors] = useState(false);
 
   // Optional specs state
   const [specsExpanded, setSpecsExpanded] = useState(false);
@@ -74,9 +115,26 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   const [specLsl, setSpecLsl] = useState('');
   const [specUsl, setSpecUsl] = useState('');
 
-  const toggleFactor = (col: string) => {
-    if (col === outcome) return; // Cannot be both outcome and factor
+  // Resolve column analysis: prefer rich data, fall back to stubs from names
+  const columns = useMemo(() => {
+    if (columnAnalysisProp && columnAnalysisProp.length > 0) return columnAnalysisProp;
+    if (availableColumns && availableColumns.length > 0) return buildStubAnalysis(availableColumns);
+    return [];
+  }, [columnAnalysisProp, availableColumns]);
 
+  // Has rich metadata?
+  const hasRichData = !!(columnAnalysisProp && columnAnalysisProp.length > 0);
+
+  // Type-separated columns
+  const numericColumns = useMemo(() => columns.filter(c => c.type === 'numeric'), [columns]);
+  const nonNumericColumns = useMemo(() => columns.filter(c => c.type !== 'numeric'), [columns]);
+
+  // Columns shown in each section
+  const outcomeColumns = hasRichData && !showAllOutcome ? numericColumns : columns;
+  const factorColumns = hasRichData && !showAllFactors ? nonNumericColumns : columns;
+
+  const toggleFactor = (col: string) => {
+    if (col === outcome) return;
     if (factors.includes(col)) {
       setFactors(factors.filter(f => f !== col));
     } else {
@@ -88,7 +146,6 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
 
   const handleOutcomeChange = (col: string) => {
     setOutcome(col);
-    // If this column was a factor, remove it from factors
     if (factors.includes(col)) {
       setFactors(factors.filter(f => f !== col));
     }
@@ -128,6 +185,11 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             />
           )}
 
+          {/* Data Preview Table (collapsible) */}
+          {previewRows && previewRows.length > 0 && hasRichData && (
+            <DataPreviewTable rows={previewRows} columnAnalysis={columns} totalRows={totalRows} />
+          )}
+
           {/* Outcome Selection */}
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -143,39 +205,34 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
               Count).
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
-              {availableColumns.map(col => (
-                <label
-                  key={`outcome-${col}`}
-                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                    outcome === col
-                      ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_10px_rgba(37,99,235,0.2)]'
-                      : 'bg-slate-800 border-slate-700 hover:border-slate-600 hover:bg-slate-700/50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="outcome"
-                    className="hidden" // Custom styling
-                    checked={outcome === col}
-                    onChange={() => handleOutcomeChange(col)}
-                    aria-label={`Select ${col} as outcome column`}
-                  />
-                  <div
-                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                      outcome === col ? 'border-blue-500 bg-blue-500' : 'border-slate-500'
-                    }`}
-                  >
-                    {outcome === col && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                  </div>
-                  <span
-                    className={`text-sm font-medium ${outcome === col ? 'text-white' : 'text-slate-400'}`}
-                  >
-                    {col}
-                  </span>
-                </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
+              {outcomeColumns.map(col => (
+                <ColumnCard
+                  key={`outcome-${col.name}`}
+                  column={col}
+                  role="outcome"
+                  selected={outcome === col.name}
+                  alias={columnAliases?.[col.name]}
+                  onSelect={() => handleOutcomeChange(col.name)}
+                  onRename={onColumnRename}
+                />
               ))}
             </div>
+
+            {/* Show all toggle for outcome */}
+            {hasRichData && numericColumns.length < columns.length && (
+              <button
+                onClick={() => setShowAllOutcome(!showAllOutcome)}
+                className="flex items-center gap-1.5 mt-2 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                type="button"
+                data-testid="show-all-outcome"
+              >
+                <Eye size={12} />
+                {showAllOutcome
+                  ? `Show numeric only (${numericColumns.length})`
+                  : `Show all columns (${columns.length})`}
+              </button>
+            )}
           </div>
 
           {/* Factors Selection */}
@@ -196,41 +253,39 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
               Operator).
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
-              {availableColumns.map(col => {
-                const isOutcome = outcome === col;
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
+              {factorColumns.map(col => {
+                const isOutcomeCol = outcome === col.name;
                 return (
-                  <button
-                    key={`factor-${col}`}
-                    onClick={() => toggleFactor(col)}
-                    disabled={isOutcome}
-                    className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all ${
-                      factors.includes(col)
-                        ? 'bg-emerald-600/20 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-                        : isOutcome
-                          ? 'bg-slate-900/50 border-slate-800 opacity-50 cursor-not-allowed'
-                          : 'bg-slate-800 border-slate-700 hover:border-slate-600 hover:bg-slate-700/50'
-                    }`}
-                  >
-                    <div
-                      className={`w-4 h-4 rounded border flex items-center justify-center ${
-                        factors.includes(col)
-                          ? 'border-emerald-500 bg-emerald-500'
-                          : 'border-slate-500'
-                      }`}
-                    >
-                      {factors.includes(col) && <CheckSquare size={12} className="text-white" />}
-                    </div>
-                    <span
-                      className={`text-sm font-medium ${factors.includes(col) ? 'text-white' : 'text-slate-400'}`}
-                    >
-                      {col}{' '}
-                      {isOutcome && <span className="text-xs text-blue-400 ml-1">(Outcome)</span>}
-                    </span>
-                  </button>
+                  <ColumnCard
+                    key={`factor-${col.name}`}
+                    column={col}
+                    role="factor"
+                    selected={factors.includes(col.name)}
+                    disabled={isOutcomeCol}
+                    disabledReason="Already selected as outcome"
+                    alias={columnAliases?.[col.name]}
+                    onSelect={() => toggleFactor(col.name)}
+                    onRename={onColumnRename}
+                  />
                 );
               })}
             </div>
+
+            {/* Show all toggle for factors */}
+            {hasRichData && nonNumericColumns.length < columns.length && (
+              <button
+                onClick={() => setShowAllFactors(!showAllFactors)}
+                className="flex items-center gap-1.5 mt-2 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                type="button"
+                data-testid="show-all-factors"
+              >
+                <Eye size={12} />
+                {showAllFactors
+                  ? `Show categorical/date only (${nonNumericColumns.length})`
+                  : `Show all columns (${columns.length})`}
+              </button>
+            )}
           </div>
 
           {/* Specification Limits (Optional) */}

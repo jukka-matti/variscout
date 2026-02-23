@@ -135,11 +135,9 @@ agents/
 playwright-report/
 test-results/
 
+# Vite temp files
+vite.config.ts.timestamp*
+
 # Build output
 site/
 
-# Generated production manifests (Excel Add-in)
-*.prod.xml
-
-# Office Add-in dev certificates
-.cert/

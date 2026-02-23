@@ -75,20 +75,6 @@ export {
   type UseSelectionStateOptions,
   type UseSelectionStateReturn,
 } from './hooks';
-export {
-  useMultiSelection,
-  type UseMultiSelectionOptions,
-  type UseMultiSelectionResult,
-  type BrushExtent,
-} from './hooks/useMultiSelection';
-
-// Interaction styles
-export {
-  interactionStyles,
-  getInteractionClass,
-  interactionInlineStyles,
-  hoverOpacity,
-} from './styles/interactionStyles';
 
 // Accessibility utilities
 export {
@@ -113,13 +99,7 @@ export {
   type TickLabelStyle,
 } from './components/ChartAxis';
 
-export {
-  SpecLimitLine,
-  VerticalSpecLimitLine,
-  type SpecLimitLineProps,
-  type VerticalSpecLimitLineProps,
-  type LimitType,
-} from './components/SpecLimitLine';
+export { SpecLimitLine, type SpecLimitLineProps, type LimitType } from './components/SpecLimitLine';
 
 // Branding
 export { default as ChartSignature, type ChartSignatureProps } from './ChartSignature';

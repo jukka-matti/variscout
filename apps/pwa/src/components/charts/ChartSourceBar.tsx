@@ -3,7 +3,7 @@ import {
   ChartSourceBar as ChartSourceBarBase,
   getSourceBarHeight as getSourceBarHeightBase,
 } from '@variscout/charts';
-import { EDITION_COLORS } from '@variscout/core';
+import { BRANDING_COLORS } from '@variscout/core';
 import { shouldShowBranding, getBrandingText } from '../../lib/edition';
 
 interface ChartSourceBarProps {
@@ -33,7 +33,7 @@ const ChartSourceBar: React.FC<ChartSourceBarProps> = ({ width, top, n, left = 0
       left={left}
       n={n}
       brandingText={brandingText}
-      accentColor={EDITION_COLORS.variscout}
+      accentColor={BRANDING_COLORS.variscout}
     />
   );
 };

@@ -98,17 +98,17 @@ Both the PWA and Azure App include an inline **Data Table Editor** for correctin
 
 ### Features
 
-| Feature | Description |
-|---------|-------------|
-| **Cell editing** | Click any cell to edit its value inline |
-| **Keyboard navigation** | Tab (next cell), Shift+Tab (previous), Enter (save + move down), Escape (cancel) |
-| **Add row** | Adds a new empty row at the bottom |
-| **Delete row** | Trash icon on each row |
-| **Spec status** | Outcome column shows PASS/USL/LSL badges |
-| **Excluded row indicators** | Amber warning icon with hover tooltip |
-| **Control violation indicators** | Red icon for UCL/LCL and Nelson Rule violations (Azure) |
-| **Column aliases** | Displays renamed column headers (Azure) |
-| **Pagination** | Automatic for datasets > 500 rows |
+| Feature                          | Description                                                                      |
+| -------------------------------- | -------------------------------------------------------------------------------- |
+| **Cell editing**                 | Click any cell to edit its value inline                                          |
+| **Keyboard navigation**          | Tab (next cell), Shift+Tab (previous), Enter (save + move down), Escape (cancel) |
+| **Add row**                      | Adds a new empty row at the bottom                                               |
+| **Delete row**                   | Trash icon on each row                                                           |
+| **Spec status**                  | Outcome column shows PASS/USL/LSL badges                                         |
+| **Excluded row indicators**      | Amber warning icon with hover tooltip                                            |
+| **Control violation indicators** | Red icon for UCL/LCL and Nelson Rule violations (Azure)                          |
+| **Column aliases**               | Displays renamed column headers (Azure)                                          |
+| **Pagination**                   | Automatic for datasets > 500 rows                                                |
 
 ### Batch Save Workflow
 

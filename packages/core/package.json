@@ -8,7 +8,6 @@
     "./stats": "./src/stats.ts",
     "./parser": "./src/parser.ts",
     "./export": "./src/export.ts",
-    "./edition": "./src/edition.ts",
     "./tier": "./src/tier.ts",
     "./navigation": "./src/navigation.ts",
     "./glossary": "./src/glossary/index.ts",
@@ -26,6 +25,6 @@
     "@types/d3": "^7.4.3",
     "@types/papaparse": "^5.5.2",
     "typescript": "^5.5.2",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.18"
   }
 }

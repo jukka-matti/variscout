@@ -78,16 +78,10 @@ export {
   calculateKDE,
 } from './stats';
 
-// Matrix utilities (for advanced use)
-export type { Matrix } from './matrix';
-export { transpose, multiply, inverse, solve } from './matrix';
-
 // Tier (Azure Marketplace multi-tier licensing) — primary module
 export type { LicenseTier, TierLimits, ChannelLimitResult } from './tier';
 export {
-  TIER_LIMITS,
   CHANNEL_WARNING_THRESHOLD,
-  DEFAULT_TIER,
   configureTier,
   getTier,
   isPaidTier,
@@ -104,16 +98,6 @@ export {
   getBrandingText,
   getSignatureText,
 } from './tier';
-
-// Edition (legacy — all functions deprecated, prefer tier.ts for new code)
-export type { Edition } from './edition';
-export {
-  EDITION_COLORS,
-  configureEdition,
-  getEdition,
-  isThemingEnabled,
-  tierToEdition,
-} from './edition';
 
 // Export utilities
 export { getSpecStatus, generateCSV, downloadCSV } from './export';
@@ -148,16 +132,11 @@ export {
 // Performance Module
 export {
   CPK_THRESHOLDS,
-  CHANNEL_LIMITS,
   getChannelHealth,
   calculateChannelStats,
   calculateChannelPerformance,
   sortChannels,
-  filterChannelsByHealth,
-  getChannelsNeedingAttention,
   getWorstChannels,
-  getBestChannels,
-  validateThresholds,
   // Control limits for capability metrics
   calculateCapabilityControlLimits,
   getCapabilityControlStatus,
@@ -178,17 +157,13 @@ export type {
 } from './navigation';
 
 export {
-  generateFilterId,
-  getFilterLabel,
   filterStackToFilters,
   createFilterAction,
-  findFilterIndex,
   popFilterStackTo,
   popFilterStack,
   pushFilterStack,
   shouldToggleFilter,
   filterStackToBreadcrumbs,
-  initialNavigationState,
   VARIATION_THRESHOLDS,
   getVariationImpactLevel,
   getVariationInsight,
@@ -210,7 +185,6 @@ export type {
 export {
   calculateDrillVariation,
   calculateFactorVariations,
-  calculateCategoryContributions,
   calculateCategoryTotalSS,
   getMaxCategoryContribution,
   getCategoryStats,
@@ -227,9 +201,7 @@ export {
 export {
   filtersToSearchParams,
   searchParamsToFilters,
-  buildShareableUrl,
   updateUrlWithFilters,
-  getFiltersFromUrl,
   isEmbedMode,
 } from './urlParams';
 

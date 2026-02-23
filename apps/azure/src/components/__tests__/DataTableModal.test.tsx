@@ -82,13 +82,7 @@ describe('Azure DataTableModal', () => {
   it('passes control violations to DataTableBase', () => {
     const violations = new Map([[0, ['Special Cause: Above UCL']]]);
 
-    render(
-      <DataTableModal
-        isOpen={true}
-        onClose={() => {}}
-        controlViolations={violations}
-      />
-    );
+    render(<DataTableModal isOpen={true} onClose={() => {}} controlViolations={violations} />);
 
     expect(screen.getByTitle('Special Cause: Above UCL')).toBeInTheDocument();
   });

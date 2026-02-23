@@ -9,4 +9,4 @@ const MindmapWindow: React.FC = () => (
 );
 
 export default MindmapWindow;
-export { openMindmapPopout, updateMindmapPopout } from '@variscout/ui';
+export { openMindmapPopout } from '@variscout/ui';
