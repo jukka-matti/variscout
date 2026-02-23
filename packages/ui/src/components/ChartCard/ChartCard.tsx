@@ -47,7 +47,7 @@ export interface ChartCardProps {
  *   id="ichart-card"
  *   chartId="ichart"
  *   title={<><Activity /> I-Chart</>}
- *   controls={<OutcomeSelector />}
+ *   controls={<FactorSelector />}
  *   onCopy={handleCopy}
  *   onMaximize={handleMaximize}
  * >

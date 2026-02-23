@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { Editor } from '../Editor';
 import * as DataContextModule from '../../context/DataContext';
 import * as StorageModule from '../../services/storage';
@@ -24,6 +24,15 @@ vi.mock('../../components/MindmapWindow', () => ({
 
 vi.mock('../../components/data/ManualEntry', () => ({
   default: () => <div data-testid="manual-entry">ManualEntry</div>,
+}));
+
+vi.mock('../../components/data/PasteScreen', () => ({
+  default: ({ onAnalyze, onCancel }: any) => (
+    <div data-testid="paste-screen">
+      <button onClick={() => onAnalyze('Weight\tMachine\n10\tA')}>Analyze</button>
+      <button onClick={onCancel}>Cancel</button>
+    </div>
+  ),
 }));
 
 vi.mock('../../components/WhatIfPage', () => ({
@@ -281,15 +290,14 @@ describe('Editor', () => {
     expect(saveButton).toBeDisabled();
   });
 
-  it('shows outcome selector when data is loaded but no outcome selected', () => {
+  it('shows ColumnMapping when data is loaded but no outcome selected', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       filteredData: [{ Weight: 10, Machine: 'A' }],
       outcome: null,
     });
 
-    expect(screen.getByText('Configure Your Analysis')).toBeInTheDocument();
-    expect(screen.getByLabelText('Select outcome variable')).toBeInTheDocument();
+    expect(screen.getByTestId('column-mapping')).toBeInTheDocument();
   });
 
   it('shows Dashboard when data is loaded and outcome selected', () => {
@@ -321,5 +329,28 @@ describe('Editor', () => {
     expect(screen.getByText('Bottleneck')).toBeInTheDocument();
     expect(screen.getByText('Coffee roasting temperature data')).toBeInTheDocument();
     expect(screen.getByText('Production bottleneck analysis')).toBeInTheDocument();
+  });
+
+  it('shows ColumnMapping after paste analyze', async () => {
+    renderEditor();
+
+    fireEvent.click(screen.getByText('Paste Data'));
+
+    // PasteScreen renders
+    expect(screen.getByTestId('paste-screen')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Analyze'));
+    });
+
+    expect(screen.getByTestId('column-mapping')).toBeInTheDocument();
+  });
+
+  it('shows ColumnMapping after sample load', () => {
+    renderEditor();
+
+    fireEvent.click(screen.getByTestId('sample-coffee'));
+
+    expect(screen.getByTestId('column-mapping')).toBeInTheDocument();
   });
 });

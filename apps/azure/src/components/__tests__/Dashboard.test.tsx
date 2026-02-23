@@ -68,6 +68,7 @@ vi.mock('@variscout/ui', () => ({
   filterContextBarAzureColorScheme: {},
   BoxplotDisplayToggle: () => <div data-testid="boxplot-display-toggle">Display Toggle</div>,
   boxplotDisplayToggleAzureColorScheme: {},
+  AnnotationContextMenu: () => null,
   HelpTooltip: () => null,
   useGlossary: () => ({ getTerm: () => undefined }),
 }));
@@ -102,6 +103,27 @@ vi.mock('../../hooks', () => ({
     removeFilter: vi.fn(),
     handleDrillDown: vi.fn(),
     handleChartTitleChange: vi.fn(),
+    lastAdvancedFactor: null,
+  }),
+}));
+
+// Mock @variscout/hooks
+vi.mock('@variscout/hooks', () => ({
+  useAnnotations: () => ({
+    hasAnnotations: false,
+    boxplotHighlights: {},
+    paretoHighlights: {},
+    boxplotAnnotations: [],
+    paretoAnnotations: [],
+    ichartAnnotations: [],
+    contextMenu: { isOpen: false, categoryKey: '', chartType: 'boxplot', position: { x: 0, y: 0 } },
+    setHighlight: vi.fn(),
+    createAnnotation: vi.fn(),
+    createIChartAnnotation: vi.fn(),
+    setIChartAnnotations: vi.fn(),
+    closeContextMenu: vi.fn(),
+    clearAnnotations: vi.fn(),
+    openContextMenu: vi.fn(),
   }),
 }));
 

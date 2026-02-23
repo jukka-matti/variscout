@@ -10,13 +10,13 @@ import { openMindmapPopout } from '../components/MindmapWindow';
 import ManualEntry, { type ManualEntryConfig } from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
-import OutcomeSelector from '../components/editor/OutcomeSelector';
 import { ColumnMapping } from '@variscout/ui';
 import { useControlViolations } from '../hooks/useControlViolations';
 import { useDataMerge } from '../hooks/useDataMerge';
 import { parseText, detectColumns, validateData, detectWideFormat } from '@variscout/core';
 import { downloadCSV } from '@variscout/core';
 import { SAMPLES } from '@variscout/data';
+import type { SampleDataset } from '@variscout/data';
 import {
   Upload,
   ArrowLeft,
@@ -244,6 +244,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     setIsParsingFile(true);
     try {
       await handleFileUpload(e);
+      setIsMapping(true);
     } finally {
       setIsParsingFile(false);
     }
@@ -328,6 +329,15 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     setPasteError(null);
   }, []);
 
+  // Handle sample load → show ColumnMapping for review
+  const handleLoadSample = useCallback(
+    (sample: SampleDataset) => {
+      loadSample(sample);
+      setIsMapping(true);
+    },
+    [loadSample]
+  );
+
   // Handle column mapping confirm — apply user's selections and start analysis
   const handleMappingConfirm = useCallback(
     (
@@ -346,7 +356,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   // Handle column mapping cancel — clear data and return to empty state
   const handleMappingCancel = useCallback(() => {
     setRawData([]);
-    setOutcome(null as any);
+    setOutcome(null);
     setFactors([]);
     setDataFilename(null);
     setDataQualityReport(null);
@@ -583,7 +593,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                       <button
                         key={sample.urlKey}
                         data-testid={`sample-${sample.urlKey}`}
-                        onClick={() => loadSample(sample)}
+                        onClick={() => handleLoadSample(sample)}
                         className="text-left p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg transition-all group"
                       >
                         <span className="text-sm font-medium text-white group-hover:text-blue-300 block truncate">
@@ -643,25 +653,17 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             />
           </div>
         ) : (
-          // Data loaded but no outcome selected — inline column selector
-          <div className="flex-1 flex flex-col items-center justify-center p-8">
-            <div className="max-w-md w-full">
-              <h3 className="text-xl font-semibold text-white mb-2 text-center">
-                Configure Your Analysis
-              </h3>
-              <p className="text-slate-400 mb-6 text-center">
-                Data loaded with {rawData.length} rows. Select an outcome variable to begin
-                analysis.
-              </p>
-              <OutcomeSelector
-                rawData={rawData}
-                onStart={(selectedOutcome, selectedFactors) => {
-                  setOutcome(selectedOutcome);
-                  setFactors(selectedFactors);
-                }}
-              />
-            </div>
-          </div>
+          // Data loaded but no outcome selected — column mapping fallback
+          <ColumnMapping
+            availableColumns={Object.keys(rawData[0] || {})}
+            initialOutcome={outcome}
+            initialFactors={factors}
+            datasetName={dataFilename || 'Data'}
+            onConfirm={handleMappingConfirm}
+            onCancel={handleMappingCancel}
+            dataQualityReport={dataQualityReport}
+            maxFactors={6}
+          />
         )}
       </div>
     </div>
