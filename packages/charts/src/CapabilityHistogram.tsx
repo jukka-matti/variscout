@@ -7,7 +7,8 @@ import { withParentSize } from '@visx/responsive';
 import { bin } from 'd3';
 import type { CapabilityHistogramProps } from './types';
 import ChartSourceBar from './ChartSourceBar';
-import { chartColors, chromeColors } from './colors';
+import { chartColors } from './colors';
+import { useChartTheme } from './useChartTheme';
 import { useChartLayout } from './hooks';
 
 /**
@@ -30,6 +31,9 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
     chartType: 'histogram',
     showBranding,
   });
+
+  const { chrome, colors, mode } = useChartTheme();
+  const isExecutive = mode === 'executive';
 
   const bins = useMemo(() => {
     if (data.length === 0) return [];
@@ -108,7 +112,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               y={barY}
               width={Math.max(0, barWidth)}
               height={Math.max(0, barHeight)}
-              fill={withinSpec ? chartColors.pass : chartColors.fail}
+              fill={withinSpec ? colors.pass : colors.fail}
               opacity={0.8}
               rx={2}
             />
@@ -121,7 +125,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
             <Line
               from={{ x: xScale(specs.lsl), y: 0 }}
               to={{ x: xScale(specs.lsl), y: height }}
-              stroke={chartColors.spec}
+              stroke={colors.spec}
               strokeWidth={2}
               strokeDasharray="4,4"
             />
@@ -129,7 +133,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               x={xScale(specs.lsl)}
               y={-5}
               textAnchor="middle"
-              fill={chartColors.spec}
+              fill={colors.spec}
               fontSize={fonts.statLabel}
               fontWeight="bold"
             >
@@ -144,7 +148,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
             <Line
               from={{ x: xScale(specs.usl), y: 0 }}
               to={{ x: xScale(specs.usl), y: height }}
-              stroke={chartColors.spec}
+              stroke={colors.spec}
               strokeWidth={2}
               strokeDasharray="4,4"
             />
@@ -152,7 +156,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               x={xScale(specs.usl)}
               y={-5}
               textAnchor="middle"
-              fill={chartColors.spec}
+              fill={colors.spec}
               fontSize={fonts.statLabel}
               fontWeight="bold"
             >
@@ -167,7 +171,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
             <Line
               from={{ x: xScale(specs.target), y: 0 }}
               to={{ x: xScale(specs.target), y: height }}
-              stroke={chartColors.target}
+              stroke={colors.target}
               strokeWidth={2}
               strokeDasharray="6,3"
             />
@@ -175,7 +179,7 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
               x={xScale(specs.target)}
               y={-5}
               textAnchor="middle"
-              fill={chartColors.target}
+              fill={colors.target}
               fontSize={fonts.statLabel}
               fontWeight="bold"
             >
@@ -188,14 +192,14 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
         <Line
           from={{ x: xScale(mean), y: 0 }}
           to={{ x: xScale(mean), y: height }}
-          stroke={chartColors.meanAlt}
+          stroke={colors.meanAlt}
           strokeWidth={2}
         />
         <text
           x={xScale(mean)}
           y={height + 25}
           textAnchor="middle"
-          fill={chartColors.meanAlt}
+          fill={colors.meanAlt}
           fontSize={fonts.statLabel}
           fontWeight="bold"
         >
@@ -206,14 +210,16 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
         <AxisLeft
           scale={yScale}
           numTicks={parentWidth < 300 ? 3 : 5}
-          stroke={chromeColors.axisSecondary}
-          tickStroke={chromeColors.axisSecondary}
+          stroke={isExecutive ? 'transparent' : chrome.axisSecondary}
+          tickStroke={chrome.axisSecondary}
           tickLabelProps={() => ({
-            fill: chromeColors.labelSecondary,
+            fill: chrome.labelSecondary,
             fontSize: fonts.tickLabel,
             textAnchor: 'end',
             dy: '0.33em',
             dx: -4,
+            fontFamily: isExecutive ? 'Inter, sans-serif' : 'monospace',
+            fontWeight: isExecutive ? 500 : 400,
           })}
         />
 
@@ -222,13 +228,15 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
           scale={xScale}
           top={height}
           numTicks={parentWidth < 300 ? 4 : 6}
-          stroke={chromeColors.axisSecondary}
-          tickStroke={chromeColors.axisSecondary}
+          stroke={chrome.axisSecondary}
+          tickStroke={chrome.axisSecondary}
           tickLabelProps={() => ({
-            fill: chromeColors.labelSecondary,
+            fill: chrome.labelSecondary,
             fontSize: fonts.tickLabel,
             textAnchor: 'middle',
             dy: 4,
+            fontFamily: isExecutive ? 'Inter, sans-serif' : undefined,
+            fontWeight: isExecutive ? 500 : 400,
           })}
         />
       </Group>

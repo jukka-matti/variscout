@@ -9,7 +9,8 @@ import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import type { RegressionResult } from '@variscout/core';
 import type { BaseChartProps, SpecLimits } from './types';
 import ChartSourceBar from './ChartSourceBar';
-import { chartColors, chromeColors } from './colors';
+import { chartColors } from './colors';
+import { useChartTheme } from './useChartTheme';
 import { useChartLayout, useChartTooltip } from './hooks';
 import { interactionStyles } from './styles/interactionStyles';
 import { getScatterPointA11yProps } from './utils/accessibility';
@@ -89,6 +90,9 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
     chartType: 'scatter',
     showBranding,
   });
+
+  const { chrome, colors, mode } = useChartTheme();
+  const isExecutive = mode === 'executive';
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtPoint, hideTooltip } =
     useChartTooltip<TooltipData>();
@@ -177,16 +181,18 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
           <GridRows
             scale={yScale}
             width={width}
-            stroke={chromeColors.tooltipBorder}
+            stroke={chrome.tooltipBorder}
             strokeOpacity={0.5}
             numTicks={5}
+            strokeDasharray={isExecutive ? '2,4' : undefined}
           />
           <GridColumns
             scale={xScale}
             height={height}
-            stroke={chromeColors.tooltipBorder}
+            stroke={chrome.tooltipBorder}
             strokeOpacity={0.3}
             numTicks={5}
+            strokeDasharray={isExecutive ? '2,4' : undefined}
           />
 
           {/* Spec limit lines */}
@@ -196,7 +202,7 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
               x2={width}
               y1={yScale(specs.usl)}
               y2={yScale(specs.usl)}
-              stroke={chartColors.spec}
+              stroke={colors.spec}
               strokeWidth={1.5}
               strokeDasharray="6,3"
             />
@@ -207,7 +213,7 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
               x2={width}
               y1={yScale(specs.lsl)}
               y2={yScale(specs.lsl)}
-              stroke={chartColors.warning}
+              stroke={colors.warning}
               strokeWidth={1.5}
               strokeDasharray="6,3"
             />
@@ -219,7 +225,7 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
               data={quadraticCurve}
               x={d => xScale(d.x)}
               y={d => yScale(d.y)}
-              stroke={chartColors.quadratic}
+              stroke={colors.quadratic}
               strokeWidth={2}
             />
           )}
@@ -230,7 +236,7 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
               data={linearLine}
               x={d => xScale(d.x)}
               y={d => yScale(d.y)}
-              stroke={recommendedFit === 'quadratic' ? chromeColors.labelMuted : chartColors.linear}
+              stroke={recommendedFit === 'quadratic' ? chrome.labelMuted : colors.linear}
               strokeWidth={recommendedFit === 'quadratic' ? 1 : 2}
               strokeDasharray={recommendedFit === 'quadratic' ? '4,4' : undefined}
             />
@@ -242,10 +248,11 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
               key={i}
               cx={xScale(p.x)}
               cy={yScale(p.y)}
-              r={4}
-              fill={chartColors.pass}
-              stroke="#fff"
+              r={isExecutive ? 2.5 : 4}
+              fill={colors.pass}
+              stroke={isExecutive ? 'none' : '#fff'}
               strokeWidth={1}
+              fillOpacity={isExecutive ? 0.6 : 1}
               className={interactionStyles.clickable}
               onMouseMove={e => showTooltipAtPoint(e, { x: p.x, y: p.y, index: i })}
               onMouseLeave={hideTooltip}
@@ -258,12 +265,12 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
             x={width - 8}
             y={16}
             textAnchor="end"
-            fill={chromeColors.labelSecondary}
+            fill={chrome.labelSecondary}
             fontSize={fonts.statLabel}
           >
             R² = {rSquared.toFixed(2)}
             {showStars && parentWidth > 200 && (
-              <tspan fill={chartColors.star} dx={6}>
+              <tspan fill={colors.star} dx={6}>
                 {getStars(strengthRating)}
               </tspan>
             )}
@@ -272,20 +279,22 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
           {/* Y Axis */}
           <AxisLeft
             scale={yScale}
-            stroke={chromeColors.axisSecondary}
-            tickStroke={chromeColors.axisSecondary}
+            stroke={isExecutive ? 'transparent' : chrome.axisSecondary}
+            tickStroke={chrome.axisSecondary}
             numTicks={parentWidth < 300 ? 4 : 6}
             tickLabelProps={() => ({
-              fill: chromeColors.labelSecondary,
+              fill: chrome.labelSecondary,
               fontSize: fonts.tickLabel,
               textAnchor: 'end',
               dy: '0.33em',
               dx: -4,
+              fontFamily: isExecutive ? 'Inter, sans-serif' : 'monospace',
+              fontWeight: isExecutive ? 500 : 400,
             })}
             label={yAxisLabel && parentWidth > 250 ? yAxisLabel : ''}
             labelOffset={parentWidth < 400 ? 28 : 36}
             labelProps={{
-              fill: chromeColors.labelSecondary,
+              fill: chrome.labelSecondary,
               fontSize: fonts.axisLabel,
               textAnchor: 'middle',
             }}
@@ -295,19 +304,21 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
           <AxisBottom
             scale={xScale}
             top={height}
-            stroke={chromeColors.axisSecondary}
-            tickStroke={chromeColors.axisSecondary}
+            stroke={isExecutive ? 'transparent' : chrome.axisSecondary}
+            tickStroke={chrome.axisSecondary}
             numTicks={parentWidth < 300 ? 4 : 6}
             tickLabelProps={() => ({
-              fill: chromeColors.labelSecondary,
+              fill: chrome.labelSecondary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 4,
+              fontFamily: isExecutive ? 'Inter, sans-serif' : undefined,
+              fontWeight: isExecutive ? 500 : 400,
             })}
             label={xAxisLabel && parentWidth > 250 ? xAxisLabel : ''}
             labelOffset={parentWidth < 400 ? 24 : 32}
             labelProps={{
-              fill: chromeColors.labelSecondary,
+              fill: chrome.labelSecondary,
               fontSize: fonts.axisLabel,
               textAnchor: 'middle',
             }}
@@ -333,9 +344,9 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
           top={tooltipTop}
           style={{
             ...defaultStyles,
-            background: chromeColors.tooltipBg,
-            border: `1px solid ${chromeColors.tooltipBorder}`,
-            color: chromeColors.tooltipText,
+            background: chrome.tooltipBg,
+            border: `1px solid ${chrome.tooltipBorder}`,
+            color: chrome.tooltipText,
             fontSize: fonts.tooltipText,
             padding: '8px 12px',
           }}

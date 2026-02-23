@@ -4,3 +4,42 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ========================================
+   Azure-specific: Force Executive Style
+   ======================================== */
+
+:root {
+  /* Force data-chart-mode to executive */
+  --chart-mode: 'executive';
+}
+
+/* Override chart/app background to pure white always */
+:root,
+[data-theme='dark'],
+[data-theme='light'] {
+  --surface-primary: 255 255 255;
+  /* white */
+  --surface-secondary: 248 250 252;
+  /* slate-50 */
+  --surface-tertiary: 241 245 249;
+  /* slate-100 */
+}
+
+/* Force Inter font for consulting grade look */
+/* Note: Assuming Inter is available via system or loaded elsewhere.
+   If not, we should import it. For now, rely on stack. */
+:root {
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  letter-spacing: -0.01em;
+  /* Slight tightening for modern feel */
+}
+
+/* Ensure data-chart-mode attribute is set (can be done via JS, but here we set default) */
+html {
+  font-family: 'Inter', system-ui, sans-serif;
+}

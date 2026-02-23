@@ -76,6 +76,67 @@ export const operatorColors = [
   '#84cc16', // lime-500
 ] as const;
 
+// Executive palette - Consulting grade (clean, minimal, authoritative)
+export const executiveColors = {
+  // Status colors - Muted, professional tones
+  pass: '#10b981', // emerald-500 - refined green
+  fail: '#ef4444', // red-500 - standard red (kept for clarity)
+  warning: '#f59e0b', // amber-500
+  violation: '#ea580c', // orange-600 - deep orange
+
+  // Reference lines & Data
+  mean: '#0f172a', // slate-900 - nearly black for authority
+  meanAlt: '#7c3aed', // violet-600
+  target: '#10b981', // emerald-500
+  spec: '#94a3b8', // slate-400 - subtle specs (don't distract)
+  control: '#64748b', // slate-500 - subtle control limits
+
+  // Selection
+  selected: '#3b82f6', // blue-500
+  selectedBorder: '#1d4ed8', // blue-700
+
+  // Regression
+  linear: '#0f172a', // slate-900
+  quadratic: '#475569', // slate-600
+
+  // Pareto
+  cumulative: '#475569', // slate-600 - distinct from bars
+  threshold80: '#94a3b8', // slate-400
+
+  // Special
+  star: '#fbbf24', // amber-400
+} as const;
+
+// Executive Chrome - Light mode only (Executive reports are rarely dark mode)
+export const executiveChrome = {
+  // Backgrounds
+  tooltipBg: '#ffffff',
+  gridLine: '#e2e8f0', // slate-200 - very subtle
+  barBackground: '#cbd5e1', // slate-300
+
+  // Borders
+  tooltipBorder: '#e2e8f0', // slate-200
+
+  // Text
+  labelPrimary: '#334155', // slate-700
+  labelSecondary: '#64748b', // slate-500
+  labelMuted: '#94a3b8', // slate-400
+  tooltipText: '#0f172a', // slate-900
+
+  // Strokes
+  axisPrimary: '#cbd5e1', // slate-300 - subtle axis
+  axisSecondary: '#e2e8f0', // slate-200
+  whisker: '#64748b', // slate-500
+  dataLine: '#64748b', // slate-500
+  stageDivider: '#94a3b8', // slate-400
+  pointStroke: '#ffffff', // white stroke for separation
+
+  // Fills
+  boxDefault: '#94a3b8', // slate-400
+  boxBorder: '#475569', // slate-600
+  ciband: '#e2e8f0', // slate-200
+} as const;
+
 // Type exports for type safety
 export type ChartColor = keyof typeof chartColors;
 export type ChromeColor = keyof typeof chromeColors;
@@ -118,9 +179,22 @@ export type ChromeColorValues = {
 /**
  * Get theme-aware chrome colors
  * @param isDark - Whether dark theme is active (default: true for backwards compatibility)
+ * @param mode - 'technical' (default) or 'executive'
  */
-export function getChromeColors(isDark: boolean = true): ChromeColorValues {
+export function getChromeColors(
+  isDark: boolean = true,
+  mode: 'technical' | 'executive' = 'technical'
+): ChromeColorValues {
+  if (mode === 'executive') return executiveChrome;
   return isDark ? chromeColors : chromeColorsLight;
+}
+
+/**
+ * Get data colors
+ * @param mode - 'technical' (default) or 'executive'
+ */
+export function getChartColors(mode: 'technical' | 'executive' = 'technical') {
+  return mode === 'executive' ? executiveColors : chartColors;
 }
 
 /**

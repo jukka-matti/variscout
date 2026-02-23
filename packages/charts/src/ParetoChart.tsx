@@ -8,17 +8,18 @@ import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import type { ParetoChartProps, ParetoDataPoint } from './types';
 import ChartSourceBar from './ChartSourceBar';
-import { chartColors, chromeColors } from './colors';
+import { chartColors } from './colors';
+import { useChartTheme } from './useChartTheme';
 import { useChartLayout, useChartTooltip, useSelectionState } from './hooks';
 import { interactionStyles } from './styles/interactionStyles';
 import { getBarA11yProps, getInteractiveA11yProps } from './utils/accessibility';
 
 /** Map highlight color name to hex fill color */
-const highlightFillColors: Record<string, string> = {
-  red: chartColors.fail,
-  amber: chartColors.warning,
-  green: chartColors.pass,
-};
+const getHighlightFillColors = (colors: Record<string, string>) => ({
+  red: colors.fail,
+  amber: colors.warning,
+  green: colors.pass,
+});
 
 /**
  * Pareto Chart - Props-based version
@@ -48,6 +49,10 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
     chartType: 'pareto',
     showBranding,
   });
+
+  const { chrome, colors, mode } = useChartTheme();
+  const isExecutive = mode === 'executive';
+  const highlightFillColors = getHighlightFillColors(colors);
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
     useChartTooltip<ParetoDataPoint>();
@@ -84,7 +89,13 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
         aria-label="Pareto chart: category frequency analysis"
       >
         <Group left={margin.left} top={margin.top}>
-          <GridRows scale={yScale} width={width} stroke={chromeColors.gridLine} />
+          <GridRows
+            scale={yScale}
+            width={width}
+            stroke={chrome.gridLine}
+            strokeDasharray={isExecutive ? '2,4' : undefined}
+            strokeOpacity={isExecutive ? 0.5 : 1}
+          />
 
           {/* Ghost bars - comparison data (rendered behind regular bars) */}
           {comparisonData &&
@@ -98,10 +109,10 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
                   y={yScale(expectedValue)}
                   width={xScale.bandwidth()}
                   height={height - yScale(expectedValue)}
-                  fill={chromeColors.axisSecondary}
+                  fill={chrome.axisSecondary}
                   opacity={0.3}
                   rx={4}
-                  stroke={chromeColors.axisPrimary}
+                  stroke={chrome.axisPrimary}
                   strokeWidth={1}
                   strokeDasharray="4,2"
                   pointerEvents="none"
@@ -121,8 +132,8 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
                 highlightedCategories?.[d.key]
                   ? highlightFillColors[highlightedCategories[d.key]]
                   : isSelected(d.key)
-                    ? chartColors.selected
-                    : chromeColors.boxDefault
+                    ? colors.selected
+                    : chrome.boxDefault
               }
               fillOpacity={highlightedCategories?.[d.key] ? 0.7 : 1}
               rx={4}
@@ -151,7 +162,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             x2={width}
             y1={yPercScale(80)}
             y2={yPercScale(80)}
-            stroke={chartColors.threshold80}
+            stroke={colors.threshold80}
             strokeWidth={1}
             strokeDasharray="4,4"
             opacity={0.8}
@@ -159,7 +170,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
           <text
             x={width - 5}
             y={yPercScale(80) - 5}
-            fill={chartColors.threshold80}
+            fill={colors.threshold80}
             fontSize={fonts.statLabel}
             textAnchor="end"
           >
@@ -171,7 +182,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             data={data}
             x={d => (xScale(d.key) || 0) + xScale.bandwidth() / 2}
             y={d => yPercScale(d.cumulativePercentage)}
-            stroke={chartColors.cumulative}
+            stroke={colors.cumulative}
             strokeWidth={2}
           />
           {data.map((d, i) => (
@@ -180,8 +191,8 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
               cx={(xScale(d.key) || 0) + xScale.bandwidth() / 2}
               cy={yPercScale(d.cumulativePercentage)}
               r={3}
-              fill={chartColors.cumulative}
-              stroke={chromeColors.pointStroke}
+              fill={colors.cumulative}
+              stroke={chrome.pointStroke}
               strokeWidth={1}
             />
           ))}
@@ -189,15 +200,16 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
           {/* Left Y-Axis (Count) */}
           <AxisLeft
             scale={yScale}
-            stroke={chromeColors.axisPrimary}
-            tickStroke={chromeColors.axisPrimary}
+            stroke={isExecutive ? 'transparent' : chrome.axisPrimary}
+            tickStroke={chrome.axisPrimary}
             tickLabelProps={() => ({
-              fill: chromeColors.labelPrimary,
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'end',
               dx: -4,
               dy: 3,
-              fontFamily: 'monospace',
+              fontFamily: isExecutive ? 'Inter, sans-serif' : 'monospace',
+              fontWeight: isExecutive ? 500 : 400,
             })}
           />
 
@@ -207,7 +219,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             y={height / 2}
             transform={`rotate(-90 ${parentWidth < 400 ? -25 : parentWidth < 768 ? -40 : -50} ${height / 2})`}
             textAnchor="middle"
-            fill={chromeColors.labelPrimary}
+            fill={chrome.labelPrimary}
             fontSize={fonts.axisLabel}
             fontWeight={500}
             onClick={onYAxisClick}
@@ -222,21 +234,23 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
           <AxisRight
             scale={yPercScale}
             left={width}
-            stroke={chromeColors.axisPrimary}
-            tickStroke={chromeColors.axisPrimary}
+            stroke={isExecutive ? 'transparent' : chrome.axisPrimary}
+            tickStroke={chrome.axisPrimary}
             label={parentWidth > 400 ? 'Cumulative %' : '%'}
             labelProps={{
-              fill: chromeColors.labelPrimary,
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dx: parentWidth < 400 ? 20 : 35,
             }}
             tickLabelProps={() => ({
-              fill: chromeColors.labelPrimary,
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'start',
               dx: 4,
               dy: 3,
+              fontFamily: isExecutive ? 'Inter, sans-serif' : 'monospace',
+              fontWeight: isExecutive ? 500 : 400,
             })}
           />
 
@@ -244,13 +258,15 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
           <AxisBottom
             top={height}
             scale={xScale}
-            stroke={chromeColors.axisPrimary}
-            tickStroke={chromeColors.axisPrimary}
+            stroke={chrome.axisPrimary}
+            tickStroke={chrome.axisPrimary}
             tickLabelProps={() => ({
-              fill: chromeColors.labelPrimary,
+              fill: chrome.labelPrimary,
               fontSize: fonts.tickLabel,
               textAnchor: 'middle',
               dy: 2,
+              fontFamily: isExecutive ? 'Inter, sans-serif' : undefined,
+              fontWeight: isExecutive ? 500 : 400,
             })}
           />
 
@@ -259,7 +275,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             x={width / 2}
             y={height + (parentWidth < 400 ? 30 : 40)}
             textAnchor="middle"
-            fill={chromeColors.labelPrimary}
+            fill={chrome.labelPrimary}
             fontSize={fonts.axisLabel}
             fontWeight={500}
             onClick={onXAxisClick}
@@ -290,9 +306,9 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
           top={margin.top + (tooltipTop ?? 0)}
           style={{
             ...defaultStyles,
-            backgroundColor: chromeColors.tooltipBg,
-            color: chromeColors.tooltipText,
-            border: `1px solid ${chromeColors.tooltipBorder}`,
+            backgroundColor: chrome.tooltipBg,
+            color: chrome.tooltipText,
+            border: `1px solid ${chrome.tooltipBorder}`,
             borderRadius: 6,
             padding: '8px 12px',
             fontSize: fonts.tooltipText,
