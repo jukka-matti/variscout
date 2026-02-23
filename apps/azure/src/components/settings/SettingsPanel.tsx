@@ -160,7 +160,49 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                     Show filter context on charts
                   </span>
                   <span className="text-xs text-slate-500">
-                    Include active filters when copying charts to clipboard
+                    Display active filter summary below chart headers
+                  </span>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={localDisplayOptions.showSpecs !== false}
+                  onChange={e =>
+                    setLocalDisplayOptions({
+                      ...localDisplayOptions,
+                      showSpecs: e.target.checked,
+                    })
+                  }
+                  className="mt-0.5 w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                />
+                <div>
+                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors block">
+                    Show specification limits on I-Chart
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    Display USL/LSL lines when spec limits are set
+                  </span>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={localDisplayOptions.showCpk !== false}
+                  onChange={e =>
+                    setLocalDisplayOptions({
+                      ...localDisplayOptions,
+                      showCpk: e.target.checked,
+                    })
+                  }
+                  className="mt-0.5 w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                />
+                <div>
+                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors block">
+                    Show Cpk values in stats
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    Display process capability index in the stats panel
                   </span>
                 </div>
               </label>

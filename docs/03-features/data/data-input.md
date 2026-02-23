@@ -73,7 +73,7 @@ USER CONFIRMS/ADJUSTS MAPPING (ColumnMapping component)
 LOAD INTO ANALYSIS
 ```
 
-The paste flow uses the same `parseText()` → `detectColumns()` → `ColumnMapping` pipeline as file upload. Tab and comma delimiters are auto-detected. The PWA HomeScreen also offers sample datasets as an alternative entry point.
+The paste flow uses the same `parseText()` → `detectColumns()` → `ColumnMapping` pipeline as file upload. Tab and comma delimiters are auto-detected. The only difference is `maxFactors`: PWA allows 3 factors, Azure allows 6. The PWA HomeScreen also offers sample datasets as an alternative entry point.
 
 The ColumnMapping component includes an optional collapsible **"Set Specification Limits"** section (Target, LSL, USL) at the bottom of the screen. It is collapsed by default. Users who already know their spec limits can expand it and enter values before proceeding to analysis — values auto-apply on blur and carry through to the dashboard.
 

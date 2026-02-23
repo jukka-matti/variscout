@@ -33,10 +33,24 @@ vi.mock('../../components/WhatIfPage', () => ({
 // ── Mock @variscout/core ──
 
 vi.mock('@variscout/core', () => ({
+  parseText: vi.fn(async () => [{ Weight: 10, Machine: 'A' }]),
+  detectColumns: vi.fn(() => ({ outcome: 'Weight', factors: ['Machine'] })),
+  detectWideFormat: vi.fn(() => ({ isWideFormat: false, channels: [] })),
   validateData: vi.fn(() => ({ isValid: true, errors: [], warnings: [] })),
   downloadCSV: vi.fn(),
   getNelsonRule2ViolationPoints: vi.fn(() => []),
   calculateStats: vi.fn(() => ({ mean: 10, ucl: 12, lcl: 8 })),
+}));
+
+// ── Mock @variscout/ui ──
+
+vi.mock('@variscout/ui', () => ({
+  ColumnMapping: ({ onConfirm, onCancel }: any) => (
+    <div data-testid="column-mapping">
+      <button onClick={() => onConfirm('Weight', ['Machine'])}>Confirm</button>
+      <button onClick={onCancel}>Cancel</button>
+    </div>
+  ),
 }));
 
 // ── Mock @variscout/data ──
@@ -142,7 +156,9 @@ const baseDataCtx = {
   setParetoAggregation: vi.fn(),
   setChartTitles: vi.fn(),
   setColumnAliases: vi.fn(),
+  setDisplayOptions: vi.fn(),
   saveProject: vi.fn(),
+  loadProject: vi.fn(() => Promise.resolve()),
   clearSelection: vi.fn(),
 };
 

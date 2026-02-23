@@ -131,7 +131,7 @@ CSV/EXCEL FILE          BROWSER                          SCREEN
 The app supports:
 
 - **CSV and Excel upload** — parsed entirely in-browser
-- **Copy-paste** — direct paste from spreadsheets
+- **Copy-paste** — paste from spreadsheets, auto-detected via `detectColumns()`, reviewed in ColumnMapping (same flow as PWA, with up to 6 factors)
 - **Manual entry** — type values directly
 - **Performance Mode** — analyze hundreds of measurement channels simultaneously
 

@@ -11,7 +11,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
   const [projects, setProjects] = useState<CloudProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterLocation, setFilterLocation] = useState<'all' | 'team' | 'personal'>('all');
 
   // Load projects on mount
   useEffect(() => {
@@ -30,12 +29,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
     }
   };
 
-  // Filter projects based on search and location
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesLocation = filterLocation === 'all' || project.location === filterLocation;
-    return matchesSearch && matchesLocation;
-  });
+  // Filter projects based on search
+  const filteredProjects = projects.filter(project =>
+    project.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -83,9 +80,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h2 className="text-2xl font-bold text-white">Analyses</h2>
-          <p className="text-slate-400 text-sm mt-1">
-            Manage your analyses across team and personal storage
-          </p>
+          <p className="text-slate-400 text-sm mt-1">Manage your saved analyses</p>
         </div>
         <div className="flex items-center gap-3">
           {getSyncStatusDisplay()}
@@ -111,23 +106,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
           />
-        </div>
-
-        {/* Location Filter */}
-        <div className="flex bg-slate-800 rounded-lg border border-slate-700 p-1">
-          {(['all', 'team', 'personal'] as const).map(loc => (
-            <button
-              key={loc}
-              onClick={() => setFilterLocation(loc)}
-              className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${
-                filterLocation === loc
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              {loc === 'all' ? 'All' : loc === 'team' ? 'Team' : 'Personal'}
-            </button>
-          ))}
         </div>
 
         {/* Refresh */}
@@ -175,9 +153,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
                 <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Name
                 </th>
-                <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden sm:table-cell">
-                  Location
-                </th>
                 <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden md:table-cell">
                   Modified
                 </th>
@@ -198,28 +173,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
                 >
                   <td className="px-6 py-4">
                     <div className="font-medium text-white">{project.name}</div>
-                    <div className="text-xs text-slate-500 sm:hidden mt-0.5">
-                      {project.location === 'team' ? 'Team' : 'Personal'} •{' '}
+                    <div className="text-xs text-slate-500 md:hidden mt-0.5">
                       {formatDate(project.modified)}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 hidden sm:table-cell">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium ${
-                        project.location === 'team'
-                          ? 'bg-blue-500/20 text-blue-400'
-                          : 'bg-slate-600/50 text-slate-300'
-                      }`}
-                    >
-                      {project.location === 'team' ? (
-                        <>
-                          <Cloud size={12} />
-                          Team
-                        </>
-                      ) : (
-                        'Personal'
-                      )}
-                    </span>
                   </td>
                   <td className="px-6 py-4 text-slate-400 text-sm hidden md:table-cell">
                     <div className="flex items-center gap-1.5">

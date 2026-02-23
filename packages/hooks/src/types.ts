@@ -138,6 +138,12 @@ export interface DisplayOptions {
   paretoAnnotations?: ChartAnnotation[];
   /** Free-floating text annotations on I-Chart (percentage-positioned) */
   ichartAnnotations?: ChartAnnotation[];
+  /** Show specification limits on I-Chart (default: true) */
+  showSpecs?: boolean;
+  /** Show Cpk values in stats panel (default: true) */
+  showCpk?: boolean;
+  /** Mindmap step annotations (step index → text), persisted with project */
+  mindmapAnnotations?: Record<string, string>;
 }
 
 /**

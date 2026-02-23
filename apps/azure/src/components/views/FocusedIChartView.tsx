@@ -9,7 +9,7 @@ import {
   useGlossary,
 } from '@variscout/ui';
 import { EditableChartTitle } from '@variscout/charts';
-import { Activity, Layers, Minimize2 } from 'lucide-react';
+import { Activity, Layers, Minimize2, X } from 'lucide-react';
 import type {
   StageOrderMode,
   SpecLimits,
@@ -17,7 +17,7 @@ import type {
   StagedStatsResult,
   DisplayOptions,
 } from '@variscout/core';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData, ChartAnnotation } from '@variscout/hooks';
 
 interface FocusedIChartViewProps {
   outcome: string;
@@ -41,6 +41,10 @@ interface FocusedIChartViewProps {
   onExit: () => void;
   onPointClick?: (index: number) => void;
   highlightedPointIndex?: number | null;
+  ichartAnnotations?: ChartAnnotation[];
+  onCreateIChartAnnotation?: (anchorX: number, anchorY: number) => void;
+  onIChartAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  onClearIChartAnnotations?: () => void;
 }
 
 const FocusedIChartView: React.FC<FocusedIChartViewProps> = ({
@@ -65,6 +69,10 @@ const FocusedIChartView: React.FC<FocusedIChartViewProps> = ({
   onExit,
   onPointClick,
   highlightedPointIndex,
+  ichartAnnotations,
+  onCreateIChartAnnotation,
+  onIChartAnnotationsChange,
+  onClearIChartAnnotations,
 }) => {
   const { getTerm } = useGlossary();
 
@@ -123,6 +131,16 @@ const FocusedIChartView: React.FC<FocusedIChartViewProps> = ({
             </div>
           )}
           <SpecsPopover specs={specs} onSave={onSaveSpecs} />
+          {ichartAnnotations && ichartAnnotations.length > 0 && onClearIChartAnnotations && (
+            <button
+              onClick={onClearIChartAnnotations}
+              className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-slate-700 transition-colors"
+              title="Clear I-Chart annotations"
+              aria-label="Clear I-Chart annotations"
+            >
+              <X size={12} />
+            </button>
+          )}
           <button
             onClick={onExit}
             className="p-2 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors ml-4 bg-slate-700/50"
@@ -173,7 +191,13 @@ const FocusedIChartView: React.FC<FocusedIChartViewProps> = ({
       />
       <div className="flex-1 min-h-0 w-full">
         <ErrorBoundary componentName="I-Chart">
-          <IChart onPointClick={onPointClick} highlightedPointIndex={highlightedPointIndex} />
+          <IChart
+            onPointClick={onPointClick}
+            highlightedPointIndex={highlightedPointIndex}
+            ichartAnnotations={ichartAnnotations}
+            onCreateAnnotation={onCreateIChartAnnotation}
+            onAnnotationsChange={onIChartAnnotationsChange}
+          />
         </ErrorBoundary>
       </div>
     </div>

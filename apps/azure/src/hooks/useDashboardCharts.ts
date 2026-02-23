@@ -74,6 +74,9 @@ export interface UseDashboardChartsResult {
   updateFilterValues: UseFilterNavigationReturn['updateFilterValues'];
   removeFilter: UseFilterNavigationReturn['removeFilter'];
 
+  // Visual feedback
+  lastAdvancedFactor: string | null;
+
   // Handlers
   handleDrillDown: (factor: string, value: string) => void;
   handleChartTitleChange: (chart: 'ichart' | 'boxplot' | 'pareto', title: string) => void;
@@ -107,6 +110,8 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   const [showParetoComparison, setShowParetoComparison] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [lastAdvancedFactor, setLastAdvancedFactor] = useState<string | null>(null);
+  const advancedFactorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Initialize/update factor defaults when factors list changes
   useEffect(() => {
@@ -149,11 +154,14 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [focusedChart, handleNextChart, handlePrevChart]);
 
-  // Cleanup copy feedback timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (copyFeedbackTimeoutRef.current) {
         clearTimeout(copyFeedbackTimeoutRef.current);
+      }
+      if (advancedFactorTimeoutRef.current) {
+        clearTimeout(advancedFactorTimeoutRef.current);
       }
     };
   }, []);
@@ -215,9 +223,10 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     const node = document.getElementById(containerId);
     if (!node) return;
     try {
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
       const blob = await toBlob(node, {
         cacheBust: true,
-        backgroundColor: '#0f172a',
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
       });
       if (blob) {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
@@ -253,6 +262,12 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
       if (nextFactor) {
         setBoxplotFactor(nextFactor);
         setParetoFactor(nextFactor);
+        // Brief visual feedback that factor changed
+        setLastAdvancedFactor(nextFactor);
+        if (advancedFactorTimeoutRef.current) {
+          clearTimeout(advancedFactorTimeoutRef.current);
+        }
+        advancedFactorTimeoutRef.current = setTimeout(() => setLastAdvancedFactor(null), 2000);
       } else {
         setBoxplotFactor(factor);
         setParetoFactor(factor);
@@ -282,6 +297,7 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     filterChipData,
     factorVariations,
     categoryContributions,
+    lastAdvancedFactor,
     filterStack,
     applyFilter,
     clearFilters,

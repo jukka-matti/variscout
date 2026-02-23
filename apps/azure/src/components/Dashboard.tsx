@@ -126,6 +126,7 @@ const Dashboard = ({
     filterChipData,
     factorVariations,
     categoryContributions,
+    lastAdvancedFactor,
     clearFilters,
     updateFilterValues,
     removeFilter,
@@ -316,7 +317,10 @@ const Dashboard = ({
                 </span>
               </div>
               <button
-                onClick={onBackToPerformance}
+                onClick={() => {
+                  onBackToPerformance?.();
+                  setActiveTab('performance');
+                }}
                 className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-300 hover:text-white hover:bg-blue-600/30 rounded transition-colors"
               >
                 <ArrowLeft size={12} />
@@ -401,6 +405,7 @@ const Dashboard = ({
                       filters={filters}
                       onFactorsChange={setFactors}
                       onFiltersChange={setFilters}
+                      factorVariations={factorVariations}
                     />
                   </div>
 
@@ -510,12 +515,20 @@ const Dashboard = ({
                         />
                       </h3>
                       <div className="flex items-center gap-2">
-                        <FactorSelector
-                          factors={factors}
-                          selected={boxplotFactor}
-                          onChange={setBoxplotFactor}
-                          hasActiveFilter={!!filters?.[boxplotFactor]?.length}
-                        />
+                        <div
+                          className={`rounded-lg transition-all duration-300 ${
+                            lastAdvancedFactor && lastAdvancedFactor === boxplotFactor
+                              ? 'ring-2 ring-blue-400'
+                              : ''
+                          }`}
+                        >
+                          <FactorSelector
+                            factors={factors}
+                            selected={boxplotFactor}
+                            onChange={setBoxplotFactor}
+                            hasActiveFilter={!!filters?.[boxplotFactor]?.length}
+                          />
+                        </div>
                         <BoxplotDisplayToggle
                           showViolin={displayOptions.showViolin ?? false}
                           showContributionLabels={displayOptions.showContributionLabels ?? false}
@@ -735,6 +748,10 @@ const Dashboard = ({
                   onExit={() => setFocusedChart(null)}
                   onPointClick={onPointClick}
                   highlightedPointIndex={highlightedPointIndex}
+                  ichartAnnotations={ichartAnnotations}
+                  onCreateIChartAnnotation={createIChartAnnotation}
+                  onIChartAnnotationsChange={setIChartAnnotations}
+                  onClearIChartAnnotations={() => clearAnnotations('ichart')}
                 />
               )}
 

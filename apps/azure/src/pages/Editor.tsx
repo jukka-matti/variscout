@@ -11,6 +11,7 @@ import ManualEntry, { type ManualEntryConfig } from '../components/data/ManualEn
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
 import OutcomeSelector from '../components/editor/OutcomeSelector';
+import { ColumnMapping } from '@variscout/ui';
 import { useControlViolations } from '../hooks/useControlViolations';
 import { useDataMerge } from '../hooks/useDataMerge';
 import { parseText, detectColumns, validateData, detectWideFormat } from '@variscout/core';
@@ -31,6 +32,7 @@ import {
   Beaker,
   Download,
   Database,
+  RefreshCw,
 } from 'lucide-react';
 
 interface EditorProps {
@@ -44,7 +46,6 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     rawData,
     filteredData,
     currentProjectName,
-    currentProjectLocation,
     hasUnsavedChanges,
     outcome,
     factors,
@@ -53,6 +54,8 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     isPerformanceMode,
     measureColumns,
     measureLabel,
+    dataFilename,
+    dataQualityReport,
     setOutcome,
     setRawData,
     setFactors,
@@ -62,8 +65,22 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     setPerformanceMode,
     setMeasureColumns,
     setMeasureLabel,
+    displayOptions,
+    setDisplayOptions,
     saveProject,
+    loadProject,
   } = useData();
+
+  // State for loading a saved project
+  const [isLoadingProject, setIsLoadingProject] = useState(false);
+
+  // Load project data when opening an existing project
+  useEffect(() => {
+    if (projectId && rawData.length === 0 && !isLoadingProject) {
+      setIsLoadingProject(true);
+      loadProject(projectId).finally(() => setIsLoadingProject(false));
+    }
+  }, [projectId]); // intentionally exclude rawData to avoid re-triggering
 
   // State for manual entry view
   const [isManualEntry, setIsManualEntry] = useState(false);
@@ -72,6 +89,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   // State for paste data view
   const [isPasteMode, setIsPasteMode] = useState(false);
   const [pasteError, setPasteError] = useState<string | null>(null);
+
+  // State for column mapping review (after paste)
+  const [isMapping, setIsMapping] = useState(false);
 
   // State for drill navigation from Performance Mode to standard I-Chart
   const [drillFromPerformance, setDrillFromPerformance] = useState<string | null>(null);
@@ -83,7 +103,29 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
 
   // State for investigation mindmap
   const [isMindmapOpen, setIsMindmapOpen] = useState(false);
-  const [mindmapAnnotations, setMindmapAnnotations] = useState<Map<number, string>>(new Map());
+
+  // Mindmap annotations persisted in displayOptions (Record<string, string> ↔ Map<number, string>)
+  const mindmapAnnotations = useMemo(() => {
+    const map = new Map<number, string>();
+    const stored = displayOptions.mindmapAnnotations;
+    if (stored) {
+      for (const [key, value] of Object.entries(stored)) {
+        map.set(Number(key), value);
+      }
+    }
+    return map;
+  }, [displayOptions]);
+
+  const setMindmapAnnotations = useCallback(
+    (annotations: Map<number, string>) => {
+      const record: Record<string, string> = {};
+      annotations.forEach((value, key) => {
+        record[String(key)] = value;
+      });
+      setDisplayOptions({ ...displayOptions, mindmapAnnotations: record });
+    },
+    [displayOptions, setDisplayOptions]
+  );
 
   // State for What-If Simulator full page
   const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
@@ -195,16 +237,24 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
 
   const handleSave = async () => {
     const name = currentProjectName || 'New Analysis';
-    await saveProject(name, currentProjectLocation);
+    await saveProject(name);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    await handleFileUpload(e);
+    setIsParsingFile(true);
+    try {
+      await handleFileUpload(e);
+    } finally {
+      setIsParsingFile(false);
+    }
   };
 
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
   };
+
+  // State for file parsing spinner
+  const [isParsingFile, setIsParsingFile] = useState(false);
 
   // Get sync status icon
   const SyncIcon =
@@ -228,27 +278,25 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     setIsManualEntry(true);
   }, []);
 
-  // Handle paste → parse → detect → dashboard flow
+  // Handle paste → parse → auto-detect → show ColumnMapping for review
   const handlePasteAnalyze = useCallback(
     async (text: string) => {
       setPasteError(null);
       try {
         const data = await parseText(text);
-
         setRawData(data);
         setDataFilename('Pasted Data');
 
+        // Auto-detect columns (same as PWA)
         const detected = detectColumns(data);
-        if (detected.outcome) {
-          setOutcome(detected.outcome);
-        }
-        if (detected.factors.length > 0) {
-          setFactors(detected.factors);
-        }
+        if (detected.outcome) setOutcome(detected.outcome);
+        if (detected.factors.length > 0) setFactors(detected.factors);
 
+        // Validate data quality
         const report = validateData(data, detected.outcome);
         setDataQualityReport(report);
 
+        // Wide-format detection
         const wideFormat = detectWideFormat(data);
         if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
           setMeasureColumns(wideFormat.channels.map(c => c.id));
@@ -256,7 +304,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           setPerformanceMode(true);
         }
 
+        // Transition: close paste → open column mapping
         setIsPasteMode(false);
+        setIsMapping(true);
       } catch (err) {
         setPasteError(err instanceof Error ? err.message : 'Failed to parse data');
       }
@@ -278,6 +328,31 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     setPasteError(null);
   }, []);
 
+  // Handle column mapping confirm — apply user's selections and start analysis
+  const handleMappingConfirm = useCallback(
+    (
+      newOutcome: string,
+      newFactors: string[],
+      newSpecs?: { target?: number; lsl?: number; usl?: number }
+    ) => {
+      setOutcome(newOutcome);
+      setFactors(newFactors);
+      if (newSpecs) setSpecs(newSpecs);
+      setIsMapping(false);
+    },
+    [setOutcome, setFactors, setSpecs]
+  );
+
+  // Handle column mapping cancel — clear data and return to empty state
+  const handleMappingCancel = useCallback(() => {
+    setRawData([]);
+    setOutcome(null as any);
+    setFactors([]);
+    setDataFilename(null);
+    setDataQualityReport(null);
+    setIsMapping(false);
+  }, [setRawData, setOutcome, setFactors, setDataFilename, setDataQualityReport]);
+
   // If in paste mode, show PasteScreen full screen
   if (isPasteMode) {
     return (
@@ -298,12 +373,29 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     );
   }
 
+  // If in column mapping mode, show ColumnMapping full screen
+  if (isMapping) {
+    return (
+      <ColumnMapping
+        availableColumns={Object.keys(rawData[0] || {})}
+        initialOutcome={outcome}
+        initialFactors={factors}
+        datasetName={dataFilename || 'Pasted Data'}
+        onConfirm={handleMappingConfirm}
+        onCancel={handleMappingCancel}
+        dataQualityReport={dataQualityReport}
+        maxFactors={6}
+      />
+    );
+  }
+
   // If What-If Simulator is open, show full-page view
   if (isWhatIfOpen) {
     return (
       <WhatIfPage
         onBack={() => setIsWhatIfOpen(false)}
         filterCount={filterNav.filterStack.length}
+        filterStack={filterNav.filterStack}
       />
     );
   }
@@ -421,7 +513,18 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
       <div className="flex-1 flex flex-col min-h-0 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
         {rawData.length === 0 ? (
           // Empty State - Upload Data + Sample Datasets
-          <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-y-auto">
+          <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-y-auto relative">
+            {/* Loading overlay for project load or file parse */}
+            {(isLoadingProject || isParsingFile) && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/60">
+                <div className="flex flex-col items-center gap-3">
+                  <RefreshCw size={32} className="text-blue-400 animate-spin" />
+                  <span className="text-sm text-slate-300">
+                    {isLoadingProject ? 'Loading project...' : 'Parsing file...'}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="max-w-lg w-full text-center">
               <div className="w-16 h-16 mx-auto mb-6 bg-slate-800 rounded-full flex items-center justify-center">
                 <FileText size={32} className="text-slate-400" />

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Settings2, Check } from 'lucide-react';
 import { useColumnClassification } from '@variscout/hooks';
-import type { DataRow } from '@variscout/core';
+import { getMaxCategoryContribution, type DataRow } from '@variscout/core';
 
 const MAX_FACTORS = 6;
 
@@ -12,6 +12,7 @@ interface FactorManagerPopoverProps {
   filters: Record<string, (string | number)[]>;
   onFactorsChange: (newFactors: string[]) => void;
   onFiltersChange: (newFilters: Record<string, (string | number)[]>) => void;
+  factorVariations?: Map<string, number>;
 }
 
 const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
@@ -21,6 +22,7 @@ const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
   filters,
   onFactorsChange,
   onFiltersChange,
+  factorVariations,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingFactors, setPendingFactors] = useState<string[]>(factors);
@@ -31,6 +33,37 @@ const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
     excludeColumn: outcome,
     maxCategoricalUnique: 20,
   });
+
+  // Compute variation contribution for each categorical column
+  const columnVariations = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!outcome || rawData.length === 0) return map;
+
+    for (const col of categorical) {
+      // Use provided factorVariations for active factors, otherwise compute
+      if (factorVariations?.has(col)) {
+        map.set(col, factorVariations.get(col)!);
+      } else {
+        const contribution = getMaxCategoryContribution(rawData, outcome, col);
+        if (contribution !== null) {
+          map.set(col, contribution * 100);
+        }
+      }
+    }
+    return map;
+  }, [categorical, rawData, outcome, factorVariations]);
+
+  // Sort categorical columns: active factors first, then by variation (highest first)
+  const sortedCategorical = useMemo(() => {
+    return [...categorical].sort((a, b) => {
+      const aActive = factors.includes(a) ? 1 : 0;
+      const bActive = factors.includes(b) ? 1 : 0;
+      if (aActive !== bActive) return bActive - aActive;
+      const aVar = columnVariations.get(a) ?? 0;
+      const bVar = columnVariations.get(b) ?? 0;
+      return bVar - aVar;
+    });
+  }, [categorical, factors, columnVariations]);
 
   // Sync pendingFactors when factors prop changes
   useEffect(() => {
@@ -108,9 +141,10 @@ const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
           </div>
 
           <div className="max-h-60 overflow-y-auto p-2 space-y-1">
-            {categorical.map(col => {
+            {sortedCategorical.map(col => {
               const isSelected = pendingFactors.includes(col);
               const isDisabled = !isSelected && pendingFactors.length >= MAX_FACTORS;
+              const variationPct = columnVariations.get(col);
 
               return (
                 <button
@@ -132,7 +166,12 @@ const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
                   >
                     {isSelected && <Check size={10} className="text-white" />}
                   </div>
-                  <span className="truncate">{col}</span>
+                  <span className="truncate flex-1">{col}</span>
+                  {variationPct != null && (
+                    <span className="text-xs text-slate-500 tabular-nums flex-shrink-0">
+                      {variationPct.toFixed(0)}%
+                    </span>
+                  )}
                 </button>
               );
             })}

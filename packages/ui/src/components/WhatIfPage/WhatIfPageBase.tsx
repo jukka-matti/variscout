@@ -55,6 +55,8 @@ export interface WhatIfPageBaseProps {
   specs: SpecLimits;
   /** Number of active filters */
   filterCount: number;
+  /** Active filter descriptions (e.g., "Machine = A", "Shift = Day") */
+  filterNames?: string[];
   /** Callback to navigate back */
   onBack: () => void;
   /** Color scheme for the page */
@@ -69,6 +71,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
   outcome,
   specs,
   filterCount,
+  filterNames,
   onBack,
   colorScheme = whatIfPageDefaultColorScheme,
   simulatorColorScheme,
@@ -133,8 +136,13 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
           <span>{outcome}</span>
           <span className={c.secondaryText}>n = {filteredData.length}</span>
           {filterCount > 0 && (
-            <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded">
-              {filterCount} filter{filterCount !== 1 ? 's' : ''}
+            <span
+              className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded"
+              title={filterNames?.join(', ')}
+            >
+              {filterNames && filterNames.length > 0
+                ? filterNames.join(', ')
+                : `${filterCount} filter${filterCount !== 1 ? 's' : ''}`}
             </span>
           )}
         </div>
