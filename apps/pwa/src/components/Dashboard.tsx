@@ -913,6 +913,14 @@ const Dashboard = ({
               columnAliases={columnAliases}
               cumulativeVariationPct={cumulativeVariationPct}
               showFilterContext={displayOptions.showFilterContext !== false}
+              boxplotHighlights={boxplotHighlights}
+              onBoxplotContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
+              boxplotAnnotations={boxplotAnnotations}
+              onBoxplotAnnotationsChange={setBoxplotAnnotations}
+              paretoHighlights={paretoHighlights}
+              onParetoContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+              paretoAnnotations={paretoAnnotations}
+              onParetoAnnotationsChange={setParetoAnnotations}
             />
           )}
         </div>

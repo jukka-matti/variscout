@@ -5,7 +5,7 @@ import { FilterContextBar, filterContextBarAzureColorScheme, FactorSelector } fr
 import { EditableChartTitle } from '@variscout/charts';
 import { Minimize2 } from 'lucide-react';
 import type { DisplayOptions } from '@variscout/core';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData, ChartAnnotation, HighlightColor } from '@variscout/hooks';
 
 interface FocusedParetoViewProps {
   paretoFactor: string;
@@ -24,6 +24,10 @@ interface FocusedParetoViewProps {
   onToggleAggregation: () => void;
   onChartTitleChange: (title: string) => void;
   onExit: () => void;
+  highlightedCategories?: Record<string, HighlightColor>;
+  onContextMenu?: (key: string, event: React.MouseEvent) => void;
+  annotations?: ChartAnnotation[];
+  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
 }
 
 const FocusedParetoView: React.FC<FocusedParetoViewProps> = ({
@@ -43,6 +47,10 @@ const FocusedParetoView: React.FC<FocusedParetoViewProps> = ({
   onToggleAggregation,
   onChartTitleChange,
   onExit,
+  highlightedCategories,
+  onContextMenu,
+  annotations,
+  onAnnotationsChange,
 }) => {
   return (
     <div className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full">
@@ -89,6 +97,10 @@ const FocusedParetoView: React.FC<FocusedParetoViewProps> = ({
               onToggleComparison={onToggleComparison}
               aggregation={paretoAggregation}
               onToggleAggregation={onToggleAggregation}
+              highlightedCategories={highlightedCategories}
+              onContextMenu={onContextMenu}
+              annotations={annotations}
+              onAnnotationsChange={onAnnotationsChange}
             />
           )}
         </ErrorBoundary>

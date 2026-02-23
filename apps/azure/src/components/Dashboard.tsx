@@ -772,6 +772,11 @@ const Dashboard = ({
                   onDrillDown={handleDrillDown}
                   onChartTitleChange={title => handleChartTitleChange('boxplot', title)}
                   onExit={() => setFocusedChart(null)}
+                  highlightedCategories={boxplotHighlights}
+                  onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
+                  annotations={boxplotAnnotations}
+                  onAnnotationsChange={setBoxplotAnnotations}
+                  categoryContributions={categoryContributions?.get(boxplotFactor)}
                 />
               )}
 
@@ -795,6 +800,10 @@ const Dashboard = ({
                   }
                   onChartTitleChange={title => handleChartTitleChange('pareto', title)}
                   onExit={() => setFocusedChart(null)}
+                  highlightedCategories={paretoHighlights}
+                  onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+                  annotations={paretoAnnotations}
+                  onAnnotationsChange={setParetoAnnotations}
                 />
               )}
             </div>

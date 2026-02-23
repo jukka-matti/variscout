@@ -7,7 +7,7 @@ import { EditableChartTitle } from '@variscout/charts';
 import { BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
 import { Minimize2 } from 'lucide-react';
 import type { AnovaResult, DisplayOptions } from '@variscout/core';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData, ChartAnnotation, HighlightColor } from '@variscout/hooks';
 
 interface FocusedBoxplotViewProps {
   boxplotFactor: string;
@@ -25,6 +25,11 @@ interface FocusedBoxplotViewProps {
   onDrillDown: (factor: string, value: string) => void;
   onChartTitleChange: (title: string) => void;
   onExit: () => void;
+  highlightedCategories?: Record<string, HighlightColor>;
+  onContextMenu?: (key: string, event: React.MouseEvent) => void;
+  annotations?: ChartAnnotation[];
+  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  categoryContributions?: Map<string | number, number>;
 }
 
 const FocusedBoxplotView: React.FC<FocusedBoxplotViewProps> = ({
@@ -43,6 +48,11 @@ const FocusedBoxplotView: React.FC<FocusedBoxplotViewProps> = ({
   onDrillDown,
   onChartTitleChange,
   onExit,
+  highlightedCategories,
+  onContextMenu,
+  annotations,
+  onAnnotationsChange,
+  categoryContributions,
 }) => {
   return (
     <div className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full overflow-hidden">
@@ -86,6 +96,11 @@ const FocusedBoxplotView: React.FC<FocusedBoxplotViewProps> = ({
               factor={boxplotFactor}
               onDrillDown={onDrillDown}
               variationPct={factorVariations.get(boxplotFactor)}
+              categoryContributions={categoryContributions}
+              highlightedCategories={highlightedCategories}
+              onContextMenu={onContextMenu}
+              annotations={annotations}
+              onAnnotationsChange={onAnnotationsChange}
             />
           )}
         </ErrorBoundary>

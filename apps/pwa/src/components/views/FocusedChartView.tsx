@@ -5,7 +5,7 @@ import ParetoChart from '../charts/ParetoChart';
 import { ErrorBoundary, FactorSelector, AnovaResults, FilterContextBar } from '@variscout/ui';
 import { Activity, ChevronLeft, ChevronRight, Minimize2 } from 'lucide-react';
 import type { AnovaResult } from '@variscout/core';
-import type { FilterChipData } from '@variscout/hooks';
+import type { FilterChipData, ChartAnnotation, HighlightColor } from '@variscout/hooks';
 import { BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
 
 export type FocusableChart = 'ichart' | 'boxplot' | 'pareto';
@@ -42,6 +42,16 @@ export interface FocusedChartViewProps {
   columnAliases?: Record<string, string>;
   cumulativeVariationPct?: number | null;
   showFilterContext?: boolean;
+  // Boxplot annotation props
+  boxplotHighlights?: Record<string, HighlightColor>;
+  onBoxplotContextMenu?: (key: string, event: React.MouseEvent) => void;
+  boxplotAnnotations?: ChartAnnotation[];
+  onBoxplotAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  // Pareto annotation props
+  paretoHighlights?: Record<string, HighlightColor>;
+  onParetoContextMenu?: (key: string, event: React.MouseEvent) => void;
+  paretoAnnotations?: ChartAnnotation[];
+  onParetoAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
 }
 
 /**
@@ -80,6 +90,14 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
   columnAliases = {},
   cumulativeVariationPct,
   showFilterContext = true,
+  boxplotHighlights,
+  onBoxplotContextMenu,
+  boxplotAnnotations,
+  onBoxplotAnnotationsChange,
+  paretoHighlights,
+  onParetoContextMenu,
+  paretoAnnotations,
+  onParetoAnnotationsChange,
 }) => {
   return (
     <div className="flex-1 flex p-4 h-full relative group/focus">
@@ -184,6 +202,10 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
                   onDrillDown={onDrillDown}
                   variationPct={factorVariations.get(boxplotFactor)}
                   categoryContributions={boxplotCategoryContributions}
+                  highlightedCategories={boxplotHighlights}
+                  onContextMenu={onBoxplotContextMenu}
+                  annotations={boxplotAnnotations}
+                  onAnnotationsChange={onBoxplotAnnotationsChange}
                 />
               )}
             </ErrorBoundary>
@@ -248,6 +270,10 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
                   availableFactors={factors}
                   aggregation={paretoAggregation}
                   onToggleAggregation={onToggleParetoAggregation}
+                  highlightedCategories={paretoHighlights}
+                  onContextMenu={onParetoContextMenu}
+                  annotations={paretoAnnotations}
+                  onAnnotationsChange={onParetoAnnotationsChange}
                 />
               )}
             </ErrorBoundary>
