@@ -394,6 +394,100 @@ Currently used by the **IChart** component for `enableBrushSelection` mode.
 
 ---
 
+## useChartCopy
+
+Copy chart to clipboard or download as PNG/SVG with fixed, presentation-ready dimensions. All exports temporarily resize the chart container off-screen, wait for visx ResizeObserver re-render, then capture — producing identical output from dashboard cards and focused views.
+
+**Source:** `packages/hooks/src/useChartCopy.ts`
+
+### Options
+
+```typescript
+interface UseChartCopyOptions {
+  /** Return background color for the screenshot. Called at copy time. Defaults to #0f172a. */
+  getBackgroundColor?: () => string;
+}
+```
+
+### Returns
+
+```typescript
+interface UseChartCopyReturn {
+  copyFeedback: string | null;
+  handleCopyChart: (containerId: string, chartName: string) => Promise<void>;
+  handleDownloadPng: (containerId: string, chartName: string) => Promise<void>;
+  handleDownloadSvg: (containerId: string, chartName: string) => void;
+}
+```
+
+### Fixed Export Dimensions
+
+All charts export at fixed dimensions regardless of current container size:
+
+| Chart         | Width | Height | Actual (x2) |
+| ------------- | ----- | ------ | ----------- |
+| `ichart`      | 1200  | 540    | 2400 x 1080 |
+| `boxplot`     | 1200  | 800    | 2400 x 1600 |
+| `pareto`      | 1200  | 720    | 2400 x 1440 |
+| `histogram`   | 800   | 600    | 1600 x 1200 |
+| `probability` | 800   | 700    | 1600 x 1400 |
+| `stats`       | 1200  | 400    | 2400 x 800  |
+| `dashboard`   | 1600  | auto   | 3200 x auto |
+
+Unknown chart names fall back to 1200 x 675. The `EXPORT_SIZES` map is exported from `@variscout/hooks` for reference.
+
+**Auto-height mode**: When `height` is `0` in EXPORT_SIZES (used by `dashboard`), `withFixedSize` sets `height: auto; overflow: visible` instead of a fixed pixel height. This captures the full scrollable content without clipping. At 1600px width, the `lg:flex-row` breakpoint is active so charts render side-by-side.
+
+### Usage
+
+```tsx
+import { useChartCopy } from '@variscout/hooks';
+
+const { copyFeedback, handleCopyChart, handleDownloadPng, handleDownloadSvg } = useChartCopy({
+  getBackgroundColor: () => isDark ? '#0f172a' : '#ffffff',
+});
+
+// Copy to clipboard (1-click)
+<button onClick={() => handleCopyChart('ichart-card', 'ichart')}>
+  {copyFeedback === 'ichart' ? <Check size={14} /> : <Copy size={14} />}
+</button>
+
+// Download menu (via ChartDownloadMenu from @variscout/ui)
+<ChartDownloadMenu
+  containerId="boxplot-card"
+  chartName="boxplot"
+  onDownloadPng={handleDownloadPng}
+  onDownloadSvg={handleDownloadSvg}
+/>
+```
+
+### Dashboard Export
+
+The full dashboard can be exported as a single image for PowerPoint slides. Copy/Download buttons sit in the sticky nav bar:
+
+```tsx
+// Dashboard export uses the same hook — just pass 'dashboard' as chartName
+<button onClick={() => handleCopyChart('dashboard-export-container', 'dashboard')}>
+  {copyFeedback === 'dashboard' ? <Check size={14} /> : <Copy size={14} />}
+</button>
+<button onClick={() => handleDownloadPng('dashboard-export-container', 'dashboard')}>
+  <Download size={14} />
+</button>
+```
+
+No SVG export for dashboard (multi-SVG composition doesn't serialize cleanly).
+
+### How Fixed-Size Export Works
+
+1. Sets `data-exporting="true"` on the container (hides UI-only elements via CSS)
+2. Saves current `style.cssText` and locks parent `min-height`
+3. Moves container off-screen at fixed export dimensions (`position: fixed; left: -9999px`)
+4. Waits for visx ResizeObserver + React re-render (~100ms: double rAF + setTimeout)
+5. Captures with `html-to-image` at `pixelRatio: 2`
+6. Restores original styles and parent lock (even on error)
+
+---
+
 ## Import Pattern
 
 ```typescript

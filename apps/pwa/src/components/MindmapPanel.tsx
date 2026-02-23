@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { InvestigationMindmapBase } from '@variscout/charts';
 import { useMindmapState } from '@variscout/hooks';
 import type { FilterAction } from '@variscout/core';
-import { MindmapPanelContent, exportMindmapPng } from '@variscout/ui';
+import { MindmapPanelContent, exportMindmapPng, exportMindmapToClipboard } from '@variscout/ui';
 
 interface MindmapPanelProps {
   isOpen: boolean;
@@ -104,6 +104,17 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
     await exportMindmapPng(node);
   }, []);
 
+  const [copyFeedback, setCopyFeedback] = useState(false);
+  const handleCopyToClipboard = useCallback(async () => {
+    const node = mindmapRef.current;
+    if (!node) return;
+    const ok = await exportMindmapToClipboard(node);
+    if (ok) {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    }
+  }, []);
+
   if (!isOpen) return null;
 
   return (
@@ -123,6 +134,8 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           onClose={onClose}
           onOpenPopout={onOpenPopout}
           onExportPng={handleExportPng}
+          onCopyToClipboard={handleCopyToClipboard}
+          copyFeedback={copyFeedback}
           columnAliases={columnAliases}
         >
           <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">

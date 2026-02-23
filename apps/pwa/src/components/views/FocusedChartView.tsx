@@ -2,8 +2,14 @@ import React from 'react';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
-import { ErrorBoundary, FactorSelector, AnovaResults, FilterContextBar } from '@variscout/ui';
-import { Activity, ChevronLeft, ChevronRight, Minimize2 } from 'lucide-react';
+import {
+  ErrorBoundary,
+  FactorSelector,
+  AnovaResults,
+  FilterContextBar,
+  ChartDownloadMenu,
+} from '@variscout/ui';
+import { Activity, ChevronLeft, ChevronRight, Minimize2, Copy, Check } from 'lucide-react';
 import type { AnovaResult } from '@variscout/core';
 import type { FilterChipData, ChartAnnotation, HighlightColor } from '@variscout/hooks';
 import { BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
@@ -52,6 +58,11 @@ export interface FocusedChartViewProps {
   onParetoContextMenu?: (key: string, event: React.MouseEvent) => void;
   paretoAnnotations?: ChartAnnotation[];
   onParetoAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  // Chart export props
+  copyFeedback?: string | null;
+  onCopyChart?: (containerId: string, chartName: string) => Promise<void>;
+  onDownloadPng?: (containerId: string, chartName: string) => Promise<void>;
+  onDownloadSvg?: (containerId: string, chartName: string) => void;
 }
 
 /**
@@ -98,7 +109,39 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
   onParetoContextMenu,
   paretoAnnotations,
   onParetoAnnotationsChange,
+  copyFeedback,
+  onCopyChart,
+  onDownloadPng,
+  onDownloadSvg,
 }) => {
+  const chartId = `${focusedChart}-focus`;
+  const chartLabel =
+    focusedChart === 'ichart' ? 'I-Chart' : focusedChart === 'boxplot' ? 'Boxplot' : 'Pareto';
+
+  const exportButtons =
+    onCopyChart && onDownloadPng && onDownloadSvg ? (
+      <div className="flex items-center gap-1" data-export-hide>
+        <button
+          onClick={() => onCopyChart(chartId, focusedChart)}
+          className={`p-1.5 rounded transition-all ${
+            copyFeedback === focusedChart
+              ? 'bg-green-500/20 text-green-400'
+              : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
+          }`}
+          title={`Copy ${chartLabel} to clipboard`}
+          aria-label={`Copy ${chartLabel} to clipboard`}
+        >
+          {copyFeedback === focusedChart ? <Check size={14} /> : <Copy size={14} />}
+        </button>
+        <ChartDownloadMenu
+          containerId={chartId}
+          chartName={focusedChart}
+          onDownloadPng={onDownloadPng}
+          onDownloadSvg={onDownloadSvg}
+        />
+      </div>
+    ) : null;
+
   return (
     <div className="flex-1 flex p-4 h-full relative group/focus">
       {/* Navigation Buttons (Overlay) */}
@@ -141,6 +184,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
                   </option>
                 ))}
               </select>
+              {exportButtons}
               <button
                 onClick={onExitFocus}
                 className="p-2 rounded text-content-secondary hover:text-white hover:bg-surface-tertiary transition-colors ml-4 bg-surface-tertiary/50"
@@ -179,6 +223,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
                 hasActiveFilter={!!filters?.[boxplotFactor]?.length}
                 size="md"
               />
+              {exportButtons}
               <button
                 onClick={onExitFocus}
                 className="p-2 rounded text-content-secondary hover:text-white hover:bg-surface-tertiary transition-colors bg-surface-tertiary/50"
@@ -238,6 +283,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
                 hasActiveFilter={!!filters?.[paretoFactor]?.length}
                 size="md"
               />
+              {exportButtons}
               <button
                 onClick={onExitFocus}
                 className="p-2 rounded text-content-secondary hover:text-white hover:bg-surface-tertiary transition-colors bg-surface-tertiary/50"

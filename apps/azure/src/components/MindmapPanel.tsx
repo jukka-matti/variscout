@@ -8,6 +8,7 @@ import {
   mindmapPanelAzureColorScheme,
   exportMindmapPng,
   exportMindmapSvg,
+  exportMindmapToClipboard,
 } from '@variscout/ui';
 
 // Width constraints
@@ -158,6 +159,17 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
     exportMindmapSvg(node);
   }, []);
 
+  const [copyFeedback, setCopyFeedback] = useState(false);
+  const handleCopyToClipboard = useCallback(async () => {
+    const node = mindmapRef.current;
+    if (!node) return;
+    const ok = await exportMindmapToClipboard(node);
+    if (ok) {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    }
+  }, []);
+
   if (!isOpen) return null;
 
   // Chart width = panel width minus padding (8px left + 8px right)
@@ -188,6 +200,8 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           onClose={onClose}
           onOpenPopout={onOpenPopout}
           onExportPng={handleExportPng}
+          onCopyToClipboard={handleCopyToClipboard}
+          copyFeedback={copyFeedback}
           showSvgExport
           onExportSvg={handleExportSvg}
           colorScheme={mindmapPanelAzureColorScheme}

@@ -19,6 +19,7 @@ import {
   CreateFactorModal,
   BoxplotDisplayToggle,
   AnnotationContextMenu,
+  ChartDownloadMenu,
   useIsMobile,
 } from '@variscout/ui';
 import { useKeyboardNavigation, useAnnotations } from '@variscout/hooks';
@@ -30,11 +31,12 @@ import {
   BarChart3,
   TrendingUp,
   Beaker,
-  Copy,
-  Check,
   Maximize2,
   Layers,
   X,
+  Copy,
+  Check,
+  Download,
 } from 'lucide-react';
 import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '@variscout/core';
 
@@ -170,9 +172,11 @@ const Dashboard = ({
     toggleParetoComparison,
     showSpecEditor,
     setShowSpecEditor,
-    // Copy feedback
+    // Chart export
     copyFeedback,
     handleCopyChart,
+    handleDownloadPng,
+    handleDownloadSvg,
     // Pareto factor selector ref
     paretoFactorSelectorRef,
     // Embed mode helpers
@@ -410,14 +414,42 @@ const Dashboard = ({
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface">
         {/* Filter Breadcrumb Navigation with Variation Tracking */}
-        <FilterBreadcrumb
-          filterChipData={filterChipData}
-          columnAliases={columnAliases}
-          onUpdateFilterValues={handleUpdateFilterValues}
-          onRemoveFilter={handleRemoveFilter}
-          onClearAll={handleClearAllFilters}
-          cumulativeVariationPct={cumulativeVariationPct}
-        />
+        <div className="flex items-center">
+          <div className="flex-1 min-w-0">
+            <FilterBreadcrumb
+              filterChipData={filterChipData}
+              columnAliases={columnAliases}
+              onUpdateFilterValues={handleUpdateFilterValues}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAll={handleClearAllFilters}
+              cumulativeVariationPct={cumulativeVariationPct}
+            />
+          </div>
+          {activeView === 'dashboard' && !focusedChart && (
+            <div className="flex items-center gap-1 px-3 flex-shrink-0" data-export-hide>
+              <button
+                onClick={() => handleCopyChart('dashboard-export-container', 'dashboard')}
+                className={`p-1.5 rounded transition-all ${
+                  copyFeedback === 'dashboard'
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
+                }`}
+                title="Copy dashboard to clipboard"
+                aria-label="Copy dashboard to clipboard"
+              >
+                {copyFeedback === 'dashboard' ? <Check size={14} /> : <Copy size={14} />}
+              </button>
+              <button
+                onClick={() => handleDownloadPng('dashboard-export-container', 'dashboard')}
+                className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
+                title="Download dashboard as PNG"
+                aria-label="Download dashboard as PNG"
+              >
+                <Download size={14} />
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Tab Navigation */}
         <div
@@ -528,7 +560,7 @@ const Dashboard = ({
                   </div>
 
                   {/* Right: All Controls */}
-                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                  <div className="flex items-center gap-2 flex-wrap justify-end" data-export-hide>
                     {/* Outcome Selector */}
                     <select
                       value={outcome}
@@ -620,9 +652,16 @@ const Dashboard = ({
                         }`}
                         title="Copy I-Chart to clipboard"
                         aria-label="Copy I-Chart to clipboard"
+                        data-export-hide
                       >
                         {copyFeedback === 'ichart' ? <Check size={14} /> : <Copy size={14} />}
                       </button>
+                      <ChartDownloadMenu
+                        containerId="ichart-card"
+                        chartName="ichart"
+                        onDownloadPng={handleDownloadPng}
+                        onDownloadSvg={handleDownloadSvg}
+                      />
                       <button
                         onClick={() => setFocusedChart('ichart')}
                         className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
@@ -678,7 +717,7 @@ const Dashboard = ({
                           VARISCOUT
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" data-export-hide>
                         <FactorSelector
                           factors={factors}
                           selected={boxplotFactor}
@@ -723,9 +762,16 @@ const Dashboard = ({
                           }`}
                           title="Copy Boxplot to clipboard"
                           aria-label="Copy Boxplot to clipboard"
+                          data-export-hide
                         >
                           {copyFeedback === 'boxplot' ? <Check size={14} /> : <Copy size={14} />}
                         </button>
+                        <ChartDownloadMenu
+                          containerId="boxplot-card"
+                          chartName="boxplot"
+                          onDownloadPng={handleDownloadPng}
+                          onDownloadSvg={handleDownloadSvg}
+                        />
                         <button
                           onClick={() => setFocusedChart('boxplot')}
                           className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
@@ -782,7 +828,7 @@ const Dashboard = ({
                             VARISCOUT
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2" data-export-hide>
                           <FactorSelector
                             factors={factors}
                             selected={paretoFactor}
@@ -807,11 +853,18 @@ const Dashboard = ({
                                 ? 'bg-green-500/20 text-green-400'
                                 : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
                             }`}
-                            title="Copy Pareto Chart to clipboard"
-                            aria-label="Copy Pareto chart to clipboard"
+                            title="Copy Pareto to clipboard"
+                            aria-label="Copy Pareto to clipboard"
+                            data-export-hide
                           >
                             {copyFeedback === 'pareto' ? <Check size={14} /> : <Copy size={14} />}
                           </button>
+                          <ChartDownloadMenu
+                            containerId="pareto-card"
+                            chartName="pareto"
+                            onDownloadPng={handleDownloadPng}
+                            onDownloadSvg={handleDownloadSvg}
+                          />
                           <button
                             onClick={() => setFocusedChart('pareto')}
                             className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
@@ -921,6 +974,10 @@ const Dashboard = ({
               onParetoContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
               paretoAnnotations={paretoAnnotations}
               onParetoAnnotationsChange={setParetoAnnotations}
+              copyFeedback={copyFeedback}
+              onCopyChart={handleCopyChart}
+              onDownloadPng={handleDownloadPng}
+              onDownloadSvg={handleDownloadSvg}
             />
           )}
         </div>

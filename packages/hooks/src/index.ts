@@ -139,7 +139,12 @@ export { useControlViolations } from './useControlViolations';
 export { useAnnotations } from './useAnnotationMode';
 
 // Chart Copy
-export { useChartCopy, type UseChartCopyOptions, type UseChartCopyReturn } from './useChartCopy';
+export {
+  useChartCopy,
+  EXPORT_SIZES,
+  type UseChartCopyOptions,
+  type UseChartCopyReturn,
+} from './useChartCopy';
 
 // Theme State
 export {

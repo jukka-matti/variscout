@@ -161,6 +161,42 @@ Three chart types support user annotations via right-click context menu:
 
 State managed by `useAnnotations` hook from `@variscout/hooks`. UI components: `ChartAnnotationLayer` and `AnnotationContextMenu` from `@variscout/ui`.
 
+## Chart Export
+
+Charts export at fixed, presentation-ready dimensions via `useChartCopy` from `@variscout/hooks`. All exports (clipboard copy, PNG download, SVG download) temporarily resize the chart container, wait for visx re-render, then capture — producing identical output from any view (dashboard card or focused).
+
+### Export Dimensions
+
+| Group | Chart | Width | Height | Ratio |
+|-------|-------|-------|--------|-------|
+| Wide | I-Chart | 1200 | 540 | 2.2:1 |
+| Wide | Boxplot | 1200 | 800 | 3:2 |
+| Wide | Pareto | 1200 | 720 | 5:3 |
+| Compact | Histogram | 800 | 600 | 4:3 |
+| Compact | Probability | 800 | 700 | ~1.14:1 |
+| Text | Stats panel | 1200 | 400 | 3:1 |
+| Composite | Dashboard | 1600 | auto | 16:9 target |
+
+All exported with `pixelRatio: 2` (double actual pixels). Wide charts use desktop font breakpoint (>=768px). Dimensions defined in `EXPORT_SIZES` in `packages/hooks/src/useChartCopy.ts`.
+
+Dashboard uses auto-height mode (`height: 0` in EXPORT_SIZES) — captures full scrollable content at 1600px width (triggers `lg:flex-row` breakpoint for side-by-side layout). Copy/Download buttons in sticky nav bar, marked `data-export-hide`.
+
+### Components
+
+- `ChartDownloadMenu` — Dropdown (PNG/SVG) from `@variscout/ui`, uses colorScheme pattern
+- `useChartCopy` — Hook from `@variscout/hooks`: copy-to-clipboard, PNG download, SVG download
+- Copy button: inline 1-click with Check feedback icon
+- All export icons use `size={14}`
+
+### Mindmap Export
+
+Mindmap has standalone export functions in `packages/ui/src/components/MindmapPanel/export.ts`:
+- `exportMindmapPng(node)` — Download as PNG
+- `exportMindmapSvg(node)` — Download as SVG (Azure-only)
+- `exportMindmapToClipboard(node)` — Copy to clipboard (returns `Promise<boolean>`)
+
+Copy button uses same Check feedback pattern as chart cards. Available in `MindmapPanelContent` (via `onCopyToClipboard`/`copyFeedback` props) and `MindmapWindow`.
+
 ## Adding New Charts
 
 1. Create `NewChart.tsx` with `NewChartBase` export

@@ -51,9 +51,11 @@ export interface UseDashboardChartsResult {
   showParetoComparison: boolean;
   setShowParetoComparison: (v: boolean) => void;
 
-  // Copy feedback
+  // Chart export
   copyFeedback: string | null;
   handleCopyChart: (containerId: string, chartName: string) => Promise<void>;
+  handleDownloadPng: (containerId: string, chartName: string) => Promise<void>;
+  handleDownloadSvg: (containerId: string, chartName: string) => void;
 
   // Derived data
   availableOutcomes: string[];
@@ -103,8 +105,8 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   } = useVariationTracking(rawData, filterStack, outcome, factors);
   const cumulativeVariationPct = rawCumulativeVariationPct ?? 0;
 
-  // Chart copy (theme-aware background)
-  const { copyFeedback, handleCopyChart } = useChartCopy({
+  // Chart export (theme-aware background)
+  const { copyFeedback, handleCopyChart, handleDownloadPng, handleDownloadSvg } = useChartCopy({
     getBackgroundColor: () => {
       const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
       return isDark ? '#0f172a' : '#ffffff';
@@ -269,6 +271,8 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     setShowParetoComparison,
     copyFeedback,
     handleCopyChart,
+    handleDownloadPng,
+    handleDownloadSvg,
     availableOutcomes,
     availableStageColumns,
     anovaResult,

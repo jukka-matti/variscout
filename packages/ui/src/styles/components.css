@@ -383,3 +383,11 @@ button:active:not(:disabled),
   outline-offset: 2px;
   border-radius: 2px;
 }
+
+/* ========================================
+   Chart Export: hide interactive chrome
+   during html-to-image capture
+   ======================================== */
+[data-exporting='true'] [data-export-hide] {
+  display: none !important;
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ExternalLink, Download, FileCode } from 'lucide-react';
+import { X, ExternalLink, Download, FileCode, Copy, Check } from 'lucide-react';
 import type { DrillStep } from '@variscout/hooks';
 import MindmapModeToggle from './MindmapModeToggle';
 
@@ -64,6 +64,10 @@ export interface MindmapPanelContentProps {
   showSvgExport?: boolean;
   /** SVG export callback */
   onExportSvg?: () => void;
+  /** Copy to clipboard callback */
+  onCopyToClipboard?: () => void;
+  /** Whether copy feedback (Check icon) is active */
+  copyFeedback?: boolean;
 }
 
 /**
@@ -85,6 +89,8 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
   columnAliases,
   showSvgExport,
   onExportSvg,
+  onCopyToClipboard,
+  copyFeedback,
 }) => {
   const c = colorScheme;
 
@@ -104,6 +110,20 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
         <div className="flex items-center gap-1">
           {mode === 'narrative' && (
             <>
+              {onCopyToClipboard && (
+                <button
+                  onClick={onCopyToClipboard}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    copyFeedback
+                      ? 'bg-green-500/20 text-green-400'
+                      : `${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg}`
+                  }`}
+                  title="Copy to clipboard"
+                  aria-label="Copy to clipboard"
+                >
+                  {copyFeedback ? <Check size={14} /> : <Copy size={14} />}
+                </button>
+              )}
               <button
                 onClick={onExportPng}
                 className={`p-1.5 ${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg} rounded-lg transition-colors`}

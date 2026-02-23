@@ -25,6 +25,8 @@ import {
   BoxplotDisplayToggle,
   boxplotDisplayToggleAzureColorScheme,
   AnnotationContextMenu,
+  ChartDownloadMenu,
+  chartDownloadMenuAzureColorScheme,
 } from '@variscout/ui';
 import { getColumnNames, createFactorFromSelection } from '@variscout/core';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
@@ -39,9 +41,10 @@ import {
   Layers,
   Gauge,
   ArrowLeft,
+  X,
   Copy,
   Check,
-  X,
+  Download,
 } from 'lucide-react';
 
 type DashboardTab = 'analysis' | 'regression' | 'performance';
@@ -118,6 +121,8 @@ const Dashboard = ({
     setShowParetoComparison,
     copyFeedback,
     handleCopyChart,
+    handleDownloadPng,
+    handleDownloadSvg,
     availableOutcomes,
     availableStageColumns,
     anovaResult,
@@ -201,17 +206,48 @@ const Dashboard = ({
   if (!outcome) return null;
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto bg-slate-900 relative">
+    <div
+      id="dashboard-export-container"
+      className="flex flex-col h-full overflow-y-auto bg-slate-900 relative"
+    >
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-slate-900">
-        <FilterBreadcrumb
-          filterChipData={filterChipData}
-          columnAliases={columnAliases}
-          onUpdateFilterValues={handleUpdateFilterValues}
-          onRemoveFilter={handleRemoveFilter}
-          onClearAll={handleClearAllFilters}
-          cumulativeVariationPct={cumulativeVariationPct}
-        />
+        <div className="flex items-center">
+          <div className="flex-1 min-w-0">
+            <FilterBreadcrumb
+              filterChipData={filterChipData}
+              columnAliases={columnAliases}
+              onUpdateFilterValues={handleUpdateFilterValues}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAll={handleClearAllFilters}
+              cumulativeVariationPct={cumulativeVariationPct}
+            />
+          </div>
+          {activeTab === 'analysis' && !focusedChart && (
+            <div className="flex items-center gap-1 px-3 flex-shrink-0" data-export-hide>
+              <button
+                onClick={() => handleCopyChart('dashboard-export-container', 'dashboard')}
+                className={`p-1.5 rounded transition-all ${
+                  copyFeedback === 'dashboard'
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                }`}
+                title="Copy dashboard to clipboard"
+                aria-label="Copy dashboard to clipboard"
+              >
+                {copyFeedback === 'dashboard' ? <Check size={14} /> : <Copy size={14} />}
+              </button>
+              <button
+                onClick={() => handleDownloadPng('dashboard-export-container', 'dashboard')}
+                className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                title="Download dashboard as PNG"
+                aria-label="Download dashboard as PNG"
+              >
+                <Download size={14} />
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Selection Panel */}
         {selectedPoints.size > 0 && (
@@ -348,69 +384,71 @@ const Dashboard = ({
                         onChange={title => handleChartTitleChange('ichart', title)}
                       />
                     </h2>
-                    <select
-                      value={outcome}
-                      onChange={e => setOutcome(e.target.value)}
-                      aria-label="Select outcome variable"
-                      className="bg-slate-900 border border-slate-700 text-sm font-medium text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
-                    >
-                      {availableOutcomes.map(o => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </select>
-                    {/* Stage Column Selector */}
-                    {availableStageColumns.length > 0 && (
-                      <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-700">
-                        <Layers
-                          size={16}
-                          className={
-                            availableStageColumns.length > 0 ? 'text-blue-400' : 'text-slate-600'
-                          }
-                        />
-                        <select
-                          value={stageColumn || ''}
-                          onChange={e => setStageColumn(e.target.value || null)}
-                          className="bg-slate-900 border border-slate-700 text-sm text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
-                          title="Select a column to divide the chart into stages"
-                        >
-                          <option value="">No stages</option>
-                          {availableStageColumns.map(col => (
-                            <option key={col} value={col}>
-                              {columnAliases[col] || col}
-                            </option>
-                          ))}
-                        </select>
-                        {stageColumn && (
-                          <select
-                            value={stageOrderMode}
-                            onChange={e =>
-                              setStageOrderMode(e.target.value as typeof stageOrderMode)
+                    <div className="flex items-center gap-4" data-export-hide>
+                      <select
+                        value={outcome}
+                        onChange={e => setOutcome(e.target.value)}
+                        aria-label="Select outcome variable"
+                        className="bg-slate-900 border border-slate-700 text-sm font-medium text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                      >
+                        {availableOutcomes.map(o => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                      {/* Stage Column Selector */}
+                      {availableStageColumns.length > 0 && (
+                        <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-700">
+                          <Layers
+                            size={16}
+                            className={
+                              availableStageColumns.length > 0 ? 'text-blue-400' : 'text-slate-600'
                             }
-                            className="bg-slate-900 border border-slate-700 text-xs text-slate-400 rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
-                            title="Stage ordering method"
+                          />
+                          <select
+                            value={stageColumn || ''}
+                            onChange={e => setStageColumn(e.target.value || null)}
+                            className="bg-slate-900 border border-slate-700 text-sm text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                            title="Select a column to divide the chart into stages"
                           >
-                            <option value="auto">Auto order</option>
-                            <option value="data-order">As in data</option>
+                            <option value="">No stages</option>
+                            {availableStageColumns.map(col => (
+                              <option key={col} value={col}>
+                                {columnAliases[col] || col}
+                              </option>
+                            ))}
                           </select>
-                        )}
-                      </div>
-                    )}
-                    <SpecsPopover specs={specs} onSave={setSpecs} />
-                    <FactorManagerPopover
-                      rawData={rawData}
-                      outcome={outcome}
-                      factors={factors}
-                      filters={filters}
-                      onFactorsChange={setFactors}
-                      onFiltersChange={setFilters}
-                      factorVariations={factorVariations}
-                    />
+                          {stageColumn && (
+                            <select
+                              value={stageOrderMode}
+                              onChange={e =>
+                                setStageOrderMode(e.target.value as typeof stageOrderMode)
+                              }
+                              className="bg-slate-900 border border-slate-700 text-xs text-slate-400 rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-800 transition-colors"
+                              title="Stage ordering method"
+                            >
+                              <option value="auto">Auto order</option>
+                              <option value="data-order">As in data</option>
+                            </select>
+                          )}
+                        </div>
+                      )}
+                      <SpecsPopover specs={specs} onSave={setSpecs} />
+                      <FactorManagerPopover
+                        rawData={rawData}
+                        outcome={outcome}
+                        factors={factors}
+                        filters={filters}
+                        onFactorsChange={setFactors}
+                        onFiltersChange={setFilters}
+                        factorVariations={factorVariations}
+                      />
+                    </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2" data-export-hide>
                     {ichartAnnotations.length > 0 && (
                       <button
                         onClick={() => clearAnnotations('ichart')}
@@ -464,9 +502,17 @@ const Dashboard = ({
                       }`}
                       title="Copy I-Chart to clipboard"
                       aria-label="Copy I-Chart to clipboard"
+                      data-export-hide
                     >
                       {copyFeedback === 'ichart' ? <Check size={14} /> : <Copy size={14} />}
                     </button>
+                    <ChartDownloadMenu
+                      containerId="ichart-card"
+                      chartName="ichart"
+                      onDownloadPng={handleDownloadPng}
+                      onDownloadSvg={handleDownloadSvg}
+                      colorScheme={chartDownloadMenuAzureColorScheme}
+                    />
                     <button
                       onClick={() => setFocusedChart('ichart')}
                       className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
@@ -514,7 +560,7 @@ const Dashboard = ({
                           onChange={title => handleChartTitleChange('boxplot', title)}
                         />
                       </h3>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" data-export-hide>
                         <div
                           className={`rounded-lg transition-all duration-300 ${
                             lastAdvancedFactor && lastAdvancedFactor === boxplotFactor
@@ -568,9 +614,17 @@ const Dashboard = ({
                           }`}
                           title="Copy Boxplot to clipboard"
                           aria-label="Copy Boxplot to clipboard"
+                          data-export-hide
                         >
                           {copyFeedback === 'boxplot' ? <Check size={14} /> : <Copy size={14} />}
                         </button>
+                        <ChartDownloadMenu
+                          containerId="boxplot-card"
+                          chartName="boxplot"
+                          onDownloadPng={handleDownloadPng}
+                          onDownloadSvg={handleDownloadSvg}
+                          colorScheme={chartDownloadMenuAzureColorScheme}
+                        />
                         <button
                           onClick={() => setFocusedChart('boxplot')}
                           className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
@@ -620,7 +674,7 @@ const Dashboard = ({
                           onChange={title => handleChartTitleChange('pareto', title)}
                         />
                       </h3>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" data-export-hide>
                         <FactorSelector
                           factors={factors}
                           selected={paretoFactor}
@@ -645,11 +699,19 @@ const Dashboard = ({
                               ? 'bg-green-500/20 text-green-400'
                               : 'text-slate-500 hover:text-white hover:bg-slate-700'
                           }`}
-                          title="Copy Pareto Chart to clipboard"
-                          aria-label="Copy Pareto chart to clipboard"
+                          title="Copy Pareto to clipboard"
+                          aria-label="Copy Pareto to clipboard"
+                          data-export-hide
                         >
                           {copyFeedback === 'pareto' ? <Check size={14} /> : <Copy size={14} />}
                         </button>
+                        <ChartDownloadMenu
+                          containerId="pareto-card"
+                          chartName="pareto"
+                          onDownloadPng={handleDownloadPng}
+                          onDownloadSvg={handleDownloadSvg}
+                          colorScheme={chartDownloadMenuAzureColorScheme}
+                        />
                         <button
                           onClick={() => setFocusedChart('pareto')}
                           className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
@@ -752,6 +814,10 @@ const Dashboard = ({
                   onCreateIChartAnnotation={createIChartAnnotation}
                   onIChartAnnotationsChange={setIChartAnnotations}
                   onClearIChartAnnotations={() => clearAnnotations('ichart')}
+                  copyFeedback={copyFeedback}
+                  onCopyChart={handleCopyChart}
+                  onDownloadPng={handleDownloadPng}
+                  onDownloadSvg={handleDownloadSvg}
                 />
               )}
 
@@ -777,6 +843,10 @@ const Dashboard = ({
                   annotations={boxplotAnnotations}
                   onAnnotationsChange={setBoxplotAnnotations}
                   categoryContributions={categoryContributions?.get(boxplotFactor)}
+                  copyFeedback={copyFeedback}
+                  onCopyChart={handleCopyChart}
+                  onDownloadPng={handleDownloadPng}
+                  onDownloadSvg={handleDownloadSvg}
                 />
               )}
 
@@ -804,6 +874,10 @@ const Dashboard = ({
                   onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
                   annotations={paretoAnnotations}
                   onAnnotationsChange={setParetoAnnotations}
+                  copyFeedback={copyFeedback}
+                  onCopyChart={handleCopyChart}
+                  onDownloadPng={handleDownloadPng}
+                  onDownloadSvg={handleDownloadSvg}
                 />
               )}
             </div>

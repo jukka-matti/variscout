@@ -150,6 +150,7 @@ export {
   mindmapPanelAzureColorScheme,
   exportMindmapPng,
   exportMindmapSvg,
+  exportMindmapToClipboard,
   type MindmapPanelColorScheme,
   type MindmapPanelContentProps,
 } from './components/MindmapPanel';
@@ -214,6 +215,14 @@ export {
 } from './components/AnnotationContextMenu';
 
 export { DataTableBase, type DataTableBaseProps } from './components/DataTable';
+
+export {
+  ChartDownloadMenu,
+  chartDownloadMenuDefaultColorScheme,
+  chartDownloadMenuAzureColorScheme,
+  type ChartDownloadMenuProps,
+  type ChartDownloadMenuColorScheme,
+} from './components/ChartExportMenu';
 
 export {
   default as PasteScreenBase,

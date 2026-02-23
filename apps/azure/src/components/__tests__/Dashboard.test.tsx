@@ -68,6 +68,8 @@ vi.mock('@variscout/ui', () => ({
   filterContextBarAzureColorScheme: {},
   BoxplotDisplayToggle: () => <div data-testid="boxplot-display-toggle">Display Toggle</div>,
   boxplotDisplayToggleAzureColorScheme: {},
+  ChartDownloadMenu: () => <div data-testid="chart-download-menu">Download</div>,
+  chartDownloadMenuAzureColorScheme: {},
   AnnotationContextMenu: () => null,
   HelpTooltip: () => null,
   useGlossary: () => ({ getTerm: () => undefined }),
@@ -88,6 +90,8 @@ vi.mock('../../hooks', () => ({
     setShowParetoComparison: vi.fn(),
     copyFeedback: null,
     handleCopyChart: vi.fn(),
+    handleDownloadPng: vi.fn(),
+    handleDownloadSvg: vi.fn(),
     availableOutcomes: ['Result'],
     availableStageColumns: [],
     anovaResult: null,
@@ -252,13 +256,16 @@ describe('Dashboard', () => {
     expect(screen.queryByText('Performance')).not.toBeInTheDocument();
   });
 
-  it('renders copy buttons for each chart', () => {
+  it('renders download menus and copy buttons for each chart', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
 
     render(<Dashboard />);
 
-    const copyButtons = screen.getAllByTitle(/Copy .* to clipboard/);
-    expect(copyButtons).toHaveLength(3); // I-Chart, Boxplot, Pareto
+    const downloadMenus = screen.getAllByTestId('chart-download-menu');
+    expect(downloadMenus).toHaveLength(3); // I-Chart, Boxplot, Pareto
+
+    const copyButtons = screen.getAllByLabelText(/^Copy .+ to clipboard$/);
+    expect(copyButtons).toHaveLength(3);
   });
 
   it('renders editable chart titles', () => {

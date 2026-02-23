@@ -2,10 +2,16 @@ import React from 'react';
 import Boxplot from '../charts/Boxplot';
 import AnovaResults from '../AnovaResults';
 import ErrorBoundary from '../ErrorBoundary';
-import { FilterContextBar, filterContextBarAzureColorScheme, FactorSelector } from '@variscout/ui';
+import {
+  FilterContextBar,
+  filterContextBarAzureColorScheme,
+  FactorSelector,
+  ChartDownloadMenu,
+  chartDownloadMenuAzureColorScheme,
+} from '@variscout/ui';
 import { EditableChartTitle } from '@variscout/charts';
 import { BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
-import { Minimize2 } from 'lucide-react';
+import { Minimize2, Copy, Check } from 'lucide-react';
 import type { AnovaResult, DisplayOptions } from '@variscout/core';
 import type { FilterChipData, ChartAnnotation, HighlightColor } from '@variscout/hooks';
 
@@ -30,6 +36,11 @@ interface FocusedBoxplotViewProps {
   annotations?: ChartAnnotation[];
   onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
   categoryContributions?: Map<string | number, number>;
+  // Chart export props
+  copyFeedback?: string | null;
+  onCopyChart?: (containerId: string, chartName: string) => Promise<void>;
+  onDownloadPng?: (containerId: string, chartName: string) => Promise<void>;
+  onDownloadSvg?: (containerId: string, chartName: string) => void;
 }
 
 const FocusedBoxplotView: React.FC<FocusedBoxplotViewProps> = ({
@@ -53,9 +64,16 @@ const FocusedBoxplotView: React.FC<FocusedBoxplotViewProps> = ({
   annotations,
   onAnnotationsChange,
   categoryContributions,
+  copyFeedback,
+  onCopyChart,
+  onDownloadPng,
+  onDownloadSvg,
 }) => {
   return (
-    <div className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full overflow-hidden">
+    <div
+      id="boxplot-focus"
+      className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full overflow-hidden"
+    >
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-semibold text-slate-200 uppercase tracking-wider">
           <EditableChartTitle
@@ -72,6 +90,29 @@ const FocusedBoxplotView: React.FC<FocusedBoxplotViewProps> = ({
             hasActiveFilter={!!filters?.[boxplotFactor]?.length}
             size="md"
           />
+          {onCopyChart && onDownloadPng && onDownloadSvg && (
+            <div className="flex items-center gap-1" data-export-hide>
+              <button
+                onClick={() => onCopyChart('boxplot-focus', 'boxplot')}
+                className={`p-1.5 rounded transition-all ${
+                  copyFeedback === 'boxplot'
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                }`}
+                title="Copy Boxplot to clipboard"
+                aria-label="Copy Boxplot to clipboard"
+              >
+                {copyFeedback === 'boxplot' ? <Check size={14} /> : <Copy size={14} />}
+              </button>
+              <ChartDownloadMenu
+                containerId="boxplot-focus"
+                chartName="boxplot"
+                onDownloadPng={onDownloadPng}
+                onDownloadSvg={onDownloadSvg}
+                colorScheme={chartDownloadMenuAzureColorScheme}
+              />
+            </div>
+          )}
           <button
             onClick={onExit}
             className="p-2 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors bg-slate-700/50"

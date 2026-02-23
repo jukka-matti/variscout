@@ -5,7 +5,7 @@
  * SVG: Azure-only (vector export for reports)
  */
 
-import { toPng } from 'html-to-image';
+import { toPng, toBlob } from 'html-to-image';
 
 /**
  * Export a DOM node as a PNG file with consistent settings.
@@ -23,6 +23,28 @@ export async function exportMindmapPng(node: HTMLElement, filename?: string): Pr
   link.download = filename ?? `investigation-${new Date().toISOString().split('T')[0]}.png`;
   link.href = dataUrl;
   link.click();
+}
+
+/**
+ * Copy a mindmap DOM node to clipboard as a PNG image.
+ *
+ * @param node - The DOM element to capture (typically the mindmap container ref)
+ * @returns true on success, false on failure
+ */
+export async function exportMindmapToClipboard(node: HTMLElement): Promise<boolean> {
+  try {
+    const blob = await toBlob(node, {
+      cacheBust: true,
+      backgroundColor: '#0f172a',
+      pixelRatio: 2,
+    });
+    if (!blob) return false;
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    return true;
+  } catch (err) {
+    console.error('Failed to copy mindmap to clipboard', err);
+    return false;
+  }
 }
 
 /**

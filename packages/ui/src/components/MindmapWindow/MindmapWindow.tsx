@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { InvestigationMindmapBase } from '@variscout/charts';
 import { useMindmapState } from '@variscout/hooks';
 import { type FilterAction, type FilterSource, createFilterAction } from '@variscout/core';
-import { Download } from 'lucide-react';
-import { exportMindmapPng } from '../MindmapPanel/export';
+import { Download, Copy, Check } from 'lucide-react';
+import { exportMindmapPng, exportMindmapToClipboard } from '../MindmapPanel/export';
 import MindmapModeToggle from '../MindmapPanel/MindmapModeToggle';
 
 /**
@@ -161,6 +161,18 @@ const MindmapWindow: React.FC<MindmapWindowProps> = ({
     await exportMindmapPng(node);
   }, []);
 
+  // Copy to clipboard for narrative mode
+  const [copyFeedback, setCopyFeedback] = useState(false);
+  const handleCopyToClipboard = useCallback(async () => {
+    const node = mindmapRef.current;
+    if (!node) return;
+    const ok = await exportMindmapToClipboard(node);
+    if (ok) {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    }
+  }, []);
+
   // Error state
   if (error) {
     return (
@@ -196,14 +208,28 @@ const MindmapWindow: React.FC<MindmapWindowProps> = ({
         />
 
         {mode === 'narrative' && (
-          <button
-            onClick={handleExportPng}
-            className={`p-1.5 ${c.secondaryText} hover:text-white ${c.buttonHoverBg} rounded-lg transition-colors`}
-            title="Export as PNG"
-            aria-label="Export as PNG"
-          >
-            <Download size={14} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleCopyToClipboard}
+              className={`p-1.5 rounded-lg transition-all ${
+                copyFeedback
+                  ? 'bg-green-500/20 text-green-400'
+                  : `${c.secondaryText} hover:text-white ${c.buttonHoverBg}`
+              }`}
+              title="Copy to clipboard"
+              aria-label="Copy to clipboard"
+            >
+              {copyFeedback ? <Check size={14} /> : <Copy size={14} />}
+            </button>
+            <button
+              onClick={handleExportPng}
+              className={`p-1.5 ${c.secondaryText} hover:text-white ${c.buttonHoverBg} rounded-lg transition-colors`}
+              title="Export as PNG"
+              aria-label="Export as PNG"
+            >
+              <Download size={14} />
+            </button>
+          </div>
         )}
       </div>
 

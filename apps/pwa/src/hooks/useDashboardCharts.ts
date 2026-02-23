@@ -63,9 +63,11 @@ export interface UseDashboardChartsResult {
   showSpecEditor: boolean;
   setShowSpecEditor: (show: boolean) => void;
 
-  // Copy feedback
+  // Chart export
   copyFeedback: string | null;
   handleCopyChart: (containerId: string, chartName: string) => Promise<void>;
+  handleDownloadPng: (containerId: string, chartName: string) => Promise<void>;
+  handleDownloadSvg: (containerId: string, chartName: string) => void;
 
   // Pareto factor selector ref (for focus from empty state)
   paretoFactorSelectorRef: React.RefObject<HTMLSelectElement>;
@@ -129,8 +131,8 @@ export function useDashboardCharts({
   // Focus mode + keyboard navigation
   const { focusedChart, setFocusedChart, handleNextChart, handlePrevChart } = useFocusMode();
 
-  // Clipboard copy
-  const { copyFeedback, handleCopyChart } = useChartCopy();
+  // Chart export (clipboard copy + download)
+  const { copyFeedback, handleCopyChart, handleDownloadPng, handleDownloadSvg } = useChartCopy();
 
   // Factor selection (boxplot + pareto)
   const {
@@ -294,9 +296,11 @@ export function useDashboardCharts({
     showSpecEditor,
     setShowSpecEditor,
 
-    // Copy feedback
+    // Chart export
     copyFeedback,
     handleCopyChart,
+    handleDownloadPng,
+    handleDownloadSvg,
 
     // Pareto factor selector ref
     paretoFactorSelectorRef,

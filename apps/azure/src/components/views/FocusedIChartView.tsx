@@ -5,11 +5,13 @@ import ErrorBoundary from '../ErrorBoundary';
 import {
   FilterContextBar,
   filterContextBarAzureColorScheme,
+  ChartDownloadMenu,
+  chartDownloadMenuAzureColorScheme,
   HelpTooltip,
   useGlossary,
 } from '@variscout/ui';
 import { EditableChartTitle } from '@variscout/charts';
-import { Activity, Layers, Minimize2, X } from 'lucide-react';
+import { Activity, Layers, Minimize2, X, Copy, Check } from 'lucide-react';
 import type {
   StageOrderMode,
   SpecLimits,
@@ -45,6 +47,11 @@ interface FocusedIChartViewProps {
   onCreateIChartAnnotation?: (anchorX: number, anchorY: number) => void;
   onIChartAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
   onClearIChartAnnotations?: () => void;
+  // Chart export props
+  copyFeedback?: string | null;
+  onCopyChart?: (containerId: string, chartName: string) => Promise<void>;
+  onDownloadPng?: (containerId: string, chartName: string) => Promise<void>;
+  onDownloadSvg?: (containerId: string, chartName: string) => void;
 }
 
 const FocusedIChartView: React.FC<FocusedIChartViewProps> = ({
@@ -73,11 +80,18 @@ const FocusedIChartView: React.FC<FocusedIChartViewProps> = ({
   onCreateIChartAnnotation,
   onIChartAnnotationsChange,
   onClearIChartAnnotations,
+  copyFeedback,
+  onCopyChart,
+  onDownloadPng,
+  onDownloadSvg,
 }) => {
   const { getTerm } = useGlossary();
 
   return (
-    <div className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full">
+    <div
+      id="ichart-focus"
+      className="flex-1 bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full"
+    >
       <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
@@ -140,6 +154,29 @@ const FocusedIChartView: React.FC<FocusedIChartViewProps> = ({
             >
               <X size={12} />
             </button>
+          )}
+          {onCopyChart && onDownloadPng && onDownloadSvg && (
+            <div className="flex items-center gap-1" data-export-hide>
+              <button
+                onClick={() => onCopyChart('ichart-focus', 'ichart')}
+                className={`p-1.5 rounded transition-all ${
+                  copyFeedback === 'ichart'
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'text-slate-500 hover:text-white hover:bg-slate-700'
+                }`}
+                title="Copy I-Chart to clipboard"
+                aria-label="Copy I-Chart to clipboard"
+              >
+                {copyFeedback === 'ichart' ? <Check size={14} /> : <Copy size={14} />}
+              </button>
+              <ChartDownloadMenu
+                containerId="ichart-focus"
+                chartName="ichart"
+                onDownloadPng={onDownloadPng}
+                onDownloadSvg={onDownloadSvg}
+                colorScheme={chartDownloadMenuAzureColorScheme}
+              />
+            </div>
           )}
           <button
             onClick={onExit}
