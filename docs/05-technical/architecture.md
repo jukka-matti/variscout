@@ -98,7 +98,6 @@ Pure TypeScript logic with no React dependencies:
 | `tier.ts`       | Tier configuration (Azure Marketplace licensing, channel limits)           |
 | `navigation.ts` | Navigation types and utilities (FilterAction, BreadcrumbItem)              |
 | `variation/`    | Cumulative variation tracking (η² cascading, drill suggestions)            |
-| `edition.ts`    | Edition detection (deprecated, use tier.ts for new code)                   |
 | `glossary/`     | Glossary terms and type definitions for help tooltips                      |
 | `export.ts`     | CSV export utilities                                                       |
 | `types.ts`      | Shared TypeScript interfaces (StatsResult, LicenseTier, etc.)              |
@@ -317,7 +316,6 @@ variscout-lite/
 │   │   │   ├── parser/          # File parsing (csv, excel, detection, validation)
 │   │   │   ├── variation/       # Variation tracking (drill, contributions, suggestions)
 │   │   │   ├── tier.ts          # Tier configuration (Azure Marketplace)
-│   │   │   ├── edition.ts       # Edition detection (deprecated)
 │   │   │   ├── glossary/        # Glossary terms and types
 │   │   │   ├── export.ts        # CSV export
 │   │   │   └── types.ts         # Shared interfaces

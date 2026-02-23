@@ -1,6 +1,6 @@
 # @variscout/hooks
 
-Shared React hooks for VariScout applications (PWA, Azure, Excel Add-in).
+Shared React hooks for VariScout applications (PWA, Azure).
 
 ## Installation
 
@@ -130,35 +130,15 @@ navigateTo('action-id');
 
 ---
 
-#### `useChartNavigation`
+#### `useFocusedChartNav`
 
-Carousel-style focus mode navigation between charts with next/prev/exit controls.
+Carousel-style focus mode navigation between charts with next/prev/exit controls and keyboard support.
 
 ```tsx
-const {
-  focusedChart,
-  setFocusedChart,
-  handleNextChart,
-  handlePrevChart,
-  exitFocus,
-} = useChartNavigation();
-
-// In focused view:
-<button onClick={handlePrevChart}>←</button>
-<button onClick={handleNextChart}>→</button>
-<button onClick={exitFocus}>Exit</button>
+const { focusedChart, setFocusedChart, handleNextChart, handlePrevChart } = useFocusedChartNav({
+  chartOrder: ['ichart', 'boxplot', 'pareto'],
+});
 ```
-
-**Options:**
-
-| Option         | Type              | Default               | Description           |
-| -------------- | ----------------- | --------------------- | --------------------- |
-| `initialFocus` | `ChartId \| null` | `null`                | Initial focused chart |
-| `chartOrder`   | `readonly T[]`    | `DEFAULT_CHART_ORDER` | Order for navigation  |
-
-**Constants:**
-
-- `DEFAULT_CHART_ORDER`: `['ichart', 'boxplot', 'pareto']`
 
 ---
 
@@ -271,52 +251,6 @@ const { filterChipData } = useVariationTracking(rawData, filterStack, outcome, f
 
 ---
 
-### Data Analysis
-
-#### `useAvailableOutcomes`
-
-Computes available numeric outcome columns from data.
-
-```tsx
-const outcomes = useAvailableOutcomes(data);
-// Returns: ['Weight', 'Diameter', 'Temperature']
-```
-
-**Parameters:**
-
-| Parameter | Type        | Description        |
-| --------- | ----------- | ------------------ |
-| `data`    | `DataRow[]` | Array of data rows |
-
-**Returns:** `string[]` - Column names containing numeric values
-
----
-
-#### `useAvailableStageColumns`
-
-Finds categorical columns suitable for grouping (2-10 unique values).
-
-```tsx
-const stageColumns = useAvailableStageColumns(data, {
-  minUnique: 2,
-  maxUnique: 10,
-  excludeColumn: outcome,
-});
-// Returns: ['Operator', 'Machine', 'Shift']
-```
-
-**Options:**
-
-| Option          | Type             | Default | Description                       |
-| --------------- | ---------------- | ------- | --------------------------------- |
-| `minUnique`     | `number`         | `2`     | Minimum unique values             |
-| `maxUnique`     | `number`         | `10`    | Maximum unique values             |
-| `excludeColumn` | `string \| null` | `null`  | Column to exclude (e.g., outcome) |
-
-**Returns:** `string[]` - Column names suitable for staging
-
----
-
 ### Chart Layout
 
 #### `useChartScale`
@@ -399,36 +333,33 @@ const breakpoints = useResponsiveBreakpoints(containerWidth);
 
 ### Utilities
 
-#### `useClipboardCopy`
+#### `useChartCopy`
 
-Copy chart elements to clipboard as PNG images.
+Copy a chart card to clipboard as a PNG image.
 
 ```tsx
-import { toBlob } from 'html-to-image';
+const { copyFeedback, handleCopyChart } = useChartCopy({
+  getBackgroundColor: () => (isDark ? '#0f172a' : '#ffffff'),
+});
 
-const { copyChart, isCopied } = useClipboardCopy({ toBlob });
-
-<button onClick={() => copyChart('ichart-card', 'ichart')}>
-  {isCopied('ichart') ? <Check /> : <Copy />}
+<button onClick={() => handleCopyChart('ichart-card', 'I-Chart')}>
+  {copyFeedback === 'I-Chart' ? <Check /> : <Copy />}
   Copy
 </button>;
 ```
 
 **Options:**
 
-| Option             | Type       | Default     | Description                            |
-| ------------------ | ---------- | ----------- | -------------------------------------- |
-| `feedbackDuration` | `number`   | `2000`      | Duration to show success feedback (ms) |
-| `backgroundColor`  | `string`   | `'#0f172a'` | Background color for image capture     |
-| `toBlob`           | `function` | -           | toBlob function from html-to-image     |
+| Option               | Type           | Default     | Description                                   |
+| -------------------- | -------------- | ----------- | --------------------------------------------- |
+| `getBackgroundColor` | `() => string` | `'#0f172a'` | Callback to determine background at copy time |
 
 **Returns:**
 
-| Property       | Type             | Description                        |
-| -------------- | ---------------- | ---------------------------------- |
-| `copyFeedback` | `string \| null` | ID of chart showing feedback       |
-| `copyChart`    | `function`       | Copy chart to clipboard            |
-| `isCopied`     | `function`       | Check if chart is showing feedback |
+| Property          | Type             | Description                    |
+| ----------------- | ---------------- | ------------------------------ |
+| `copyFeedback`    | `string \| null` | Chart name showing feedback    |
+| `handleCopyChart` | `function`       | Copy chart to clipboard as PNG |
 
 ---
 
@@ -447,8 +378,6 @@ import type {
   ChartTitles,
   AnalysisState,
   SavedProject,
-  DashboardProps,
-  AzureDashboardProps,
   FilterChipData,
   UseFilterNavigationReturn,
   VariationTrackingResult,

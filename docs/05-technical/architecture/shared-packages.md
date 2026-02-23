@@ -60,7 +60,6 @@ import type { DrillLevel, BreadcrumbItem } from '@variscout/core';
 | `variation/`        | Variation tracking, drill suggestions, simulation             |
 | `types.ts`          | Shared TypeScript interfaces                                  |
 | `glossary/terms.ts` | Glossary content (~20 terms)                                  |
-| `edition.ts`        | Edition detection, feature gates                              |
 
 ---
 

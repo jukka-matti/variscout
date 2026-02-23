@@ -176,7 +176,6 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `tier.ts`                         | ✅     | Tier configuration, channel limits, validation                                                                      |
 | `parser.ts`                       | ✅     | CSV/Excel parsing, auto-mapping, validation, data types                                                             |
 | `export.ts`                       | ✅     | CSV generation, special characters, escaping                                                                        |
-| `edition.ts`                      | ✅     | Edition detection, feature flags, theming gates                                                                     |
 | `performance.ts`                  | ✅     | Multi-channel analysis, performance metrics                                                                         |
 
 ### @variscout/charts (3 files, 44 test cases)
@@ -428,7 +427,6 @@ packages/core/
 │       ├── navigation.test.ts           # Navigation utilities
 │       ├── variation.test.ts            # Variation tracking
 │       ├── tier.test.ts                 # Tier configuration
-│       ├── edition.test.ts              # Edition detection
 │       ├── time.test.ts                 # Time utilities
 │       └── urlParams.test.ts            # URL parameter parsing
 

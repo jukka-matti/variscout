@@ -93,7 +93,7 @@ All 8 doc sections exist with indexes: vision (13 files), journeys (13), feature
 
 | #   | Item                                                             | Severity |
 | --- | ---------------------------------------------------------------- | -------- |
-| T1  | `edition.ts` deprecated but still used for branding logic        | LOW      |
+| T1  | ~~`edition.ts` deprecated but still used for branding logic~~    | RESOLVED |
 | T2  | Excel add-in has stub `licenseDetection.ts` and `useLicense.ts`  | LOW      |
 | T3  | TODO: Integrate funnel filters with FilterNavigation breadcrumbs | LOW      |
 | T4  | TODO: Replace upgrade URL placeholder (`tier.ts:168`)            | **HIGH** |
@@ -184,7 +184,7 @@ Values are coordinated (status colors match) but no single source of truth.
 
 | Issue                         | Owner  |
 | ----------------------------- | ------ |
-| T1: `edition.ts` cleanup      | CTO    |
+| ~~T1: `edition.ts` cleanup~~  | DONE   |
 | T2: Excel stub files          | CTO    |
 | T3: Funnel/breadcrumb TODO    | CTO    |
 | P3: 2 stub case studies       | PO     |
