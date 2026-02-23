@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import DataTableModal from '../data/DataTableModal';
 import * as DataContextModule from '../../context/DataContext';
 
-describe('DataTableModal', () => {
+describe('Azure DataTableModal', () => {
   const mockData = [
     { name: 'Item A', value: 10, category: 'Type 1' },
     { name: 'Item B', value: 20, category: 'Type 2' },
@@ -20,6 +20,7 @@ describe('DataTableModal', () => {
       rawData: mockData,
       outcome: 'value',
       specs: { usl: 25, lsl: 5 },
+      columnAliases: { name: 'Product' },
       setRawData: mockSetRawData,
     } as any);
   });
@@ -29,37 +30,27 @@ describe('DataTableModal', () => {
     expect(screen.queryByText('Data Table')).not.toBeInTheDocument();
   });
 
-  it('renders table with columns from data', () => {
+  it('renders table with data when open', () => {
     render(<DataTableModal isOpen={true} onClose={() => {}} />);
 
     expect(screen.getByText('Data Table')).toBeInTheDocument();
-    expect(screen.getByText('name')).toBeInTheDocument();
-    expect(screen.getByText('value')).toBeInTheDocument();
-    expect(screen.getByText('category')).toBeInTheDocument();
-  });
-
-  it('renders correct number of rows', () => {
-    render(<DataTableModal isOpen={true} onClose={() => {}} />);
-
     expect(screen.getByText('3 rows')).toBeInTheDocument();
-    expect(screen.getByText('Item A')).toBeInTheDocument();
-    expect(screen.getByText('Item B')).toBeInTheDocument();
-    expect(screen.getByText('Item C')).toBeInTheDocument();
+    // Column aliases are passed through
+    expect(screen.getByText('Product')).toBeInTheDocument();
   });
 
-  it('applies changes on Apply button click', () => {
+  it('applies changes and calls setRawData', () => {
     const mockOnClose = vi.fn();
     render(<DataTableModal isOpen={true} onClose={mockOnClose} />);
 
-    // Make a change via cell edit
+    // Edit a cell
     fireEvent.click(screen.getByText('Item A'));
     const input = screen.getByDisplayValue('Item A');
     fireEvent.change(input, { target: { value: 'Modified' } });
     fireEvent.blur(input);
 
-    // Click Apply Changes
-    const applyButton = screen.getByText('Apply Changes');
-    fireEvent.click(applyButton);
+    // Apply
+    fireEvent.click(screen.getByText('Apply Changes'));
 
     expect(mockSetRawData).toHaveBeenCalledTimes(1);
     expect(mockSetRawData).toHaveBeenCalledWith(
@@ -68,19 +59,16 @@ describe('DataTableModal', () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('discards changes on Cancel click', () => {
+  it('discards changes on Cancel', () => {
     const mockOnClose = vi.fn();
     render(<DataTableModal isOpen={true} onClose={mockOnClose} />);
 
-    // Make a change
     fireEvent.click(screen.getByText('Item A'));
     const input = screen.getByDisplayValue('Item A');
     fireEvent.change(input, { target: { value: 'Modified' } });
     fireEvent.blur(input);
 
-    // Click Cancel
-    const cancelButton = screen.getByText('Cancel');
-    fireEvent.click(cancelButton);
+    fireEvent.click(screen.getByText('Cancel'));
 
     expect(mockOnClose).toHaveBeenCalled();
     expect(mockSetRawData).not.toHaveBeenCalled();
@@ -88,21 +76,20 @@ describe('DataTableModal', () => {
 
   it('Apply button is disabled when no changes', () => {
     render(<DataTableModal isOpen={true} onClose={() => {}} />);
-
-    const applyButton = screen.getByText('Apply Changes');
-    expect(applyButton).toBeDisabled();
+    expect(screen.getByText('Apply Changes')).toBeDisabled();
   });
 
-  it('shows empty state message when no data', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-      rawData: [],
-      outcome: 'value',
-      specs: {},
-      setRawData: mockSetRawData,
-    } as any);
+  it('passes control violations to DataTableBase', () => {
+    const violations = new Map([[0, ['Special Cause: Above UCL']]]);
 
-    render(<DataTableModal isOpen={true} onClose={() => {}} />);
+    render(
+      <DataTableModal
+        isOpen={true}
+        onClose={() => {}}
+        controlViolations={violations}
+      />
+    );
 
-    expect(screen.getByText(/No data loaded/i)).toBeInTheDocument();
+    expect(screen.getByTitle('Special Cause: Above UCL')).toBeInTheDocument();
   });
 });

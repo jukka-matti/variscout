@@ -5,6 +5,7 @@ import { useDataIngestion } from '../hooks/useDataIngestion';
 import { useFilterNavigation } from '../hooks';
 import Dashboard from '../components/Dashboard';
 import DataPanel from '../components/data/DataPanel';
+import DataTableModal from '../components/data/DataTableModal';
 import MindmapPanel from '../components/MindmapPanel';
 import { openMindmapPopout } from '../components/MindmapWindow';
 import ManualEntry, { type ManualEntryConfig } from '../components/data/ManualEntry';
@@ -15,6 +16,7 @@ import { useControlViolations } from '../hooks/useControlViolations';
 import { useDataMerge } from '../hooks/useDataMerge';
 import { parseText, detectColumns, validateData, detectWideFormat } from '@variscout/core';
 import { downloadCSV } from '@variscout/core';
+import type { ExclusionReason } from '@variscout/core';
 import { SAMPLES } from '@variscout/data';
 import type { SampleDataset } from '@variscout/data';
 import {
@@ -27,6 +29,7 @@ import {
   PenLine,
   ClipboardPaste,
   Table2,
+  Pencil,
   Plus,
   Network,
   Beaker,
@@ -65,6 +68,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     setPerformanceMode,
     setMeasureColumns,
     setMeasureLabel,
+    setColumnAliases,
     displayOptions,
     setDisplayOptions,
     saveProject,
@@ -93,6 +97,26 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   // State for column mapping review (after paste)
   const [isMapping, setIsMapping] = useState(false);
 
+  // Column analysis for ColumnMapping rich cards — computed from rawData
+  const mappingColumnAnalysis = useMemo(() => {
+    if (rawData.length === 0) return undefined;
+    return detectColumns(rawData).columnAnalysis;
+  }, [rawData]);
+
+  // Column rename handler for ColumnMapping
+  const handleColumnRename = useCallback(
+    (originalName: string, alias: string) => {
+      if (alias) {
+        setColumnAliases({ ...columnAliases, [originalName]: alias });
+      } else {
+        const next = { ...columnAliases };
+        delete next[originalName];
+        setColumnAliases(next);
+      }
+    },
+    [columnAliases, setColumnAliases]
+  );
+
   // State for drill navigation from Performance Mode to standard I-Chart
   const [drillFromPerformance, setDrillFromPerformance] = useState<string | null>(null);
 
@@ -100,6 +124,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   const [isDataPanelOpen, setIsDataPanelOpen] = useState(false);
   const [highlightRowIndex, setHighlightRowIndex] = useState<number | null>(null);
   const [highlightedChartPoint, setHighlightedChartPoint] = useState<number | null>(null);
+
+  // State for data table editor modal
+  const [isDataTableOpen, setIsDataTableOpen] = useState(false);
 
   // State for investigation mindmap
   const [isMindmapOpen, setIsMindmapOpen] = useState(false);
@@ -211,6 +238,21 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
 
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
+
+  // Compute excluded row data for DataTableModal
+  const excludedRowIndices = useMemo(() => {
+    if (!dataQualityReport) return undefined;
+    return new Set(dataQualityReport.excludedRows.map(r => r.index));
+  }, [dataQualityReport]);
+
+  const excludedReasons = useMemo(() => {
+    if (!dataQualityReport) return undefined;
+    const map = new Map<number, ExclusionReason[]>();
+    dataQualityReport.excludedRows.forEach(row => {
+      map.set(row.index, row.reasons);
+    });
+    return map;
+  }, [dataQualityReport]);
 
   // Manual data analyze with append-mode merge
   const { handleManualDataAnalyze } = useDataMerge({
@@ -387,7 +429,12 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   if (isMapping) {
     return (
       <ColumnMapping
+        columnAnalysis={mappingColumnAnalysis}
         availableColumns={Object.keys(rawData[0] || {})}
+        previewRows={rawData.slice(0, 5)}
+        totalRows={rawData.length}
+        columnAliases={columnAliases}
+        onColumnRename={handleColumnRename}
         initialOutcome={outcome}
         initialFactors={factors}
         datasetName={dataFilename || 'Pasted Data'}
@@ -447,6 +494,18 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             >
               <Plus size={16} />
               <span className="text-sm">Add Data</span>
+            </button>
+          )}
+
+          {/* Edit Data */}
+          {rawData.length > 0 && outcome && (
+            <button
+              onClick={() => setIsDataTableOpen(true)}
+              className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
+              title="Edit Data Table"
+              data-testid="btn-edit-data"
+            >
+              <Pencil size={18} />
             </button>
           )}
 
@@ -650,12 +709,18 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               highlightRowIndex={highlightRowIndex}
               onRowClick={handleRowClick}
               controlViolations={controlViolations}
+              onOpenEditor={() => setIsDataTableOpen(true)}
             />
           </div>
         ) : (
           // Data loaded but no outcome selected — column mapping fallback
           <ColumnMapping
+            columnAnalysis={mappingColumnAnalysis}
             availableColumns={Object.keys(rawData[0] || {})}
+            previewRows={rawData.slice(0, 5)}
+            totalRows={rawData.length}
+            columnAliases={columnAliases}
+            onColumnRename={handleColumnRename}
             initialOutcome={outcome}
             initialFactors={factors}
             datasetName={dataFilename || 'Data'}
@@ -666,6 +731,15 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           />
         )}
       </div>
+
+      {/* Data Table Editor Modal */}
+      <DataTableModal
+        isOpen={isDataTableOpen}
+        onClose={() => setIsDataTableOpen(false)}
+        excludedRowIndices={excludedRowIndices}
+        excludedReasons={excludedReasons}
+        controlViolations={controlViolations}
+      />
     </div>
   );
 };

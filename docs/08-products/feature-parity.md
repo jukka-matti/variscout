@@ -85,6 +85,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Spec entry at column mapping**  |     ✓     |     ✓      | Collapsible SpecsSection in ColumnMapping                     |
 | **Column data preview**           |     ✓     |     ✓      | Collapsible mini-table showing first 5 rows                   |
 | **Column renaming at setup**      |     ✓     |     ✓      | Pencil icon on column cards → `columnAliases`                 |
+| **Inline data editing**           |     ✓     |     ✓      | Edit cells, add/delete rows, batch apply                      |
 | **Manual entry**                  |     ✓     |     ✓      |                                                               |
 | **Data validation**               |     ✓     |     ✓      |                                                               |
 | **Row limit**                     |  100,000  |   50,000   | Configurable via `DataIngestionConfig`                        |

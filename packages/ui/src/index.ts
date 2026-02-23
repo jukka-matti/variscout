@@ -217,6 +217,8 @@ export {
   type AnnotationContextMenuProps,
 } from './components/AnnotationContextMenu';
 
+export { DataTableBase, type DataTableBaseProps } from './components/DataTable';
+
 // Services
 export {
   errorService,

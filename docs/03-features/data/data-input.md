@@ -87,6 +87,41 @@ The ColumnMapping component displays detected columns as **data-rich cards** wit
 
 ---
 
+## Data Table Editor (PWA and Azure App)
+
+Both the PWA and Azure App include an inline **Data Table Editor** for correcting or extending data without re-importing.
+
+### How to Open
+
+- **PWA**: Click the **Data Table** button in the toolbar header
+- **Azure App**: Click the **Pencil** icon in the toolbar, or the pencil icon in the DataPanel header
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Cell editing** | Click any cell to edit its value inline |
+| **Keyboard navigation** | Tab (next cell), Shift+Tab (previous), Enter (save + move down), Escape (cancel) |
+| **Add row** | Adds a new empty row at the bottom |
+| **Delete row** | Trash icon on each row |
+| **Spec status** | Outcome column shows PASS/USL/LSL badges |
+| **Excluded row indicators** | Amber warning icon with hover tooltip |
+| **Control violation indicators** | Red icon for UCL/LCL and Nelson Rule violations (Azure) |
+| **Column aliases** | Displays renamed column headers (Azure) |
+| **Pagination** | Automatic for datasets > 500 rows |
+
+### Batch Save Workflow
+
+Edits are made on a **local copy** of the data. Nothing changes until you click **Apply Changes**:
+
+1. Open the Data Table Editor
+2. Make edits (cells, add rows, delete rows)
+3. A **(unsaved changes)** indicator appears in the header
+4. Click **Apply Changes** to commit all edits at once — charts update immediately
+5. Or click **Cancel** to discard all changes
+
+---
+
 ## Upload Flow (Azure App)
 
 File upload (CSV/Excel drag-and-drop) is available in the Azure App.

@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   AlertCircle,
   GripVertical,
+  Pencil,
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { getSpecStatus, type ExclusionReason } from '@variscout/core';
@@ -27,6 +28,7 @@ interface DataPanelProps {
   excludedRowIndices?: Set<number>;
   excludedReasons?: Map<number, ExclusionReason[]>;
   controlViolations?: Map<number, string[]>;
+  onOpenEditor?: () => void;
 }
 
 const DataPanel: React.FC<DataPanelProps> = ({
@@ -37,6 +39,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
   excludedRowIndices,
   excludedReasons,
   controlViolations,
+  onOpenEditor,
 }) => {
   const { filteredData, rawData, outcome, specs, columnAliases, filters } = useData();
 
@@ -243,13 +246,25 @@ const DataPanel: React.FC<DataPanelProps> = ({
             <span className="text-sm font-semibold text-white">Data</span>
             <span className="text-xs text-slate-400">{dataWithIndices.length} rows</span>
           </div>
-          <button
-            onClick={onClose}
-            aria-label="Close data panel"
-            className="p-1 text-slate-400 hover:text-white rounded transition-colors"
-          >
-            <X size={16} />
-          </button>
+          <div className="flex items-center gap-1">
+            {onOpenEditor && (
+              <button
+                onClick={onOpenEditor}
+                aria-label="Edit data"
+                title="Edit Data Table"
+                className="p-1 text-slate-400 hover:text-white rounded transition-colors"
+              >
+                <Pencil size={14} />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              aria-label="Close data panel"
+              className="p-1 text-slate-400 hover:text-white rounded transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Table */}

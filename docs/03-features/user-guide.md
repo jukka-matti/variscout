@@ -105,6 +105,39 @@ You can toggle visibility of chart elements and change display settings in the *
 
 ---
 
+## Editing Data
+
+After loading data, you can edit individual values, add rows, or delete rows directly in the **Data Table Editor** without re-importing your dataset.
+
+### Opening the Editor
+
+- **PWA**: Click the **Data Table** button in the toolbar
+- **Azure App**: Click the **Pencil** icon in the toolbar, or the pencil button in the DataPanel header
+
+### Editing Cells
+
+1. **Click** any cell to start editing — the cell turns into a text input
+2. Type the new value
+3. **Tab** to move to the next cell, **Enter** to move down, or **Escape** to cancel
+4. Edited values show an **(unsaved changes)** indicator in the header
+
+### Adding and Deleting Rows
+
+- Click **Add Row** in the header to append a blank row
+- Click the **trash icon** on any row to delete it
+
+### Applying Changes
+
+Edits are made on a local copy. Click **Apply Changes** to commit all edits — charts update immediately. Click **Cancel** to discard.
+
+### Status Indicators
+
+- **PASS / USL / LSL** badges show spec status for the outcome column
+- **Amber warning** icon marks excluded rows (hover for reason)
+- **Red alert** icon marks control violations (Azure App)
+
+---
+
 ## Manual Data Entry
 
 VariScout Lite includes a touch-optimized data entry mode for field use or when you need to quickly input measurements.
