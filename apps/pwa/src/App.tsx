@@ -134,9 +134,11 @@ function App() {
   const { highlightedChart, highlightIntensity, notifyChartClicked } =
     useEmbedMessaging(isEmbedMode);
 
-  // Filter navigation for mindmap panel (provides filterStack and applyFilter)
-  const { filterStack: mindmapFilterStack, applyFilter: mindmapApplyFilter } =
-    useFilterNavigation();
+  // Filter navigation — lifted to App so Dashboard and MindmapPanel share state
+  const filterNav = useFilterNavigation({
+    enableHistory: true,
+    enableUrlSync: true,
+  });
 
   // Track desktop/mobile for panel behavior
   useEffect(() => {
@@ -369,22 +371,22 @@ function App() {
   // Open mindmap in popout window
   const handleOpenMindmapPopout = useCallback(() => {
     if (outcome) {
-      openMindmapPopout(rawData, factors, outcome, columnAliases, specs, mindmapFilterStack);
+      openMindmapPopout(rawData, factors, outcome, columnAliases, specs, filterNav.filterStack);
       setIsMindmapPanelOpen(false);
     }
-  }, [rawData, factors, outcome, columnAliases, specs, mindmapFilterStack]);
+  }, [rawData, factors, outcome, columnAliases, specs, filterNav.filterStack]);
 
-  // Handle drill category from mindmap (applies filter via navigation)
+  // Handle drill category from mindmap (applies filter via shared navigation)
   const handleMindmapDrillCategory = useCallback(
     (factor: string, value: string | number) => {
-      mindmapApplyFilter({
+      filterNav.applyFilter({
         type: 'filter',
         source: 'mindmap',
         factor,
         values: [value],
       });
     },
-    [mindmapApplyFilter]
+    [filterNav]
   );
 
   // Listen for messages from mindmap popout window
@@ -666,6 +668,7 @@ function App() {
               onSpecEditorOpened={() => setOpenSpecEditorRequested(false)}
               onOpenWhatIf={() => setIsWhatIfPageOpen(true)}
               highlightedPointIndex={highlightedChartPoint}
+              filterNav={filterNav}
             />
           )}
         </div>
@@ -697,11 +700,15 @@ function App() {
           data={rawData}
           factors={factors}
           outcome={outcome}
-          filterStack={mindmapFilterStack}
+          filterStack={filterNav.filterStack}
           specs={specs}
           columnAliases={columnAliases}
           onDrillCategory={handleMindmapDrillCategory}
           onOpenPopout={handleOpenMindmapPopout}
+          onNavigateToWhatIf={() => {
+            setIsMindmapPanelOpen(false);
+            setIsWhatIfPageOpen(true);
+          }}
         />
       )}
 

@@ -313,6 +313,44 @@ describe('useMindmapState', () => {
     expect(machineNode.categoryData).toBeUndefined();
   });
 
+  it('initialAnnotations are used when provided', () => {
+    const initial = new Map<number, string>([[0, 'Persisted note']]);
+    const { result } = renderHook(() =>
+      useMindmapState({
+        data: testData,
+        factors,
+        outcome: 'Value',
+        filterStack: machineAStack,
+        initialAnnotations: initial,
+      })
+    );
+
+    expect(result.current.annotations.get(0)).toBe('Persisted note');
+    expect(result.current.narrativeSteps[0].annotation).toBe('Persisted note');
+  });
+
+  it('calls onAnnotationsChange when annotations are updated', () => {
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useMindmapState({
+        data: testData,
+        factors,
+        outcome: 'Value',
+        filterStack: machineAStack,
+        onAnnotationsChange: onChange,
+      })
+    );
+
+    act(() => {
+      result.current.handleAnnotationChange(0, 'New note');
+    });
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const calledWith = onChange.mock.calls[0][0];
+    expect(calledWith).toBeInstanceOf(Map);
+    expect(calledWith.get(0)).toBe('New note');
+  });
+
   it('narrativeSteps mirror drillPath entries', () => {
     const { result } = renderHook(() =>
       useMindmapState({

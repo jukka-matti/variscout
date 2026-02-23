@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ExternalLink, Download } from 'lucide-react';
+import { X, ExternalLink, Download, FileCode } from 'lucide-react';
 import type { DrillStep } from '@variscout/hooks';
 import MindmapModeToggle from './MindmapModeToggle';
 
@@ -60,6 +60,10 @@ export interface MindmapPanelContentProps {
   colorScheme?: MindmapPanelColorScheme;
   /** Column aliases for display names */
   columnAliases?: Record<string, string>;
+  /** Show SVG export button (Azure-only) */
+  showSvgExport?: boolean;
+  /** SVG export callback */
+  onExportSvg?: () => void;
 }
 
 /**
@@ -79,6 +83,8 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
   children,
   colorScheme = mindmapPanelDefaultColorScheme,
   columnAliases,
+  showSvgExport,
+  onExportSvg,
 }) => {
   const c = colorScheme;
 
@@ -97,14 +103,26 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
 
         <div className="flex items-center gap-1">
           {mode === 'narrative' && (
-            <button
-              onClick={onExportPng}
-              className={`p-1.5 ${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg} rounded-lg transition-colors`}
-              title="Export as PNG"
-              aria-label="Export as PNG"
-            >
-              <Download size={14} />
-            </button>
+            <>
+              <button
+                onClick={onExportPng}
+                className={`p-1.5 ${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg} rounded-lg transition-colors`}
+                title="Export as PNG"
+                aria-label="Export as PNG"
+              >
+                <Download size={14} />
+              </button>
+              {showSvgExport && onExportSvg && (
+                <button
+                  onClick={onExportSvg}
+                  className={`p-1.5 ${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg} rounded-lg transition-colors`}
+                  title="Export as SVG"
+                  aria-label="Export as SVG"
+                >
+                  <FileCode size={14} />
+                </button>
+              )}
+            </>
           )}
           {onOpenPopout && (
             <button

@@ -24,6 +24,7 @@ import {
 import { useKeyboardNavigation, useAnnotations } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
+import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import {
   Activity,
   BarChart3,
@@ -64,6 +65,8 @@ interface DashboardProps {
   onOpenWhatIf?: () => void;
   // Highlighted point index from data panel (bi-directional sync)
   highlightedPointIndex?: number | null;
+  // External filter navigation (shared with mindmap for synchronized drills)
+  filterNav?: UseFilterNavigationReturn;
 }
 
 const Dashboard = ({
@@ -80,6 +83,7 @@ const Dashboard = ({
   onSpecEditorOpened,
   onOpenWhatIf,
   highlightedPointIndex,
+  filterNav,
 }: DashboardProps) => {
   const {
     outcome,
@@ -195,6 +199,7 @@ const Dashboard = ({
     // Filter handler
     handleDrillDown,
   } = useDashboardCharts({
+    externalFilterNav: filterNav,
     openSpecEditorRequested,
     onSpecEditorOpened,
     highlightedChart:

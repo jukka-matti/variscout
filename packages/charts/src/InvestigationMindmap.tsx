@@ -56,6 +56,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
   width: explicitWidth,
   height: explicitHeight,
   columnAliases,
+  onNavigateToWhatIf,
 }) => {
   const width = explicitWidth ?? parentWidth ?? 360;
   const height = explicitHeight ?? parentHeight ?? 400;
@@ -351,6 +352,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                   svgWidth={width}
                   targetPct={targetPct}
                   chrome={chrome}
+                  onNavigateToWhatIf={onNavigateToWhatIf}
                 />
               );
             })()}

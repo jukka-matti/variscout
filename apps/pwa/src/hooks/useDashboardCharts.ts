@@ -20,7 +20,7 @@ import {
   sortBoxplotData,
 } from '@variscout/core';
 import { calculateBoxplotStats, type BoxplotGroupData } from '@variscout/charts';
-import { useFilterNavigation } from './useFilterNavigation';
+import { useFilterNavigation, type UseFilterNavigationReturn } from './useFilterNavigation';
 import { useVariationTracking } from '@variscout/hooks';
 import { useFocusMode } from './useFocusMode';
 import { useChartCopy } from './useChartCopy';
@@ -28,6 +28,8 @@ import { useChartFactors } from './useChartFactors';
 import type { ChartId } from '@variscout/ui';
 
 export interface UseDashboardChartsProps {
+  /** External filter navigation (lifted to parent for shared state with mindmap) */
+  externalFilterNav?: UseFilterNavigationReturn;
   /** External trigger to open spec editor (from MobileMenu) */
   openSpecEditorRequested?: boolean;
   /** Callback when spec editor is opened */
@@ -98,6 +100,7 @@ export interface UseDashboardChartsResult {
 }
 
 export function useDashboardCharts({
+  externalFilterNav,
   openSpecEditorRequested,
   onSpecEditorOpened,
   highlightedChart,
@@ -106,12 +109,13 @@ export function useDashboardCharts({
 }: UseDashboardChartsProps = {}): UseDashboardChartsResult {
   const { outcome, factors, rawData, filteredData, displayOptions } = useData();
 
-  // Filter navigation
+  // Filter navigation — use external if provided, otherwise create local
+  const localFilterNav = useFilterNavigation({
+    enableHistory: true,
+    enableUrlSync: true,
+  });
   const { filterStack, applyFilter, navigateTo, clearFilters, updateFilterValues, removeFilter } =
-    useFilterNavigation({
-      enableHistory: true,
-      enableUrlSync: true,
-    });
+    externalFilterNav ?? localFilterNav;
 
   // Variation tracking
   const {

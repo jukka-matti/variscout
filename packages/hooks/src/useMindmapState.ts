@@ -51,6 +51,10 @@ export interface UseMindmapStateOptions {
   specs?: { usl?: number; lsl?: number; target?: number };
   /** Column aliases for display names */
   columnAliases?: Record<string, string>;
+  /** Initial annotations (for restoring persisted state) */
+  initialAnnotations?: Map<number, string>;
+  /** Callback when annotations change (for external persistence) */
+  onAnnotationsChange?: (annotations: Map<number, string>) => void;
 }
 
 export interface UseMindmapStateReturn {
@@ -83,11 +87,22 @@ export interface UseMindmapStateReturn {
  * Consumers only need to provide a thin UI shell around InvestigationMindmapBase.
  */
 export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStateReturn {
-  const { data, factors, outcome, filterStack, specs, columnAliases } = options;
+  const {
+    data,
+    factors,
+    outcome,
+    filterStack,
+    specs,
+    columnAliases,
+    initialAnnotations,
+    onAnnotationsChange,
+  } = options;
 
   const [mode, setMode] = useState<MindmapMode>('drilldown');
   const [interactionEdges, setInteractionEdges] = useState<MindmapEdge[] | null>(null);
-  const [annotations, setAnnotations] = useState<Map<number, string>>(new Map());
+  const [annotations, setAnnotations] = useState<Map<number, string>>(
+    () => initialAnnotations ?? new Map()
+  );
 
   // Compute drill path
   const { drillPath, cumulativeVariationPct } = useDrillPath(data, filterStack, outcome, specs);
@@ -217,17 +232,21 @@ export function useMindmapState(options: UseMindmapStateOptions): UseMindmapStat
   }, [factors, filteredData, outcome, drilledFactors, drillPath, filterStack, columnAliases]);
 
   // Annotation handler
-  const handleAnnotationChange = useCallback((stepIndex: number, text: string) => {
-    setAnnotations(prev => {
-      const next = new Map(prev);
-      if (text) {
-        next.set(stepIndex, text);
-      } else {
-        next.delete(stepIndex);
-      }
-      return next;
-    });
-  }, []);
+  const handleAnnotationChange = useCallback(
+    (stepIndex: number, text: string) => {
+      setAnnotations(prev => {
+        const next = new Map(prev);
+        if (text) {
+          next.set(stepIndex, text);
+        } else {
+          next.delete(stepIndex);
+        }
+        onAnnotationsChange?.(next);
+        return next;
+      });
+    },
+    [onAnnotationsChange]
+  );
 
   // Narrative steps mapped from drillPath (with annotations merged)
   const narrativeSteps: NarrativeStep[] = useMemo(

@@ -3,7 +3,7 @@ import { InvestigationMindmapBase } from '@variscout/charts';
 import { useMindmapState } from '@variscout/hooks';
 import { type FilterAction, type FilterSource, createFilterAction } from '@variscout/core';
 import { Download } from 'lucide-react';
-import { exportMindmapPng } from '../MindmapPanel/exportPng';
+import { exportMindmapPng } from '../MindmapPanel/export';
 import MindmapModeToggle from '../MindmapPanel/MindmapModeToggle';
 
 /**

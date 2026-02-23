@@ -83,6 +83,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
 
   // State for investigation mindmap
   const [isMindmapOpen, setIsMindmapOpen] = useState(false);
+  const [mindmapAnnotations, setMindmapAnnotations] = useState<Map<number, string>>(new Map());
 
   // State for What-If Simulator full page
   const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
@@ -523,6 +524,12 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                   values: [value],
                 });
               }}
+              onNavigateToWhatIf={() => {
+                setIsMindmapOpen(false);
+                setIsWhatIfOpen(true);
+              }}
+              annotations={mindmapAnnotations}
+              onAnnotationsChange={setMindmapAnnotations}
             />
             <DataPanel
               isOpen={isDataPanelOpen}

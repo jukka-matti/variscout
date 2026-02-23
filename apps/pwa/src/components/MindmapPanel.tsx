@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { InvestigationMindmapBase } from '@variscout/charts';
 import { useMindmapState } from '@variscout/hooks';
 import type { FilterAction } from '@variscout/core';
@@ -15,6 +15,7 @@ interface MindmapPanelProps {
   columnAliases?: Record<string, string>;
   onDrillCategory: (factor: string, value: string | number) => void;
   onOpenPopout?: () => void;
+  onNavigateToWhatIf?: () => void;
 }
 
 /**
@@ -32,9 +33,25 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
   columnAliases,
   onDrillCategory,
   onOpenPopout,
+  onNavigateToWhatIf,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const mindmapRef = useRef<HTMLDivElement>(null);
+  const [chartHeight, setChartHeight] = useState(500);
+
+  // Measure available height for the mindmap chart via ResizeObserver
+  useEffect(() => {
+    const el = mindmapRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const h = Math.floor(entry.contentRect.height);
+        if (h > 0) setChartHeight(h);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isOpen]);
 
   const {
     nodes,
@@ -120,8 +137,9 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
               narrativeSteps={narrativeSteps}
               onAnnotationChange={handleAnnotationChange}
               columnAliases={columnAliases}
+              onNavigateToWhatIf={onNavigateToWhatIf}
               width={368}
-              height={500}
+              height={chartHeight}
             />
           </div>
         </MindmapPanelContent>

@@ -6,5 +6,5 @@ export {
   type MindmapPanelContentProps,
 } from './MindmapPanelContent';
 
-export { exportMindmapPng } from './exportPng';
+export { exportMindmapPng, exportMindmapSvg } from './export';
 export { default as MindmapModeToggle, type MindmapModeToggleProps } from './MindmapModeToggle';

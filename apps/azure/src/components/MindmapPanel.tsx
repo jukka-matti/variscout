@@ -3,7 +3,12 @@ import { InvestigationMindmapBase } from '@variscout/charts';
 import { useMindmapState } from '@variscout/hooks';
 import type { FilterAction } from '@variscout/core';
 import { GripVertical } from 'lucide-react';
-import { MindmapPanelContent, mindmapPanelAzureColorScheme, exportMindmapPng } from '@variscout/ui';
+import {
+  MindmapPanelContent,
+  mindmapPanelAzureColorScheme,
+  exportMindmapPng,
+  exportMindmapSvg,
+} from '@variscout/ui';
 
 // Width constraints
 const MIN_WIDTH = 320;
@@ -22,6 +27,11 @@ interface MindmapPanelProps {
   columnAliases?: Record<string, string>;
   onDrillCategory: (factor: string, value: string | number) => void;
   onOpenPopout?: () => void;
+  onNavigateToWhatIf?: () => void;
+  /** Initial annotations for restoring persisted state */
+  annotations?: Map<number, string>;
+  /** Callback when annotations change (for persistence) */
+  onAnnotationsChange?: (annotations: Map<number, string>) => void;
 }
 
 /**
@@ -39,9 +49,27 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
   columnAliases,
   onDrillCategory,
   onOpenPopout,
+  onNavigateToWhatIf,
+  annotations: externalAnnotations,
+  onAnnotationsChange,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const mindmapRef = useRef<HTMLDivElement>(null);
+  const [chartHeight, setChartHeight] = useState(500);
+
+  // Measure available height for the mindmap chart via ResizeObserver
+  useEffect(() => {
+    const el = mindmapRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const h = Math.floor(entry.contentRect.height);
+        if (h > 0) setChartHeight(h);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isOpen]);
 
   // Panel width state (persisted to localStorage)
   const [width, setWidth] = useState(() => {
@@ -60,7 +88,16 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
     mode,
     setMode,
     handleAnnotationChange,
-  } = useMindmapState({ data, factors, outcome, filterStack, specs, columnAliases });
+  } = useMindmapState({
+    data,
+    factors,
+    outcome,
+    filterStack,
+    specs,
+    columnAliases,
+    initialAnnotations: externalAnnotations,
+    onAnnotationsChange,
+  });
 
   // Save width to localStorage
   useEffect(() => {
@@ -115,6 +152,12 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
     await exportMindmapPng(node);
   }, []);
 
+  const handleExportSvg = useCallback(() => {
+    const node = mindmapRef.current;
+    if (!node) return;
+    exportMindmapSvg(node);
+  }, []);
+
   if (!isOpen) return null;
 
   // Chart width = panel width minus padding (8px left + 8px right)
@@ -145,6 +188,8 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           onClose={onClose}
           onOpenPopout={onOpenPopout}
           onExportPng={handleExportPng}
+          showSvgExport
+          onExportSvg={handleExportSvg}
           colorScheme={mindmapPanelAzureColorScheme}
           columnAliases={columnAliases}
         >
@@ -160,8 +205,9 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
               narrativeSteps={narrativeSteps}
               onAnnotationChange={handleAnnotationChange}
               columnAliases={columnAliases}
+              onNavigateToWhatIf={onNavigateToWhatIf}
               width={chartWidth}
-              height={500}
+              height={chartHeight}
             />
           </div>
         </MindmapPanelContent>

@@ -10,6 +10,8 @@ export interface ConclusionPanelProps {
   svgWidth: number;
   targetPct: number;
   chrome: ReturnType<typeof useChartTheme>['chrome'];
+  /** Optional callback to navigate to What-If Simulator */
+  onNavigateToWhatIf?: () => void;
 }
 
 const ConclusionPanel: React.FC<ConclusionPanelProps> = ({
@@ -19,6 +21,7 @@ const ConclusionPanel: React.FC<ConclusionPanelProps> = ({
   svgWidth,
   targetPct,
   chrome,
+  onNavigateToWhatIf,
 }) => {
   if (steps.length === 0) return null;
 
@@ -26,10 +29,11 @@ const ConclusionPanel: React.FC<ConclusionPanelProps> = ({
   const cumPct = lastStep.cumulativeScope * 100;
   const reachedTarget = cumPct >= targetPct;
   const panelWidth = 160;
+  const panelHeight = onNavigateToWhatIf ? 100 : 80;
   const left = Math.max(4, Math.min(x - panelWidth / 2, svgWidth - panelWidth - 4));
 
   return (
-    <foreignObject x={left} y={y} width={panelWidth} height={80}>
+    <foreignObject x={left} y={y} width={panelWidth} height={panelHeight}>
       <div
         style={{
           background: reachedTarget ? 'rgba(34,197,94,0.12)' : 'rgba(59,130,246,0.12)',
@@ -54,6 +58,22 @@ const ConclusionPanel: React.FC<ConclusionPanelProps> = ({
             ? 'Investigation target reached'
             : `${(100 - cumPct).toFixed(0)}% outside scope \u2014 consider additional factors`}
         </div>
+        {onNavigateToWhatIf && (
+          <button
+            onClick={onNavigateToWhatIf}
+            style={{
+              marginTop: 4,
+              background: 'none',
+              border: 'none',
+              color: chartColors.mean,
+              fontSize: 10,
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            {'Model improvements \u2192'}
+          </button>
+        )}
       </div>
     </foreignObject>
   );

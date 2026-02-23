@@ -97,4 +97,6 @@ export interface InvestigationMindmapProps {
   height?: number;
   /** Column aliases for display (used on edge labels) */
   columnAliases?: Record<string, string>;
+  /** Optional callback to navigate to What-If Simulator from narrative conclusion */
+  onNavigateToWhatIf?: () => void;
 }
