@@ -60,6 +60,13 @@ export {
   type UseFilterNavigationReturn,
 } from './useFilterNavigation';
 
+// Filter Utilities (pure functions for URL/history parsing)
+export {
+  buildFilterStackFromUrl,
+  buildFilterStackFromState,
+  type HistoryState,
+} from './filterUtils';
+
 // Variation Tracking
 export {
   useVariationTracking,
@@ -130,6 +137,9 @@ export { useControlViolations } from './useControlViolations';
 
 // Annotations (right-click context menu)
 export { useAnnotations } from './useAnnotationMode';
+
+// Chart Copy
+export { useChartCopy, type UseChartCopyOptions, type UseChartCopyReturn } from './useChartCopy';
 
 // Theme State
 export {

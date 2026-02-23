@@ -28,6 +28,7 @@ import {
   type DataRow,
   type TimeExtractionConfig,
 } from '@variscout/core';
+import type { SampleDataset } from '@variscout/data';
 
 // Default performance thresholds
 const DEFAULT_ROW_WARNING_THRESHOLD = 5000;
@@ -89,6 +90,8 @@ export interface UseDataIngestionReturn {
   clearParetoFile: () => void;
   /** Clear all data and reset state */
   clearData: () => void;
+  /** Load a built-in sample dataset */
+  loadSample: (sample: SampleDataset) => void;
   /** Apply time extraction to current dataset */
   applyTimeExtraction: (timeColumn: string, config: TimeExtractionConfig) => void;
 }
@@ -285,11 +288,54 @@ export function useDataIngestion(
     [getRawData, getOutcome, getFactors, setFactors, setDataQualityReport]
   );
 
+  const loadSample = useCallback(
+    (sample: SampleDataset) => {
+      setRawData(sample.data as any[]);
+      setDataFilename(sample.name);
+      setOutcome(sample.config.outcome);
+      setFactors(sample.config.factors);
+      setSpecs(sample.config.specs);
+      const report = validateData(sample.data as any[], sample.config.outcome);
+      setDataQualityReport(report);
+      setParetoMode('derived');
+      setSeparateParetoData(null);
+      setSeparateParetoFilename(null);
+      if (
+        sample.config.performanceMode &&
+        sample.config.measureColumns &&
+        sample.config.measureColumns.length >= 3
+      ) {
+        setPerformanceMode(true);
+        setMeasureColumns(sample.config.measureColumns);
+        setMeasureLabel('Channel');
+      } else {
+        setPerformanceMode(false);
+        setMeasureColumns([]);
+        setMeasureLabel('Channel');
+      }
+    },
+    [
+      setRawData,
+      setDataFilename,
+      setOutcome,
+      setFactors,
+      setSpecs,
+      setDataQualityReport,
+      setParetoMode,
+      setSeparateParetoData,
+      setSeparateParetoFilename,
+      setPerformanceMode,
+      setMeasureColumns,
+      setMeasureLabel,
+    ]
+  );
+
   return {
     handleFileUpload,
     handleParetoFileUpload,
     clearParetoFile,
     clearData,
+    loadSample,
     applyTimeExtraction,
   };
 }

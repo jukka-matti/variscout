@@ -12,7 +12,9 @@
   "dependencies": {
     "@variscout/charts": "workspace:*",
     "@variscout/core": "workspace:*",
-    "d3": "^7.9.0"
+    "@variscout/data": "workspace:*",
+    "d3": "^7.9.0",
+    "html-to-image": "^1.11.13"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"

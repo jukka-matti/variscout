@@ -15,7 +15,6 @@
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { toBlob } from 'html-to-image';
 import { useData } from '../context/DataContext';
 import {
   calculateAnova,
@@ -24,6 +23,7 @@ import {
   sortBoxplotData,
 } from '@variscout/core';
 import { calculateBoxplotStats, type BoxplotGroupData } from '@variscout/charts';
+import { useChartCopy } from '@variscout/hooks';
 import { useFilterNavigation, useVariationTracking } from '../hooks';
 import type { UseFilterNavigationReturn, FilterChipData } from '../hooks';
 
@@ -103,13 +103,19 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   } = useVariationTracking(rawData, filterStack, outcome, factors);
   const cumulativeVariationPct = rawCumulativeVariationPct ?? 0;
 
+  // Chart copy (theme-aware background)
+  const { copyFeedback, handleCopyChart } = useChartCopy({
+    getBackgroundColor: () => {
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      return isDark ? '#0f172a' : '#ffffff';
+    },
+  });
+
   // Local state
   const [boxplotFactor, setBoxplotFactor] = useState<string>('');
   const [paretoFactor, setParetoFactor] = useState<string>('');
   const [focusedChart, setFocusedChart] = useState<FocusedChart>(null);
   const [showParetoComparison, setShowParetoComparison] = useState(false);
-  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
-  const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [lastAdvancedFactor, setLastAdvancedFactor] = useState<string | null>(null);
   const advancedFactorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -154,12 +160,9 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [focusedChart, handleNextChart, handlePrevChart]);
 
-  // Cleanup timeouts on unmount
+  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (copyFeedbackTimeoutRef.current) {
-        clearTimeout(copyFeedbackTimeoutRef.current);
-      }
       if (advancedFactorTimeoutRef.current) {
         clearTimeout(advancedFactorTimeoutRef.current);
       }
@@ -217,29 +220,6 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     displayOptions.boxplotSortBy,
     displayOptions.boxplotSortDirection,
   ]);
-
-  // Copy chart card to clipboard as PNG
-  const handleCopyChart = useCallback(async (containerId: string, chartName: string) => {
-    const node = document.getElementById(containerId);
-    if (!node) return;
-    try {
-      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-      const blob = await toBlob(node, {
-        cacheBust: true,
-        backgroundColor: isDark ? '#0f172a' : '#ffffff',
-      });
-      if (blob) {
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        setCopyFeedback(chartName);
-        if (copyFeedbackTimeoutRef.current) {
-          clearTimeout(copyFeedbackTimeoutRef.current);
-        }
-        copyFeedbackTimeoutRef.current = setTimeout(() => setCopyFeedback(null), 2000);
-      }
-    } catch (err) {
-      console.error('Failed to copy chart', err);
-    }
-  }, []);
 
   // Update persisted chart title in DataContext
   const handleChartTitleChange = useCallback(

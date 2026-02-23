@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import {
   X,
   ChevronLeft,
@@ -10,15 +10,9 @@ import {
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { getSpecStatus, type ExclusionReason } from '@variscout/core';
+import { useResizablePanel, useDataTablePagination, useHighlightFade } from '@variscout/hooks';
 
-// Pagination threshold
 const ROWS_PER_PAGE = 100;
-
-// Width constraints
-const MIN_WIDTH = 280;
-const MAX_WIDTH = 600;
-const DEFAULT_WIDTH = 350;
-const STORAGE_KEY = 'variscout-azure-data-panel-width';
 
 interface DataPanelProps {
   isOpen: boolean;
@@ -43,23 +37,18 @@ const DataPanel: React.FC<DataPanelProps> = ({
 }) => {
   const { filteredData, rawData, outcome, specs, columnAliases, filters } = useData();
 
-  // Panel width state (persisted to localStorage)
-  const [width, setWidth] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? Math.min(Math.max(parseInt(saved, 10), MIN_WIDTH), MAX_WIDTH) : DEFAULT_WIDTH;
-  });
-  const [isDragging, setIsDragging] = useState(false);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(0);
-
-  // Highlighted row with fade-out
-  const [highlightedRow, setHighlightedRow] = useState<number | null>(null);
+  // Shared hooks
+  const { width, isDragging, handleMouseDown } = useResizablePanel(
+    'variscout-azure-data-panel-width',
+    280,
+    600,
+    350
+  );
+  const { highlightedRow } = useHighlightFade(highlightRowIndex);
   const highlightRowRef = useRef<HTMLTableRowElement>(null);
 
   // Create index map from filteredData to rawData
   const dataWithIndices = useMemo(() => {
-    // Create a map of row content to indices for matching
     const rawIndices = new Map<string, number>();
     rawData.forEach((row, idx) => {
       const key = JSON.stringify(row);
@@ -75,38 +64,20 @@ const DataPanel: React.FC<DataPanelProps> = ({
     });
   }, [filteredData, rawData]);
 
-  const totalPages = Math.ceil(dataWithIndices.length / ROWS_PER_PAGE);
-  const needsPagination = dataWithIndices.length > ROWS_PER_PAGE;
+  const { currentPage, setCurrentPage, totalPages, needsPagination, pageData } =
+    useDataTablePagination(dataWithIndices, ROWS_PER_PAGE);
 
-  // Get current page data
-  const pageData = useMemo(() => {
-    const start = currentPage * ROWS_PER_PAGE;
-    return dataWithIndices.slice(start, start + ROWS_PER_PAGE);
-  }, [dataWithIndices, currentPage]);
-
-  // Save width to localStorage
+  // Jump to the correct page when a row is highlighted from a chart click
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, width.toString());
-  }, [width]);
-
-  // Handle highlight changes from chart
-  useEffect(() => {
-    if (highlightRowIndex !== null && highlightRowIndex !== undefined) {
-      // Find the row in the filtered/paginated data
-      const dataIndex = dataWithIndices.findIndex(d => d.originalIndex === highlightRowIndex);
+    if (highlightedRow !== null) {
+      const dataIndex = dataWithIndices.findIndex(d => d.originalIndex === highlightedRow);
       if (dataIndex >= 0) {
-        const targetPage = Math.floor(dataIndex / ROWS_PER_PAGE);
-        setCurrentPage(targetPage);
-        setHighlightedRow(highlightRowIndex);
-
-        // Fade out after a delay
-        const timeout = setTimeout(() => setHighlightedRow(null), 3000);
-        return () => clearTimeout(timeout);
+        setCurrentPage(Math.floor(dataIndex / ROWS_PER_PAGE));
       }
     }
-  }, [highlightRowIndex, dataWithIndices]);
+  }, [highlightedRow, dataWithIndices, setCurrentPage]);
 
-  // Scroll to highlighted row
+  // Scroll highlighted row into view
   useEffect(() => {
     if (highlightedRow !== null && highlightRowRef.current) {
       const timeout = setTimeout(() => {
@@ -115,33 +86,6 @@ const DataPanel: React.FC<DataPanelProps> = ({
       return () => clearTimeout(timeout);
     }
   }, [highlightedRow, currentPage]);
-
-  // Drag handlers for resizing
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = window.innerWidth - e.clientX;
-      setWidth(Math.min(Math.max(newWidth, MIN_WIDTH), MAX_WIDTH));
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
 
   // Get columns (limited selection for panel view)
   const columns = useMemo(() => {
