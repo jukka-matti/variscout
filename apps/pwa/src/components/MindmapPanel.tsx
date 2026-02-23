@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { InvestigationMindmapBase } from '@variscout/charts';
 import { useMindmapState } from '@variscout/hooks';
 import type { FilterAction } from '@variscout/core';
-import { toPng } from 'html-to-image';
-import { MindmapPanelContent } from '@variscout/ui';
+import { MindmapPanelContent, exportMindmapPng } from '@variscout/ui';
 
 interface MindmapPanelProps {
   isOpen: boolean;
@@ -85,15 +84,7 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
   const handleExportPng = useCallback(async () => {
     const node = mindmapRef.current;
     if (!node) return;
-    const dataUrl = await toPng(node, {
-      cacheBust: true,
-      backgroundColor: '#0f172a',
-      pixelRatio: 2,
-    });
-    const link = document.createElement('a');
-    link.download = `investigation-${new Date().toISOString().split('T')[0]}.png`;
-    link.href = dataUrl;
-    link.click();
+    await exportMindmapPng(node);
   }, []);
 
   if (!isOpen) return null;

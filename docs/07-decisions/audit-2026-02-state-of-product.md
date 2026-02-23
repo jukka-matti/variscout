@@ -78,17 +78,16 @@ All 8 doc sections exist with indexes: vision (13 files), journeys (13), feature
 
 ### Test Coverage
 
-| Area                | Test Files     | Assessment                   |
-| ------------------- | -------------- | ---------------------------- |
-| `@variscout/core`   | 15 (484 tests) | **Strong**                   |
-| `@variscout/charts` | 0              | None                         |
-| `@variscout/data`   | 0              | None                         |
-| `@variscout/hooks`  | 2              | Minimal                      |
-| `@variscout/ui`     | 2              | Minimal                      |
-| PWA app             | 11             | Moderate                     |
-| Azure app           | 5              | Weak (pre-existing failures) |
-| Excel add-in        | 4              | Weak                         |
-| Website             | 0              | None                         |
+| Area                | Test Files                 | Assessment      |
+| ------------------- | -------------------------- | --------------- |
+| `@variscout/core`   | 23 files (703 tests)       | **Very Strong** |
+| `@variscout/charts` | 3 files (44 tests)         | Moderate        |
+| `@variscout/hooks`  | 15 files (157 tests)       | **Strong**      |
+| `@variscout/ui`     | 5 files (57 tests)         | Moderate        |
+| PWA app             | 11 files (110 tests)       | **Strong**      |
+| Azure app           | 13 files (130 tests)       | **Strong**      |
+| Website             | 0                          | None            |
+| **Total**           | **70 files (1,201 tests)** |                 |
 
 ### Technical Debt
 

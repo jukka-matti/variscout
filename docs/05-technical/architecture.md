@@ -69,7 +69,7 @@ variscout-lite/
 │         @variscout/charts           │          @variscout/core              │
 │       (packages/charts/)            │        (packages/core/)               │
 │                                     │                                       │
-│  IChart │ Boxplot │ ParetoChart     │  stats.ts │ parser.ts │ tier.ts      │
+│  IChart │ Boxplot │ ParetoChart     │  stats/   │ parser/   │ tier.ts      │
 │  CapabilityHistogram │ responsive   │  glossary │ export.ts │ types.ts     │
 ├─────────────────────────────────────┼───────────────────────────────────────┤
 │          @variscout/hooks           │          @variscout/data              │
@@ -93,11 +93,11 @@ Pure TypeScript logic with no React dependencies:
 
 | Module          | Purpose                                                                    |
 | --------------- | -------------------------------------------------------------------------- |
-| `stats.ts`      | Mean, StdDev, UCL/LCL, Cp, Cpk, conformance, factor grouping, staged stats |
-| `parser.ts`     | CSV/Excel file parsing                                                     |
+| `stats/`        | Mean, StdDev, UCL/LCL, Cp, Cpk, conformance, factor grouping, staged stats |
+| `parser/`       | CSV/Excel file parsing, validation, keyword detection                      |
 | `tier.ts`       | Tier configuration (Azure Marketplace licensing, channel limits)           |
 | `navigation.ts` | Navigation types and utilities (FilterAction, BreadcrumbItem)              |
-| `variation.ts`  | Cumulative variation tracking (η² cascading, drill suggestions)            |
+| `variation/`    | Cumulative variation tracking (η² cascading, drill suggestions)            |
 | `edition.ts`    | Edition detection (deprecated, use tier.ts for new code)                   |
 | `glossary/`     | Glossary terms and type definitions for help tooltips                      |
 | `export.ts`     | CSV export utilities                                                       |
@@ -313,8 +313,9 @@ variscout-lite/
 │   ├── core/                    # @variscout/core
 │   │   ├── src/
 │   │   │   ├── index.ts         # Barrel export
-│   │   │   ├── stats.ts         # Statistics calculations
-│   │   │   ├── parser.ts        # File parsing
+│   │   │   ├── stats/           # Statistics calculations (13 domain modules)
+│   │   │   ├── parser/          # File parsing (csv, excel, detection, validation)
+│   │   │   ├── variation/       # Variation tracking (drill, contributions, suggestions)
 │   │   │   ├── tier.ts          # Tier configuration (Azure Marketplace)
 │   │   │   ├── edition.ts       # Edition detection (deprecated)
 │   │   │   ├── glossary/        # Glossary terms and types
@@ -532,7 +533,7 @@ When drilling down through factors, variation percentages (η² / eta-squared) a
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                          @variscout/core                                     │
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │  variation.ts                                                         │   │
+│  │  variation/                                                            │   │
 │  │  ├─ calculateDrillVariation()  → cumulative η² through drill path    │   │
 │  │  ├─ calculateFactorVariations() → η² for each factor (suggestions)   │   │
 │  │  ├─ shouldHighlightDrill()     → threshold check (≥50%)              │   │

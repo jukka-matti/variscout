@@ -6,13 +6,7 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { GridRows } from '@visx/grid';
 import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
-import {
-  getStageBoundaries,
-  getNelsonRule2ViolationPoints,
-  getNelsonRule2Sequences,
-  type StatsResult,
-  type NelsonRule2Sequence,
-} from '@variscout/core';
+import { getStageBoundaries, type StatsResult } from '@variscout/core';
 import type { IChartProps, StageBoundary } from './types';
 import { getResponsiveTickCount } from './responsive';
 import ChartSourceBar from './ChartSourceBar';
@@ -23,6 +17,9 @@ import { useChartLayout, useChartTooltip } from './hooks';
 import { useMultiSelection } from './hooks/useMultiSelection';
 import { interactionStyles } from './styles/interactionStyles';
 import { getDataPointA11yProps, getInteractiveA11yProps } from './utils/accessibility';
+import { computeIChartYDomain } from './ichart/computeYDomain';
+import { useNelsonViolations } from './ichart/useNelsonViolations';
+import NelsonSequenceOverlay from './ichart/NelsonSequenceOverlay';
 
 /**
  * I-Chart (Individual Control Chart) - Props-based version
@@ -73,42 +70,19 @@ const IChartBase: React.FC<IChartProps> = ({
   const isStaged = stageBoundaries.length > 0;
 
   // Determine Y domain
-  const yDomain = useMemo(() => {
-    // Priority 1: yDomainOverride (for Y-axis lock feature)
-    if (yDomainOverride) {
-      return [yDomainOverride.min, yDomainOverride.max] as [number, number];
-    }
-
-    // Priority 2: Manual axis settings
-    if (axisSettings?.min !== undefined && axisSettings?.max !== undefined) {
-      return [axisSettings.min, axisSettings.max] as [number, number];
-    }
-
-    // Priority 3: Auto-calculate from data
-    const values = data.map(d => d.y);
-    let minVal = Math.min(...values);
-    let maxVal = Math.max(...values);
-
-    // Include control limits (single stats or all staged stats)
-    if (isStaged) {
-      // Include all stage control limits
-      stageBoundaries.forEach(boundary => {
-        minVal = Math.min(minVal, boundary.stats.lcl);
-        maxVal = Math.max(maxVal, boundary.stats.ucl);
-      });
-    } else if (stats) {
-      minVal = Math.min(minVal, stats.lcl);
-      maxVal = Math.max(maxVal, stats.ucl);
-    }
-
-    // Include spec limits
-    if (specs.usl !== undefined) maxVal = Math.max(maxVal, specs.usl);
-    if (specs.lsl !== undefined) minVal = Math.min(minVal, specs.lsl);
-
-    // Add padding
-    const padding = (maxVal - minVal) * 0.1;
-    return [minVal - padding, maxVal + padding] as [number, number];
-  }, [data, stats, isStaged, stageBoundaries, specs, axisSettings, yDomainOverride]);
+  const yDomain = useMemo(
+    () =>
+      computeIChartYDomain(
+        data,
+        stats,
+        specs,
+        isStaged,
+        stageBoundaries,
+        axisSettings,
+        yDomainOverride
+      ),
+    [data, stats, isStaged, stageBoundaries, specs, axisSettings, yDomainOverride]
+  );
 
   const xScale = useMemo(
     () =>
@@ -162,86 +136,13 @@ const IChartBase: React.FC<IChartProps> = ({
   };
 
   // Compute Nelson Rule 2 violations (9+ consecutive points on same side of mean)
-  const nelsonRule2Violations = useMemo(() => {
-    if (isStaged && stagedStats) {
-      // For staged mode, compute violations per stage
-      const allViolations = new Set<number>();
-      let dataIndex = 0;
-
-      stageBoundaries.forEach(boundary => {
-        const stageData = data.filter(d => d.stage === boundary.name);
-        const stageValues = stageData.map(d => d.y);
-        const stageViolations = getNelsonRule2ViolationPoints(stageValues, boundary.stats.mean);
-
-        // Map stage-local indices to global indices
-        stageViolations.forEach(localIdx => {
-          // Find the global index for this point
-          const globalIdx = data.findIndex(
-            (d, i) =>
-              i >= dataIndex && d.stage === boundary.name && stageData.indexOf(d) === localIdx
-          );
-          if (globalIdx !== -1) {
-            allViolations.add(globalIdx);
-          }
-        });
-        dataIndex += stageData.length;
-      });
-      return allViolations;
-    }
-
-    if (stats) {
-      const values = data.map(d => d.y);
-      return getNelsonRule2ViolationPoints(values, stats.mean);
-    }
-
-    return new Set<number>();
-  }, [data, stats, isStaged, stagedStats, stageBoundaries]);
-
-  // Compute Nelson Rule 2 sequences for visual highlighting
-  const nelsonRule2Sequences = useMemo(() => {
-    if (isStaged && stagedStats) {
-      // For staged mode, compute sequences per stage
-      const allSequences: NelsonRule2Sequence[] = [];
-      let dataIndex = 0;
-
-      stageBoundaries.forEach(boundary => {
-        const stageData = data.filter(d => d.stage === boundary.name);
-        const stageValues = stageData.map(d => d.y);
-        const stageSequences = getNelsonRule2Sequences(stageValues, boundary.stats.mean);
-
-        // Map stage-local indices to global indices
-        stageSequences.forEach(seq => {
-          // Find global start index
-          const globalStartIdx = data.findIndex(
-            (d, i) =>
-              i >= dataIndex && d.stage === boundary.name && stageData.indexOf(d) === seq.startIndex
-          );
-          // Find global end index
-          const globalEndIdx = data.findIndex(
-            (d, i) =>
-              i >= dataIndex && d.stage === boundary.name && stageData.indexOf(d) === seq.endIndex
-          );
-
-          if (globalStartIdx !== -1 && globalEndIdx !== -1) {
-            allSequences.push({
-              startIndex: globalStartIdx,
-              endIndex: globalEndIdx,
-              side: seq.side,
-            });
-          }
-        });
-        dataIndex += stageData.length;
-      });
-      return allSequences;
-    }
-
-    if (stats) {
-      const values = data.map(d => d.y);
-      return getNelsonRule2Sequences(values, stats.mean);
-    }
-
-    return [];
-  }, [data, stats, isStaged, stagedStats, stageBoundaries]);
+  const { nelsonRule2Violations, nelsonRule2Sequences } = useNelsonViolations({
+    data,
+    stats,
+    isStaged,
+    stagedStats,
+    stageBoundaries,
+  });
 
   // Get violation reason for tooltip display
   const getViolationReason = (value: number, index: number, stage?: string): string | null => {
@@ -544,49 +445,12 @@ const IChartBase: React.FC<IChartProps> = ({
           )}
 
           {/* Nelson Rule 2 sequence highlighting */}
-          {nelsonRule2Sequences.map((seq, idx) => {
-            // Draw a subtle connector line behind the points showing the sequence
-            const sequencePoints = data.slice(seq.startIndex, seq.endIndex + 1);
-            if (sequencePoints.length < 2) return null;
-
-            return (
-              <g key={`nelson-seq-${idx}`}>
-                {/* Highlight path connecting the sequence */}
-                <LinePath
-                  data={sequencePoints}
-                  x={d => xScale(d.x)}
-                  y={d => yScale(d.y)}
-                  stroke={chartColors.fail}
-                  strokeWidth={3}
-                  strokeOpacity={0.2}
-                  strokeDasharray="4,2"
-                />
-                {/* Optional: Add bracket at start/end to show sequence bounds */}
-                <g opacity={0.4}>
-                  {/* Start marker */}
-                  <Line
-                    from={{ x: xScale(sequencePoints[0].x), y: yScale(sequencePoints[0].y) - 15 }}
-                    to={{ x: xScale(sequencePoints[0].x), y: yScale(sequencePoints[0].y) + 15 }}
-                    stroke={chartColors.fail}
-                    strokeWidth={2}
-                  />
-                  {/* End marker */}
-                  <Line
-                    from={{
-                      x: xScale(sequencePoints[sequencePoints.length - 1].x),
-                      y: yScale(sequencePoints[sequencePoints.length - 1].y) - 15,
-                    }}
-                    to={{
-                      x: xScale(sequencePoints[sequencePoints.length - 1].x),
-                      y: yScale(sequencePoints[sequencePoints.length - 1].y) + 15,
-                    }}
-                    stroke={chartColors.fail}
-                    strokeWidth={2}
-                  />
-                </g>
-              </g>
-            );
-          })}
+          <NelsonSequenceOverlay
+            data={data}
+            sequences={nelsonRule2Sequences}
+            xScale={xScale}
+            yScale={yScale}
+          />
 
           {/* Data line */}
           <LinePath

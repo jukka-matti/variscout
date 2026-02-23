@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, ExternalLink, Download } from 'lucide-react';
 import type { DrillStep } from '@variscout/hooks';
+import MindmapModeToggle from './MindmapModeToggle';
 
 /**
  * Color scheme for MindmapPanelContent
@@ -87,33 +88,12 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
       <div className={`flex items-center justify-between px-4 py-3 border-b ${c.border}`}>
         <h2 className="text-sm font-semibold text-white">Investigation</h2>
 
-        {/* Mode toggle */}
-        <div className={`flex items-center gap-0.5 ${c.toggleBg} rounded-lg p-0.5`}>
-          <button
-            onClick={() => setMode('drilldown')}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-              mode === 'drilldown' ? 'bg-blue-500/20 text-blue-400' : c.inactiveText
-            }`}
-          >
-            Drilldown
-          </button>
-          <button
-            onClick={() => setMode('interactions')}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-              mode === 'interactions' ? 'bg-amber-500/20 text-amber-400' : c.inactiveText
-            }`}
-          >
-            Interactions
-          </button>
-          <button
-            onClick={() => setMode('narrative')}
-            className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-              mode === 'narrative' ? 'bg-green-500/20 text-green-400' : c.inactiveText
-            }`}
-          >
-            Narrative
-          </button>
-        </div>
+        <MindmapModeToggle
+          mode={mode}
+          setMode={setMode}
+          toggleBg={c.toggleBg}
+          inactiveText={c.inactiveText}
+        />
 
         <div className="flex items-center gap-1">
           {mode === 'narrative' && (

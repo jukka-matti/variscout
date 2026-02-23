@@ -4,17 +4,17 @@ Technical documentation for data parsing, validation, and auto-mapping in VariSc
 
 ## File Locations
 
-| File                                                   | Purpose                                             |
-| ------------------------------------------------------ | --------------------------------------------------- |
-| `packages/core/src/parser.ts`                          | **Shared** parsing, validation, and detection logic |
-| `packages/hooks/src/useDataIngestion.ts`               | **Shared** file upload handlers                     |
-| `packages/ui/src/components/ColumnMapping/`            | **Shared** column selection UI                      |
-| `packages/ui/src/components/DataQualityBanner/`        | **Shared** validation summary component             |
-| `packages/ui/src/components/MeasureColumnSelector/`    | **Shared** measure column selector                  |
-| `packages/ui/src/components/PerformanceDetectedModal/` | **Shared** wide-format detection modal              |
-| `apps/pwa/src/hooks/useDataIngestion.ts`               | PWA wrapper (adds loadSample)                       |
-| `apps/pwa/src/components/DataTableModal.tsx`           | Data view with excluded row support                 |
-| `apps/pwa/src/context/DataContext.tsx`                 | State management for data and validation            |
+| File                                                   | Purpose                                                                                                    |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `packages/core/src/parser/`                            | **Shared** parsing, validation, and detection logic (csv, excel, detection, validation, pareto submodules) |
+| `packages/hooks/src/useDataIngestion.ts`               | **Shared** file upload handlers                                                                            |
+| `packages/ui/src/components/ColumnMapping/`            | **Shared** column selection UI                                                                             |
+| `packages/ui/src/components/DataQualityBanner/`        | **Shared** validation summary component                                                                    |
+| `packages/ui/src/components/MeasureColumnSelector/`    | **Shared** measure column selector                                                                         |
+| `packages/ui/src/components/PerformanceDetectedModal/` | **Shared** wide-format detection modal                                                                     |
+| `apps/pwa/src/hooks/useDataIngestion.ts`               | PWA wrapper (adds loadSample)                                                                              |
+| `apps/pwa/src/components/DataTableModal.tsx`           | Data view with excluded row support                                                                        |
+| `apps/pwa/src/context/DataContext.tsx`                 | State management for data and validation                                                                   |
 
 **Cross-platform availability**: All parser functions are in `@variscout/core` and can be used by:
 
@@ -55,7 +55,7 @@ date, time, timestamp, datetime, created, recorded
 
 ### Detection Algorithm
 
-The `detectColumns()` function in `parser.ts` follows this logic:
+The `detectColumns()` function in `parser/detection.ts` follows this logic:
 
 1. **Analyze each column**:
    - Sample multiple rows (not just first) to determine type
@@ -177,7 +177,7 @@ VariScout can automatically detect wide-format data with multiple measurement ch
 
 ### Detection Mechanism
 
-The `detectWideFormat()` function in `parser.ts` analyzes data to identify multi-channel structures:
+The `detectWideFormat()` function in `parser/detection.ts` analyzes data to identify multi-channel structures:
 
 1. **Find numeric columns** - Identify columns with >90% numeric values
 2. **Exclude metadata** - Skip known metadata patterns (date, batch, operator, etc.)
@@ -476,7 +476,7 @@ const DEFAULT_ROW_HARD_LIMIT = 50000;
 
 ## Key Functions
 
-### parser.ts
+### parser/ (from @variscout/core)
 
 | Function                      | Purpose                                         |
 | ----------------------------- | ----------------------------------------------- |

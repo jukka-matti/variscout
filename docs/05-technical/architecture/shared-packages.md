@@ -53,13 +53,14 @@ import type { DrillLevel, BreadcrumbItem } from '@variscout/core';
 
 ### Key Files
 
-| File                | Purpose                                          |
-| ------------------- | ------------------------------------------------ |
-| `stats.ts`          | Statistics engine (mean, Cp, Cpk, ANOVA)         |
-| `parser.ts`         | CSV/Excel parsing, validation, keyword detection |
-| `types.ts`          | Shared TypeScript interfaces                     |
-| `glossary/terms.ts` | Glossary content (~20 terms)                     |
-| `edition.ts`        | Edition detection, feature gates                 |
+| File                | Purpose                                                       |
+| ------------------- | ------------------------------------------------------------- |
+| `stats/`            | Statistics engine (mean, Cp, Cpk, ANOVA) — 13 domain modules  |
+| `parser/`           | CSV/Excel parsing, validation, keyword detection — submodules |
+| `variation/`        | Variation tracking, drill suggestions, simulation             |
+| `types.ts`          | Shared TypeScript interfaces                                  |
+| `glossary/terms.ts` | Glossary content (~20 terms)                                  |
+| `edition.ts`        | Edition detection, feature gates                              |
 
 ---
 

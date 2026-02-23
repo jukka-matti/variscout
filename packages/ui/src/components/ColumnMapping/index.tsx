@@ -8,21 +8,12 @@
  * - Shows data quality validation results
  */
 
-import React, { useState, useRef } from 'react';
-import {
-  ArrowLeft,
-  ArrowRight,
-  CheckSquare,
-  ChevronDown,
-  ChevronRight,
-  Settings2,
-  Target,
-  Upload,
-  X,
-  BarChart3,
-  Clock,
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, ArrowRight, CheckSquare, Settings2 } from 'lucide-react';
 import { DataQualityBanner } from '../DataQualityBanner';
+import SpecsSection from './SpecsSection';
+import ParetoUpload from './ParetoUpload';
+import TimeExtractionPanel from './TimeExtractionPanel';
 import type { DataQualityReport, TimeExtractionConfig } from '@variscout/core';
 
 export interface ColumnMappingProps {
@@ -76,23 +67,12 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
 }) => {
   const [outcome, setOutcome] = useState<string>(initialOutcome || '');
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
-  const [isDraggingPareto, setIsDraggingPareto] = useState(false);
-  const paretoFileInputRef = useRef<HTMLInputElement>(null);
 
   // Optional specs state
   const [specsExpanded, setSpecsExpanded] = useState(false);
   const [specTarget, setSpecTarget] = useState('');
   const [specLsl, setSpecLsl] = useState('');
   const [specUsl, setSpecUsl] = useState('');
-
-  // Time extraction state
-  const [timeExtraction, setTimeExtraction] = useState<TimeExtractionConfig>({
-    extractYear: true,
-    extractMonth: true,
-    extractWeek: false,
-    extractDayOfWeek: true,
-    extractHour: hasTimeComponent || false,
-  });
 
   const toggleFactor = (col: string) => {
     if (col === outcome) return; // Cannot be both outcome and factor
@@ -115,25 +95,6 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   };
 
   const isValid = !!outcome;
-
-  // Handle Pareto file drop
-  const handleParetoDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDraggingPareto(false);
-    const file = e.dataTransfer.files[0];
-    if (file && onParetoFileUpload) {
-      await onParetoFileUpload(file);
-    }
-  };
-
-  // Handle Pareto file input change
-  const handleParetoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && onParetoFileUpload) {
-      await onParetoFileUpload(file);
-    }
-    e.target.value = '';
-  };
 
   return (
     <div className="flex flex-col h-full items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
@@ -273,198 +234,34 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
           </div>
 
           {/* Specification Limits (Optional) */}
-          <div>
-            <button
-              onClick={() => setSpecsExpanded(!specsExpanded)}
-              className="flex items-center gap-2 w-full text-left group"
-              type="button"
-            >
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-600/20 text-amber-400">
-                <Target size={14} />
-              </div>
-              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
-                Set Specification Limits
-              </h3>
-              <span className="text-xs text-slate-500 ml-auto mr-2">Optional</span>
-              {specsExpanded ? (
-                <ChevronDown size={16} className="text-slate-400" />
-              ) : (
-                <ChevronRight size={16} className="text-slate-400" />
-              )}
-            </button>
-
-            {specsExpanded && (
-              <div
-                className="mt-3 space-y-3 p-4 rounded-lg bg-slate-800/50 border border-slate-700"
-                data-testid="specs-section"
-              >
-                <div className="flex items-center gap-3">
-                  <label className="text-xs text-slate-400 w-20 text-right shrink-0">Target</label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={specTarget}
-                    onChange={e => setSpecTarget(e.target.value)}
-                    placeholder="Ideal value"
-                    className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 placeholder-slate-600"
-                    aria-label="Target specification"
-                  />
-                </div>
-                <div className="flex items-center gap-3">
-                  <label className="text-xs text-slate-400 w-20 text-right shrink-0">
-                    LSL (Min)
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={specLsl}
-                    onChange={e => setSpecLsl(e.target.value)}
-                    placeholder="Lower limit"
-                    className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 placeholder-slate-600"
-                    aria-label="LSL specification"
-                  />
-                </div>
-                <div className="flex items-center gap-3">
-                  <label className="text-xs text-slate-400 w-20 text-right shrink-0">
-                    USL (Max)
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={specUsl}
-                    onChange={e => setSpecUsl(e.target.value)}
-                    placeholder="Upper limit"
-                    className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 placeholder-slate-600"
-                    aria-label="USL specification"
-                  />
-                </div>
-                <p className="text-xs text-slate-500">You can always change these later.</p>
-              </div>
-            )}
-          </div>
+          <SpecsSection
+            expanded={specsExpanded}
+            onToggle={() => setSpecsExpanded(!specsExpanded)}
+            target={specTarget}
+            lsl={specLsl}
+            usl={specUsl}
+            onTargetChange={setSpecTarget}
+            onLslChange={setSpecLsl}
+            onUslChange={setSpecUsl}
+          />
 
           {/* Pareto Source (Optional) */}
           {onParetoFileUpload && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-600 text-white">
-                  <BarChart3 size={14} />
-                </div>
-                <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
-                  Pareto Source
-                </h3>
-                <span className="text-xs text-slate-500 ml-auto">Optional</span>
-              </div>
-              <p className="text-xs text-slate-500 mb-3">
-                By default, Pareto counts from your selected factors. Upload a separate file for
-                pre-aggregated counts (e.g., from ERP/MES).
-              </p>
-
-              {paretoMode === 'separate' && separateParetoFilename ? (
-                // Show uploaded Pareto file
-                <div className="flex items-center justify-between p-3 rounded-lg bg-orange-600/10 border border-orange-600/30">
-                  <div className="flex items-center gap-2">
-                    <BarChart3 size={18} className="text-orange-400" />
-                    <span className="text-sm text-orange-300">{separateParetoFilename}</span>
-                    <span className="text-xs text-slate-500">(separate data)</span>
-                  </div>
-                  <button
-                    onClick={onClearParetoFile}
-                    className="text-slate-400 hover:text-red-400 p-1 transition-colors"
-                    title="Remove Pareto file"
-                    aria-label="Remove Pareto file"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                // Show upload zone
-                <div
-                  onDragOver={e => {
-                    e.preventDefault();
-                    setIsDraggingPareto(true);
-                  }}
-                  onDragLeave={() => setIsDraggingPareto(false)}
-                  onDrop={handleParetoDrop}
-                  onClick={() => paretoFileInputRef.current?.click()}
-                  className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 border-dashed cursor-pointer transition-all ${
-                    isDraggingPareto
-                      ? 'bg-orange-600/20 border-orange-500'
-                      : 'bg-slate-800/50 border-slate-700 hover:border-slate-600 hover:bg-slate-700/50'
-                  }`}
-                >
-                  <input
-                    ref={paretoFileInputRef}
-                    type="file"
-                    accept=".csv,.xlsx,.xls"
-                    onChange={handleParetoFileChange}
-                    className="hidden"
-                    aria-label="Upload Pareto data file"
-                  />
-                  <Upload size={20} className="text-slate-500 mb-2" />
-                  <span className="text-xs text-slate-500">
-                    Drop CSV/Excel with category + count columns
-                  </span>
-                  <span className="text-xs text-slate-500 mt-1">
-                    Not linked to main data filters
-                  </span>
-                </div>
-              )}
-            </div>
+            <ParetoUpload
+              paretoMode={paretoMode}
+              separateParetoFilename={separateParetoFilename || null}
+              onParetoFileUpload={onParetoFileUpload}
+              onClearParetoFile={onClearParetoFile}
+            />
           )}
 
           {/* Time Extraction (Optional) */}
           {timeColumn && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-600 text-white">
-                  <Clock size={14} />
-                </div>
-                <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
-                  Extract Time Factors
-                </h3>
-                <span className="text-xs text-slate-500 ml-auto">Optional</span>
-              </div>
-              <p className="text-xs text-slate-500 mb-3">
-                Create categorical columns from <strong>{timeColumn}</strong> to filter by Year,
-                Month, Week, etc.
-              </p>
-
-              <div className="space-y-2 p-4 rounded-lg bg-slate-800/50 border border-slate-700">
-                {[
-                  { key: 'extractYear' as const, label: 'Year', example: '2025' },
-                  { key: 'extractMonth' as const, label: 'Month', example: 'Jan' },
-                  { key: 'extractWeek' as const, label: 'Week', example: 'W03' },
-                  { key: 'extractDayOfWeek' as const, label: 'Day of Week', example: 'Mon' },
-                  ...(hasTimeComponent
-                    ? [{ key: 'extractHour' as const, label: 'Hour', example: '14:00' }]
-                    : []),
-                ].map(({ key, label, example }) => (
-                  <label
-                    key={key}
-                    className="flex items-center gap-3 p-2 rounded hover:bg-slate-700/50 cursor-pointer transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={timeExtraction[key]}
-                      onChange={e => {
-                        const newConfig = { ...timeExtraction, [key]: e.target.checked };
-                        setTimeExtraction(newConfig);
-                        onTimeExtractionChange?.(newConfig);
-                      }}
-                      className="w-4 h-4 rounded border-slate-600 text-purple-600 focus:ring-purple-600 focus:ring-offset-slate-900"
-                    />
-                    <span className="text-sm text-slate-300 flex-1">{label}</span>
-                    <span className="text-xs text-slate-500 font-mono">{example}</span>
-                  </label>
-                ))}
-
-                <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-700">
-                  New columns will be added as factors (e.g., "{timeColumn}_Month", "{timeColumn}
-                  _Year")
-                </p>
-              </div>
-            </div>
+            <TimeExtractionPanel
+              timeColumn={timeColumn}
+              hasTimeComponent={hasTimeComponent}
+              onTimeExtractionChange={onTimeExtractionChange}
+            />
           )}
         </div>
 

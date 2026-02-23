@@ -149,6 +149,7 @@ export {
   MindmapPanelContent,
   mindmapPanelDefaultColorScheme,
   mindmapPanelAzureColorScheme,
+  exportMindmapPng,
   type MindmapPanelColorScheme,
   type MindmapPanelContentProps,
 } from './components/MindmapPanel';
