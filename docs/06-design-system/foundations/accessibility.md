@@ -112,9 +112,8 @@ Announce dynamic content changes:
 // Example: IChart with accessible summary
 <figure>
   <figcaption className="sr-only">
-    I-Chart for {measureName}. Mean: {mean.toFixed(2)}. Cpk: {cpk.toFixed(2)} (
-    {getGradeDescription(cpk)}).
-    {outOfSpec} of {total} points outside specification limits.
+    I-Chart for {measureName}. Mean: {mean.toFixed(2)}. Cpk: {cpk.toFixed(2)}.{outOfSpec} of {total}{' '}
+    points outside specification limits.
   </figcaption>
   <IChart data={data} specs={specs} />
 </figure>

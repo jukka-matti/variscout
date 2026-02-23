@@ -227,36 +227,3 @@ Charts need explicit height to render:
 | sm         | ≥ 640px  | Desktop header buttons     |
 | md         | ≥ 768px  | 2-column grids             |
 | lg         | ≥ 1024px | Full 3-panel dashboard     |
-
-## Excel Add-in Task Pane
-
-```
-┌─────────────────┐
-│ Header          │
-├─────────────────┤
-│ Tab List        │
-├─────────────────┤
-│                 │
-│ Tab Content     │
-│ (scrollable)    │
-│                 │
-├─────────────────┤
-│ Footer/Actions  │
-└─────────────────┘
-```
-
-Width: Fixed at 350px (Office Add-in standard)
-
-## Excel Content Add-in
-
-```
-┌─────────────────────────────────────┐
-│ Stats Header                        │
-├──────────────────┬──────────────────┤
-│                  │                  │
-│ I-Chart          │ Boxplot          │
-│                  │                  │
-└──────────────────┴──────────────────┘
-```
-
-Uses CSS Grid with `flex: 1` for chart containers.

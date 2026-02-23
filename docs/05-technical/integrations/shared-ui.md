@@ -10,27 +10,18 @@ This document outlines the architectural strategy for implementing a Shared UI L
 
 - **Existing Shared Packages**: `packages/core` (logic), `packages/charts` (visualization).
 - **Missing**: No shared UI component library.
-- **Divergence**:
-  - **Excel Add-in (`apps/excel-addin`)**: Uses **Fluent UI** (`@fluentui/react-components`) to align with Native Office look and feel.
-  - **PWA (`apps/pwa`)** & **Azure App (`apps/azure`)**: Use **Tailwind CSS** + Headless components (e.g., Radix, Lucide icons) for a custom, modern web aesthetic.
+- **PWA (`apps/pwa`)** & **Azure App (`apps/azure`)**: Use **Tailwind CSS** + Headless components (e.g., Radix, Lucide icons) for a custom, modern web aesthetic.
 
 ## 2. Architectural Recommendation
 
 Would a shared UI library make sense? **YES**, but with a split strategy.
 
-### Strategy A: The "Web" UI Kit (`@variscout/ui`)
+### The "Web" UI Kit (`@variscout/ui`)
 
-We should create a shared UI package specifically for the **PWA** and **Azure App** (and any future web portals). Since they share a tech stack (Tailwind), they should share components.
+A shared UI package for the **PWA** and **Azure App** (and any future web portals). Since they share a tech stack (Tailwind), they share components.
 
 - **Goal**: Ensure `apps/azure` and `apps/pwa` look identical and share the same buttons, inputs, cards, and layouts.
 - **Contents**: Buttons, Forms, Modals, Layouts (Sidebar/Header), Typography.
-
-### Strategy B: Excel Add-in independence
-
-The Excel Add-in should **continue using Fluent UI** primarily.
-
-- **Why?**: Microsoft strongly recommends Fluent UI for add-ins to feel "native" within Excel. Overriding this with a custom Tailwind design often leads to UX friction (e.g., scrolling issues, non-native scaling, focus management).
-- **Shared Logic**: The Excel Add-in _should_ consume hooks and logic from `packages/core`, but render its own Fluent UI views.
 
 ## 3. Implementation Plan
 
@@ -75,12 +66,11 @@ Develop components in isolation using **Storybook**. This forces components to b
 
 ## 5. Summary Recommendation
 
-| App              | UI Strategy        | Action                                                       |
-| :--------------- | :----------------- | :----------------------------------------------------------- |
-| **PWA**          | Custom (Tailwind)  | Consume `@variscout/ui`                                      |
-| **Azure App**    | Custom (Tailwind)  | Consume `@variscout/ui`                                      |
-| **Excel Add-in** | Native (Fluent UI) | Keep independent UI, share Logic via `@variscout/core`       |
-| **Marketing**    | Astro (Tailwind)   | SSG for performance, embeds PWA for interactive case studies |
+| App           | UI Strategy       | Action                                                       |
+| :------------ | :---------------- | :----------------------------------------------------------- |
+| **PWA**       | Custom (Tailwind) | Consume `@variscout/ui`                                      |
+| **Azure App** | Custom (Tailwind) | Consume `@variscout/ui`                                      |
+| **Marketing** | Astro (Tailwind)  | SSG for performance, embeds PWA for interactive case studies |
 
 ## 6. Cross-App Embedding (iframe strategy)
 

@@ -1,6 +1,6 @@
 # Buttons
 
-Button variants for PWA and Excel Add-in.
+Button variants for PWA and Website.
 
 ## PWA Buttons (Tailwind)
 
@@ -111,7 +111,7 @@ For mobile, ensure minimum 44px touch targets:
 
 ## Website Buttons (CSS Classes)
 
-The website uses CSS component classes (defined in `apps/website/src/styles/global.css`) instead of inline Tailwind classes (PWA) or Fluent UI components (Excel).
+The website uses CSS component classes (defined in `apps/website/src/styles/global.css`) instead of inline Tailwind classes (PWA).
 
 ### Variants
 
@@ -135,24 +135,6 @@ The base `.btn` class uses `py-2.5` (~40px height). For primary CTAs on landing 
 
 ```html
 <a class="btn btn-primary py-3">Start Free</a>
-```
-
-## Excel Add-in Buttons (Fluent UI)
-
-```tsx
-import { Button } from '@fluentui/react-components';
-
-// Primary
-<Button appearance="primary">Save</Button>
-
-// Secondary
-<Button appearance="secondary">Cancel</Button>
-
-// Subtle (ghost)
-<Button appearance="subtle">Reset</Button>
-
-// With icon
-<Button icon={<SaveRegular />}>Save</Button>
 ```
 
 ## Copy Feedback Button

@@ -127,6 +127,6 @@ const sequences = getNelsonRule2Sequences(values, mean);
 
 - [I-Chart](i-chart.md) - Where Nelson rules are displayed
 - [Staged Analysis](staged-analysis.md) - Handling legitimate process shifts
-- [Glossary: Nelson Rule 2](../../glossary.md#nelson-rule-2)
-- [Glossary: Special Cause](../../glossary.md#special-cause)
+- [Glossary: Nelson Rule 2](../learning/glossary.md#nelson-rule-2)
+- [Glossary: Special Cause](../learning/glossary.md#special-cause)
 - [CHANGE Lens](../../01-vision/four-lenses/change.md) - Time-based stability

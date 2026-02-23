@@ -37,13 +37,16 @@ docs/
 │   ├── index.md
 │   ├── philosophy.md
 │   ├── product-overview.md
+│   ├── progressive-stratification.md
+│   ├── market-analysis.md
 │   ├── four-lenses/     # change, failure, flow, value, drilldown
-│   └── two-voices/      # control-limits, spec-limits, variation-types
+│   ├── two-voices/      # control-limits, spec-limits, variation-types
+│   └── evaluations/     # competitive benchmarks, design briefs, UX patterns, tensions
 ├── 02-journeys/         # User research, personas, flows
 │   ├── index.md
 │   ├── ux-research.md
 │   ├── personas/        # green-belt-gary, student-sara, curious-carlos, etc.
-│   ├── flows/           # seo-learner, social-discovery, enterprise, return-visitor
+│   ├── flows/           # seo-learner, social-discovery, enterprise, return-visitor, azure-*
 │   └── use-cases/       # 13 strategic use cases with SEO keyword clusters
 ├── 03-features/         # Feature documentation
 │   ├── index.md
@@ -52,7 +55,7 @@ docs/
 │   ├── analysis/        # boxplot, capability, i-chart, pareto, performance-mode,
 │   │                    # nelson-rules, staged-analysis, probability-plot, regression
 │   ├── workflows/       # four-lenses, drill-down, performance-mode, quick-check,
-│   │                    # deep-dive, decision-trees (analyst workflows & decision guides)
+│   │                    # deep-dive, decision-trees, investigation-to-action, process-maps
 │   ├── data/            # data-input, storage, validation
 │   ├── navigation/      # drill-down, breadcrumbs, linked-filtering
 │   └── learning/        # case-based-learning, glossary, help-tooltips
@@ -68,25 +71,32 @@ docs/
 │   ├── index.md
 │   ├── architecture.md
 │   ├── architecture/    # offline-first, monorepo, shared-packages, data-flow, component-patterns
-│   ├── implementation/  # data-input, deployment, testing
+│   ├── implementation/  # data-input, deployment, testing, system-limits, security-scanning, claude-flow
 │   └── integrations/    # shared-ui, embed-messaging
 ├── 06-design-system/    # Design tokens and components
 │   ├── index.md
 │   ├── foundations/     # colors, typography, spacing, accessibility
-│   ├── components/      # buttons, cards, forms, modals, variation-funnel
-│   ├── charts/          # overview, boxplot, capability, pareto, hooks, responsive
+│   ├── components/      # buttons, cards, forms, modals, variation-funnel, what-if-simulator,
+│   │                    # interaction-guidance
+│   ├── charts/          # overview, ichart, boxplot, pareto, capability, scatter,
+│   │                    # probability-plot, performance-mode, colors, hooks, responsive,
+│   │                    # shared-components
 │   └── patterns/        # layout, feedback, navigation
 ├── 07-decisions/        # Architecture Decision Records
 │   ├── index.md
-│   └── adr-001 through adr-011
+│   ├── adr-001 through adr-013
+│   └── audit-2026-02-state-of-product.md
 ├── 08-products/         # Product-specific specs
 │   ├── index.md
 │   ├── feature-parity.md # Platform × Feature availability matrix
-│   ├── azure/           # index, marketplace, pricing-tiers, arm-template, authentication, onedrive-sync
+│   ├── azure/           # index, marketplace, pricing-tiers, arm-template, authentication,
+│   │                    # onedrive-sync, how-it-works, submission-checklist
 │   ├── pwa/             # index (demo tool), storage
 │   ├── website/         # index, design-philosophy, content-architecture
 │   └── powerbi/
 └── archive/             # HISTORICAL ONLY — removed features, do not reference for current work
+
+sales/                   # Sales leads and company contacts (not software docs)
 ```
 
 ## Task-to-Documentation Mapping

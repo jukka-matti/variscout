@@ -73,17 +73,6 @@ For switching between analysis modes.
 </Tabs>
 ```
 
-### Excel Add-in
-
-Uses Fluent UI Pivot:
-
-```tsx
-<Pivot selectedKey={activeTab} onLinkClick={handleTabChange}>
-  <PivotItem headerText="Analysis" itemKey="analysis" />
-  <PivotItem headerText="Performance" itemKey="performance" />
-</Pivot>
-```
-
 ---
 
 ## Sidebar Navigation

@@ -93,9 +93,9 @@ These colors have **consistent semantic meaning** across both themes:
 | brand-hover   | `#2563eb` | `hover:bg-blue-700` | Hover state              |
 | brand-light   | `#60a5fa` | `text-blue-400`     | Links, highlights        |
 
-### Company Accent (Licensed Only)
+### Company Accent (Azure App Only)
 
-Licensed users can customize the accent color via Settings > Appearance:
+Azure App users can customize the accent color via Settings > Appearance:
 
 ```tsx
 // ThemeContext applies custom accent as CSS variable
@@ -130,22 +130,6 @@ const { isDark, chrome } = useChartTheme();
 // Status display
 <span className="text-green-500">In Spec</span>
 <span className="text-red-500">Out of Spec</span>
-```
-
-### Excel Add-in
-
-```tsx
-import { darkTheme } from '../lib/darkTheme';
-
-const styles = {
-  card: {
-    backgroundColor: darkTheme.colorNeutralBackground2,
-    borderColor: darkTheme.colorNeutralStroke1,
-  },
-  successText: {
-    color: darkTheme.colorStatusSuccess,
-  },
-};
 ```
 
 ### Chart SVG

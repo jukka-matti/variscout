@@ -13,6 +13,8 @@ The charts package provides shared components that enforce visual consistency:
 | `ChartTooltip`          | Standardized tooltip wrapper           |
 | `EditableChartTitle`    | Click-to-edit title component          |
 | `ChartCard`             | Card wrapper with header layout        |
+| `ChartSignature`        | Painter-style branding signature       |
+| `ChartSourceBar`        | Footer branding bar with sample count  |
 
 **Source:** `packages/charts/src/components/`
 
@@ -49,7 +51,7 @@ Each limit type has predefined color and line style:
 | -------- | ------------------------------ | ---------- | --------------- |
 | `usl`    | `chartColors.spec` (red)       | Dashed 6,3 | "USL: {value}"  |
 | `lsl`    | `chartColors.spec` (red)       | Dashed 6,3 | "LSL: {value}"  |
-| `target` | `chartColors.target` (purple)  | Dotted 2,2 | "Tgt: {value}"  |
+| `target` | `chartColors.target` (green)   | Dotted 2,2 | "Tgt: {value}"  |
 | `ucl`    | `chartColors.control` (orange) | Dashed 4,4 | "UCL: {value}"  |
 | `lcl`    | `chartColors.control` (orange) | Dashed 4,4 | "LCL: {value}"  |
 | `mean`   | `chartColors.mean` (blue)      | Solid      | "Mean: {value}" |
@@ -280,6 +282,51 @@ import { ChartCard } from '@variscout/charts';
 - Padding: `p-6`
 - Border radius: `rounded-2xl`
 - Shadow: `shadow-xl shadow-black/20`
+
+---
+
+## ChartSignature
+
+Painter-style "VariScout" signature mark rendered as SVG text. Only visible for free tier (branding required); hidden for paid tiers via `shouldShowBranding()` from `@variscout/core`.
+
+**Source:** `packages/charts/src/ChartSignature.tsx`
+
+### Props
+
+```typescript
+interface ChartSignatureProps {
+  x: number; // Right edge position
+  y: number; // Bottom position (above source bar)
+}
+```
+
+### Mode-Aware Styling
+
+| Mode      | Font               | Size | Opacity | Text        |
+| --------- | ------------------ | ---- | ------- | ----------- |
+| Technical | Caveat (cursive)   | 16px | 0.4     | "VariScout" |
+| Executive | Inter (sans-serif) | 12px | 0.3     | "VARISCOUT" |
+
+---
+
+## ChartSourceBar
+
+Footer bar displaying sample count and branding text. Positioned at the bottom of the chart SVG.
+
+**Source:** `packages/charts/src/ChartSourceBar.tsx`
+
+### Props
+
+```typescript
+interface ChartSourceBarProps {
+  width: number; // Chart inner width
+  top: number; // Y position
+  n: number; // Sample count
+  brandingText?: string;
+}
+```
+
+Height: 18px (included in bottom margin calculations via `getSourceBarHeight(showBranding)`).
 
 ---
 

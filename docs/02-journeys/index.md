@@ -19,6 +19,14 @@ How different users find, navigate, and convert on VariScout.
 
 ---
 
+## UX Research
+
+Foundational user research informing persona development and flow design:
+
+[:octicons-arrow-right-24: UX Research](ux-research.md)
+
+---
+
 ## Use Cases
 
 Strategic use cases grounded in VariScout's capabilities — the specific problems that bring searchers in.

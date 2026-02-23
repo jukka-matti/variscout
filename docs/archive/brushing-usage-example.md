@@ -1,3 +1,5 @@
+> **ARCHIVED**: This document describes historical implementation details. Do not reference for current work.
+
 # Minitab-Style Brushing - Usage Example
 
 ## Quick Start

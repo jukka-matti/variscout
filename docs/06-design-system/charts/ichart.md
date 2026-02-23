@@ -314,6 +314,50 @@ PerformanceIChart tooltip shows:
 
 ---
 
+## I-Chart Annotations
+
+The I-Chart supports **free-floating text annotations** created via right-click on the chart area. Unlike Boxplot/Pareto annotations (which anchor to categories), I-Chart annotations use percentage-based positioning within the chart area.
+
+### Annotation Props (App Wrapper Level)
+
+The annotation system is wired at the app wrapper level (PWA and Azure IChart wrappers), not in `IChartBase` directly:
+
+```typescript
+interface IChartWrapperProps {
+  // ... standard props ...
+
+  /** Free-floating text annotations positioned by percentage */
+  ichartAnnotations?: ChartAnnotation[];
+  /** Callback to create a new annotation at a position (0.0-1.0) */
+  onCreateAnnotation?: (anchorX: number, anchorY: number) => void;
+  /** Callback when annotations are edited/moved/deleted */
+  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+}
+```
+
+### How It Works
+
+1. User right-clicks anywhere on the I-Chart area
+2. The wrapper converts click coordinates to percentage-based position (0.0-1.0) using `getResponsiveMargins('ichart')`
+3. A new `ChartAnnotation` is created with `anchorX`/`anchorY` fields
+4. `ChartAnnotationLayer` (from `@variscout/ui`) renders draggable text notes as an HTML overlay
+
+### Position System
+
+| Field            | Type   | Description                                                |
+| ---------------- | ------ | ---------------------------------------------------------- |
+| `anchorX`        | number | Horizontal position (0.0 = left, 1.0 = right)              |
+| `anchorY`        | number | Vertical position (0.0 = top, 1.0 = bottom)                |
+| `anchorCategory` | string | Self-referencing ID (I-Chart uses the annotation's own ID) |
+
+Percentage-based positions are data-independent, so annotations remain valid when data changes.
+
+### Clearing Annotations
+
+A clear button appears in the I-Chart card header when `ichartAnnotations.length > 0`. The `useAnnotations` hook from `@variscout/hooks` provides `clearAnnotations('ichart')` for this.
+
+---
+
 ## Cross-App Usage
 
 ### PWA and Azure
@@ -341,31 +385,6 @@ import PerformanceIChart from '@variscout/charts/PerformanceIChart';
     onChannelClick={handleClick}
   />
 </div>
-```
-
-### Excel Add-in
-
-Use the Base variant with explicit sizing:
-
-```tsx
-import { IChartBase } from '@variscout/charts/IChart';
-import { PerformanceIChartBase } from '@variscout/charts/PerformanceIChart';
-
-// Standard IChart with explicit size
-<IChartBase
-  parentWidth={500}
-  parentHeight={350}
-  data={chartData}
-  stats={stats}
-  specs={specs}
-/>
-
-// Performance IChart with explicit size
-<PerformanceIChartBase
-  parentWidth={400}
-  parentHeight={300}
-  channels={channels}
-/>
 ```
 
 ---
@@ -436,5 +455,4 @@ import type { IChartProps, IChartDataPoint, PerformanceIChartProps } from '@vari
 - [Responsive](./responsive.md) - Breakpoints and scaling utilities
 - [Hooks](./hooks.md) - useChartLayout, useChartTooltip
 - [Performance Mode](./performance-mode.md) - Full Performance Mode documentation
-- [Overview](./overview.md) - All chart types and common patterns
 - [Boxplot](./boxplot.md) - Distribution comparison charts

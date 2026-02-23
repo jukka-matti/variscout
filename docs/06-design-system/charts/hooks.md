@@ -9,9 +9,10 @@ React hooks for chart layout, tooltips, and selection state in `@variscout/chart
 | `useChartLayout`    | Consolidated layout calculations (margins, fonts, dimensions) |
 | `useChartTooltip`   | Unified tooltip positioning                                   |
 | `useSelectionState` | Selection state and opacity management                        |
-| `useChartTheme`     | Theme-aware colors (documented in colors.md)                  |
+| `useChartTheme`     | Theme-aware colors with executive mode support                |
+| `useMultiSelection` | Minitab-style brushing and multi-point selection              |
 
-**Source:** `packages/charts/src/hooks/`
+**Source:** `packages/charts/src/hooks/`, `packages/charts/src/useChartTheme.ts`
 
 ---
 
@@ -222,6 +223,177 @@ const { isSelected, hasSelection, getOpacity } = useSelectionState({
 
 ---
 
+## useChartTheme
+
+Provides theme-aware chart colors with automatic updates when the theme changes.
+
+**Source:** `packages/charts/src/useChartTheme.ts`
+
+### Interface
+
+```typescript
+interface ChartThemeColors {
+  /** Whether dark theme is active */
+  isDark: boolean;
+  /** Current chart mode */
+  mode: 'technical' | 'executive';
+  /** Chrome colors for current theme and mode */
+  chrome: ChromeColorValues;
+  /** Data colors for current mode */
+  colors: Record<ChartColor, string>;
+  /** Font scale multiplier (from data-chart-scale attribute) */
+  fontScale: number;
+}
+```
+
+### Usage
+
+```tsx
+import { useChartTheme } from '@variscout/charts';
+
+const MyChart = () => {
+  const { isDark, mode, chrome, colors, fontScale } = useChartTheme();
+
+  // Use chrome.xxx for UI elements (adapts to theme + mode):
+  // chrome.gridLine, chrome.axisPrimary, chrome.labelPrimary, etc.
+
+  // Use colors.xxx for data elements (adapts to mode):
+  // colors.pass, colors.fail, colors.mean, colors.spec, etc.
+
+  const isExecutive = mode === 'executive';
+};
+```
+
+### Observed Attributes
+
+The hook watches three `<html>` element attributes via `MutationObserver`:
+
+| Attribute          | Values                         | Purpose               |
+| ------------------ | ------------------------------ | --------------------- |
+| `data-theme`       | `'light'` or `'dark'`          | Theme switching       |
+| `data-chart-mode`  | `'technical'` or `'executive'` | Color palette mode    |
+| `data-chart-scale` | Numeric string (e.g. `'1.2'`)  | Font scale multiplier |
+
+### Color Resolution
+
+| Mode        | isDark | chrome source       | colors source     |
+| ----------- | ------ | ------------------- | ----------------- |
+| `technical` | true   | `chromeColors`      | `chartColors`     |
+| `technical` | false  | `chromeColorsLight` | `chartColors`     |
+| `executive` | any    | `executiveChrome`   | `executiveColors` |
+
+---
+
+## useMultiSelection
+
+Minitab-style brushing and multi-point selection for scatter/time-series charts.
+
+**Source:** `packages/charts/src/hooks/useMultiSelection.ts`
+
+### Options
+
+```typescript
+interface UseMultiSelectionOptions<T> {
+  /** Chart data points */
+  data: T[];
+  /** X-axis scale (visx/d3 scale) */
+  xScale: ChartScale;
+  /** Y-axis scale (visx/d3 scale) */
+  yScale: ChartScale;
+  /** Currently selected point indices (controlled state) */
+  selectedPoints: Set<number>;
+  /** Callback when selection changes */
+  onSelectionChange: (indices: Set<number>) => void;
+  /** Accessor for X value (default: d => d.x) */
+  getX?: (d: T, index: number) => number;
+  /** Accessor for Y value (default: d => d.y) */
+  getY?: (d: T, index: number) => number;
+  /** Enable brush selection (default: true) */
+  enableBrush?: boolean;
+}
+```
+
+### Returns
+
+```typescript
+interface UseMultiSelectionResult {
+  brushExtent: BrushExtent | null;
+  isBrushing: boolean;
+  handleBrushStart: (event: React.MouseEvent<SVGElement>) => void;
+  handleBrushMove: (event: React.MouseEvent<SVGElement>) => void;
+  handleBrushEnd: () => void;
+  handlePointClick: (index: number, event: React.MouseEvent) => void;
+  isPointSelected: (index: number) => boolean;
+  getPointOpacity: (index: number) => number;
+  getPointSize: (index: number) => number;
+  getPointStrokeWidth: (index: number) => number;
+}
+```
+
+### Interaction Modes
+
+| Action           | Behavior                         |
+| ---------------- | -------------------------------- |
+| Drag region      | Select all points within brush   |
+| Click            | Replace selection with one point |
+| Ctrl/Cmd + click | Toggle point in/out of selection |
+| Shift + click    | Add point to selection           |
+
+### Visual Styling
+
+| State                   | Opacity | Size | Stroke Width |
+| ----------------------- | ------- | ---- | ------------ |
+| No selection exists     | 1.0     | 4    | 1            |
+| Selected                | 1.0     | 6    | 2            |
+| Unselected (has others) | 0.3     | 4    | 1            |
+
+### Usage
+
+```tsx
+import { useMultiSelection } from '@variscout/charts';
+
+const {
+  brushExtent,
+  isBrushing,
+  handleBrushStart,
+  handleBrushMove,
+  handleBrushEnd,
+  handlePointClick,
+  isPointSelected,
+  getPointOpacity,
+  getPointSize,
+  getPointStrokeWidth,
+} = useMultiSelection({
+  data,
+  xScale,
+  yScale,
+  selectedPoints,
+  onSelectionChange,
+  enableBrush: true,
+});
+
+// Wire up SVG event handlers
+<svg
+  onMouseDown={handleBrushStart}
+  onMouseMove={handleBrushMove}
+  onMouseUp={handleBrushEnd}
+  onMouseLeave={handleBrushEnd}
+>
+  {data.map((d, i) => (
+    <Circle
+      r={getPointSize(i)}
+      opacity={getPointOpacity(i)}
+      strokeWidth={getPointStrokeWidth(i)}
+      onClick={e => handlePointClick(i, e)}
+    />
+  ))}
+</svg>;
+```
+
+Currently used by the **IChart** component for `enableBrushSelection` mode.
+
+---
+
 ## Import Pattern
 
 ```typescript
@@ -230,7 +402,10 @@ import {
   useChartTooltip,
   useSelectionState,
   selectionOpacity,
+  useChartTheme,
 } from '@variscout/charts';
+
+import { useMultiSelection } from '@variscout/charts/hooks/useMultiSelection';
 ```
 
 ---

@@ -393,31 +393,6 @@ import PerformanceBoxplot from '@variscout/charts/PerformanceBoxplot';
 </div>
 ```
 
-### Excel Add-in
-
-Use the Base variant with explicit sizing:
-
-```tsx
-import { BoxplotBase } from '@variscout/charts/Boxplot';
-import { PerformanceBoxplotBase } from '@variscout/charts/PerformanceBoxplot';
-
-// Standard Boxplot with explicit size
-<BoxplotBase
-  parentWidth={500}
-  parentHeight={350}
-  data={groupedData}
-  specs={specs}
-/>
-
-// Performance Boxplot with explicit size
-<PerformanceBoxplotBase
-  parentWidth={400}
-  parentHeight={300}
-  channels={channels}
-  specs={specs}
-/>
-```
-
 ---
 
 ## Colors and Theming
@@ -534,10 +509,10 @@ Uses `useChartTheme()` hook for automatic light/dark adaptation:
 
 ### Display Modes
 
-| Mode        | Font Size | Padding     | Use Case                    |
-| ----------- | --------- | ----------- | --------------------------- |
-| **Default** | `text-sm` | `px-3 py-2` | PWA fullscreen view         |
-| **Compact** | `text-xs` | `px-2 py-1` | Excel Add-in, tight layouts |
+| Mode        | Font Size | Padding     | Use Case            |
+| ----------- | --------- | ----------- | ------------------- |
+| **Default** | `text-sm` | `px-3 py-2` | PWA fullscreen view |
+| **Compact** | `text-xs` | `px-2 py-1` | Tight layouts       |
 
 ### Usage Example
 
@@ -556,7 +531,7 @@ import BoxplotStatsTable from '@variscout/charts/BoxplotStatsTable';
   variationThreshold={50}
 />
 
-// Compact mode for Excel
+// Compact mode
 <BoxplotStatsTable
   data={boxplotData}
   compact={true}
@@ -587,11 +562,10 @@ Enable with `showContributionLabels={true}` on Boxplot component.
 
 ### Integration Points
 
-| App          | Component                | Mode    | Notes                     |
-| ------------ | ------------------------ | ------- | ------------------------- |
-| PWA          | FocusedChartView         | Default | Fullscreen boxplot detail |
-| Azure        | Dashboard (focused view) | Default | Same as PWA               |
-| Excel Add-in | ContentDashboard         | Compact | Space-constrained         |
+| App   | Component                | Mode    | Notes                     |
+| ----- | ------------------------ | ------- | ------------------------- |
+| PWA   | FocusedChartView         | Default | Fullscreen boxplot detail |
+| Azure | Dashboard (focused view) | Default | Same as PWA               |
 
 ---
 
@@ -622,5 +596,4 @@ import { calculateBoxplotStats, BoxplotGroupInput, BoxplotGroupData } from '@var
 - [Responsive](./responsive.md) - Responsive margin and font utilities
 - [Hooks](./hooks.md) - useChartLayout, useChartTooltip, useSelectionState
 - [Performance Mode](./performance-mode.md) - Full Performance Mode documentation
-- [Overview](./overview.md) - All chart types and common patterns
 - [IChart](./ichart.md) - Time-series control charts

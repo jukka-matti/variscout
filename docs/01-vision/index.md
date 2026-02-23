@@ -31,6 +31,13 @@ VariScout is built on a philosophy of **EDA for process improvement** — not st
 
 ---
 
+## Deep Dives
+
+- [Philosophy](philosophy.md) — The EDA-for-process-improvement philosophy that drives VariScout
+- [Product Overview](product-overview.md) — High-level product positioning and capabilities
+
+---
+
 ## Core Frameworks
 
 ### Watson's Four Lenses of Variation

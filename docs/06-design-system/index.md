@@ -1,6 +1,6 @@
 # VariScout Design System
 
-A unified design system for VariScout covering both PWA and Excel Add-in platforms.
+A unified design system for VariScout covering PWA and Azure App platforms.
 
 ## Principles
 
@@ -9,17 +9,6 @@ A unified design system for VariScout covering both PWA and Excel Add-in platfor
 3. **Consistent semantics** - Same meaning for colors across platforms
 4. **Responsive** - Adapts to screen size without losing functionality
 5. **Accessible** - WCAG AA compliant contrast ratios
-
-## Platform Differences
-
-| Aspect     | PWA                       | Excel Add-in                 |
-| ---------- | ------------------------- | ---------------------------- |
-| Styling    | Tailwind semantic classes | Fluent UI tokens + CSS-in-JS |
-| Theme      | CSS variables + Tailwind  | darkTheme token system       |
-| Icons      | Lucide React              | Fluent UI icons              |
-| Components | Custom + Tailwind         | Fluent UI components         |
-
-Both platforms share the same **color values** and **semantic meanings**.
 
 ## Theming (PWA)
 
@@ -60,6 +49,15 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 - [Overview](./charts/overview.md) - Chart styling principles
 - [Colors](./charts/colors.md) - Data visualization palette
 - [Responsive](./charts/responsive.md) - Breakpoints and scaling
+- [Hooks](./charts/hooks.md) - Chart hooks (useChartTheme, useChartScale)
+- [I-Chart](./charts/ichart.md) - Individuals control chart design
+- [Boxplot](./charts/boxplot.md) - Boxplot and violin mode design
+- [Pareto](./charts/pareto.md) - Pareto chart design
+- [Capability](./charts/capability.md) - Capability histogram design
+- [Scatter / Regression](./charts/scatter.md) - Scatter plot design
+- [Probability Plot](./charts/probability-plot.md) - Probability plot design
+- [Performance Mode](./charts/performance-mode.md) - Multi-channel chart design
+- [Shared Components](./charts/shared-components.md) - ChartSourceBar, EditableChartTitle, etc.
 
 ### Components
 
@@ -69,15 +67,13 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 - [Forms](./components/forms.md) - Form elements
 - [VariationFunnel](./components/variation-funnel.md) - Factor ranking with category breakdown
 - [What-If Simulator](./components/what-if-simulator.md) - Process improvement exploration
+- [Interaction Guidance](./components/interaction-guidance.md) - Contextual interaction hints
 
 ### Patterns
 
 - [Layout](./patterns/layout.md) - Page layouts
 - [Feedback](./patterns/feedback.md) - Status and loading states
-
-## Platform-Specific Docs
-
-For detailed Excel Add-in patterns using Fluent UI, see the [Excel Product documentation](../08-products/excel/design-system.md).
+- [Navigation](./patterns/navigation.md) - Navigation patterns and breadcrumbs
 
 ## Usage
 
@@ -94,19 +90,6 @@ For detailed Excel Add-in patterns using Fluent UI, see the [Excel Product docum
 <button className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2">
   Primary Button
 </button>
-```
-
-### Excel Add-in (darkTheme)
-
-```tsx
-import { darkTheme } from '../lib/darkTheme';
-
-const styles = {
-  button: {
-    backgroundColor: darkTheme.colorBrandBackground,
-    color: darkTheme.colorNeutralForeground1,
-  },
-};
 ```
 
 ### Charts (Visx)

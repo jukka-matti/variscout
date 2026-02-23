@@ -148,22 +148,6 @@ import ProbabilityPlot from '@variscout/charts/ProbabilityPlot';
 </div>;
 ```
 
-### Excel Add-in
-
-Use the Base variant with explicit sizing:
-
-```tsx
-import { ProbabilityPlotBase } from '@variscout/charts/ProbabilityPlot';
-
-<ProbabilityPlotBase
-  parentWidth={500}
-  parentHeight={350}
-  data={values}
-  mean={stats.mean}
-  stdDev={stats.stdDev}
-/>;
-```
-
 ### Custom Margins and Fonts
 
 ```tsx
@@ -290,6 +274,5 @@ import { calculateProbabilityPlotData, normalQuantile } from '@variscout/core';
 - [Colors](./colors.md) - Chart color constants
 - [Responsive](./responsive.md) - Breakpoints and scaling utilities
 - [Hooks](./hooks.md) - useChartLayout
-- [Overview](./overview.md) - All chart types and common patterns
 - [Scatter Plot](./scatter.md) - Regression analysis
 - [Capability](./capability.md) - Distribution histograms

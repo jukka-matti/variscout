@@ -253,31 +253,6 @@ flowchart TB
     note1[Bi-directional sync:<br/>Local-first, cloud backup]
 ```
 
-### Excel Add-in Data Flow
-
-```mermaid
-flowchart TB
-    subgraph Excel["Excel Workbook"]
-        A[Worksheet Data] --> B[Table Range]
-        B --> C[Slicers]
-    end
-
-    subgraph AddIn["Content Add-in"]
-        D[Office.js API] --> E[Read Table]
-        E --> F[Charts]
-        G[Custom Doc Props] --> H[State Bridge]
-    end
-
-    subgraph State["Persistence"]
-        H --> I[Spec limits]
-        H --> J[Selected measure]
-        H --> K[View state]
-    end
-
-    Excel --> D
-    F --> Excel
-```
-
 ---
 
 ## Hook Dependencies

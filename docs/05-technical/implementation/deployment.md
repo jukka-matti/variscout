@@ -6,12 +6,11 @@ This document covers build commands, deployment workflows, and environment confi
 
 ## Distribution Channels
 
-| Product      | Distribution      | Target               |
-| ------------ | ----------------- | -------------------- |
-| Azure App    | Azure Marketplace | Enterprise customers |
-| Excel Add-in | AppSource (FREE)  | Excel users          |
-| PWA          | Internal only     | Demos & development  |
-| Website      | Vercel            | Marketing            |
+| Product   | Distribution      | Target               |
+| --------- | ----------------- | -------------------- |
+| Azure App | Azure Marketplace | Enterprise customers |
+| PWA       | Public URL        | Training & education |
+| Website   | Vercel            | Marketing            |
 
 See [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md) for the distribution strategy.
 
@@ -24,9 +23,6 @@ See [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-m
 ```bash
 # PWA development server (localhost:5173)
 pnpm dev
-
-# Excel Add-in development server (localhost:3000)
-pnpm dev:excel
 
 # Azure app development server
 pnpm --filter @variscout/azure-app dev
@@ -45,7 +41,6 @@ pnpm build
 pnpm --filter @variscout/core build
 pnpm --filter @variscout/charts build
 pnpm --filter @variscout/azure-app build
-pnpm --filter @variscout/excel-addin build
 ```
 
 ### Testing
@@ -79,16 +74,7 @@ pnpm --filter @variscout/azure-app test
 
 > **Note**: `VITE_MAX_USERS` is no longer used. The single Managed Application plan provides unlimited users.
 
-### Excel Add-in Environment Variables
-
-| Variable            | Description           | Default   |
-| ------------------- | --------------------- | --------- |
-| `VITE_ADDIN_ID`     | Office Add-in ID      | Dev ID    |
-| `VITE_MANIFEST_URL` | Manifest XML location | localhost |
-
-> **Note**: `VITE_AZURE_CLIENT_ID` was previously used for Graph API license detection but is no longer needed. The Excel Add-in is always free with no license detection.
-
-### PWA Environment Variables (Demo Only)
+### PWA Environment Variables
 
 | Variable           | Description             | Default      |
 | ------------------ | ----------------------- | ------------ |
@@ -151,45 +137,6 @@ See [ARM Template Documentation](../../08-products/azure/arm-template.md) for te
 
 ---
 
-## AppSource Publication (Excel Add-in)
-
-### Overview
-
-The Excel Add-in is published FREE on Microsoft AppSource:
-
-```
-AppSource
-└── VariScout - SPC Charts for Excel
-    ├── Free Tier: Basic features
-    └── Full Tier: Unlocks with Azure deployment
-```
-
-### Publication Process
-
-1. **Partner Center Setup**
-   - Same account as Azure Marketplace
-   - Enable Office Store program
-
-2. **Prepare Submission**
-   - Validate manifest.xml
-   - Prepare screenshots (1280x720 min)
-   - Write listing content
-
-3. **Microsoft 365 Certification**
-   - Security review
-   - Functionality testing
-   - Accessibility audit
-   - Timeline: 2-4 weeks
-
-4. **Listing Configuration**
-   - Price: FREE
-   - Categories: Productivity > Data Analysis
-   - Supported products: Excel (all platforms)
-
-See [AppSource Guide](../../08-products/excel/appsource.md) for detailed instructions.
-
----
-
 ## Deployment Targets
 
 ### Azure App (Azure Static Web Apps)
@@ -203,19 +150,6 @@ resource:
   apiVersion: 2022-09-01
   name: variscout-{unique}
   sku: Standard
-```
-
-### Excel Add-in (Azure Static Web Apps)
-
-Hosted centrally, deployed via AppSource:
-
-```yaml
-# Hosting configuration
-host: https://excel.variscout.com
-├── taskpane.html
-├── content.html
-├── assets/
-└── manifest.xml
 ```
 
 ### Marketing Website (Vercel)
@@ -257,10 +191,6 @@ The ARM template creates an App Registration with:
 | `User.Read`       | Delegated | Get user profile      |
 | `Files.ReadWrite` | Delegated | OneDrive project sync |
 
-### Excel Add-in
-
-The Excel Add-in requires no app registration — it is a free tool with no authentication or license detection.
-
 ---
 
 ## Pre-Deployment Checklist
@@ -282,18 +212,11 @@ The Excel Add-in requires no app registration — it is a free tool with no auth
 - [ ] All screenshots meet requirements
 - [ ] Pricing configured for all regions
 
-### AppSource Submission
-
-- [ ] Manifest.xml validates
-- [ ] HTTPS hosting configured
-- [ ] Screenshots prepared (1280x720 min)
-- [ ] Accessibility requirements met (WCAG AA)
-
 ### Azure App Deployment (Per-Customer)
 
 - [ ] Customer has Azure subscription
 - [ ] ARM template deploys successfully
-- [ ] MSAL authentication works
+- [ ] EasyAuth authentication works
 
 ---
 
@@ -310,10 +233,6 @@ az staticwebapp deployment list --name variscout-xyz
 # Rollback to previous deployment
 az staticwebapp deployment revert --name variscout-xyz --deployment-id {id}
 ```
-
-### AppSource Updates
-
-AppSource updates are atomic - previous versions remain available until new version is certified.
 
 ### ARM Template Updates
 
@@ -344,18 +263,9 @@ Customers can add Application Insights:
 }
 ```
 
-### Excel Add-in
-
-Central telemetry via Application Insights:
-
-- Feature usage (anonymous)
-- Error rates
-- Performance metrics
-
 ### Partner Center Analytics
 
 - Azure Marketplace: Sales, deployments, usage
-- AppSource: Installs, active users
 
 ---
 
@@ -363,9 +273,7 @@ Central telemetry via Application Insights:
 
 1. Complete Azure Marketplace Partner Center setup
 2. Submit Azure App offer for certification
-3. Complete AppSource Partner Center setup
-4. Submit Excel Add-in for certification
-5. Configure production telemetry
+3. Configure production telemetry
 
 ---
 
@@ -373,5 +281,4 @@ Central telemetry via Application Insights:
 
 - [Azure Marketplace Guide](../../08-products/azure/marketplace.md)
 - [ARM Template](../../08-products/azure/arm-template.md)
-- [AppSource Guide](../../08-products/excel/appsource.md)
 - [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)

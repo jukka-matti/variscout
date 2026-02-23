@@ -1,3 +1,5 @@
+> **ARCHIVED**: This document describes historical implementation details. Do not reference for current work.
+
 # Performance Mode Optimization - Implementation Summary
 
 **Date**: 2026-02-04

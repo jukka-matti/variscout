@@ -16,10 +16,9 @@ variscout-lite/
 │   └── ui/            # @variscout/ui - Shared UI utilities
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite)
-│   ├── azure/         # Azure Team App (MSAL + OneDrive sync)
-│   ├── website/       # Marketing website (Astro + React Islands)
-│   └── excel-addin/   # Excel Add-in (Office.js + Fluent UI)
-└── docs/              # Documentation (MkDocs)
+│   ├── azure/         # Azure Team App (EasyAuth + OneDrive sync)
+│   └── website/       # Marketing website (Astro + React Islands)
+└── docs/              # Documentation
 ```
 
 ---
@@ -134,7 +133,6 @@ pnpm -r build
 
 # Development servers
 pnpm dev                               # PWA
-pnpm dev:excel                         # Excel Add-in
 pnpm --filter @variscout/azure-app dev # Azure app
 ```
 

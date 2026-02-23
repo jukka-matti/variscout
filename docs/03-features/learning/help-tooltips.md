@@ -52,10 +52,9 @@ import { HelpTooltip } from '@variscout/ui';
 
 ## Platform Variants
 
-| Platform | Component                               |
-| -------- | --------------------------------------- |
-| PWA      | `@variscout/ui` HelpTooltip             |
-| Excel    | Fluent UI variant in `apps/excel-addin` |
+| Platform  | Component                   |
+| --------- | --------------------------- |
+| PWA/Azure | `@variscout/ui` HelpTooltip |
 
 ---
 

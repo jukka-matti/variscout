@@ -194,22 +194,6 @@ import ScatterPlot from '@variscout/charts/ScatterPlot';
 </div>;
 ```
 
-### Excel Add-in
-
-Use the Base variant with explicit sizing:
-
-```tsx
-import { ScatterPlotBase } from '@variscout/charts/ScatterPlot';
-
-<ScatterPlotBase
-  parentWidth={500}
-  parentHeight={350}
-  regression={regressionResult}
-  xAxisLabel="Input"
-  yAxisLabel="Output"
-/>;
-```
-
 ---
 
 ## Colors and Theming
@@ -312,5 +296,4 @@ import type { RegressionResult } from '@variscout/core';
 - [Colors](./colors.md) - Chart color constants
 - [Responsive](./responsive.md) - Breakpoints and scaling utilities
 - [Hooks](./hooks.md) - useChartLayout, useChartTooltip
-- [Overview](./overview.md) - All chart types and common patterns
 - [Probability Plot](./probability-plot.md) - Normality assessment

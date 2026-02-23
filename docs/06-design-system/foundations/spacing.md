@@ -4,14 +4,14 @@ VariScout uses a 4px base unit spacing scale.
 
 ## Scale
 
-| Token | Value | PWA (Tailwind) | Excel (darkTheme) | Usage          |
-| ----- | ----- | -------------- | ----------------- | -------------- |
-| xs    | 4px   | `p-1`, `gap-1` | `spacingXS`       | Minimal gaps   |
-| sm    | 8px   | `p-2`, `gap-2` | `spacingS`        | Tight spacing  |
-| md    | 12px  | `p-3`, `gap-3` | `spacingM`        | Default gaps   |
-| lg    | 16px  | `p-4`, `gap-4` | `spacingL`        | Card padding   |
-| xl    | 24px  | `p-6`, `gap-6` | `spacingXL`       | Section gaps   |
-| 2xl   | 32px  | `p-8`, `gap-8` | `spacingXXL`      | Major sections |
+| Token | Value | PWA (Tailwind) | Usage          |
+| ----- | ----- | -------------- | -------------- |
+| xs    | 4px   | `p-1`, `gap-1` | Minimal gaps   |
+| sm    | 8px   | `p-2`, `gap-2` | Tight spacing  |
+| md    | 12px  | `p-3`, `gap-3` | Default gaps   |
+| lg    | 16px  | `p-4`, `gap-4` | Card padding   |
+| xl    | 24px  | `p-6`, `gap-6` | Section gaps   |
+| 2xl   | 32px  | `p-8`, `gap-8` | Major sections |
 
 ## Common Patterns
 
@@ -111,19 +111,3 @@ VariScout uses a 4px base unit spacing scale.
 ## Chart Margins
 
 See [Charts > Responsive](../charts/responsive.md) for chart-specific margins.
-
-## Excel Add-in
-
-```tsx
-import { darkTheme } from '../lib/darkTheme';
-
-const styles = {
-  container: {
-    padding: darkTheme.spacingL, // 16px
-    gap: darkTheme.spacingM, // 12px
-  },
-  header: {
-    marginBottom: darkTheme.spacingXL, // 24px
-  },
-};
-```

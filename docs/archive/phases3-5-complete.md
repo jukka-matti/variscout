@@ -1,4 +1,6 @@
-# Phases 3-5 Complete: Data Table Sync + Performance Integration + Polish ✅
+> **ARCHIVED**: This document describes historical implementation details. Do not reference for current work.
+
+# Phases 3-5 Complete: Data Table Sync + Performance Integration + Polish
 
 **Date**: 2026-02-04
 **Status**: All Remaining Phases Complete (3/3)

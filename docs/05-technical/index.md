@@ -50,34 +50,40 @@ VARISCOUT ARCHITECTURE (Browser-Only)
 
 ## Sections
 
-<div class="grid cards" markdown>
+### Architecture
 
-- :material-source-branch:{ .lg .middle } **Architecture**
+High-level architecture overview and detailed design documents:
 
-  ***
+| Document                                                 | Description                                  |
+| -------------------------------------------------------- | -------------------------------------------- |
+| [Architecture Overview](architecture.md)                 | High-level system architecture               |
+| [Monorepo Structure](architecture/monorepo.md)           | pnpm workspaces, package boundaries          |
+| [Offline-First](architecture/offline-first.md)           | PWA, service worker, IndexedDB               |
+| [Shared Packages](architecture/shared-packages.md)       | Package extraction and reuse strategy        |
+| [Data Flow](architecture/data-flow.md)                   | Data pipeline from input to visualization    |
+| [Component Patterns](architecture/component-patterns.md) | Hook integration, colorScheme, base patterns |
 
-  Monorepo structure, offline-first design, shared packages
+### Implementation
 
-  [:octicons-arrow-right-24: Architecture](architecture/monorepo.md)
+Build, deploy, test, and operate:
 
-- :material-rocket-launch:{ .lg .middle } **Implementation**
+| Document                                                  | Description                                |
+| --------------------------------------------------------- | ------------------------------------------ |
+| [Deployment](implementation/deployment.md)                | Build and deployment pipeline              |
+| [Testing](implementation/testing.md)                      | Vitest, Playwright, verification protocols |
+| [Data Input](implementation/data-input.md)                | Parser, paste flow, column detection       |
+| [System Limits](implementation/system-limits.md)          | Row limits, factor limits, performance     |
+| [Security Scanning](implementation/security-scanning.md)  | OWASP scanning, CVE checks                 |
+| [AI Tooling (claude-flow)](implementation/claude-flow.md) | AI development workflow tooling            |
 
-  ***
+### Integrations
 
-  Deployment, testing strategy, data input handling, AI tooling
+Cross-product and embedding:
 
-  [:octicons-arrow-right-24: Implementation](implementation/deployment.md)
-  [:octicons-arrow-right-24: AI Tooling](implementation/claude-flow.md)
-
-- :material-puzzle:{ .lg .middle } **Integrations**
-
-  ***
-
-  Embed messaging, shared UI strategy
-
-  [:octicons-arrow-right-24: Integrations](integrations/embed-messaging.md)
-
-</div>
+| Document                                           | Description                   |
+| -------------------------------------------------- | ----------------------------- |
+| [Embed Messaging](integrations/embed-messaging.md) | postMessage API for embedding |
+| [Shared UI](integrations/shared-ui.md)             | Shared UI component strategy  |
 
 ---
 

@@ -185,5 +185,5 @@ const plotData = calculateProbabilityPlotData(values);
 
 - [Capability](capability.md) - Where normality matters most
 - [Chart Design: Probability Plot](../../06-design-system/charts/probability-plot.md)
-- [Glossary: Normal Distribution](../../glossary.md#normal-distribution)
+- [Glossary: Normal Distribution](../learning/glossary.md#normal-distribution)
 - [Histogram (Capability Chart)](capability.md) - Alternative view

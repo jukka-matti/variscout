@@ -117,6 +117,16 @@ Regression shows coating amount predicts shelf life (R² ~ 0.72). What factors e
 
 ## Additional Cases (Future Use)
 
+### Oven Zones (`oven-zones/`)
+
+_Not currently in 12-week calendar. Kept for future content._
+
+Multi-zone oven temperature analysis for Performance Mode demonstrations.
+
+| File        | Description   |
+| ----------- | ------------- |
+| `README.md` | Case overview |
+
 ### Machine Utilization (`machine-utilization/`)
 
 _Not currently in 12-week calendar. Kept for future content._
@@ -152,6 +162,8 @@ docs/cases/
 ├── avocado/               # Week 12 - Regression
 │   ├── README.md
 │   └── coating-regression.csv
+├── oven-zones/           # Future use
+│   └── README.md
 └── machine-utilization/   # Future use
     ├── README.md
     └── *.csv

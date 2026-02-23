@@ -105,5 +105,5 @@ const violations = getNelsonRule2ViolationPoints(values, stats.mean);
 - [Staged Analysis](staged-analysis.md) - Per-stage control limits
 - [Boxplot](boxplot.md) - Next step: find which factor explains variation
 - [Chart Design](../../06-design-system/charts/ichart.md)
-- [Glossary: UCL/LCL](../../glossary.md#ucl)
+- [Glossary: UCL/LCL](../learning/glossary.md#ucl)
 - [Case: Bottleneck](../../04-cases/bottleneck/index.md) - I-Chart in action

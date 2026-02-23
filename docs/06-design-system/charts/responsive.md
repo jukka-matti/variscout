@@ -32,7 +32,7 @@ const margin = getResponsiveMargins(parentWidth, chartType, extraBottom);
 
 | Chart       | Top | Right | Bottom | Left |
 | ----------- | --- | ----- | ------ | ---- |
-| ichart      | 40  | 60    | 60     | 70   |
+| ichart      | 40  | 85    | 60     | 70   |
 | boxplot     | 20  | 20    | 60     | 70   |
 | pareto      | 20  | 20    | 60     | 70   |
 | histogram   | 20  | 20    | 40     | 40   |

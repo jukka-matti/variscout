@@ -113,16 +113,15 @@ Enterprise customers can use:
 
 ---
 
-## Free Tier (Excel Add-in & PWA)
+## Free Tier (PWA)
 
-Non-paying users still get value through:
+The PWA provides free value as a training and education tool:
 
-| Product          | Price | Features                                       |
-| ---------------- | ----- | ---------------------------------------------- |
-| **Excel Add-in** | Free  | Core SPC: I-Chart, Boxplot, Pareto, Capability |
-| **PWA**          | Free  | Demo only: all features with sample data       |
+| Product | Price | Features                                              |
+| ------- | ----- | ----------------------------------------------------- |
+| **PWA** | Free  | Core SPC: I-Chart, Boxplot, Pareto, Capability, ANOVA |
 
-The Excel Add-in serves as a marketing funnel — users who need Performance Mode or team collaboration upgrade to the Azure App.
+The PWA serves as a marketing funnel — users who need Performance Mode, file upload, data persistence, or team collaboration upgrade to the Azure App.
 
 ---
 

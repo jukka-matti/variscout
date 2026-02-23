@@ -12,9 +12,6 @@ VariScout helps quality engineers, operations managers, and Lean Six Sigma pract
 # PWA development
 pnpm dev
 
-# Excel Add-in development
-pnpm dev:excel
-
 # Azure Team App development
 pnpm --filter @variscout/azure-app dev
 ```
@@ -76,24 +73,12 @@ VariScout is EDA (Exploratory Data Analysis) for process improvement - not stati
 
 ---
 
-## Products
-
-| Product                                      | Platform         | Status     |
-| -------------------------------------------- | ---------------- | ---------- |
-| [PWA](08-products/pwa/index.md)              | Web Browser      | Production |
-| [Excel Add-in](08-products/excel/index.md)   | Microsoft Excel  | Production |
-| [Azure Team App](08-products/azure/index.md) | Microsoft Teams  | Beta       |
-| [Power BI](08-products/powerbi/index.md)     | Power BI Service | Planned    |
-
----
-
 ## Products & Pricing
 
-| Product      | Distribution      | Pricing                                        | Status      |
-| ------------ | ----------------- | ---------------------------------------------- | ----------- |
-| Azure App    | Azure Marketplace | €150/month (Managed Application, all features) | **PRIMARY** |
-| Excel Add-in | AppSource         | FREE (forever, core SPC only)                  | Production  |
-| PWA          | Public URL        | FREE (forever, training & education)           | Production  |
+| Product                                 | Distribution      | Pricing                                        | Status      |
+| --------------------------------------- | ----------------- | ---------------------------------------------- | ----------- |
+| [Azure App](08-products/azure/index.md) | Azure Marketplace | €150/month (Managed Application, all features) | **PRIMARY** |
+| [PWA](08-products/pwa/index.md)         | Public URL        | FREE (forever, training & education)           | Production  |
 
 ---
 
@@ -112,8 +97,7 @@ packages/
 apps/
 ├── pwa/           # React + Vite PWA
 ├── azure/         # Azure Team App
-├── website/       # Astro marketing site
-└── excel-addin/   # Office.js Add-in
+└── website/       # Astro marketing site
 ```
 
 [:octicons-arrow-right-24: Technical documentation](05-technical/index.md)
@@ -122,7 +106,7 @@ apps/
 
 ## Design System
 
-A unified design system covering PWA and Excel Add-in:
+A unified design system covering PWA and Azure App:
 
 - **Theme-aware**: Supports dark/light modes
 - **Data-focused**: Colors prioritize data visibility

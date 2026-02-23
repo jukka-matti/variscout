@@ -1,3 +1,5 @@
+> **ARCHIVED**: This document describes historical implementation details. Do not reference for current work.
+
 # Create Factor from Selection - User Guide
 
 **Feature**: Create custom factors from brushed point selections in IChart

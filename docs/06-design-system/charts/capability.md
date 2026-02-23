@@ -210,32 +210,6 @@ import PerformanceCapability from '@variscout/charts/PerformanceCapability';
 </div>
 ```
 
-### Excel Add-in
-
-Use the Base variant with explicit sizing:
-
-```tsx
-import { CapabilityHistogramBase } from '@variscout/charts/CapabilityHistogram';
-import { PerformanceCapabilityBase } from '@variscout/charts/PerformanceCapability';
-
-// Standard Histogram with explicit size
-<CapabilityHistogramBase
-  parentWidth={400}
-  parentHeight={250}
-  data={values}
-  specs={specs}
-  mean={mean}
-/>
-
-// Performance Capability with explicit size
-<PerformanceCapabilityBase
-  parentWidth={400}
-  parentHeight={300}
-  channel={selectedChannel}
-  specs={specs}
-/>
-```
-
 ---
 
 ## Colors and Theming
@@ -315,5 +289,4 @@ import type { CapabilityHistogramProps, PerformanceCapabilityProps } from '@vari
 - [Responsive](./responsive.md) - Breakpoints and scaling utilities
 - [Hooks](./hooks.md) - useChartLayout
 - [Performance Mode](./performance-mode.md) - Full Performance Mode documentation
-- [Overview](./overview.md) - All chart types and common patterns
 - [IChart](./ichart.md) - Time-series control charts

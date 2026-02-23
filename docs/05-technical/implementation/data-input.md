@@ -20,7 +20,6 @@ Technical documentation for data parsing, validation, and auto-mapping in VariSc
 
 - PWA (apps/pwa)
 - Azure/Teams app (apps/azure)
-- Excel Add-in (apps/excel-addin) - if needed for file import features
 
 ---
 

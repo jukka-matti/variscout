@@ -11,7 +11,7 @@ VariScout provides two Pareto chart variants for different analysis contexts:
 | **ParetoChart**       | Category frequency analysis | Standard Analysis | Derived from `DataContext` |
 | **PerformancePareto** | Channel Cpk ranking         | Performance Mode  | `ChannelResult[]` (props)  |
 
-**Source:** `apps/pwa/src/components/charts/ParetoChart.tsx` (PWA), `packages/charts/src/PerformancePareto.tsx` (shared)
+**Source:** `packages/charts/src/ParetoChart.tsx` (shared), `packages/charts/src/PerformancePareto.tsx` (shared)
 
 ---
 
@@ -219,16 +219,9 @@ interface PerformanceParetoProps extends BaseChartProps {
 
 Channels are automatically sorted by Cpk ascending (worst first) using `sortChannels(channels, 'cpk-asc')` from `@variscout/core`. The `maxDisplayed` prop limits display (default: 20).
 
-### Health-Based Coloring
+### Neutral Coloring
 
-Bar color reflects channel capability health:
-
-| Health      | Cpk Range   | Color                         |
-| ----------- | ----------- | ----------------------------- |
-| `critical`  | < 1.0       | Red (`chartColors.fail`)      |
-| `warning`   | 1.0 - 1.33  | Amber (`chartColors.warning`) |
-| `capable`   | 1.33 - 1.67 | Green (`chartColors.pass`)    |
-| `excellent` | >= 1.67     | Blue (`chartColors.mean`)     |
+All bars use a uniform blue color (`chartColors.mean`) regardless of Cpk value. This neutral approach lets users focus on the ranking and set their own Cpk targets via PerformanceSetupPanel.
 
 ### Reference Lines
 
@@ -377,16 +370,6 @@ import PerformancePareto from '@variscout/charts/PerformancePareto';
 </div>;
 ```
 
-### Excel Add-in
-
-Use the Base variant with explicit sizing:
-
-```tsx
-import { PerformanceParetoBase } from '@variscout/charts/PerformancePareto';
-
-<PerformanceParetoBase parentWidth={400} parentHeight={300} channels={channels} />;
-```
-
 ---
 
 ## Colors and Theming
@@ -443,7 +426,7 @@ import ParetoChart from './components/charts/ParetoChart';
 // Shared Performance Pareto (responsive wrapper)
 import PerformancePareto from '@variscout/charts/PerformancePareto';
 
-// Base component for manual sizing (Excel Add-in)
+// Base component for manual sizing
 import { PerformanceParetoBase } from '@variscout/charts/PerformancePareto';
 
 // Types
@@ -455,9 +438,8 @@ import type { PerformanceParetoProps } from '@variscout/charts';
 ## See Also
 
 - [Overview](./overview.md) - Chart design system overview and selection guide
-- [Colors](./colors.md) - Chart color constants and health classification
+- [Colors](./colors.md) - Chart color constants
 - [Responsive](./responsive.md) - Breakpoints and scaling utilities
 - [Hooks](./hooks.md) - useChartLayout, useChartTooltip, useSelectionState
 - [Performance Mode](./performance-mode.md) - Full Performance Mode documentation
-- [Overview](./overview.md) - All chart types and common patterns
 - [Boxplot](./boxplot.md) - Distribution comparison charts

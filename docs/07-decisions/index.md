@@ -17,6 +17,7 @@ This section captures key architectural decisions made during VariScout developm
 | [007](adr-007-azure-marketplace-distribution.md)     | Azure Marketplace Distribution       | Accepted   | 2026-02-05 |
 | [008](adr-008-website-content-architecture.md)       | Website Content Architecture         | Accepted   | 2026-02-13 |
 | [009](adr-009-boxplot-violin-mode.md)                | Boxplot Violin Mode                  | Accepted   | 2026-02-16 |
+| [010](adr-010-gagerr-deferral.md)                    | Gage R&R Deferral                    | Superseded | 2026-02-16 |
 | [011](adr-011-ai-development-tooling.md)             | AI Development Tooling               | Accepted   | 2026-02-18 |
 | [012](adr-012-pwa-browser-only.md)                   | PWA Browser-Only, Zero Data          | Accepted   | 2026-02-18 |
 | [013](adr-013-architecture-evaluation-ddd-swarms.md) | Architecture Evaluation (DDD/Swarms) | Accepted   | 2026-02-18 |
@@ -49,11 +50,15 @@ What becomes easier or harder as a result?
 
 ---
 
+## Other Documents
+
+| Document                                                               | Description                          |
+| ---------------------------------------------------------------------- | ------------------------------------ |
+| [State of Product Audit (Feb 2026)](audit-2026-02-state-of-product.md) | Comprehensive product audit snapshot |
+
+---
+
 ## Pending Decisions
-
-### ADR-010: Testing Strategy (Proposed)
-
-See `05-technical/implementation/testing.md` for current approach. May formalize as ADR.
 
 ### ADR-014: State Management Pattern (Proposed)
 

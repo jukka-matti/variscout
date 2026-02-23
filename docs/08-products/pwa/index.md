@@ -163,6 +163,7 @@ The PWA serves as the **feature development sandbox**:
 
 ## See Also
 
+- [Storage](storage.md) - IndexedDB and session storage details
 - [Azure App (Primary Product)](../azure/index.md) - Production platform
 - [Feature Parity](../feature-parity.md) - Platform comparison
 - [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)

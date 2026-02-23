@@ -64,7 +64,7 @@ Toggle **Show distribution shape** in Settings to switch to violin-primary rende
 
 When enabled, the density curve becomes the dominant shape with a thin IQR box inside showing Q1-Q3 range, median line, and mean diamond. Whiskers and outliers are hidden since the density curve conveys the full distribution shape.
 
-Available in PWA and Azure App. Not available in Excel Add-in (core SPC only).
+Available in PWA and Azure App.
 
 ---
 
@@ -123,6 +123,6 @@ const etaSq = getEtaSquared(data, 'Machine', 'Weight');
 - [Pareto](pareto.md) - Next step: rank contribution of factors
 - [Regression](regression.md) - When to check for interactions
 - [Chart Design](../../06-design-system/charts/boxplot.md)
-- [Glossary: η² (Eta-squared)](../../glossary.md#eta-squared)
-- [Glossary: F-statistic](../../glossary.md#f-statistic)
+- [Glossary: η² (Eta-squared)](../learning/glossary.md#eta-squared)
+- [Glossary: F-statistic](../learning/glossary.md#f-statistic)
 - [Case: Bottleneck](../../04-cases/bottleneck/index.md) - Factor comparison example

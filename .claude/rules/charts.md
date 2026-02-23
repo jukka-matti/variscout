@@ -59,22 +59,27 @@ Charts support automatic theme switching via the `useChartTheme` hook:
 import { useChartTheme } from '@variscout/charts';
 
 const MyChart = () => {
-  const { isDark, chrome, fontScale } = useChartTheme();
+  const { isDark, mode, chrome, colors, fontScale } = useChartTheme();
 
   // Use chrome.xxx instead of hardcoded hex colors:
   // chrome.gridLine, chrome.axisPrimary, chrome.labelPrimary, etc.
+  // Use colors.xxx for data colors (adapts to executive mode):
+  // colors.pass, colors.fail, colors.mean, colors.spec, etc.
 };
 ```
 
 Returns:
 
 - `isDark: boolean` - Whether dark theme is active
+- `mode: 'technical' | 'executive'` - Current chart mode (from `data-chart-mode` attribute)
 - `chrome: ChromeColorValues` - Theme-appropriate chrome colors
+- `colors: Record<ChartColor, string>` - Data colors for current mode
 - `fontScale: number` - Font scale from `data-chart-scale` attribute
 
 ### Color Functions
 
-- `getChromeColors(isDark)` - Get appropriate chrome colors for theme
+- `getChromeColors(isDark, mode)` - Get chrome colors for theme and mode
+- `getChartColors(mode)` - Get data colors (`executiveColors` for executive, `chartColors` for technical)
 - `getDocumentTheme()` - Detect theme from `data-theme` attribute
 
 ### Chrome Color Mapping
@@ -139,6 +144,22 @@ const sorted = sortBoxplotData(data, 'mean', 'desc');
 Direction: `'asc'` (ascending, default) or `'desc'` (descending).
 
 Sorting is applied in the **app Boxplot wrapper** (not `BoxplotBase`). State lives in `DisplayOptions.boxplotSortBy` / `boxplotSortDirection` (see `@variscout/hooks` types). `BoxplotDisplayToggle` exposes `sortBy`, `sortDirection`, and `onSortChange` props alongside the existing violin/contribution toggles.
+
+## Chart Annotations
+
+Three chart types support user annotations via right-click context menu:
+
+| Chart   | Anchor Type       | Highlights | Props                                           |
+| ------- | ----------------- | ---------- | ----------------------------------------------- |
+| Boxplot | Category-based    | Yes        | `highlightedCategories`, `onBoxContextMenu`     |
+| Pareto  | Category-based    | Yes        | `highlightedCategories`, `onBarContextMenu`     |
+| I-Chart | Free-floating (%) | No         | `ichartAnnotations`, `onChartContextMenu`       |
+
+**Category-based** (Boxplot/Pareto): Annotations anchor to a named category. Offsets reset on data changes.
+
+**Free-floating** (I-Chart): Annotations store percentage positions (0.0-1.0) within the chart area. Position is data-independent. I-Chart dot colors are never overridden (blue = in-control, red = violation).
+
+State managed by `useAnnotations` hook from `@variscout/hooks`. UI components: `ChartAnnotationLayer` and `AnnotationContextMenu` from `@variscout/ui`.
 
 ## Adding New Charts
 

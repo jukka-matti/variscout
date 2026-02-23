@@ -14,31 +14,39 @@ The What-If Simulator allows users to explore hypothetical improvements:
 
 ---
 
-## Component Structure
+## Shared Components
 
-```tsx
-<WhatIfSimulator
-  baselineStats={currentStats}
-  factors={drillFactors}
-  specs={specLimits}
-  onScenarioChange={handleScenarioChange}
-/>
+Both PWA and Azure App use shared components from `@variscout/ui`:
+
+| Component         | Package         | Purpose                                      |
+| ----------------- | --------------- | -------------------------------------------- |
+| `WhatIfSimulator` | `@variscout/ui` | Core simulator with factor sliders           |
+| `WhatIfPageBase`  | `@variscout/ui` | Full-page wrapper with back navigation       |
+| `Slider`          | `@variscout/ui` | Reusable range slider for factor adjustments |
+
+**Source:** `packages/ui/src/components/WhatIfSimulator/`, `packages/ui/src/components/WhatIfPage/`
+
+---
+
+## WhatIfSimulator
+
+Collapsible panel with factor-level reduction sliders and projected Cpk improvement.
+
+### Props
+
+```typescript
+interface WhatIfSimulatorProps {
+  baselineStats: StatsResult; // Current process statistics
+  specs: SpecLimits; // USL/LSL/Target
+  factors: string[]; // Available factors from drill-down
+  filteredData: DataRow[]; // Current filtered data
+  rawData: DataRow[]; // Full dataset
+  outcome: string; // Outcome column name
+  colorScheme?: WhatIfSimulatorColorScheme;
+}
 ```
 
----
-
-## Props
-
-| Prop               | Type                 | Description                      |
-| ------------------ | -------------------- | -------------------------------- |
-| `baselineStats`    | `StatsResult`        | Current process statistics       |
-| `factors`          | `Factor[]`           | Factors available for adjustment |
-| `specs`            | `SpecLimits`         | USL/LSL/Target                   |
-| `onScenarioChange` | `(scenario) => void` | Callback when scenario changes   |
-
----
-
-## User Interaction
+### User Interaction
 
 1. Select a factor from drill-down results
 2. Adjust the "reduction" slider (0-100%)
@@ -47,17 +55,42 @@ The What-If Simulator allows users to explore hypothetical improvements:
    - Defect reduction
    - Variation reduction
 
+Uses `simulateDirectAdjustment()` from `@variscout/core` for projection calculations.
+
 ---
 
-## Visual Design
+## WhatIfPageBase
 
-- Slider with current and projected values
-- Before/after capability comparison
-- Clear labeling of assumptions
+Full-page view wrapping the simulator with navigation header and data context.
+
+### Props
+
+```typescript
+interface WhatIfPageBaseProps {
+  filteredData: DataRow[];
+  rawData: DataRow[];
+  outcome: string | null;
+  specs: SpecLimits;
+  filterCount: number;
+  onBack: () => void;
+  colorScheme?: WhatIfPageColorScheme;
+  simulatorColorScheme?: WhatIfSimulatorColorScheme;
+  sliderColorScheme?: SliderColorScheme;
+}
+```
+
+### Color Schemes
+
+Both components follow the standard colorScheme pattern:
+
+- `whatIfPageDefaultColorScheme` — Semantic tokens (PWA)
+- `whatIfPageAzureColorScheme` — Slate palette (Azure)
+- `whatIfSimulatorDefaultColorScheme` / `whatIfSimulatorAzureColorScheme`
 
 ---
 
 ## See Also
 
-- [Variation Funnel](variation-funnel.md)
+- [Variation Bar](variation-funnel.md) - Visual progress of isolated variation
 - [Drill-Down Feature](../../03-features/navigation/drill-down.md)
+- [Slider](./slider.md) - Reusable range slider component

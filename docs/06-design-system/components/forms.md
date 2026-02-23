@@ -1,6 +1,6 @@
 # Form Elements
 
-Form input patterns for PWA.
+Form input patterns.
 
 ## Text Input
 
@@ -193,17 +193,3 @@ Location: `apps/pwa/src/components/FactorSelector.tsx`
 - **Default**: Slate text on transparent
 - **Selected**: White text on blue background
 - **Indicator**: Amber dot when filter active on selection
-
-## Excel Add-in Forms (Fluent UI)
-
-```tsx
-import { Field, Input, Dropdown } from '@fluentui/react-components';
-
-<Field label="Value">
-  <Input type="number" />
-</Field>
-
-<Field label="Select">
-  <Dropdown options={options} />
-</Field>
-```
