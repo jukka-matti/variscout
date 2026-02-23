@@ -154,7 +154,7 @@ Private helper functions (`normalPDF`, `incompleteBeta`, `lnGamma`, `fDistributi
 
 ### Cross-Validation with Minitab
 
-CSV reference data files are available in `packages/core/reference-data/` for independent verification in Minitab or any statistics package. See the [README](../../../packages/core/reference-data/README.md) in that directory for certified values and step-by-step Minitab instructions.
+CSV reference data files are available in `packages/core/reference-data/` for independent verification in Minitab or any statistics package. See the `packages/core/reference-data/README.md` in that directory for certified values and step-by-step Minitab instructions.
 
 ---
 

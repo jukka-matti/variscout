@@ -173,7 +173,7 @@ These features are planned for future releases.
 
 _See also:_
 
-- [README.md](../../README.md) - Quick start and installation
+- `README.md` - Quick start and installation
 - [Architecture](../05-technical/architecture.md) - Technical architecture details
 - [UX Research](../02-journeys/ux-research.md) - User research, personas, JTBD
 - [Specifications](../03-features/specifications.md) - Detailed functional specifications

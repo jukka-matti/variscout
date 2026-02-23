@@ -112,7 +112,7 @@ Measures the ratio of between-group variance to within-group variance in ANOVA.
 
 F-statistic compares variation between groups to variation within groups. Higher F values indicate larger differences between group means relative to variation within groups.
 
-**Related:** [p-value](#p-value), [η² (Eta-squared)](#η²-eta-squared)
+**Related:** [p-value](#p-value), [η² (Eta-squared)](#2-eta-squared)
 
 ### p-value
 
@@ -120,7 +120,7 @@ Probability the observed difference happened by chance. p < 0.05 = statistically
 
 The p-value tests the null hypothesis that all group means are equal. Small p-values (typically < 0.05) provide evidence that at least one group mean differs from the others.
 
-**Related:** [F-Statistic](#f-statistic), [η² (Eta-squared)](#η²-eta-squared)
+**Related:** [F-Statistic](#f-statistic), [η² (Eta-squared)](#2-eta-squared)
 
 ### η² (Eta-squared)
 
@@ -148,7 +148,7 @@ A modified R² that adjusts for the number of predictors. Only increases if a ne
 
 Unlike regular R², adjusted R² penalizes adding predictors that do not meaningfully improve the model. Use it to compare models with different numbers of predictors.
 
-**Related:** [R²](#r²), [VIF](#vif)
+**Related:** [R²](#r2), [VIF](#vif)
 
 ### Slope
 
@@ -156,7 +156,7 @@ How much Y changes for each unit increase in X. Positive = Y increases with X.
 
 The slope quantifies the rate of change in the relationship. A slope of 2.5 means Y increases by 2.5 units for every 1 unit increase in X.
 
-**Related:** [R²](#r²), [Intercept](#intercept)
+**Related:** [R²](#r2), [Intercept](#intercept)
 
 ### Intercept
 
@@ -164,7 +164,7 @@ The predicted value of Y when X equals zero.
 
 The y-intercept is where the regression line crosses the Y-axis. May not have practical meaning if X=0 is outside the range of observed data.
 
-**Related:** [Slope](#slope), [R²](#r²)
+**Related:** [Slope](#slope), [R²](#r2)
 
 ### VIF
 
@@ -172,7 +172,7 @@ Variance Inflation Factor. Measures how much a coefficient variance is inflated 
 
 VIF = 1 means no correlation with other predictors. VIF 1-5 is acceptable. VIF 5-10 indicates moderate multicollinearity. VIF > 10 suggests serious multicollinearity requiring action.
 
-**Related:** [Adjusted R²](#adjusted-r²)
+**Related:** [Adjusted R²](#adjusted-r2)
 
 ---
 
@@ -192,7 +192,19 @@ A category's share of total sum of squares. Captures both mean shift AND spread 
 
 Unlike between-group SS which only measures mean differences, Total SS contribution shows a category's full impact on variation. A category with mean near overall mean but high spread now shows non-zero impact. Sum of all category contributions equals 100%.
 
-**Related:** [η² (Eta-squared)](#η²-eta-squared), [Std Dev](#std-dev)
+**Related:** [η² (Eta-squared)](#2-eta-squared), [Std Dev](#std-dev)
+
+### Nelson Rules
+
+Eight statistical tests for detecting non-random patterns (special causes) on control charts. Rule 1: any point beyond 3σ. Rule 2: nine consecutive points on the same side of the mean. Rules 3-8 detect trends, oscillations, and stratification patterns. Violations indicate special cause variation that should be investigated.
+
+**Related:** [UCL](#ucl-upper-control-limit), [LCL](#lcl-lower-control-limit), [Mean](#mean)
+
+### Special Cause
+
+Variation from identifiable, assignable sources — as opposed to common cause variation which is inherent in the process. Special causes create non-random patterns detectable by control charts and Nelson Rules. Examples: tool wear, operator error, raw material batch change. Special causes should be investigated and eliminated.
+
+**Related:** [Nelson Rules](#nelson-rules), [UCL](#ucl-upper-control-limit), [LCL](#lcl-lower-control-limit)
 
 ### Characteristic Type
 

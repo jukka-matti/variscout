@@ -66,152 +66,222 @@ extra_css:
 
 nav:
   - Home: index.md
-  - Vision:
-    - 01-vision/index.md
-    - Philosophy: 01-vision/philosophy.md
-    - Market Analysis: 01-vision/market-analysis.md
-    - Four Lenses:
-      - 01-vision/four-lenses/index.md
-      - Change: 01-vision/four-lenses/change.md
-      - Flow: 01-vision/four-lenses/flow.md
-      - Failure: 01-vision/four-lenses/failure.md
-      - Value: 01-vision/four-lenses/value.md
-      - Drill-Down: 01-vision/four-lenses/drilldown.md
-    - Two Voices:
-      - 01-vision/two-voices/index.md
-      - Control Limits: 01-vision/two-voices/control-limits.md
-      - Spec Limits: 01-vision/two-voices/spec-limits.md
-      - Variation Types: 01-vision/two-voices/variation-types.md
-      - Scenarios: 01-vision/two-voices/scenarios.md
-  - Journeys:
-    - 02-journeys/index.md
-    - Personas:
-      - Green Belt Gary: 02-journeys/personas/green-belt-gary.md
-      - Curious Carlos: 02-journeys/personas/curious-carlos.md
-      - OpEx Olivia: 02-journeys/personas/opex-olivia.md
-      - Student Sara: 02-journeys/personas/student-sara.md
-      - Evaluator Erik: 02-journeys/personas/evaluator-erik.md
-      - Trainer Tina: 02-journeys/personas/trainer-tina.md
-    - Flows:
-      - SEO Learner: 02-journeys/flows/seo-learner.md
-      - Social Discovery: 02-journeys/flows/social-discovery.md
-      - Content & YouTube: 02-journeys/flows/content-youtube.md
-      - Enterprise: 02-journeys/flows/enterprise.md
-      - Return Visitor: 02-journeys/flows/return-visitor.md
+
+  - Domain:
+      - 01-vision/index.md
+      - Philosophy: 01-vision/philosophy.md
+      - Product Overview: 01-vision/product-overview.md
+      - Market Analysis: 01-vision/market-analysis.md
+      - Progressive Stratification: 01-vision/progressive-stratification.md
+      - Four Lenses:
+          - 01-vision/four-lenses/index.md
+          - Change: 01-vision/four-lenses/change.md
+          - Flow: 01-vision/four-lenses/flow.md
+          - Failure: 01-vision/four-lenses/failure.md
+          - Value: 01-vision/four-lenses/value.md
+          - Drill-Down: 01-vision/four-lenses/drilldown.md
+      - Two Voices:
+          - 01-vision/two-voices/index.md
+          - Control Limits: 01-vision/two-voices/control-limits.md
+          - Spec Limits: 01-vision/two-voices/spec-limits.md
+          - Variation Types: 01-vision/two-voices/variation-types.md
+          - Scenarios: 01-vision/two-voices/scenarios.md
+      - Evaluations:
+          - 01-vision/evaluations/index.md
+          - Investigation Flow Map: 01-vision/evaluations/investigation-flow-map.md
+          - Design Brief: 01-vision/evaluations/design-brief-guided-investigation.md
+          - Mindmap Spec: 01-vision/evaluations/design-spec-investigation-mindmap.md
+          - Competitive:
+              - Minitab: 01-vision/evaluations/competitive/minitab-benchmark.md
+              - JMP: 01-vision/evaluations/competitive/jmp-benchmark.md
+              - Tableau: 01-vision/evaluations/competitive/tableau-benchmark.md
+              - Power BI: 01-vision/evaluations/competitive/powerbi-benchmark.md
+              - EDAScout: 01-vision/evaluations/competitive/edascout-benchmark.md
+              - Other: 01-vision/evaluations/competitive/minor-competitors.md
+          - Patterns:
+              - Investigation Mindmap: 01-vision/evaluations/patterns/investigation-mindmap.md
+              - Investigation Narrative: 01-vision/evaluations/patterns/investigation-narrative.md
+              - Factor Suggestion: 01-vision/evaluations/patterns/factor-suggestion.md
+              - Auto Combination: 01-vision/evaluations/patterns/auto-combination-finder.md
+              - Interaction Heatmap: 01-vision/evaluations/patterns/interaction-heatmap.md
+              - Sidebar Filter: 01-vision/evaluations/patterns/sidebar-filter-panel.md
+              - Small Multiples: 01-vision/evaluations/patterns/small-multiples.md
+              - Factor Map: 01-vision/evaluations/patterns/factor-map.md
+              - Parallel Paths: 01-vision/evaluations/patterns/parallel-path-comparison.md
+          - Tensions:
+              - Discoverability: 01-vision/evaluations/tensions/discoverability.md
+              - Factor Ordering: 01-vision/evaluations/tensions/factor-ordering.md
+              - Hierarchy Assumption: 01-vision/evaluations/tensions/hierarchy-assumption.md
+              - Mobile Screen: 01-vision/evaluations/tensions/mobile-screen-budget.md
+              - Path Dependency: 01-vision/evaluations/tensions/path-dependency.md
+              - When to Stop: 01-vision/evaluations/tensions/when-to-stop.md
+      - Personas:
+          - Green Belt Gary: 02-journeys/personas/green-belt-gary.md
+          - Curious Carlos: 02-journeys/personas/curious-carlos.md
+          - OpEx Olivia: 02-journeys/personas/opex-olivia.md
+          - Student Sara: 02-journeys/personas/student-sara.md
+          - Evaluator Erik: 02-journeys/personas/evaluator-erik.md
+          - Trainer Tina: 02-journeys/personas/trainer-tina.md
+      - UX Research: 02-journeys/ux-research.md
+      - Use Cases:
+          - 02-journeys/use-cases/index.md
+          - Batch Consistency: 02-journeys/use-cases/batch-consistency.md
+          - Bottleneck Analysis: 02-journeys/use-cases/bottleneck-analysis.md
+          - Call Center: 02-journeys/use-cases/call-center-performance.md
+          - Complaint Investigation: 02-journeys/use-cases/complaint-investigation.md
+          - Consultant Delivery: 02-journeys/use-cases/consultant-delivery.md
+          - COPQ Drilldown: 02-journeys/use-cases/copq-drilldown.md
+          - Lead Time: 02-journeys/use-cases/lead-time-variation.md
+          - On-Time Delivery: 02-journeys/use-cases/on-time-delivery.md
+          - Patient Wait Time: 02-journeys/use-cases/patient-wait-time.md
+          - Pharma OOS: 02-journeys/use-cases/pharma-oos.md
+          - Supplier PPAP: 02-journeys/use-cases/supplier-ppap.md
+          - Supplier Performance: 02-journeys/use-cases/supplier-performance.md
+          - University SPC: 02-journeys/use-cases/university-spc.md
+      - User Flows:
+          - SEO Learner: 02-journeys/flows/seo-learner.md
+          - Social Discovery: 02-journeys/flows/social-discovery.md
+          - Content & YouTube: 02-journeys/flows/content-youtube.md
+          - Enterprise: 02-journeys/flows/enterprise.md
+          - Return Visitor: 02-journeys/flows/return-visitor.md
+          - Azure First Analysis: 02-journeys/flows/azure-first-analysis.md
+          - Azure Daily Use: 02-journeys/flows/azure-daily-use.md
+          - Azure Team Collaboration: 02-journeys/flows/azure-team-collaboration.md
+      - Case Studies:
+          - 04-cases/index.md
+          - Bottleneck: 04-cases/bottleneck/index.md
+          - Hospital Ward: 04-cases/hospital-ward/index.md
+          - Coffee: 04-cases/coffee/index.md
+          - Packaging: 04-cases/packaging/index.md
+          - Avocado: 04-cases/avocado/index.md
+          - Machine Utilization: 04-cases/machine-utilization/index.md
+          - Oven Zones: 04-cases/oven-zones/index.md
+
   - Features:
-    - 03-features/index.md
-    - Analysis:
-      - I-Chart: 03-features/analysis/i-chart.md
-      - Boxplot: 03-features/analysis/boxplot.md
-      - Pareto: 03-features/analysis/pareto.md
-      - Capability: 03-features/analysis/capability.md
-      - Probability Plot: 03-features/analysis/probability-plot.md
-      - Regression: 03-features/analysis/regression.md
-      - Performance Mode: 03-features/analysis/performance-mode.md
-      - Nelson Rules: 03-features/analysis/nelson-rules.md
-      - Staged Analysis: 03-features/analysis/staged-analysis.md
-    - Workflows:
-      - Overview: 03-features/workflows/index.md
-      - Process Maps: 03-features/workflows/process-maps.md
-      - Four Lenses: 03-features/workflows/four-lenses-workflow.md
-      - Drill-Down: 03-features/workflows/drill-down-workflow.md
-      - Performance Mode: 03-features/workflows/performance-mode-workflow.md
-      - Quick Check: 03-features/workflows/quick-check.md
-      - Deep Dive: 03-features/workflows/deep-dive.md
-      - Decision Trees: 03-features/workflows/decision-trees.md
-    - Navigation:
-      - Drill-Down: 03-features/navigation/drill-down.md
-      - Linked Filtering: 03-features/navigation/linked-filtering.md
-      - Breadcrumbs: 03-features/navigation/breadcrumbs.md
-    - Data:
-      - Data Input: 03-features/data/data-input.md
-      - Validation: 03-features/data/validation.md
-      - Storage: 03-features/data/storage.md
-    - Learning:
-      - Glossary: 03-features/learning/glossary.md
-      - Help Tooltips: 03-features/learning/help-tooltips.md
-      - Case-Based Learning: 03-features/learning/case-based-learning.md
-  - Cases:
-    - 04-cases/index.md
-    - Bottleneck: 04-cases/bottleneck/index.md
-    - Hospital Ward: 04-cases/hospital-ward/index.md
-    - Coffee: 04-cases/coffee/index.md
-    - Packaging: 04-cases/packaging/index.md
-    - Avocado: 04-cases/avocado/index.md
-    - Machine Utilization: 04-cases/machine-utilization/index.md
-    - Oven Zones: 04-cases/oven-zones/index.md
-  - Technical:
-    - 05-technical/index.md
-    - Architecture:
-      - Monorepo: 05-technical/architecture/monorepo.md
-      - Offline-First: 05-technical/architecture/offline-first.md
-      - Shared Packages: 05-technical/architecture/shared-packages.md
-      - Data Flow: 05-technical/architecture/data-flow.md
-      - Component Patterns: 05-technical/architecture/component-patterns.md
-    - Implementation:
-      - Deployment: 05-technical/implementation/deployment.md
-      - Testing: 05-technical/implementation/testing.md
-      - Data Input: 05-technical/implementation/data-input.md
-      - Security Scanning: 05-technical/implementation/security-scanning.md
-    - Integrations:
-      - Embed Messaging: 05-technical/integrations/embed-messaging.md
-      - Shared UI: 05-technical/integrations/shared-ui.md
-  - Design System:
-    - 06-design-system/index.md
-    - Foundations:
-      - Colors: 06-design-system/foundations/colors.md
-      - Typography: 06-design-system/foundations/typography.md
-      - Spacing: 06-design-system/foundations/spacing.md
-      - Accessibility: 06-design-system/foundations/accessibility.md
-    - Charts:
-      - Overview: 06-design-system/charts/overview.md
-      - I-Chart: 06-design-system/charts/ichart.md
-      - Boxplot: 06-design-system/charts/boxplot.md
-      - Pareto: 06-design-system/charts/pareto.md
-      - Capability: 06-design-system/charts/capability.md
-      - Scatter: 06-design-system/charts/scatter.md
-      - Probability Plot: 06-design-system/charts/probability-plot.md
-      - Performance Mode: 06-design-system/charts/performance-mode.md
-      - Colors: 06-design-system/charts/colors.md
-      - Responsive: 06-design-system/charts/responsive.md
-      - Hooks: 06-design-system/charts/hooks.md
-      - Shared Components: 06-design-system/charts/shared-components.md
-    - Components:
-      - Buttons: 06-design-system/components/buttons.md
-      - Cards: 06-design-system/components/cards.md
-      - Modals: 06-design-system/components/modals.md
-      - Forms: 06-design-system/components/forms.md
-      - Variation Funnel: 06-design-system/components/variation-funnel.md
-      - What-If Simulator: 06-design-system/components/what-if-simulator.md
-      - Interaction Guidance: 06-design-system/components/interaction-guidance.md
-    - Patterns:
-      - Layout: 06-design-system/patterns/layout.md
-      - Feedback: 06-design-system/patterns/feedback.md
-      - Navigation: 06-design-system/patterns/navigation.md
+      - 03-features/index.md
+      - Specifications: 03-features/specifications.md
+      - User Guide: 03-features/user-guide.md
+      - Analysis:
+          - I-Chart: 03-features/analysis/i-chart.md
+          - Boxplot: 03-features/analysis/boxplot.md
+          - Pareto: 03-features/analysis/pareto.md
+          - Capability: 03-features/analysis/capability.md
+          - Probability Plot: 03-features/analysis/probability-plot.md
+          - Regression: 03-features/analysis/regression.md
+          - Performance Mode: 03-features/analysis/performance-mode.md
+          - Nelson Rules: 03-features/analysis/nelson-rules.md
+          - Staged Analysis: 03-features/analysis/staged-analysis.md
+      - Workflows:
+          - 03-features/workflows/index.md
+          - Process Maps: 03-features/workflows/process-maps.md
+          - Four Lenses: 03-features/workflows/four-lenses-workflow.md
+          - Drill-Down: 03-features/workflows/drill-down-workflow.md
+          - Performance Mode: 03-features/workflows/performance-mode-workflow.md
+          - Quick Check: 03-features/workflows/quick-check.md
+          - Deep Dive: 03-features/workflows/deep-dive.md
+          - Decision Trees: 03-features/workflows/decision-trees.md
+          - Investigation to Action: 03-features/workflows/investigation-to-action.md
+      - Navigation:
+          - Drill-Down: 03-features/navigation/drill-down.md
+          - Linked Filtering: 03-features/navigation/linked-filtering.md
+          - Breadcrumbs: 03-features/navigation/breadcrumbs.md
+      - Data:
+          - Data Input: 03-features/data/data-input.md
+          - Validation: 03-features/data/validation.md
+          - Storage: 03-features/data/storage.md
+      - Learning:
+          - Glossary Feature: 03-features/learning/glossary.md
+          - Help Tooltips: 03-features/learning/help-tooltips.md
+          - Case-Based Learning: 03-features/learning/case-based-learning.md
+      - Glossary: glossary.md
+
+  - Architecture:
+      - 05-technical/index.md
+      - Overview: 05-technical/architecture.md
+      - Structure:
+          - Monorepo: 05-technical/architecture/monorepo.md
+          - Offline-First: 05-technical/architecture/offline-first.md
+          - Shared Packages: 05-technical/architecture/shared-packages.md
+          - Data Flow: 05-technical/architecture/data-flow.md
+          - Component Patterns: 05-technical/architecture/component-patterns.md
+      - Implementation:
+          - Deployment: 05-technical/implementation/deployment.md
+          - Testing: 05-technical/implementation/testing.md
+          - Data Input: 05-technical/implementation/data-input.md
+          - System Limits: 05-technical/implementation/system-limits.md
+          - Security Scanning: 05-technical/implementation/security-scanning.md
+          - AI Tooling: 05-technical/implementation/claude-flow.md
+      - Integrations:
+          - Embed Messaging: 05-technical/integrations/embed-messaging.md
+          - Shared UI: 05-technical/integrations/shared-ui.md
+      - Design System:
+          - 06-design-system/index.md
+          - Foundations:
+              - Colors: 06-design-system/foundations/colors.md
+              - Typography: 06-design-system/foundations/typography.md
+              - Spacing: 06-design-system/foundations/spacing.md
+              - Accessibility: 06-design-system/foundations/accessibility.md
+          - Charts:
+              - Overview: 06-design-system/charts/overview.md
+              - I-Chart: 06-design-system/charts/ichart.md
+              - Boxplot: 06-design-system/charts/boxplot.md
+              - Pareto: 06-design-system/charts/pareto.md
+              - Capability: 06-design-system/charts/capability.md
+              - Scatter: 06-design-system/charts/scatter.md
+              - Probability Plot: 06-design-system/charts/probability-plot.md
+              - Performance Mode: 06-design-system/charts/performance-mode.md
+              - Executive Mode: 06-design-system/charts/executive-mode.md
+              - Colors: 06-design-system/charts/colors.md
+              - Responsive: 06-design-system/charts/responsive.md
+              - Hooks: 06-design-system/charts/hooks.md
+              - Shared Components: 06-design-system/charts/shared-components.md
+          - Components:
+              - Buttons: 06-design-system/components/buttons.md
+              - Cards: 06-design-system/components/cards.md
+              - Modals: 06-design-system/components/modals.md
+              - Forms: 06-design-system/components/forms.md
+              - Variation Funnel: 06-design-system/components/variation-funnel.md
+              - What-If Simulator: 06-design-system/components/what-if-simulator.md
+              - Interaction Guidance: 06-design-system/components/interaction-guidance.md
+          - Patterns:
+              - Layout: 06-design-system/patterns/layout.md
+              - Feedback: 06-design-system/patterns/feedback.md
+              - Navigation: 06-design-system/patterns/navigation.md
+      - Products:
+          - 08-products/index.md
+          - Feature Parity: 08-products/feature-parity.md
+          - PWA:
+              - 08-products/pwa/index.md
+              - Storage: 08-products/pwa/storage.md
+          - Azure:
+              - 08-products/azure/index.md
+              - How It Works: 08-products/azure/how-it-works.md
+              - Authentication: 08-products/azure/authentication.md
+              - OneDrive Sync: 08-products/azure/onedrive-sync.md
+              - Marketplace: 08-products/azure/marketplace.md
+              - ARM Template: 08-products/azure/arm-template.md
+              - Pricing Tiers: 08-products/azure/pricing-tiers.md
+              - Submission Checklist: 08-products/azure/submission-checklist.md
+          - Power BI:
+              - 08-products/powerbi/index.md
+          - Website:
+              - 08-products/website/index.md
+              - Design Philosophy: 08-products/website/design-philosophy.md
+              - Content Architecture: 08-products/website/content-architecture.md
+
   - Decisions:
-    - 07-decisions/index.md
-    - ADR-001 Monorepo: 07-decisions/adr-001-monorepo.md
-    - ADR-002 Visx Charts: 07-decisions/adr-002-visx-charts.md
-    - ADR-003 IndexedDB: 07-decisions/adr-003-indexeddb.md
-    - ADR-004 Offline-First: 07-decisions/adr-004-offline-first.md
-    - ADR-005 Props-Based Charts: 07-decisions/adr-005-props-based-charts.md
-    - ADR-006 Edition System: 07-decisions/adr-006-edition-system.md
-    - ADR-007 Azure Distribution: 07-decisions/adr-007-azure-marketplace-distribution.md
-  - Products:
-    - 08-products/index.md
-    - Feature Parity: 08-products/feature-parity.md
-    - PWA:
-      - 08-products/pwa/index.md
-      - Storage: 08-products/pwa/storage.md
-    - Azure:
-      - 08-products/azure/index.md
-      - Authentication: 08-products/azure/authentication.md
-      - OneDrive Sync: 08-products/azure/onedrive-sync.md
-      - Marketplace: 08-products/azure/marketplace.md
-      - ARM Template: 08-products/azure/arm-template.md
-      - Pricing Tiers: 08-products/azure/pricing-tiers.md
-    - Power BI:
-      - 08-products/powerbi/index.md
-    - Website:
-      - 08-products/website/index.md
-  - Glossary: glossary.md
+      - 07-decisions/index.md
+      - ADR-001 Monorepo: 07-decisions/adr-001-monorepo.md
+      - ADR-002 Visx Charts: 07-decisions/adr-002-visx-charts.md
+      - ADR-003 IndexedDB: 07-decisions/adr-003-indexeddb.md
+      - ADR-004 Offline-First: 07-decisions/adr-004-offline-first.md
+      - ADR-005 Props-Based Charts: 07-decisions/adr-005-props-based-charts.md
+      - ADR-006 Edition System: 07-decisions/adr-006-edition-system.md
+      - ADR-007 Azure Distribution: 07-decisions/adr-007-azure-marketplace-distribution.md
+      - ADR-008 Website Content: 07-decisions/adr-008-website-content-architecture.md
+      - ADR-009 Violin Mode: 07-decisions/adr-009-boxplot-violin-mode.md
+      - ADR-010 Gage R&R: 07-decisions/adr-010-gagerr-deferral.md
+      - ADR-011 AI Tooling: 07-decisions/adr-011-ai-development-tooling.md
+      - ADR-012 PWA Browser: 07-decisions/adr-012-pwa-browser-only.md
+      - ADR-013 Architecture Eval: 07-decisions/adr-013-architecture-evaluation-ddd-swarms.md
+      - Product Audit Feb 2026: 07-decisions/audit-2026-02-state-of-product.md

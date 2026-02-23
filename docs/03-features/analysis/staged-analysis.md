@@ -197,5 +197,5 @@ const boundaries = getStageBoundaries(sortedData, stagedStats);
 - [I-Chart](i-chart.md) - Where staged analysis is displayed
 - [Nelson Rules](nelson-rules.md) - Detecting runs that signal shifts
 - [Capability](capability.md) - Comparing Cpk between stages
-- [Glossary: Staged Analysis](../learning/glossary.md#staged-analysis)
+- [Glossary: Staged Analysis](../../glossary.md#staged-analysis)
 - [Case: Hospital Ward](../../04-cases/hospital-ward/index.md) - Aggregation trap example

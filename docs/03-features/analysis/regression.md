@@ -168,8 +168,8 @@ const multiResult = calculateMultiRegression(data, ['X1', 'X2'], 'Y', {
 
 ## See Also
 
-- [Glossary: R²](../learning/glossary.md#r²)
-- [Glossary: VIF](../learning/glossary.md#vif)
+- [Glossary: R²](../../glossary.md#r2)
+- [Glossary: VIF](../../glossary.md#vif)
 - [Chart Design](../../06-design-system/charts/scatter.md)
 - [Drill-Down: When to Check for Interactions](../navigation/drill-down.md#when-to-check-for-interactions)
 - [Boxplot](boxplot.md) - Factor comparison with ANOVA

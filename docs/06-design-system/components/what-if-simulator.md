@@ -93,4 +93,3 @@ Both components follow the standard colorScheme pattern:
 
 - [Variation Bar](variation-funnel.md) - Visual progress of isolated variation
 - [Drill-Down Feature](../../03-features/navigation/drill-down.md)
-- [Slider](./slider.md) - Reusable range slider component

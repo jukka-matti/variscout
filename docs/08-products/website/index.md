@@ -198,7 +198,7 @@ The website is fully static. No server-side code, no database, no environment va
 - [ADR-008: Website Content Architecture](../../07-decisions/adr-008-website-content-architecture.md)
 - [Design Philosophy](design-philosophy.md)
 - [Content Architecture](content-architecture.md)
-- [Website README](../../../apps/website/README.md) (developer guide)
+- `apps/website/README.md` (developer guide)
 - [User Journeys](../../02-journeys/index.md)
 - [Design System](../../06-design-system/index.md)
 - [Deployment Guide](../../05-technical/implementation/deployment.md)

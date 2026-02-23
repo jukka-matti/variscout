@@ -82,7 +82,7 @@ VariScout is EDA (Exploratory Data Analysis) for process improvement - not stati
 
 ---
 
-## Architecture
+## Architecture & Design System
 
 VariScout uses a monorepo structure with shared packages:
 
@@ -100,20 +100,9 @@ apps/
 └── website/       # Astro marketing site
 ```
 
-[:octicons-arrow-right-24: Technical documentation](05-technical/index.md)
+A unified design system covers both PWA and Azure App: theme-aware (dark/light), data-focused colors, consistent semantics across platforms, and WCAG AA accessible.
 
----
-
-## Design System
-
-A unified design system covering PWA and Azure App:
-
-- **Theme-aware**: Supports dark/light modes
-- **Data-focused**: Colors prioritize data visibility
-- **Consistent**: Same semantics across platforms
-- **Accessible**: WCAG AA compliant
-
-[:octicons-arrow-right-24: Design system](06-design-system/index.md)
+[:octicons-arrow-right-24: Technical documentation](05-technical/index.md) | [:octicons-arrow-right-24: Design system](06-design-system/index.md)
 
 ---
 

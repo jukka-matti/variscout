@@ -453,7 +453,7 @@ function getColumnNames(data: DataRow[]): string[];
 
 **Have a feature request?** Create an issue with label: `enhancement`
 
-**Need help?** Check the [main documentation](../../README.md) or [MINITAB_BRUSHING.md](./MINITAB_BRUSHING.md)
+**Need help?** Check the [main documentation](../index.md) or [Minitab Brushing](./minitab-brushing.md)
 
 ---
 

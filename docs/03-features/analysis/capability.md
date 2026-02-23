@@ -159,6 +159,6 @@ const stats = calculateStats(values, usl, lsl);
 - [Probability Plot](probability-plot.md) - Check normality assumption
 - [Performance Mode](performance-mode.md) - Multi-channel capability comparison
 - [Staged Analysis](staged-analysis.md) - Before/after capability comparison
-- [Glossary: Cp/Cpk](../learning/glossary.md#cp)
+- [Glossary: Cp/Cpk](../../glossary.md#cp)
 - [Chart Design](../../06-design-system/charts/capability.md)
 - [Case: Packaging](../../04-cases/packaging/index.md) - Capability assessment example

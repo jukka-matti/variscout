@@ -123,6 +123,6 @@ const etaSq = getEtaSquared(data, 'Machine', 'Weight');
 - [Pareto](pareto.md) - Next step: rank contribution of factors
 - [Regression](regression.md) - When to check for interactions
 - [Chart Design](../../06-design-system/charts/boxplot.md)
-- [Glossary: η² (Eta-squared)](../learning/glossary.md#eta-squared)
-- [Glossary: F-statistic](../learning/glossary.md#f-statistic)
+- [Glossary: η² (Eta-squared)](../../glossary.md#2-eta-squared)
+- [Glossary: F-statistic](../../glossary.md#f-statistic)
 - [Case: Bottleneck](../../04-cases/bottleneck/index.md) - Factor comparison example

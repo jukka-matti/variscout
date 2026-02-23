@@ -167,7 +167,7 @@ Static Astro 5 site deployed to Vercel:
 
 The website is fully static — no server-side code, no database, no runtime environment variables. Workspace packages (`@variscout/core`, `@variscout/charts`, `@variscout/data`) are resolved at build time for chart demos.
 
-See [Website README](../../../apps/website/README.md) for development guide.
+See `apps/website/README.md` for the development guide.
 
 ### PWA (Internal Hosting)
 

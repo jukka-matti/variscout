@@ -303,7 +303,7 @@ PWA users hit natural capability limits that signal readiness for the Azure App.
 PWA user hits limit → sees upgrade context → visits website /pricing → Azure Marketplace → deploys
 ```
 
-The [HomeScreen](../../../apps/pwa/src/components/HomeScreen.tsx) includes a subtle "Need team features?" link to the website, reinforcing that the Azure App exists without interrupting the free training experience.
+The `HomeScreen` (`apps/pwa/src/components/HomeScreen.tsx`) includes a subtle "Need team features?" link to the website, reinforcing that the Azure App exists without interrupting the free training experience.
 
 ---
 
