@@ -75,19 +75,21 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Data Handling
 
-| Feature                           | Azure App | PWA (Free) | Notes                                              |
-| --------------------------------- | :-------: | :--------: | -------------------------------------------------- |
-| **CSV upload**                    |     ✓     |     -      | Azure App only                                     |
-| **Excel upload**                  |     ✓     |     -      | Azure App only                                     |
-| **Paste data**                    |     ✓     |     ✓      |                                                    |
-| **Sample datasets**               |     ✓     |     ✓      | PWA pre-loaded with cases                          |
-| **Column mapping**                |     ✓     |     ✓      |                                                    |
-| **Spec entry at column mapping**  |     -     |     ✓      | PWA ColumnMapping only; Azure sets specs post-load |
-| **Manual entry**                  |     ✓     |     ✓      |                                                    |
-| **Data validation**               |     ✓     |     ✓      |                                                    |
-| **Row limit**                     |  100,000  |   50,000   | Configurable via `DataIngestionConfig`             |
-| **Max factors**                   |     6     |     3      | Configurable via `maxFactors` prop                 |
-| **Factor management in analysis** |     ✓     |     -      | Azure: FactorManagerPopover in Dashboard           |
+| Feature                           | Azure App | PWA (Free) | Notes                                                         |
+| --------------------------------- | :-------: | :--------: | ------------------------------------------------------------- |
+| **CSV upload**                    |     ✓     |     -      | Azure App only                                                |
+| **Excel upload**                  |     ✓     |     -      | Azure App only                                                |
+| **Paste data**                    |     ✓     |     ✓      |                                                               |
+| **Sample datasets**               |     ✓     |     ✓      | PWA pre-loaded with cases                                     |
+| **Column mapping**                |     ✓     |     ✓      | Data-rich cards with type badges, sample values, data preview |
+| **Spec entry at column mapping**  |     ✓     |     ✓      | Collapsible SpecsSection in ColumnMapping                     |
+| **Column data preview**           |     ✓     |     ✓      | Collapsible mini-table showing first 5 rows                   |
+| **Column renaming at setup**      |     ✓     |     ✓      | Pencil icon on column cards → `columnAliases`                 |
+| **Manual entry**                  |     ✓     |     ✓      |                                                               |
+| **Data validation**               |     ✓     |     ✓      |                                                               |
+| **Row limit**                     |  100,000  |   50,000   | Configurable via `DataIngestionConfig`                        |
+| **Max factors**                   |     6     |     3      | Configurable via `maxFactors` prop                            |
+| **Factor management in analysis** |     ✓     |     -      | Azure: FactorManagerPopover in Dashboard                      |
 
 ---
 

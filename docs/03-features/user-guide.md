@@ -6,6 +6,18 @@ This guide covers advanced features and workflows in VariScout Lite, focusing on
 
 VariScout Lite allows you to customize chart labels and axis names directly on the dashboard without altering your original data source. This is called **Aliasing**.
 
+### Column Renaming at Setup
+
+You can rename columns during the column mapping step, before analysis begins.
+
+1. After pasting or uploading data, the **ColumnMapping** screen shows each column as a data-rich card with a type badge, sample values, and unique count.
+2. Click the **pencil icon** on any column card.
+3. Type a new name in the inline input, then press **Enter** or click away to save.
+4. The alias persists through the analysis — filter chips, chart axes, and breadcrumbs all use the renamed label.
+5. The original column name appears as a subtitle on the card for reference.
+
+This is useful when your source data has cryptic column headers (e.g., "COL_3") and you want human-readable names from the start.
+
 ### Renaming Axis Titles
 
 You can rename the Y-axis (Outcome) and X-axis (Factor/Category) labels to make charts more presentation-ready.
@@ -38,10 +50,10 @@ You can set specification limits at two points in the workflow. Both approaches 
 
 **Option 1: During Column Mapping (optional, at setup time)**
 
-The ColumnMapping screen includes a collapsible **"Set Specification Limits"** section at the bottom, collapsed by default.
+The ColumnMapping screen shows each column as a data-rich card with type badge (Numeric, Categorical, Date), sample values, and unique count. At the bottom, a collapsible **"Set Specification Limits"** section is available (collapsed by default).
 
-1. After pasting or uploading data, scroll to the bottom of the column mapping screen.
-2. Click **"Set Specification Limits"** to expand the section.
+1. After pasting or uploading data, review the column cards and confirm your outcome and factor selections.
+2. Scroll to the bottom and click **"Set Specification Limits"** to expand the section.
 3. Enter any combination of **Target**, **LSL**, and **USL** — all three are optional.
 4. Continue to analysis. The values carry over automatically.
 
