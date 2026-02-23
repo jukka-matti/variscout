@@ -18,18 +18,10 @@ import WhatIfPage from './components/WhatIfPage';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
-import {
-  validateData,
-  parseText,
-  detectColumns,
-  detectWideFormat,
-  type ExclusionReason,
-} from '@variscout/core';
+import { type ExclusionReason } from '@variscout/core';
 import { useControlViolations } from '@variscout/hooks';
-import type { WideFormatDetection } from '@variscout/core';
-
-// Breakpoint for desktop panel (vs modal on mobile)
-const DESKTOP_BREAKPOINT = 1024;
+import { usePasteImportFlow } from './hooks/usePasteImportFlow';
+import { useAppPanels } from './hooks/useAppPanels';
 
 function App() {
   const {
@@ -50,127 +42,84 @@ function App() {
     factors,
     columnAliases,
     setColumnAliases,
-    // Multi-point selection (Phase 3: Brushing)
     selectedPoints,
     togglePointSelection,
     clearSelection,
   } = useData();
 
-  // State for performance mode auto-detection (wide format dismissal)
-  const [wideFormatDetection, setWideFormatDetection] = useState<WideFormatDetection | null>(null);
-  // State for manual data entry view
-  const [isManualEntry, setIsManualEntry] = useState(false);
-  // State for paste mode
-  const [isPasteMode, setIsPasteMode] = useState(false);
-  const [pasteError, setPasteError] = useState<string | null>(null);
-  // Callback for wide format detection
-  const handleWideFormatDetected = useCallback((result: WideFormatDetection) => {
-    setWideFormatDetection(result);
-  }, []);
-
-  const {
-    handleFileUpload: ingestFile,
-    handleParetoFileUpload,
-    clearParetoFile,
-    loadSample,
-    clearData,
-    applyTimeExtraction,
-  } = useDataIngestion({
-    onWideFormatDetected: handleWideFormatDetected,
+  // Data ingestion must be declared before importFlow since importFlow uses its callbacks.
+  // The onWideFormatDetected/onTimeColumnDetected callbacks use importFlow setters,
+  // but those are stable React state setters so forward-referencing is safe.
+  const ingestion = useDataIngestion({
+    onWideFormatDetected: result => {
+      importFlowRef.current?.handleWideFormatDetected(result);
+    },
     onTimeColumnDetected: prompt => {
-      setTimeExtractionPrompt(prompt);
+      importFlowRef.current?.setTimeExtractionPrompt(prompt);
       if (prompt.hasTimeComponent) {
-        setTimeExtractionConfig(prev => ({ ...prev, extractHour: true }));
+        importFlowRef.current?.setTimeExtractionConfig(prev => ({ ...prev, extractHour: true }));
       }
     },
     getRawData: () => rawData,
     getOutcome: () => outcome,
     getFactors: () => factors,
   });
-  const [isMapping, setIsMapping] = useState(false);
 
-  // Column analysis for ColumnMapping rich cards — computed from rawData
-  const mappingColumnAnalysis = useMemo(() => {
-    if (rawData.length === 0) return undefined;
-    return detectColumns(rawData).columnAnalysis;
-  }, [rawData]);
-
-  // Column rename handler for ColumnMapping
-  const handleColumnRename = useCallback(
-    (originalName: string, alias: string) => {
-      if (alias) {
-        setColumnAliases({ ...columnAliases, [originalName]: alias });
-      } else {
-        // Remove alias
-        const next = { ...columnAliases };
-        delete next[originalName];
-        setColumnAliases(next);
-      }
-    },
-    [columnAliases, setColumnAliases]
-  );
-
-  const [timeExtractionPrompt, setTimeExtractionPrompt] = useState<{
-    timeColumn: string;
-    hasTimeComponent: boolean;
-  } | null>(null);
-  const [timeExtractionConfig, setTimeExtractionConfig] = useState({
-    extractYear: true,
-    extractMonth: true,
-    extractWeek: false,
-    extractDayOfWeek: true,
-    extractHour: false,
+  const importFlow = usePasteImportFlow({
+    rawData,
+    outcome,
+    factors,
+    columnAliases,
+    dataFilename,
+    dataQualityReport,
+    paretoMode,
+    separateParetoFilename,
+    setRawData,
+    setOutcome,
+    setFactors,
+    setSpecs,
+    setDataFilename,
+    setDataQualityReport,
+    setColumnAliases,
+    clearData: ingestion.clearData,
+    clearSelection,
+    applyTimeExtraction: ingestion.applyTimeExtraction,
+    handleParetoFileUpload: ingestion.handleParetoFileUpload,
+    clearParetoFile: ingestion.clearParetoFile,
   });
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isDataTableOpen, setIsDataTableOpen] = useState(false);
-  const [isDataPanelOpen, setIsDataPanelOpen] = useState(false);
-  const [isMindmapPanelOpen, setIsMindmapPanelOpen] = useState(false);
-  const [highlightRowIndex, setHighlightRowIndex] = useState<number | null>(null);
-  const [showExcludedOnly, setShowExcludedOnly] = useState(false);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [isPresentationMode, setIsPresentationMode] = useState(false);
-  const [isWhatIfPageOpen, setIsWhatIfPageOpen] = useState(false);
-  // Trigger for opening spec editor from MobileMenu
-  const [openSpecEditorRequested, setOpenSpecEditorRequested] = useState(false);
-  // Track if desktop for panel vs modal
-  const [isDesktop, setIsDesktop] = useState(
-    typeof window !== 'undefined' && window.innerWidth >= DESKTOP_BREAKPOINT
-  );
-  // Highlighted point from table row click (for bi-directional sync)
-  const [highlightedChartPoint, setHighlightedChartPoint] = useState<number | null>(null);
 
-  // Embed mode - hides header/footer for iframe embedding
+  // Ref to allow ingestion callbacks to reach importFlow setters
+  const importFlowRef = React.useRef(importFlow);
+  importFlowRef.current = importFlow;
+
+  // Panel visibility and UI chrome
+  const panels = useAppPanels({
+    clearData: ingestion.clearData,
+    wideFormatDetection: importFlow.wideFormatDetection,
+    setWideFormatDetection: importFlow.setWideFormatDetection,
+  });
+
+  // Embed mode state
   const [isEmbedMode, setIsEmbedMode] = useState(false);
-  // Mindmap popout mode - renders only the MindmapWindow component
   const [isMindmapPopoutMode, setIsMindmapPopoutMode] = useState(false);
-  // Embed focus chart - when set, Dashboard shows only this chart
   const [embedFocusChart, setEmbedFocusChart] = useState<
     'ichart' | 'boxplot' | 'pareto' | 'stats' | null
   >(null);
-  // Embed stats tab - when set, auto-selects this tab in StatsPanel
   const [embedStatsTab, setEmbedStatsTab] = useState<'summary' | 'histogram' | 'normality' | null>(
     null
   );
 
-  // Embed messaging - handles postMessage communication with parent window
+  // Embed messaging
   const { highlightedChart, highlightIntensity, notifyChartClicked } =
     useEmbedMessaging(isEmbedMode);
 
-  // Filter navigation — lifted to App so Dashboard and MindmapPanel share state
+  // Filter navigation
   const filterNav = useFilterNavigation({
     enableHistory: true,
     enableUrlSync: true,
   });
 
-  // Track desktop/mobile for panel behavior
-  useEffect(() => {
-    const checkDesktop = () => setIsDesktop(window.innerWidth >= DESKTOP_BREAKPOINT);
-    checkDesktop();
-    window.addEventListener('resize', checkDesktop);
-    return () => window.removeEventListener('resize', checkDesktop);
-  }, []);
-
-  // Handle URL parameters on mount (?sample=xxx&embed=true&chart=ichart&tab=histogram&view=mindmap)
+  // Handle URL parameters on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const sampleKey = params.get('sample');
@@ -179,35 +128,30 @@ function App() {
     const tabParam = params.get('tab');
     const viewParam = params.get('view');
 
-    // Set popout modes if specified
     if (viewParam === 'mindmap') {
       setIsMindmapPopoutMode(true);
-      return; // Don't process other params in popout mode
+      return;
     }
     if (viewParam === 'whatif') {
-      setIsWhatIfPageOpen(true);
+      panels.setIsWhatIfPageOpen(true);
     }
 
-    // Set embed mode if specified
     if (embedParam === 'true') {
       setIsEmbedMode(true);
     }
 
-    // Set focus chart if specified (only valid in embed mode)
     if (chartParam && ['ichart', 'boxplot', 'pareto', 'stats'].includes(chartParam)) {
       setEmbedFocusChart(chartParam as 'ichart' | 'boxplot' | 'pareto' | 'stats');
     }
 
-    // Set stats tab if specified (for stats chart embed)
     if (tabParam && ['summary', 'histogram', 'normality'].includes(tabParam)) {
       setEmbedStatsTab(tabParam as 'summary' | 'histogram' | 'normality');
     }
 
-    // Auto-load sample if specified
     if (sampleKey && rawData.length === 0) {
       const sample = SAMPLES.find(s => s.urlKey === sampleKey);
       if (sample) {
-        loadSample(sample);
+        ingestion.loadSample(sample);
       }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -227,7 +171,7 @@ function App() {
     return map;
   }, [dataQualityReport]);
 
-  // Compute control violations for DataPanel annotations
+  // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
 
   const handleExport = useCallback(async () => {
@@ -253,96 +197,7 @@ function App() {
     downloadCSV(filteredData, outcome, specs, { filename });
   }, [filteredData, outcome, specs]);
 
-  // Global keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Escape: close any open modal
-      if (e.key === 'Escape') {
-        if (wideFormatDetection) setWideFormatDetection(null);
-        else if (showResetConfirm) setShowResetConfirm(false);
-        else if (isSettingsOpen) setIsSettingsOpen(false);
-        else if (isDataTableOpen) setIsDataTableOpen(false);
-        return;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [wideFormatDetection, showResetConfirm, isSettingsOpen, isDataTableOpen]);
-
-  const handleMappingConfirm = (
-    newOutcome: string,
-    newFactors: string[],
-    newSpecs?: { target?: number; lsl?: number; usl?: number }
-  ) => {
-    setOutcome(newOutcome);
-    setFactors(newFactors);
-    if (newSpecs) {
-      setSpecs(newSpecs);
-    }
-    setIsMapping(false);
-
-    // Apply time extraction if timeColumn exists
-    if (timeExtractionPrompt?.timeColumn) {
-      applyTimeExtraction(timeExtractionPrompt.timeColumn, timeExtractionConfig);
-    }
-
-    setTimeExtractionPrompt(null);
-  };
-
-  const handleMappingCancel = () => {
-    clearData();
-    setIsMapping(false);
-  };
-
-  // Open data table with a specific row highlighted (from chart point click)
-  const openDataTableAtRow = useCallback(
-    (index: number) => {
-      setHighlightRowIndex(index);
-      if (isDesktop) {
-        setIsDataPanelOpen(true);
-      } else {
-        setIsDataTableOpen(true);
-      }
-    },
-    [isDesktop]
-  );
-
-  // Handle row click from data panel (bi-directional sync)
-  const handleDataPanelRowClick = useCallback((index: number) => {
-    setHighlightedChartPoint(index);
-    // Clear highlight after animation
-    setTimeout(() => setHighlightedChartPoint(null), 2000);
-  }, []);
-
-  // Toggle data panel
-  const handleToggleDataPanel = useCallback(() => {
-    if (isDesktop) {
-      setIsDataPanelOpen(prev => !prev);
-    } else {
-      setIsDataTableOpen(true);
-    }
-  }, [isDesktop]);
-
-  // Toggle mindmap panel
-  const handleToggleMindmapPanel = useCallback(() => {
-    setIsMindmapPanelOpen(prev => !prev);
-  }, []);
-
-  // Close mindmap panel
-  const handleCloseMindmapPanel = useCallback(() => {
-    setIsMindmapPanelOpen(false);
-  }, []);
-
-  // Open mindmap in popout window
-  const handleOpenMindmapPopout = useCallback(() => {
-    if (outcome) {
-      openMindmapPopout(rawData, factors, outcome, columnAliases, specs, filterNav.filterStack);
-      setIsMindmapPanelOpen(false);
-    }
-  }, [rawData, factors, outcome, columnAliases, specs, filterNav.filterStack]);
-
-  // Handle drill category from mindmap (applies filter via shared navigation)
+  // Mindmap drill category handler
   const handleMindmapDrillCategory = useCallback(
     (factor: string, value: string | number) => {
       filterNav.applyFilter({
@@ -355,11 +210,18 @@ function App() {
     [filterNav]
   );
 
+  // Mindmap popout
+  const handleOpenMindmapPopout = useCallback(() => {
+    if (outcome) {
+      openMindmapPopout(rawData, factors, outcome, columnAliases, specs, filterNav.filterStack);
+      panels.setIsMindmapPanelOpen(false);
+    }
+  }, [rawData, factors, outcome, columnAliases, specs, filterNav.filterStack, panels]);
+
   // Listen for messages from mindmap popout window
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
-
       if (event.data?.type === 'MINDMAP_DRILL_CATEGORY') {
         const { factor, value } = event.data;
         handleMindmapDrillCategory(factor, value);
@@ -370,158 +232,14 @@ function App() {
     return () => window.removeEventListener('message', handleMessage);
   }, [handleMindmapDrillCategory]);
 
-  // Close data table and clear highlight
-  const handleCloseDataTable = useCallback(() => {
-    setIsDataTableOpen(false);
-    setHighlightRowIndex(null);
-    setShowExcludedOnly(false);
-  }, []);
-
-  // Close data panel
-  const handleCloseDataPanel = useCallback(() => {
-    setIsDataPanelOpen(false);
-    setHighlightRowIndex(null);
-  }, []);
-
-  // Open data table showing only excluded rows (from validation banner)
-  const openDataTableExcluded = useCallback(() => {
-    setShowExcludedOnly(true);
-    setHighlightRowIndex(null);
-    setIsDataTableOpen(true);
-  }, []);
-
-  // Open data table showing all rows (from validation banner)
-  const openDataTableAll = useCallback(() => {
-    setShowExcludedOnly(false);
-    setHighlightRowIndex(null);
-    setIsDataTableOpen(true);
-  }, []);
-
-  // Reset confirmation handlers
-  const handleResetRequest = useCallback(() => {
-    setShowResetConfirm(true);
-  }, []);
-
-  const handleResetConfirm = useCallback(() => {
-    clearData();
-    setShowResetConfirm(false);
-  }, [clearData]);
-
-  // Handle dismissing wide format detection (Performance Mode is Azure-only)
-  const handleDismissWideFormat = useCallback(() => {
-    setWideFormatDetection(null);
-  }, []);
-
-  // Handle paste → parse → detect → mapping flow
-  const handlePasteAnalyze = useCallback(
-    async (text: string) => {
-      setPasteError(null);
-      try {
-        const data = await parseText(text);
-
-        // Set raw data and filename
-        setRawData(data);
-        setDataFilename('Pasted Data');
-
-        // Auto-detect columns
-        const detected = detectColumns(data);
-        if (detected.outcome) {
-          setOutcome(detected.outcome);
-        }
-        if (detected.factors.length > 0) {
-          setFactors(detected.factors);
-        }
-
-        // Validate data quality
-        const report = validateData(data, detected.outcome);
-        setDataQualityReport(report);
-
-        // Check for wide format (Performance Mode is Azure-only)
-        const wideFormat = detectWideFormat(data);
-        if (wideFormat.isWideFormat) {
-          setWideFormatDetection(wideFormat);
-        }
-
-        // Check for time column
-        if (detected.timeColumn) {
-          setTimeExtractionPrompt({
-            timeColumn: detected.timeColumn,
-            hasTimeComponent: detected.columnAnalysis.some(
-              c =>
-                c.name === detected.timeColumn &&
-                c.sampleValues.some(v => v.includes('T') || v.includes(':'))
-            ),
-          });
-        }
-
-        // Transition: close paste, open column mapping
-        setIsPasteMode(false);
-        setIsMapping(true);
-      } catch (err) {
-        setPasteError(err instanceof Error ? err.message : 'Failed to parse data');
-      }
-    },
-    [setRawData, setDataFilename, setOutcome, setFactors, setDataQualityReport]
-  );
-
-  // Handle canceling paste mode
-  const handlePasteCancel = useCallback(() => {
-    setIsPasteMode(false);
-    setPasteError(null);
-  }, []);
-
-  // Handle opening paste mode from home screen
-  const handleOpenPaste = useCallback(() => {
-    setIsPasteMode(true);
-    setPasteError(null);
-  }, []);
-
-  // Handle manual data entry completion
-  const handleManualDataAnalyze = useCallback(
-    (
-      data: any[],
-      config: {
-        outcome: string;
-        factors: string[];
-        specs?: { usl?: number; lsl?: number };
-      }
-    ) => {
-      setRawData(data);
-      setDataFilename('Manual Entry');
-      setOutcome(config.outcome);
-      setFactors(config.factors);
-
-      if (config.specs) {
-        setSpecs(config.specs);
-      }
-
-      const report = validateData(data, config.outcome);
-      setDataQualityReport(report);
-
-      clearSelection();
-      setIsManualEntry(false);
-    },
-    [setRawData, setDataFilename, setOutcome, setFactors, setSpecs, setDataQualityReport]
-  );
-
-  // Handle canceling manual entry
-  const handleManualEntryCancel = useCallback(() => {
-    setIsManualEntry(false);
-  }, []);
-
-  // Handle opening manual entry from home screen
-  const handleOpenManualEntry = useCallback(() => {
-    setIsManualEntry(true);
-  }, []);
-
   // Render only popout windows in popout mode
   if (isMindmapPopoutMode) {
     return <MindmapWindow />;
   }
 
   // Full-page What-If Simulator
-  if (isWhatIfPageOpen) {
-    return <WhatIfPage onBack={() => setIsWhatIfPageOpen(false)} />;
+  if (panels.isWhatIfPageOpen) {
+    return <WhatIfPage onBack={() => panels.setIsWhatIfPageOpen(false)} />;
   }
 
   return (
@@ -538,26 +256,26 @@ function App() {
           hasData={rawData.length > 0}
           dataFilename={dataFilename}
           rowCount={rawData.length}
-          isDataPanelOpen={isDataPanelOpen}
-          isMindmapPanelOpen={isMindmapPanelOpen}
-          onNewAnalysis={handleResetRequest}
-          onToggleDataPanel={handleToggleDataPanel}
-          onToggleMindmapPanel={handleToggleMindmapPanel}
+          isDataPanelOpen={panels.isDataPanelOpen}
+          isMindmapPanelOpen={panels.isMindmapPanelOpen}
+          onNewAnalysis={panels.handleResetRequest}
+          onToggleDataPanel={panels.handleToggleDataPanel}
+          onToggleMindmapPanel={panels.handleToggleMindmapPanel}
           onOpenDataTable={() => {
-            setHighlightRowIndex(null);
-            setIsDataTableOpen(true);
+            panels.setHighlightRowIndex(null);
+            panels.setIsDataTableOpen(true);
           }}
           onExportCSV={handleExportCSV}
           onExportImage={handleExport}
-          onEnterPresentationMode={() => setIsPresentationMode(true)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          onReset={handleResetRequest}
-          onOpenSpecEditor={() => setOpenSpecEditorRequested(true)}
+          onEnterPresentationMode={() => panels.setIsPresentationMode(true)}
+          onOpenSettings={() => panels.setIsSettingsOpen(true)}
+          onReset={panels.handleResetRequest}
+          onOpenSpecEditor={() => panels.setOpenSpecEditorRequested(true)}
         />
       )}
 
       {/* Reset confirmation modal */}
-      {showResetConfirm && (
+      {panels.showResetConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-surface-secondary border border-edge rounded-xl shadow-xl p-4 w-full max-w-sm">
             <h3 className="text-sm font-semibold text-white mb-2">Reset Analysis?</h3>
@@ -566,13 +284,13 @@ function App() {
             </p>
             <div className="flex justify-end gap-2">
               <button
-                onClick={() => setShowResetConfirm(false)}
+                onClick={() => panels.setShowResetConfirm(false)}
                 className="px-3 py-1.5 text-xs font-medium text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={handleResetConfirm}
+                onClick={panels.handleResetConfirm}
                 className="px-3 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
               >
                 Reset
@@ -586,71 +304,74 @@ function App() {
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
         {/* Main content area */}
         <div className="flex-1 overflow-hidden flex flex-col">
-          {isPasteMode ? (
+          {importFlow.isPasteMode ? (
             <PasteScreen
-              onAnalyze={handlePasteAnalyze}
-              onCancel={handlePasteCancel}
-              error={pasteError}
+              onAnalyze={importFlow.handlePasteAnalyze}
+              onCancel={importFlow.handlePasteCancel}
+              error={importFlow.pasteError}
             />
-          ) : isManualEntry ? (
-            <ManualEntry onAnalyze={handleManualDataAnalyze} onCancel={handleManualEntryCancel} />
+          ) : importFlow.isManualEntry ? (
+            <ManualEntry
+              onAnalyze={importFlow.handleManualDataAnalyze}
+              onCancel={importFlow.handleManualEntryCancel}
+            />
           ) : rawData.length === 0 ? (
             <HomeScreen
-              onLoadSample={loadSample}
-              onOpenPaste={handleOpenPaste}
-              onOpenManualEntry={handleOpenManualEntry}
+              onLoadSample={ingestion.loadSample}
+              onOpenPaste={importFlow.handleOpenPaste}
+              onOpenManualEntry={importFlow.handleOpenManualEntry}
             />
-          ) : isMapping ? (
+          ) : importFlow.isMapping ? (
             <ColumnMapping
-              columnAnalysis={mappingColumnAnalysis}
+              columnAnalysis={importFlow.mappingColumnAnalysis}
               availableColumns={Object.keys(rawData[0])}
               previewRows={rawData.slice(0, 5)}
               totalRows={rawData.length}
               columnAliases={columnAliases}
-              onColumnRename={handleColumnRename}
+              onColumnRename={importFlow.handleColumnRename}
               initialOutcome={outcome}
               initialFactors={factors}
               datasetName={dataFilename || undefined}
-              onConfirm={handleMappingConfirm}
-              onCancel={handleMappingCancel}
+              onConfirm={importFlow.handleMappingConfirm}
+              onCancel={importFlow.handleMappingCancel}
               dataQualityReport={dataQualityReport}
-              onViewExcludedRows={openDataTableExcluded}
-              onViewAllData={openDataTableAll}
+              onViewExcludedRows={panels.openDataTableExcluded}
+              onViewAllData={panels.openDataTableAll}
               paretoMode={paretoMode}
               separateParetoFilename={separateParetoFilename}
-              onParetoFileUpload={handleParetoFileUpload}
-              onClearParetoFile={clearParetoFile}
-              timeColumn={timeExtractionPrompt?.timeColumn}
-              hasTimeComponent={timeExtractionPrompt?.hasTimeComponent}
-              onTimeExtractionChange={setTimeExtractionConfig}
+              onParetoFileUpload={ingestion.handleParetoFileUpload}
+              onClearParetoFile={ingestion.clearParetoFile}
+              timeColumn={importFlow.timeExtractionPrompt?.timeColumn}
+              hasTimeComponent={importFlow.timeExtractionPrompt?.hasTimeComponent}
+              onTimeExtractionChange={importFlow.setTimeExtractionConfig}
             />
           ) : (
             <Dashboard
-              onPointClick={openDataTableAtRow}
-              isPresentationMode={isPresentationMode}
-              onExitPresentation={() => setIsPresentationMode(false)}
+              onPointClick={panels.openDataTableAtRow}
+              isPresentationMode={panels.isPresentationMode}
+              onExitPresentation={() => panels.setIsPresentationMode(false)}
               highlightedChart={highlightedChart}
               highlightIntensity={highlightIntensity}
               onChartClick={isEmbedMode ? notifyChartClicked : undefined}
               embedFocusChart={embedFocusChart}
               embedStatsTab={embedStatsTab}
-              onOpenColumnMapping={() => setIsMapping(true)}
-              openSpecEditorRequested={openSpecEditorRequested}
-              onSpecEditorOpened={() => setOpenSpecEditorRequested(false)}
-              onOpenWhatIf={() => setIsWhatIfPageOpen(true)}
-              highlightedPointIndex={highlightedChartPoint}
+              onOpenColumnMapping={() => importFlow.setIsMapping(true)}
+              openSpecEditorRequested={panels.openSpecEditorRequested}
+              onSpecEditorOpened={() => panels.setOpenSpecEditorRequested(false)}
+              onOpenWhatIf={() => panels.setIsWhatIfPageOpen(true)}
+              highlightedPointIndex={panels.highlightedChartPoint}
               filterNav={filterNav}
             />
           )}
         </div>
 
         {/* Data Panel (desktop only, when open) */}
-        {isDesktop && rawData.length > 0 && !isMapping && (
+        {panels.isDesktop && rawData.length > 0 && !importFlow.isMapping && (
           <DataPanel
-            isOpen={isDataPanelOpen}
-            onClose={handleCloseDataPanel}
-            highlightRowIndex={highlightRowIndex}
-            onRowClick={handleDataPanelRowClick}
+            isOpen={panels.isDataPanelOpen}
+            onClose={panels.handleCloseDataPanel}
+            highlightRowIndex={panels.highlightRowIndex}
+            onRowClick={panels.handleDataPanelRowClick}
             excludedRowIndices={excludedRowIndices}
             excludedReasons={excludedReasons}
             controlViolations={controlViolations}
@@ -661,13 +382,16 @@ function App() {
       </main>
 
       {/* Settings Panel (slide-in from right) */}
-      <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsPanel
+        isOpen={panels.isSettingsOpen}
+        onClose={() => panels.setIsSettingsOpen(false)}
+      />
 
       {/* Investigation Mindmap Panel (slide-in from right) */}
       {outcome && (
         <MindmapPanel
-          isOpen={isMindmapPanelOpen}
-          onClose={handleCloseMindmapPanel}
+          isOpen={panels.isMindmapPanelOpen}
+          onClose={panels.handleCloseMindmapPanel}
           data={rawData}
           factors={factors}
           outcome={outcome}
@@ -677,17 +401,17 @@ function App() {
           onDrillCategory={handleMindmapDrillCategory}
           onOpenPopout={handleOpenMindmapPopout}
           onNavigateToWhatIf={() => {
-            setIsMindmapPanelOpen(false);
-            setIsWhatIfPageOpen(true);
+            panels.setIsMindmapPanelOpen(false);
+            panels.setIsWhatIfPageOpen(true);
           }}
         />
       )}
 
       <DataTableModal
-        isOpen={isDataTableOpen}
-        onClose={handleCloseDataTable}
-        highlightRowIndex={highlightRowIndex ?? undefined}
-        showExcludedOnly={showExcludedOnly}
+        isOpen={panels.isDataTableOpen}
+        onClose={panels.handleCloseDataTable}
+        highlightRowIndex={panels.highlightRowIndex ?? undefined}
+        showExcludedOnly={panels.showExcludedOnly}
         excludedRowIndices={excludedRowIndices}
         excludedReasons={excludedReasons}
       />
@@ -697,17 +421,17 @@ function App() {
         <AppFooter filteredCount={filteredData.length} totalCount={rawData.length} />
       )}
 
-      {/* Wide Format Detection — inform user Performance Mode is Azure-only */}
-      {wideFormatDetection && (
+      {/* Wide Format Detection -- inform user Performance Mode is Azure-only */}
+      {importFlow.wideFormatDetection && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-surface-secondary border border-edge rounded-xl shadow-xl p-5 w-full max-w-sm">
             <p className="text-sm text-content mb-3">
-              {wideFormatDetection.channels.length} measure columns detected — Performance Mode is
-              available in the Azure App.
+              {importFlow.wideFormatDetection.channels.length} measure columns detected —
+              Performance Mode is available in the Azure App.
             </p>
             <div className="flex justify-end">
               <button
-                onClick={handleDismissWideFormat}
+                onClick={importFlow.handleDismissWideFormat}
                 className="px-4 py-2 text-sm font-medium text-white bg-surface-tertiary hover:bg-surface-elevated rounded-lg transition-colors"
               >
                 OK

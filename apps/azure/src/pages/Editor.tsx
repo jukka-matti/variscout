@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useStorage } from '../services/storage';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
@@ -8,17 +8,15 @@ import DataPanel from '../components/data/DataPanel';
 import DataTableModal from '../components/data/DataTableModal';
 import MindmapPanel from '../components/MindmapPanel';
 import { openMindmapPopout } from '../components/MindmapWindow';
-import ManualEntry, { type ManualEntryConfig } from '../components/data/ManualEntry';
+import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
 import { ColumnMapping } from '@variscout/ui';
 import { useControlViolations } from '../hooks/useControlViolations';
 import { useDataMerge } from '../hooks/useDataMerge';
-import { parseText, detectColumns, validateData, detectWideFormat } from '@variscout/core';
 import { downloadCSV } from '@variscout/core';
 import type { ExclusionReason } from '@variscout/core';
 import { SAMPLES } from '@variscout/data';
-import type { SampleDataset } from '@variscout/data';
 import {
   Upload,
   ArrowLeft,
@@ -37,6 +35,8 @@ import {
   Database,
   RefreshCw,
 } from 'lucide-react';
+import { useEditorPanels } from '../hooks/useEditorPanels';
+import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 
 interface EditorProps {
   projectId: string | null;
@@ -75,101 +75,81 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     loadProject,
   } = useData();
 
-  // State for loading a saved project
-  const [isLoadingProject, setIsLoadingProject] = useState(false);
+  const { handleFileUpload, loadSample } = useDataIngestion();
+
+  // Panel visibility and chart/table sync
+  const panels = useEditorPanels({
+    displayOptions,
+    setDisplayOptions,
+  });
+
+  // Manual data merge (for append mode)
+  const dataFlow = useEditorDataFlow({
+    rawData,
+    outcome,
+    factors,
+    specs,
+    columnAliases,
+    dataFilename,
+    isPerformanceMode,
+    measureColumns,
+    measureLabel,
+    setRawData,
+    setOutcome,
+    setFactors,
+    setSpecs,
+    setDataFilename,
+    setDataQualityReport,
+    setColumnAliases,
+    setPerformanceMode,
+    setMeasureColumns,
+    setMeasureLabel,
+    loadProject,
+    handleFileUpload,
+    loadSample,
+  });
+
+  // Manual data analyze with append-mode merge
+  const { handleManualDataAnalyze } = useDataMerge({
+    appendMode: dataFlow.appendMode,
+    existingConfig: dataFlow.existingConfig,
+    rawData,
+    setRawData,
+    setDataFilename,
+    setOutcome,
+    setFactors,
+    setSpecs,
+    setDataQualityReport,
+    setMeasureColumns,
+    setMeasureLabel,
+    setPerformanceMode,
+    onDone: () => {
+      dataFlow.setIsManualEntry(false);
+      dataFlow.setAppendMode(false);
+    },
+  });
 
   // Load project data when opening an existing project
   useEffect(() => {
-    if (projectId && rawData.length === 0 && !isLoadingProject) {
-      setIsLoadingProject(true);
-      loadProject(projectId).finally(() => setIsLoadingProject(false));
+    if (projectId && rawData.length === 0 && !dataFlow.isLoadingProject) {
+      dataFlow.setIsLoadingProject(true);
+      loadProject(projectId).finally(() => dataFlow.setIsLoadingProject(false));
     }
   }, [projectId]); // intentionally exclude rawData to avoid re-triggering
 
-  // State for manual entry view
-  const [isManualEntry, setIsManualEntry] = useState(false);
-  const [appendMode, setAppendMode] = useState(false);
-
-  // State for paste data view
-  const [isPasteMode, setIsPasteMode] = useState(false);
-  const [pasteError, setPasteError] = useState<string | null>(null);
-
-  // State for column mapping review (after paste)
-  const [isMapping, setIsMapping] = useState(false);
-
-  // Column analysis for ColumnMapping rich cards — computed from rawData
-  const mappingColumnAnalysis = useMemo(() => {
-    if (rawData.length === 0) return undefined;
-    return detectColumns(rawData).columnAnalysis;
-  }, [rawData]);
-
-  // Column rename handler for ColumnMapping
-  const handleColumnRename = useCallback(
-    (originalName: string, alias: string) => {
-      if (alias) {
-        setColumnAliases({ ...columnAliases, [originalName]: alias });
-      } else {
-        const next = { ...columnAliases };
-        delete next[originalName];
-        setColumnAliases(next);
-      }
-    },
-    [columnAliases, setColumnAliases]
-  );
-
-  // State for drill navigation from Performance Mode to standard I-Chart
-  const [drillFromPerformance, setDrillFromPerformance] = useState<string | null>(null);
-
-  // State for data panel
-  const [isDataPanelOpen, setIsDataPanelOpen] = useState(false);
-  const [highlightRowIndex, setHighlightRowIndex] = useState<number | null>(null);
-  const [highlightedChartPoint, setHighlightedChartPoint] = useState<number | null>(null);
-
-  // State for data table editor modal
-  const [isDataTableOpen, setIsDataTableOpen] = useState(false);
-
-  // State for investigation mindmap
-  const [isMindmapOpen, setIsMindmapOpen] = useState(false);
-
-  // Mindmap annotations persisted in displayOptions (Record<string, string> ↔ Map<number, string>)
-  const mindmapAnnotations = useMemo(() => {
-    const map = new Map<number, string>();
-    const stored = displayOptions.mindmapAnnotations;
-    if (stored) {
-      for (const [key, value] of Object.entries(stored)) {
-        map.set(Number(key), value);
-      }
-    }
-    return map;
-  }, [displayOptions]);
-
-  const setMindmapAnnotations = useCallback(
-    (annotations: Map<number, string>) => {
-      const record: Record<string, string> = {};
-      annotations.forEach((value, key) => {
-        record[String(key)] = value;
-      });
-      setDisplayOptions({ ...displayOptions, mindmapAnnotations: record });
-    },
-    [displayOptions, setDisplayOptions]
-  );
-
-  // State for What-If Simulator full page
-  const [isWhatIfOpen, setIsWhatIfOpen] = useState(false);
-
-  // Filter navigation (lifted to Editor so mindmap and dashboard share filter state)
+  // Filter navigation
   const filterNav = useFilterNavigation({
     enableHistory: false,
     enableUrlSync: false,
   });
 
   // Handle opening mindmap in a popout window
-  const handleOpenMindmapPopout = useCallback(() => {
+  const handleOpenMindmapPopout = React.useCallback(() => {
     if (outcome) {
       openMindmapPopout(rawData, factors, outcome, columnAliases, specs, filterNav.filterStack);
-      setIsMindmapOpen(false);
+      panels.setIsMindmapOpen(false);
     }
-  }, [rawData, factors, outcome, columnAliases, specs, filterNav.filterStack]);
+  }, [rawData, factors, outcome, columnAliases, specs, filterNav.filterStack, panels]);
 
   // Listen for drill commands from popout mindmap window
   useEffect(() => {
@@ -189,53 +169,6 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     return () => window.removeEventListener('message', handleMessage);
   }, [filterNav]);
 
-  // Handle drilling from Performance Mode to standard I-Chart for a specific measure
-  const handleDrillToMeasure = useCallback(
-    (measureId: string) => {
-      setDrillFromPerformance(measureId);
-      setOutcome(measureId);
-    },
-    [setOutcome]
-  );
-
-  // Handle returning to Performance Mode from drilled I-Chart
-  const handleBackToPerformance = useCallback(() => {
-    setDrillFromPerformance(null);
-  }, []);
-
-  // Handle chart point click → highlight row in data panel
-  const handlePointClick = useCallback(
-    (index: number) => {
-      setHighlightRowIndex(index);
-      if (!isDataPanelOpen) {
-        setIsDataPanelOpen(true);
-      }
-    },
-    [isDataPanelOpen]
-  );
-
-  // Handle data panel row click → highlight point in chart
-  const handleRowClick = useCallback((index: number) => {
-    setHighlightedChartPoint(index);
-    setTimeout(() => setHighlightedChartPoint(null), 2000);
-  }, []);
-
-  // Compute existing config for append mode
-  const existingConfig = useMemo<ManualEntryConfig | undefined>(() => {
-    if (!outcome) return undefined;
-    return {
-      outcome,
-      factors: factors || [],
-      specs:
-        specs?.usl !== undefined || specs?.lsl !== undefined
-          ? { usl: specs.usl, lsl: specs.lsl }
-          : undefined,
-      isPerformanceMode,
-      measureColumns: measureColumns || [],
-      measureLabel: measureLabel || 'Channel',
-    };
-  }, [outcome, factors, specs, isPerformanceMode, measureColumns, measureLabel]);
-
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
 
@@ -254,52 +187,12 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     return map;
   }, [dataQualityReport]);
 
-  // Manual data analyze with append-mode merge
-  const { handleManualDataAnalyze } = useDataMerge({
-    appendMode,
-    existingConfig,
-    rawData,
-    setRawData,
-    setDataFilename,
-    setOutcome,
-    setFactors,
-    setSpecs,
-    setDataQualityReport,
-    setMeasureColumns,
-    setMeasureLabel,
-    setPerformanceMode,
-    onDone: () => {
-      setIsManualEntry(false);
-      setAppendMode(false);
-    },
-  });
-
-  const { handleFileUpload, loadSample } = useDataIngestion();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleSave = async () => {
     const name = currentProjectName || 'New Analysis';
     await saveProject(name);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsParsingFile(true);
-    try {
-      await handleFileUpload(e);
-      setIsMapping(true);
-    } finally {
-      setIsParsingFile(false);
-    }
-  };
-
-  const triggerFileUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  // State for file parsing spinner
-  const [isParsingFile, setIsParsingFile] = useState(false);
-
-  // Get sync status icon
+  // Sync status icon
   const SyncIcon =
     syncStatus.status === 'synced' || syncStatus.status === 'syncing' ? Cloud : CloudOff;
   const syncColor =
@@ -309,137 +202,45 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
         ? 'text-blue-400'
         : 'text-slate-500';
 
-  // Handle cancel from manual entry - reset append mode
-  const handleManualEntryCancel = useCallback(() => {
-    setIsManualEntry(false);
-    setAppendMode(false);
-  }, []);
-
-  // Handle "Add More Data" button click
-  const handleAddMoreData = useCallback(() => {
-    setAppendMode(true);
-    setIsManualEntry(true);
-  }, []);
-
-  // Handle paste → parse → auto-detect → show ColumnMapping for review
-  const handlePasteAnalyze = useCallback(
-    async (text: string) => {
-      setPasteError(null);
-      try {
-        const data = await parseText(text);
-        setRawData(data);
-        setDataFilename('Pasted Data');
-
-        // Auto-detect columns (same as PWA)
-        const detected = detectColumns(data);
-        if (detected.outcome) setOutcome(detected.outcome);
-        if (detected.factors.length > 0) setFactors(detected.factors);
-
-        // Validate data quality
-        const report = validateData(data, detected.outcome);
-        setDataQualityReport(report);
-
-        // Wide-format detection
-        const wideFormat = detectWideFormat(data);
-        if (wideFormat.isWideFormat && wideFormat.channels.length >= 3) {
-          setMeasureColumns(wideFormat.channels.map(c => c.id));
-          setMeasureLabel('Channel');
-          setPerformanceMode(true);
-        }
-
-        // Transition: close paste → open column mapping
-        setIsPasteMode(false);
-        setIsMapping(true);
-      } catch (err) {
-        setPasteError(err instanceof Error ? err.message : 'Failed to parse data');
-      }
-    },
-    [
-      setRawData,
-      setDataFilename,
-      setOutcome,
-      setFactors,
-      setDataQualityReport,
-      setMeasureColumns,
-      setMeasureLabel,
-      setPerformanceMode,
-    ]
-  );
-
-  const handlePasteCancel = useCallback(() => {
-    setIsPasteMode(false);
-    setPasteError(null);
-  }, []);
-
-  // Handle sample load → show ColumnMapping for review
-  const handleLoadSample = useCallback(
-    (sample: SampleDataset) => {
-      loadSample(sample);
-      setIsMapping(true);
-    },
-    [loadSample]
-  );
-
-  // Handle column mapping confirm — apply user's selections and start analysis
-  const handleMappingConfirm = useCallback(
-    (
-      newOutcome: string,
-      newFactors: string[],
-      newSpecs?: { target?: number; lsl?: number; usl?: number }
-    ) => {
-      setOutcome(newOutcome);
-      setFactors(newFactors);
-      if (newSpecs) setSpecs(newSpecs);
-      setIsMapping(false);
-    },
-    [setOutcome, setFactors, setSpecs]
-  );
-
-  // Handle column mapping cancel — clear data and return to empty state
-  const handleMappingCancel = useCallback(() => {
-    setRawData([]);
-    setOutcome(null);
-    setFactors([]);
-    setDataFilename(null);
-    setDataQualityReport(null);
-    setIsMapping(false);
-  }, [setRawData, setOutcome, setFactors, setDataFilename, setDataQualityReport]);
-
   // If in paste mode, show PasteScreen full screen
-  if (isPasteMode) {
+  if (dataFlow.isPasteMode) {
     return (
-      <PasteScreen onAnalyze={handlePasteAnalyze} onCancel={handlePasteCancel} error={pasteError} />
+      <PasteScreen
+        onAnalyze={dataFlow.handlePasteAnalyze}
+        onCancel={dataFlow.handlePasteCancel}
+        error={dataFlow.pasteError}
+      />
     );
   }
 
   // If in manual entry mode, show ManualEntry full screen
-  if (isManualEntry) {
+  if (dataFlow.isManualEntry) {
     return (
       <ManualEntry
         onAnalyze={handleManualDataAnalyze}
-        onCancel={handleManualEntryCancel}
-        appendMode={appendMode}
-        existingConfig={appendMode ? existingConfig : undefined}
-        existingRowCount={appendMode ? rawData.length : undefined}
+        onCancel={dataFlow.handleManualEntryCancel}
+        appendMode={dataFlow.appendMode}
+        existingConfig={dataFlow.appendMode ? dataFlow.existingConfig : undefined}
+        existingRowCount={dataFlow.appendMode ? rawData.length : undefined}
       />
     );
   }
 
   // If in column mapping mode, show ColumnMapping full screen
-  if (isMapping) {
+  if (dataFlow.isMapping) {
     return (
       <ColumnMapping
-        columnAnalysis={mappingColumnAnalysis}
+        columnAnalysis={dataFlow.mappingColumnAnalysis}
         availableColumns={Object.keys(rawData[0] || {})}
         previewRows={rawData.slice(0, 5)}
         totalRows={rawData.length}
         columnAliases={columnAliases}
-        onColumnRename={handleColumnRename}
+        onColumnRename={dataFlow.handleColumnRename}
         initialOutcome={outcome}
         initialFactors={factors}
         datasetName={dataFilename || 'Pasted Data'}
-        onConfirm={handleMappingConfirm}
-        onCancel={handleMappingCancel}
+        onConfirm={dataFlow.handleMappingConfirm}
+        onCancel={dataFlow.handleMappingCancel}
         dataQualityReport={dataQualityReport}
         maxFactors={6}
       />
@@ -447,10 +248,10 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   }
 
   // If What-If Simulator is open, show full-page view
-  if (isWhatIfOpen) {
+  if (panels.isWhatIfOpen) {
     return (
       <WhatIfPage
-        onBack={() => setIsWhatIfOpen(false)}
+        onBack={() => panels.setIsWhatIfOpen(false)}
         filterCount={filterNav.filterStack.length}
         filterStack={filterNav.filterStack}
       />
@@ -488,7 +289,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {/* Add More Data Button */}
           {rawData.length > 0 && outcome && (
             <button
-              onClick={handleAddMoreData}
+              onClick={dataFlow.handleAddMoreData}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
               title="Add more rows to existing data"
             >
@@ -500,7 +301,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {/* Edit Data */}
           {rawData.length > 0 && outcome && (
             <button
-              onClick={() => setIsDataTableOpen(true)}
+              onClick={() => panels.setIsDataTableOpen(true)}
               className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
               title="Edit Data Table"
               data-testid="btn-edit-data"
@@ -524,7 +325,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {/* What-If Simulator */}
           {rawData.length > 0 && outcome && (
             <button
-              onClick={() => setIsWhatIfOpen(true)}
+              onClick={() => panels.setIsWhatIfOpen(true)}
               className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
               title="What-If Simulator"
               data-testid="btn-what-if"
@@ -536,13 +337,13 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {/* Investigation Toggle */}
           {rawData.length > 0 && outcome && factors.length > 0 && (
             <button
-              onClick={() => setIsMindmapOpen(prev => !prev)}
+              onClick={() => panels.setIsMindmapOpen(prev => !prev)}
               className={`p-2 rounded-lg transition-colors ${
-                isMindmapOpen
+                panels.isMindmapOpen
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
-              title={isMindmapOpen ? 'Hide Investigation' : 'Show Investigation'}
+              title={panels.isMindmapOpen ? 'Hide Investigation' : 'Show Investigation'}
               data-testid="btn-investigation"
             >
               <Network size={18} />
@@ -552,13 +353,13 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {/* Data Panel Toggle */}
           {rawData.length > 0 && outcome && (
             <button
-              onClick={() => setIsDataPanelOpen(prev => !prev)}
+              onClick={() => panels.setIsDataPanelOpen(prev => !prev)}
               className={`p-2 rounded-lg transition-colors ${
-                isDataPanelOpen
+                panels.isDataPanelOpen
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-400 hover:text-white hover:bg-slate-700'
               }`}
-              title={isDataPanelOpen ? 'Hide Data Panel' : 'Show Data Panel'}
+              title={panels.isDataPanelOpen ? 'Hide Data Panel' : 'Show Data Panel'}
               data-testid="btn-data-panel"
             >
               <Table2 size={18} />
@@ -584,12 +385,12 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           // Empty State - Upload Data + Sample Datasets
           <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-y-auto relative">
             {/* Loading overlay for project load or file parse */}
-            {(isLoadingProject || isParsingFile) && (
+            {(dataFlow.isLoadingProject || dataFlow.isParsingFile) && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/60">
                 <div className="flex flex-col items-center gap-3">
                   <RefreshCw size={32} className="text-blue-400 animate-spin" />
                   <span className="text-sm text-slate-300">
-                    {isLoadingProject ? 'Loading project...' : 'Parsing file...'}
+                    {dataFlow.isLoadingProject ? 'Loading project...' : 'Parsing file...'}
                   </span>
                 </div>
               </div>
@@ -604,16 +405,16 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               </p>
 
               <input
-                ref={fileInputRef}
+                ref={dataFlow.fileInputRef}
                 type="file"
                 accept=".csv,.xlsx,.xls"
-                onChange={handleFileChange}
+                onChange={dataFlow.handleFileChange}
                 className="hidden"
               />
 
               <div className="flex gap-3 mb-8">
                 <button
-                  onClick={triggerFileUpload}
+                  onClick={dataFlow.triggerFileUpload}
                   className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   <Upload size={20} />
@@ -621,7 +422,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 </button>
 
                 <button
-                  onClick={() => setIsPasteMode(true)}
+                  onClick={() => dataFlow.setIsPasteMode(true)}
                   className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
                 >
                   <ClipboardPaste size={20} />
@@ -629,7 +430,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 </button>
 
                 <button
-                  onClick={() => setIsManualEntry(true)}
+                  onClick={() => dataFlow.setIsManualEntry(true)}
                   className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
                 >
                   <PenLine size={20} />
@@ -652,7 +453,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                       <button
                         key={sample.urlKey}
                         data-testid={`sample-${sample.urlKey}`}
-                        onClick={() => handleLoadSample(sample)}
+                        onClick={() => dataFlow.handleLoadSample(sample)}
                         className="text-left p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg transition-all group"
                       >
                         <span className="text-sm font-medium text-white group-hover:text-blue-300 block truncate">
@@ -671,16 +472,16 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           // Dashboard with charts, optional data panel, and optional mindmap
           <div className="flex-1 flex overflow-hidden">
             <Dashboard
-              drillFromPerformance={drillFromPerformance}
-              onBackToPerformance={handleBackToPerformance}
-              onDrillToMeasure={handleDrillToMeasure}
-              onPointClick={handlePointClick}
-              highlightedPointIndex={highlightedChartPoint}
+              drillFromPerformance={dataFlow.drillFromPerformance}
+              onBackToPerformance={dataFlow.handleBackToPerformance}
+              onDrillToMeasure={dataFlow.handleDrillToMeasure}
+              onPointClick={panels.handlePointClick}
+              highlightedPointIndex={panels.highlightedChartPoint}
               filterNav={filterNav}
             />
             <MindmapPanel
-              isOpen={isMindmapOpen}
-              onClose={() => setIsMindmapOpen(false)}
+              isOpen={panels.isMindmapOpen}
+              onClose={() => panels.setIsMindmapOpen(false)}
               onOpenPopout={handleOpenMindmapPopout}
               data={rawData}
               factors={factors}
@@ -697,35 +498,35 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 });
               }}
               onNavigateToWhatIf={() => {
-                setIsMindmapOpen(false);
-                setIsWhatIfOpen(true);
+                panels.setIsMindmapOpen(false);
+                panels.setIsWhatIfOpen(true);
               }}
-              annotations={mindmapAnnotations}
-              onAnnotationsChange={setMindmapAnnotations}
+              annotations={panels.mindmapAnnotations}
+              onAnnotationsChange={panels.setMindmapAnnotations}
             />
             <DataPanel
-              isOpen={isDataPanelOpen}
-              onClose={() => setIsDataPanelOpen(false)}
-              highlightRowIndex={highlightRowIndex}
-              onRowClick={handleRowClick}
+              isOpen={panels.isDataPanelOpen}
+              onClose={() => panels.setIsDataPanelOpen(false)}
+              highlightRowIndex={panels.highlightRowIndex}
+              onRowClick={panels.handleRowClick}
               controlViolations={controlViolations}
-              onOpenEditor={() => setIsDataTableOpen(true)}
+              onOpenEditor={() => panels.setIsDataTableOpen(true)}
             />
           </div>
         ) : (
-          // Data loaded but no outcome selected — column mapping fallback
+          // Data loaded but no outcome selected -- column mapping fallback
           <ColumnMapping
-            columnAnalysis={mappingColumnAnalysis}
+            columnAnalysis={dataFlow.mappingColumnAnalysis}
             availableColumns={Object.keys(rawData[0] || {})}
             previewRows={rawData.slice(0, 5)}
             totalRows={rawData.length}
             columnAliases={columnAliases}
-            onColumnRename={handleColumnRename}
+            onColumnRename={dataFlow.handleColumnRename}
             initialOutcome={outcome}
             initialFactors={factors}
             datasetName={dataFilename || 'Data'}
-            onConfirm={handleMappingConfirm}
-            onCancel={handleMappingCancel}
+            onConfirm={dataFlow.handleMappingConfirm}
+            onCancel={dataFlow.handleMappingCancel}
             dataQualityReport={dataQualityReport}
             maxFactors={6}
           />
@@ -734,8 +535,8 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
 
       {/* Data Table Editor Modal */}
       <DataTableModal
-        isOpen={isDataTableOpen}
-        onClose={() => setIsDataTableOpen(false)}
+        isOpen={panels.isDataTableOpen}
+        onClose={() => panels.setIsDataTableOpen(false)}
         excludedRowIndices={excludedRowIndices}
         excludedReasons={excludedReasons}
         controlViolations={controlViolations}

@@ -17,6 +17,11 @@ import {
   isEmbedMode,
 } from '@variscout/core';
 import type { FilterNavigationContext } from './types';
+import {
+  type HistoryState,
+  buildFilterStackFromUrl,
+  buildFilterStackFromState,
+} from './filterUtils';
 
 /**
  * Options for useFilterNavigation hook
@@ -52,41 +57,28 @@ export interface UseFilterNavigationReturn {
     originalIndex?: number;
   }) => void;
 
-  /**
-   * Remove the last filter from the stack
-   */
+  /** Remove the last filter from the stack */
   removeLastFilter: () => void;
 
-  /**
-   * Navigate to a specific point in filter history
-   * Pass 'root' to clear all filters
-   */
+  /** Navigate to a specific point in filter history. Pass 'root' to clear all filters */
   navigateTo: (actionId: string) => void;
 
-  /**
-   * Clear all filter state (back to root)
-   */
+  /** Clear all filter state (back to root) */
   clearFilters: () => void;
 
-  /**
-   * Set highlight without filtering (for I-Chart)
-   */
+  /** Set highlight without filtering (for I-Chart) */
   setHighlight: (rowIndex: number, value: number, originalIndex?: number) => void;
 
-  /**
-   * Clear current highlight
-   */
+  /** Clear current highlight */
   clearHighlight: () => void;
 
-  /**
-   * Check if there are any active filters
-   */
+  /** Check if there are any active filters */
   hasFilters: boolean;
 
   /**
-   * Update the values for an existing filter
-   * If the filter doesn't exist, creates a new one
-   * If newValues is empty, removes the filter
+   * Update the values for an existing filter.
+   * If the filter doesn't exist, creates a new one.
+   * If newValues is empty, removes the filter.
    */
   updateFilterValues: (
     factor: string,
@@ -94,17 +86,8 @@ export interface UseFilterNavigationReturn {
     source?: FilterSource
   ) => void;
 
-  /**
-   * Remove a specific filter by factor name
-   */
+  /** Remove a specific filter by factor name */
   removeFilter: (factor: string) => void;
-}
-
-/**
- * History state stored in browser history
- */
-interface HistoryState {
-  drillFilters: Record<string, (string | number)[]>;
 }
 
 /**
@@ -113,35 +96,13 @@ interface HistoryState {
  * Uses context injection pattern - apps pass their data context
  * rather than this hook importing a specific context.
  *
- * Provides:
- * - Filter stack for tracking navigation history
- * - Breadcrumb generation for UI
- * - Automatic filter sync with DataContext
- * - Toggle behavior (clicking same filter removes it)
- * - Browser history integration (back button support)
- * - URL parameter sync (shareable URLs)
- *
- * @param context - Filter navigation context with filters and setFilters
- * @param options - Configuration options
- * @param options.enableHistory - Push/pop browser history on filter changes
- * @param options.enableUrlSync - Sync filters to URL parameters
- *
  * @example
  * ```tsx
- * // In PWA or Azure app
  * const { filters, setFilters, columnAliases } = useData();
  * const { applyFilter, breadcrumbs, clearFilters } = useFilterNavigation(
  *   { filters, setFilters, columnAliases },
  *   { enableHistory: true, enableUrlSync: true }
  * );
- *
- * // Apply filter from Pareto chart
- * applyFilter({
- *   type: 'filter',
- *   source: 'pareto',
- *   factor: 'DefectType',
- *   values: ['Scratch'],
- * });
  * ```
  */
 export function useFilterNavigation(
@@ -151,16 +112,13 @@ export function useFilterNavigation(
   const { enableHistory = false, enableUrlSync = false } = options;
   const { filters: _filters, setFilters, columnAliases } = context;
 
-  // Filter navigation state
   const [filterStack, setFilterStack] = useState<FilterAction[]>([]);
   const [currentHighlight, setCurrentHighlight] = useState<HighlightState | null>(null);
 
   // Track if we're handling a popstate event (to avoid pushing history)
   const isPopstateRef = useRef(false);
-  // Track if we've initialized from URL
   const hasInitializedRef = useRef(false);
 
-  // Check if we should sync to URL (not in embed mode)
   const shouldSyncUrl = enableUrlSync && !isEmbedMode();
   const shouldUseHistory = enableHistory && !isEmbedMode();
 
@@ -171,31 +129,15 @@ export function useFilterNavigation(
 
     const urlFilters = searchParamsToFilters(new URLSearchParams(window.location.search));
     if (Object.keys(urlFilters).length > 0) {
-      // Create filter actions from URL filters
-      const initialStack: FilterAction[] = [];
-      for (const [factor, values] of Object.entries(urlFilters)) {
-        const action = createFilterAction({
-          type: 'filter',
-          source: 'boxplot', // Default source for URL-loaded filters
-          factor,
-          values,
-        });
-        // Update label with alias if available
-        if (columnAliases[factor]) {
-          action.label = action.label.replace(factor, columnAliases[factor]);
-        }
-        initialStack.push(action);
-      }
+      const initialStack = buildFilterStackFromUrl(urlFilters, columnAliases);
       setFilterStack(initialStack);
       setFilters(urlFilters);
 
-      // Replace current history state to include initial filters
       if (shouldUseHistory) {
         const state: HistoryState = { drillFilters: urlFilters };
         window.history.replaceState(state, '');
       }
     } else if (shouldUseHistory) {
-      // No URL filters - set empty state
       const state: HistoryState = { drillFilters: {} };
       window.history.replaceState(state, '');
     }
@@ -210,32 +152,16 @@ export function useFilterNavigation(
 
       const state = event.state as HistoryState | null;
       const restoredFilters = state?.drillFilters || {};
-
-      // Rebuild filter stack from restored filters
-      const restoredStack: FilterAction[] = [];
-      for (const [factor, values] of Object.entries(restoredFilters)) {
-        const action = createFilterAction({
-          type: 'filter',
-          source: 'boxplot',
-          factor,
-          values,
-        });
-        if (columnAliases[factor]) {
-          action.label = action.label.replace(factor, columnAliases[factor]);
-        }
-        restoredStack.push(action);
-      }
+      const restoredStack = buildFilterStackFromState(restoredFilters, columnAliases);
 
       setFilterStack(restoredStack);
       setFilters(restoredFilters);
 
-      // Update URL to match restored state (if URL sync enabled)
       if (shouldSyncUrl) {
         const newUrl = updateUrlWithFilters(restoredFilters);
         window.history.replaceState(event.state, '', newUrl);
       }
 
-      // Reset flag after state update
       setTimeout(() => {
         isPopstateRef.current = false;
       }, 0);
@@ -251,19 +177,15 @@ export function useFilterNavigation(
       const newFilters = filterStackToFilters(stack);
       setFilters(newFilters);
 
-      // Update URL parameters
       if (shouldSyncUrl) {
         const newUrl = updateUrlWithFilters(newFilters);
         if (shouldUseHistory && pushHistory && !isPopstateRef.current) {
-          // Push new history entry
           const state: HistoryState = { drillFilters: newFilters };
           window.history.pushState(state, '', newUrl);
         } else {
-          // Just update URL without adding history entry
           window.history.replaceState(window.history.state, '', newUrl);
         }
       } else if (shouldUseHistory && pushHistory && !isPopstateRef.current) {
-        // No URL sync but history enabled
         const state: HistoryState = { drillFilters: newFilters };
         window.history.pushState(state, '');
       }
@@ -271,7 +193,6 @@ export function useFilterNavigation(
     [setFilters, shouldSyncUrl, shouldUseHistory]
   );
 
-  // Apply filter to data
   const applyFilter = useCallback(
     (params: {
       type: FilterType;
@@ -281,7 +202,6 @@ export function useFilterNavigation(
       rowIndex?: number;
       originalIndex?: number;
     }) => {
-      // Handle highlight separately (doesn't affect filters)
       if (params.type === 'highlight') {
         if (params.rowIndex !== undefined) {
           setCurrentHighlight({
@@ -293,9 +213,7 @@ export function useFilterNavigation(
         return;
       }
 
-      // Check if this would toggle off an existing filter
       if (shouldToggleFilter(filterStack, params)) {
-        // Find and remove the matching action
         const newStack = filterStack.filter(
           a => !(a.type === 'filter' && a.factor === params.factor)
         );
@@ -304,7 +222,6 @@ export function useFilterNavigation(
         return;
       }
 
-      // Create new filter action with proper label
       const action = createFilterAction({
         type: params.type,
         source: params.source,
@@ -313,7 +230,6 @@ export function useFilterNavigation(
         rowIndex: params.rowIndex,
       });
 
-      // Update label to use column alias if available
       if (params.factor && columnAliases[params.factor]) {
         action.label = action.label.replace(params.factor, columnAliases[params.factor]);
       }
@@ -325,14 +241,12 @@ export function useFilterNavigation(
     [filterStack, columnAliases, syncFiltersFromStack]
   );
 
-  // Remove the last filter
   const removeLastFilter = useCallback(() => {
     const newStack = popFilterStack(filterStack);
     setFilterStack(newStack);
     syncFiltersFromStack(newStack);
   }, [filterStack, syncFiltersFromStack]);
 
-  // Navigate to specific point in history
   const navigateTo = useCallback(
     (actionId: string) => {
       if (actionId === 'root') {
@@ -348,27 +262,22 @@ export function useFilterNavigation(
     [filterStack, syncFiltersFromStack]
   );
 
-  // Clear all filters
   const clearFilters = useCallback(() => {
     setFilterStack([]);
     syncFiltersFromStack([]);
     setCurrentHighlight(null);
   }, [syncFiltersFromStack]);
 
-  // Set highlight (I-Chart)
   const setHighlight = useCallback((rowIndex: number, value: number, originalIndex?: number) => {
     setCurrentHighlight({ rowIndex, value, originalIndex });
   }, []);
 
-  // Clear highlight
   const clearHighlight = useCallback(() => {
     setCurrentHighlight(null);
   }, []);
 
-  // Update values for an existing filter (for multi-select)
   const updateFilterValues = useCallback(
     (factor: string, newValues: (string | number)[], source: FilterSource = 'boxplot') => {
-      // If empty values, remove the filter entirely
       if (newValues.length === 0) {
         const newStack = filterStack.filter(a => !(a.type === 'filter' && a.factor === factor));
         setFilterStack(newStack);
@@ -376,15 +285,12 @@ export function useFilterNavigation(
         return;
       }
 
-      // Find existing filter for this factor
       const existingIndex = filterStack.findIndex(a => a.type === 'filter' && a.factor === factor);
 
       if (existingIndex >= 0) {
-        // Update existing filter's values
         const newStack = [...filterStack];
         const existing = newStack[existingIndex];
         const newLabel = `${factor}: ${newValues.slice(0, 2).map(String).join(', ')}${newValues.length > 2 ? ` +${newValues.length - 2}` : ''}`;
-        // Apply column alias to label if available
         const aliasedLabel = columnAliases[factor]
           ? newLabel.replace(factor, columnAliases[factor])
           : newLabel;
@@ -396,14 +302,12 @@ export function useFilterNavigation(
         setFilterStack(newStack);
         syncFiltersFromStack(newStack);
       } else {
-        // Create new filter
         const action = createFilterAction({
           type: 'filter',
           source,
           factor,
           values: newValues,
         });
-        // Update label with alias if available
         if (columnAliases[factor]) {
           action.label = action.label.replace(factor, columnAliases[factor]);
         }
@@ -415,7 +319,6 @@ export function useFilterNavigation(
     [filterStack, columnAliases, syncFiltersFromStack]
   );
 
-  // Remove a specific filter by factor name
   const removeFilter = useCallback(
     (factor: string) => {
       const newStack = filterStack.filter(a => !(a.type === 'filter' && a.factor === factor));
@@ -425,7 +328,6 @@ export function useFilterNavigation(
     [filterStack, syncFiltersFromStack]
   );
 
-  // Generate breadcrumb items with aliased labels
   const breadcrumbs = useMemo(() => {
     return filterStackToBreadcrumbs(filterStack, 'All Data');
   }, [filterStack]);
