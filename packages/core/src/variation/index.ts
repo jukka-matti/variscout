@@ -7,7 +7,7 @@
  * Internal structure:
  *   types.ts          — Type definitions (DrillVariationResult, ProjectedStats, etc.)
  *   drill.ts          — calculateDrillVariation, applyFilters
- *   contributions.ts  — calculateCategoryTotalSS, calculateCategoryContributions, getCategoryStats
+ *   contributions.ts  — calculateCategoryTotalSS, getCategoryStats
  *   suggestions.ts    — calculateFactorVariations, getMaxCategoryContribution, findOptimalFactors
  *   simulation.ts     — calculateProjectedStats, simulateDirectAdjustment
  */
@@ -17,7 +17,6 @@ export type {
   DrillVariationResult,
   DrillLevelVariation,
   OptimalFactorResult,
-  CategoryContributionResult,
   CategoryTotalSSResult,
   CategoryStats,
   ProjectedStats,
@@ -29,11 +28,7 @@ export type {
 export { calculateDrillVariation, applyFilters } from './drill';
 
 // Category contributions
-export {
-  calculateCategoryTotalSS,
-  calculateCategoryContributions,
-  getCategoryStats,
-} from './contributions';
+export { calculateCategoryTotalSS, getCategoryStats } from './contributions';
 
 // Factor suggestions
 export {

@@ -177,7 +177,6 @@ export type {
   DrillVariationResult,
   DrillLevelVariation,
   OptimalFactorResult,
-  CategoryContributionResult,
   CategoryTotalSSResult,
   CategoryStats,
   ProjectedStats,
@@ -240,3 +239,6 @@ export {
 
 // Selection utilities (Minitab-style brushing)
 export { createFactorFromSelection, isValidFactorName, getColumnNames } from './utils/selection';
+
+// Numeric utilities (stack-safe for large datasets)
+export { safeMin, safeMax } from './utils/minmax';

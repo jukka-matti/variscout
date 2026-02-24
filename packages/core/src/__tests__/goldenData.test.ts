@@ -13,12 +13,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import type { DataRow } from '../../types';
 import { loadCsv } from './fixtures/loadCsv';
 import { calculateStats, calculateAnova, getEtaSquared, calculateRegression } from '../stats';
-import {
-  applyFilters,
-  calculateDrillVariation,
-  calculateCategoryTotalSS,
-  calculateCategoryContributions,
-} from '../variation';
+import { applyFilters, calculateDrillVariation, calculateCategoryTotalSS } from '../variation';
 
 // ============================================================================
 // Coffee dataset — washing-station.csv
@@ -226,17 +221,9 @@ describe('Golden Data: Coffee Washing Station', () => {
       expect(pctA! + pctB! + pctC!).toBeCloseTo(100, 1);
     });
 
-    it('should show Bed C dominating between-group contributions', () => {
-      const result = calculateCategoryContributions(data, 'Drying_Bed', 'Moisture_pct');
-
-      expect(result).not.toBeNull();
-      // Factor η² ≈ 0.853
-      expect(result!.factorEtaSquared).toBeCloseTo(0.8533, 2);
-
-      const pctC = result!.contributions.get('C');
-      expect(pctC).toBeDefined();
-      // Bed C alone drives most of the between-group variation
-      expect(pctC!).toBeGreaterThan(50);
+    it('should show high between-group variation (η²)', () => {
+      const etaSq = getEtaSquared(data, 'Drying_Bed', 'Moisture_pct');
+      expect(etaSq).toBeCloseTo(0.8533, 2);
     });
   });
 });

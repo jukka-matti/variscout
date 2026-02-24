@@ -101,27 +101,6 @@ export interface CategoryStats {
 }
 
 /**
- * Result of category contribution calculation
- */
-export interface CategoryContributionResult {
-  /**
-   * Map from category value to percentage of total variation
-   * Sum of all percentages equals the factor's eta squared percentage
-   */
-  contributions: Map<string | number, number>;
-
-  /**
-   * Total factor eta squared (sum of all category contributions as decimal)
-   */
-  factorEtaSquared: number;
-
-  /**
-   * Total SS for reference
-   */
-  ssTotal: number;
-}
-
-/**
  * Result of Total SS contribution calculation per category
  */
 export interface CategoryTotalSSResult {
