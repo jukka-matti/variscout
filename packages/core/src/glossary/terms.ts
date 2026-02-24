@@ -203,7 +203,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'A modified R² that adjusts for the number of predictors. Only increases if a new predictor improves the model more than expected by chance.',
     description:
-      'Unlike regular R², adjusted R² penalizes adding predictors that do not meaningfully improve the model. Use it to compare models with different numbers of predictors. Formula: 1 - [(1 - R²)(n - 1) / (n - p - 1)].',
+      'In VariScout, Adjusted R² is the primary quality metric for multi-predictor models. The standard R² always increases when predictors are added, even if they are noise. Adjusted R² penalizes unnecessary complexity and only increases when a new factor genuinely improves the model. Use it to compare models with different numbers of predictors. Formula: 1 - [(1 - R²)(n - 1) / (n - p - 1)].',
     category: 'statistics',
     learnMorePath: '/tools/regression',
     relatedTerms: ['rSquared', 'multipleRegression'],

@@ -71,15 +71,15 @@ interface RegressionResult {
 }
 ```
 
-Use `analyzeRegression()` from `@variscout/core` to compute this result from raw data.
+Use `calculateRegression()` from `@variscout/core` to compute this result from raw data.
 
 ### Example
 
 ```tsx
 import ScatterPlot from '@variscout/charts/ScatterPlot';
-import { analyzeRegression } from '@variscout/core';
+import { calculateRegression } from '@variscout/core';
 
-const regression = analyzeRegression(data, 'temperature', 'output');
+const regression = calculateRegression(data, 'temperature', 'output');
 
 <ScatterPlot
   regression={regression}
@@ -123,13 +123,15 @@ The chart displays a 5-star rating based on R² value:
 
 | R² Range    | Stars | Interpretation |
 | ----------- | ----- | -------------- |
-| < 0.25      | ★☆☆☆☆ | Very weak      |
-| 0.25 - 0.50 | ★★☆☆☆ | Weak           |
+| < 0.30      | ★☆☆☆☆ | Very weak      |
+| 0.30 - 0.50 | ★★☆☆☆ | Weak           |
 | 0.50 - 0.70 | ★★★☆☆ | Moderate       |
-| 0.70 - 0.85 | ★★★★☆ | Strong         |
-| >= 0.85     | ★★★★★ | Very strong    |
+| 0.70 - 0.90 | ★★★★☆ | Strong         |
+| >= 0.90     | ★★★★★ | Very strong    |
 
 Stars are displayed in yellow (`chartColors.star`) next to the R² value when `showStars={true}` and width > 200px.
+
+> **Note:** These thresholds apply to **simple regression** (single X vs Y). For multi-predictor models, use Adjusted R² from the Advanced Regression view — it penalizes overfitting and is the correct metric for comparing models with different numbers of predictors.
 
 ---
 
@@ -139,7 +141,7 @@ Stars are displayed in yellow (`chartColors.star`) next to the R² value when `s
 DataContext (PWA/Azure)
     |
 RegressionPanel.tsx
-    | analyzeRegression() from @variscout/core
+    | calculateRegression() from @variscout/core
 ScatterPlot (responsive wrapper)
     | Compute linear/quadratic line points
 ScatterPlotBase (renders SVG)

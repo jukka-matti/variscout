@@ -59,6 +59,8 @@ When using multiple predictors:
 | VIF         | Check for multicollinearity              |
 | p-values    | Significance of each predictor           |
 
+> **Design principle — Adjusted R², not R²**: In multi-predictor models, always evaluate model quality using Adjusted R². Raw R² increases mechanically with every added predictor, even noise. Adjusted R² penalizes unnecessary complexity and only increases when a new factor genuinely improves the model. Simple (single-predictor) regression shows raw R² since both metrics are equivalent with one predictor.
+
 ### When to Use Multiple Regression
 
 Use multiple regression when:
@@ -126,12 +128,12 @@ Sequential drill-down (ANOVA) captures **main effects** only. If factors interac
 
 ### Coming from Investigation Mindmap
 
-When drilling 2+ factors, the Investigation Mindmap surfaces a guidance prompt:
+The Investigation Mindmap provides two direct bridges to the Regression Panel:
 
-> "Your drill-down shows main effects. To check if factors interact,
-> use the Regression Panel with 'Include interactions'."
+- **ConclusionPanel** (bottom of mindmap): When 2+ factors are drilled, the "Refine in Regression" button navigates to the Regression Panel with all investigated factors pre-populated as predictors.
+- **EdgeTooltip** (Interaction mode): Clicking an interaction edge shows delta-R², p-value, and standardized beta. The "Model in Regression" button navigates to the Regression Panel with that specific factor pair pre-populated.
 
-Click **"Check Interactions →"** to navigate directly to Regression Panel.
+Both buttons pre-fill the Regression Panel's predictor selection, so the analyst can immediately run the model without manual configuration.
 
 ### Interpreting Interaction Terms
 
@@ -151,13 +153,13 @@ VariScout's implementation:
 
 ```typescript
 // From @variscout/core
-import { calculateRegression, calculateMultiRegression } from '@variscout/core';
+import { calculateRegression, calculateMultipleRegression } from '@variscout/core';
 
 // Simple regression
 const result = calculateRegression(data, 'X', 'Y');
 
 // Multiple regression with interactions
-const multiResult = calculateMultiRegression(data, ['X1', 'X2'], 'Y', {
+const multiResult = calculateMultipleRegression(data, ['X1', 'X2'], 'Y', {
   includeInteractions: true,
 });
 ```
