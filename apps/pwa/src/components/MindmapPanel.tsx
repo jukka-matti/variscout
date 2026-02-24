@@ -137,6 +137,8 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           onCopyToClipboard={handleCopyToClipboard}
           copyFeedback={copyFeedback}
           columnAliases={columnAliases}
+          factorCount={factors.length}
+          dataCount={data.length}
         >
           <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">
             <InvestigationMindmapBase

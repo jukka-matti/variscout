@@ -4,7 +4,7 @@ A contextual hint that guides users from drill-down analysis to regression for i
 
 ## Overview
 
-The Interaction Guidance component appears in the Variation Funnel when users have selected 2+ factors. It educates users about the limitation of sequential ANOVA (main effects only) and provides a direct link to the Regression Panel.
+The Interaction Guidance component appears in the Investigation Mindmap when users have selected 2+ factors. It educates users about the limitation of sequential ANOVA (main effects only) and provides a direct link to the Regression Panel.
 
 ## Usage
 
@@ -32,6 +32,8 @@ import InteractionGuidance from './components/InteractionGuidance';
 
 - **Shows:** When `drillFactorCount >= 2`
 - **Hides:** When fewer than 2 factors selected
+
+Note: This same 2+ factor threshold is also used to gate the Interactions mode in the Investigation Mindmap's mode toggle. When fewer than 2 factors are drilled, both InteractionGuidance and the Interactions mode remain unavailable. The Interactions mode additionally requires n >= 5 after filtering.
 
 ## Visual Design
 

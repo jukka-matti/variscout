@@ -28,6 +28,18 @@ The three-layer architecture reduces the current PWA from 20+ guidance surfaces 
 
 The Mindmap has three switchable modes that share the same node layout but show different information. A mode toggle (segmented control) at the top of the mindmap switches between modes. Nodes stay fixed during transitions; only edges, annotations, and layout direction change.
 
+### Mode Progressive Disclosure
+
+Modes unlock progressively as the investigation progresses. The segmented control always shows all three modes, but unavailable modes are muted with a tooltip explaining the requirement.
+
+| Mode            | Available When                                       | Disabled Reason Tooltip                           |
+| --------------- | ---------------------------------------------------- | ------------------------------------------------- |
+| **Drilldown**   | Always                                               | (never disabled)                                  |
+| **Interaction** | 2+ factors in the dataset AND n >= 5 after filtering | "Requires 2+ factors with at least 5 data points" |
+| **Narrative**   | 1+ drill applied (at least one filter active)        | "Apply a filter to start building the timeline"   |
+
+This is a mode-level progressive disclosure: the analyst cannot switch to Interaction Mode until the data supports pairwise regression, and cannot switch to Narrative Mode until there is at least one drill step to narrate. The gating prevents empty-state confusion.
+
 ### Drilldown Mode
 
 The default mode. Shows the factor landscape and investigation path.
@@ -196,7 +208,10 @@ The Investigation Mindmap is a **PWA + Azure feature only**. The Excel Add-in ha
 - **Panel model**: Slide-out panel from the right side, occupying the same slot as the current Funnel Panel. Reuses the `FunnelPanel.tsx` shell (backdrop, escape-to-close, outside-click-to-close).
 - **Pop-out window**: Available as an option. Reuses the `FunnelWindow.tsx` bidirectional sync pattern (localStorage + postMessage). The analyst can drag the Mindmap to a second monitor while the main dashboard stays on the primary screen.
 - **Modes available**: Drilldown Mode (full), Interaction Mode (full), Narrative Mode (view only — PNG export limited to screenshot).
-- **Trigger**: The existing funnel icon in the header opens the Mindmap panel instead of the Funnel Panel.
+- **Trigger**: Labelled "Investigation" button (Network icon + text) in the header. Replaces the previous unlabelled icon toggle.
+- **First-drill prompt**: A one-time callout (`InvestigationPrompt`) appears when the user applies their first filter, pointing them to the Investigation panel. Dismissed per session via sessionStorage.
+- **VariationBar gateway**: The VariationBar accepts an optional `onClick` prop, allowing it to serve as an additional entry point to the Investigation panel.
+- **Export**: Copy-to-clipboard, PNG download, and SVG download available in all three modes (Drilldown, Interactions, Narrative).
 
 ### Azure
 
@@ -204,21 +219,27 @@ The Investigation Mindmap is a **PWA + Azure feature only**. The Excel Add-in ha
 - **Split-pane option**: On desktop (viewport > 1280px), the Mindmap can open as a persistent side panel alongside the dashboard. This is appropriate for Azure's desktop-oriented professional workflow.
 - **Pop-out window**: Same as PWA.
 - **Modes available**: All three modes with full functionality.
-- **Narrative export**: Full PNG/SVG export, designed for team presentations (Olivia's use case). Annotations are saved with the project (OneDrive sync).
+- **Trigger**: Labelled "Investigation" button (Network icon + text), same as PWA.
+- **First-drill prompt**: Same `InvestigationPrompt` callout as PWA (azure color scheme variant).
+- **VariationBar gateway**: Same clickable VariationBar as PWA.
+- **Export**: Copy-to-clipboard, PNG download, and SVG download available in all three modes. SVG export is Azure-only. Annotations are saved with the project (OneDrive sync).
 
 ### Excel Add-in — Explicitly Excluded
 
 The Excel Add-in uses native Excel slicers for filtering. There is no progressive drill-down workflow, no filter breadcrumbs, no cumulative η² tracking. The Mindmap concept does not apply to the slicer interaction model. The Excel Add-in's investigation workflow is: set slicer values → read chart → adjust slicers. This is fundamentally different from the PWA/Azure drill-down-and-refine workflow.
 
-### Narrative Export by Platform
+### Export by Platform
 
-| Capability             | PWA (free)                 | Azure (paid)                  |
-| ---------------------- | -------------------------- | ----------------------------- |
-| View Narrative Mode    | Yes                        | Yes                           |
-| PNG export             | Basic (browser screenshot) | Full (high-resolution render) |
-| SVG export             | No                         | Yes                           |
-| Annotations            | Session-only (not saved)   | Saved with project (OneDrive) |
-| Template customization | No                         | Future (post-MVP)             |
+Export (copy-to-clipboard, PNG, SVG) is available in all three modes, not only Narrative.
+
+| Capability             | PWA (free)                               | Azure (paid)                             |
+| ---------------------- | ---------------------------------------- | ---------------------------------------- |
+| Export modes           | All (Drilldown, Interactions, Narrative) | All (Drilldown, Interactions, Narrative) |
+| Copy to clipboard      | Yes                                      | Yes                                      |
+| PNG export             | Yes (high-resolution render)             | Yes (high-resolution render)             |
+| SVG export             | No                                       | Yes                                      |
+| Annotations            | Session-only (not saved)                 | Saved with project (OneDrive)            |
+| Template customization | No                                       | Future (post-MVP)                        |
 
 ---
 
@@ -233,8 +254,10 @@ The Mindmap's core design principle is progressive disclosure — the answer to 
 | **Default view**      | Panel opens     | Factor nodes + drill trail + progress footer                                        | Low — 3–5 nodes, one trail, one bar     |
 | **Hover**             | Mouse over node | Factor name, η² value, current filter value (if active)                             | Low — single tooltip                    |
 | **Click**             | Click on node   | Popover with category values, contribution % per category, "drill" action per value | Moderate — one factor's detail          |
-| **Mode switch**       | Toggle control  | Drilldown ↔ Interaction ↔ Narrative                                                 | Moderate — changes the information lens |
+| **Mode switch**       | Toggle control  | Drilldown ↔ Interaction ↔ Narrative (gated — see below)                             | Moderate — changes the information lens |
 | **Interaction hover** | Mouse over edge | ΔR², p-value, plain-language description                                            | Moderate — single interaction detail    |
+
+**Mode-level gating**: Modes themselves are gated by progressive disclosure. Interactions mode requires 2+ factors AND n >= 5 after filtering. Narrative mode requires at least 1 drill applied. Disabled modes appear muted in the segmented control with a tooltip explaining what is needed to unlock them. This prevents the analyst from encountering empty or meaningless views.
 
 ### What Is Never Shown Simultaneously
 

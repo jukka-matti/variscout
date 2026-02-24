@@ -105,36 +105,26 @@ The percentage on each chip shows that factor's **contribution to variation**:
 - Helps prioritize which factors matter most
 
 !!! info "Cumulative vs Individual"
-Each chip shows its individual contribution. The variation funnel shows cumulative progress.
+Each chip shows its individual contribution. The VariationBar and Investigation Mindmap footer show cumulative progress.
 
-## Variation Funnel
+## Tracking Your Investigation
 
-The funnel visualization tracks your cumulative progress:
+Two mechanisms track your cumulative progress as you drill down:
 
-```
-100% ─────────────────── Total variation
- │
- │ Shift: Night (-46%)
- │ ▼
-54% ─────────────── Remaining
- │
- │ Operator: B (-23%)
- │ ▼
-31% ─────────── Remaining
- │
- │ Machine: 3 (-15%)
- │ ▼
-16% ─────── Unexplained (common cause)
-```
+**VariationBar** — A horizontal progress bar visible above the charts showing the cumulative percentage of total variation currently in focus. As you apply filters, the bar fills to reflect how much of the overall variation your current filter path accounts for.
 
-### Reading the Funnel
+**Investigation Mindmap footer** — The Mindmap's progress footer displays the same cumulative percentage alongside the drill trail, giving you a spatial view of your investigation path and how much variation each step captured.
 
-| Funnel Level     | Interpretation            |
-| ---------------- | ------------------------- |
-| > 50% remaining  | More drilling needed      |
-| 30-50% remaining | Significant factors found |
-| < 30% remaining  | Good isolation            |
-| < 15% remaining  | Common cause only         |
+Together, these tell you whether your drill-down has isolated enough variation to act on or whether further filtering is needed.
+
+### Interpreting Cumulative Progress
+
+| Variation outside focus | Interpretation            |
+| ----------------------- | ------------------------- |
+| > 50% remaining         | More drilling needed      |
+| 30-50% remaining        | Significant factors found |
+| < 30% remaining         | Good isolation            |
+| < 15% remaining         | Common cause only         |
 
 ## Single-Select vs Multi-Select
 

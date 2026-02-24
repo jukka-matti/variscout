@@ -265,7 +265,7 @@ describe('Dashboard', () => {
     expect(downloadMenus).toHaveLength(3); // I-Chart, Boxplot, Pareto
 
     const copyButtons = screen.getAllByLabelText(/^Copy .+ to clipboard$/);
-    expect(copyButtons).toHaveLength(3);
+    expect(copyButtons).toHaveLength(4); // Dashboard + I-Chart + Boxplot + Pareto
   });
 
   it('renders editable chart titles', () => {

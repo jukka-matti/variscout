@@ -80,7 +80,7 @@ Each phase requires a different cognitive approach. Separating them reduces cogn
 
 ## Why Separate Phases?
 
-An earlier design (the Variation Funnel) conflated all three modes into a single dense panel. The problem: analysts were simultaneously trying to explore data, simplify models, and imagine improvements. This led to:
+An earlier design (the now-removed Variation Funnel) conflated all three modes into a single dense panel. The problem: analysts were simultaneously trying to explore data, simplify models, and imagine improvements. This led to:
 
 - **Premature model reduction** — removing terms before the investigation was complete
 - **Confirmation bias** — jumping to projections before understanding the full picture
@@ -92,13 +92,15 @@ The three-phase approach mirrors how experienced quality engineers actually thin
 
 **Goal:** Identify the factors driving variation.
 
-Use the Investigation Mindmap to progressively drill into the data:
+Use the Investigation Mindmap to progressively drill into the data. Modes unlock as the investigation progresses:
 
-1. **Drilldown mode** — Click factors to filter. Each node shows its contribution to total variation. Follow the highest contribution path.
+1. **Drilldown mode** (always available) — Click factors to filter. Each node shows its contribution to total variation. Follow the highest contribution path.
 
-2. **Interaction mode** — Check whether factors combine. Two factors with low individual contribution can have a large joint effect.
+2. **Interaction mode** (unlocks with 2+ factors and n >= 5) — Check whether factors combine. Two factors with low individual contribution can have a large joint effect. This mode is disabled until the dataset has at least two categorical factors and enough data points to compute pairwise regression.
 
-3. **Narrative mode** — Review the investigation timeline. See every drill step in sequence to verify the logic.
+3. **Narrative mode** (unlocks after first drill) — Review the investigation timeline. See every drill step in sequence to verify the logic. This mode is disabled until at least one filter has been applied.
+
+Disabled modes appear muted in the mode toggle with a tooltip explaining the unlock condition. Export (copy-to-clipboard, PNG download) is available in all three modes.
 
 ### Exit criterion
 

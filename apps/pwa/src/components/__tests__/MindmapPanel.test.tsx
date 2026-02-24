@@ -59,7 +59,13 @@ vi.mock('@variscout/hooks', () => ({
 const defaultProps = {
   isOpen: true,
   onClose: vi.fn(),
-  data: [{ Machine: 'A', Shift: 'Morning', Value: 10 }],
+  data: [
+    { Machine: 'A', Shift: 'Morning', Value: 10 },
+    { Machine: 'B', Shift: 'Morning', Value: 11 },
+    { Machine: 'A', Shift: 'Evening', Value: 12 },
+    { Machine: 'B', Shift: 'Evening', Value: 13 },
+    { Machine: 'A', Shift: 'Night', Value: 14 },
+  ],
   factors: ['Machine', 'Shift'],
   outcome: 'Value',
   filterStack: [],
@@ -110,14 +116,9 @@ describe('MindmapPanel', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it('shows Export PNG button only in narrative mode', () => {
-    // Default mode is drilldown — no Export button
-    const { rerender } = render(<MindmapPanel {...defaultProps} />);
-    expect(screen.queryByLabelText('Export as PNG')).not.toBeInTheDocument();
-
-    // Switch to narrative mode
-    mockMindmapState = { ...mockMindmapState, mode: 'narrative' as const };
-    rerender(<MindmapPanel {...defaultProps} />);
+  it('shows Export PNG button in all modes', () => {
+    // Export available in drilldown mode
+    render(<MindmapPanel {...defaultProps} />);
     expect(screen.getByLabelText('Export as PNG')).toBeInTheDocument();
   });
 
@@ -159,17 +160,52 @@ describe('MindmapPanel', () => {
     expect(screen.getByText('80%')).toBeInTheDocument();
   });
 
-  it('calls setMode when mode toggle buttons are clicked', () => {
+  it('calls setMode when enabled mode toggle buttons are clicked', () => {
+    // With 5 data rows + 2 factors, Interactions is enabled
+    // Narrative requires 1+ drill, so add a drillPath entry
+    mockMindmapState = {
+      ...mockMindmapState,
+      drillPath: [
+        {
+          factor: 'Machine',
+          values: ['A'],
+          label: 'Machine = A',
+          timestamp: Date.now(),
+          scopeFraction: 0.8,
+          cumulativeScope: 0.8,
+          meanBefore: 15,
+          meanAfter: 10.5,
+          cpkBefore: 1.2,
+          cpkAfter: 1.8,
+          countBefore: 5,
+          countAfter: 3,
+        },
+      ],
+    };
     render(<MindmapPanel {...defaultProps} />);
 
+    // Click Interactions (not currently active, enabled with 2 factors + 5 rows)
     fireEvent.click(screen.getByText('Interactions'));
     expect(mockMindmapState.setMode).toHaveBeenCalledWith('interactions');
 
+    // Click Narrative (not currently active, enabled with 1+ drillPath)
     fireEvent.click(screen.getByText('Narrative'));
     expect(mockMindmapState.setMode).toHaveBeenCalledWith('narrative');
+  });
 
+  it('does not call setMode when clicking already-active mode', () => {
+    render(<MindmapPanel {...defaultProps} />);
+
+    // Drilldown is already active (default mode)
     fireEvent.click(screen.getByText('Drilldown'));
-    expect(mockMindmapState.setMode).toHaveBeenCalledWith('drilldown');
+    expect(mockMindmapState.setMode).not.toHaveBeenCalledWith('drilldown');
+  });
+
+  it('disables Narrative mode when no drills applied', () => {
+    render(<MindmapPanel {...defaultProps} />);
+
+    const narrativeBtn = screen.getByText('Narrative');
+    expect(narrativeBtn).toBeDisabled();
   });
 
   it('renders mindmap chart component', () => {

@@ -68,6 +68,10 @@ export interface MindmapPanelContentProps {
   onCopyToClipboard?: () => void;
   /** Whether copy feedback (Check icon) is active */
   copyFeedback?: boolean;
+  /** Number of factors for mode gating */
+  factorCount?: number;
+  /** Number of data rows for mode gating */
+  dataCount?: number;
 }
 
 /**
@@ -91,6 +95,8 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
   onExportSvg,
   onCopyToClipboard,
   copyFeedback,
+  factorCount,
+  dataCount,
 }) => {
   const c = colorScheme;
 
@@ -105,44 +111,43 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
           setMode={setMode}
           toggleBg={c.toggleBg}
           inactiveText={c.inactiveText}
+          factorCount={factorCount}
+          drillCount={drillPath.length}
+          dataCount={dataCount}
         />
 
         <div className="flex items-center gap-1">
-          {mode === 'narrative' && (
-            <>
-              {onCopyToClipboard && (
-                <button
-                  onClick={onCopyToClipboard}
-                  className={`p-1.5 rounded-lg transition-all ${
-                    copyFeedback
-                      ? 'bg-green-500/20 text-green-400'
-                      : `${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg}`
-                  }`}
-                  title="Copy to clipboard"
-                  aria-label="Copy to clipboard"
-                >
-                  {copyFeedback ? <Check size={14} /> : <Copy size={14} />}
-                </button>
-              )}
-              <button
-                onClick={onExportPng}
-                className={`p-1.5 ${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg} rounded-lg transition-colors`}
-                title="Export as PNG"
-                aria-label="Export as PNG"
-              >
-                <Download size={14} />
-              </button>
-              {showSvgExport && onExportSvg && (
-                <button
-                  onClick={onExportSvg}
-                  className={`p-1.5 ${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg} rounded-lg transition-colors`}
-                  title="Export as SVG"
-                  aria-label="Export as SVG"
-                >
-                  <FileCode size={14} />
-                </button>
-              )}
-            </>
+          {onCopyToClipboard && (
+            <button
+              onClick={onCopyToClipboard}
+              className={`p-1.5 rounded-lg transition-all ${
+                copyFeedback
+                  ? 'bg-green-500/20 text-green-400'
+                  : `${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg}`
+              }`}
+              title="Copy to clipboard"
+              aria-label="Copy to clipboard"
+            >
+              {copyFeedback ? <Check size={14} /> : <Copy size={14} />}
+            </button>
+          )}
+          <button
+            onClick={onExportPng}
+            className={`p-1.5 ${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg} rounded-lg transition-colors`}
+            title="Export as PNG"
+            aria-label="Export as PNG"
+          >
+            <Download size={14} />
+          </button>
+          {showSvgExport && onExportSvg && (
+            <button
+              onClick={onExportSvg}
+              className={`p-1.5 ${c.actionButtonText} hover:text-white ${c.actionButtonHoverBg} rounded-lg transition-colors`}
+              title="Export as SVG"
+              aria-label="Export as SVG"
+            >
+              <FileCode size={14} />
+            </button>
           )}
           {onOpenPopout && (
             <button

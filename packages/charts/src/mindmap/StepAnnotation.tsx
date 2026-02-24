@@ -86,8 +86,8 @@ const StepAnnotation: React.FC<StepAnnotationProps> = ({
       <foreignObject x={boxLeft} y={boxTop} width={ANNOTATION_BOX_WIDTH} height={boxHeight}>
         <div
           style={{
-            background: 'rgba(30,41,59,0.85)',
-            border: '1px solid #334155',
+            background: `${chrome.tooltipBg}d9`,
+            border: `1px solid ${chrome.gridLine}`,
             borderRadius: 6,
             padding: '6px 8px',
             fontSize: 10,
@@ -96,13 +96,15 @@ const StepAnnotation: React.FC<StepAnnotationProps> = ({
           }}
           onClick={onAnnotationChange && !isEditing ? handleStartEdit : undefined}
         >
-          <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 2 }}>
+          <div style={{ color: chrome.tooltipText, fontWeight: 600, marginBottom: 2 }}>
             {columnAliases?.[step.factor] || step.factor} = {valuesLabel}
           </div>
-          <div style={{ color: '#94a3b8' }}>
+          <div style={{ color: chrome.labelSecondary }}>
             {(step.scopeFraction * 100).toFixed(0)}% of variation in scope
           </div>
-          <div style={{ color: meanImproved ? chartColors.pass : '#e2e8f0', marginTop: 2 }}>
+          <div
+            style={{ color: meanImproved ? chartColors.pass : chrome.tooltipText, marginTop: 2 }}
+          >
             Mean: {step.meanBefore.toFixed(1)} &rarr; {step.meanAfter.toFixed(1)}
           </div>
           {step.cpkBefore !== undefined && step.cpkAfter !== undefined && (
@@ -110,7 +112,7 @@ const StepAnnotation: React.FC<StepAnnotationProps> = ({
               Cpk: {step.cpkBefore.toFixed(2)} &rarr; {step.cpkAfter.toFixed(2)}
             </div>
           )}
-          <div style={{ color: '#94a3b8' }}>
+          <div style={{ color: chrome.labelSecondary }}>
             n: {step.countBefore} &rarr; {step.countAfter}
           </div>
 
@@ -140,14 +142,14 @@ const StepAnnotation: React.FC<StepAnnotationProps> = ({
                   padding: '3px 5px',
                   fontSize: 10,
                   lineHeight: 1.4,
-                  color: '#e2e8f0',
+                  color: chrome.tooltipText,
                   resize: 'none',
                   outline: 'none',
                 }}
                 onClick={e => e.stopPropagation()}
                 placeholder="Add a note..."
               />
-              <div style={{ fontSize: 8, color: '#64748b', marginTop: 2 }}>
+              <div style={{ fontSize: 8, color: chrome.labelMuted, marginTop: 2 }}>
                 Enter to save &middot; Esc to cancel
               </div>
             </div>
@@ -167,7 +169,25 @@ const StepAnnotation: React.FC<StepAnnotationProps> = ({
               {step.annotation}
             </div>
           ) : onAnnotationChange ? (
-            <div style={{ marginTop: 4, color: '#475569', fontSize: 9 }}>+ Add note</div>
+            <div
+              style={{
+                marginTop: 4,
+                color: chrome.labelSecondary,
+                fontSize: 11,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.textDecoration = 'underline';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.textDecoration = 'none';
+              }}
+            >
+              <span style={{ fontSize: 13, lineHeight: 1 }}>+</span> Add note
+            </div>
           ) : null}
         </div>
       </foreignObject>

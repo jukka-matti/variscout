@@ -124,9 +124,9 @@ Sequential drill-down (ANOVA) captures **main effects** only. If factors interac
 3. Toggle **"Include interactions"** checkbox
 4. Review the ANOVA table for significant interaction terms
 
-### Coming from Variation Funnel
+### Coming from Investigation Mindmap
 
-When drilling 2+ factors, the Variation Funnel shows a guidance prompt:
+When drilling 2+ factors, the Investigation Mindmap surfaces a guidance prompt:
 
 > "Your drill-down shows main effects. To check if factors interact,
 > use the Regression Panel with 'Include interactions'."

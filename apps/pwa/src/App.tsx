@@ -7,7 +7,12 @@ import DataTableModal from './components/data/DataTableModal';
 import DataPanel from './components/data/DataPanel';
 import MindmapPanel from './components/MindmapPanel';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
-import { ColumnMapping, MindmapWindow, openMindmapPopout } from '@variscout/ui';
+import {
+  ColumnMapping,
+  MindmapWindow,
+  openMindmapPopout,
+  InvestigationPrompt,
+} from '@variscout/ui';
 import Dashboard from './components/Dashboard';
 import HomeScreen from './components/HomeScreen';
 import PasteScreen from './components/data/PasteScreen';
@@ -298,6 +303,15 @@ function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* First-drill investigation prompt */}
+      {rawData.length > 0 && outcome && !isEmbedMode && (
+        <InvestigationPrompt
+          filterCount={filterNav.filterStack.length}
+          isMindmapOpen={panels.isMindmapPanelOpen}
+          onOpenMindmap={panels.handleToggleMindmapPanel}
+        />
       )}
 
       {/* Main Content */}

@@ -205,32 +205,33 @@ const MindmapWindow: React.FC<MindmapWindowProps> = ({
           setMode={setMode}
           toggleBg={c.toggleBg}
           inactiveText={`${c.secondaryText} hover:text-white`}
+          factorCount={factors.length}
+          drillCount={localFilterStack.length}
+          dataCount={rawData.length}
         />
 
-        {mode === 'narrative' && (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handleCopyToClipboard}
-              className={`p-1.5 rounded-lg transition-all ${
-                copyFeedback
-                  ? 'bg-green-500/20 text-green-400'
-                  : `${c.secondaryText} hover:text-white ${c.buttonHoverBg}`
-              }`}
-              title="Copy to clipboard"
-              aria-label="Copy to clipboard"
-            >
-              {copyFeedback ? <Check size={14} /> : <Copy size={14} />}
-            </button>
-            <button
-              onClick={handleExportPng}
-              className={`p-1.5 ${c.secondaryText} hover:text-white ${c.buttonHoverBg} rounded-lg transition-colors`}
-              title="Export as PNG"
-              aria-label="Export as PNG"
-            >
-              <Download size={14} />
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleCopyToClipboard}
+            className={`p-1.5 rounded-lg transition-all ${
+              copyFeedback
+                ? 'bg-green-500/20 text-green-400'
+                : `${c.secondaryText} hover:text-white ${c.buttonHoverBg}`
+            }`}
+            title="Copy to clipboard"
+            aria-label="Copy to clipboard"
+          >
+            {copyFeedback ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+          <button
+            onClick={handleExportPng}
+            className={`p-1.5 ${c.secondaryText} hover:text-white ${c.buttonHoverBg} rounded-lg transition-colors`}
+            title="Export as PNG"
+            aria-label="Export as PNG"
+          >
+            <Download size={14} />
+          </button>
+        </div>
       </div>
 
       <div ref={mindmapRef}>

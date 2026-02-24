@@ -60,6 +60,8 @@ vi.mock('@variscout/ui', () => ({
       <button onClick={onCancel}>Cancel</button>
     </div>
   ),
+  InvestigationPrompt: () => null,
+  investigationPromptAzureColorScheme: {},
 }));
 
 // ── Mock @variscout/data ──

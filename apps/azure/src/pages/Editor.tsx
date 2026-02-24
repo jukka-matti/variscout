@@ -11,7 +11,11 @@ import { openMindmapPopout } from '../components/MindmapWindow';
 import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
-import { ColumnMapping } from '@variscout/ui';
+import {
+  ColumnMapping,
+  InvestigationPrompt,
+  investigationPromptAzureColorScheme,
+} from '@variscout/ui';
 import { useControlViolations } from '../hooks/useControlViolations';
 import { useDataMerge } from '../hooks/useDataMerge';
 import { downloadCSV } from '@variscout/core';
@@ -338,7 +342,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {rawData.length > 0 && outcome && factors.length > 0 && (
             <button
               onClick={() => panels.setIsMindmapOpen(prev => !prev)}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                 panels.isMindmapOpen
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-400 hover:text-white hover:bg-slate-700'
@@ -346,7 +350,8 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               title={panels.isMindmapOpen ? 'Hide Investigation' : 'Show Investigation'}
               data-testid="btn-investigation"
             >
-              <Network size={18} />
+              <Network size={16} />
+              <span className="hidden lg:inline">Investigation</span>
             </button>
           )}
 
@@ -378,6 +383,16 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           </button>
         </div>
       </div>
+
+      {/* First-drill investigation prompt */}
+      {rawData.length > 0 && outcome && factors.length > 0 && (
+        <InvestigationPrompt
+          filterCount={filterNav.filterStack.length}
+          isMindmapOpen={panels.isMindmapOpen}
+          onOpenMindmap={() => panels.setIsMindmapOpen(true)}
+          colorScheme={investigationPromptAzureColorScheme}
+        />
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">

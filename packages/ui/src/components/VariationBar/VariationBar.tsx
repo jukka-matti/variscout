@@ -48,6 +48,8 @@ export interface VariationBarProps {
   className?: string;
   /** Color scheme for styling */
   colorScheme?: VariationBarColorScheme;
+  /** Optional click handler (e.g., to open the investigation panel) */
+  onClick?: () => void;
 }
 
 /**
@@ -116,6 +118,7 @@ const VariationBar: React.FC<VariationBarProps> = ({
   showLabels = true,
   className = '',
   colorScheme = defaultColorScheme,
+  onClick,
 }) => {
   const impactLevel = getVariationImpactLevel(isolatedPct);
   const barColor = getBarColor(impactLevel);
@@ -126,7 +129,23 @@ const VariationBar: React.FC<VariationBarProps> = ({
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       {/* Bar container */}
-      <div className="relative group">
+      <div
+        className={`relative group${onClick ? ' cursor-pointer' : ''}`}
+        onClick={onClick}
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        aria-label={onClick ? 'Open investigation panel' : undefined}
+        onKeyDown={
+          onClick
+            ? e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onClick();
+                }
+              }
+            : undefined
+        }
+      >
         {/* Background bar */}
         <div className={`h-2 w-full ${colorScheme.barBg} rounded-full overflow-hidden`}>
           {/* Isolated segment */}

@@ -37,11 +37,11 @@ The drill-down methodology captures **main effects** — how much variation each
 
 ### The Guidance Prompt
 
-When 2+ factors are in your drill stack, the Variation Funnel shows:
+When 2+ factors are in your drill stack, the Investigation Mindmap's Interaction mode shows factor relationships visually as edges between nodes. The Mindmap also surfaces a guidance prompt:
 
 ```
 ┌────────────────────────────────────────────────┐
-│ 💡 Analyzing multiple factors?                 │
+│ Analyzing multiple factors?                    │
 │                                                │
 │ Your drill-down shows main effects. To check  │
 │ if factors interact, use the Regression Panel │

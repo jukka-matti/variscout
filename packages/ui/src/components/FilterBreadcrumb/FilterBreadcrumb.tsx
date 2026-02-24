@@ -107,6 +107,8 @@ export interface FilterBreadcrumbProps {
   cumulativeVariationPct?: number | null;
   /** Color scheme for styling */
   colorScheme?: FilterBreadcrumbColorScheme;
+  /** Optional click handler for VariationBar (e.g., to open investigation panel) */
+  onVariationBarClick?: () => void;
 }
 
 /**
@@ -165,6 +167,7 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
   onClearAll,
   cumulativeVariationPct,
   colorScheme = defaultColorScheme,
+  onVariationBarClick,
 }) => {
   // Track which chip's dropdown is open
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -237,6 +240,7 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
             showLabels={true}
             className="max-w-xs"
             colorScheme={colorScheme.variationBar}
+            onClick={onVariationBarClick}
           />
         </div>
       </div>
@@ -344,6 +348,7 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
             showLabels={true}
             className="max-w-xs"
             colorScheme={colorScheme.variationBar}
+            onClick={onVariationBarClick}
           />
         </div>
       )}

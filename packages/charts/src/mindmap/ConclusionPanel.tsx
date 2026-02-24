@@ -45,7 +45,7 @@ const ConclusionPanel: React.FC<ConclusionPanelProps> = ({
           textAlign: 'center',
         }}
       >
-        <div style={{ color: '#e2e8f0', fontWeight: 600 }}>
+        <div style={{ color: chrome.labelPrimary, fontWeight: 600 }}>
           Focused on {cumPct.toFixed(0)}% of variation
         </div>
         <div
@@ -62,13 +62,29 @@ const ConclusionPanel: React.FC<ConclusionPanelProps> = ({
           <button
             onClick={onNavigateToWhatIf}
             style={{
-              marginTop: 4,
-              background: 'none',
-              border: 'none',
+              marginTop: 6,
+              background: `${chartColors.mean}18`,
+              border: `1px solid ${chartColors.mean}40`,
+              borderRadius: 4,
               color: chartColors.mean,
               fontSize: 10,
+              fontWeight: 500,
               cursor: 'pointer',
-              padding: 0,
+              padding: '3px 8px',
+              outline: 'none',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = `${chartColors.mean}30`;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = `${chartColors.mean}18`;
+            }}
+            onFocus={e => {
+              e.currentTarget.style.outline = `2px solid ${chartColors.mean}`;
+              e.currentTarget.style.outlineOffset = '1px';
+            }}
+            onBlur={e => {
+              e.currentTarget.style.outline = 'none';
             }}
           >
             {'Model improvements \u2192'}

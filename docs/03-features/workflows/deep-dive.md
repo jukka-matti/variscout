@@ -136,7 +136,7 @@ Identify what factors explain the variation.
 3. **Track your path**
    - Note each filter applied
    - Record contribution percentages
-   - Watch variation funnel
+   - Watch VariationBar progress
 
 ### Drill-Down Record
 

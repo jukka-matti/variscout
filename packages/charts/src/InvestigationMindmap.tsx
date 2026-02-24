@@ -542,6 +542,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 svgHeight={height}
                 onSelect={handleCategorySelect}
                 onClose={() => setSelectedNode(null)}
+                chrome={chrome}
               />
             );
           })()}
@@ -567,6 +568,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 svgHeight={height}
                 onClose={() => setHoveredEdge(null)}
                 columnAliases={columnAliases}
+                chrome={chrome}
               />
             );
           })()}

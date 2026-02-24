@@ -1,5 +1,6 @@
 import React from 'react';
 import { chartColors } from '../colors';
+import type { useChartTheme } from '../useChartTheme';
 import type { MindmapEdge } from './types';
 
 export interface EdgeTooltipProps {
@@ -10,6 +11,7 @@ export interface EdgeTooltipProps {
   svgHeight: number;
   onClose: () => void;
   columnAliases?: Record<string, string>;
+  chrome: ReturnType<typeof useChartTheme>['chrome'];
 }
 
 const EdgeTooltip: React.FC<EdgeTooltipProps> = ({
@@ -20,6 +22,7 @@ const EdgeTooltip: React.FC<EdgeTooltipProps> = ({
   svgHeight,
   onClose,
   columnAliases,
+  chrome,
 }) => {
   const tooltipWidth = 170;
   const tooltipHeight = 80;
@@ -47,8 +50,8 @@ const EdgeTooltip: React.FC<EdgeTooltipProps> = ({
           left,
           top,
           width: tooltipWidth,
-          background: '#1e293b',
-          border: '1px solid #334155',
+          background: chrome.tooltipBg,
+          border: `1px solid ${chrome.gridLine}`,
           borderRadius: 8,
           padding: '8px 10px',
           boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
@@ -60,10 +63,10 @@ const EdgeTooltip: React.FC<EdgeTooltipProps> = ({
           style={{
             fontSize: 11,
             fontWeight: 600,
-            color: '#cbd5e1',
+            color: chrome.labelPrimary,
             marginBottom: 6,
             paddingBottom: 4,
-            borderBottom: '1px solid #334155',
+            borderBottom: `1px solid ${chrome.gridLine}`,
           }}
         >
           {columnAliases?.[edge.factorA] || edge.factorA} &times;{' '}
@@ -71,16 +74,16 @@ const EdgeTooltip: React.FC<EdgeTooltipProps> = ({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#94a3b8' }}>&Delta;R&sup2;</span>
-            <span style={{ color: '#e2e8f0', fontWeight: 500 }}>
+            <span style={{ color: chrome.labelSecondary }}>&Delta;R&sup2;</span>
+            <span style={{ color: chrome.tooltipText, fontWeight: 500 }}>
               {(edge.deltaRSquared * 100).toFixed(1)}%
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#94a3b8' }}>p</span>
+            <span style={{ color: chrome.labelSecondary }}>p</span>
             <span
               style={{
-                color: edge.pValue < 0.05 ? chartColors.warning : '#e2e8f0',
+                color: edge.pValue < 0.05 ? chartColors.warning : chrome.tooltipText,
                 fontWeight: 500,
               }}
             >
@@ -88,8 +91,8 @@ const EdgeTooltip: React.FC<EdgeTooltipProps> = ({
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: '#94a3b8' }}>&beta;</span>
-            <span style={{ color: '#e2e8f0', fontWeight: 500 }}>
+            <span style={{ color: chrome.labelSecondary }}>&beta;</span>
+            <span style={{ color: chrome.tooltipText, fontWeight: 500 }}>
               {edge.standardizedBeta.toFixed(2)}
             </span>
           </div>

@@ -225,6 +225,14 @@ export {
 } from './components/ChartExportMenu';
 
 export {
+  InvestigationPrompt,
+  investigationPromptDefaultColorScheme,
+  investigationPromptAzureColorScheme,
+  type InvestigationPromptProps,
+  type InvestigationPromptColorScheme,
+} from './components/InvestigationPrompt';
+
+export {
   default as PasteScreenBase,
   pasteScreenDefaultColorScheme,
   pasteScreenAzureColorScheme,

@@ -54,6 +54,7 @@ const ProgressFooter: React.FC<ProgressFooterProps> = ({
           height={barHeight}
           rx={4}
           fill={pct >= targetPct ? chartColors.pass : chartColors.mean}
+          style={{ transition: 'width 0.3s ease-out' }}
         />
       )}
 

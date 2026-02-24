@@ -206,6 +206,8 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           onExportSvg={handleExportSvg}
           colorScheme={mindmapPanelAzureColorScheme}
           columnAliases={columnAliases}
+          factorCount={factors.length}
+          dataCount={data.length}
         >
           <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">
             <InvestigationMindmapBase
