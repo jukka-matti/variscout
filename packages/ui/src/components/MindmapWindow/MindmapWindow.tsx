@@ -1,7 +1,12 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { InvestigationMindmapBase } from '@variscout/charts';
 import { useMindmapState } from '@variscout/hooks';
-import { type FilterAction, type FilterSource, createFilterAction } from '@variscout/core';
+import {
+  type DataRow,
+  type FilterAction,
+  type FilterSource,
+  createFilterAction,
+} from '@variscout/core';
 import { Download, Copy, Check } from 'lucide-react';
 import { exportMindmapPng, exportMindmapToClipboard } from '../MindmapPanel/export';
 import MindmapModeToggle from '../MindmapPanel/MindmapModeToggle';
@@ -40,7 +45,7 @@ export const mindmapWindowAzureColorScheme: MindmapWindowColorScheme = {
 const MINDMAP_SYNC_KEY = 'variscout_mindmap_sync';
 
 interface MindmapSyncData {
-  rawData: any[];
+  rawData: DataRow[];
   factors: string[];
   outcome: string;
   columnAliases: Record<string, string>;
@@ -258,7 +263,7 @@ export default MindmapWindow;
  * Utility function to open the mindmap in a popout window
  */
 export function openMindmapPopout(
-  data: any[],
+  data: DataRow[],
   factors: string[],
   outcome: string,
   columnAliases: Record<string, string>,
@@ -290,7 +295,7 @@ export function openMindmapPopout(
  * Utility function to update the mindmap popout with new data
  */
 export function updateMindmapPopout(
-  data: any[],
+  data: DataRow[],
   factors: string[],
   outcome: string,
   columnAliases: Record<string, string>,

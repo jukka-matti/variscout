@@ -18,8 +18,9 @@ import {
   type AnovaResult,
   getNextDrillFactor,
   sortBoxplotData,
+  calculateBoxplotStats,
 } from '@variscout/core';
-import { calculateBoxplotStats, type BoxplotGroupData } from '@variscout/charts';
+import type { BoxplotGroupData } from '@variscout/charts';
 import { useFilterNavigation, type UseFilterNavigationReturn } from './useFilterNavigation';
 import { useVariationTracking } from '@variscout/hooks';
 import { useFocusMode } from './useFocusMode';

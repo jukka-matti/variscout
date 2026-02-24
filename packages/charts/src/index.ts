@@ -1,7 +1,7 @@
 /**
  * @variscout/charts - Shared chart components
  *
- * Props-based chart components for use across PWA and Excel Add-in.
+ * Props-based chart components for use across PWA and Azure App.
  * All charts accept data via props rather than context, enabling
  * platform-agnostic usage.
  */
@@ -36,16 +36,12 @@ export type {
 
 export type { ScatterPlotProps } from './ScatterPlot';
 
-// Helper functions
-export { calculateBoxplotStats } from './types';
-
 // Color constants
 export {
   chartColors,
   chromeColors,
   operatorColors,
   getChromeColors,
-  getDocumentTheme,
   type ChartColor,
   type ChromeColor,
   type ChromeColorValues,
@@ -63,9 +59,6 @@ export {
   getBreakpoints,
   type ChartType,
 } from './responsive';
-
-// Layout hook
-export { useChartLayout, type UseChartLayoutOptions, type ChartLayout } from './hooks';
 
 // Interaction hooks
 export { useChartTooltip, type UseChartTooltipReturn } from './hooks';

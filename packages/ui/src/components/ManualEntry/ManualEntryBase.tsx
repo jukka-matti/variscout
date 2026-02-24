@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
+import type { DataRow } from '@variscout/core';
 import ManualEntrySetupBase from './ManualEntrySetupBase';
 import StandardEntryGrid from './StandardEntryGrid';
 import PerformanceEntryGrid from './PerformanceEntryGrid';
@@ -15,7 +16,7 @@ export interface ManualEntryConfig {
 }
 
 export interface ManualEntryBaseProps {
-  onAnalyze: (data: any[], config: ManualEntryConfig) => void;
+  onAnalyze: (data: DataRow[], config: ManualEntryConfig) => void;
   onCancel: () => void;
   enablePerformanceMode?: boolean;
   appendMode?: boolean;

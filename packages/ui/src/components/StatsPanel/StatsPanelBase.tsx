@@ -147,7 +147,9 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   // Extract numeric values for histogram
   const histogramData = useMemo(() => {
     if (!outcome || filteredData.length === 0) return [];
-    return filteredData.map((d: any) => Number(d[outcome])).filter((v: number) => !isNaN(v));
+    return filteredData
+      .map((d: Record<string, unknown>) => Number(d[outcome]))
+      .filter((v: number) => !isNaN(v));
   }, [filteredData, outcome]);
 
   const emptyState = (message: string) => <div className={cs.emptyState}>{message}</div>;

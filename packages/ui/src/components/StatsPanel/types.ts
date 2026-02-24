@@ -1,4 +1,4 @@
-import type { StatsResult, GlossaryTerm } from '@variscout/core';
+import type { StatsResult, GlossaryTerm, DataRow } from '@variscout/core';
 
 export interface StatsPanelColorScheme {
   // Container
@@ -21,7 +21,7 @@ export interface StatsPanelColorScheme {
 export interface StatsPanelBaseProps {
   stats: StatsResult | null;
   specs: { usl?: number; lsl?: number; target?: number };
-  filteredData?: any[];
+  filteredData?: DataRow[];
   outcome?: string | null;
   defaultTab?: 'summary' | 'histogram' | 'normality';
   className?: string;

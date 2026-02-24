@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import {
+  type DataRow,
   type FilterAction,
   type BreadcrumbItem,
   filterStackToFilters,
@@ -104,7 +105,7 @@ export interface VariationTrackingResult {
  * ```
  */
 export function useVariationTracking(
-  rawData: any[],
+  rawData: DataRow[],
   filterStack: FilterAction[],
   outcome: string | null,
   factors: string[]

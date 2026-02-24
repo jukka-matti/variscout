@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
+  type DataRow,
   type FilterAction,
   getCategoryStats,
   getMaxCategoryContribution,
@@ -19,7 +20,11 @@ import { useDrillPath, type DrillStep } from './useDrillPath';
 /**
  * Compute pairwise interaction edges for all factor pairs
  */
-function computeInteractionEdges(data: any[], factors: string[], outcome: string): MindmapEdge[] {
+function computeInteractionEdges(
+  data: DataRow[],
+  factors: string[],
+  outcome: string
+): MindmapEdge[] {
   const edges: MindmapEdge[] = [];
   for (let i = 0; i < factors.length; i++) {
     for (let j = i + 1; j < factors.length; j++) {
@@ -40,7 +45,7 @@ function computeInteractionEdges(data: any[], factors: string[], outcome: string
 
 export interface UseMindmapStateOptions {
   /** Raw (unfiltered) data */
-  data: any[];
+  data: DataRow[];
   /** Available factor columns */
   factors: string[];
   /** Outcome column name */

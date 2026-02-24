@@ -44,7 +44,9 @@ export function useChartScale(context: ChartScaleContext): ChartScaleResult {
       // Fall through to auto if manual values not fully set
     }
 
-    const values = filteredData.map((d: any) => Number(d[outcome])).filter(v => !isNaN(v));
+    const values = filteredData
+      .map((d: Record<string, unknown>) => Number(d[outcome]))
+      .filter(v => !isNaN(v));
 
     // Include specs in range calculation
     if (specs.usl !== undefined) values.push(specs.usl);

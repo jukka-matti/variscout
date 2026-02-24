@@ -1,6 +1,6 @@
 /**
  * Shared types for @variscout/charts
- * Props-based chart components for use across PWA and Excel Add-in
+ * Props-based chart components for use across PWA and Azure App
  */
 
 import type {
@@ -31,11 +31,6 @@ export type {
   ChartMargins,
   ChartFonts,
 };
-
-// Re-export calculateBoxplotStats from core for backward compatibility
-// NOTE: This function has been moved to @variscout/core/stats
-// Import directly from @variscout/core for new code
-export { calculateBoxplotStats } from '@variscout/core';
 
 /**
  * Y-axis domain override for locking scale to full dataset

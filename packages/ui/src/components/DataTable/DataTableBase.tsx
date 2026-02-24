@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Trash2, ChevronLeft, ChevronRight, AlertTriangle, AlertCircle } from 'lucide-react';
 import { getSpecStatus } from '@variscout/core';
+import type { DataCellValue, ExclusionReason } from '@variscout/core';
 import { useDataTablePagination, useHighlightFade } from '@variscout/hooks';
-import type { ExclusionReason } from '@variscout/core';
 
 const DEFAULT_ROWS_PER_PAGE = 500;
 
 export interface DataTableBaseProps {
-  data: Record<string, any>[];
+  data: Record<string, DataCellValue>[];
   columns: string[];
   outcome: string | null;
   specs: { usl?: number; lsl?: number };
   columnAliases?: Record<string, string>;
-  onCellChange: (rowIndex: number, col: string, value: any) => void;
+  onCellChange: (rowIndex: number, col: string, value: DataCellValue) => void;
   onDeleteRow: (rowIndex: number) => void;
   onAddRow?: () => void;
   excludedRowIndices?: Set<number>;
@@ -127,9 +127,9 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
   const formatControlViolations = (violations: string[]): string => violations.join(', ');
 
   // Spec status helpers
-  const getStatusColor = (value: any): string => {
+  const getStatusColor = (value: DataCellValue): string => {
     if (!outcome) return 'text-content-secondary';
-    const numValue = parseFloat(value);
+    const numValue = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
     if (isNaN(numValue)) return 'text-content-secondary';
 
     const status = getSpecStatus(numValue, specs);
@@ -145,9 +145,9 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
     }
   };
 
-  const getStatusBadge = (value: any) => {
+  const getStatusBadge = (value: DataCellValue) => {
     if (!outcome) return null;
-    const numValue = parseFloat(value);
+    const numValue = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
     if (isNaN(numValue)) return <span className="text-content-muted text-xs">-</span>;
 
     const status = getSpecStatus(numValue, specs);
