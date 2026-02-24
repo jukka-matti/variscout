@@ -227,6 +227,21 @@ export const AdvancedRegressionView: React.FC<AdvancedRegressionViewComponentPro
                         Keep all
                       </button>
                     </div>
+                    {/* Show What-If button even when suggestion exists, if model has decent fit */}
+                    {onNavigateToWhatIf && multiRegressionResult.adjustedRSquared >= 0.3 && (
+                      <div className="mt-3 pt-3 border-t border-amber-500/20 flex items-center justify-between gap-2">
+                        <span className="text-[10px] text-amber-300/70">
+                          Model available but some terms not significant
+                        </span>
+                        <button
+                          onClick={() => onNavigateToWhatIf(multiRegressionResult)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-colors"
+                        >
+                          <Beaker size={12} />
+                          Project in What-If &rarr;
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

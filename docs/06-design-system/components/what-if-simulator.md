@@ -83,6 +83,16 @@ interface ModelDrivenSimulatorProps {
 }
 ```
 
+### Model Quality Indicator
+
+The header displays **Adj. R²** (not raw R²) alongside a glossary tooltip, so analysts always see the penalized fit metric.
+
+When `model.adjustedRSquared < 0.5`, an amber warning appears in the header: "Low model fit — projections are approximate". This prevents over-reliance on weak models.
+
+### Interaction Terms
+
+When the regression model includes interaction terms (e.g., `Temp × Press`), `simulateFromModel()` computes their contribution to the predicted mean shift whenever both involved factors have adjustments. Interaction contributions appear as separate entries in the contribution bars (e.g., "Temp × Press: +2.3").
+
 ### Factor Controls
 
 The simulator generates controls automatically based on the model's predictor types:

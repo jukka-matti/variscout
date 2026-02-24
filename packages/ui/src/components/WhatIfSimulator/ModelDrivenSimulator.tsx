@@ -58,9 +58,9 @@ const ModelDrivenSimulator: React.FC<ModelDrivenSimulatorProps> = ({
     (cpk: number): string => {
       if (cpk >= 1.33) return c.cpkGood;
       if (cpk >= 1.0) return c.cpkOk;
-      return 'text-red-400';
+      return c.cpkBad;
     },
-    [c.cpkGood, c.cpkOk]
+    [c.cpkGood, c.cpkOk, c.cpkBad]
   );
 
   // Compute factor baselines from data + model
@@ -141,13 +141,18 @@ const ModelDrivenSimulator: React.FC<ModelDrivenSimulatorProps> = ({
   return (
     <div className={`rounded-lg border ${c.containerBorder} ${c.containerBg} overflow-hidden`}>
       {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2.5">
+      <div className="flex items-center gap-2 px-3 py-2.5 flex-wrap">
         <GitBranch size={14} className="text-amber-400" />
         <span className={`text-sm font-medium ${c.contentText}`}>Model-Driven Simulator</span>
         <span className={`text-[10px] ${c.mutedText} flex items-center gap-1`}>
           Adj. R² = {formatNumber(model.adjustedRSquared, 3)}
           <HelpTooltip term={getTerm('adjustedRSquared')} iconSize={10} />
         </span>
+        {model.adjustedRSquared < 0.5 && (
+          <span className="text-[10px] text-amber-400">
+            Low model fit — projections are approximate
+          </span>
+        )}
       </div>
 
       {/* Factor controls */}

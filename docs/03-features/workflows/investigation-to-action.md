@@ -174,9 +174,19 @@ A reduced model containing only statistically significant terms, with Adj. R² t
 
 ### Transition to Phase 3
 
-When all terms in the model are significant, the AdvancedRegressionView displays a green **"Project in What-If"** button (Beaker icon). Clicking it calls `onNavigateToWhatIf(model)`, passing the `MultiRegressionResult` to the What-If page.
+The **"Project in What-If →"** button appears in AdvancedRegressionView when the model has sufficient fit:
 
-On the What-If page, the regression model is rendered as a `ModelDrivenSimulator` above the standard slider-based simulator. The model-driven simulator uses `simulateFromModel()` from `@variscout/core` to compute the predicted mean shift from regression coefficients, providing per-factor controls (categorical dropdowns with coefficient deltas, continuous sliders) and contribution bars showing each factor's delta. See [What-If Simulator](../../06-design-system/components/what-if-simulator.md#model-driven-simulator) for component details.
+| Model State                                 | Button Color | Condition                                                         |
+| ------------------------------------------- | ------------ | ----------------------------------------------------------------- |
+| All terms significant                       | Green        | Best case — model is well-specified                               |
+| Some non-significant terms, Adj. R² >= 0.30 | Amber        | Model usable but imperfect — shown alongside reduction suggestion |
+| Adj. R² < 0.30                              | No button    | Model too weak for meaningful projections                         |
+
+This relaxed gate (Adj. R² >= 0.30 instead of requiring all terms significant) prevents the false choice between removing useful-but-marginal terms and losing access to What-If projection. Analysts can project from an imperfect model while continuing to refine it.
+
+Clicking the button calls `onNavigateToWhatIf(model)`, passing the `MultiRegressionResult` to the What-If page. On the What-If page, the regression model is rendered as a `ModelDrivenSimulator` above the standard slider-based simulator. When Adj. R² is below 0.50, the simulator header shows an amber warning: "Low model fit — projections are approximate".
+
+The model-driven simulator uses `simulateFromModel()` from `@variscout/core` to compute the predicted mean shift from regression coefficients, including interaction terms when both involved factors have adjustments. Per-factor controls (categorical dropdowns with coefficient deltas, continuous sliders) and contribution bars show each factor's delta. See [What-If Simulator](../../06-design-system/components/what-if-simulator.md#model-driven-simulator) for component details.
 
 ## Phase 3: Project Improvement (What-If Simulator)
 

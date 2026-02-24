@@ -137,5 +137,9 @@ export interface ExpandedScatterModalComponentProps {
   onNext?: () => void;
   /** Navigate to previous scatter chart (left arrow key) */
   onPrev?: () => void;
+  /** Current 1-based index in the scatter list */
+  currentIndex?: number;
+  /** Total number of scatter plots available */
+  totalCount?: number;
   colorScheme?: RegressionViewColorScheme;
 }

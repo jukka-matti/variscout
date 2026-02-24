@@ -25,7 +25,7 @@ const RegressionPanel: React.FC<RegressionPanelProps> = ({
   investigationFactors,
   onNavigateToWhatIf,
 }) => {
-  const { filteredData, outcome, specs } = useData();
+  const { filteredData, outcome, specs, rawData } = useData();
 
   return (
     <RegressionPanelBase
@@ -38,6 +38,7 @@ const RegressionPanel: React.FC<RegressionPanelProps> = ({
       initialPredictors={initialPredictors}
       investigationFactors={investigationFactors}
       onNavigateToWhatIf={onNavigateToWhatIf}
+      totalRowCount={rawData.length}
     />
   );
 };

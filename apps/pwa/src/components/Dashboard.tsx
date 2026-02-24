@@ -540,6 +540,7 @@ const Dashboard = ({
           <ErrorBoundary componentName="Regression Panel">
             <RegressionPanel
               initialPredictors={regressionInitialFactors}
+              investigationFactors={regressionInitialFactors}
               onNavigateToWhatIf={onNavigateToWhatIfWithModel}
             />
           </ErrorBoundary>

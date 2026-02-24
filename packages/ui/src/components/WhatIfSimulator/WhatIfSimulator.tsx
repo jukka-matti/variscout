@@ -40,6 +40,8 @@ export interface WhatIfSimulatorColorScheme {
   cpkGood: string;
   /** Cpk marginal color (>= 1.0) */
   cpkOk: string;
+  /** Cpk bad color (< 1.0) */
+  cpkBad: string;
   /** Positive improvement color */
   improvementPositive: string;
   /** Slider track background */
@@ -67,6 +69,7 @@ export const whatIfSimulatorDefaultColorScheme: WhatIfSimulatorColorScheme = {
   resetHoverText: 'hover:text-content',
   cpkGood: 'text-green-400',
   cpkOk: 'text-amber-400',
+  cpkBad: 'text-red-400',
   improvementPositive: 'text-green-400',
   sliderTrackBg: 'bg-surface-tertiary',
   sliderRingOffset: 'focus:ring-offset-surface',
@@ -90,6 +93,7 @@ export const whatIfSimulatorAzureColorScheme: WhatIfSimulatorColorScheme = {
   resetHoverText: 'hover:text-white',
   cpkGood: 'text-green-500',
   cpkOk: 'text-amber-500',
+  cpkBad: 'text-red-400',
   improvementPositive: 'text-green-500',
   sliderTrackBg: 'bg-slate-700',
   sliderRingOffset: 'focus:ring-offset-slate-900',
@@ -176,9 +180,9 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
       (cpk: number): string => {
         if (cpk >= 1.33) return c.cpkGood;
         if (cpk >= 1.0) return c.cpkOk;
-        return 'text-red-400';
+        return c.cpkBad;
       },
-      [c.cpkGood, c.cpkOk]
+      [c.cpkGood, c.cpkOk, c.cpkBad]
     );
 
     // Panel expansion state

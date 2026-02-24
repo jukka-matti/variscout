@@ -135,6 +135,22 @@ The Investigation Mindmap provides two direct bridges to the Regression Panel:
 
 Both buttons pre-fill the Regression Panel's predictor selection, so the analyst can immediately run the model without manual configuration.
 
+### Project in What-If
+
+When working in Advanced (GLM) mode, a **"Project in What-If →"** button bridges the regression model to the What-If Simulator for process improvement projections.
+
+**When it appears:**
+
+| Model State                                | Button       | Message                                          |
+| ------------------------------------------ | ------------ | ------------------------------------------------ |
+| All terms significant (p < 0.05)           | Green button | "Model is well-specified"                        |
+| Some terms non-significant, Adj. R² ≥ 0.30 | Amber button | "Model available but some terms not significant" |
+| Adj. R² < 0.30                             | No button    | Model too weak for reliable projections          |
+
+**What it does:** Passes the complete regression model (coefficients, terms, intercept) to the What-If page, where the Model-Driven Simulator lets you adjust factor levels and see projected mean shifts, Cpk changes, and yield impact.
+
+**Low-fit warning:** When Adj. R² < 0.50, the Model-Driven Simulator header displays an amber warning: "Low model fit — projections are approximate".
+
 ### Interpreting Interaction Terms
 
 | Term              | Meaning                                  |

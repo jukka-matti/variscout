@@ -44,6 +44,7 @@ describe('RegressionPanel', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       outcome: null,
       filteredData: [],
+      rawData: [],
       specs: {},
     } as any);
 
@@ -57,6 +58,7 @@ describe('RegressionPanel', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       outcome: 'Result',
       filteredData: [{ Result: 10, Category: 'A' }], // Only outcome is numeric
+      rawData: [{ Result: 10, Category: 'A' }],
       specs: {},
     } as any);
 
@@ -65,13 +67,15 @@ describe('RegressionPanel', () => {
   });
 
   it('renders regression plots when data is available', () => {
+    const data = [
+      { Output: 10, Speed: 5 },
+      { Output: 20, Speed: 10 },
+      { Output: 30, Speed: 15 },
+    ];
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       outcome: 'Output',
-      filteredData: [
-        { Output: 10, Speed: 5 },
-        { Output: 20, Speed: 10 },
-        { Output: 30, Speed: 15 },
-      ],
+      filteredData: data,
+      rawData: data,
       specs: {},
     } as any);
 
@@ -86,13 +90,15 @@ describe('RegressionPanel', () => {
   });
 
   it('allows expanding a chart', async () => {
+    const data = [
+      { Output: 10, Speed: 5 },
+      { Output: 20, Speed: 10 },
+      { Output: 30, Speed: 15 },
+    ];
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       outcome: 'Output',
-      filteredData: [
-        { Output: 10, Speed: 5 },
-        { Output: 20, Speed: 10 },
-        { Output: 30, Speed: 15 },
-      ],
+      filteredData: data,
+      rawData: data,
       specs: {},
     } as any);
 
@@ -114,13 +120,15 @@ describe('RegressionPanel', () => {
   });
 
   it('displays ranking when multiple X columns exist', () => {
+    const data = [
+      { Output: 10, Speed: 5, Temp: 100 },
+      { Output: 20, Speed: 10, Temp: 110 },
+      { Output: 30, Speed: 15, Temp: 120 },
+    ];
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       outcome: 'Output',
-      filteredData: [
-        { Output: 10, Speed: 5, Temp: 100 },
-        { Output: 20, Speed: 10, Temp: 110 },
-        { Output: 30, Speed: 15, Temp: 120 },
-      ],
+      filteredData: data,
+      rawData: data,
       specs: {},
     } as any);
 

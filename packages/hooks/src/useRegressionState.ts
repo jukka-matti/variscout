@@ -31,6 +31,8 @@ export interface UseRegressionStateOptions {
   initialPredictors?: string[];
   /** Pre-ranked columns by R² for smarter simple-mode auto-selection */
   rankedColumns?: string[];
+  /** All available columns (numeric + categorical) for validating initialPredictors */
+  allColumns?: string[];
 }
 
 /**
@@ -83,7 +85,13 @@ export interface UseRegressionStateReturn {
  * ```
  */
 export function useRegressionState(options: UseRegressionStateOptions): UseRegressionStateReturn {
-  const { maxSimpleColumns = 4, numericColumns, initialPredictors, rankedColumns } = options;
+  const {
+    maxSimpleColumns = 4,
+    numericColumns,
+    initialPredictors,
+    rankedColumns,
+    allColumns,
+  } = options;
 
   // Mode state
   const [mode, setMode] = useState<RegressionMode>('simple');
@@ -118,11 +126,16 @@ export function useRegressionState(options: UseRegressionStateOptions): UseRegre
   // Apply external initialPredictors (from investigation → regression bridge)
   useEffect(() => {
     if (initialPredictors && initialPredictors.length > 0) {
+      // Validate: only keep columns that actually exist in the dataset
+      const validSet = allColumns ?? numericColumns;
+      const validPredictors = initialPredictors.filter(col => validSet.includes(col));
+      if (validPredictors.length === 0) return;
+
       setMode('advanced');
-      setAdvSelectedPredictors(initialPredictors);
+      setAdvSelectedPredictors(validPredictors);
       // Mark categorical columns that aren't in numeric list
       const catSet = new Set<string>();
-      for (const col of initialPredictors) {
+      for (const col of validPredictors) {
         if (!numericColumns.includes(col)) {
           catSet.add(col);
         }
@@ -131,7 +144,7 @@ export function useRegressionState(options: UseRegressionStateOptions): UseRegre
         setCategoricalColumns(catSet);
       }
     }
-  }, [initialPredictors, numericColumns]);
+  }, [initialPredictors, numericColumns, allColumns]);
 
   // Toggle simple mode X column selection
   const toggleXColumn = useCallback(

@@ -432,5 +432,60 @@ export function simulateFromModel(
     }
   }
 
+  // Handle interaction terms: for each interaction A*B, if both A and B have
+  // adjustments, compute the interaction contribution to the mean shift.
+  const interactionTerms = (model.terms ?? []).filter(t => t.type === 'interaction');
+  for (const term of interactionTerms) {
+    if (term.columns.length !== 2) continue;
+    const [colA, colB] = term.columns;
+    const adjA = adjustments.find(a => a.factor === colA);
+    const adjB = adjustments.find(a => a.factor === colB);
+    if (!adjA || !adjB) continue;
+
+    const coef = model.coefficients.find(c => c.term === term.label);
+    if (!coef) continue;
+
+    // For each factor, compute the code change (proposed - current).
+    // Categorical: dummy encoding — 1 if the level matches the interaction's
+    // implied level, 0 otherwise. For interaction terms the coefficient
+    // represents the product of the two dummies (or dummy × continuous).
+    // We need to determine which dummy levels are involved.
+    const getCode = (factor: string, value: string | number): number => {
+      // Check if this factor is continuous in the model
+      const contTerm = (model.terms ?? []).find(
+        t => t.columns[0] === factor && t.type === 'continuous'
+      );
+      if (contTerm) return Number(value);
+
+      // Categorical: the interaction term label encodes the level.
+      // For "Machine_B × Shift_Night", find which level of this factor
+      // is embedded in the interaction label.
+      const catTerms = (model.terms ?? []).filter(
+        t => t.columns[0] === factor && t.type === 'categorical'
+      );
+      for (const ct of catTerms) {
+        if (ct.level && term.label.includes(ct.label)) {
+          // This interaction uses this specific dummy level
+          return String(value) === ct.level ? 1 : 0;
+        }
+      }
+      // Reference level → code 0
+      return 0;
+    };
+
+    const currentCodeA = getCode(colA, adjA.currentValue);
+    const proposedCodeA = getCode(colA, adjA.proposedValue);
+    const currentCodeB = getCode(colB, adjB.currentValue);
+    const proposedCodeB = getCode(colB, adjB.proposedValue);
+
+    // Interaction delta = β × (proposedA × proposedB - currentA × currentB)
+    const delta = coef.coefficient * (proposedCodeA * proposedCodeB - currentCodeA * currentCodeB);
+
+    if (Math.abs(delta) > 1e-12) {
+      contributions.push({ factor: `${colA} × ${colB}`, delta });
+      totalShift += delta;
+    }
+  }
+
   return { meanShift: totalShift, contributions };
 }

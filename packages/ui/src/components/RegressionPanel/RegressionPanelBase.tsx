@@ -111,6 +111,10 @@ export interface ExpandedScatterModalProps {
   onNext?: () => void;
   /** Navigate to previous scatter chart (left arrow key) */
   onPrev?: () => void;
+  /** Current 1-based index in the scatter list */
+  currentIndex?: number;
+  /** Total number of scatter plots available */
+  totalCount?: number;
 }
 
 export interface RegressionPanelBaseProps {
@@ -134,6 +138,8 @@ export interface RegressionPanelBaseProps {
   investigationFactors?: string[];
   /** Callback to navigate to What-If with the regression model */
   onNavigateToWhatIf?: (model: MultiRegressionResult) => void;
+  /** Total row count (raw data) for filter context banner */
+  totalRowCount?: number;
 }
 
 /**
@@ -165,6 +171,7 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
   initialPredictors,
   investigationFactors,
   onNavigateToWhatIf,
+  totalRowCount,
 }) => {
   const { getTerm } = useGlossary();
 
@@ -175,8 +182,12 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
   });
 
   // Smart auto-selection: rank numeric columns by R² for simple mode
+  // Cap at 12 columns and 20K rows to avoid UI lag from many regressions
   const rankedColumns = useMemo(() => {
     if (!outcome || filteredData.length < 5 || columns.numeric.length <= 4) return undefined;
+    if (columns.numeric.length > 12 || filteredData.length > 20000) {
+      return columns.numeric.slice(0, 4);
+    }
     const scored = columns.numeric.map(col => {
       const r = calculateRegression(filteredData, col, outcome);
       return { col, r2: r ? r.linear.rSquared : 0 };
@@ -191,6 +202,7 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
     maxSimpleColumns: 4,
     initialPredictors,
     rankedColumns,
+    allColumns: [...columns.numeric, ...columns.categorical],
   });
 
   // Calculate simple regression for each selected X column
@@ -261,18 +273,20 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
   if (regression.expandedChart && regression.mode === 'simple' && renderExpandedModal) {
     const result = regressionResults.find(r => r.xColumn === regression.expandedChart);
     if (result) {
-      const currentIdx = regression.selectedXColumns.indexOf(regression.expandedChart);
-      const nextCol =
-        currentIdx < regression.selectedXColumns.length - 1
-          ? regression.selectedXColumns[currentIdx + 1]
-          : undefined;
-      const prevCol = currentIdx > 0 ? regression.selectedXColumns[currentIdx - 1] : undefined;
+      const cols = regression.selectedXColumns;
+      const currentIdx = cols.indexOf(regression.expandedChart);
+      const totalCount = cols.length;
+      // Cycle: last→first, first→last
+      const nextCol = totalCount > 1 ? cols[(currentIdx + 1) % totalCount] : undefined;
+      const prevCol = totalCount > 1 ? cols[(currentIdx - 1 + totalCount) % totalCount] : undefined;
       return renderExpandedModal({
         result,
         specs,
         onClose: () => regression.setExpandedChart(null),
         onNext: nextCol ? () => regression.setExpandedChart(nextCol) : undefined,
         onPrev: prevCol ? () => regression.setExpandedChart(prevCol) : undefined,
+        currentIndex: currentIdx + 1,
+        totalCount,
       });
     }
   }
@@ -325,6 +339,15 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
             </p>
           )}
       </div>
+
+      {/* Filter context info bar */}
+      {totalRowCount !== undefined && filteredData.length < totalRowCount && (
+        <div
+          className={`flex-none px-4 py-1.5 text-[10px] ${colorScheme.emptyStateText} border-b ${colorScheme.border}`}
+        >
+          Analyzing {filteredData.length} of {totalRowCount} rows (filtered)
+        </div>
+      )}
 
       {/* Investigation factors suggestion banner */}
       {regression.mode === 'advanced' &&

@@ -20,6 +20,8 @@ export const ExpandedScatterModal: React.FC<ExpandedScatterModalComponentProps> 
   onClose,
   onNext,
   onPrev,
+  currentIndex,
+  totalCount,
   colorScheme = regressionViewDefaultColorScheme,
 }) => {
   const { getTerm } = useGlossary();
@@ -50,6 +52,11 @@ export const ExpandedScatterModal: React.FC<ExpandedScatterModalComponentProps> 
           <h2 className="text-lg font-semibold text-white">
             {result.xColumn} vs {result.yColumn}
           </h2>
+          {currentIndex !== undefined && totalCount !== undefined && totalCount > 1 && (
+            <span className={`text-xs px-2 py-0.5 rounded-full ${c.inputBg} ${c.secondaryText}`}>
+              {currentIndex} of {totalCount}
+            </span>
+          )}
           <span className={`${c.secondaryText} text-sm flex items-center gap-1`}>
             R² = {rSquared.toFixed(3)}{' '}
             <span className="text-yellow-400">{getStars(result.strengthRating)}</span>
