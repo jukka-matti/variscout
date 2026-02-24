@@ -1,109 +1,35 @@
-# PWA Storage
+# PWA Session Model
 
-Data persistence using IndexedDB.
-
----
-
-## Storage Strategy
-
-| Data Type        | Storage      | Rationale                    |
-| ---------------- | ------------ | ---------------------------- |
-| Datasets         | IndexedDB    | Large files, structured data |
-| Statistics cache | IndexedDB    | Avoid recalculation          |
-| Settings         | IndexedDB    | Complex objects              |
-| Theme preference | localStorage | Simple, sync access          |
-| License key      | IndexedDB    | Encrypted at rest            |
+The PWA is a free training and education tool — data persistence is intentionally not provided.
 
 ---
 
-## IndexedDB Schema
+## How It Works
 
-Using Dexie.js as the wrapper:
-
-```typescript
-const db = new Dexie('variscout');
-
-db.version(1).stores({
-  projects: '++id, name, createdAt, updatedAt',
-  datasets: '++id, projectId, name, data',
-  settings: 'key',
-  license: 'key',
-});
-```
+- Data entered via paste lives in React state only
+- No IndexedDB, no localStorage (except theme preference), no `.vrs` files
+- Page refresh = data lost (by design)
+- No save/load functionality
 
 ---
 
-## Data Flow
+## Why Session-Only?
 
-```
-FILE UPLOAD                     INDEXEDDB                    UI
-    │                               │                         │
-    │── Parse CSV ─────────────────▶│                         │
-    │                               │── Store dataset ───────▶│
-    │                               │                         │
-    │                               │── Calculate stats ─────▶│
-    │                               │   (cached)              │
-    │                               │                         │
-    │                               │◀── User selects ────────│
-    │                               │    dataset              │
-    │                               │                         │
-    │                               │── Load dataset ────────▶│
-    │                               │   (from cache)          │
-```
+The PWA is **free forever** — it exists to teach SPC concepts and let users try VariScout with their own data. Persistence features (save, load, team sharing, OneDrive sync) are part of the [Azure App](../azure/) value proposition at €150/month.
+
+This is documented in [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md).
 
 ---
 
-## Storage Limits
+## What IS Preserved
 
-| Browser | Typical Limit | Notes                    |
-| ------- | ------------- | ------------------------ |
-| Chrome  | 60% of disk   | Persisted if user allows |
-| Firefox | 50% of disk   | May be evicted           |
-| Safari  | 1GB           | May prompt user          |
-
-**Recommendation:** Warn users if approaching ~500MB.
-
----
-
-## Data Persistence
-
-```typescript
-// Check if storage is persisted
-const isPersisted = await navigator.storage.persisted();
-
-// Request persistence (prompts user)
-if (!isPersisted) {
-  const granted = await navigator.storage.persist();
-}
-```
-
----
-
-## Export / Backup
-
-Users can export their data:
-
-| Format | Contains                           | Use Case         |
-| ------ | ---------------------------------- | ---------------- |
-| .vrs   | Full project (datasets + settings) | Backup/restore   |
-| .csv   | Single dataset                     | Data portability |
-| .png   | Chart screenshot                   | Reports          |
-
----
-
-## Clear Data
-
-Clearing browser data removes:
-
-- All projects and datasets
-- Settings
-- License key (must re-enter)
-
-**Warning:** No cloud backup means data loss is permanent.
+| Data             | Storage      | Notes                                                   |
+| ---------------- | ------------ | ------------------------------------------------------- |
+| Theme preference | localStorage | Light/dark/system (Azure only, PWA has no theme toggle) |
 
 ---
 
 ## See Also
 
-- [ADR-003: IndexedDB](../../07-decisions/adr-003-indexeddb.md)
+- [Project Persistence](../../03-features/data/storage.md) — Full persistence model (Azure App)
 - [Offline-First Architecture](../../05-technical/architecture/offline-first.md)

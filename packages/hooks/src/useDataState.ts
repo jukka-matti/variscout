@@ -21,6 +21,7 @@ import type {
   StatsResult,
   StagedStatsResult,
   ChannelPerformanceData,
+  FilterAction,
 } from '@variscout/core';
 import type {
   DisplayOptions,
@@ -31,6 +32,8 @@ import type {
   ParetoRow,
   ScaleMode,
   SavedProject,
+  RegressionPersistenceState,
+  ViewState,
 } from './types';
 import { useDataComputation } from './useDataComputation';
 import { useProjectPersistence } from './useProjectPersistence';
@@ -106,6 +109,15 @@ export interface DataState {
 
   /** Helper to get effective specs for a measure (per-measure override or global) */
   getSpecsForMeasure: (measureId: string) => { usl?: number; lsl?: number; target?: number };
+
+  // Filter stack (ordered drill trail for breadcrumb persistence)
+  filterStack: FilterAction[];
+
+  // Regression state (for project persistence)
+  regressionState: RegressionPersistenceState | null;
+
+  // View state (for restoring analyst's working context)
+  viewState: ViewState | null;
 }
 
 export interface DataActions {
@@ -158,6 +170,15 @@ export interface DataActions {
   setMeasureLabel: (label: string) => void;
   setSelectedMeasure: (measureId: string | null) => void;
   setCpkTarget: (target: number) => void;
+
+  // Filter stack
+  setFilterStack: (stack: FilterAction[]) => void;
+
+  // Regression state
+  setRegressionState: (state: RegressionPersistenceState | null) => void;
+
+  // View state
+  setViewState: (state: ViewState | null) => void;
 
   // Persistence methods
   saveProject: (name: string) => Promise<SavedProject>;
@@ -233,6 +254,15 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   const [measureLabel, setMeasureLabel] = useState('Measure');
   const [selectedMeasure, setSelectedMeasure] = useState<string | null>(null);
   const [cpkTarget, setCpkTarget] = useState(1.33);
+
+  // Filter stack (ordered drill trail for breadcrumb persistence)
+  const [filterStack, setFilterStack] = useState<FilterAction[]>([]);
+
+  // Regression state (for project persistence)
+  const [regressionState, setRegressionState] = useState<RegressionPersistenceState | null>(null);
+
+  // View state (for restoring analyst's working context)
+  const [viewState, setViewState] = useState<ViewState | null>(null);
 
   // Multi-point selection (Minitab-style brushing)
   const [selectedPoints, setSelectedPoints] = useState<Set<number>>(new Set());
@@ -365,6 +395,17 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     valueLabels,
     displayOptions,
     currentProjectId,
+    cpkTarget,
+    stageColumn,
+    stageOrderMode,
+    isPerformanceMode,
+    measureColumns,
+    selectedMeasure,
+    measureLabel,
+    chartTitles,
+    filterStack,
+    regressionState,
+    viewState,
     setRawData,
     setOutcome,
     setFactors,
@@ -393,6 +434,9 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     setMeasureLabel,
     setSelectedMeasure,
     setCpkTarget,
+    setFilterStack,
+    setRegressionState,
+    setViewState,
   });
 
   // ---------------------------------------------------------------------------
@@ -439,6 +483,9 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       getSpecsForMeasure,
       selectedPoints,
       selectionIndexMap,
+      filterStack,
+      regressionState,
+      viewState,
     }),
     [
       rawData,
@@ -479,6 +526,9 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       getSpecsForMeasure,
       selectedPoints,
       selectionIndexMap,
+      filterStack,
+      regressionState,
+      viewState,
     ]
   );
 
@@ -511,6 +561,9 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setMeasureLabel,
       setSelectedMeasure,
       setCpkTarget,
+      setFilterStack,
+      setRegressionState,
+      setViewState,
       setSelectedPoints,
       addToSelection,
       removeFromSelection,
@@ -553,6 +606,9 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setMeasureLabel,
       setSelectedMeasure,
       setCpkTarget,
+      setFilterStack,
+      setRegressionState,
+      setViewState,
       setSelectedPoints,
       addToSelection,
       removeFromSelection,

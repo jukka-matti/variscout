@@ -71,6 +71,8 @@ export interface WhatIfPageBaseProps {
   simulatorColorScheme?: WhatIfSimulatorColorScheme;
   /** Optional regression model for model-driven simulation */
   regressionModel?: MultiRegressionResult;
+  /** Cpk target for color thresholds (default 1.33) */
+  cpkTarget?: number;
 }
 
 const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
@@ -84,6 +86,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
   colorScheme = whatIfPageDefaultColorScheme,
   simulatorColorScheme,
   regressionModel,
+  cpkTarget,
 }) => {
   const c = colorScheme;
 
@@ -173,6 +176,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
               currentStats={currentStats}
               specs={specs}
               colorScheme={simulatorColorScheme}
+              cpkTarget={cpkTarget}
             />
           )}
 
@@ -182,6 +186,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
               specs={specs}
               defaultExpanded={!regressionModel}
               colorScheme={simulatorColorScheme}
+              cpkTarget={cpkTarget}
             />
           )}
         </div>

@@ -29,6 +29,9 @@ export type {
   ScaleMode,
   HighlightColor,
   ChartAnnotation,
+  RegressionPersistenceState,
+  ReductionStepData,
+  ViewState,
 } from './types';
 
 // Data State Hook (shared DataContext logic)

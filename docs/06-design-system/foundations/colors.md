@@ -76,14 +76,14 @@ These colors have **consistent semantic meaning** across both themes:
 
 ### Status Usage in Data Analysis
 
-| Scenario                 | Color             | Meaning              |
-| ------------------------ | ----------------- | -------------------- |
-| Value within spec limits | Green (`#22c55e`) | Pass                 |
-| Value > USL              | Red (`#ef4444`)   | Fail (too high)      |
-| Value < LSL              | Amber (`#f59e0b`) | Fail (too low)       |
-| Cpk >= 1.33              | Green             | Excellent capability |
-| Cpk 1.0-1.33             | Amber             | Acceptable, monitor  |
-| Cpk < 1.0                | Red               | Needs improvement    |
+| Scenario                 | Color             | Meaning                                |
+| ------------------------ | ----------------- | -------------------------------------- |
+| Value within spec limits | Green (`#22c55e`) | Pass                                   |
+| Value > USL              | Red (`#ef4444`)   | Fail (too high)                        |
+| Value < LSL              | Amber (`#f59e0b`) | Fail (too low)                         |
+| Cpk >= target            | Green             | Meets capability target (default 1.33) |
+| Cpk >= 75% of target     | Amber             | Approaching target, monitor            |
+| Cpk < 75% of target      | Red               | Needs improvement                      |
 
 ## Brand Colors
 

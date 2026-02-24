@@ -9,7 +9,7 @@
  */
 
 import { useCallback } from 'react';
-import type { DataRow, StageOrderMode } from '@variscout/core';
+import type { DataRow, StageOrderMode, FilterAction } from '@variscout/core';
 import type {
   AnalysisState,
   DisplayOptions,
@@ -20,6 +20,8 @@ import type {
   DataQualityReport,
   ParetoRow,
   ScaleMode,
+  RegressionPersistenceState,
+  ViewState,
 } from './types';
 
 // ============================================================================
@@ -41,6 +43,25 @@ export interface ProjectPersistenceInputs {
   valueLabels: Record<string, Record<string, string>>;
   displayOptions: DisplayOptions;
   currentProjectId: string | null;
+
+  // Quick-win workflow getters (Phase 1)
+  cpkTarget: number;
+  stageColumn: string | null;
+  stageOrderMode: StageOrderMode;
+  isPerformanceMode: boolean;
+  measureColumns: string[];
+  selectedMeasure: string | null;
+  measureLabel: string;
+  chartTitles: ChartTitles;
+
+  // Filter stack getter (Phase 2)
+  filterStack: FilterAction[];
+
+  // Regression state getter (Phase 3)
+  regressionState: RegressionPersistenceState | null;
+
+  // View state getter (Phase 4)
+  viewState: ViewState | null;
 
   // All setters for load/import/new
   setRawData: (data: DataRow[]) => void;
@@ -71,6 +92,15 @@ export interface ProjectPersistenceInputs {
   setMeasureLabel: (label: string) => void;
   setSelectedMeasure: (measureId: string | null) => void;
   setCpkTarget: (target: number) => void;
+
+  // Filter stack setter (Phase 2)
+  setFilterStack: (stack: FilterAction[]) => void;
+
+  // Regression state setter (Phase 3)
+  setRegressionState: (state: RegressionPersistenceState | null) => void;
+
+  // View state setter (Phase 4)
+  setViewState: (state: ViewState | null) => void;
 }
 
 export interface ProjectPersistenceResult {
@@ -113,6 +143,17 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     valueLabels,
     displayOptions,
     currentProjectId,
+    cpkTarget,
+    stageColumn,
+    stageOrderMode,
+    isPerformanceMode,
+    measureColumns,
+    selectedMeasure,
+    measureLabel,
+    chartTitles,
+    filterStack,
+    regressionState,
+    viewState,
     setRawData,
     setOutcome,
     setFactors,
@@ -141,14 +182,17 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureLabel,
     setSelectedMeasure,
     setCpkTarget,
+    setFilterStack,
+    setRegressionState,
+    setViewState,
   } = inputs;
 
   // ---------------------------------------------------------------------------
   // State snapshot for persistence
   // ---------------------------------------------------------------------------
 
-  const getCurrentState = useCallback(
-    (): Omit<AnalysisState, 'version'> => ({
+  const getCurrentState = useCallback((): Omit<AnalysisState, 'version'> => {
+    const state: Omit<AnalysisState, 'version'> = {
       rawData,
       outcome,
       factors,
@@ -159,20 +203,51 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       columnAliases,
       valueLabels,
       displayOptions,
-    }),
-    [
-      rawData,
-      outcome,
-      factors,
-      specs,
-      measureSpecs,
-      filters,
-      axisSettings,
-      columnAliases,
-      valueLabels,
-      displayOptions,
-    ]
-  );
+    };
+
+    // Quick-win fields — only include non-default values for compact serialization
+    if (cpkTarget !== 1.33) state.cpkTarget = cpkTarget;
+    if (stageColumn !== null) state.stageColumn = stageColumn;
+    if (stageOrderMode !== 'auto') state.stageOrderMode = stageOrderMode;
+    if (isPerformanceMode) state.isPerformanceMode = true;
+    if (measureColumns.length > 0) state.measureColumns = measureColumns;
+    if (selectedMeasure !== null) state.selectedMeasure = selectedMeasure;
+    if (measureLabel !== 'Measure') state.measureLabel = measureLabel;
+    if (Object.keys(chartTitles).length > 0) state.chartTitles = chartTitles;
+
+    // Filter stack — only include if non-empty
+    if (filterStack.length > 0) state.filterStack = filterStack;
+
+    // Regression state — only include if set
+    if (regressionState) state.regressionState = regressionState;
+
+    // View state — always include for explicit round-trip
+    if (viewState) state.viewState = viewState;
+
+    return state;
+  }, [
+    rawData,
+    outcome,
+    factors,
+    specs,
+    measureSpecs,
+    filters,
+    axisSettings,
+    columnAliases,
+    valueLabels,
+    displayOptions,
+    cpkTarget,
+    stageColumn,
+    stageOrderMode,
+    isPerformanceMode,
+    measureColumns,
+    selectedMeasure,
+    measureLabel,
+    chartTitles,
+    filterStack,
+    regressionState,
+    viewState,
+  ]);
 
   // ---------------------------------------------------------------------------
   // Persistence actions
@@ -199,11 +274,44 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         setFactors(state.factors);
         setSpecs(state.specs);
         setMeasureSpecs(state.measureSpecs || {});
-        setFilters(state.filters);
         setAxisSettings(state.axisSettings);
         setColumnAliases(state.columnAliases || {});
         setValueLabels(state.valueLabels || {});
         if (state.displayOptions) setDisplayOptions(state.displayOptions);
+
+        // Quick-win fields (backward-compat: old .vrs files won't have these)
+        setCpkTarget(state.cpkTarget ?? 1.33);
+        setStageColumn(state.stageColumn ?? null);
+        setStageOrderMode(state.stageOrderMode ?? 'auto');
+        setPerformanceMode(state.isPerformanceMode ?? false);
+        setMeasureColumns(state.measureColumns ?? []);
+        setSelectedMeasure(state.selectedMeasure ?? null);
+        setMeasureLabel(state.measureLabel ?? 'Measure');
+        setChartTitles(state.chartTitles ?? {});
+
+        // Filter stack — if present, restore ordered stack + derive flat filters
+        if (state.filterStack && state.filterStack.length > 0) {
+          setFilterStack(state.filterStack);
+          // Derive flat filters from the stack for data filtering
+          const flatFilters: Record<string, (string | number)[]> = {};
+          for (const action of state.filterStack) {
+            if (action.type === 'filter' && action.factor) {
+              flatFilters[action.factor] = action.values;
+            }
+          }
+          setFilters(flatFilters);
+        } else {
+          // Old .vrs: use flat filters directly, no breadcrumbs
+          setFilters(state.filters);
+          setFilterStack([]);
+        }
+
+        // Regression state
+        setRegressionState(state.regressionState ?? null);
+
+        // View state
+        setViewState(state.viewState ?? null);
+
         setCurrentProjectId(project.id);
         setCurrentProjectName(project.name);
         setHasUnsavedChanges(false);
@@ -224,6 +332,17 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setCurrentProjectId,
       setCurrentProjectName,
       setHasUnsavedChanges,
+      setCpkTarget,
+      setStageColumn,
+      setStageOrderMode,
+      setPerformanceMode,
+      setMeasureColumns,
+      setSelectedMeasure,
+      setMeasureLabel,
+      setChartTitles,
+      setFilterStack,
+      setRegressionState,
+      setViewState,
     ]
   );
 
@@ -266,11 +385,43 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       if (state.outcome) setOutcome(state.outcome);
       if (state.factors) setFactors(state.factors);
       if (state.specs) setSpecs(state.specs);
-      if (state.filters) setFilters(state.filters);
       if (state.axisSettings) setAxisSettings(state.axisSettings);
       if (state.columnAliases) setColumnAliases(state.columnAliases);
       if (state.valueLabels) setValueLabels(state.valueLabels);
       if (state.displayOptions) setDisplayOptions(state.displayOptions);
+
+      // Quick-win fields
+      setCpkTarget(state.cpkTarget ?? 1.33);
+      setStageColumn(state.stageColumn ?? null);
+      setStageOrderMode(state.stageOrderMode ?? 'auto');
+      setPerformanceMode(state.isPerformanceMode ?? false);
+      setMeasureColumns(state.measureColumns ?? []);
+      setSelectedMeasure(state.selectedMeasure ?? null);
+      setMeasureLabel(state.measureLabel ?? 'Measure');
+      setChartTitles(state.chartTitles ?? {});
+      if (state.measureSpecs) setMeasureSpecs(state.measureSpecs);
+
+      // Filter stack
+      if (state.filterStack && state.filterStack.length > 0) {
+        setFilterStack(state.filterStack);
+        const flatFilters: Record<string, (string | number)[]> = {};
+        for (const action of state.filterStack) {
+          if (action.type === 'filter' && action.factor) {
+            flatFilters[action.factor] = action.values;
+          }
+        }
+        setFilters(flatFilters);
+      } else if (state.filters) {
+        setFilters(state.filters);
+        setFilterStack([]);
+      }
+
+      // Regression state
+      setRegressionState(state.regressionState ?? null);
+
+      // View state
+      setViewState(state.viewState ?? null);
+
       setCurrentProjectId(null);
       setCurrentProjectName(file.name.replace('.vrs', ''));
       setHasUnsavedChanges(true);
@@ -289,6 +440,18 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setCurrentProjectId,
       setCurrentProjectName,
       setHasUnsavedChanges,
+      setCpkTarget,
+      setStageColumn,
+      setStageOrderMode,
+      setPerformanceMode,
+      setMeasureColumns,
+      setSelectedMeasure,
+      setMeasureLabel,
+      setChartTitles,
+      setMeasureSpecs,
+      setFilterStack,
+      setRegressionState,
+      setViewState,
     ]
   );
 
@@ -324,6 +487,10 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureLabel('Measure');
     setSelectedMeasure(null);
     setCpkTarget(1.33);
+    // Reset filter stack, regression state, and view state
+    setFilterStack([]);
+    setRegressionState(null);
+    setViewState(null);
   }, [
     setRawData,
     setOutcome,
@@ -353,6 +520,9 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureLabel,
     setSelectedMeasure,
     setCpkTarget,
+    setFilterStack,
+    setRegressionState,
+    setViewState,
   ]);
 
   return {

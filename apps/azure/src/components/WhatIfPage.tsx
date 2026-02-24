@@ -20,7 +20,7 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({
   filterStack,
   regressionModel,
 }) => {
-  const { filteredData, rawData, outcome, specs, columnAliases } = useData();
+  const { filteredData, rawData, outcome, specs, columnAliases, cpkTarget } = useData();
 
   const filterNames = useMemo(() => {
     if (!filterStack || filterStack.length === 0) return undefined;
@@ -44,6 +44,7 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({
       colorScheme={whatIfPageAzureColorScheme}
       simulatorColorScheme={whatIfSimulatorAzureColorScheme}
       regressionModel={regressionModel}
+      cpkTarget={cpkTarget}
     />
   );
 };

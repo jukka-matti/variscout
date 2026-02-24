@@ -9,7 +9,7 @@ interface WhatIfPageProps {
 }
 
 const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack, regressionModel }) => {
-  const { filteredData, rawData, outcome, specs, filters } = useData();
+  const { filteredData, rawData, outcome, specs, filters, cpkTarget } = useData();
   const filterCount = Object.keys(filters).length;
 
   return (
@@ -21,6 +21,7 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack, regressionModel }) => {
       filterCount={filterCount}
       onBack={onBack}
       regressionModel={regressionModel}
+      cpkTarget={cpkTarget}
     />
   );
 };

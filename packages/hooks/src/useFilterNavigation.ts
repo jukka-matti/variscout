@@ -31,6 +31,10 @@ export interface UseFilterNavigationOptions {
   enableHistory?: boolean;
   /** Sync filters to URL parameters (enables shareable URLs) */
   enableUrlSync?: boolean;
+  /** External filter stack state (for DataContext persistence) */
+  externalFilterStack?: FilterAction[];
+  /** External setter for filter stack (for DataContext persistence) */
+  externalSetFilterStack?: (stack: FilterAction[]) => void;
 }
 
 export interface UseFilterNavigationReturn {
@@ -109,10 +113,18 @@ export function useFilterNavigation(
   context: FilterNavigationContext,
   options: UseFilterNavigationOptions = {}
 ): UseFilterNavigationReturn {
-  const { enableHistory = false, enableUrlSync = false } = options;
+  const {
+    enableHistory = false,
+    enableUrlSync = false,
+    externalFilterStack,
+    externalSetFilterStack,
+  } = options;
   const { filters: _filters, setFilters, columnAliases } = context;
 
-  const [filterStack, setFilterStack] = useState<FilterAction[]>([]);
+  // Use external state when provided (for persistence), otherwise internal
+  const [internalFilterStack, internalSetFilterStack] = useState<FilterAction[]>([]);
+  const filterStack = externalFilterStack ?? internalFilterStack;
+  const setFilterStack = externalSetFilterStack ?? internalSetFilterStack;
   const [currentHighlight, setCurrentHighlight] = useState<HighlightState | null>(null);
 
   // Track if we're handling a popstate event (to avoid pushing history)

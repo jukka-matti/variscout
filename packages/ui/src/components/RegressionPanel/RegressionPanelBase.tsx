@@ -9,7 +9,12 @@ import {
   type MultiRegressionResult,
   type TermRemovalSuggestion,
 } from '@variscout/core';
-import { useColumnClassification, useRegressionState, type ReductionStep } from '@variscout/hooks';
+import {
+  useColumnClassification,
+  useRegressionState,
+  type ReductionStep,
+  type RegressionPersistenceState,
+} from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
 import { useGlossary } from '../../hooks/useGlossary';
 import { BarChart3, Layers } from 'lucide-react';
@@ -140,6 +145,10 @@ export interface RegressionPanelBaseProps {
   onNavigateToWhatIf?: (model: MultiRegressionResult) => void;
   /** Total row count (raw data) for filter context banner */
   totalRowCount?: number;
+  /** Saved regression state to restore (from project persistence) */
+  savedRegressionState?: RegressionPersistenceState | null;
+  /** Callback when regression state changes meaningfully (for persistence) */
+  onRegressionStateChange?: (state: RegressionPersistenceState) => void;
 }
 
 /**
@@ -172,6 +181,8 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
   investigationFactors,
   onNavigateToWhatIf,
   totalRowCount,
+  savedRegressionState,
+  onRegressionStateChange,
 }) => {
   const { getTerm } = useGlossary();
 
@@ -203,6 +214,8 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
     initialPredictors,
     rankedColumns,
     allColumns: [...columns.numeric, ...columns.categorical],
+    savedState: savedRegressionState,
+    dataRowCount: totalRowCount,
   });
 
   // Calculate simple regression for each selected X column
@@ -232,6 +245,23 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
     regression.mode,
   ]);
 
+  // Stamp model data row count when regression model is (re)computed
+  useEffect(() => {
+    if (totalRowCount !== undefined) {
+      const hasSimpleResults = regression.mode === 'simple' && regressionResults.length > 0;
+      const hasAdvancedResult = regression.mode === 'advanced' && multiRegressionResult !== null;
+      if (hasSimpleResults || hasAdvancedResult) {
+        regression.setModelDataRowCount(totalRowCount);
+      }
+    }
+  }, [regressionResults, multiRegressionResult, totalRowCount, regression.mode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Detect data staleness (row count changed since model was fitted)
+  const isModelStale =
+    regression.modelDataRowCount !== undefined &&
+    totalRowCount !== undefined &&
+    totalRowCount !== regression.modelDataRowCount;
+
   // Track pending reduction removal to update adjR2After on next render
   const pendingRemovalRef = useRef(false);
 
@@ -241,6 +271,14 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
       pendingRemovalRef.current = false;
     }
   }, [multiRegressionResult, regression]);
+
+  // Report meaningful state changes for project persistence
+  const regressionGetState = regression.getState;
+  useEffect(() => {
+    if (onRegressionStateChange) {
+      onRegressionStateChange(regressionGetState());
+    }
+  }, [regressionGetState, onRegressionStateChange]);
 
   // Sort by R² for ranking display (simple mode)
   const sortedByStrength = useMemo(() => {
@@ -346,6 +384,16 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
           className={`flex-none px-4 py-1.5 text-[10px] ${colorScheme.emptyStateText} border-b ${colorScheme.border}`}
         >
           Analyzing {filteredData.length} of {totalRowCount} rows (filtered)
+        </div>
+      )}
+
+      {/* Data staleness indicator */}
+      {isModelStale && (
+        <div
+          className={`flex-none px-4 py-1.5 text-[10px] text-amber-400 border-b ${colorScheme.border} bg-amber-500/5`}
+        >
+          Data changed since model was fitted ({regression.modelDataRowCount} → {totalRowCount}{' '}
+          rows) — consider re-running
         </div>
       )}
 

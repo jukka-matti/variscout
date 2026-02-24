@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { RegressionPersistenceState, ReductionStepData } from './types';
 
 /**
  * Regression analysis mode
@@ -33,6 +34,10 @@ export interface UseRegressionStateOptions {
   rankedColumns?: string[];
   /** All available columns (numeric + categorical) for validating initialPredictors */
   allColumns?: string[];
+  /** Saved regression state to restore (from project persistence) */
+  savedState?: RegressionPersistenceState | null;
+  /** Current total row count (for staleness detection) */
+  dataRowCount?: number;
 }
 
 /**
@@ -64,6 +69,14 @@ export interface UseRegressionStateReturn {
   // Modal state
   expandedChart: string | null;
   setExpandedChart: (col: string | null) => void;
+
+  /** Snapshot current state for persistence (converts Set → array) */
+  getState: () => RegressionPersistenceState;
+
+  /** Row count at time of last model computation (for staleness detection) */
+  modelDataRowCount: number | undefined;
+  /** Update model row count (called when regression model is recomputed) */
+  setModelDataRowCount: (count: number) => void;
 }
 
 /**
@@ -91,21 +104,38 @@ export function useRegressionState(options: UseRegressionStateOptions): UseRegre
     initialPredictors,
     rankedColumns,
     allColumns,
+    savedState,
+    dataRowCount,
   } = options;
 
-  // Mode state
-  const [mode, setMode] = useState<RegressionMode>('simple');
+  // Mode state — restore from saved if available
+  const [mode, setMode] = useState<RegressionMode>(savedState?.mode ?? 'simple');
 
-  // Simple mode state
-  const [selectedXColumns, setSelectedXColumns] = useState<string[]>([]);
+  // Simple mode state — restore from saved if available
+  const [selectedXColumns, setSelectedXColumns] = useState<string[]>(
+    savedState?.selectedXColumns ?? []
+  );
 
-  // Advanced mode state
-  const [advSelectedPredictors, setAdvSelectedPredictors] = useState<string[]>([]);
-  const [categoricalColumns, setCategoricalColumns] = useState<Set<string>>(new Set());
-  const [includeInteractions, setIncludeInteractions] = useState(false);
+  // Advanced mode state — restore from saved if available
+  const [advSelectedPredictors, setAdvSelectedPredictors] = useState<string[]>(
+    savedState?.advSelectedPredictors ?? []
+  );
+  const [categoricalColumns, setCategoricalColumns] = useState<Set<string>>(
+    savedState?.categoricalColumns ? new Set(savedState.categoricalColumns) : new Set()
+  );
+  const [includeInteractions, setIncludeInteractions] = useState(
+    savedState?.includeInteractions ?? false
+  );
 
-  // Model reduction state
-  const [reductionHistory, setReductionHistory] = useState<ReductionStep[]>([]);
+  // Model reduction state — restore from saved if available
+  const [reductionHistory, setReductionHistory] = useState<ReductionStep[]>(
+    (savedState?.reductionHistory as ReductionStep[] | undefined) ?? []
+  );
+
+  // Data staleness tracking
+  const [modelDataRowCount, setModelDataRowCount] = useState<number | undefined>(
+    savedState?.dataRowCount
+  );
 
   // Modal state
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
@@ -207,6 +237,29 @@ export function useRegressionState(options: UseRegressionStateOptions): UseRegre
     setReductionHistory([]);
   }, []);
 
+  // Snapshot current state for persistence (converts Set → array)
+  const getState = useCallback(
+    (): RegressionPersistenceState => ({
+      mode,
+      selectedXColumns: selectedXColumns.length > 0 ? selectedXColumns : undefined,
+      advSelectedPredictors: advSelectedPredictors.length > 0 ? advSelectedPredictors : undefined,
+      categoricalColumns: categoricalColumns.size > 0 ? Array.from(categoricalColumns) : undefined,
+      includeInteractions: includeInteractions || undefined,
+      reductionHistory:
+        reductionHistory.length > 0 ? (reductionHistory as ReductionStepData[]) : undefined,
+      dataRowCount: modelDataRowCount,
+    }),
+    [
+      mode,
+      selectedXColumns,
+      advSelectedPredictors,
+      categoricalColumns,
+      includeInteractions,
+      reductionHistory,
+      modelDataRowCount,
+    ]
+  );
+
   return {
     // Mode
     mode,
@@ -233,5 +286,12 @@ export function useRegressionState(options: UseRegressionStateOptions): UseRegre
     // Modal
     expandedChart,
     setExpandedChart,
+
+    // Persistence
+    getState,
+
+    // Staleness tracking
+    modelDataRowCount,
+    setModelDataRowCount,
   };
 }

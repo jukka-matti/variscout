@@ -75,16 +75,28 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     setColumnAliases,
     displayOptions,
     setDisplayOptions,
+    viewState,
+    setViewState,
     saveProject,
     loadProject,
   } = useData();
 
   const { handleFileUpload, loadSample } = useDataIngestion();
 
+  // Report view state changes for persistence (merge partial updates)
+  const handleViewStateChange = useCallback(
+    (partial: Partial<import('@variscout/hooks').ViewState>) => {
+      setViewState({ ...(viewState ?? {}), ...partial });
+    },
+    [viewState, setViewState]
+  );
+
   // Panel visibility and chart/table sync
   const panels = useEditorPanels({
     displayOptions,
     setDisplayOptions,
+    viewState,
+    onViewStateChange: handleViewStateChange,
   });
 
   // Investigation → Regression bridge state
@@ -526,6 +538,18 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 setWhatIfRegressionModel(model);
                 panels.setIsWhatIfOpen(true);
               }}
+              initialTab={viewState?.activeTab}
+              onTabChange={tab => handleViewStateChange({ activeTab: tab })}
+              initialFocusedChart={viewState?.focusedChart}
+              onFocusedChartChange={chart =>
+                handleViewStateChange({
+                  focusedChart: chart as 'ichart' | 'boxplot' | 'pareto' | null,
+                })
+              }
+              initialBoxplotFactor={viewState?.boxplotFactor}
+              initialParetoFactor={viewState?.paretoFactor}
+              onBoxplotFactorChange={factor => handleViewStateChange({ boxplotFactor: factor })}
+              onParetoFactorChange={factor => handleViewStateChange({ paretoFactor: factor })}
             />
             <MindmapPanel
               isOpen={panels.isMindmapOpen}

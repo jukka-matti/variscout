@@ -37,13 +37,16 @@ Collapsible panel with factor-level reduction sliders and projected Cpk improvem
 
 ```typescript
 interface WhatIfSimulatorProps {
-  baselineStats: StatsResult; // Current process statistics
-  specs: SpecLimits; // USL/LSL/Target
-  factors: string[]; // Available factors from drill-down
-  filteredData: DataRow[]; // Current filtered data
-  rawData: DataRow[]; // Full dataset
-  outcome: string; // Outcome column name
+  currentStats: { mean: number; stdDev: number; cpk?: number };
+  specs?: { usl?: number; lsl?: number; target?: number };
+  defaultExpanded?: boolean;
+  presets?: SimulatorPreset[];
+  isExpanded?: boolean;
+  onExpandChange?: (expanded: boolean) => void;
+  initialPreset?: SimulatorPreset | null;
   colorScheme?: WhatIfSimulatorColorScheme;
+  /** Cpk target for color thresholds (default 1.33) */
+  cpkTarget?: number;
 }
 ```
 
@@ -80,6 +83,8 @@ interface ModelDrivenSimulatorProps {
   specs?: { usl?: number; lsl?: number; target?: number };
   /** Color scheme */
   colorScheme?: WhatIfSimulatorColorScheme;
+  /** Cpk target for color thresholds (default 1.33) */
+  cpkTarget?: number;
 }
 ```
 
@@ -115,7 +120,7 @@ Uses `simulateFromModel(model, adjustments)` from `@variscout/core` to compute t
 The projection results panel shows:
 
 - **Mean:** Current and projected values with delta
-- **Cpk:** Color-coded (green >= 1.33, amber >= 1.0, red < 1.0) with improvement percentage
+- **Cpk:** Color-coded relative to user's Cpk target (green >= target, amber >= 75% of target, red < 75%) with improvement percentage. Default target: 1.33.
 - **Yield:** Current and projected with improvement percentage
 
 ### Reset
@@ -137,11 +142,14 @@ interface WhatIfPageBaseProps {
   outcome: string | null;
   specs: SpecLimits;
   filterCount: number;
+  filterNames?: string[];
   onBack: () => void;
   colorScheme?: WhatIfPageColorScheme;
   simulatorColorScheme?: WhatIfSimulatorColorScheme;
   /** Optional regression model for model-driven simulation */
   regressionModel?: MultiRegressionResult;
+  /** Cpk target for color thresholds — threaded to both simulators */
+  cpkTarget?: number;
 }
 ```
 
@@ -161,6 +169,8 @@ All components follow the standard colorScheme pattern:
 - `whatIfPageDefaultColorScheme` — Semantic tokens (PWA)
 - `whatIfPageAzureColorScheme` — Slate palette (Azure)
 - `whatIfSimulatorDefaultColorScheme` / `whatIfSimulatorAzureColorScheme`
+
+The `WhatIfSimulatorColorScheme` includes `improvementPositive` and `improvementNegative` for directional change indicators (Cpk/yield improvement or decline), and `cpkGood`/`cpkOk`/`cpkBad` for Cpk status coloring.
 
 ---
 

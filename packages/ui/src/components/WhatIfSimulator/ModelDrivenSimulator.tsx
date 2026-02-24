@@ -27,6 +27,8 @@ export interface ModelDrivenSimulatorProps {
   specs?: { usl?: number; lsl?: number; target?: number };
   /** Color scheme */
   colorScheme?: WhatIfSimulatorColorScheme;
+  /** Cpk target for color thresholds (default 1.33) */
+  cpkTarget?: number;
 }
 
 function formatNumber(value: number, decimals: number = 2): string {
@@ -39,6 +41,7 @@ const ModelDrivenSimulator: React.FC<ModelDrivenSimulatorProps> = ({
   currentStats,
   specs,
   colorScheme = whatIfSimulatorDefaultColorScheme,
+  cpkTarget = 1.33,
 }) => {
   const c = colorScheme;
   const { getTerm } = useGlossary();
@@ -56,11 +59,11 @@ const ModelDrivenSimulator: React.FC<ModelDrivenSimulatorProps> = ({
 
   const getCpkColor = useCallback(
     (cpk: number): string => {
-      if (cpk >= 1.33) return c.cpkGood;
-      if (cpk >= 1.0) return c.cpkOk;
+      if (cpk >= cpkTarget) return c.cpkGood;
+      if (cpk >= cpkTarget * 0.75) return c.cpkOk;
       return c.cpkBad;
     },
-    [c.cpkGood, c.cpkOk, c.cpkBad]
+    [c.cpkGood, c.cpkOk, c.cpkBad, cpkTarget]
   );
 
   // Compute factor baselines from data + model
@@ -254,7 +257,7 @@ const ModelDrivenSimulator: React.FC<ModelDrivenSimulatorProps> = ({
                     </div>
                   </div>
                   <span
-                    className={`text-[10px] font-mono w-12 text-right ${isPositive ? 'text-green-400' : 'text-red-400'}`}
+                    className={`text-[10px] font-mono w-12 text-right ${isPositive ? c.improvementPositive : c.improvementNegative}`}
                   >
                     {isPositive ? '+' : ''}
                     {formatNumber(contrib.delta, 1)}
@@ -321,7 +324,7 @@ const ModelDrivenSimulator: React.FC<ModelDrivenSimulatorProps> = ({
                       className={
                         projection.improvements.cpkImprovementPct >= 0
                           ? c.improvementPositive
-                          : 'text-red-400'
+                          : c.improvementNegative
                       }
                     >
                       ({projection.improvements.cpkImprovementPct >= 0 ? '+' : ''}
@@ -349,7 +352,7 @@ const ModelDrivenSimulator: React.FC<ModelDrivenSimulatorProps> = ({
                         className={
                           projection.improvements.yieldImprovementPct >= 0
                             ? c.improvementPositive
-                            : 'text-red-400'
+                            : c.improvementNegative
                         }
                       >
                         ({projection.improvements.yieldImprovementPct >= 0 ? '+' : ''}

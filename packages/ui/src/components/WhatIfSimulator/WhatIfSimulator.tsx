@@ -36,14 +36,16 @@ export interface WhatIfSimulatorColorScheme {
   projectionBorder: string;
   /** Reset hover text */
   resetHoverText: string;
-  /** Cpk good color (>= 1.33) */
+  /** Cpk good color (>= cpkTarget) */
   cpkGood: string;
-  /** Cpk marginal color (>= 1.0) */
+  /** Cpk marginal color (>= 75% of cpkTarget) */
   cpkOk: string;
   /** Cpk bad color (< 1.0) */
   cpkBad: string;
   /** Positive improvement color */
   improvementPositive: string;
+  /** Negative improvement color (Cpk decline, yield decline) */
+  improvementNegative: string;
   /** Slider track background */
   sliderTrackBg: string;
   /** Slider ring offset */
@@ -71,6 +73,7 @@ export const whatIfSimulatorDefaultColorScheme: WhatIfSimulatorColorScheme = {
   cpkOk: 'text-amber-400',
   cpkBad: 'text-red-400',
   improvementPositive: 'text-green-400',
+  improvementNegative: 'text-red-400',
   sliderTrackBg: 'bg-surface-tertiary',
   sliderRingOffset: 'focus:ring-offset-surface',
   sliderMozTrackBg: '[&::-moz-range-track]:bg-surface-tertiary',
@@ -95,6 +98,7 @@ export const whatIfSimulatorAzureColorScheme: WhatIfSimulatorColorScheme = {
   cpkOk: 'text-amber-500',
   cpkBad: 'text-red-400',
   improvementPositive: 'text-green-500',
+  improvementNegative: 'text-red-400',
   sliderTrackBg: 'bg-slate-700',
   sliderRingOffset: 'focus:ring-offset-slate-900',
   sliderMozTrackBg: '[&::-moz-range-track]:bg-slate-700',
@@ -128,6 +132,8 @@ export interface WhatIfSimulatorProps {
   onExpandChange?: (expanded: boolean) => void;
   initialPreset?: SimulatorPreset | null;
   colorScheme?: WhatIfSimulatorColorScheme;
+  /** Cpk target for color thresholds (default 1.33) */
+  cpkTarget?: number;
 }
 
 function formatNumber(value: number, decimals: number = 2): string {
@@ -158,6 +164,7 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
       onExpandChange,
       initialPreset,
       colorScheme = whatIfSimulatorDefaultColorScheme,
+      cpkTarget = 1.33,
     },
     ref
   ) => {
@@ -175,14 +182,14 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
       [c]
     );
 
-    // Get Cpk color based on value thresholds
+    // Get Cpk color based on target-relative thresholds
     const getCpkColor = useCallback(
       (cpk: number): string => {
-        if (cpk >= 1.33) return c.cpkGood;
-        if (cpk >= 1.0) return c.cpkOk;
+        if (cpk >= cpkTarget) return c.cpkGood;
+        if (cpk >= cpkTarget * 0.75) return c.cpkOk;
         return c.cpkBad;
       },
-      [c.cpkGood, c.cpkOk, c.cpkBad]
+      [c.cpkGood, c.cpkOk, c.cpkBad, cpkTarget]
     );
 
     // Panel expansion state
@@ -423,7 +430,7 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
                           className={
                             projection.improvements.cpkImprovementPct >= 0
                               ? c.improvementPositive
-                              : 'text-red-400'
+                              : c.improvementNegative
                           }
                         >
                           ({projection.improvements.cpkImprovementPct >= 0 ? '+' : ''}
@@ -451,7 +458,7 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
                             className={
                               projection.improvements.yieldImprovementPct >= 0
                                 ? c.improvementPositive
-                                : 'text-red-400'
+                                : c.improvementNegative
                             }
                           >
                             ({projection.improvements.yieldImprovementPct >= 0 ? '+' : ''}

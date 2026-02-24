@@ -19,6 +19,13 @@ vi.mock('@variscout/core', async () => {
 });
 
 describe('RegressionPanel', () => {
+  const mockPersistenceFields = {
+    regressionState: null,
+    setRegressionState: vi.fn(),
+    filterStack: [],
+    setFilterStack: vi.fn(),
+  };
+
   const mockRegressionResult = {
     xColumn: 'Speed',
     yColumn: 'Output',
@@ -46,6 +53,7 @@ describe('RegressionPanel', () => {
       filteredData: [],
       rawData: [],
       specs: {},
+      ...mockPersistenceFields,
     } as any);
 
     render(<RegressionPanel />);
@@ -60,6 +68,7 @@ describe('RegressionPanel', () => {
       filteredData: [{ Result: 10, Category: 'A' }], // Only outcome is numeric
       rawData: [{ Result: 10, Category: 'A' }],
       specs: {},
+      ...mockPersistenceFields,
     } as any);
 
     render(<RegressionPanel />);
@@ -77,6 +86,7 @@ describe('RegressionPanel', () => {
       filteredData: data,
       rawData: data,
       specs: {},
+      ...mockPersistenceFields,
     } as any);
 
     vi.spyOn(CoreModule, 'calculateRegression').mockReturnValue(mockRegressionResult as any);
@@ -100,6 +110,7 @@ describe('RegressionPanel', () => {
       filteredData: data,
       rawData: data,
       specs: {},
+      ...mockPersistenceFields,
     } as any);
 
     vi.spyOn(CoreModule, 'calculateRegression').mockReturnValue(mockRegressionResult as any);
@@ -130,6 +141,7 @@ describe('RegressionPanel', () => {
       filteredData: data,
       rawData: data,
       specs: {},
+      ...mockPersistenceFields,
     } as any);
 
     // Mock two results with different R²

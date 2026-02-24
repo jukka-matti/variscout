@@ -63,6 +63,22 @@ interface DashboardProps {
   regressionInitialFactors?: string[];
   onClearRegressionFactors?: () => void;
   onNavigateToWhatIfWithModel?: (model: MultiRegressionResult) => void;
+  /** Initial tab from persisted view state */
+  initialTab?: DashboardTab;
+  /** Report tab changes for persistence */
+  onTabChange?: (tab: DashboardTab) => void;
+  /** Initial focused chart from persisted view state */
+  initialFocusedChart?: 'ichart' | 'boxplot' | 'pareto' | null;
+  /** Report focused chart changes for persistence */
+  onFocusedChartChange?: (chart: string | null) => void;
+  /** Initial boxplot factor from persisted view state */
+  initialBoxplotFactor?: string;
+  /** Initial pareto factor from persisted view state */
+  initialParetoFactor?: string;
+  /** Report boxplot factor changes for persistence */
+  onBoxplotFactorChange?: (factor: string) => void;
+  /** Report pareto factor changes for persistence */
+  onParetoFactorChange?: (factor: string) => void;
 }
 
 const Dashboard = ({
@@ -75,6 +91,14 @@ const Dashboard = ({
   regressionInitialFactors,
   onClearRegressionFactors,
   onNavigateToWhatIfWithModel,
+  initialTab,
+  onTabChange,
+  initialFocusedChart,
+  onFocusedChartChange,
+  initialBoxplotFactor,
+  initialParetoFactor,
+  onBoxplotFactorChange,
+  onParetoFactorChange,
 }: DashboardProps) => {
   const {
     outcome,
@@ -104,25 +128,39 @@ const Dashboard = ({
     setDisplayOptions,
     selectedPoints,
     clearSelection,
+    filterStack: ctxFilterStack,
+    setFilterStack: ctxSetFilterStack,
   } = useData();
   const { getTerm } = useGlossary();
 
-  const [activeTab, setActiveTab] = useState<DashboardTab>('analysis');
+  const [activeTab, setActiveTabRaw] = useState<DashboardTab>(initialTab ?? 'analysis');
   const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
+
+  // Wrap setActiveTab to report changes for persistence
+  const setActiveTab = useCallback(
+    (tab: DashboardTab) => {
+      setActiveTabRaw(tab);
+      onTabChange?.(tab);
+    },
+    [onTabChange]
+  );
+
+  // Initialize focused chart from persisted view state (one-time on mount)
+  const [hasRestoredFocusedChart, setHasRestoredFocusedChart] = useState(false);
 
   // Auto-switch to analysis tab when drilling from performance mode
   useEffect(() => {
     if (drillFromPerformance) {
       setActiveTab('analysis');
     }
-  }, [drillFromPerformance]);
+  }, [drillFromPerformance, setActiveTab]);
 
   // Auto-switch to regression tab when external factors arrive (investigation bridge)
   useEffect(() => {
     if (regressionInitialFactors && regressionInitialFactors.length > 0) {
       setActiveTab('regression');
     }
-  }, [regressionInitialFactors]);
+  }, [regressionInitialFactors, setActiveTab]);
 
   // Chart state and logic from the hook
   const {
@@ -154,7 +192,30 @@ const Dashboard = ({
     removeFilter,
     handleDrillDown,
     handleChartTitleChange,
-  } = useDashboardCharts({ externalFilterNav });
+  } = useDashboardCharts({
+    externalFilterNav,
+    initialBoxplotFactor,
+    initialParetoFactor,
+    onBoxplotFactorChange,
+    onParetoFactorChange,
+  });
+
+  // Restore persisted focused chart (one-time after hook initializes)
+  useEffect(() => {
+    if (!hasRestoredFocusedChart && initialFocusedChart) {
+      setFocusedChart(initialFocusedChart);
+      setHasRestoredFocusedChart(true);
+    } else if (!hasRestoredFocusedChart) {
+      setHasRestoredFocusedChart(true);
+    }
+  }, [hasRestoredFocusedChart, initialFocusedChart, setFocusedChart]);
+
+  // Report focused chart changes for persistence
+  useEffect(() => {
+    if (hasRestoredFocusedChart) {
+      onFocusedChartChange?.(focusedChart);
+    }
+  }, [focusedChart, hasRestoredFocusedChart, onFocusedChartChange]);
 
   // Annotations (right-click context menu, no mode toggle)
   const dataFingerprint = useMemo(
@@ -463,6 +524,8 @@ const Dashboard = ({
                         onFactorsChange={setFactors}
                         onFiltersChange={setFilters}
                         factorVariations={factorVariations}
+                        filterStack={ctxFilterStack}
+                        onFilterStackChange={ctxSetFilterStack}
                       />
                     </div>
                   </div>

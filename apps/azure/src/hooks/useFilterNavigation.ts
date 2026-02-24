@@ -15,6 +15,7 @@ export type { UseFilterNavigationOptions, UseFilterNavigationReturn };
  * Hook for managing filter navigation state
  *
  * Automatically uses the Azure app's DataContext.
+ * Passes external filterStack for project persistence (breadcrumbs survive save/reload).
  * For the context-injection version, use @variscout/hooks directly.
  *
  * @param options - Configuration options
@@ -23,9 +24,16 @@ export type { UseFilterNavigationOptions, UseFilterNavigationReturn };
 export function useFilterNavigation(
   options: UseFilterNavigationOptions = {}
 ): UseFilterNavigationReturn {
-  const { filters, setFilters, columnAliases } = useData();
+  const { filters, setFilters, columnAliases, filterStack, setFilterStack } = useData();
 
-  return useFilterNavigationBase({ filters, setFilters, columnAliases }, options);
+  return useFilterNavigationBase(
+    { filters, setFilters, columnAliases },
+    {
+      ...options,
+      externalFilterStack: filterStack,
+      externalSetFilterStack: setFilterStack,
+    }
+  );
 }
 
 export default useFilterNavigation;

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Settings2, Check } from 'lucide-react';
 import { useColumnClassification } from '@variscout/hooks';
-import { getMaxCategoryContribution, type DataRow } from '@variscout/core';
+import { getMaxCategoryContribution, type DataRow, type FilterAction } from '@variscout/core';
 
 const MAX_FACTORS = 6;
 
@@ -13,6 +13,10 @@ interface FactorManagerPopoverProps {
   onFactorsChange: (newFactors: string[]) => void;
   onFiltersChange: (newFilters: Record<string, (string | number)[]>) => void;
   factorVariations?: Map<string, number>;
+  /** Ordered filter drill trail (for cleanup on factor removal) */
+  filterStack?: FilterAction[];
+  /** Update filter stack when removing factors with active drill entries */
+  onFilterStackChange?: (stack: FilterAction[]) => void;
 }
 
 const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
@@ -23,6 +27,8 @@ const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
   onFactorsChange,
   onFiltersChange,
   factorVariations,
+  filterStack,
+  onFilterStackChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingFactors, setPendingFactors] = useState<string[]>(factors);
@@ -94,7 +100,7 @@ const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
   };
 
   const handleApply = () => {
-    // Find removed factors to clean up their filters
+    // Find removed factors to clean up their filters and filterStack
     const removedFactors = factors.filter(f => !pendingFactors.includes(f));
     if (removedFactors.length > 0) {
       const cleanedFilters = { ...filters };
@@ -102,6 +108,17 @@ const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
         delete cleanedFilters[removed];
       }
       onFiltersChange(cleanedFilters);
+
+      // Also clean filterStack entries for removed factors
+      if (filterStack && onFilterStackChange) {
+        const removedSet = new Set(removedFactors);
+        const cleanedStack = filterStack.filter(
+          entry => !entry.factor || !removedSet.has(entry.factor)
+        );
+        if (cleanedStack.length !== filterStack.length) {
+          onFilterStackChange(cleanedStack);
+        }
+      }
     }
 
     onFactorsChange(pendingFactors);

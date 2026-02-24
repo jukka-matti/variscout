@@ -1,7 +1,7 @@
 /**
  * RegressionPanel - Wrapper for RegressionPanelBase with Azure context and color scheme
  */
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   RegressionPanelBase,
   regressionPanelAzureColorScheme,
@@ -11,6 +11,7 @@ import {
   regressionViewAzureColorScheme,
 } from '@variscout/ui';
 import type { MultiRegressionResult } from '@variscout/core';
+import type { RegressionPersistenceState } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 
 interface RegressionPanelProps {
@@ -24,7 +25,14 @@ const RegressionPanel: React.FC<RegressionPanelProps> = ({
   investigationFactors,
   onNavigateToWhatIf,
 }) => {
-  const { filteredData, outcome, specs, rawData } = useData();
+  const { filteredData, outcome, specs, rawData, regressionState, setRegressionState } = useData();
+
+  const handleRegressionStateChange = useCallback(
+    (state: RegressionPersistenceState) => {
+      setRegressionState(state);
+    },
+    [setRegressionState]
+  );
 
   return (
     <RegressionPanelBase
@@ -45,6 +53,8 @@ const RegressionPanel: React.FC<RegressionPanelProps> = ({
       investigationFactors={investigationFactors}
       onNavigateToWhatIf={onNavigateToWhatIf}
       totalRowCount={rawData.length}
+      savedRegressionState={regressionState}
+      onRegressionStateChange={handleRegressionStateChange}
     />
   );
 };

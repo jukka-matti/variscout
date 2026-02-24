@@ -32,6 +32,14 @@ export type FocusedChart = (typeof CHART_ORDER)[number] | null;
 
 export interface UseDashboardChartsProps {
   externalFilterNav?: UseFilterNavigationReturn;
+  /** Initial boxplot factor from persisted view state */
+  initialBoxplotFactor?: string;
+  /** Initial pareto factor from persisted view state */
+  initialParetoFactor?: string;
+  /** Report boxplot factor changes for persistence */
+  onBoxplotFactorChange?: (factor: string) => void;
+  /** Report pareto factor changes for persistence */
+  onParetoFactorChange?: (factor: string) => void;
 }
 
 export interface UseDashboardChartsResult {
@@ -96,6 +104,9 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   const { filterStack, applyFilter, clearFilters, updateFilterValues, removeFilter } =
     props?.externalFilterNav ?? localFilterNav;
 
+  const { initialBoxplotFactor, initialParetoFactor, onBoxplotFactorChange, onParetoFactorChange } =
+    props ?? {};
+
   // Variation tracking
   const {
     cumulativeVariationPct: rawCumulativeVariationPct,
@@ -113,9 +124,26 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     },
   });
 
-  // Local state
-  const [boxplotFactor, setBoxplotFactor] = useState<string>('');
-  const [paretoFactor, setParetoFactor] = useState<string>('');
+  // Local state — initialize from persisted view state if available
+  const [boxplotFactor, setBoxplotFactorRaw] = useState<string>(initialBoxplotFactor ?? '');
+  const [paretoFactor, setParetoFactorRaw] = useState<string>(initialParetoFactor ?? '');
+
+  // Wrap setters to report changes for persistence
+  const setBoxplotFactor = useCallback(
+    (f: string) => {
+      setBoxplotFactorRaw(f);
+      onBoxplotFactorChange?.(f);
+    },
+    [onBoxplotFactorChange]
+  );
+  const setParetoFactor = useCallback(
+    (f: string) => {
+      setParetoFactorRaw(f);
+      onParetoFactorChange?.(f);
+    },
+    [onParetoFactorChange]
+  );
+
   const [focusedChart, setFocusedChart] = useState<FocusedChart>(null);
   const [showParetoComparison, setShowParetoComparison] = useState(false);
   const [lastAdvancedFactor, setLastAdvancedFactor] = useState<string | null>(null);
@@ -125,13 +153,17 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   useEffect(() => {
     if (factors.length > 0) {
       if (!boxplotFactor || !factors.includes(boxplotFactor)) {
-        setBoxplotFactor(factors[0]);
+        const fallback = factors[0];
+        setBoxplotFactorRaw(fallback);
+        onBoxplotFactorChange?.(fallback);
       }
       if (!paretoFactor || !factors.includes(paretoFactor)) {
-        setParetoFactor(factors[1] || factors[0]);
+        const fallback = factors[1] || factors[0];
+        setParetoFactorRaw(fallback);
+        onParetoFactorChange?.(fallback);
       }
     }
-  }, [factors, boxplotFactor, paretoFactor]);
+  }, [factors, boxplotFactor, paretoFactor, onBoxplotFactorChange, onParetoFactorChange]);
 
   // Keyboard navigation for focused chart mode
   const handleNextChart = useCallback(() => {
