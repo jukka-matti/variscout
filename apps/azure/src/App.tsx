@@ -26,10 +26,15 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
-    getEasyAuthUser().then(u => {
-      setUser(u);
-      setAuthChecked(true);
-    });
+    getEasyAuthUser()
+      .then(u => {
+        setUser(u);
+        setAuthChecked(true);
+      })
+      .catch(() => {
+        setUser(null);
+        setAuthChecked(true);
+      });
   }, []);
 
   const navigateToEditor = (projectId?: string) => {

@@ -1,7 +1,13 @@
 // src/services/storage.ts
 import { useState, useEffect, useCallback } from 'react';
 import { getAccessToken, isLocalDev } from '../auth/easyAuth';
-import { addToSyncQueue, getPendingSyncItems, removeFromSyncQueue, db } from '../db/schema';
+import {
+  addToSyncQueue,
+  getPendingSyncItems,
+  removeFromSyncQueue,
+  pruneSyncQueue,
+  db,
+} from '../db/schema';
 
 // Project data is serialized to JSON for IndexedDB/OneDrive — kept as `any`
 // because the storage layer is a passthrough that doesn't inspect the shape.
@@ -29,9 +35,8 @@ export interface CloudProject {
 // Graph API base URL
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 
-// Get the appropriate API path for the location
-function getApiPath(location: StorageLocation): string {
-  // v1: personal OneDrive only (no SharePoint)
+// Get the appropriate API path — location reserved for future SharePoint support
+function getApiPath(_location: StorageLocation): string {
   return '/me/drive/root:/VariScout/Projects';
 }
 
@@ -201,11 +206,16 @@ export function useStorage() {
         });
       } catch (error) {
         console.error('Cloud save failed:', error);
-        // Failed: keep in queue for retry
+        // Always queue for retry
         await addToSyncQueue({ project, name, location });
+
+        const msg = error instanceof Error ? error.message : String(error);
+        const isAuthError = /401|403|unauthorized|forbidden/i.test(msg);
         setSyncStatus({
-          status: 'offline',
-          message: 'Save failed, will retry',
+          status: isAuthError ? 'error' : 'offline',
+          message: isAuthError
+            ? 'Cloud sync failed: permission denied'
+            : 'Save failed, will retry when connected',
         });
       }
     },
@@ -315,7 +325,8 @@ export function useStorage() {
 
     window.addEventListener('online', handleOnline);
 
-    // Also try sync on mount if online
+    // Prune stale queue items on mount, then sync if online
+    pruneSyncQueue().catch(() => {});
     if (navigator.onLine) {
       handleOnline();
     }

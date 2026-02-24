@@ -10,6 +10,7 @@ const {
   mockAddToSyncQueue,
   mockGetPending,
   mockRemoveFromQueue,
+  mockPruneSyncQueue,
   mockGetAccessToken,
 } = vi.hoisted(() => ({
   mockProjects: {
@@ -24,6 +25,7 @@ const {
   mockAddToSyncQueue: vi.fn().mockResolvedValue(undefined),
   mockGetPending: vi.fn().mockResolvedValue([]),
   mockRemoveFromQueue: vi.fn().mockResolvedValue(undefined),
+  mockPruneSyncQueue: vi.fn().mockResolvedValue(0),
   mockGetAccessToken: vi.fn().mockResolvedValue('mock-token-123'),
 }));
 
@@ -38,6 +40,7 @@ vi.mock('../../db/schema', () => ({
   addToSyncQueue: mockAddToSyncQueue,
   getPendingSyncItems: mockGetPending,
   removeFromSyncQueue: mockRemoveFromQueue,
+  pruneSyncQueue: mockPruneSyncQueue,
 }));
 
 // ---------------------------------------------------------------------------
@@ -256,7 +259,7 @@ describe('storage service', () => {
         expect.objectContaining({ name: 'fail-proj' })
       );
       expect(result.current.syncStatus.status).toBe('offline');
-      expect(result.current.syncStatus.message).toContain('retry');
+      expect(result.current.syncStatus.message).toContain('retry when connected');
     });
   });
 

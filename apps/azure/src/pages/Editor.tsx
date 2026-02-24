@@ -116,14 +116,6 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     [panels]
   );
 
-  const handleModelInteraction = useCallback(
-    (factorsList: string[]) => {
-      setRegressionInitialFactors(factorsList);
-      panels.setIsMindmapOpen(false);
-    },
-    [panels]
-  );
-
   // Add Data dropdown state
   const [addDataOpen, setAddDataOpen] = useState(false);
   const addDataRef = React.useRef<HTMLDivElement>(null);
@@ -187,10 +179,16 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   });
 
   // Load project data when opening an existing project
+  const [loadError, setLoadError] = useState<string | null>(null);
   useEffect(() => {
     if (projectId && rawData.length === 0 && !dataFlow.isLoadingProject) {
       dataFlow.setIsLoadingProject(true);
-      loadProject(projectId).finally(() => dataFlow.setIsLoadingProject(false));
+      setLoadError(null);
+      loadProject(projectId)
+        .catch(() => {
+          setLoadError('Failed to load project. Please try again.');
+        })
+        .finally(() => dataFlow.setIsLoadingProject(false));
     }
   }, [projectId]); // intentionally exclude rawData to avoid re-triggering
 
@@ -267,7 +265,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
       ? 'text-green-400'
       : syncStatus.status === 'syncing'
         ? 'text-blue-400'
-        : 'text-slate-500';
+        : syncStatus.status === 'error'
+          ? 'text-red-400'
+          : 'text-slate-500';
 
   // If in paste mode, show PasteScreen full screen
   if (dataFlow.isPasteMode) {
@@ -598,6 +598,11 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 </button>
               </div>
 
+              {loadError && (
+                <div className="mb-4 px-4 py-3 bg-red-900/40 border border-red-700/50 rounded-lg text-sm text-red-300">
+                  {loadError}
+                </div>
+              )}
               <p className="text-xs text-slate-500 mb-6">Supports CSV, XLSX, and XLS files</p>
 
               {/* Sample Datasets */}
@@ -680,7 +685,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 panels.setIsWhatIfOpen(true);
               }}
               onNavigateToRegression={handleNavigateToRegression}
-              onModelInteraction={handleModelInteraction}
+              onModelInteraction={handleNavigateToRegression}
               annotations={panels.mindmapAnnotations}
               onAnnotationsChange={panels.setMindmapAnnotations}
             />

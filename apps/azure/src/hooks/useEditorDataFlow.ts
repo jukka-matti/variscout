@@ -3,7 +3,7 @@ import { parseText, detectColumns, validateData, detectWideFormat } from '@varis
 import type { DataRow, DataQualityReport } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
-import { detectMergeStrategy, mergeColumns } from './useDataMerge';
+import { detectMergeStrategy, mergeColumns, mergeRows } from './useDataMerge';
 
 export interface UseEditorDataFlowOptions {
   rawData: DataRow[];
@@ -217,10 +217,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
         if (strategy === 'rows') {
           // Append rows — concat and fill missing columns with null
-          const allColumns = new Set([...existingCols, ...incomingCols]);
-          const merged = [...rawData, ...incoming].map(row =>
-            Object.fromEntries([...allColumns].map(col => [col, row[col] ?? null]))
-          );
+          const merged = mergeRows(rawData, incoming);
           setRawData(merged);
           const report = validateData(merged, outcome!);
           setDataQualityReport(report);

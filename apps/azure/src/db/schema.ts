@@ -34,6 +34,7 @@ class VariScoutDatabase extends Dexie {
 
   constructor() {
     super('VaRiScoutAzure');
+    // Increment version number if schema changes (add/remove stores or indexes)
     this.version(1).stores({
       // Local cache of projects
       projects: 'name, location, modified, synced',
@@ -65,4 +66,10 @@ export async function getPendingSyncItems(): Promise<SyncItem[]> {
 
 export async function removeFromSyncQueue(name: string) {
   await db.syncQueue.where('name').equals(name).delete();
+}
+
+/** Remove sync queue items older than `daysOld` days (default 30). */
+export async function pruneSyncQueue(daysOld = 30): Promise<number> {
+  const cutoff = new Date(Date.now() - daysOld * 86_400_000).toISOString();
+  return db.syncQueue.where('queuedAt').below(cutoff).delete();
 }

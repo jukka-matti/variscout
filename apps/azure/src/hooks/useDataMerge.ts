@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { validateData } from '@variscout/core';
+import type { DataRow } from '@variscout/core';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
 
 /**
@@ -19,14 +20,25 @@ export function detectMergeStrategy(
 }
 
 /**
+ * Append rows, filling missing columns with null so all rows have the same shape.
+ */
+export function mergeRows(existing: DataRow[], incoming: DataRow[]): DataRow[] {
+  const allColumns = new Set<string>();
+  [...existing, ...incoming].forEach(row => Object.keys(row).forEach(k => allColumns.add(k)));
+  return [...existing, ...incoming].map(row =>
+    Object.fromEntries([...allColumns].map(col => [col, row[col] ?? null]))
+  );
+}
+
+/**
  * Merge new columns into existing data by row index.
  * - Skips columns that already exist in the existing data.
  * - If row counts differ, the shorter side is padded with null.
  */
 export function mergeColumns(
-  existing: Record<string, any>[],
-  incoming: Record<string, any>[]
-): { data: Record<string, any>[]; addedColumns: string[] } {
+  existing: DataRow[],
+  incoming: DataRow[]
+): { data: DataRow[]; addedColumns: string[] } {
   const existingCols = new Set(existing.length > 0 ? Object.keys(existing[0]) : []);
   const incomingCols = incoming.length > 0 ? Object.keys(incoming[0]) : [];
   const addedColumns = incomingCols.filter(c => !existingCols.has(c));
@@ -36,14 +48,14 @@ export function mergeColumns(
   }
 
   const maxLen = Math.max(existing.length, incoming.length);
-  const merged: Record<string, any>[] = [];
+  const merged: DataRow[] = [];
 
   for (let i = 0; i < maxLen; i++) {
     const existRow = existing[i] ?? {};
     const incRow = incoming[i] ?? {};
 
     // Start from existing columns (with null fill if existing is shorter)
-    const row: Record<string, any> = {};
+    const row: DataRow = {};
     for (const col of existingCols) {
       row[col] = existRow[col] ?? null;
     }
@@ -60,8 +72,8 @@ export function mergeColumns(
 interface UseDataMergeOptions {
   appendMode: boolean;
   existingConfig: ManualEntryConfig | undefined;
-  rawData: Record<string, any>[];
-  setRawData: (data: Record<string, any>[]) => void;
+  rawData: DataRow[];
+  setRawData: (data: DataRow[]) => void;
   setDataFilename: (name: string) => void;
   setOutcome: (outcome: string) => void;
   setFactors: (factors: string[]) => void;
@@ -91,14 +103,10 @@ export function useDataMerge({
   setPerformanceMode,
   onDone,
 }: UseDataMergeOptions) {
-  const mergeData = useCallback((existing: any[], incoming: any[]): any[] => {
-    const allColumns = new Set<string>();
-    [...existing, ...incoming].forEach(row => Object.keys(row).forEach(k => allColumns.add(k)));
-
-    return [...existing, ...incoming].map(row =>
-      Object.fromEntries([...allColumns].map(col => [col, row[col] ?? null]))
-    );
-  }, []);
+  const mergeData = useCallback(
+    (existing: DataRow[], incoming: DataRow[]): DataRow[] => mergeRows(existing, incoming),
+    []
+  );
 
   const mergeConfig = useCallback(
     (existing: ManualEntryConfig, incoming: ManualEntryConfig): ManualEntryConfig => {
@@ -120,7 +128,7 @@ export function useDataMerge({
   );
 
   const handleManualDataAnalyze = useCallback(
-    (data: any[], config: ManualEntryConfig) => {
+    (data: DataRow[], config: ManualEntryConfig) => {
       let finalData = data;
       let finalConfig = config;
 
