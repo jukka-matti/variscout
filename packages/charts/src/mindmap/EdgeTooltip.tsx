@@ -12,6 +12,8 @@ export interface EdgeTooltipProps {
   onClose: () => void;
   columnAliases?: Record<string, string>;
   chrome: ReturnType<typeof useChartTheme>['chrome'];
+  /** Optional callback to model this interaction pair in Regression */
+  onModelInteraction?: (factors: string[]) => void;
 }
 
 const EdgeTooltip: React.FC<EdgeTooltipProps> = ({
@@ -23,9 +25,10 @@ const EdgeTooltip: React.FC<EdgeTooltipProps> = ({
   onClose,
   columnAliases,
   chrome,
+  onModelInteraction,
 }) => {
   const tooltipWidth = 170;
-  const tooltipHeight = 80;
+  const tooltipHeight = onModelInteraction ? 110 : 80;
 
   // Position near midpoint, flip if too close to edge
   const flipX = x + tooltipWidth / 2 > svgWidth;
@@ -97,6 +100,35 @@ const EdgeTooltip: React.FC<EdgeTooltipProps> = ({
             </span>
           </div>
         </div>
+        {onModelInteraction && (
+          <button
+            onClick={e => {
+              e.stopPropagation();
+              onModelInteraction([edge.factorA, edge.factorB]);
+              onClose();
+            }}
+            style={{
+              marginTop: 6,
+              width: '100%',
+              background: `${chartColors.warning}18`,
+              border: `1px solid ${chartColors.warning}40`,
+              borderRadius: 4,
+              color: chartColors.warning,
+              fontSize: 10,
+              fontWeight: 500,
+              cursor: 'pointer',
+              padding: '3px 8px',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = `${chartColors.warning}30`;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = `${chartColors.warning}18`;
+            }}
+          >
+            Model in Regression &rarr;
+          </button>
+        )}
       </div>
     </foreignObject>
   );

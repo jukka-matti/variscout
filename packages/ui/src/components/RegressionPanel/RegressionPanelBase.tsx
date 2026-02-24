@@ -96,6 +96,8 @@ export interface AdvancedRegressionViewProps {
   reductionHistory: ReductionStep[];
   onRemoveTerm: (term: string) => void;
   onClearHistory: () => void;
+  /** Callback to navigate to What-If with the current model */
+  onNavigateToWhatIf?: (model: MultiRegressionResult) => void;
 }
 
 /**
@@ -105,6 +107,10 @@ export interface ExpandedScatterModalProps {
   result: RegressionResult;
   specs?: SpecLimits | null;
   onClose: () => void;
+  /** Navigate to next scatter chart (right arrow key) */
+  onNext?: () => void;
+  /** Navigate to previous scatter chart (left arrow key) */
+  onPrev?: () => void;
 }
 
 export interface RegressionPanelBaseProps {
@@ -122,6 +128,12 @@ export interface RegressionPanelBaseProps {
   renderExpandedModal?: (props: ExpandedScatterModalProps) => ReactNode;
   /** Color scheme for styling */
   colorScheme?: RegressionPanelColorScheme;
+  /** External predictors to pre-populate in Advanced mode (from investigation bridge) */
+  initialPredictors?: string[];
+  /** Factors from investigation that the user hasn't added yet (for suggestion banner) */
+  investigationFactors?: string[];
+  /** Callback to navigate to What-If with the regression model */
+  onNavigateToWhatIf?: (model: MultiRegressionResult) => void;
 }
 
 /**
@@ -150,6 +162,9 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
   renderAdvancedView,
   renderExpandedModal,
   colorScheme = defaultColorScheme,
+  initialPredictors,
+  investigationFactors,
+  onNavigateToWhatIf,
 }) => {
   const { getTerm } = useGlossary();
 
@@ -159,10 +174,23 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
     maxCategoricalUnique: 10,
   });
 
+  // Smart auto-selection: rank numeric columns by R² for simple mode
+  const rankedColumns = useMemo(() => {
+    if (!outcome || filteredData.length < 5 || columns.numeric.length <= 4) return undefined;
+    const scored = columns.numeric.map(col => {
+      const r = calculateRegression(filteredData, col, outcome);
+      return { col, r2: r ? r.linear.rSquared : 0 };
+    });
+    scored.sort((a, b) => b.r2 - a.r2);
+    return scored.map(s => s.col);
+  }, [filteredData, outcome, columns.numeric]);
+
   // Regression state management
   const regression = useRegressionState({
     numericColumns: columns.numeric,
     maxSimpleColumns: 4,
+    initialPredictors,
+    rankedColumns,
   });
 
   // Calculate simple regression for each selected X column
@@ -233,10 +261,18 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
   if (regression.expandedChart && regression.mode === 'simple' && renderExpandedModal) {
     const result = regressionResults.find(r => r.xColumn === regression.expandedChart);
     if (result) {
+      const currentIdx = regression.selectedXColumns.indexOf(regression.expandedChart);
+      const nextCol =
+        currentIdx < regression.selectedXColumns.length - 1
+          ? regression.selectedXColumns[currentIdx + 1]
+          : undefined;
+      const prevCol = currentIdx > 0 ? regression.selectedXColumns[currentIdx - 1] : undefined;
       return renderExpandedModal({
         result,
         specs,
         onClose: () => regression.setExpandedChart(null),
+        onNext: nextCol ? () => regression.setExpandedChart(nextCol) : undefined,
+        onPrev: prevCol ? () => regression.setExpandedChart(prevCol) : undefined,
       });
     }
   }
@@ -275,7 +311,47 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
             <HelpTooltip term={getTerm('multipleRegression')} iconSize={12} />
           </button>
         </div>
+        {/* Mode guidance text */}
+        {regression.mode === 'simple' && (
+          <p className={`text-xs ${colorScheme.emptyStateText} mt-1`}>
+            Explore individual relationships — switch to Advanced to model factors together
+          </p>
+        )}
+        {regression.mode === 'advanced' &&
+          regression.advSelectedPredictors.length === 0 &&
+          !investigationFactors?.length && (
+            <p className={`text-xs ${colorScheme.emptyStateText} mt-1`}>
+              Add factors from your investigation to build a model
+            </p>
+          )}
       </div>
+
+      {/* Investigation factors suggestion banner */}
+      {regression.mode === 'advanced' &&
+        investigationFactors &&
+        investigationFactors.length > 0 &&
+        regression.advSelectedPredictors.length === 0 && (
+          <div className="flex-none mx-4 mt-2 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-amber-400">
+                You investigated <strong>{investigationFactors.join(', ')}</strong>. Add them as
+                predictors?
+              </span>
+              <button
+                onClick={() => {
+                  for (const f of investigationFactors) {
+                    if (!regression.advSelectedPredictors.includes(f)) {
+                      regression.toggleAdvPredictor(f);
+                    }
+                  }
+                }}
+                className="flex-shrink-0 px-3 py-1 text-xs font-medium bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded transition-colors"
+              >
+                Add all
+              </button>
+            </div>
+          </div>
+        )}
 
       {regression.mode === 'simple'
         ? renderSimpleView({
@@ -312,6 +388,7 @@ const RegressionPanelBase: React.FC<RegressionPanelBaseProps> = ({
               regression.toggleAdvPredictor(term);
             },
             onClearHistory: regression.clearReductionHistory,
+            onNavigateToWhatIf,
           })}
     </div>
   );

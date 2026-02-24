@@ -10,9 +10,20 @@ import {
   ExpandedScatterModal,
   regressionViewAzureColorScheme,
 } from '@variscout/ui';
+import type { MultiRegressionResult } from '@variscout/core';
 import { useData } from '../context/DataContext';
 
-const RegressionPanel: React.FC = () => {
+interface RegressionPanelProps {
+  initialPredictors?: string[];
+  investigationFactors?: string[];
+  onNavigateToWhatIf?: (model: MultiRegressionResult) => void;
+}
+
+const RegressionPanel: React.FC<RegressionPanelProps> = ({
+  initialPredictors,
+  investigationFactors,
+  onNavigateToWhatIf,
+}) => {
   const { filteredData, outcome, specs } = useData();
 
   return (
@@ -30,6 +41,9 @@ const RegressionPanel: React.FC = () => {
         <ExpandedScatterModal {...props} colorScheme={regressionViewAzureColorScheme} />
       )}
       colorScheme={regressionPanelAzureColorScheme}
+      initialPredictors={initialPredictors}
+      investigationFactors={investigationFactors}
+      onNavigateToWhatIf={onNavigateToWhatIf}
     />
   );
 };

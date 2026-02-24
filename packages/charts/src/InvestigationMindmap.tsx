@@ -57,6 +57,8 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
   height: explicitHeight,
   columnAliases,
   onNavigateToWhatIf,
+  onNavigateToRegression,
+  onModelInteraction,
 }) => {
   const width = explicitWidth ?? parentWidth ?? 360;
   const height = explicitHeight ?? parentHeight ?? 400;
@@ -353,6 +355,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                   targetPct={targetPct}
                   chrome={chrome}
                   onNavigateToWhatIf={onNavigateToWhatIf}
+                  onNavigateToRegression={onNavigateToRegression}
                 />
               );
             })()}
@@ -569,6 +572,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 onClose={() => setHoveredEdge(null)}
                 columnAliases={columnAliases}
                 chrome={chrome}
+                onModelInteraction={onModelInteraction}
               />
             );
           })()}

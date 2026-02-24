@@ -18,11 +18,12 @@ The What-If Simulator allows users to explore hypothetical improvements:
 
 Both PWA and Azure App use shared components from `@variscout/ui`:
 
-| Component         | Package         | Purpose                                      |
-| ----------------- | --------------- | -------------------------------------------- |
-| `WhatIfSimulator` | `@variscout/ui` | Core simulator with factor sliders           |
-| `WhatIfPageBase`  | `@variscout/ui` | Full-page wrapper with back navigation       |
-| `Slider`          | `@variscout/ui` | Reusable range slider for factor adjustments |
+| Component              | Package         | Purpose                                              |
+| ---------------------- | --------------- | ---------------------------------------------------- |
+| `WhatIfSimulator`      | `@variscout/ui` | Standard simulator with mean-shift/variation sliders |
+| `ModelDrivenSimulator` | `@variscout/ui` | Regression model-based per-factor simulator          |
+| `WhatIfPageBase`       | `@variscout/ui` | Full-page wrapper with back navigation               |
+| `Slider`               | `@variscout/ui` | Reusable range slider for factor adjustments         |
 
 **Source:** `packages/ui/src/components/WhatIfSimulator/`, `packages/ui/src/components/WhatIfPage/`
 
@@ -59,6 +60,60 @@ Uses `simulateDirectAdjustment()` from `@variscout/core` for projection calculat
 
 ---
 
+## Model-Driven Simulator
+
+When arriving from the Regression Panel with a significant model, the `ModelDrivenSimulator` renders above the standard `WhatIfSimulator`. It uses regression coefficients to compute per-factor projections.
+
+**Source:** `packages/ui/src/components/WhatIfSimulator/ModelDrivenSimulator.tsx`
+
+### Props
+
+```typescript
+interface ModelDrivenSimulatorProps {
+  /** Regression model from Advanced mode */
+  model: MultiRegressionResult;
+  /** Filtered data for computing baselines */
+  filteredData: DataRow[];
+  /** Current process statistics */
+  currentStats: { mean: number; stdDev: number; cpk?: number };
+  /** Specification limits */
+  specs?: { usl?: number; lsl?: number; target?: number };
+  /** Color scheme */
+  colorScheme?: WhatIfSimulatorColorScheme;
+}
+```
+
+### Factor Controls
+
+The simulator generates controls automatically based on the model's predictor types:
+
+| Factor Type     | Control           | Range                                                               |
+| --------------- | ----------------- | ------------------------------------------------------------------- |
+| **Categorical** | Dropdown selector | All levels, each showing coefficient delta (e.g., `Level B (+2.3)`) |
+| **Continuous**  | Slider            | mean +/- 2 standard deviations, auto-rounded step size              |
+
+Factor baselines are computed via `getFactorBaselines(filteredData, model)` from `@variscout/core`. Categorical baselines use the mode (most frequent value); continuous baselines use the mean.
+
+### Contribution Bars
+
+When any factor is adjusted, horizontal contribution bars appear showing each factor's delta contribution to the predicted mean shift. Bars are centered on a zero-line: positive deltas extend right (green), negative deltas extend left (red). Bar widths are scaled relative to the largest absolute contribution.
+
+### Projection Engine
+
+Uses `simulateFromModel(model, adjustments)` from `@variscout/core` to compute the total mean shift from regression coefficients, then feeds the shift through `simulateDirectAdjustment()` to project Cpk and yield changes.
+
+The projection results panel shows:
+
+- **Mean:** Current and projected values with delta
+- **Cpk:** Color-coded (green >= 1.33, amber >= 1.0, red < 1.0) with improvement percentage
+- **Yield:** Current and projected with improvement percentage
+
+### Reset
+
+A "Reset" button (RotateCcw icon) clears all proposed factor values back to baselines.
+
+---
+
 ## WhatIfPageBase
 
 Full-page view wrapping the simulator with navigation header and data context.
@@ -75,13 +130,23 @@ interface WhatIfPageBaseProps {
   onBack: () => void;
   colorScheme?: WhatIfPageColorScheme;
   simulatorColorScheme?: WhatIfSimulatorColorScheme;
-  sliderColorScheme?: SliderColorScheme;
+  /** Optional regression model for model-driven simulation */
+  regressionModel?: MultiRegressionResult;
 }
 ```
 
+### Rendering with regressionModel
+
+When `regressionModel` is provided, `WhatIfPageBase` renders both simulators:
+
+1. **`ModelDrivenSimulator`** — Rendered first, using the regression model for per-factor coefficient-based projections
+2. **`WhatIfSimulator`** — Rendered below, collapsed by default (`defaultExpanded={!regressionModel}`), providing the standard mean-shift and variation-reduction sliders
+
+When `regressionModel` is not provided, only the standard `WhatIfSimulator` renders in its default expanded state.
+
 ### Color Schemes
 
-Both components follow the standard colorScheme pattern:
+All components follow the standard colorScheme pattern:
 
 - `whatIfPageDefaultColorScheme` — Semantic tokens (PWA)
 - `whatIfPageAzureColorScheme` — Slate palette (Azure)

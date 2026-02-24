@@ -23,7 +23,7 @@ import WhatIfPage from './components/WhatIfPage';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
-import { type ExclusionReason } from '@variscout/core';
+import { type ExclusionReason, type MultiRegressionResult } from '@variscout/core';
 import { useControlViolations } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
@@ -202,6 +202,29 @@ function App() {
     downloadCSV(filteredData, outcome, specs, { filename });
   }, [filteredData, outcome, specs]);
 
+  // Investigation → Regression bridge state
+  const [regressionInitialFactors, setRegressionInitialFactors] = useState<string[] | undefined>();
+  // Regression → What-If bridge state
+  const [whatIfRegressionModel, setWhatIfRegressionModel] = useState<
+    MultiRegressionResult | undefined
+  >();
+
+  const handleNavigateToRegression = useCallback(
+    (factorsList: string[]) => {
+      setRegressionInitialFactors(factorsList);
+      panels.setIsMindmapPanelOpen(false);
+    },
+    [panels]
+  );
+
+  const handleModelInteraction = useCallback(
+    (factorsList: string[]) => {
+      setRegressionInitialFactors(factorsList);
+      panels.setIsMindmapPanelOpen(false);
+    },
+    [panels]
+  );
+
   // Mindmap drill category handler
   const handleMindmapDrillCategory = useCallback(
     (factor: string, value: string | number) => {
@@ -244,7 +267,15 @@ function App() {
 
   // Full-page What-If Simulator
   if (panels.isWhatIfPageOpen) {
-    return <WhatIfPage onBack={() => panels.setIsWhatIfPageOpen(false)} />;
+    return (
+      <WhatIfPage
+        onBack={() => {
+          panels.setIsWhatIfPageOpen(false);
+          setWhatIfRegressionModel(undefined);
+        }}
+        regressionModel={whatIfRegressionModel}
+      />
+    );
   }
 
   return (
@@ -375,6 +406,12 @@ function App() {
               onOpenWhatIf={() => panels.setIsWhatIfPageOpen(true)}
               highlightedPointIndex={panels.highlightedChartPoint}
               filterNav={filterNav}
+              regressionInitialFactors={regressionInitialFactors}
+              onClearRegressionFactors={() => setRegressionInitialFactors(undefined)}
+              onNavigateToWhatIfWithModel={model => {
+                setWhatIfRegressionModel(model);
+                panels.setIsWhatIfPageOpen(true);
+              }}
             />
           )}
         </div>
@@ -418,6 +455,8 @@ function App() {
             panels.setIsMindmapPanelOpen(false);
             panels.setIsWhatIfPageOpen(true);
           }}
+          onNavigateToRegression={handleNavigateToRegression}
+          onModelInteraction={handleModelInteraction}
         />
       )}
 

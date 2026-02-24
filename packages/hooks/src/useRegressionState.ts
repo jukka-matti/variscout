@@ -27,6 +27,10 @@ export interface UseRegressionStateOptions {
   maxSimpleColumns?: number;
   /** Available numeric columns for auto-selection */
   numericColumns: string[];
+  /** External predictors to pre-populate (switches to Advanced mode) */
+  initialPredictors?: string[];
+  /** Pre-ranked columns by R² for smarter simple-mode auto-selection */
+  rankedColumns?: string[];
 }
 
 /**
@@ -79,7 +83,7 @@ export interface UseRegressionStateReturn {
  * ```
  */
 export function useRegressionState(options: UseRegressionStateOptions): UseRegressionStateReturn {
-  const { maxSimpleColumns = 4, numericColumns } = options;
+  const { maxSimpleColumns = 4, numericColumns, initialPredictors, rankedColumns } = options;
 
   // Mode state
   const [mode, setMode] = useState<RegressionMode>('simple');
@@ -98,12 +102,36 @@ export function useRegressionState(options: UseRegressionStateOptions): UseRegre
   // Modal state
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
 
-  // Auto-select first N numeric columns if none selected
+  // Auto-select columns for simple mode: prefer ranked (by R²) if available
   useEffect(() => {
     if (selectedXColumns.length === 0 && numericColumns.length > 0) {
-      setSelectedXColumns(numericColumns.slice(0, maxSimpleColumns));
+      if (rankedColumns && rankedColumns.length > 0) {
+        // Use pre-ranked columns (top N by R²)
+        const validRanked = rankedColumns.filter(c => numericColumns.includes(c));
+        setSelectedXColumns(validRanked.slice(0, maxSimpleColumns));
+      } else {
+        setSelectedXColumns(numericColumns.slice(0, maxSimpleColumns));
+      }
     }
-  }, [numericColumns, selectedXColumns.length, maxSimpleColumns]);
+  }, [numericColumns, selectedXColumns.length, maxSimpleColumns, rankedColumns]);
+
+  // Apply external initialPredictors (from investigation → regression bridge)
+  useEffect(() => {
+    if (initialPredictors && initialPredictors.length > 0) {
+      setMode('advanced');
+      setAdvSelectedPredictors(initialPredictors);
+      // Mark categorical columns that aren't in numeric list
+      const catSet = new Set<string>();
+      for (const col of initialPredictors) {
+        if (!numericColumns.includes(col)) {
+          catSet.add(col);
+        }
+      }
+      if (catSet.size > 0) {
+        setCategoricalColumns(catSet);
+      }
+    }
+  }, [initialPredictors, numericColumns]);
 
   // Toggle simple mode X column selection
   const toggleXColumn = useCallback(

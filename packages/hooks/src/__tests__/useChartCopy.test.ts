@@ -55,10 +55,11 @@ describe('EXPORT_SIZES', () => {
         'histogram',
         'probability',
         'stats',
+        'scatter',
         'dashboard',
       ])
     );
-    expect(Object.keys(EXPORT_SIZES)).toHaveLength(7);
+    expect(Object.keys(EXPORT_SIZES)).toHaveLength(8);
   });
 
   it('has correct dimensions for wide charts', () => {
@@ -333,18 +334,16 @@ describe('useChartCopy', () => {
     it('uses fixed export dimensions for SVG width/height attributes', () => {
       const node = createMockNode('svg-chart');
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.getBoundingClientRect = vi
-        .fn()
-        .mockReturnValue({
-          width: 400,
-          height: 300,
-          x: 0,
-          y: 0,
-          top: 0,
-          left: 0,
-          bottom: 300,
-          right: 400,
-        });
+      svg.getBoundingClientRect = vi.fn().mockReturnValue({
+        width: 400,
+        height: 300,
+        x: 0,
+        y: 0,
+        top: 0,
+        left: 0,
+        bottom: 300,
+        right: 400,
+      });
       node.appendChild(svg);
 
       const { result } = renderHook(() => useChartCopy());
@@ -362,18 +361,16 @@ describe('useChartCopy', () => {
     it('sets data-exporting during SVG export and cleans up', () => {
       const node = createMockNode('svg-chart');
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.getBoundingClientRect = vi
-        .fn()
-        .mockReturnValue({
-          width: 400,
-          height: 300,
-          x: 0,
-          y: 0,
-          top: 0,
-          left: 0,
-          bottom: 300,
-          right: 400,
-        });
+      svg.getBoundingClientRect = vi.fn().mockReturnValue({
+        width: 400,
+        height: 300,
+        x: 0,
+        y: 0,
+        top: 0,
+        left: 0,
+        bottom: 300,
+        right: 400,
+      });
       node.appendChild(svg);
 
       const { result } = renderHook(() => useChartCopy());

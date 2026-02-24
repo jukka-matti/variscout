@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import { useStorage } from '../services/storage';
 import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
@@ -19,7 +19,7 @@ import {
 import { useControlViolations } from '../hooks/useControlViolations';
 import { useDataMerge } from '../hooks/useDataMerge';
 import { downloadCSV } from '@variscout/core';
-import type { ExclusionReason } from '@variscout/core';
+import type { ExclusionReason, MultiRegressionResult } from '@variscout/core';
 import { SAMPLES } from '@variscout/data';
 import {
   Upload,
@@ -86,6 +86,29 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     displayOptions,
     setDisplayOptions,
   });
+
+  // Investigation → Regression bridge state
+  const [regressionInitialFactors, setRegressionInitialFactors] = useState<string[] | undefined>();
+  // Regression → What-If bridge state
+  const [whatIfRegressionModel, setWhatIfRegressionModel] = useState<
+    MultiRegressionResult | undefined
+  >();
+
+  const handleNavigateToRegression = useCallback(
+    (factorsList: string[]) => {
+      setRegressionInitialFactors(factorsList);
+      panels.setIsMindmapOpen(false);
+    },
+    [panels]
+  );
+
+  const handleModelInteraction = useCallback(
+    (factorsList: string[]) => {
+      setRegressionInitialFactors(factorsList);
+      panels.setIsMindmapOpen(false);
+    },
+    [panels]
+  );
 
   // Manual data merge (for append mode)
   const dataFlow = useEditorDataFlow({
@@ -255,9 +278,13 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   if (panels.isWhatIfOpen) {
     return (
       <WhatIfPage
-        onBack={() => panels.setIsWhatIfOpen(false)}
+        onBack={() => {
+          panels.setIsWhatIfOpen(false);
+          setWhatIfRegressionModel(undefined);
+        }}
         filterCount={filterNav.filterStack.length}
         filterStack={filterNav.filterStack}
+        regressionModel={whatIfRegressionModel}
       />
     );
   }
@@ -493,6 +520,12 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               onPointClick={panels.handlePointClick}
               highlightedPointIndex={panels.highlightedChartPoint}
               filterNav={filterNav}
+              regressionInitialFactors={regressionInitialFactors}
+              onClearRegressionFactors={() => setRegressionInitialFactors(undefined)}
+              onNavigateToWhatIfWithModel={model => {
+                setWhatIfRegressionModel(model);
+                panels.setIsWhatIfOpen(true);
+              }}
             />
             <MindmapPanel
               isOpen={panels.isMindmapOpen}
@@ -516,6 +549,8 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 panels.setIsMindmapOpen(false);
                 panels.setIsWhatIfOpen(true);
               }}
+              onNavigateToRegression={handleNavigateToRegression}
+              onModelInteraction={handleModelInteraction}
               annotations={panels.mindmapAnnotations}
               onAnnotationsChange={panels.setMindmapAnnotations}
             />

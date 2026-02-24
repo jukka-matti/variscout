@@ -44,6 +44,9 @@ export type {
   VIFWarning,
   InteractionEdge,
   TermRemovalSuggestion,
+  // Model-driven simulation types
+  FactorAdjustment,
+  ModelSimulationResult,
 } from './types';
 
 // Statistics
@@ -180,6 +183,7 @@ export type {
   ProjectedStats,
   DirectAdjustmentParams,
   DirectAdjustmentResult,
+  FactorBaseline,
 } from './variation';
 
 export {
@@ -194,6 +198,8 @@ export {
   getNextDrillFactor,
   findOptimalFactors,
   simulateDirectAdjustment,
+  simulateFromModel,
+  getFactorBaselines,
   DRILL_SWITCH_THRESHOLD,
 } from './variation';
 

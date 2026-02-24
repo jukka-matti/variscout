@@ -1,110 +1,164 @@
-# Interaction Guidance
+# Investigation-to-Regression Bridge
 
-A contextual hint that guides users from drill-down analysis to regression for interaction effects.
+Contextual navigation buttons that connect the Investigation Mindmap to the Regression Panel, enabling a seamless transition from exploratory drill-down to formal modeling.
 
 ## Overview
 
-The Interaction Guidance component appears in the Investigation Mindmap when users have selected 2+ factors. It educates users about the limitation of sequential ANOVA (main effects only) and provides a direct link to the Regression Panel.
+When users have investigated factors in the mindmap, two bridge mechanisms offer direct paths into Regression Advanced mode with pre-populated predictors. These replaced the earlier `InteractionGuidance` component (removed with the FunnelPanel).
 
-## Usage
+| Bridge                     | Location                      | Trigger             | Factors Passed           |
+| -------------------------- | ----------------------------- | ------------------- | ------------------------ |
+| **ConclusionPanel button** | Narrative mode conclusion     | `steps.length >= 2` | All investigated factors |
+| **EdgeTooltip button**     | Interaction mode edge tooltip | Click any edge      | The two edge factors     |
 
-```tsx
-import InteractionGuidance from './components/InteractionGuidance';
+Both buttons pass factors to `onNavigateToRegression(factors)` or `onModelInteraction(factors)`, which feeds them into the Regression Panel as `initialPredictors`.
 
-<InteractionGuidance
-  drillFactorCount={selectedFactors.size}
-  drillFactors={Array.from(selectedFactors)}
-  columnAliases={columnAliases}
-  onNavigateToRegression={() => setActiveView('regression')}
-/>;
+## ConclusionPanel "Refine in Regression" Button
+
+Appears at the bottom of the narrative conclusion panel when the user has drilled into two or more factors.
+
+### Visibility Logic
+
+- **Shows:** When `onNavigateToRegression` is provided AND `steps.length >= 2`
+- **Hides:** When fewer than 2 narrative steps exist
+
+### Visual Design
+
 ```
+┌──────────────────────────────────┐
+│  Focused on 72% of variation     │
+│  28% outside scope               │
+│                                  │
+│  [ Refine in Regression -> ]     │  <- amber button
+│  [ Model improvements ->   ]     │  <- blue button (What-If)
+└──────────────────────────────────┘
+```
+
+**Button style:**
+
+- Background: `chartColors.warning` at 10% opacity (`#f59e0b18`)
+- Border: `chartColors.warning` at 25% opacity (`#f59e0b40`)
+- Text: `chartColors.warning` (`#f59e0b`), 10px, weight 500
+- Hover: background increases to 19% opacity (`#f59e0b30`)
+- Focus: 2px outline in `chartColors.warning`
+
+### Behavior
+
+On click, calls `onNavigateToRegression(steps.map(s => s.factor))` — passing all investigated factor names from the narrative steps.
+
+### Source
+
+`packages/charts/src/mindmap/ConclusionPanel.tsx`
+
+## EdgeTooltip "Model in Regression" Button
+
+Appears inside the edge tooltip in Interaction mode when viewing a factor pair.
+
+### Visibility Logic
+
+- **Shows:** When `onModelInteraction` prop is provided on the tooltip
+- **Hides:** When the prop is not provided
+
+### Visual Design
+
+```
+┌──────────────────────────────────┐
+│  Shift x Machine                 │
+│  --------------------------------│
+│  Delta R^2      3.2%             │
+│  p              0.012            │
+│  beta           0.45             │
+│                                  │
+│  [ Model in Regression -> ]      │  <- amber button, full-width
+└──────────────────────────────────┘
+```
+
+**Button style:** Same amber color scheme as the ConclusionPanel button, but rendered full-width inside the tooltip.
+
+### Behavior
+
+On click, calls `onModelInteraction([edge.factorA, edge.factorB])` and closes the tooltip.
+
+### Source
+
+`packages/charts/src/mindmap/EdgeTooltip.tsx`
+
+## initialPredictors Auto-Population
+
+When either bridge button is clicked, the app-level handler sets `initialPredictors` on the Regression Panel. The `useRegressionState` hook responds with an effect that:
+
+1. Switches mode to `'advanced'`
+2. Sets the selected predictors to the passed factor list
+3. Detects non-numeric columns and marks them as categorical
+
+```typescript
+// packages/hooks/src/useRegressionState.ts
+useEffect(() => {
+  if (initialPredictors && initialPredictors.length > 0) {
+    setMode('advanced');
+    setAdvSelectedPredictors(initialPredictors);
+    // Mark categorical columns that aren't in numeric list
+    const catSet = new Set<string>();
+    for (const col of initialPredictors) {
+      if (!numericColumns.includes(col)) {
+        catSet.add(col);
+      }
+    }
+    if (catSet.size > 0) {
+      setCategoricalColumns(catSet);
+    }
+  }
+}, [initialPredictors, numericColumns]);
+```
+
+The `RegressionPanelBase` also accepts `investigationFactors?: string[]` for a suggestion banner that appears when the user navigates to Advanced mode without `initialPredictors` — offering a one-click "add all" for factors found during investigation.
 
 ## Props
 
-| Prop                   | Type                   | Default   | Description                      |
-| ---------------------- | ---------------------- | --------- | -------------------------------- |
-| drillFactorCount       | number                 | required  | Number of factors in drill stack |
-| drillFactors           | string[]               | []        | Factor names for example text    |
-| columnAliases          | Record<string, string> | {}        | Display names for factors        |
-| onNavigateToRegression | () => void             | undefined | Navigation callback              |
+### InvestigationMindmapProps (relevant subset)
 
-## Visibility Logic
+| Prop                     | Type                          | Description                                               |
+| ------------------------ | ----------------------------- | --------------------------------------------------------- |
+| `onNavigateToRegression` | `(factors: string[]) => void` | Called from ConclusionPanel with all investigated factors |
+| `onModelInteraction`     | `(factors: string[]) => void` | Called from EdgeTooltip with the two edge factors         |
 
-- **Shows:** When `drillFactorCount >= 2`
-- **Hides:** When fewer than 2 factors selected
+### RegressionPanelBaseProps (relevant subset)
 
-Note: This same 2+ factor threshold is also used to gate the Interactions mode in the Investigation Mindmap's mode toggle. When fewer than 2 factors are drilled, both InteractionGuidance and the Interactions mode remain unavailable. The Interactions mode additionally requires n >= 5 after filtering.
+| Prop                   | Type       | Description                                                     |
+| ---------------------- | ---------- | --------------------------------------------------------------- |
+| `initialPredictors`    | `string[]` | Pre-populate Advanced mode predictors from investigation bridge |
+| `investigationFactors` | `string[]` | Show suggestion banner for uninvestigated factors               |
 
-## Visual Design
+### UseRegressionStateOptions (relevant subset)
 
-```
-┌────────────────────────────────────────────────────────────────────┐
-│ 💡 Analyzing multiple factors?                                     │
-│                                                                    │
-│ Your drill-down shows main effects. To check if factors interact  │
-│ (e.g., Shift performance varies by Machine), use the Regression   │
-│ Panel with "Include interactions".                                │
-│                                                                    │
-│ [Check Interactions →]                                            │
-└────────────────────────────────────────────────────────────────────┘
-```
-
-**Structure:**
-
-- Container: Blue accent background (`bg-blue-500/10`) with border (`border-blue-500/30`)
-- Icon: Lightbulb (Lucide), 16px, `text-blue-400`
-- Title: 14px semi-bold, `text-blue-300`
-- Body: 12px, `text-content-secondary` with emphasized spans
-- Button: Inline text button with arrow icon, hover effect
-
-## Dynamic Example Text
-
-The component generates contextual example text based on actual factors:
-
-```typescript
-// With drillFactors = ['Shift', 'Machine']
-'e.g., Shift performance varies by Machine';
-
-// Fallback when fewer factors available
-'e.g., Machine C is only problematic on Night shift';
-```
-
-Column aliases are applied for user-friendly display names.
-
-## Integration
-
-Located in `InvestigationMindmap.tsx`, within the mindmap conclusion panel:
-
-```tsx
-// packages/charts/src/InvestigationMindmap.tsx
-<InteractionGuidance
-  drillFactorCount={filterStack?.length ?? 0}
-  drillFactors={filterStack?.map(f => f.factor) ?? []}
-  columnAliases={columnAliases}
-  onNavigateToRegression={onNavigateToRegression}
-/>
-```
+| Prop                | Type       | Description                                                    |
+| ------------------- | ---------- | -------------------------------------------------------------- |
+| `initialPredictors` | `string[]` | External predictors that trigger mode switch + auto-population |
 
 ## Accessibility
 
-- Button is keyboard accessible with focus states
-- Color contrast meets WCAG AA for informational text
-- No auto-dismiss behavior — user controls navigation
+- Both buttons are keyboard accessible with focus ring states
+- ConclusionPanel button has visible focus outline (2px `chartColors.warning`)
+- EdgeTooltip button inherits tooltip keyboard handling
+- Color contrast meets WCAG AA for interactive elements on dark backgrounds
 
 ## Files
 
-| File                                                             | Purpose   |
-| ---------------------------------------------------------------- | --------- |
-| `apps/pwa/src/components/InteractionGuidance.tsx`                | Component |
-| `apps/pwa/src/components/__tests__/InteractionGuidance.test.tsx` | Tests     |
+| File                                                                 | Purpose                                                           |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `packages/charts/src/mindmap/types.ts`                               | Prop definitions (`onNavigateToRegression`, `onModelInteraction`) |
+| `packages/charts/src/mindmap/ConclusionPanel.tsx`                    | Narrative conclusion with "Refine in Regression" button           |
+| `packages/charts/src/mindmap/EdgeTooltip.tsx`                        | Interaction edge tooltip with "Model in Regression" button        |
+| `packages/hooks/src/useRegressionState.ts`                           | `initialPredictors` effect (mode switch + auto-population)        |
+| `packages/ui/src/components/RegressionPanel/RegressionPanelBase.tsx` | `initialPredictors` + `investigationFactors` banner               |
 
 ## Related Components
 
-- `InvestigationMindmap.tsx` — Parent component that renders InteractionGuidance
-- `MindmapPanel.tsx` — Passes navigation callback through to InvestigationMindmap
-- [Regression Panel](../../03-features/analysis/regression.md#interaction-effects) — Target destination
+- [Investigation Mindmap](../../06-design-system/charts/mindmap.md) — Parent component rendering both bridge buttons
+- [Regression Panel](../../03-features/analysis/regression.md) — Target destination for the bridge
+- [Investigation to Action Workflow](../../03-features/workflows/investigation-to-action.md) — Three-phase workflow using these bridges
 
 ## See Also
 
-- [Drill-Down: When to Check for Interactions](../../03-features/navigation/drill-down.md#when-to-check-for-interactions)
-- [Regression: Interaction Effects](../../03-features/analysis/regression.md#interaction-effects)
+- [Drill-Down Workflow](../../03-features/workflows/drill-down-workflow.md) — Investigation mechanics
+- [What-If Simulator](what-if-simulator.md) — Phase 3 destination (via Regression "Project in What-If" button)

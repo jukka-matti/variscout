@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '@variscout/core';
 
+import type { MultiRegressionResult } from '@variscout/core';
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
 
 type AnalysisView = 'dashboard' | 'regression';
@@ -69,6 +70,11 @@ interface DashboardProps {
   highlightedPointIndex?: number | null;
   // External filter navigation (shared with mindmap for synchronized drills)
   filterNav?: UseFilterNavigationReturn;
+  // Bridge: investigation → regression
+  regressionInitialFactors?: string[];
+  onClearRegressionFactors?: () => void;
+  // Bridge: regression → What-If with model
+  onNavigateToWhatIfWithModel?: (model: MultiRegressionResult) => void;
 }
 
 const Dashboard = ({
@@ -86,6 +92,9 @@ const Dashboard = ({
   onOpenWhatIf,
   highlightedPointIndex,
   filterNav,
+  regressionInitialFactors,
+  onClearRegressionFactors,
+  onNavigateToWhatIfWithModel,
 }: DashboardProps) => {
   const {
     outcome,
@@ -119,6 +128,13 @@ const Dashboard = ({
 
   // Internal tab navigation state
   const [activeView, setActiveView] = useState<AnalysisView>('dashboard');
+
+  // Auto-switch to regression tab when external factors arrive (investigation bridge)
+  React.useEffect(() => {
+    if (regressionInitialFactors && regressionInitialFactors.length > 0) {
+      setActiveView('regression');
+    }
+  }, [regressionInitialFactors]);
 
   // Modal state for Create Factor
   const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
@@ -522,7 +538,10 @@ const Dashboard = ({
       {activeView === 'regression' && (
         <div className="flex-1 m-4 bg-surface-secondary border border-edge rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
           <ErrorBoundary componentName="Regression Panel">
-            <RegressionPanel />
+            <RegressionPanel
+              initialPredictors={regressionInitialFactors}
+              onNavigateToWhatIf={onNavigateToWhatIfWithModel}
+            />
           </ErrorBoundary>
         </div>
       )}

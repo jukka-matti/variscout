@@ -121,6 +121,8 @@ export interface AdvancedRegressionViewComponentProps {
   reductionHistory: ReductionStep[];
   onRemoveTerm: (term: string) => void;
   onClearHistory: () => void;
+  /** Callback to navigate to What-If with the current model */
+  onNavigateToWhatIf?: (model: MultiRegressionResult) => void;
   colorScheme?: RegressionViewColorScheme;
 }
 
@@ -131,5 +133,9 @@ export interface ExpandedScatterModalComponentProps {
   result: RegressionResult;
   specs?: SpecLimits | null;
   onClose: () => void;
+  /** Navigate to next scatter chart (right arrow key) */
+  onNext?: () => void;
+  /** Navigate to previous scatter chart (left arrow key) */
+  onPrev?: () => void;
   colorScheme?: RegressionViewColorScheme;
 }

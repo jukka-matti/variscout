@@ -477,11 +477,41 @@ export interface MultiRegressionOptions {
   includeInteractions?: boolean;
   /** Column names to treat as categorical (dummy-encoded) */
   categoricalColumns?: string[];
-  /** Use forward selection to auto-select significant predictors (default: false) */
-  autoSelect?: boolean;
-  /** P-value threshold for auto-selection (default: 0.05) */
-  pValueThreshold?: number;
 }
+
+// ============================================================================
+// Model-Driven Simulation Types
+// ============================================================================
+
+/**
+ * A proposed factor-level adjustment for model-driven simulation
+ */
+export interface FactorAdjustment {
+  /** Factor/column name */
+  factor: string;
+  /** Current level: mode for categorical, mean for continuous */
+  currentValue: string | number;
+  /** Proposed level to simulate */
+  proposedValue: string | number;
+}
+
+/**
+ * Result of a model-driven simulation (predicted mean shift)
+ */
+export interface ModelSimulationResult {
+  /** Predicted change in outcome mean */
+  meanShift: number;
+  /** Per-factor breakdown of contributions to the mean shift */
+  contributions: Array<{
+    factor: string;
+    /** This factor's contribution to the mean shift */
+    delta: number;
+  }>;
+}
+
+// ============================================================================
+// Regression Term Types
+// ============================================================================
 
 /**
  * Represents a term in the regression model

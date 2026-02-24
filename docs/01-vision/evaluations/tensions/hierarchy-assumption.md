@@ -8,7 +8,7 @@ Progressive stratification works by drilling into the highest-impact factor at e
 
 But factors can interact. "Machine C is only problematic on Night Shift" is an interaction effect that the one-factor-at-a-time approach may miss entirely. If Machine C looks average across all shifts, the drill-down would never highlight it. The problem only surfaces when you look at Machine C _within_ Night Shift, or Night Shift _within_ Machine C. The sequential approach can't see this unless the analyst happens to drill both factors in the right order and notices the pattern in the intermediate step.
 
-VariScout's regression panel handles interaction analysis, and the variation funnel prompts "Try the Regression Panel with Include interactions" when 2+ factors are in the drill stack. But this requires the analyst to notice and act on the prompt --- it's a passive suggestion rather than an active detection. The gap between the drill-down's main-effects focus and the regression panel's interaction capability isn't bridged by the UI itself.
+VariScout's regression panel handles interaction analysis. The Investigation Mindmap's Interaction mode visually surfaces factor-by-factor interaction edges (with delta-R², p-value, and standardized beta) when 2+ factors are in the drill stack, bridging the gap between the drill-down's main-effects focus and the regression panel's interaction capability. Action buttons in both the ConclusionPanel ("Refine in Regression") and the EdgeTooltip ("Model in Regression") navigate directly to the Regression Panel with investigated factors pre-populated.
 
 ## Persona Impact
 
@@ -23,13 +23,15 @@ VariScout's regression panel handles interaction analysis, and the variation fun
 
 ## Current Mitigation
 
-- The regression panel supports interaction terms and is accessible from the analysis view.
-- The variation funnel displays a prompt when 2+ factors are active: "Try the Regression Panel with Include interactions."
+- The Investigation Mindmap's **Interaction mode** (available when 2+ factors are drilled) visually shows interaction edges between factors with delta-R², p-value, and standardized beta.
+- The **ConclusionPanel** "Refine in Regression" button navigates to the Regression Panel with investigated factors pre-populated as predictors.
+- The **EdgeTooltip** "Model in Regression" button (in Interaction mode) navigates to the Regression Panel with the specific interaction pair pre-populated.
+- The Regression Panel's **AdvancedRegressionView** shows a "Project in What-If" button when all terms are significant, completing the investigation-to-action chain.
 - Multi-select in filter chips allows the analyst to manually explore two-factor combinations.
 
 ## Strategic Weight
 
-**High** --- Interaction effects are common in real manufacturing and service processes. A tool positioned for process improvement that misses interactions risks producing confident but wrong conclusions. The current mitigation exists but depends on analyst initiative rather than systematic detection.
+**Medium** --- Interaction effects are common in real manufacturing and service processes. The Investigation Mindmap's Interaction mode now provides visual detection and direct navigation to regression, reducing the reliance on analyst initiative. The remaining gap is that the analyst must still switch to Interaction mode rather than being automatically alerted.
 
 ## Related Patterns
 

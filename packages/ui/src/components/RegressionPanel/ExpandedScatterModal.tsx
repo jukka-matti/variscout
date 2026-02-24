@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScatterPlot } from '@variscout/charts';
 import { formatPValue, getStars } from '@variscout/core';
+import { useChartCopy } from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
+import { ChartDownloadMenu } from '../ChartExportMenu';
 import { useGlossary } from '../../hooks';
-import { TrendingUp, X } from 'lucide-react';
+import { TrendingUp, X, Copy, Check } from 'lucide-react';
 import {
   regressionViewDefaultColorScheme,
   type ExpandedScatterModalComponentProps,
@@ -16,10 +18,24 @@ export const ExpandedScatterModal: React.FC<ExpandedScatterModalComponentProps> 
   result,
   specs,
   onClose,
+  onNext,
+  onPrev,
   colorScheme = regressionViewDefaultColorScheme,
 }) => {
   const { getTerm } = useGlossary();
   const c = colorScheme;
+  const { copyFeedback, handleCopyChart, handleDownloadPng, handleDownloadSvg } = useChartCopy();
+
+  // Keyboard navigation: Escape to close, arrow keys to cycle
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      else if (e.key === 'ArrowRight' && onNext) onNext();
+      else if (e.key === 'ArrowLeft' && onPrev) onPrev();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, onNext, onPrev]);
 
   const rSquared =
     result.recommendedFit === 'quadratic' && result.quadratic
@@ -40,16 +56,36 @@ export const ExpandedScatterModal: React.FC<ExpandedScatterModalComponentProps> 
             <HelpTooltip term={getTerm('rSquared')} iconSize={12} />
           </span>
         </div>
-        <button
-          onClick={onClose}
-          className={`p-2 ${c.secondaryText} hover:text-white ${c.hoverBg} rounded-lg transition-colors`}
-        >
-          <X size={20} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => handleCopyChart('scatter-expanded', 'scatter')}
+            className={`p-1.5 rounded transition-all ${
+              copyFeedback === 'scatter'
+                ? 'bg-green-500/20 text-green-400'
+                : `${c.secondaryText} hover:text-white ${c.hoverBg}`
+            }`}
+            title="Copy to clipboard"
+            aria-label="Copy scatter plot to clipboard"
+          >
+            {copyFeedback === 'scatter' ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+          <ChartDownloadMenu
+            containerId="scatter-expanded"
+            chartName="scatter"
+            onDownloadPng={handleDownloadPng}
+            onDownloadSvg={handleDownloadSvg}
+          />
+          <button
+            onClick={onClose}
+            className={`p-2 ${c.secondaryText} hover:text-white ${c.hoverBg} rounded-lg transition-colors`}
+          >
+            <X size={20} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 p-4">
-        <div className={`h-full ${c.cardBg} rounded-xl border ${c.border}`}>
+        <div id="scatter-expanded" className={`h-full ${c.cardBg} rounded-xl border ${c.border}`}>
           <ScatterPlot
             regression={result}
             specs={specs ?? undefined}

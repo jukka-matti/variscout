@@ -99,4 +99,8 @@ export interface InvestigationMindmapProps {
   columnAliases?: Record<string, string>;
   /** Optional callback to navigate to What-If Simulator from narrative conclusion */
   onNavigateToWhatIf?: () => void;
+  /** Optional callback to navigate to Regression with investigated factors */
+  onNavigateToRegression?: (factors: string[]) => void;
+  /** Optional callback to model an interaction pair in Regression */
+  onModelInteraction?: (factors: string[]) => void;
 }

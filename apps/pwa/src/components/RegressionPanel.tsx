@@ -8,9 +8,23 @@ import {
   AdvancedRegressionView,
   ExpandedScatterModal,
 } from '@variscout/ui';
+import type { MultiRegressionResult } from '@variscout/core';
 import { useData } from '../context/DataContext';
 
-const RegressionPanel: React.FC = () => {
+interface RegressionPanelProps {
+  /** External predictors to pre-populate in Advanced mode */
+  initialPredictors?: string[];
+  /** Factors from investigation for suggestion banner */
+  investigationFactors?: string[];
+  /** Callback to navigate to What-If with model data */
+  onNavigateToWhatIf?: (model: MultiRegressionResult) => void;
+}
+
+const RegressionPanel: React.FC<RegressionPanelProps> = ({
+  initialPredictors,
+  investigationFactors,
+  onNavigateToWhatIf,
+}) => {
   const { filteredData, outcome, specs } = useData();
 
   return (
@@ -21,6 +35,9 @@ const RegressionPanel: React.FC = () => {
       renderSimpleView={props => <SimpleRegressionView {...props} />}
       renderAdvancedView={props => <AdvancedRegressionView {...props} />}
       renderExpandedModal={props => <ExpandedScatterModal {...props} />}
+      initialPredictors={initialPredictors}
+      investigationFactors={investigationFactors}
+      onNavigateToWhatIf={onNavigateToWhatIf}
     />
   );
 };

@@ -46,4 +46,10 @@ export {
 } from './suggestions';
 
 // Simulation
-export { calculateProjectedStats, simulateDirectAdjustment } from './simulation';
+export {
+  calculateProjectedStats,
+  simulateDirectAdjustment,
+  simulateFromModel,
+  getFactorBaselines,
+  type FactorBaseline,
+} from './simulation';

@@ -95,6 +95,8 @@ export {
   type WhatIfSimulatorProps,
   type SimulatorPreset,
   type WhatIfSimulatorHandle,
+  ModelDrivenSimulator,
+  type ModelDrivenSimulatorProps,
 } from './components/WhatIfSimulator';
 
 export {

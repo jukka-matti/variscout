@@ -2,7 +2,12 @@
  * Process improvement simulation — projected stats and direct adjustment what-if analysis
  */
 
-import type { DataRow } from '../types';
+import type {
+  DataRow,
+  FactorAdjustment,
+  ModelSimulationResult,
+  MultiRegressionResult,
+} from '../types';
 import { toNumericValue } from '../types';
 import type { ProjectedStats, DirectAdjustmentParams, DirectAdjustmentResult } from './types';
 
@@ -258,4 +263,174 @@ export function simulateDirectAdjustment(
   }
 
   return result;
+}
+
+// ============================================================================
+// Model-driven simulation
+// ============================================================================
+
+/**
+ * Baseline values per factor used by the model-driven simulator.
+ */
+export interface FactorBaseline {
+  factor: string;
+  type: 'categorical' | 'continuous';
+  /** For categorical: mode (most common value). For continuous: mean */
+  currentValue: string | number;
+  /** For categorical: all observed levels */
+  levels?: string[];
+  /** For continuous: mean and stdDev of observed values */
+  mean?: number;
+  stdDev?: number;
+}
+
+/**
+ * Compute baseline values for each predictor in the regression model.
+ *
+ * Categorical factors → mode (most frequent value).
+ * Continuous factors → mean.
+ */
+export function getFactorBaselines(
+  data: DataRow[],
+  model: MultiRegressionResult
+): FactorBaseline[] {
+  // Build lookup: which columns are categorical (have levels/reference in terms)
+  const catFactors = new Set<string>();
+  const contFactors = new Set<string>();
+
+  for (const term of model.terms ?? []) {
+    if (term.type === 'categorical') {
+      catFactors.add(term.columns[0]);
+    } else if (term.type === 'continuous') {
+      contFactors.add(term.columns[0]);
+    }
+  }
+
+  // Also infer from coefficients: dummy terms like "Machine_B" with level
+  for (const coef of model.coefficients) {
+    const termInfo = model.terms?.find(t => t.label === coef.term);
+    if (termInfo) {
+      if (termInfo.type === 'categorical') catFactors.add(termInfo.columns[0]);
+      else if (termInfo.type === 'continuous') contFactors.add(termInfo.columns[0]);
+    }
+  }
+
+  const baselines: FactorBaseline[] = [];
+
+  for (const factor of catFactors) {
+    const counts = new Map<string, number>();
+    for (const row of data) {
+      const v = row[factor];
+      if (v == null) continue;
+      const key = String(v);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    let mode = '';
+    let maxCount = 0;
+    for (const [key, count] of counts) {
+      if (count > maxCount) {
+        mode = key;
+        maxCount = count;
+      }
+    }
+    baselines.push({
+      factor,
+      type: 'categorical',
+      currentValue: mode,
+      levels: Array.from(counts.keys()).sort(),
+    });
+  }
+
+  for (const factor of contFactors) {
+    const values: number[] = [];
+    for (const row of data) {
+      const v = toNumericValue(row[factor]);
+      if (v !== undefined) values.push(v);
+    }
+    if (values.length === 0) continue;
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
+    baselines.push({
+      factor,
+      type: 'continuous',
+      currentValue: mean,
+      mean,
+      stdDev: Math.sqrt(variance),
+    });
+  }
+
+  return baselines;
+}
+
+/**
+ * Simulate the predicted mean shift from a regression model given proposed
+ * factor-level adjustments.
+ *
+ * For each adjustment the function computes the change in the regression
+ * predicted value: `ŷ_proposed - ŷ_current`.
+ *
+ * Categorical factors: switching from level A to level B changes ŷ by
+ * `(β_B - β_A)` where β is the coefficient for the respective dummy.
+ * The reference level has an implicit coefficient of 0.
+ *
+ * Continuous factors: shifting by Δ changes ŷ by `β × Δ`.
+ */
+export function simulateFromModel(
+  model: MultiRegressionResult,
+  adjustments: FactorAdjustment[]
+): ModelSimulationResult {
+  const contributions: ModelSimulationResult['contributions'] = [];
+  let totalShift = 0;
+
+  for (const adj of adjustments) {
+    // Find corresponding terms in the model
+    const relatedTerms = (model.terms ?? []).filter(
+      t => t.columns[0] === adj.factor && t.type !== 'interaction'
+    );
+
+    if (relatedTerms.length === 0) {
+      // Try matching by coefficient term name directly
+      const coef = model.coefficients.find(c => c.term === adj.factor);
+      if (coef) {
+        // Continuous predictor matched by name
+        const delta = coef.coefficient * (Number(adj.proposedValue) - Number(adj.currentValue));
+        contributions.push({ factor: adj.factor, delta });
+        totalShift += delta;
+      }
+      continue;
+    }
+
+    const termType = relatedTerms[0].type;
+
+    if (termType === 'categorical') {
+      // For categorical: find coefficients for current and proposed levels
+      // Reference level has implicit coefficient 0
+      const currentStr = String(adj.currentValue);
+      const proposedStr = String(adj.proposedValue);
+
+      let betaCurrent = 0;
+      let betaProposed = 0;
+
+      for (const term of relatedTerms) {
+        const coef = model.coefficients.find(c => c.term === term.label);
+        if (!coef) continue;
+        if (term.level === currentStr) betaCurrent = coef.coefficient;
+        if (term.level === proposedStr) betaProposed = coef.coefficient;
+      }
+
+      const delta = betaProposed - betaCurrent;
+      contributions.push({ factor: adj.factor, delta });
+      totalShift += delta;
+    } else {
+      // Continuous
+      const coef = model.coefficients.find(c => c.term === relatedTerms[0].label);
+      if (coef) {
+        const delta = coef.coefficient * (Number(adj.proposedValue) - Number(adj.currentValue));
+        contributions.push({ factor: adj.factor, delta });
+        totalShift += delta;
+      }
+    }
+  }
+
+  return { meanShift: totalShift, contributions };
 }

@@ -116,11 +116,21 @@ A list of key factors and their contribution percentages. These become the start
 
 See [Drill-Down Workflow](drill-down-workflow.md) for detailed drill-down mechanics.
 
+### Transition to Phase 2
+
+Two bridge buttons in the Investigation Mindmap provide direct paths into Regression:
+
+1. **ConclusionPanel "Refine in Regression"** — Appears in Narrative mode when `steps.length >= 2`. Passes all investigated factors via `onNavigateToRegression(factors)`. Amber-colored button with arrow icon.
+
+2. **EdgeTooltip "Model in Regression"** — Appears in Interaction mode when viewing a factor pair edge. Passes the two edge factors via `onModelInteraction(factors)`.
+
+Both buttons feed factors into the Regression Panel as `initialPredictors`, which automatically switches to Advanced mode and pre-populates the predictor list. Non-numeric columns are detected and marked as categorical. See [Investigation-to-Regression Bridge](../../06-design-system/components/interaction-guidance.md) for implementation details.
+
 ## Phase 2: Refine Model (Regression Advanced Mode)
 
 **Goal:** Determine which factors truly matter using a statistical model.
 
-Start from the investigation findings: add the identified factors as predictors in Advanced Regression mode. Then use guided model reduction to simplify.
+Start from the investigation findings: the bridge buttons from Phase 1 auto-populate predictors in Advanced Regression mode. Alternatively, add the identified factors manually. Then use guided model reduction to simplify.
 
 ### Why Adj. R² is the key metric
 
@@ -162,11 +172,31 @@ A term with severe VIF is suggested for removal regardless of its p-value, becau
 
 A reduced model containing only statistically significant terms, with Adj. R² tracking showing that no meaningful explanatory power was lost.
 
+### Transition to Phase 3
+
+When all terms in the model are significant, the AdvancedRegressionView displays a green **"Project in What-If"** button (Beaker icon). Clicking it calls `onNavigateToWhatIf(model)`, passing the `MultiRegressionResult` to the What-If page.
+
+On the What-If page, the regression model is rendered as a `ModelDrivenSimulator` above the standard slider-based simulator. The model-driven simulator uses `simulateFromModel()` from `@variscout/core` to compute the predicted mean shift from regression coefficients, providing per-factor controls (categorical dropdowns with coefficient deltas, continuous sliders) and contribution bars showing each factor's delta. See [What-If Simulator](../../06-design-system/components/what-if-simulator.md#model-driven-simulator) for component details.
+
 ## Phase 3: Project Improvement (What-If Simulator)
 
 **Goal:** Estimate what happens if you improve the process.
 
-The What-If page takes the current process statistics (after investigation filtering) and lets you explore two adjustments:
+The What-If page takes the current process statistics (after investigation filtering) and lets you explore improvements through two simulators:
+
+### Model-Driven Simulator (when regression model is available)
+
+When arriving from Phase 2 with a regression model, the `ModelDrivenSimulator` appears at the top. It provides per-factor controls derived from the model coefficients:
+
+- **Categorical factors** — Dropdown selectors showing each level with its coefficient delta (e.g., "Level B (+2.3)")
+- **Continuous factors** — Sliders ranging mean +/- 2 standard deviations
+- **Contribution bars** — Horizontal bars showing each factor's delta contribution to the predicted mean shift
+
+Uses `simulateFromModel()` from `@variscout/core` to compute projections from the regression equation.
+
+### Standard Simulator (always available)
+
+The standard `WhatIfSimulator` is always available (collapsed by default when the model-driven simulator is present). It offers two direct adjustments:
 
 1. **Mean adjustment** — Shift the process center toward the target. Use this when the investigation revealed an off-center process (e.g., wrong machine setting).
 

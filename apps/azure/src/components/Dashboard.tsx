@@ -28,7 +28,11 @@ import {
   ChartDownloadMenu,
   chartDownloadMenuAzureColorScheme,
 } from '@variscout/ui';
-import { getColumnNames, createFactorFromSelection } from '@variscout/core';
+import {
+  getColumnNames,
+  createFactorFromSelection,
+  type MultiRegressionResult,
+} from '@variscout/core';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useAnnotations } from '@variscout/hooks';
 import {
@@ -56,6 +60,9 @@ interface DashboardProps {
   onBackToPerformance?: () => void;
   onDrillToMeasure?: (measureId: string) => void;
   filterNav?: UseFilterNavigationReturn;
+  regressionInitialFactors?: string[];
+  onClearRegressionFactors?: () => void;
+  onNavigateToWhatIfWithModel?: (model: MultiRegressionResult) => void;
 }
 
 const Dashboard = ({
@@ -65,6 +72,9 @@ const Dashboard = ({
   onBackToPerformance,
   onDrillToMeasure,
   filterNav: externalFilterNav,
+  regressionInitialFactors,
+  onClearRegressionFactors,
+  onNavigateToWhatIfWithModel,
 }: DashboardProps) => {
   const {
     outcome,
@@ -106,6 +116,13 @@ const Dashboard = ({
       setActiveTab('analysis');
     }
   }, [drillFromPerformance]);
+
+  // Auto-switch to regression tab when external factors arrive (investigation bridge)
+  useEffect(() => {
+    if (regressionInitialFactors && regressionInitialFactors.length > 0) {
+      setActiveTab('regression');
+    }
+  }, [regressionInitialFactors]);
 
   // Chart state and logic from the hook
   const {
@@ -326,7 +343,10 @@ const Dashboard = ({
       {activeTab === 'regression' && (
         <div className="flex-1 m-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
           <ErrorBoundary componentName="Regression Panel">
-            <RegressionPanel />
+            <RegressionPanel
+              initialPredictors={regressionInitialFactors}
+              onNavigateToWhatIf={onNavigateToWhatIfWithModel}
+            />
           </ErrorBoundary>
         </div>
       )}

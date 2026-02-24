@@ -2,7 +2,7 @@ import React from 'react';
 import { formatPValue, getStars } from '@variscout/core';
 import { HelpTooltip } from '../HelpTooltip';
 import { useGlossary } from '../../hooks';
-import { ChevronDown, X, AlertTriangle, Lightbulb, CheckCircle } from 'lucide-react';
+import { ChevronDown, X, AlertTriangle, Lightbulb, CheckCircle, Beaker } from 'lucide-react';
 import {
   regressionViewDefaultColorScheme,
   type AdvancedRegressionViewComponentProps,
@@ -25,6 +25,7 @@ export const AdvancedRegressionView: React.FC<AdvancedRegressionViewComponentPro
   reductionHistory,
   onRemoveTerm,
   onClearHistory,
+  onNavigateToWhatIf,
   colorScheme = regressionViewDefaultColorScheme,
 }) => {
   const { getTerm } = useGlossary();
@@ -231,9 +232,20 @@ export const AdvancedRegressionView: React.FC<AdvancedRegressionViewComponentPro
               </div>
             ) : multiRegressionResult.coefficients.length > 0 ? (
               <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-3">
-                <div className="flex items-center gap-2 text-sm text-green-400">
-                  <CheckCircle size={16} />
-                  All terms significant — model is well-specified
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-sm text-green-400">
+                    <CheckCircle size={16} />
+                    All terms significant — model is well-specified
+                  </div>
+                  {onNavigateToWhatIf && (
+                    <button
+                      onClick={() => onNavigateToWhatIf(multiRegressionResult)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition-colors"
+                    >
+                      <Beaker size={12} />
+                      Project in What-If &rarr;
+                    </button>
+                  )}
                 </div>
               </div>
             ) : null}

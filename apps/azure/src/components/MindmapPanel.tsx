@@ -29,6 +29,8 @@ interface MindmapPanelProps {
   onDrillCategory: (factor: string, value: string | number) => void;
   onOpenPopout?: () => void;
   onNavigateToWhatIf?: () => void;
+  onNavigateToRegression?: (factors: string[]) => void;
+  onModelInteraction?: (factors: string[]) => void;
   /** Initial annotations for restoring persisted state */
   annotations?: Map<number, string>;
   /** Callback when annotations change (for persistence) */
@@ -51,6 +53,8 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
   onDrillCategory,
   onOpenPopout,
   onNavigateToWhatIf,
+  onNavigateToRegression,
+  onModelInteraction,
   annotations: externalAnnotations,
   onAnnotationsChange,
 }) => {
@@ -222,6 +226,8 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
               onAnnotationChange={handleAnnotationChange}
               columnAliases={columnAliases}
               onNavigateToWhatIf={onNavigateToWhatIf}
+              onNavigateToRegression={onNavigateToRegression}
+              onModelInteraction={onModelInteraction}
               width={chartWidth}
               height={chartHeight}
             />

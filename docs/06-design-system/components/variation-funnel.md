@@ -9,18 +9,20 @@ The Variation Bar provides immediate visual feedback about what fraction of tota
 ## Usage
 
 ```tsx
-import VariationBar from './components/VariationBar';
+import { VariationBar } from '@variscout/ui';
 
-<VariationBar scopePct={60} showLabels={true} className="max-w-xs" />;
+<VariationBar isolatedPct={60} showLabels={true} className="max-w-xs" />;
 ```
 
 ## Props
 
-| Prop        | Type    | Default  | Description                              |
-| ----------- | ------- | -------- | ---------------------------------------- |
-| isolatedPct | number  | required | Percentage (0-100) of variation in focus |
-| showLabels  | boolean | true     | Show text labels below bar               |
-| className   | string  | ''       | Additional CSS classes for container     |
+| Prop        | Type                    | Default            | Description                                                                                                                                                    |
+| ----------- | ----------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| isolatedPct | number                  | required           | Percentage (0-100) of variation in focus                                                                                                                       |
+| showLabels  | boolean                 | true               | Show text labels below bar                                                                                                                                     |
+| className   | string                  | ''                 | Additional CSS classes for container                                                                                                                           |
+| colorScheme | VariationBarColorScheme | defaultColorScheme | Color scheme (PWA semantic tokens or Azure slate palette)                                                                                                      |
+| onClick     | () => void              | undefined          | Click handler --- opens the Investigation Mindmap panel when provided. Adds `cursor-pointer`, `role="button"`, `tabIndex`, and keyboard support (Enter/Space). |
 
 ## Visual Design
 
@@ -77,10 +79,15 @@ On hover, displays a tooltip with:
 ### In FilterBreadcrumb
 
 ```tsx
-// apps/pwa/src/components/FilterBreadcrumb.tsx
+// FilterBreadcrumb uses VariationBar from @variscout/ui
 {
   cumulativeVariationPct !== undefined && (
-    <VariationBar isolatedPct={cumulativeVariationPct} showLabels={true} className="mt-2" />
+    <VariationBar
+      isolatedPct={cumulativeVariationPct}
+      showLabels={true}
+      className="mt-2"
+      onClick={onOpenInvestigation}
+    />
   );
 }
 ```
@@ -107,11 +114,11 @@ import { getVariationImpactLevel, getVariationInsight } from '@variscout/core';
 
 ## Files
 
-| File                                         | Purpose                                              |
-| -------------------------------------------- | ---------------------------------------------------- |
-| `apps/pwa/src/components/VariationBar.tsx`   | PWA component                                        |
-| `apps/azure/src/components/VariationBar.tsx` | Azure app component (mirror)                         |
-| `packages/core/src/navigation.ts`            | `getVariationImpactLevel()`, `getVariationInsight()` |
+| File                                                       | Purpose                                              |
+| ---------------------------------------------------------- | ---------------------------------------------------- |
+| `packages/ui/src/components/VariationBar/VariationBar.tsx` | Shared component (PWA and Azure)                     |
+| `packages/ui/src/components/VariationBar/index.ts`         | Barrel re-export                                     |
+| `packages/core/src/navigation.ts`                          | `getVariationImpactLevel()`, `getVariationInsight()` |
 
 ## Related Components
 
