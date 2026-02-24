@@ -3,6 +3,7 @@ import { parseText, detectColumns, validateData, detectWideFormat } from '@varis
 import type { DataRow, DataQualityReport } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
+import { detectMergeStrategy, mergeColumns } from './useDataMerge';
 
 export interface UseEditorDataFlowOptions {
   rawData: DataRow[];
@@ -61,8 +62,13 @@ export interface UseEditorDataFlowReturn {
   handleDrillToMeasure: (measureId: string) => void;
   handleBackToPerformance: () => void;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  handleAppendPaste: (text: string) => Promise<void>;
+  handleAppendFile: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  appendFeedback: string | null;
   triggerFileUpload: () => void;
+  triggerAppendFileUpload: () => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
+  appendFileInputRef: React.RefObject<HTMLInputElement>;
 }
 
 /**
@@ -102,8 +108,10 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   const [isParsingFile, setIsParsingFile] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [drillFromPerformance, setDrillFromPerformance] = useState<string | null>(null);
+  const [appendFeedback, setAppendFeedback] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const appendFileInputRef = useRef<HTMLInputElement>(null);
 
   // Column analysis for ColumnMapping rich cards
   const mappingColumnAnalysis = useMemo(() => {
@@ -141,9 +149,23 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     };
   }, [outcome, factors, specs, isPerformanceMode, measureColumns, measureLabel]);
 
-  // Handle paste -> parse -> auto-detect -> show ColumnMapping
+  const showFeedback = useCallback((msg: string) => {
+    setAppendFeedback(msg);
+    setTimeout(() => setAppendFeedback(null), 3000);
+  }, []);
+
+  // Confirm before replacing active analysis with new data
+  const confirmReplaceIfNeeded = useCallback((): boolean => {
+    if (rawData.length > 0 && outcome) {
+      return window.confirm('Replace current data? This will start a new analysis.');
+    }
+    return true;
+  }, [rawData.length, outcome]);
+
+  // Handle paste -> parse -> auto-detect -> show ColumnMapping (initial load, replaces data)
   const handlePasteAnalyze = useCallback(
     async (text: string) => {
+      if (!confirmReplaceIfNeeded()) return;
       setPasteError(null);
       try {
         const data = await parseText(text);
@@ -171,6 +193,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       }
     },
     [
+      confirmReplaceIfNeeded,
       setRawData,
       setDataFilename,
       setOutcome,
@@ -182,18 +205,86 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     ]
   );
 
+  // Handle paste in append context: auto-detect rows vs columns
+  const handleAppendPaste = useCallback(
+    async (text: string) => {
+      setPasteError(null);
+      try {
+        const incoming = await parseText(text);
+        const existingCols = rawData.length > 0 ? Object.keys(rawData[0]) : [];
+        const incomingCols = Object.keys(incoming[0] || {});
+        const strategy = detectMergeStrategy(existingCols, incomingCols);
+
+        if (strategy === 'rows') {
+          // Append rows — concat and fill missing columns with null
+          const allColumns = new Set([...existingCols, ...incomingCols]);
+          const merged = [...rawData, ...incoming].map(row =>
+            Object.fromEntries([...allColumns].map(col => [col, row[col] ?? null]))
+          );
+          setRawData(merged);
+          const report = validateData(merged, outcome!);
+          setDataQualityReport(report);
+          setIsPasteMode(false);
+          setAppendMode(false);
+          showFeedback(`Appended ${incoming.length} rows (${merged.length} total)`);
+        } else {
+          // Add columns — index-aligned merge
+          const { data: merged, addedColumns } = mergeColumns(rawData, incoming);
+          setRawData(merged);
+          const report = validateData(merged, outcome!);
+          setDataQualityReport(report);
+          setIsPasteMode(false);
+          setAppendMode(false);
+          // Show column mapping for the new columns so user can classify them
+          setIsMapping(true);
+          showFeedback(
+            `Added ${addedColumns.length} column${addedColumns.length !== 1 ? 's' : ''} (${addedColumns.join(', ')})`
+          );
+        }
+      } catch (err) {
+        setPasteError(err instanceof Error ? err.message : 'Failed to parse data');
+      }
+    },
+    [rawData, outcome, setRawData, setDataQualityReport, showFeedback]
+  );
+
+  // Handle file upload in append context
+  const handleAppendFile = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      setIsParsingFile(true);
+      try {
+        const success = await handleFileUpload(e);
+        if (!success) return;
+        // After handleFileUpload, rawData is already set via the hook — but we need
+        // the parsed data. handleFileUpload sets rawData directly, so we read
+        // from the next render. Instead, go to mapping which will pick up the data.
+        setAppendMode(false);
+        setIsMapping(true);
+      } finally {
+        setIsParsingFile(false);
+      }
+    },
+    [handleFileUpload]
+  );
+
+  const triggerAppendFileUpload = useCallback(() => {
+    appendFileInputRef.current?.click();
+  }, []);
+
   const handlePasteCancel = useCallback(() => {
     setIsPasteMode(false);
+    setAppendMode(false);
     setPasteError(null);
   }, []);
 
-  // Handle sample load -> show ColumnMapping
+  // Handle sample load -> show ColumnMapping (with replace confirmation)
   const handleLoadSample = useCallback(
     (sample: SampleDataset) => {
+      if (!confirmReplaceIfNeeded()) return;
       loadSample(sample);
       setIsMapping(true);
     },
-    [loadSample]
+    [confirmReplaceIfNeeded, loadSample]
   );
 
   // Handle column mapping confirm
@@ -226,6 +317,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     setAppendMode(false);
   }, []);
 
+  // handleAddMoreData is now just a signal — the dropdown in Editor controls what happens
   const handleAddMoreData = useCallback(() => {
     setAppendMode(true);
     setIsManualEntry(true);
@@ -244,9 +336,14 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     setDrillFromPerformance(null);
   }, []);
 
-  // File upload handling
+  // File upload handling (initial load, replaces data)
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!confirmReplaceIfNeeded()) {
+        // Reset the input so the same file can be re-selected
+        if (e.target) e.target.value = '';
+        return;
+      }
       setIsParsingFile(true);
       try {
         await handleFileUpload(e);
@@ -255,7 +352,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         setIsParsingFile(false);
       }
     },
-    [handleFileUpload]
+    [confirmReplaceIfNeeded, handleFileUpload]
   );
 
   const triggerFileUpload = useCallback(() => {
@@ -291,7 +388,12 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     handleDrillToMeasure,
     handleBackToPerformance,
     handleFileChange,
+    handleAppendPaste,
+    handleAppendFile,
+    appendFeedback,
     triggerFileUpload,
+    triggerAppendFileUpload,
     fileInputRef: fileInputRef as React.RefObject<HTMLInputElement>,
+    appendFileInputRef: appendFileInputRef as React.RefObject<HTMLInputElement>,
   };
 }

@@ -20,6 +20,8 @@ import {
   type StagedStatsResult,
   type StageOrderMode,
   type ChannelPerformanceData,
+  safeMin,
+  safeMax,
 } from '@variscout/core';
 import type { DisplayOptions } from './types';
 
@@ -91,8 +93,8 @@ export function useDataComputation(inputs: DataComputationInputs): DataComputati
       .filter(v => !isNaN(v));
     if (values.length === 0) return null;
 
-    let minVal = Math.min(...values);
-    let maxVal = Math.max(...values);
+    let minVal = safeMin(values);
+    let maxVal = safeMax(values);
 
     // Include spec limits in domain
     if (specs.usl !== undefined) maxVal = Math.max(maxVal, specs.usl);

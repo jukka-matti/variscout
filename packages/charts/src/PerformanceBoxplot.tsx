@@ -15,7 +15,7 @@ import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
-import { getWorstChannels, CPK_THRESHOLDS, calculateKDE } from '@variscout/core';
+import { getWorstChannels, CPK_THRESHOLDS, calculateKDE, safeMin, safeMax } from '@variscout/core';
 import type { PerformanceBoxplotProps, ChannelResult } from './types';
 import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
@@ -120,8 +120,8 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
       return scaleLinear({ range: [height, 0], domain: [0, 100] });
     }
 
-    let minVal = Math.min(...boxplotData.map(d => d.stats.min));
-    let maxVal = Math.max(...boxplotData.map(d => d.stats.max));
+    let minVal = safeMin(boxplotData.map(d => d.stats.min));
+    let maxVal = safeMax(boxplotData.map(d => d.stats.max));
 
     // Include spec limits
     if (specs.usl !== undefined) maxVal = Math.max(maxVal, specs.usl);

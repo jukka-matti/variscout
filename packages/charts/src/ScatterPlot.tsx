@@ -6,6 +6,7 @@ import { LinePath, Circle } from '@visx/shape';
 import { withParentSize } from '@visx/responsive';
 import { GridRows, GridColumns } from '@visx/grid';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
+import { safeMin, safeMax } from '@variscout/core';
 import type { RegressionResult } from '@variscout/core';
 import type { BaseChartProps, SpecLimits } from './types';
 import ChartSourceBar from './ChartSourceBar';
@@ -104,8 +105,8 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
     if (points.length === 0) return null;
 
     const xValues = points.map(p => p.x);
-    const min = Math.min(...xValues);
-    const max = Math.max(...xValues);
+    const min = safeMin(xValues);
+    const max = safeMax(xValues);
     const padding = (max - min) * 0.1 || 1;
 
     return scaleLinear({
@@ -120,8 +121,8 @@ const ScatterPlotBase: React.FC<ScatterPlotProps> = ({
     if (points.length === 0) return null;
 
     const yValues = points.map(p => p.y);
-    let min = Math.min(...yValues);
-    let max = Math.max(...yValues);
+    let min = safeMin(yValues);
+    let max = safeMax(yValues);
 
     // Include spec limits in range if present
     if (specs?.lsl !== undefined) min = Math.min(min, specs.lsl);

@@ -37,6 +37,8 @@ export interface StatsPanelBaseProps {
   ) => React.ReactNode;
   /** Render probability plot content */
   renderProbabilityPlot?: (data: number[], mean: number, stdDev: number) => React.ReactNode;
+  /** When false, hides Cp, Cpk, and Pass Rate cards from the summary grid */
+  showCpk?: boolean;
   /** Render extra content after summary (e.g., What-If Simulator, Spec Editor button) */
   renderSummaryFooter?: (
     stats: StatsResult,

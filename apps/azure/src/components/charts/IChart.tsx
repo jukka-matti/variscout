@@ -87,6 +87,9 @@ const IChart = ({
   const effectiveStagedStats =
     displayOptions.showControlLimits !== false ? (stagedStats ?? undefined) : undefined;
 
+  // Hide spec lines when showSpecs is false
+  const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
+
   // Calculate margin for popover positioning (simplified)
   const margin = { top: 20, left: 60 };
 
@@ -149,7 +152,7 @@ const IChart = ({
         data={data}
         stats={effectiveStats}
         stagedStats={effectiveStagedStats}
-        specs={specs}
+        specs={effectiveSpecs}
         yAxisLabel={columnAliases[outcome] || outcome}
         axisSettings={axisSettings}
         parentWidth={parentWidth}

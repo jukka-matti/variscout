@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { safeMin, safeMax } from '@variscout/core';
 import type { ChartScaleContext, ChartScaleResult } from './types';
 
 /**
@@ -49,8 +50,8 @@ export function useChartScale(context: ChartScaleContext): ChartScaleResult {
     if (specs.usl !== undefined) values.push(specs.usl);
     if (specs.lsl !== undefined) values.push(specs.lsl);
 
-    let min = Math.min(...values);
-    let max = Math.max(...values);
+    let min = safeMin(values);
+    let max = safeMax(values);
     const padding = (max - min) * 0.1 || 1;
 
     // Calculate final min/max based on scale mode

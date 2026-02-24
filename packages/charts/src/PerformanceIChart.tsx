@@ -19,6 +19,7 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { GridRows } from '@visx/grid';
 import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
+import { safeMin, safeMax } from '@variscout/core';
 import type { PerformanceIChartProps, ChannelResult } from './types';
 import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
@@ -117,8 +118,8 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
       metricValues = channels.map(c => c[capabilityMetric] ?? 0).filter(v => v > 0);
     }
 
-    let minMetric = Math.min(...metricValues, 0);
-    let maxMetric = Math.max(...metricValues, 2);
+    let minMetric = safeMin([...metricValues, 0]);
+    let maxMetric = safeMax([...metricValues, 2]);
 
     // Include control limits in scale
     if (controlLimits) {

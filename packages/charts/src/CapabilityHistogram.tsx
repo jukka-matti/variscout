@@ -5,6 +5,7 @@ import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { withParentSize } from '@visx/responsive';
 import { bin } from 'd3';
+import { safeMin, safeMax } from '@variscout/core';
 import type { CapabilityHistogramProps } from './types';
 import ChartSourceBar from './ChartSourceBar';
 import { chartColors } from './colors';
@@ -38,8 +39,8 @@ const CapabilityHistogramBase: React.FC<CapabilityHistogramProps> = ({
   const bins = useMemo(() => {
     if (data.length === 0) return [];
 
-    const minVal = Math.min(...data);
-    const maxVal = Math.max(...data);
+    const minVal = safeMin(data);
+    const maxVal = safeMax(data);
 
     // Use xDomainOverride if provided (for Y-axis lock feature)
     // Otherwise extend range to include spec limits if outside data range

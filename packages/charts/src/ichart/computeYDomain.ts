@@ -2,6 +2,7 @@
  * I-Chart Y-domain calculation utility
  */
 
+import { safeMin, safeMax } from '@variscout/core';
 import type { StatsResult, SpecLimits } from '@variscout/core';
 import type { StageBoundary } from '../types';
 
@@ -39,8 +40,8 @@ export function computeIChartYDomain(
 
   // Priority 3: Auto-calculate from data
   const values = data.map(d => d.y);
-  let minVal = Math.min(...values);
-  let maxVal = Math.max(...values);
+  let minVal = safeMin(values);
+  let maxVal = safeMax(values);
 
   // Include control limits (single stats or all staged stats)
   if (isStaged) {

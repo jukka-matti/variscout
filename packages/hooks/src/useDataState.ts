@@ -14,7 +14,7 @@
  * ```
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import type {
   DataRow,
   StageOrderMode,
@@ -316,33 +316,41 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   );
 
   // ---------------------------------------------------------------------------
-  // Filtered data (has side effects: updates selectionIndexMap and clears selection)
+  // Filtered data (pure computation — no side effects)
   // ---------------------------------------------------------------------------
 
-  const filteredData = useMemo(() => {
-    const filtered = rawData.filter(row => {
-      return Object.entries(filters).every(([col, values]) => {
+  const { filteredData, filteredIndexMap } = useMemo(() => {
+    // Build a reverse lookup once: O(N) instead of O(N²) rawData.indexOf
+    const rowToIndex = new Map<object, number>();
+    for (let i = 0; i < rawData.length; i++) {
+      rowToIndex.set(rawData[i], i);
+    }
+
+    const filtered: typeof rawData = [];
+    const indexMap = new Map<number, number>();
+
+    for (let i = 0; i < rawData.length; i++) {
+      const row = rawData[i];
+      const pass = Object.entries(filters).every(([col, values]) => {
         if (!values || values.length === 0) return true;
         const cellValue = row[col];
         return values.includes(cellValue as string | number);
       });
-    });
-
-    // Update selection index map when filters change
-    const newMap = new Map<number, number>();
-    filtered.forEach((row, filteredIndex) => {
-      const originalIndex = rawData.indexOf(row);
-      if (originalIndex !== -1) {
-        newMap.set(filteredIndex, originalIndex);
+      if (pass) {
+        const filteredIndex = filtered.length;
+        filtered.push(row);
+        indexMap.set(filteredIndex, i);
       }
-    });
-    setSelectionIndexMap(newMap);
+    }
 
-    // Clear selection when filters change to avoid confusion
-    setSelectedPoints(new Set());
-
-    return filtered;
+    return { filteredData: filtered, filteredIndexMap: indexMap };
   }, [rawData, filters]);
+
+  // Sync selection state when filtered data changes
+  useEffect(() => {
+    setSelectionIndexMap(filteredIndexMap);
+    setSelectedPoints(new Set());
+  }, [filteredIndexMap]);
 
   // ---------------------------------------------------------------------------
   // Derived computations (delegated)

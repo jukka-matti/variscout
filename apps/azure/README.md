@@ -1,11 +1,11 @@
 # VaRiScout Azure App
 
-Team-enabled variation analysis with Azure AD authentication and OneDrive/SharePoint sync.
+Team-enabled variation analysis with Entra ID authentication and OneDrive/SharePoint sync.
 
 ## Features
 
 - Full analysis capabilities (I-Chart, Boxplot, Pareto, ANOVA, Regression)
-- Azure AD single sign-on
+- Entra ID single sign-on
 - OneDrive personal storage
 - SharePoint team storage
 - Offline-first with automatic sync
@@ -20,18 +20,18 @@ pnpm install
 # Copy environment template
 cp .env.example .env
 
-# Edit .env with your Azure AD credentials
-# (see Azure AD Setup below)
+# Edit .env with your Entra ID credentials
+# (see Entra ID Setup below)
 
 # Start development server
 pnpm dev
 ```
 
-## Azure AD Setup
+## Entra ID Setup
 
 ### 1. Create App Registration
 
-1. Go to [Azure Portal](https://portal.azure.com) > Azure Active Directory > App Registrations
+1. Go to [Azure Portal](https://portal.azure.com) > Microsoft Entra ID > App Registrations
 2. Click **New registration**
 3. Configure:
    - **Name**: VaRiScout Azure App
@@ -65,7 +65,7 @@ From the app registration Overview page, copy:
 
 | Variable               | Required | Description                                 |
 | ---------------------- | -------- | ------------------------------------------- |
-| `AZURE_CLIENT_ID`      | Yes      | Azure AD app client ID                      |
+| `AZURE_CLIENT_ID`      | Yes      | Entra ID app client ID                      |
 | `AZURE_TENANT_ID`      | Yes      | Tenant ID or 'common' for multi-tenant      |
 | `VITE_SHAREPOINT_SITE` | No       | SharePoint site path (default: /sites/root) |
 

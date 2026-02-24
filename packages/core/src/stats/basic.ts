@@ -93,7 +93,12 @@ export function calculateStats(data: number[], usl?: number, lsl?: number): Stat
   let cpk: number | undefined;
 
   // Cp/Cpk use σ_within (short-term capability, industry standard)
-  if (usl !== undefined && lsl !== undefined) {
+  // Guard: when sigmaWithin=0 (all values identical), Cp/Cpk would be Infinity
+  if (sigmaWithin === 0) {
+    // All values identical — capability is undefined (not meaningful)
+    cp = undefined;
+    cpk = undefined;
+  } else if (usl !== undefined && lsl !== undefined) {
     cp = (usl - lsl) / (6 * sigmaWithin);
     const cpu = (usl - mean) / (3 * sigmaWithin);
     const cpl = (mean - lsl) / (3 * sigmaWithin);

@@ -3,7 +3,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { getAccessToken, isLocalDev } from '../auth/easyAuth';
 import { addToSyncQueue, getPendingSyncItems, removeFromSyncQueue, db } from '../db/schema';
 
-// Placeholder types - these would come from @variscout/core
+// Project data is serialized to JSON for IndexedDB/OneDrive — kept as `any`
+// because the storage layer is a passthrough that doesn't inspect the shape.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Project = any;
 
 export type StorageLocation = 'team' | 'personal';

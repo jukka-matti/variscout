@@ -6,6 +6,7 @@ import type {
   StageOrderMode,
 } from '../types';
 import { calculateStats } from './basic';
+import { safeMin, safeMax } from '../utils/minmax';
 
 /**
  * Determine the order of stages based on the data
@@ -222,8 +223,8 @@ export function getStageBoundaries(
     if (stagePoints.length === 0) return;
 
     const xValues = stagePoints.map(d => d.x);
-    const startX = Math.min(...xValues);
-    const endX = Math.max(...xValues);
+    const startX = safeMin(xValues);
+    const endX = safeMax(xValues);
 
     boundaries.push({
       name: stageName,

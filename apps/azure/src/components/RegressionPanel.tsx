@@ -46,7 +46,11 @@ const RegressionPanel: React.FC<RegressionPanelProps> = ({
         <AdvancedRegressionView {...props} colorScheme={regressionViewAzureColorScheme} />
       )}
       renderExpandedModal={props => (
-        <ExpandedScatterModal {...props} colorScheme={regressionViewAzureColorScheme} />
+        <ExpandedScatterModal
+          {...props}
+          showBranding={false}
+          colorScheme={regressionViewAzureColorScheme}
+        />
       )}
       colorScheme={regressionPanelAzureColorScheme}
       initialPredictors={initialPredictors}

@@ -141,5 +141,3 @@ export {
   default as EditableChartTitle,
   type EditableChartTitleProps,
 } from './components/EditableChartTitle';
-
-export { default as ChartCard, type ChartCardProps } from './components/ChartCard';

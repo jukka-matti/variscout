@@ -47,6 +47,10 @@ export interface PasteScreenBaseProps {
   onCancel: () => void;
   error: string | null;
   colorScheme?: PasteScreenColorScheme;
+  /** Override the submit button label (default: "Analyze Data") */
+  submitLabel?: string;
+  /** Override the header title (default: "Paste Your Data") */
+  title?: string;
 }
 
 const EXAMPLE_DATA = `Measurement\tShift\tOperator
@@ -67,6 +71,8 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
   onCancel,
   error,
   colorScheme = pasteScreenDefaultColorScheme,
+  submitLabel,
+  title,
 }) => {
   const [text, setText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -112,7 +118,9 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
               <ClipboardPaste size={24} className="text-blue-500" />
             </div>
             <div>
-              <h2 className={`text-lg sm:text-xl font-bold ${c.title}`}>Paste Your Data</h2>
+              <h2 className={`text-lg sm:text-xl font-bold ${c.title}`}>
+                {title || 'Paste Your Data'}
+              </h2>
               <p className={`text-xs ${c.subtitle}`}>
                 Columns are detected automatically from headers
               </p>
@@ -165,7 +173,7 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
             disabled={!hasText || isAnalyzing}
             className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl transition-colors ${c.analyzeButton}`}
           >
-            {isAnalyzing ? 'Analyzing...' : 'Analyze Data'}
+            {isAnalyzing ? 'Analyzing...' : submitLabel || 'Analyze Data'}
             {!isAnalyzing && <ArrowRight size={16} />}
           </button>
         </div>

@@ -75,6 +75,8 @@ LOAD INTO ANALYSIS
 
 The paste flow uses the same `parseText()` → `detectColumns()` → `ColumnMapping` pipeline as file upload. Tab and comma delimiters are auto-detected. The only difference is `maxFactors`: PWA allows 3 factors, Azure allows 6. The PWA HomeScreen also offers sample datasets as an alternative entry point.
 
+`PasteScreenBase` accepts optional `title` and `submitLabel` props, allowing the Azure "Add Data" flow to reuse the same component with contextual labels (e.g., "Paste Data to Add" / "Add Data").
+
 ### ColumnMapping Features
 
 The ColumnMapping component displays detected columns as **data-rich cards** with:
@@ -122,6 +124,39 @@ Edits are made on a **local copy** of the data. Nothing changes until you click 
 
 ---
 
+## Add Data During Analysis (Azure App)
+
+The Azure App's "Add Data" dropdown lets analysts bring in additional data without restarting the analysis. It appears in the Editor toolbar header once data is loaded.
+
+### Three Options
+
+| Option           | Source                     | Notes                                           |
+| ---------------- | -------------------------- | ----------------------------------------------- |
+| **Paste Data**   | Clipboard (tab/comma)      | Opens PasteScreenBase with append-context label |
+| **Upload File**  | CSV or Excel file          | Same parse pipeline as initial upload           |
+| **Manual Entry** | Keyboard (ManualEntryBase) | Opens the manual entry grid                     |
+
+### Auto-Detection (Merge Strategy)
+
+When new data arrives, `useDataMerge` determines the merge strategy automatically via `detectMergeStrategy()`:
+
+| Condition                        | Strategy        | Behavior                                             |
+| -------------------------------- | --------------- | ---------------------------------------------------- |
+| All columns match existing data  | **Append rows** | New rows concatenated; column union filled with null |
+| New columns detected             | **Add columns** | Index-aligned join; shorter side padded with null    |
+| No overlap / completely new data | **Replace**     | Confirmation dialog before replacing current dataset |
+
+- **Row append**: concat existing + new rows, union of all columns, missing values filled with `null`.
+- **Column merge**: index-aligned join (row 0 ↔ row 0), shorter side padded with `null`.
+- **After adding columns**: ColumnMapping is shown for the new columns so the analyst can assign roles (factor, outcome, etc.).
+- **Replace confirmation**: When the incoming data doesn't match existing columns, a confirmation dialog warns before replacing the current dataset.
+
+### Feedback
+
+A toast notification (auto-clears after 3 seconds) confirms the result — e.g., "Added 50 rows" or "Added 2 columns".
+
+---
+
 ## Upload Flow (Azure App)
 
 File upload (CSV/Excel drag-and-drop) is available in the Azure App.
@@ -147,6 +182,8 @@ USER CONFIRMS/ADJUSTS
      ▼
 LOAD INTO ANALYSIS
 ```
+
+File upload in the append context (via "Add Data" → "Upload File") follows the same merge logic described in [Add Data During Analysis](#add-data-during-analysis-azure-app) above.
 
 ---
 

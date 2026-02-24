@@ -60,6 +60,7 @@ const Boxplot = ({
 
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const { min, max } = useChartScale();
+  const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
   const rawData = useBoxplotData(filteredData, factor, outcome);
   const data = sortBoxplotData(
     rawData,
@@ -118,7 +119,7 @@ const Boxplot = ({
     <div className="relative w-full h-full">
       <BoxplotBase
         data={data}
-        specs={specs}
+        specs={effectiveSpecs}
         showViolin={displayOptions.showViolin}
         showContributionLabels={displayOptions.showContributionLabels}
         categoryContributions={categoryContributions}

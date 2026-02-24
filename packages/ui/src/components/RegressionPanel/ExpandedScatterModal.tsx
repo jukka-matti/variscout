@@ -22,6 +22,7 @@ export const ExpandedScatterModal: React.FC<ExpandedScatterModalComponentProps> 
   onPrev,
   currentIndex,
   totalCount,
+  showBranding = true,
   colorScheme = regressionViewDefaultColorScheme,
 }) => {
   const { getTerm } = useGlossary();
@@ -98,7 +99,7 @@ export const ExpandedScatterModal: React.FC<ExpandedScatterModalComponentProps> 
             specs={specs ?? undefined}
             xAxisLabel={result.xColumn}
             yAxisLabel={result.yColumn}
-            showBranding={true}
+            showBranding={showBranding}
           />
         </div>
       </div>

@@ -11,6 +11,7 @@ interface StatsPanelProps {
   filteredData?: any[];
   outcome?: string | null;
   onSaveSpecs?: (specs: { lsl?: number; target?: number; usl?: number }) => void;
+  showCpk?: boolean;
 }
 
 const StatsPanel: React.FC<StatsPanelProps> = ({
@@ -19,6 +20,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   filteredData = [],
   outcome,
   onSaveSpecs,
+  showCpk = true,
 }) => {
   const { getTerm } = useGlossary();
 
@@ -29,6 +31,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
       filteredData={filteredData}
       outcome={outcome}
       colorScheme={statsPanelAzureColorScheme}
+      showCpk={showCpk}
       onSaveSpecs={onSaveSpecs}
       getTerm={getTerm}
       renderHistogram={(data, specLimits, mean) => (

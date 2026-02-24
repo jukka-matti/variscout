@@ -141,5 +141,7 @@ export interface ExpandedScatterModalComponentProps {
   currentIndex?: number;
   /** Total number of scatter plots available */
   totalCount?: number;
+  /** Show branding footer on the chart (free tier = true, paid = false) */
+  showBranding?: boolean;
   colorScheme?: RegressionViewColorScheme;
 }

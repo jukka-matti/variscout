@@ -2,18 +2,35 @@
 
 import Dexie from 'dexie';
 
+export interface ProjectRecord {
+  name: string;
+  location: 'team' | 'personal';
+  modified: Date;
+  synced: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
+}
+
+export interface SyncStateRecord {
+  name: string;
+  cloudId: string;
+  lastSynced: string;
+  etag: string;
+}
+
 export interface SyncItem {
   id?: number;
   name: string;
   location: 'team' | 'personal';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   project: any;
   queuedAt: string;
 }
 
 class VariScoutDatabase extends Dexie {
-  projects!: Dexie.Table<any, string>;
+  projects!: Dexie.Table<ProjectRecord, string>;
   syncQueue!: Dexie.Table<SyncItem, number>;
-  syncState!: Dexie.Table<any, string>;
+  syncState!: Dexie.Table<SyncStateRecord, string>;
 
   constructor() {
     super('VaRiScoutAzure');

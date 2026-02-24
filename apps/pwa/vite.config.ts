@@ -11,7 +11,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'VariScout Lite',
+        name: 'VariScout',
         short_name: 'VariScout',
         description: 'Offline-first manufacturing variation analysis for quality professionals',
         theme_color: '#1e3a5f',

@@ -133,6 +133,7 @@ The app supports:
 - **CSV and Excel upload** — parsed entirely in-browser
 - **Copy-paste** — paste from spreadsheets, auto-detected via `detectColumns()`, reviewed in ColumnMapping (same flow as PWA, with up to 6 factors)
 - **Manual entry** — type values directly
+- **Add data during analysis** — "Add Data" dropdown offers paste, upload, or manual entry. Auto-detects whether to append rows (same columns) or add columns (new columns). Replace confirmation when loading entirely new data.
 - **Performance Mode** — analyze hundreds of measurement channels simultaneously
 
 ---

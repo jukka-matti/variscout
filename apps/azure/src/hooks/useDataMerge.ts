@@ -2,6 +2,61 @@ import { useCallback } from 'react';
 import { validateData } from '@variscout/core';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
 
+/**
+ * Detect whether incoming pasted/uploaded data should be appended as rows
+ * or merged as new columns.
+ *
+ * - ALL incoming column names exist in current data → append rows
+ * - ANY incoming column is new → add columns
+ */
+export function detectMergeStrategy(
+  existingColumns: string[],
+  incomingColumns: string[]
+): 'rows' | 'columns' {
+  const existingSet = new Set(existingColumns);
+  const newColumns = incomingColumns.filter(c => !existingSet.has(c));
+  return newColumns.length === 0 ? 'rows' : 'columns';
+}
+
+/**
+ * Merge new columns into existing data by row index.
+ * - Skips columns that already exist in the existing data.
+ * - If row counts differ, the shorter side is padded with null.
+ */
+export function mergeColumns(
+  existing: Record<string, any>[],
+  incoming: Record<string, any>[]
+): { data: Record<string, any>[]; addedColumns: string[] } {
+  const existingCols = new Set(existing.length > 0 ? Object.keys(existing[0]) : []);
+  const incomingCols = incoming.length > 0 ? Object.keys(incoming[0]) : [];
+  const addedColumns = incomingCols.filter(c => !existingCols.has(c));
+
+  if (addedColumns.length === 0) {
+    return { data: existing, addedColumns: [] };
+  }
+
+  const maxLen = Math.max(existing.length, incoming.length);
+  const merged: Record<string, any>[] = [];
+
+  for (let i = 0; i < maxLen; i++) {
+    const existRow = existing[i] ?? {};
+    const incRow = incoming[i] ?? {};
+
+    // Start from existing columns (with null fill if existing is shorter)
+    const row: Record<string, any> = {};
+    for (const col of existingCols) {
+      row[col] = existRow[col] ?? null;
+    }
+    // Add only truly new columns
+    for (const col of addedColumns) {
+      row[col] = incRow[col] ?? null;
+    }
+    merged.push(row);
+  }
+
+  return { data: merged, addedColumns };
+}
+
 interface UseDataMergeOptions {
   appendMode: boolean;
   existingConfig: ManualEntryConfig | undefined;

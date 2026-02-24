@@ -38,6 +38,8 @@ import {
   Download,
   Database,
   RefreshCw,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { useEditorPanels } from '../hooks/useEditorPanels';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
@@ -121,6 +123,22 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     },
     [panels]
   );
+
+  // Add Data dropdown state
+  const [addDataOpen, setAddDataOpen] = useState(false);
+  const addDataRef = React.useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!addDataOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (addDataRef.current && !addDataRef.current.contains(e.target as Node)) {
+        setAddDataOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [addDataOpen]);
 
   // Manual data merge (for append mode)
   const dataFlow = useEditorDataFlow({
@@ -226,9 +244,19 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     return map;
   }, [dataQualityReport]);
 
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
   const handleSave = async () => {
     const name = currentProjectName || 'New Analysis';
-    await saveProject(name);
+    setSaveStatus('saving');
+    try {
+      await saveProject(name);
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
   };
 
   // Sync status icon
@@ -243,11 +271,14 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
 
   // If in paste mode, show PasteScreen full screen
   if (dataFlow.isPasteMode) {
+    const isAppendPaste = dataFlow.appendMode && rawData.length > 0 && !!outcome;
     return (
       <PasteScreen
-        onAnalyze={dataFlow.handlePasteAnalyze}
+        onAnalyze={isAppendPaste ? dataFlow.handleAppendPaste : dataFlow.handlePasteAnalyze}
         onCancel={dataFlow.handlePasteCancel}
         error={dataFlow.pasteError}
+        title={isAppendPaste ? 'Paste Additional Data' : undefined}
+        submitLabel={isAppendPaste ? 'Add Data' : undefined}
       />
     );
   }
@@ -329,16 +360,62 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             <span className="text-slate-400">{syncStatus.message || syncStatus.status}</span>
           </div>
 
-          {/* Add More Data Button */}
+          {/* Add Data Dropdown */}
           {rawData.length > 0 && outcome && (
-            <button
-              onClick={dataFlow.handleAddMoreData}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-              title="Add more rows to existing data"
-            >
-              <Plus size={16} />
-              <span className="text-sm">Add Data</span>
-            </button>
+            <div ref={addDataRef} className="relative">
+              <button
+                onClick={() => setAddDataOpen(prev => !prev)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                title="Add more data"
+                data-testid="btn-add-data"
+              >
+                <Plus size={16} />
+                <span className="text-sm">Add Data</span>
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform ${addDataOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {addDataOpen && (
+                <div className="absolute right-0 top-full mt-1 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 py-1">
+                  <button
+                    onClick={() => {
+                      setAddDataOpen(false);
+                      dataFlow.setAppendMode(true);
+                      dataFlow.setIsPasteMode(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                    data-testid="add-data-paste"
+                  >
+                    <ClipboardPaste size={15} />
+                    Paste Data
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAddDataOpen(false);
+                      dataFlow.setAppendMode(true);
+                      dataFlow.triggerAppendFileUpload();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                    data-testid="add-data-file"
+                  >
+                    <Upload size={15} />
+                    Upload File
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAddDataOpen(false);
+                      dataFlow.handleAddMoreData();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                    data-testid="add-data-manual"
+                  >
+                    <PenLine size={15} />
+                    Manual Entry
+                  </button>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Edit Data */}
@@ -413,15 +490,44 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {/* Save Button */}
           <button
             onClick={handleSave}
-            disabled={rawData.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={rawData.length === 0 || saveStatus === 'saving'}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              saveStatus === 'saved'
+                ? 'bg-green-600 text-white'
+                : saveStatus === 'error'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
             data-testid="btn-save"
           >
             <Save size={16} />
-            Save
+            {saveStatus === 'saving'
+              ? 'Saving...'
+              : saveStatus === 'saved'
+                ? 'Saved'
+                : saveStatus === 'error'
+                  ? 'Save Failed'
+                  : 'Save'}
           </button>
         </div>
       </div>
+
+      {/* Hidden file input for append-mode file upload */}
+      <input
+        ref={dataFlow.appendFileInputRef}
+        type="file"
+        accept=".csv,.xlsx,.xls"
+        onChange={dataFlow.handleAppendFile}
+        className="hidden"
+      />
+
+      {/* Feedback toast for append operations */}
+      {dataFlow.appendFeedback && (
+        <div className="flex items-center gap-2 mx-2 mb-2 px-3 py-2 bg-green-900/40 border border-green-700/50 rounded-lg text-sm text-green-300 animate-in fade-in duration-300">
+          <Check size={14} className="text-green-400 shrink-0" />
+          {dataFlow.appendFeedback}
+        </div>
+      )}
 
       {/* First-drill investigation prompt */}
       {rawData.length > 0 && outcome && factors.length > 0 && (

@@ -138,6 +138,30 @@ Edits are made on a local copy. Click **Apply Changes** to commit all edits — 
 
 ---
 
+## Adding Data During Analysis (Azure App)
+
+The Azure App lets you add more data to an existing analysis without starting over. Click the **"Add Data"** dropdown in the Editor toolbar to see three options:
+
+| Option           | Use When                                           |
+| ---------------- | -------------------------------------------------- |
+| **Paste Data**   | You have additional rows or columns in a clipboard |
+| **Upload File**  | You have a CSV/Excel file with new data            |
+| **Manual Entry** | You want to type in additional measurements        |
+
+### How It Works
+
+VariScout auto-detects whether the new data should be appended as rows or added as columns:
+
+- **Same columns** → rows are appended to the bottom of the dataset
+- **New columns** → columns are added side-by-side (index-aligned), and ColumnMapping opens for the new columns
+- **Completely different data** → a confirmation dialog asks before replacing the current dataset
+
+After adding data, a brief toast confirms the result (e.g., "Added 50 rows").
+
+> This feature is available in the Azure App only. The PWA loads data once per session.
+
+---
+
 ## Manual Data Entry
 
 VariScout Lite includes a touch-optimized data entry mode for field use or when you need to quickly input measurements.

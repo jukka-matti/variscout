@@ -89,16 +89,16 @@ describe('Edge Cases: Zero Variation', () => {
     expect(stats.lcl).toBe(10);
   });
 
-  it('Cp with σ_within=0 → Infinity', () => {
+  it('Cp with σ_within=0 → undefined (not meaningful)', () => {
     const stats = calculateStats([10, 10, 10, 10], 15, 5);
-    // Cp = (15-5) / (6*0) = Infinity
-    expect(stats.cp).toBe(Infinity);
+    // σ_within=0 means all values identical — capability is undefined
+    expect(stats.cp).toBeUndefined();
   });
 
-  it('Cpk with σ_within=0 → Infinity', () => {
+  it('Cpk with σ_within=0 → undefined (not meaningful)', () => {
     const stats = calculateStats([10, 10, 10, 10], 15, 5);
-    // CPU = (15-10)/(3*0) = Infinity, CPL = (10-5)/(3*0) = Infinity
-    expect(stats.cpk).toBe(Infinity);
+    // σ_within=0 means all values identical — capability is undefined
+    expect(stats.cpk).toBeUndefined();
   });
 
   it('calculateMovingRangeSigma with identical values', () => {

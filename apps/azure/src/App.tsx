@@ -82,7 +82,7 @@ function App() {
             </svg>
             Sign In with Microsoft
           </button>
-          <p className="mt-6 text-xs text-slate-600">Powered by Microsoft Azure Active Directory</p>
+          <p className="mt-6 text-xs text-slate-600">Powered by Microsoft Entra ID</p>
         </div>
       </div>
     );

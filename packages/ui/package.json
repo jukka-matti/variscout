@@ -15,7 +15,7 @@
     "lint": "eslint src"
   },
   "peerDependencies": {
-    "lucide-react": "^0.330.0",
+    "lucide-react": "^0.400.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "tailwindcss": "^3.0.0"

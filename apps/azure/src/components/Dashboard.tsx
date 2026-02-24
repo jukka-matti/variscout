@@ -846,6 +846,7 @@ const Dashboard = ({
                   filteredData={filteredData}
                   outcome={outcome}
                   onSaveSpecs={setSpecs}
+                  showCpk={displayOptions.showCpk !== false}
                 />
               </div>
             </div>

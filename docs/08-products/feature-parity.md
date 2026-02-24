@@ -86,6 +86,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Column data preview**           |     ✓     |     ✓      | Collapsible mini-table showing first 5 rows                   |
 | **Column renaming at setup**      |     ✓     |     ✓      | Pencil icon on column cards → `columnAliases`                 |
 | **Inline data editing**           |     ✓     |     ✓      | Edit cells, add/delete rows, batch apply                      |
+| **Add data during analysis**      |     ✓     |     -      | Paste/upload/manual append with auto-detection                |
 | **Manual entry**                  |     ✓     |     ✓      |                                                               |
 | **Data validation**               |     ✓     |     ✓      |                                                               |
 | **Row limit**                     |  100,000  |   50,000   | Configurable via `DataIngestionConfig`                        |
@@ -167,6 +168,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - Company accent color / branding removal
 - ARM template deployment (Managed Application)
 - Factor management during analysis (add/remove factors without restarting)
+- Add data during analysis (paste/upload append with row/column auto-detection)
 
 ### PWA Only
 

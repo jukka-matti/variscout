@@ -5,7 +5,7 @@ import { AxisLeft, AxisBottom } from '@visx/axis';
 import { LinePath, Circle } from '@visx/shape';
 import { withParentSize } from '@visx/responsive';
 import { GridRows } from '@visx/grid';
-import { calculateProbabilityPlotData, normalQuantile } from '@variscout/core';
+import { calculateProbabilityPlotData, normalQuantile, safeMin, safeMax } from '@variscout/core';
 import type { ProbabilityPlotProps } from './types';
 import ChartSourceBar from './ChartSourceBar';
 import { chartColors } from './colors';
@@ -122,8 +122,8 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
     const ciValues = fittedLineWithCI.flatMap(d => [d.lowerCI, d.upperCI]);
     const allValues = [...dataValues, ...ciValues].filter(v => isFinite(v));
 
-    const min = Math.min(...allValues);
-    const max = Math.max(...allValues);
+    const min = safeMin(allValues);
+    const max = safeMax(allValues);
     const padding = (max - min) * 0.1 || 1;
 
     return scaleLinear({

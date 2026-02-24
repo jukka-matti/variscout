@@ -114,6 +114,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   compact = false,
   colorScheme = statsPanelDefaultColorScheme,
   onSaveSpecs,
+  showCpk = true,
   renderHistogram,
   renderProbabilityPlot,
   renderSummaryFooter,
@@ -292,7 +293,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
         <div
           className={compact ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 sm:grid-cols-3 gap-2'}
         >
-          {hasSpecs && !isEditingSpecs && (
+          {hasSpecs && showCpk && !isEditingSpecs && (
             <>
               <MetricCard
                 label="Pass Rate"

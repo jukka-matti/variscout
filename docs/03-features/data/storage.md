@@ -142,6 +142,7 @@ What happens to persisted state when data changes mid-analysis:
 | ------------- | ----------- | ------------------------------ | ----------------- | ----- |
 | Edit cells    | valid       | stale (indicator shown)        | valid             | valid |
 | Append rows   | valid       | stale (indicator shown)        | valid             | valid |
+| Add columns   | valid       | valid                          | valid             | valid |
 | Add factor    | valid       | valid                          | valid             | valid |
 | Remove factor | cleaned     | valid (predictors auto-remove) | factor refs reset | valid |
 
