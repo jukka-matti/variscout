@@ -64,7 +64,7 @@ describe('useMindmapState', () => {
     expect(result.current.nodes).toHaveLength(2);
     result.current.nodes.forEach(node => {
       expect(node.state).toBe('exhausted');
-      expect(node.maxContribution).toBe(0);
+      expect(node.etaSquared).toBe(0);
       expect(node.isSuggested).toBe(false);
     });
   });
@@ -97,11 +97,11 @@ describe('useMindmapState', () => {
 
     result.current.nodes.forEach(node => {
       expect(node.state).toBe('exhausted');
-      expect(node.maxContribution).toBe(0);
+      expect(node.etaSquared).toBe(0);
     });
   });
 
-  it('computes max category contribution for each factor and sets correct node state', () => {
+  it('computes η² for each factor and sets correct node state', () => {
     const { result } = renderHook(() =>
       useMindmapState({
         data: testData,
@@ -114,13 +114,12 @@ describe('useMindmapState', () => {
     const machineNode = result.current.nodes.find(n => n.factor === 'Machine')!;
     const shiftNode = result.current.nodes.find(n => n.factor === 'Shift')!;
 
-    // Machine A and B each account for ~50% of Total SS
-    expect(machineNode.maxContribution).toBeGreaterThan(0.3);
+    // Machine: A mean ~10, B mean ~20 → high η² (large between-group variation)
+    expect(machineNode.etaSquared).toBeGreaterThan(0.8);
     expect(machineNode.state).toBe('available');
 
-    // Shift also has meaningful Total SS per category (spread is similar)
-    expect(shiftNode.maxContribution).toBeGreaterThan(0.3);
-    expect(shiftNode.state).toBe('available');
+    // Shift: Morning/Afternoon have similar means → low η²
+    expect(shiftNode.etaSquared).toBeLessThan(0.1);
   });
 
   it('marks drilled factors as active with filteredValue', () => {
@@ -152,7 +151,7 @@ describe('useMindmapState', () => {
     expect(machineNode.filteredValue).toBe('A, B');
   });
 
-  it('suggests the highest max-contribution available factor above 5% threshold', () => {
+  it('suggests the highest η² available factor above 5% threshold', () => {
     const { result } = renderHook(() =>
       useMindmapState({
         data: testData,
@@ -162,11 +161,11 @@ describe('useMindmapState', () => {
       })
     );
 
-    // Exactly one factor should be suggested
+    // Exactly one factor should be suggested (Machine, with high η²)
     const suggestedNodes = result.current.nodes.filter(n => n.isSuggested);
     expect(suggestedNodes).toHaveLength(1);
-    // The suggested factor has the highest max category contribution
-    expect(suggestedNodes[0].maxContribution).toBeGreaterThan(0.3);
+    expect(suggestedNodes[0].factor).toBe('Machine');
+    expect(suggestedNodes[0].etaSquared).toBeGreaterThan(0.8);
   });
 
   it('does not suggest drilled factors', () => {

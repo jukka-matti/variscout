@@ -16,8 +16,8 @@ export interface MindmapNode {
   factor: string;
   /** Display name (alias) — falls back to factor if not set */
   displayName?: string;
-  /** Max category Total SS contribution (0–1), drives node size and display % */
-  maxContribution: number;
+  /** η² (eta-squared) for available/exhausted nodes (0–1), 0 for drilled nodes. Drives node size and display %. */
+  etaSquared: number;
   /** Node state: active = drilled, available = can drill, exhausted = too few rows */
   state: 'active' | 'available' | 'exhausted';
   /** Value shown below label when active (already filtered) */

@@ -460,7 +460,7 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
           const node = nodeMap.get(pos.factor);
           if (!node) return null;
 
-          const radius = getNodeRadius(node.maxContribution);
+          const radius = getNodeRadius(node.etaSquared);
           const fill = getNodeFill(node.state, isDark);
           const stroke = getNodeStroke(node, isDark);
           const isClickable = node.state !== 'exhausted';
@@ -498,19 +498,21 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 {node.displayName || node.factor}
               </text>
 
-              {/* Contribution percentage inside node */}
-              <text
-                x={pos.x}
-                y={pos.y + 1}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontSize={10}
-                fontWeight={600}
-                fill={node.state === 'active' ? '#ffffff' : chrome.labelPrimary}
-                style={{ pointerEvents: 'none' }}
-              >
-                {(node.maxContribution * 100).toFixed(0)}%
-              </text>
+              {/* η² percentage inside node (available/exhausted only — active shows no %) */}
+              {node.state !== 'active' && node.etaSquared > 0 && (
+                <text
+                  x={pos.x}
+                  y={pos.y + 1}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize={10}
+                  fontWeight={600}
+                  fill={chrome.labelPrimary}
+                  style={{ pointerEvents: 'none' }}
+                >
+                  {(node.etaSquared * 100).toFixed(0)}%
+                </text>
+              )}
 
               {/* Filtered value label (when active) */}
               {node.filteredValue && (

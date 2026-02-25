@@ -11,10 +11,11 @@ export const EDGE_MIN_WIDTH = 1.5;
 export const EDGE_MAX_WIDTH = 6;
 
 /**
- * Compute node radius from max category contribution (area encodes magnitude)
+ * Compute node radius from η² value (area encodes magnitude).
+ * Accepts 0–1 range; 0 produces the minimum radius.
  */
-export function getNodeRadius(contribution: number): number {
-  const clamped = Math.max(0, Math.min(1, contribution));
+export function getNodeRadius(etaSquared: number): number {
+  const clamped = Math.max(0, Math.min(1, etaSquared));
   const minArea = Math.PI * MIN_NODE_RADIUS * MIN_NODE_RADIUS;
   const maxArea = Math.PI * MAX_NODE_RADIUS * MAX_NODE_RADIUS;
   const area = minArea + clamped * (maxArea - minArea);

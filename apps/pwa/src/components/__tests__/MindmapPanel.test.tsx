@@ -24,7 +24,7 @@ vi.mock('html-to-image', () => ({
 
 // Default mock state returned by useMindmapState
 const defaultMindmapState: {
-  nodes: { factor: string; maxContribution: number; state: 'available'; isSuggested: boolean }[];
+  nodes: { factor: string; etaSquared: number; state: 'available'; isSuggested: boolean }[];
   drillTrail: string[];
   cumulativeVariationPct: number | null;
   interactionEdges: undefined;
@@ -36,8 +36,8 @@ const defaultMindmapState: {
   handleAnnotationChange: ReturnType<typeof vi.fn>;
 } = {
   nodes: [
-    { factor: 'Machine', maxContribution: 0.8, state: 'available' as const, isSuggested: true },
-    { factor: 'Shift', maxContribution: 0.02, state: 'available' as const, isSuggested: false },
+    { factor: 'Machine', etaSquared: 0.8, state: 'available' as const, isSuggested: true },
+    { factor: 'Shift', etaSquared: 0.02, state: 'available' as const, isSuggested: false },
   ],
   drillTrail: [],
   cumulativeVariationPct: null,
