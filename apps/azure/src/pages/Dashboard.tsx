@@ -12,9 +12,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Load projects on mount
+  // Load projects on mount — loadProjects is defined below and not
+  // useCallback-wrapped, so adding it would cause infinite re-runs.
   useEffect(() => {
     loadProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProjects = async () => {

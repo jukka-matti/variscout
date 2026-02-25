@@ -288,7 +288,7 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
         setParetoFactor(factor);
       }
     },
-    [applyFilter, factorVariations]
+    [applyFilter, factorVariations, setBoxplotFactor, setParetoFactor]
   );
 
   return {

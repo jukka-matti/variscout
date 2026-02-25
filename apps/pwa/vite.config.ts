@@ -66,6 +66,14 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/e2e/**'],
     pool: 'forks',
     fileParallelism: false,
+    coverage: {
+      provider: 'v8',
+      thresholds: {
+        lines: 44,
+        branches: 33,
+        functions: 20,
+      },
+    },
   },
   build: {
     outDir: 'dist',

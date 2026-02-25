@@ -4,5 +4,13 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    coverage: {
+      provider: 'v8',
+      thresholds: {
+        lines: 80,
+        branches: 72,
+        functions: 79,
+      },
+    },
   },
 });

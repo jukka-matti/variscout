@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Copy, Download, Check, ExternalLink, Info } from 'lucide-react';
 
 // Generate a deterministic GUID from the app URL so reinstalls produce the same ID
@@ -58,10 +58,16 @@ export function AdminTeamsSetup() {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
+  // Auto-reset copied state after 2s with proper cleanup on unmount
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
   const handleCopy = useCallback(async () => {
     await navigator.clipboard.writeText(manifestJson);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   }, [manifestJson]);
 
   const handleDownload = useCallback(async () => {

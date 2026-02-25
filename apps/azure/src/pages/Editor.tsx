@@ -191,7 +191,8 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
         })
         .finally(() => dataFlow.setIsLoadingProject(false));
     }
-  }, [projectId]); // intentionally exclude rawData to avoid re-triggering
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]); // intentionally exclude rawData/dataFlow to avoid re-triggering
 
   // Filter navigation
   const filterNav = useFilterNavigation({
