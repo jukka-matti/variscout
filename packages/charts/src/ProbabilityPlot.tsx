@@ -8,7 +8,6 @@ import { GridRows } from '@visx/grid';
 import { calculateProbabilityPlotData, normalQuantile, safeMin, safeMax } from '@variscout/core';
 import type { ProbabilityPlotProps } from './types';
 import ChartSourceBar from './ChartSourceBar';
-import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout } from './hooks';
 
@@ -157,6 +156,23 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
     [plotData]
   );
 
+  // Build CI band path - smooth curves based on fitted line CI
+  // (must be before early return — rules-of-hooks)
+  const bandPath = useMemo(() => {
+    if (!xScale || fittedLineWithCI.length === 0) return '';
+
+    const lowerPath = fittedLineWithCI
+      .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(d.lowerCI)} ${yScale(d.z)}`)
+      .join(' ');
+
+    const upperPath = [...fittedLineWithCI]
+      .reverse()
+      .map(d => `L ${xScale(d.upperCI)} ${yScale(d.z)}`)
+      .join(' ');
+
+    return `${lowerPath} ${upperPath} Z`;
+  }, [fittedLineWithCI, xScale, yScale]);
+
   if (data.length === 0 || !xScale) {
     return (
       <svg
@@ -178,22 +194,6 @@ const ProbabilityPlotBase: React.FC<ProbabilityPlotProps> = ({
       </svg>
     );
   }
-
-  // Build CI band path - smooth curves based on fitted line CI
-  const bandPath = useMemo(() => {
-    if (fittedLineWithCI.length === 0) return '';
-
-    const lowerPath = fittedLineWithCI
-      .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(d.lowerCI)} ${yScale(d.z)}`)
-      .join(' ');
-
-    const upperPath = [...fittedLineWithCI]
-      .reverse()
-      .map(d => `L ${xScale(d.upperCI)} ${yScale(d.z)}`)
-      .join(' ');
-
-    return `${lowerPath} ${upperPath} Z`;
-  }, [fittedLineWithCI, xScale, yScale]);
 
   // Tick values for axis
   const tickPercentiles = parentWidth < 300 ? PROB_TICK_PERCENTILES_COMPACT : PROB_TICK_PERCENTILES;

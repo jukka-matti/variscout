@@ -4,7 +4,7 @@
  * Uses the shared useDataState hook from @variscout/hooks for core state management,
  * reducing duplication with the Azure app while maintaining full API compatibility.
  */
-import React, { createContext, useContext, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import {
   useDataState,
   type DataState,

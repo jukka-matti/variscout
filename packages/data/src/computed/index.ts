@@ -7,7 +7,7 @@
  */
 
 import { calculateStats, calculateBoxplotStats } from '@variscout/core';
-import { SAMPLES, getSample } from '../samples';
+import { getSample } from '../samples';
 import type {
   ComputedChartData,
   IChartPoint,

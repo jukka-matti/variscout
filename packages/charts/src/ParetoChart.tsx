@@ -8,7 +8,6 @@ import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import type { ParetoChartProps, ParetoDataPoint } from './types';
 import ChartSourceBar from './ChartSourceBar';
-import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout, useChartTooltip, useSelectionState } from './hooks';
 import { interactionStyles } from './styles/interactionStyles';

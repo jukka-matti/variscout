@@ -94,7 +94,7 @@ The three-phase approach mirrors how experienced quality engineers actually thin
 
 Use the Investigation Mindmap to progressively drill into the data. Modes unlock as the investigation progresses:
 
-1. **Drilldown mode** (always available) — Click factors to filter. Each node shows its contribution to total variation. Follow the highest contribution path.
+1. **Drilldown mode** (always available) — Click factors to filter. Each node shows its contribution to total variation (see [Variation Decomposition](../analysis/variation-decomposition.md) for how these metrics are computed). Follow the highest contribution path.
 
 2. **Interaction mode** (unlocks with 2+ factors and n >= 5) — Check whether factors combine. Two factors with low individual contribution can have a large joint effect. This mode is disabled until the dataset has at least two categorical factors and enough data points to compute pairwise regression.
 

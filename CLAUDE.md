@@ -53,7 +53,8 @@ docs/
 │   ├── specifications.md
 │   ├── user-guide.md
 │   ├── analysis/        # boxplot, capability, i-chart, pareto, performance-mode,
-│   │                    # nelson-rules, staged-analysis, probability-plot, regression
+│   │                    # nelson-rules, staged-analysis, probability-plot, regression,
+│   │                    # variation-decomposition
 │   ├── workflows/       # four-lenses, drill-down, performance-mode, quick-check,
 │   │                    # deep-dive, decision-trees, investigation-to-action, process-maps
 │   ├── data/            # data-input, storage, validation
@@ -141,6 +142,7 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Product specs/tagline    | docs/03-features/specifications.md                                                                   |
 | Claude-flow / AI tooling | docs/07-decisions/adr-011-ai-development-tooling.md, docs/05-technical/implementation/claude-flow.md |
 | Investigation workflow   | docs/03-features/workflows/investigation-to-action.md                                                |
+| Variation metrics/SS     | docs/03-features/analysis/variation-decomposition.md, packages/core/src/variation/contributions.ts   |
 | Regression/model changes | docs/03-features/analysis/regression.md, packages/ui/src/components/RegressionPanel/                 |
 | What-If/simulation       | docs/06-design-system/components/what-if-simulator.md, packages/core/src/variation/simulation.ts     |
 

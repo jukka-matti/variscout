@@ -823,6 +823,216 @@ export const LEARN_TOPICS: LearnTopic[] = [
     relatedCases: ['cookie-weight', 'coffee'],
   },
   {
+    slug: 'understanding-variation',
+    title: 'Understanding Variation',
+    subtitle: 'Why Averages Mislead and How to Find the Real Story',
+    description:
+      'Learn how total variation decomposes into between-group and within-group sources, why VariScout uses two metrics at two levels, and how ignoring spread leads to costly mistakes.',
+    color: '#10b981',
+    colorClass: 'text-emerald-500',
+    icon: '🔍',
+    sections: [
+      {
+        id: 'the-average-trap',
+        title: 'The Average Trap',
+        content:
+          "A bottling line has three process steps. Step 3 has the highest average cycle time (45.1 s) so management schedules €50k of equipment upgrades. But the real problem is Step 2: its average is lower (39.4 s) yet individual cycles swing from 20 s to 60 s — a standard deviation of 8.9 vs just 1.5 for Step 3. Step 2's unpredictability, not Step 3's consistently high mean, is the true bottleneck. Targeted operator training (€5k) reduced Step 2's spread by 40% and lifted overall throughput more than the equipment upgrade ever would have.",
+        visual: {
+          type: 'comparison',
+          data: {
+            left: {
+              title: 'What Averages Show',
+              subtitle: 'Step 3 looks worst',
+              items: [
+                'Step 3 mean: 45.1 s (highest)',
+                'Step 2 mean: 39.4 s (lower)',
+                'Conclusion: fix Step 3',
+                'Cost: €50k equipment upgrade',
+              ],
+              color: 'neutral',
+            },
+            right: {
+              title: 'What Variation Reveals',
+              subtitle: 'Step 2 is the real problem',
+              items: [
+                'Step 2 SD: 8.9 s (6× more spread)',
+                'Step 3 SD: 1.5 s (tight and predictable)',
+                'Conclusion: fix Step 2',
+                'Cost: €5k targeted training',
+              ],
+              color: 'green',
+            },
+          },
+        },
+      },
+      {
+        id: 'what-is-decomposition',
+        title: 'Variation Decomposition: Breaking It Apart',
+        content:
+          'Total variation in a dataset can be split into two additive parts: variation between groups (differences in group averages) and variation within groups (scatter inside each group). This is like a household budget: your total spending = spending that differs by category + spending that varies within each category. The identity SS_Total = SS_Between + SS_Within always holds exactly — it is bookkeeping, not an approximation.',
+        visual: {
+          type: 'diagram',
+          data: {
+            steps: [
+              {
+                label: 'SS_Total',
+                description: "Total variation — every point's squared distance from the grand mean",
+              },
+              {
+                label: 'SS_Between',
+                description:
+                  'Between-group variation — how far each group mean sits from the grand mean',
+              },
+              {
+                label: 'SS_Within',
+                description:
+                  'Within-group variation — how much individual points scatter around their own group mean',
+              },
+              {
+                label: 'Identity',
+                description: 'SS_Total = SS_Between + SS_Within (always exact)',
+              },
+            ],
+          },
+        },
+      },
+      {
+        id: 'simple-example',
+        title: 'A Simple Example: Two Teams',
+        content:
+          "Team A produces parts with lengths [10, 12, 8, 11, 9] (mean = 10). Team B produces [14, 16, 12, 15, 13] (mean = 14). The grand mean across all 10 parts is 12. SS_Total = 60, SS_Between = 40 (both teams' means differ from 12), SS_Within = 20 (scatter inside each team). η² = 40/60 = 0.667 — the team factor explains 67% of total variation. You can verify: 40 + 20 = 60 exactly.",
+        visual: {
+          type: 'list',
+          data: {
+            items: [
+              {
+                title: 'Team A: [10, 12, 8, 11, 9]',
+                description:
+                  'Mean = 10, deviations from grand mean (12): each contributes to SS_Between',
+              },
+              {
+                title: 'Team B: [14, 16, 12, 15, 13]',
+                description:
+                  'Mean = 14, deviations from grand mean (12): each contributes to SS_Between',
+              },
+              {
+                title: 'SS_Total = 60',
+                description: 'Sum of (each value − 12)² across all 10 parts',
+              },
+              {
+                title: 'SS_Between = 40 (67%)',
+                description: 'Driven by the 4-unit gap between team means',
+              },
+              {
+                title: 'SS_Within = 20 (33%)',
+                description: 'Internal scatter within each team — both teams have similar spread',
+              },
+            ],
+          },
+        },
+      },
+      {
+        id: 'two-metrics',
+        title: 'Two Metrics for Two Questions',
+        content:
+          'VariScout uses two different variation metrics at two different levels. At the factor level, η² (eta-squared) answers "does this factor matter?" by comparing between-group variation to total variation. It is used for ranking factors in the Mindmap. At the category level, Total SS % answers "which specific category contributes most?" by including both that category\'s mean shift AND its internal spread. A category whose mean equals the grand mean contributes 0% between-group variation — but if it has enormous spread, its Total SS % will be large. This is why both metrics exist.',
+        visual: {
+          type: 'comparison',
+          data: {
+            left: {
+              title: 'Factor-Level: η²',
+              subtitle: 'Does this factor matter?',
+              items: [
+                'Formula: SS_Between / SS_Total',
+                'Scope: entire factor (all categories)',
+                'Used in: Mindmap nodes, ANOVA panel',
+                'Purpose: rank and compare factors',
+              ],
+              color: 'amber',
+            },
+            right: {
+              title: 'Category-Level: Total SS %',
+              subtitle: 'Which category matters most?',
+              items: [
+                'Formula: (SS_Between_j + SS_Within_j) / SS_Total',
+                'Scope: single category within a factor',
+                'Used in: Boxplot labels, filter chips',
+                'Purpose: find the specific category to act on',
+              ],
+              color: 'green',
+            },
+          },
+        },
+      },
+      {
+        id: 'bottleneck-reveal',
+        title: 'The Bottleneck: When Spread Beats Mean',
+        content:
+          "Returning to the bottling line: η² for Process Step = 0.61 — the step a cycle belongs to explains 61% of cycle-time variation. But which step matters most? Step 3 has the highest between-group contribution (33.5%) because its mean is far above the grand mean. Step 2's between-group share is just 4.3%. Yet Step 2's within-group contribution is 34.0% — its enormous spread dwarfs all other sources. Total SS %: Step 2 = 38.3%, Step 3 = 34.5%. Step 2 is the single largest contributor. The €5k training investment that reduced Step 2's spread delivered more throughput improvement than the €50k equipment upgrade would have.",
+        visual: {
+          type: 'chart',
+          data: {
+            toolSlug: 'boxplot',
+            sampleKey: 'bottleneck',
+            height: 400,
+            caption:
+              "Boxplot of cycle time by process step — Step 2's wide spread makes it the largest contributor despite a lower average",
+          },
+        },
+      },
+      {
+        id: 'in-variscout',
+        title: 'Where You See This in VariScout',
+        content:
+          'Every surface in VariScout maps to a piece of the decomposition. The Investigation Mindmap shows η² on each factor node — the green pulse highlights the factor with the highest η², guiding where to drill next. Boxplot category labels show Total SS %, revealing which specific category drives the most variation. Filter chips display cumulative scope from the original total, so you always know how much of the original variation your current view captures. The Regression panel builds a joint model to confirm findings and check for interaction effects.',
+        visual: {
+          type: 'diagram',
+          data: {
+            steps: [
+              {
+                label: 'Mindmap',
+                description: 'η² on nodes — factor ranking, green pulse = highest η²',
+                tool: 'Investigation Mindmap',
+              },
+              {
+                label: 'Boxplot',
+                description: 'Total SS % on labels — which category contributes most',
+                tool: 'Boxplot with ANOVA',
+              },
+              {
+                label: 'Filter chips',
+                description: 'Cumulative scope — how much original variation is in focus',
+                tool: 'Drill-down breadcrumbs',
+              },
+              {
+                label: 'Regression',
+                description: 'Joint model — confirm effects and detect interactions',
+                tool: 'Regression panel',
+              },
+            ],
+          },
+        },
+      },
+      {
+        id: 'going-deeper',
+        title: 'Going Deeper: Limitations and Next Steps',
+        content:
+          'Variation decomposition is powerful but has limits. It examines one factor at a time — two correlated factors may each appear important, but their combined effect could be smaller than expected (confounding). Unbalanced data (different group sizes) means larger categories contribute proportionally more to Total SS. η² is slightly biased upward in small samples; ω² (omega-squared) corrects for this but VariScout uses η² for its simplicity and interpretability. For multi-factor analysis, use the Regression panel to build joint models that account for interactions and confounding.',
+        visual: {
+          type: 'quote',
+          data: {
+            quote:
+              'If I had to reduce all of quality improvement to just one word, that word would be VARIATION.',
+            author: 'W. Edwards Deming',
+          },
+        },
+      },
+    ],
+    relatedTools: ['boxplot', 'pareto', 'regression'],
+    relatedTopics: ['methodology-eta-squared', 'four-lenses', 'eda-philosophy'],
+    relatedCases: ['bottleneck', 'coffee'],
+  },
+  {
     slug: 'methodology-eta-squared',
     title: 'Understanding Eta-Squared (η²)',
     subtitle: 'Effect Size and Cumulative Variation Explained',
@@ -949,7 +1159,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
       },
     ],
     relatedTools: ['boxplot', 'pareto'],
-    relatedTopics: ['four-lenses', 'eda-philosophy'],
+    relatedTopics: ['understanding-variation', 'four-lenses', 'eda-philosophy'],
     relatedCases: ['bottleneck', 'coffee'],
   },
   {

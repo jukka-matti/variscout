@@ -25,7 +25,7 @@ The website follows a **"Guided Problem Playground"** philosophy (see [ADR-008](
 | Surface                    | Pages                                                      | Audience                                            | Character                                         |
 | -------------------------- | ---------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
 | **Showcase (Acquisition)** | 6 use case pages (7 more planned), homepage, product pages | Cold visitors from search                           | Problem-first, live demos, professional framing   |
-| **Reference (Learning)**   | 6 tool pages, 10 learn topics, 35+ glossary terms          | Both cold searchers AND app users (via HelpTooltip) | Clean, focused, reference-first with live charts  |
+| **Reference (Learning)**   | 6 tool pages, 11 learn topics, 35+ glossary terms          | Both cold searchers AND app users (via HelpTooltip) | Clean, focused, reference-first with live charts  |
 | **Proof (Case Studies)**   | 10 case studies                                            | Evaluators, curious visitors                        | 3-act narrative with interactive data exploration |
 
 All three surfaces cross-link bidirectionally. See [Design Philosophy](design-philosophy.md) and [Content Architecture](content-architecture.md) for details.
@@ -91,7 +91,7 @@ Configured in `astro.config.mjs` with `prefixDefaultLocale: false`. Translation 
 | `[lang]/use-cases/index`  | `useCaseData.ts`              | 1              | 5               |
 | `[lang]/use-cases/[slug]` | `useCaseData.ts` (6 Phase 1)  | 6              | 30              |
 | `[lang]/tools/[tool]`     | `toolsData.ts` (6 tools)      | 6              | 30              |
-| `[lang]/learn/[topic]`    | `learnData.ts` (10 topics)    | 10             | 50              |
+| `[lang]/learn/[topic]`    | `learnData.ts` (11 topics)    | 11             | 55              |
 | `[lang]/cases/[slug]`     | case data                     | varies         | varies          |
 | `[lang]/glossary/[term]`  | `glossaryData.ts` (~26 terms) | ~26            | ~130            |
 | `[lang]/glossary/index`   | -                             | 1              | 5               |
@@ -109,7 +109,7 @@ All content is managed through three TypeScript data files (no CMS, no Markdown)
 | ----------------- | ------------------ | ------ | -------------------------------------------------------------------------------------------------- |
 | `useCaseData.ts`  | `UseCase`          | 6 (13) | Problem, demo config, journey steps, before/after, cross-links, platform fit, SEO keywords         |
 | `toolsData.ts`    | `ToolData`         | 6      | Tool name, lens, hero, when-to-use, data requirements, how-to-read, patterns, features, sample key |
-| `learnData.ts`    | `LearnTopic`       | 10     | Topic title, sections with visuals (comparison, diagram, list, quote, chart)                       |
+| `learnData.ts`    | `LearnTopic`       | 11     | Topic title, sections with visuals (comparison, diagram, list, quote, chart)                       |
 | `glossaryData.ts` | `GlossaryPageData` | ~26    | Extends `@variscout/core` glossary with SEO metadata, rich sections, practical tips                |
 
 Each file exports helper functions (`getToolBySlug()`, `getLearnTopicBySlug()`, `getGlossaryPageData()`) used by dynamic route pages for static generation.

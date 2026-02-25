@@ -14,7 +14,7 @@ VariScout's marketing website (variscout.com) needs to evolve from a basic produ
 2. **Warm evaluators** — Professionals comparing tools, looking for proof that VariScout solves their specific use case
 3. **App users** — Current PWA/Azure/Excel users who arrive via "Learn more" links from HelpTooltip (i) icons
 
-The 13 strategic use cases identified in `docs/02-journeys/use-cases/` need to become rich, interactive landing pages. The existing tool pages (7), learn topics (10), glossary terms (35+), and case studies (10) need better cross-linking to form a cohesive content web.
+The 13 strategic use cases identified in `docs/02-journeys/use-cases/` need to become rich, interactive landing pages. The existing tool pages (7), learn topics (11), glossary terms (35+), and case studies (10) need better cross-linking to form a cohesive content web.
 
 ### Benchmarks Considered
 
@@ -56,7 +56,7 @@ Adopt the **"Guided Problem Playground"** philosophy — a hybrid of Showcase + 
 
 **Surface 2: Reference (Learning & Help)**
 
-- Pages: 7 tool pages, 10 learn topics, 35+ glossary terms
+- Pages: 7 tool pages, 11 learn topics, 35+ glossary terms
 - Audience: Both cold searchers AND warm app users (via HelpTooltip "Learn more")
 - Character: Clean, focused, reference-first with live charts
 - Primary CTA: "See this in context" -> relevant use case or case study

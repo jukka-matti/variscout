@@ -33,7 +33,7 @@ Use Case Page ---------> Tool Page              Case Study
 | ------------ | ------------------ | ----- | ------------------------------- | ------------------------------------ |
 | Use Cases    | `useCaseData.ts`   | 13    | `[lang]/use-cases/[slug].astro` | `/en/use-cases/supplier-performance` |
 | Tools        | `toolsData.ts`     | 7     | `[lang]/tools/[tool].astro`     | `/en/tools/i-chart`                  |
-| Learn Topics | `learnData.ts`     | 10    | `[lang]/learn/[topic].astro`    | `/en/learn/two-voices`               |
+| Learn Topics | `learnData.ts`     | 11    | `[lang]/learn/[topic].astro`    | `/en/learn/two-voices`               |
 | Glossary     | `glossaryData.ts`  | 35+   | `[lang]/glossary/[term].astro`  | `/en/glossary/cpk`                   |
 | Case Studies | inline in template | 10    | `[lang]/cases/[slug].astro`     | `/en/cases/bottleneck`               |
 | Products     | inline in template | 3+    | `[lang]/product/[slug].astro`   | `/en/product/azure`                  |

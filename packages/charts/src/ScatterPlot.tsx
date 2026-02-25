@@ -10,7 +10,6 @@ import { safeMin, safeMax } from '@variscout/core';
 import type { RegressionResult } from '@variscout/core';
 import type { BaseChartProps, SpecLimits } from './types';
 import ChartSourceBar from './ChartSourceBar';
-import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout, useChartTooltip } from './hooks';
 import { interactionStyles } from './styles/interactionStyles';

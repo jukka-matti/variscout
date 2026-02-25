@@ -237,7 +237,7 @@ Marketing and education website (Astro 5 + React 19 Islands):
 | Module                         | Purpose                                              |
 | ------------------------------ | ---------------------------------------------------- |
 | `src/data/toolsData.ts`        | 7 tool page definitions (slug, lens, content)        |
-| `src/data/learnData.ts`        | 10 learn topic definitions with visual sections      |
+| `src/data/learnData.ts`        | 11 learn topic definitions with visual sections      |
 | `src/data/glossaryData.ts`     | ~26 glossary terms extending @variscout/core         |
 | `src/i18n/ui.ts`               | Translation strings for 5 languages (en/de/es/fr/pt) |
 | `src/i18n/utils.ts`            | getLangFromUrl(), useTranslations()                  |

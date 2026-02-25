@@ -3,9 +3,11 @@ import {
   calculateDrillVariation,
   calculateFactorVariations,
   calculateCategoryTotalSS,
+  getMaxCategoryContribution,
   shouldHighlightDrill,
   applyFilters,
 } from '../variation';
+import { getEtaSquared } from '../stats';
 
 // =============================================================================
 // Test Data
@@ -428,6 +430,46 @@ describe('Variation Tracking Integration', () => {
     expect(variations.has('Shift')).toBe(false);
     // Machine should still be calculable
     expect(variations.has('Machine')).toBe(true);
+  });
+});
+
+// =============================================================================
+// η² vs Max Category Contribution Ranking Tests
+// =============================================================================
+
+describe('Suggestion ranking: η² vs max category contribution', () => {
+  it('should rank high-η² factor above high-category-count factor', () => {
+    // Bottleneck-like dataset:
+    // - Step has 5 categories (diverse means) → high η² but low max-category Total SS
+    // - Shift has 2 categories (similar means) → low η² but high max-category Total SS (~50% each)
+    const data = [
+      // Step has 5 levels with different means — explains most variation
+      { Step: 'S1', Shift: 'Day', Value: 100 },
+      { Step: 'S1', Shift: 'Day', Value: 102 },
+      { Step: 'S2', Shift: 'Night', Value: 150 },
+      { Step: 'S2', Shift: 'Night', Value: 152 },
+      { Step: 'S3', Shift: 'Day', Value: 120 },
+      { Step: 'S3', Shift: 'Day', Value: 122 },
+      { Step: 'S4', Shift: 'Night', Value: 130 },
+      { Step: 'S4', Shift: 'Night', Value: 132 },
+      { Step: 'S5', Shift: 'Day', Value: 110 },
+      { Step: 'S5', Shift: 'Day', Value: 112 },
+    ];
+
+    const etaStep = getEtaSquared(data, 'Step', 'Value');
+    const etaShift = getEtaSquared(data, 'Shift', 'Value');
+    const maxContribStep = getMaxCategoryContribution(data, 'Step', 'Value');
+    const maxContribShift = getMaxCategoryContribution(data, 'Shift', 'Value');
+
+    // Step has higher η² (explains more overall variation)
+    expect(etaStep).toBeGreaterThan(etaShift);
+
+    // But Shift has higher max single-category contribution (2 categories → ~50% each)
+    // while Step's max category is ~20-30% (5 categories spread the Total SS)
+    expect(maxContribShift).toBeGreaterThan(maxContribStep);
+
+    // Using η² for suggestion ranking correctly identifies Step as the better factor
+    // Using max category contribution would misleadingly suggest Shift
   });
 });
 

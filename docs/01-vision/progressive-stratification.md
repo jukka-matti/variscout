@@ -109,3 +109,4 @@ This document describes the _why_ behind VariScout's drill-down design. The _wha
 | Filter chip UI specification        | [Filter Chips Navigation](../03-features/navigation/breadcrumbs.md)             |
 | Linked filtering across charts      | [Linked Filtering](../03-features/navigation/linked-filtering.md)               |
 | Step-by-step drill-down workflow    | [Drill-Down Analysis Workflow](../03-features/workflows/drill-down-workflow.md) |
+| Variation decomposition statistics  | [Variation Decomposition](../03-features/analysis/variation-decomposition.md)   |

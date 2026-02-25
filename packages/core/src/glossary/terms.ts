@@ -155,9 +155,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     id: 'etaSquared',
     label: '\u03b7\u00b2',
     definition:
-      'Effect size showing how much variation is explained by the factor. Small < 0.06, medium 0.06-0.14, large > 0.14.',
+      'Effect size showing what proportion of variation is explained by the factor. Benchmarks (0.06 small, 0.14 large) are from behavioral science — in process data, focus on relative ranking rather than absolute thresholds.',
     description:
-      'Eta-squared (\u03b7\u00b2) represents the proportion of total variance explained by the grouping factor. Unlike p-value, it indicates practical significance - how much the factor matters.',
+      'Eta-squared (\u03b7\u00b2) represents the proportion of total variance explained by the grouping factor. Unlike p-value, it indicates practical significance — how much the factor matters. Note: \u03b7\u00b2 is a positively biased estimator that tends to overstate the true effect for small samples. VariScout uses \u03b7\u00b2 for relative ranking, not absolute estimation.',
     category: 'statistics',
     learnMorePath: '/tools/boxplot',
     relatedTerms: ['fStatistic', 'pValue'],
@@ -302,9 +302,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     id: 'totalSSContribution',
     label: 'Total SS Contribution',
     definition:
-      "A category's share of total sum of squares. Captures both mean shift AND spread (within-group variation).",
+      "A category's share of total sum of squares. A VariScout-specific extension of standard ANOVA that captures both mean shift AND spread (within-group variation).",
     description:
-      "Unlike between-group SS which only measures mean differences, Total SS contribution shows a category's full impact on variation. A category with mean near overall mean but high spread now shows non-zero impact. Sum of all category contributions equals 100%.",
+      "Unlike standard between-group SS which only measures mean differences, Total SS contribution is a VariScout extension that shows a category's full impact on variation. A category with mean near overall mean but high spread now shows non-zero impact. Sum of all category contributions equals 100%.",
     category: 'methodology',
     learnMorePath: '/tools/boxplot',
     relatedTerms: ['etaSquared', 'stdDev'],
@@ -330,6 +330,30 @@ export const glossaryTerms: GlossaryTerm[] = [
     category: 'methodology',
     learnMorePath: '/tools/probability-plot',
     relatedTerms: ['mean', 'stdDev', 'cp', 'cpk'],
+  },
+
+  // Variation Decomposition
+  {
+    id: 'sumOfSquares',
+    label: 'Sum of Squares',
+    definition:
+      'Measure of total variation: the sum of squared deviations from the mean. The foundation of ANOVA.',
+    description:
+      'ANOVA decomposes SS_Total into SS_Between (mean differences between groups) and SS_Within (spread within groups). This identity always holds exactly: SS_Total = SS_Between + SS_Within. At the category level, each category contributes both between-group and within-group variation to the total.',
+    category: 'statistics',
+    learnMorePath: '/tools/boxplot',
+    relatedTerms: ['etaSquared', 'totalSSContribution', 'betweenWithinVariation'],
+  },
+  {
+    id: 'betweenWithinVariation',
+    label: 'Between/Within Variation',
+    definition:
+      'The two sources of variation in grouped data. Between: group mean differences. Within: spread inside each group.',
+    description:
+      "Between-group variation measures whether groups differ (do the means shift?). Within-group variation measures how consistent each group is internally (how much spread?). ANOVA's F-statistic is the ratio of between to within. A high F means group differences are large relative to internal spread.",
+    category: 'statistics',
+    learnMorePath: '/tools/boxplot',
+    relatedTerms: ['etaSquared', 'totalSSContribution', 'sumOfSquares', 'fStatistic'],
   },
 
   // Charts

@@ -166,8 +166,11 @@ export function getCategoryStats(
     const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / count;
     const stdDev = Math.sqrt(variance);
 
-    // Calculate contribution to total variation (between-group SS for this category)
-    const categoryContribution = count * Math.pow(mean - overallMean, 2);
+    // Calculate contribution to total variation (Total SS for this category)
+    const categoryContribution = values.reduce(
+      (sum, val) => sum + Math.pow(val - overallMean, 2),
+      0
+    );
     const contributionPct = (categoryContribution / ssTotal) * 100;
 
     categoryStats.push({
