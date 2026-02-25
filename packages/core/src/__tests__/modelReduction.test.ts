@@ -155,4 +155,55 @@ describe('suggestTermRemoval', () => {
     const suggestion = suggestTermRemoval(result);
     expect(suggestion!.explanation).toContain('interaction term');
   });
+
+  // ==========================================================================
+  // VIF boundary semantics
+  // ==========================================================================
+
+  it('VIF exactly 10.0 → does NOT trigger high_vif (strict >10 threshold)', () => {
+    // suggestTermRemoval uses vif > 10 (strict), not >= 10
+    const result = makeResult([
+      makeCoeff({ term: 'A', pValue: 0.01, isSignificant: true, vif: 10.0 }),
+      makeCoeff({ term: 'B', pValue: 0.02, isSignificant: true, vif: 4.0 }),
+    ]);
+
+    // VIF 10.0 is NOT > 10, so no severe VIF; both significant → null
+    expect(suggestTermRemoval(result)).toBeNull();
+  });
+
+  it('VIF 10.001 → triggers high_vif', () => {
+    const result = makeResult([
+      makeCoeff({ term: 'A', pValue: 0.01, isSignificant: true, vif: 10.001 }),
+      makeCoeff({ term: 'B', pValue: 0.02, isSignificant: true, vif: 4.0 }),
+    ]);
+
+    const suggestion = suggestTermRemoval(result);
+    expect(suggestion).not.toBeNull();
+    expect(suggestion!.term).toBe('A');
+    expect(suggestion!.reason).toBe('high_vif');
+  });
+
+  it('non-significant AND high VIF → VIF wins (high_vif reason)', () => {
+    const result = makeResult([
+      makeCoeff({ term: 'A', pValue: 0.8, isSignificant: false, vif: 15.0 }),
+      makeCoeff({ term: 'B', pValue: 0.02, isSignificant: true, vif: 2.0 }),
+    ]);
+
+    const suggestion = suggestTermRemoval(result);
+    expect(suggestion).not.toBeNull();
+    expect(suggestion!.term).toBe('A');
+    // VIF is first priority, so reason should be high_vif
+    expect(suggestion!.reason).toBe('high_vif');
+  });
+
+  it('not_significant explanation contains term name', () => {
+    const result = makeResult([
+      makeCoeff({ term: 'Pressure', pValue: 0.42, isSignificant: false, vif: 2.0 }),
+    ]);
+
+    const suggestion = suggestTermRemoval(result);
+    expect(suggestion).not.toBeNull();
+    expect(suggestion!.reason).toBe('not_significant');
+    expect(suggestion!.explanation).toContain('Pressure');
+  });
 });

@@ -1108,4 +1108,55 @@ describe('Probability Plot', () => {
       expect(result[result.length - 1].count).toBeLessThan(0.01);
     });
   });
+
+  // ==========================================================================
+  // calculateProbabilityPlotData — edge cases
+  // ==========================================================================
+
+  describe('calculateProbabilityPlotData — edge cases', () => {
+    it('single point: returns length=1, no NaN values', () => {
+      const result = calculateProbabilityPlotData([42]);
+      expect(result).toHaveLength(1);
+      expect(isFinite(result[0].value)).toBe(true);
+      expect(isFinite(result[0].expectedPercentile)).toBe(true);
+      expect(isFinite(result[0].lowerCI)).toBe(true);
+      expect(isFinite(result[0].upperCI)).toBe(true);
+    });
+
+    it('all identical values: stdDev=0 → fallback, finite CIs', () => {
+      const result = calculateProbabilityPlotData([5, 5, 5, 5, 5]);
+      expect(result).toHaveLength(5);
+      for (const pt of result) {
+        expect(isFinite(pt.value)).toBe(true);
+        expect(isFinite(pt.expectedPercentile)).toBe(true);
+        expect(isFinite(pt.lowerCI)).toBe(true);
+        expect(isFinite(pt.upperCI)).toBe(true);
+        // All values identical
+        expect(pt.value).toBe(5);
+      }
+    });
+
+    it('CI cap at 10× stdDev: extreme tails bounded', () => {
+      // 100 values — tail CIs should not explode
+      const values = Array.from({ length: 100 }, (_, i) => i + 1);
+      const result = calculateProbabilityPlotData(values);
+      const stdDev = Math.sqrt(
+        values.reduce((s, v) => s + (v - 50.5) ** 2, 0) / (values.length - 1)
+      );
+      for (const pt of result) {
+        const ciWidth = pt.upperCI - pt.lowerCI;
+        // Width should not exceed 2 × 10σ × 1.96 (the SE cap is 10σ)
+        expect(ciWidth).toBeLessThan(2 * 10 * stdDev * 1.96 + 1);
+      }
+    });
+
+    it('duplicate values: each gets unique Benard rank', () => {
+      const result = calculateProbabilityPlotData([3, 3, 3, 7, 7]);
+      expect(result).toHaveLength(5);
+      // Expected percentiles should be distinct (unique Benard ranks)
+      const expectedPcts = result.map(p => p.expectedPercentile);
+      const uniqueExpected = new Set(expectedPcts);
+      expect(uniqueExpected.size).toBe(5);
+    });
+  });
 });

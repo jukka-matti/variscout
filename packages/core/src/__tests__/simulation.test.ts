@@ -519,4 +519,171 @@ describe('getFactorBaselines', () => {
     // Continuous factor with no data → skipped
     expect(baselines).toHaveLength(0);
   });
+
+  // ==========================================================================
+  // Additional edge cases
+  // ==========================================================================
+
+  it('proposed=current → meanShift=0, delta=0', () => {
+    const model = makeModel({
+      terms: [{ columns: ['Temp'], label: 'Temp', type: 'continuous' }],
+      coefficients: [
+        {
+          term: 'Temp',
+          coefficient: 2.5,
+          stdError: 0.3,
+          tStatistic: 8.3,
+          pValue: 0.0001,
+          isSignificant: true,
+          standardized: 0.8,
+        },
+      ],
+      intercept: 10,
+    });
+
+    // Set current = proposed
+    const adjustments: FactorAdjustment[] = [
+      { factor: 'Temp', type: 'continuous', currentValue: 50, proposedValue: 50 },
+    ];
+    const result = simulateFromModel(model, adjustments);
+    expect(result.meanShift).toBe(0);
+  });
+
+  it('factor not in model terms → silent skip, no shift', () => {
+    const model = makeModel({
+      terms: [{ columns: ['Temp'], label: 'Temp', type: 'continuous' }],
+      coefficients: [
+        {
+          term: 'Temp',
+          coefficient: 2.0,
+          stdError: 0.3,
+          tStatistic: 6.7,
+          pValue: 0.0001,
+          isSignificant: true,
+          standardized: 0.7,
+        },
+      ],
+      intercept: 10,
+    });
+
+    // Adjust a factor that doesn't exist in the model
+    const adjustments: FactorAdjustment[] = [
+      { factor: 'Humidity', type: 'continuous', currentValue: 40, proposedValue: 60 },
+    ];
+    const result = simulateFromModel(model, adjustments);
+    expect(result.meanShift).toBe(0);
+    expect(result.contributions).toHaveLength(0);
+  });
+
+  it('negative interaction coefficient → negative delta', () => {
+    const model = makeModel({
+      terms: [
+        { columns: ['A'], label: 'A', type: 'continuous' },
+        { columns: ['B'], label: 'B', type: 'continuous' },
+        { columns: ['A', 'B'], label: 'A × B', type: 'interaction' },
+      ],
+      coefficients: [
+        {
+          term: 'A',
+          coefficient: 1.0,
+          stdError: 0.1,
+          tStatistic: 10,
+          pValue: 0.001,
+          isSignificant: true,
+          standardized: 0.5,
+        },
+        {
+          term: 'B',
+          coefficient: 1.0,
+          stdError: 0.1,
+          tStatistic: 10,
+          pValue: 0.001,
+          isSignificant: true,
+          standardized: 0.5,
+        },
+        {
+          term: 'A × B',
+          coefficient: -0.5,
+          stdError: 0.1,
+          tStatistic: -5,
+          pValue: 0.001,
+          isSignificant: true,
+          standardized: -0.3,
+        },
+      ],
+      intercept: 0,
+    });
+
+    const adjustments: FactorAdjustment[] = [
+      { factor: 'A', type: 'continuous', currentValue: 1, proposedValue: 3 },
+      { factor: 'B', type: 'continuous', currentValue: 1, proposedValue: 3 },
+    ];
+    const result = simulateFromModel(model, adjustments);
+    // Main effects: +2 + +2 = +4, Interaction: -0.5 * (3*3 - 1*1) = -0.5*8 = -4
+    // Total = 0
+    expect(result.meanShift).toBeCloseTo(0, 5);
+  });
+
+  it('getFactorBaselines with NaN rows → NaN excluded from mean', () => {
+    const data: DataRow[] = [
+      { Temp: 10, Y: 1 },
+      { Temp: 20, Y: 2 },
+      { Temp: NaN, Y: 3 },
+      { Temp: 30, Y: 4 },
+    ];
+
+    const model = makeModel({
+      terms: [{ columns: ['Temp'], label: 'Temp', type: 'continuous' }],
+      coefficients: [
+        {
+          term: 'Temp',
+          coefficient: 1.0,
+          stdError: 0.2,
+          tStatistic: 5,
+          pValue: 0.001,
+          isSignificant: true,
+          standardized: 0.8,
+        },
+      ],
+      intercept: 0,
+    });
+
+    const baselines = getFactorBaselines(data, model);
+    const tempBaseline = baselines.find(b => b.factor === 'Temp');
+    expect(tempBaseline).toBeDefined();
+    // Mean of [10, 20, 30] = 20 (NaN excluded)
+    expect(tempBaseline!.currentValue).toBeCloseTo(20, 5);
+  });
+
+  it('getFactorBaselines mode tie → returns a valid level', () => {
+    const data: DataRow[] = [
+      { Machine: 'A', Y: 1 },
+      { Machine: 'A', Y: 2 },
+      { Machine: 'B', Y: 3 },
+      { Machine: 'B', Y: 4 },
+    ];
+
+    const model = makeModel({
+      terms: [{ columns: ['Machine'], label: 'Machine', type: 'categorical' }],
+      coefficients: [
+        {
+          term: 'Machine_B',
+          coefficient: 1.5,
+          stdError: 0.3,
+          tStatistic: 5,
+          pValue: 0.001,
+          isSignificant: true,
+          standardized: 0.6,
+        },
+      ],
+      intercept: 5,
+      categoricalLevels: { Machine: ['A', 'B'] },
+    });
+
+    const baselines = getFactorBaselines(data, model);
+    const machineBaseline = baselines.find(b => b.factor === 'Machine');
+    expect(machineBaseline).toBeDefined();
+    // With equal counts, either 'A' or 'B' is valid
+    expect(['A', 'B']).toContain(machineBaseline!.currentValue);
+  });
 });

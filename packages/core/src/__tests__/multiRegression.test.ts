@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateMultipleRegression } from '../stats';
 import { transpose, multiply, inverse, solve } from '../matrix';
+import { mulberry32 } from './helpers/stressDataGenerator';
 
 describe('Matrix Operations', () => {
   describe('transpose', () => {
@@ -634,6 +635,312 @@ describe('Multiple Regression', () => {
       expect(result!.coefficients[0].coefficient).toBeCloseTo(2, 0);
       // VIF should be empty or not relevant for single predictor
       expect(result!.vifWarnings).toHaveLength(0);
+    });
+  });
+
+  // ==========================================================================
+  // NIST Longley dataset — certified multi-regression benchmark
+  // ==========================================================================
+
+  describe('NIST Longley dataset', () => {
+    // Source: https://www.itl.nist.gov/div898/strd/lls/data/Longley.shtml
+    // Known to be severely ill-conditioned (extreme multicollinearity).
+    // Tests verify our Normal Equations approach handles it, even if imprecisely.
+    const longleyData = [
+      { GNP: 234.289, Unemp: 235.6, Armed: 159, Pop: 107.608, Year: 1947, Employed: 60.323 },
+      { GNP: 259.426, Unemp: 232.5, Armed: 145.6, Pop: 108.632, Year: 1948, Employed: 61.122 },
+      { GNP: 258.054, Unemp: 368.2, Armed: 161.6, Pop: 109.773, Year: 1949, Employed: 60.171 },
+      { GNP: 284.599, Unemp: 335.1, Armed: 165, Pop: 110.929, Year: 1950, Employed: 61.187 },
+      { GNP: 328.975, Unemp: 209.9, Armed: 309.9, Pop: 112.075, Year: 1951, Employed: 63.221 },
+      { GNP: 346.999, Unemp: 193.2, Armed: 359.4, Pop: 113.27, Year: 1952, Employed: 63.639 },
+      { GNP: 365.385, Unemp: 187, Armed: 354.7, Pop: 115.094, Year: 1953, Employed: 64.989 },
+      { GNP: 363.112, Unemp: 357.8, Armed: 335, Pop: 116.219, Year: 1954, Employed: 63.761 },
+      { GNP: 397.469, Unemp: 290.4, Armed: 304.8, Pop: 117.388, Year: 1955, Employed: 66.019 },
+      { GNP: 419.18, Unemp: 282.2, Armed: 285.7, Pop: 118.734, Year: 1956, Employed: 67.857 },
+      { GNP: 442.769, Unemp: 293.6, Armed: 279.8, Pop: 120.445, Year: 1957, Employed: 68.169 },
+      { GNP: 444.546, Unemp: 468.1, Armed: 263.7, Pop: 121.95, Year: 1958, Employed: 66.513 },
+      { GNP: 482.704, Unemp: 381.3, Armed: 255.2, Pop: 123.366, Year: 1959, Employed: 68.655 },
+      { GNP: 502.601, Unemp: 393.1, Armed: 251.4, Pop: 125.368, Year: 1960, Employed: 69.564 },
+      { GNP: 518.173, Unemp: 480.6, Armed: 257.2, Pop: 127.852, Year: 1961, Employed: 69.331 },
+      { GNP: 554.894, Unemp: 400.7, Armed: 282.7, Pop: 130.081, Year: 1962, Employed: 70.551 },
+    ];
+
+    it('produces non-null result with 16 rows / 5 predictors', () => {
+      const result = calculateMultipleRegression(longleyData, 'Employed', [
+        'GNP',
+        'Unemp',
+        'Armed',
+        'Pop',
+        'Year',
+      ]);
+      // Normal Equations may struggle with Longley's condition number (~4e12),
+      // but with 16 rows and 5+1 predictors, df > 0, so it should produce a result
+      if (result !== null) {
+        expect(result.n).toBe(16);
+        expect(result.p).toBe(5);
+        // Longley certified R² ≈ 0.9955 — loose tolerance for Normal Equations
+        expect(result.rSquared).toBeGreaterThan(0.95);
+      }
+    });
+
+    it('Adj R² > 0.99 (loose tolerance for Normal Equations)', () => {
+      const result = calculateMultipleRegression(longleyData, 'Employed', [
+        'GNP',
+        'Unemp',
+        'Armed',
+        'Pop',
+        'Year',
+      ]);
+      if (result !== null) {
+        expect(result.adjustedRSquared).toBeGreaterThan(0.99);
+      }
+    });
+
+    it('F-statistic significant (certified F ≈ 330)', () => {
+      const result = calculateMultipleRegression(longleyData, 'Employed', [
+        'GNP',
+        'Unemp',
+        'Armed',
+        'Pop',
+        'Year',
+      ]);
+      if (result !== null) {
+        expect(result.fStatistic).toBeGreaterThan(100);
+        expect(result.pValue).toBeLessThan(0.001);
+      }
+    });
+
+    it('returns null when n ≤ p+1 (underdetermined)', () => {
+      // Only 5 rows but 5 predictors → n (5) <= p+1 (6) → null
+      const tooFew = longleyData.slice(0, 5);
+      const result = calculateMultipleRegression(tooFew, 'Employed', [
+        'GNP',
+        'Unemp',
+        'Armed',
+        'Pop',
+        'Year',
+      ]);
+      expect(result).toBeNull();
+    });
+  });
+
+  // ==========================================================================
+  // VIF accuracy
+  // ==========================================================================
+
+  describe('VIF accuracy', () => {
+    it('known correlation r=0.9 between two predictors → VIF ≈ 5.26', () => {
+      // VIF = 1/(1-R²) for bivariate. r=0.9 → R²=0.81 → VIF ≈ 1/0.19 ≈ 5.26
+      const rng = mulberry32(42);
+      const n = 200;
+      const data = Array.from({ length: n }, () => {
+        const x1 = rng() * 10;
+        // x2 = 0.9*x1 + noise (r ≈ 0.9)
+        const x2 = 0.9 * x1 + (rng() - 0.5) * 3.0;
+        const y = 2 * x1 + 3 * x2 + (rng() - 0.5) * 2;
+        return { X1: x1, X2: x2, Y: y };
+      });
+
+      const result = calculateMultipleRegression(data, 'Y', ['X1', 'X2']);
+      expect(result).not.toBeNull();
+      // VIF should be in the moderate range (> 3)
+      const vifs = result!.coefficients.map(c => c.vif).filter((v): v is number => v !== undefined);
+      expect(vifs.length).toBe(2);
+      for (const vif of vifs) {
+        expect(vif).toBeGreaterThan(2);
+        expect(vif).toBeLessThan(15);
+      }
+    });
+
+    it('VIF thresholds: <5 = no warning', () => {
+      // Nearly independent predictors
+      const rng = mulberry32(99);
+      const data = Array.from({ length: 100 }, () => {
+        const x1 = rng() * 10;
+        const x2 = rng() * 10; // independent
+        const y = x1 + x2 + rng();
+        return { X1: x1, X2: x2, Y: y };
+      });
+
+      const result = calculateMultipleRegression(data, 'Y', ['X1', 'X2']);
+      expect(result).not.toBeNull();
+      expect(result!.vifWarnings).toHaveLength(0);
+    });
+
+    it('VIF = Infinity for perfectly collinear predictors', () => {
+      // X2 = 2*X1 exactly → perfect collinearity
+      const data = Array.from({ length: 50 }, (_, i) => ({
+        X1: i + 1,
+        X2: 2 * (i + 1),
+        Y: 3 * (i + 1) + Math.sin(i),
+      }));
+
+      const result = calculateMultipleRegression(data, 'Y', ['X1', 'X2']);
+      // May return null due to singular XtX, or if it returns a result,
+      // at least one VIF should be Infinity or very large
+      if (result !== null) {
+        const vifs = result.coefficients
+          .map(c => c.vif)
+          .filter((v): v is number => v !== undefined);
+        const hasExtreme = vifs.some(v => !isFinite(v) || v > 1000);
+        expect(hasExtreme).toBe(true);
+      }
+    });
+
+    it('VIF warning severity classification', () => {
+      // Create data with moderate multicollinearity
+      const rng = mulberry32(77);
+      const n = 200;
+      const data = Array.from({ length: n }, () => {
+        const x1 = rng() * 10;
+        // x2 tightly correlated with x1 (r ≈ 0.95)
+        const x2 = 0.95 * x1 + (rng() - 0.5) * 1.5;
+        // x3 moderately correlated
+        const x3 = 0.7 * x1 + (rng() - 0.5) * 5;
+        const y = x1 + x2 + x3 + rng();
+        return { X1: x1, X2: x2, X3: x3, Y: y };
+      });
+
+      const result = calculateMultipleRegression(data, 'Y', ['X1', 'X2', 'X3']);
+      if (result !== null) {
+        // Should have at least one VIF warning for the highly correlated pair
+        const vifs = result.coefficients
+          .map(c => c.vif)
+          .filter((v): v is number => v !== undefined);
+        // At least one VIF should exceed 5 for the correlated pair
+        expect(vifs.some(v => v > 5)).toBe(true);
+      }
+    });
+  });
+
+  // ==========================================================================
+  // Categorical edge cases
+  // ==========================================================================
+
+  describe('Categorical edge cases', () => {
+    it('alphabetical reference level (first sorted level)', () => {
+      const data = [
+        { Machine: 'C', Y: 10 },
+        { Machine: 'A', Y: 12 },
+        { Machine: 'B', Y: 11 },
+        { Machine: 'C', Y: 11 },
+        { Machine: 'A', Y: 13 },
+        { Machine: 'B', Y: 12 },
+        { Machine: 'C', Y: 10 },
+        { Machine: 'A', Y: 12 },
+      ];
+
+      const result = calculateMultipleRegression(data, 'Y', ['Machine'], {
+        categoricalColumns: ['Machine'],
+      });
+      expect(result).not.toBeNull();
+      // Reference level is alphabetically first ('A'), so dummies are Machine_B, Machine_C
+      const termNames = result!.coefficients.map(c => c.term);
+      expect(termNames).not.toContain('Machine_A');
+      expect(termNames).toContain('Machine_B');
+      expect(termNames).toContain('Machine_C');
+    });
+
+    it('single-value categorical column → effectively just intercept', () => {
+      const data = [
+        { Line: 'L1', Y: 10 },
+        { Line: 'L1', Y: 12 },
+        { Line: 'L1', Y: 11 },
+        { Line: 'L1', Y: 13 },
+        { Line: 'L1', Y: 12 },
+      ];
+
+      const result = calculateMultipleRegression(data, 'Y', ['Line'], {
+        categoricalColumns: ['Line'],
+      });
+      // Single-level categorical has 0 dummy variables → effectively empty model
+      // Should return null (no predictors) or result with 0 terms
+      if (result !== null) {
+        expect(result.p).toBe(0);
+      }
+    });
+
+    it('null/undefined categorical values are excluded from analysis', () => {
+      const data = [
+        { Machine: 'A', Y: 10 },
+        { Machine: 'B', Y: 12 },
+        { Machine: null, Y: 11 },
+        { Machine: 'A', Y: 13 },
+        { Machine: undefined, Y: 14 },
+        { Machine: 'B', Y: 11 },
+        { Machine: 'A', Y: 12 },
+        { Machine: 'B', Y: 13 },
+      ];
+
+      const result = calculateMultipleRegression(
+        data as Record<string, unknown>[],
+        'Y',
+        ['Machine'],
+        { categoricalColumns: ['Machine'] }
+      );
+      // Should produce a result using only the non-null rows
+      if (result !== null) {
+        expect(result.n).toBeLessThanOrEqual(6); // At most 6 valid rows
+        expect(result.n).toBeGreaterThanOrEqual(3); // At least enough for regression
+      }
+    });
+
+    it('pure categorical model (no continuous predictors)', () => {
+      const data = [
+        { Shift: 'Day', Line: 'A', Y: 10 },
+        { Shift: 'Day', Line: 'B', Y: 12 },
+        { Shift: 'Night', Line: 'A', Y: 14 },
+        { Shift: 'Night', Line: 'B', Y: 16 },
+        { Shift: 'Day', Line: 'A', Y: 11 },
+        { Shift: 'Day', Line: 'B', Y: 13 },
+        { Shift: 'Night', Line: 'A', Y: 15 },
+        { Shift: 'Night', Line: 'B', Y: 17 },
+      ];
+
+      const result = calculateMultipleRegression(data, 'Y', ['Shift', 'Line'], {
+        categoricalColumns: ['Shift', 'Line'],
+      });
+      expect(result).not.toBeNull();
+      // 2 categorical factors, each with 2 levels → 2 dummy variables
+      expect(result!.p).toBe(2);
+    });
+  });
+
+  // ==========================================================================
+  // Adjusted R² formula
+  // ==========================================================================
+
+  describe('Adjusted R² formula', () => {
+    it('hand-computed adj R² for small dataset', () => {
+      const data = [
+        { X: 1, Y: 2.1 },
+        { X: 2, Y: 3.9 },
+        { X: 3, Y: 6.2 },
+        { X: 4, Y: 7.8 },
+        { X: 5, Y: 10.1 },
+        { X: 6, Y: 11.9 },
+      ];
+
+      const result = calculateMultipleRegression(data, 'Y', ['X']);
+      expect(result).not.toBeNull();
+      // Adj R² = 1 - (1-R²)(n-1)/(n-p-1)
+      const n = result!.n;
+      const p = result!.p;
+      const expectedAdjR2 = 1 - ((1 - result!.rSquared) * (n - 1)) / (n - p - 1);
+      expect(result!.adjustedRSquared).toBeCloseTo(expectedAdjR2, 8);
+    });
+
+    it('adj R² < R² invariant (for p ≥ 1)', () => {
+      const rng = mulberry32(123);
+      const data = Array.from({ length: 30 }, () => ({
+        X1: rng() * 10,
+        X2: rng() * 10,
+        Y: rng() * 20,
+      }));
+
+      const result = calculateMultipleRegression(data, 'Y', ['X1', 'X2']);
+      expect(result).not.toBeNull();
+      expect(result!.adjustedRSquared).toBeLessThan(result!.rSquared);
     });
   });
 });

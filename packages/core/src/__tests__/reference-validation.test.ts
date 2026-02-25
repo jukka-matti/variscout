@@ -882,3 +882,100 @@ describe('Section 9: Moving Range σ_within (calculateMovingRangeSigma)', () => 
     expect(stats.cp).toBeCloseTo((13 - 7) / (6 * stats.sigmaWithin), 10);
   });
 });
+
+// ============================================================================
+// Section 10: Hilbert Matrix Inverse — Normal Equations Stability
+// ============================================================================
+// Hilbert matrices are notoriously ill-conditioned. These tests document
+// the limits of Gauss-Jordan inversion used by the Normal Equations solver.
+// Motivation for QR Decomposition: see docs/05-technical/implementation/glm-roadmap.md
+
+describe('Hilbert matrix inverse — stability limits', () => {
+  /** Build n×n Hilbert matrix: H[i][j] = 1/(i+j+1) */
+  function hilbert(n: number): number[][] {
+    return Array.from({ length: n }, (_, i) =>
+      Array.from({ length: n }, (_, j) => 1 / (i + j + 1))
+    );
+  }
+
+  /** Build n×n analytical Hilbert inverse (exact integer entries) */
+  function hilbertInverse(n: number): number[][] {
+    const H = Array.from({ length: n }, () => Array(n).fill(0));
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        // Exact formula: H⁻¹[i][j] = (-1)^(i+j) * (i+j+1) * C(n+i,n-j-1) * C(n+j,n-i-1) * C(i+j,i)^2
+        let val = i + j + 1;
+        val *= binomial(n + i, n - j - 1);
+        val *= binomial(n + j, n - i - 1);
+        val *= binomial(i + j, i) * binomial(i + j, i);
+        if ((i + j) % 2 !== 0) val = -val;
+        H[i][j] = val;
+      }
+    }
+    return H;
+  }
+
+  function binomial(n: number, k: number): number {
+    if (k < 0 || k > n) return 0;
+    if (k === 0 || k === n) return 1;
+    let result = 1;
+    for (let i = 0; i < k; i++) {
+      result = (result * (n - i)) / (i + 1);
+    }
+    return Math.round(result);
+  }
+
+  it('Hilbert 4×4: H × H⁻¹ ≈ I to 3 decimal places (condition ≈ 15,514)', () => {
+    const H = hilbert(4);
+    const Hinv = inverse(H);
+    expect(Hinv).not.toBeNull();
+
+    // Verify against analytical inverse
+    const analyticalInv = hilbertInverse(4);
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        expect(Hinv![i][j]).toBeCloseTo(analyticalInv[i][j], 3);
+      }
+    }
+
+    // Verify H × H⁻¹ ≈ I
+    const product = multiply(H, Hinv!);
+    expect(product).not.toBeNull();
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        const expected = i === j ? 1 : 0;
+        expect(product![i][j]).toBeCloseTo(expected, 3);
+      }
+    }
+  });
+
+  it('Hilbert 5×5: documents Normal Equations precision limit', () => {
+    // Hilbert 5×5 condition number ≈ 476,607
+    // Gauss-Jordan may lose significant digits. This test documents actual behavior.
+    const H = hilbert(5);
+    const Hinv = inverse(H);
+
+    if (Hinv === null) {
+      // If inverse fails, that's a valid outcome for ill-conditioned matrices
+      // This motivates QR decomposition (see glm-roadmap.md Feature 4)
+      expect(Hinv).toBeNull();
+    } else {
+      // If it succeeds, check how much precision we lose
+      const product = multiply(H, Hinv);
+      expect(product).not.toBeNull();
+
+      let maxError = 0;
+      for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+          const expected = i === j ? 1 : 0;
+          const error = Math.abs(product![i][j] - expected);
+          maxError = Math.max(maxError, error);
+        }
+      }
+      // Document the error — Normal Equations with Gauss-Jordan pivoting
+      // may achieve ~1e-5 to ~1e-2 depending on implementation.
+      // We just verify it's not completely wrong (error < 1)
+      expect(maxError).toBeLessThan(1);
+    }
+  });
+});

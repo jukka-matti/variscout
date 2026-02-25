@@ -321,3 +321,56 @@ describe('calculateRegression — insight', () => {
     expect(result!.insight).toContain('Yield');
   });
 });
+
+// ============================================================================
+// Strength rating bands and edge cases
+// ============================================================================
+
+describe('Strength rating edge cases', () => {
+  it('R² < 0.3 → strengthRating 1', () => {
+    // Weak linear fit — scattered data
+    const data = makeData([1, 2, 3, 4, 5, 6, 7, 8], [10, 5, 12, 3, 11, 6, 14, 2]);
+    const result = calculateRegression(data, 'X', 'Y');
+    expect(result).not.toBeNull();
+    expect(result!.linear.rSquared).toBeLessThan(0.3);
+    expect(result!.strengthRating).toBe(1);
+  });
+
+  it('R² 0.3–0.5 → strengthRating 2', () => {
+    // Noisy upward trend — R² ≈ 0.40
+    const data = makeData([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [2, 6, 1, 5, 4, 8, 3, 7, 6, 9]);
+    const result = calculateRegression(data, 'X', 'Y');
+    expect(result).not.toBeNull();
+    expect(result!.linear.rSquared).toBeGreaterThanOrEqual(0.3);
+    expect(result!.linear.rSquared).toBeLessThan(0.5);
+    expect(result!.strengthRating).toBe(2);
+  });
+
+  it('all-same Y values → R²=0, recommendedFit "none"', () => {
+    const data = makeData([1, 2, 3, 4, 5], [7, 7, 7, 7, 7]);
+    const result = calculateRegression(data, 'X', 'Y');
+    expect(result).not.toBeNull();
+    expect(result!.linear.rSquared).toBe(0);
+    expect(result!.recommendedFit).toBe('none');
+  });
+
+  it('perfect linear fit (Y=2X) → pValue=0 (perfect fit branch)', () => {
+    const data = makeData([1, 2, 3, 4, 5], [2, 4, 6, 8, 10]);
+    const result = calculateRegression(data, 'X', 'Y');
+    expect(result).not.toBeNull();
+    expect(result!.linear.rSquared).toBeCloseTo(1.0, 10);
+    expect(result!.linear.pValue).toBe(0);
+  });
+
+  it('quadratic R² < 0.5 → does NOT recommend quadratic even if ΔR² > 0.05', () => {
+    // Noisy data where quadratic may fit marginally better than linear
+    // but neither fit is strong
+    const data = makeData([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [8, 3, 9, 2, 10, 1, 9, 4, 8, 3]);
+    const result = calculateRegression(data, 'X', 'Y');
+    expect(result).not.toBeNull();
+    // With such scattered data, neither fit should be recommended as quadratic
+    if (result!.quadratic && result!.quadratic.rSquared < 0.5) {
+      expect(result!.recommendedFit).not.toBe('quadratic');
+    }
+  });
+});
