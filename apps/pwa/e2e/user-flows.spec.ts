@@ -24,29 +24,29 @@ test.describe('User Flow: Deep Drill-Down', () => {
     const initialMean = parseFloat((await meanValue.textContent())!);
 
     // Level 1: Click a boxplot category
-    const boxplotRects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
-    const rectCount = await boxplotRects.count();
-    if (rectCount < 2) return; // Need at least 2 groups
+    const boxplot = page.locator('[data-testid="chart-boxplot"]');
+    const groupButtons = boxplot.getByRole('button', { name: /^Select / });
+    await expect(groupButtons.first()).toBeVisible({ timeout: 5000 });
+    const groupCount = await groupButtons.count();
+    expect(groupCount).toBeGreaterThanOrEqual(2); // Need at least 2 groups
 
-    await boxplotRects.first().click();
+    await groupButtons.first().click();
     await expect(page.locator('[data-testid^="filter-chip-"]').first()).toBeVisible({
       timeout: 5000,
     });
 
     // Mean should change after first filter
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(500);
     const level1Mean = parseFloat((await meanValue.textContent())!);
 
-    // Level 2: If a second boxplot appears with clickable rects, click one
-    const level2Rects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
-    const level2Count = await level2Rects.count();
+    // Level 2: After first drill, boxplot re-renders with next factor's groups.
+    // Wait for re-render to settle, then attempt second drill if groups exist.
+    await page.waitForTimeout(500);
+    const level2Buttons = boxplot.getByRole('button', { name: /^Select / });
+    const level2Count = await level2Buttons.count();
     if (level2Count > 0) {
-      await level2Rects.first().click();
-      await page.waitForTimeout(300);
-
-      // Should now have 2 filter chips
-      const chipCount = await page.locator('[data-testid^="filter-chip-"]').count();
-      expect(chipCount).toBeGreaterThanOrEqual(1);
+      await level2Buttons.first().click();
+      await page.waitForTimeout(500);
     }
 
     // Backtrack: Remove last filter chip
@@ -70,12 +70,12 @@ test.describe('User Flow: Deep Drill-Down', () => {
   });
 
   test('should show cumulative filter chips', async ({ page }) => {
-    const boxplotRects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
-    const rectCount = await boxplotRects.count();
-    if (rectCount === 0) return;
+    const boxplot = page.locator('[data-testid="chart-boxplot"]');
+    const groupButtons = boxplot.getByRole('button', { name: /^Select / });
+    await expect(groupButtons.first()).toBeVisible({ timeout: 5000 });
 
     // Apply first filter
-    await boxplotRects.first().click();
+    await groupButtons.first().click();
     const chips = page.locator('[data-testid^="filter-chip-"]');
     await expect(chips.first()).toBeVisible({ timeout: 5000 });
 
@@ -88,10 +88,10 @@ test.describe('User Flow: Manual Entry', () => {
   test('should open manual entry and navigate setup', async ({ page }) => {
     await page.goto('/');
 
-    // Click "Paste from Excel"
-    const pasteButton = page.locator('text=Paste from Excel');
-    await expect(pasteButton).toBeVisible({ timeout: 10000 });
-    await pasteButton.click();
+    // Click "Or enter data manually"
+    const manualButton = page.getByRole('button', { name: /enter data manually/i });
+    await expect(manualButton).toBeVisible({ timeout: 10000 });
+    await manualButton.click();
 
     // ManualEntry setup should show Step 1 form
     await expect(page.getByRole('heading', { name: /What are you measuring/i })).toBeVisible({
@@ -126,15 +126,14 @@ test.describe('User Flow: View Switching', () => {
   test('should switch to regression and back', async ({ page }) => {
     // Find the regression tab
     const regressionTab = page.getByRole('tab', { name: /Regression/i });
-    if (await regressionTab.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await regressionTab.click();
-      await expect(page.locator('[data-testid="regression-panel"]')).toBeVisible({ timeout: 5000 });
+    await expect(regressionTab).toBeVisible({ timeout: 3000 });
+    await regressionTab.click();
+    await expect(page.locator('[data-testid="regression-panel"]')).toBeVisible({ timeout: 5000 });
 
-      // Switch back to analysis
-      const analysisTab = page.getByRole('tab', { name: /Analysis/i });
-      await analysisTab.click();
-      await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 5000 });
-    }
+    // Switch back to Dashboard
+    const dashboardTab = page.getByRole('tab', { name: /Dashboard/i });
+    await dashboardTab.click();
+    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 5000 });
   });
 });
 

@@ -11,12 +11,12 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Edge Case: Manual Entry Flow', () => {
-  test('should open manual entry setup when clicking Paste from Excel', async ({ page }) => {
+  test('should open manual entry setup when clicking enter data manually', async ({ page }) => {
     await page.goto('/');
 
-    const pasteButton = page.locator('text=Paste from Excel');
-    await expect(pasteButton).toBeVisible({ timeout: 10000 });
-    await pasteButton.click();
+    const manualButton = page.getByRole('button', { name: /enter data manually/i });
+    await expect(manualButton).toBeVisible({ timeout: 10000 });
+    await manualButton.click();
 
     // ManualEntry setup should show Step 1 form
     await expect(page.getByRole('heading', { name: /What are you measuring/i })).toBeVisible({
@@ -31,9 +31,9 @@ test.describe('Edge Case: Manual Entry Flow', () => {
   test('should allow cancelling manual entry setup', async ({ page }) => {
     await page.goto('/');
 
-    const pasteButton = page.locator('text=Paste from Excel');
-    await expect(pasteButton).toBeVisible({ timeout: 10000 });
-    await pasteButton.click();
+    const manualButton = page.getByRole('button', { name: /enter data manually/i });
+    await expect(manualButton).toBeVisible({ timeout: 10000 });
+    await manualButton.click();
 
     // Cancel should return to home screen
     const cancelButton = page.locator('button:has-text("Cancel")');
@@ -74,15 +74,14 @@ test.describe('Edge Case: Replace Data While Filtered', () => {
     await page.goto('/?sample=coffee');
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
-    // Apply a filter
-    const boxplotRects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
-    const rectCount = await boxplotRects.count();
-    if (rectCount > 0) {
-      await boxplotRects.first().click();
-      await expect(page.locator('[data-testid^="filter-chip-"]').first()).toBeVisible({
-        timeout: 5000,
-      });
-    }
+    // Apply a filter by clicking a boxplot group
+    const boxplot = page.locator('[data-testid="chart-boxplot"]');
+    const groupButtons = boxplot.getByRole('button', { name: /^Select / });
+    await expect(groupButtons.first()).toBeVisible({ timeout: 5000 });
+    await groupButtons.first().click();
+    await expect(page.locator('[data-testid^="filter-chip-"]').first()).toBeVisible({
+      timeout: 5000,
+    });
 
     // Now load a different sample
     await page.goto('/?sample=packaging');

@@ -36,19 +36,17 @@ test.describe('Drill-Down: Coffee Dataset', () => {
   });
 
   test('should show filter chip after clicking boxplot category', async ({ page }) => {
-    // Click on a boxplot bar/group to trigger drill-down
-    // Boxplot renders clickable rect elements for each group
-    const boxplotRects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
+    // Boxplot renders accessible buttons for each group
+    const boxplot = page.locator('[data-testid="chart-boxplot"]');
+    const groupButtons = boxplot.getByRole('button', { name: /^Select / });
+    await expect(groupButtons.first()).toBeVisible({ timeout: 5000 });
 
-    // If clickable rects exist, click the first one
-    const rectCount = await boxplotRects.count();
-    if (rectCount > 0) {
-      await boxplotRects.first().click();
+    // Click the first group
+    await groupButtons.first().click();
 
-      // A filter chip should appear
-      const filterChips = page.locator('[data-testid^="filter-chip-"]');
-      await expect(filterChips.first()).toBeVisible({ timeout: 5000 });
-    }
+    // A filter chip should appear
+    const filterChips = page.locator('[data-testid^="filter-chip-"]');
+    await expect(filterChips.first()).toBeVisible({ timeout: 5000 });
   });
 
   test('should update stats when filter is applied via boxplot click', async ({ page }) => {
@@ -58,30 +56,28 @@ test.describe('Drill-Down: Coffee Dataset', () => {
     const initialMean = parseFloat((await meanValue.textContent())!);
 
     // Click a boxplot category to drill down
-    const boxplotRects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
-    const rectCount = await boxplotRects.count();
-    if (rectCount > 0) {
-      await boxplotRects.first().click();
+    const boxplot = page.locator('[data-testid="chart-boxplot"]');
+    const groupButtons = boxplot.getByRole('button', { name: /^Select / });
+    await expect(groupButtons.first()).toBeVisible({ timeout: 5000 });
+    await groupButtons.first().click();
 
-      // Wait for stats to update
-      await page.waitForTimeout(500);
+    // Wait for stats to update
+    await page.waitForTimeout(500);
 
-      // Mean should have changed (filtered to a single group)
-      const newMeanText = await meanValue.textContent();
-      const newMean = parseFloat(newMeanText!);
-      // The mean should be different from the overall mean
-      // (specific group means differ from the overall 11.89)
-      expect(newMean).not.toBeCloseTo(initialMean, 0);
-    }
+    // Mean should have changed (filtered to a single group)
+    const newMeanText = await meanValue.textContent();
+    const newMean = parseFloat(newMeanText!);
+    // The mean should be different from the overall mean
+    // (specific group means differ from the overall 11.89)
+    expect(newMean).not.toBeCloseTo(initialMean, 0);
   });
 
   test('should remove filter when chip remove button is clicked', async ({ page }) => {
     // First apply a filter by clicking a boxplot category
-    const boxplotRects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
-    const rectCount = await boxplotRects.count();
-    if (rectCount === 0) return;
-
-    await boxplotRects.first().click();
+    const boxplot = page.locator('[data-testid="chart-boxplot"]');
+    const groupButtons = boxplot.getByRole('button', { name: /^Select / });
+    await expect(groupButtons.first()).toBeVisible({ timeout: 5000 });
+    await groupButtons.first().click();
 
     // Wait for filter chip to appear
     const filterChips = page.locator('[data-testid^="filter-chip-"]');
@@ -107,11 +103,10 @@ test.describe('Drill-Down: Coffee Dataset', () => {
 
   test('should clear all filters via Clear button', async ({ page }) => {
     // Apply a filter
-    const boxplotRects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
-    const rectCount = await boxplotRects.count();
-    if (rectCount === 0) return;
-
-    await boxplotRects.first().click();
+    const boxplot = page.locator('[data-testid="chart-boxplot"]');
+    const groupButtons = boxplot.getByRole('button', { name: /^Select / });
+    await expect(groupButtons.first()).toBeVisible({ timeout: 5000 });
+    await groupButtons.first().click();
 
     // Wait for filter chip and clear button
     await expect(page.locator('[data-testid^="filter-chip-"]').first()).toBeVisible({

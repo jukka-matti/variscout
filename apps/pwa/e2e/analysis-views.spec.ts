@@ -3,10 +3,10 @@ import { test, expect } from '@playwright/test';
 /**
  * E2E Test: Analysis View Switching
  *
- * Tests switching between Dashboard and Regression views:
+ * Tests switching between Dashboard and Regression views via tab navigation:
  * 1. Load sample → verify dashboard charts render
- * 2. Open Settings → switch to Regression view → verify panel
- * 3. Switch back to Dashboard → verify charts return
+ * 2. Click Regression tab → verify panel
+ * 3. Click Dashboard tab → verify charts return
  */
 
 test.describe('Analysis View Switching', () => {
@@ -24,14 +24,11 @@ test.describe('Analysis View Switching', () => {
     await expect(page.locator('[data-testid="chart-stats"]')).toBeVisible();
   });
 
-  test('should switch to regression view via Settings', async ({ page }) => {
-    // Open Settings panel
-    await page.locator('button[title="Settings"]').click();
-
-    // Click "Switch to Regression view" button
-    const regressionButton = page.getByRole('button', { name: /Switch to Regression view/i });
-    await expect(regressionButton).toBeVisible({ timeout: 3000 });
-    await regressionButton.click();
+  test('should switch to regression view via tab', async ({ page }) => {
+    // Click the Regression tab
+    const regressionTab = page.getByRole('tab', { name: /Regression/i });
+    await expect(regressionTab).toBeVisible({ timeout: 3000 });
+    await regressionTab.click();
 
     // Regression panel should be visible
     await expect(page.locator('[data-testid="regression-panel"]')).toBeVisible({ timeout: 5000 });
@@ -41,9 +38,8 @@ test.describe('Analysis View Switching', () => {
   });
 
   test('should render scatter plot SVG in regression view', async ({ page }) => {
-    // Switch to regression view
-    await page.locator('button[title="Settings"]').click();
-    await page.getByRole('button', { name: /Switch to Regression view/i }).click();
+    // Switch to regression view via tab
+    await page.getByRole('tab', { name: /Regression/i }).click();
 
     // Wait for regression panel
     await expect(page.locator('[data-testid="regression-panel"]')).toBeVisible({ timeout: 5000 });
@@ -54,14 +50,12 @@ test.describe('Analysis View Switching', () => {
   });
 
   test('should switch back to dashboard from regression', async ({ page }) => {
-    // Switch to regression
-    await page.locator('button[title="Settings"]').click();
-    await page.getByRole('button', { name: /Switch to Regression view/i }).click();
+    // Switch to regression via tab
+    await page.getByRole('tab', { name: /Regression/i }).click();
     await expect(page.locator('[data-testid="regression-panel"]')).toBeVisible({ timeout: 5000 });
 
-    // Open Settings again and switch back to Dashboard
-    await page.locator('button[title="Settings"]').click();
-    await page.getByRole('button', { name: /Switch to Dashboard view/i }).click();
+    // Switch back to Dashboard via tab
+    await page.getByRole('tab', { name: /Dashboard/i }).click();
 
     // Dashboard charts should be visible again
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 5000 });
