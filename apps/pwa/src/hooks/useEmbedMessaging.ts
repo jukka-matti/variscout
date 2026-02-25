@@ -79,16 +79,21 @@ export function useEmbedMessaging(isEmbedMode: boolean) {
   const [isReady, setIsReady] = useState(false);
   const parentOriginRef = useRef<string | null>(null);
 
-  // Send message to parent window
+  // Send message to parent window using validated origin
   const sendToParent = useCallback(
     (message: EmbedResponse) => {
       if (!isEmbedMode || !window.parent || window.parent === window) {
         return;
       }
 
+      const targetOrigin = parentOriginRef.current;
+      if (!targetOrigin) {
+        // No validated parent origin yet — queue the ready message for later
+        return;
+      }
+
       try {
-        // Send to parent window
-        window.parent.postMessage(message, '*');
+        window.parent.postMessage(message, targetOrigin);
       } catch (err) {
         console.error('[EmbedMessaging] Failed to send message:', err);
       }
@@ -126,14 +131,24 @@ export function useEmbedMessaging(isEmbedMode: boolean) {
         return;
       }
 
-      // Store parent origin for responses
-      if (!parentOriginRef.current) {
+      // Store validated parent origin for outbound messages
+      const isFirstMessage = !parentOriginRef.current;
+      if (isFirstMessage) {
         parentOriginRef.current = event.origin;
       }
 
       // Validate message structure
       if (!isEmbedMessage(event.data)) {
         return; // Not a VaRiScout embed message, ignore
+      }
+
+      // Send ready response on first valid inbound message (now that origin is known)
+      if (isFirstMessage) {
+        setIsReady(true);
+        window.parent.postMessage(
+          { type: 'variscout-embed-response', action: 'ready' } satisfies EmbedResponse,
+          event.origin
+        );
       }
 
       const message = event.data;
@@ -191,15 +206,8 @@ export function useEmbedMessaging(isEmbedMode: boolean) {
       }
     };
 
-    // Add listener
+    // Add listener — ready message is sent on first valid inbound message
     window.addEventListener('message', handleMessage);
-
-    // Send ready message to parent
-    setIsReady(true);
-    sendToParent({
-      type: 'variscout-embed-response',
-      action: 'ready',
-    });
 
     // Cleanup
     return () => {
