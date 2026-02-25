@@ -145,10 +145,10 @@ Deployed via ARM template to customer's Azure subscription:
 # App Service configuration (in ARM template)
 resource:
   type: Microsoft.Web/sites # App Service, not Static Web Apps
-  apiVersion: 2022-09-01
+  apiVersion: 2025-01-01
   name: variscout-{unique}
   kind: linux
-  plan: B1 Basic (Linux, Node 20)
+  plan: B1 Basic (Linux, Node 22)
   deployment: WEBSITE_RUN_FROM_PACKAGE
 ```
 

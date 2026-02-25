@@ -91,7 +91,7 @@ Linux B1 plan for hosting the App Service:
 ```json
 {
   "type": "Microsoft.Web/serverfarms",
-  "apiVersion": "2022-09-01",
+  "apiVersion": "2025-01-01",
   "name": "[variables('appServicePlanName')]",
   "location": "[parameters('location')]",
   "kind": "linux",
@@ -112,14 +112,14 @@ Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`. The client secret is 
 ```json
 {
   "type": "Microsoft.Web/sites",
-  "apiVersion": "2022-09-01",
+  "apiVersion": "2025-01-01",
   "name": "[variables('webAppName')]",
   "location": "[parameters('location')]",
   "properties": {
     "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
     "httpsOnly": true,
     "siteConfig": {
-      "linuxFxVersion": "NODE|20-lts",
+      "linuxFxVersion": "NODE|22-lts",
       "appSettings": [
         { "name": "WEBSITE_RUN_FROM_PACKAGE", "value": "[variables('packageUrl')]" },
         { "name": "VITE_LICENSE_TIER", "value": "enterprise" },
@@ -142,7 +142,7 @@ App Service Authentication configured for Azure AD, referencing the customer-pro
 ```json
 {
   "type": "Microsoft.Web/sites/config",
-  "apiVersion": "2022-09-01",
+  "apiVersion": "2025-01-01",
   "name": "[concat(variables('webAppName'), '/authsettingsV2')]",
   "properties": {
     "platform": { "enabled": true },

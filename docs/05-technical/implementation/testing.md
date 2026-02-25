@@ -160,9 +160,9 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ## Current Coverage
 
-**Total: 84 vitest files, 1,369 test cases + 13 Playwright E2E spec files**
+**Total: 90 vitest files, 1,475 test cases + 13 Playwright E2E spec files**
 
-### @variscout/core (23 files, 687 test cases)
+### @variscout/core (26 files, 739 test cases)
 
 | Function/Module                   | Tested | Cases                                                                                                               |
 | :-------------------------------- | :----- | :------------------------------------------------------------------------------------------------------------------ |
@@ -178,7 +178,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `export.ts`                       | ✅     | CSV generation, special characters, escaping                                                                        |
 | `performance.ts`                  | ✅     | Multi-channel analysis, performance metrics                                                                         |
 
-### @variscout/charts (3 files, 44 test cases)
+### @variscout/charts (4 files, 59 test cases)
 
 | Module              | Tested | Focus                                        |
 | :------------------ | :----- | :------------------------------------------- |
@@ -186,7 +186,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `accessibility.ts`  | ✅     | Accessible color generation, contrast ratios |
 | `useMultiSelection` | ✅     | Multi-selection hook for Performance charts  |
 
-### @variscout/hooks (26 files, 282 test cases)
+### @variscout/hooks (25 files, 270 test cases)
 
 | Hook/Module                      | Tested | Focus                                                        |
 | :------------------------------- | :----- | :----------------------------------------------------------- |
@@ -216,7 +216,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `index.ts` (exports)             | ✅     | All public exports resolve correctly                         |
 | Integration: filterStatsPipeline | ✅     | End-to-end: CSV parse → filter → stats → ANOVA pipeline      |
 
-### @variscout/ui (6 files, 89 test cases)
+### @variscout/ui (10 files, 136 test cases)
 
 | Component              | Tested | Focus                                                                                                   |
 | :--------------------- | :----- | :------------------------------------------------------------------------------------------------------ |
@@ -227,7 +227,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `BoxplotDisplayToggle` | ✅     | Violin mode toggle, contribution label toggle, sort criterion selection, sort direction toggle, popover |
 | `DataTableBase`        | ✅     | Inline cell editing, row status indicators, spec violation highlighting                                 |
 
-### @variscout/pwa (11 vitest files, 106 test cases)
+### @variscout/pwa (10 vitest files, 100 test cases)
 
 | Component/Module      | Tested | Focus                                              |
 | :-------------------- | :----- | :------------------------------------------------- |
@@ -242,7 +242,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `useFilterNavigation` | ✅     | Multi-select, updateFilterValues, removeFilter     |
 | `export.ts`           | ✅     | CSV generation, special characters                 |
 
-### @variscout/azure-app (15 vitest files, 161 test cases)
+### @variscout/azure-app (15 vitest files, 171 test cases)
 
 | Component/Module       | Tested | Focus                                                                          |
 | :--------------------- | :----- | :----------------------------------------------------------------------------- |

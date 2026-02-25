@@ -48,7 +48,7 @@
   "resources": [
     {
       "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2024-04-01",
+      "apiVersion": "2025-01-01",
       "name": "[variables('appServicePlanName')]",
       "location": "[parameters('location')]",
       "kind": "linux",
@@ -62,7 +62,7 @@
     },
     {
       "type": "Microsoft.Web/sites",
-      "apiVersion": "2024-04-01",
+      "apiVersion": "2025-01-01",
       "name": "[variables('webAppName')]",
       "location": "[parameters('location')]",
       "dependsOn": ["[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"],
@@ -70,7 +70,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
         "httpsOnly": true,
         "siteConfig": {
-          "linuxFxVersion": "NODE|20-lts",
+          "linuxFxVersion": "NODE|22-lts",
           "appSettings": [
             {
               "name": "WEBSITE_RUN_FROM_PACKAGE",
@@ -92,7 +92,7 @@
     },
     {
       "type": "Microsoft.Web/sites/config",
-      "apiVersion": "2024-04-01",
+      "apiVersion": "2025-01-01",
       "name": "[concat(variables('webAppName'), '/authsettingsV2')]",
       "dependsOn": ["[resourceId('Microsoft.Web/sites', variables('webAppName'))]"],
       "properties": {

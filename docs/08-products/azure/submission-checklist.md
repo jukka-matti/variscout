@@ -25,7 +25,7 @@ Living tracker for Azure Marketplace Managed Application submission. Single sour
 | --------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------- |
 | `mainTemplate.json` written       | ✅ Done                 | `infra/mainTemplate.json` — App Service + EasyAuth, customer-provided App Registration                    |
 | `createUiDefinition.json` written | ✅ Done                 | `infra/createUiDefinition.json` — portal wizard with Authentication step (clientId + clientSecret)        |
-| ARM TTK validation passes         | ⚠️ Manual review passed | `apiVersion` updated to `2024-04-01` (valid until Apr 2026); automated `Test-AzTemplate` needs PowerShell |
+| ARM TTK validation passes         | ⚠️ Manual review passed | `apiVersion` updated to `2025-01-01` (valid until Jan 2028); automated `Test-AzTemplate` needs PowerShell |
 | CUID tracking                     | ✅ Auto-injected        | Partner Center auto-injects tracking ID at publish time (no nested deployments)                           |
 | Package URL parameterized         | ✅ Done                 | `packageUrl` parameter with default — satisfies arm-ttk no-hardcoded-URI rule                             |
 | createUiDefinition sandbox test   | ⬜ Not tested           | Test at `https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/SandboxBlade`                        |
@@ -127,7 +127,7 @@ The ARM template uses `WEBSITE_RUN_FROM_PACKAGE` to deploy the app as a static z
 | Issue                             | Fix                                                     |
 | --------------------------------- | ------------------------------------------------------- |
 | Invalid ARM template              | Run `arm-ttk` validation, fix all warnings              |
-| `apiVersion` too old              | Must be ≤24 months old; currently `2024-04-01`          |
+| `apiVersion` too old              | Must be ≤24 months old; currently `2025-01-01`          |
 | Hardcoded URIs in template        | Use parameters with defaults (done for `packageUrl`)    |
 | CUID tracking missing             | Auto-injected by Partner Center — no manual action      |
 | Invalid createUiDefinition        | Test in sandbox, ensure all controls render             |

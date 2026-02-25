@@ -49,7 +49,7 @@ The deepest review layer. Covers ARM template, security, and functionality.
 | Rule                       | Requirement                                                        | VariScout                                  |
 | -------------------------- | ------------------------------------------------------------------ | ------------------------------------------ |
 | Valid JSON schema          | `2019-04-01/deploymentTemplate.json#`                              | ✅ Correct                                 |
-| `apiVersion` freshness     | ≤24 months old on all resources                                    | ✅ `2024-04-01`                            |
+| `apiVersion` freshness     | ≤24 months old on all resources                                    | ✅ `2025-01-01`                            |
 | `secureString` for secrets | Passwords and keys use `secureString` type                         | ✅ `clientSecret` is `secureString`        |
 | Parameter descriptions     | All parameters have `metadata.description`                         | ✅ All 5 parameters described              |
 | No hardcoded URIs          | Portal/management endpoints, deployment URLs must be parameterized | ✅ `packageUrl` is a parameter             |

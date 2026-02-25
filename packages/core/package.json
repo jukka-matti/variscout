@@ -19,12 +19,12 @@
   "dependencies": {
     "d3-array": "^3.2.4",
     "exceljs": "^4.4.0",
-    "papaparse": "^5.4.1"
+    "papaparse": "^5.5.3"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.1",
     "@types/papaparse": "^5.5.2",
-    "typescript": "^5.5.2",
+    "typescript": "^5.8.3",
     "vitest": "^4.0.18"
   }
 }

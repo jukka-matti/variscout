@@ -100,7 +100,7 @@ All 8 doc sections exist with indexes: vision (13 files), journeys (13), feature
 
 ### Security
 
-- pnpm overrides for known CVEs (qs, esbuild, lodash, tmp)
+- pnpm overrides for known CVEs (qs, esbuild, lodash, tmp) (removed Feb 2026 — dependencies no longer in tree)
 - No `.env` files or secrets in codebase
 - Offline-first architecture reduces attack surface
 
