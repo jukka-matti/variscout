@@ -1,0 +1,760 @@
+# Statistics & Mindmap Technical Reference
+
+Exact formulas, algorithm choices, and implementation notes for the VariScout statistical engine and the Investigation Mindmap.
+
+---
+
+## Audience & Conventions
+
+**For**: developers extending the codebase, statisticians validating methods, auditors checking conformance.
+
+**Source references**: each section cites the implementation file as `package/path/file.ts`. Function signatures use TypeScript notation.
+
+**Formula notation**: LaTeX-style inline (`σ`, `Σ`, `η²`). Greek letters are spelled out in code (`sigmaWithin`, `etaSquared`).
+
+**Not covered here**: user-facing chart interactions, UI component APIs, design system colors. See `docs/03-features/analysis/` for user documentation and `docs/06-design-system/charts/` for chart component rules.
+
+---
+
+## Data Model
+
+VariScout operates on **individual measurements** (subgroup size n = 1). Every row is a single observation with:
+
+- One **outcome** column (numeric measurement)
+- Zero or more **factor** columns (categorical grouping variables)
+- Optionally a **stage** column (time period or batch identifier)
+
+Data must be in **time/production order** for moving-range calculations to be meaningful. Shuffled data inflates MR-bar and overestimates σ_within.
+
+---
+
+## Part 1 — Core Statistics
+
+> Source: `packages/core/src/stats/basic.ts`
+> User docs: [I-Chart](../03-features/analysis/i-chart.md), [Capability](../03-features/analysis/capability.md)
+
+### Central Tendency
+
+| Statistic | Formula                     | Implementation    |
+| --------- | --------------------------- | ----------------- |
+| Mean      | x̄ = (1/n) Σ xᵢ              | `d3.mean(data)`   |
+| Median    | Middle value of sorted data | `d3.median(data)` |
+
+Both are computed from the full (unfiltered within current scope) dataset.
+
+### Dispersion — Two Sigmas
+
+VariScout maintains **two** standard deviation estimates. The choice of which to use depends on the purpose:
+
+| Sigma     | Symbol        | Formula                          | Used for                                               |
+| --------- | ------------- | -------------------------------- | ------------------------------------------------------ |
+| σ_overall | `stdDev`      | Sample std dev (n−1 denominator) | ANOVA SS decomposition, general descriptive statistics |
+| σ_within  | `sigmaWithin` | MR-bar / d2                      | Control limits, Cp, Cpk                                |
+
+**σ_overall** — computed via `d3.deviation(data)`, the unbiased sample standard deviation:
+
+```
+σ_overall = sqrt( Σ(xᵢ - x̄)² / (n - 1) )
+```
+
+**σ_within** — estimated from the mean moving range (I-MR / Individuals chart method):
+
+```
+MR_i = |x_i - x_{i-1}|        for i = 2, ..., n
+MR-bar = (1/(n-1)) Σ MR_i
+σ_within = MR-bar / d2         where d2 = 1.128
+```
+
+The constant **d2 = 1.128** is the Hartley unbiasing constant for a moving range with span 2. Since VariScout always uses individual measurements (n = 1), the span is always 2 and d2 is fixed.
+
+**Why two sigmas?** σ_within captures short-term, inherent process variation — the variation between consecutive measurements. It excludes between-subgroup shifts. This makes it the correct denominator for Shewhart control limits and capability indices (Wheeler, _Understanding Variation_). σ_overall includes all sources of variation and is used for ANOVA, where both within-group and between-group variation matter.
+
+**Edge case**: when `data.length < 2`, the moving range cannot be computed. The implementation falls back to `d3.deviation(data)` for σ_within and returns `mrBar = 0`.
+
+### Control Limits (I-Chart)
+
+```
+UCL = x̄ + 3 × σ_within
+LCL = x̄ - 3 × σ_within
+```
+
+These are the natural process limits (Shewhart 3-sigma limits). Points outside these limits signal special-cause variation. The limits use σ_within (not σ_overall) because they measure the expected range of short-term variation.
+
+### Process Capability
+
+> Source: `packages/core/src/stats/basic.ts` — `calculateStats()`
+> User docs: [Capability](../03-features/analysis/capability.md)
+
+Capability indices require user-supplied specification limits (USL, LSL, or both).
+
+**Cp** — process potential (spread vs tolerance width):
+
+```
+Cp = (USL - LSL) / (6 × σ_within)
+```
+
+Requires both USL and LSL. Undefined when σ_within = 0 (all values identical).
+
+**Cpk** — process capability (centering + spread):
+
+```
+Cpu = (USL - x̄) / (3 × σ_within)
+Cpl = (x̄ - LSL) / (3 × σ_within)
+Cpk = min(Cpu, Cpl)
+```
+
+Can be computed with only one limit (one-sided). Undefined when σ_within = 0.
+
+**Interpretation**: Cpk ≥ 1.33 is generally considered capable (AIAG standard). A process with Cpk = 1.0 has its mean exactly 3σ from the nearest limit.
+
+**Edge cases**:
+
+- σ_within = 0 → Cp and Cpk are `undefined` (not Infinity)
+- Single limit → Cp is `undefined`, Cpk is one-sided
+- Empty data → zero-filled StatsResult with no capability indices
+
+### Conformance
+
+> Source: `packages/core/src/stats/conformance.ts`
+
+```typescript
+calculateConformance(values: number[], usl?: number, lsl?: number): ConformanceResult
+```
+
+Counts pass/fail against specification limits. USL failure takes priority — a value above USL is counted as `failUsl` even if LSL also exists. Pass rate is `(pass / total) × 100`.
+
+---
+
+## Part 2 — One-Way ANOVA
+
+> Source: `packages/core/src/stats/anova.ts`
+> User docs: [Variation Decomposition](../03-features/analysis/variation-decomposition.md)
+
+### Full SS Decomposition
+
+For a factor with _k_ groups, each of size _nᵢ_, total sample size _N = Σ nᵢ_:
+
+```
+SS_total   = Σ (x_ij - x̄)²              where x̄ is the grand mean
+SS_between = Σ nᵢ × (x̄ᵢ - x̄)²          between-group sum of squares
+SS_within  = Σ (nᵢ - 1) × s²ᵢ           within-group sum of squares
+```
+
+Note: SS_within is computed from per-group sample variances, not as SS_total − SS_between. This avoids floating-point accumulation errors.
+
+### Degrees of Freedom
+
+```
+df_between = k - 1
+df_within  = N - k
+```
+
+### F-Statistic and p-Value
+
+```
+MS_between = SS_between / df_between
+MS_within  = SS_within / df_within
+F = MS_between / MS_within
+p = P(F > f | df_between, df_within)    via fDistributionPValue()
+```
+
+### Eta-Squared (Effect Size)
+
+```
+η² = SS_between / (SS_between + SS_within)
+```
+
+Interpretation ranges (Cohen's conventions):
+
+- 0.01–0.06: small effect
+- 0.06–0.14: medium effect
+- \> 0.14: large effect
+
+### Significance
+
+Alpha = 0.05 (hard-coded). `isSignificant = pValue < 0.05`.
+
+### Insight Generation
+
+The `generateAnovaInsight()` function produces a plain-English summary:
+
+- Not significant → "No significant difference between groups"
+- Significant + lower-is-better keywords (time, defect, error, reject, delay, cost, waste) → names the lowest-mean group as "best"
+- Significant + higher-is-better → names the highest-mean group as "best"
+
+### Guard Clauses
+
+Returns `null` when:
+
+- Fewer than 2 groups
+- Total N < 3
+- df_within = 0 (every group has exactly 1 observation)
+
+---
+
+## Part 3 — Distribution Functions
+
+> Source: `packages/core/src/stats/distributions.ts` (internal, not re-exported from package)
+
+These are used by ANOVA and probability calculations. They are not exported from `@variscout/core` — they are internal to the stats module.
+
+### Normal PDF
+
+```
+φ(x) = exp(-0.5 × x²) / √(2π)
+```
+
+Standard normal density. Used in probability plot SE calculations.
+
+### Log-Gamma (Lanczos Approximation)
+
+```
+ln Γ(x)    using g = 7, 9-term Lanczos series
+```
+
+For x < 0.5, uses the reflection formula: `ln(π / sin(πx)) − ln Γ(1 − x)`.
+
+### Regularized Incomplete Beta
+
+```
+I_x(a, b) = B(x; a, b) / B(a, b)
+```
+
+Computed via Lentz's continued fraction algorithm (max 200 iterations, ε = 1e-10). Near-zero values floored at 1e-30 to prevent division by zero.
+
+### F-Distribution p-Value
+
+```
+P(F > f | df1, df2) = I_x(df2/2, df1/2)    where x = df2 / (df2 + df1 × f)
+```
+
+Returns 1 for f ≤ 0, returns 0 for non-finite f.
+
+### t-Distribution p-Value
+
+Two-tailed: delegates to `fDistributionPValue(t², 1, df)` using the F-t equivalence.
+
+---
+
+## Part 4 — Normal Quantile (Inverse CDF)
+
+> Source: `packages/core/src/stats/probability.ts` — `normalQuantile()`
+
+Acklam's rational approximation — a three-region piecewise function:
+
+| Region     | Range                 | Method                                         |
+| ---------- | --------------------- | ---------------------------------------------- |
+| Lower tail | p < 0.02425           | `q = √(-2 ln p)`, rational 6/4 polynomial in q |
+| Central    | 0.02425 ≤ p ≤ 0.97575 | `r = p - 0.5`, rational 6/5 polynomial in r    |
+| Upper tail | p > 0.97575           | Symmetric to lower tail via 1−p                |
+
+Accuracy: ~1e-9 (sufficient for all SPC applications). Returns −∞ for p ≤ 0, +∞ for p ≥ 1, 0 for p = 0.5.
+
+---
+
+## Part 5 — Probability Plot
+
+> Source: `packages/core/src/stats/probability.ts` — `calculateProbabilityPlotData()`
+> User docs: [Probability Plot](../03-features/analysis/probability-plot.md)
+
+### Median Rank (Benard's Approximation)
+
+For sorted data points i = 1, ..., n:
+
+```
+p_i = (i - 0.3) / (n + 0.4)
+```
+
+This is the Benard median-rank formula, the default in Minitab. It provides an unbiased estimate of the cumulative probability for each order statistic.
+
+### Z-Score
+
+```
+z_i = Φ⁻¹(p_i)    via normalQuantile()
+```
+
+### Standard Error of Percentile
+
+```
+SE_i = (σ × √(p_i × (1 - p_i) / n)) / φ(z_i)
+```
+
+Where φ is the standard normal PDF. Capped at `σ × 10` to prevent explosion at extreme percentiles where φ(z) approaches zero.
+
+### 95% Confidence Interval
+
+```
+lower_i = x_i - 1.96 × SE_i
+upper_i = x_i + 1.96 × SE_i
+```
+
+### Preprocessing
+
+Non-numeric, NaN, and Infinity values are filtered before computation. Data is sorted ascending.
+
+---
+
+## Part 6 — Nelson Rule 2
+
+> Source: `packages/core/src/stats/nelson.ts`
+> User docs: [Nelson Rules](../03-features/analysis/nelson-rules.md)
+
+### Definition
+
+**9 or more consecutive points on the same side of the center line** — a signal of systematic process shift.
+
+### Algorithm
+
+Single-pass scan with run tracking:
+
+1. Initialize `runStart = 0`, `runSide = null`
+2. For each point, determine its side: `'above'` if value > mean, `'below'` if value < mean, `null` if exactly equal
+3. If side differs from `runSide` or side is `null`: check completed run (if ≥ 9 points, record), reset run
+4. After loop, check the final run
+5. Points exactly equal to the mean break the current run (conservative interpretation)
+
+### Exports
+
+Two functions provide different output formats:
+
+| Function                          | Returns                                 | Use case                       |
+| --------------------------------- | --------------------------------------- | ------------------------------ |
+| `getNelsonRule2ViolationPoints()` | `Set<number>` of indices                | Point-level violation coloring |
+| `getNelsonRule2Sequences()`       | `Array<{ startIndex, endIndex, side }>` | Segment highlight rendering    |
+
+Returns empty results for arrays with fewer than 9 values.
+
+---
+
+## Part 7 — Boxplot Statistics
+
+> Source: `packages/core/src/stats/boxplot.ts`
+> User docs: [Boxplot](../03-features/analysis/boxplot.md)
+
+### Five-Number Summary
+
+Input values are sorted ascending. Then:
+
+| Statistic | Formula                                         |
+| --------- | ----------------------------------------------- |
+| Median    | Exact midpoint (even n) or middle value (odd n) |
+| Q1        | Linear interpolation at index `(n−1) × 0.25`    |
+| Q3        | Linear interpolation at index `(n−1) × 0.75`    |
+| IQR       | Q3 − Q1                                         |
+
+### Outlier Detection (Tukey)
+
+```
+Lower fence = Q1 - 1.5 × IQR
+Upper fence = Q3 + 1.5 × IQR
+```
+
+Values strictly outside the fences are classified as outliers. Whiskers extend to the fence values (not to the most extreme non-outlier).
+
+### Sorting
+
+`sortBoxplotData()` sorts an array of boxplot groups without mutation:
+
+| `sortBy`           | Sort key                         |
+| ------------------ | -------------------------------- |
+| `'name'` (default) | `localeCompare()` — alphabetical |
+| `'mean'`           | Numeric mean comparison          |
+| `'spread'`         | IQR comparison                   |
+
+Direction: `'asc'` (default) or `'desc'`.
+
+---
+
+## Part 8 — Kernel Density Estimation
+
+> Source: `packages/core/src/stats/kde.ts`
+
+### Bandwidth Selection (Silverman's Rule)
+
+```
+h = 0.9 × min(σ, IQR/1.34) × n^(-1/5)
+```
+
+The `min(σ, IQR/1.34)` term is a robust spread estimator resistant to outliers. If only one spread measure is available, the other is used alone. Returns empty result if h ≤ 0 or n < 2.
+
+### Gaussian Kernel
+
+```
+K(u) = exp(-0.5 × u²)
+```
+
+Unnormalized in the loop; the sum is divided by `n × h × √(2π)` for proper normalization.
+
+### Evaluation Grid
+
+- Default: 100 points
+- Range: `[min - 3h, max + 3h]` — extends 3 bandwidths beyond data range (matches the R/ggplot2 `cut=3` default)
+- Output format: `{ value: x, count: density }` — compatible with `@visx/stats` ViolinPlot
+
+---
+
+## Part 9 — Staged Analysis
+
+> Source: `packages/core/src/stats/staged.ts`
+> User docs: [Staged Analysis](../03-features/analysis/staged-analysis.md)
+
+### Stage Order Detection
+
+`determineStageOrder(stageValues, mode?)`:
+
+| Mode               | Behavior                                                                                                                                                                               |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'data-order'`     | First-occurrence order (no sorting)                                                                                                                                                    |
+| `'auto'` (default) | If all values match numeric patterns (`/^\d+(\.\d+)?$/` or `/^(stage\|phase\|batch\|period\|run)?\s*\d+$/i`), sorts numerically by embedded number. Otherwise, first-occurrence order. |
+
+### Per-Stage Statistics
+
+`calculateStatsByStage()` calls `calculateStats()` independently for each stage, producing separate UCL, LCL, Cp, Cpk per stage. Also computes `overallStats` across all values combined.
+
+Returns `null` for empty data, empty stage order, or if no stage contains any data.
+
+### Stage Boundaries
+
+`getStageBoundaries()` maps sorted chart data points to stage x-axis extents for rendering. Returns `{ name, startX, endX, stats }` per non-empty stage, using `safeMin`/`safeMax` iterative min/max (avoids `Math.min(...spread)` stack overflow on large arrays).
+
+---
+
+## Part 10 — Variation Decomposition
+
+> Source: `packages/core/src/variation/contributions.ts`
+> User docs: [Variation Decomposition](../03-features/analysis/variation-decomposition.md)
+
+### Category Total SS
+
+For a factor with categories c₁, c₂, ..., cₖ:
+
+```
+Total SS = Σ (x_ij - x̄)²                      over all observations
+Category SS_c = Σ (x_ij - x̄)²                  over observations in category c
+Category % = (Category SS_c / Total SS) × 100
+```
+
+**Design decision**: Total SS partitioning (not between-group SS) captures **both** mean shift and within-group spread. A category with high internal variation but mean near the grand mean will still show non-zero impact. This better answers "Which categories should I focus on?" from an improvement perspective.
+
+All category percentages sum to 100% — variation is fully partitioned.
+
+Returns `null` if fewer than 2 rows or zero total variance.
+
+### Category Stats
+
+`getCategoryStats()` returns per-category detail: count, mean, stdDev (population), contributionPct. Sorted by contribution descending (worst performers first). Used by the What-If Simulator.
+
+---
+
+## Part 11 — Drill-Down & Cumulative Scope
+
+> Source: `packages/core/src/variation/drill.ts`, `packages/hooks/src/useDrillPath.ts`
+
+### Cumulative Scope Calculation
+
+The drill scope is **multiplicative**, not additive. Each drill level reduces the "window" to a fraction of the previous level:
+
+```
+cumulativeScope = Π (localScope_i)     for i = 1, ..., depth
+```
+
+Example: three levels with 80%, 70%, 60% local scope → cumulative = 0.8 × 0.7 × 0.6 = 33.6%.
+
+### Algorithm (calculateDrillVariation)
+
+1. Start with root entry: `localVariation = 100%, cumulative = 100%`
+2. For each filter in order:
+   - Compute `calculateCategoryTotalSS()` on **current filtered data** (not raw data)
+   - Sum contributions of selected category values → `selectedPct`
+   - `cumulativePct = (cumulativePct × selectedPct) / 100`
+   - Filter data down to selected values for next iteration
+   - Break if fewer than 2 rows remain
+
+### Drill Path Statistics (useDrillPath hook)
+
+The `useDrillPath` hook retrospectively computes drill path statistics by iterating the filter stack:
+
+```typescript
+interface DrillStep {
+  factor: string;
+  values: (string | number)[];
+  scopeFraction: number; // selected categories' Total SS fraction (0–1)
+  cumulativeScope: number; // running product of all scopeFractions (0–1)
+  meanBefore: number; // mean before this filter applied
+  meanAfter: number; // mean after this filter applied
+  cpkBefore: number | undefined;
+  cpkAfter: number | undefined;
+  countBefore: number;
+  countAfter: number;
+}
+```
+
+For each filter action, the hook calls `calculateCategoryTotalSS()` on the progressively filtered data and `calculateStats()` on the outcome values before and after the filter. This provides the before/after delta visible in the narrative timeline.
+
+### Total SS vs Eta-Squared
+
+The codebase uses two different metrics for variation attribution:
+
+| Metric              | Formula                        | Where used                                                        |
+| ------------------- | ------------------------------ | ----------------------------------------------------------------- |
+| Category Total SS % | `SS_category / SS_total × 100` | Drill scope tracking, breadcrumbs, progress bar, category popover |
+| η² (eta-squared)    | `SS_between / SS_total`        | Mindmap node sizing, node percentage label                        |
+
+Total SS partitioning captures within-group spread. Eta-squared captures only between-group mean differences. The distinction is intentional: scope tracking uses Total SS (comprehensive), while node visual prominence uses η² (highlighting factors where category means differ most).
+
+---
+
+## Part 12 — Drill Suggestions
+
+> Source: `packages/core/src/variation/suggestions.ts`
+
+### Constants
+
+```
+DRILL_SWITCH_THRESHOLD = 5    // Minimum % variation for drill suggestions
+```
+
+### Max Category Contribution
+
+`getMaxCategoryContribution(data, factor, outcome)`: returns the highest single-category Total SS contribution for a factor, as a fraction (0–1). This metric matches the numbers visible in the category popover, making the suggestion logic transparent.
+
+### Next Drill Factor
+
+`getNextDrillFactor(factorVariations, currentFactor, minThreshold?)`: after drilling into a factor, finds the remaining factor with highest variation above `minThreshold` (default 5%). Returns factor name or `null`.
+
+### Optimal Factor Selection (Greedy)
+
+`findOptimalFactors(data, factors, outcome, targetPct?, maxFactors?)`:
+
+1. Compute η² for each factor via `getEtaSquared()`
+2. Sort factors by η² descending
+3. Greedy selection: accumulate as `remaining = remaining × (1 - η²_i)`, cumulative = `100 - remaining × 100`
+4. Stop when cumulative ≥ `targetPct` (default 70%) or `maxFactors` (default 3) reached
+
+Returns `OptimalFactorResult[]` with factor, variationPct (η² × 100), bestValue (category with highest weighted mean deviation), and cumulativePct.
+
+---
+
+## Part 13 — What-If Simulation
+
+> Source: `packages/core/src/variation/simulation.ts`
+> User docs: [Investigation to Action](../03-features/workflows/investigation-to-action.md)
+
+### Direct Adjustment
+
+`simulateDirectAdjustment(currentStats, params, specs?)`:
+
+```
+projectedMean = currentStats.mean + meanShift
+projectedStdDev = currentStats.stdDev × (1 - variationReduction)
+```
+
+Where `variationReduction` is a fraction 0–1 (e.g., 0.2 = 20% reduction).
+
+Projected capability:
+
+```
+projectedCp  = (USL - LSL) / (6 × projectedStdDev)
+projectedCpk = min((USL - projectedMean) / (3 × projectedStdDev),
+                   (projectedMean - LSL) / (3 × projectedStdDev))
+```
+
+### Yield Calculation
+
+Normal CDF via the error function (Abramowitz & Stegun formula 7.1.26):
+
+```
+erf(x) ≈ 1 - (a₁t + a₂t² + a₃t³ + a₄t⁴ + a₅t⁵) × exp(-x²)
+  where t = 1/(1 + 0.3275911 × |x|)
+
+Φ(z) = 0.5 × (1 + erf(z / √2))
+```
+
+Constants: a₁ = 0.254829592, a₂ = −0.284496736, a₃ = 1.421413741, a₄ = −1.453152027, a₅ = 1.061405429.
+
+Yield is computed as the probability of falling within specification limits:
+
+```
+yield = Φ((USL - mean) / σ) - Φ((LSL - mean) / σ)      (both limits)
+yield = Φ((USL - mean) / σ)                               (USL only)
+yield = 1 - Φ((LSL - mean) / σ)                           (LSL only)
+```
+
+Clamped to [0, 100]. PPM = `round((100 - yield%) × 10000)`.
+
+**Edge case**: σ = 0 → yield is 100% if mean is within specs, 0% otherwise.
+
+### Category Exclusion
+
+`calculateProjectedStats(data, factor, outcome, excludedCategories, specs?)`:
+
+Filters out rows matching excluded categories, recomputes mean and **population** std dev on remaining data. Computes improvement percentages (stdDev reduction, mean centering improvement, Cpk improvement) when baseline stats are provided.
+
+### Model-Driven Simulation (Deferred)
+
+The `simulateFromModel()` function and `getFactorBaselines()` exist in the codebase but are not used in Phase 1. They support regression-based what-if analysis (categorical coefficient swaps, continuous factor shifts, interaction terms). Deferred to Phase 2 per ADR-014.
+
+---
+
+## Part 14 — Investigation Mindmap
+
+> Sources: `packages/charts/src/mindmap/`, `packages/hooks/src/useMindmapState.ts`
+> User docs: [Investigation to Action](../03-features/workflows/investigation-to-action.md)
+
+### Architecture
+
+The Investigation Mindmap is a Visx SVG radial chart with two modes:
+
+| Mode          | Layout                 | Purpose                        |
+| ------------- | ---------------------- | ------------------------------ |
+| `'drilldown'` | Radial (hub and spoke) | Interactive factor exploration |
+| `'narrative'` | Horizontal timeline    | Story of investigation steps   |
+
+### Node Data Model
+
+```typescript
+interface MindmapNode {
+  factor: string;
+  displayName?: string;
+  etaSquared: number; // 0–1; 0 for drilled nodes
+  state: 'active' | 'available' | 'exhausted';
+  filteredValue?: string; // displayed below label when active
+  isSuggested: boolean; // green pulse animation
+  categoryData?: CategoryData[];
+}
+```
+
+**State transitions**:
+
+- `'available'` → `'active'`: user drills into the factor (selects a category)
+- `'available'` → `'exhausted'`: insufficient data (< 3 rows in filtered scope) or η² < 0.01
+- `'active'` → stays active (drilled factors persist)
+
+**Suggestion logic** (in `useMindmapState`): the non-drilled factor with the highest η² above 0.05 is marked as `isSuggested`. Only one factor is suggested at a time.
+
+### Node Sizing — Area-Proportional Encoding
+
+> Source: `packages/charts/src/mindmap/helpers.ts` — `getNodeRadius()`
+
+Node **area** (not radius) scales linearly with η². This follows Stevens' Power Law for perceptually accurate magnitude encoding:
+
+```
+clamped = clamp(etaSquared, 0, 1)
+minArea = π × 20²                              // MIN_NODE_RADIUS = 20px
+maxArea = π × 40²                              // MAX_NODE_RADIUS = 40px
+area = minArea + clamped × (maxArea - minArea)
+radius = √(area / π)
+```
+
+### Visual Encoding
+
+| Property  | Active (drilled)             | Available        | Exhausted   | Suggested        |
+| --------- | ---------------------------- | ---------------- | ----------- | ---------------- |
+| Fill      | Blue (#3b82f6)               | Slate            | Dim slate   | —                |
+| Stroke    | Blue                         | Slate            | Slate       | Green (#22c55e)  |
+| Animation | —                            | —                | —           | Green pulse      |
+| Label     | Factor name + filtered value | Factor name + η% | Factor name | Factor name + η% |
+
+Colors adapt to light/dark theme via `getNodeFill(state, isDark)` and `getNodeStroke(node, isDark)`.
+
+### Radial Layout (Drilldown Mode)
+
+> Source: `packages/charts/src/mindmap/layout.ts` — `computeLayout()`
+
+Center hub ("Start") at the origin. Factor nodes arranged in concentric rings:
+
+| Node count | Rings       | Radius                                             |
+| ---------- | ----------- | -------------------------------------------------- |
+| ≤ 7        | Single ring | 65% of available radius                            |
+| 8+         | Two rings   | Outer: 70% (first 6 nodes), Inner: 38% (remaining) |
+
+Angle formula: `angle = -π/2 + (2π × i) / count` — starting at 12 o'clock, evenly spaced.
+
+### Timeline Layout (Narrative Mode)
+
+> Source: `packages/charts/src/mindmap/layout.ts` — `computeTimelineLayout()`
+
+Horizontal left-to-right arrangement:
+
+- Single step: centered at t = 0.5
+- Multiple steps: `t = i / (count - 1)`, linearly interpolated
+- Padding: `min(60, usableWidth / (count + 2))`
+
+### Drill Trail
+
+Blue line segments connecting center → drilled nodes in the order they were drilled. Rendered from the `drillTrail` array (ordered factor names from drill path).
+
+### Category Popover
+
+> Source: `packages/charts/src/mindmap/CategoryPopover.tsx`
+
+Click on an available node → popover showing categories sorted by Total SS contribution %. Full keyboard navigation (ArrowDown/Up, Enter to select, Escape to close). Accessible with `role="listbox"` and `aria-selected`.
+
+Positioning: prefers right side of node, flips left if insufficient space. Prefers top-aligned, flips upward near bottom edge.
+
+### Progress Bar
+
+> Source: `packages/charts/src/mindmap/ProgressFooter.tsx`
+
+Horizontal bar at the bottom of the SVG showing cumulative variation scope:
+
+```
+fill width = (cumulativeVariationPct / 100) × barWidth
+color = green (#22c55e) if pct ≥ targetPct, else blue (#3b82f6)
+```
+
+Default target: 70%. Dashed vertical marker at the target position.
+
+### Conclusion Panel
+
+> Source: `packages/charts/src/mindmap/ConclusionPanel.tsx`
+
+Rendered at the end of the narrative timeline. Shows whether the investigation target was reached. If `onNavigateToWhatIf` is provided, renders a "Model improvements →" button — the bridge from Investigation Phase to What-If Phase (the 2-phase workflow described in ADR-014).
+
+### State Hook (useMindmapState)
+
+> Source: `packages/hooks/src/useMindmapState.ts`
+
+Responsibilities:
+
+1. Calls `useDrillPath()` for drill statistics
+2. Converts filterStack to flat filters, computes filtered data
+3. Computes `MindmapNode[]` from factors: η² per factor, state classification, suggestion
+4. Manages mode state (`'drilldown'` | `'narrative'`)
+5. Manages annotations (step index → text, session-only)
+6. Maps DrillSteps to NarrativeSteps with merged annotations
+
+---
+
+## Part 15 — Deferred Methods (Phase 2)
+
+Per ADR-014, the following modules exist in `@variscout/core` but are not exported or used in the current product:
+
+| Module                     | Function                        | Purpose                                     |
+| -------------------------- | ------------------------------- | ------------------------------------------- |
+| `stats/regression.ts`      | `calculateRegression()`         | Simple linear regression                    |
+| `stats/multiRegression.ts` | `calculateMultipleRegression()` | Multiple regression with categorical coding |
+| `stats/interaction.ts`     | `getInteractionStrength()`      | Factor interaction analysis                 |
+| `stats/modelReduction.ts`  | `suggestTermRemoval()`          | Backward elimination                        |
+| `variation/simulation.ts`  | `simulateFromModel()`           | Regression-based what-if                    |
+
+These will enable model-driven simulation in a future release: regression coefficients → what-if adjustments → projected outcomes.
+
+---
+
+## References & Standards
+
+| Topic                                | Standard / Source                                                           |
+| ------------------------------------ | --------------------------------------------------------------------------- |
+| I-MR chart, σ_within                 | Wheeler, _Understanding Variation_ (2000); d2 constant from AIAG SPC Manual |
+| Cp, Cpk                              | AIAG Statistical Process Control Reference Manual, 2nd ed.                  |
+| d2 = 1.128                           | Hartley unbiasing constant for moving range span 2                          |
+| ANOVA effect size (η²)               | Cohen, _Statistical Power Analysis for the Behavioral Sciences_ (1988)      |
+| Boxplot, IQR fences                  | Tukey, _Exploratory Data Analysis_ (1977)                                   |
+| KDE bandwidth                        | Silverman, _Density Estimation for Statistics and Data Analysis_ (1986)     |
+| Benard median rank                   | Benard & Bos-Levenbach (1953); Minitab default                              |
+| Normal quantile                      | Acklam's rational approximation (~1e-9 accuracy)                            |
+| Error function                       | Abramowitz & Stegun, _Handbook of Mathematical Functions_, formula 7.1.26   |
+| Incomplete beta / continued fraction | Lentz's algorithm (max 200 iterations, ε = 1e-10)                           |
+| Node area encoding                   | Stevens' Power Law — area ∝ magnitude for perceptual accuracy               |
+| Nelson Rule 2                        | Nelson, _Journal of Quality Technology_ (1984) — 9-point runs               |

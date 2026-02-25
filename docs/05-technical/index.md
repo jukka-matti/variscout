@@ -75,6 +75,7 @@ Build, deploy, test, and operate:
 | [System Limits](implementation/system-limits.md)          | Row limits, factor limits, performance     |
 | [Security Scanning](implementation/security-scanning.md)  | OWASP scanning, CVE checks                 |
 | [AI Tooling (claude-flow)](implementation/claude-flow.md) | AI development workflow tooling            |
+| [Statistics Reference](statistics-reference.md)           | Exact formulas, algorithms, implementation |
 
 ### Integrations
 

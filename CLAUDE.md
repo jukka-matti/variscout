@@ -141,6 +141,7 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Case studies             | docs/04-cases/index.md                                                                               |
 | Product specs/tagline    | docs/03-features/specifications.md                                                                   |
 | Claude-flow / AI tooling | docs/07-decisions/adr-011-ai-development-tooling.md, docs/05-technical/implementation/claude-flow.md |
+| Statistics reference     | docs/05-technical/statistics-reference.md                                                            |
 | Investigation workflow   | docs/03-features/workflows/investigation-to-action.md                                                |
 | Variation metrics/SS     | docs/03-features/analysis/variation-decomposition.md, packages/core/src/variation/contributions.ts   |
 | What-If/simulation       | docs/06-design-system/components/what-if-simulator.md, packages/core/src/variation/simulation.ts     |
