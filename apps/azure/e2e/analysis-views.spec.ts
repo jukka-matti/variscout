@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { confirmColumnMapping } from './helpers';
 
 /**
  * E2E Test: Azure Analysis View Switching
@@ -19,6 +20,9 @@ test.describe('Azure Analysis View Switching', () => {
     const sampleButton = page.locator('[data-testid^="sample-"]').first();
     await expect(sampleButton).toBeVisible({ timeout: 5000 });
     await sampleButton.click();
+
+    // Confirm column mapping
+    await confirmColumnMapping(page);
 
     // Wait for dashboard to fully load
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });

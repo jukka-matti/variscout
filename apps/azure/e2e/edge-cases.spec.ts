@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { confirmColumnMapping } from './helpers';
 
 /**
  * E2E Test: Azure Edge Cases
@@ -53,7 +54,8 @@ test.describe('Azure Edge Case: No Factors', () => {
     await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
-    await page.locator('text=Manual Entry').click();
+    // Use Paste Data flow (not Manual Entry which shows setup form)
+    await page.locator('text=Paste Data').click();
 
     const textarea = page.locator('textarea').first();
     await expect(textarea).toBeVisible({ timeout: 5000 });
@@ -65,11 +67,8 @@ test.describe('Azure Edge Case: No Factors', () => {
     const analyzeButton = page.locator('button:has-text("Analyze")');
     await analyzeButton.click();
 
-    // Handle column mapping if shown
-    const confirmButton = page.locator('button:has-text("Confirm")');
-    if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await confirmButton.click();
-    }
+    // Handle column mapping step
+    await confirmColumnMapping(page);
 
     // Should render I-Chart at minimum (no boxplot groups expected)
     const hasChart = await page
@@ -95,35 +94,32 @@ test.describe('Azure Edge Case: Replace Data', () => {
     await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
-    const sampleButtons = page.locator('[data-testid^="sample-"]');
-    const count = await sampleButtons.count();
-    if (count < 2) return; // Need at least 2 samples
-
-    // Load first sample
-    await sampleButtons.first().click();
+    // Load coffee sample (has factors for filtering)
+    const coffeeSample = page.locator('[data-testid="sample-coffee"]');
+    await coffeeSample.click();
+    await confirmColumnMapping(page);
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
-    // Apply a filter
+    // Apply a filter via boxplot
     const boxplotRects = page.locator('[data-testid="chart-boxplot"] svg rect[cursor="pointer"]');
     if ((await boxplotRects.count()) > 0) {
       await boxplotRects.first().click();
       await page.waitForTimeout(500);
     }
 
-    // Go back and load second sample
-    const backBtn = page.locator('text=Back').first();
-    await backBtn.click();
-    await expect(page.getByRole('button', { name: 'New Analysis' }).first()).toBeVisible({
-      timeout: 5000,
-    });
-
+    // Navigate fresh to load a different sample
+    await page.goto('/');
+    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
-    await sampleButtons.nth(1).click();
+    // Load bottleneck sample
+    const bottleneckSample = page.locator('[data-testid="sample-bottleneck"]');
+    await bottleneckSample.click();
+    await confirmColumnMapping(page);
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
-    // Should have no stale filter chips
+    // Should have no stale filter chips from the previous sample
     const chipCount = await page.locator('[data-testid^="filter-chip-"]').count();
     expect(chipCount).toBe(0);
   });
@@ -141,6 +137,7 @@ test.describe('Azure Edge Case: Back Navigation', () => {
     // Load a sample
     const sampleButton = page.locator('[data-testid^="sample-"]').first();
     await sampleButton.click();
+    await confirmColumnMapping(page);
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
     // Navigate back

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { loadSampleInEditor, confirmColumnMapping } from './helpers';
 
 /**
  * E2E Test: Azure User Flows
@@ -8,24 +9,8 @@ import { test, expect } from '@playwright/test';
  * 2. Manual entry workflow
  * 3. Data panel toggle
  * 4. Settings & theme switching
- * 5. Regression view
- * 6. ANOVA display
+ * 5. ANOVA display
  */
-
-/** Helper: Navigate to editor and load first sample */
-async function loadSampleInEditor(page: import('@playwright/test').Page) {
-  await page.goto('/');
-  await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-
-  await page.getByRole('button', { name: 'New Analysis' }).first().click();
-  await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
-
-  const sampleButton = page.locator('[data-testid^="sample-"]').first();
-  await expect(sampleButton).toBeVisible({ timeout: 5000 });
-  await sampleButton.click();
-
-  await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
-}
 
 test.describe('Azure: Multi-Level Drill-Down', () => {
   test('should drill down and backtrack via filter chips', async ({ page }) => {
@@ -82,7 +67,7 @@ test.describe('Azure: Multi-Level Drill-Down', () => {
   });
 });
 
-test.describe('Azure: Manual Entry', () => {
+test.describe('Azure: Paste Data', () => {
   test('should paste data and see charts', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
@@ -90,10 +75,10 @@ test.describe('Azure: Manual Entry', () => {
     await page.getByRole('button', { name: 'New Analysis' }).first().click();
     await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
-    // Click Manual Entry button
-    const manualEntryBtn = page.locator('text=Manual Entry');
-    await expect(manualEntryBtn).toBeVisible({ timeout: 5000 });
-    await manualEntryBtn.click();
+    // Use Paste Data flow (not Manual Entry which shows setup form)
+    const pasteBtn = page.locator('text=Paste Data');
+    await expect(pasteBtn).toBeVisible({ timeout: 5000 });
+    await pasteBtn.click();
 
     // Find textarea and paste data
     const textarea = page.locator('textarea').first();
@@ -119,11 +104,8 @@ test.describe('Azure: Manual Entry', () => {
     await expect(analyzeButton).toBeVisible({ timeout: 3000 });
     await analyzeButton.click();
 
-    // Handle possible column mapping dialog
-    const confirmButton = page.locator('button:has-text("Confirm")');
-    if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await confirmButton.click();
-    }
+    // Handle column mapping step
+    await confirmColumnMapping(page);
 
     // Charts should render
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });

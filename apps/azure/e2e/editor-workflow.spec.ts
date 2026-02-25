@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { confirmColumnMapping } from './helpers';
 
 /**
  * E2E Test: Azure Editor Workflow
@@ -59,6 +60,9 @@ test.describe('Azure App: Editor', () => {
     await expect(sampleButton).toBeVisible({ timeout: 5000 });
     await sampleButton.click();
 
+    // Confirm column mapping
+    await confirmColumnMapping(page);
+
     // Dashboard should render with chart containers
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
   });
@@ -67,6 +71,8 @@ test.describe('Azure App: Editor', () => {
     // Load first available sample
     const sampleButton = page.locator('[data-testid^="sample-"]').first();
     await sampleButton.click();
+
+    await confirmColumnMapping(page);
 
     // Wait for charts
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
@@ -82,6 +88,8 @@ test.describe('Azure App: Editor', () => {
     const sampleButton = page.locator('[data-testid^="sample-"]').first();
     await sampleButton.click();
 
+    await confirmColumnMapping(page);
+
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('[data-testid="chart-boxplot"]')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('[data-testid="chart-pareto"]')).toBeVisible({ timeout: 5000 });
@@ -90,6 +98,8 @@ test.describe('Azure App: Editor', () => {
   test('should apply filter via boxplot and show filter chip', async ({ page }) => {
     const sampleButton = page.locator('[data-testid^="sample-"]').first();
     await sampleButton.click();
+
+    await confirmColumnMapping(page);
 
     await expect(page.locator('[data-testid="chart-boxplot"]')).toBeVisible({ timeout: 15000 });
 

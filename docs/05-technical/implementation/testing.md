@@ -160,7 +160,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ## Current Coverage
 
-**Total: 90 vitest files, 1,475 test cases + 13 Playwright E2E spec files**
+**Total: 90 vitest files, 1,475 test cases + 19 Playwright E2E spec files**
 
 ### @variscout/core (26 files, 739 test cases)
 
@@ -265,38 +265,61 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ## Playwright E2E Coverage
 
-### PWA (7 spec files)
+### PWA (10 spec files)
 
-| Spec File                   | Tests                                                             |
-| :-------------------------- | :---------------------------------------------------------------- |
-| `critical-workflow.spec.ts` | App load, home screen, sample load, stats display, SVG rendering  |
-| `drill-down.spec.ts`        | Boxplot click → filter chip, stats update, chip remove, clear all |
-| `samples.spec.ts`           | All sample datasets load, chart rendering, expected stats values  |
-| `analysis-views.spec.ts`    | Dashboard view switching via Settings, SVG rendering              |
-| `stats-anova.spec.ts`       | Cp/Cpk display, mean/sigma/samples, ANOVA F-stat/p-value/eta²     |
-| `user-flows.spec.ts`        | End-to-end user journeys, navigation flows, multi-step workflows  |
-| `edge-cases.spec.ts`        | Boundary conditions, empty states, error handling, edge scenarios |
+| Spec File                             | Tests                                                             |
+| :------------------------------------ | :---------------------------------------------------------------- |
+| `critical-workflow.spec.ts`           | App load, home screen, sample load, stats display, SVG rendering  |
+| `drill-down.spec.ts`                  | Boxplot click → filter chip, stats update, chip remove, clear all |
+| `samples.spec.ts`                     | All sample datasets load, chart rendering, expected stats values  |
+| `analysis-views.spec.ts`              | Dashboard view switching via Settings, SVG rendering              |
+| `stats-anova.spec.ts`                 | Cp/Cpk display, mean/sigma/samples, ANOVA F-stat/p-value/eta²     |
+| `user-flows.spec.ts`                  | End-to-end user journeys, navigation flows, multi-step workflows  |
+| `edge-cases.spec.ts`                  | Boundary conditions, empty states, error handling, edge scenarios |
+| `bottleneck-investigation.spec.ts`    | Bottleneck case study drill-down investigation                    |
+| `hospital-ward-investigation.spec.ts` | Hospital ward case study investigation                            |
+| `mindmap-evaluation.spec.ts`          | Mindmap panel rendering and interaction                           |
 
 ```bash
 # Run PWA E2E tests
 pnpm --filter @variscout/pwa test:e2e
 ```
 
-### Azure App (6 spec files)
+### Azure App (9 spec files)
 
-| Spec File                 | Tests                                                              |
-| :------------------------ | :----------------------------------------------------------------- |
-| `editor-workflow.spec.ts` | Auth, empty state, sample load, chart rendering, filter drill-down |
-| `samples.spec.ts`         | Sample dataset loading, chart rendering, expected values           |
-| `analysis-views.spec.ts`  | Analysis view switching, SVG rendering                             |
-| `stats-anova.spec.ts`     | Mean/sigma/samples display, ANOVA F-stat/p-value/eta²              |
-| `user-flows.spec.ts`      | End-to-end user journeys, editor navigation, multi-step workflows  |
-| `edge-cases.spec.ts`      | Boundary conditions, empty states, error handling, edge scenarios  |
+| Spec File                  | Tests                                                              |
+| :------------------------- | :----------------------------------------------------------------- |
+| `editor-workflow.spec.ts`  | Auth, empty state, sample load, chart rendering, filter drill-down |
+| `samples.spec.ts`          | Sample dataset loading, chart rendering, expected values           |
+| `analysis-views.spec.ts`   | Analysis view switching, SVG rendering                             |
+| `stats-anova.spec.ts`      | Mean/sigma/samples display, ANOVA F-stat/p-value/eta²              |
+| `user-flows.spec.ts`       | End-to-end user journeys, editor navigation, multi-step workflows  |
+| `edge-cases.spec.ts`       | Boundary conditions, empty states, error handling, edge scenarios  |
+| `editor-features.spec.ts`  | CSV export, data panel, save, What-If, mindmap toggle              |
+| `performance-mode.spec.ts` | Performance tab, Cp/Cpk toggle, spec limits, channel count         |
+| `settings-theme.spec.ts`   | Settings panel, light/dark theme, accent colors, chart text size   |
 
 ```bash
 # Run Azure E2E tests
 pnpm --filter @variscout/azure-app test:e2e
 ```
+
+### Azure E2E Patterns
+
+Azure E2E tests share a helper module at `apps/azure/e2e/helpers.ts` with three exported functions:
+
+| Function                | Purpose                                                                 |
+| :---------------------- | :---------------------------------------------------------------------- |
+| `confirmColumnMapping`  | Click "Start Analysis" on the ColumnMapping screen                      |
+| `loadSampleInEditor`    | Navigate to editor, load first sample, confirm mapping, wait for charts |
+| `loadPerformanceSample` | Load the large-scale performance sample and confirm mapping             |
+
+**Key patterns for Azure E2E tests:**
+
+- **ColumnMapping flow:** Every sample load, paste, or file upload triggers the "Map Your Data" ColumnMapping screen. Tests must call `confirmColumnMapping(page)` (or use `loadSampleInEditor`) to click "Start Analysis" before asserting on charts.
+- **Clean state between samples:** Use `page.goto('/')` between sequential sample loads to reset persisted IndexedDB state. Without this, the second sample load may skip the empty-state editor.
+- **ANOVA location:** ANOVA results are only visible in the FocusedBoxplotView. Tests must maximize the boxplot card first (click the expand button on `[data-testid="chart-boxplot"]`).
+- **Paste vs Manual Entry:** "Paste Data" button opens a textarea for pasting tabular text. "Manual Entry" opens the setup form for creating columns and entering values row by row.
 
 ---
 

@@ -6,7 +6,7 @@
 
 ## Context
 
-VariScout is a 5-package TypeScript monorepo with 1,126 unit tests and 13 Playwright E2E specs. Development uses Claude Code as the primary AI coding assistant.
+VariScout is a 5-package TypeScript monorepo with 1,475 unit tests and 19 Playwright E2E specs. Development uses Claude Code as the primary AI coding assistant.
 
 Recurring friction points:
 

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { confirmColumnMapping } from './helpers';
 
 /**
  * E2E Test: Azure Sample Datasets
@@ -29,6 +30,9 @@ test.describe('Azure App: Sample Datasets', () => {
     const sampleButton = page.locator('[data-testid^="sample-"]').first();
     await sampleButton.click();
 
+    // Confirm column mapping
+    await confirmColumnMapping(page);
+
     // Charts should render
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
@@ -41,6 +45,7 @@ test.describe('Azure App: Sample Datasets', () => {
     const sampleButton = page.locator('[data-testid^="sample-"]').first();
     await sampleButton.click();
 
+    await confirmColumnMapping(page);
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
     // Mean value should be numeric
@@ -57,11 +62,10 @@ test.describe('Azure App: Sample Datasets', () => {
   });
 
   test('should load multiple samples sequentially', async ({ page }) => {
-    const sampleButtons = page.locator('[data-testid^="sample-"]');
-    const count = await sampleButtons.count();
-
-    // Load first sample
-    await sampleButtons.first().click();
+    // Load first sample (coffee)
+    const coffeeSample = page.locator('[data-testid="sample-coffee"]');
+    await coffeeSample.click();
+    await confirmColumnMapping(page);
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
     // Record first sample stats
@@ -69,24 +73,19 @@ test.describe('Azure App: Sample Datasets', () => {
     await expect(meanValue).toBeVisible({ timeout: 5000 });
     const firstMean = await meanValue.textContent();
 
-    // Go back to load a different sample (if more than 1)
-    if (count > 1) {
-      const backBtn = page.locator('text=Back').first();
-      await backBtn.click();
-      await expect(page.getByRole('button', { name: 'New Analysis' }).first()).toBeVisible({
-        timeout: 5000,
-      });
+    // Navigate fresh to load a different sample
+    await page.goto('/');
+    await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: 'New Analysis' }).first().click();
+    await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
 
-      // Navigate to editor again
-      await page.getByRole('button', { name: 'New Analysis' }).first().click();
-      await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
+    // Load bottleneck sample
+    const bottleneckSample = page.locator('[data-testid="sample-bottleneck"]');
+    await bottleneckSample.click();
+    await confirmColumnMapping(page);
+    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
 
-      // Load second sample
-      await sampleButtons.nth(1).click();
-      await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
-
-      // Stats should be different (different dataset)
-      await expect(meanValue).toBeVisible({ timeout: 5000 });
-    }
+    // Stats should be visible for second sample
+    await expect(meanValue).toBeVisible({ timeout: 5000 });
   });
 });

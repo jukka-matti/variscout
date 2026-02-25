@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { loadSampleInEditor } from './helpers';
 
 /**
  * E2E Test: Azure Editor Features
@@ -10,18 +11,6 @@ import { test, expect, type Page } from '@playwright/test';
  * - What-If Simulator navigation
  * - Investigation mindmap toggle
  */
-
-async function loadSampleInEditor(page: Page) {
-  await page.goto('/');
-  await expect(page.locator('text=VariScout Team')).toBeVisible({ timeout: 10000 });
-  await page.getByRole('button', { name: 'New Analysis' }).first().click();
-  await expect(page.locator('text=Start Your Analysis')).toBeVisible({ timeout: 5000 });
-
-  // Load first available sample
-  const sampleButton = page.locator('[data-testid^="sample-"]').first();
-  await sampleButton.click();
-  await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
-}
 
 test.describe('Azure App: CSV Export', () => {
   test('should trigger CSV download when export button is clicked', async ({ page }) => {
