@@ -24,7 +24,6 @@ Complete feature availability across VariScout platforms.
 | **Pareto**                   |     ✓     |     ✓      | Planned  |
 | **Capability Histogram**     |     ✓     |     ✓      | Planned  |
 | **Probability Plot**         |     ✓     |     ✓      |    -     |
-| **Scatter/Regression**       |     ✓     |     ✓      |    -     |
 | **Violin Mode**              |     ✓     |     ✓      |    -     |
 | **Boxplot category sorting** |     ✓     |     ✓      |    -     |
 | **Performance Mode**         |     ✓     |     -      |    -     |
@@ -44,8 +43,6 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | Cp, Cpk               |   ✓   |  ✓  | (USL-LSL)/6σ        |
 | η² (Eta-squared)      |   ✓   |  ✓  | SS_between/SS_total |
 | F-statistic, p-value  |   ✓   |  ✓  | ANOVA               |
-| R², Adjusted R²       |   ✓   |  ✓  | Regression          |
-| VIF                   |   ✓   |  ✓  | Multicollinearity   |
 | Nelson Rule 2         |   ✓   |  ✓  | 9-point run         |
 
 ---

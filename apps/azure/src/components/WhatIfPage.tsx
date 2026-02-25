@@ -5,21 +5,15 @@ import {
   whatIfPageAzureColorScheme,
   whatIfSimulatorAzureColorScheme,
 } from '@variscout/ui';
-import type { FilterAction, MultiRegressionResult } from '@variscout/core';
+import type { FilterAction } from '@variscout/core';
 
 interface WhatIfPageProps {
   onBack: () => void;
   filterCount?: number;
   filterStack?: FilterAction[];
-  regressionModel?: MultiRegressionResult;
 }
 
-const WhatIfPage: React.FC<WhatIfPageProps> = ({
-  onBack,
-  filterCount = 0,
-  filterStack,
-  regressionModel,
-}) => {
+const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack, filterCount = 0, filterStack }) => {
   const { filteredData, rawData, outcome, specs, columnAliases, cpkTarget } = useData();
 
   const filterNames = useMemo(() => {
@@ -43,7 +37,6 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({
       onBack={onBack}
       colorScheme={whatIfPageAzureColorScheme}
       simulatorColorScheme={whatIfSimulatorAzureColorScheme}
-      regressionModel={regressionModel}
       cpkTarget={cpkTarget}
     />
   );

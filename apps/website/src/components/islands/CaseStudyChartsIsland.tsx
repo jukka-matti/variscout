@@ -3,7 +3,7 @@ import ChartContainer from './ChartContainer';
 import StatsIsland from './StatsIsland';
 import { renderChartContent } from './renderChart';
 
-type CaseChartType = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
+type CaseChartType = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
 interface CaseStudyChartsIslandProps {
   sampleKey: string;
@@ -48,7 +48,6 @@ export default function CaseStudyChartsIsland({
           renderChartContent({
             chartType,
             computed,
-            sample,
             width,
             height: containerHeight,
             showBranding,

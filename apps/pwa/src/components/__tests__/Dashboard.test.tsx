@@ -15,9 +15,6 @@ vi.mock('../charts/ParetoChart', () => ({
 vi.mock('../StatsPanel', () => ({
   default: () => <div data-testid="stats-panel">Stats Panel</div>,
 }));
-vi.mock('../RegressionPanel', () => ({
-  default: () => <div data-testid="regression-panel">Regression Panel</div>,
-}));
 vi.mock('../AnovaResults', () => ({
   default: () => <div data-testid="anova-results">ANOVA Results</div>,
 }));
@@ -106,7 +103,7 @@ describe('Dashboard', () => {
     setOutcome: vi.fn(),
     filters: {},
     columnAliases: {},
-    chartTitles: { ichart: '', boxplot: '', pareto: '', histogram: '', scatter: '' },
+    chartTitles: { ichart: '', boxplot: '', pareto: '' },
     setChartTitles: vi.fn(),
     displayOptions: { showFilterContext: true },
     setDisplayOptions: vi.fn(),
@@ -121,32 +118,10 @@ describe('Dashboard', () => {
 
     render(<Dashboard />);
 
-    // Tab navigation present
-    expect(screen.getByRole('tablist')).toBeInTheDocument();
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Regression')).toBeInTheDocument();
-
-    // Dashboard tab is active
-    expect(screen.getByText('Dashboard')).toHaveClass('bg-blue-600');
-
     // Dashboard view shows I-Chart, Boxplot, and Stats Panel
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
     expect(screen.getByTestId('stats-panel')).toBeInTheDocument();
-  });
-
-  it('switches to regression view when Regression tab is clicked', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
-    render(<Dashboard />);
-
-    fireEvent.click(screen.getByText('Regression'));
-
-    expect(screen.getByText('Regression')).toHaveClass('bg-blue-600');
-    expect(screen.getByTestId('regression-panel')).toBeInTheDocument();
-    expect(screen.queryByTestId('i-chart')).not.toBeInTheDocument();
   });
 
   it('shows What-If button when onOpenWhatIf is provided', () => {

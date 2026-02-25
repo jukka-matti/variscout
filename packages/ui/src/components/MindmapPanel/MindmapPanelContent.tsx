@@ -39,7 +39,7 @@ export const mindmapPanelAzureColorScheme: MindmapPanelColorScheme = {
   mutedText: 'text-slate-500',
 };
 
-type MindmapMode = 'drilldown' | 'interactions' | 'narrative';
+type MindmapMode = 'drilldown' | 'narrative';
 
 export interface MindmapPanelContentProps {
   /** Current mode */
@@ -68,10 +68,6 @@ export interface MindmapPanelContentProps {
   onCopyToClipboard?: () => void;
   /** Whether copy feedback (Check icon) is active */
   copyFeedback?: boolean;
-  /** Number of factors for mode gating */
-  factorCount?: number;
-  /** Number of data rows for mode gating */
-  dataCount?: number;
 }
 
 /**
@@ -95,8 +91,6 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
   onExportSvg,
   onCopyToClipboard,
   copyFeedback,
-  factorCount,
-  dataCount,
 }) => {
   const c = colorScheme;
 
@@ -111,9 +105,7 @@ const MindmapPanelContent: React.FC<MindmapPanelContentProps> = ({
           setMode={setMode}
           toggleBg={c.toggleBg}
           inactiveText={c.inactiveText}
-          factorCount={factorCount}
           drillCount={drillPath.length}
-          dataCount={dataCount}
         />
 
         <div className="flex items-center gap-1">

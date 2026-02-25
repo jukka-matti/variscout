@@ -1,7 +1,7 @@
 // Case study content and metadata — single source of truth
 // Used by: [slug].astro, RelatedCases.astro, WhatsNext.astro, CaseProgress.astro
 
-export type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
+export type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 
 export interface CaseStep {
@@ -260,37 +260,37 @@ export const CASE_STUDIES: CaseStudy[] = [
     description: 'More coating means longer shelf life. But can operators apply it consistently?',
     difficulty: 'advanced',
     time: '10 min',
-    tools: ['regression', 'stats'],
-    toolNames: ['Regression', 'Stats'],
+    tools: ['ichart', 'stats'],
+    toolNames: ['I-Chart', 'Stats'],
     problem: {
-      lead: "What's the optimal coating level for maximum shelf life?",
+      lead: 'Can operators apply coating consistently enough to meet shelf life targets?',
       context:
-        "A post-harvest facility coats avocados with wax to extend shelf life. Research suggests more coating = longer shelf life. But there's 28% unexplained variation in the results. Why?",
+        'A post-harvest facility coats avocados with wax to extend shelf life. The target coating level is set, but shelf life results vary widely. Is the process stable, or are there special causes at work?',
     },
     objectives: [
-      'Understand regression relationships',
-      'Interpret R-squared values',
-      'Investigate residual patterns for unexplained variation',
+      'Use I-Chart to monitor coating consistency over time',
+      'Detect special causes driving shelf life variation',
+      'Identify operator or environmental patterns in the data',
     ],
     steps: [
       {
-        title: 'The Regression',
+        title: 'Monitor the Process',
         content:
-          'Coating amount explains 72% of shelf life variation (R\u00B2 = 0.72). Each ml/kg adds ~3 days.',
+          'The I-Chart shows shelf life measurements over time. Look for points outside control limits and any patterns or shifts.',
         interactive: false,
-        targetChart: 'regression',
+        targetChart: 'ichart',
       },
       {
-        title: 'But 28% is Unexplained',
+        title: 'Spot the Special Causes',
         content:
-          'What accounts for the remaining variation? Look at the residuals - some operators have systematic patterns.',
+          'Several points fall outside control limits. Check the timeline - do they coincide with operator changes, material batches, or environmental shifts?',
         interactive: true,
-        targetChart: 'regression',
+        targetChart: 'ichart',
       },
       {
         title: 'The Business Decision',
         content:
-          'Standardize application technique and control environmental factors, then re-run the regression for tighter predictions.',
+          'Standardize application technique and control environmental factors to bring the process into statistical control, then reassess capability.',
         interactive: false,
         targetChart: 'stats',
       },

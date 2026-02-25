@@ -12,7 +12,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import type { DataRow } from '../../types';
 import { loadCsv } from './fixtures/loadCsv';
-import { calculateStats, calculateAnova, getEtaSquared, calculateRegression } from '../stats';
+import { calculateStats, calculateAnova, getEtaSquared } from '../stats';
 import { applyFilters, calculateDrillVariation, calculateCategoryTotalSS } from '../variation';
 
 // ============================================================================
@@ -360,41 +360,5 @@ describe('Golden Data: Pipeline Verification', () => {
 
     // Both should give the same η²
     expect(eta1).toBeCloseTo(anova!.etaSquared, 6);
-  });
-});
-
-// ============================================================================
-// Avocado dataset — coating-regression.csv
-// ============================================================================
-
-describe('Golden Data: Avocado Coating Regression', () => {
-  let data: DataRow[];
-
-  beforeAll(() => {
-    data = loadCsv('docs/04-cases/avocado/coating-regression.csv');
-  });
-
-  it('should load data with expected columns', () => {
-    expect(data.length).toBeGreaterThanOrEqual(10);
-    expect(Object.keys(data[0])).toEqual(
-      expect.arrayContaining(['Coating_ml_kg', 'Shelf_Life_Days'])
-    );
-  });
-
-  it('should find significant linear relationship (Coating → Shelf Life)', () => {
-    const result = calculateRegression(data, 'Coating_ml_kg', 'Shelf_Life_Days');
-
-    expect(result).not.toBeNull();
-    expect(result!.linear.isSignificant).toBe(true);
-    expect(result!.linear.slope).toBeGreaterThan(0); // more coating → longer shelf life
-    expect(result!.linear.rSquared).toBeGreaterThan(0.5);
-    expect(result!.recommendedFit).not.toBe('none');
-  });
-
-  it('should have strength rating ≥ 3 (moderate to strong)', () => {
-    const result = calculateRegression(data, 'Coating_ml_kg', 'Shelf_Life_Days');
-
-    expect(result).not.toBeNull();
-    expect(result!.strengthRating).toBeGreaterThanOrEqual(3);
   });
 });

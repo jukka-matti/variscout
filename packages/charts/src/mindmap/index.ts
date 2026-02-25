@@ -2,7 +2,6 @@
 export type {
   CategoryData,
   MindmapNode,
-  MindmapEdge,
   MindmapMode,
   NarrativeStep,
   InvestigationMindmapProps,
@@ -18,14 +17,9 @@ export {
   CENTER_NODE_RADIUS,
   PROGRESS_BAR_HEIGHT,
   MARGIN,
-  EDGE_MIN_WIDTH,
-  EDGE_MAX_WIDTH,
   getNodeRadius,
   getNodeFill,
   getNodeStroke,
-  getEdgeWidth,
-  getEdgeOpacity,
-  getVisibleEdges,
 } from './helpers';
 
 // Sub-components
@@ -35,7 +29,5 @@ export { default as ConclusionPanel } from './ConclusionPanel';
 export type { ConclusionPanelProps } from './ConclusionPanel';
 export { default as CategoryPopover } from './CategoryPopover';
 export type { CategoryPopoverProps } from './CategoryPopover';
-export { default as EdgeTooltip } from './EdgeTooltip';
-export type { EdgeTooltipProps } from './EdgeTooltip';
 export { default as ProgressFooter } from './ProgressFooter';
 export type { ProgressFooterProps } from './ProgressFooter';

@@ -1,14 +1,11 @@
 import { chartColors } from '../colors';
-import type { MindmapNode, MindmapEdge } from './types';
+import type { MindmapNode } from './types';
 
 export const MIN_NODE_RADIUS = 20;
 export const MAX_NODE_RADIUS = 40;
 export const CENTER_NODE_RADIUS = 16;
 export const PROGRESS_BAR_HEIGHT = 32;
 export const MARGIN = { top: 20, right: 20, bottom: 20, left: 20 };
-
-export const EDGE_MIN_WIDTH = 1.5;
-export const EDGE_MAX_WIDTH = 6;
 
 /**
  * Compute node radius from η² value (area encodes magnitude).
@@ -43,29 +40,4 @@ export function getNodeStroke(node: MindmapNode, isDark: boolean): string {
   if (node.isSuggested) return chartColors.pass; // green pulse
   if (node.state === 'active') return chartColors.mean;
   return isDark ? '#475569' : '#94a3b8'; // slate-600 / slate-400
-}
-
-/**
- * Map ΔR² to edge stroke width (linear interpolation)
- */
-export function getEdgeWidth(deltaRSquared: number, maxDelta: number): number {
-  if (maxDelta <= 0) return EDGE_MIN_WIDTH;
-  const t = Math.min(1, deltaRSquared / maxDelta);
-  return EDGE_MIN_WIDTH + t * (EDGE_MAX_WIDTH - EDGE_MIN_WIDTH);
-}
-
-/**
- * Get edge opacity based on p-value significance
- */
-export function getEdgeOpacity(pValue: number): number {
-  if (pValue < 0.05) return 1.0;
-  if (pValue < 0.1) return 0.4;
-  return 0; // not rendered
-}
-
-/**
- * Filter edges to only those significant enough to render (p < 0.10)
- */
-export function getVisibleEdges(edges: MindmapEdge[]): MindmapEdge[] {
-  return edges.filter(e => e.pValue < 0.1);
 }

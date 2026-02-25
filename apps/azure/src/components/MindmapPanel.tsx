@@ -29,8 +29,6 @@ interface MindmapPanelProps {
   onDrillCategory: (factor: string, value: string | number) => void;
   onOpenPopout?: () => void;
   onNavigateToWhatIf?: () => void;
-  onNavigateToRegression?: (factors: string[]) => void;
-  onModelInteraction?: (factors: string[]) => void;
   /** Initial annotations for restoring persisted state */
   annotations?: Map<number, string>;
   /** Callback when annotations change (for persistence) */
@@ -53,8 +51,6 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
   onDrillCategory,
   onOpenPopout,
   onNavigateToWhatIf,
-  onNavigateToRegression,
-  onModelInteraction,
   annotations: externalAnnotations,
   onAnnotationsChange,
 }) => {
@@ -87,7 +83,6 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
     nodes,
     drillTrail,
     cumulativeVariationPct,
-    interactionEdges,
     narrativeSteps,
     drillPath,
     mode,
@@ -210,8 +205,6 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           onExportSvg={handleExportSvg}
           colorScheme={mindmapPanelAzureColorScheme}
           columnAliases={columnAliases}
-          factorCount={factors.length}
-          dataCount={data.length}
         >
           <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">
             <InvestigationMindmapBase
@@ -221,13 +214,10 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
               onNodeClick={() => {}}
               onCategorySelect={handleCategorySelect}
               mode={mode}
-              edges={interactionEdges}
               narrativeSteps={narrativeSteps}
               onAnnotationChange={handleAnnotationChange}
               columnAliases={columnAliases}
               onNavigateToWhatIf={onNavigateToWhatIf}
-              onNavigateToRegression={onNavigateToRegression}
-              onModelInteraction={onModelInteraction}
               width={chartWidth}
               height={chartHeight}
             />

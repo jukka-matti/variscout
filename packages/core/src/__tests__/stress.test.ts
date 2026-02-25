@@ -16,8 +16,6 @@ import {
   getEtaSquared,
   calculateBoxplotStats,
   calculateKDE,
-  calculateRegression,
-  calculateMultipleRegression,
 } from '../stats';
 import {
   calculateFactorVariations,
@@ -31,7 +29,6 @@ import {
   pharmaFillLine,
   beverageFilling,
   timedExec,
-  mulberry32,
 } from './helpers/stressDataGenerator';
 
 // ============================================================================
@@ -450,106 +447,5 @@ describe('Scenario-based stress tests', () => {
     const result = calculateAnova(data, 'Volume_ml', 'Head');
     expect(result).not.toBeNull();
     expect(result!.groups).toHaveLength(8);
-  });
-});
-
-// ============================================================================
-// Regression Performance Benchmarks
-// ============================================================================
-
-describe('Regression performance benchmarks', () => {
-  it(
-    'calculateMultipleRegression: 1000 rows, 6 continuous predictors < 500ms',
-    { timeout: 10_000 },
-    () => {
-      const rng = mulberry32(42);
-      const data = Array.from({ length: 1000 }, () => {
-        const x1 = rng() * 100;
-        const x2 = rng() * 100;
-        const x3 = rng() * 100;
-        const x4 = rng() * 100;
-        const x5 = rng() * 100;
-        const x6 = rng() * 100;
-        const y = 2 * x1 + 3 * x2 - x3 + 0.5 * x4 + x5 - 2 * x6 + rng() * 10;
-        return { X1: x1, X2: x2, X3: x3, X4: x4, X5: x5, X6: x6, Y: y } as DataRow;
-      });
-
-      const { result, durationMs } = timedExec(() =>
-        calculateMultipleRegression(data, 'Y', ['X1', 'X2', 'X3', 'X4', 'X5', 'X6'])
-      );
-
-      expect(result).not.toBeNull();
-      expect(result!.rSquared).toBeGreaterThan(0.9);
-      expect(durationMs).toBeLessThan(500);
-    }
-  );
-
-  it(
-    'calculateMultipleRegression: 500 rows, 3 factors + interactions < 500ms',
-    { timeout: 10_000 },
-    () => {
-      const rng = mulberry32(77);
-      const shifts = ['Day', 'Night', 'Swing'];
-      const data = Array.from({ length: 500 }, (_, i) => {
-        const temp = rng() * 50 + 100;
-        const pressure = rng() * 20 + 50;
-        const shift = shifts[i % 3];
-        const y = temp * 0.5 + pressure * 2 + (shift === 'Night' ? 3 : 0) + rng() * 5;
-        return { Temp: temp, Pressure: pressure, Shift: shift, Y: y } as DataRow;
-      });
-
-      const { result, durationMs } = timedExec(() =>
-        calculateMultipleRegression(data, 'Y', ['Temp', 'Pressure', 'Shift'], {
-          categoricalColumns: ['Shift'],
-          includeInteractions: true,
-        })
-      );
-
-      expect(result).not.toBeNull();
-      expect(durationMs).toBeLessThan(500);
-    }
-  );
-
-  it('VIF at scale: 10 predictors, 200 rows → all VIF values finite', { timeout: 10_000 }, () => {
-    const rng = mulberry32(55);
-    const data = Array.from({ length: 200 }, () => {
-      const row: DataRow = {};
-      for (let j = 1; j <= 10; j++) {
-        row[`X${j}`] = rng() * 100;
-      }
-      // Y is a linear combination of all predictors
-      let y = 0;
-      for (let j = 1; j <= 10; j++) {
-        y += (j % 2 === 0 ? 1 : -1) * (row[`X${j}`] as number);
-      }
-      row.Y = y + rng() * 20;
-      return row;
-    });
-
-    const cols = Array.from({ length: 10 }, (_, i) => `X${i + 1}`);
-    const result = calculateMultipleRegression(data, 'Y', cols);
-
-    expect(result).not.toBeNull();
-    const vifs = result!.coefficients.map(c => c.vif).filter((v): v is number => v !== undefined);
-    // All VIF values should be finite (independent predictors)
-    for (const vif of vifs) {
-      expect(isFinite(vif)).toBe(true);
-      expect(vif).toBeGreaterThanOrEqual(1); // VIF is always ≥ 1
-    }
-  });
-
-  it('calculateRegression: 50K rows, simple linear < 200ms', { timeout: 30_000 }, () => {
-    const rng = mulberry32(33);
-    const data = Array.from({ length: 50_000 }, () => {
-      const x = rng() * 1000;
-      const y = 2.5 * x + 100 + rng() * 50;
-      return { X: x, Y: y };
-    });
-
-    const { result, durationMs } = timedExec(() => calculateRegression(data, 'X', 'Y'));
-
-    expect(result).not.toBeNull();
-    expect(result!.linear.slope).toBeCloseTo(2.5, 0);
-    expect(durationMs).toBeLessThan(200);
   });
 });

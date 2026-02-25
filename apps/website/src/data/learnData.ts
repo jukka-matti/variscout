@@ -42,7 +42,7 @@ interface DiagramVisual {
 }
 
 export interface ChartVisualData {
-  toolSlug: 'i-chart' | 'boxplot' | 'pareto' | 'capability' | 'regression' | 'performance';
+  toolSlug: 'i-chart' | 'boxplot' | 'pareto' | 'capability' | 'performance';
   sampleKey: string;
   height?: number;
   caption?: string;
@@ -418,7 +418,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         },
       },
     ],
-    relatedTools: ['i-chart', 'boxplot', 'regression'],
+    relatedTools: ['i-chart', 'boxplot'],
     relatedTopics: ['four-lenses', 'two-voices'],
     relatedCases: ['bottleneck', 'avocado'],
   },
@@ -984,7 +984,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'in-variscout',
         title: 'Where You See This in VariScout',
         content:
-          'Every surface in VariScout maps to a piece of the decomposition. The Investigation Mindmap shows η² on each factor node — the green pulse highlights the factor with the highest η², guiding where to drill next. Boxplot category labels show Total SS %, revealing which specific category drives the most variation. Filter chips display cumulative scope from the original total, so you always know how much of the original variation your current view captures. The Regression panel builds a joint model to confirm findings and check for interaction effects.',
+          'Every surface in VariScout maps to a piece of the decomposition. The Investigation Mindmap shows η² on each factor node — the green pulse highlights the factor with the highest η², guiding where to drill next. Boxplot category labels show Total SS %, revealing which specific category drives the most variation. Filter chips display cumulative scope from the original total, so you always know how much of the original variation your current view captures.',
         visual: {
           type: 'diagram',
           data: {
@@ -1004,11 +1004,6 @@ export const LEARN_TOPICS: LearnTopic[] = [
                 description: 'Cumulative scope — how much original variation is in focus',
                 tool: 'Drill-down breadcrumbs',
               },
-              {
-                label: 'Regression',
-                description: 'Joint model — confirm effects and detect interactions',
-                tool: 'Regression panel',
-              },
             ],
           },
         },
@@ -1017,7 +1012,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         id: 'going-deeper',
         title: 'Going Deeper: Limitations and Next Steps',
         content:
-          'Variation decomposition is powerful but has limits. It examines one factor at a time — two correlated factors may each appear important, but their combined effect could be smaller than expected (confounding). Unbalanced data (different group sizes) means larger categories contribute proportionally more to Total SS. η² is slightly biased upward in small samples; ω² (omega-squared) corrects for this but VariScout uses η² for its simplicity and interpretability. For multi-factor analysis, use the Regression panel to build joint models that account for interactions and confounding.',
+          'Variation decomposition is powerful but has limits. It examines one factor at a time — two correlated factors may each appear important, but their combined effect could be smaller than expected (confounding). Unbalanced data (different group sizes) means larger categories contribute proportionally more to Total SS. η² is slightly biased upward in small samples; ω² (omega-squared) corrects for this but VariScout uses η² for its simplicity and interpretability. For multi-factor analysis, drill into each factor separately and compare η² values to understand which factors contribute most.',
         visual: {
           type: 'quote',
           data: {
@@ -1028,7 +1023,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
         },
       },
     ],
-    relatedTools: ['boxplot', 'pareto', 'regression'],
+    relatedTools: ['boxplot', 'pareto'],
     relatedTopics: ['methodology-eta-squared', 'four-lenses', 'eda-philosophy'],
     relatedCases: ['bottleneck', 'coffee'],
   },

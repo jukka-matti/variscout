@@ -342,7 +342,7 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     seoTitle: 'p-value | VaRiScout Glossary',
     seoDescription:
       'The p-value is the probability that the observed difference happened by chance. p < 0.05 is typically considered statistically significant.',
-    relatedTools: ['boxplot', 'regression'],
+    relatedTools: ['boxplot'],
     relatedLearn: ['eda-philosophy'],
     sections: [
       {
@@ -393,49 +393,6 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     ],
     practicalTip:
       'η² is what matters for improvement. A factor with η² = 0.46 explains nearly half your variation - fix it first.',
-  },
-
-  // Regression Statistics
-  rSquared: {
-    seoTitle: 'R² (R-Squared) - Coefficient of Determination | VaRiScout Glossary',
-    seoDescription:
-      "R-squared shows how much of Y's variation is explained by X. Values closer to 1 indicate stronger relationships.",
-    relatedTools: ['regression'],
-    relatedLearn: ['eda-philosophy'],
-    sections: [
-      {
-        type: 'interpretation',
-        title: 'Interpretation Guidelines',
-        content: 'R² ranges from 0 to 1.',
-        items: [
-          { value: '> 0.7', label: 'Strong', description: "X explains most of Y's variation" },
-          { value: '0.4 - 0.7', label: 'Moderate', description: 'Useful relationship' },
-          { value: '< 0.4', label: 'Weak', description: 'Other factors dominate' },
-        ],
-      },
-    ],
-    practicalTip:
-      'R² of 0.5 means X explains 50% of Y - useful for EDA, but other factors explain the other 50%.',
-  },
-
-  slope: {
-    seoTitle: 'Slope | VaRiScout Glossary',
-    seoDescription:
-      'The slope quantifies the rate of change - how much Y changes for each unit increase in X. Positive slope means Y increases with X.',
-    relatedTools: ['regression'],
-    relatedLearn: ['eda-philosophy'],
-    practicalTip:
-      'The slope tells you "how much" while R² tells you "how reliable." Both matter for decisions.',
-  },
-
-  intercept: {
-    seoTitle: 'Intercept | VaRiScout Glossary',
-    seoDescription:
-      'The intercept is the predicted value of Y when X equals zero - where the regression line crosses the Y-axis.',
-    relatedTools: ['regression'],
-    relatedLearn: ['eda-philosophy'],
-    practicalTip:
-      'The intercept may not have practical meaning if X=0 is outside your data range. Focus on the slope for interpretation.',
   },
 
   // Special Cause and Common Cause Variation

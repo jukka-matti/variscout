@@ -20,7 +20,6 @@ import type {
   DataQualityReport,
   ParetoRow,
   ScaleMode,
-  RegressionPersistenceState,
   ViewState,
 } from './types';
 
@@ -57,9 +56,6 @@ export interface ProjectPersistenceInputs {
   // Filter stack getter (Phase 2)
   filterStack: FilterAction[];
 
-  // Regression state getter (Phase 3)
-  regressionState: RegressionPersistenceState | null;
-
   // View state getter (Phase 4)
   viewState: ViewState | null;
 
@@ -95,9 +91,6 @@ export interface ProjectPersistenceInputs {
 
   // Filter stack setter (Phase 2)
   setFilterStack: (stack: FilterAction[]) => void;
-
-  // Regression state setter (Phase 3)
-  setRegressionState: (state: RegressionPersistenceState | null) => void;
 
   // View state setter (Phase 4)
   setViewState: (state: ViewState | null) => void;
@@ -152,7 +145,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     measureLabel,
     chartTitles,
     filterStack,
-    regressionState,
     viewState,
     setRawData,
     setOutcome,
@@ -183,7 +175,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setSelectedMeasure,
     setCpkTarget,
     setFilterStack,
-    setRegressionState,
     setViewState,
   } = inputs;
 
@@ -218,9 +209,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     // Filter stack — only include if non-empty
     if (filterStack.length > 0) state.filterStack = filterStack;
 
-    // Regression state — only include if set
-    if (regressionState) state.regressionState = regressionState;
-
     // View state — always include for explicit round-trip
     if (viewState) state.viewState = viewState;
 
@@ -245,7 +233,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     measureLabel,
     chartTitles,
     filterStack,
-    regressionState,
     viewState,
   ]);
 
@@ -306,9 +293,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
           setFilterStack([]);
         }
 
-        // Regression state
-        setRegressionState(state.regressionState ?? null);
-
         // View state
         setViewState(state.viewState ?? null);
 
@@ -341,7 +325,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setMeasureLabel,
       setChartTitles,
       setFilterStack,
-      setRegressionState,
       setViewState,
     ]
   );
@@ -416,9 +399,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         setFilterStack([]);
       }
 
-      // Regression state
-      setRegressionState(state.regressionState ?? null);
-
       // View state
       setViewState(state.viewState ?? null);
 
@@ -450,7 +430,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setChartTitles,
       setMeasureSpecs,
       setFilterStack,
-      setRegressionState,
       setViewState,
     ]
   );
@@ -487,9 +466,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureLabel('Measure');
     setSelectedMeasure(null);
     setCpkTarget(1.33);
-    // Reset filter stack, regression state, and view state
+    // Reset filter stack and view state
     setFilterStack([]);
-    setRegressionState(null);
     setViewState(null);
   }, [
     setRawData,
@@ -521,7 +499,6 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setSelectedMeasure,
     setCpkTarget,
     setFilterStack,
-    setRegressionState,
     setViewState,
   ]);
 

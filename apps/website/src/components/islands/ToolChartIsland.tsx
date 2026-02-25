@@ -15,7 +15,6 @@ const TOOL_CHART_MAP: Record<string, ChartType | 'performance'> = {
   boxplot: 'boxplot',
   pareto: 'pareto',
   capability: 'capability',
-  regression: 'scatter',
   performance: 'performance',
 };
 
@@ -66,7 +65,6 @@ export default function ToolChartIsland({
         renderChartContent({
           chartType,
           computed,
-          sample,
           width,
           height: containerHeight,
           showBranding,

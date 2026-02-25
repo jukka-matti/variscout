@@ -29,8 +29,6 @@ export type {
   ScaleMode,
   HighlightColor,
   ChartAnnotation,
-  RegressionPersistenceState,
-  ReductionStepData,
   ViewState,
 } from './types';
 
@@ -86,15 +84,6 @@ export {
   type ColumnClassificationOptions,
   type ColumnClassification,
 } from './useColumnClassification';
-
-// Regression State
-export {
-  useRegressionState,
-  type RegressionMode,
-  type ReductionStep,
-  type UseRegressionStateOptions,
-  type UseRegressionStateReturn,
-} from './useRegressionState';
 
 // Data Ingestion
 export {

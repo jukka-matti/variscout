@@ -26,7 +26,6 @@ All features are included in the single plan:
 | Pareto                   |    ✓     |
 | Capability (Cp/Cpk)      |    ✓     |
 | Probability Plot         |    ✓     |
-| Regression               |    ✓     |
 | **Performance Mode**     |          |
 | Multi-channel analysis   |    ✓     |
 | Channel limit            |  1,500   |

@@ -86,7 +86,6 @@ describe('MindmapWindow', () => {
     render(<MindmapWindow />);
 
     expect(screen.getByText('Drilldown')).toBeInTheDocument();
-    expect(screen.getByText('Interactions')).toBeInTheDocument();
     expect(screen.getByText('Narrative')).toBeInTheDocument();
   });
 

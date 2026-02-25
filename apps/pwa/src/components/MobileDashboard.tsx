@@ -1,23 +1,14 @@
 import React, { useState } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Activity,
-  BarChart3,
-  PieChart,
-  TrendingUp,
-  LineChart,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Activity, BarChart3, PieChart, TrendingUp } from 'lucide-react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
-import RegressionPanel from './RegressionPanel';
 import { AnovaResults, ErrorBoundary, FactorSelector, FilterBreadcrumb } from '@variscout/ui';
 import type { StatsResult, AnovaResult, DataRow } from '@variscout/core';
 import type { FilterChipData } from '@variscout/hooks';
 
-type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
+type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
 interface MobileDashboardProps {
   outcome: string | null;
@@ -83,7 +74,6 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
     { key: 'boxplot', label: 'Boxplot', icon: <BarChart3 size={18} /> },
     { key: 'pareto', label: 'Pareto', icon: <PieChart size={18} /> },
     { key: 'stats', label: 'Stats', icon: <TrendingUp size={18} /> },
-    { key: 'regression', label: 'Regr', icon: <LineChart size={18} /> },
   ];
 
   const currentIndex = views.findIndex(v => v.key === activeView);
@@ -237,7 +227,6 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
                 compact
               />
             )}
-            {activeView === 'regression' && <RegressionPanel />}
           </ErrorBoundary>
         </div>
         {activeView === 'boxplot' && anovaResult && (

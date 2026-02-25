@@ -4,7 +4,6 @@ import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
 import MobileDashboard from './MobileDashboard';
-import RegressionPanel from './RegressionPanel';
 import SpecEditor from './settings/SpecEditor';
 import SpecsPopover from './settings/SpecsPopover';
 import { PresentationView, EmbedFocusView, FocusedChartView } from './views';
@@ -28,7 +27,6 @@ import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import {
   Activity,
   BarChart3,
-  TrendingUp,
   Beaker,
   Maximize2,
   Layers,
@@ -39,10 +37,9 @@ import {
 } from 'lucide-react';
 import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '@variscout/core';
 
-import type { MultiRegressionResult } from '@variscout/core';
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
 
-type AnalysisView = 'dashboard' | 'regression';
+type AnalysisView = 'dashboard';
 
 const MOBILE_BREAKPOINT = 640; // sm breakpoint
 
@@ -69,11 +66,6 @@ interface DashboardProps {
   highlightedPointIndex?: number | null;
   // External filter navigation (shared with mindmap for synchronized drills)
   filterNav?: UseFilterNavigationReturn;
-  // Bridge: investigation → regression
-  regressionInitialFactors?: string[];
-  onClearRegressionFactors?: () => void;
-  // Bridge: regression → What-If with model
-  onNavigateToWhatIfWithModel?: (model: MultiRegressionResult) => void;
 }
 
 const Dashboard = ({
@@ -91,9 +83,6 @@ const Dashboard = ({
   onOpenWhatIf,
   highlightedPointIndex: _highlightedPointIndex,
   filterNav,
-  regressionInitialFactors,
-  onClearRegressionFactors: _onClearRegressionFactors,
-  onNavigateToWhatIfWithModel,
 }: DashboardProps) => {
   const {
     outcome,
@@ -127,13 +116,6 @@ const Dashboard = ({
 
   // Internal tab navigation state
   const [activeView, setActiveView] = useState<AnalysisView>('dashboard');
-
-  // Auto-switch to regression tab when external factors arrive (investigation bridge)
-  React.useEffect(() => {
-    if (regressionInitialFactors && regressionInitialFactors.length > 0) {
-      setActiveView('regression');
-    }
-  }, [regressionInitialFactors]);
 
   // Modal state for Create Factor
   const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
@@ -217,10 +199,13 @@ const Dashboard = ({
     externalFilterNav: filterNav,
     openSpecEditorRequested,
     onSpecEditorOpened,
-    highlightedChart:
-      highlightedChart === 'regression'
-        ? null
-        : (highlightedChart as 'ichart' | 'boxplot' | 'pareto' | 'stats' | null | undefined),
+    highlightedChart: highlightedChart as
+      | 'ichart'
+      | 'boxplot'
+      | 'pareto'
+      | 'stats'
+      | null
+      | undefined,
     highlightIntensity,
     onChartClick,
   });
@@ -478,19 +463,6 @@ const Dashboard = ({
             <BarChart3 size={16} />
             Dashboard
           </button>
-          <button
-            role="tab"
-            aria-selected={activeView === 'regression'}
-            onClick={() => setActiveView('regression')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeView === 'regression'
-                ? 'bg-blue-600 text-white'
-                : 'bg-surface-tertiary text-content-secondary hover:text-white hover:bg-surface-elevated'
-            }`}
-          >
-            <TrendingUp size={16} />
-            Regression
-          </button>
           {onOpenWhatIf && (
             <button
               onClick={onOpenWhatIf}
@@ -525,19 +497,6 @@ const Dashboard = ({
         existingFactors={getColumnNames(rawData)}
         onCreateFactor={handleCreateFactor}
       />
-
-      {/* Regression View */}
-      {activeView === 'regression' && (
-        <div className="flex-1 m-4 bg-surface-secondary border border-edge rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
-          <ErrorBoundary componentName="Regression Panel">
-            <RegressionPanel
-              initialPredictors={regressionInitialFactors}
-              investigationFactors={regressionInitialFactors}
-              onNavigateToWhatIf={onNavigateToWhatIfWithModel}
-            />
-          </ErrorBoundary>
-        </div>
-      )}
 
       {/* Dashboard View (default) */}
       {activeView === 'dashboard' && (

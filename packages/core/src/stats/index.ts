@@ -27,17 +27,9 @@ export type {
   ConformanceResult,
   AnovaResult,
   AnovaGroup,
-  RegressionResult,
-  LinearFit,
-  QuadraticFit,
   StagedStatsResult,
   StageBoundary,
   StageOrderMode,
-  MultiRegressionOptions,
-  MultiRegressionResult,
-  CoefficientResult,
-  RegressionTerm,
-  VIFWarning,
   BoxplotGroupInput,
   BoxplotGroupData,
 } from '../types';
@@ -47,18 +39,6 @@ export { calculateStats, calculateMovingRangeSigma } from './basic';
 
 // ANOVA
 export { getEtaSquared, groupDataByFactor, calculateAnova } from './anova';
-
-// Regression (simple)
-export { calculateRegression } from './regression';
-
-// Multiple regression (GLM)
-export { calculateMultipleRegression } from './multiRegression';
-
-// Interaction strength
-export { getInteractionStrength } from './interaction';
-
-// Model reduction
-export { suggestTermRemoval } from './modelReduction';
 
 // Probability plots
 export { calculateProbabilityPlotData, normalQuantile } from './probability';

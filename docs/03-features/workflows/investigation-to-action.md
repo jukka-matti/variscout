@@ -1,6 +1,6 @@
 # Investigation to Action Workflow
 
-From root cause discovery to projected improvement — the three-phase analyst workflow.
+From root cause discovery to projected improvement — the two-phase analyst workflow.
 
 <div class="process-map">
   <div class="process-step">
@@ -68,25 +68,23 @@ _See [full process map](process-maps.md#analyst-flow-a-process-investigation) wi
 
 ## Overview
 
-A quality investigation has three distinct mental modes:
+A quality investigation has two distinct mental modes:
 
 | Phase                   | Tool                  | Question                         | Output                 |
 | ----------------------- | --------------------- | -------------------------------- | ---------------------- |
 | **Investigate**         | Investigation Mindmap | "What is causing the variation?" | Key factors identified |
-| **Refine model**        | Regression (Advanced) | "Which factors truly matter?"    | Parsimonious model     |
 | **Project improvement** | What-If Simulator     | "What if we fixed it?"           | Projected Cpk/yield    |
 
 Each phase requires a different cognitive approach. Separating them reduces cognitive load and prevents premature conclusions.
 
 ## Why Separate Phases?
 
-An earlier design (the now-removed Variation Funnel) conflated all three modes into a single dense panel. The problem: analysts were simultaneously trying to explore data, simplify models, and imagine improvements. This led to:
+An earlier design (the now-removed Variation Funnel) conflated investigation and projection into a single dense panel. The problem: analysts were simultaneously trying to explore data and imagine improvements. This led to:
 
-- **Premature model reduction** — removing terms before the investigation was complete
-- **Confirmation bias** — jumping to projections before understanding the full picture
+- **Premature conclusions** — jumping to projections before understanding the full picture
 - **Cognitive overload** — too many decisions in one place
 
-The three-phase approach mirrors how experienced quality engineers actually think: first understand, then simplify, then project.
+The two-phase approach mirrors how experienced quality engineers actually think: first understand the root causes, then project improvement.
 
 ## Phase 1: Investigate (Mindmap)
 
@@ -96,11 +94,9 @@ Use the Investigation Mindmap to progressively drill into the data. Modes unlock
 
 1. **Drilldown mode** (always available) — Click factors to filter. Each node shows its contribution to total variation (see [Variation Decomposition](../analysis/variation-decomposition.md) for how these metrics are computed). Follow the highest contribution path.
 
-2. **Interaction mode** (unlocks with 2+ factors and n >= 5) — Check whether factors combine. Two factors with low individual contribution can have a large joint effect. This mode is disabled until the dataset has at least two categorical factors and enough data points to compute pairwise regression.
+2. **Narrative mode** (unlocks after first drill) — Review the investigation timeline. See every drill step in sequence to verify the logic. This mode is disabled until at least one filter has been applied.
 
-3. **Narrative mode** (unlocks after first drill) — Review the investigation timeline. See every drill step in sequence to verify the logic. This mode is disabled until at least one filter has been applied.
-
-Disabled modes appear muted in the mode toggle with a tooltip explaining the unlock condition. Export (copy-to-clipboard, PNG download) is available in all three modes.
+Disabled modes appear muted in the mode toggle with a tooltip explaining the unlock condition. Export (copy-to-clipboard, PNG download) is available in both modes.
 
 ### Exit criterion
 
@@ -112,101 +108,25 @@ Stop investigating when:
 
 ### Output
 
-A list of key factors and their contribution percentages. These become the starting predictors for Phase 2.
+A list of key factors and their contribution percentages. These become the basis for improvement scenarios in Phase 2.
 
 See [Drill-Down Workflow](drill-down-workflow.md) for detailed drill-down mechanics.
 
 ### Transition to Phase 2
 
-Two bridge buttons in the Investigation Mindmap provide direct paths into Regression:
+After identifying key factors in the Mindmap, open the What-If Simulator to project improvement scenarios. The transition is manual: the investigation findings inform which adjustments to explore in What-If.
 
-1. **ConclusionPanel "Refine in Regression"** — Appears in Narrative mode when `steps.length >= 2`. Passes all investigated factors via `onNavigateToRegression(factors)`. Amber-colored button with arrow icon.
+For example, if the Mindmap investigation reveals that Machine B accounts for 35% of variation and the Weekend shift adds 20%, the analyst can use What-If to model centering the process (mean shift) and reducing spread (variation reduction) to estimate the combined Cpk improvement.
 
-2. **EdgeTooltip "Model in Regression"** — Appears in Interaction mode when viewing a factor pair edge. Passes the two edge factors via `onModelInteraction(factors)`.
-
-Both buttons feed factors into the Regression Panel as `initialPredictors`, which automatically switches to Advanced mode and pre-populates the predictor list. Non-numeric columns are detected and marked as categorical. See [Investigation-to-Regression Bridge](../../06-design-system/components/interaction-guidance.md) for implementation details.
-
-## Phase 2: Refine Model (Regression Advanced Mode)
-
-**Goal:** Determine which factors truly matter using a statistical model.
-
-Start from the investigation findings: the bridge buttons from Phase 1 auto-populate predictors in Advanced Regression mode. Alternatively, add the identified factors manually. Then use guided model reduction to simplify.
-
-### Why Adj. R² is the key metric
-
-When you add a predictor to a regression model, R² always increases — even if the predictor is pure noise. This makes R² unreliable for deciding whether a term belongs in the model.
-
-**Adjusted R²** penalizes for the number of predictors. It can decrease when a term does not contribute enough to justify its degrees of freedom. This is the correct criterion for keep-or-remove decisions:
-
-| Scenario          | R²                 | Adj. R²               | Interpretation                   |
-| ----------------- | ------------------ | --------------------- | -------------------------------- |
-| Remove noise term | Decreases slightly | Unchanged or improves | Term was noise — removal correct |
-| Remove real term  | Decreases          | Decreases noticeably  | Term mattered — consider keeping |
-
-### Guided reduction process
-
-1. Run multi-regression with all identified factors (and interactions if applicable)
-2. The suggestion banner highlights the **weakest term** — the one with the highest p-value among non-significant terms
-3. Review the suggestion: is it an interaction term? A main effect? Does it have high VIF?
-4. Click **Remove term** to drop it from the model
-5. The model re-fits automatically. The step log records:
-   - Which term was removed
-   - Adj. R² before and after
-   - Whether the removal improved or hurt the model
-6. Repeat until all remaining terms are significant
-7. The banner shows "All terms significant — model is well-specified"
-
-### VIF and multicollinearity
-
-During reduction, watch for VIF warnings:
-
-| VIF  | Severity | Action                                      |
-| ---- | -------- | ------------------------------------------- |
-| < 5  | Low      | No concern                                  |
-| 5–10 | Moderate | Monitor — may indicate shared variance      |
-| > 10 | Severe   | Prioritize removal — predictor is redundant |
-
-A term with severe VIF is suggested for removal regardless of its p-value, because its coefficient estimate is unreliable.
-
-### Output
-
-A reduced model containing only statistically significant terms, with Adj. R² tracking showing that no meaningful explanatory power was lost.
-
-### Transition to Phase 3
-
-The **"Project in What-If →"** button appears in AdvancedRegressionView when the model has sufficient fit:
-
-| Model State                                 | Button Color | Condition                                                         |
-| ------------------------------------------- | ------------ | ----------------------------------------------------------------- |
-| All terms significant                       | Green        | Best case — model is well-specified                               |
-| Some non-significant terms, Adj. R² >= 0.30 | Amber        | Model usable but imperfect — shown alongside reduction suggestion |
-| Adj. R² < 0.30                              | No button    | Model too weak for meaningful projections                         |
-
-This relaxed gate (Adj. R² >= 0.30 instead of requiring all terms significant) prevents the false choice between removing useful-but-marginal terms and losing access to What-If projection. Analysts can project from an imperfect model while continuing to refine it.
-
-Clicking the button calls `onNavigateToWhatIf(model)`, passing the `MultiRegressionResult` to the What-If page. On the What-If page, the regression model is rendered as a `ModelDrivenSimulator` above the standard slider-based simulator. When Adj. R² is below 0.50, the simulator header shows an amber warning: "Low model fit — projections are approximate".
-
-The model-driven simulator uses `simulateFromModel()` from `@variscout/core` to compute the predicted mean shift from regression coefficients, including interaction terms when both involved factors have adjustments. Per-factor controls (categorical dropdowns with coefficient deltas, continuous sliders) and contribution bars show each factor's delta. See [What-If Simulator](../../06-design-system/components/what-if-simulator.md#model-driven-simulator) for component details.
-
-## Phase 3: Project Improvement (What-If Simulator)
+## Phase 2: Project Improvement (What-If Simulator)
 
 **Goal:** Estimate what happens if you improve the process.
 
-The What-If page takes the current process statistics (after investigation filtering) and lets you explore improvements through two simulators:
+The What-If Simulator takes the current process statistics (after investigation filtering) and lets you explore improvements through direct adjustments:
 
-### Model-Driven Simulator (when regression model is available)
+### Standard Simulator
 
-When arriving from Phase 2 with a regression model, the `ModelDrivenSimulator` appears at the top. It provides per-factor controls derived from the model coefficients:
-
-- **Categorical factors** — Dropdown selectors showing each level with its coefficient delta (e.g., "Level B (+2.3)")
-- **Continuous factors** — Sliders ranging mean +/- 2 standard deviations
-- **Contribution bars** — Horizontal bars showing each factor's delta contribution to the predicted mean shift
-
-Uses `simulateFromModel()` from `@variscout/core` to compute projections from the regression equation.
-
-### Standard Simulator (always available)
-
-The standard `WhatIfSimulator` is always available (collapsed by default when the model-driven simulator is present). It offers two direct adjustments:
+The `WhatIfSimulator` offers two direct adjustments:
 
 1. **Mean adjustment** — Shift the process center toward the target. Use this when the investigation revealed an off-center process (e.g., wrong machine setting).
 
@@ -233,9 +153,8 @@ These are estimates, not guarantees. Use them for:
 | Your situation                          | Start at              |
 | --------------------------------------- | --------------------- |
 | "I don't know what's causing variation" | Phase 1 (Investigate) |
-| "I know the factors, need a model"      | Phase 2 (Refine)      |
-| "I have findings, want to project"      | Phase 3 (What-If)     |
-| "Full investigation from scratch"       | Phase 1 → 2 → 3       |
+| "I have findings, want to project"      | Phase 2 (What-If)     |
+| "Full investigation from scratch"       | Phase 1 then Phase 2  |
 
 ## Example: Pizza Delivery Dataset
 
@@ -249,24 +168,12 @@ Using the Mindmap, drill into delivery time variation:
 
 Cumulative: ~72% of variation explained.
 
-### Phase 2: Refine
-
-Add Store, Day, Driver, and Store x Day interaction as predictors:
-
-| Step          | Action                          | Adj. R²                                                  |
-| ------------- | ------------------------------- | -------------------------------------------------------- |
-| Initial model | All 4 terms                     | 41.2%                                                    |
-| Step 1        | Remove Driver (p = 0.34)        | 41.5% (improved — Driver was noise in the model context) |
-| Step 2        | All remaining terms significant | Done                                                     |
-
-Final model: Delivery Time = f(Store, Day, Store x Day) with Adj. R² = 41.5%.
-
-### Phase 3: Project
+### Phase 2: Project
 
 Filter to Store C + Weekend, then use What-If:
 
-- Shifting mean by -5 minutes (better routing) → Cpk improves from 0.6 to 1.1
-- Adding 20% variation reduction (standardized process) → Cpk reaches 1.4
+- Shifting mean by -5 minutes (better routing) -> Cpk improves from 0.6 to 1.1
+- Adding 20% variation reduction (standardized process) -> Cpk reaches 1.4
 - Combined projection supports the business case for process improvement at Store C
 
 ## Related Documentation

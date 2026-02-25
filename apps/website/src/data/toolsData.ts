@@ -334,68 +334,6 @@ export const TOOLS: ToolData[] = [
     relatedCases: ['cookie-weight', 'coffee', 'avocado'],
   },
   {
-    slug: 'regression',
-    name: 'Regression Analysis',
-    lens: null,
-    color: '#8b5cf6',
-    colorClass: 'text-purple-500',
-    hero: {
-      title: 'Find the relationship between X and Y',
-      subtitle: 'Regression reveals how one variable predicts or influences another.',
-    },
-    whenToUse: [
-      'Understanding relationships between variables',
-      'Predicting outcomes from inputs',
-      'Optimizing process parameters',
-      'Quantifying effect size (how much X affects Y)',
-    ],
-    dataRequirements: {
-      minimum: { count: 10, description: 'Basic trend visible' },
-      better: { count: 30, description: 'Reliable R-squared' },
-      sweet: { count: 50, description: 'Robust predictions' },
-    },
-    howToRead: {
-      description: 'Each point is an X-Y pair. The line shows the best fit relationship.',
-      elements: [
-        { name: 'Scatter Points', description: 'Individual X-Y observations' },
-        { name: 'Trend Line', description: 'Best-fit linear relationship' },
-        { name: 'R-squared', description: 'Percentage of Y explained by X' },
-        { name: 'Slope', description: 'How much Y changes per unit of X' },
-      ],
-      quickCheck: [
-        'Are points close to the line? (strong relationship)',
-        'Is R-squared high? (> 0.7 is strong)',
-        'Does the relationship make sense practically?',
-      ],
-    },
-    patterns: [
-      {
-        name: 'High R-squared',
-        description: 'X strongly predicts Y',
-        action: 'Use this relationship for optimization',
-      },
-      {
-        name: 'Low R-squared',
-        description: 'Other factors are more important',
-        action: 'Look for additional X variables',
-      },
-      {
-        name: 'Curved Pattern',
-        description: 'Relationship is not linear',
-        action: 'May need polynomial or transformed model',
-      },
-    ],
-    features: [
-      { name: 'Auto trend line', description: 'Best-fit calculated automatically' },
-      { name: 'R-squared display', description: 'See strength of relationship' },
-      { name: 'Prediction', description: 'Estimate Y for new X values' },
-    ],
-    sampleKey: 'avocado',
-    nextTools: ['i-chart', 'capability'],
-    relatedLearn: ['eda-philosophy'],
-    relatedCases: ['avocado'],
-  },
-  {
     slug: 'performance',
     name: 'Performance Analysis',
     lens: null,

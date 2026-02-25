@@ -7,8 +7,3 @@ export {
   type SimulatorPreset,
   type WhatIfSimulatorHandle,
 } from './WhatIfSimulator';
-
-export {
-  default as ModelDrivenSimulator,
-  type ModelDrivenSimulatorProps,
-} from './ModelDrivenSimulator';

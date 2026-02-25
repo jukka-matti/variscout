@@ -1,6 +1,6 @@
 import React from 'react';
 
-type MindmapMode = 'drilldown' | 'interactions' | 'narrative';
+type MindmapMode = 'drilldown' | 'narrative';
 
 export interface MindmapModeToggleProps {
   mode: MindmapMode;
@@ -9,12 +9,8 @@ export interface MindmapModeToggleProps {
   toggleBg: string;
   /** Class for inactive button text */
   inactiveText: string;
-  /** Number of factors in the dataset (enables Interactions at >= 2) */
-  factorCount?: number;
   /** Number of drill steps applied (enables Narrative at >= 1) */
   drillCount?: number;
-  /** Number of data rows (Interactions needs n >= 5) */
-  dataCount?: number;
 }
 
 interface ModeConfig {
@@ -27,12 +23,11 @@ interface ModeConfig {
 }
 
 /**
- * Shared three-button mode toggle for Investigation Mindmap.
+ * Shared two-button mode toggle for Investigation Mindmap.
  * Used by MindmapPanelContent and MindmapWindow.
  *
  * Mode availability:
  * - Drilldown: Always available (default)
- * - Interactions: Enabled after 2+ factors exist AND n >= 5
  * - Narrative: Enabled after at least 1 drill has been applied
  */
 const MindmapModeToggle: React.FC<MindmapModeToggleProps> = ({
@@ -40,9 +35,7 @@ const MindmapModeToggle: React.FC<MindmapModeToggleProps> = ({
   setMode,
   toggleBg,
   inactiveText,
-  factorCount = 10,
   drillCount = 10,
-  dataCount = 100,
 }) => {
   const modes: ModeConfig[] = [
     {
@@ -52,19 +45,6 @@ const MindmapModeToggle: React.FC<MindmapModeToggleProps> = ({
       activeClasses: 'bg-blue-500/20 text-blue-400',
       isEnabled: true,
       disabledReason: null,
-    },
-    {
-      id: 'interactions',
-      label: 'Interactions',
-      subtitle: 'Check relationships',
-      activeClasses: 'bg-amber-500/20 text-amber-400',
-      isEnabled: factorCount >= 2 && dataCount >= 5,
-      disabledReason:
-        factorCount < 2
-          ? 'Need 2+ factors to check interactions'
-          : dataCount < 5
-            ? 'Need 5+ data points for interaction analysis'
-            : null,
     },
     {
       id: 'narrative',

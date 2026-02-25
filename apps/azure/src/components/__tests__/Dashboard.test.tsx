@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
 import * as DataContextModule from '../../context/DataContext';
 import * as CoreModule from '@variscout/core';
@@ -13,9 +13,6 @@ vi.mock('../charts/ParetoChart', () => ({
 }));
 vi.mock('../StatsPanel', () => ({
   default: () => <div data-testid="stats-panel">Stats Panel</div>,
-}));
-vi.mock('../RegressionPanel', () => ({
-  default: () => <div data-testid="regression-panel">Regression Panel</div>,
 }));
 vi.mock('../PerformanceDashboard', () => ({
   default: () => <div data-testid="performance-dashboard">Performance Dashboard</div>,
@@ -197,20 +194,6 @@ describe('Dashboard', () => {
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
     expect(screen.getByTestId('stats-panel')).toBeInTheDocument();
-  });
-
-  it('switches to Regression tab', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
-    render(<Dashboard />);
-
-    fireEvent.click(screen.getByText('Regression'));
-
-    expect(screen.getByText('Regression')).toHaveClass('bg-blue-600');
-    expect(screen.getByTestId('regression-panel')).toBeInTheDocument();
-    expect(screen.queryByTestId('i-chart')).not.toBeInTheDocument();
   });
 
   it('does not render AnovaResults when calculation returns null', () => {

@@ -134,7 +134,6 @@ import {
   useColumnClassification,
 
   // Analysis state
-  useRegressionState,
   useDrillPath,
   useMindmapState,
 
@@ -194,16 +193,7 @@ actions.setMeasureSpec('FillHead_1', { usl: 105, lsl: 95 });
 
 ```typescript
 // Analysis
-import {
-  AnovaResults,
-  StatsPanelBase,
-  RegressionPanelBase,
-  SimpleRegressionView,
-  AdvancedRegressionView,
-  ExpandedScatterModal,
-  CapabilityHistogram,
-  ProbabilityPlot,
-} from '@variscout/ui';
+import { AnovaResults, StatsPanelBase, CapabilityHistogram, ProbabilityPlot } from '@variscout/ui';
 
 // Data Input
 import {

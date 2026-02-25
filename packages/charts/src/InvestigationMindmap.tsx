@@ -9,7 +9,6 @@ import { useChartTheme } from './useChartTheme';
 export type {
   CategoryData,
   MindmapNode,
-  MindmapEdge,
   MindmapMode,
   NarrativeStep,
   InvestigationMindmapProps,
@@ -24,15 +23,11 @@ import {
   getNodeRadius,
   getNodeFill,
   getNodeStroke,
-  getEdgeWidth,
-  getEdgeOpacity,
-  getVisibleEdges,
 } from './mindmap/helpers';
 import { computeLayout, computeTimelineLayout } from './mindmap/layout';
 import StepAnnotation from './mindmap/StepAnnotation';
 import ConclusionPanel from './mindmap/ConclusionPanel';
 import CategoryPopover from './mindmap/CategoryPopover';
-import EdgeTooltip from './mindmap/EdgeTooltip';
 import ProgressFooter from './mindmap/ProgressFooter';
 
 // ============================================================================
@@ -47,8 +42,6 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
   onNodeClick,
   onCategorySelect,
   mode = 'drilldown',
-  edges,
-  onEdgeClick,
   narrativeSteps,
   onAnnotationChange,
   parentWidth,
@@ -57,15 +50,12 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
   height: explicitHeight,
   columnAliases,
   onNavigateToWhatIf,
-  onNavigateToRegression,
-  onModelInteraction,
 }) => {
   const width = explicitWidth ?? parentWidth ?? 360;
   const height = explicitHeight ?? parentHeight ?? 400;
   const { isDark, chrome } = useChartTheme();
 
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [hoveredEdge, setHoveredEdge] = useState<string | null>(null); // "factorA|factorB"
 
   // Handle node click — show popover for available nodes, no-op for exhausted
   const handleNodeClick = useCallback(
@@ -141,47 +131,12 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
     return segments;
   }, [mode, drillTrail, posMap, centerX, centerY]);
 
-  // Visible interaction edges (used in interactions mode AND narrative cross-connections)
-  const visibleEdges = useMemo(() => {
-    if ((mode !== 'interactions' && mode !== 'narrative') || !edges) return [];
-    return getVisibleEdges(edges);
-  }, [mode, edges]);
-
-  const maxDeltaR2 = useMemo(() => {
-    if (visibleEdges.length === 0) return 0;
-    return Math.max(...visibleEdges.map(e => e.deltaRSquared));
-  }, [visibleEdges]);
-
-  // Edge lookup for tooltip
-  const edgeLookup = useMemo(() => {
-    const map = new Map<string, (typeof visibleEdges)[number]>();
-    visibleEdges.forEach(e => {
-      map.set(`${e.factorA}|${e.factorB}`, e);
-    });
-    return map;
-  }, [visibleEdges]);
-
   // ── Narrative timeline layout ──
   const steps = narrativeSteps ?? [];
   const timelinePositions = useMemo(
     () => (mode === 'narrative' ? computeTimelineLayout(steps, width, height) : []),
     [mode, steps, width, height]
   );
-
-  const timelinePosMap = useMemo(() => {
-    const map = new Map<string, { x: number; y: number }>();
-    timelinePositions.forEach(p => map.set(p.factor, { x: p.x, y: p.y }));
-    return map;
-  }, [timelinePositions]);
-
-  // Cross-connection arcs: edges where both factors are in the timeline
-  const narrativeCrossEdges = useMemo(() => {
-    if (mode !== 'narrative' || steps.length < 2) return [];
-    const timelineFactors = new Set(steps.map(s => s.factor));
-    return visibleEdges.filter(
-      e => timelineFactors.has(e.factorA) && timelineFactors.has(e.factorB)
-    );
-  }, [mode, steps, visibleEdges]);
 
   if (width < 100 || height < 100) return null;
 
@@ -203,62 +158,6 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
               Drill into factors to build the investigation timeline
             </text>
           )}
-
-          {/* Cross-connection arcs (dashed bezier above nodes) */}
-          {narrativeCrossEdges.map(edge => {
-            const pA = timelinePosMap.get(edge.factorA);
-            const pB = timelinePosMap.get(edge.factorB);
-            if (!pA || !pB) return null;
-
-            const midX = (pA.x + pB.x) / 2;
-            const dist = Math.abs(pB.x - pA.x);
-            const arcHeight = Math.max(30, dist * 0.3);
-            const cpY = Math.min(pA.y, pB.y) - arcHeight;
-
-            return (
-              <path
-                key={`narc-${edge.factorA}-${edge.factorB}`}
-                d={`M ${pA.x},${
-                  pA.y -
-                  getNodeRadius(steps.find(s => s.factor === edge.factorA)?.scopeFraction ?? 0)
-                } Q ${midX},${cpY} ${pB.x},${
-                  pB.y -
-                  getNodeRadius(steps.find(s => s.factor === edge.factorB)?.scopeFraction ?? 0)
-                }`}
-                fill="none"
-                stroke={chartColors.warning}
-                strokeWidth={1.5}
-                strokeOpacity={0.4}
-                strokeDasharray="4,3"
-              />
-            );
-          })}
-
-          {/* Arc labels */}
-          {narrativeCrossEdges.map(edge => {
-            const pA = timelinePosMap.get(edge.factorA);
-            const pB = timelinePosMap.get(edge.factorB);
-            if (!pA || !pB) return null;
-
-            const midX = (pA.x + pB.x) / 2;
-            const dist = Math.abs(pB.x - pA.x);
-            const arcHeight = Math.max(30, dist * 0.3);
-            const labelY = Math.min(pA.y, pB.y) - arcHeight + 4;
-
-            return (
-              <text
-                key={`narclbl-${edge.factorA}-${edge.factorB}`}
-                x={midX}
-                y={labelY}
-                textAnchor="middle"
-                fontSize={8}
-                fill={chartColors.warning}
-                fillOpacity={0.7}
-              >
-                &Delta;R&sup2; = {(edge.deltaRSquared * 100).toFixed(1)}%
-              </text>
-            );
-          })}
 
           {/* Timeline connector line */}
           {timelinePositions.length >= 2 && (
@@ -355,7 +254,6 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                   targetPct={targetPct}
                   chrome={chrome}
                   onNavigateToWhatIf={onNavigateToWhatIf}
-                  onNavigateToRegression={onNavigateToRegression}
                 />
               );
             })()}
@@ -373,54 +271,10 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
     );
   }
 
-  // === DRILLDOWN / INTERACTIONS MODE (existing) ===
+  // === DRILLDOWN MODE ===
   return (
     <svg width={width} height={height} style={{ overflow: 'visible' }}>
       <Group>
-        {/* === INTERACTION EDGES (rendered before nodes for z-order) === */}
-        {mode === 'interactions' &&
-          visibleEdges.map(edge => {
-            const posA = posMap.get(edge.factorA);
-            const posB = posMap.get(edge.factorB);
-            if (!posA || !posB) return null;
-
-            const edgeKey = `${edge.factorA}|${edge.factorB}`;
-            const opacity = getEdgeOpacity(edge.pValue);
-            const strokeWidth = getEdgeWidth(edge.deltaRSquared, maxDeltaR2);
-
-            return (
-              <line
-                key={`edge-${edgeKey}`}
-                x1={posA.x}
-                y1={posA.y}
-                x2={posB.x}
-                y2={posB.y}
-                stroke={chartColors.warning}
-                strokeWidth={strokeWidth}
-                strokeOpacity={opacity}
-                strokeLinecap="round"
-                style={{ cursor: 'pointer', transition: 'stroke-opacity 0.2s' }}
-                onClick={() => onEdgeClick?.(edge.factorA, edge.factorB)}
-                onMouseEnter={() => setHoveredEdge(edgeKey)}
-                onMouseLeave={() => setHoveredEdge(null)}
-              />
-            );
-          })}
-
-        {/* === "No interactions" message === */}
-        {mode === 'interactions' && edges && visibleEdges.length === 0 && (
-          <text
-            x={centerX}
-            y={centerY}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontSize={12}
-            fill={chrome.labelSecondary}
-          >
-            No significant interactions found
-          </text>
-        )}
-
         {/* === DRILL TRAIL LINES (drilldown mode only) === */}
         {mode === 'drilldown' &&
           trailSegments.map((seg, i) => (
@@ -548,33 +402,6 @@ export const InvestigationMindmapBase: React.FC<InvestigationMindmapProps> = ({
                 onSelect={handleCategorySelect}
                 onClose={() => setSelectedNode(null)}
                 chrome={chrome}
-              />
-            );
-          })()}
-
-        {/* Edge tooltip on hover */}
-        {hoveredEdge &&
-          (() => {
-            const edge = edgeLookup.get(hoveredEdge);
-            if (!edge) return null;
-            const posA = posMap.get(edge.factorA);
-            const posB = posMap.get(edge.factorB);
-            if (!posA || !posB) return null;
-            // Position tooltip at midpoint of edge
-            const midX = (posA.x + posB.x) / 2;
-            const midY = (posA.y + posB.y) / 2;
-
-            return (
-              <EdgeTooltip
-                edge={edge}
-                x={midX}
-                y={midY}
-                svgWidth={width}
-                svgHeight={height}
-                onClose={() => setHoveredEdge(null)}
-                columnAliases={columnAliases}
-                chrome={chrome}
-                onModelInteraction={onModelInteraction}
               />
             );
           })()}

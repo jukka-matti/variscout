@@ -53,7 +53,7 @@ docs/
 │   ├── specifications.md
 │   ├── user-guide.md
 │   ├── analysis/        # boxplot, capability, i-chart, pareto, performance-mode,
-│   │                    # nelson-rules, staged-analysis, probability-plot, regression,
+│   │                    # nelson-rules, staged-analysis, probability-plot,
 │   │                    # variation-decomposition
 │   ├── workflows/       # four-lenses, drill-down, performance-mode, quick-check,
 │   │                    # deep-dive, decision-trees, investigation-to-action, process-maps
@@ -79,7 +79,7 @@ docs/
 │   ├── foundations/     # colors, typography, spacing, accessibility
 │   ├── components/      # buttons, cards, forms, modals, variation-funnel, what-if-simulator,
 │   │                    # interaction-guidance
-│   ├── charts/          # overview, ichart, boxplot, pareto, capability, scatter,
+│   ├── charts/          # overview, ichart, boxplot, pareto, capability,
 │   │                    # probability-plot, performance-mode, colors, hooks, responsive,
 │   │                    # shared-components
 │   └── patterns/        # layout, feedback, navigation
@@ -143,7 +143,6 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Claude-flow / AI tooling | docs/07-decisions/adr-011-ai-development-tooling.md, docs/05-technical/implementation/claude-flow.md |
 | Investigation workflow   | docs/03-features/workflows/investigation-to-action.md                                                |
 | Variation metrics/SS     | docs/03-features/analysis/variation-decomposition.md, packages/core/src/variation/contributions.ts   |
-| Regression/model changes | docs/03-features/analysis/regression.md, packages/ui/src/components/RegressionPanel/                 |
 | What-If/simulation       | docs/06-design-system/components/what-if-simulator.md, packages/core/src/variation/simulation.ts     |
 
 ## Repository Structure
@@ -203,7 +202,7 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/hooks/src/useTier.ts`                         | React hook for tier state and limits                                                                  |
 | `packages/ui/src/components/TierBadge/`                 | Tier indicator badge component                                                                        |
 | `packages/ui/src/components/UpgradePrompt/`             | Upgrade call-to-action component                                                                      |
-| `packages/charts/src/`                                  | IChart, Boxplot, ParetoChart, ScatterPlot                                                             |
+| `packages/charts/src/`                                  | IChart, Boxplot, ParetoChart                                                                          |
 | `packages/charts/src/PerformanceIChart.tsx`             | Multi-channel Cpk scatter plot (shared)                                                               |
 | `packages/charts/src/PerformanceBoxplot.tsx`            | Multi-channel distribution comparison (shared)                                                        |
 | `packages/charts/src/PerformancePareto.tsx`             | Multi-channel Cpk ranking chart (shared)                                                              |
@@ -234,7 +233,7 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `apps/pwa/src/context/DataContext.tsx`                  | Central state management                                                                              |
 | `apps/pwa/src/context/ThemeContext.tsx`                 | Theme state (light/dark/system, company accent)                                                       |
 | `packages/charts/src/useChartTheme.ts`                  | Theme-aware chart colors hook                                                                         |
-| `apps/pwa/src/components/__tests__/`                    | Component tests (Dashboard, RegressionPanel)                                                          |
+| `apps/pwa/src/components/__tests__/`                    | Component tests (Dashboard, MindmapPanel)                                                             |
 | `packages/core/src/parser.ts`                           | CSV/Excel parsing, validation, keyword detection (shared)                                             |
 | `apps/pwa/src/hooks/useDataIngestion.ts`                | PWA wrapper (adds loadSample to shared hook)                                                          |
 | `packages/ui/src/components/DataQualityBanner/`         | Shared validation summary UI component                                                                |
@@ -258,11 +257,9 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `apps/azure/src/hooks/useEditorPanels.ts`               | Editor panel visibility + presentation mode state                                                     |
 | `apps/azure/src/components/FilterBreadcrumb.tsx`        | Azure filter chips UI component                                                                       |
 | `apps/azure/src/components/FilterChips.tsx`             | Azure active filter chips display                                                                     |
-| `packages/core/src/variation/simulation.ts`             | Model-driven simulation (simulateFromModel, getFactorBaselines)                                       |
-| `packages/ui/src/components/WhatIfSimulator/`           | WhatIfSimulator + ModelDrivenSimulator + WhatIfPageBase                                               |
-| `packages/ui/src/components/RegressionPanel/`           | RegressionPanelBase, AdvancedRegressionView, ExpandedScatterModal                                     |
-| `packages/hooks/src/useRegressionState.ts`              | Regression panel state (mode, predictors, reduction history)                                          |
-| `docs/03-features/workflows/investigation-to-action.md` | 3-phase workflow: Mindmap → Regression → What-If                                                      |
+| `packages/core/src/variation/simulation.ts`             | What-If simulation (directAdjustment)                                                                 |
+| `packages/ui/src/components/WhatIfSimulator/`           | WhatIfSimulator + WhatIfPageBase                                                                      |
+| `docs/03-features/workflows/investigation-to-action.md` | 2-phase workflow: Mindmap → What-If                                                                   |
 | `docs/04-cases/`                                        | Case studies with demo data and teaching briefs                                                       |
 
 > Use `Read` tool to examine these files when needed.

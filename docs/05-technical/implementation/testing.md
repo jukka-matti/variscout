@@ -88,16 +88,16 @@ pnpm --filter @variscout/azure-app test:e2e
 
 ## Test Ownership by Package
 
-| Package                | Test Type          | What to Test                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| :--------------------- | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `@variscout/core`      | **Unit**           | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities                                                                                                                                                                                                                                                                                                                                                                              |
-| `@variscout/charts`    | **Unit**           | Color constants, accessibility utilities, multi-selection hook                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `@variscout/hooks`     | **Unit**           | Hooks (useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useRegressionState, useVariationTracking, useDataTablePagination, useHighlightFade, useResizablePanel, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState), pipeline integration, filter state transitions, stress tests |
-| `@variscout/ui`        | **Unit**           | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase                                                                                                                                                                                                                                                                                                                                                                                           |
-| `@variscout/pwa`       | **Component**      | UI components (StatsPanel, Dashboard, DataTableModal, RegressionPanel, AnovaResults, MindmapPanel, WhatIfPage, WhatIfSimulator), hooks (useFilterNavigation), export utilities                                                                                                                                                                                                                                                                                                              |
-| `@variscout/pwa`       | **Playwright E2E** | Critical workflow, drill-down, samples, analysis views, stats/ANOVA                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `@variscout/azure-app` | **Component**      | UI components (Dashboard, StatsPanel, RegressionPanel, AnovaResults, MindmapWindow, WhatIfPage, FilterBreadcrumb, Editor, SettingsPanel), auth (easyAuth), storage                                                                                                                                                                                                                                                                                                                          |
-| `@variscout/azure-app` | **Playwright E2E** | Editor workflow, samples, analysis views, stats/ANOVA                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Package                | Test Type          | What to Test                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| :--------------------- | :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@variscout/core`      | **Unit**           | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities                                                                                                                                                                                                                                                                                                                                                          |
+| `@variscout/charts`    | **Unit**           | Color constants, accessibility utilities, multi-selection hook                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `@variscout/hooks`     | **Unit**           | Hooks (useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useVariationTracking, useDataTablePagination, useHighlightFade, useResizablePanel, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState), pipeline integration, filter state transitions, stress tests |
+| `@variscout/ui`        | **Unit**           | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase                                                                                                                                                                                                                                                                                                                                                                       |
+| `@variscout/pwa`       | **Component**      | UI components (StatsPanel, Dashboard, DataTableModal, AnovaResults, MindmapPanel, WhatIfPage, WhatIfSimulator), hooks (useFilterNavigation), export utilities                                                                                                                                                                                                                                                                                                           |
+| `@variscout/pwa`       | **Playwright E2E** | Critical workflow, drill-down, samples, analysis views, stats/ANOVA                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `@variscout/azure-app` | **Component**      | UI components (Dashboard, StatsPanel, AnovaResults, MindmapWindow, WhatIfPage, FilterBreadcrumb, Editor, SettingsPanel), auth (easyAuth), storage                                                                                                                                                                                                                                                                                                                       |
+| `@variscout/azure-app` | **Playwright E2E** | Editor workflow, samples, analysis views, stats/ANOVA                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
 ---
 
@@ -206,7 +206,6 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `useIChartData`                  | ✅     | Shared I-Chart data transform (control limits, points)       |
 | `useKeyboardNavigation`          | ✅     | Arrow key navigation, focus management                       |
 | `useMindmapState`                | ✅     | Radial tree layout, eta-squared labels, progress tracking    |
-| `useRegressionState`             | ✅     | Mode switching, column selection, reduction history          |
 | `useResizablePanel`              | ✅     | Panel size state, drag interaction, constraints              |
 | `useResponsiveChartMargins`      | ✅     | Dynamic chart margins based on container width               |
 | `useThemeState`                  | ✅     | Theme state (light/dark/system), themingEnabled parameter    |
@@ -235,7 +234,6 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `StatsPanel`          | ✅     | Conditional display, Cp/Cpk formatting, tabs       |
 | `Dashboard`           | ✅     | View switching, chart rendering, ANOVA integration |
 | `DataTableModal`      | ✅     | Cell editing, row operations, paste handling       |
-| `RegressionPanel`     | ✅     | Empty states, chart expansion, ranking display     |
 | `AnovaResults`        | ✅     | Null state, F-stat display, p-value format         |
 | `MindmapPanel`        | ✅     | Panel open/close, backdrop, slide-in animation     |
 | `WhatIfPage`          | ✅     | Simulator rendering, navigation, spec limits       |
@@ -249,8 +247,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | Component/Module       | Tested | Focus                                                                          |
 | :--------------------- | :----- | :----------------------------------------------------------------------------- |
 | `AnovaResults`         | ✅     | Null state, F-stat display, p-value format                                     |
-| `RegressionPanel`      | ✅     | Empty states, chart expansion, ranking                                         |
-| `Dashboard`            | ✅     | Tab switching (Analysis/Regression/Performance), stats                         |
+| `Dashboard`            | ✅     | Tab switching (Analysis/Performance), stats                                    |
 | `StatsPanel`           | ✅     | Conditional display, Cp/Cpk, sigma within                                      |
 | `MindmapWindow`        | ✅     | Window rendering, popout behavior, localStorage sync                           |
 | `WhatIfPage`           | ✅     | Simulator integration, navigation, predictions                                 |
@@ -275,7 +272,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `critical-workflow.spec.ts` | App load, home screen, sample load, stats display, SVG rendering  |
 | `drill-down.spec.ts`        | Boxplot click → filter chip, stats update, chip remove, clear all |
 | `samples.spec.ts`           | All sample datasets load, chart rendering, expected stats values  |
-| `analysis-views.spec.ts`    | Dashboard → Regression view switch via Settings, SVG rendering    |
+| `analysis-views.spec.ts`    | Dashboard view switching via Settings, SVG rendering              |
 | `stats-anova.spec.ts`       | Cp/Cpk display, mean/sigma/samples, ANOVA F-stat/p-value/eta²     |
 | `user-flows.spec.ts`        | End-to-end user journeys, navigation flows, multi-step workflows  |
 | `edge-cases.spec.ts`        | Boundary conditions, empty states, error handling, edge scenarios |
@@ -291,7 +288,7 @@ pnpm --filter @variscout/pwa test:e2e
 | :------------------------ | :----------------------------------------------------------------- |
 | `editor-workflow.spec.ts` | Auth, empty state, sample load, chart rendering, filter drill-down |
 | `samples.spec.ts`         | Sample dataset loading, chart rendering, expected values           |
-| `analysis-views.spec.ts`  | Analysis → Regression tab switch, SVG rendering, switch back       |
+| `analysis-views.spec.ts`  | Analysis view switching, SVG rendering                             |
 | `stats-anova.spec.ts`     | Mean/sigma/samples display, ANOVA F-stat/p-value/eta²              |
 | `user-flows.spec.ts`      | End-to-end user journeys, editor navigation, multi-step workflows  |
 | `edge-cases.spec.ts`      | Boundary conditions, empty states, error handling, edge scenarios  |
@@ -478,7 +475,6 @@ packages/hooks/
         ├── useIChartData.test.ts            # Shared I-Chart data transform
         ├── useKeyboardNavigation.test.ts    # Arrow key navigation
         ├── useMindmapState.test.ts          # Mindmap state
-        ├── useRegressionState.test.ts       # Regression state management
         ├── useResizablePanel.test.ts        # Resizable panel state
         ├── useResponsiveChartMargins.test.ts # Dynamic chart margins
         ├── useThemeState.test.ts            # Theme state management
@@ -517,7 +513,6 @@ apps/pwa/
 │   ├── components/__tests__/
 │   │   ├── StatsPanel.test.tsx
 │   │   ├── Dashboard.test.tsx
-│   │   ├── RegressionPanel.test.tsx
 │   │   ├── AnovaResults.test.tsx
 │   │   ├── MindmapPanel.test.tsx
 │   │   ├── WhatIfPage.test.tsx
@@ -546,7 +541,6 @@ apps/azure/
 │   │   └── storage.test.ts
 │   ├── components/__tests__/
 │   │   ├── AnovaResults.test.tsx
-│   │   ├── RegressionPanel.test.tsx
 │   │   ├── Dashboard.test.tsx
 │   │   ├── StatsPanel.test.tsx
 │   │   ├── MindmapWindow.test.tsx
@@ -613,24 +607,7 @@ Specific prompts for verifying complex features. These protocols can be executed
 - [ ] Pareto showing ranking
 - [ ] Interactive cross-filtering between charts
 
-### 4. Regression Workflow Verification
-
-**Goal:** Verify both Simple and Advanced regression modes render correctly with meaningful statistical output.
-
-**Agent Prompt:**
-
-> "Load the 'Coffee Moisture' sample. Open Settings and switch to Regression view. In Simple mode, verify that scatter plots appear for the auto-selected X columns with R² values displayed. Toggle column checkboxes to add/remove predictors. Click 'Expand' on a scatter plot to verify the expanded modal opens with a larger chart. Switch to Advanced (GLM) mode. Select 2-3 predictors and verify the coefficient table renders with p-values. If a term removal suggestion appears, click it and verify the model updates."
-
-**Success Criteria:**
-
-- [ ] Simple mode: scatter plots with regression lines render
-- [ ] R² values displayed for each predictor
-- [ ] Column toggles add/remove scatter plots
-- [ ] Expanded scatter modal opens and closes
-- [ ] Advanced mode: coefficient table with p-values renders
-- [ ] Term removal updates the model
-
-### 5. Capability Chart Verification
+### 4. Capability Chart Verification
 
 **Goal:** Verify the capability histogram renders correctly with spec limit indicators.
 
@@ -645,7 +622,7 @@ Specific prompts for verifying complex features. These protocols can be executed
 - [ ] Pass/fail coloring on histogram bars
 - [ ] Cp and Cpk values displayed
 
-### 6. ANOVA Results Verification
+### 5. ANOVA Results Verification
 
 **Goal:** Verify ANOVA results display correctly below boxplot with all statistical values.
 
@@ -662,7 +639,7 @@ Specific prompts for verifying complex features. These protocols can be executed
 - [ ] Factor name mentioned in header
 - [ ] Group means and n= values listed
 
-### 7. Multi-Level Drill-Down Verification
+### 6. Multi-Level Drill-Down Verification
 
 **Goal:** Verify drilling through 2+ filter levels with cumulative filter chips and stats updates.
 
@@ -679,7 +656,7 @@ Specific prompts for verifying complex features. These protocols can be executed
 - [ ] Cumulative contribution % updates
 - [ ] Clear All removes all chips and reverts stats
 
-### 8. Manual Data Entry Verification
+### 7. Manual Data Entry Verification
 
 **Goal:** Verify the manual data entry workflow from setup to analysis.
 
@@ -695,7 +672,7 @@ Specific prompts for verifying complex features. These protocols can be executed
 - [ ] 'Analyze' button triggers dashboard rendering
 - [ ] Pasting multi-line data populates grid
 
-### 9. What-If Simulation Verification
+### 8. What-If Simulation Verification
 
 **Goal:** Verify the What-If Simulator sliders, predicted values, and real-time updates.
 
@@ -711,7 +688,7 @@ Specific prompts for verifying complex features. These protocols can be executed
 - [ ] Spec limit pass/fail coloring on predicted value (if applicable)
 - [ ] Reset returns sliders to defaults
 
-### 10. Mindmap Panel Verification
+### 9. Mindmap Panel Verification
 
 **Goal:** Verify the Investigation Mindmap renders with correct structure and interaction.
 
@@ -728,7 +705,7 @@ Specific prompts for verifying complex features. These protocols can be executed
 - [ ] Drill trail highlighted for active path
 - [ ] Progress bar visible
 
-### 11. Theme Switching (Azure) Verification
+### 10. Theme Switching (Azure) Verification
 
 **Goal:** Verify light/dark/system theme switching with chart color updates and persistence.
 
@@ -765,7 +742,7 @@ Assign the following tasks to an Antigravity agent or execute interactively via 
 ### Azure Team App
 
 - [ ] **Auth Flow**: Verify EasyAuth login/logout works correctly.
-- [ ] **Tab Navigation**: Switch between Analysis and Regression tabs.
+- [ ] **Tab Navigation**: Switch between Analysis and Performance tabs.
 - [ ] **Chart Rendering**: Verify I-Chart, Boxplot, Pareto, and ScatterPlot charts render.
 - [ ] **ANOVA Integration**: Confirm ANOVA results display below Boxplot.
 - [ ] **Sync Status**: Verify offline/online sync indicator updates.

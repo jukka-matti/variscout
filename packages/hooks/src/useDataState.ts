@@ -32,7 +32,6 @@ import type {
   ParetoRow,
   ScaleMode,
   SavedProject,
-  RegressionPersistenceState,
   ViewState,
 } from './types';
 import { useDataComputation } from './useDataComputation';
@@ -113,9 +112,6 @@ export interface DataState {
   // Filter stack (ordered drill trail for breadcrumb persistence)
   filterStack: FilterAction[];
 
-  // Regression state (for project persistence)
-  regressionState: RegressionPersistenceState | null;
-
   // View state (for restoring analyst's working context)
   viewState: ViewState | null;
 }
@@ -173,9 +169,6 @@ export interface DataActions {
 
   // Filter stack
   setFilterStack: (stack: FilterAction[]) => void;
-
-  // Regression state
-  setRegressionState: (state: RegressionPersistenceState | null) => void;
 
   // View state
   setViewState: (state: ViewState | null) => void;
@@ -257,9 +250,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
 
   // Filter stack (ordered drill trail for breadcrumb persistence)
   const [filterStack, setFilterStack] = useState<FilterAction[]>([]);
-
-  // Regression state (for project persistence)
-  const [regressionState, setRegressionState] = useState<RegressionPersistenceState | null>(null);
 
   // View state (for restoring analyst's working context)
   const [viewState, setViewState] = useState<ViewState | null>(null);
@@ -412,7 +402,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     measureLabel,
     chartTitles,
     filterStack,
-    regressionState,
     viewState,
     setRawData,
     setOutcome,
@@ -443,7 +432,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     setSelectedMeasure,
     setCpkTarget,
     setFilterStack,
-    setRegressionState,
     setViewState,
   });
 
@@ -492,7 +480,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       selectedPoints,
       selectionIndexMap,
       filterStack,
-      regressionState,
       viewState,
     }),
     [
@@ -535,7 +522,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       selectedPoints,
       selectionIndexMap,
       filterStack,
-      regressionState,
       viewState,
     ]
   );
@@ -570,7 +556,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setSelectedMeasure,
       setCpkTarget,
       setFilterStack,
-      setRegressionState,
       setViewState,
       setSelectedPoints,
       addToSelection,
@@ -615,7 +600,6 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setSelectedMeasure,
       setCpkTarget,
       setFilterStack,
-      setRegressionState,
       setViewState,
       setSelectedPoints,
       addToSelection,

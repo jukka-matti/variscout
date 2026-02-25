@@ -17,9 +17,6 @@ export type {
   ConformanceResult,
   AnovaResult,
   AnovaGroup,
-  RegressionResult,
-  LinearFit,
-  QuadraticFit,
   StageOrderMode,
   StagedStatsResult,
   StageBoundary,
@@ -36,17 +33,6 @@ export type {
   PerformanceSummary,
   ChannelPerformanceData,
   WideFormatDetection,
-  // Multiple Regression Types
-  MultiRegressionOptions,
-  MultiRegressionResult,
-  CoefficientResult,
-  RegressionTerm,
-  VIFWarning,
-  InteractionEdge,
-  TermRemovalSuggestion,
-  // Model-driven simulation types
-  FactorAdjustment,
-  ModelSimulationResult,
 } from './types';
 
 // Statistics
@@ -59,9 +45,6 @@ export {
   calculateConformance,
   groupDataByFactor,
   calculateAnova,
-  calculateRegression,
-  // Multiple regression (GLM)
-  calculateMultipleRegression,
   // Staged stats functions
   determineStageOrder,
   sortDataByStage,
@@ -73,10 +56,6 @@ export {
   // Boxplot statistics
   calculateBoxplotStats,
   sortBoxplotData,
-  // Interaction strength (ΔR² between factor pairs)
-  getInteractionStrength,
-  // Model reduction
-  suggestTermRemoval,
   // Kernel density estimation (for violin plots)
   calculateKDE,
 } from './stats';
@@ -182,7 +161,6 @@ export type {
   ProjectedStats,
   DirectAdjustmentParams,
   DirectAdjustmentResult,
-  FactorBaseline,
 } from './variation';
 
 export {
@@ -197,8 +175,6 @@ export {
   getNextDrillFactor,
   findOptimalFactors,
   simulateDirectAdjustment,
-  simulateFromModel,
-  getFactorBaselines,
   DRILL_SWITCH_THRESHOLD,
 } from './variation';
 

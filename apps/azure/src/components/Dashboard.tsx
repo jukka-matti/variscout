@@ -3,7 +3,6 @@ import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
-import RegressionPanel from './RegressionPanel';
 import PerformanceDashboard from './PerformanceDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import FilterBreadcrumb from './FilterBreadcrumb';
@@ -29,17 +28,12 @@ import {
   ChartDownloadMenu,
   chartDownloadMenuAzureColorScheme,
 } from '@variscout/ui';
-import {
-  getColumnNames,
-  createFactorFromSelection,
-  type MultiRegressionResult,
-} from '@variscout/core';
+import { getColumnNames, createFactorFromSelection } from '@variscout/core';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useAnnotations } from '@variscout/hooks';
 import {
   Activity,
   BarChart3,
-  TrendingUp,
   Maximize2,
   ChevronLeft,
   ChevronRight,
@@ -52,7 +46,7 @@ import {
   Download,
 } from 'lucide-react';
 
-type DashboardTab = 'analysis' | 'regression' | 'performance';
+type DashboardTab = 'analysis' | 'performance';
 
 interface DashboardProps {
   onPointClick?: (index: number) => void;
@@ -61,9 +55,6 @@ interface DashboardProps {
   onBackToPerformance?: () => void;
   onDrillToMeasure?: (measureId: string) => void;
   filterNav?: UseFilterNavigationReturn;
-  regressionInitialFactors?: string[];
-  onClearRegressionFactors?: () => void;
-  onNavigateToWhatIfWithModel?: (model: MultiRegressionResult) => void;
   /** Initial tab from persisted view state */
   initialTab?: DashboardTab;
   /** Report tab changes for persistence */
@@ -93,9 +84,6 @@ const Dashboard = ({
   onBackToPerformance,
   onDrillToMeasure,
   filterNav: externalFilterNav,
-  regressionInitialFactors,
-  onClearRegressionFactors: _onClearRegressionFactors,
-  onNavigateToWhatIfWithModel,
   initialTab,
   onTabChange,
   initialFocusedChart,
@@ -161,13 +149,6 @@ const Dashboard = ({
       setActiveTab('analysis');
     }
   }, [drillFromPerformance, setActiveTab]);
-
-  // Auto-switch to regression tab when external factors arrive (investigation bridge)
-  useEffect(() => {
-    if (regressionInitialFactors && regressionInitialFactors.length > 0) {
-      setActiveTab('regression');
-    }
-  }, [regressionInitialFactors, setActiveTab]);
 
   // Chart state and logic from the hook
   const {
@@ -371,19 +352,6 @@ const Dashboard = ({
             <BarChart3 size={16} />
             Analysis
           </button>
-          <button
-            role="tab"
-            aria-selected={activeTab === 'regression'}
-            onClick={() => setActiveTab('regression')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'regression'
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
-            }`}
-          >
-            <TrendingUp size={16} />
-            Regression
-          </button>
           {isPerformanceMode && (
             <button
               role="tab"
@@ -410,18 +378,6 @@ const Dashboard = ({
         existingFactors={getColumnNames(rawData)}
         onCreateFactor={handleCreateFactor}
       />
-
-      {/* Regression Tab */}
-      {activeTab === 'regression' && (
-        <div className="flex-1 m-4 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
-          <ErrorBoundary componentName="Regression Panel">
-            <RegressionPanel
-              initialPredictors={regressionInitialFactors}
-              onNavigateToWhatIf={onNavigateToWhatIfWithModel}
-            />
-          </ErrorBoundary>
-        </div>
-      )}
 
       {/* Performance Tab */}
       {activeTab === 'performance' && (

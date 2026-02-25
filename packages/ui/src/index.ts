@@ -59,27 +59,6 @@ export {
   type FilterBreadcrumbColorScheme,
 } from './components/FilterBreadcrumb';
 export {
-  RegressionPanelBase,
-  regressionPanelDefaultColorScheme,
-  regressionPanelAzureColorScheme,
-  type RegressionPanelBaseProps,
-  type RegressionPanelColorScheme,
-  type SimpleRegressionViewProps,
-  type AdvancedRegressionViewProps,
-  type ExpandedScatterModalProps,
-  type ColumnClassification,
-  SimpleRegressionView,
-  AdvancedRegressionView,
-  ExpandedScatterModal,
-  regressionViewDefaultColorScheme,
-  regressionViewAzureColorScheme,
-  type RegressionViewColorScheme,
-  type SimpleRegressionViewComponentProps,
-  type AdvancedRegressionViewComponentProps,
-  type ExpandedScatterModalComponentProps,
-} from './components/RegressionPanel';
-
-export {
   Slider,
   sliderDefaultColorScheme,
   sliderAzureColorScheme,
@@ -95,8 +74,6 @@ export {
   type WhatIfSimulatorProps,
   type SimulatorPreset,
   type WhatIfSimulatorHandle,
-  ModelDrivenSimulator,
-  type ModelDrivenSimulatorProps,
 } from './components/WhatIfSimulator';
 
 export {

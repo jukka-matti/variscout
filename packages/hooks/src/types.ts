@@ -172,39 +172,11 @@ export type ParetoMode = 'derived' | 'separate';
 export type ParetoAggregation = 'count' | 'value';
 
 /**
- * A single step in the model reduction history (duplicated from useRegressionState
- * to avoid circular dependency — types.ts is the canonical persistence type source)
- */
-export interface ReductionStepData {
-  term: string;
-  pValue: number;
-  adjR2Before: number;
-  adjR2After: number;
-}
-
-/**
- * Serializable snapshot of regression panel state for project persistence.
- * The model itself recomputes from data + predictors — only selections are saved.
- */
-export interface RegressionPersistenceState {
-  mode: 'simple' | 'advanced';
-  selectedXColumns?: string[];
-  advSelectedPredictors?: string[];
-  /** Categorical columns (Set serialized as array) */
-  categoricalColumns?: string[];
-  includeInteractions?: boolean;
-  /** Guided model reduction trail */
-  reductionHistory?: ReductionStepData[];
-  /** Row count at time of model fitting — used to detect data staleness */
-  dataRowCount?: number;
-}
-
-/**
  * Lightweight view state persisted with project.
  * Captures where the analyst was working so reload resumes their context.
  */
 export interface ViewState {
-  activeTab?: 'analysis' | 'regression' | 'performance';
+  activeTab?: 'analysis' | 'performance';
   isMindmapOpen?: boolean;
   isWhatIfOpen?: boolean;
   focusedChart?: 'ichart' | 'boxplot' | 'pareto' | null;
@@ -250,10 +222,6 @@ export interface AnalysisState {
   // --- Filter stack ordering (Phase 2) ---
   /** Ordered filter drill trail — reconstructs breadcrumbs on reload */
   filterStack?: FilterAction[];
-
-  // --- Regression state (Phase 3) ---
-  /** Saved regression panel state for workflow continuity */
-  regressionState?: RegressionPersistenceState;
 
   // --- View state (Phase 4) ---
   /** Where the analyst was working (tab, panels, focused chart) */

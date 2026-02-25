@@ -122,19 +122,6 @@ test.describe('User Flow: View Switching', () => {
     await page.goto('/?sample=coffee');
     await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
   });
-
-  test('should switch to regression and back', async ({ page }) => {
-    // Find the regression tab
-    const regressionTab = page.getByRole('tab', { name: /Regression/i });
-    await expect(regressionTab).toBeVisible({ timeout: 3000 });
-    await regressionTab.click();
-    await expect(page.locator('[data-testid="regression-panel"]')).toBeVisible({ timeout: 5000 });
-
-    // Switch back to Dashboard
-    const dashboardTab = page.getByRole('tab', { name: /Dashboard/i });
-    await dashboardTab.click();
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 5000 });
-  });
 });
 
 test.describe('User Flow: Sample Switching', () => {

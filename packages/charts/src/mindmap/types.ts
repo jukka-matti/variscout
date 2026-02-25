@@ -29,20 +29,9 @@ export interface MindmapNode {
 }
 
 /**
- * An interaction edge between two factor nodes
- */
-export interface MindmapEdge {
-  factorA: string;
-  factorB: string;
-  deltaRSquared: number;
-  pValue: number;
-  standardizedBeta: number;
-}
-
-/**
  * Mindmap display mode
  */
-export type MindmapMode = 'drilldown' | 'interactions' | 'narrative';
+export type MindmapMode = 'drilldown' | 'narrative';
 
 /**
  * Data for a single step in the narrative timeline
@@ -77,12 +66,8 @@ export interface InvestigationMindmapProps {
   onNodeClick?: (factor: string) => void;
   /** Called when a category value is selected from the popover */
   onCategorySelect?: (factor: string, value: string | number) => void;
-  /** Display mode: 'drilldown' shows trail, 'interactions' shows edges */
+  /** Display mode: 'drilldown' shows trail, 'narrative' shows timeline */
   mode?: MindmapMode;
-  /** Interaction edges (rendered in 'interactions' mode) */
-  edges?: MindmapEdge[];
-  /** Called when an interaction edge is clicked */
-  onEdgeClick?: (factorA: string, factorB: string) => void;
   /** Drill step data for narrative mode annotations */
   narrativeSteps?: NarrativeStep[];
   /** Called when user edits an annotation (narrative mode) */
@@ -95,12 +80,8 @@ export interface InvestigationMindmapProps {
   width?: number;
   /** Explicit height (overrides parentHeight) */
   height?: number;
-  /** Column aliases for display (used on edge labels) */
+  /** Column aliases for display */
   columnAliases?: Record<string, string>;
   /** Optional callback to navigate to What-If Simulator from narrative conclusion */
   onNavigateToWhatIf?: () => void;
-  /** Optional callback to navigate to Regression with investigated factors */
-  onNavigateToRegression?: (factors: string[]) => void;
-  /** Optional callback to model an interaction pair in Regression */
-  onModelInteraction?: (factors: string[]) => void;
 }

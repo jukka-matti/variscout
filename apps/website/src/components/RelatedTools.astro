@@ -8,7 +8,7 @@
 
 import { getToolBySlug } from "../data/toolsData";
 
-type CaseChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
+type CaseChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
 interface Props {
 	tools: CaseChartId[];
@@ -23,14 +23,12 @@ const CHART_TO_TOOL_SLUG: Record<CaseChartId, string | null> = {
 	boxplot: 'boxplot',
 	pareto: 'pareto',
 	stats: null,         // Stats panel has no dedicated tool page
-	regression: 'regression',
 };
 
 const TOOL_ICONS: Record<string, string> = {
 	'i-chart': '📈',
 	boxplot: '📊',
 	pareto: '📉',
-	regression: '📐',
 };
 
 // Resolve each case chart ID to a tool page entry

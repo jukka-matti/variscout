@@ -34,8 +34,6 @@ export type {
   PerformanceCapabilityProps,
 } from './types';
 
-export type { ScatterPlotProps } from './ScatterPlot';
-
 // Color constants
 export {
   chartColors,
@@ -104,7 +102,6 @@ export { default as BoxplotStatsTable, type BoxplotStatsTableProps } from './Box
 export { default as ParetoChart, ParetoChartBase } from './ParetoChart';
 export { default as CapabilityHistogram, CapabilityHistogramBase } from './CapabilityHistogram';
 export { default as ProbabilityPlot, ProbabilityPlotBase } from './ProbabilityPlot';
-export { default as ScatterPlot, ScatterPlotBase } from './ScatterPlot';
 export { default as ChartSourceBar, getSourceBarHeight } from './ChartSourceBar';
 export { default as ChartLegend, type ChartLegendProps } from './ChartLegend';
 
@@ -114,7 +111,6 @@ export {
   InvestigationMindmapBase,
   type InvestigationMindmapProps,
   type MindmapNode,
-  type MindmapEdge,
   type MindmapMode,
   type CategoryData,
   type NarrativeStep,

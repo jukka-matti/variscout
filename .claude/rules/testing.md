@@ -19,9 +19,9 @@
 
 | Package                | Test Type            | What to Test                                                        |
 | ---------------------- | -------------------- | ------------------------------------------------------------------- |
-| `@variscout/core`      | Unit                 | stats, parser, tier, export, regression, performance                |
+| `@variscout/core`      | Unit                 | stats, parser, tier, export, performance                            |
 | `@variscout/charts`    | Unit                 | colors, accessibility, multi-selection hook                         |
-| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useRegressionState, useVariationTracking, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState |
+| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useVariationTracking, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState |
 | `@variscout/ui`        | Unit                 | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase |
 | `@variscout/pwa`       | Component + E2E      | UI components, context, full user flows                             |
 | `@variscout/azure-app` | Component + E2E      | UI components, auth, storage, editor flows                          |
@@ -68,7 +68,6 @@ Key `data-testid` attributes used in Playwright E2E tests:
 | ANOVA results    | `[data-testid="anova-results"]`             |
 | ANOVA F/p        | `[data-testid="anova-significance"]`        |
 | ANOVA eta²       | `[data-testid="anova-eta-squared"]`         |
-| Regression panel | `[data-testid="regression-panel"]`          |
 | Filter chip      | `[data-testid^="filter-chip-"]`             |
 | Sample button    | `[data-testid^="sample-"]`                  |
 
@@ -79,11 +78,10 @@ Executable via Antigravity agents or `claude --chrome`. Full protocol details in
 1. Staged Analysis Verification
 2. PWA Embed Mode Verification
 3. Performance Module Verification
-4. Regression Workflow Verification
-5. Capability Chart Verification
-6. ANOVA Results Verification
-7. Multi-Level Drill-Down Verification
-8. Manual Data Entry Verification
-9. What-If Simulation Verification
-10. Mindmap Panel Verification
-11. Theme Switching (Azure) Verification
+4. Capability Chart Verification
+5. ANOVA Results Verification
+6. Multi-Level Drill-Down Verification
+7. Manual Data Entry Verification
+8. What-If Simulation Verification
+9. Mindmap Panel Verification
+10. Theme Switching (Azure) Verification

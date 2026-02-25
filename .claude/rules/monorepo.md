@@ -20,7 +20,7 @@ packages/
 │              #   useIChartData - Shared I-Chart data transform
 └── ui/        # @variscout/ui - Shared UI components:
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
-               #   PerformanceSetupPanelBase, RegressionPanelBase, VariationBar,
+               #   PerformanceSetupPanelBase, VariationBar,
                #   YAxisPopover, ChartCard, ColumnMapping, MeasureColumnSelector,
                #   PerformanceDetectedModal, DataQualityBanner, HelpTooltip,
                #   SelectionPanel, CreateFactorModal, UpgradePrompt,
@@ -43,7 +43,7 @@ apps/
 - `@variscout/core` has no React dependencies (exports stats, parser, glossary, tier)
 - `@variscout/charts` depends on `@variscout/core`
 - `@variscout/hooks` depends on `@variscout/core` (for types, utilities, and tier)
-- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `RegressionPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `MindmapWindow`, `MindmapPanelContent`, `exportMindmapPng`, `exportMindmapSvg`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `useGlossary`, `useIsMobile`, `errorService`
+- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `MindmapWindow`, `MindmapPanelContent`, `exportMindmapPng`, `exportMindmapSvg`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `useGlossary`, `useIsMobile`, `errorService`
 
 ## Build Commands
 

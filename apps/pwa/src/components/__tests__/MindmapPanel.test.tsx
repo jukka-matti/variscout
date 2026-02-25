@@ -92,10 +92,9 @@ describe('MindmapPanel', () => {
     expect(screen.getByText('Investigation')).toBeInTheDocument();
   });
 
-  it('shows three mode toggle buttons', () => {
+  it('shows two mode toggle buttons', () => {
     render(<MindmapPanel {...defaultProps} />);
     expect(screen.getByText('Drilldown')).toBeInTheDocument();
-    expect(screen.getByText('Interactions')).toBeInTheDocument();
     expect(screen.getByText('Narrative')).toBeInTheDocument();
   });
 
@@ -161,7 +160,6 @@ describe('MindmapPanel', () => {
   });
 
   it('calls setMode when enabled mode toggle buttons are clicked', () => {
-    // With 5 data rows + 2 factors, Interactions is enabled
     // Narrative requires 1+ drill, so add a drillPath entry
     mockMindmapState = {
       ...mockMindmapState,
@@ -183,10 +181,6 @@ describe('MindmapPanel', () => {
       ],
     };
     render(<MindmapPanel {...defaultProps} />);
-
-    // Click Interactions (not currently active, enabled with 2 factors + 5 rows)
-    fireEvent.click(screen.getByText('Interactions'));
-    expect(mockMindmapState.setMode).toHaveBeenCalledWith('interactions');
 
     // Click Narrative (not currently active, enabled with 1+ drillPath)
     fireEvent.click(screen.getByText('Narrative'));

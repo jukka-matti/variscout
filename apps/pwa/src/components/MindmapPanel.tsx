@@ -16,8 +16,6 @@ interface MindmapPanelProps {
   onDrillCategory: (factor: string, value: string | number) => void;
   onOpenPopout?: () => void;
   onNavigateToWhatIf?: () => void;
-  onNavigateToRegression?: (factors: string[]) => void;
-  onModelInteraction?: (factors: string[]) => void;
 }
 
 /**
@@ -36,8 +34,6 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
   onDrillCategory,
   onOpenPopout,
   onNavigateToWhatIf,
-  onNavigateToRegression,
-  onModelInteraction,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const mindmapRef = useRef<HTMLDivElement>(null);
@@ -61,7 +57,6 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
     nodes,
     drillTrail,
     cumulativeVariationPct,
-    interactionEdges,
     narrativeSteps,
     drillPath,
     mode,
@@ -141,8 +136,6 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           onCopyToClipboard={handleCopyToClipboard}
           copyFeedback={copyFeedback}
           columnAliases={columnAliases}
-          factorCount={factors.length}
-          dataCount={data.length}
         >
           <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">
             <InvestigationMindmapBase
@@ -152,13 +145,10 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
               onNodeClick={() => {}}
               onCategorySelect={handleCategorySelect}
               mode={mode}
-              edges={interactionEdges}
               narrativeSteps={narrativeSteps}
               onAnnotationChange={handleAnnotationChange}
               columnAliases={columnAliases}
               onNavigateToWhatIf={onNavigateToWhatIf}
-              onNavigateToRegression={onNavigateToRegression}
-              onModelInteraction={onModelInteraction}
               width={368}
               height={chartHeight}
             />

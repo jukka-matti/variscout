@@ -14,7 +14,6 @@ import {
   type DataQualityReport,
   type ParetoRow,
   type SavedProject,
-  type RegressionPersistenceState,
   type ViewState,
 } from '@variscout/hooks';
 import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
@@ -93,10 +92,6 @@ interface DataContextType extends Omit<DataState, 'saveProject' | 'loadProject'>
   // Filter stack (ordered drill trail for breadcrumb persistence)
   filterStack: FilterAction[];
   setFilterStack: (stack: FilterAction[]) => void;
-
-  // Regression state (for project persistence)
-  regressionState: RegressionPersistenceState | null;
-  setRegressionState: (state: RegressionPersistenceState | null) => void;
 
   // View state (for restoring analyst's working context)
   viewState: ViewState | null;
@@ -221,10 +216,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Filter stack (ordered drill trail)
       filterStack: state.filterStack,
       setFilterStack: actions.setFilterStack,
-
-      // Regression state
-      regressionState: state.regressionState,
-      setRegressionState: actions.setRegressionState,
 
       // View state
       viewState: state.viewState,

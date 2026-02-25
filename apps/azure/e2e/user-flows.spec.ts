@@ -135,40 +135,6 @@ test.describe('Azure: Manual Entry', () => {
   });
 });
 
-test.describe('Azure: Regression View', () => {
-  test('should switch to regression tab and back', async ({ page }) => {
-    await loadSampleInEditor(page);
-
-    // Switch to regression tab
-    const regressionTab = page.getByRole('tab', { name: /Regression/i });
-    await expect(regressionTab).toBeVisible({ timeout: 3000 });
-    await regressionTab.click();
-
-    // Regression panel should appear
-    await expect(page.locator('[data-testid="regression-panel"]')).toBeVisible({ timeout: 5000 });
-
-    // I-Chart should be hidden
-    await expect(page.locator('[data-testid="chart-ichart"]')).not.toBeVisible();
-
-    // Switch back to analysis
-    const analysisTab = page.getByRole('tab', { name: /Analysis/i });
-    await analysisTab.click();
-    await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 5000 });
-  });
-
-  test('should render SVG in regression panel', async ({ page }) => {
-    await loadSampleInEditor(page);
-
-    const regressionTab = page.getByRole('tab', { name: /Regression/i });
-    await regressionTab.click();
-    await expect(page.locator('[data-testid="regression-panel"]')).toBeVisible({ timeout: 5000 });
-
-    // SVG should be present
-    const svg = page.locator('[data-testid="regression-panel"] svg');
-    await expect(svg.first()).toBeVisible({ timeout: 5000 });
-  });
-});
-
 test.describe('Azure: ANOVA Display', () => {
   test('should show ANOVA results for multi-group data', async ({ page }) => {
     await loadSampleInEditor(page);

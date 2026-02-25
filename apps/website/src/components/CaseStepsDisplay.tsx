@@ -3,7 +3,7 @@
  * Replaces CaseStudyController - displays steps without iframe communication.
  */
 
-type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
+type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
 export interface CaseStep {
   title: string;

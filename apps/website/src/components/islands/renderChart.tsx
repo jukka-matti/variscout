@@ -3,16 +3,14 @@ import {
   BoxplotBase,
   ParetoChartBase,
   CapabilityHistogramBase,
-  ScatterPlotBase,
 } from '@variscout/charts';
-import type { SampleDataset, ComputedChartData } from '@variscout/data';
+import type { ComputedChartData } from '@variscout/data';
 
-export type ChartType = 'ichart' | 'boxplot' | 'pareto' | 'capability' | 'scatter' | 'regression';
+export type ChartType = 'ichart' | 'boxplot' | 'pareto' | 'capability';
 
 interface RenderChartParams {
   chartType: ChartType;
   computed: ComputedChartData;
-  sample: SampleDataset;
   width: number;
   height: number;
   showBranding: boolean;
@@ -25,11 +23,10 @@ interface RenderChartParams {
 export function renderChartContent({
   chartType,
   computed,
-  sample,
   width,
   height,
   showBranding,
-}: RenderChartParams): React.ReactNode {
+}: RenderChartParams) {
   switch (chartType) {
     case 'ichart':
       return (
@@ -78,24 +75,6 @@ export function renderChartContent({
           showBranding={showBranding}
         />
       );
-
-    case 'scatter':
-    case 'regression': {
-      const scatterData = sample.data.map((_, i) => ({
-        x: i,
-        y: computed.ichartData[i]?.value ?? 0,
-      }));
-      return (
-        <ScatterPlotBase
-          data={scatterData}
-          xLabel="Observation"
-          yLabel={sample.config.outcome}
-          parentWidth={width}
-          parentHeight={height}
-          showBranding={showBranding}
-        />
-      );
-    }
 
     default:
       return null;

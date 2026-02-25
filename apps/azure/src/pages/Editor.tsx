@@ -19,7 +19,7 @@ import {
 import { useControlViolations } from '@variscout/hooks';
 import { useDataMerge } from '../hooks/useDataMerge';
 import { downloadCSV } from '@variscout/core';
-import type { ExclusionReason, MultiRegressionResult } from '@variscout/core';
+import type { ExclusionReason } from '@variscout/core';
 import { SAMPLES } from '@variscout/data';
 import {
   Upload,
@@ -101,21 +101,6 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     viewState,
     onViewStateChange: handleViewStateChange,
   });
-
-  // Investigation → Regression bridge state
-  const [regressionInitialFactors, setRegressionInitialFactors] = useState<string[] | undefined>();
-  // Regression → What-If bridge state
-  const [whatIfRegressionModel, setWhatIfRegressionModel] = useState<
-    MultiRegressionResult | undefined
-  >();
-
-  const handleNavigateToRegression = useCallback(
-    (factorsList: string[]) => {
-      setRegressionInitialFactors(factorsList);
-      panels.setIsMindmapOpen(false);
-    },
-    [panels]
-  );
 
   // Add Data dropdown state
   const [addDataOpen, setAddDataOpen] = useState(false);
@@ -327,11 +312,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
       <WhatIfPage
         onBack={() => {
           panels.setIsWhatIfOpen(false);
-          setWhatIfRegressionModel(undefined);
         }}
         filterCount={filterNav.filterStack.length}
         filterStack={filterNav.filterStack}
-        regressionModel={whatIfRegressionModel}
       />
     );
   }
@@ -674,12 +657,6 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               onPointClick={panels.handlePointClick}
               highlightedPointIndex={panels.highlightedChartPoint}
               filterNav={filterNav}
-              regressionInitialFactors={regressionInitialFactors}
-              onClearRegressionFactors={() => setRegressionInitialFactors(undefined)}
-              onNavigateToWhatIfWithModel={model => {
-                setWhatIfRegressionModel(model);
-                panels.setIsWhatIfOpen(true);
-              }}
               initialTab={viewState?.activeTab}
               onTabChange={tab => handleViewStateChange({ activeTab: tab })}
               initialFocusedChart={viewState?.focusedChart}
@@ -717,8 +694,6 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 panels.setIsMindmapOpen(false);
                 panels.setIsWhatIfOpen(true);
               }}
-              onNavigateToRegression={handleNavigateToRegression}
-              onModelInteraction={handleNavigateToRegression}
               annotations={panels.mindmapAnnotations}
               onAnnotationsChange={panels.setMindmapAnnotations}
             />

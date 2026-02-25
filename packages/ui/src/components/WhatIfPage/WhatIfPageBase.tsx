@@ -1,15 +1,8 @@
 import React, { useMemo } from 'react';
 import { ArrowLeft, Beaker } from 'lucide-react';
-import {
-  calculateStats,
-  type DataRow,
-  type SpecLimits,
-  type MultiRegressionResult,
-} from '@variscout/core';
+import { calculateStats, type DataRow, type SpecLimits } from '@variscout/core';
 import WhatIfSimulator from '../WhatIfSimulator/WhatIfSimulator';
 import type { WhatIfSimulatorColorScheme } from '../WhatIfSimulator/WhatIfSimulator';
-import ModelDrivenSimulator from '../WhatIfSimulator/ModelDrivenSimulator';
-
 /**
  * Color scheme for WhatIfPage
  */
@@ -69,8 +62,6 @@ export interface WhatIfPageBaseProps {
   colorScheme?: WhatIfPageColorScheme;
   /** Color scheme to pass to WhatIfSimulator */
   simulatorColorScheme?: WhatIfSimulatorColorScheme;
-  /** Optional regression model for model-driven simulation */
-  regressionModel?: MultiRegressionResult;
   /** Cpk target for color thresholds (default 1.33) */
   cpkTarget?: number;
 }
@@ -85,7 +76,6 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
   onBack,
   colorScheme = whatIfPageDefaultColorScheme,
   simulatorColorScheme,
-  regressionModel,
   cpkTarget,
 }) => {
   const c = colorScheme;
@@ -169,22 +159,11 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
             </div>
           )}
 
-          {currentStats && regressionModel && (
-            <ModelDrivenSimulator
-              model={regressionModel}
-              filteredData={filteredData}
-              currentStats={currentStats}
-              specs={specs}
-              colorScheme={simulatorColorScheme}
-              cpkTarget={cpkTarget}
-            />
-          )}
-
           {currentStats && (
             <WhatIfSimulator
               currentStats={currentStats}
               specs={specs}
-              defaultExpanded={!regressionModel}
+              defaultExpanded={true}
               colorScheme={simulatorColorScheme}
               cpkTarget={cpkTarget}
             />

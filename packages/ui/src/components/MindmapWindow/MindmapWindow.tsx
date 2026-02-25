@@ -123,7 +123,6 @@ const MindmapWindow: React.FC<MindmapWindowProps> = ({
     nodes,
     drillTrail,
     cumulativeVariationPct,
-    interactionEdges,
     narrativeSteps,
     mode,
     setMode,
@@ -210,9 +209,7 @@ const MindmapWindow: React.FC<MindmapWindowProps> = ({
           setMode={setMode}
           toggleBg={c.toggleBg}
           inactiveText={`${c.secondaryText} hover:text-white`}
-          factorCount={factors.length}
           drillCount={localFilterStack.length}
-          dataCount={rawData.length}
         />
 
         <div className="flex items-center gap-1">
@@ -246,7 +243,6 @@ const MindmapWindow: React.FC<MindmapWindowProps> = ({
           cumulativeVariationPct={cumulativeVariationPct}
           onCategorySelect={handleDrillCategory}
           mode={mode}
-          edges={interactionEdges}
           narrativeSteps={narrativeSteps}
           onAnnotationChange={handleAnnotationChange}
           width={380}
