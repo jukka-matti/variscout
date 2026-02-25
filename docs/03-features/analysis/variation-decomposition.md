@@ -149,7 +149,7 @@ If you've completed Six Sigma Green Belt training, you've seen one-way ANOVA in 
 
 VariScout extends textbook ANOVA at the **category level**. Textbook ANOVA focuses on the F-test and η² (both factor-level metrics). VariScout extends the decomposition to individual categories by including within-group variation, because the drill-down workflow needs to answer "which category should I investigate?" — a question that between-group SS alone cannot answer reliably.
 
-**Confounding:** One-factor-at-a-time analysis does not account for confounding between factors. If Operator and Shift are correlated (certain operators only work nights), drilling by Shift may capture variation actually caused by Operator. The Interaction mode in the Mindmap and the Advanced Regression model (Phase 2) help detect and untangle these effects.
+**Confounding:** One-factor-at-a-time analysis does not account for confounding between factors. If Operator and Shift are correlated (certain operators only work nights), drilling by Shift may capture variation actually caused by Operator. Phase 2 will re-introduce the Mindmap interaction mode and Advanced Regression model to detect and untangle these effects (see [Phase 2 Regression Roadmap](../../05-technical/implementation/phase2-regression-roadmap.md)).
 
 ---
 
@@ -159,19 +159,19 @@ The variation decomposition system is a practical tool for process investigation
 
 ### Path dependency
 
-The drill-down examines one factor at a time. Different drill orders can produce different intermediate percentages — for example, drilling Shift → Operator may show different local scope fractions than Operator → Shift — but they converge on similar cumulative scope. For the statistically rigorous joint analysis, use the Regression panel (Phase 2). See [Progressive Stratification](../../01-vision/progressive-stratification.md) Part 2 for a detailed treatment of this tension.
+The drill-down examines one factor at a time. Different drill orders can produce different intermediate percentages — for example, drilling Shift → Operator may show different local scope fractions than Operator → Shift — but they converge on similar cumulative scope. For statistically rigorous joint analysis, the Regression panel planned for Phase 2 will provide correct multi-factor estimates (see [Phase 2 Regression Roadmap](../../05-technical/implementation/phase2-regression-roadmap.md)). See [Progressive Stratification](../../01-vision/progressive-stratification.md) Part 2 for a detailed treatment of this tension.
 
 ### Confounding and correlated factors
 
-Real process data is rarely orthogonal. When factors are correlated (operator × shift, material × supplier), one-factor ANOVA misattributes variation. The drill-down can lead to incorrect factor prioritization. The Interaction mode in the Mindmap provides an early signal; the Advanced Regression model in Phase 2 provides the correct joint estimate.
+Real process data is rarely orthogonal. When factors are correlated (operator × shift, material × supplier), one-factor ANOVA misattributes variation. The drill-down can lead to incorrect factor prioritization. Phase 2 will re-introduce the Mindmap interaction mode as an early signal and the Advanced Regression model for the correct joint estimate (see [Phase 2 Regression Roadmap](../../05-technical/implementation/phase2-regression-roadmap.md)).
 
 ### Cumulative scope approximation
 
-The cumulative scope percentage (the "in focus" number on drill-down chips) is the multiplicative product of local scope fractions through the drill path. This is an intuitive "funnel" metaphor, not a statistically grounded quantity. It treats each drill level's local scope as independent, which fails when factors are correlated. The regression model in Phase 2 provides the correct joint estimate of explained variation.
+The cumulative scope percentage (the "in focus" number on drill-down chips) is the multiplicative product of local scope fractions through the drill path. This is an intuitive "funnel" metaphor, not a statistically grounded quantity. It treats each drill level's local scope as independent, which fails when factors are correlated. The regression model planned for Phase 2 will provide the correct joint estimate of explained variation.
 
-### When to transition to regression
+### When to transition beyond drill-down
 
-Use the drill-down for initial investigation (3–5 minutes). If you suspect interactions, have confounded factors, or need a formal model for projection, transition to Advanced Regression. The Mindmap's "Refine in Regression" button automates this handoff.
+Use the drill-down for initial investigation (3–5 minutes). If you suspect interactions, have confounded factors, or need a formal model for projection, use the What-If Simulator to test scenarios with direct adjustments. Advanced Regression (planned for Phase 2) will provide formal multi-factor modelling and an automated handoff from the Mindmap — see [Phase 2 Regression Roadmap](../../05-technical/implementation/phase2-regression-roadmap.md).
 
 ---
 
