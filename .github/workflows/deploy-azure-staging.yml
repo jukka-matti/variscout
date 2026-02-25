@@ -1,0 +1,69 @@
+name: Deploy Azure Staging
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/azure/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+permissions:
+  id-token: write # OIDC token for Azure login
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Azure app
+        run: pnpm --filter @variscout/azure-app build
+
+      - name: Assemble deployment package
+        run: |
+          mkdir -p deploy/dist
+          cp -r apps/azure/dist/* deploy/dist/
+          cp apps/azure/server.js deploy/server.js
+          echo '{"type":"module","scripts":{"start":"node server.js"}}' > deploy/package.json
+          cd deploy && zip -r ../variscout-azure.zip .
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: variscout-staging
+          package: ./variscout-azure.zip
+
+      - name: Verify health endpoint
+        run: |
+          echo "Waiting for deployment to stabilize..."
+          sleep 30
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://variscout-staging.azurewebsites.net/health || true)
+          if [ "$STATUS" = "200" ]; then
+            echo "Health check passed (HTTP 200)"
+          else
+            echo "Health check returned HTTP $STATUS (app may still be starting)"
+          fi

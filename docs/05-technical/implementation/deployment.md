@@ -137,7 +137,43 @@ See [ARM Template Documentation](../../08-products/azure/arm-template.md) for te
 
 ## Deployment Targets
 
-### Azure App (App Service)
+### Azure App — Staging (CI/CD)
+
+The staging environment deploys automatically on push to `main` via GitHub Actions with OIDC authentication (no long-lived secrets).
+
+**URL**: `https://variscout-staging.azurewebsites.net`
+
+**Architecture**: The Vite build output (`apps/azure/dist/`) is served by a zero-dependency Node.js static server (`apps/azure/server.js`) running on App Service Linux (Node 22). The server provides:
+
+- SPA fallback routing (all non-file paths → `index.html`)
+- Cache headers (hashed `/assets/*` get 1-year immutable, rest `no-cache`)
+- Health endpoint (`GET /health` → 200)
+- Listens on `process.env.PORT` (set by App Service)
+
+EasyAuth intercepts `/.auth/*` at the platform level before the Node server — no conflict.
+
+**Pipeline** (`.github/workflows/deploy-azure-staging.yml`):
+
+1. pnpm install + build Azure app
+2. Assemble zip: `dist/` + `server.js` + minimal `package.json`
+3. OIDC login → `azure/webapps-deploy@v3`
+
+**GitHub secrets** (3, all OIDC — no credentials stored):
+
+- `AZURE_CLIENT_ID` — Service principal for CI/CD deployment
+- `AZURE_TENANT_ID` — AAD tenant
+- `AZURE_SUBSCRIPTION_ID` — Target subscription
+
+**Azure resources** (in `rg-variscout-staging`):
+
+- App Service Plan (B1 Linux)
+- App Service (`variscout-staging`) with EasyAuth (AAD)
+- App Registration ("VariScout Staging") with `User.Read` + `Files.ReadWrite` permissions
+- Separate App Registration ("VariScout CI/CD") with federated credential for GitHub Actions OIDC
+
+**One-time setup**: See [Azure Staging Setup](#azure-staging-setup) below.
+
+### Azure App — Marketplace (Production)
 
 Deployed via ARM template to customer's Azure subscription:
 
@@ -269,6 +305,102 @@ Customers can add Application Insights:
 ### Partner Center Analytics
 
 - Azure Marketplace: Sales, deployments, usage
+
+---
+
+## Azure Staging Setup
+
+One-time setup commands for the rdmaic staging environment. Run these with `az cli` authenticated to the Perus-RDMAIC subscription.
+
+### 1. Create App Registration (EasyAuth — user login)
+
+```bash
+az ad app create --display-name "VariScout Staging" --sign-in-audience AzureADMyOrg
+# → note appId as CLIENT_ID
+
+az ad app update --id $CLIENT_ID \
+  --web-redirect-uris "https://variscout-staging.azurewebsites.net/.auth/login/aad/callback"
+
+# Graph API permissions: User.Read + Files.ReadWrite (OneDrive)
+az ad app permission add --id $CLIENT_ID \
+  --api 00000003-0000-0000-c000-000000000000 \
+  --api-permissions "e1fe6dd8-ba31-4d61-89e7-88639da4683d=Scope" \
+                    "5c28c081-612b-4536-8c00-47d2f7f0de0a=Scope"
+
+az ad app credential reset --id $CLIENT_ID --display-name "EasyAuth-Staging" --years 2
+# → note password as CLIENT_SECRET (shown once)
+```
+
+### 2. Create Service Principal (GitHub Actions OIDC — CI/CD)
+
+```bash
+az ad app create --display-name "VariScout CI/CD"
+# → note appId as CICD_CLIENT_ID
+
+az ad sp create --id $CICD_CLIENT_ID
+
+az role assignment create \
+  --role "Website Contributor" \
+  --assignee $CICD_CLIENT_ID \
+  --scope /subscriptions/f6766ade-aab2-4f13-845a-30eda447e379/resourceGroups/rg-variscout-staging
+
+az ad app federated-credential create --id $CICD_CLIENT_ID \
+  --parameters '{
+    "name": "github-actions-main",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "subject": "repo:jukka-matti/variscout:ref:refs/heads/main",
+    "audiences": ["api://AzureADTokenExchange"]
+  }'
+```
+
+### 3. Deploy infrastructure
+
+```bash
+az group create --name rg-variscout-staging --location northeurope
+
+az deployment group create \
+  --resource-group rg-variscout-staging \
+  --template-file infra/mainTemplate.json \
+  --parameters \
+    appName=variscout-staging \
+    clientId=$CLIENT_ID \
+    clientSecret=$CLIENT_SECRET \
+    packageUrl="1"
+```
+
+### 4. Configure App Service
+
+```bash
+# Startup command (Node 14+ does not auto-start with PM2)
+az webapp config set \
+  --name variscout-staging \
+  --resource-group rg-variscout-staging \
+  --startup-file "node server.js"
+
+# Health check
+az webapp config set \
+  --name variscout-staging \
+  --resource-group rg-variscout-staging \
+  --generic-configurations '{"healthCheckPath": "/health"}'
+```
+
+### 5. Configure GitHub secrets
+
+```bash
+gh secret set AZURE_CLIENT_ID --repo jukka-matti/variscout --body "$CICD_CLIENT_ID"
+gh secret set AZURE_TENANT_ID --repo jukka-matti/variscout --body "<tenant-id>"
+gh secret set AZURE_SUBSCRIPTION_ID --repo jukka-matti/variscout --body "f6766ade-aab2-4f13-845a-30eda447e379"
+```
+
+### 6. First deploy
+
+Trigger via `workflow_dispatch` or push a change to `main`.
+
+### Verification
+
+- `https://variscout-staging.azurewebsites.net` → AAD login redirect
+- `https://variscout-staging.azurewebsites.net/health` → 200
+- Deep URL refresh → SPA serves `index.html` (not 404)
 
 ---
 
