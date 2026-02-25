@@ -95,12 +95,24 @@ These colors have **consistent semantic meaning** across both themes:
 
 ### Company Accent (Azure App Only)
 
-Azure App users can customize the accent color via Settings > Appearance:
+Azure App users can customize the accent color via Settings > Appearance. The `useThemeState` hook sets two CSS variables on `<html>`:
 
-```tsx
-// ThemeContext applies custom accent as CSS variable
-document.documentElement.style.setProperty('--company-accent', '#8b5cf6');
-```
+| Variable       | Format      | Example      | Usage                                        |
+| -------------- | ----------- | ------------ | -------------------------------------------- |
+| `--accent`     | RGB triplet | `139 92 246` | Tailwind `rgb(var(--accent))` utilities      |
+| `--accent-hex` | Hex string  | `#8b5cf6`    | Inline `style` where `rgb()` isn't practical |
+
+When no accent is set, both variables are removed and consumers fall back to their defaults.
+
+**Surfaces that consume `--accent-hex`:**
+
+| Component          | Property                  | Fallback                           |
+| ------------------ | ------------------------- | ---------------------------------- |
+| `ChartSourceBar`   | Branding dot fill         | `accentColor` prop (blue-500)      |
+| `FilterContextBar` | Variation percentage text | `#60a5fa` (blue-400)               |
+| `ChartCard`        | Hover border color        | `var(--color-edge-hover, #475569)` |
+
+PWA has no accent set, so these surfaces always use their fallback values.
 
 ## Chart Colors
 

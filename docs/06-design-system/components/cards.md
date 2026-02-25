@@ -143,6 +143,22 @@ This allows users to preview data, rename columns, and enter Target, LSL, and US
 
 ---
 
+## ChartCard (Accent-Aware Hover)
+
+`ChartCard` from `@variscout/charts` uses CSS for its hover border:
+
+```css
+.chart-card:hover {
+  border-color: var(--accent-hex, var(--color-edge-hover, #475569));
+}
+```
+
+When a company accent is configured (Azure App), the hover border picks up that color. PWA falls back to `--color-edge-hover`.
+
+See [Shared Chart Components > ChartCard](../charts/shared-components.md#chartcard) for full props and layout.
+
+---
+
 ## See Also
 
 - [Layout Patterns](../patterns/layout.md)

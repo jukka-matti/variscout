@@ -328,6 +328,8 @@ interface ChartSourceBarProps {
 
 Height: 18px (included in bottom margin calculations via `getSourceBarHeight(showBranding)`).
 
+The branding dot uses `var(--accent-hex)` for its fill color, picking up the company accent when set in Azure App. Falls back to the `accentColor` prop (blue-500) when the variable is absent.
+
 ---
 
 ## Import Patterns
