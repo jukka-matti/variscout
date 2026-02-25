@@ -22,7 +22,9 @@
       "@variscout/ui": ["../../packages/ui/src"],
       "@variscout/ui/*": ["../../packages/ui/src/*"],
       "@variscout/charts": ["../../packages/charts/src"],
-      "@variscout/charts/*": ["../../packages/charts/src/*"]
+      "@variscout/charts/*": ["../../packages/charts/src/*"],
+      "@variscout/data": ["../../packages/data/src"],
+      "@variscout/data/*": ["../../packages/data/src/*"]
     }
   },
   "include": ["src"],

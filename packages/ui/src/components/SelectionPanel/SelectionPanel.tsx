@@ -153,8 +153,8 @@ export const SelectionPanel: React.FC<SelectionPanelProps> = ({
                   <span className="text-white">{point.value}</span>
                 </>
               )}
-              {point.factors.map((f, i) => (
-                <span key={i}>
+              {point.factors.map(f => (
+                <span key={f.name}>
                   {', '}
                   <span className="text-content-muted">{f.name}=</span>
                   <span className="text-white">{f.value}</span>

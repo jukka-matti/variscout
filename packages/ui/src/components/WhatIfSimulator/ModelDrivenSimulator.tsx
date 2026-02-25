@@ -35,14 +35,14 @@ function formatNumber(value: number, decimals: number = 2): string {
   return value.toFixed(decimals);
 }
 
-const ModelDrivenSimulator: React.FC<ModelDrivenSimulatorProps> = ({
+function ModelDrivenSimulator({
   model,
   filteredData,
   currentStats,
   specs,
   colorScheme = whatIfSimulatorDefaultColorScheme,
   cpkTarget = 1.33,
-}) => {
+}: ModelDrivenSimulatorProps) {
   const c = colorScheme;
   const { getTerm } = useGlossary();
 
@@ -373,6 +373,6 @@ const ModelDrivenSimulator: React.FC<ModelDrivenSimulatorProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default ModelDrivenSimulator;

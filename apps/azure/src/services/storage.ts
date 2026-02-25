@@ -1,6 +1,7 @@
 // src/services/storage.ts
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getAccessToken, isLocalDev, AuthError } from '../auth/easyAuth';
+import { errorService } from '@variscout/ui';
 import {
   addToSyncQueue,
   getPendingSyncItems,
@@ -195,7 +196,11 @@ async function listFromCloud(token: string, location: StorageLocation): Promise<
   );
 
   if (!response.ok) {
-    console.warn('Failed to list cloud projects:', response.status);
+    errorService.logWarning('Failed to list cloud projects', {
+      component: 'storage',
+      action: 'listFromCloud',
+      metadata: { status: response.status },
+    });
     return [];
   }
 
@@ -242,7 +247,8 @@ async function getCloudModifiedDate(
     if (!response.ok) return null;
     const data = await response.json();
     return data.lastModifiedDateTime || null;
-  } catch {
+  } catch (e) {
+    console.warn('[Storage] Failed to check cloud modified date:', e);
     return null;
   }
 }
@@ -485,7 +491,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
             return project;
           }
         } catch (error) {
-          console.warn('Cloud load failed, falling back to local:', error);
+          errorService.logWarning('Cloud load failed, falling back to local', {
+            component: 'storage',
+            action: 'loadProject',
+            metadata: { error: error instanceof Error ? error.message : String(error) },
+          });
         }
       }
 
@@ -523,7 +533,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime()
       );
     } catch (error) {
-      console.warn('Failed to list cloud projects:', error);
+      errorService.logWarning('Failed to list cloud projects', {
+        component: 'storage',
+        action: 'listProjects',
+        metadata: { error: error instanceof Error ? error.message : String(error) },
+      });
       return localProjects;
     }
   }, []);

@@ -52,7 +52,7 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Focus input when modal opens
+  // Focus input when modal opens — only run when isOpen changes (not on every keystroke)
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
@@ -61,6 +61,7 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
         setFactorName('Selected Points');
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Reset on close

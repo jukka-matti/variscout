@@ -38,6 +38,7 @@ const FEATURED_ICONS: Record<string, React.ReactNode> = {
  */
 const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) => {
   const [expandedCategories, setExpandedCategories] = useState<Set<SampleCategory>>(new Set());
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const featuredSamples = SAMPLES.filter(s => s.featured);
   const categorizedSamples = SAMPLES.reduce(
@@ -166,7 +167,6 @@ const SampleSection: React.FC<SampleSectionProps> = ({ onLoadSample, variant }) 
   );
 
   const totalSamples = SAMPLES.length;
-  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className="border-t border-edge pt-4">

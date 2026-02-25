@@ -1,3 +1,4 @@
+import type React from 'react';
 import type { StatsResult, GlossaryTerm, DataRow } from '@variscout/core';
 
 export interface StatsPanelColorScheme {

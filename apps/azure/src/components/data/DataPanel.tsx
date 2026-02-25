@@ -47,19 +47,16 @@ const DataPanel: React.FC<DataPanelProps> = ({
   const { highlightedRow } = useHighlightFade(highlightRowIndex);
   const highlightRowRef = useRef<HTMLTableRowElement>(null);
 
-  // Create index map from filteredData to rawData
+  // Create index map from filteredData to rawData (reference equality — filteredData
+  // rows are the same objects as rawData rows, see useDataState.ts)
   const dataWithIndices = useMemo(() => {
-    const rawIndices = new Map<string, number>();
+    const rawIndices = new Map<object, number>();
     rawData.forEach((row, idx) => {
-      const key = JSON.stringify(row);
-      if (!rawIndices.has(key)) {
-        rawIndices.set(key, idx);
-      }
+      rawIndices.set(row, idx);
     });
 
     return filteredData.map(row => {
-      const key = JSON.stringify(row);
-      const originalIndex = rawIndices.get(key) ?? -1;
+      const originalIndex = rawIndices.get(row) ?? -1;
       return { row, originalIndex };
     });
   }, [filteredData, rawData]);

@@ -68,19 +68,6 @@ const IChart = ({
 
   const data = useIChartData(sourceData, outcome, stageColumn, timeColumn);
 
-  if (!outcome || data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-content-muted italic">
-        No data available for I-Chart
-      </div>
-    );
-  }
-
-  const showBranding = showBrandingProp ?? shouldShowBranding();
-  const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
-  const effectiveStagedStats =
-    displayOptions.showControlLimits !== false ? (stagedStats ?? undefined) : undefined;
-
   // Right-click handler: create free-floating annotation at % position
   const handleContextMenu = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -131,6 +118,19 @@ const IChart = ({
     }
     return positions;
   }, [ichartAnnotations, parentWidth, parentHeight]);
+
+  if (!outcome || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-content-muted italic">
+        No data available for I-Chart
+      </div>
+    );
+  }
+
+  const showBranding = showBrandingProp ?? shouldShowBranding();
+  const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
+  const effectiveStagedStats =
+    displayOptions.showControlLimits !== false ? (stagedStats ?? undefined) : undefined;
 
   const fonts = getScaledFonts(parentWidth);
 

@@ -11,6 +11,7 @@
  * Derived data: availableOutcomes, availableStageColumns, anovaResult, boxplotData
  */
 
+import type React from 'react';
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import {

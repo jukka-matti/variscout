@@ -65,33 +65,6 @@ const IChart = ({
 
   const data = useIChartData(sourceData, outcome, stageColumn, timeColumn);
 
-  const handleYAxisClick = () => {
-    setIsEditingScale(true);
-  };
-
-  // Handle point click - map filtered index back to callback
-  const handlePointClick = (index: number) => {
-    onPointClick?.(index);
-  };
-
-  if (!outcome || data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-slate-500 italic">
-        No data available for I-Chart
-      </div>
-    );
-  }
-
-  const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
-  const effectiveStagedStats =
-    displayOptions.showControlLimits !== false ? (stagedStats ?? undefined) : undefined;
-
-  // Hide spec lines when showSpecs is false
-  const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
-
-  // Calculate margin for popover positioning (simplified)
-  const margin = { top: 20, left: 60 };
-
   // Right-click handler: create free-floating annotation at % position
   const handleContextMenu = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -142,6 +115,33 @@ const IChart = ({
     }
     return positions;
   }, [ichartAnnotations, parentWidth, parentHeight]);
+
+  const handleYAxisClick = () => {
+    setIsEditingScale(true);
+  };
+
+  // Handle point click - map filtered index back to callback
+  const handlePointClick = (index: number) => {
+    onPointClick?.(index);
+  };
+
+  if (!outcome || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-slate-500 italic">
+        No data available for I-Chart
+      </div>
+    );
+  }
+
+  const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
+  const effectiveStagedStats =
+    displayOptions.showControlLimits !== false ? (stagedStats ?? undefined) : undefined;
+
+  // Hide spec lines when showSpecs is false
+  const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
+
+  // Calculate margin for popover positioning (simplified)
+  const margin = { top: 20, left: 60 };
 
   const fonts = getScaledFonts(parentWidth);
 

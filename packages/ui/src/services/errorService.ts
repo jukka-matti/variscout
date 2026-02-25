@@ -58,7 +58,7 @@ class ErrorService {
     this.addToLog(entry);
 
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('[ErrorService]', error.message, context);
     }
   }
@@ -76,7 +76,7 @@ class ErrorService {
 
     this.addToLog(entry);
 
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.warn('[ErrorService]', message, context);
     }
   }
@@ -94,7 +94,7 @@ class ErrorService {
 
     this.addToLog(entry);
 
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.info('[ErrorService]', message, context);
     }
   }
@@ -106,7 +106,7 @@ class ErrorService {
   showUserError(message: string): void {
     if (this.notificationHandler) {
       this.notificationHandler(message, 'error');
-    } else if (process.env.NODE_ENV === 'development') {
+    } else if (import.meta.env.DEV) {
       console.error('[User Error]', message);
     }
   }
@@ -117,7 +117,7 @@ class ErrorService {
   showUserWarning(message: string): void {
     if (this.notificationHandler) {
       this.notificationHandler(message, 'warning');
-    } else if (process.env.NODE_ENV === 'development') {
+    } else if (import.meta.env.DEV) {
       console.warn('[User Warning]', message);
     }
   }
@@ -128,7 +128,7 @@ class ErrorService {
   showUserInfo(message: string): void {
     if (this.notificationHandler) {
       this.notificationHandler(message, 'info');
-    } else if (process.env.NODE_ENV === 'development') {
+    } else if (import.meta.env.DEV) {
       console.info('[User Info]', message);
     }
   }

@@ -75,7 +75,8 @@ export async function getEasyAuthUser(): Promise<EasyAuthUser | null> {
         '',
       userId: provider.user_id,
     };
-  } catch {
+  } catch (e) {
+    console.warn('[EasyAuth] Failed to fetch user:', e);
     return null;
   }
 }
@@ -120,8 +121,9 @@ export async function getAccessToken(): Promise<string> {
             return refreshedData[0].access_token;
           }
         }
-      } catch {
+      } catch (e) {
         // If refresh fails, try using the existing token (it may still work)
+        console.warn('[EasyAuth] Token refresh failed, using existing token:', e);
       }
     }
   }
