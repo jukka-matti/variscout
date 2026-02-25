@@ -20,8 +20,7 @@ import {
   getResponsiveMargins,
   getScaledFonts,
 } from '@variscout/charts';
-import { ChartAnnotationLayer } from '@variscout/ui';
-import AxisEditor from '../AxisEditor';
+import { ChartAnnotationLayer, AxisEditor, axisEditorAzureColorScheme } from '@variscout/ui';
 import type { HighlightColor, ChartAnnotation } from '@variscout/hooks';
 
 import { Eye, EyeOff, Hash, Sigma, Info } from 'lucide-react';
@@ -327,6 +326,7 @@ const ParetoChart = ({
             left: parentWidth / 2,
             transform: 'translate(-50%, -50%)',
           }}
+          colorScheme={axisEditorAzureColorScheme}
         />
       )}
     </div>

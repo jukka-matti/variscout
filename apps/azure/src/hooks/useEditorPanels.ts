@@ -21,6 +21,8 @@ export interface UseEditorPanelsReturn {
   setIsMindmapOpen: BoolSetter;
   isWhatIfOpen: boolean;
   setIsWhatIfOpen: BoolSetter;
+  isPresentationMode: boolean;
+  setIsPresentationMode: BoolSetter;
   highlightRowIndex: number | null;
   setHighlightRowIndex: (v: number | null) => void;
   highlightedChartPoint: number | null;
@@ -42,6 +44,7 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
   const [isDataTableOpen, setIsDataTableOpen] = useState(false);
   const [isMindmapOpen, setIsMindmapOpenRaw] = useState(viewState?.isMindmapOpen ?? false);
   const [isWhatIfOpen, setIsWhatIfOpenRaw] = useState(viewState?.isWhatIfOpen ?? false);
+  const [isPresentationMode, setIsPresentationMode] = useState(false);
 
   // Wrap mindmap/whatif setters to report changes for persistence
   const setIsMindmapOpen: BoolSetter = useCallback(
@@ -117,6 +120,8 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     setIsMindmapOpen,
     isWhatIfOpen,
     setIsWhatIfOpen,
+    isPresentationMode,
+    setIsPresentationMode,
     highlightRowIndex,
     setHighlightRowIndex,
     highlightedChartPoint,

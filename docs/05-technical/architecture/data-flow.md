@@ -242,7 +242,7 @@ flowchart TB
     end
 
     subgraph Cloud["Microsoft Cloud"]
-        D[MSAL Auth] --> E[Access Token]
+        D[EasyAuth] --> E[Access Token]
         E --> F[Graph API]
         F --> G[(OneDrive)]
     end

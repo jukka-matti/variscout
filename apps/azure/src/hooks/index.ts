@@ -20,7 +20,7 @@ export {
 
 export { useDrillConfirmation, type UseDrillConfirmationReturn } from './useDrillConfirmation';
 
-export { useControlViolations } from './useControlViolations';
+export { useControlViolations } from '@variscout/hooks';
 export { useDataMerge } from './useDataMerge';
 
 export {

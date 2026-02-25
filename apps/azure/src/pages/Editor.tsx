@@ -16,7 +16,7 @@ import {
   InvestigationPrompt,
   investigationPromptAzureColorScheme,
 } from '@variscout/ui';
-import { useControlViolations } from '../hooks/useControlViolations';
+import { useControlViolations } from '@variscout/hooks';
 import { useDataMerge } from '../hooks/useDataMerge';
 import { downloadCSV } from '@variscout/core';
 import type { ExclusionReason, MultiRegressionResult } from '@variscout/core';
@@ -40,6 +40,7 @@ import {
   RefreshCw,
   ChevronDown,
   Check,
+  Maximize2,
 } from 'lucide-react';
 import { useEditorPanels } from '../hooks/useEditorPanels';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
@@ -267,7 +268,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
         ? 'text-blue-400'
         : syncStatus.status === 'error'
           ? 'text-red-400'
-          : 'text-slate-500';
+          : syncStatus.status === 'conflict'
+            ? 'text-amber-400'
+            : 'text-slate-500';
 
   // If in paste mode, show PasteScreen full screen
   if (dataFlow.isPasteMode) {
@@ -352,13 +355,28 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
         </div>
         <div className="flex items-center gap-3">
           {/* Sync Status */}
-          <div className={`flex items-center gap-1.5 text-sm ${syncColor}`}>
-            <SyncIcon
-              size={16}
-              className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
-            />
-            <span className="text-slate-400">{syncStatus.message || syncStatus.status}</span>
-          </div>
+          {syncStatus.status === 'error' ? (
+            <button
+              onClick={() => {
+                window.location.href = '/.auth/login/aad';
+              }}
+              className={`flex items-center gap-1.5 text-sm ${syncColor} hover:text-red-300 transition-colors`}
+              title="Click to re-authenticate"
+            >
+              <SyncIcon size={16} />
+              <span className="underline underline-offset-2">
+                {syncStatus.message || 'Auth error'}
+              </span>
+            </button>
+          ) : (
+            <div className={`flex items-center gap-1.5 text-sm ${syncColor}`}>
+              <SyncIcon
+                size={16}
+                className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
+              />
+              <span className="text-slate-400">{syncStatus.message || syncStatus.status}</span>
+            </div>
+          )}
 
           {/* Add Data Dropdown */}
           {rawData.length > 0 && outcome && (
@@ -451,6 +469,18 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               data-testid="btn-what-if"
             >
               <Beaker size={18} />
+            </button>
+          )}
+
+          {/* Presentation Mode */}
+          {rawData.length > 0 && outcome && (
+            <button
+              onClick={() => panels.setIsPresentationMode(true)}
+              className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
+              title="Presentation Mode"
+              data-testid="btn-presentation"
+            >
+              <Maximize2 size={18} />
             </button>
           )}
 
@@ -661,6 +691,8 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               initialParetoFactor={viewState?.paretoFactor}
               onBoxplotFactorChange={factor => handleViewStateChange({ boxplotFactor: factor })}
               onParetoFactorChange={factor => handleViewStateChange({ paretoFactor: factor })}
+              isPresentationMode={panels.isPresentationMode}
+              onExitPresentation={() => panels.setIsPresentationMode(false)}
             />
             <MindmapPanel
               isOpen={panels.isMindmapOpen}

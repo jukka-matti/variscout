@@ -64,15 +64,13 @@ pnpm --filter @variscout/azure-app test
 
 ### Azure App Environment Variables
 
-| Variable                  | Description                | Required | Set By       |
-| ------------------------- | -------------------------- | -------- | ------------ |
-| `VITE_AZURE_CLIENT_ID`    | MSAL application client ID | Yes      | ARM template |
-| `VITE_AZURE_TENANT_ID`    | Azure AD tenant ID         | Yes      | ARM template |
-| `VITE_AZURE_REDIRECT_URI` | OAuth redirect URI         | Yes      | ARM template |
-| `VITE_LICENSE_TIER`       | License tier               | Yes      | ARM template |
-| `VITE_MAX_CHANNELS`       | Channel limit              | Yes      | ARM template |
+| Variable                                   | Description                        | Required | Set By       |
+| ------------------------------------------ | ---------------------------------- | -------- | ------------ |
+| `VITE_LICENSE_TIER`                        | License tier (always `enterprise`) | Yes      | ARM template |
+| `WEBSITE_RUN_FROM_PACKAGE`                 | Package deployment URL             | Yes      | ARM template |
+| `MICROSOFT_PROVIDER_AUTHENTICATION_SECRET` | EasyAuth client secret             | Yes      | ARM template |
 
-> **Note**: `VITE_MAX_USERS` is no longer used. The single Managed Application plan provides unlimited users.
+> **Note**: MSAL-era variables (`VITE_AZURE_CLIENT_ID`, `VITE_AZURE_TENANT_ID`, `VITE_AZURE_REDIRECT_URI`, `VITE_MAX_USERS`, `VITE_MAX_CHANNELS`) are no longer used. Authentication is handled by EasyAuth (App Service Authentication), not MSAL.
 
 ### PWA Environment Variables
 
@@ -139,17 +137,19 @@ See [ARM Template Documentation](../../08-products/azure/arm-template.md) for te
 
 ## Deployment Targets
 
-### Azure App (Azure Static Web Apps)
+### Azure App (App Service)
 
 Deployed via ARM template to customer's Azure subscription:
 
 ```yaml
-# Azure Static Web Apps configuration (in ARM template)
+# App Service configuration (in ARM template)
 resource:
-  type: Microsoft.Web/staticSites
+  type: Microsoft.Web/sites # App Service, not Static Web Apps
   apiVersion: 2022-09-01
   name: variscout-{unique}
-  sku: Standard
+  kind: linux
+  plan: B1 Basic (Linux, Node 20)
+  deployment: WEBSITE_RUN_FROM_PACKAGE
 ```
 
 ### Marketing Website (Vercel)
@@ -184,7 +184,7 @@ For demos and development only:
 
 ### Required for Azure App
 
-The ARM template creates an App Registration with:
+The customer creates an App Registration before deployment (the ARM template references it via `clientId` and `clientSecret` parameters):
 
 | Permission        | Type      | Purpose               |
 | ----------------- | --------- | --------------------- |
@@ -222,16 +222,19 @@ The ARM template creates an App Registration with:
 
 ## Rollback Procedures
 
-### Azure Static Web Apps
+### Azure App Service
 
-Azure maintains deployment history:
+Rollback by changing the `WEBSITE_RUN_FROM_PACKAGE` URL to a previous release:
 
 ```bash
-# List deployments
-az staticwebapp deployment list --name variscout-xyz
+# Point to a previous release package
+az webapp config appsettings set \
+  --name variscout-xyz \
+  --resource-group rg-variscout \
+  --settings WEBSITE_RUN_FROM_PACKAGE="https://variscout.blob.core.windows.net/releases/variscout-azure-v1.2.0.zip"
 
-# Rollback to previous deployment
-az staticwebapp deployment revert --name variscout-xyz --deployment-id {id}
+# Restart to pick up the change
+az webapp restart --name variscout-xyz --resource-group rg-variscout
 ```
 
 ### ARM Template Updates

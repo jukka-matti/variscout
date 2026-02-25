@@ -1,8 +1,9 @@
 import React from 'react';
 import Boxplot from '../charts/Boxplot';
-import AnovaResults from '../AnovaResults';
 import ErrorBoundary from '../ErrorBoundary';
 import {
+  AnovaResults,
+  anovaAzureColorScheme,
   FilterContextBar,
   filterContextBarAzureColorScheme,
   FactorSelector,
@@ -151,7 +152,13 @@ const FocusedBoxplotView: React.FC<FocusedBoxplotViewProps> = ({
           <BoxplotStatsTable data={boxplotData} />
         </div>
       )}
-      {anovaResult && <AnovaResults result={anovaResult} factorLabel={boxplotFactor} />}
+      {anovaResult && (
+        <AnovaResults
+          result={anovaResult}
+          factorLabel={boxplotFactor}
+          colorScheme={anovaAzureColorScheme}
+        />
+      )}
     </div>
   );
 };

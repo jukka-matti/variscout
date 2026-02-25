@@ -16,9 +16,6 @@ vi.mock('../StatsPanel', () => ({
 vi.mock('../RegressionPanel', () => ({
   default: () => <div data-testid="regression-panel">Regression Panel</div>,
 }));
-vi.mock('../AnovaResults', () => ({
-  default: () => <div data-testid="anova-results">ANOVA Results</div>,
-}));
 vi.mock('../PerformanceDashboard', () => ({
   default: () => <div data-testid="performance-dashboard">Performance Dashboard</div>,
 }));

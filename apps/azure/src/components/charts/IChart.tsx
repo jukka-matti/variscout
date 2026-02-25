@@ -14,8 +14,7 @@ import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
 import { IChartBase, getResponsiveMargins, getScaledFonts } from '@variscout/charts';
 import { useIChartData } from '@variscout/hooks';
-import { ChartAnnotationLayer } from '@variscout/ui';
-import YAxisPopover from '../YAxisPopover';
+import { ChartAnnotationLayer, YAxisPopover, yAxisPopoverAzureColorScheme } from '@variscout/ui';
 import type { ChartAnnotation } from '@variscout/hooks';
 
 interface IChartProps {
@@ -190,6 +189,7 @@ const IChart = ({
         autoMax={autoMax}
         onSave={setAxisSettings}
         anchorPosition={{ top: margin.top, left: 10 }}
+        colorScheme={yAxisPopoverAzureColorScheme}
       />
     </div>
   );

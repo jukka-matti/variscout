@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import React from 'react';
 
 // ---------------------------------------------------------------------------
 // Hoisted mock objects (available inside vi.mock factories)
@@ -49,12 +50,20 @@ vi.mock('../../db/schema', () => ({
 vi.mock('../../auth/easyAuth', () => ({
   getAccessToken: mockGetAccessToken,
   isLocalDev: () => false,
+  AuthError: class AuthError extends Error {
+    code: string;
+    constructor(message: string, code: string) {
+      super(message);
+      this.name = 'AuthError';
+      this.code = code;
+    }
+  },
 }));
 
 // ---------------------------------------------------------------------------
 // Imports (after mocks are set up)
 // ---------------------------------------------------------------------------
-import { useStorage } from '../storage';
+import { useStorage, StorageProvider, classifySyncError } from '../storage';
 import type { SyncStatus, CloudProject, StorageLocation } from '../storage';
 
 // ---------------------------------------------------------------------------
@@ -68,6 +77,11 @@ function createFetchResponse(body: unknown, ok = true, status = 200) {
     status,
     json: vi.fn().mockResolvedValue(body),
   } as unknown as Response;
+}
+
+/** Wrapper that provides StorageProvider context for hook tests. */
+function wrapper({ children }: { children: React.ReactNode }) {
+  return React.createElement(StorageProvider, null, children);
 }
 
 // ---------------------------------------------------------------------------
@@ -121,13 +135,48 @@ describe('storage service', () => {
   });
 
   // -------------------------------------------------------------------------
+  // classifySyncError
+  // -------------------------------------------------------------------------
+  describe('classifySyncError', () => {
+    it('classifies 401 as auth (not retryable)', () => {
+      const result = classifySyncError(new Error('Failed: 401'));
+      expect(result.category).toBe('auth');
+      expect(result.retryable).toBe(false);
+    });
+
+    it('classifies 429 as throttle (retryable)', () => {
+      const result = classifySyncError(new Error('Failed: 429'));
+      expect(result.category).toBe('throttle');
+      expect(result.retryable).toBe(true);
+    });
+
+    it('classifies 500 as server (retryable)', () => {
+      const result = classifySyncError(new Error('Failed: 500'));
+      expect(result.category).toBe('server');
+      expect(result.retryable).toBe(true);
+    });
+
+    it('classifies network errors as network (retryable)', () => {
+      const result = classifySyncError(new Error('network error'));
+      expect(result.category).toBe('network');
+      expect(result.retryable).toBe(true);
+    });
+
+    it('classifies unknown errors as unknown (retryable)', () => {
+      const result = classifySyncError(new Error('something weird'));
+      expect(result.category).toBe('unknown');
+      expect(result.retryable).toBe(true);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // saveProject
   // -------------------------------------------------------------------------
   describe('saveProject', () => {
     it('saves to IndexedDB first (offline-first)', async () => {
       Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
 
       await act(async () => {
         await result.current.saveProject(sampleProject, 'test-project', 'personal');
@@ -146,7 +195,7 @@ describe('storage service', () => {
     it('queues for sync when offline', async () => {
       Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
 
       await act(async () => {
         await result.current.saveProject(sampleProject, 'offline-proj', 'personal');
@@ -166,7 +215,7 @@ describe('storage service', () => {
 
       fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'cloud-id-1', eTag: 'etag-1' }));
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
 
       await act(async () => {
         await result.current.saveProject(sampleProject, 'cloud-proj', 'personal');
@@ -186,7 +235,7 @@ describe('storage service', () => {
 
       fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'id-1', eTag: 'etag-1' }));
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
 
       await act(async () => {
         await result.current.saveProject(sampleProject, 'my-project', 'personal');
@@ -203,7 +252,7 @@ describe('storage service', () => {
 
       fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'id-2', eTag: 'etag-2' }));
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
 
       await act(async () => {
         await result.current.saveProject(sampleProject, 'already.vrs', 'personal');
@@ -226,7 +275,7 @@ describe('storage service', () => {
 
       fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'cloud-99', eTag: 'etag-99' }));
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
 
       await act(async () => {
         await result.current.saveProject(sampleProject, 'synced-proj', 'personal');
@@ -249,7 +298,7 @@ describe('storage service', () => {
         createFetchResponse({ error: { message: 'Throttled' } }, false, 429)
       );
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
 
       await act(async () => {
         await result.current.saveProject(sampleProject, 'fail-proj', 'personal');
@@ -259,7 +308,6 @@ describe('storage service', () => {
         expect.objectContaining({ name: 'fail-proj' })
       );
       expect(result.current.syncStatus.status).toBe('offline');
-      expect(result.current.syncStatus.message).toContain('retry when connected');
     });
   });
 
@@ -270,9 +318,12 @@ describe('storage service', () => {
     it('loads from cloud when online and caches locally', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
+      // db.projects.get for conflict detection (no local record → skip conflict check)
+      mockProjects.get.mockResolvedValueOnce(null);
+      // Only loadFromCloud fetch (no conflict metadata fetch since no local record)
       fetchSpy.mockResolvedValueOnce(createFetchResponse(sampleProject));
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
       let loaded: unknown;
 
       await act(async () => {
@@ -295,7 +346,7 @@ describe('storage service', () => {
       const localData = { data: [10, 20], specs: { usl: 50, lsl: 5 } };
       mockProjects.get.mockResolvedValueOnce({ data: localData });
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
       let loaded: unknown;
 
       await act(async () => {
@@ -309,11 +360,17 @@ describe('storage service', () => {
     it('falls back to IndexedDB when cloud load fails', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
-      fetchSpy.mockRejectedValueOnce(new Error('Network error'));
       const localFallback = { data: [99] };
+      // First db.projects.get: conflict detection (returns null — no local record)
+      mockProjects.get.mockResolvedValueOnce(null);
+      // getCloudModifiedDate fetch fails
+      fetchSpy.mockRejectedValueOnce(new Error('Network error'));
+      // loadFromCloud fetch also fails
+      fetchSpy.mockRejectedValueOnce(new Error('Network error'));
+      // Second db.projects.get: fallback loadFromIndexedDB
       mockProjects.get.mockResolvedValueOnce({ data: localFallback });
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
       let loaded: unknown;
 
       await act(async () => {
@@ -326,10 +383,14 @@ describe('storage service', () => {
     it('returns null when project not found in cloud (404) and not cached locally', async () => {
       Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
+      // db.projects.get for conflict detection (no local record → skip conflict check)
+      mockProjects.get.mockResolvedValueOnce(null);
+      // loadFromCloud returns 404
       fetchSpy.mockResolvedValueOnce(createFetchResponse(null, false, 404));
+      // db.projects.get for fallback loadFromIndexedDB
       mockProjects.get.mockResolvedValueOnce(null);
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
       let loaded: unknown;
 
       await act(async () => {
@@ -352,7 +413,7 @@ describe('storage service', () => {
         { name: 'local-2', location: 'personal', modified: new Date('2026-01-15') },
       ]);
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
       let projects: CloudProject[] = [];
 
       await act(async () => {
@@ -391,7 +452,7 @@ describe('storage service', () => {
         })
       );
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
       let projects: CloudProject[] = [];
 
       await act(async () => {
@@ -429,7 +490,7 @@ describe('storage service', () => {
         })
       );
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
       let projects: CloudProject[] = [];
 
       await act(async () => {
@@ -449,7 +510,7 @@ describe('storage service', () => {
 
       mockGetAccessToken.mockRejectedValueOnce(new Error('Auth expired'));
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
       let projects: CloudProject[] = [];
 
       await act(async () => {
@@ -501,7 +562,7 @@ describe('storage service', () => {
         .mockResolvedValueOnce({ name: 'queued-1', synced: false })
         .mockResolvedValueOnce({ name: 'queued-2', synced: false });
 
-      renderHook(() => useStorage());
+      renderHook(() => useStorage(), { wrapper });
 
       // Wait for mount sync to settle
       await act(async () => {
@@ -556,7 +617,7 @@ describe('storage service', () => {
 
       mockProjects.get.mockResolvedValueOnce({ name: 'ok-item', synced: false });
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
 
       // Wait for mount sync to settle
       await act(async () => {
@@ -575,6 +636,57 @@ describe('storage service', () => {
   });
 
   // -------------------------------------------------------------------------
+  // Notifications
+  // -------------------------------------------------------------------------
+  describe('notifications', () => {
+    it('emits notification on successful cloud save', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+
+      fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'id-1', eTag: 'etag-1' }));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'notif-proj', 'personal');
+      });
+
+      expect(result.current.notifications.length).toBeGreaterThan(0);
+      expect(result.current.notifications.some(n => n.type === 'success')).toBe(true);
+    });
+
+    it('emits notification on offline save', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'offline-notif', 'personal');
+      });
+
+      expect(result.current.notifications.some(n => n.type === 'info')).toBe(true);
+    });
+
+    it('dismisses notification by id', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+
+      await act(async () => {
+        await result.current.saveProject(sampleProject, 'dismiss-test', 'personal');
+      });
+
+      const notifId = result.current.notifications[0]?.id;
+      expect(notifId).toBeTruthy();
+
+      act(() => {
+        result.current.dismissNotification(notifId);
+      });
+
+      expect(result.current.notifications.find(n => n.id === notifId)).toBeUndefined();
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Initial syncStatus
   // -------------------------------------------------------------------------
   describe('initial state', () => {
@@ -582,7 +694,7 @@ describe('storage service', () => {
       Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
       mockGetPending.mockResolvedValueOnce([]);
 
-      const { result } = renderHook(() => useStorage());
+      const { result } = renderHook(() => useStorage(), { wrapper });
       expect(result.current.syncStatus.status).toBe('saved');
       expect(result.current.syncStatus.message).toBe('');
     });

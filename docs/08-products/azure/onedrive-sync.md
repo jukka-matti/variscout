@@ -39,8 +39,8 @@ LOCAL (IndexedDB)               ONEDRIVE
        │── User makes changes ─────▶│
        │   (debounced save)         │
        │                            │
-       │◀── Periodic sync ──────────│
-       │   (every 30s if online)    │
+       │◀── Sync on reconnect ──────│
+       │   (on `online` event)      │
        │                            │
        │── Offline mode ────────────│
        │   (queue changes)          │
@@ -106,7 +106,7 @@ When both local and cloud versions exist:
 
 | State     | Behavior              |
 | --------- | --------------------- |
-| Online    | Auto-sync every 30s   |
+| Online    | Sync on save          |
 | Offline   | Work with local cache |
 | Reconnect | Flush queued changes  |
 

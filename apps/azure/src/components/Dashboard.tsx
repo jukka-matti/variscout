@@ -13,6 +13,7 @@ import SpecsPopover from './settings/SpecsPopover';
 import FocusedIChartView from './views/FocusedIChartView';
 import FocusedBoxplotView from './views/FocusedBoxplotView';
 import FocusedParetoView from './views/FocusedParetoView';
+import PresentationView from './views/PresentationView';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
@@ -79,6 +80,10 @@ interface DashboardProps {
   onBoxplotFactorChange?: (factor: string) => void;
   /** Report pareto factor changes for persistence */
   onParetoFactorChange?: (factor: string) => void;
+  /** Whether presentation mode is active */
+  isPresentationMode?: boolean;
+  /** Callback to exit presentation mode */
+  onExitPresentation?: () => void;
 }
 
 const Dashboard = ({
@@ -99,6 +104,8 @@ const Dashboard = ({
   initialParetoFactor,
   onBoxplotFactorChange,
   onParetoFactorChange,
+  isPresentationMode,
+  onExitPresentation,
 }: DashboardProps) => {
   const {
     outcome,
@@ -282,6 +289,10 @@ const Dashboard = ({
   );
 
   if (!outcome) return null;
+
+  if (isPresentationMode && onExitPresentation) {
+    return <PresentationView onExit={onExitPresentation} />;
+  }
 
   return (
     <div

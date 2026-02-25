@@ -1,7 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getEasyAuthUser, getAccessToken, isAuthenticated, login, logout } from '../easyAuth';
+import {
+  getEasyAuthUser,
+  getAccessToken,
+  isAuthenticated,
+  login,
+  logout,
+  refreshToken,
+  AuthError,
+} from '../easyAuth';
 
-// ── Helpers ──────────────────────────────────────────────────────────
+// -- Helpers ----------------------------------------------------------------
 
 /** Simulate a production hostname (not localhost). */
 function setProductionHostname() {
@@ -25,6 +33,7 @@ function buildAuthMePayload(overrides?: {
   email?: string;
   userId?: string;
   accessToken?: string;
+  expiresOn?: string;
 }) {
   return [
     {
@@ -38,12 +47,12 @@ function buildAuthMePayload(overrides?: {
         },
       ],
       access_token: overrides?.accessToken ?? 'tok_abc123',
-      expires_on: '2026-03-01T00:00:00Z',
+      expires_on: overrides?.expiresOn ?? '2026-03-01T00:00:00Z',
     },
   ];
 }
 
-// ── Test Suite ────────────────────────────────────────────────────────
+// -- Test Suite --------------------------------------------------------------
 
 describe('easyAuth', () => {
   const originalLocation = window.location;
@@ -60,7 +69,19 @@ describe('easyAuth', () => {
     });
   });
 
-  // ── getEasyAuthUser ──────────────────────────────────────────────
+  // -- AuthError class -------------------------------------------------------
+
+  describe('AuthError', () => {
+    it('has correct name and code', () => {
+      const err = new AuthError('test message', 'not_authenticated');
+      expect(err.name).toBe('AuthError');
+      expect(err.code).toBe('not_authenticated');
+      expect(err.message).toBe('test message');
+      expect(err).toBeInstanceOf(Error);
+    });
+  });
+
+  // -- getEasyAuthUser -------------------------------------------------------
 
   describe('getEasyAuthUser', () => {
     it('returns mock user on localhost', async () => {
@@ -178,12 +199,39 @@ describe('easyAuth', () => {
     });
   });
 
-  // ── getAccessToken ───────────────────────────────────────────────
+  // -- refreshToken ----------------------------------------------------------
+
+  describe('refreshToken', () => {
+    it('does nothing on localhost', async () => {
+      setLocalhostHostname();
+      await refreshToken(); // should not throw
+    });
+
+    it('calls /.auth/refresh in production', async () => {
+      setProductionHostname();
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+
+      await refreshToken();
+
+      expect(fetch).toHaveBeenCalledWith('/.auth/refresh');
+    });
+
+    it('throws AuthError when refresh fails', async () => {
+      setProductionHostname();
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401 }));
+
+      await expect(refreshToken()).rejects.toThrow(AuthError);
+      await expect(refreshToken()).rejects.toThrow('Token refresh failed');
+    });
+  });
+
+  // -- getAccessToken --------------------------------------------------------
 
   describe('getAccessToken', () => {
-    it('throws on localhost (Graph API unavailable)', async () => {
+    it('throws AuthError on localhost (Graph API unavailable)', async () => {
       setLocalhostHostname();
 
+      await expect(getAccessToken()).rejects.toThrow(AuthError);
       await expect(getAccessToken()).rejects.toThrow(
         'Graph API is not available in local development'
       );
@@ -204,7 +252,7 @@ describe('easyAuth', () => {
       expect(token).toBe('tok_secret');
     });
 
-    it('throws when /.auth/me returns empty array', async () => {
+    it('throws AuthError when /.auth/me returns empty array', async () => {
       setProductionHostname();
       vi.stubGlobal(
         'fetch',
@@ -214,10 +262,11 @@ describe('easyAuth', () => {
         })
       );
 
+      await expect(getAccessToken()).rejects.toThrow(AuthError);
       await expect(getAccessToken()).rejects.toThrow('No auth provider found');
     });
 
-    it('throws when access_token field is missing', async () => {
+    it('throws AuthError when access_token field is missing', async () => {
       setProductionHostname();
       vi.stubGlobal(
         'fetch',
@@ -236,11 +285,65 @@ describe('easyAuth', () => {
         })
       );
 
+      await expect(getAccessToken()).rejects.toThrow(AuthError);
       await expect(getAccessToken()).rejects.toThrow('No access token in EasyAuth response');
+    });
+
+    it('proactively refreshes token expiring within 5 minutes', async () => {
+      setProductionHostname();
+
+      const nearExpiry = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // 2 min from now
+      const fetchMock = vi
+        .fn()
+        // First /.auth/me — near-expiry token
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve(buildAuthMePayload({ accessToken: 'old_tok', expiresOn: nearExpiry })),
+        })
+        // /.auth/refresh
+        .mockResolvedValueOnce({ ok: true })
+        // Second /.auth/me — refreshed token
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(buildAuthMePayload({ accessToken: 'new_tok' })),
+        });
+
+      vi.stubGlobal('fetch', fetchMock);
+
+      const token = await getAccessToken();
+
+      expect(token).toBe('new_tok');
+      expect(fetchMock).toHaveBeenCalledWith('/.auth/refresh');
+    });
+
+    it('uses existing token when refresh fails but token not yet expired', async () => {
+      setProductionHostname();
+
+      const nearExpiry = new Date(Date.now() + 2 * 60 * 1000).toISOString();
+      const fetchMock = vi
+        .fn()
+        // First /.auth/me
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve(
+              buildAuthMePayload({ accessToken: 'existing_tok', expiresOn: nearExpiry })
+            ),
+        })
+        // /.auth/refresh fails
+        .mockResolvedValueOnce({ ok: false, status: 500 });
+
+      vi.stubGlobal('fetch', fetchMock);
+
+      const token = await getAccessToken();
+
+      // Should fall back to existing token
+      expect(token).toBe('existing_tok');
     });
   });
 
-  // ── isAuthenticated ──────────────────────────────────────────────
+  // -- isAuthenticated -------------------------------------------------------
 
   describe('isAuthenticated', () => {
     it('returns true when a user exists', async () => {
@@ -276,7 +379,7 @@ describe('easyAuth', () => {
     });
   });
 
-  // ── login / logout ──────────────────────────────────────────────
+  // -- login / logout --------------------------------------------------------
 
   describe('login', () => {
     it('redirects to /.auth/login/aad in production', () => {

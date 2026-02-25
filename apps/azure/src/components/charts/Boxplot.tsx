@@ -13,10 +13,9 @@ import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotBase, getResponsiveMargins, getScaledFonts } from '@variscout/charts';
-import { ChartAnnotationLayer } from '@variscout/ui';
+import { ChartAnnotationLayer, AxisEditor, axisEditorAzureColorScheme } from '@variscout/ui';
 import { useBoxplotData } from '@variscout/hooks';
 import { sortBoxplotData } from '@variscout/core';
-import AxisEditor from '../AxisEditor';
 import type { HighlightColor, ChartAnnotation } from '@variscout/hooks';
 
 interface BoxplotProps {
@@ -163,6 +162,7 @@ const Boxplot = ({
           onSave={handleSaveAlias}
           onClose={() => setIsEditingLabel(false)}
           style={{ bottom: 10, left: parentWidth / 2 - 120 }}
+          colorScheme={axisEditorAzureColorScheme}
         />
       )}
     </div>

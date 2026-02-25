@@ -1,6 +1,22 @@
 // EasyAuth helper — wraps App Service Authentication (/.auth/*) endpoints.
 // In local dev, falls back to mock data so the app runs without Azure.
 
+export type AuthErrorCode =
+  | 'not_authenticated'
+  | 'no_provider'
+  | 'no_token'
+  | 'refresh_failed'
+  | 'local_dev';
+
+export class AuthError extends Error {
+  code: AuthErrorCode;
+  constructor(message: string, code: AuthErrorCode) {
+    super(message);
+    this.name = 'AuthError';
+    this.code = code;
+  }
+}
+
 export interface EasyAuthUser {
   name: string;
   email: string;
@@ -64,20 +80,54 @@ export async function getEasyAuthUser(): Promise<EasyAuthUser | null> {
   }
 }
 
-/** Get an access token for Graph API from the EasyAuth token store. */
+/** Refresh the EasyAuth session token. */
+export async function refreshToken(): Promise<void> {
+  if (isLocalDev()) return;
+
+  const res = await fetch('/.auth/refresh');
+  if (!res.ok) {
+    throw new AuthError('Token refresh failed', 'refresh_failed');
+  }
+}
+
+/** Get an access token for Graph API from the EasyAuth token store.
+ *  Proactively refreshes if the token expires within 5 minutes. */
 export async function getAccessToken(): Promise<string> {
   if (isLocalDev()) {
-    throw new Error('Graph API is not available in local development');
+    throw new AuthError('Graph API is not available in local development', 'local_dev');
   }
 
   const res = await fetch('/.auth/me');
-  if (!res.ok) throw new Error('Not authenticated');
+  if (!res.ok) throw new AuthError('Not authenticated', 'not_authenticated');
 
   const data: EasyAuthProvider[] = await res.json();
-  if (!data || data.length === 0) throw new Error('No auth provider found');
+  if (!data || data.length === 0) throw new AuthError('No auth provider found', 'no_provider');
 
-  const token = data[0].access_token;
-  if (!token) throw new Error('No access token in EasyAuth response');
+  const provider = data[0];
+
+  // Proactive refresh: if token expires within 5 minutes, refresh first
+  if (provider.expires_on) {
+    const expiresAt = new Date(provider.expires_on).getTime();
+    const fiveMinutes = 5 * 60 * 1000;
+    if (expiresAt - Date.now() < fiveMinutes) {
+      try {
+        await refreshToken();
+        // Re-fetch to get the new token
+        const refreshed = await fetch('/.auth/me');
+        if (refreshed.ok) {
+          const refreshedData: EasyAuthProvider[] = await refreshed.json();
+          if (refreshedData?.[0]?.access_token) {
+            return refreshedData[0].access_token;
+          }
+        }
+      } catch {
+        // If refresh fails, try using the existing token (it may still work)
+      }
+    }
+  }
+
+  const token = provider.access_token;
+  if (!token) throw new AuthError('No access token in EasyAuth response', 'no_token');
 
   return token;
 }
