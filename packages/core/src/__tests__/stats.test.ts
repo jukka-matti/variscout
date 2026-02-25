@@ -89,6 +89,74 @@ describe('Stats Engine', () => {
     expect(stats.stdDev).toBe(0);
     expect(stats.outOfSpecPercentage).toBe(0);
   });
+
+  describe('Extended edge cases', () => {
+    it('should calculate one-sided Cpk correctly with USL only', () => {
+      // Mean=10, σ_within from MR
+      const data = [9, 10, 11, 10, 9, 11, 10];
+      const usl = 14;
+      const stats = calculateStats(data, usl, undefined);
+
+      // Cp should be undefined (need both specs)
+      expect(stats.cp).toBeUndefined();
+      // Cpk = (USL - mean) / (3σ_within)
+      expect(stats.cpk).toBeDefined();
+      expect(stats.cpk).toBeGreaterThan(0);
+    });
+
+    it('should calculate one-sided Cpk correctly with LSL only', () => {
+      const data = [9, 10, 11, 10, 9, 11, 10];
+      const lsl = 5;
+      const stats = calculateStats(data, undefined, lsl);
+
+      expect(stats.cp).toBeUndefined();
+      // Cpk = (mean - LSL) / (3σ_within)
+      expect(stats.cpk).toBeDefined();
+      expect(stats.cpk).toBeGreaterThan(0);
+    });
+
+    it('should handle negative values correctly (e.g., temperature below zero)', () => {
+      const data = [-10, -5, 0, 5, 10, -3, 2, -8, 7, -1];
+      const stats = calculateStats(data);
+
+      expect(stats.mean).toBeCloseTo(-0.3, 1);
+      expect(stats.stdDev).toBeGreaterThan(0);
+      expect(stats.ucl).toBeGreaterThan(stats.mean);
+      expect(stats.lcl).toBeLessThan(stats.mean);
+    });
+
+    it('should handle negative values with spec limits', () => {
+      const data = [-10, -5, 0, 5, 10, -3, 2, -8, 7, -1];
+      const stats = calculateStats(data, 15, -15);
+
+      expect(stats.cp).toBeDefined();
+      expect(stats.cpk).toBeDefined();
+      expect(stats.cp).toBeGreaterThan(0);
+      expect(stats.cpk).toBeGreaterThan(0);
+    });
+
+    it('should handle single-value dataset', () => {
+      const data = [42];
+      const stats = calculateStats(data);
+
+      expect(stats.mean).toBe(42);
+      expect(stats.median).toBe(42);
+      expect(stats.stdDev).toBe(0);
+      // StatsResult does not include a samples field; verify via data.length
+      expect(data).toHaveLength(1);
+    });
+
+    it('should calculate outOfSpecPercentage correctly', () => {
+      // 3 out of 10 are out of spec
+      const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      const stats = calculateStats(data, 7.5, 2.5);
+
+      // Values below 2.5: [1, 2] = 2 out of spec
+      // Values above 7.5: [8, 9, 10] = 3 out of spec
+      // Total: 5 out of 10 = 50%
+      expect(stats.outOfSpecPercentage).toBeCloseTo(50, 0);
+    });
+  });
 });
 
 describe('ANOVA', () => {
@@ -212,6 +280,50 @@ describe('ANOVA', () => {
     expect(result).not.toBeNull();
     expect(result!.insight).toContain('Fast');
     expect(result!.insight).toContain('best');
+  });
+
+  it('should handle ANOVA with exactly 2 groups (t-test equivalent)', () => {
+    const data = [
+      { Group: 'Control', Value: 10 },
+      { Group: 'Control', Value: 12 },
+      { Group: 'Control', Value: 11 },
+      { Group: 'Control', Value: 13 },
+      { Group: 'Treatment', Value: 20 },
+      { Group: 'Treatment', Value: 22 },
+      { Group: 'Treatment', Value: 21 },
+      { Group: 'Treatment', Value: 23 },
+    ];
+
+    const result = calculateAnova(data, 'Value', 'Group');
+
+    expect(result).not.toBeNull();
+    expect(result!.groups).toHaveLength(2);
+    expect(result!.isSignificant).toBe(true);
+    // F-statistic should equal t² for 2-group case
+    expect(result!.fStatistic).toBeGreaterThan(0);
+    expect(result!.etaSquared).toBeGreaterThan(0.5);
+  });
+
+  it('should handle ANOVA with very unequal group sizes', () => {
+    const data = [
+      // Large group
+      ...Array.from({ length: 20 }, (_, i) => ({ Group: 'Big', Value: 100 + i * 0.5 })),
+      // Small group
+      { Group: 'Small', Value: 200 },
+      { Group: 'Small', Value: 202 },
+      { Group: 'Small', Value: 201 },
+    ];
+
+    const result = calculateAnova(data, 'Value', 'Group');
+
+    expect(result).not.toBeNull();
+    expect(result!.groups).toHaveLength(2);
+    const bigGroup = result!.groups.find(g => g.name === 'Big');
+    const smallGroup = result!.groups.find(g => g.name === 'Small');
+    expect(bigGroup!.n).toBe(20);
+    expect(smallGroup!.n).toBe(3);
+    // Should still detect significant difference
+    expect(result!.isSignificant).toBe(true);
   });
 });
 
