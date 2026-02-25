@@ -88,16 +88,16 @@ pnpm --filter @variscout/azure-app test:e2e
 
 ## Test Ownership by Package
 
-| Package                | Test Type          | What to Test                                                                                                                                                                                                                                  |
-| :--------------------- | :----------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@variscout/core`      | **Unit**           | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities                                                                                                                                |
-| `@variscout/charts`    | **Unit**           | Color constants, accessibility utilities, multi-selection hook                                                                                                                                                                                |
-| `@variscout/hooks`     | **Unit**           | Hooks (useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useRegressionState, useVariationTracking, useDataTablePagination, useHighlightFade, useResizablePanel), pipeline integration, filter state transitions |
-| `@variscout/ui`        | **Unit**           | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle                                                                                                                                                            |
-| `@variscout/pwa`       | **Component**      | UI components (StatsPanel, Dashboard, DataTableModal, RegressionPanel, AnovaResults, MindmapPanel, WhatIfPage, WhatIfSimulator), hooks (useFilterNavigation), export utilities                                                                |
-| `@variscout/pwa`       | **Playwright E2E** | Critical workflow, drill-down, samples, analysis views, stats/ANOVA                                                                                                                                                                           |
-| `@variscout/azure-app` | **Component**      | UI components (Dashboard, StatsPanel, RegressionPanel, AnovaResults, MindmapWindow, WhatIfPage, FilterBreadcrumb, Editor, SettingsPanel), auth (easyAuth), storage                                                                            |
-| `@variscout/azure-app` | **Playwright E2E** | Editor workflow, samples, analysis views, stats/ANOVA                                                                                                                                                                                         |
+| Package                | Test Type          | What to Test                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| :--------------------- | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@variscout/core`      | **Unit**           | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities                                                                                                                                                                                                                                                                                                                                                                              |
+| `@variscout/charts`    | **Unit**           | Color constants, accessibility utilities, multi-selection hook                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `@variscout/hooks`     | **Unit**           | Hooks (useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useRegressionState, useVariationTracking, useDataTablePagination, useHighlightFade, useResizablePanel, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState), pipeline integration, filter state transitions, stress tests |
+| `@variscout/ui`        | **Unit**           | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase                                                                                                                                                                                                                                                                                                                                                                                           |
+| `@variscout/pwa`       | **Component**      | UI components (StatsPanel, Dashboard, DataTableModal, RegressionPanel, AnovaResults, MindmapPanel, WhatIfPage, WhatIfSimulator), hooks (useFilterNavigation), export utilities                                                                                                                                                                                                                                                                                                              |
+| `@variscout/pwa`       | **Playwright E2E** | Critical workflow, drill-down, samples, analysis views, stats/ANOVA                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `@variscout/azure-app` | **Component**      | UI components (Dashboard, StatsPanel, RegressionPanel, AnovaResults, MindmapWindow, WhatIfPage, FilterBreadcrumb, Editor, SettingsPanel), auth (easyAuth), storage                                                                                                                                                                                                                                                                                                                          |
+| `@variscout/azure-app` | **Playwright E2E** | Editor workflow, samples, analysis views, stats/ANOVA                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 ---
 
@@ -160,9 +160,9 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ## Current Coverage
 
-**Total: 83 vitest files, 1,369 test cases + 13 Playwright E2E spec files**
+**Total: 84 vitest files, 1,369 test cases + 13 Playwright E2E spec files**
 
-### @variscout/core (23 files, 703 test cases)
+### @variscout/core (23 files, 687 test cases)
 
 | Function/Module                   | Tested | Cases                                                                                                               |
 | :-------------------------------- | :----- | :------------------------------------------------------------------------------------------------------------------ |
@@ -186,27 +186,38 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `accessibility.ts`  | ✅     | Accessible color generation, contrast ratios |
 | `useMultiSelection` | ✅     | Multi-selection hook for Performance charts  |
 
-### @variscout/hooks (14 files, 140 test cases)
+### @variscout/hooks (26 files, 282 test cases)
 
 | Hook/Module                      | Tested | Focus                                                        |
 | :------------------------------- | :----- | :----------------------------------------------------------- |
-| `useTier`                        | ✅     | Tier info, channel validation, warning messages              |
+| `useAnnotationMode`              | ✅     | Chart annotation state, highlights, text notes, context menu |
+| `useBoxplotData`                 | ✅     | Shared d3 boxplot computation (quartiles, outliers)          |
+| `useChartCopy`                   | ✅     | Chart copy-to-clipboard, PNG/SVG download, style restore     |
 | `useChartScale`                  | ✅     | Y-axis scale calculation, locked vs dynamic ranges           |
 | `useColumnClassification`        | ✅     | Numeric vs categorical column detection, threshold tuning    |
+| `useControlViolations`           | ✅     | Control/spec violation computation, violation counts         |
+| `useDataIngestion`               | ✅     | File upload, data parsing, sample loading                    |
+| `useDataState`                   | ✅     | Shared DataContext state management, display options         |
+| `useDataTablePagination`         | ✅     | Page state, row slicing, boundary conditions                 |
 | `useDrillPath`                   | ✅     | DrillStep computation from filterStack, node contributions   |
+| `useFilterNavigation`            | ✅     | Multi-select, updateFilterValues, removeFilter, breadcrumbs  |
+| `useFocusedChartNav`             | ✅     | Focused chart keyboard navigation, chart order               |
+| `useHighlightFade`               | ✅     | Highlight timeout, fade animation state                      |
+| `useIChartData`                  | ✅     | Shared I-Chart data transform (control limits, points)       |
+| `useKeyboardNavigation`          | ✅     | Arrow key navigation, focus management                       |
 | `useMindmapState`                | ✅     | Radial tree layout, eta-squared labels, progress tracking    |
 | `useRegressionState`             | ✅     | Mode switching, column selection, reduction history          |
-| `useVariationTracking`           | ✅     | Cumulative eta-squared, filter chip data with contribution % |
-| `useBoxplotData`                 | ✅     | Shared d3 boxplot computation (quartiles, outliers)          |
-| `useIChartData`                  | ✅     | Shared I-Chart data transform (control limits, points)       |
-| `useDataTablePagination`         | ✅     | Page state, row slicing, boundary conditions                 |
-| `useHighlightFade`               | ✅     | Highlight timeout, fade animation state                      |
 | `useResizablePanel`              | ✅     | Panel size state, drag interaction, constraints              |
+| `useResponsiveChartMargins`      | ✅     | Dynamic chart margins based on container width               |
+| `useThemeState`                  | ✅     | Theme state (light/dark/system), themingEnabled parameter    |
+| `useTier`                        | ✅     | Tier info, channel validation, warning messages              |
+| `useVariationTracking`           | ✅     | Cumulative eta-squared, filter chip data with contribution % |
 | `filterStateTransitions`         | ✅     | Filter add/remove/clear state machine transitions            |
+| `stress`                         | ✅     | Performance/stress tests for hooks under load                |
 | `index.ts` (exports)             | ✅     | All public exports resolve correctly                         |
 | Integration: filterStatsPipeline | ✅     | End-to-end: CSV parse → filter → stats → ANOVA pipeline      |
 
-### @variscout/ui (5 files, 57 test cases)
+### @variscout/ui (6 files, 89 test cases)
 
 | Component              | Tested | Focus                                                                                                   |
 | :--------------------- | :----- | :------------------------------------------------------------------------------------------------------ |
@@ -215,8 +226,9 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `DataQualityBanner`    | ✅     | Validation summary, warning/error states                                                                |
 | `ColumnMapping`        | ✅     | maxFactors enforcement, spec entry, column selection                                                    |
 | `BoxplotDisplayToggle` | ✅     | Violin mode toggle, contribution label toggle, sort criterion selection, sort direction toggle, popover |
+| `DataTableBase`        | ✅     | Inline cell editing, row status indicators, spec violation highlighting                                 |
 
-### @variscout/pwa (11 vitest files, 107 test cases)
+### @variscout/pwa (11 vitest files, 106 test cases)
 
 | Component/Module      | Tested | Focus                                              |
 | :-------------------- | :----- | :------------------------------------------------- |
@@ -422,14 +434,19 @@ packages/core/
 │       ├── performance.test.ts          # Multi-channel performance
 │       ├── projectedStats.test.ts       # Projected what-if stats
 │       ├── directAdjustment.test.ts     # Direct adjustment calculations
+│       ├── simulation.test.ts           # Model-driven simulation
 │       ├── nelson.test.ts               # Nelson rules violation detection
 │       ├── categoryStats.test.ts        # Category-level statistics
+│       ├── sortBoxplotData.test.ts      # Boxplot sorting by mean/spread/name
 │       ├── parser.test.ts               # CSV/Excel parsing
+│       ├── stressParser.test.ts         # Parser stress/performance tests
 │       ├── export.test.ts               # CSV export
 │       ├── navigation.test.ts           # Navigation utilities
 │       ├── variation.test.ts            # Variation tracking
 │       ├── tier.test.ts                 # Tier configuration
 │       ├── time.test.ts                 # Time utilities
+│       ├── edgeCases.test.ts            # Edge case handling
+│       ├── stress.test.ts               # Performance stress tests
 │       └── urlParams.test.ts            # URL parameter parsing
 
 packages/charts/
@@ -444,20 +461,31 @@ packages/charts/
 packages/hooks/
 └── src/
     └── __tests__/
-        ├── index.test.ts                # Export verification
-        ├── useTier.test.ts              # Tier hook
-        ├── useChartScale.test.ts        # Y-axis scale
-        ├── useColumnClassification.test.ts # Column type detection
-        ├── useDrillPath.test.ts         # Drill path computation
-        ├── useMindmapState.test.ts      # Mindmap state
-        ├── useRegressionState.test.ts   # Regression state management
-        ├── useVariationTracking.test.ts # Cumulative eta-squared
-        ├── useBoxplotData.test.ts       # Shared boxplot computation
-        ├── useIChartData.test.ts         # Shared I-Chart data transform
-        ├── useDataTablePagination.test.ts # Pagination state
-        ├── useHighlightFade.test.ts     # Highlight fade animation
-        ├── useResizablePanel.test.ts    # Resizable panel state
-        ├── filterStateTransitions.test.ts # Filter state machine
+        ├── index.test.ts                    # Export verification
+        ├── useAnnotationMode.test.ts        # Chart annotation state
+        ├── useBoxplotData.test.ts           # Shared boxplot computation
+        ├── useChartCopy.test.ts             # Chart copy/export
+        ├── useChartScale.test.ts            # Y-axis scale
+        ├── useColumnClassification.test.ts  # Column type detection
+        ├── useControlViolations.test.ts     # Control/spec violations
+        ├── useDataIngestion.test.ts         # File upload, data parsing
+        ├── useDataState.test.ts             # DataContext state management
+        ├── useDataTablePagination.test.ts   # Pagination state
+        ├── useDrillPath.test.ts             # Drill path computation
+        ├── useFilterNavigation.test.ts      # Filter navigation, multi-select
+        ├── useFocusedChartNav.test.ts       # Focused chart keyboard nav
+        ├── useHighlightFade.test.ts         # Highlight fade animation
+        ├── useIChartData.test.ts            # Shared I-Chart data transform
+        ├── useKeyboardNavigation.test.ts    # Arrow key navigation
+        ├── useMindmapState.test.ts          # Mindmap state
+        ├── useRegressionState.test.ts       # Regression state management
+        ├── useResizablePanel.test.ts        # Resizable panel state
+        ├── useResponsiveChartMargins.test.ts # Dynamic chart margins
+        ├── useThemeState.test.ts            # Theme state management
+        ├── useTier.test.ts                  # Tier hook
+        ├── useVariationTracking.test.ts     # Cumulative eta-squared
+        ├── filterStateTransitions.test.ts   # Filter state machine
+        ├── stress.test.ts                   # Performance stress tests
         └── integration/
             └── filterStatsPipeline.test.ts  # End-to-end pipeline
 
@@ -471,8 +499,10 @@ packages/ui/
     │   └── DataQualityBanner.test.tsx
     ├── ColumnMapping/__tests__/
     │   └── ColumnMapping.test.tsx
-    └── BoxplotDisplayToggle/__tests__/
-        └── BoxplotDisplayToggle.test.tsx
+    ├── BoxplotDisplayToggle/__tests__/
+    │   └── BoxplotDisplayToggle.test.tsx
+    └── DataTable/__tests__/
+        └── DataTableBase.test.tsx
 
 apps/pwa/
 ├── e2e/                                 # Playwright E2E tests

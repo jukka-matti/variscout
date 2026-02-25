@@ -21,8 +21,8 @@
 | ---------------------- | -------------------- | ------------------------------------------------------------------- |
 | `@variscout/core`      | Unit                 | stats, parser, tier, export, regression, performance                |
 | `@variscout/charts`    | Unit                 | colors, accessibility, multi-selection hook                         |
-| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useRegressionState, useVariationTracking |
-| `@variscout/ui`        | Unit                 | UpgradePrompt, HelpTooltip, DataQualityBanner                      |
+| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useRegressionState, useVariationTracking, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState |
+| `@variscout/ui`        | Unit                 | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase |
 | `@variscout/pwa`       | Component + E2E      | UI components, context, full user flows                             |
 | `@variscout/azure-app` | Component + E2E      | UI components, auth, storage, editor flows                          |
 
