@@ -32,17 +32,23 @@
       "metadata": {
         "description": "Client secret of the Azure AD App Registration"
       }
+    },
+    "packageUrl": {
+      "type": "string",
+      "defaultValue": "https://variscout.blob.core.windows.net/releases/variscout-azure-latest.zip",
+      "metadata": {
+        "description": "URL to the VariScout application deployment package"
+      }
     }
   },
   "variables": {
     "appServicePlanName": "[concat(parameters('appName'), '-plan')]",
-    "webAppName": "[parameters('appName')]",
-    "packageUrl": "https://variscout.blob.core.windows.net/releases/variscout-azure-latest.zip"
+    "webAppName": "[parameters('appName')]"
   },
   "resources": [
     {
       "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2022-09-01",
+      "apiVersion": "2024-04-01",
       "name": "[variables('appServicePlanName')]",
       "location": "[parameters('location')]",
       "kind": "linux",
@@ -56,7 +62,7 @@
     },
     {
       "type": "Microsoft.Web/sites",
-      "apiVersion": "2022-09-01",
+      "apiVersion": "2024-04-01",
       "name": "[variables('webAppName')]",
       "location": "[parameters('location')]",
       "dependsOn": ["[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"],
@@ -68,7 +74,7 @@
           "appSettings": [
             {
               "name": "WEBSITE_RUN_FROM_PACKAGE",
-              "value": "[variables('packageUrl')]"
+              "value": "[parameters('packageUrl')]"
             },
             {
               "name": "VITE_LICENSE_TIER",
@@ -86,7 +92,7 @@
     },
     {
       "type": "Microsoft.Web/sites/config",
-      "apiVersion": "2022-09-01",
+      "apiVersion": "2024-04-01",
       "name": "[concat(variables('webAppName'), '/authsettingsV2')]",
       "dependsOn": ["[resourceId('Microsoft.Web/sites', variables('webAppName'))]"],
       "properties": {

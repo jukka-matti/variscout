@@ -21,15 +21,17 @@ Living tracker for Azure Marketplace Managed Application submission. Single sour
 
 ## 2. Technical Package
 
-| Item                              | Status                  | Notes                                                                                              |
-| --------------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------- |
-| `mainTemplate.json` written       | ✅ Done                 | `infra/mainTemplate.json` — App Service + EasyAuth, customer-provided App Registration             |
-| `createUiDefinition.json` written | ✅ Done                 | `infra/createUiDefinition.json` — portal wizard with Authentication step (clientId + clientSecret) |
-| ARM TTK validation passes         | ⚠️ Manual review passed | All key rules pass; automated `Test-AzTemplate` needs PowerShell                                   |
-| createUiDefinition sandbox test   | ⬜ Not tested           | Test at `https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/SandboxBlade`                 |
-| Package `.zip` created            | ⬜ Not done             | Zip `mainTemplate.json` + `createUiDefinition.json` → `variscout-managed-app.zip`                  |
-| Publisher management disabled     | ✅ Done                 | ARM template sets no publisher access to managed RG                                                |
-| Customer access enabled           | ✅ Done                 | Full customer control over deployed resources                                                      |
+| Item                              | Status                  | Notes                                                                                                     |
+| --------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------- |
+| `mainTemplate.json` written       | ✅ Done                 | `infra/mainTemplate.json` — App Service + EasyAuth, customer-provided App Registration                    |
+| `createUiDefinition.json` written | ✅ Done                 | `infra/createUiDefinition.json` — portal wizard with Authentication step (clientId + clientSecret)        |
+| ARM TTK validation passes         | ⚠️ Manual review passed | `apiVersion` updated to `2024-04-01` (valid until Apr 2026); automated `Test-AzTemplate` needs PowerShell |
+| CUID tracking                     | ✅ Auto-injected        | Partner Center auto-injects tracking ID at publish time (no nested deployments)                           |
+| Package URL parameterized         | ✅ Done                 | `packageUrl` parameter with default — satisfies arm-ttk no-hardcoded-URI rule                             |
+| createUiDefinition sandbox test   | ⬜ Not tested           | Test at `https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/SandboxBlade`                        |
+| Package `.zip` created            | ⬜ Not done             | Zip `mainTemplate.json` + `createUiDefinition.json` → `variscout-managed-app.zip`                         |
+| Publisher management disabled     | ✅ Done                 | ARM template sets no publisher access to managed RG                                                       |
+| Customer access enabled           | ✅ Done                 | Full customer control over deployed resources                                                             |
 
 ---
 
@@ -91,6 +93,8 @@ The ARM template uses `WEBSITE_RUN_FROM_PACKAGE` to deploy the app as a static z
 | Manual data entry works               | ✅ Done               | ManualEntryBase from `@variscout/ui`                                |
 | Production build succeeds             | ✅ Done               | `pnpm --filter @variscout/azure-app build`                          |
 | No console errors in production build | ⬜ Needs verification | Run build and check browser console                                 |
+| `npm audit` clean                     | ⬜ Needs verification | No high/critical vulnerabilities in production dependencies         |
+| CSP headers verified                  | ⬜ Needs verification | Content Security Policy appropriate for SPA + Graph API calls       |
 
 ---
 
@@ -110,24 +114,28 @@ The ARM template uses `WEBSITE_RUN_FROM_PACKAGE` to deploy the app as a static z
 
 ## 8. Post-Submission
 
-| Item                  | Timeline | Notes                                                    |
-| --------------------- | -------- | -------------------------------------------------------- |
-| Automated validation  | Day 1–2  | Template syntax, resource definitions, package structure |
-| Manual content review | Day 2–5  | Listing text, pricing, policies, screenshots             |
-| Security scan         | Day 3–7  | Vulnerability assessment of deployed resources           |
-| Functionality test    | Day 5–10 | Microsoft deploys and verifies via marketplace flow      |
-| Go-live (if approved) | Day 10+  | Offer visible in Azure Marketplace                       |
+| Item                  | Timeline  | Notes                                                              |
+| --------------------- | --------- | ------------------------------------------------------------------ |
+| Automated validation  | Day 1–2   | arm-ttk, CUID injection, package structure, JSON schema            |
+| Content review        | Day 2–5   | Listing text, pricing, policies, screenshots (manual)              |
+| Security scan         | Day 3–7   | Malware scan, network monitoring, dependency vulnerabilities       |
+| Functionality test    | Day 5–10  | Microsoft deploys via marketplace flow, verifies app loads + works |
+| Go-live (if approved) | Day 10–14 | Offer visible in Azure Marketplace                                 |
 
 ### Common Rejection Fixes
 
-| Issue                             | Fix                                             |
-| --------------------------------- | ----------------------------------------------- |
-| Invalid ARM template              | Run `arm-ttk` validation, fix all warnings      |
-| Invalid createUiDefinition        | Test in sandbox, ensure all controls render     |
-| Missing/broken privacy policy URL | Verify HTTPS URL returns 200                    |
-| Screenshot quality too low        | Minimum 1280×720, PNG format, no browser chrome |
-| Description too short or vague    | Expand feature descriptions, add use cases      |
-| Support contact incomplete        | Add email and response-time commitment (24h)    |
+| Issue                             | Fix                                                     |
+| --------------------------------- | ------------------------------------------------------- |
+| Invalid ARM template              | Run `arm-ttk` validation, fix all warnings              |
+| `apiVersion` too old              | Must be ≤24 months old; currently `2024-04-01`          |
+| Hardcoded URIs in template        | Use parameters with defaults (done for `packageUrl`)    |
+| CUID tracking missing             | Auto-injected by Partner Center — no manual action      |
+| Invalid createUiDefinition        | Test in sandbox, ensure all controls render             |
+| Missing/broken privacy policy URL | Verify HTTPS URL returns 200                            |
+| Screenshot quality too low        | Minimum 1280×720, PNG format, no browser chrome         |
+| Description too short or vague    | Expand feature descriptions, add use cases              |
+| Support contact incomplete        | Add email and response-time commitment (24h)            |
+| npm vulnerabilities               | Run `npm audit` and resolve high/critical before submit |
 
 ---
 
@@ -154,6 +162,7 @@ pnpm test
 
 ## See Also
 
+- [Certification Guide](certification-guide.md) — what Microsoft evaluates during review (3-layer breakdown)
 - [Marketplace Guide](marketplace.md) — offer type, pricing, listing content
 - [ARM Template](arm-template.md) — full template documentation
 - [Authentication](authentication.md) — EasyAuth setup and configuration
