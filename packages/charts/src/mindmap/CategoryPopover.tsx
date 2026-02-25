@@ -90,7 +90,6 @@ const CategoryPopover: React.FC<CategoryPopoverProps> = ({
           onClose();
         }}
       />
-      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div
         ref={listRef}
         role="listbox"
