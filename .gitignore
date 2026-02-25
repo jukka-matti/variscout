@@ -135,6 +135,9 @@ agents/
 playwright-report/
 test-results/
 
+# npm lockfile (pnpm-only repo)
+package-lock.json
+
 # Vite temp files
 vite.config.ts.timestamp*
 
