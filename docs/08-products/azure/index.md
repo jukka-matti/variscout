@@ -175,6 +175,16 @@ az deployment group create \
 
 See [ARM Template Documentation](arm-template.md) for details.
 
+### Staging (CI/CD)
+
+For development and validation, a staging environment is deployed automatically:
+
+- **URL**: `https://variscout-staging.azurewebsites.net`
+- **Trigger**: Push to `main` (path-filtered) or manual `workflow_dispatch`
+- **Auth**: GitHub OIDC → Azure (no stored credentials)
+
+See [Deployment Guide](../../05-technical/implementation/deployment.md) for pipeline details.
+
 ---
 
 ## Data Location

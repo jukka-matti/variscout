@@ -144,6 +144,7 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Investigation workflow   | docs/03-features/workflows/investigation-to-action.md                                                |
 | Variation metrics/SS     | docs/03-features/analysis/variation-decomposition.md, packages/core/src/variation/contributions.ts   |
 | What-If/simulation       | docs/06-design-system/components/what-if-simulator.md, packages/core/src/variation/simulation.ts     |
+| Azure CI/CD pipeline     | `.github/workflows/deploy-azure-staging.yml`, `docs/05-technical/implementation/deployment.md`       |
 
 ## Repository Structure
 
@@ -151,6 +152,8 @@ pnpm workspaces monorepo:
 
 ```
 variscout-lite/
+├── .github/
+│   └── workflows/     # GitHub Actions CI/CD (staging deploy)
 ├── packages/
 │   ├── core/          # @variscout/core - Stats, parser, tier, types
 │   ├── charts/        # @variscout/charts - Visx chart components
@@ -161,6 +164,7 @@ variscout-lite/
 │   ├── pwa/           # PWA website (React + Vite)
 │   ├── azure/         # Azure Team App (EasyAuth + OneDrive sync)
 │   └── website/       # Marketing website (Astro + React Islands)
+├── infra/             # ARM template (mainTemplate.json + createUiDefinition.json)
 └── docs/              # Documentation (see index above)
 ```
 
@@ -261,5 +265,8 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/ui/src/components/WhatIfSimulator/`           | WhatIfSimulator + WhatIfPageBase                                                                      |
 | `docs/03-features/workflows/investigation-to-action.md` | 2-phase workflow: Mindmap → What-If                                                                   |
 | `docs/04-cases/`                                        | Case studies with demo data and teaching briefs                                                       |
+| `apps/azure/server.js`                                  | Zero-dep Node.js static server for App Service (SPA fallback, cache, /health)                         |
+| `.github/workflows/deploy-azure-staging.yml`            | CI/CD pipeline: build + OIDC deploy to staging App Service                                            |
+| `infra/mainTemplate.json`                               | ARM template for Azure Marketplace Managed Application deployment                                     |
 
 > Use `Read` tool to examine these files when needed.

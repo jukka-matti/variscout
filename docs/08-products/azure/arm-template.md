@@ -91,7 +91,7 @@ Linux B1 plan for hosting the App Service:
 ```json
 {
   "type": "Microsoft.Web/serverfarms",
-  "apiVersion": "2025-01-01",
+  "apiVersion": "2024-04-01",
   "name": "[variables('appServicePlanName')]",
   "location": "[parameters('location')]",
   "kind": "linux",
@@ -112,7 +112,7 @@ Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`. The client secret is 
 ```json
 {
   "type": "Microsoft.Web/sites",
-  "apiVersion": "2025-01-01",
+  "apiVersion": "2024-04-01",
   "name": "[variables('webAppName')]",
   "location": "[parameters('location')]",
   "properties": {
@@ -142,14 +142,15 @@ App Service Authentication configured for Azure AD, referencing the customer-pro
 ```json
 {
   "type": "Microsoft.Web/sites/config",
-  "apiVersion": "2025-01-01",
+  "apiVersion": "2024-04-01",
   "name": "[concat(variables('webAppName'), '/authsettingsV2')]",
   "properties": {
     "platform": { "enabled": true },
     "globalValidation": {
       "requireAuthentication": true,
       "unauthenticatedClientAction": "RedirectToLoginPage",
-      "redirectToProvider": "azureactivedirectory"
+      "redirectToProvider": "azureactivedirectory",
+      "excludedPaths": ["/health"]
     },
     "identityProviders": {
       "azureActiveDirectory": {
@@ -342,6 +343,7 @@ The template requests only necessary permissions:
 | 2.0.0   | 2026-02-13 | Managed Application format, single plan                        |
 | 3.0.0   | 2026-02-16 | App Service + EasyAuth (replaces Static Web App + MSAL)        |
 | 4.0.0   | 2026-02-16 | Customer-provided App Registration (removes deployment script) |
+| 5.0.0   | 2026-02-25 | API version → 2024-04-01, /health excluded from EasyAuth       |
 
 ---
 
