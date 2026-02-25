@@ -341,7 +341,7 @@ export function sortChannels(
       });
       break;
 
-    case 'health':
+    case 'health': {
       // By health severity: critical -> warning -> capable -> excellent
       const healthOrder: Record<ChannelHealth, number> = {
         critical: 0,
@@ -356,6 +356,7 @@ export function sortChannels(
         return (a.cpk ?? 0) - (b.cpk ?? 0);
       });
       break;
+    }
   }
 
   return sorted;

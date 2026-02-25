@@ -4,37 +4,7 @@ import tsParser from '@typescript-eslint/parser';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import prettier from 'eslint-config-prettier';
-
-// Browser globals
-const browserGlobals = {
-  React: 'readonly',
-  window: 'readonly',
-  document: 'readonly',
-  console: 'readonly',
-  navigator: 'readonly',
-  setTimeout: 'readonly',
-  clearTimeout: 'readonly',
-  setInterval: 'readonly',
-  clearInterval: 'readonly',
-  URL: 'readonly',
-  Blob: 'readonly',
-  File: 'readonly',
-  FileReader: 'readonly',
-  HTMLElement: 'readonly',
-  HTMLInputElement: 'readonly',
-  HTMLCanvasElement: 'readonly',
-  KeyboardEvent: 'readonly',
-  MouseEvent: 'readonly',
-  ClipboardEvent: 'readonly',
-  Event: 'readonly',
-  localStorage: 'readonly',
-  alert: 'readonly',
-  fetch: 'readonly',
-  Promise: 'readonly',
-  Map: 'readonly',
-  Set: 'readonly',
-  SVGSVGElement: 'readonly',
-};
+import globals from 'globals';
 
 // Test globals (Vitest)
 const testGlobals = {
@@ -52,7 +22,7 @@ export default [
     ignores: ['dist/**', 'node_modules/**', '*.config.js', '*.config.ts'],
   },
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['**/src/**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -62,7 +32,10 @@ export default [
           jsx: true,
         },
       },
-      globals: browserGlobals,
+      globals: {
+        ...globals.browser,
+        ...globals.es2021,
+      },
     },
     plugins: {
       '@typescript-eslint': typescript,
@@ -96,9 +69,13 @@ export default [
   },
   // Test files configuration
   {
-    files: ['src/**/*.test.{ts,tsx}', 'src/**/__tests__/**/*.{ts,tsx}'],
+    files: ['**/src/**/*.test.{ts,tsx}', '**/src/**/__tests__/**/*.{ts,tsx}'],
     languageOptions: {
-      globals: { ...browserGlobals, ...testGlobals },
+      globals: {
+        ...globals.browser,
+        ...globals.es2021,
+        ...testGlobals,
+      },
     },
   },
   prettier,

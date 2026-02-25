@@ -8,7 +8,6 @@ import { bin } from 'd3-array';
 import { safeMin, safeMax } from '@variscout/core';
 import type { CapabilityHistogramProps } from './types';
 import ChartSourceBar from './ChartSourceBar';
-import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout } from './hooks';
 
