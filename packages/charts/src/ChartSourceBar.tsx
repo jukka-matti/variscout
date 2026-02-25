@@ -50,7 +50,13 @@ const ChartSourceBar: React.FC<ChartSourceBarProps> = ({
         />
 
         {/* Accent dot on left */}
-        <circle cx={10} cy={BAR_HEIGHT / 2} r={3} fill={accentColor} />
+        <circle
+          cx={10}
+          cy={BAR_HEIGHT / 2}
+          r={3}
+          fill={accentColor}
+          style={{ fill: 'var(--accent-hex)' }}
+        />
 
         {/* Branding text */}
         {brandingText && (

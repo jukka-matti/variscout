@@ -107,8 +107,10 @@ export function useThemeState({ themingEnabled }: UseThemeStateOptions): UseThem
       const g = parseInt(hex.substring(2, 4), 16);
       const b = parseInt(hex.substring(4, 6), 16);
       root.style.setProperty('--accent', `${r} ${g} ${b}`);
+      root.style.setProperty('--accent-hex', theme.companyAccent);
     } else {
       root.style.removeProperty('--accent');
+      root.style.removeProperty('--accent-hex');
     }
   }, [resolvedTheme, theme.companyAccent, themingEnabled, chartFontScaleValue]);
 

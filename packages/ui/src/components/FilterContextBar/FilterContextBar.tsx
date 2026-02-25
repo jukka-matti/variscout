@@ -9,7 +9,7 @@ export interface FilterContextBarColorScheme {
   textLabel: string;
   /** Text color for values (e.g., 'text-content-muted' or 'text-slate-500') */
   textValue: string;
-  /** Text color for the variation percentage (e.g., 'text-blue-400') */
+  /** Text color for the variation percentage — kept for interface compat; actual color now uses CSS var(--accent-hex) */
   textVariation: string;
   /** Separator color (e.g., 'text-content-muted' or 'text-slate-600') */
   textSeparator: string;
@@ -104,7 +104,8 @@ const FilterContextBar: React.FC<FilterContextBarProps> = ({
       {hasVariation && (
         <>
           <span
-            className={`ml-auto pl-2 whitespace-nowrap font-medium ${colorScheme.textVariation}`}
+            className="ml-auto pl-2 whitespace-nowrap font-medium"
+            style={{ color: 'var(--accent-hex, #60a5fa)' }}
           >
             {Math.round(cumulativeVariationPct!)}% in focus
           </span>
