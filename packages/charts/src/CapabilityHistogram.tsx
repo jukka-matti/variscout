@@ -4,7 +4,7 @@ import { Bar, Line } from '@visx/shape';
 import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { withParentSize } from '@visx/responsive';
-import { bin } from 'd3';
+import { bin } from 'd3-array';
 import { safeMin, safeMax } from '@variscout/core';
 import type { CapabilityHistogramProps } from './types';
 import ChartSourceBar from './ChartSourceBar';

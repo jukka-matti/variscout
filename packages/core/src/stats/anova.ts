@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import * as d3 from 'd3-array';
 import type { DataRow, AnovaResult, AnovaGroup } from '../types';
 import { toNumericValue } from '../types';
 import { fDistributionPValue } from './distributions';

@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import * as d3 from 'd3-array';
 import type { RegressionResult, LinearFit, QuadraticFit } from '../types';
 import { tDistributionPValue } from './distributions';
 

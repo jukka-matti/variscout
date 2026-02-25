@@ -13,7 +13,7 @@
  */
 import React, { useMemo, useState } from 'react';
 import { withParentSize } from '@visx/responsive';
-import * as d3 from 'd3';
+import { rollup, sum } from 'd3-array';
 import { useData } from '../../context/DataContext';
 import {
   ParetoChartBase,
@@ -155,7 +155,7 @@ const ParetoChart = ({
       return undefined;
     }
 
-    const fullCounts = d3.rollup(
+    const fullCounts = rollup(
       rawData,
       (v: any) => v.length,
       (d: any) => d[factor]
@@ -181,16 +181,16 @@ const ParetoChart = ({
         }))
         .sort((a, b) => b.value - a.value);
     } else if (aggregation === 'value' && outcome) {
-      const sums = d3.rollup(
+      const sums = rollup(
         filteredData,
-        (rows: any) => d3.sum(rows, (d: any) => Number(d[outcome]) || 0),
+        (rows: any) => sum(rows, (d: any) => Number(d[outcome]) || 0),
         (d: any) => d[factor]
       );
       sorted = Array.from(sums, ([key, value]: any) => ({ key, value })).sort(
         (a, b) => b.value - a.value
       );
     } else {
-      const counts = d3.rollup(
+      const counts = rollup(
         filteredData,
         (v: any) => v.length,
         (d: any) => d[factor]
@@ -200,7 +200,7 @@ const ParetoChart = ({
       );
     }
 
-    const total = d3.sum(sorted, d => d.value);
+    const total = sum(sorted, d => d.value);
     let cumulative = 0;
     const withCumulative: ParetoDataPoint[] = sorted.map(d => {
       cumulative += d.value;

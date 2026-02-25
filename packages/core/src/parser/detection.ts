@@ -2,7 +2,7 @@
  * Column analysis and detection — smart column mapping and wide format detection
  */
 
-import * as d3 from 'd3';
+import * as d3 from 'd3-array';
 import type { DataRow, DataCellValue, ChannelInfo, WideFormatDetection } from '../types';
 import { toNumericValue } from '../types';
 import type {

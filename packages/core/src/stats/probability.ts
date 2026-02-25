@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import * as d3 from 'd3-array';
 import type { ProbabilityPlotPoint } from '../types';
 import { normalPDF } from './distributions';
 

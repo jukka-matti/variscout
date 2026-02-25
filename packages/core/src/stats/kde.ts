@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import * as d3 from 'd3-array';
 
 /**
  * Calculate Kernel Density Estimation using Gaussian kernel with Silverman's rule-of-thumb bandwidth.

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { group, quantile, ascending, mean } from 'd3';
+import { group, quantile, ascending, mean } from 'd3-array';
 import type { BoxplotGroupData } from '@variscout/charts';
 
 /**

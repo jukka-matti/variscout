@@ -19,7 +19,7 @@ import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { getResponsiveMargins, getScaledFonts } from './responsive';
 import ChartSourceBar, { getSourceBarHeight } from './ChartSourceBar';
-import * as d3 from 'd3';
+import * as d3 from 'd3-array';
 
 const NUM_BINS = 15;
 
