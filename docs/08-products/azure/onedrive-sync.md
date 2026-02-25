@@ -91,14 +91,64 @@ const response = await fetch(
 
 ---
 
-## Conflict Resolution
+## Error Classification
 
-When both local and cloud versions exist:
+All sync errors are classified by `classifySyncError()`:
 
-1. Compare `lastModified` timestamps
-2. If cloud is newer, merge or prompt user
-3. If local is newer, push to cloud
-4. Keep backup of overwritten version
+| Category   | Examples                          | Retryable | Action                     |
+| ---------- | --------------------------------- | --------- | -------------------------- |
+| `auth`     | 401, 403, AuthError               | No        | Stop retry, prompt re-auth |
+| `network`  | TypeError (fetch failed), offline | Yes       | Queue for retry            |
+| `throttle` | 429 Too Many Requests             | Yes       | Retry with backoff         |
+| `server`   | 500, 502, 503                     | Yes       | Retry with backoff         |
+| `unknown`  | Unexpected errors                 | No        | Log, notify user           |
+
+Source: `classifySyncError()` in `apps/azure/src/services/storage.ts`
+
+---
+
+## Retry with Exponential Backoff
+
+Failed retryable operations are retried with increasing delays:
+
+- Delays: 2s → 4s → 8s → 16s → 32s (max 5 attempts)
+- Auth errors stop retry immediately
+- Timers cleaned up on component unmount
+- On final failure: notification shown, item remains in sync queue
+
+---
+
+## Sync Notifications
+
+Users receive real-time feedback via toast notifications (`SyncToastContainer`):
+
+| Event              | Type    | Auto-dismiss | Action button |
+| ------------------ | ------- | ------------ | ------------- |
+| Cloud save success | success | 3s           | -             |
+| Queued for offline | info    | 3s           | -             |
+| Back-online sync   | success | 3s           | -             |
+| Network error      | warning | 5s           | -             |
+| Auth expired       | error   | No           | "Sign in"     |
+| Retry succeeded    | success | 3s           | -             |
+
+Notifications are accessible: `role="status"` + `aria-live="polite"`.
+
+Source: `apps/azure/src/components/SyncToast.tsx`
+
+---
+
+## Conflict Detection
+
+On `loadProject`, the system checks for divergence:
+
+1. Read local record from IndexedDB (`synced` flag + `modified` date)
+2. Fetch cloud `lastModifiedDateTime` via Graph API metadata
+3. If local has unsynced changes AND cloud is newer:
+   - Set status to `conflict`
+   - Show warning toast
+   - Load cloud version (last-write-wins)
+
+The Editor toolbar shows amber status for conflicts, with clickable re-auth for auth errors.
 
 ---
 

@@ -160,7 +160,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ## Current Coverage
 
-**Total: 69 vitest files, 1,184 test cases + 13 Playwright E2E spec files**
+**Total: 83 vitest files, 1,369 test cases + 13 Playwright E2E spec files**
 
 ### @variscout/core (23 files, 703 test cases)
 
@@ -232,23 +232,25 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `useFilterNavigation` | ✅     | Multi-select, updateFilterValues, removeFilter     |
 | `export.ts`           | ✅     | CSV generation, special characters                 |
 
-### @variscout/azure-app (13 vitest files, 130 test cases)
+### @variscout/azure-app (15 vitest files, 161 test cases)
 
-| Component/Module       | Tested | Focus                                                  |
-| :--------------------- | :----- | :----------------------------------------------------- |
-| `AnovaResults`         | ✅     | Null state, F-stat display, p-value format             |
-| `RegressionPanel`      | ✅     | Empty states, chart expansion, ranking                 |
-| `Dashboard`            | ✅     | Tab switching (Analysis/Regression/Performance), stats |
-| `StatsPanel`           | ✅     | Conditional display, Cp/Cpk, sigma within              |
-| `MindmapWindow`        | ✅     | Window rendering, popout behavior, localStorage sync   |
-| `WhatIfPage`           | ✅     | Simulator integration, navigation, predictions         |
-| `FilterBreadcrumb`     | ✅     | Chip rendering, remove button, contribution %          |
-| `Editor`               | ✅     | Empty state, sample loading, navigation                |
-| `SettingsPanel`        | ✅     | Theme toggle, display options, panel open/close        |
-| `FactorManagerPopover` | ✅     | Factor add/remove, checkbox list, stale filter cleanup |
-| `PasteScreen`          | ✅     | Paste input, parseText integration, column mapping     |
-| `easyAuth`             | ✅     | Mock user on localhost, token retrieval, login/logout  |
-| `storage`              | ✅     | Offline-first storage, IndexedDB operations            |
+| Component/Module       | Tested | Focus                                                                          |
+| :--------------------- | :----- | :----------------------------------------------------------------------------- |
+| `AnovaResults`         | ✅     | Null state, F-stat display, p-value format                                     |
+| `RegressionPanel`      | ✅     | Empty states, chart expansion, ranking                                         |
+| `Dashboard`            | ✅     | Tab switching (Analysis/Regression/Performance), stats                         |
+| `StatsPanel`           | ✅     | Conditional display, Cp/Cpk, sigma within                                      |
+| `MindmapWindow`        | ✅     | Window rendering, popout behavior, localStorage sync                           |
+| `WhatIfPage`           | ✅     | Simulator integration, navigation, predictions                                 |
+| `FilterBreadcrumb`     | ✅     | Chip rendering, remove button, contribution %                                  |
+| `Editor`               | ✅     | Empty state, sample loading, navigation                                        |
+| `SettingsPanel`        | ✅     | Theme toggle, display options, panel open/close                                |
+| `FactorManagerPopover` | ✅     | Factor add/remove, checkbox list, stale filter cleanup                         |
+| `PasteScreen`          | ✅     | Paste input, parseText integration, column mapping                             |
+| `easyAuth`             | ✅     | Mock user on localhost, AuthError codes, proactive token refresh, login/logout |
+| `storage`              | ✅     | Offline-first storage, IndexedDB operations                                    |
+| `PresentationView`     | ✅     | Full-screen chart grid, focused chart navigation                               |
+| `SyncToast`            | ✅     | Toast notifications, auto-dismiss, action buttons                              |
 
 ---
 
@@ -521,7 +523,9 @@ apps/azure/
 │   │   ├── WhatIfPage.test.tsx
 │   │   ├── FilterBreadcrumb.test.tsx
 │   │   ├── FactorManagerPopover.test.tsx
-│   │   └── PasteScreen.test.tsx
+│   │   ├── PasteScreen.test.tsx
+│   │   ├── PresentationView.test.tsx
+│   │   └── SyncToast.test.tsx
 │   ├── components/settings/__tests__/
 │   │   └── SettingsPanel.test.tsx
 │   └── pages/__tests__/

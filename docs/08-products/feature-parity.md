@@ -67,6 +67,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Selection panel**               |     ✓     |     ✓      | Minitab-style point brushing                                                                                  |
 | **Create Factor**                 |     ✓     |     ✓      | From point selection                                                                                          |
 | **Focus mode (fullscreen chart)** |     ✓     |     ✓      |                                                                                                               |
+| **Presentation Mode**             |     ✓     |     -      | Full-screen grid overview + focused chart view                                                                |
 | **Median in Stats Panel**         |     ✓     |     ✓      | Always shown alongside Mean                                                                                   |
 | **Inline spec inputs (Stats)**    |     ✓     |     ✓      | `onSaveSpecs` prop; Target-first progressive disclosure                                                       |
 | **Chart annotations**             |     ✓     |     ✓      | Boxplot/Pareto: right-click context menu (highlight + note); I-Chart: right-click to place free-floating note |
@@ -97,15 +98,16 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Persistence & Storage
 
-| Feature                | Azure App | PWA (Free) | Notes                    |
-| ---------------------- | :-------: | :--------: | ------------------------ |
-| **Local storage**      | IndexedDB |     -      | PWA is session-only      |
-| **Cloud sync**         | OneDrive  |     -      |                          |
-| **Offline support**    |  Cached   |     ✓      | Azure caches for offline |
-| **Analysis save/load** |     ✓     |     -      | PWA is session-only      |
-| **Export CSV**         |     ✓     |     ✓      |                          |
-| **Export JSON**        |     ✓     |     -      | Azure App only           |
-| **Screenshot export**  |     ✓     |     ✓      |                          |
+| Feature                | Azure App | PWA (Free) | Notes                                                |
+| ---------------------- | :-------: | :--------: | ---------------------------------------------------- |
+| **Local storage**      | IndexedDB |     -      | PWA is session-only                                  |
+| **Cloud sync**         | OneDrive  |     -      |                                                      |
+| **Offline support**    |  Cached   |     ✓      | Azure caches for offline                             |
+| **Analysis save/load** |     ✓     |     -      | PWA is session-only                                  |
+| **Export CSV**         |     ✓     |     ✓      |                                                      |
+| **Export JSON**        |     ✓     |     -      | Azure App only                                       |
+| **Screenshot export**  |     ✓     |     ✓      |                                                      |
+| **Sync notifications** |     ✓     |     -      | Toast feedback for sync status, errors, auth prompts |
 
 ---
 
@@ -169,6 +171,8 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - ARM template deployment (Managed Application)
 - Factor management during analysis (add/remove factors without restarting)
 - Add data during analysis (paste/upload append with row/column auto-detection)
+- Presentation mode (full-screen chart overview with focused navigation)
+- Sync notifications (toast feedback for cloud operations)
 
 ### PWA Only
 

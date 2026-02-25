@@ -102,6 +102,36 @@ EasyAuth only works on deployed App Services. For local development, the helper 
 
 ---
 
+## Error Handling
+
+### AuthError Class
+
+Typed authentication errors with machine-readable codes:
+
+| Code                | Meaning                                 |
+| ------------------- | --------------------------------------- |
+| `not_authenticated` | No auth session found                   |
+| `no_provider`       | `/.auth/me` returned empty array        |
+| `no_token`          | Provider entry has no `access_token`    |
+| `refresh_failed`    | `/.auth/refresh` returned non-OK status |
+| `local_dev`         | Graph API unavailable on localhost      |
+
+Source: `apps/azure/src/auth/easyAuth.ts`
+
+### Proactive Token Refresh
+
+`getAccessToken()` checks `expires_on` from the `/.auth/me` response. If the token expires within **5 minutes**, it calls `/.auth/refresh` before returning the token. If refresh fails but the token hasn't actually expired, the existing token is returned as a fallback.
+
+Flow:
+
+1. Fetch `/.auth/me` → extract `access_token` + `expires_on`
+2. If expires within 5 min → call `/.auth/refresh`
+   - Success → re-fetch `/.auth/me` → return new token
+   - Failure → return existing token (still valid)
+3. If not near expiry → return token directly
+
+---
+
 ## Graph API Token Usage
 
 The `/.auth/me` response includes an `access_token` that can be used for Microsoft Graph API calls:

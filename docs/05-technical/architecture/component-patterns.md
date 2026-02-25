@@ -437,9 +437,9 @@ import { filterBreadcrumbAzureColorScheme } from '@variscout/ui';
 | `FilterBreadcrumb`            | ✓    | default, azure              | ✓                                         |
 | `FilterChipDropdown`          | ✓    | default, azure              | ✓                                         |
 | `FilterContextBar`            | ✓    | default, azure              | ✓                                         |
-| `VariationBar`                | ✓    | default, azure              | ✓                                         |
-| `AnovaResults`                | ✓    | default, azure              | ✓                                         |
-| `YAxisPopover`                | ✓    | default, azure              | ✓                                         |
+| `ChartDownloadMenu`           | ✓    | default, azure              | ✓                                         |
+| `PasteScreenBase`             | ✓    | default, azure              | ✓                                         |
+| `InvestigationPrompt`         | ✓    | -                           | First-drill investigation prompt          |
 | `RegressionPanelBase`         | ✓    | default, azure              | Uses render props                         |
 | `PerformanceSetupPanelBase`   | ✓    | default, pwa                | Props + optional tierProps                |
 | `StatsPanelBase`              | ✓    | default, azure              | Uses `onSaveSpecs` prop for inline inputs |

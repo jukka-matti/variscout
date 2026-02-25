@@ -76,16 +76,37 @@ There is **no periodic polling** — sync is event-driven only.
 
 ---
 
+## StorageProvider (Singleton Context)
+
+All storage operations are centralized in a single `StorageProvider` React context mounted in `App.tsx`. This replaced the previous pattern where multiple `useStorage()` hook instances created independent sync loops.
+
+```
+App.tsx
+  └── StorageProvider          ← single instance
+        ├── syncStatus         ← shared sync state
+        ├── notifications[]    ← toast queue
+        ├── retryQueue         ← exponential backoff
+        ├── saveProject()      ← IndexedDB + cloud
+        ├── loadProject()      ← cloud-first + conflict detection
+        └── listProjects()     ← merged local + cloud
+```
+
+All consumers access via `useStorage()` hook and receive the same sync state, notification queue, and retry management.
+
+Source: `apps/azure/src/services/storage.ts`
+
+---
+
 ## Sync Status States
 
-| Status     | Meaning                                    |
-| ---------- | ------------------------------------------ |
-| `saved`    | Written to IndexedDB (initial state)       |
-| `syncing`  | Cloud save or queue flush in progress      |
-| `synced`   | Cloud and local are in agreement           |
-| `offline`  | Saved locally, pending cloud sync          |
-| `conflict` | Local and cloud diverged (reserved)        |
-| `error`    | Cloud operation failed (e.g. auth expired) |
+| Status     | Meaning                                                           |
+| ---------- | ----------------------------------------------------------------- |
+| `saved`    | Written to IndexedDB (initial state)                              |
+| `syncing`  | Cloud save or queue flush in progress                             |
+| `synced`   | Cloud and local are in agreement                                  |
+| `offline`  | Saved locally, pending cloud sync                                 |
+| `conflict` | Local and cloud diverged — cloud version loaded (last-write-wins) |
+| `error`    | Cloud operation failed (e.g. auth expired)                        |
 
 ---
 

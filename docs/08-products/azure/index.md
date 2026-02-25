@@ -140,15 +140,16 @@ const tier = import.meta.env.VITE_LICENSE_TIER; // Always 'enterprise' for Manag
 
 ## Features
 
-| Feature          | Description                                |
-| ---------------- | ------------------------------------------ |
-| SSO              | Microsoft Entra ID via EasyAuth            |
-| Cloud Sync       | Analyses saved to OneDrive                 |
-| Sharing          | Share analyses with team members           |
-| Offline          | Cached locally, syncs when online          |
-| All Chart Types  | I-Chart, Boxplot, Pareto, Capability, etc. |
-| Performance Mode | Multi-channel Cpk analysis                 |
-| Drill-Down       | Interactive filter navigation              |
+| Feature          | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| SSO              | Microsoft Entra ID via EasyAuth                              |
+| Cloud Sync       | Analyses saved to OneDrive                                   |
+| Sharing          | Share analyses with team members                             |
+| Offline          | Cached locally, syncs when online                            |
+| All Chart Types  | I-Chart, Boxplot, Pareto, Capability, etc.                   |
+| Performance Mode | Multi-channel Cpk analysis                                   |
+| Presentation     | Full-screen chart overview + focused single-chart navigation |
+| Drill-Down       | Interactive filter navigation                                |
 
 ---
 
