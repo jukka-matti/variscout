@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Save, Table, Filter } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { DataTableBase } from '@variscout/ui';
-import type { ExclusionReason } from '@variscout/core';
+import type { ExclusionReason, DataRow, DataCellValue } from '@variscout/core';
 
 interface DataTableModalProps {
   isOpen: boolean;
@@ -23,7 +23,7 @@ const DataTableModal = ({
 }: DataTableModalProps) => {
   const { rawData, outcome, specs, setRawData } = useData();
 
-  const [localData, setLocalData] = useState<Record<string, any>[]>([]);
+  const [localData, setLocalData] = useState<DataRow[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [filterExcluded, setFilterExcluded] = useState(showExcludedOnly);
 
@@ -39,7 +39,7 @@ const DataTableModal = ({
 
   const columns = localData.length > 0 ? Object.keys(localData[0]) : [];
 
-  const handleCellChange = (rowIndex: number, col: string, value: any) => {
+  const handleCellChange = (rowIndex: number, col: string, value: DataCellValue) => {
     const newData = [...localData];
     newData[rowIndex] = { ...newData[rowIndex], [col]: value };
     setLocalData(newData);
@@ -52,7 +52,7 @@ const DataTableModal = ({
   };
 
   const handleAddRow = () => {
-    const newRow: Record<string, any> = {};
+    const newRow: DataRow = {};
     columns.forEach(col => {
       newRow[col] = '';
     });

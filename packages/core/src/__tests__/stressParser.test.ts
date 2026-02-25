@@ -8,7 +8,6 @@
 import { describe, it, expect } from 'vitest';
 import { detectColumns, parseText } from '../parser';
 import type { DataRow } from '../types';
-import { generateStressData } from './helpers/stressDataGenerator';
 
 // ============================================================================
 // Helper: build DataRow[] with a string column of N unique values

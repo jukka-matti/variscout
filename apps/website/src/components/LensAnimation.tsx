@@ -372,7 +372,7 @@ export default function LensAnimation() {
         >
           <div className="h-full flex items-end justify-center gap-4 sm:gap-8 md:gap-12 relative">
             {/* Side factor bars (A and C) */}
-            {sideFactors.map((factor, idx) => (
+            {sideFactors.map((factor, _idx) => (
               <div
                 key={factor.label}
                 className="flex flex-col items-center justify-end h-full transition-all duration-700"

@@ -80,13 +80,19 @@ describe('Dashboard', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.spyOn(UseFilterNavigationModule, 'useFilterNavigation').mockReturnValue(
-      mockFilterNavigationReturn as any
+      mockFilterNavigationReturn as unknown as ReturnType<
+        typeof UseFilterNavigationModule.useFilterNavigation
+      >
     );
     vi.spyOn(UseFilterNavigationModule, 'default').mockReturnValue(
-      mockFilterNavigationReturn as any
+      mockFilterNavigationReturn as unknown as ReturnType<
+        typeof UseFilterNavigationModule.useFilterNavigation
+      >
     );
     vi.spyOn(UseVariationTrackingModule, 'useVariationTracking').mockReturnValue(
-      mockVariationTrackingReturn as any
+      mockVariationTrackingReturn as unknown as ReturnType<
+        typeof UseVariationTrackingModule.useVariationTracking
+      >
     );
   });
 
@@ -109,7 +115,9 @@ describe('Dashboard', () => {
   };
 
   it('renders dashboard view by default with tab navigation', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<Dashboard />);
 
@@ -128,7 +136,9 @@ describe('Dashboard', () => {
   });
 
   it('switches to regression view when Regression tab is clicked', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<Dashboard />);
 
@@ -140,7 +150,9 @@ describe('Dashboard', () => {
   });
 
   it('shows What-If button when onOpenWhatIf is provided', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     const onOpenWhatIf = vi.fn();
     render(<Dashboard onOpenWhatIf={onOpenWhatIf} />);
@@ -153,7 +165,9 @@ describe('Dashboard', () => {
   });
 
   it('does not show What-If button when onOpenWhatIf is not provided', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<Dashboard />);
 
@@ -161,7 +175,9 @@ describe('Dashboard', () => {
   });
 
   it('does not render AnovaResults when calculation returns null', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     vi.spyOn(CoreModule, 'calculateAnova').mockReturnValue(null);
 

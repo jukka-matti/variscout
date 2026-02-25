@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { getCategoryStats, calculateCategoryTotalSS, type CategoryStats } from '../variation';
+import { getCategoryStats, calculateCategoryTotalSS } from '../variation';
 import { inferCharacteristicType } from '../types';
+import type { DataRow } from '../types';
 
 describe('getCategoryStats', () => {
   it('should calculate mean and stdDev for each category', () => {
@@ -51,12 +52,12 @@ describe('getCategoryStats', () => {
     expect(result).not.toBeNull();
     expect(result).toHaveLength(3);
 
-    // Machine C should be first (highest contribution due to mean far from overall)
+    // Machine C should be first (highest Total SS contribution — mean far from overall + spread)
     expect(result![0].value).toBe('C');
     expect(result![0].contributionPct).toBeGreaterThan(50);
   });
 
-  it('should calculate contribution percentages that match factor eta-squared', () => {
+  it('should calculate contribution percentages that sum to 100% (Total SS)', () => {
     const data = [
       { Shift: 'Day', Output: 20 },
       { Shift: 'Day', Output: 22 },
@@ -72,11 +73,9 @@ describe('getCategoryStats', () => {
 
     expect(result).not.toBeNull();
 
-    // Sum of contribution percentages should equal the factor's between-group variance
+    // Sum of contribution percentages should equal 100% (Total SS fully partitioned)
     const totalContribution = result!.reduce((sum, c) => sum + c.contributionPct, 0);
-    // This should be the eta-squared * 100 for the factor
-    expect(totalContribution).toBeGreaterThan(0);
-    expect(totalContribution).toBeLessThanOrEqual(100);
+    expect(totalContribution).toBeCloseTo(100, 1);
   });
 
   it('should return null for insufficient data', () => {
@@ -109,8 +108,8 @@ describe('getCategoryStats', () => {
     expect(result![0].value).toBe('A');
     expect(result![0].count).toBe(3);
     expect(result![0].mean).toBeCloseTo(11, 1);
-    // Single category with no between-group variation should have 0% contribution
-    expect(result![0].contributionPct).toBe(0);
+    // Single category accounts for 100% of Total SS
+    expect(result![0].contributionPct).toBeCloseTo(100, 1);
   });
 
   it('should handle numeric category values', () => {
@@ -139,7 +138,7 @@ describe('getCategoryStats', () => {
       { Weight: 25 }, // Missing Machine
     ];
 
-    const result = getCategoryStats(data as any[], 'Machine', 'Weight');
+    const result = getCategoryStats(data as DataRow[], 'Machine', 'Weight');
 
     expect(result).not.toBeNull();
     expect(result).toHaveLength(2);

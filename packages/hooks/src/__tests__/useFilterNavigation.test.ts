@@ -15,7 +15,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { createFilterAction } from '@variscout/core';
 import { useFilterNavigation } from '../useFilterNavigation';
 import type { FilterNavigationContext } from '../types';
 

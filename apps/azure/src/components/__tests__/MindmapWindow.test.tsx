@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import type { FilterAction } from '@variscout/core';
 import MindmapWindow, { openMindmapPopout } from '../MindmapWindow';
 
 // Mock chart and hooks
 vi.mock('@variscout/charts', () => ({
-  InvestigationMindmapBase: (props: any) => (
+  InvestigationMindmapBase: (
+    props: Record<string, unknown> & { onCategorySelect?: (factor: string, value: string) => void }
+  ) => (
     <div data-testid="mindmap-base">
       <button
         data-testid="category-select"
@@ -172,7 +175,7 @@ describe('openMindmapPopout', () => {
       mockSyncData.outcome,
       mockSyncData.columnAliases,
       mockSyncData.specs,
-      filters as any
+      filters as unknown as FilterAction[]
     );
 
     const stored = JSON.parse(localStorage.getItem(SYNC_KEY)!);

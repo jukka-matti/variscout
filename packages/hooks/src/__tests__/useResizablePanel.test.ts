@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import React from 'react';
+import { describe, it, expect, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useResizablePanel } from '../useResizablePanel';
 
@@ -70,7 +71,7 @@ describe('useResizablePanel', () => {
   });
 
   it('persists width to localStorage on change', () => {
-    const { result } = renderHook(() => useResizablePanel('test-key', 200, 600, 350));
+    renderHook(() => useResizablePanel('test-key', 200, 600, 350));
     expect(localStorageMock.getItem('test-key')).toBe('350');
   });
 });

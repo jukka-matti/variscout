@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import type { StatsResult } from '@variscout/core';
+import type { StatsResult, DataRow } from '@variscout/core';
 import { StatsPanelBase, useGlossary } from '@variscout/ui';
 import { useData } from '../context/DataContext';
 import CapabilityHistogram from './charts/CapabilityHistogram';
@@ -10,7 +10,7 @@ import SpecEditor from './settings/SpecEditor';
 interface StatsPanelProps {
   stats: StatsResult | null;
   specs: { usl?: number; lsl?: number; target?: number };
-  filteredData?: any[];
+  filteredData?: DataRow[];
   outcome?: string | null;
   defaultTab?: 'summary' | 'histogram' | 'normality';
   className?: string;

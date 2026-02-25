@@ -10,7 +10,6 @@ import SpecsPopover from './settings/SpecsPopover';
 import { PresentationView, EmbedFocusView, FocusedChartView } from './views';
 import { EditableChartTitle } from '@variscout/charts';
 import {
-  AnovaResults,
   ErrorBoundary,
   FilterBreadcrumb,
   FilterContextBar,
@@ -90,10 +89,10 @@ const Dashboard = ({
   openSpecEditorRequested,
   onSpecEditorOpened,
   onOpenWhatIf,
-  highlightedPointIndex,
+  highlightedPointIndex: _highlightedPointIndex,
   filterNav,
   regressionInitialFactors,
-  onClearRegressionFactors,
+  onClearRegressionFactors: _onClearRegressionFactors,
   onNavigateToWhatIfWithModel,
 }: DashboardProps) => {
   const {
@@ -204,14 +203,10 @@ const Dashboard = ({
     anovaResult,
     boxplotData,
     // Filter navigation state
-    filterStack,
-    applyFilter,
-    navigateTo,
     clearFilters,
     updateFilterValues,
     removeFilter,
     // Variation tracking
-    breadcrumbItems,
     cumulativeVariationPct,
     factorVariations,
     categoryContributions,
@@ -267,9 +262,6 @@ const Dashboard = ({
     onEscape: clearSelection,
   });
 
-  // Handle breadcrumb navigation (delegates to hook)
-  const handleBreadcrumbNavigate = useCallback((id: string) => navigateTo(id), [navigateTo]);
-
   // Clear all filters (delegates to hook)
   const handleClearAllFilters = useCallback(() => clearFilters(), [clearFilters]);
 
@@ -316,15 +308,15 @@ const Dashboard = ({
     [rawData, selectedPoints, filters, setRawData, setFilters, clearSelection]
   );
 
-  if (!outcome) return null;
-
-  // Helper to update chart titles
+  // Helper to update chart titles (must be before early returns — rules-of-hooks)
   const handleChartTitleChange = useCallback(
     (chart: 'ichart' | 'boxplot' | 'pareto', title: string) => {
       setChartTitles({ ...chartTitles, [chart]: title });
     },
     [chartTitles, setChartTitles]
   );
+
+  if (!outcome) return null;
 
   // Presentation Mode - Fullscreen overlay with all charts
   if (isPresentationMode) {

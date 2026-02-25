@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import type { DataRow } from '@variscout/core';
+import type { DataRow, DataCellValue } from '@variscout/core';
 import ManualEntrySetupBase from './ManualEntrySetupBase';
 import StandardEntryGrid from './StandardEntryGrid';
 import PerformanceEntryGrid from './PerformanceEntryGrid';
@@ -287,10 +287,10 @@ const ManualEntryBase = ({
       }
 
       const formattedData = validRows.map(r => {
-        const row: Record<string, any> = { ...r };
+        const row: Record<string, DataCellValue> = { ...r };
         row[outcomeName] = parseFloat(r[outcomeName]);
         for (const factor of numericFactors) {
-          row[factor] = parseFloat(row[factor]);
+          row[factor] = parseFloat(row[factor] as string);
         }
         return row;
       });
@@ -310,7 +310,7 @@ const ManualEntryBase = ({
       );
 
       const formattedData = validRows.map(r => {
-        const newRow: Record<string, any> = {};
+        const newRow: Record<string, DataCellValue> = {};
         measureColumns.forEach(col => {
           const val = parseFloat(r[col]);
           newRow[col] = isNaN(val) ? null : val;

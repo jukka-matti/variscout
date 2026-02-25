@@ -31,7 +31,7 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
   columnAliases,
   onCellChange,
   onDeleteRow,
-  onAddRow,
+  onAddRow: _onAddRow,
   excludedRowIndices,
   excludedReasons,
   controlViolations,

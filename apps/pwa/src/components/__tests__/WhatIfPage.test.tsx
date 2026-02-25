@@ -55,8 +55,16 @@ vi.mock('@variscout/ui', async () => {
       specs,
       filterCount,
       onBack,
-      colorScheme,
-    }: any) => {
+      colorScheme: _colorScheme,
+    }: {
+      filteredData: Record<string, unknown>[];
+      rawData: Record<string, unknown>[];
+      outcome: string;
+      specs: Record<string, unknown>;
+      filterCount: number;
+      onBack: () => void;
+      colorScheme: unknown;
+    }) => {
       // Simplified rendering that mirrors the real WhatIfPageBase behavior
       if (!outcome || rawData.length === 0) {
         return (

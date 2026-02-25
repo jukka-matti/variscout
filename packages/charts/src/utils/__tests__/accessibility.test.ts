@@ -2,6 +2,7 @@
  * Tests for chart accessibility utilities
  */
 
+import type React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import {
   getInteractiveA11yProps,
@@ -36,7 +37,7 @@ describe('getInteractiveA11yProps', () => {
     const onClick = vi.fn();
     const props = getInteractiveA11yProps('Test', onClick);
 
-    const event = { key: 'Enter', preventDefault: vi.fn() } as any;
+    const event = { key: 'Enter', preventDefault: vi.fn() } as unknown as React.KeyboardEvent;
     props.onKeyDown!(event);
 
     expect(onClick).toHaveBeenCalledOnce();
@@ -47,7 +48,7 @@ describe('getInteractiveA11yProps', () => {
     const onClick = vi.fn();
     const props = getInteractiveA11yProps('Test', onClick);
 
-    const event = { key: ' ', preventDefault: vi.fn() } as any;
+    const event = { key: ' ', preventDefault: vi.fn() } as unknown as React.KeyboardEvent;
     props.onKeyDown!(event);
 
     expect(onClick).toHaveBeenCalledOnce();
@@ -58,7 +59,7 @@ describe('getInteractiveA11yProps', () => {
     const onClick = vi.fn();
     const props = getInteractiveA11yProps('Test', onClick);
 
-    const event = { key: 'Tab', preventDefault: vi.fn() } as any;
+    const event = { key: 'Tab', preventDefault: vi.fn() } as unknown as React.KeyboardEvent;
     props.onKeyDown!(event);
 
     expect(onClick).not.toHaveBeenCalled();
@@ -69,7 +70,7 @@ describe('getInteractiveA11yProps', () => {
     const onClick = vi.fn();
     const props = getInteractiveA11yProps('Test', onClick);
 
-    const event = { key: 'Escape', preventDefault: vi.fn() } as any;
+    const event = { key: 'Escape', preventDefault: vi.fn() } as unknown as React.KeyboardEvent;
     props.onKeyDown!(event);
 
     expect(onClick).not.toHaveBeenCalled();

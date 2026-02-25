@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAnnotations } from '../useAnnotationMode';
@@ -92,7 +93,7 @@ describe('useAnnotations', () => {
       opts = newOpts;
     });
 
-    const { result, rerender } = renderHook(() =>
+    const { result } = renderHook(() =>
       useAnnotations({ displayOptions: opts, setDisplayOptions: setOpts, dataFingerprint: 'a' })
     );
 

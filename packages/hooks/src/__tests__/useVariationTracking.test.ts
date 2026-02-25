@@ -43,7 +43,6 @@ const outcome = 'Weight';
 
 // Stable empty references
 const emptyStack: FilterAction[] = [];
-const emptyFactors: string[] = [];
 
 // =============================================================================
 // Helper

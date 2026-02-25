@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Dashboard from '../Dashboard';
@@ -26,7 +27,15 @@ vi.mock('../FilterBreadcrumb', () => ({
   default: () => <div data-testid="filter-breadcrumb">Breadcrumb</div>,
 }));
 vi.mock('../FactorSelector', () => ({
-  default: ({ factors, selected, onChange }: any) => (
+  default: ({
+    factors,
+    selected,
+    onChange,
+  }: {
+    factors: string[];
+    selected: string;
+    onChange: (v: string) => void;
+  }) => (
     <select data-testid="factor-selector" value={selected} onChange={e => onChange(e.target.value)}>
       {factors.map((f: string) => (
         <option key={f} value={f}>
@@ -178,7 +187,9 @@ describe('Dashboard', () => {
   };
 
   it('renders Analysis tab by default', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<Dashboard />);
 
@@ -189,7 +200,9 @@ describe('Dashboard', () => {
   });
 
   it('switches to Regression tab', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<Dashboard />);
 
@@ -201,7 +214,9 @@ describe('Dashboard', () => {
   });
 
   it('does not render AnovaResults when calculation returns null', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     vi.spyOn(CoreModule, 'calculateAnova').mockReturnValue(null);
 
@@ -214,7 +229,7 @@ describe('Dashboard', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       ...mockDataCtx,
       outcome: null,
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     const { container } = render(<Dashboard />);
 
@@ -222,7 +237,9 @@ describe('Dashboard', () => {
   });
 
   it('displays UCL, Mean, and LCL stats', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<Dashboard />);
 
@@ -238,7 +255,7 @@ describe('Dashboard', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       ...mockDataCtx,
       isPerformanceMode: true,
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(<Dashboard />);
 
@@ -246,7 +263,9 @@ describe('Dashboard', () => {
   });
 
   it('does not show Performance tab by default', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<Dashboard />);
 
@@ -254,7 +273,9 @@ describe('Dashboard', () => {
   });
 
   it('renders download menus and copy buttons for each chart', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<Dashboard />);
 
@@ -266,7 +287,9 @@ describe('Dashboard', () => {
   });
 
   it('renders editable chart titles', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<Dashboard />);
 

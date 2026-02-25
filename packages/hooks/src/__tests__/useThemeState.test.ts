@@ -5,7 +5,7 @@
  * document attribute application, and chart font scale values.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useThemeState, CHART_FONT_SCALES } from '../useThemeState';
 
@@ -73,7 +73,7 @@ describe('useThemeState', () => {
   });
 
   it('chartFontScaleValue returns correct values for each preset', () => {
-    const { result, rerender } = renderHook(() => useThemeState({ themingEnabled: true }));
+    const { result } = renderHook(() => useThemeState({ themingEnabled: true }));
 
     // Default (no chartFontScale set) should be 'normal' = 1.0
     expect(result.current.chartFontScaleValue).toBe(CHART_FONT_SCALES.normal);

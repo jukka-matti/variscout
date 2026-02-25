@@ -12,7 +12,7 @@
  * ```
  */
 
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   parseCSV,
   parseExcel,
@@ -290,12 +290,12 @@ export function useDataIngestion(
 
   const loadSample = useCallback(
     (sample: SampleDataset) => {
-      setRawData(sample.data as any[]);
+      setRawData(sample.data as DataRow[]);
       setDataFilename(sample.name);
       setOutcome(sample.config.outcome);
       setFactors(sample.config.factors);
       setSpecs(sample.config.specs);
-      const report = validateData(sample.data as any[], sample.config.outcome);
+      const report = validateData(sample.data as DataRow[], sample.config.outcome);
       setDataQualityReport(report);
       setParetoMode('derived');
       setSeparateParetoData(null);

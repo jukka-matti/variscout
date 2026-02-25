@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { calculateStats, getNelsonRule2ViolationPoints } from '@variscout/core';
-import type { SpecLimits } from '@variscout/core';
+import type { SpecLimits, DataRow } from '@variscout/core';
 
 /**
  * Computes control and spec limit violations for DataPanel annotations.
@@ -9,7 +9,7 @@ import type { SpecLimits } from '@variscout/core';
  * or undefined when insufficient data.
  */
 export function useControlViolations(
-  filteredData: Record<string, any>[],
+  filteredData: DataRow[],
   outcome: string | null,
   specs: SpecLimits
 ): Map<number, string[]> | undefined {

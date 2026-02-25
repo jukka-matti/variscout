@@ -14,7 +14,7 @@ import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
 import RegressionPanel from './RegressionPanel';
 import { AnovaResults, ErrorBoundary, FactorSelector, FilterBreadcrumb } from '@variscout/ui';
-import type { StatsResult, AnovaResult } from '@variscout/core';
+import type { StatsResult, AnovaResult, DataRow } from '@variscout/core';
 import type { FilterChipData } from '@variscout/hooks';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
@@ -26,7 +26,7 @@ interface MobileDashboardProps {
   specs: { usl?: number; lsl?: number; target?: number };
   boxplotFactor: string;
   paretoFactor: string;
-  filteredData: any[];
+  filteredData: DataRow[];
   anovaResult: AnovaResult | null;
   filters: Record<string, (string | number)[]>;
   columnAliases?: Record<string, string>;

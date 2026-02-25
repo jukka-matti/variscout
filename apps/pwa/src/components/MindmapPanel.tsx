@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { InvestigationMindmapBase } from '@variscout/charts';
 import { useMindmapState } from '@variscout/hooks';
-import type { FilterAction } from '@variscout/core';
+import type { FilterAction, DataRow } from '@variscout/core';
 import { MindmapPanelContent, exportMindmapPng, exportMindmapToClipboard } from '@variscout/ui';
 
 interface MindmapPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  data: any[];
+  data: DataRow[];
   factors: string[];
   outcome: string;
   filterStack: FilterAction[];

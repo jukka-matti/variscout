@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { validateData } from '@variscout/core';
-import type { DataRow } from '@variscout/core';
+import type { DataRow, DataQualityReport } from '@variscout/core';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
 
 /**
@@ -78,7 +78,7 @@ interface UseDataMergeOptions {
   setOutcome: (outcome: string) => void;
   setFactors: (factors: string[]) => void;
   setSpecs: (specs: { usl?: number; lsl?: number }) => void;
-  setDataQualityReport: (report: any) => void;
+  setDataQualityReport: (report: DataQualityReport) => void;
   setMeasureColumns: (cols: string[]) => void;
   setMeasureLabel: (label: string) => void;
   setPerformanceMode: (enabled: boolean) => void;

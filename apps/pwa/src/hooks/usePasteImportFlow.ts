@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   validateData,
   parseText,
@@ -91,8 +91,6 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     clearData,
     clearSelection,
     applyTimeExtraction,
-    handleParetoFileUpload: _handleParetoFileUpload,
-    clearParetoFile: _clearParetoFile,
   } = options;
 
   // State for performance mode auto-detection (wide format dismissal)

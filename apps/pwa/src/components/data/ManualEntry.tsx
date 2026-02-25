@@ -1,9 +1,10 @@
 import { ManualEntryBase, type ManualEntryConfig } from '@variscout/ui';
+import type { DataRow } from '@variscout/core';
 
 export type { ManualEntryConfig };
 
 interface ManualEntryProps {
-  onAnalyze: (data: any[], config: ManualEntryConfig) => void;
+  onAnalyze: (data: DataRow[], config: ManualEntryConfig) => void;
   onCancel: () => void;
 }
 

@@ -22,7 +22,7 @@ describe('Azure DataTableModal', () => {
       specs: { usl: 25, lsl: 5 },
       columnAliases: { name: 'Product' },
       setRawData: mockSetRawData,
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
   });
 
   it('renders nothing when isOpen is false', () => {

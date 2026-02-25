@@ -39,7 +39,7 @@ interface PerformanceDashboardProps {
 }
 
 const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
-  onExitPerformanceMode,
+  onExitPerformanceMode: _onExitPerformanceMode,
   onDrillToMeasure,
 }) => {
   const {

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { calculateProjectedStats, type ProjectedStats } from '../variation';
+import type { DataRow } from '../types';
+import { calculateProjectedStats } from '../variation';
 
 describe('calculateProjectedStats', () => {
   // Sample data with three machines, Machine C being the worst performer
@@ -205,7 +206,7 @@ describe('calculateProjectedStats', () => {
     ];
 
     const result = calculateProjectedStats(
-      dataWithMissing as any[],
+      dataWithMissing as DataRow[],
       'Machine',
       'Weight',
       new Set(['A']),

@@ -46,7 +46,7 @@ describe('RegressionPanel', () => {
       filteredData: [],
       rawData: [],
       specs: {},
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(<RegressionPanel />);
     expect(
@@ -60,7 +60,7 @@ describe('RegressionPanel', () => {
       filteredData: [{ Result: 10, Category: 'A' }], // Only outcome is numeric
       rawData: [{ Result: 10, Category: 'A' }],
       specs: {},
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(<RegressionPanel />);
     expect(screen.getByText('No numeric columns available for regression')).toBeInTheDocument();
@@ -77,9 +77,11 @@ describe('RegressionPanel', () => {
       filteredData: data,
       rawData: data,
       specs: {},
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
-    vi.spyOn(CoreModule, 'calculateRegression').mockReturnValue(mockRegressionResult as any);
+    vi.spyOn(CoreModule, 'calculateRegression').mockReturnValue(
+      mockRegressionResult as unknown as ReturnType<typeof CoreModule.calculateRegression>
+    );
 
     render(<RegressionPanel />);
 
@@ -100,9 +102,11 @@ describe('RegressionPanel', () => {
       filteredData: data,
       rawData: data,
       specs: {},
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
-    vi.spyOn(CoreModule, 'calculateRegression').mockReturnValue(mockRegressionResult as any);
+    vi.spyOn(CoreModule, 'calculateRegression').mockReturnValue(
+      mockRegressionResult as unknown as ReturnType<typeof CoreModule.calculateRegression>
+    );
 
     render(<RegressionPanel />);
 
@@ -130,17 +134,19 @@ describe('RegressionPanel', () => {
       filteredData: data,
       rawData: data,
       specs: {},
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     // Mock two results with different R²
     vi.spyOn(CoreModule, 'calculateRegression')
-      .mockReturnValueOnce(mockRegressionResult as any) // Speed: 0.95
+      .mockReturnValueOnce(
+        mockRegressionResult as unknown as ReturnType<typeof CoreModule.calculateRegression>
+      ) // Speed: 0.95
       .mockReturnValueOnce({
         ...mockRegressionResult,
         xColumn: 'Temp',
         linear: { ...mockRegressionResult.linear, rSquared: 0.5 },
         strengthRating: 2,
-      } as any); // Temp: 0.5
+      } as unknown as ReturnType<typeof CoreModule.calculateRegression>); // Temp: 0.5
 
     render(<RegressionPanel />);
 

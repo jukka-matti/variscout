@@ -3,6 +3,7 @@
  */
 
 import type { ParetoRow } from './types';
+import type { DataRow } from '../types';
 import { parseCSV } from './csv';
 import { parseExcel } from './excel';
 import { analyzeColumn } from './detection';
@@ -15,7 +16,7 @@ export type { ParetoRow };
  */
 export async function parseParetoFile(file: File): Promise<ParetoRow[]> {
   // Parse file
-  let data: any[];
+  let data: DataRow[];
   if (file.name.endsWith('.csv')) {
     data = await parseCSV(file);
   } else {

@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import {
   X,
   ChevronLeft,
@@ -10,7 +10,7 @@ import {
 import { useData } from '../../context/DataContext';
 import { getSpecStatus } from '../../lib/export';
 import { useDataTablePagination, useHighlightFade, useResizablePanel } from '@variscout/hooks';
-import type { ExclusionReason } from '@variscout/core';
+import type { ExclusionReason, DataCellValue } from '@variscout/core';
 
 // Pagination threshold
 const ROWS_PER_PAGE = 100;
@@ -177,9 +177,9 @@ const DataPanel: React.FC<DataPanelProps> = ({
     return violations.join(', ');
   };
 
-  const getStatusColor = (value: any): string => {
+  const getStatusColor = (value: DataCellValue): string => {
     if (!outcome) return 'text-content-secondary';
-    const numValue = parseFloat(value);
+    const numValue = typeof value === 'number' ? value : parseFloat(String(value));
     if (isNaN(numValue)) return 'text-content-secondary';
 
     const status = getSpecStatus(numValue, specs);

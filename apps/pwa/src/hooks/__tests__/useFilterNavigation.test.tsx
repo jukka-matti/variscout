@@ -24,7 +24,9 @@ describe('useFilterNavigation', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataContext as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataContext as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     // Mock window.location properties using Object.defineProperty
     Object.defineProperty(window, 'location', {
@@ -37,17 +39,17 @@ describe('useFilterNavigation', () => {
     });
 
     // Mock window.history methods
-    const historyState: any[] = [null];
+    const historyState: unknown[] = [null];
     let currentIndex = 0;
 
-    window.history.pushState = vi.fn((state: any) => {
+    window.history.pushState = vi.fn((state: unknown) => {
       currentIndex++;
       historyState[currentIndex] = state;
-    }) as any;
+    }) as unknown as typeof window.history.pushState;
 
-    window.history.replaceState = vi.fn((state: any) => {
+    window.history.replaceState = vi.fn((state: unknown) => {
       historyState[currentIndex] = state;
-    }) as any;
+    }) as unknown as typeof window.history.replaceState;
   });
 
   afterEach(() => {
@@ -96,7 +98,7 @@ describe('useFilterNavigation', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         ...mockDataContext,
         filters: { Machine: ['A'] },
-      } as any);
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
 
       const { result } = renderHook(() => useFilterNavigation());
 
@@ -288,9 +290,9 @@ describe('useFilterNavigation', () => {
       });
 
       expect(window.history.pushState).toHaveBeenCalled();
-      const lastCall = (window.history.pushState as any).mock.calls.slice(-1)[0];
+      const lastCall = vi.mocked(window.history.pushState).mock.calls.slice(-1)[0];
       expect(lastCall[0]).toHaveProperty('drillFilters');
-      expect(lastCall[0].drillFilters).toEqual({ Machine: ['A'] });
+      expect((lastCall[0] as Record<string, unknown>).drillFilters).toEqual({ Machine: ['A'] });
     });
 
     it('does not push history when enableHistory is false', () => {
@@ -338,10 +340,12 @@ describe('useFilterNavigation', () => {
       // With enableUrlSync false, setFilters should not be called with URL filters
       // Check that we didn't initialize from URL
       const calls = mockSetFilters.mock.calls;
-      const hasUrlFiltersInitialization = calls.some(
-        (call: any) =>
-          call[0]?.Machine && Array.isArray(call[0].Machine) && call[0].Machine.includes('A')
-      );
+      const hasUrlFiltersInitialization = calls.some((call: unknown[]) => {
+        const arg = call[0] as Record<string, unknown> | undefined;
+        return (
+          arg?.Machine && Array.isArray(arg.Machine) && (arg.Machine as string[]).includes('A')
+        );
+      });
       expect(hasUrlFiltersInitialization).toBe(false);
     });
   });
@@ -351,7 +355,7 @@ describe('useFilterNavigation', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         ...mockDataContext,
         columnAliases: { Machine: 'Equipment' },
-      } as any);
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
 
       const { result } = renderHook(() => useFilterNavigation());
 

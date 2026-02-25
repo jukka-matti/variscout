@@ -8,7 +8,21 @@ vi.mock('@variscout/ui', async () => {
   const actual = await vi.importActual<typeof import('@variscout/ui')>('@variscout/ui');
   return {
     ...actual,
-    WhatIfPageBase: ({ filteredData, rawData, outcome, specs, filterCount, onBack }: any) => {
+    WhatIfPageBase: ({
+      filteredData,
+      rawData,
+      outcome,
+      specs,
+      filterCount,
+      onBack,
+    }: {
+      filteredData: Record<string, unknown>[];
+      rawData: Record<string, unknown>[];
+      outcome: string | null;
+      specs: Record<string, unknown>;
+      filterCount: number;
+      onBack: () => void;
+    }) => {
       if (!outcome || rawData.length === 0) {
         return (
           <div>
@@ -67,7 +81,7 @@ describe('WhatIfPage', () => {
       rawData: [],
       filteredData: [],
       specs: {},
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(<WhatIfPage onBack={mockOnBack} />);
 
@@ -75,7 +89,9 @@ describe('WhatIfPage', () => {
   });
 
   it('renders header with back button, beaker icon, and title', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<WhatIfPage onBack={mockOnBack} />);
 
@@ -84,7 +100,9 @@ describe('WhatIfPage', () => {
   });
 
   it('shows outcome name and sample count', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<WhatIfPage onBack={mockOnBack} />);
 
@@ -93,7 +111,9 @@ describe('WhatIfPage', () => {
   });
 
   it('shows filter count badge when filters active', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<WhatIfPage onBack={mockOnBack} filterCount={2} />);
 
@@ -101,7 +121,9 @@ describe('WhatIfPage', () => {
   });
 
   it('does not show filter badge when no filters', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<WhatIfPage onBack={mockOnBack} filterCount={0} />);
 
@@ -109,7 +131,9 @@ describe('WhatIfPage', () => {
   });
 
   it('shows singular "filter" for count of 1', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<WhatIfPage onBack={mockOnBack} filterCount={1} />);
 
@@ -120,7 +144,7 @@ describe('WhatIfPage', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       ...mockDataCtx,
       specs: {},
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(<WhatIfPage onBack={mockOnBack} />);
 
@@ -130,7 +154,9 @@ describe('WhatIfPage', () => {
   });
 
   it('does not show specs warning when specs are set', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<WhatIfPage onBack={mockOnBack} />);
 
@@ -140,7 +166,9 @@ describe('WhatIfPage', () => {
   });
 
   it('back button calls onBack', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<WhatIfPage onBack={mockOnBack} />);
 
@@ -149,7 +177,9 @@ describe('WhatIfPage', () => {
   });
 
   it('renders WhatIfSimulator when stats are available', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(mockDataCtx as any);
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
+      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
+    );
 
     render(<WhatIfPage onBack={mockOnBack} />);
 

@@ -119,7 +119,7 @@ export function useFilterNavigation(
     externalFilterStack,
     externalSetFilterStack,
   } = options;
-  const { filters: _filters, setFilters, columnAliases } = context;
+  const { setFilters, columnAliases } = context;
 
   // Use external state when provided (for persistence), otherwise internal
   const [internalFilterStack, internalSetFilterStack] = useState<FilterAction[]>([]);

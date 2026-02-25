@@ -4,7 +4,7 @@
  * Validates detection of UCL/LCL, USL/LSL, and Nelson Rule 2 violations.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useControlViolations } from '../useControlViolations';
 
@@ -48,25 +48,6 @@ const DATA_WITH_LCL_VIOLATION = [
   { value: 10.1 },
   { value: 9.9 },
   { value: -30.0 }, // Far below LCL
-];
-
-// Data for Nelson Rule 2: 9+ consecutive points above mean
-// Mean of all 12 values: (1*12) for first 3 at 5.0, rest at 15.0
-// We need 9 consecutive values on the same side of the mean.
-// Using: 3 values below mean, then 9 values above mean.
-const NELSON_RULE_2_DATA = [
-  { value: 1.0 },
-  { value: 1.0 },
-  { value: 1.0 },
-  { value: 20.0 },
-  { value: 20.0 },
-  { value: 20.0 },
-  { value: 20.0 },
-  { value: 20.0 },
-  { value: 20.0 },
-  { value: 20.0 },
-  { value: 20.0 },
-  { value: 20.0 },
 ];
 
 const OUTCOME = 'value';

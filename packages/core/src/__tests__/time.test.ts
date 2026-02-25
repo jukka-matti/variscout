@@ -306,7 +306,7 @@ describe('augmentWithTimeColumns', () => {
       { Date: null, Value: 30 },
     ];
 
-    const result = augmentWithTimeColumns(data, 'Date', fullConfig);
+    augmentWithTimeColumns(data, 'Date', fullConfig);
 
     expect(data[0].Date_Year).toBe('2025');
     expect(data[1].Date_Year).toBeNull(); // Invalid date
@@ -335,7 +335,7 @@ describe('augmentWithTimeColumns', () => {
   });
 
   it('handles empty dataset', () => {
-    const data: any[] = [];
+    const data: Record<string, unknown>[] = [];
     const result = augmentWithTimeColumns(data, 'Date', fullConfig);
 
     expect(result.newColumns).toEqual([]);
@@ -388,7 +388,7 @@ describe('hasTimeComponent', () => {
   });
 
   it('handles empty dataset', () => {
-    const data: any[] = [];
+    const data: Record<string, unknown>[] = [];
     expect(hasTimeComponent(data, 'Date')).toBe(false);
   });
 

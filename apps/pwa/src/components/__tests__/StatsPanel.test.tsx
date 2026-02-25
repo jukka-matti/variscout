@@ -36,7 +36,7 @@ describe('StatsPanel', () => {
   it('shows Summary tab by default', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(
       <StatsPanel
@@ -59,7 +59,7 @@ describe('StatsPanel', () => {
   it('switches to Histogram tab on click', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(
       <StatsPanel
@@ -84,7 +84,7 @@ describe('StatsPanel', () => {
   it('displays Cp when specs are set', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(
       <StatsPanel
@@ -103,7 +103,7 @@ describe('StatsPanel', () => {
   it('always shows Cp and Cpk in the card grid when specs are set', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(
       <StatsPanel
@@ -124,7 +124,7 @@ describe('StatsPanel', () => {
   it('shows Mean, Median, and Std Dev in the card grid', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(
       <StatsPanel
@@ -148,7 +148,7 @@ describe('StatsPanel', () => {
   it('shows Samples count in the card grid', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(
       <StatsPanel
@@ -166,7 +166,7 @@ describe('StatsPanel', () => {
   it('shows inline spec inputs when no specs provided', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(
       <StatsPanel stats={mockStats} specs={{}} filteredData={mockFilteredData} outcome="value" />
@@ -183,7 +183,7 @@ describe('StatsPanel', () => {
     it('shows pencil edit button when specs are set', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         setSpecs: vi.fn(),
-      } as any);
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
 
       render(
         <StatsPanel
@@ -201,7 +201,7 @@ describe('StatsPanel', () => {
     it('enters edit mode with pre-populated inputs on click', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         setSpecs: vi.fn(),
-      } as any);
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
 
       render(
         <StatsPanel
@@ -235,7 +235,7 @@ describe('StatsPanel', () => {
     it('shows Clear specs and Done buttons in edit mode', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         setSpecs: vi.fn(),
-      } as any);
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
 
       render(
         <StatsPanel
@@ -258,7 +258,7 @@ describe('StatsPanel', () => {
       const setSpecs = vi.fn();
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         setSpecs,
-      } as any);
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
 
       render(
         <StatsPanel
@@ -280,7 +280,7 @@ describe('StatsPanel', () => {
     it('hides Edit Specifications button in compact mode', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         setSpecs: vi.fn(),
-      } as any);
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
 
       render(
         <StatsPanel
@@ -298,7 +298,7 @@ describe('StatsPanel', () => {
     it('shows metrics in compact mode', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         setSpecs: vi.fn(),
-      } as any);
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
 
       render(
         <StatsPanel
@@ -318,7 +318,7 @@ describe('StatsPanel', () => {
     it('switches tabs in compact mode', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         setSpecs: vi.fn(),
-      } as any);
+      } as unknown as ReturnType<typeof DataContextModule.useData>);
 
       render(
         <StatsPanel

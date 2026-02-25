@@ -293,11 +293,7 @@ describe('Variation tracking at scale', () => {
       measurement: { name: 'Output', baseMean: 100, baseStd: 2 },
     });
 
-    const result = calculateDrillVariation(
-      data,
-      { Machine: ['Machine_001'], Shift: ['Day'] },
-      'Output'
-    );
+    calculateDrillVariation(data, { Machine: ['Machine_001'], Shift: ['Day'] }, 'Output');
 
     // Filtering doesn't exist as 'Day' - use generated level name
     const result2 = calculateDrillVariation(data, { Machine: ['Machine_001'] }, 'Output');

@@ -94,7 +94,7 @@ const Dashboard = ({
   onDrillToMeasure,
   filterNav: externalFilterNav,
   regressionInitialFactors,
-  onClearRegressionFactors,
+  onClearRegressionFactors: _onClearRegressionFactors,
   onNavigateToWhatIfWithModel,
   initialTab,
   onTabChange,

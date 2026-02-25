@@ -27,7 +27,13 @@ vi.mock('../../components/data/ManualEntry', () => ({
 }));
 
 vi.mock('../../components/data/PasteScreen', () => ({
-  default: ({ onAnalyze, onCancel }: any) => (
+  default: ({
+    onAnalyze,
+    onCancel,
+  }: {
+    onAnalyze: (text: string) => void;
+    onCancel: () => void;
+  }) => (
     <div data-testid="paste-screen">
       <button onClick={() => onAnalyze('Weight\tMachine\n10\tA')}>Analyze</button>
       <button onClick={onCancel}>Cancel</button>
@@ -54,7 +60,13 @@ vi.mock('@variscout/core', () => ({
 // ── Mock @variscout/ui ──
 
 vi.mock('@variscout/ui', () => ({
-  ColumnMapping: ({ onConfirm, onCancel }: any) => (
+  ColumnMapping: ({
+    onConfirm,
+    onCancel,
+  }: {
+    onConfirm: (outcome: string, factors: string[]) => void;
+    onCancel: () => void;
+  }) => (
     <div data-testid="column-mapping">
       <button onClick={() => onConfirm('Weight', ['Machine'])}>Confirm</button>
       <button onClick={onCancel}>Cancel</button>
@@ -128,11 +140,11 @@ vi.mock('../../context/DataContext', () => ({
 // ── Test helpers ──
 
 const baseDataCtx = {
-  rawData: [] as Record<string, any>[],
-  filteredData: [] as Record<string, any>[],
+  rawData: [] as Record<string, unknown>[],
+  filteredData: [] as Record<string, unknown>[],
   outcome: null as string | null,
   factors: [] as string[],
-  specs: {} as Record<string, any>,
+  specs: {} as Record<string, unknown>,
   stats: null,
   filters: {},
   columnAliases: {},
@@ -182,7 +194,7 @@ function renderEditor(dataOverrides: Partial<typeof baseDataCtx> = {}) {
   vi.mocked(DataContextModule.useData).mockReturnValue({
     ...baseDataCtx,
     ...dataOverrides,
-  } as any);
+  } as unknown as ReturnType<typeof DataContextModule.useData>);
 
   return render(<Editor {...defaultProps} />);
 }
@@ -197,7 +209,7 @@ describe('Editor', () => {
     vi.mocked(StorageModule.useStorage).mockReturnValue({
       saveProject: vi.fn(),
       syncStatus: { status: 'synced', message: 'Synced' },
-    } as any);
+    } as unknown as ReturnType<typeof StorageModule.useStorage>);
   });
 
   it('renders empty state when rawData is empty', () => {

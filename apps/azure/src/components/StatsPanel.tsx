@@ -1,5 +1,5 @@
 import React from 'react';
-import type { StatsResult } from '@variscout/core';
+import type { StatsResult, DataRow } from '@variscout/core';
 import { StatsPanelBase, statsPanelAzureColorScheme, useGlossary } from '@variscout/ui';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
@@ -8,7 +8,7 @@ import WhatIfSimulator from './WhatIfSimulator';
 interface StatsPanelProps {
   stats: StatsResult | null;
   specs: { usl?: number; lsl?: number; target?: number };
-  filteredData?: any[];
+  filteredData?: DataRow[];
   outcome?: string | null;
   onSaveSpecs?: (specs: { lsl?: number; target?: number; usl?: number }) => void;
   showCpk?: boolean;

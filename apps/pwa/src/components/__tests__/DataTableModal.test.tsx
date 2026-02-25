@@ -21,7 +21,7 @@ describe('DataTableModal', () => {
       outcome: 'value',
       specs: { usl: 25, lsl: 5 },
       setRawData: mockSetRawData,
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
   });
 
   it('renders nothing when isOpen is false', () => {
@@ -99,7 +99,7 @@ describe('DataTableModal', () => {
       outcome: 'value',
       specs: {},
       setRawData: mockSetRawData,
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     render(<DataTableModal isOpen={true} onClose={() => {}} />);
 

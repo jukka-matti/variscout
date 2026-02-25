@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import * as DataContextModule from '../../context/DataContext';
@@ -114,7 +115,7 @@ describe('PresentationView', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       outcome: null,
       factors: [],
-    } as any);
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
     const { container } = render(<PresentationView onExit={onExit} />);
 

@@ -54,8 +54,7 @@ describe('Stats Engine', () => {
   });
 
   it('should handle one-sided specs', () => {
-    const data = [10, 10, 10]; // Sigma is 0, special case?
-    // Let's use scattered data
+    // Sigma is 0 with identical values, special case — use scattered data instead
     const scattered = [9, 10, 11];
     const usl = 13;
 

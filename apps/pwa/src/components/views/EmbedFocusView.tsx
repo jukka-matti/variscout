@@ -6,7 +6,7 @@ import StatsPanel from '../StatsPanel';
 import { ErrorBoundary, FactorSelector } from '@variscout/ui';
 import { EditableChartTitle } from '@variscout/charts';
 import { Activity } from 'lucide-react';
-import type { StatsResult, SpecLimits } from '@variscout/core';
+import type { StatsResult, SpecLimits, DataRow } from '@variscout/core';
 
 export type EmbedFocusChart = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 export type EmbedStatsTab = 'summary' | 'histogram' | 'normality';
@@ -19,7 +19,7 @@ export interface EmbedFocusViewProps {
   factors: string[];
   stats: StatsResult | null;
   specs: SpecLimits;
-  filteredData: any[];
+  filteredData: DataRow[];
   filters: Record<string, (string | number)[]>;
   factorVariations: Map<string, number>;
   showParetoComparison: boolean;

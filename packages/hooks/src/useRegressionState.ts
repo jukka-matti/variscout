@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { RegressionPersistenceState, ReductionStepData } from './types';
 
 /**
@@ -105,7 +105,6 @@ export function useRegressionState(options: UseRegressionStateOptions): UseRegre
     rankedColumns,
     allColumns,
     savedState,
-    dataRowCount,
   } = options;
 
   // Mode state — restore from saved if available

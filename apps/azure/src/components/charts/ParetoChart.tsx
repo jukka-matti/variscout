@@ -14,6 +14,7 @@ import React, { useMemo, useState } from 'react';
 import { withParentSize } from '@visx/responsive';
 import { rollup, sum } from 'd3-array';
 import { useData } from '../../context/DataContext';
+import type { DataRow, DataCellValue } from '@variscout/core';
 import {
   ParetoChartBase,
   type ParetoDataPoint,
@@ -91,8 +92,8 @@ const ParetoChart = ({
 
     const fullCounts = rollup(
       rawData,
-      (v: any) => v.length,
-      (d: any) => d[factor]
+      (v: DataRow[]) => v.length,
+      (d: DataRow) => d[factor]
     );
     const fullTotal = rawData.length;
 
@@ -118,21 +119,23 @@ const ParetoChart = ({
     } else if (aggregation === 'value' && outcome) {
       const sums = rollup(
         filteredData,
-        (rows: any) => sum(rows, (d: any) => Number(d[outcome]) || 0),
-        (d: any) => d[factor]
+        (rows: DataRow[]) => sum(rows, (d: DataRow) => Number(d[outcome]) || 0),
+        (d: DataRow) => d[factor]
       );
-      sorted = Array.from(sums, ([key, value]: any) => ({ key, value })).sort(
-        (a, b) => b.value - a.value
-      );
+      sorted = Array.from(sums, ([key, value]: [DataCellValue, number]) => ({
+        key: String(key),
+        value,
+      })).sort((a, b) => b.value - a.value);
     } else {
       const counts = rollup(
         filteredData,
-        (v: any) => v.length,
-        (d: any) => d[factor]
+        (v: DataRow[]) => v.length,
+        (d: DataRow) => d[factor]
       );
-      sorted = Array.from(counts, ([key, value]: any) => ({ key, value })).sort(
-        (a: any, b: any) => b.value - a.value
-      );
+      sorted = Array.from(counts, ([key, value]: [DataCellValue, number]) => ({
+        key: String(key),
+        value,
+      })).sort((a, b) => b.value - a.value);
     }
 
     const total = sum(sorted, d => d.value);

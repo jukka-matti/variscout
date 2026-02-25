@@ -9,10 +9,18 @@ import {
   db,
 } from '../db/schema';
 
-// Project data is serialized to JSON for IndexedDB/OneDrive — kept as `any`
+// Project data is serialized to JSON for IndexedDB/OneDrive — kept as unknown
 // because the storage layer is a passthrough that doesn't inspect the shape.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Project = any;
+type Project = unknown;
+
+/** Minimal shape returned by Graph API children endpoint */
+interface DriveItem {
+  id: string;
+  name: string;
+  lastModifiedDateTime: string;
+  lastModifiedBy?: { user?: { displayName?: string } };
+  size?: number;
+}
 
 export type StorageLocation = 'team' | 'personal';
 
@@ -192,9 +200,9 @@ async function listFromCloud(token: string, location: StorageLocation): Promise<
   }
 
   const data = await response.json();
-  return (data.value || [])
-    .filter((file: any) => file.name.endsWith('.vrs'))
-    .map((file: any) => ({
+  return ((data.value || []) as DriveItem[])
+    .filter(file => file.name.endsWith('.vrs'))
+    .map(file => ({
       id: file.id,
       name: file.name.replace('.vrs', ''),
       modified: file.lastModifiedDateTime,

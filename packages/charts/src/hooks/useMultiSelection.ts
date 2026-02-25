@@ -29,15 +29,14 @@
  * ```
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 
 // Generic scale interface matching what we need from visx scales
-// Uses 'any' to be compatible with various visx/d3-scale types
 interface ChartScale {
   (value: number): number | undefined;
   invert(value: number): number;
-  range(): any;
-  domain(): any;
+  range(): number[];
+  domain(): number[];
 }
 
 export interface UseMultiSelectionOptions<T> {
@@ -102,8 +101,8 @@ export function useMultiSelection<T = { x: number; y: number }>({
   yScale,
   selectedPoints,
   onSelectionChange,
-  getX = (d: any) => d.x,
-  getY = (d: any) => d.y,
+  getX = ((d: T) => (d as Record<string, number>).x) as (d: T, index: number) => number,
+  getY = ((d: T) => (d as Record<string, number>).y) as (d: T, index: number) => number,
   enableBrush = true,
 }: UseMultiSelectionOptions<T>): UseMultiSelectionResult {
   const [brushExtent, setBrushExtent] = useState<BrushExtent | null>(null);

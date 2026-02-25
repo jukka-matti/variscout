@@ -6,7 +6,7 @@ import StatsPanel from '../StatsPanel';
 import { ErrorBoundary } from '@variscout/ui';
 import { EditableChartTitle } from '@variscout/charts';
 import { Activity } from 'lucide-react';
-import type { StatsResult, SpecLimits } from '@variscout/core';
+import type { StatsResult, SpecLimits, DataRow } from '@variscout/core';
 
 export interface PresentationViewProps {
   outcome: string;
@@ -15,7 +15,7 @@ export interface PresentationViewProps {
   factors: string[];
   stats: StatsResult | null;
   specs: SpecLimits;
-  filteredData: any[];
+  filteredData: DataRow[];
   factorVariations: Map<string, number>;
   showParetoComparison: boolean;
   onToggleParetoComparison: () => void;

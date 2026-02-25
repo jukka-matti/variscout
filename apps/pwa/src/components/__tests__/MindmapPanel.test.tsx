@@ -9,7 +9,7 @@ vi.mock('@variscout/charts', async () => {
   const actual = await vi.importActual<typeof import('@variscout/charts')>('@variscout/charts');
   return {
     ...actual,
-    InvestigationMindmapBase: (props: any) => (
+    InvestigationMindmapBase: (props: Record<string, unknown> & { mode?: string }) => (
       <div data-testid="mindmap-chart" data-mode={props.mode}>
         Mindmap
       </div>

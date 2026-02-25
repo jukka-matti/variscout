@@ -5,6 +5,7 @@
  * Local storage is used for auto-save; IndexedDB for offline cache.
  */
 
+import type { DataRow } from '@variscout/core';
 import { db } from '../db/schema';
 
 // Display options for capability metrics
@@ -16,11 +17,11 @@ export interface DisplayOptions {
 // Types for saved analysis state
 export interface AnalysisState {
   version: string;
-  rawData: any[];
+  rawData: DataRow[];
   outcome: string | null;
   factors: string[];
   specs: { usl?: number; lsl?: number; target?: number };
-  filters: Record<string, any[]>;
+  filters: Record<string, (string | number)[]>;
   axisSettings: { min?: number; max?: number };
   columnAliases?: Record<string, string>;
   valueLabels?: Record<string, Record<string, string>>;
@@ -161,7 +162,7 @@ export function importFromFile(file: File): Promise<AnalysisState> {
         const content = e.target?.result as string;
         const state = JSON.parse(content) as AnalysisState;
         resolve(state);
-      } catch (err) {
+      } catch {
         reject(new Error('Invalid file format'));
       }
     };
@@ -171,7 +172,7 @@ export function importFromFile(file: File): Promise<AnalysisState> {
 }
 
 // Debounce utility for auto-save
-export function debounce<T extends (...args: any[]) => void>(
+export function debounce<T extends (...args: unknown[]) => void>(
   fn: T,
   delay: number
 ): T & { cancel: () => void } {

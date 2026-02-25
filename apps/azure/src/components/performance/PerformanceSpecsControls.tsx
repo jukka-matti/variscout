@@ -20,7 +20,7 @@ const PerformanceSpecsControls: React.FC<PerformanceSpecsControlsProps> = ({
   localLSL,
   localUSL,
   cpkTarget,
-  specs,
+  specs: _specs,
   onLSLChange,
   onUSLChange,
   onCpkTargetChange,
