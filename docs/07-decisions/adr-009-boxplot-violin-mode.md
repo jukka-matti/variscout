@@ -24,7 +24,7 @@ Add a violin plot toggle to boxplot charts that overlays KDE-based density curve
 
 4. **Controlled via `displayOptions.showViolin`** -- Follows the established pattern for user-togglable chart features (like `showContributionLabels`, `showControlLimits`).
 
-5. **Platform parity: PWA + Azure, not Excel** -- Excel Add-in provides core SPC only per [ADR-007](adr-007-azure-marketplace-distribution.md).
+5. **Platform parity: PWA + Azure, not Excel** -- Excel Add-in provides core analysis only per [ADR-007](adr-007-azure-marketplace-distribution.md).
 
 ## Implementation
 

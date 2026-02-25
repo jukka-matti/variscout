@@ -29,7 +29,7 @@ Complete feature availability across VariScout platforms.
 | **Boxplot category sorting** |     ✓     |     ✓      |    -     |
 | **Performance Mode**         |     ✓     |     -      |    -     |
 
-> PWA includes core SPC plus Green Belt tools for training. Performance Mode requires the Azure App.
+> PWA includes core analysis charts plus Green Belt tools for training. Performance Mode requires the Azure App.
 
 ---
 
@@ -148,12 +148,12 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Licensing & Pricing
 
-| Aspect           | Azure App         | PWA (Free)                                           |
-| ---------------- | ----------------- | ---------------------------------------------------- |
-| **Distribution** | Azure Marketplace | Direct URL                                           |
-| **Pricing**      | €150/month        | FREE (forever)                                       |
-| **Features**     | All (full)        | Core SPC + Green Belt (no Performance Mode, no save) |
-| **Auth**         | EasyAuth / Entra  | None                                                 |
+| Aspect           | Azure App         | PWA (Free)                                                |
+| ---------------- | ----------------- | --------------------------------------------------------- |
+| **Distribution** | Azure Marketplace | Direct URL                                                |
+| **Pricing**      | €150/month        | FREE (forever)                                            |
+| **Features**     | All (full)        | Core analysis + Green Belt (no Performance Mode, no save) |
+| **Auth**         | EasyAuth / Entra  | None                                                      |
 
 ---
 

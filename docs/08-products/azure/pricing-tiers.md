@@ -117,9 +117,9 @@ Enterprise customers can use:
 
 The PWA provides free value as a training and education tool:
 
-| Product | Price | Features                                              |
-| ------- | ----- | ----------------------------------------------------- |
-| **PWA** | Free  | Core SPC: I-Chart, Boxplot, Pareto, Capability, ANOVA |
+| Product | Price | Features                                                   |
+| ------- | ----- | ---------------------------------------------------------- |
+| **PWA** | Free  | Core analysis: I-Chart, Boxplot, Pareto, Capability, ANOVA |
 
 The PWA serves as a marketing funnel — users who need Performance Mode, file upload, data persistence, or team collaboration upgrade to the Azure App.
 

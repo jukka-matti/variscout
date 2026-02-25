@@ -2,7 +2,7 @@
 
 _Last updated: February 2026_
 
-VariScout plays in the intersection of **SPC software**, **Lean Six Sigma training tools**, and **lightweight quality analytics**.
+VariScout plays in the intersection of **quality analytics software**, **Lean Six Sigma training tools**, and **process improvement workflows**.
 
 ---
 
@@ -18,11 +18,11 @@ VariScout plays in the intersection of **SPC software**, **Lean Six Sigma traini
 
 ## TAM: Three Addressable Layers
 
-### Layer 1 — SPC Software Replacement (Primary)
+### Layer 1 — Lightweight Quality Analytics (Primary)
 
-**Who:** Manufacturing companies currently using Minitab, InfinityQS, PQ Systems, or Excel for SPC.
+**Who:** Manufacturing companies currently using Minitab, InfinityQS, PQ Systems, or Excel for variation analysis.
 
-VariScout doesn't compete with the full Minitab suite (DOE, hypothesis testing, predictive). It competes for the **"I just need to see my variation"** segment — quality engineers who use 20% of Minitab's features but pay 100% of the price.
+VariScout doesn't compete with the full Minitab suite (DOE, hypothesis testing, predictive). It competes for the **"I just need to see my variation"** segment — quality engineers who use 20% of Minitab's features but pay 100% of the price. The reference market is "SPC Software" (~$1.05B) in industry reports, but VariScout targets the variation investigation slice, not the full SPC category.
 
 | Assumption                    | Value              | Rationale                          |
 | ----------------------------- | ------------------ | ---------------------------------- |
@@ -48,7 +48,7 @@ Most training revenue comes from the **free PWA** driving awareness, not direct 
 
 ### Layer 3 — Excel-Native Quality Analytics (Tertiary)
 
-**Who:** Quality professionals who live in Excel and want SPC without leaving it.
+**Who:** Quality professionals who live in Excel and want variation analysis without leaving it. [Shelved — Excel Add-in removed Feb 2026]
 
 | Assumption                        | Value             | Rationale                    |
 | --------------------------------- | ----------------- | ---------------------------- |
@@ -66,7 +66,7 @@ Most training revenue comes from the **free PWA** driving awareness, not direct 
 ┌────────────────────────────────────────────────────────┐
 │                 TOTAL ADDRESSABLE MARKET                │
 │                                                        │
-│  Layer 1: SPC Replacement        €90–160M/year         │
+│  Layer 1: Quality Analytics       €90–160M/year         │
 │  Layer 2: LSS Training Funnel    €5–15M/year           │
 │  Layer 3: Excel Funnel           €10–25M/year          │
 │  ─────────────────────────────────────                  │
@@ -88,7 +88,7 @@ Narrowed by:
 - **Microsoft ecosystem only** — Azure Marketplace + AppSource
 - **English/EU markets first** — initial language and compliance reach
 - **SMBs with 5–200 employees** — sweet spot for €150/month flat pricing
-- **Manufacturing, food, pharma** — core verticals with SPC need
+- **Manufacturing, food, pharma** — core verticals with variation analysis need
 
 ### SOM (Serviceable Obtainable Market): €100K–1M/year
 
@@ -104,13 +104,13 @@ Near-term realistic capture (solo founder, no sales team):
 
 ## Competitive Positioning
 
-| Segment         | Incumbent                    | VariScout Advantage                    | VariScout Weakness      |
-| --------------- | ---------------------------- | -------------------------------------- | ----------------------- |
-| Full SPC suites | Minitab (~$1,800/user/yr)    | 10× cheaper for teams, zero install    | Fewer statistical tests |
-| Enterprise QMS  | InfinityQS ($50–100/user/mo) | No implementation cost, instant deploy | No MES/ERP integration  |
-| Excel SPC       | PQ Systems ($595 perpetual)  | Free Add-in, modern UX                 | Less mature             |
-| Free tools      | R, Python, Sheets            | No coding required, guided workflows   | Less flexible           |
-| Training tools  | Minitab academic licenses    | Free PWA, browser-based                | Less brand recognition  |
+| Segment                 | Incumbent                    | VariScout Advantage                    | VariScout Weakness      |
+| ----------------------- | ---------------------------- | -------------------------------------- | ----------------------- |
+| Full-suite SPC tools    | Minitab (~$1,800/user/yr)    | 10× cheaper for teams, zero install    | Fewer statistical tests |
+| Enterprise QMS          | InfinityQS ($50–100/user/mo) | No implementation cost, instant deploy | No MES/ERP integration  |
+| Excel quality analytics | PQ Systems ($595 perpetual)  | Free Add-in, modern UX                 | Less mature             |
+| Free tools              | R, Python, Sheets            | No coding required, guided workflows   | Less flexible           |
+| Training tools          | Minitab academic licenses    | Free PWA, browser-based                | Less brand recognition  |
 
 ### Pricing Comparison
 
@@ -138,9 +138,9 @@ Near-term realistic capture (solo founder, no sales team):
 
 ## Bottom Line
 
-> VariScout's TAM is **real but niche** (~€100–200M). The product sits in a genuine gap between expensive enterprise SPC suites and DIY spreadsheet/coding approaches. The €150/month flat pricing makes the math work — **200 customers = €360K ARR**, a strong indie SaaS outcome.
+> VariScout's TAM is **real but niche** (~€100–200M). The product sits in a genuine gap between expensive SPC suites (used at 20% capacity) and DIY spreadsheet approaches. The €150/month flat pricing makes the math work — **200 customers = €360K ARR**, a strong indie SaaS outcome.
 >
-> The biggest variable isn't market size — it's **distribution**. Azure Marketplace reach and the free-to-paid funnel (Excel Add-in → Azure App) will determine whether VariScout captures 50 or 5,000 customers.
+> The biggest variable isn't market size — it's **distribution**. Azure Marketplace reach and the free-to-paid funnel (PWA → Azure App) will determine whether VariScout captures 50 or 5,000 customers.
 
 ---
 

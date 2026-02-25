@@ -76,7 +76,7 @@ The conceptual bridge between VariScout's UI design and its statistical methodol
 
 ### Market Analysis & TAM
 
-Total Addressable Market estimate across three segments: SPC software replacement, LSS training funnel, and Excel-native quality analytics.
+Total Addressable Market estimate across three segments: lightweight quality analytics, LSS training funnel, and Excel-native variation analysis.
 
 [:octicons-arrow-right-24: Market Analysis](market-analysis.md)
 

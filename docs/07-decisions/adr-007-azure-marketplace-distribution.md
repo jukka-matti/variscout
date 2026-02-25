@@ -53,7 +53,7 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 ┌─────────────────────────────────────────────────────────────┐
 │  Excel Add-in on AppSource (FREE FOREVER)                   │
 │                                                             │
-│  • Core SPC charts: I-Chart, Boxplot, Pareto, Capability   │
+│  • Core analysis charts: I-Chart, Boxplot, Pareto, Capability │
 │  • No Performance Mode (Azure App exclusive)               │
 │  • No license detection needed                             │
 │  • Marketing funnel → users upgrade to Azure App           │
@@ -62,10 +62,10 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 
 ### Product Hierarchy
 
-| Product       | Role                        | Distribution      | Price                                                                |
-| ------------- | --------------------------- | ----------------- | -------------------------------------------------------------------- |
-| **Azure App** | ONLY PAID PRODUCT           | Azure Marketplace | €150/month (Managed Application)                                     |
-| **PWA**       | FREE (training & education) | Public website    | Free forever (core SPC + Green Belt, copy-paste input, session-only) |
+| Product       | Role                        | Distribution      | Price                                                                     |
+| ------------- | --------------------------- | ----------------- | ------------------------------------------------------------------------- |
+| **Azure App** | ONLY PAID PRODUCT           | Azure Marketplace | €150/month (Managed Application)                                          |
+| **PWA**       | FREE (training & education) | Public website    | Free forever (core analysis + Green Belt, copy-paste input, session-only) |
 
 > **Note (Feb 2026):** Excel Add-in shelved — cost with no revenue, unproven funnel. The PWA serves the same funnel role (free, no friction, shows the methodology) at zero marginal cost. See original 3-product strategy below for historical context.
 
@@ -164,7 +164,7 @@ variscout-managed-app.zip
    - But also lower purchase friction (no large upfront commitment)
 
 3. **PWA as free training tool**
-   - PWA repositioned as free SPC training and education tool
+   - PWA repositioned as free variation analysis training and education tool
    - Core analysis (I-Chart, Boxplot, Pareto, Capability, Regression) included
    - No file upload, no save, no Performance Mode (Azure App differentiators)
    - Copy-paste from Excel/Sheets + pre-loaded sample datasets
@@ -172,7 +172,7 @@ variscout-managed-app.zip
 4. **Excel Add-in feature reduction**
    - Performance Mode removed from Excel (Azure App exclusive)
    - Intentional to create clear upgrade incentive
-   - Core SPC analysis remains fully functional
+   - Core analysis remains fully functional
 
 5. **No per-user pricing**
    - Cannot charge differently based on team size
@@ -212,7 +212,7 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 ### For PWA Users
 
 1. PWA is a genuine free product for training and education
-2. Core SPC + Green Belt analysis always available
+2. Core analysis + Green Belt tools always available
 3. Copy-paste from Excel/Sheets for own data analysis
 4. Upgrade to Azure App for file upload, save, Performance Mode, and team features
 
