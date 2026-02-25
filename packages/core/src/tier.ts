@@ -165,8 +165,19 @@ export function getTierDescription(tier?: LicenseTier): string {
  * @returns URL to the Azure Marketplace listing
  */
 export function getUpgradeUrl(): string {
-  // TODO: Replace with actual Azure Marketplace URL when available
+  // TODO(launch): Replace with actual Azure Marketplace listing URL before go-live.
+  // Every "Upgrade" button in the free PWA links here — a broken URL loses conversions.
   return 'https://azuremarketplace.microsoft.com/en-us/marketplace/apps/variscout';
+}
+
+/**
+ * Check if the upgrade URL is still a placeholder.
+ * Call this in app startup (e.g. main.tsx) to surface the TODO during development.
+ *
+ * @returns true if the URL is still a placeholder
+ */
+export function isUpgradeUrlPlaceholder(): boolean {
+  return getUpgradeUrl().includes('/apps/variscout');
 }
 
 // ---------------------------------------------------------------------------
