@@ -95,6 +95,7 @@ const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
     <div
       className={`flex items-center gap-3 px-4 py-2.5 ${c.bg} border ${c.border} rounded-lg mx-4 mt-2 animate-fade-in`}
       role="status"
+      aria-live="polite"
     >
       <Network size={16} className={c.text} />
       <div className="flex-1 min-w-0">

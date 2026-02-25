@@ -100,6 +100,12 @@ function App() {
     <ThemeProvider>
       <StorageProvider>
         <div className="min-h-screen bg-slate-900 text-white">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+          >
+            Skip to main content
+          </a>
           <ErrorBoundary>
             <DataProvider>
               {/* Header */}
@@ -131,7 +137,7 @@ function App() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-4">
+                <nav aria-label="App actions" className="flex items-center gap-4">
                   <button
                     onClick={() => setIsSettingsOpen(true)}
                     aria-label="Open settings"
@@ -155,11 +161,11 @@ function App() {
                     <LogOut size={16} />
                     Sign Out
                   </button>
-                </div>
+                </nav>
               </header>
 
               {/* Main Content */}
-              <main className="p-6">
+              <main id="main-content" className="p-6">
                 {currentView === 'dashboard' && (
                   <ProjectDashboard onOpenProject={id => navigateToEditor(id)} />
                 )}

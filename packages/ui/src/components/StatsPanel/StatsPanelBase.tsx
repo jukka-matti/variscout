@@ -294,6 +294,8 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
       <div className="space-y-3">
         <div
           className={compact ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 sm:grid-cols-3 gap-2'}
+          aria-live="polite"
+          aria-label="Analysis statistics"
         >
           {hasSpecs && showCpk && !isEditingSpecs && (
             <>

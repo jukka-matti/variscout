@@ -80,27 +80,29 @@ All 8 doc sections exist with indexes: vision (13 files), journeys (13), feature
 
 | Area                | Test Files                 | Assessment      |
 | ------------------- | -------------------------- | --------------- |
-| `@variscout/core`   | 23 files (703 tests)       | **Very Strong** |
-| `@variscout/charts` | 3 files (44 tests)         | Moderate        |
-| `@variscout/hooks`  | 15 files (157 tests)       | **Strong**      |
-| `@variscout/ui`     | 5 files (57 tests)         | Moderate        |
-| PWA app             | 11 files (110 tests)       | **Strong**      |
-| Azure app           | 13 files (130 tests)       | **Strong**      |
+| `@variscout/core`   | 26 files (739 tests)       | **Very Strong** |
+| `@variscout/charts` | 4 files (59 tests)         | Moderate        |
+| `@variscout/hooks`  | 25 files (270 tests)       | **Very Strong** |
+| `@variscout/ui`     | 10 files (136 tests)       | **Strong**      |
+| PWA app             | 10 files (100 tests)       | **Strong**      |
+| Azure app           | 15 files (171 tests)       | **Strong**      |
 | Website             | 0                          | None            |
-| **Total**           | **70 files (1,201 tests)** |                 |
+| **Total**           | **90 files (1,475 tests)** |                 |
 
 ### Technical Debt
 
-| #   | Item                                                             | Severity |
-| --- | ---------------------------------------------------------------- | -------- |
-| T1  | ~~`edition.ts` deprecated but still used for branding logic~~    | RESOLVED |
-| T2  | Excel add-in has stub `licenseDetection.ts` and `useLicense.ts`  | LOW      |
-| T3  | TODO: Integrate funnel filters with FilterNavigation breadcrumbs | LOW      |
-| T4  | TODO: Replace upgrade URL placeholder (`tier.ts:168`)            | **HIGH** |
+| #   | Item                                                                | Severity                        |
+| --- | ------------------------------------------------------------------- | ------------------------------- |
+| T1  | ~~`edition.ts` deprecated but still used for branding logic~~       | RESOLVED                        |
+| T2  | ~~Excel add-in has stub `licenseDetection.ts` and `useLicense.ts`~~ | RESOLVED (Excel add-in deleted) |
+| T3  | TODO: Integrate funnel filters with FilterNavigation breadcrumbs    | LOW                             |
+| T4  | TODO: Replace upgrade URL placeholder (`tier.ts:168`)               | **HIGH**                        |
+| T5  | No CI/CD pipeline (`.github/workflows/` missing)                    | MEDIUM                          |
 
 ### Security
 
 - pnpm overrides for known CVEs (qs, esbuild, lodash, tmp) (removed Feb 2026 — dependencies no longer in tree)
+- fast-xml-parser CVE fixed (pnpm override >=5.3.6 — 3 CVEs: 1 critical, 2 high)
 - No `.env` files or secrets in codebase
 - Offline-first architecture reduces attack surface
 
@@ -123,17 +125,17 @@ All 8 doc sections exist with indexes: vision (13 files), journeys (13), feature
 
 Values are coordinated (status colors match) but no single source of truth.
 
-### Accessibility — SIGNIFICANT GAPS
+### Accessibility — IMPROVING
 
-| Area          | Status                                           |
-| ------------- | ------------------------------------------------ |
-| Documentation | Excellent (WCAG 2.1 AA targets)                  |
-| Website       | Good (aria-labels, focus traps)                  |
-| UI components | Partial (11 aria instances)                      |
-| PWA app       | Weak (7 aria instances across 72 components)     |
-| Charts        | Missing (no `role="img"`, no descriptive labels) |
-| Landmarks     | Missing (no `role="main"`, `role="navigation"`)  |
-| Live regions  | Missing (no `aria-live` for dynamic updates)     |
+| Area          | Status                                                                               |
+| ------------- | ------------------------------------------------------------------------------------ |
+| Documentation | Excellent (WCAG 2.1 AA targets)                                                      |
+| Website       | Good (aria-labels, focus traps)                                                      |
+| Charts        | Good (`role="img"` + `aria-label` on IChart, Boxplot, Pareto)                        |
+| UI components | Good (`aria-live` on FilterBreadcrumb, DataQualityBanner, SyncToast, StatsPanelBase) |
+| PWA app       | Moderate (skip link, semantic header/nav/footer, aria-labels)                        |
+| Landmarks     | Present in PWA (header, nav, main, footer) and Azure (header, nav, main)             |
+| Live regions  | Present (FilterBreadcrumb, SyncToast, StatsPanelBase, InvestigationPrompt)           |
 
 ### Branding
 
@@ -165,11 +167,11 @@ Values are coordinated (status colors match) but no single source of truth.
 
 ### High Priority
 
-| Issue                                    | Owner  |
-| ---------------------------------------- | ------ |
-| UX1: Accessibility implementation gaps   | Design |
-| P2: AppSource submission status          | PO     |
-| T4: Upgrade URL placeholder in `tier.ts` | CTO    |
+| Issue                                                              | Owner  |
+| ------------------------------------------------------------------ | ------ |
+| UX1: Accessibility — remaining gaps (keyboard nav, contrast audit) | Design |
+| P2: AppSource submission status                                    | PO     |
+| T4: Upgrade URL placeholder in `tier.ts`                           | CTO    |
 
 ### Medium Priority
 
@@ -185,7 +187,7 @@ Values are coordinated (status colors match) but no single source of truth.
 | Issue                         | Owner  |
 | ----------------------------- | ------ |
 | ~~T1: `edition.ts` cleanup~~  | DONE   |
-| T2: Excel stub files          | CTO    |
+| ~~T2: Excel stub files~~      | DONE   |
 | T3: Funnel/breadcrumb TODO    | CTO    |
 | P3: 2 stub case studies       | PO     |
 | P4: Power BI spec visibility  | PO     |
@@ -198,7 +200,7 @@ Values are coordinated (status colors match) but no single source of truth.
 
 - **Documentation**: 130+ docs, all current, no stale pricing
 - **Architecture**: Clean monorepo layering, shared hooks, props-based charts
-- **Core package**: 484 tests, strict TypeScript, solid statistics engine
+- **Core package**: 739 tests, strict TypeScript, solid statistics engine
 - **Pricing alignment**: Consistent across all surfaces
 - **Case studies**: 5 ready with data, mapped to content calendar
 - **Design system docs**: Comprehensive 28-file system
