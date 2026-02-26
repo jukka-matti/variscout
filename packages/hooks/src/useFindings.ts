@@ -1,5 +1,10 @@
 import { useState, useCallback } from 'react';
-import { createFinding, type Finding, type FindingContext } from '@variscout/core';
+import {
+  createFinding,
+  findDuplicateFinding,
+  type Finding,
+  type FindingContext,
+} from '@variscout/core';
 
 export interface UseFindingsOptions {
   /** Initial findings (for restoring persisted state) */
@@ -19,6 +24,8 @@ export interface UseFindingsReturn {
   deleteFinding: (id: string) => void;
   /** Get a finding's context (for filter restoration) */
   getFindingContext: (id: string) => FindingContext | undefined;
+  /** Find an existing finding with matching filters (for duplicate detection) */
+  findDuplicate: (activeFilters: Record<string, (string | number)[]>) => Finding | undefined;
 }
 
 /**
@@ -80,11 +87,19 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [findings]
   );
 
+  const findDuplicate = useCallback(
+    (activeFilters: Record<string, (string | number)[]>): Finding | undefined => {
+      return findDuplicateFinding(findings, activeFilters);
+    },
+    [findings]
+  );
+
   return {
     findings,
     addFinding,
     editFinding,
     deleteFinding,
     getFindingContext,
+    findDuplicate,
   };
 }

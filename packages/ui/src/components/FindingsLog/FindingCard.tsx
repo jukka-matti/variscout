@@ -48,7 +48,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
         onClick={() => onRestore(finding.id)}
         className="w-full text-left px-3 pt-2.5 pb-1.5"
         title="Click to restore these filters"
-        aria-label={`Restore finding: ${finding.text}`}
+        aria-label={`Restore finding: ${finding.text || 'No note'}`}
       >
         {/* Filter chips */}
         <div className="flex flex-wrap gap-1 mb-1.5">
@@ -101,9 +101,15 @@ const FindingCard: React.FC<FindingCardProps> = ({
           />
         ) : (
           <div className="flex items-start gap-1">
-            <p className="flex-1 text-xs text-content italic leading-relaxed mt-0.5">
-              &ldquo;{finding.text}&rdquo;
-            </p>
+            {finding.text ? (
+              <p className="flex-1 text-xs text-content italic leading-relaxed mt-0.5">
+                &ldquo;{finding.text}&rdquo;
+              </p>
+            ) : (
+              <p className="flex-1 text-xs text-content-muted italic leading-relaxed mt-0.5">
+                No note
+              </p>
+            )}
             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
               <button
                 onClick={e => {
@@ -111,8 +117,8 @@ const FindingCard: React.FC<FindingCardProps> = ({
                   setIsEditing(true);
                 }}
                 className="p-1 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
-                title="Edit note"
-                aria-label="Edit finding note"
+                title={finding.text ? 'Edit note' : 'Add note'}
+                aria-label={finding.text ? 'Edit finding note' : 'Add note'}
               >
                 <Pencil size={12} />
               </button>

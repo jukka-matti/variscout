@@ -28,7 +28,9 @@ export function formatFindingsText(
 
     const statsStr = statsParts.length > 0 ? ` | ${statsParts.join(' \u00b7 ')}` : '';
     lines.push(`${i + 1}. ${filterStr || '(no filters)'}${statsStr}`);
-    lines.push(`   "${finding.text}"`);
+    if (finding.text) {
+      lines.push(`   "${finding.text}"`);
+    }
     lines.push('');
   });
 

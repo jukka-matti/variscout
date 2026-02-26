@@ -221,4 +221,9 @@ export { safeMin, safeMax } from './utils/minmax';
 
 // Findings (scouting report)
 export type { Finding, FindingContext } from './findings';
-export { createFinding, formatFindingFilters } from './findings';
+export {
+  createFinding,
+  formatFindingFilters,
+  filtersEqual,
+  findDuplicateFinding,
+} from './findings';

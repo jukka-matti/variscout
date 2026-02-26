@@ -97,6 +97,13 @@ describe('FindingsLog', () => {
     expect(onRestore).toHaveBeenCalledWith('f-42');
   });
 
+  it('renders "No note" for finding with empty text', () => {
+    const findings = [makeFinding({ id: 'f-empty', text: '' })];
+
+    render(<FindingsLog {...defaultProps} findings={findings} />);
+    expect(screen.getByText('No note')).toBeDefined();
+  });
+
   it('highlights active finding', () => {
     const findings = [
       makeFinding({ id: 'f-1', text: 'Active one' }),

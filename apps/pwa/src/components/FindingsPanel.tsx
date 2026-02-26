@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, ClipboardCopy, Check, ExternalLink } from 'lucide-react';
 import type { Finding } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
-import { FindingsLog, FindingEditor, copyFindingsToClipboard } from '@variscout/ui';
+import { FindingsLog, copyFindingsToClipboard } from '@variscout/ui';
 
 interface FindingsPanelProps {
   isOpen: boolean;
@@ -14,12 +14,6 @@ interface FindingsPanelProps {
   columnAliases?: Record<string, string>;
   drillPath: DrillStep[];
   activeFindingId?: string | null;
-  /** When true, show the note editor for a new finding */
-  pendingNewFinding?: boolean;
-  /** Called when the new finding note is saved */
-  onSaveNewFinding?: (text: string) => void;
-  /** Called when the new finding note is cancelled */
-  onCancelNewFinding?: () => void;
   /** Open findings in a separate popout window */
   onPopout?: () => void;
 }
@@ -38,9 +32,6 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
   columnAliases,
   drillPath,
   activeFindingId,
-  pendingNewFinding,
-  onSaveNewFinding,
-  onCancelNewFinding,
   onPopout,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -140,20 +131,6 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
             </button>
           </div>
         </div>
-
-        {/* New finding editor (shown when pin button is clicked) */}
-        {pendingNewFinding && onSaveNewFinding && onCancelNewFinding && (
-          <div className="px-3 pt-3 pb-1 border-b border-edge">
-            <p className="text-[10px] text-content-muted uppercase tracking-wider mb-1.5">
-              New finding
-            </p>
-            <FindingEditor
-              placeholder="What did you find?"
-              onSave={onSaveNewFinding}
-              onCancel={onCancelNewFinding}
-            />
-          </div>
-        )}
 
         {/* Findings list */}
         <FindingsLog

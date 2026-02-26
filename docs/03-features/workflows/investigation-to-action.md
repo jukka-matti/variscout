@@ -94,7 +94,7 @@ Use the dashboard's drill-down workflow to progressively filter the data by fact
 
 1. **Drill into factors** — Click Boxplot/Pareto categories to filter. Each factor's ANOVA η² shows its contribution to total variation. Follow the highest contribution path.
 
-2. **Pin findings** — Click the pin button in the breadcrumb bar to capture the current filter state as a finding. Add a note describing what you observed. The finding card stores the active filters, cumulative variation %, and key statistics.
+2. **Pin findings** — Click the pin button in the breadcrumb bar to instantly capture the current filter state as a finding. Add a note later if desired — the filter chips and statistics are captured automatically.
 
 3. **Review findings** — Open the Findings panel to see all bookmarked states. Click a finding card to restore its filter combination on the dashboard. Edit or delete findings as your understanding evolves.
 

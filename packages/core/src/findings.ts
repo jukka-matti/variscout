@@ -62,6 +62,38 @@ export function createFinding(
  * formatFindingFilters(ctx, { Machine: 'Filling Head' })
  * // → "Filling Head=B, Shift=Night"
  */
+/**
+ * Compare two activeFilters objects (order-insensitive for both keys and values)
+ */
+export function filtersEqual(
+  a: Record<string, (string | number)[]>,
+  b: Record<string, (string | number)[]>
+): boolean {
+  const keysA = Object.keys(a).sort();
+  const keysB = Object.keys(b).sort();
+  if (keysA.length !== keysB.length) return false;
+  for (let i = 0; i < keysA.length; i++) {
+    if (keysA[i] !== keysB[i]) return false;
+    const valsA = a[keysA[i]].map(String).sort();
+    const valsB = b[keysB[i]].map(String).sort();
+    if (valsA.length !== valsB.length) return false;
+    for (let j = 0; j < valsA.length; j++) {
+      if (valsA[j] !== valsB[j]) return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Find an existing finding with matching filters, or undefined
+ */
+export function findDuplicateFinding(
+  findings: Finding[],
+  activeFilters: Record<string, (string | number)[]>
+): Finding | undefined {
+  return findings.find(f => filtersEqual(f.context.activeFilters, activeFilters));
+}
+
 export function formatFindingFilters(
   context: FindingContext,
   columnAliases?: Record<string, string>

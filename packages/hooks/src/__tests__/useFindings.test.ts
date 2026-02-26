@@ -135,6 +135,29 @@ describe('useFindings', () => {
     );
   });
 
+  it('findDuplicate returns finding when filters match', () => {
+    const ctx1 = makeContext({ activeFilters: { Machine: ['A'] } });
+    const ctx2 = makeContext({ activeFilters: { Machine: ['B'], Shift: ['Night'] } });
+    const initial = [
+      { id: 'f-1', text: 'First', createdAt: 1000, context: ctx1 },
+      { id: 'f-2', text: 'Second', createdAt: 2000, context: ctx2 },
+    ];
+    const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+    const dup = result.current.findDuplicate({ Shift: ['Night'], Machine: ['B'] });
+    expect(dup).toBeDefined();
+    expect(dup!.id).toBe('f-2');
+  });
+
+  it('findDuplicate returns undefined when no match', () => {
+    const ctx = makeContext({ activeFilters: { Machine: ['A'] } });
+    const initial = [{ id: 'f-1', text: 'Only', createdAt: 1000, context: ctx }];
+    const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+    const dup = result.current.findDuplicate({ Machine: ['Z'] });
+    expect(dup).toBeUndefined();
+  });
+
   it('onFindingsChange callback fires on delete', () => {
     const onChange = vi.fn();
     const initial = [

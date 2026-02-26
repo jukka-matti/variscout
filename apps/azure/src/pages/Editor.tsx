@@ -197,44 +197,48 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     initialFindings: persistedFindings,
     onFindingsChange: setPersistedFindings,
   });
-  const [pendingNewFinding, setPendingNewFinding] = useState(false);
+  const [highlightedFindingId, setHighlightedFindingId] = useState<string | null>(null);
 
   // Drill path for findings panel footer
   const { drillPath } = useDrillPath(rawData, filterNav.filterStack, outcome, specs);
 
-  // Findings: pin current filter state
+  // Auto-clear highlight after 3 seconds
+  useEffect(() => {
+    if (!highlightedFindingId) return;
+    const timer = setTimeout(() => setHighlightedFindingId(null), 3000);
+    return () => clearTimeout(timer);
+  }, [highlightedFindingId]);
+
+  // Findings: pin current filter state (one-click with duplicate detection)
   const handlePinFinding = useCallback(() => {
+    // Check for duplicate
+    const existing = findingsState.findDuplicate(filters);
+    if (existing) {
+      panels.setIsMindmapOpen(true);
+      setHighlightedFindingId(existing.id);
+      return;
+    }
+    // Build context and create finding immediately
+    const context: FindingContext = {
+      activeFilters: { ...filters },
+      cumulativeScope:
+        drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
+      stats:
+        filteredData.length > 0
+          ? {
+              mean:
+                filteredData.reduce((sum, r) => {
+                  const v = Number(r[outcome!]);
+                  return isNaN(v) ? sum : sum + v;
+                }, 0) / filteredData.length,
+              samples: filteredData.length,
+            }
+          : undefined,
+    };
+    const newFinding = findingsState.addFinding('', context);
     panels.setIsMindmapOpen(true);
-    setPendingNewFinding(true);
-  }, [panels]);
-
-  const handleSaveNewFinding = useCallback(
-    (text: string) => {
-      const context: FindingContext = {
-        activeFilters: { ...filters },
-        cumulativeScope:
-          drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
-        stats:
-          filteredData.length > 0
-            ? {
-                mean:
-                  filteredData.reduce((sum, r) => {
-                    const v = Number(r[outcome!]);
-                    return isNaN(v) ? sum : sum + v;
-                  }, 0) / filteredData.length,
-                samples: filteredData.length,
-              }
-            : undefined,
-      };
-      findingsState.addFinding(text, context);
-      setPendingNewFinding(false);
-    },
-    [filters, drillPath, filteredData, outcome, findingsState]
-  );
-
-  const handleCancelNewFinding = useCallback(() => {
-    setPendingNewFinding(false);
-  }, []);
+    setHighlightedFindingId(newFinding.id);
+  }, [filters, drillPath, filteredData, outcome, findingsState, panels]);
 
   const handleRestoreFinding = useCallback(
     (id: string) => {
@@ -745,16 +749,17 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             />
             <FindingsPanel
               isOpen={panels.isMindmapOpen}
-              onClose={() => panels.setIsMindmapOpen(false)}
+              onClose={() => {
+                panels.setIsMindmapOpen(false);
+                setHighlightedFindingId(null);
+              }}
               findings={findingsState.findings}
               onEditFinding={findingsState.editFinding}
               onDeleteFinding={findingsState.deleteFinding}
               onRestoreFinding={handleRestoreFinding}
               columnAliases={columnAliases}
               drillPath={drillPath}
-              pendingNewFinding={pendingNewFinding}
-              onSaveNewFinding={handleSaveNewFinding}
-              onCancelNewFinding={handleCancelNewFinding}
+              activeFindingId={highlightedFindingId}
               onPopout={handleOpenFindingsPopout}
             />
             <DataPanel
