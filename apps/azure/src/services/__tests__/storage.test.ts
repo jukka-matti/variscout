@@ -162,6 +162,12 @@ describe('storage service', () => {
       expect(result.retryable).toBe(true);
     });
 
+    it('classifies 404 as not_found (not retryable)', () => {
+      const result = classifySyncError(new Error('Failed: 404'));
+      expect(result.category).toBe('not_found');
+      expect(result.retryable).toBe(false);
+    });
+
     it('classifies unknown errors as unknown (retryable)', () => {
       const result = classifySyncError(new Error('something weird'));
       expect(result.category).toBe('unknown');
@@ -499,6 +505,61 @@ describe('storage service', () => {
 
       expect(projects).toHaveLength(1);
       expect(projects[0].name).toBe('project');
+    });
+
+    it('returns empty list and creates folder on 404 (first use)', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockProjects.toArray.mockResolvedValueOnce([]);
+
+      // listFromCloud returns 404
+      fetchSpy.mockResolvedValueOnce(createFetchResponse(null, false, 404));
+      // ensureFolderExists: two POST calls for folder creation
+      fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'folder-1' }));
+      fetchSpy.mockResolvedValueOnce(createFetchResponse({ id: 'folder-2' }));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let projects: CloudProject[] = [];
+
+      await act(async () => {
+        projects = await result.current.listProjects();
+      });
+
+      expect(projects).toHaveLength(0);
+
+      // Verify folder creation POST calls were made
+      const postCalls = fetchSpy.mock.calls.filter(
+        call => (call[1] as Record<string, unknown>)?.method === 'POST'
+      );
+      expect(postCalls).toHaveLength(2);
+      expect(postCalls[0][0]).toContain('/me/drive/root/children');
+      expect(postCalls[1][0]).toContain('/me/drive/root:/VariScout:/children');
+    });
+
+    it('still logs warning for non-404 cloud errors (e.g. 500)', async () => {
+      Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+      mockProjects.toArray.mockResolvedValueOnce([
+        { name: 'local-safe', location: 'personal', modified: new Date('2026-01-01') },
+      ]);
+
+      // listFromCloud returns 500
+      fetchSpy.mockResolvedValueOnce(createFetchResponse(null, false, 500));
+
+      const { result } = renderHook(() => useStorage(), { wrapper });
+      let projects: CloudProject[] = [];
+
+      await act(async () => {
+        projects = await result.current.listProjects();
+      });
+
+      // Should fall back to local projects
+      expect(projects).toHaveLength(1);
+      expect(projects[0].name).toBe('local-safe');
+
+      // Should NOT have made folder creation POST calls
+      const postCalls = fetchSpy.mock.calls.filter(
+        call => (call[1] as Record<string, unknown>)?.method === 'POST'
+      );
+      expect(postCalls).toHaveLength(0);
     });
 
     it('returns local projects when cloud listing fails', async () => {

@@ -53,7 +53,13 @@ export interface SyncNotification {
 
 // ── Error Classification ────────────────────────────────────────────────
 
-export type SyncErrorCategory = 'auth' | 'network' | 'throttle' | 'server' | 'unknown';
+export type SyncErrorCategory =
+  | 'auth'
+  | 'network'
+  | 'throttle'
+  | 'server'
+  | 'not_found'
+  | 'unknown';
 
 export interface ClassifiedError {
   category: SyncErrorCategory;
@@ -71,6 +77,9 @@ export function classifySyncError(error: unknown): ClassifiedError {
 
   if (status === 401 || status === 403 || /unauthorized|forbidden/i.test(msg)) {
     return { category: 'auth', retryable: false, message: 'Authentication expired' };
+  }
+  if (status === 404) {
+    return { category: 'not_found', retryable: false, message: 'Resource not found' };
   }
   if (status === 429 || /throttl/i.test(msg)) {
     return { category: 'throttle', retryable: true, message: 'Rate limited, will retry' };
@@ -97,6 +106,38 @@ const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 // Get the appropriate API path — location reserved for future SharePoint support
 function getApiPath(_location: StorageLocation): string {
   return '/me/drive/root:/VariScout/Projects';
+}
+
+// ── Folder auto-creation ────────────────────────────────────────────────
+
+/** Create /VariScout/Projects/ in OneDrive if it doesn't exist yet. Idempotent. */
+async function ensureFolderExists(token: string): Promise<void> {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
+
+  // Create /VariScout (no-op if exists)
+  await fetch(`${GRAPH_BASE}/me/drive/root/children`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      name: 'VariScout',
+      folder: {},
+      '@microsoft.graph.conflictBehavior': 'replace',
+    }),
+  });
+
+  // Create /VariScout/Projects (no-op if exists)
+  await fetch(`${GRAPH_BASE}/me/drive/root:/VariScout:/children`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      name: 'Projects',
+      folder: {},
+      '@microsoft.graph.conflictBehavior': 'replace',
+    }),
+  });
 }
 
 // ── IndexedDB operations ────────────────────────────────────────────────
@@ -194,6 +235,12 @@ async function listFromCloud(token: string, location: StorageLocation): Promise<
       },
     }
   );
+
+  if (response.status === 404) {
+    // Folder doesn't exist yet — create it for future use
+    await ensureFolderExists(token).catch(() => {});
+    return [];
+  }
 
   if (!response.ok) {
     errorService.logWarning('Failed to list cloud projects', {

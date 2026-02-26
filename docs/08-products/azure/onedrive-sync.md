@@ -26,6 +26,10 @@ OneDrive/
         └── ...
 ```
 
+The folder structure is auto-created on first use. When the app first lists
+projects and the folder doesn't exist, it creates `/VariScout/Projects/`
+automatically via the Graph API.
+
 ---
 
 ## Sync Flow
@@ -91,17 +95,34 @@ const response = await fetch(
 
 ---
 
+## Folder Auto-Creation
+
+On first use (before any project has been saved), the `/VariScout/Projects/` folder
+does not exist in the user's OneDrive. The `listFromCloud()` function detects
+the 404 response and automatically creates the folder structure:
+
+1. `POST /me/drive/root/children` — creates `/VariScout/` (no-op if exists)
+2. `POST /me/drive/root:/VariScout:/children` — creates `/Projects/` subfolder
+
+This is idempotent (`conflictBehavior: "replace"`) and only runs once per user.
+Subsequent list calls succeed normally.
+
+Source: `ensureFolderExists()` in `apps/azure/src/services/storage.ts`
+
+---
+
 ## Error Classification
 
 All sync errors are classified by `classifySyncError()`:
 
-| Category   | Examples                          | Retryable | Action                     |
-| ---------- | --------------------------------- | --------- | -------------------------- |
-| `auth`     | 401, 403, AuthError               | No        | Stop retry, prompt re-auth |
-| `network`  | TypeError (fetch failed), offline | Yes       | Queue for retry            |
-| `throttle` | 429 Too Many Requests             | Yes       | Retry with backoff         |
-| `server`   | 500, 502, 503                     | Yes       | Retry with backoff         |
-| `unknown`  | Unexpected errors                 | No        | Log, notify user           |
+| Category    | Examples                          | Retryable | Action                           |
+| ----------- | --------------------------------- | --------- | -------------------------------- |
+| `auth`      | 401, 403, AuthError               | No        | Stop retry, prompt re-auth       |
+| `not_found` | 404 (folder/file missing)         | No        | Auto-create folder, return empty |
+| `network`   | TypeError (fetch failed), offline | Yes       | Queue for retry                  |
+| `throttle`  | 429 Too Many Requests             | Yes       | Retry with backoff               |
+| `server`    | 500, 502, 503                     | Yes       | Retry with backoff               |
+| `unknown`   | Unexpected errors                 | Yes       | Log, notify user                 |
 
 Source: `classifySyncError()` in `apps/azure/src/services/storage.ts`
 
