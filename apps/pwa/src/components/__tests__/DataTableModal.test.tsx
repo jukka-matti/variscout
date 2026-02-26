@@ -105,4 +105,40 @@ describe('DataTableModal', () => {
 
     expect(screen.getByText(/No data loaded/i)).toBeInTheDocument();
   });
+
+  it('renders Paste button in header', () => {
+    render(<DataTableModal isOpen={true} onClose={() => {}} />);
+
+    expect(screen.getByText('Paste')).toBeInTheDocument();
+    expect(screen.getByTitle('Paste tab-delimited data from clipboard')).toBeInTheDocument();
+  });
+
+  it('handleBulkPaste expands rows and parses numeric values', () => {
+    const mockOnClose = vi.fn();
+    render(<DataTableModal isOpen={true} onClose={mockOnClose} />);
+
+    // Click cell to start editing, then paste multi-cell data
+    fireEvent.click(screen.getByText('Item A'));
+    const input = screen.getByDisplayValue('Item A');
+
+    // Paste a 4-row grid (extends beyond 3 existing rows)
+    const pasteData = 'New1\t99\nNew2\t88\nNew3\t77\nNew4\t66';
+    fireEvent.paste(input, {
+      clipboardData: { getData: () => pasteData },
+    });
+
+    // Apply to check what setRawData receives
+    fireEvent.click(screen.getByText('Apply Changes'));
+
+    expect(mockSetRawData).toHaveBeenCalledTimes(1);
+    const savedData = mockSetRawData.mock.calls[0][0];
+    // Row 0 should have pasted values
+    expect(savedData[0].name).toBe('New1');
+    expect(savedData[0].value).toBe(99);
+    // Row 3 should be auto-expanded
+    expect(savedData[3]).toBeDefined();
+    expect(savedData[3].name).toBe('New4');
+    expect(savedData[3].value).toBe(66);
+    expect(savedData).toHaveLength(4);
+  });
 });

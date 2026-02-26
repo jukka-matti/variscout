@@ -218,14 +218,14 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ### @variscout/ui (10 files, 136 test cases)
 
-| Component              | Tested | Focus                                                                                                   |
-| :--------------------- | :----- | :------------------------------------------------------------------------------------------------------ |
-| `UpgradePrompt`        | ✅     | Variants (inline/banner/card), tier messaging                                                           |
-| `HelpTooltip`          | ✅     | Tooltip rendering, glossary term display, icons                                                         |
-| `DataQualityBanner`    | ✅     | Validation summary, warning/error states                                                                |
-| `ColumnMapping`        | ✅     | maxFactors enforcement, spec entry, column selection                                                    |
-| `BoxplotDisplayToggle` | ✅     | Violin mode toggle, contribution label toggle, sort criterion selection, sort direction toggle, popover |
-| `DataTableBase`        | ✅     | Inline cell editing, row status indicators, spec violation highlighting                                 |
+| Component              | Tested | Focus                                                                                                           |
+| :--------------------- | :----- | :-------------------------------------------------------------------------------------------------------------- |
+| `UpgradePrompt`        | ✅     | Variants (inline/banner/card), tier messaging                                                                   |
+| `HelpTooltip`          | ✅     | Tooltip rendering, glossary term display, icons                                                                 |
+| `DataQualityBanner`    | ✅     | Validation summary, warning/error states                                                                        |
+| `ColumnMapping`        | ✅     | maxFactors enforcement, spec entry, column selection                                                            |
+| `BoxplotDisplayToggle` | ✅     | Violin mode toggle, contribution label toggle, sort criterion selection, sort direction toggle, popover         |
+| `DataTableBase`        | ✅     | Inline cell editing, multi-cell paste, arrow-key navigation, row status indicators, spec violation highlighting |
 
 ### @variscout/pwa (10 vitest files, 100 test cases)
 

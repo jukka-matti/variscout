@@ -15,6 +15,7 @@ export interface DataTableBaseProps {
   onCellChange: (rowIndex: number, col: string, value: DataCellValue) => void;
   onDeleteRow: (rowIndex: number) => void;
   onAddRow?: () => void;
+  onBulkPaste?: (startRow: number, startCol: string, grid: string[][]) => void;
   excludedRowIndices?: Set<number>;
   excludedReasons?: Map<number, ExclusionReason[]>;
   controlViolations?: Map<number, string[]>;
@@ -32,6 +33,7 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
   onCellChange,
   onDeleteRow,
   onAddRow: _onAddRow,
+  onBulkPaste,
   excludedRowIndices,
   excludedReasons,
   controlViolations,
@@ -43,6 +45,9 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
   const [editingCell, setEditingCell] = useState<{ row: number; col: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Post-paste navigation target (row index to navigate to after data updates)
+  const [pasteTarget, setPasteTarget] = useState<number | null>(null);
 
   // Apply filter to get display data with original indices
   const displayData = useMemo(() => {
@@ -92,6 +97,15 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
       };
     }
   }, [highlightedRow, setHighlightedRow]);
+
+  // Navigate to paste target page after data expands
+  useEffect(() => {
+    if (pasteTarget !== null && pasteTarget < data.length) {
+      const targetPage = Math.floor(pasteTarget / rowsPerPage);
+      setCurrentPage(targetPage);
+      setPasteTarget(null);
+    }
+  }, [pasteTarget, data.length, rowsPerPage, setCurrentPage]);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -185,7 +199,19 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
     const { row, col } = editingCell;
     const colIdx = columns.indexOf(col);
 
-    if (e.key === 'Enter') {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      saveEdit();
+      if (row < data.length - 1) {
+        setTimeout(() => startEditing(row + 1, col), 0);
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      saveEdit();
+      if (row > 0) {
+        setTimeout(() => startEditing(row - 1, col), 0);
+      }
+    } else if (e.key === 'Enter') {
       e.preventDefault();
       saveEdit();
       if (row < data.length - 1) {
@@ -210,6 +236,27 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
     } else if (e.key === 'Escape') {
       setEditingCell(null);
     }
+  };
+
+  const handleCellPaste = (e: React.ClipboardEvent) => {
+    if (!editingCell || !onBulkPaste) return;
+
+    const text = e.clipboardData.getData('text/plain');
+    const lines = text.split(/\r?\n/);
+    // Strip trailing empty line (Excel/Sheets adds one)
+    if (lines.length > 1 && lines[lines.length - 1].trim() === '') {
+      lines.pop();
+    }
+    const grid = lines.map(line => line.split('\t'));
+
+    // Single-cell paste: let browser handle it
+    if (grid.length === 1 && grid[0].length === 1) return;
+
+    e.preventDefault();
+    const lastRow = editingCell.row + grid.length - 1;
+    onBulkPaste(editingCell.row, editingCell.col, grid);
+    setEditingCell(null);
+    setPasteTarget(lastRow);
   };
 
   if (data.length === 0) {
@@ -307,6 +354,7 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
                           onChange={e => setEditValue(e.target.value)}
                           onBlur={saveEdit}
                           onKeyDown={handleKeyDown}
+                          onPaste={handleCellPaste}
                           className="w-full px-2 py-1 bg-surface border border-blue-500 rounded text-white outline-none"
                         />
                       ) : (
@@ -348,7 +396,8 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
       {/* Footer with help text and pagination */}
       <div className="px-6 py-3 border-t border-edge flex items-center gap-4">
         <div className="text-xs text-content-muted">
-          Click a cell to edit. Tab/Enter to navigate. Escape to cancel.
+          Click a cell to edit. Tab/Enter to navigate. Arrow keys move between rows. Paste to fill
+          multiple cells.
         </div>
         {needsPagination && (
           <div className="flex items-center gap-2 text-xs ml-auto">

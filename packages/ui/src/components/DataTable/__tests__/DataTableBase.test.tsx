@@ -302,4 +302,194 @@ describe('DataTableBase', () => {
 
     expect(screen.getByText(/Click a cell to edit/)).toBeTruthy();
   });
+
+  describe('ArrowDown/ArrowUp navigation', () => {
+    it('ArrowDown saves cell and moves to next row', () => {
+      const onCellChange = vi.fn();
+      render(
+        <DataTableBase
+          data={mockData}
+          columns={columns}
+          outcome={null}
+          specs={{}}
+          onCellChange={onCellChange}
+          onDeleteRow={vi.fn()}
+        />
+      );
+
+      // Click first row, name column
+      fireEvent.click(screen.getByText('Item A'));
+      const input = screen.getByDisplayValue('Item A');
+      fireEvent.change(input, { target: { value: 'Edited' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+      expect(onCellChange).toHaveBeenCalledWith(0, 'name', 'Edited');
+    });
+
+    it('ArrowUp saves cell and moves to previous row', () => {
+      const onCellChange = vi.fn();
+      render(
+        <DataTableBase
+          data={mockData}
+          columns={columns}
+          outcome={null}
+          specs={{}}
+          onCellChange={onCellChange}
+          onDeleteRow={vi.fn()}
+        />
+      );
+
+      // Click second row, name column
+      fireEvent.click(screen.getByText('Item B'));
+      const input = screen.getByDisplayValue('Item B');
+      fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+      expect(onCellChange).toHaveBeenCalledWith(1, 'name', 'Item B');
+    });
+
+    it('ArrowUp on first row does not crash', () => {
+      const onCellChange = vi.fn();
+      render(
+        <DataTableBase
+          data={mockData}
+          columns={columns}
+          outcome={null}
+          specs={{}}
+          onCellChange={onCellChange}
+          onDeleteRow={vi.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Item A'));
+      const input = screen.getByDisplayValue('Item A');
+      fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+      expect(onCellChange).toHaveBeenCalledWith(0, 'name', 'Item A');
+    });
+
+    it('ArrowDown on last row does not crash', () => {
+      const onCellChange = vi.fn();
+      render(
+        <DataTableBase
+          data={mockData}
+          columns={columns}
+          outcome={null}
+          specs={{}}
+          onCellChange={onCellChange}
+          onDeleteRow={vi.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Item C'));
+      const input = screen.getByDisplayValue('Item C');
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+      expect(onCellChange).toHaveBeenCalledWith(2, 'name', 'Item C');
+    });
+  });
+
+  describe('multi-cell paste', () => {
+    it('calls onBulkPaste with parsed grid for multi-cell paste', () => {
+      const onBulkPaste = vi.fn();
+      render(
+        <DataTableBase
+          data={mockData}
+          columns={columns}
+          outcome={null}
+          specs={{}}
+          onCellChange={vi.fn()}
+          onDeleteRow={vi.fn()}
+          onBulkPaste={onBulkPaste}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Item A'));
+      const input = screen.getByDisplayValue('Item A');
+
+      // Simulate pasting a 2x2 grid
+      const pasteData = 'Alpha\tBeta\nGamma\tDelta';
+      fireEvent.paste(input, {
+        clipboardData: { getData: () => pasteData },
+      });
+
+      expect(onBulkPaste).toHaveBeenCalledWith(0, 'name', [
+        ['Alpha', 'Beta'],
+        ['Gamma', 'Delta'],
+      ]);
+    });
+
+    it('does NOT call onBulkPaste for single-cell paste', () => {
+      const onBulkPaste = vi.fn();
+      render(
+        <DataTableBase
+          data={mockData}
+          columns={columns}
+          outcome={null}
+          specs={{}}
+          onCellChange={vi.fn()}
+          onDeleteRow={vi.fn()}
+          onBulkPaste={onBulkPaste}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Item A'));
+      const input = screen.getByDisplayValue('Item A');
+
+      fireEvent.paste(input, {
+        clipboardData: { getData: () => 'SingleValue' },
+      });
+
+      expect(onBulkPaste).not.toHaveBeenCalled();
+    });
+
+    it('strips trailing empty line from paste data', () => {
+      const onBulkPaste = vi.fn();
+      render(
+        <DataTableBase
+          data={mockData}
+          columns={columns}
+          outcome={null}
+          specs={{}}
+          onCellChange={vi.fn()}
+          onDeleteRow={vi.fn()}
+          onBulkPaste={onBulkPaste}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Item A'));
+      const input = screen.getByDisplayValue('Item A');
+
+      // Excel adds trailing newline
+      const pasteData = 'X\tY\nZ\tW\n';
+      fireEvent.paste(input, {
+        clipboardData: { getData: () => pasteData },
+      });
+
+      expect(onBulkPaste).toHaveBeenCalledWith(0, 'name', [
+        ['X', 'Y'],
+        ['Z', 'W'],
+      ]);
+    });
+
+    it('does not call onBulkPaste when prop is not provided', () => {
+      render(
+        <DataTableBase
+          data={mockData}
+          columns={columns}
+          outcome={null}
+          specs={{}}
+          onCellChange={vi.fn()}
+          onDeleteRow={vi.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Item A'));
+      const input = screen.getByDisplayValue('Item A');
+
+      // Should not throw
+      fireEvent.paste(input, {
+        clipboardData: { getData: () => 'A\tB\nC\tD' },
+      });
+    });
+  });
 });

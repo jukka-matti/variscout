@@ -118,12 +118,32 @@ After loading data, you can edit individual values, add rows, or delete rows dir
 
 1. **Click** any cell to start editing — the cell turns into a text input
 2. Type the new value
-3. **Tab** to move to the next cell, **Enter** to move down, or **Escape** to cancel
+3. Use keyboard shortcuts to navigate:
+
+| Key          | Action                                          |
+| ------------ | ----------------------------------------------- |
+| `Tab`        | Move to next column (wraps to next row)         |
+| `Shift+Tab`  | Move to previous column (wraps to previous row) |
+| `Enter`      | Move to next row (same column)                  |
+| `Arrow Up`   | Move to previous row (same column)              |
+| `Arrow Down` | Move to next row (same column)                  |
+| `Escape`     | Cancel edit                                     |
+
 4. Edited values show an **(unsaved changes)** indicator in the header
+
+### Multi-cell Paste
+
+You can paste tab-delimited data (e.g. from Excel or Google Sheets) directly into the table:
+
+- **In-cell paste**: Click a cell to start editing, then press **Ctrl+V** (or **Cmd+V**). If the clipboard contains multiple rows/columns, the grid fills starting from that cell. Single-value paste works normally.
+- **Header Paste button**: Click the **Paste** button in the toolbar to paste clipboard data starting from the top-left cell.
+
+Pasted data auto-expands rows if it extends beyond the existing table. Columns are capped at existing columns (use the Add Data flow to add new columns). Numeric values are parsed automatically.
 
 ### Adding and Deleting Rows
 
 - Click **Add Row** in the header to append a blank row
+- Paste multiple rows from a spreadsheet to bulk-add data
 - Click the **trash icon** on any row to delete it
 
 ### Applying Changes

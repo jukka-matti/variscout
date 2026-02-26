@@ -13,7 +13,8 @@ Technical documentation for data parsing, validation, and auto-mapping in VariSc
 | `packages/ui/src/components/MeasureColumnSelector/`    | **Shared** measure column selector                                                                         |
 | `packages/ui/src/components/PerformanceDetectedModal/` | **Shared** wide-format detection modal                                                                     |
 | `apps/pwa/src/hooks/useDataIngestion.ts`               | PWA wrapper (adds loadSample)                                                                              |
-| `apps/pwa/src/components/DataTableModal.tsx`           | Data view with excluded row support                                                                        |
+| `packages/ui/src/components/DataTable/`                | **Shared** inline editing table with multi-cell paste, arrow-key navigation                                |
+| `apps/pwa/src/components/data/DataTableModal.tsx`      | Data view with multi-cell paste and excluded row support                                                   |
 | `apps/pwa/src/context/DataContext.tsx`                 | State management for data and validation                                                                   |
 
 **Cross-platform availability**: All parser functions are in `@variscout/core` and can be used by:

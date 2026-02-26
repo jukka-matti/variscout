@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Save, Table, Filter } from 'lucide-react';
+import { X, Plus, Save, Table, Filter, ClipboardPaste } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { DataTableBase } from '@variscout/ui';
 import type { ExclusionReason, DataRow, DataCellValue } from '@variscout/core';
@@ -61,6 +61,52 @@ const DataTableModal: React.FC<DataTableModalProps> = ({
     setHasChanges(true);
   };
 
+  const handleBulkPaste = (startRow: number, startCol: string, grid: string[][]) => {
+    const colIdx = columns.indexOf(startCol);
+    if (colIdx === -1) return;
+
+    const newData = localData.map(row => ({ ...row }));
+
+    for (let r = 0; r < grid.length; r++) {
+      const targetRow = startRow + r;
+      // Auto-expand rows if paste extends beyond existing data
+      while (targetRow >= newData.length) {
+        const emptyRow: DataRow = {};
+        columns.forEach(col => {
+          emptyRow[col] = '';
+        });
+        newData.push(emptyRow);
+      }
+      for (let c = 0; c < grid[r].length; c++) {
+        const targetCol = colIdx + c;
+        if (targetCol >= columns.length) break; // Cap at existing columns
+        const cellText = grid[r][c];
+        const numValue = parseFloat(cellText);
+        newData[targetRow][columns[targetCol]] =
+          !isNaN(numValue) && cellText.trim() !== '' ? numValue : cellText;
+      }
+    }
+
+    setLocalData(newData);
+    setHasChanges(true);
+  };
+
+  const handleHeaderPaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const lines = text.split(/\r?\n/);
+      if (lines.length > 1 && lines[lines.length - 1].trim() === '') {
+        lines.pop();
+      }
+      const grid = lines.map(line => line.split('\t'));
+      if (grid.length > 0 && grid[0].length > 0 && columns.length > 0) {
+        handleBulkPaste(0, columns[0], grid);
+      }
+    } catch {
+      // Clipboard API not available or permission denied — ignore
+    }
+  };
+
   const applyChanges = () => {
     setRawData(localData);
     setHasChanges(false);
@@ -97,6 +143,14 @@ const DataTableModal: React.FC<DataTableModalProps> = ({
               </button>
             )}
             <button
+              onClick={handleHeaderPaste}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-tertiary hover:bg-surface-tertiary/80 text-content rounded-lg transition-colors"
+              title="Paste tab-delimited data from clipboard"
+            >
+              <ClipboardPaste size={16} />
+              Paste
+            </button>
+            <button
               onClick={handleAddRow}
               className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-tertiary hover:bg-surface-tertiary/80 text-content rounded-lg transition-colors"
             >
@@ -121,6 +175,7 @@ const DataTableModal: React.FC<DataTableModalProps> = ({
           columnAliases={columnAliases}
           onCellChange={handleCellChange}
           onDeleteRow={handleDeleteRow}
+          onBulkPaste={handleBulkPaste}
           excludedRowIndices={excludedRowIndices}
           excludedReasons={excludedReasons}
           controlViolations={controlViolations}

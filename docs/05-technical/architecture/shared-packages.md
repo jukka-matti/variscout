@@ -201,6 +201,7 @@ import {
   MeasureColumnSelector,
   ManualEntryBase,
   ManualEntrySetupBase,
+  DataTableBase,
   PerformanceDetectedModal,
   DataQualityBanner,
 } from '@variscout/ui';
