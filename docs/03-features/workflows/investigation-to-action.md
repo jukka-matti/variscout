@@ -1,6 +1,6 @@
 # Investigation to Action Workflow
 
-From root cause discovery to projected improvement — the two-phase analyst workflow.
+From variation discovery to projected improvement — the analyst workflow.
 
 <div class="process-map">
   <div class="process-step">
@@ -68,25 +68,25 @@ _See [full process map](process-maps.md#analyst-flow-a-process-investigation) wi
 
 ## Overview
 
-A quality investigation has two distinct mental modes:
+A quality analyst uses two complementary tools:
 
-| Phase                   | Tool              | Question                         | Output                 |
-| ----------------------- | ----------------- | -------------------------------- | ---------------------- |
-| **Investigate**         | Findings panel    | "What is causing the variation?" | Key factors identified |
-| **Project improvement** | What-If Simulator | "What if we fixed it?"           | Projected Cpk/yield    |
+| Tool              | Question                         | Output                 |
+| ----------------- | -------------------------------- | ---------------------- |
+| Findings panel    | "What is driving the variation?" | Key factors identified |
+| What-If Simulator | "What if we improved it?"        | Projected Cpk/yield    |
 
-Each phase requires a different cognitive approach. Separating them reduces cognitive load and prevents premature conclusions.
+These tools are independent — use either one alone, or combine them for a full investigation-to-projection workflow.
 
-## Why Separate Phases?
+## Why Two Tools?
 
 An earlier design (the now-removed Variation Funnel) conflated investigation and projection into a single dense panel. The problem: analysts were simultaneously trying to explore data and imagine improvements. This led to:
 
 - **Premature conclusions** — jumping to projections before understanding the full picture
 - **Cognitive overload** — too many decisions in one place
 
-The two-phase approach mirrors how experienced quality engineers actually think: first understand the root causes, then project improvement.
+Separating investigation (Findings) from projection (What-If) mirrors how experienced quality engineers think. But they are peers, not sequential phases — the What-If Simulator is equally useful for general target-setting without any investigation.
 
-## Phase 1: Investigate (Findings)
+## Findings — Investigate Variation
 
 **Goal:** Identify the factors driving variation.
 
@@ -112,60 +112,70 @@ Stop investigating when:
 
 As findings accumulate, track their investigation progress:
 
-| Status            | Badge | Meaning                               |
-| ----------------- | ----- | ------------------------------------- |
-| **Observed**      | Amber | Pattern spotted, not yet investigated |
-| **Investigating** | Blue  | Actively drilling into this finding   |
-| **Confirmed**     | Green | Root cause validated with evidence    |
-| **Dismissed**     | Gray  | Ruled out — noise or data artifact    |
+| Status            | Badge  | Meaning                               |
+| ----------------- | ------ | ------------------------------------- |
+| **Observed**      | Amber  | Pattern spotted, not yet investigated |
+| **Investigating** | Blue   | Actively drilling into this finding   |
+| **Analyzed**      | Purple | Analysis completed                    |
 
 Click a finding's status badge to change its status. Add timestamped comments
 to record what you checked and what you learned.
 
-#### Board View
+### Classification Tags
+
+When a finding reaches "Analyzed" status, classify it by contribution magnitude:
+
+| Tag            | Color | Meaning                                        |
+| -------------- | ----- | ---------------------------------------------- |
+| **Key Driver** | Green | Significant variation contributor — actionable |
+| **Low Impact** | Gray  | Minor or negligible contribution               |
+| _(none)_       | —     | Not yet classified                             |
+
+Tags reflect _contribution magnitude_, not causal certainty. VariScout quantifies
+contribution, not causation — we measure how much variation a factor accounts for,
+not whether it's the "root cause."
+
+### Board View
 
 Toggle the Findings panel to Board view for a grouped layout:
 
-- **Panel**: Collapsible accordion sections per status
-- **Popout window**: Horizontal columns with drag-and-drop
+- **Panel**: Collapsible accordion sections per status (3 columns)
+- **Popout window**: Horizontal columns with native drag-and-drop
 
 The Board view helps organize findings during complex investigations with
-many observations. Confirmed findings become your shortlist for Phase 2
-(What-If Simulator).
+many observations. Key Driver findings become a natural shortlist for action.
 
-#### Why keep dismissed findings?
+### Why keep Low Impact findings?
 
-Dismissed findings document what was ruled out. This is valuable for:
+Low Impact findings document what was ruled out. This is valuable for:
 
-- Audit trails ("we checked Machine C — it's not the cause")
+- Audit trails ("we checked Machine C — minor contribution")
 - Team handoffs ("don't repeat this investigation path")
 - Returning to an analysis after weeks away
 
 ### Output
 
-A list of pinned findings, each with filter context, variation %, and analyst notes. These become the basis for improvement scenarios in Phase 2.
+A list of pinned findings, each with filter context, variation %, tags, and analyst notes.
 
 See [Drill-Down Workflow](drill-down-workflow.md) for detailed drill-down mechanics.
 
-### Transition to Phase 2
-
-After identifying key factors via findings, open the What-If Simulator to project improvement scenarios. The transition is manual: the investigation findings inform which adjustments to explore in What-If.
-
-For example, if the investigation reveals that Machine B accounts for 35% of variation and the Weekend shift adds 20%, the analyst can use What-If to model centering the process (mean shift) and reducing spread (variation reduction) to estimate the combined Cpk improvement.
-
-## Phase 2: Project Improvement (What-If Simulator)
+## What-If Simulator — Project Improvement
 
 **Goal:** Estimate what happens if you improve the process.
 
-The What-If Simulator takes the current process statistics (after investigation filtering) and lets you explore improvements through direct adjustments:
+The What-If Simulator is a standalone tool accessible from the header toolbar. It takes the current process statistics and lets you explore improvements through direct adjustments. Use it for:
+
+- **Improvement modeling** — After investigation, project the impact of fixing a key driver
+- **Project target-setting** — Set Cpk targets and see what mean/variation changes are needed
+- **Prioritizing actions** — Compare different improvement scenarios
 
 ### Standard Simulator
 
 The `WhatIfSimulator` offers two direct adjustments:
 
-1. **Mean adjustment** — Shift the process center toward the target. Use this when the investigation revealed an off-center process (e.g., wrong machine setting).
+1. **Mean adjustment** — Shift the process center toward the target. Use this when the process is off-center (e.g., wrong machine setting).
 
-2. **Variation reduction** — Reduce process spread. Use this when the investigation revealed excessive scatter (e.g., inconsistent operator technique).
+2. **Variation reduction** — Reduce process spread. Use this when there's excessive scatter (e.g., inconsistent operator technique).
 
 ### What you see
 
@@ -183,17 +193,18 @@ These are estimates, not guarantees. Use them for:
 - Prioritizing actions ("mean shift alone gets us to 1.2, but we need variation reduction too")
 - Setting realistic targets
 
-## Workflow Selection
+## Workflow Combinations
 
-| Your situation                          | Start at              |
-| --------------------------------------- | --------------------- |
-| "I don't know what's causing variation" | Phase 1 (Investigate) |
-| "I have findings, want to project"      | Phase 2 (What-If)     |
-| "Full investigation from scratch"       | Phase 1 then Phase 2  |
+| Your situation                          | Use                           |
+| --------------------------------------- | ----------------------------- |
+| "I don't know what's causing variation" | Findings (investigate)        |
+| "I want to set a Cpk target"            | What-If (project)             |
+| "I have findings, want to project"      | Findings then What-If         |
+| "Full investigation from scratch"       | Findings → classify → What-If |
 
 ## Example: Pizza Delivery Dataset
 
-### Phase 1: Investigate
+### Investigate
 
 Drill into delivery time variation and pin findings:
 
@@ -201,9 +212,9 @@ Drill into delivery time variation and pin findings:
 2. Within Store C, **Day** matters: Weekend deliveries are 8 minutes slower
 3. **Driver** has a moderate effect (12%): Driver 3 is consistently slow
 
-Cumulative: ~72% of variation explained.
+Cumulative: ~72% of variation explained. Tag Store C + Weekend as "Key Driver", Driver 3 as "Low Impact" (small contribution alone).
 
-### Phase 2: Project
+### Project
 
 Filter to Store C + Weekend, then use What-If:
 
@@ -213,7 +224,7 @@ Filter to Store C + Weekend, then use What-If:
 
 ## Related Documentation
 
-- [Drill-Down Workflow](drill-down-workflow.md) — Phase 1 mechanics
+- [Drill-Down Workflow](drill-down-workflow.md) — Investigation mechanics
 - [Deep Dive](deep-dive.md) — 30-minute investigation pattern
 - [Decision Trees](decision-trees.md) — Which analysis to use when
 - [Four Lenses Workflow](four-lenses-workflow.md) — Foundational methodology

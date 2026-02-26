@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
-import type { Finding, FindingStatus } from '@variscout/core';
+import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
 import { getFindingStatus } from '@variscout/core';
 import FindingEditor from './FindingEditor';
 import FindingStatusBadge from './FindingStatusBadge';
+import FindingTagBadge from './FindingTagBadge';
 import FindingComments from './FindingComments';
 
 export interface FindingCardProps {
@@ -16,6 +17,8 @@ export interface FindingCardProps {
   isActive?: boolean;
   /** Callback to change investigation status */
   onSetStatus?: (id: string, status: FindingStatus) => void;
+  /** Callback to set a finding's classification tag */
+  onSetTag?: (id: string, tag: FindingTag | null) => void;
   /** Callback to add a comment */
   onAddComment?: (id: string, text: string) => void;
   /** Callback to edit a comment */
@@ -36,6 +39,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   columnAliases = {},
   isActive = false,
   onSetStatus,
+  onSetTag,
   onAddComment,
   onEditComment,
   onDeleteComment,
@@ -91,10 +95,18 @@ const FindingCard: React.FC<FindingCardProps> = ({
               <span className="text-[10px] text-content-muted italic">No filters</span>
             )}
           </div>
-          <FindingStatusBadge
-            status={status}
-            onStatusChange={onSetStatus ? s => onSetStatus(finding.id, s) : undefined}
-          />
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <FindingStatusBadge
+              status={status}
+              onStatusChange={onSetStatus ? s => onSetStatus(finding.id, s) : undefined}
+            />
+            {status === 'analyzed' && (
+              <FindingTagBadge
+                tag={finding.tag}
+                onTagChange={onSetTag ? t => onSetTag(finding.id, t) : undefined}
+              />
+            )}
+          </div>
         </div>
 
         {/* Stats line */}

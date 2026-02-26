@@ -220,10 +220,18 @@ export { createFactorFromSelection, isValidFactorName, getColumnNames } from './
 export { safeMin, safeMax } from './utils/minmax';
 
 // Findings (scouting report)
-export type { Finding, FindingContext, FindingStatus, FindingComment } from './findings';
+export type {
+  Finding,
+  FindingContext,
+  FindingStatus,
+  FindingComment,
+  FindingTag,
+} from './findings';
 export {
   FINDING_STATUSES,
   FINDING_STATUS_LABELS,
+  FINDING_TAGS,
+  FINDING_TAG_LABELS,
   createFinding,
   createFindingComment,
   getFindingStatus,
@@ -231,4 +239,6 @@ export {
   formatFindingFilters,
   filtersEqual,
   findDuplicateFinding,
+  migrateFindingStatus,
+  migrateFindings,
 } from './findings';

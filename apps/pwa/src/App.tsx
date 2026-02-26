@@ -298,6 +298,9 @@ function AppMain() {
           case 'set-status':
             if (action.status) findingsState.setFindingStatus(action.id, action.status);
             break;
+          case 'set-tag':
+            findingsState.setFindingTag(action.id, action.tag ?? null);
+            break;
           case 'add-comment':
             if (action.text !== undefined) findingsState.addFindingComment(action.id, action.text);
             break;
@@ -357,6 +360,8 @@ function AppMain() {
           onOpenSettings={() => panels.setIsSettingsOpen(true)}
           onReset={panels.handleResetRequest}
           onOpenSpecEditor={() => panels.setOpenSpecEditorRequested(true)}
+          onOpenWhatIf={rawData.length > 0 ? () => panels.setIsWhatIfPageOpen(true) : undefined}
+          isWhatIfOpen={panels.isWhatIfPageOpen}
         />
       )}
 
@@ -454,7 +459,6 @@ function AppMain() {
               onManageFactors={importFlow.openFactorManager}
               openSpecEditorRequested={panels.openSpecEditorRequested}
               onSpecEditorOpened={() => panels.setOpenSpecEditorRequested(false)}
-              onOpenWhatIf={() => panels.setIsWhatIfPageOpen(true)}
               highlightedPointIndex={panels.highlightedChartPoint}
               filterNav={filterNav}
               onPinFinding={handlePinFinding}
@@ -497,6 +501,7 @@ function AppMain() {
           onDeleteFinding={findingsState.deleteFinding}
           onRestoreFinding={handleRestoreFinding}
           onSetFindingStatus={findingsState.setFindingStatus}
+          onSetFindingTag={findingsState.setFindingTag}
           onAddComment={findingsState.addFindingComment}
           onEditComment={findingsState.editFindingComment}
           onDeleteComment={findingsState.deleteFindingComment}

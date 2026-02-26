@@ -1,29 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FINDING_STATUSES, FINDING_STATUS_LABELS, type FindingStatus } from '@variscout/core';
+import { FINDING_TAGS, FINDING_TAG_LABELS, type FindingTag } from '@variscout/core';
 
-export interface FindingStatusBadgeProps {
-  status: FindingStatus;
-  /** If provided, badge is clickable with dropdown to change status */
-  onStatusChange?: (status: FindingStatus) => void;
+export interface FindingTagBadgeProps {
+  tag: FindingTag | undefined;
+  /** If provided, badge is clickable with dropdown to set/change tag */
+  onTagChange?: (tag: FindingTag | null) => void;
 }
 
-const STATUS_STYLES: Record<FindingStatus, string> = {
-  observed: 'bg-amber-500/20 text-amber-400',
-  investigating: 'bg-blue-500/20 text-blue-400',
-  analyzed: 'bg-purple-500/20 text-purple-400',
+const TAG_STYLES: Record<FindingTag, string> = {
+  'key-driver': 'bg-green-500/20 text-green-400',
+  'low-impact': 'bg-slate-500/20 text-slate-400',
 };
 
-const STATUS_DOT_COLORS: Record<FindingStatus, string> = {
-  observed: 'bg-amber-400',
-  investigating: 'bg-blue-400',
-  analyzed: 'bg-purple-400',
+const TAG_DOT_COLORS: Record<FindingTag, string> = {
+  'key-driver': 'bg-green-400',
+  'low-impact': 'bg-slate-400',
 };
 
 /**
- * Colored status pill with optional dropdown to change status.
- * Uses same popover pattern as BoxplotDisplayToggle.
+ * Small pill showing a finding's classification tag (Key Driver / Low Impact).
+ * Clickable to set or change the tag via dropdown.
  */
-const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({ status, onStatusChange }) => {
+const FindingTagBadge: React.FC<FindingTagBadgeProps> = ({ tag, onTagChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -51,46 +49,52 @@ const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({ status, onStatu
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onStatusChange) {
+    if (onTagChange) {
       setIsOpen(prev => !prev);
     }
   };
 
-  const handleSelect = (newStatus: FindingStatus) => {
-    onStatusChange?.(newStatus);
+  const handleSelect = (newTag: FindingTag | null) => {
+    onTagChange?.(newTag);
     setIsOpen(false);
   };
+
+  if (!tag && !onTagChange) return null;
+
+  const baseStyle = tag ? TAG_STYLES[tag] : 'bg-purple-500/10 text-purple-300';
+  const label = tag ? FINDING_TAG_LABELS[tag] : 'Classify';
 
   return (
     <div className="relative" ref={popoverRef}>
       <button
         onClick={handleToggle}
-        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${STATUS_STYLES[status]} ${
-          onStatusChange ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${baseStyle} ${
+          onTagChange ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
         }`}
-        title={onStatusChange ? 'Change status' : FINDING_STATUS_LABELS[status]}
-        aria-label={`Status: ${FINDING_STATUS_LABELS[status]}`}
+        title={onTagChange ? 'Set classification' : label}
+        aria-label={`Tag: ${label}`}
       >
-        {FINDING_STATUS_LABELS[status]}
+        {label}
       </button>
 
       {isOpen && (
         <div className="absolute right-0 top-full mt-1 z-50 bg-surface border border-edge rounded-lg shadow-lg py-1 min-w-[140px]">
-          {FINDING_STATUSES.map(s => (
+          {FINDING_TAGS.map(t => (
             <button
-              key={s}
+              key={t}
               onClick={e => {
                 e.stopPropagation();
-                handleSelect(s);
+                handleSelect(t === tag ? null : t);
               }}
               className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left transition-colors ${
-                s === status
+                t === tag
                   ? 'bg-surface-tertiary text-content font-medium'
                   : 'text-content-secondary hover:bg-surface-tertiary hover:text-content'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${STATUS_DOT_COLORS[s]}`} />
-              {FINDING_STATUS_LABELS[s]}
+              <span className={`w-2 h-2 rounded-full ${TAG_DOT_COLORS[t]}`} />
+              {FINDING_TAG_LABELS[t]}
+              {t === tag && <span className="ml-auto text-[10px] text-content-muted">(clear)</span>}
             </button>
           ))}
         </div>
@@ -99,5 +103,5 @@ const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({ status, onStatu
   );
 };
 
-export { STATUS_STYLES, STATUS_DOT_COLORS };
-export default FindingStatusBadge;
+export { TAG_STYLES, TAG_DOT_COLORS };
+export default FindingTagBadge;

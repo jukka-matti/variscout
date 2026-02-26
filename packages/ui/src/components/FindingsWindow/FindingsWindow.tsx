@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ClipboardCopy, Check, List, LayoutGrid } from 'lucide-react';
-import type { Finding, FindingStatus } from '@variscout/core';
+import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import FindingsLog from '../FindingsLog/FindingsLog';
 import FindingBoardColumns from '../FindingsLog/FindingBoardColumns';
@@ -20,10 +20,18 @@ export interface FindingsSyncData {
 }
 
 export interface FindingsAction {
-  type: 'edit' | 'delete' | 'set-status' | 'add-comment' | 'edit-comment' | 'delete-comment';
+  type:
+    | 'edit'
+    | 'delete'
+    | 'set-status'
+    | 'set-tag'
+    | 'add-comment'
+    | 'edit-comment'
+    | 'delete-comment';
   id: string;
   text?: string; // for edit, add-comment, edit-comment
   status?: FindingStatus; // for set-status
+  tag?: FindingTag | null; // for set-tag
   commentId?: string; // for edit-comment, delete-comment
   timestamp: number;
 }
@@ -126,6 +134,22 @@ const FindingsWindow: React.FC = () => {
           findings: prev.findings.map(f =>
             f.id === id ? { ...f, status, statusChangedAt: Date.now() } : f
           ),
+          timestamp: Date.now(),
+        };
+      });
+    },
+    [sendAction]
+  );
+
+  // Set finding tag
+  const handleSetTag = useCallback(
+    (id: string, tag: FindingTag | null) => {
+      sendAction({ type: 'set-tag', id, tag, timestamp: Date.now() });
+      setSyncData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          findings: prev.findings.map(f => (f.id === id ? { ...f, tag: tag ?? undefined } : f)),
           timestamp: Date.now(),
         };
       });
@@ -308,6 +332,7 @@ const FindingsWindow: React.FC = () => {
           onDeleteFinding={handleDeleteFinding}
           onRestoreFinding={handleRestoreFinding}
           onSetFindingStatus={handleSetStatus}
+          onSetFindingTag={handleSetTag}
           onAddComment={handleAddComment}
           onEditComment={handleEditComment}
           onDeleteComment={handleDeleteComment}
@@ -320,6 +345,7 @@ const FindingsWindow: React.FC = () => {
           onDeleteFinding={handleDeleteFinding}
           onRestoreFinding={handleRestoreFinding}
           onSetFindingStatus={handleSetStatus}
+          onSetFindingTag={handleSetTag}
           onAddComment={handleAddComment}
           onEditComment={handleEditComment}
           onDeleteComment={handleDeleteComment}

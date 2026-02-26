@@ -27,17 +27,7 @@ import { useKeyboardNavigation, useAnnotations } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
-import {
-  Activity,
-  BarChart3,
-  Beaker,
-  Layers,
-  X,
-  Copy,
-  Check,
-  Download,
-  Settings2,
-} from 'lucide-react';
+import { Activity, BarChart3, Layers, X, Copy, Check, Download, Settings2 } from 'lucide-react';
 import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '@variscout/core';
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -63,8 +53,6 @@ interface DashboardProps {
   // External trigger to open spec editor (from MobileMenu)
   openSpecEditorRequested?: boolean;
   onSpecEditorOpened?: () => void;
-  // Callback to open What-If page
-  onOpenWhatIf?: () => void;
   // Highlighted point index from data panel (bi-directional sync)
   highlightedPointIndex?: number | null;
   // External filter navigation (shared with mindmap for synchronized drills)
@@ -85,7 +73,6 @@ const Dashboard = ({
   onManageFactors,
   openSpecEditorRequested,
   onSpecEditorOpened,
-  onOpenWhatIf,
   highlightedPointIndex: _highlightedPointIndex,
   filterNav,
   onPinFinding,
@@ -482,15 +469,6 @@ const Dashboard = ({
             >
               <Settings2 size={14} />
               Factors ({factors.length})
-            </button>
-          )}
-          {onOpenWhatIf && (
-            <button
-              onClick={onOpenWhatIf}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${!onManageFactors || factors.length === 0 ? 'ml-auto' : ''} bg-surface-tertiary text-content-secondary hover:text-white hover:bg-surface-elevated transition-colors`}
-            >
-              <Beaker size={16} />
-              What-If
             </button>
           )}
         </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import Dashboard from '../Dashboard';
 import * as DataContextModule from '../../context/DataContext';
 import * as CoreModule from '@variscout/core';
@@ -122,31 +122,6 @@ describe('Dashboard', () => {
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
     expect(screen.getByTestId('stats-panel')).toBeInTheDocument();
-  });
-
-  it('shows What-If button when onOpenWhatIf is provided', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
-    const onOpenWhatIf = vi.fn();
-    render(<Dashboard onOpenWhatIf={onOpenWhatIf} />);
-
-    const whatIfButton = screen.getByText('What-If');
-    expect(whatIfButton).toBeInTheDocument();
-
-    fireEvent.click(whatIfButton);
-    expect(onOpenWhatIf).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not show What-If button when onOpenWhatIf is not provided', () => {
-    vi.spyOn(DataContextModule, 'useData').mockReturnValue(
-      mockDataCtx as unknown as ReturnType<typeof DataContextModule.useData>
-    );
-
-    render(<Dashboard />);
-
-    expect(screen.queryByText('What-If')).not.toBeInTheDocument();
   });
 
   it('does not render AnovaResults when calculation returns null', () => {

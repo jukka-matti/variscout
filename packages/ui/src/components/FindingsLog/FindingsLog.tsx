@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pin } from 'lucide-react';
-import type { Finding, FindingStatus } from '@variscout/core';
+import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
 import FindingCard from './FindingCard';
 import FindingBoardView from './FindingBoardView';
 
@@ -21,6 +21,8 @@ export interface FindingsLogProps {
   viewMode?: 'list' | 'board';
   /** Change finding investigation status */
   onSetFindingStatus?: (id: string, status: FindingStatus) => void;
+  /** Set a finding's classification tag */
+  onSetFindingTag?: (id: string, tag: FindingTag | null) => void;
   /** Add a comment to a finding */
   onAddComment?: (id: string, text: string) => void;
   /** Edit an existing comment */
@@ -43,6 +45,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   activeFindingId,
   viewMode = 'list',
   onSetFindingStatus,
+  onSetFindingTag,
   onAddComment,
   onEditComment,
   onDeleteComment,
@@ -70,6 +73,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
         onDeleteFinding={onDeleteFinding}
         onRestoreFinding={onRestoreFinding}
         onSetFindingStatus={onSetFindingStatus}
+        onSetFindingTag={onSetFindingTag}
         onAddComment={onAddComment ?? (() => {})}
         onEditComment={onEditComment ?? (() => {})}
         onDeleteComment={onDeleteComment ?? (() => {})}
@@ -89,6 +93,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onDelete={onDeleteFinding}
           onRestore={onRestoreFinding}
           onSetStatus={onSetFindingStatus}
+          onSetTag={onSetFindingTag}
           onAddComment={onAddComment}
           onEditComment={onEditComment}
           onDeleteComment={onDeleteComment}

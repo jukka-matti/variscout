@@ -3,9 +3,11 @@ import {
   createFinding,
   createFindingComment,
   findDuplicateFinding,
+  migrateFindings,
   type Finding,
   type FindingContext,
   type FindingStatus,
+  type FindingTag,
 } from '@variscout/core';
 
 export interface UseFindingsOptions {
@@ -30,6 +32,8 @@ export interface UseFindingsReturn {
   findDuplicate: (activeFilters: Record<string, (string | number)[]>) => Finding | undefined;
   /** Change a finding's investigation status */
   setFindingStatus: (id: string, status: FindingStatus) => void;
+  /** Set or clear a finding's classification tag */
+  setFindingTag: (id: string, tag: FindingTag | null) => void;
   /** Add a comment to a finding */
   addFindingComment: (id: string, text: string) => void;
   /** Edit an existing comment */
@@ -48,7 +52,9 @@ export interface UseFindingsReturn {
 export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn {
   const { initialFindings, onFindingsChange } = options;
 
-  const [findings, setFindings] = useState<Finding[]>(() => initialFindings ?? []);
+  const [findings, setFindings] = useState<Finding[]>(() =>
+    initialFindings ? migrateFindings(initialFindings) : []
+  );
 
   const addFinding = useCallback(
     (text: string, context: FindingContext): Finding => {
@@ -117,6 +123,17 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
+  const setFindingTag = useCallback(
+    (id: string, tag: FindingTag | null) => {
+      setFindings(prev => {
+        const next = prev.map(f => (f.id === id ? { ...f, tag: tag ?? undefined } : f));
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
   const addFindingComment = useCallback(
     (id: string, text: string) => {
       const comment = createFindingComment(text);
@@ -170,6 +187,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     getFindingContext,
     findDuplicate,
     setFindingStatus,
+    setFindingTag,
     addFindingComment,
     editFindingComment,
     deleteFindingComment,

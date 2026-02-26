@@ -9,6 +9,12 @@ import {
   createFindingComment,
   getFindingStatus,
   groupFindingsByStatus,
+  migrateFindingStatus,
+  migrateFindings,
+  FINDING_STATUSES,
+  FINDING_STATUS_LABELS,
+  FINDING_TAGS,
+  FINDING_TAG_LABELS,
 } from '../findings';
 import type { Finding, FindingStatus } from '../findings';
 
@@ -107,8 +113,8 @@ describe('createFinding', () => {
   });
 
   it('accepts custom status', () => {
-    const f = createFinding('test', {}, null, undefined, 'confirmed');
-    expect(f.status).toBe('confirmed');
+    const f = createFinding('test', {}, null, undefined, 'analyzed');
+    expect(f.status).toBe('analyzed');
   });
 });
 
@@ -134,11 +140,11 @@ describe('getFindingStatus', () => {
       text: 'Test',
       createdAt: 1000,
       context: { activeFilters: {}, cumulativeScope: null },
-      status: 'confirmed',
+      status: 'analyzed',
       comments: [],
       statusChangedAt: 1000,
     };
-    expect(getFindingStatus(f)).toBe('confirmed');
+    expect(getFindingStatus(f)).toBe('analyzed');
   });
 });
 
@@ -157,22 +163,133 @@ describe('groupFindingsByStatus', () => {
     const findings = [
       makeFinding('f-1', 'observed'),
       makeFinding('f-2', 'investigating'),
-      makeFinding('f-3', 'confirmed'),
-      makeFinding('f-4', 'dismissed'),
+      makeFinding('f-3', 'analyzed'),
+      makeFinding('f-4', 'analyzed'),
       makeFinding('f-5', 'observed'),
     ];
     const groups = groupFindingsByStatus(findings);
     expect(groups.observed).toHaveLength(2);
     expect(groups.investigating).toHaveLength(1);
-    expect(groups.confirmed).toHaveLength(1);
-    expect(groups.dismissed).toHaveLength(1);
+    expect(groups.analyzed).toHaveLength(2);
   });
 
   it('returns empty arrays for empty input', () => {
     const groups = groupFindingsByStatus([]);
     expect(groups.observed).toEqual([]);
     expect(groups.investigating).toEqual([]);
-    expect(groups.confirmed).toEqual([]);
-    expect(groups.dismissed).toEqual([]);
+    expect(groups.analyzed).toEqual([]);
+  });
+});
+
+describe('status constants', () => {
+  it('FINDING_STATUSES has 3 statuses', () => {
+    expect(FINDING_STATUSES).toEqual(['observed', 'investigating', 'analyzed']);
+  });
+
+  it('FINDING_STATUS_LABELS matches statuses', () => {
+    expect(FINDING_STATUS_LABELS.observed).toBe('Observed');
+    expect(FINDING_STATUS_LABELS.investigating).toBe('Investigating');
+    expect(FINDING_STATUS_LABELS.analyzed).toBe('Analyzed');
+  });
+
+  it('FINDING_TAGS has 2 tags', () => {
+    expect(FINDING_TAGS).toEqual(['key-driver', 'low-impact']);
+  });
+
+  it('FINDING_TAG_LABELS matches tags', () => {
+    expect(FINDING_TAG_LABELS['key-driver']).toBe('Key Driver');
+    expect(FINDING_TAG_LABELS['low-impact']).toBe('Low Impact');
+  });
+});
+
+describe('migrateFindingStatus', () => {
+  const makeOldFinding = (status: string, tag?: string): Finding => ({
+    id: 'f-1',
+    text: 'Test',
+    createdAt: 1000,
+    context: { activeFilters: {}, cumulativeScope: null },
+    status: status as FindingStatus,
+    tag: tag as Finding['tag'],
+    comments: [],
+    statusChangedAt: 1000,
+  });
+
+  it('migrates confirmed → analyzed + key-driver', () => {
+    const f = migrateFindingStatus(makeOldFinding('confirmed'));
+    expect(f.status).toBe('analyzed');
+    expect(f.tag).toBe('key-driver');
+  });
+
+  it('migrates dismissed → analyzed + low-impact', () => {
+    const f = migrateFindingStatus(makeOldFinding('dismissed'));
+    expect(f.status).toBe('analyzed');
+    expect(f.tag).toBe('low-impact');
+  });
+
+  it('preserves existing tag on confirmed finding', () => {
+    const f = migrateFindingStatus(makeOldFinding('confirmed', 'low-impact'));
+    expect(f.status).toBe('analyzed');
+    expect(f.tag).toBe('low-impact');
+  });
+
+  it('passes through observed unchanged', () => {
+    const original = makeOldFinding('observed');
+    const f = migrateFindingStatus(original);
+    expect(f.status).toBe('observed');
+    expect(f).toBe(original); // same reference
+  });
+
+  it('passes through investigating unchanged', () => {
+    const original = makeOldFinding('investigating');
+    const f = migrateFindingStatus(original);
+    expect(f.status).toBe('investigating');
+    expect(f).toBe(original);
+  });
+
+  it('passes through analyzed unchanged', () => {
+    const original = makeOldFinding('analyzed');
+    const f = migrateFindingStatus(original);
+    expect(f.status).toBe('analyzed');
+    expect(f).toBe(original);
+  });
+});
+
+describe('migrateFindings', () => {
+  it('migrates an array of findings with mixed statuses', () => {
+    const findings: Finding[] = [
+      {
+        id: 'f-1',
+        text: 'A',
+        createdAt: 1000,
+        status: 'observed' as FindingStatus,
+        context: { activeFilters: {}, cumulativeScope: null },
+        comments: [],
+        statusChangedAt: 1000,
+      },
+      {
+        id: 'f-2',
+        text: 'B',
+        createdAt: 2000,
+        status: 'confirmed' as FindingStatus,
+        context: { activeFilters: {}, cumulativeScope: null },
+        comments: [],
+        statusChangedAt: 2000,
+      },
+      {
+        id: 'f-3',
+        text: 'C',
+        createdAt: 3000,
+        status: 'dismissed' as FindingStatus,
+        context: { activeFilters: {}, cumulativeScope: null },
+        comments: [],
+        statusChangedAt: 3000,
+      },
+    ];
+    const migrated = migrateFindings(findings);
+    expect(migrated[0].status).toBe('observed');
+    expect(migrated[1].status).toBe('analyzed');
+    expect(migrated[1].tag).toBe('key-driver');
+    expect(migrated[2].status).toBe('analyzed');
+    expect(migrated[2].tag).toBe('low-impact');
   });
 });

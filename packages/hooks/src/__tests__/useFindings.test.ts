@@ -4,7 +4,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFindings } from '../useFindings';
-import type { Finding, FindingContext } from '@variscout/core';
+import type { Finding, FindingContext, FindingStatus } from '@variscout/core';
 
 const makeContext = (overrides?: Partial<FindingContext>): FindingContext => ({
   activeFilters: { Machine: ['A'] },
@@ -266,5 +266,70 @@ describe('useFindings', () => {
     expect(result.current.findings[0].comments).toHaveLength(1);
     expect(result.current.findings[0].comments[0].id).toBe('c-1');
     expect(onChange).toHaveBeenCalled();
+  });
+
+  // --- Tags ---
+
+  it('setFindingTag sets a tag on a finding', () => {
+    const initial = [
+      makeFinding({ id: 'f-1', text: 'Test', status: 'analyzed', context: makeContext() }),
+    ];
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useFindings({ initialFindings: initial, onFindingsChange: onChange })
+    );
+
+    act(() => {
+      result.current.setFindingTag('f-1', 'key-driver');
+    });
+
+    expect(result.current.findings[0].tag).toBe('key-driver');
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it('setFindingTag clears a tag when null', () => {
+    const initial = [
+      makeFinding({
+        id: 'f-1',
+        text: 'Test',
+        status: 'analyzed',
+        tag: 'key-driver',
+        context: makeContext(),
+      }),
+    ];
+    const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+    act(() => {
+      result.current.setFindingTag('f-1', null);
+    });
+
+    expect(result.current.findings[0].tag).toBeUndefined();
+  });
+
+  // --- Migration ---
+
+  it('auto-migrates old confirmed/dismissed statuses on initialization', () => {
+    const initial = [
+      makeFinding({
+        id: 'f-1',
+        text: 'A',
+        status: 'confirmed' as FindingStatus,
+        context: makeContext(),
+      }),
+      makeFinding({
+        id: 'f-2',
+        text: 'B',
+        status: 'dismissed' as FindingStatus,
+        context: makeContext(),
+      }),
+      makeFinding({ id: 'f-3', text: 'C', status: 'observed', context: makeContext() }),
+    ];
+    const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+    expect(result.current.findings[0].status).toBe('analyzed');
+    expect(result.current.findings[0].tag).toBe('key-driver');
+    expect(result.current.findings[1].status).toBe('analyzed');
+    expect(result.current.findings[1].tag).toBe('low-impact');
+    expect(result.current.findings[2].status).toBe('observed');
   });
 });

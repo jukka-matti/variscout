@@ -1,5 +1,10 @@
 import type { Finding } from '@variscout/core';
-import { formatFindingFilters, getFindingStatus, FINDING_STATUS_LABELS } from '@variscout/core';
+import {
+  formatFindingFilters,
+  getFindingStatus,
+  FINDING_STATUS_LABELS,
+  FINDING_TAG_LABELS,
+} from '@variscout/core';
 
 /** Format relative time for comments */
 function relativeTimeExport(timestamp: number): string {
@@ -29,6 +34,7 @@ export function formatFindingsText(
     const statsParts: string[] = [];
     const status = getFindingStatus(finding);
     const statusLabel = FINDING_STATUS_LABELS[status].toUpperCase();
+    const tagLabel = finding.tag ? ` \u00b7 ${FINDING_TAG_LABELS[finding.tag].toUpperCase()}` : '';
 
     if (finding.context.stats?.cpk !== undefined) {
       statsParts.push(`Cpk ${finding.context.stats.cpk.toFixed(2)}`);
@@ -41,7 +47,7 @@ export function formatFindingsText(
     }
 
     const statsStr = statsParts.length > 0 ? ` | ${statsParts.join(' \u00b7 ')}` : '';
-    lines.push(`${i + 1}. [${statusLabel}] ${filterStr || '(no filters)'}${statsStr}`);
+    lines.push(`${i + 1}. [${statusLabel}${tagLabel}] ${filterStr || '(no filters)'}${statsStr}`);
     if (finding.text) {
       lines.push(`   "${finding.text}"`);
     }

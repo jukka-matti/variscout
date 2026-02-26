@@ -277,6 +277,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           case 'set-status':
             if (action.status) findingsState.setFindingStatus(action.id, action.status);
             break;
+          case 'set-tag':
+            findingsState.setFindingTag(action.id, action.tag ?? null);
+            break;
           case 'add-comment':
             if (action.text !== undefined) findingsState.addFindingComment(action.id, action.text);
             break;
@@ -536,11 +539,12 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {rawData.length > 0 && outcome && (
             <button
               onClick={() => panels.setIsWhatIfOpen(true)}
-              className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
               title="What-If Simulator"
               data-testid="btn-what-if"
             >
-              <Beaker size={18} />
+              <Beaker size={16} />
+              <span>What-If</span>
             </button>
           )}
 
@@ -774,6 +778,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               onDeleteFinding={findingsState.deleteFinding}
               onRestoreFinding={handleRestoreFinding}
               onSetFindingStatus={findingsState.setFindingStatus}
+              onSetFindingTag={findingsState.setFindingTag}
               onAddComment={findingsState.addFindingComment}
               onEditComment={findingsState.editFindingComment}
               onDeleteComment={findingsState.deleteFindingComment}

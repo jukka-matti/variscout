@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, ClipboardCopy, Check, ExternalLink, List, LayoutGrid } from 'lucide-react';
-import type { Finding, FindingStatus } from '@variscout/core';
+import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '@variscout/ui';
 
@@ -12,6 +12,7 @@ interface FindingsPanelProps {
   onDeleteFinding: (id: string) => void;
   onRestoreFinding: (id: string) => void;
   onSetFindingStatus: (id: string, status: FindingStatus) => void;
+  onSetFindingTag?: (id: string, tag: FindingTag | null) => void;
   onAddComment: (id: string, text: string) => void;
   onEditComment: (findingId: string, commentId: string, text: string) => void;
   onDeleteComment: (findingId: string, commentId: string) => void;
@@ -34,6 +35,7 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
   onDeleteFinding,
   onRestoreFinding,
   onSetFindingStatus,
+  onSetFindingTag,
   onAddComment,
   onEditComment,
   onDeleteComment,
@@ -177,6 +179,7 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
           onDeleteFinding={onDeleteFinding}
           onRestoreFinding={onRestoreFinding}
           onSetFindingStatus={onSetFindingStatus}
+          onSetFindingTag={onSetFindingTag}
           onAddComment={onAddComment}
           onEditComment={onEditComment}
           onDeleteComment={onDeleteComment}

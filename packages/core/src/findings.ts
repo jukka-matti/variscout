@@ -10,22 +10,32 @@
 // ============================================================================
 
 /** Investigation lifecycle status */
-export type FindingStatus = 'observed' | 'investigating' | 'confirmed' | 'dismissed';
+export type FindingStatus = 'observed' | 'investigating' | 'analyzed';
 
 /** Ordered list of all finding statuses */
-export const FINDING_STATUSES: FindingStatus[] = [
-  'observed',
-  'investigating',
-  'confirmed',
-  'dismissed',
-];
+export const FINDING_STATUSES: FindingStatus[] = ['observed', 'investigating', 'analyzed'];
 
 /** Human-readable labels for finding statuses */
 export const FINDING_STATUS_LABELS: Record<FindingStatus, string> = {
   observed: 'Observed',
   investigating: 'Investigating',
-  confirmed: 'Confirmed',
-  dismissed: 'Dismissed',
+  analyzed: 'Analyzed',
+};
+
+// ============================================================================
+// Finding Tags (classification for analyzed findings)
+// ============================================================================
+
+/** Optional classification tag for analyzed findings */
+export type FindingTag = 'key-driver' | 'low-impact';
+
+/** Ordered list of all finding tags */
+export const FINDING_TAGS: FindingTag[] = ['key-driver', 'low-impact'];
+
+/** Human-readable labels for finding tags */
+export const FINDING_TAG_LABELS: Record<FindingTag, string> = {
+  'key-driver': 'Key Driver',
+  'low-impact': 'Low Impact',
 };
 
 /** A timestamped comment in a finding's investigation log */
@@ -65,6 +75,8 @@ export interface Finding {
   context: FindingContext;
   /** Investigation status */
   status: FindingStatus;
+  /** Optional classification tag (only meaningful when status is 'analyzed') */
+  tag?: FindingTag;
   /** Timestamped investigation comments */
   comments: FindingComment[];
   /** When status was last changed */
@@ -136,8 +148,7 @@ export function groupFindingsByStatus(findings: Finding[]): Record<FindingStatus
   const groups: Record<FindingStatus, Finding[]> = {
     observed: [],
     investigating: [],
-    confirmed: [],
-    dismissed: [],
+    analyzed: [],
   };
 
   for (const finding of findings) {
@@ -184,6 +195,35 @@ export function findDuplicateFinding(
   activeFilters: Record<string, (string | number)[]>
 ): Finding | undefined {
   return findings.find(f => filtersEqual(f.context.activeFilters, activeFilters));
+}
+
+// ============================================================================
+// Migration
+// ============================================================================
+
+/**
+ * Migrate a finding from the old 4-status model to the new 3-status model.
+ * - 'confirmed' → 'analyzed' + tag 'key-driver'
+ * - 'dismissed' → 'analyzed' + tag 'low-impact'
+ * Other statuses pass through unchanged.
+ */
+export function migrateFindingStatus(finding: Finding): Finding {
+  const status = finding.status as string;
+  if (status === 'confirmed') {
+    return { ...finding, status: 'analyzed', tag: finding.tag ?? 'key-driver' };
+  }
+  if (status === 'dismissed') {
+    return { ...finding, status: 'analyzed', tag: finding.tag ?? 'low-impact' };
+  }
+  return finding;
+}
+
+/**
+ * Migrate an array of findings from old status model to new.
+ * Safe to call on already-migrated data.
+ */
+export function migrateFindings(findings: Finding[]): Finding[] {
+  return findings.map(migrateFindingStatus);
 }
 
 export function formatFindingFilters(

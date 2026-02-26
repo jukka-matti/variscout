@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Finding, FindingStatus } from '@variscout/core';
+import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
 import { FINDING_STATUSES, FINDING_STATUS_LABELS, groupFindingsByStatus } from '@variscout/core';
 import FindingCard from './FindingCard';
 import { STATUS_DOT_COLORS } from './FindingStatusBadge';
@@ -10,6 +10,7 @@ export interface FindingBoardColumnsProps {
   onDeleteFinding: (id: string) => void;
   onRestoreFinding: (id: string) => void;
   onSetFindingStatus: (id: string, status: FindingStatus) => void;
+  onSetFindingTag?: (id: string, tag: FindingTag | null) => void;
   onAddComment: (id: string, text: string) => void;
   onEditComment: (findingId: string, commentId: string, text: string) => void;
   onDeleteComment: (findingId: string, commentId: string) => void;
@@ -28,6 +29,7 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
   onDeleteFinding,
   onRestoreFinding,
   onSetFindingStatus,
+  onSetFindingTag,
   onAddComment,
   onEditComment,
   onDeleteComment,
@@ -94,6 +96,7 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
                     onDelete={onDeleteFinding}
                     onRestore={onRestoreFinding}
                     onSetStatus={onSetFindingStatus}
+                    onSetTag={onSetFindingTag}
                     onAddComment={onAddComment}
                     onEditComment={onEditComment}
                     onDeleteComment={onDeleteComment}

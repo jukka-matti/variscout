@@ -7,6 +7,7 @@ import {
   Table2,
   Share2,
   ClipboardList,
+  Beaker,
 } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
@@ -27,6 +28,8 @@ interface AppHeaderProps {
   onOpenSettings: () => void;
   onReset: () => void;
   onOpenSpecEditor?: () => void;
+  onOpenWhatIf?: () => void;
+  isWhatIfOpen?: boolean;
 }
 
 /**
@@ -53,6 +56,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenSettings,
   onReset,
   onOpenSpecEditor,
+  onOpenWhatIf,
+  isWhatIfOpen = false,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -148,6 +153,23 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   >
                     <ClipboardList size={16} />
                     <span className="hidden lg:inline">Findings</span>
+                  </button>
+                )}
+
+                {/* What-If Simulator */}
+                {onOpenWhatIf && (
+                  <button
+                    onClick={onOpenWhatIf}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                      isWhatIfOpen
+                        ? 'text-blue-400 bg-blue-400/10'
+                        : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
+                    }`}
+                    title="What-If Simulator"
+                    aria-label="What-If Simulator"
+                  >
+                    <Beaker size={16} />
+                    <span className="hidden lg:inline">What-If</span>
                   </button>
                 )}
 
