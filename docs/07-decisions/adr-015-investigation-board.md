@@ -25,11 +25,11 @@ between pinning and acting.
 
 ## Decision
 
-Add lightweight investigation tracking to findings: SPC-specific statuses, comment
+Add lightweight investigation tracking to findings: investigation-specific statuses, comment
 threads, and a grouped board view. This is NOT project management — no assignees,
 no due dates, no priority levels.
 
-### Statuses (SPC investigation lifecycle)
+### Statuses (Investigation lifecycle)
 
 | Status        | Meaning                                 | When to use               |
 | ------------- | --------------------------------------- | ------------------------- |

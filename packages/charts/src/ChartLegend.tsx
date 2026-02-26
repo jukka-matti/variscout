@@ -7,12 +7,12 @@ import { useChartTheme } from './useChartTheme';
  *
  * Displays color-coded legend explaining point colors in control charts.
  * Supports two display modes:
- * - 'educational': Emphasizes Common Cause vs Special Cause distinction (SPC learning)
+ * - 'educational': Emphasizes Common Cause vs Special Cause distinction (variation learning)
  * - 'practical': Focuses on actionable status (In-control vs needs action)
  */
 
 export interface ChartLegendProps {
-  /** Display mode: educational (SPC learning) or practical (action-oriented) */
+  /** Display mode: educational (variation learning) or practical (action-oriented) */
   mode?: 'educational' | 'practical';
   /** Width of the legend area (typically matches chart width) */
   width: number;

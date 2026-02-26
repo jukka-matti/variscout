@@ -18,7 +18,7 @@ Regression spans simple linear, GLM (multi-predictor), model reduction, and mode
 - **Tests**: Regression-specific test files across hooks, UI, and app packages
 - **Glossary**: Regression-specific terms (R-squared, adjusted R-squared, predictor, interaction term, etc.)
 
-For the Azure Marketplace v1 launch, the core SPC workflow is complete and valuable without regression:
+For the Azure Marketplace v1 launch, the core analysis workflow is complete and valuable without regression:
 
 - I-Chart with Nelson Rules and staged analysis
 - Boxplot with ANOVA, violin mode, and category sorting
@@ -87,7 +87,7 @@ Phase 2 implementation can re-export core math files and rebuild UI layer on the
 ### Positive
 
 - Reduced MVP scope -- fewer features to certify, document, and support at launch
-- Simpler user experience -- core SPC workflow without advanced statistical modelling
+- Simpler user experience -- core analysis workflow without advanced statistical modelling
 - Smaller bundle size -- ~3,300 lines excluded from production builds
 - Lower certification surface area for Azure Marketplace submission
 - What-If direct mode still provides actionable simulation without requiring regression knowledge

@@ -1,7 +1,7 @@
 import type { SampleDataset } from '../types';
 import { generateNormal, round } from '../utils';
 
-// Cookie Weight: Manufacturing SPC Classic
+// Cookie Weight: Manufacturing Quality Classic
 // Story: Baker's dozen cookies must meet weight spec. Oven 2 runs hot.
 const generateCookieWeightData = () => {
   const data: Record<string, unknown>[] = [];
@@ -40,7 +40,7 @@ const generateCookieWeightData = () => {
 
 export const cookieWeight: SampleDataset = {
   name: 'Case: Cookie Weight',
-  description: 'Classic SPC case - which oven is causing weight variation?',
+  description: 'Classic quality case - which oven is causing weight variation?',
   icon: 'cookie',
   urlKey: 'cookie-weight',
   category: 'cases',

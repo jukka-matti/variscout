@@ -3,6 +3,7 @@
  * Props-based chart components for use across PWA and Azure App
  */
 
+import type React from 'react';
 import type {
   StatsResult,
   SpecLimits,
@@ -108,7 +109,7 @@ export interface IChartProps extends BaseChartProps {
   highlightedPointIndex?: number | null;
   /** Show color-coded legend explaining point colors (default: false) */
   showLegend?: boolean;
-  /** Legend display mode: educational (SPC learning) or practical (action-oriented) */
+  /** Legend display mode: educational (variation learning) or practical (action-oriented) */
   legendMode?: 'educational' | 'practical';
 }
 

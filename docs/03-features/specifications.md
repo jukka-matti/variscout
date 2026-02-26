@@ -520,7 +520,7 @@ UCL: "Upper Control Limit. Points above this indicate special cause
 
 ### 11. Control Violation Explanations & Special Cause Education
 
-**Purpose:** Help users understand why points are flagged red (special cause variation) in control charts, supporting the core SPC learning journey from common vs. special cause distinction.
+**Purpose:** Help users understand why points are flagged red (special cause variation) in control charts, supporting the core analysis learning journey from common vs. special cause distinction.
 
 **Implementation:**
 
@@ -568,7 +568,7 @@ New glossary terms support deeper learning (accessed via HelpTooltip icons):
 | Nelson Rule 2 | 9+ consecutive points on same side of mean (shift)      | Methodology | /tools/i-chart    |
 | In-Control    | Stable process with only common cause variation         | Methodology | /learn/two-voices |
 
-**Pedagogical Goal:** Users learn the core SPC concept of **Special Cause vs Common Cause** variation:
+**Pedagogical Goal:** Users learn the core concept of **Special Cause vs Common Cause** variation:
 
 - **Blue dots** = Common cause (random, inherent) → No action, process is predictable
 - **Red dots** = Special cause (assignable, unusual) → Investigate and correct

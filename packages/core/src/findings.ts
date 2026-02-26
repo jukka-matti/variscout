@@ -9,7 +9,7 @@
 // Investigation Status Types
 // ============================================================================
 
-/** SPC investigation lifecycle status */
+/** Investigation lifecycle status */
 export type FindingStatus = 'observed' | 'investigating' | 'confirmed' | 'dismissed';
 
 /** Ordered list of all finding statuses */

@@ -304,7 +304,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     phase: 1,
     sampleKey: 'cookie-weight',
     title: 'Cookie Weight',
-    subtitle: 'Classic SPC in Action',
+    subtitle: 'Classic Quality Analysis',
     description:
       'Which oven is causing weight variation? And why does night shift have more problems?',
     difficulty: 'beginner',
