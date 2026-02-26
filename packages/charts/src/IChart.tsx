@@ -217,7 +217,7 @@ const IChartBase: React.FC<IChartProps> = ({
             width={width}
             stroke={chrome.gridLine}
             strokeDasharray={isExecutive ? '2,4' : undefined}
-            strokeOpacity={isExecutive ? 0.5 : 1}
+            strokeOpacity={isStaged ? 0.15 : isExecutive ? 0.5 : 0.4}
           />
 
           {/* Control limits - Staged mode */}
@@ -257,8 +257,9 @@ const IChartBase: React.FC<IChartProps> = ({
                     from={{ x: x1, y: yScale(boundary.stats.ucl) }}
                     to={{ x: x2, y: yScale(boundary.stats.ucl) }}
                     stroke={chartColors.control}
-                    strokeWidth={1}
-                    strokeDasharray="4,4"
+                    strokeWidth={0.8}
+                    strokeDasharray="6,4"
+                    strokeOpacity={0.6}
                   />
 
                   {/* Mean for this stage */}
@@ -266,7 +267,7 @@ const IChartBase: React.FC<IChartProps> = ({
                     from={{ x: x1, y: yScale(boundary.stats.mean) }}
                     to={{ x: x2, y: yScale(boundary.stats.mean) }}
                     stroke={chartColors.mean}
-                    strokeWidth={1.5}
+                    strokeWidth={2}
                   />
 
                   {/* LCL for this stage */}
@@ -274,8 +275,9 @@ const IChartBase: React.FC<IChartProps> = ({
                     from={{ x: x1, y: yScale(boundary.stats.lcl) }}
                     to={{ x: x2, y: yScale(boundary.stats.lcl) }}
                     stroke={chartColors.control}
-                    strokeWidth={1}
-                    strokeDasharray="4,4"
+                    strokeWidth={0.8}
+                    strokeDasharray="6,4"
+                    strokeOpacity={0.6}
                   />
                 </Group>
               );
@@ -356,8 +358,9 @@ const IChartBase: React.FC<IChartProps> = ({
                 from={{ x: 0, y: yScale(specs.usl) }}
                 to={{ x: width, y: yScale(specs.usl) }}
                 stroke={chartColors.spec}
-                strokeWidth={2}
-                strokeDasharray="6,3"
+                strokeWidth={1.5}
+                strokeDasharray="8,3,2,3"
+                strokeOpacity={0.7}
               />
               {/* USL label - clickable for editing */}
               {showLimitLabels && (
@@ -387,8 +390,9 @@ const IChartBase: React.FC<IChartProps> = ({
                 from={{ x: 0, y: yScale(specs.lsl) }}
                 to={{ x: width, y: yScale(specs.lsl) }}
                 stroke={chartColors.spec}
-                strokeWidth={2}
-                strokeDasharray="6,3"
+                strokeWidth={1.5}
+                strokeDasharray="8,3,2,3"
+                strokeOpacity={0.7}
               />
               {/* LSL label - clickable for editing */}
               {showLimitLabels && (

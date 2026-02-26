@@ -101,6 +101,21 @@ Features in staged mode:
 - Independent UCL/Mean/LCL per stage
 - Nelson Rule 2 detection computed per stage
 
+#### Visual Hierarchy (Staged Mode)
+
+Staged mode renders many reference lines (control limits per stage + spec limits + grid rows), which can create visual clutter. The chart applies a layered visual hierarchy so each element has a distinct weight:
+
+| Priority | Element        | Style                                   | Weight    |
+| -------- | -------------- | --------------------------------------- | --------- |
+| 1        | Data points    | Filled circles (r=4)                    | Dominant  |
+| 2        | Stage means    | Solid blue, 2px                         | Bold      |
+| 3        | Stage UCL/LCL  | Dashed (6,4), 0.8px, 60% opacity        | Secondary |
+| 4        | Stage dividers | Dashed (4,4), 1px                       | Clear     |
+| 5        | Spec limits    | Dash-dot (8,3,2,3), 1.5px, 70% opacity  | Reference |
+| 6        | Grid rows      | 15% opacity (staged) / 40% (non-staged) | Minimal   |
+
+The dash-dot pattern on spec limits visually distinguishes the Voice of the Customer (spec limits) from the Voice of the Process (control limits), reinforcing the Two Voices model.
+
 #### Y-Axis Lock Mode
 
 Locks Y-axis scale to a fixed range (useful during drill-down to maintain reference):
@@ -210,16 +225,16 @@ import PerformanceIChart from '@variscout/charts/PerformanceIChart';
 
 ## Statistical Elements
 
-| Element            | Standard IChart                   | PerformanceIChart                         |
-| ------------------ | --------------------------------- | ----------------------------------------- |
-| **Data points**    | Circles on time series            | Circles by channel index                  |
-| **Data line**      | Connecting line (dimmed)          | Not shown                                 |
-| **UCL/LCL**        | Dashed lines with labels          | Dashed gray (mean ± 3σ of Cpk/Cp)         |
-| **Mean line**      | Solid blue line with label        | Solid blue (mean Cpk/Cp across channels)  |
-| **Target line**    | Dashed green line                 | Dashed green (user-defined, default 1.33) |
-| **Spec limits**    | Dashed red lines (USL/LSL)        | Not shown                                 |
-| **Stage dividers** | Vertical dashed lines (if staged) | Not applicable                            |
-| **Grid**           | Horizontal rows                   | Horizontal rows                           |
+| Element            | Standard IChart                          | PerformanceIChart                         |
+| ------------------ | ---------------------------------------- | ----------------------------------------- |
+| **Data points**    | Circles on time series                   | Circles by channel index                  |
+| **Data line**      | Connecting line (dimmed)                 | Not shown                                 |
+| **UCL/LCL**        | Subtle dashed (0.8px, 60% opacity)       | Dashed gray (mean ± 3σ of Cpk/Cp)         |
+| **Mean line**      | Bold solid blue (2px)                    | Solid blue (mean Cpk/Cp across channels)  |
+| **Target line**    | Dashed green line                        | Dashed green (user-defined, default 1.33) |
+| **Spec limits**    | Dash-dot orange (1.5px, 70% opacity)     | Not shown                                 |
+| **Stage dividers** | Vertical dashed lines (if staged)        | Not applicable                            |
+| **Grid**           | Subtle rows (15% staged, 40% non-staged) | Horizontal rows                           |
 
 ---
 
@@ -416,17 +431,26 @@ Standard IChart uses hardcoded dark theme colors from `chromeColors`.
 ### Reference Line Colors
 
 ```typescript
-// Control limits
-stroke={chartColors.control}  // cyan-500 dashed
+// Control limits (staged: subtler; non-staged: standard)
+stroke={chartColors.control}  // cyan-500
+strokeWidth={0.8}             // staged (1 for non-staged)
+strokeDasharray="6,4"         // staged ("4,4" for non-staged)
+strokeOpacity={0.6}           // staged (1 for non-staged)
 
-// Mean line
+// Mean line (bold anchor)
 stroke={chartColors.mean}     // blue-500 solid
+strokeWidth={2}               // staged (1.5 for non-staged)
 
-// Spec limits (USL/LSL)
-stroke={chartColors.spec}     // red-500 dashed
+// Spec limits (USL/LSL) - dash-dot pattern
+stroke={chartColors.spec}     // red-500
+strokeWidth={1.5}
+strokeDasharray="8,3,2,3"     // dash-dot (distinct from control dashes)
+strokeOpacity={0.7}
 
 // Target line
-stroke={chartColors.target}   // green-500 dashed
+stroke={chartColors.target}   // green-500 dotted
+strokeWidth={1}
+strokeDasharray="2,2"
 ```
 
 ---

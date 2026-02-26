@@ -155,24 +155,28 @@ Shared hook from `@variscout/hooks` managing annotation state:
 ### Spec Limit Lines
 
 ```tsx
-// USL (Upper Spec Limit) - Red dashed
-<line stroke="#ef4444" strokeDasharray="6,3" strokeWidth={1.5} />
+// USL (Upper Spec Limit) - Red dash-dot
+<line stroke="#ef4444" strokeDasharray="8,3,2,3" strokeWidth={1.5} strokeOpacity={0.7} />
 
-// LSL (Lower Spec Limit) - Amber dashed
-<line stroke="#f59e0b" strokeDasharray="6,3" strokeWidth={1.5} />
+// LSL (Lower Spec Limit) - Amber dash-dot
+<line stroke="#f59e0b" strokeDasharray="8,3,2,3" strokeWidth={1.5} strokeOpacity={0.7} />
 
-// Target - Green dashed
-<line stroke="#22c55e" strokeDasharray="4,4" strokeWidth={1} />
+// Target - Green dotted
+<line stroke="#22c55e" strokeDasharray="2,2" strokeWidth={1} />
 ```
 
 ### Control Lines
 
 ```tsx
-// UCL/LCL (Control Limits) - Blue dashed
-<line stroke="#3b82f6" strokeDasharray="4,4" />
+// UCL/LCL (Control Limits) - staged mode (subtler)
+<line stroke="#3b82f6" strokeDasharray="6,4" strokeWidth={0.8} strokeOpacity={0.6} />
 
-// Center line (Mean) - Gray
-<line stroke="#64748b" />
+// UCL/LCL (Control Limits) - non-staged mode
+<line stroke="#3b82f6" strokeDasharray="4,4" strokeWidth={1} />
+
+// Center line (Mean) - Bold in staged mode
+<line stroke="#64748b" strokeWidth={2} />  // staged
+<line stroke="#64748b" strokeWidth={1.5} /> // non-staged
 ```
 
 ### Limit Annotations (Minitab-style)
