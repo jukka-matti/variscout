@@ -22,6 +22,7 @@ export type {
   ProjectedStats,
   DirectAdjustmentParams,
   DirectAdjustmentResult,
+  OverallImpactResult,
 } from './types';
 
 // Drill variation
@@ -41,4 +42,10 @@ export {
 } from './suggestions';
 
 // Simulation
-export { calculateProjectedStats, simulateDirectAdjustment } from './simulation';
+export {
+  calculateProjectedStats,
+  simulateDirectAdjustment,
+  simulateOverallImpact,
+  normalCDF,
+  normalPDF,
+} from './simulation';

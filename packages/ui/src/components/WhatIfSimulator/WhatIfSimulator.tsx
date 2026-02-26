@@ -1,8 +1,11 @@
 import { useState, useMemo, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { ChevronRight, ChevronDown, RotateCcw, Beaker, Target, XCircle, Star } from 'lucide-react';
-import { simulateDirectAdjustment } from '@variscout/core';
+import { simulateDirectAdjustment, simulateOverallImpact } from '@variscout/core';
+import type { OverallImpactResult } from '@variscout/core';
 import Slider from '../Slider/Slider';
 import type { SliderColorScheme } from '../Slider/Slider';
+import DistributionPreview from './DistributionPreview';
+import OverallImpactSummary from './OverallImpactSummary';
 
 /**
  * Color scheme for WhatIfSimulator
@@ -109,6 +112,10 @@ export interface WhatIfSimulatorProps {
   colorScheme?: WhatIfSimulatorColorScheme;
   /** Cpk target for color thresholds (default 1.33) */
   cpkTarget?: number;
+  /** Complement stats — enables overall impact view (omit when no filters active) */
+  complementStats?: { mean: number; stdDev: number; count: number };
+  /** Count of the filtered subset (for fraction calculation) */
+  subsetCount?: number;
 }
 
 function formatNumber(value: number, decimals: number = 2): string {
@@ -140,6 +147,8 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
       initialPreset,
       colorScheme = whatIfSimulatorDefaultColorScheme,
       cpkTarget = 1.33,
+      complementStats,
+      subsetCount,
     },
     ref
   ) => {
@@ -228,6 +237,16 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
       );
       return baseline.projectedYield;
     }, [currentStats, specs]);
+
+    const overallImpact = useMemo<OverallImpactResult | null>(() => {
+      if (!complementStats || subsetCount === undefined || subsetCount === 0) return null;
+      return simulateOverallImpact(
+        { mean: currentStats.mean, stdDev: currentStats.stdDev, count: subsetCount },
+        complementStats,
+        { mean: projection.projectedMean, stdDev: projection.projectedStdDev },
+        specs
+      );
+    }, [complementStats, subsetCount, currentStats, projection, specs]);
 
     const handleReset = useCallback(() => {
       setMeanShift(0);
@@ -333,6 +352,15 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
                 ))}
               </div>
             )}
+
+            {/* Distribution preview */}
+            <DistributionPreview
+              currentMean={currentStats.mean}
+              currentStdDev={currentStats.stdDev}
+              projectedMean={projection.projectedMean}
+              projectedStdDev={projection.projectedStdDev}
+              specs={specs}
+            />
 
             {/* Projection results panel */}
             <div className={`p-3 rounded-lg ${c.projectionBg} border ${c.projectionBorder}`}>
@@ -445,6 +473,16 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
                 )}
               </div>
             </div>
+
+            {/* Overall impact summary (only when filtering a subset) */}
+            {overallImpact && (
+              <OverallImpactSummary
+                impact={overallImpact}
+                hasAdjustment={hasAdjustment}
+                cpkTarget={cpkTarget}
+                colorScheme={c}
+              />
+            )}
 
             {/* Helper text */}
             <p className={`text-[10px] ${c.mutedText} leading-relaxed`}>

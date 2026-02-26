@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { ArrowLeft, Beaker } from 'lucide-react';
-import { calculateStats, type DataRow, type SpecLimits } from '@variscout/core';
+import { calculateStats, toNumericValue, type DataRow, type SpecLimits } from '@variscout/core';
 import WhatIfSimulator from '../WhatIfSimulator/WhatIfSimulator';
 import type { WhatIfSimulatorColorScheme } from '../WhatIfSimulator/WhatIfSimulator';
 /**
@@ -84,6 +84,22 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
     return calculateStats(values, specs.usl, specs.lsl);
   }, [filteredData, outcome, specs]);
 
+  // Complement stats (rawData minus filteredData) for overall impact
+  const complementStats = useMemo(() => {
+    if (!outcome || filteredData.length === 0 || filteredData.length === rawData.length)
+      return undefined;
+    const filteredSet = new Set(filteredData);
+    const complement = rawData.filter(row => !filteredSet.has(row));
+    if (complement.length === 0) return undefined;
+    const values = complement
+      .map(row => toNumericValue(row[outcome]))
+      .filter((v): v is number => v !== undefined);
+    if (values.length < 2) return undefined;
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
+    return { mean, stdDev: Math.sqrt(variance), count: values.length };
+  }, [rawData, filteredData, outcome]);
+
   // Guard: no data or no outcome
   if (!outcome || rawData.length === 0) {
     return (
@@ -142,7 +158,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
 
       {/* Content */}
       <div className="flex-1 overflow-auto p-4">
-        <div className="max-w-lg mx-auto space-y-4">
+        <div className="max-w-2xl mx-auto space-y-4">
           {!hasSpecs && (
             <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-400">
               Set specification limits (USL/LSL) to see Cpk and yield projections.
@@ -156,6 +172,8 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
               defaultExpanded={true}
               colorScheme={simulatorColorScheme}
               cpkTarget={cpkTarget}
+              complementStats={complementStats}
+              subsetCount={filteredData.length}
             />
           )}
         </div>

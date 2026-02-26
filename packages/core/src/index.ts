@@ -161,6 +161,7 @@ export type {
   ProjectedStats,
   DirectAdjustmentParams,
   DirectAdjustmentResult,
+  OverallImpactResult,
 } from './variation';
 
 export {
@@ -175,6 +176,9 @@ export {
   getNextDrillFactor,
   findOptimalFactors,
   simulateDirectAdjustment,
+  simulateOverallImpact,
+  normalCDF,
+  normalPDF,
   DRILL_SWITCH_THRESHOLD,
 } from './variation';
 

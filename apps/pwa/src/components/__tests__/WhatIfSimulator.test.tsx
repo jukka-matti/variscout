@@ -19,6 +19,17 @@ const mockProjection = {
 
 vi.mock('@variscout/core', () => ({
   simulateDirectAdjustment: vi.fn(() => mockProjection),
+  simulateOverallImpact: vi.fn(() => ({
+    currentOverall: { mean: 10, stdDev: 1, cpk: 1.0, yield: 99.0 },
+    projectedOverall: { mean: 10, stdDev: 0.9, cpk: 1.11, yield: 99.5 },
+    subsetFraction: 0.35,
+    improvements: { cpkChange: 0.11, yieldChange: 0.5 },
+  })),
+  normalPDF: vi.fn((x: number, mean: number, stdDev: number) => {
+    if (stdDev === 0) return 0;
+    const z = (x - mean) / stdDev;
+    return Math.exp(-0.5 * z * z) / (stdDev * Math.sqrt(2 * Math.PI));
+  }),
 }));
 
 const defaultStats = { mean: 10.5, stdDev: 2.0, cpk: 1.2 };

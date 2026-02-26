@@ -127,6 +127,18 @@ export interface DirectAdjustmentParams {
 }
 
 /**
+ * Result of overall impact simulation — how improving a filtered subset
+ * affects the whole process
+ */
+export interface OverallImpactResult {
+  currentOverall: { mean: number; stdDev: number; cpk?: number; yield?: number };
+  projectedOverall: { mean: number; stdDev: number; cpk?: number; yield?: number };
+  /** Fraction of total data in the adjusted subset (0-1) */
+  subsetFraction: number;
+  improvements: { cpkChange?: number; yieldChange?: number };
+}
+
+/**
  * Result of direct adjustment simulation
  */
 export interface DirectAdjustmentResult {

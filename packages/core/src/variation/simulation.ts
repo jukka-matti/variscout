@@ -9,9 +9,14 @@ import type {
   MultiRegressionResult,
 } from '../types';
 import { toNumericValue } from '../types';
-import type { ProjectedStats, DirectAdjustmentParams, DirectAdjustmentResult } from './types';
+import type {
+  ProjectedStats,
+  DirectAdjustmentParams,
+  DirectAdjustmentResult,
+  OverallImpactResult,
+} from './types';
 
-export type { ProjectedStats, DirectAdjustmentParams, DirectAdjustmentResult };
+export type { ProjectedStats, DirectAdjustmentParams, DirectAdjustmentResult, OverallImpactResult };
 
 /**
  * Error function approximation using Horner's method
@@ -40,8 +45,18 @@ function erf(x: number): number {
 /**
  * Standard normal cumulative distribution function
  */
-function normalCDF(z: number): number {
+export function normalCDF(z: number): number {
   return 0.5 * (1 + erf(z / Math.SQRT2));
+}
+
+/**
+ * Normal probability density function for a given mean and stdDev.
+ * Used by DistributionPreview to render bell curves from parameters alone.
+ */
+export function normalPDF(x: number, mean: number, stdDev: number): number {
+  if (stdDev === 0) return x === mean ? Infinity : 0;
+  const z = (x - mean) / stdDev;
+  return Math.exp(-0.5 * z * z) / (stdDev * Math.sqrt(2 * Math.PI));
 }
 
 /**
@@ -263,6 +278,91 @@ export function simulateDirectAdjustment(
   }
 
   return result;
+}
+
+/**
+ * Simulate how improving a filtered subset affects the overall process.
+ *
+ * Uses weighted mean + pooled variance to recombine the projected subset
+ * with the unchanged complement, then computes Cpk and yield for both
+ * the current and projected overall distributions.
+ */
+export function simulateOverallImpact(
+  subsetStats: { mean: number; stdDev: number; count: number },
+  complementStats: { mean: number; stdDev: number; count: number },
+  projectedSubsetStats: { mean: number; stdDev: number },
+  specs?: { usl?: number; lsl?: number }
+): OverallImpactResult {
+  const n = subsetStats.count;
+  const m = complementStats.count;
+  const N = n + m;
+
+  const subsetFraction = N > 0 ? n / N : 0;
+
+  // Current overall (weighted recombination of subset + complement)
+  const currentMean = (n * subsetStats.mean + m * complementStats.mean) / N;
+  // Pooled variance: combine within-group variances + between-group variance
+  const currentVar =
+    (n * (subsetStats.stdDev ** 2 + (subsetStats.mean - currentMean) ** 2) +
+      m * (complementStats.stdDev ** 2 + (complementStats.mean - currentMean) ** 2)) /
+    N;
+  const currentStdDev = Math.sqrt(currentVar);
+
+  // Projected overall (replace subset stats with projected, keep complement)
+  const projectedMean = (n * projectedSubsetStats.mean + m * complementStats.mean) / N;
+  const projectedVar =
+    (n * (projectedSubsetStats.stdDev ** 2 + (projectedSubsetStats.mean - projectedMean) ** 2) +
+      m * (complementStats.stdDev ** 2 + (complementStats.mean - projectedMean) ** 2)) /
+    N;
+  const projectedStdDev = Math.sqrt(projectedVar);
+
+  // Compute Cpk helper
+  const computeCpk = (
+    mean: number,
+    stdDev: number,
+    s?: { usl?: number; lsl?: number }
+  ): number | undefined => {
+    if (!s || stdDev === 0) return undefined;
+    const { usl, lsl } = s;
+    if (usl !== undefined && lsl !== undefined) {
+      return Math.min((usl - mean) / (3 * stdDev), (mean - lsl) / (3 * stdDev));
+    } else if (usl !== undefined) {
+      return (usl - mean) / (3 * stdDev);
+    } else if (lsl !== undefined) {
+      return (mean - lsl) / (3 * stdDev);
+    }
+    return undefined;
+  };
+
+  const currentCpk = computeCpk(currentMean, currentStdDev, specs);
+  const projectedCpk = computeCpk(projectedMean, projectedStdDev, specs);
+  const currentYield = calculateYieldFromDistribution(currentMean, currentStdDev, specs);
+  const projectedYield = calculateYieldFromDistribution(projectedMean, projectedStdDev, specs);
+
+  const improvements: OverallImpactResult['improvements'] = {};
+  if (currentCpk !== undefined && projectedCpk !== undefined && currentCpk !== 0) {
+    improvements.cpkChange = projectedCpk - currentCpk;
+  }
+  if (currentYield !== undefined && projectedYield !== undefined) {
+    improvements.yieldChange = projectedYield - currentYield;
+  }
+
+  return {
+    currentOverall: {
+      mean: currentMean,
+      stdDev: currentStdDev,
+      cpk: currentCpk,
+      yield: currentYield,
+    },
+    projectedOverall: {
+      mean: projectedMean,
+      stdDev: projectedStdDev,
+      cpk: projectedCpk,
+      yield: projectedYield,
+    },
+    subsetFraction,
+    improvements,
+  };
 }
 
 // ============================================================================
