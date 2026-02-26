@@ -21,7 +21,18 @@ vi.mock('@variscout/charts', () => ({
 
 vi.mock('@variscout/hooks', () => ({
   useMindmapState: () => ({
-    nodes: [],
+    nodes: [
+      {
+        factor: 'Machine',
+        etaSquared: 0.6,
+        state: 'available' as const,
+        isSuggested: true,
+        categoryData: [
+          { value: 'A', count: 10, meanValue: 10.2, contributionPct: 40 },
+          { value: 'B', count: 8, meanValue: 10.5, contributionPct: 20 },
+        ],
+      },
+    ],
     drillTrail: [],
     cumulativeVariationPct: 0,
     interactionEdges: [],
@@ -71,13 +82,13 @@ describe('MindmapWindow', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders mindmap when localStorage data is present', () => {
+  it('renders StratificationGrid when localStorage data is present', () => {
     localStorage.setItem(SYNC_KEY, JSON.stringify(mockSyncData));
 
     render(<MindmapWindow />);
 
     expect(screen.getByText('Investigation')).toBeInTheDocument();
-    expect(screen.getByTestId('mindmap-base')).toBeInTheDocument();
+    expect(screen.getByTestId('stratification-grid')).toBeInTheDocument();
   });
 
   it('renders mode toggle buttons', () => {
@@ -100,7 +111,8 @@ describe('MindmapWindow', () => {
     });
 
     render(<MindmapWindow />);
-    fireEvent.click(screen.getByTestId('category-select'));
+    // Click on the category chip in the StratificationGrid
+    fireEvent.click(screen.getByTestId('category-chip-A'));
 
     expect(mockPostMessage).toHaveBeenCalledWith(
       { type: 'MINDMAP_DRILL_CATEGORY', factor: 'Machine', value: 'A' },
@@ -118,7 +130,8 @@ describe('MindmapWindow', () => {
     localStorage.setItem(SYNC_KEY, JSON.stringify(mockSyncData));
 
     render(<MindmapWindow />);
-    fireEvent.click(screen.getByTestId('category-select'));
+    // Click on the category chip in the StratificationGrid
+    fireEvent.click(screen.getByTestId('category-chip-A'));
 
     const drillData = JSON.parse(localStorage.getItem('variscout_mindmap_drill')!);
     expect(drillData.factor).toBe('Machine');

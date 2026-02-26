@@ -6,6 +6,8 @@ import { GripVertical } from 'lucide-react';
 import {
   MindmapPanelContent,
   mindmapPanelAzureColorScheme,
+  StratificationGrid,
+  stratificationGridAzureColorScheme,
   exportMindmapPng,
   exportMindmapSvg,
   exportMindmapToClipboard,
@@ -206,22 +208,35 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           colorScheme={mindmapPanelAzureColorScheme}
           columnAliases={columnAliases}
         >
-          <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">
-            <InvestigationMindmapBase
-              nodes={nodes}
-              drillTrail={drillTrail}
-              cumulativeVariationPct={cumulativeVariationPct}
-              onNodeClick={() => {}}
-              onCategorySelect={handleCategorySelect}
-              mode={mode}
-              narrativeSteps={narrativeSteps}
-              onAnnotationChange={handleAnnotationChange}
-              columnAliases={columnAliases}
-              onNavigateToWhatIf={onNavigateToWhatIf}
-              width={chartWidth}
-              height={chartHeight}
-            />
-          </div>
+          {mode === 'drilldown' ? (
+            <div ref={mindmapRef} className="flex-1 overflow-hidden">
+              <StratificationGrid
+                nodes={nodes}
+                drillTrail={drillTrail}
+                cumulativeVariationPct={cumulativeVariationPct}
+                onCategorySelect={handleCategorySelect}
+                columnAliases={columnAliases}
+                colorScheme={stratificationGridAzureColorScheme}
+              />
+            </div>
+          ) : (
+            <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">
+              <InvestigationMindmapBase
+                nodes={nodes}
+                drillTrail={drillTrail}
+                cumulativeVariationPct={cumulativeVariationPct}
+                onNodeClick={() => {}}
+                onCategorySelect={handleCategorySelect}
+                mode={mode}
+                narrativeSteps={narrativeSteps}
+                onAnnotationChange={handleAnnotationChange}
+                columnAliases={columnAliases}
+                onNavigateToWhatIf={onNavigateToWhatIf}
+                width={chartWidth}
+                height={chartHeight}
+              />
+            </div>
+          )}
         </MindmapPanelContent>
       </div>
     </>

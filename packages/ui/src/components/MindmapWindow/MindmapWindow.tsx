@@ -10,6 +10,7 @@ import {
 import { Download, Copy, Check } from 'lucide-react';
 import { exportMindmapPng, exportMindmapToClipboard } from '../MindmapPanel/export';
 import MindmapModeToggle from '../MindmapPanel/MindmapModeToggle';
+import { StratificationGrid, stratificationGridAzureColorScheme } from '../StratificationGrid';
 
 /**
  * Color scheme for MindmapWindow
@@ -158,6 +159,22 @@ const MindmapWindow: React.FC<MindmapWindowProps> = ({
     setLocalFilterStack(prev => [...prev, action]);
   }, []);
 
+  // Measure container dimensions for narrative SVG mode
+  const [containerSize, setContainerSize] = useState({ width: 380, height: 600 });
+  useEffect(() => {
+    const el = mindmapRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const w = Math.floor(entry.contentRect.width);
+        const h = Math.floor(entry.contentRect.height);
+        if (w > 0 && h > 0) setContainerSize({ width: w, height: h });
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [syncData]);
+
   // PNG export for narrative mode
   const handleExportPng = useCallback(async () => {
     const node = mindmapRef.current;
@@ -200,8 +217,8 @@ const MindmapWindow: React.FC<MindmapWindowProps> = ({
   }
 
   return (
-    <div className={`h-screen w-screen ${c.pageBg} p-4`}>
-      <div className="flex items-center justify-between mb-2">
+    <div className={`h-screen w-screen ${c.pageBg} p-4 flex flex-col`}>
+      <div className="flex items-center justify-between mb-2 flex-shrink-0">
         <h1 className="text-sm font-semibold text-white">Investigation</h1>
 
         <MindmapModeToggle
@@ -236,18 +253,28 @@ const MindmapWindow: React.FC<MindmapWindowProps> = ({
         </div>
       </div>
 
-      <div ref={mindmapRef}>
-        <InvestigationMindmapBase
-          nodes={nodes}
-          drillTrail={drillTrail}
-          cumulativeVariationPct={cumulativeVariationPct}
-          onCategorySelect={handleDrillCategory}
-          mode={mode}
-          narrativeSteps={narrativeSteps}
-          onAnnotationChange={handleAnnotationChange}
-          width={380}
-          height={600}
-        />
+      <div ref={mindmapRef} className="flex-1 overflow-hidden">
+        {mode === 'drilldown' ? (
+          <StratificationGrid
+            nodes={nodes}
+            drillTrail={drillTrail}
+            cumulativeVariationPct={cumulativeVariationPct}
+            onCategorySelect={handleDrillCategory}
+            colorScheme={stratificationGridAzureColorScheme}
+          />
+        ) : (
+          <InvestigationMindmapBase
+            nodes={nodes}
+            drillTrail={drillTrail}
+            cumulativeVariationPct={cumulativeVariationPct}
+            onCategorySelect={handleDrillCategory}
+            mode={mode}
+            narrativeSteps={narrativeSteps}
+            onAnnotationChange={handleAnnotationChange}
+            width={containerSize.width}
+            height={containerSize.height}
+          />
+        )}
       </div>
     </div>
   );
@@ -281,7 +308,7 @@ export function openMindmapPopout(
   const popup = window.open(
     url,
     'variscout-mindmap',
-    'width=420,height=700,menubar=no,toolbar=no,location=no,status=no'
+    'width=800,height=700,resizable=yes,menubar=no,toolbar=no,location=no,status=no'
   );
 
   return popup;

@@ -212,6 +212,14 @@ export {
 } from './components/InvestigationPrompt';
 
 export {
+  StratificationGrid,
+  stratificationGridDefaultColorScheme,
+  stratificationGridAzureColorScheme,
+  type StratificationGridProps,
+  type StratificationGridColorScheme,
+} from './components/StratificationGrid';
+
+export {
   default as PasteScreenBase,
   pasteScreenDefaultColorScheme,
   pasteScreenAzureColorScheme,

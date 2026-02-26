@@ -2,7 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { InvestigationMindmapBase } from '@variscout/charts';
 import { useMindmapState } from '@variscout/hooks';
 import type { FilterAction, DataRow } from '@variscout/core';
-import { MindmapPanelContent, exportMindmapPng, exportMindmapToClipboard } from '@variscout/ui';
+import {
+  MindmapPanelContent,
+  StratificationGrid,
+  exportMindmapPng,
+  exportMindmapToClipboard,
+} from '@variscout/ui';
 
 interface MindmapPanelProps {
   isOpen: boolean;
@@ -137,22 +142,34 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           copyFeedback={copyFeedback}
           columnAliases={columnAliases}
         >
-          <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">
-            <InvestigationMindmapBase
-              nodes={nodes}
-              drillTrail={drillTrail}
-              cumulativeVariationPct={cumulativeVariationPct}
-              onNodeClick={() => {}}
-              onCategorySelect={handleCategorySelect}
-              mode={mode}
-              narrativeSteps={narrativeSteps}
-              onAnnotationChange={handleAnnotationChange}
-              columnAliases={columnAliases}
-              onNavigateToWhatIf={onNavigateToWhatIf}
-              width={368}
-              height={chartHeight}
-            />
-          </div>
+          {mode === 'drilldown' ? (
+            <div ref={mindmapRef} className="flex-1 overflow-hidden">
+              <StratificationGrid
+                nodes={nodes}
+                drillTrail={drillTrail}
+                cumulativeVariationPct={cumulativeVariationPct}
+                onCategorySelect={handleCategorySelect}
+                columnAliases={columnAliases}
+              />
+            </div>
+          ) : (
+            <div ref={mindmapRef} className="flex-1 overflow-hidden px-2 py-2">
+              <InvestigationMindmapBase
+                nodes={nodes}
+                drillTrail={drillTrail}
+                cumulativeVariationPct={cumulativeVariationPct}
+                onNodeClick={() => {}}
+                onCategorySelect={handleCategorySelect}
+                mode={mode}
+                narrativeSteps={narrativeSteps}
+                onAnnotationChange={handleAnnotationChange}
+                columnAliases={columnAliases}
+                onNavigateToWhatIf={onNavigateToWhatIf}
+                width={368}
+                height={chartHeight}
+              />
+            </div>
+          )}
         </MindmapPanelContent>
       </div>
     </>

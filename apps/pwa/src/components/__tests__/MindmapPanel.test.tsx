@@ -155,8 +155,9 @@ describe('MindmapPanel', () => {
 
     render(<MindmapPanel {...defaultProps} />);
     expect(screen.getByText('Drill Path')).toBeInTheDocument();
-    expect(screen.getByText('Machine')).toBeInTheDocument();
-    expect(screen.getByText('80%')).toBeInTheDocument();
+    // Machine and 80% appear in both the stratification grid and the drill path
+    expect(screen.getAllByText('Machine').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('80%').length).toBeGreaterThanOrEqual(1);
   });
 
   it('calls setMode when enabled mode toggle buttons are clicked', () => {
@@ -202,7 +203,32 @@ describe('MindmapPanel', () => {
     expect(narrativeBtn).toBeDisabled();
   });
 
-  it('renders mindmap chart component', () => {
+  it('renders StratificationGrid in drilldown mode', () => {
+    render(<MindmapPanel {...defaultProps} />);
+    expect(screen.getByTestId('stratification-grid')).toBeInTheDocument();
+  });
+
+  it('renders InvestigationMindmapBase in narrative mode', () => {
+    mockMindmapState = {
+      ...mockMindmapState,
+      mode: 'narrative',
+      drillPath: [
+        {
+          factor: 'Machine',
+          values: ['A'],
+          label: 'Machine = A',
+          timestamp: Date.now(),
+          scopeFraction: 0.8,
+          cumulativeScope: 0.8,
+          meanBefore: 15,
+          meanAfter: 10.5,
+          cpkBefore: 1.2,
+          cpkAfter: 1.8,
+          countBefore: 5,
+          countAfter: 3,
+        },
+      ],
+    };
     render(<MindmapPanel {...defaultProps} />);
     expect(screen.getByTestId('mindmap-chart')).toBeInTheDocument();
   });
