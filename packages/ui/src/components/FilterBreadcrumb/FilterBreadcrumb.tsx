@@ -60,38 +60,6 @@ export const defaultColorScheme: FilterBreadcrumbColorScheme = {
   },
 };
 
-/**
- * Azure color scheme using Tailwind Slate palette
- */
-export const azureColorScheme: FilterBreadcrumbColorScheme = {
-  containerBg: 'bg-slate-900/50',
-  border: 'border-slate-800',
-  textMuted: 'text-slate-500',
-  textSecondary: 'text-slate-400',
-  chipBg: 'bg-slate-700/50',
-  chipHoverBg: 'hover:bg-slate-700/70',
-  removeBorder: 'border-slate-600/50',
-  variationBar: {
-    barBg: 'bg-slate-700/50',
-    tooltipBg: 'bg-slate-800',
-    tooltipBorder: 'border-slate-700',
-    contentText: 'text-slate-300',
-    mutedText: 'text-slate-500',
-  },
-  dropdown: {
-    secondaryBg: 'bg-slate-800',
-    tertiaryBg: 'bg-slate-700/50',
-    surfaceBg: 'bg-slate-900',
-    border: 'border-slate-700',
-    borderSecondary: 'border-slate-600',
-    textSecondary: 'text-slate-400',
-    textMuted: 'text-slate-500',
-    hoverBg: 'hover:bg-slate-700/50',
-    selectedBg: 'bg-slate-700/30',
-    progressBg: 'bg-slate-700',
-  },
-};
-
 export interface FilterBreadcrumbProps {
   /** Filter chip data from useVariationTracking */
   filterChipData: FilterChipData[];
@@ -149,14 +117,6 @@ function formatChipValues(values: (string | number)[]): string {
  *   cumulativeVariationPct={45}
  * />
  *
- * // Using Azure color scheme
- * <FilterBreadcrumb
- *   filterChipData={filterChipData}
- *   onUpdateFilterValues={handleUpdate}
- *   onRemoveFilter={handleRemove}
- *   cumulativeVariationPct={45}
- *   colorScheme={azureColorScheme}
- * />
  * ```
  */
 const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({

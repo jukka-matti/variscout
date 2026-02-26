@@ -3,7 +3,6 @@ export {
   openMindmapPopout,
   updateMindmapPopout,
   mindmapWindowDefaultColorScheme,
-  mindmapWindowAzureColorScheme,
   type MindmapWindowColorScheme,
   type MindmapWindowProps,
 } from './MindmapWindow';

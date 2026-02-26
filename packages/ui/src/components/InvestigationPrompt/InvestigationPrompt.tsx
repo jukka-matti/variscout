@@ -19,14 +19,6 @@ export const investigationPromptDefaultColorScheme: InvestigationPromptColorSche
   dismissText: 'text-content-muted hover:text-content-secondary',
 };
 
-export const investigationPromptAzureColorScheme: InvestigationPromptColorScheme = {
-  bg: 'bg-blue-500/10',
-  border: 'border-blue-500/20',
-  text: 'text-blue-300',
-  mutedText: 'text-slate-400',
-  dismissText: 'text-slate-500 hover:text-slate-400',
-};
-
 export interface InvestigationPromptProps {
   /** Current number of applied filters */
   filterCount: number;

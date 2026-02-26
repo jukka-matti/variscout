@@ -28,20 +28,6 @@ export const pasteScreenDefaultColorScheme: PasteScreenColorScheme = {
   hint: 'text-content-muted',
 };
 
-export const pasteScreenAzureColorScheme: PasteScreenColorScheme = {
-  container: '',
-  iconBg: 'bg-slate-800/50 rounded-xl border border-slate-700',
-  title: 'text-white',
-  subtitle: 'text-slate-400',
-  textarea: 'bg-slate-800 border text-slate-200 placeholder:text-slate-600',
-  textareaError: 'border-red-500 focus:ring-red-500/30',
-  textareaNormal: 'border-slate-700 focus:ring-blue-500/30 focus:border-blue-500',
-  backButton: 'text-slate-400 hover:text-white hover:bg-slate-800',
-  analyzeButton:
-    'bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 text-white',
-  hint: 'text-slate-500',
-};
-
 export interface PasteScreenBaseProps {
   onAnalyze: (text: string) => Promise<void>;
   onCancel: () => void;

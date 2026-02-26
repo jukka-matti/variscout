@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import StatsPanelBase from '../StatsPanelBase';
 import type { StatsPanelBaseProps } from '../types';
-import { statsPanelAzureColorScheme } from '../StatsPanelBase';
 
 const mockGetTerm = vi.fn().mockReturnValue(undefined);
 
@@ -121,10 +120,21 @@ describe('StatsPanelBase', () => {
   });
 
   it('applies custom colorScheme', () => {
-    const { container } = render(
-      <StatsPanelBase {...defaultProps} colorScheme={statsPanelAzureColorScheme} />
-    );
-    // Azure scheme uses bg-slate-800
+    const customScheme = {
+      container:
+        'w-full bg-slate-800 rounded-xl border border-slate-700 p-6 flex flex-col gap-4 shadow-lg relative',
+      containerCompact: 'flex flex-col h-full p-3 overflow-auto scroll-touch',
+      tabBar: 'flex bg-slate-900/50 p-1 rounded-lg border border-slate-700/50',
+      tabActive: 'bg-slate-700 text-white shadow-sm',
+      tabInactive: 'text-slate-400 hover:text-slate-300',
+      metricCardBg: 'bg-slate-900/50 border border-slate-700/50 rounded-lg p-3 text-center',
+      metricLabel: 'flex items-center justify-center gap-1 text-xs text-slate-400 mb-1',
+      metricValue: 'text-xl font-bold font-mono text-white',
+      emptyState: 'flex items-center justify-center h-full text-slate-500 italic text-sm',
+      specEditButton: '',
+    };
+    const { container } = render(<StatsPanelBase {...defaultProps} colorScheme={customScheme} />);
+    // Custom scheme uses bg-slate-800
     expect(container.querySelector('.bg-slate-800')).not.toBeNull();
   });
 

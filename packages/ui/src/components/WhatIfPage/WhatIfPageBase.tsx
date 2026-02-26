@@ -33,16 +33,6 @@ export const whatIfPageDefaultColorScheme: WhatIfPageColorScheme = {
   mutedText: 'text-content-muted',
 };
 
-export const whatIfPageAzureColorScheme: WhatIfPageColorScheme = {
-  pageBg: 'bg-slate-900',
-  pageText: 'text-slate-300',
-  border: 'border-slate-700',
-  backHoverBg: 'hover:bg-slate-800',
-  secondaryText: 'text-slate-400',
-  headingText: 'text-white',
-  mutedText: 'text-slate-500',
-};
-
 export interface WhatIfPageBaseProps {
   /** Filtered data rows */
   filteredData: DataRow[];

@@ -27,16 +27,6 @@ export const defaultColorScheme: ErrorBoundaryColorScheme = {
   button: 'bg-surface-tertiary hover:bg-surface-elevated',
 };
 
-/**
- * Azure color scheme using Tailwind Slate palette
- */
-export const azureColorScheme: ErrorBoundaryColorScheme = {
-  container: 'bg-slate-800/50',
-  border: 'border-slate-700',
-  secondaryText: 'text-slate-400',
-  button: 'bg-slate-700 hover:bg-slate-600',
-};
-
 export interface ErrorBoundaryProps {
   children: ReactNode;
   /** Optional fallback component name for error message */

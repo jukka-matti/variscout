@@ -28,17 +28,6 @@ export const defaultColorScheme: VariationBarColorScheme = {
   mutedText: 'text-content-muted',
 };
 
-/**
- * Azure color scheme using Tailwind Slate palette
- */
-export const azureColorScheme: VariationBarColorScheme = {
-  barBg: 'bg-slate-700/50',
-  tooltipBg: 'bg-slate-800',
-  tooltipBorder: 'border-slate-700',
-  contentText: 'text-slate-300',
-  mutedText: 'text-slate-500',
-};
-
 export interface VariationBarProps {
   /** Current isolated variation percentage (0-100) */
   isolatedPct: number;
@@ -104,13 +93,6 @@ function getTextColor(impactLevel: 'high' | 'moderate' | 'low'): string {
  * ```tsx
  * // Using PWA semantic tokens (default)
  * <VariationBar isolatedPct={45} showLabels={true} />
- *
- * // Using Azure color scheme
- * <VariationBar
- *   isolatedPct={45}
- *   showLabels={true}
- *   colorScheme={azureColorScheme}
- * />
  * ```
  */
 const VariationBar: React.FC<VariationBarProps> = ({

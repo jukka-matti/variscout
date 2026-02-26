@@ -96,21 +96,6 @@ export const statsPanelDefaultColorScheme: StatsPanelColorScheme = {
     'mt-auto p-3 text-center bg-surface/80 rounded-lg text-xs text-content-muted border border-dashed border-edge cursor-pointer hover:border-edge-secondary hover:text-content hover:bg-surface-tertiary/50 transition-all flex items-center justify-center gap-2',
 };
 
-export const statsPanelAzureColorScheme: StatsPanelColorScheme = {
-  container:
-    'w-full lg:w-80 bg-slate-800 rounded-xl border border-slate-700 p-6 flex flex-col gap-4 shadow-lg relative',
-  containerCompact: 'flex flex-col h-full p-3 overflow-auto scroll-touch',
-  tabBar: 'flex bg-slate-900/50 p-1 rounded-lg border border-slate-700/50',
-  tabActive: 'bg-slate-700 text-white shadow-sm',
-  tabInactive: 'text-slate-400 hover:text-slate-300',
-  metricCardBg: 'bg-slate-900/50 border border-slate-700/50 rounded-lg p-3 text-center',
-  metricLabel: 'flex items-center justify-center gap-1 text-xs text-slate-400 mb-1',
-  metricValue: 'text-xl font-bold font-mono text-white',
-  emptyState: 'flex items-center justify-center h-full text-slate-500 italic text-sm',
-  specEditButton:
-    'mt-auto p-3 text-center bg-slate-900/80 rounded-lg text-xs text-slate-500 border border-dashed border-slate-700 cursor-pointer hover:border-slate-600 hover:text-slate-300 hover:bg-slate-800/50 transition-all flex items-center justify-center gap-2',
-};
-
 const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   stats,
   specs,

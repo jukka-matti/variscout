@@ -24,16 +24,6 @@ export const defaultColorScheme: FactorSelectorColorScheme = {
   indicatorBorder: 'border-surface',
 };
 
-/**
- * Azure color scheme using Tailwind Slate palette
- */
-export const azureColorScheme: FactorSelectorColorScheme = {
-  container: 'bg-slate-900/50 border-slate-700/50',
-  selected: 'bg-blue-600 text-white shadow-sm',
-  unselected: 'text-slate-400 hover:text-white hover:bg-slate-700/50',
-  indicatorBorder: '',
-};
-
 export interface FactorSelectorProps {
   factors: string[];
   selected: string;

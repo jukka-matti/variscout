@@ -17,19 +17,6 @@ export const boxplotDisplayToggleDefaultColorScheme: BoxplotDisplayToggleColorSc
   sectionLabel: 'text-xs font-medium text-content-muted uppercase tracking-wider',
 };
 
-export const boxplotDisplayToggleAzureColorScheme: BoxplotDisplayToggleColorScheme = {
-  trigger: 'text-slate-400 hover:text-white hover:bg-slate-700/50',
-  popoverContainer: 'fixed w-56 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl z-50',
-  checkbox:
-    'w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900',
-  checkboxLabel: 'text-sm text-slate-300',
-  description: 'text-xs text-slate-500',
-  radioActive: 'bg-blue-500/20 border-blue-500 text-blue-400',
-  radioInactive: 'bg-slate-800 border-slate-600 text-slate-400 hover:border-slate-500',
-  directionButton: 'text-slate-400 hover:text-white hover:bg-slate-700/50',
-  sectionLabel: 'text-xs font-medium text-slate-500 uppercase tracking-wider',
-};
-
 const SORT_OPTIONS: { value: BoxplotSortBy; label: string }[] = [
   { value: 'name', label: 'Name' },
   { value: 'mean', label: 'Mean' },

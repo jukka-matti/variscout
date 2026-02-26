@@ -20,21 +20,6 @@ export const specEditorDefaultColorScheme: SpecEditorColorScheme = {
   desktopCloseButton: 'text-content-secondary hover:text-white',
 };
 
-export const specEditorAzureColorScheme: SpecEditorColorScheme = {
-  label: 'block text-[10px] sm:text-xs text-slate-400 mb-1',
-  input:
-    'w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 sm:py-1 text-sm sm:text-xs text-white outline-none focus:border-blue-500',
-  mobileSheet:
-    'fixed inset-x-0 bottom-0 z-50 bg-slate-800 border-t border-slate-600 rounded-t-2xl shadow-2xl animate-slide-up',
-  mobileDragHandle: 'w-10 h-1 bg-slate-600 rounded-full',
-  mobileHeaderBorder: 'flex justify-between items-center border-b border-slate-700 px-4 pb-3',
-  mobileCloseButton: 'p-2 text-slate-400 hover:text-white touch-feedback rounded-lg',
-  desktopContainer:
-    'absolute z-50 bg-slate-800 border border-slate-600 rounded-lg shadow-2xl p-4 flex flex-col gap-4 w-80',
-  desktopHeaderBorder: 'flex justify-between items-center border-b border-slate-700 pb-3',
-  desktopCloseButton: 'text-slate-400 hover:text-white',
-};
-
 const SpecEditor = ({
   specs,
   onSave,

@@ -43,22 +43,6 @@ export const defaultColorScheme: AxisEditorColorScheme = {
   resetButton: 'bg-surface-tertiary hover:bg-surface-elevated',
 };
 
-/**
- * Azure color scheme using Tailwind Slate palette
- */
-export const azureColorScheme: AxisEditorColorScheme = {
-  container: 'bg-slate-800 border-slate-600',
-  containerBorder: '',
-  headerBorder: 'border-slate-700',
-  closeButton: 'text-slate-400 hover:text-white',
-  label: 'text-slate-400',
-  muted: 'text-slate-500',
-  input: 'bg-slate-900 border-slate-700',
-  sectionBorder: 'border-slate-700',
-  arrow: 'text-slate-600',
-  resetButton: 'bg-slate-700 hover:bg-slate-600',
-};
-
 export interface AxisEditorProps {
   title: string;
   originalName: string;

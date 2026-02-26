@@ -1,7 +1,6 @@
 export {
   default as WhatIfSimulator,
   whatIfSimulatorDefaultColorScheme,
-  whatIfSimulatorAzureColorScheme,
   type WhatIfSimulatorColorScheme,
   type WhatIfSimulatorProps,
   type SimulatorPreset,

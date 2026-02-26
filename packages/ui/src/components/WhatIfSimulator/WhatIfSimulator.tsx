@@ -79,31 +79,6 @@ export const whatIfSimulatorDefaultColorScheme: WhatIfSimulatorColorScheme = {
   sliderMozTrackBg: '[&::-moz-range-track]:bg-surface-tertiary',
 };
 
-export const whatIfSimulatorAzureColorScheme: WhatIfSimulatorColorScheme = {
-  containerBorder: 'border-slate-700',
-  containerBg: 'bg-slate-800/50',
-  headerHoverBg: 'hover:bg-slate-700/30',
-  contentText: 'text-white',
-  secondaryText: 'text-slate-400',
-  mutedText: 'text-slate-500',
-  presetBorder: 'border-slate-700',
-  presetBg: 'bg-slate-800',
-  presetHoverBg: 'hover:bg-slate-700',
-  presetText: 'text-slate-400',
-  presetHoverText: 'hover:text-white',
-  projectionBg: 'bg-slate-700/50',
-  projectionBorder: 'border-slate-700/50',
-  resetHoverText: 'hover:text-white',
-  cpkGood: 'text-green-500',
-  cpkOk: 'text-amber-500',
-  cpkBad: 'text-red-400',
-  improvementPositive: 'text-green-500',
-  improvementNegative: 'text-red-400',
-  sliderTrackBg: 'bg-slate-700',
-  sliderRingOffset: 'focus:ring-offset-slate-900',
-  sliderMozTrackBg: '[&::-moz-range-track]:bg-slate-700',
-};
-
 /**
  * Preset scenario for quick what-if analysis
  */

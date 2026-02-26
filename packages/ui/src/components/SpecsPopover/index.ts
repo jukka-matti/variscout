@@ -1,6 +1,2 @@
-export {
-  default as SpecsPopover,
-  specsPopoverDefaultColorScheme,
-  specsPopoverAzureColorScheme,
-} from './SpecsPopover';
+export { default as SpecsPopover, specsPopoverDefaultColorScheme } from './SpecsPopover';
 export type { SpecsPopoverProps, SpecsPopoverColorScheme } from './types';

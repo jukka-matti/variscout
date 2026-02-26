@@ -17,14 +17,12 @@ export { UpgradePrompt, type UpgradePromptProps } from './components/UpgradeProm
 export {
   AnovaResults,
   anovaDefaultColorScheme,
-  anovaAzureColorScheme,
   type AnovaResultsProps,
   type AnovaResultsColorScheme,
 } from './components/AnovaResults';
 export {
   YAxisPopover,
   yAxisPopoverDefaultColorScheme,
-  yAxisPopoverAzureColorScheme,
   type YAxisPopoverProps,
   type YAxisPopoverColorScheme,
 } from './components/YAxisPopover';
@@ -40,28 +38,24 @@ export {
 export {
   VariationBar,
   variationBarDefaultColorScheme,
-  variationBarAzureColorScheme,
   type VariationBarProps,
   type VariationBarColorScheme,
 } from './components/VariationBar';
 export {
   FilterChipDropdown,
   filterChipDropdownDefaultColorScheme,
-  filterChipDropdownAzureColorScheme,
   type FilterChipDropdownProps,
   type FilterChipDropdownColorScheme,
 } from './components/FilterChipDropdown';
 export {
   FilterBreadcrumb,
   filterBreadcrumbDefaultColorScheme,
-  filterBreadcrumbAzureColorScheme,
   type FilterBreadcrumbProps,
   type FilterBreadcrumbColorScheme,
 } from './components/FilterBreadcrumb';
 export {
   Slider,
   sliderDefaultColorScheme,
-  sliderAzureColorScheme,
   type SliderColorScheme,
   type SliderProps,
 } from './components/Slider';
@@ -69,7 +63,6 @@ export {
 export {
   WhatIfSimulator,
   whatIfSimulatorDefaultColorScheme,
-  whatIfSimulatorAzureColorScheme,
   type WhatIfSimulatorColorScheme,
   type WhatIfSimulatorProps,
   type SimulatorPreset,
@@ -79,7 +72,6 @@ export {
 export {
   WhatIfPageBase,
   whatIfPageDefaultColorScheme,
-  whatIfPageAzureColorScheme,
   type WhatIfPageColorScheme,
   type WhatIfPageBaseProps,
 } from './components/WhatIfPage';
@@ -87,21 +79,18 @@ export {
 export {
   ErrorBoundary,
   errorBoundaryDefaultColorScheme,
-  errorBoundaryAzureColorScheme,
   type ErrorBoundaryProps,
   type ErrorBoundaryColorScheme,
 } from './components/ErrorBoundary';
 export {
   AxisEditor,
   axisEditorDefaultColorScheme,
-  axisEditorAzureColorScheme,
   type AxisEditorProps,
   type AxisEditorColorScheme,
 } from './components/AxisEditor';
 export {
   FactorSelector,
   factorSelectorDefaultColorScheme,
-  factorSelectorAzureColorScheme,
   type FactorSelectorProps,
   type FactorSelectorColorScheme,
 } from './components/FactorSelector';
@@ -110,7 +99,6 @@ export {
   MindmapWindow,
   openMindmapPopout,
   mindmapWindowDefaultColorScheme,
-  mindmapWindowAzureColorScheme,
   type MindmapWindowColorScheme,
   type MindmapWindowProps,
 } from './components/MindmapWindow';
@@ -118,7 +106,6 @@ export {
 export {
   StatsPanelBase,
   statsPanelDefaultColorScheme,
-  statsPanelAzureColorScheme,
   type StatsPanelBaseProps,
   type StatsPanelColorScheme,
 } from './components/StatsPanel';
@@ -126,7 +113,6 @@ export {
 export {
   MindmapPanelContent,
   mindmapPanelDefaultColorScheme,
-  mindmapPanelAzureColorScheme,
   exportMindmapPng,
   exportMindmapSvg,
   exportMindmapToClipboard,
@@ -145,7 +131,6 @@ export {
 export {
   SpecsPopover,
   specsPopoverDefaultColorScheme,
-  specsPopoverAzureColorScheme,
   type SpecsPopoverProps,
   type SpecsPopoverColorScheme,
 } from './components/SpecsPopover';
@@ -153,7 +138,6 @@ export {
 export {
   SpecEditor,
   specEditorDefaultColorScheme,
-  specEditorAzureColorScheme,
   type SpecEditorProps,
   type SpecEditorColorScheme,
 } from './components/SpecEditor';
@@ -168,7 +152,6 @@ export { ProbabilityPlot, type ProbabilityPlotProps } from './components/Probabi
 export {
   FilterContextBar,
   filterContextBarDefaultColorScheme,
-  filterContextBarAzureColorScheme,
   type FilterContextBarProps,
   type FilterContextBarColorScheme,
 } from './components/FilterContextBar';
@@ -176,7 +159,6 @@ export {
 export {
   BoxplotDisplayToggle,
   boxplotDisplayToggleDefaultColorScheme,
-  boxplotDisplayToggleAzureColorScheme,
   type BoxplotDisplayToggleProps,
   type BoxplotDisplayToggleColorScheme,
 } from './components/BoxplotDisplayToggle';
@@ -198,7 +180,6 @@ export { DataTableBase, type DataTableBaseProps } from './components/DataTable';
 export {
   ChartDownloadMenu,
   chartDownloadMenuDefaultColorScheme,
-  chartDownloadMenuAzureColorScheme,
   type ChartDownloadMenuProps,
   type ChartDownloadMenuColorScheme,
 } from './components/ChartExportMenu';
@@ -206,7 +187,6 @@ export {
 export {
   InvestigationPrompt,
   investigationPromptDefaultColorScheme,
-  investigationPromptAzureColorScheme,
   type InvestigationPromptProps,
   type InvestigationPromptColorScheme,
 } from './components/InvestigationPrompt';
@@ -214,7 +194,6 @@ export {
 export {
   StratificationGrid,
   stratificationGridDefaultColorScheme,
-  stratificationGridAzureColorScheme,
   type StratificationGridProps,
   type StratificationGridColorScheme,
 } from './components/StratificationGrid';
@@ -222,7 +201,6 @@ export {
 export {
   default as PasteScreenBase,
   pasteScreenDefaultColorScheme,
-  pasteScreenAzureColorScheme,
   type PasteScreenBaseProps,
   type PasteScreenColorScheme,
 } from './components/PasteScreen';

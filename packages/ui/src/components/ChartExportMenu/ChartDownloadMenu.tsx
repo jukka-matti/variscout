@@ -13,17 +13,6 @@ export const chartDownloadMenuDefaultColorScheme: ChartDownloadMenuColorScheme =
   menuItemLabel: '',
 };
 
-export const chartDownloadMenuAzureColorScheme: ChartDownloadMenuColorScheme = {
-  trigger: 'text-slate-500 hover:text-white hover:bg-slate-700',
-  triggerActive: 'bg-green-500/20 text-green-400',
-  popoverContainer:
-    'fixed w-44 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl z-50 animate-fade-in',
-  menuItem:
-    'flex items-center gap-2.5 w-full px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors',
-  menuItemIcon: 'shrink-0',
-  menuItemLabel: '',
-};
-
 const ChartDownloadMenu: React.FC<ChartDownloadMenuProps> = ({
   containerId,
   chartName,

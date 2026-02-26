@@ -33,18 +33,6 @@ export const defaultColorScheme: AnovaResultsColorScheme = {
   secondaryText: 'text-content-secondary',
 };
 
-/**
- * Azure color scheme using Tailwind Slate palette
- */
-export const azureColorScheme: AnovaResultsColorScheme = {
-  background: 'bg-slate-900/50',
-  border: 'border-slate-700/50',
-  headerText: 'text-slate-400',
-  contentText: 'text-slate-300',
-  mutedText: 'text-slate-500',
-  secondaryText: 'text-slate-400',
-};
-
 export interface AnovaResultsProps {
   /** ANOVA calculation result from @variscout/core */
   result: AnovaResult | null;
@@ -73,13 +61,6 @@ function formatPValue(p: number): string {
  * ```tsx
  * // Using PWA semantic tokens (default)
  * <AnovaResults result={anovaResult} factorLabel="Shift" />
- *
- * // Using Azure color scheme
- * <AnovaResults
- *   result={anovaResult}
- *   factorLabel="Shift"
- *   colorScheme={azureColorScheme}
- * />
  * ```
  */
 const AnovaResults = ({

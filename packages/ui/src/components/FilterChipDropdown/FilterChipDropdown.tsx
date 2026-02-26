@@ -45,22 +45,6 @@ export const defaultColorScheme: FilterChipDropdownColorScheme = {
   progressBg: 'bg-surface-tertiary',
 };
 
-/**
- * Azure color scheme using Tailwind Slate palette
- */
-export const azureColorScheme: FilterChipDropdownColorScheme = {
-  secondaryBg: 'bg-slate-800',
-  tertiaryBg: 'bg-slate-700/50',
-  surfaceBg: 'bg-slate-900',
-  border: 'border-slate-700',
-  borderSecondary: 'border-slate-600',
-  textSecondary: 'text-slate-400',
-  textMuted: 'text-slate-500',
-  hoverBg: 'hover:bg-slate-700/50',
-  selectedBg: 'bg-slate-700/30',
-  progressBg: 'bg-slate-700',
-};
-
 export interface FilterChipDropdownProps {
   /** Chip data with available values and contributions */
   chipData: FilterChipData;
@@ -105,7 +89,6 @@ export interface FilterChipDropdownProps {
  *   onValuesChange={handleValuesChange}
  *   onClose={handleClose}
  *   anchorRect={anchorRect}
- *   colorScheme={azureColorScheme}
  * />
  * ```
  */

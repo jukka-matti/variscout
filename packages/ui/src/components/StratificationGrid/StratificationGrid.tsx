@@ -36,23 +36,6 @@ export const stratificationGridDefaultColorScheme: StratificationGridColorScheme
   suggestedBorder: 'border-green-500/60',
 };
 
-/**
- * Azure color scheme using Tailwind Slate palette
- */
-export const stratificationGridAzureColorScheme: StratificationGridColorScheme = {
-  cardBg: 'bg-slate-800',
-  cardBorder: 'border-slate-700',
-  cardActiveBg: 'bg-blue-500/10',
-  cardActiveBorder: 'border-blue-500/40',
-  cardExhaustedBg: 'bg-slate-800/60',
-  textPrimary: 'text-white',
-  textSecondary: 'text-slate-400',
-  textMuted: 'text-slate-500',
-  chipHoverBg: 'hover:bg-slate-700/50',
-  progressBg: 'bg-slate-700',
-  suggestedBorder: 'border-green-500/60',
-};
-
 export interface StratificationGridProps {
   /** Factor nodes to display */
   nodes: MindmapNode[];

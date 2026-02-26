@@ -20,23 +20,6 @@ export const specsPopoverDefaultColorScheme: SpecsPopoverColorScheme = {
   applyDisabled: 'bg-surface-tertiary text-content-muted cursor-not-allowed',
 };
 
-export const specsPopoverAzureColorScheme: SpecsPopoverColorScheme = {
-  triggerActive: 'text-blue-400 hover:text-blue-300 hover:bg-slate-700/50',
-  triggerInactive: 'text-slate-400 hover:text-white hover:bg-slate-700/50',
-  popoverContainer: 'fixed w-64 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl z-50',
-  headerBorder: 'flex items-center justify-between px-3 py-2 border-b border-slate-700',
-  headerText: 'text-xs font-semibold text-slate-400 uppercase tracking-wider',
-  advancedButton: 'p-1 text-slate-500 hover:text-white rounded transition-colors',
-  checkbox:
-    'w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900',
-  checkboxLabel: 'text-sm text-slate-300 w-14',
-  input:
-    'w-24 bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-sm text-white text-right outline-none focus:border-blue-500 transition-colors',
-  inputDisabled: 'opacity-50 cursor-not-allowed',
-  applyActive: 'bg-blue-600 hover:bg-blue-500 text-white',
-  applyDisabled: 'bg-slate-800 text-slate-500 cursor-not-allowed',
-};
-
 interface SpecVisibility {
   usl: boolean;
   lsl: boolean;

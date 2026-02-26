@@ -204,7 +204,7 @@ Both PWA and Azure use the same semantic tokens. The Slate equivalents are shown
 
 ### Available Color Schemes
 
-Components export a default color scheme using semantic tokens. Azure-specific exports still exist in code for backwards compatibility but are no longer consumed by the Azure app:
+Each component exports a single `defaultColorScheme` using semantic tokens. Both PWA and Azure apps use these defaults:
 
 | Component                   | Default Export                            | Notes                              |
 | --------------------------- | ----------------------------------------- | ---------------------------------- |

@@ -30,15 +30,6 @@ export const mindmapPanelDefaultColorScheme: MindmapPanelColorScheme = {
   mutedText: 'text-content-muted',
 };
 
-export const mindmapPanelAzureColorScheme: MindmapPanelColorScheme = {
-  toggleBg: 'bg-slate-900',
-  inactiveText: 'text-slate-400 hover:text-white',
-  actionButtonText: 'text-slate-400',
-  actionButtonHoverBg: 'hover:bg-slate-700',
-  border: 'border-slate-700',
-  mutedText: 'text-slate-500',
-};
-
 type MindmapMode = 'drilldown' | 'narrative';
 
 export interface MindmapPanelContentProps {

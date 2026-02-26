@@ -24,14 +24,6 @@ export const sliderDefaultColorScheme: SliderColorScheme = {
   mozTrackBg: '[&::-moz-range-track]:bg-surface-tertiary',
 };
 
-export const sliderAzureColorScheme: SliderColorScheme = {
-  labelText: 'text-slate-400',
-  valueText: 'text-white',
-  trackBg: 'bg-slate-700',
-  ringOffset: 'focus:ring-offset-slate-900',
-  mozTrackBg: '[&::-moz-range-track]:bg-slate-700',
-};
-
 export interface SliderProps {
   /** Label displayed above the slider */
   label: string;

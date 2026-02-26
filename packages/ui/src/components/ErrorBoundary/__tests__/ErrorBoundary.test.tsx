@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import ErrorBoundary, { azureColorScheme } from '../ErrorBoundary';
+import ErrorBoundary, { defaultColorScheme } from '../ErrorBoundary';
 
 // Mock the error service
 vi.mock('../../../services', () => ({
@@ -101,11 +101,11 @@ describe('ErrorBoundary', () => {
 
   it('applies custom colorScheme classes', () => {
     const { container } = render(
-      <ErrorBoundary colorScheme={azureColorScheme}>
+      <ErrorBoundary colorScheme={defaultColorScheme}>
         <ThrowingChild shouldThrow={true} />
       </ErrorBoundary>
     );
-    const fallbackDiv = container.querySelector('.bg-slate-800\\/50');
+    const fallbackDiv = container.querySelector('.bg-surface-secondary\\/50');
     expect(fallbackDiv).not.toBeNull();
   });
 

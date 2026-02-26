@@ -59,27 +59,6 @@ export const defaultColorScheme: YAxisPopoverColorScheme = {
   disabledButtonText: 'text-content-muted',
 };
 
-/**
- * Azure color scheme using Tailwind Slate palette
- */
-export const azureColorScheme: YAxisPopoverColorScheme = {
-  background: 'bg-slate-800',
-  border: 'border-slate-600',
-  headerText: 'text-slate-400',
-  closeButtonDefault: 'text-slate-500',
-  closeButtonHover: 'hover:text-white',
-  labelText: 'text-slate-400',
-  autoValueText: 'text-slate-500',
-  inputBackground: 'bg-slate-900',
-  inputBorder: 'border-slate-700',
-  resetButtonBg: 'bg-slate-700',
-  resetButtonHoverBg: 'hover:bg-slate-600',
-  resetButtonText: 'text-slate-400',
-  resetButtonHoverText: 'hover:text-white',
-  disabledButtonBg: 'bg-slate-700',
-  disabledButtonText: 'text-slate-500',
-};
-
 export interface YAxisPopoverProps {
   /** Whether the popover is visible */
   isOpen: boolean;
@@ -118,15 +97,6 @@ export interface YAxisPopoverProps {
  *   onSave={(settings) => setAxisSettings(settings)}
  * />
  *
- * // Using Azure color scheme
- * <YAxisPopover
- *   isOpen={isOpen}
- *   onClose={() => setIsOpen(false)}
- *   autoMin={0}
- *   autoMax={100}
- *   onSave={(settings) => setAxisSettings(settings)}
- *   colorScheme={azureColorScheme}
- * />
  * ```
  */
 const YAxisPopover: React.FC<YAxisPopoverProps> = ({

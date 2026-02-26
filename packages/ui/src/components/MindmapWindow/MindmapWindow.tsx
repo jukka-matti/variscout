@@ -33,13 +33,6 @@ export const mindmapWindowDefaultColorScheme: MindmapWindowColorScheme = {
   buttonHoverBg: 'hover:bg-surface-tertiary',
 };
 
-export const mindmapWindowAzureColorScheme: MindmapWindowColorScheme = {
-  pageBg: 'bg-slate-900',
-  secondaryText: 'text-slate-400',
-  toggleBg: 'bg-slate-800',
-  buttonHoverBg: 'hover:bg-slate-700',
-};
-
 /**
  * Storage key for cross-window data sync
  */

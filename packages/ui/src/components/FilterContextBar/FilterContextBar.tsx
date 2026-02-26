@@ -25,16 +25,6 @@ export const defaultColorScheme: FilterContextBarColorScheme = {
   textSeparator: 'text-content-muted',
 };
 
-/**
- * Azure color scheme using Tailwind Slate palette
- */
-export const azureColorScheme: FilterContextBarColorScheme = {
-  textLabel: 'text-slate-400',
-  textValue: 'text-slate-500',
-  textVariation: 'text-blue-400',
-  textSeparator: 'text-slate-600',
-};
-
 export interface FilterContextBarProps {
   /** Filter chip data from useVariationTracking */
   filterChipData: FilterChipData[];
