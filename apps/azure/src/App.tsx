@@ -5,22 +5,30 @@ import { ThemeProvider } from './context/ThemeContext';
 import { StorageProvider, useStorage } from './services/storage';
 import { Dashboard as ProjectDashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
-import MindmapWindow from './components/MindmapWindow';
+
 import { AdminTeamsSetup } from './components/AdminTeamsSetup';
 import SettingsPanel from './components/settings/SettingsPanel';
 import { SyncToastContainer } from './components/SyncToast';
-import { ErrorBoundary } from '@variscout/ui';
+import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
 import { Activity, LogOut, Settings, Shield } from 'lucide-react';
 
 type View = 'dashboard' | 'editor' | 'admin-teams';
 
 function App() {
-  // Detect popout mode from URL — render standalone mindmap without auth
-  const [isMindmapPopout] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('view') === 'mindmap';
-  });
+  // Popout window route: render standalone FindingsWindow
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('view') === 'findings') {
+    return (
+      <ThemeProvider>
+        <FindingsWindow />
+      </ThemeProvider>
+    );
+  }
 
+  return <AppMain />;
+}
+
+function AppMain() {
   const [user, setUser] = useState<EasyAuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -48,10 +56,6 @@ function App() {
     setCurrentProject(null);
     setCurrentView('dashboard');
   };
-
-  if (isMindmapPopout) {
-    return <MindmapWindow />;
-  }
 
   // Still checking auth
   if (!authChecked) {

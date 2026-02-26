@@ -105,17 +105,6 @@ export { default as ProbabilityPlot, ProbabilityPlotBase } from './ProbabilityPl
 export { default as ChartSourceBar, getSourceBarHeight } from './ChartSourceBar';
 export { default as ChartLegend, type ChartLegendProps } from './ChartLegend';
 
-// Investigation Mindmap (drilldown + interaction spatial view)
-export {
-  default as InvestigationMindmap,
-  InvestigationMindmapBase,
-  type InvestigationMindmapProps,
-  type MindmapNode,
-  type MindmapMode,
-  type CategoryData,
-  type NarrativeStep,
-} from './InvestigationMindmap';
-
 // Performance chart components
 export { default as PerformanceIChart, PerformanceIChartBase } from './PerformanceIChart';
 export { default as PerformanceBoxplot, PerformanceBoxplotBase } from './PerformanceBoxplot';

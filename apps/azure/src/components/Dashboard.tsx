@@ -70,6 +70,8 @@ interface DashboardProps {
   onExitPresentation?: () => void;
   /** Callback to open ColumnMapping in re-edit mode for factor management */
   onManageFactors?: () => void;
+  /** Callback to pin current filter state as a finding */
+  onPinFinding?: () => void;
 }
 
 const Dashboard = ({
@@ -90,6 +92,7 @@ const Dashboard = ({
   isPresentationMode,
   onExitPresentation,
   onManageFactors,
+  onPinFinding,
 }: DashboardProps) => {
   const {
     outcome,
@@ -285,6 +288,7 @@ const Dashboard = ({
               onRemoveFilter={handleRemoveFilter}
               onClearAll={handleClearAllFilters}
               cumulativeVariationPct={cumulativeVariationPct}
+              onPinFinding={onPinFinding}
             />
           </div>
           {activeTab === 'analysis' && !focusedChart && (

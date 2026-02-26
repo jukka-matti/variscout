@@ -70,10 +70,10 @@ _See [full process map](process-maps.md#analyst-flow-a-process-investigation) wi
 
 A quality investigation has two distinct mental modes:
 
-| Phase                   | Tool                  | Question                         | Output                 |
-| ----------------------- | --------------------- | -------------------------------- | ---------------------- |
-| **Investigate**         | Investigation Mindmap | "What is causing the variation?" | Key factors identified |
-| **Project improvement** | What-If Simulator     | "What if we fixed it?"           | Projected Cpk/yield    |
+| Phase                   | Tool              | Question                         | Output                 |
+| ----------------------- | ----------------- | -------------------------------- | ---------------------- |
+| **Investigate**         | Findings panel    | "What is causing the variation?" | Key factors identified |
+| **Project improvement** | What-If Simulator | "What if we fixed it?"           | Projected Cpk/yield    |
 
 Each phase requires a different cognitive approach. Separating them reduces cognitive load and prevents premature conclusions.
 
@@ -86,17 +86,19 @@ An earlier design (the now-removed Variation Funnel) conflated investigation and
 
 The two-phase approach mirrors how experienced quality engineers actually think: first understand the root causes, then project improvement.
 
-## Phase 1: Investigate (Mindmap)
+## Phase 1: Investigate (Findings)
 
 **Goal:** Identify the factors driving variation.
 
-Use the Investigation Mindmap to progressively drill into the data. Modes unlock as the investigation progresses:
+Use the dashboard's drill-down workflow to progressively filter the data by factors. As you discover interesting patterns, pin them as findings:
 
-1. **Drilldown mode** (always available) — Click factors to filter. Each node shows its contribution to total variation (see [Variation Decomposition](../analysis/variation-decomposition.md) for how these metrics are computed). Follow the highest contribution path.
+1. **Drill into factors** — Click Boxplot/Pareto categories to filter. Each factor's ANOVA η² shows its contribution to total variation. Follow the highest contribution path.
 
-2. **Narrative mode** (unlocks after first drill) — Review the investigation timeline. See every drill step in sequence to verify the logic. This mode is disabled until at least one filter has been applied.
+2. **Pin findings** — Click the pin button in the breadcrumb bar to capture the current filter state as a finding. Add a note describing what you observed. The finding card stores the active filters, cumulative variation %, and key statistics.
 
-Disabled modes appear muted in the mode toggle with a tooltip explaining the unlock condition. Export (copy-to-clipboard, PNG download) is available in both modes.
+3. **Review findings** — Open the Findings panel to see all bookmarked states. Click a finding card to restore its filter combination on the dashboard. Edit or delete findings as your understanding evolves.
+
+The Findings panel can be popped out to a separate window for dual-monitor setups — keep findings visible on one screen while drilling on the other.
 
 ### Exit criterion
 
@@ -108,15 +110,15 @@ Stop investigating when:
 
 ### Output
 
-A list of key factors and their contribution percentages. These become the basis for improvement scenarios in Phase 2.
+A list of pinned findings, each with filter context, variation %, and analyst notes. These become the basis for improvement scenarios in Phase 2.
 
 See [Drill-Down Workflow](drill-down-workflow.md) for detailed drill-down mechanics.
 
 ### Transition to Phase 2
 
-After identifying key factors in the Mindmap, open the What-If Simulator to project improvement scenarios. The transition is manual: the investigation findings inform which adjustments to explore in What-If.
+After identifying key factors via findings, open the What-If Simulator to project improvement scenarios. The transition is manual: the investigation findings inform which adjustments to explore in What-If.
 
-For example, if the Mindmap investigation reveals that Machine B accounts for 35% of variation and the Weekend shift adds 20%, the analyst can use What-If to model centering the process (mean shift) and reducing spread (variation reduction) to estimate the combined Cpk improvement.
+For example, if the investigation reveals that Machine B accounts for 35% of variation and the Weekend shift adds 20%, the analyst can use What-If to model centering the process (mean shift) and reducing spread (variation reduction) to estimate the combined Cpk improvement.
 
 ## Phase 2: Project Improvement (What-If Simulator)
 

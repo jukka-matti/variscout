@@ -55,7 +55,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Linked filtering**              |     ✓     |     ✓      |                                                                                                               |
 | **Breadcrumb navigation**         |     ✓     |     ✓      |                                                                                                               |
 | **Multi-select filters**          |     ✓     |     ✓      |                                                                                                               |
-| **Investigation Mindmap**         |     ✓     |     ✓      | Azure adds: SVG export, annotation persistence                                                                |
+| **Findings panel**                |     ✓     |     ✓      | Pin filter states with notes; Azure adds: persistence, popout window                                          |
 | **What-If Simulator**             |     ✓     |     ✓      |                                                                                                               |
 | **Keyboard navigation**           |     ✓     |     ✓      |                                                                                                               |
 | **Copy chart to clipboard**       |     ✓     |     ✓      | Includes filter context bar when active                                                                       |
@@ -123,8 +123,8 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 | Feature                  | Azure App | PWA (Free) | Notes                                                                            |
 | ------------------------ | :-------: | :--------: | -------------------------------------------------------------------------------- |
-| **Dark/Light theme**     |     ✓     |     ✓      |                                                                                  |
-| **System theme follow**  |     ✓     |     ✓      |                                                                                  |
+| **Dark/Light theme**     |     ✓     |     -      | PWA: dark only; Azure: full dark/light switching                                 |
+| **System theme follow**  |     ✓     |     -      | PWA: dark only; Azure: follows system preference                                 |
 | **Company accent color** |     ✓     |     -      | Azure App only                                                                   |
 | **Chart font scale**     |     ✓     |     ✓      | Compact / Normal / Large presets in both apps                                    |
 | **Settings panel**       |     ✓     |     ✓      | PWA: display toggles + chart text size; Azure: full (theme, accent, all toggles) |
@@ -166,7 +166,6 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - EasyAuth authentication flow
 - Company accent color / branding removal
 - ARM template deployment (Managed Application)
-- Factor management during analysis (add/remove factors without restarting)
 - Add data during analysis (paste/upload append with row/column auto-detection)
 - Presentation mode (full-screen chart overview with focused navigation)
 - Sync notifications (toast feedback for cloud operations)

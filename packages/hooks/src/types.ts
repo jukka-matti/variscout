@@ -15,6 +15,7 @@ import type {
   BoxplotSortDirection,
   FilterAction,
   StageOrderMode,
+  Finding,
 } from '@variscout/core';
 
 // Re-export for convenience
@@ -226,6 +227,10 @@ export interface AnalysisState {
   // --- View state (Phase 4) ---
   /** Where the analyst was working (tab, panels, focused chart) */
   viewState?: ViewState;
+
+  // --- Findings (scouting report) ---
+  /** Analyst findings — bookmarked filter states with notes */
+  findings?: Finding[];
 }
 
 /**

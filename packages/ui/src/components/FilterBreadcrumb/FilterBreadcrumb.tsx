@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, Pin, X } from 'lucide-react';
 import type { FilterChipData } from '@variscout/hooks';
 import { VariationBar, type VariationBarColorScheme } from '../VariationBar';
 import { FilterChipDropdown, type FilterChipDropdownColorScheme } from '../FilterChipDropdown';
@@ -77,6 +77,8 @@ export interface FilterBreadcrumbProps {
   colorScheme?: FilterBreadcrumbColorScheme;
   /** Optional click handler for VariationBar (e.g., to open investigation panel) */
   onVariationBarClick?: () => void;
+  /** Optional callback to pin current filter state as a finding */
+  onPinFinding?: () => void;
 }
 
 /**
@@ -128,6 +130,7 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
   cumulativeVariationPct,
   colorScheme = defaultColorScheme,
   onVariationBarClick,
+  onPinFinding,
 }) => {
   // Track which chip's dropdown is open
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -296,6 +299,23 @@ const FilterBreadcrumb: React.FC<FilterBreadcrumbProps> = ({
           >
             <X size={14} />
             <span className="hidden sm:inline">Clear</span>
+          </button>
+        )}
+
+        {/* Pin finding button — visible when filters are active */}
+        {onPinFinding && chips.length > 0 && (
+          <button
+            onClick={onPinFinding}
+            data-testid="btn-pin-finding"
+            className={`
+              p-1.5 rounded transition-colors
+              text-content-muted hover:text-blue-400 hover:bg-blue-400/10
+              ${!onClearAll ? 'ml-auto' : ''}
+            `}
+            title="Save current filters as a finding"
+            aria-label="Pin as finding"
+          >
+            <Pin size={14} />
           </button>
         )}
       </div>

@@ -218,3 +218,7 @@ export { createFactorFromSelection, isValidFactorName, getColumnNames } from './
 
 // Numeric utilities (stack-safe for large datasets)
 export { safeMin, safeMax } from './utils/minmax';
+
+// Findings (scouting report)
+export type { Finding, FindingContext } from './findings';
+export { createFinding, formatFindingFilters } from './findings';

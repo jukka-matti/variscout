@@ -140,7 +140,7 @@ const IChart = ({
         data={data}
         stats={effectiveStats}
         stagedStats={effectiveStagedStats}
-        specs={specs}
+        specs={displayOptions.showSpecs !== false ? specs : {}}
         yAxisLabel={columnAliases[outcome] || outcome}
         axisSettings={axisSettings}
         parentWidth={parentWidth}

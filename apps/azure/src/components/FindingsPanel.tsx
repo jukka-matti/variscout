@@ -1,0 +1,228 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { GripVertical, X, ClipboardCopy, Check, ExternalLink } from 'lucide-react';
+import type { Finding } from '@variscout/core';
+import type { DrillStep } from '@variscout/hooks';
+import { FindingsLog, FindingEditor, copyFindingsToClipboard } from '@variscout/ui';
+
+// Width constraints
+const MIN_WIDTH = 320;
+const MAX_WIDTH = 600;
+const DEFAULT_WIDTH = 384;
+const STORAGE_KEY = 'variscout-azure-findings-panel-width';
+
+interface FindingsPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  findings: Finding[];
+  onEditFinding: (id: string, text: string) => void;
+  onDeleteFinding: (id: string) => void;
+  onRestoreFinding: (id: string) => void;
+  columnAliases?: Record<string, string>;
+  drillPath: DrillStep[];
+  activeFindingId?: string | null;
+  /** When true, show the note editor for a new finding */
+  pendingNewFinding?: boolean;
+  /** Called when the new finding note is saved */
+  onSaveNewFinding?: (text: string) => void;
+  /** Called when the new finding note is cancelled */
+  onCancelNewFinding?: () => void;
+  /** Open findings in a separate popout window */
+  onPopout?: () => void;
+}
+
+/**
+ * Azure FindingsPanel — inline flex panel with resizable width.
+ * Replaces the old MindmapPanel.
+ */
+const FindingsPanel: React.FC<FindingsPanelProps> = ({
+  isOpen,
+  onClose,
+  findings,
+  onEditFinding,
+  onDeleteFinding,
+  onRestoreFinding,
+  columnAliases,
+  drillPath,
+  activeFindingId,
+  pendingNewFinding,
+  onSaveNewFinding,
+  onCancelNewFinding,
+  onPopout,
+}) => {
+  const [copyFeedback, setCopyFeedback] = useState(false);
+
+  // Panel width state (persisted to localStorage)
+  const [width, setWidth] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? Math.min(Math.max(parseInt(saved, 10), MIN_WIDTH), MAX_WIDTH) : DEFAULT_WIDTH;
+  });
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Save width to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, width.toString());
+  }, [width]);
+
+  // Drag handlers for resizing
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = window.innerWidth - e.clientX;
+      setWidth(Math.min(Math.max(newWidth, MIN_WIDTH), MAX_WIDTH));
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  // Close on escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  const handleCopyAll = useCallback(async () => {
+    const ok = await copyFindingsToClipboard(findings, columnAliases);
+    if (ok) {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    }
+  }, [findings, columnAliases]);
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Draggable divider (matches DataPanel pattern) */}
+      <div
+        className={`w-1 bg-surface-tertiary hover:bg-blue-500 cursor-col-resize flex-shrink-0 flex items-center justify-center transition-colors ${
+          isDragging ? 'bg-blue-500' : ''
+        }`}
+        onMouseDown={handleMouseDown}
+      >
+        <GripVertical size={12} className="text-content-muted" />
+      </div>
+
+      {/* Panel */}
+      <div
+        className="flex-shrink-0 bg-surface-secondary border-l border-edge flex flex-col overflow-hidden"
+        style={{ width }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
+          <h2 className="text-sm font-semibold text-white">
+            Findings
+            {findings.length > 0 && (
+              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
+                {findings.length}
+              </span>
+            )}
+          </h2>
+
+          <div className="flex items-center gap-1">
+            {findings.length > 0 && (
+              <button
+                onClick={handleCopyAll}
+                className={`p-1.5 rounded-lg transition-all ${
+                  copyFeedback
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'text-content-secondary hover:text-white hover:bg-surface-tertiary'
+                }`}
+                title="Copy all findings to clipboard"
+                aria-label="Copy all findings"
+              >
+                {copyFeedback ? <Check size={14} /> : <ClipboardCopy size={14} />}
+              </button>
+            )}
+            {onPopout && (
+              <button
+                onClick={onPopout}
+                className="hidden sm:inline-flex p-1.5 text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
+                title="Open in separate window"
+                aria-label="Open findings in separate window"
+              >
+                <ExternalLink size={14} />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
+              title="Close"
+              aria-label="Close findings panel"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* New finding editor (shown when pin button is clicked) */}
+        {pendingNewFinding && onSaveNewFinding && onCancelNewFinding && (
+          <div className="px-3 pt-3 pb-1 border-b border-edge">
+            <p className="text-[10px] text-content-muted uppercase tracking-wider mb-1.5">
+              New finding
+            </p>
+            <FindingEditor
+              placeholder="What did you find?"
+              onSave={onSaveNewFinding}
+              onCancel={onCancelNewFinding}
+            />
+          </div>
+        )}
+
+        {/* Findings list */}
+        <FindingsLog
+          findings={findings}
+          onEditFinding={onEditFinding}
+          onDeleteFinding={onDeleteFinding}
+          onRestoreFinding={onRestoreFinding}
+          columnAliases={columnAliases}
+          activeFindingId={activeFindingId}
+        />
+
+        {/* Drill path footer */}
+        {drillPath.length > 0 && (
+          <div className="px-4 py-3 border-t border-edge">
+            <div className="text-[10px] text-content-muted uppercase tracking-wider mb-1.5">
+              Drill Path
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {drillPath.map((step, i) => (
+                <span
+                  key={step.factor}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[11px] rounded-full"
+                >
+                  {columnAliases?.[step.factor] || step.factor}
+                  <span className="text-blue-300/60">{(step.scopeFraction * 100).toFixed(0)}%</span>
+                  {i < drillPath.length - 1 && (
+                    <span className="text-content-muted ml-0.5">&rarr;</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
+
+export default FindingsPanel;

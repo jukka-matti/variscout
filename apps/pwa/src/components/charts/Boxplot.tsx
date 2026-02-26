@@ -123,7 +123,7 @@ const Boxplot = ({
     <div className="relative w-full h-full">
       <BoxplotBase
         data={data}
-        specs={specs}
+        specs={displayOptions.showSpecs !== false ? specs : {}}
         yAxisLabel={columnAliases[outcome] || outcome}
         xAxisLabel={alias}
         yDomainOverride={{ min, max }}

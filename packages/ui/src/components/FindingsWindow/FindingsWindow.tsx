@@ -1,0 +1,258 @@
+import React, { useEffect, useState, useCallback } from 'react';
+import { ClipboardCopy, Check } from 'lucide-react';
+import type { Finding } from '@variscout/core';
+import type { DrillStep } from '@variscout/hooks';
+import FindingsLog from '../FindingsLog/FindingsLog';
+import { copyFindingsToClipboard } from '../FindingsLog/export';
+
+/**
+ * Storage keys for cross-window data sync
+ */
+export const FINDINGS_SYNC_KEY = 'variscout_findings_sync';
+export const FINDINGS_ACTION_KEY = 'variscout_findings_action';
+
+export interface FindingsSyncData {
+  findings: Finding[];
+  columnAliases?: Record<string, string>;
+  drillPath: DrillStep[];
+  timestamp: number;
+}
+
+export interface FindingsAction {
+  type: 'edit' | 'delete';
+  id: string;
+  text?: string; // for edit
+  timestamp: number;
+}
+
+/**
+ * Standalone findings window for dual-screen setups.
+ *
+ * Rendered when the URL contains ?view=findings.
+ * Receives findings from the main window via localStorage sync.
+ *
+ * Communication pattern:
+ * 1. Main window writes findings data to localStorage under FINDINGS_SYNC_KEY
+ * 2. This window listens for storage events and updates its state
+ * 3. Edit/delete actions are sent back via FINDINGS_ACTION_KEY
+ */
+const FindingsWindow: React.FC = () => {
+  const [syncData, setSyncData] = useState<FindingsSyncData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [copyFeedback, setCopyFeedback] = useState(false);
+
+  // Load initial data from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(FINDINGS_SYNC_KEY);
+      if (stored) {
+        const data = JSON.parse(stored) as FindingsSyncData;
+        setSyncData(data);
+      } else {
+        setError('No data available. Please open from the main VariScout window.');
+      }
+    } catch {
+      setError('Failed to load data from main window.');
+    }
+  }, []);
+
+  // Listen for storage updates from main window
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === FINDINGS_SYNC_KEY && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue) as FindingsSyncData;
+          setSyncData(data);
+          setError(null);
+        } catch (err) {
+          console.error('Failed to parse sync data:', err);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Edit finding — send action to main window via localStorage
+  const handleEditFinding = useCallback((id: string, text: string) => {
+    const action: FindingsAction = { type: 'edit', id, text, timestamp: Date.now() };
+    localStorage.setItem(FINDINGS_ACTION_KEY, JSON.stringify(action));
+
+    // Optimistic local update
+    setSyncData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        findings: prev.findings.map(f => (f.id === id ? { ...f, text } : f)),
+        timestamp: Date.now(),
+      };
+    });
+  }, []);
+
+  // Delete finding — send action to main window via localStorage
+  const handleDeleteFinding = useCallback((id: string) => {
+    const action: FindingsAction = { type: 'delete', id, timestamp: Date.now() };
+    localStorage.setItem(FINDINGS_ACTION_KEY, JSON.stringify(action));
+
+    // Optimistic local update
+    setSyncData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        findings: prev.findings.filter(f => f.id !== id),
+        timestamp: Date.now(),
+      };
+    });
+  }, []);
+
+  // Restore finding (no-op in popout — navigate happens in main window)
+  const handleRestoreFinding = useCallback(() => {
+    // Restoring filters only makes sense in the main window
+  }, []);
+
+  // Copy all findings
+  const handleCopyAll = useCallback(async () => {
+    if (!syncData) return;
+    const ok = await copyFindingsToClipboard(syncData.findings, syncData.columnAliases);
+    if (ok) {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    }
+  }, [syncData]);
+
+  // Error state
+  if (error) {
+    return (
+      <div className="h-screen w-screen bg-surface flex items-center justify-center p-8">
+        <div className="text-center max-w-md">
+          <div className="text-4xl mb-4">:(</div>
+          <h1 className="text-xl font-bold text-content mb-2">No Connection</h1>
+          <p className="text-content-secondary text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (!syncData) {
+    return (
+      <div className="h-screen w-screen bg-surface flex items-center justify-center">
+        <div className="animate-pulse text-content-secondary">Loading...</div>
+      </div>
+    );
+  }
+
+  const { findings, columnAliases, drillPath } = syncData;
+
+  return (
+    <div className="h-screen w-screen bg-surface p-4 flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2 flex-shrink-0">
+        <h1 className="text-sm font-semibold text-content">
+          Findings
+          {findings.length > 0 && (
+            <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
+              {findings.length}
+            </span>
+          )}
+        </h1>
+
+        <div className="flex items-center gap-1">
+          {findings.length > 0 && (
+            <button
+              onClick={handleCopyAll}
+              className={`p-1.5 rounded-lg transition-all ${
+                copyFeedback
+                  ? 'bg-green-500/20 text-green-400'
+                  : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
+              }`}
+              title="Copy all findings to clipboard"
+              aria-label="Copy all findings"
+            >
+              {copyFeedback ? <Check size={14} /> : <ClipboardCopy size={14} />}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Findings list */}
+      <FindingsLog
+        findings={findings}
+        onEditFinding={handleEditFinding}
+        onDeleteFinding={handleDeleteFinding}
+        onRestoreFinding={handleRestoreFinding}
+        columnAliases={columnAliases}
+      />
+
+      {/* Drill path footer */}
+      {drillPath.length > 0 && (
+        <div className="px-4 py-3 border-t border-edge flex-shrink-0">
+          <div className="text-[10px] text-content-muted uppercase tracking-wider mb-1.5">
+            Drill Path
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {drillPath.map((step, i) => (
+              <span
+                key={step.factor}
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[11px] rounded-full"
+              >
+                {columnAliases?.[step.factor] || step.factor}
+                <span className="text-blue-300/60">{(step.scopeFraction * 100).toFixed(0)}%</span>
+                {i < drillPath.length - 1 && (
+                  <span className="text-content-muted ml-0.5">&rarr;</span>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FindingsWindow;
+
+/**
+ * Open the findings in a popout window.
+ * Writes sync data to localStorage, then opens a new window with ?view=findings.
+ */
+export function openFindingsPopout(
+  findings: Finding[],
+  columnAliases?: Record<string, string>,
+  drillPath?: DrillStep[]
+): Window | null {
+  const syncData: FindingsSyncData = {
+    findings,
+    columnAliases,
+    drillPath: drillPath ?? [],
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
+
+  const url = `${window.location.origin}${window.location.pathname}?view=findings`;
+  const popup = window.open(
+    url,
+    'variscout-findings',
+    'width=480,height=700,resizable=yes,menubar=no,toolbar=no,location=no,status=no'
+  );
+
+  return popup;
+}
+
+/**
+ * Update the findings popout with new data (call on every findings/drillPath change).
+ */
+export function updateFindingsPopout(
+  findings: Finding[],
+  columnAliases?: Record<string, string>,
+  drillPath?: DrillStep[]
+): void {
+  const syncData: FindingsSyncData = {
+    findings,
+    columnAliases,
+    drillPath: drillPath ?? [],
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
+}

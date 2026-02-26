@@ -97,13 +97,6 @@ export {
 // Drill Path (Investigation Mindmap)
 export { useDrillPath, type DrillStep, type UseDrillPathReturn } from './useDrillPath';
 
-// Mindmap State (Investigation Mindmap computation)
-export {
-  useMindmapState,
-  type UseMindmapStateOptions,
-  type UseMindmapStateReturn,
-} from './useMindmapState';
-
 // Tier (Azure Marketplace licensing)
 export { useTier, type UseTierResult, type ChannelWarningMessage } from './useTier';
 
@@ -137,6 +130,9 @@ export {
   type UseChartCopyOptions,
   type UseChartCopyReturn,
 } from './useChartCopy';
+
+// Findings (scouting report)
+export { useFindings, type UseFindingsOptions, type UseFindingsReturn } from './useFindings';
 
 // Theme State
 export {

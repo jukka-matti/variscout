@@ -96,6 +96,10 @@ interface DataContextType extends Omit<DataState, 'saveProject' | 'loadProject'>
   // View state (for restoring analyst's working context)
   viewState: ViewState | null;
   setViewState: (state: ViewState | null) => void;
+
+  // Findings (persisted with project)
+  findings: import('@variscout/core').Finding[];
+  setFindings: (findings: import('@variscout/core').Finding[]) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -220,6 +224,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // View state
       viewState: state.viewState,
       setViewState: actions.setViewState,
+
+      // Findings
+      findings: state.findings,
+      setFindings: actions.setFindings,
 
       // Azure-specific state
       currentProjectLocation,

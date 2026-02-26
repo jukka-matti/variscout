@@ -147,7 +147,7 @@ const Boxplot = ({
           isActive={true}
           categoryPositions={categoryPositions}
           maxWidth={parentWidth * 0.7}
-          textColor="#cbd5e1"
+          textColor="var(--color-content-primary, #cbd5e1)"
           fontSize={fonts.statLabel}
         />
       )}

@@ -266,7 +266,10 @@ const BoxplotFocusedContent: React.FC<{
     <>
       {props.boxplotData.length > 0 && (
         <div className="mt-2 max-h-[200px] overflow-y-auto">
-          <BoxplotStatsTable data={props.boxplotData} />
+          <BoxplotStatsTable
+            data={props.boxplotData}
+            categoryContributions={props.categoryContributions}
+          />
         </div>
       )}
       {props.anovaResult && (

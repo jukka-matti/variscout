@@ -69,6 +69,8 @@ interface DashboardProps {
   highlightedPointIndex?: number | null;
   // External filter navigation (shared with mindmap for synchronized drills)
   filterNav?: UseFilterNavigationReturn;
+  // Callback to pin current filter state as a finding
+  onPinFinding?: () => void;
 }
 
 const Dashboard = ({
@@ -86,6 +88,7 @@ const Dashboard = ({
   onOpenWhatIf,
   highlightedPointIndex: _highlightedPointIndex,
   filterNav,
+  onPinFinding,
 }: DashboardProps) => {
   const {
     outcome,
@@ -421,6 +424,7 @@ const Dashboard = ({
               onRemoveFilter={handleRemoveFilter}
               onClearAll={handleClearAllFilters}
               cumulativeVariationPct={cumulativeVariationPct}
+              onPinFinding={onPinFinding}
             />
           </div>
           {activeView === 'dashboard' && !focusedChart && (

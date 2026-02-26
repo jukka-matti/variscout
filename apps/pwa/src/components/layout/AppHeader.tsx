@@ -1,5 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { Activity, Settings, MoreVertical, Maximize, Table2, Share2, Network } from 'lucide-react';
+import {
+  Activity,
+  Settings,
+  MoreVertical,
+  Maximize,
+  Table2,
+  Share2,
+  ClipboardList,
+} from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
 
@@ -125,7 +133,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   />
                 )}
 
-                {/* Investigation Toggle */}
+                {/* Findings Toggle */}
                 {onToggleMindmapPanel && (
                   <button
                     onClick={onToggleMindmapPanel}
@@ -134,12 +142,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                         ? 'text-blue-400 bg-blue-400/10'
                         : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
                     }`}
-                    title={isMindmapPanelOpen ? 'Hide Investigation' : 'Show Investigation'}
-                    aria-label={isMindmapPanelOpen ? 'Hide Investigation' : 'Show Investigation'}
+                    title={isMindmapPanelOpen ? 'Hide Findings' : 'Show Findings'}
+                    aria-label={isMindmapPanelOpen ? 'Hide Findings' : 'Show Findings'}
                     aria-pressed={isMindmapPanelOpen}
                   >
-                    <Network size={16} />
-                    <span className="hidden lg:inline">Investigation</span>
+                    <ClipboardList size={16} />
+                    <span className="hidden lg:inline">Findings</span>
                   </button>
                 )}
 

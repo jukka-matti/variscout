@@ -14,12 +14,8 @@ vi.mock('../../components/data/DataPanel', () => ({
   default: () => <div data-testid="data-panel">DataPanel</div>,
 }));
 
-vi.mock('../../components/MindmapPanel', () => ({
-  default: () => <div data-testid="mindmap-panel">MindmapPanel</div>,
-}));
-
-vi.mock('../../components/MindmapWindow', () => ({
-  openMindmapPopout: vi.fn(),
+vi.mock('../../components/FindingsPanel', () => ({
+  default: () => <div data-testid="findings-panel">FindingsPanel</div>,
 }));
 
 vi.mock('../../components/data/ManualEntry', () => ({
@@ -256,7 +252,7 @@ describe('Editor', () => {
     expect(screen.getByTitle('What-If Simulator')).toBeInTheDocument();
   });
 
-  it('shows Investigation toggle when data and factors are loaded', () => {
+  it('shows Findings toggle when data and factors are loaded', () => {
     renderEditor({
       rawData: [{ Weight: 10, Machine: 'A' }],
       filteredData: [{ Weight: 10, Machine: 'A' }],
@@ -264,10 +260,10 @@ describe('Editor', () => {
       factors: ['Machine'],
     });
 
-    expect(screen.getByTitle('Show Investigation')).toBeInTheDocument();
+    expect(screen.getByTitle('Show Findings')).toBeInTheDocument();
   });
 
-  it('does not show Investigation toggle when factors are empty', () => {
+  it('does not show Findings toggle when factors are empty', () => {
     renderEditor({
       rawData: [{ Weight: 10 }],
       filteredData: [{ Weight: 10 }],
@@ -275,7 +271,7 @@ describe('Editor', () => {
       factors: [],
     });
 
-    expect(screen.queryByTitle('Show Investigation')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Show Findings')).not.toBeInTheDocument();
   });
 
   it('shows Data Panel toggle when data is loaded', () => {

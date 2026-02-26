@@ -5,14 +5,19 @@ import { downloadCSV } from './lib/export';
 import SettingsPanel from './components/settings/SettingsPanel';
 import DataTableModal from './components/data/DataTableModal';
 import DataPanel from './components/data/DataPanel';
-import MindmapPanel from './components/MindmapPanel';
+import FindingsPanel from './components/FindingsPanel';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
-  MindmapWindow,
-  openMindmapPopout,
   InvestigationPrompt,
+  FindingsWindow,
+  openFindingsPopout,
+  updateFindingsPopout,
+  FINDINGS_ACTION_KEY,
+  type FindingsAction,
 } from '@variscout/ui';
+import { useFindings, useDrillPath } from '@variscout/hooks';
+import type { FindingContext } from '@variscout/core';
 import Dashboard from './components/Dashboard';
 import HomeScreen from './components/HomeScreen';
 import PasteScreen from './components/data/PasteScreen';
@@ -29,6 +34,16 @@ import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
 
 function App() {
+  // Popout window route: render standalone FindingsWindow
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('view') === 'findings') {
+    return <FindingsWindow />;
+  }
+
+  return <AppMain />;
+}
+
+function AppMain() {
   const {
     rawData,
     filteredData,
@@ -45,6 +60,8 @@ function App() {
     setDataFilename,
     setDataQualityReport,
     factors,
+    filters,
+    setFilters,
     columnAliases,
     setColumnAliases,
     selectedPoints,
@@ -104,9 +121,12 @@ function App() {
     setWideFormatDetection: importFlow.setWideFormatDetection,
   });
 
+  // Findings state
+  const findingsState = useFindings();
+  const [pendingNewFinding, setPendingNewFinding] = useState(false);
+
   // Embed mode state
   const [isEmbedMode, setIsEmbedMode] = useState(false);
-  const [isMindmapPopoutMode, setIsMindmapPopoutMode] = useState(false);
   const [embedFocusChart, setEmbedFocusChart] = useState<
     'ichart' | 'boxplot' | 'pareto' | 'stats' | null
   >(null);
@@ -124,6 +144,9 @@ function App() {
     enableUrlSync: true,
   });
 
+  // Drill path for findings panel footer
+  const { drillPath } = useDrillPath(rawData, filterNav.filterStack, outcome, specs);
+
   // Handle URL parameters on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -133,10 +156,6 @@ function App() {
     const tabParam = params.get('tab');
     const viewParam = params.get('view');
 
-    if (viewParam === 'mindmap') {
-      setIsMindmapPopoutMode(true);
-      return;
-    }
     if (viewParam === 'whatif') {
       panels.setIsWhatIfPageOpen(true);
     }
@@ -202,45 +221,81 @@ function App() {
     downloadCSV(filteredData, outcome, specs, { filename });
   }, [filteredData, outcome, specs]);
 
-  // Mindmap drill category handler
-  const handleMindmapDrillCategory = useCallback(
-    (factor: string, value: string | number) => {
-      filterNav.applyFilter({
-        type: 'filter',
-        source: 'mindmap',
-        factor,
-        values: [value],
-      });
+  // Findings: pin current filter state
+  const handlePinFinding = useCallback(() => {
+    panels.setIsMindmapPanelOpen(true);
+    setPendingNewFinding(true);
+  }, [panels]);
+
+  const handleSaveNewFinding = useCallback(
+    (text: string) => {
+      const context: FindingContext = {
+        activeFilters: { ...filters },
+        cumulativeScope:
+          drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
+        stats:
+          filteredData.length > 0
+            ? {
+                mean:
+                  filteredData.reduce((sum, r) => {
+                    const v = Number(r[outcome!]);
+                    return isNaN(v) ? sum : sum + v;
+                  }, 0) / filteredData.length,
+                cpk: undefined, // computed stats come from dashboard, keep simple here
+                samples: filteredData.length,
+              }
+            : undefined,
+      };
+      findingsState.addFinding(text, context);
+      setPendingNewFinding(false);
     },
-    [filterNav]
+    [filters, drillPath, filteredData, outcome, findingsState]
   );
 
-  // Mindmap popout
-  const handleOpenMindmapPopout = useCallback(() => {
-    if (outcome) {
-      openMindmapPopout(rawData, factors, outcome, columnAliases, specs, filterNav.filterStack);
-      panels.setIsMindmapPanelOpen(false);
-    }
-  }, [rawData, factors, outcome, columnAliases, specs, filterNav.filterStack, panels]);
+  const handleCancelNewFinding = useCallback(() => {
+    setPendingNewFinding(false);
+  }, []);
 
-  // Listen for messages from mindmap popout window
+  // Findings: restore filter state
+  const handleRestoreFinding = useCallback(
+    (id: string) => {
+      const ctx = findingsState.getFindingContext(id);
+      if (!ctx) return;
+      setFilters(ctx.activeFilters);
+    },
+    [findingsState, filterNav, setFilters]
+  );
+
+  // Findings popout: open in separate window
+  const popupRef = React.useRef<Window | null>(null);
+  const handleOpenFindingsPopout = useCallback(() => {
+    popupRef.current = openFindingsPopout(findingsState.findings, columnAliases, drillPath);
+  }, [findingsState.findings, columnAliases, drillPath]);
+
+  // Findings popout: sync data when findings/drillPath change
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      if (event.data?.type === 'MINDMAP_DRILL_CATEGORY') {
-        const { factor, value } = event.data;
-        handleMindmapDrillCategory(factor, value);
+    if (!popupRef.current || popupRef.current.closed) return;
+    updateFindingsPopout(findingsState.findings, columnAliases, drillPath);
+  }, [findingsState.findings, columnAliases, drillPath]);
+
+  // Findings popout: listen for actions from popout window
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key !== FINDINGS_ACTION_KEY || !e.newValue) return;
+      try {
+        const action = JSON.parse(e.newValue) as FindingsAction;
+        if (action.type === 'edit' && action.text !== undefined) {
+          findingsState.editFinding(action.id, action.text);
+        } else if (action.type === 'delete') {
+          findingsState.deleteFinding(action.id);
+        }
+      } catch {
+        // ignore parse errors
       }
     };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [handleMindmapDrillCategory]);
-
-  // Render only popout windows in popout mode
-  if (isMindmapPopoutMode) {
-    return <MindmapWindow />;
-  }
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [findingsState]);
 
   // Full-page What-If Simulator
   if (panels.isWhatIfPageOpen) {
@@ -382,6 +437,7 @@ function App() {
               onOpenWhatIf={() => panels.setIsWhatIfPageOpen(true)}
               highlightedPointIndex={panels.highlightedChartPoint}
               filterNav={filterNav}
+              onPinFinding={handlePinFinding}
             />
           )}
         </div>
@@ -408,23 +464,21 @@ function App() {
         onClose={() => panels.setIsSettingsOpen(false)}
       />
 
-      {/* Investigation Mindmap Panel (slide-in from right) */}
+      {/* Findings Panel (slide-in from right) */}
       {outcome && (
-        <MindmapPanel
+        <FindingsPanel
           isOpen={panels.isMindmapPanelOpen}
           onClose={panels.handleCloseMindmapPanel}
-          data={rawData}
-          factors={factors}
-          outcome={outcome}
-          filterStack={filterNav.filterStack}
-          specs={specs}
+          findings={findingsState.findings}
+          onEditFinding={findingsState.editFinding}
+          onDeleteFinding={findingsState.deleteFinding}
+          onRestoreFinding={handleRestoreFinding}
           columnAliases={columnAliases}
-          onDrillCategory={handleMindmapDrillCategory}
-          onOpenPopout={handleOpenMindmapPopout}
-          onNavigateToWhatIf={() => {
-            panels.setIsMindmapPanelOpen(false);
-            panels.setIsWhatIfPageOpen(true);
-          }}
+          drillPath={drillPath}
+          pendingNewFinding={pendingNewFinding}
+          onSaveNewFinding={handleSaveNewFinding}
+          onCancelNewFinding={handleCancelNewFinding}
+          onPopout={handleOpenFindingsPopout}
         />
       )}
 

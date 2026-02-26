@@ -22,6 +22,7 @@ import type {
   StagedStatsResult,
   ChannelPerformanceData,
   FilterAction,
+  Finding,
 } from '@variscout/core';
 import type {
   DisplayOptions,
@@ -114,6 +115,9 @@ export interface DataState {
 
   // View state (for restoring analyst's working context)
   viewState: ViewState | null;
+
+  // Findings (analyst's scouting report — bookmarked filter states with notes)
+  findings: Finding[];
 }
 
 export interface DataActions {
@@ -172,6 +176,9 @@ export interface DataActions {
 
   // View state
   setViewState: (state: ViewState | null) => void;
+
+  // Findings
+  setFindings: (findings: Finding[]) => void;
 
   // Persistence methods
   saveProject: (name: string) => Promise<SavedProject>;
@@ -253,6 +260,9 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
 
   // View state (for restoring analyst's working context)
   const [viewState, setViewState] = useState<ViewState | null>(null);
+
+  // Findings (scouting report — persisted with project)
+  const [findings, setFindings] = useState<Finding[]>([]);
 
   // Multi-point selection (Minitab-style brushing)
   const [selectedPoints, setSelectedPoints] = useState<Set<number>>(new Set());
@@ -403,6 +413,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     chartTitles,
     filterStack,
     viewState,
+    findings,
     setRawData,
     setOutcome,
     setFactors,
@@ -433,6 +444,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     setCpkTarget,
     setFilterStack,
     setViewState,
+    setFindings,
   });
 
   // ---------------------------------------------------------------------------
@@ -481,6 +493,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       selectionIndexMap,
       filterStack,
       viewState,
+      findings,
     }),
     [
       rawData,
@@ -523,6 +536,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       selectionIndexMap,
       filterStack,
       viewState,
+      findings,
     ]
   );
 
@@ -557,6 +571,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setCpkTarget,
       setFilterStack,
       setViewState,
+      setFindings,
       setSelectedPoints,
       addToSelection,
       removeFromSelection,
@@ -601,6 +616,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setCpkTarget,
       setFilterStack,
       setViewState,
+      setFindings,
       setSelectedPoints,
       addToSelection,
       removeFromSelection,

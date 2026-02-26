@@ -96,12 +96,14 @@ export {
 } from './components/FactorSelector';
 
 export {
-  MindmapWindow,
-  openMindmapPopout,
-  mindmapWindowDefaultColorScheme,
-  type MindmapWindowColorScheme,
-  type MindmapWindowProps,
-} from './components/MindmapWindow';
+  FindingsWindow,
+  openFindingsPopout,
+  updateFindingsPopout,
+  FINDINGS_SYNC_KEY,
+  FINDINGS_ACTION_KEY,
+  type FindingsSyncData,
+  type FindingsAction,
+} from './components/FindingsWindow';
 
 export {
   StatsPanelBase,
@@ -109,16 +111,6 @@ export {
   type StatsPanelBaseProps,
   type StatsPanelColorScheme,
 } from './components/StatsPanel';
-
-export {
-  MindmapPanelContent,
-  mindmapPanelDefaultColorScheme,
-  exportMindmapPng,
-  exportMindmapSvg,
-  exportMindmapToClipboard,
-  type MindmapPanelColorScheme,
-  type MindmapPanelContentProps,
-} from './components/MindmapPanel';
 
 export {
   ManualEntryBase,
@@ -192,11 +184,15 @@ export {
 } from './components/InvestigationPrompt';
 
 export {
-  StratificationGrid,
-  stratificationGridDefaultColorScheme,
-  type StratificationGridProps,
-  type StratificationGridColorScheme,
-} from './components/StratificationGrid';
+  FindingsLog,
+  FindingCard,
+  FindingEditor,
+  copyFindingsToClipboard,
+  formatFindingsText,
+  type FindingsLogProps,
+  type FindingCardProps,
+  type FindingEditorProps,
+} from './components/FindingsLog';
 
 export {
   default as PasteScreenBase,

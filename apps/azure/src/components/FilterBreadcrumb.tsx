@@ -16,6 +16,7 @@ export interface FilterBreadcrumbProps {
   onRemoveFilter: BaseProps['onRemoveFilter'];
   onClearAll?: BaseProps['onClearAll'];
   cumulativeVariationPct?: BaseProps['cumulativeVariationPct'];
+  onPinFinding?: BaseProps['onPinFinding'];
 }
 
 const FilterBreadcrumb = ({
@@ -25,6 +26,7 @@ const FilterBreadcrumb = ({
   onRemoveFilter,
   onClearAll,
   cumulativeVariationPct,
+  onPinFinding,
 }: FilterBreadcrumbProps) => {
   return (
     <FilterBreadcrumbBase
@@ -34,6 +36,7 @@ const FilterBreadcrumb = ({
       onRemoveFilter={onRemoveFilter}
       onClearAll={onClearAll}
       cumulativeVariationPct={cumulativeVariationPct}
+      onPinFinding={onPinFinding}
     />
   );
 };
