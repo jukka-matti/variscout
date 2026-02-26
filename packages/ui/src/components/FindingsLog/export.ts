@@ -1,5 +1,17 @@
 import type { Finding } from '@variscout/core';
-import { formatFindingFilters } from '@variscout/core';
+import { formatFindingFilters, getFindingStatus, FINDING_STATUS_LABELS } from '@variscout/core';
+
+/** Format relative time for comments */
+function relativeTimeExport(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 /**
  * Format all findings as readable text for clipboard export
@@ -15,6 +27,8 @@ export function formatFindingsText(
   findings.forEach((finding, i) => {
     const filterStr = formatFindingFilters(finding.context, columnAliases);
     const statsParts: string[] = [];
+    const status = getFindingStatus(finding);
+    const statusLabel = FINDING_STATUS_LABELS[status].toUpperCase();
 
     if (finding.context.stats?.cpk !== undefined) {
       statsParts.push(`Cpk ${finding.context.stats.cpk.toFixed(2)}`);
@@ -27,9 +41,14 @@ export function formatFindingsText(
     }
 
     const statsStr = statsParts.length > 0 ? ` | ${statsParts.join(' \u00b7 ')}` : '';
-    lines.push(`${i + 1}. ${filterStr || '(no filters)'}${statsStr}`);
+    lines.push(`${i + 1}. [${statusLabel}] ${filterStr || '(no filters)'}${statsStr}`);
     if (finding.text) {
       lines.push(`   "${finding.text}"`);
+    }
+    // Append comments
+    const comments = finding.comments;
+    for (const comment of comments) {
+      lines.push(`   > ${comment.text} (${relativeTimeExport(comment.createdAt)})`);
     }
     lines.push('');
   });

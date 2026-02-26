@@ -55,7 +55,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Linked filtering**              |     ✓     |     ✓      |                                                                                                               |
 | **Breadcrumb navigation**         |     ✓     |     ✓      |                                                                                                               |
 | **Multi-select filters**          |     ✓     |     ✓      |                                                                                                               |
-| **Findings panel**                |     ✓     |     ✓      | Pin filter states with notes; Azure adds: persistence, popout window                                          |
+| **Findings panel**                |     ✓     |     ✓      | Pin filter states with notes, status tracking, comments, board view; Azure adds: persistence, popout window   |
 | **What-If Simulator**             |     ✓     |     ✓      |                                                                                                               |
 | **Keyboard navigation**           |     ✓     |     ✓      |                                                                                                               |
 | **Copy chart to clipboard**       |     ✓     |     ✓      | Includes filter context bar when active                                                                       |

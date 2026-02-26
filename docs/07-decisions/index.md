@@ -21,6 +21,8 @@ This section captures key architectural decisions made during VariScout developm
 | [011](adr-011-ai-development-tooling.md)             | AI Development Tooling               | Accepted   | 2026-02-18 |
 | [012](adr-012-pwa-browser-only.md)                   | PWA Browser-Only, Zero Data          | Accepted   | 2026-02-18 |
 | [013](adr-013-architecture-evaluation-ddd-swarms.md) | Architecture Evaluation (DDD/Swarms) | Accepted   | 2026-02-18 |
+| [014](adr-014-regression-deferral.md)                | Defer Regression to Phase 2          | Accepted   | 2026-02-25 |
+| [015](adr-015-investigation-board.md)                | Investigation Board                  | Accepted   | 2026-02-26 |
 
 ---
 
@@ -55,11 +57,3 @@ What becomes easier or harder as a result?
 | Document                                                               | Description                          |
 | ---------------------------------------------------------------------- | ------------------------------------ |
 | [State of Product Audit (Feb 2026)](audit-2026-02-state-of-product.md) | Comprehensive product audit snapshot |
-
----
-
-## Pending Decisions
-
-### ADR-014: State Management Pattern (Proposed)
-
-Currently using React Context. May evaluate alternatives if complexity grows.

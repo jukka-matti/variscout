@@ -6,17 +6,22 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import FindingsLog from '../FindingsLog';
 import type { Finding } from '@variscout/core';
 
-const makeFinding = (overrides?: Partial<Finding>): Finding => ({
-  id: 'f-1',
-  text: 'Machine B has high variation',
-  createdAt: Date.now(),
-  context: {
-    activeFilters: { Machine: ['B'] },
-    cumulativeScope: 35,
-    stats: { mean: 10.2, samples: 50 },
-  },
-  ...overrides,
-});
+function makeFinding(overrides: Partial<Finding> = {}): Finding {
+  return {
+    id: 'f-1',
+    text: 'Machine B has high variation',
+    createdAt: Date.now(),
+    context: {
+      activeFilters: { Machine: ['B'] },
+      cumulativeScope: 35,
+      stats: { mean: 10.2, samples: 50 },
+    },
+    status: 'observed',
+    comments: [],
+    statusChangedAt: Date.now(),
+    ...overrides,
+  };
+}
 
 describe('FindingsLog', () => {
   const defaultProps = {

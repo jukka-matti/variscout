@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
-import type { Finding } from '@variscout/core';
+import type { Finding, FindingStatus } from '@variscout/core';
+import { getFindingStatus } from '@variscout/core';
 import FindingEditor from './FindingEditor';
+import FindingStatusBadge from './FindingStatusBadge';
+import FindingComments from './FindingComments';
 
 export interface FindingCardProps {
   finding: Finding;
@@ -11,6 +14,14 @@ export interface FindingCardProps {
   columnAliases?: Record<string, string>;
   /** Whether this finding matches the current active filters */
   isActive?: boolean;
+  /** Callback to change investigation status */
+  onSetStatus?: (id: string, status: FindingStatus) => void;
+  /** Callback to add a comment */
+  onAddComment?: (id: string, text: string) => void;
+  /** Callback to edit a comment */
+  onEditComment?: (findingId: string, commentId: string, text: string) => void;
+  /** Callback to delete a comment */
+  onDeleteComment?: (findingId: string, commentId: string) => void;
 }
 
 /**
@@ -24,9 +35,15 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onRestore,
   columnAliases = {},
   isActive = false,
+  onSetStatus,
+  onAddComment,
+  onEditComment,
+  onDeleteComment,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
+  const status = getFindingStatus(finding);
+  const comments = finding.comments;
 
   const filterEntries = Object.entries(context.activeFilters);
 
@@ -50,28 +67,34 @@ const FindingCard: React.FC<FindingCardProps> = ({
         title="Click to restore these filters"
         aria-label={`Restore finding: ${finding.text || 'No note'}`}
       >
-        {/* Filter chips */}
-        <div className="flex flex-wrap gap-1 mb-1.5">
-          {filterEntries.map(([factor, values]) => {
-            const label = columnAliases[factor] || factor;
-            const valStr =
-              values.length <= 2
-                ? values.map(String).join(', ')
-                : `${values[0]} +${values.length - 1}`;
-            return (
-              <span
-                key={factor}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-surface-tertiary/50 text-[10px] text-content-secondary rounded"
-              >
-                <span className="font-medium">{label}</span>
-                <span className="text-content-muted">=</span>
-                <span>{valStr}</span>
-              </span>
-            );
-          })}
-          {filterEntries.length === 0 && (
-            <span className="text-[10px] text-content-muted italic">No filters</span>
-          )}
+        {/* Status badge + filter chips row */}
+        <div className="flex items-start gap-1.5 mb-1.5">
+          <div className="flex flex-wrap gap-1 flex-1">
+            {filterEntries.map(([factor, values]) => {
+              const label = columnAliases[factor] || factor;
+              const valStr =
+                values.length <= 2
+                  ? values.map(String).join(', ')
+                  : `${values[0]} +${values.length - 1}`;
+              return (
+                <span
+                  key={factor}
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-surface-tertiary/50 text-[10px] text-content-secondary rounded"
+                >
+                  <span className="font-medium">{label}</span>
+                  <span className="text-content-muted">=</span>
+                  <span>{valStr}</span>
+                </span>
+              );
+            })}
+            {filterEntries.length === 0 && (
+              <span className="text-[10px] text-content-muted italic">No filters</span>
+            )}
+          </div>
+          <FindingStatusBadge
+            status={status}
+            onStatusChange={onSetStatus ? s => onSetStatus(finding.id, s) : undefined}
+          />
         </div>
 
         {/* Stats line */}
@@ -135,6 +158,17 @@ const FindingCard: React.FC<FindingCardProps> = ({
               </button>
             </div>
           </div>
+        )}
+
+        {/* Comments section */}
+        {onAddComment && (
+          <FindingComments
+            comments={comments}
+            findingId={finding.id}
+            onAdd={onAddComment}
+            onEdit={onEditComment ?? (() => {})}
+            onDelete={onDeleteComment ?? (() => {})}
+          />
         )}
       </div>
     </div>

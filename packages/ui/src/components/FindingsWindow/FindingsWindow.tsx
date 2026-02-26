@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ClipboardCopy, Check } from 'lucide-react';
-import type { Finding } from '@variscout/core';
+import { ClipboardCopy, Check, List, LayoutGrid } from 'lucide-react';
+import type { Finding, FindingStatus } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import FindingsLog from '../FindingsLog/FindingsLog';
+import FindingBoardColumns from '../FindingsLog/FindingBoardColumns';
 import { copyFindingsToClipboard } from '../FindingsLog/export';
 
 /**
@@ -19,9 +20,11 @@ export interface FindingsSyncData {
 }
 
 export interface FindingsAction {
-  type: 'edit' | 'delete';
+  type: 'edit' | 'delete' | 'set-status' | 'add-comment' | 'edit-comment' | 'delete-comment';
   id: string;
-  text?: string; // for edit
+  text?: string; // for edit, add-comment, edit-comment
+  status?: FindingStatus; // for set-status
+  commentId?: string; // for edit-comment, delete-comment
   timestamp: number;
 }
 
@@ -40,6 +43,7 @@ const FindingsWindow: React.FC = () => {
   const [syncData, setSyncData] = useState<FindingsSyncData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
 
   // Load initial data from localStorage
   useEffect(() => {
@@ -74,37 +78,128 @@ const FindingsWindow: React.FC = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Edit finding — send action to main window via localStorage
-  const handleEditFinding = useCallback((id: string, text: string) => {
-    const action: FindingsAction = { type: 'edit', id, text, timestamp: Date.now() };
+  /** Send an action to the main window via localStorage */
+  const sendAction = useCallback((action: FindingsAction) => {
     localStorage.setItem(FINDINGS_ACTION_KEY, JSON.stringify(action));
-
-    // Optimistic local update
-    setSyncData(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        findings: prev.findings.map(f => (f.id === id ? { ...f, text } : f)),
-        timestamp: Date.now(),
-      };
-    });
   }, []);
 
-  // Delete finding — send action to main window via localStorage
-  const handleDeleteFinding = useCallback((id: string) => {
-    const action: FindingsAction = { type: 'delete', id, timestamp: Date.now() };
-    localStorage.setItem(FINDINGS_ACTION_KEY, JSON.stringify(action));
+  // Edit finding
+  const handleEditFinding = useCallback(
+    (id: string, text: string) => {
+      sendAction({ type: 'edit', id, text, timestamp: Date.now() });
+      setSyncData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          findings: prev.findings.map(f => (f.id === id ? { ...f, text } : f)),
+          timestamp: Date.now(),
+        };
+      });
+    },
+    [sendAction]
+  );
 
-    // Optimistic local update
-    setSyncData(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        findings: prev.findings.filter(f => f.id !== id),
-        timestamp: Date.now(),
-      };
-    });
-  }, []);
+  // Delete finding
+  const handleDeleteFinding = useCallback(
+    (id: string) => {
+      sendAction({ type: 'delete', id, timestamp: Date.now() });
+      setSyncData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          findings: prev.findings.filter(f => f.id !== id),
+          timestamp: Date.now(),
+        };
+      });
+    },
+    [sendAction]
+  );
+
+  // Set finding status
+  const handleSetStatus = useCallback(
+    (id: string, status: FindingStatus) => {
+      sendAction({ type: 'set-status', id, status, timestamp: Date.now() });
+      setSyncData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          findings: prev.findings.map(f =>
+            f.id === id ? { ...f, status, statusChangedAt: Date.now() } : f
+          ),
+          timestamp: Date.now(),
+        };
+      });
+    },
+    [sendAction]
+  );
+
+  // Add comment
+  const handleAddComment = useCallback(
+    (id: string, text: string) => {
+      sendAction({ type: 'add-comment', id, text, timestamp: Date.now() });
+      // Optimistic: append a comment locally
+      setSyncData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          findings: prev.findings.map(f =>
+            f.id === id
+              ? {
+                  ...f,
+                  comments: [
+                    ...f.comments,
+                    { id: `tmp-${Date.now()}`, text, createdAt: Date.now() },
+                  ],
+                }
+              : f
+          ),
+          timestamp: Date.now(),
+        };
+      });
+    },
+    [sendAction]
+  );
+
+  // Edit comment
+  const handleEditComment = useCallback(
+    (findingId: string, commentId: string, text: string) => {
+      sendAction({ type: 'edit-comment', id: findingId, commentId, text, timestamp: Date.now() });
+      setSyncData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          findings: prev.findings.map(f =>
+            f.id === findingId
+              ? {
+                  ...f,
+                  comments: f.comments.map(c => (c.id === commentId ? { ...c, text } : c)),
+                }
+              : f
+          ),
+          timestamp: Date.now(),
+        };
+      });
+    },
+    [sendAction]
+  );
+
+  // Delete comment
+  const handleDeleteComment = useCallback(
+    (findingId: string, commentId: string) => {
+      sendAction({ type: 'delete-comment', id: findingId, commentId, timestamp: Date.now() });
+      setSyncData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          findings: prev.findings.map(f =>
+            f.id === findingId ? { ...f, comments: f.comments.filter(c => c.id !== commentId) } : f
+          ),
+          timestamp: Date.now(),
+        };
+      });
+    },
+    [sendAction]
+  );
 
   // Restore finding (no-op in popout — navigate happens in main window)
   const handleRestoreFinding = useCallback(() => {
@@ -159,6 +254,35 @@ const FindingsWindow: React.FC = () => {
         </h1>
 
         <div className="flex items-center gap-1">
+          {/* View toggle */}
+          {findings.length > 0 && (
+            <div className="flex items-center rounded-lg border border-edge overflow-hidden mr-1">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-1.5 transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-surface-tertiary text-content'
+                    : 'text-content-muted hover:text-content-secondary'
+                }`}
+                title="List view"
+                aria-label="List view"
+              >
+                <List size={12} />
+              </button>
+              <button
+                onClick={() => setViewMode('board')}
+                className={`p-1.5 transition-colors ${
+                  viewMode === 'board'
+                    ? 'bg-surface-tertiary text-content'
+                    : 'text-content-muted hover:text-content-secondary'
+                }`}
+                title="Board view"
+                aria-label="Board view"
+              >
+                <LayoutGrid size={12} />
+              </button>
+            </div>
+          )}
           {findings.length > 0 && (
             <button
               onClick={handleCopyAll}
@@ -176,14 +300,33 @@ const FindingsWindow: React.FC = () => {
         </div>
       </div>
 
-      {/* Findings list */}
-      <FindingsLog
-        findings={findings}
-        onEditFinding={handleEditFinding}
-        onDeleteFinding={handleDeleteFinding}
-        onRestoreFinding={handleRestoreFinding}
-        columnAliases={columnAliases}
-      />
+      {/* Findings list or board */}
+      {viewMode === 'board' && findings.length > 0 ? (
+        <FindingBoardColumns
+          findings={findings}
+          onEditFinding={handleEditFinding}
+          onDeleteFinding={handleDeleteFinding}
+          onRestoreFinding={handleRestoreFinding}
+          onSetFindingStatus={handleSetStatus}
+          onAddComment={handleAddComment}
+          onEditComment={handleEditComment}
+          onDeleteComment={handleDeleteComment}
+          columnAliases={columnAliases}
+        />
+      ) : (
+        <FindingsLog
+          findings={findings}
+          onEditFinding={handleEditFinding}
+          onDeleteFinding={handleDeleteFinding}
+          onRestoreFinding={handleRestoreFinding}
+          onSetFindingStatus={handleSetStatus}
+          onAddComment={handleAddComment}
+          onEditComment={handleEditComment}
+          onDeleteComment={handleDeleteComment}
+          columnAliases={columnAliases}
+          viewMode="list"
+        />
+      )}
 
       {/* Drill path footer */}
       {drillPath.length > 0 && (

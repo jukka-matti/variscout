@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { GripVertical, X, ClipboardCopy, Check, ExternalLink } from 'lucide-react';
-import type { Finding } from '@variscout/core';
+import {
+  GripVertical,
+  X,
+  ClipboardCopy,
+  Check,
+  ExternalLink,
+  List,
+  LayoutGrid,
+} from 'lucide-react';
+import type { Finding, FindingStatus } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '@variscout/ui';
 
@@ -17,11 +25,19 @@ interface FindingsPanelProps {
   onEditFinding: (id: string, text: string) => void;
   onDeleteFinding: (id: string) => void;
   onRestoreFinding: (id: string) => void;
+  onSetFindingStatus: (id: string, status: FindingStatus) => void;
+  onAddComment: (id: string, text: string) => void;
+  onEditComment: (findingId: string, commentId: string, text: string) => void;
+  onDeleteComment: (findingId: string, commentId: string) => void;
   columnAliases?: Record<string, string>;
   drillPath: DrillStep[];
   activeFindingId?: string | null;
   /** Open findings in a separate popout window */
   onPopout?: () => void;
+  /** Persisted view mode */
+  viewMode?: 'list' | 'board';
+  /** Callback to persist view mode change */
+  onViewModeChange?: (mode: 'list' | 'board') => void;
 }
 
 /**
@@ -35,12 +51,24 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
   onEditFinding,
   onDeleteFinding,
   onRestoreFinding,
+  onSetFindingStatus,
+  onAddComment,
+  onEditComment,
+  onDeleteComment,
   columnAliases,
   drillPath,
   activeFindingId,
   onPopout,
+  viewMode: externalViewMode,
+  onViewModeChange,
 }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [localViewMode, setLocalViewMode] = useState<'list' | 'board'>('list');
+  const viewMode = externalViewMode ?? localViewMode;
+  const handleViewModeChange = (mode: 'list' | 'board') => {
+    setLocalViewMode(mode);
+    onViewModeChange?.(mode);
+  };
 
   // Panel width state (persisted to localStorage)
   const [width, setWidth] = useState(() => {
@@ -130,6 +158,35 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
           </h2>
 
           <div className="flex items-center gap-1">
+            {/* View toggle */}
+            {findings.length > 0 && (
+              <div className="flex items-center rounded-lg border border-edge overflow-hidden mr-1">
+                <button
+                  onClick={() => handleViewModeChange('list')}
+                  className={`p-1.5 transition-colors ${
+                    viewMode === 'list'
+                      ? 'bg-surface-tertiary text-content'
+                      : 'text-content-muted hover:text-content-secondary'
+                  }`}
+                  title="List view"
+                  aria-label="List view"
+                >
+                  <List size={12} />
+                </button>
+                <button
+                  onClick={() => handleViewModeChange('board')}
+                  className={`p-1.5 transition-colors ${
+                    viewMode === 'board'
+                      ? 'bg-surface-tertiary text-content'
+                      : 'text-content-muted hover:text-content-secondary'
+                  }`}
+                  title="Board view"
+                  aria-label="Board view"
+                >
+                  <LayoutGrid size={12} />
+                </button>
+              </div>
+            )}
             {findings.length > 0 && (
               <button
                 onClick={handleCopyAll}
@@ -165,14 +222,19 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
           </div>
         </div>
 
-        {/* Findings list */}
+        {/* Findings list/board */}
         <FindingsLog
           findings={findings}
           onEditFinding={onEditFinding}
           onDeleteFinding={onDeleteFinding}
           onRestoreFinding={onRestoreFinding}
+          onSetFindingStatus={onSetFindingStatus}
+          onAddComment={onAddComment}
+          onEditComment={onEditComment}
+          onDeleteComment={onDeleteComment}
           columnAliases={columnAliases}
           activeFindingId={activeFindingId}
+          viewMode={viewMode}
         />
 
         {/* Drill path footer */}

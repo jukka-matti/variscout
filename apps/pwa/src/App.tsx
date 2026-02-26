@@ -288,10 +288,26 @@ function AppMain() {
       if (e.key !== FINDINGS_ACTION_KEY || !e.newValue) return;
       try {
         const action = JSON.parse(e.newValue) as FindingsAction;
-        if (action.type === 'edit' && action.text !== undefined) {
-          findingsState.editFinding(action.id, action.text);
-        } else if (action.type === 'delete') {
-          findingsState.deleteFinding(action.id);
+        switch (action.type) {
+          case 'edit':
+            if (action.text !== undefined) findingsState.editFinding(action.id, action.text);
+            break;
+          case 'delete':
+            findingsState.deleteFinding(action.id);
+            break;
+          case 'set-status':
+            if (action.status) findingsState.setFindingStatus(action.id, action.status);
+            break;
+          case 'add-comment':
+            if (action.text !== undefined) findingsState.addFindingComment(action.id, action.text);
+            break;
+          case 'edit-comment':
+            if (action.commentId && action.text !== undefined)
+              findingsState.editFindingComment(action.id, action.commentId, action.text);
+            break;
+          case 'delete-comment':
+            if (action.commentId) findingsState.deleteFindingComment(action.id, action.commentId);
+            break;
         }
       } catch {
         // ignore parse errors
@@ -480,6 +496,10 @@ function AppMain() {
           onEditFinding={findingsState.editFinding}
           onDeleteFinding={findingsState.deleteFinding}
           onRestoreFinding={handleRestoreFinding}
+          onSetFindingStatus={findingsState.setFindingStatus}
+          onAddComment={findingsState.addFindingComment}
+          onEditComment={findingsState.editFindingComment}
+          onDeleteComment={findingsState.deleteFindingComment}
           columnAliases={columnAliases}
           drillPath={drillPath}
           activeFindingId={highlightedFindingId}

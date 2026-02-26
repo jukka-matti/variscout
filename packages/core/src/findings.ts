@@ -5,6 +5,40 @@
  * with notes, stats, and variation context.
  */
 
+// ============================================================================
+// Investigation Status Types
+// ============================================================================
+
+/** SPC investigation lifecycle status */
+export type FindingStatus = 'observed' | 'investigating' | 'confirmed' | 'dismissed';
+
+/** Ordered list of all finding statuses */
+export const FINDING_STATUSES: FindingStatus[] = [
+  'observed',
+  'investigating',
+  'confirmed',
+  'dismissed',
+];
+
+/** Human-readable labels for finding statuses */
+export const FINDING_STATUS_LABELS: Record<FindingStatus, string> = {
+  observed: 'Observed',
+  investigating: 'Investigating',
+  confirmed: 'Confirmed',
+  dismissed: 'Dismissed',
+};
+
+/** A timestamped comment in a finding's investigation log */
+export interface FindingComment {
+  id: string;
+  text: string;
+  createdAt: number;
+}
+
+// ============================================================================
+// Finding Types
+// ============================================================================
+
 /**
  * Snapshot of the dashboard state when a finding was captured
  */
@@ -29,6 +63,23 @@ export interface Finding {
   createdAt: number;
   /** Dashboard state snapshot */
   context: FindingContext;
+  /** Investigation status */
+  status: FindingStatus;
+  /** Timestamped investigation comments */
+  comments: FindingComment[];
+  /** When status was last changed */
+  statusChangedAt: number;
+}
+
+// ============================================================================
+// Factory Functions
+// ============================================================================
+
+/** Generate a unique ID */
+function generateId(): string {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `f-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 /**
@@ -38,13 +89,11 @@ export function createFinding(
   text: string,
   activeFilters: Record<string, (string | number)[]>,
   cumulativeScope: number | null,
-  stats?: { mean: number; cpk?: number; samples: number }
+  stats?: { mean: number; cpk?: number; samples: number },
+  status?: FindingStatus
 ): Finding {
   return {
-    id:
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `f-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    id: generateId(),
     text,
     createdAt: Date.now(),
     context: {
@@ -52,7 +101,50 @@ export function createFinding(
       cumulativeScope,
       stats,
     },
+    status: status ?? 'observed',
+    comments: [],
+    statusChangedAt: Date.now(),
   };
+}
+
+/**
+ * Create a timestamped comment with a unique ID
+ */
+export function createFindingComment(text: string): FindingComment {
+  return {
+    id: generateId(),
+    text,
+    createdAt: Date.now(),
+  };
+}
+
+// ============================================================================
+// Status Helpers
+// ============================================================================
+
+/**
+ * Get finding status
+ */
+export function getFindingStatus(finding: Finding): FindingStatus {
+  return finding.status;
+}
+
+/**
+ * Group findings by status for board view
+ */
+export function groupFindingsByStatus(findings: Finding[]): Record<FindingStatus, Finding[]> {
+  const groups: Record<FindingStatus, Finding[]> = {
+    observed: [],
+    investigating: [],
+    confirmed: [],
+    dismissed: [],
+  };
+
+  for (const finding of findings) {
+    groups[finding.status].push(finding);
+  }
+
+  return groups;
 }
 
 /**

@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
 import {
   createFinding,
+  createFindingComment,
   findDuplicateFinding,
   type Finding,
   type FindingContext,
+  type FindingStatus,
 } from '@variscout/core';
 
 export interface UseFindingsOptions {
@@ -26,6 +28,14 @@ export interface UseFindingsReturn {
   getFindingContext: (id: string) => FindingContext | undefined;
   /** Find an existing finding with matching filters (for duplicate detection) */
   findDuplicate: (activeFilters: Record<string, (string | number)[]>) => Finding | undefined;
+  /** Change a finding's investigation status */
+  setFindingStatus: (id: string, status: FindingStatus) => void;
+  /** Add a comment to a finding */
+  addFindingComment: (id: string, text: string) => void;
+  /** Edit an existing comment */
+  editFindingComment: (findingId: string, commentId: string, text: string) => void;
+  /** Delete a comment */
+  deleteFindingComment: (findingId: string, commentId: string) => void;
 }
 
 /**
@@ -94,6 +104,64 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [findings]
   );
 
+  const setFindingStatus = useCallback(
+    (id: string, status: FindingStatus) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === id ? { ...f, status, statusChangedAt: Date.now() } : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const addFindingComment = useCallback(
+    (id: string, text: string) => {
+      const comment = createFindingComment(text);
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === id ? { ...f, comments: [...f.comments, comment] } : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const editFindingComment = useCallback(
+    (findingId: string, commentId: string, text: string) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === findingId
+            ? {
+                ...f,
+                comments: f.comments.map(c => (c.id === commentId ? { ...c, text } : c)),
+              }
+            : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const deleteFindingComment = useCallback(
+    (findingId: string, commentId: string) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === findingId ? { ...f, comments: f.comments.filter(c => c.id !== commentId) } : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
   return {
     findings,
     addFinding,
@@ -101,5 +169,9 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     deleteFinding,
     getFindingContext,
     findDuplicate,
+    setFindingStatus,
+    addFindingComment,
+    editFindingComment,
+    deleteFindingComment,
   };
 }

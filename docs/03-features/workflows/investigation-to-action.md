@@ -108,6 +108,39 @@ Stop investigating when:
 - All meaningful factors have been explored
 - Remaining variation is common cause (no factor has significant contribution)
 
+### Investigation Status Tracking
+
+As findings accumulate, track their investigation progress:
+
+| Status            | Badge | Meaning                               |
+| ----------------- | ----- | ------------------------------------- |
+| **Observed**      | Amber | Pattern spotted, not yet investigated |
+| **Investigating** | Blue  | Actively drilling into this finding   |
+| **Confirmed**     | Green | Root cause validated with evidence    |
+| **Dismissed**     | Gray  | Ruled out — noise or data artifact    |
+
+Click a finding's status badge to change its status. Add timestamped comments
+to record what you checked and what you learned.
+
+#### Board View
+
+Toggle the Findings panel to Board view for a grouped layout:
+
+- **Panel**: Collapsible accordion sections per status
+- **Popout window**: Horizontal columns with drag-and-drop
+
+The Board view helps organize findings during complex investigations with
+many observations. Confirmed findings become your shortlist for Phase 2
+(What-If Simulator).
+
+#### Why keep dismissed findings?
+
+Dismissed findings document what was ruled out. This is valuable for:
+
+- Audit trails ("we checked Machine C — it's not the cause")
+- Team handoffs ("don't repeat this investigation path")
+- Returning to an analysis after weeks away
+
 ### Output
 
 A list of pinned findings, each with filter context, variation %, and analyst notes. These become the basis for improvement scenarios in Phase 2.
@@ -162,7 +195,7 @@ These are estimates, not guarantees. Use them for:
 
 ### Phase 1: Investigate
 
-Using the Mindmap, drill into delivery time variation:
+Drill into delivery time variation and pin findings:
 
 1. **Store** has the highest contribution: Store C accounts for 35% of variation
 2. Within Store C, **Day** matters: Weekend deliveries are 8 minutes slower

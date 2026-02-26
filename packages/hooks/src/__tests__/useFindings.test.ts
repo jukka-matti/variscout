@@ -4,12 +4,23 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFindings } from '../useFindings';
-import type { FindingContext } from '@variscout/core';
+import type { Finding, FindingContext } from '@variscout/core';
 
 const makeContext = (overrides?: Partial<FindingContext>): FindingContext => ({
   activeFilters: { Machine: ['A'] },
   cumulativeScope: 45,
   stats: { mean: 10.5, samples: 100 },
+  ...overrides,
+});
+
+/** Create a full Finding with required fields */
+const makeFinding = (
+  overrides: Partial<Finding> & { id: string; text: string; context: FindingContext }
+): Finding => ({
+  createdAt: 1000,
+  status: 'observed',
+  comments: [],
+  statusChangedAt: 1000,
   ...overrides,
 });
 
@@ -21,8 +32,8 @@ describe('useFindings', () => {
 
   it('starts with initialFindings when provided', () => {
     const initial = [
-      { id: 'f-1', text: 'Note 1', createdAt: 1000, context: makeContext() },
-      { id: 'f-2', text: 'Note 2', createdAt: 2000, context: makeContext() },
+      makeFinding({ id: 'f-1', text: 'Note 1', context: makeContext() }),
+      makeFinding({ id: 'f-2', text: 'Note 2', createdAt: 2000, context: makeContext() }),
     ];
     const { result } = renderHook(() => useFindings({ initialFindings: initial }));
     expect(result.current.findings).toHaveLength(2);
@@ -62,7 +73,7 @@ describe('useFindings', () => {
 
   it('editFinding updates text and preserves context', () => {
     const ctx = makeContext({ activeFilters: { Shift: ['Night'] } });
-    const initial = [{ id: 'f-1', text: 'Original', createdAt: 1000, context: ctx }];
+    const initial = [makeFinding({ id: 'f-1', text: 'Original', context: ctx })];
     const { result } = renderHook(() => useFindings({ initialFindings: initial }));
 
     act(() => {
@@ -76,8 +87,8 @@ describe('useFindings', () => {
 
   it('deleteFinding removes by id', () => {
     const initial = [
-      { id: 'f-1', text: 'Keep', createdAt: 1000, context: makeContext() },
-      { id: 'f-2', text: 'Delete', createdAt: 2000, context: makeContext() },
+      makeFinding({ id: 'f-1', text: 'Keep', context: makeContext() }),
+      makeFinding({ id: 'f-2', text: 'Delete', createdAt: 2000, context: makeContext() }),
     ];
     const { result } = renderHook(() => useFindings({ initialFindings: initial }));
 
@@ -91,7 +102,7 @@ describe('useFindings', () => {
 
   it('getFindingContext returns context for existing finding', () => {
     const ctx = makeContext({ cumulativeScope: 55 });
-    const initial = [{ id: 'f-1', text: 'Test', createdAt: 1000, context: ctx }];
+    const initial = [makeFinding({ id: 'f-1', text: 'Test', context: ctx })];
     const { result } = renderHook(() => useFindings({ initialFindings: initial }));
 
     const found = result.current.getFindingContext('f-1');
@@ -121,7 +132,7 @@ describe('useFindings', () => {
 
   it('onFindingsChange callback fires on edit', () => {
     const onChange = vi.fn();
-    const initial = [{ id: 'f-1', text: 'Old', createdAt: 1000, context: makeContext() }];
+    const initial = [makeFinding({ id: 'f-1', text: 'Old', context: makeContext() })];
     const { result } = renderHook(() =>
       useFindings({ initialFindings: initial, onFindingsChange: onChange })
     );
@@ -139,8 +150,8 @@ describe('useFindings', () => {
     const ctx1 = makeContext({ activeFilters: { Machine: ['A'] } });
     const ctx2 = makeContext({ activeFilters: { Machine: ['B'], Shift: ['Night'] } });
     const initial = [
-      { id: 'f-1', text: 'First', createdAt: 1000, context: ctx1 },
-      { id: 'f-2', text: 'Second', createdAt: 2000, context: ctx2 },
+      makeFinding({ id: 'f-1', text: 'First', context: ctx1 }),
+      makeFinding({ id: 'f-2', text: 'Second', createdAt: 2000, context: ctx2 }),
     ];
     const { result } = renderHook(() => useFindings({ initialFindings: initial }));
 
@@ -151,7 +162,7 @@ describe('useFindings', () => {
 
   it('findDuplicate returns undefined when no match', () => {
     const ctx = makeContext({ activeFilters: { Machine: ['A'] } });
-    const initial = [{ id: 'f-1', text: 'Only', createdAt: 1000, context: ctx }];
+    const initial = [makeFinding({ id: 'f-1', text: 'Only', context: ctx })];
     const { result } = renderHook(() => useFindings({ initialFindings: initial }));
 
     const dup = result.current.findDuplicate({ Machine: ['Z'] });
@@ -161,8 +172,8 @@ describe('useFindings', () => {
   it('onFindingsChange callback fires on delete', () => {
     const onChange = vi.fn();
     const initial = [
-      { id: 'f-1', text: 'Stay', createdAt: 1000, context: makeContext() },
-      { id: 'f-2', text: 'Go', createdAt: 2000, context: makeContext() },
+      makeFinding({ id: 'f-1', text: 'Stay', context: makeContext() }),
+      makeFinding({ id: 'f-2', text: 'Go', createdAt: 2000, context: makeContext() }),
     ];
     const { result } = renderHook(() =>
       useFindings({ initialFindings: initial, onFindingsChange: onChange })
@@ -173,5 +184,87 @@ describe('useFindings', () => {
     });
 
     expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ id: 'f-1' })]);
+  });
+
+  // --- Investigation status & comments ---
+
+  it('setFindingStatus changes status and updates statusChangedAt', () => {
+    const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useFindings({ initialFindings: initial, onFindingsChange: onChange })
+    );
+
+    act(() => {
+      result.current.setFindingStatus('f-1', 'investigating');
+    });
+
+    expect(result.current.findings[0].status).toBe('investigating');
+    expect(result.current.findings[0].statusChangedAt).toBeGreaterThan(0);
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it('addFindingComment appends a comment with id and timestamp', () => {
+    const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useFindings({ initialFindings: initial, onFindingsChange: onChange })
+    );
+
+    act(() => {
+      result.current.addFindingComment('f-1', 'Checked operator logs');
+    });
+
+    const comments = result.current.findings[0].comments;
+    expect(comments).toHaveLength(1);
+    expect(comments[0].text).toBe('Checked operator logs');
+    expect(comments[0].id).toBeTruthy();
+    expect(comments[0].createdAt).toBeGreaterThan(0);
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it('editFindingComment updates comment text', () => {
+    const initial = [
+      makeFinding({
+        id: 'f-1',
+        text: 'Test',
+        context: makeContext(),
+        comments: [{ id: 'c-1', text: 'Original', createdAt: 500 }],
+      }),
+    ];
+    const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+    act(() => {
+      result.current.editFindingComment('f-1', 'c-1', 'Updated comment');
+    });
+
+    expect(result.current.findings[0].comments[0].text).toBe('Updated comment');
+    expect(result.current.findings[0].comments[0].id).toBe('c-1');
+  });
+
+  it('deleteFindingComment removes by id', () => {
+    const initial = [
+      makeFinding({
+        id: 'f-1',
+        text: 'Test',
+        context: makeContext(),
+        comments: [
+          { id: 'c-1', text: 'Keep', createdAt: 500 },
+          { id: 'c-2', text: 'Remove', createdAt: 600 },
+        ],
+      }),
+    ];
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useFindings({ initialFindings: initial, onFindingsChange: onChange })
+    );
+
+    act(() => {
+      result.current.deleteFindingComment('f-1', 'c-2');
+    });
+
+    expect(result.current.findings[0].comments).toHaveLength(1);
+    expect(result.current.findings[0].comments[0].id).toBe('c-1');
+    expect(onChange).toHaveBeenCalled();
   });
 });

@@ -187,11 +187,17 @@ export {
   FindingsLog,
   FindingCard,
   FindingEditor,
+  FindingStatusBadge,
+  FindingComments,
+  FindingBoardView,
   copyFindingsToClipboard,
   formatFindingsText,
   type FindingsLogProps,
   type FindingCardProps,
   type FindingEditorProps,
+  type FindingStatusBadgeProps,
+  type FindingCommentsProps,
+  type FindingBoardViewProps,
 } from './components/FindingsLog';
 
 export {

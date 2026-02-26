@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pin } from 'lucide-react';
-import type { Finding } from '@variscout/core';
+import type { Finding, FindingStatus } from '@variscout/core';
 import FindingCard from './FindingCard';
+import FindingBoardView from './FindingBoardView';
 
 export interface FindingsLogProps {
   /** List of findings to display */
@@ -16,10 +17,21 @@ export interface FindingsLogProps {
   columnAliases?: Record<string, string>;
   /** ID of the finding that matches current active filters (if any) */
   activeFindingId?: string | null;
+  /** View mode: 'list' (flat) or 'board' (grouped by status) */
+  viewMode?: 'list' | 'board';
+  /** Change finding investigation status */
+  onSetFindingStatus?: (id: string, status: FindingStatus) => void;
+  /** Add a comment to a finding */
+  onAddComment?: (id: string, text: string) => void;
+  /** Edit an existing comment */
+  onEditComment?: (findingId: string, commentId: string, text: string) => void;
+  /** Delete a comment */
+  onDeleteComment?: (findingId: string, commentId: string) => void;
 }
 
 /**
  * Scrollable list of analyst findings.
+ * Supports list view (flat) and board view (grouped by status accordion).
  * Shows empty state with guidance when no findings exist.
  */
 const FindingsLog: React.FC<FindingsLogProps> = ({
@@ -29,6 +41,11 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onRestoreFinding,
   columnAliases,
   activeFindingId,
+  viewMode = 'list',
+  onSetFindingStatus,
+  onAddComment,
+  onEditComment,
+  onDeleteComment,
 }) => {
   if (findings.length === 0) {
     return (
@@ -45,6 +62,23 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
     );
   }
 
+  if (viewMode === 'board' && onSetFindingStatus) {
+    return (
+      <FindingBoardView
+        findings={findings}
+        onEditFinding={onEditFinding}
+        onDeleteFinding={onDeleteFinding}
+        onRestoreFinding={onRestoreFinding}
+        onSetFindingStatus={onSetFindingStatus}
+        onAddComment={onAddComment ?? (() => {})}
+        onEditComment={onEditComment ?? (() => {})}
+        onDeleteComment={onDeleteComment ?? (() => {})}
+        columnAliases={columnAliases}
+        activeFindingId={activeFindingId}
+      />
+    );
+  }
+
   return (
     <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2" data-testid="findings-list">
       {findings.map(finding => (
@@ -54,6 +88,10 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onEdit={onEditFinding}
           onDelete={onDeleteFinding}
           onRestore={onRestoreFinding}
+          onSetStatus={onSetFindingStatus}
+          onAddComment={onAddComment}
+          onEditComment={onEditComment}
+          onDeleteComment={onDeleteComment}
           columnAliases={columnAliases}
           isActive={finding.id === activeFindingId}
         />

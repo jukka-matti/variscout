@@ -64,11 +64,10 @@ Flowcharts for common analyst questions:
 
 ### [Investigation to Action](investigation-to-action.md)
 
-The three-phase analyst workflow: **Investigate → Refine → Project**
+The two-phase analyst workflow: **Investigate → Project**
 
-1. Mindmap drilldown to identify key factors
-2. Guided model reduction in Advanced Regression
-3. What-If scenario modeling for projected improvement
+1. Findings — drill into factors, pin observations, track investigation status
+2. What-If — scenario modeling for projected improvement
 
 ## Time-Boxed Scenarios
 
