@@ -21,7 +21,7 @@ import {
   getResponsiveMargins,
   getScaledFonts,
 } from '@variscout/charts';
-import { ChartAnnotationLayer, AxisEditor, axisEditorAzureColorScheme } from '@variscout/ui';
+import { ChartAnnotationLayer, AxisEditor } from '@variscout/ui';
 import type { HighlightColor, ChartAnnotation } from '@variscout/hooks';
 
 import { Eye, EyeOff, Hash, Sigma, Info } from 'lucide-react';
@@ -225,7 +225,7 @@ const ParetoChart = ({
             className={`p-1 rounded transition-colors ${
               aggregation === 'value'
                 ? 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'
-                : 'bg-slate-700/50 text-slate-500 hover:text-slate-300 hover:bg-slate-700'
+                : 'bg-surface-tertiary/50 text-content-muted hover:text-content hover:bg-surface-tertiary'
             }`}
             title={
               aggregation === 'value'
@@ -244,7 +244,7 @@ const ParetoChart = ({
             className={`p-1 rounded transition-colors ${
               showComparison
                 ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                : 'bg-slate-700/50 text-slate-500 hover:text-slate-300 hover:bg-slate-700'
+                : 'bg-surface-tertiary/50 text-content-muted hover:text-content hover:bg-surface-tertiary'
             }`}
             title={showComparison ? 'Hide overall comparison' : 'Compare to overall distribution'}
           >
@@ -282,7 +282,7 @@ const ParetoChart = ({
               </div>
               <div>Cumulative: {d.cumulativePercentage.toFixed(1)}%</div>
               {showCompare && (
-                <div className="mt-1 pt-1 border-t border-slate-600">
+                <div className="mt-1 pt-1 border-t border-edge-secondary">
                   <div>Filtered: {filteredPct.toFixed(1)}%</div>
                   <div>Overall: {fullPct.toFixed(1)}%</div>
                   <div
@@ -291,7 +291,7 @@ const ParetoChart = ({
                         ? 'text-red-400'
                         : pctDiff < 0
                           ? 'text-green-400'
-                          : 'text-slate-400'
+                          : 'text-content-secondary'
                     }
                   >
                     {pctDiff > 0 ? '\u2191' : pctDiff < 0 ? '\u2193' : '\u2192'}{' '}
@@ -329,7 +329,6 @@ const ParetoChart = ({
             left: parentWidth / 2,
             transform: 'translate(-50%, -50%)',
           }}
-          colorScheme={axisEditorAzureColorScheme}
         />
       )}
     </div>

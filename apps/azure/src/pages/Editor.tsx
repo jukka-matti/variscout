@@ -11,11 +11,7 @@ import { openMindmapPopout } from '../components/MindmapWindow';
 import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
-import {
-  ColumnMapping,
-  InvestigationPrompt,
-  investigationPromptAzureColorScheme,
-} from '@variscout/ui';
+import { ColumnMapping, InvestigationPrompt } from '@variscout/ui';
 import { useControlViolations } from '@variscout/hooks';
 import { useDataMerge } from '../hooks/useDataMerge';
 import { downloadCSV } from '@variscout/core';
@@ -256,7 +252,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           ? 'text-red-400'
           : syncStatus.status === 'conflict'
             ? 'text-amber-400'
-            : 'text-slate-500';
+            : 'text-content-muted';
 
   // If in paste mode, show PasteScreen full screen
   if (dataFlow.isPasteMode) {
@@ -327,12 +323,12 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           <button
             onClick={onBack}
             aria-label="Back to dashboard"
-            className="flex items-center gap-1 text-slate-500 hover:text-white transition-colors"
+            className="flex items-center gap-1 text-content-muted hover:text-content transition-colors"
           >
             <ArrowLeft size={18} />
             <span>Back</span>
           </button>
-          <h2 className="text-xl font-semibold text-white">
+          <h2 className="text-xl font-semibold text-content">
             {currentProjectName || (projectId ? `Analysis ${projectId}` : 'New Analysis')}
             {hasUnsavedChanges && <span className="text-amber-400 ml-2">•</span>}
           </h2>
@@ -358,7 +354,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 size={16}
                 className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
               />
-              <span className="text-slate-400">{syncStatus.message || syncStatus.status}</span>
+              <span className="text-content-secondary">
+                {syncStatus.message || syncStatus.status}
+              </span>
             </div>
           )}
 
@@ -367,7 +365,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             <div ref={addDataRef} className="relative">
               <button
                 onClick={() => setAddDataOpen(prev => !prev)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
                 title="Add more data"
                 data-testid="btn-add-data"
               >
@@ -379,14 +377,14 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 />
               </button>
               {addDataOpen && (
-                <div className="absolute right-0 top-full mt-1 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 py-1">
+                <div className="absolute right-0 top-full mt-1 w-48 bg-surface-secondary border border-edge rounded-lg shadow-xl z-50 py-1">
                   <button
                     onClick={() => {
                       setAddDataOpen(false);
                       dataFlow.setAppendMode(true);
                       dataFlow.setIsPasteMode(true);
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
                     data-testid="add-data-paste"
                   >
                     <ClipboardPaste size={15} />
@@ -398,7 +396,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                       dataFlow.setAppendMode(true);
                       dataFlow.triggerAppendFileUpload();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
                     data-testid="add-data-file"
                   >
                     <Upload size={15} />
@@ -409,7 +407,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                       setAddDataOpen(false);
                       dataFlow.handleAddMoreData();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
                     data-testid="add-data-manual"
                   >
                     <PenLine size={15} />
@@ -424,7 +422,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {rawData.length > 0 && outcome && (
             <button
               onClick={() => panels.setIsDataTableOpen(true)}
-              className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
+              className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
               title="Edit Data Table"
               data-testid="btn-edit-data"
             >
@@ -436,7 +434,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {rawData.length > 0 && outcome && (
             <button
               onClick={() => downloadCSV(filteredData, outcome, specs)}
-              className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
+              className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
               title="Export filtered data as CSV"
               data-testid="btn-csv-export"
             >
@@ -448,7 +446,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {rawData.length > 0 && outcome && (
             <button
               onClick={() => panels.setIsWhatIfOpen(true)}
-              className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
+              className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
               title="What-If Simulator"
               data-testid="btn-what-if"
             >
@@ -460,7 +458,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {rawData.length > 0 && outcome && (
             <button
               onClick={() => panels.setIsPresentationMode(true)}
-              className="p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700"
+              className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
               title="Presentation Mode"
               data-testid="btn-presentation"
             >
@@ -475,7 +473,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                 panels.isMindmapOpen
                   ? 'bg-blue-600 text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                  : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
               }`}
               title={panels.isMindmapOpen ? 'Hide Investigation' : 'Show Investigation'}
               data-testid="btn-investigation"
@@ -492,7 +490,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               className={`p-2 rounded-lg transition-colors ${
                 panels.isDataPanelOpen
                   ? 'bg-blue-600 text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                  : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
               }`}
               title={panels.isDataPanelOpen ? 'Hide Data Panel' : 'Show Data Panel'}
               data-testid="btn-data-panel"
@@ -549,32 +547,31 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           filterCount={filterNav.filterStack.length}
           isMindmapOpen={panels.isMindmapOpen}
           onOpenMindmap={() => panels.setIsMindmapOpen(true)}
-          colorScheme={investigationPromptAzureColorScheme}
         />
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-0 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0 bg-surface rounded-xl border border-edge overflow-hidden">
         {rawData.length === 0 ? (
           // Empty State - Upload Data + Sample Datasets
           <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-y-auto relative">
             {/* Loading overlay for project load or file parse */}
             {(dataFlow.isLoadingProject || dataFlow.isParsingFile) && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/60">
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface/60">
                 <div className="flex flex-col items-center gap-3">
                   <RefreshCw size={32} className="text-blue-400 animate-spin" />
-                  <span className="text-sm text-slate-300">
+                  <span className="text-sm text-content">
                     {dataFlow.isLoadingProject ? 'Loading project...' : 'Parsing file...'}
                   </span>
                 </div>
               </div>
             )}
             <div className="max-w-lg w-full text-center">
-              <div className="w-16 h-16 mx-auto mb-6 bg-slate-800 rounded-full flex items-center justify-center">
-                <FileText size={32} className="text-slate-400" />
+              <div className="w-16 h-16 mx-auto mb-6 bg-surface-secondary rounded-full flex items-center justify-center">
+                <FileText size={32} className="text-content-secondary" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Start Your Analysis</h3>
-              <p className="text-slate-400 mb-6">
+              <h3 className="text-xl font-semibold text-content mb-2">Start Your Analysis</h3>
+              <p className="text-content-secondary mb-6">
                 Upload your data, paste from Excel, enter manually, or try a sample dataset.
               </p>
 
@@ -597,7 +594,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
 
                 <button
                   onClick={() => dataFlow.setIsPasteMode(true)}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface-tertiary text-content rounded-lg hover:bg-surface-tertiary/80 transition-colors font-medium"
                 >
                   <ClipboardPaste size={20} />
                   Paste Data
@@ -605,7 +602,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
 
                 <button
                   onClick={() => dataFlow.setIsManualEntry(true)}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface-tertiary text-content rounded-lg hover:bg-surface-tertiary/80 transition-colors font-medium"
                 >
                   <PenLine size={20} />
                   Manual Entry
@@ -617,11 +614,11 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                   {loadError}
                 </div>
               )}
-              <p className="text-xs text-slate-500 mb-6">Supports CSV, XLSX, and XLS files</p>
+              <p className="text-xs text-content-muted mb-6">Supports CSV, XLSX, and XLS files</p>
 
               {/* Sample Datasets */}
               <div className="text-left">
-                <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+                <h4 className="text-sm font-medium text-content mb-3 flex items-center gap-2">
                   <Database size={14} />
                   Sample Datasets
                 </h4>
@@ -633,12 +630,12 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                         key={sample.urlKey}
                         data-testid={`sample-${sample.urlKey}`}
                         onClick={() => dataFlow.handleLoadSample(sample)}
-                        className="text-left p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg transition-all group"
+                        className="text-left p-3 bg-surface-secondary hover:bg-surface-tertiary border border-edge hover:border-blue-500/50 rounded-lg transition-all group"
                       >
-                        <span className="text-sm font-medium text-white group-hover:text-blue-300 block truncate">
+                        <span className="text-sm font-medium text-content group-hover:text-blue-300 block truncate">
                           {sample.name}
                         </span>
-                        <span className="text-xs text-slate-500 line-clamp-1">
+                        <span className="text-xs text-content-muted line-clamp-1">
                           {sample.description}
                         </span>
                       </button>

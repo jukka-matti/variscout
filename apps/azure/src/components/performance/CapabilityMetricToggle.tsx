@@ -9,14 +9,14 @@ interface CapabilityMetricToggleProps {
 
 const CapabilityMetricToggle: React.FC<CapabilityMetricToggleProps> = ({ metric, onChange }) => {
   return (
-    <div className="flex rounded overflow-hidden border border-slate-600">
+    <div className="flex rounded overflow-hidden border border-edge-secondary">
       <button
         onClick={() => onChange('cpk')}
         aria-pressed={metric === 'cpk'}
         className={`px-2 py-0.5 text-xs font-medium transition-colors ${
           metric === 'cpk'
             ? 'bg-blue-600 text-white'
-            : 'bg-slate-700 text-slate-400 hover:bg-blue-800 hover:text-white'
+            : 'bg-surface-tertiary text-content-secondary hover:bg-blue-800 hover:text-white'
         }`}
       >
         Cpk
@@ -27,7 +27,7 @@ const CapabilityMetricToggle: React.FC<CapabilityMetricToggleProps> = ({ metric,
         className={`px-2 py-0.5 text-xs font-medium transition-colors ${
           metric === 'cp'
             ? 'bg-purple-600 text-white'
-            : 'bg-slate-700 text-slate-400 hover:bg-purple-800 hover:text-white'
+            : 'bg-surface-tertiary text-content-secondary hover:bg-purple-800 hover:text-white'
         }`}
       >
         Cp
@@ -38,7 +38,7 @@ const CapabilityMetricToggle: React.FC<CapabilityMetricToggleProps> = ({ metric,
         className={`px-2 py-0.5 text-xs font-medium transition-colors ${
           metric === 'both'
             ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-            : 'bg-slate-700 text-slate-400 hover:text-white'
+            : 'bg-surface-tertiary text-content-secondary hover:text-white'
         }`}
       >
         Both

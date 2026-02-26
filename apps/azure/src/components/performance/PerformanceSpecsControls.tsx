@@ -31,7 +31,7 @@ const PerformanceSpecsControls: React.FC<PerformanceSpecsControlsProps> = ({
     <>
       {/* Cpk Target Adjustment */}
       <div className="flex items-center gap-2 text-sm">
-        <label htmlFor={`cpk-target-${idPrefix}`} className="text-slate-400">
+        <label htmlFor={`cpk-target-${idPrefix}`} className="text-content-secondary">
           Target Cpk:
         </label>
         <input
@@ -42,14 +42,14 @@ const PerformanceSpecsControls: React.FC<PerformanceSpecsControlsProps> = ({
           step="0.01"
           value={cpkTarget}
           onChange={e => onCpkTargetChange(parseFloat(e.target.value) || 1.33)}
-          className="w-20 px-2 py-1 bg-slate-700 text-slate-100 border border-slate-600 rounded text-center"
+          className="w-20 px-2 py-1 bg-surface-tertiary text-content border border-edge-secondary rounded text-center"
           title="Industry standard: 1.33 (4σ), 1.67 (5σ), 2.00 (6σ)"
         />
       </div>
 
       {/* LSL Input */}
       <div className="flex items-center gap-2 text-sm">
-        <label htmlFor={`lsl-input-${idPrefix}`} className="text-slate-400">
+        <label htmlFor={`lsl-input-${idPrefix}`} className="text-content-secondary">
           LSL:
         </label>
         <input
@@ -61,13 +61,13 @@ const PerformanceSpecsControls: React.FC<PerformanceSpecsControlsProps> = ({
           }}
           onBlur={onLSLBlur}
           placeholder="Lower"
-          className="w-20 px-2 py-1 bg-slate-700 text-slate-100 border border-slate-600 rounded text-center"
+          className="w-20 px-2 py-1 bg-surface-tertiary text-content border border-edge-secondary rounded text-center"
         />
       </div>
 
       {/* USL Input */}
       <div className="flex items-center gap-2 text-sm">
-        <label htmlFor={`usl-input-${idPrefix}`} className="text-slate-400">
+        <label htmlFor={`usl-input-${idPrefix}`} className="text-content-secondary">
           USL:
         </label>
         <input
@@ -79,7 +79,7 @@ const PerformanceSpecsControls: React.FC<PerformanceSpecsControlsProps> = ({
           }}
           onBlur={onUSLBlur}
           placeholder="Upper"
-          className="w-20 px-2 py-1 bg-slate-700 text-slate-100 border border-slate-600 rounded text-center"
+          className="w-20 px-2 py-1 bg-surface-tertiary text-content border border-edge-secondary rounded text-center"
         />
       </div>
     </>

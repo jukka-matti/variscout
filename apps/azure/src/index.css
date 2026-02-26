@@ -6,24 +6,10 @@
 @tailwind utilities;
 
 /* ========================================
-   Azure-specific: Executive Style Overrides
+   Azure-specific: Font Override
    ======================================== */
 
-/* Override chart/app background to pure white always */
-:root,
-[data-theme='dark'],
-[data-theme='light'] {
-  --surface-primary: 255 255 255;
-  /* white */
-  --surface-secondary: 248 250 252;
-  /* slate-50 */
-  --surface-tertiary: 241 245 249;
-  /* slate-100 */
-}
-
 /* Force Inter font for consulting grade look */
-/* Note: Assuming Inter is available via system or loaded elsewhere.
-   If not, we should import it. For now, rely on stack. */
 :root {
   font-family:
     'Inter',
@@ -31,5 +17,7 @@
     -apple-system,
     sans-serif;
   letter-spacing: -0.01em;
-  /* Slight tightening for modern feel */
+
+  color: rgb(var(--content-primary));
+  background-color: rgb(var(--surface-primary));
 }

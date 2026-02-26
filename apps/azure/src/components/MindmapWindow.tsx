@@ -1,12 +1,10 @@
 import React from 'react';
-import { MindmapWindow as MindmapWindowBase, mindmapWindowAzureColorScheme } from '@variscout/ui';
+import { MindmapWindow as MindmapWindowBase } from '@variscout/ui';
 
 /**
- * Azure MindmapWindow — wraps @variscout/ui with Azure slate color scheme.
+ * Azure MindmapWindow — wraps @variscout/ui. Uses default semantic-token-based color scheme.
  */
-const MindmapWindow: React.FC = () => (
-  <MindmapWindowBase colorScheme={mindmapWindowAzureColorScheme} />
-);
+const MindmapWindow: React.FC = () => <MindmapWindowBase />;
 
 export default MindmapWindow;
 export { openMindmapPopout } from '@variscout/ui';

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { StatsResult, DataRow } from '@variscout/core';
-import { StatsPanelBase, statsPanelAzureColorScheme, useGlossary } from '@variscout/ui';
+import { StatsPanelBase, useGlossary } from '@variscout/ui';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import WhatIfSimulator from './WhatIfSimulator';
@@ -30,7 +30,6 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
       specs={specs}
       filteredData={filteredData}
       outcome={outcome}
-      colorScheme={statsPanelAzureColorScheme}
       showCpk={showCpk}
       onSaveSpecs={onSaveSpecs}
       getTerm={getTerm}

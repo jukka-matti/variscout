@@ -1,10 +1,6 @@
 import React, { useMemo } from 'react';
 import { useData } from '../context/DataContext';
-import {
-  WhatIfPageBase,
-  whatIfPageAzureColorScheme,
-  whatIfSimulatorAzureColorScheme,
-} from '@variscout/ui';
+import { WhatIfPageBase } from '@variscout/ui';
 import type { FilterAction } from '@variscout/core';
 
 interface WhatIfPageProps {
@@ -35,8 +31,6 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack, filterCount = 0, filter
       filterCount={filterCount}
       filterNames={filterNames}
       onBack={onBack}
-      colorScheme={whatIfPageAzureColorScheme}
-      simulatorColorScheme={whatIfSimulatorAzureColorScheme}
       cpkTarget={cpkTarget}
     />
   );

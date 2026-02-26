@@ -10,7 +10,7 @@ import {
 import { Download, Copy, Check } from 'lucide-react';
 import { exportMindmapPng, exportMindmapToClipboard } from '../MindmapPanel/export';
 import MindmapModeToggle from '../MindmapPanel/MindmapModeToggle';
-import { StratificationGrid, stratificationGridAzureColorScheme } from '../StratificationGrid';
+import { StratificationGrid } from '../StratificationGrid';
 
 /**
  * Color scheme for MindmapWindow
@@ -260,7 +260,6 @@ const MindmapWindow: React.FC<MindmapWindowProps> = ({
             drillTrail={drillTrail}
             cumulativeVariationPct={cumulativeVariationPct}
             onCategorySelect={handleDrillCategory}
-            colorScheme={stratificationGridAzureColorScheme}
           />
         ) : (
           <InvestigationMindmapBase

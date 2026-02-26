@@ -12,7 +12,7 @@ const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1 border border-slate-700">
+    <div className="flex items-center gap-1 bg-surface-secondary rounded-lg p-1 border border-edge">
       {MODES.map(({ value, label, icon }) => (
         <button
           key={value}
@@ -20,7 +20,7 @@ const ThemeToggle: React.FC = () => {
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
             theme.mode === value
               ? 'bg-blue-600 text-white'
-              : 'text-slate-400 hover:text-white hover:bg-slate-700'
+              : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
           }`}
           aria-label={`Switch to ${label} theme`}
         >

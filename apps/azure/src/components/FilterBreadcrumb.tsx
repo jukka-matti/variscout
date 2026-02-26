@@ -1,12 +1,11 @@
 /**
- * Re-export FilterBreadcrumb from @variscout/ui with Azure color scheme
+ * Re-export FilterBreadcrumb from @variscout/ui
  *
  * This component has been moved to the shared UI package.
- * For new code, import directly from '@variscout/ui' and use filterBreadcrumbAzureColorScheme.
+ * Uses default semantic-token-based color scheme.
  */
 import {
   FilterBreadcrumb as FilterBreadcrumbBase,
-  filterBreadcrumbAzureColorScheme,
   type FilterBreadcrumbProps as BaseProps,
 } from '@variscout/ui';
 
@@ -35,7 +34,6 @@ const FilterBreadcrumb = ({
       onRemoveFilter={onRemoveFilter}
       onClearAll={onClearAll}
       cumulativeVariationPct={cumulativeVariationPct}
-      colorScheme={filterBreadcrumbAzureColorScheme}
     />
   );
 };

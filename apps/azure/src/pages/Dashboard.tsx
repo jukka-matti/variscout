@@ -61,10 +61,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
         ? 'text-green-400'
         : syncStatus.status === 'syncing'
           ? 'text-blue-400'
-          : 'text-slate-500';
+          : 'text-content-muted';
 
     return (
-      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/50 ${color}`}>
+      <div
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-secondary/50 ${color}`}
+      >
         <Icon size={16} className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''} />
         <span className="text-sm">
           {syncStatus.status === 'syncing' ? 'Syncing...' : isOnline ? 'Connected' : 'Offline'}
@@ -81,8 +83,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-white">Analyses</h2>
-          <p className="text-slate-400 text-sm mt-1">Manage your saved analyses</p>
+          <h2 className="text-2xl font-bold text-content">Analyses</h2>
+          <p className="text-content-secondary text-sm mt-1">Manage your saved analyses</p>
         </div>
         <div className="flex items-center gap-3">
           {getSyncStatusDisplay()}
@@ -100,13 +102,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         {/* Search */}
         <div className="relative flex-1">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted"
+          />
           <input
             type="text"
             placeholder="Search analyses..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-surface-secondary border border-edge rounded-lg text-content placeholder-content-muted focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
@@ -114,7 +119,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
         <button
           onClick={loadProjects}
           disabled={isLoading}
-          className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
+          className="p-2 text-content-secondary hover:text-content hover:bg-surface-secondary rounded-lg transition-colors disabled:opacity-50"
           title="Refresh analyses"
         >
           <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
@@ -124,15 +129,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
       {/* Analyses List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <RefreshCw size={32} className="text-slate-500 animate-spin" />
+          <RefreshCw size={32} className="text-content-muted animate-spin" />
         </div>
       ) : filteredProjects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <FolderOpen size={48} className="text-slate-600 mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">
+          <FolderOpen size={48} className="text-content-muted mb-4" />
+          <h3 className="text-lg font-medium text-content mb-2">
             {projects.length === 0 ? 'No analyses yet' : 'No matching analyses'}
           </h3>
-          <p className="text-slate-400 text-sm max-w-md">
+          <p className="text-content-secondary text-sm max-w-md">
             {projects.length === 0
               ? 'Create your first analysis to start exploring variation data with your team.'
               : "Try adjusting your search or filter to find what you're looking for."}
@@ -148,44 +153,44 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
           )}
         </div>
       ) : (
-        <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+        <div className="bg-surface-secondary rounded-xl border border-edge overflow-hidden">
           <table className="w-full text-left">
-            <thead className="bg-slate-900/50 border-b border-slate-700">
+            <thead className="bg-surface/50 border-b border-edge">
               <tr>
-                <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider">
                   Name
                 </th>
-                <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden md:table-cell">
+                <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider hidden md:table-cell">
                   Modified
                 </th>
-                <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden lg:table-cell">
+                <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider hidden lg:table-cell">
                   Modified By
                 </th>
-                <th className="px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider">
                   Action
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700/50">
+            <tbody className="divide-y divide-edge/50">
               {filteredProjects.map(project => (
                 <tr
                   key={project.id}
-                  className="hover:bg-slate-700/30 transition-colors cursor-pointer"
+                  className="hover:bg-surface-tertiary/30 transition-colors cursor-pointer"
                   onClick={() => onOpenProject(project.name)}
                 >
                   <td className="px-6 py-4">
-                    <div className="font-medium text-white">{project.name}</div>
-                    <div className="text-xs text-slate-500 md:hidden mt-0.5">
+                    <div className="font-medium text-content">{project.name}</div>
+                    <div className="text-xs text-content-muted md:hidden mt-0.5">
                       {formatDate(project.modified)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-slate-400 text-sm hidden md:table-cell">
+                  <td className="px-6 py-4 text-content-secondary text-sm hidden md:table-cell">
                     <div className="flex items-center gap-1.5">
                       <Clock size={14} />
                       {formatDate(project.modified)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-slate-400 text-sm hidden lg:table-cell">
+                  <td className="px-6 py-4 text-content-secondary text-sm hidden lg:table-cell">
                     {project.modifiedBy ? (
                       <div className="flex items-center gap-1.5">
                         <User size={14} />

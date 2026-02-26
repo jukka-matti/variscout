@@ -115,7 +115,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   // Show setup panel if no measures configured
   if (!performanceResult || measureColumns.length === 0) {
     return (
-      <div className="h-full bg-slate-900 overflow-auto">
+      <div className="h-full bg-surface overflow-auto">
         <PerformanceSetupPanel variant="inline" />
       </div>
     );
@@ -142,10 +142,10 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
     capabilityMetric === 'cp' ? 'Cp' : capabilityMetric === 'cpk' ? 'Cpk' : 'Cp & Cpk';
 
   return (
-    <div className="flex flex-col h-full bg-slate-900">
+    <div className="flex flex-col h-full bg-surface">
       {/* Header bar with channel count */}
-      <div className="flex items-center px-4 py-2 bg-slate-800/50 border-b border-slate-700">
-        <span className="text-xs text-slate-500">{channelCount} channels</span>
+      <div className="flex items-center px-4 py-2 bg-surface-secondary/50 border-b border-edge">
+        <span className="text-xs text-content-muted">{channelCount} channels</span>
       </div>
 
       {/* Warning banner if no specs */}
@@ -166,7 +166,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           {/* Navigation Buttons (Overlay) */}
           <button
             onClick={handlePrevChart}
-            className="absolute left-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full shadow-lg border border-slate-600 opacity-0 group-hover/focus:opacity-100 transition-opacity"
+            className="absolute left-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-surface-secondary/80 hover:bg-surface-tertiary text-content-secondary hover:text-content rounded-full shadow-lg border border-edge-secondary opacity-0 group-hover/focus:opacity-100 transition-opacity"
             aria-label="Previous chart"
             title="Previous Chart (Left Arrow)"
           >
@@ -174,7 +174,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           </button>
           <button
             onClick={handleNextChart}
-            className="absolute right-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full shadow-lg border border-slate-600 opacity-0 group-hover/focus:opacity-100 transition-opacity"
+            className="absolute right-6 top-1/2 -translate-y-1/2 z-50 p-3 bg-surface-secondary/80 hover:bg-surface-tertiary text-content-secondary hover:text-content rounded-full shadow-lg border border-edge-secondary opacity-0 group-hover/focus:opacity-100 transition-opacity"
             aria-label="Next chart"
             title="Next Chart (Right Arrow)"
           >
@@ -182,12 +182,12 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           </button>
 
           {focusedChart === 'ichart' && (
-            <div className="flex-1 bg-slate-800/50 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full">
+            <div className="flex-1 bg-surface-secondary/50 border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-slate-300">
+                <h3 className="text-xl font-semibold text-content">
                   {metricLabel} by Measure
                   {selectedMeasure && (
-                    <span className="ml-2 text-slate-500">(Selected: {selectedMeasure})</span>
+                    <span className="ml-2 text-content-muted">(Selected: {selectedMeasure})</span>
                   )}
                 </h3>
                 <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                   )}
                   <button
                     onClick={() => setFocusedChart(null)}
-                    className="p-2 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors bg-slate-700/50"
+                    className="p-2 rounded text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors bg-surface-tertiary/50"
                     aria-label="Exit focus mode"
                     title="Exit Focus Mode (Escape)"
                   >
@@ -228,14 +228,14 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           )}
 
           {focusedChart === 'boxplot' && (
-            <div className="flex-1 bg-slate-800/50 border border-slate-700 p-6 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full">
+            <div className="flex-1 bg-surface-secondary/50 border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 flex flex-col h-full">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-slate-300">
+                <h3 className="text-xl font-semibold text-content">
                   Worst 30 Measures (Click to Analyze)
                 </h3>
                 <button
                   onClick={() => setFocusedChart(null)}
-                  className="p-2 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors bg-slate-700/50"
+                  className="p-2 rounded text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors bg-surface-tertiary/50"
                   title="Exit Focus Mode (Escape)"
                 >
                   <Minimize2 size={20} />
@@ -253,18 +253,18 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
         /* Normal grid layout */
         <div className="flex-1 grid grid-rows-2 gap-2 p-2 min-h-0">
           {/* Top row: I-Chart spanning full width */}
-          <div className="col-span-full min-h-0 bg-slate-800/50 rounded-lg overflow-hidden">
+          <div className="col-span-full min-h-0 bg-surface-secondary/50 rounded-lg overflow-hidden">
             <div className="h-full p-2">
               <div className="flex items-center justify-between mb-1 px-2">
                 <div className="flex items-center gap-1">
-                  <h3 className="text-xs font-medium text-slate-400">
+                  <h3 className="text-xs font-medium text-content-secondary">
                     {metricLabel} by Measure
                     {selectedMeasure && (
-                      <span className="ml-2 text-slate-500">(Selected: {selectedMeasure})</span>
+                      <span className="ml-2 text-content-muted">(Selected: {selectedMeasure})</span>
                     )}
                   </h3>
                   <span
-                    className="text-xs text-slate-500 cursor-help"
+                    className="text-xs text-content-muted cursor-help"
                     title="Measures ranked by Cpk (lowest first). Click point to analyze in detail."
                   >
                     ⓘ
@@ -288,7 +288,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
                   )}
                   <button
                     onClick={() => setFocusedChart('ichart')}
-                    className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                    className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
                     aria-label="Maximize chart"
                     title="Maximize Chart"
                   >
@@ -309,15 +309,15 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
           </div>
 
           {/* Bottom row: Single Boxplot chart */}
-          <div className="col-span-full min-h-0 bg-slate-800/50 rounded-lg overflow-hidden">
+          <div className="col-span-full min-h-0 bg-surface-secondary/50 rounded-lg overflow-hidden">
             <div className="h-full p-2">
               <div className="flex items-center justify-between mb-1 px-2">
-                <h3 className="text-xs font-medium text-slate-400">
+                <h3 className="text-xs font-medium text-content-secondary">
                   Worst 15 Measures (Click to Analyze)
                 </h3>
                 <button
                   onClick={() => setFocusedChart('boxplot')}
-                  className="p-1.5 rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                  className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
                   title="Maximize Chart"
                 >
                   <Maximize2 size={14} />
@@ -336,17 +336,17 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
       {/* Drill Confirmation Modal */}
       {drillConfirmMeasure && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-white mb-3">Analyze in Detail?</h3>
-            <p className="text-sm text-slate-300 mb-6">
+          <div className="bg-surface-secondary border border-edge rounded-xl shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-content mb-3">Analyze in Detail?</h3>
+            <p className="text-sm text-content mb-6">
               Switch to standard Dashboard view to analyze{' '}
-              <strong className="text-white">{drillConfirmMeasure}</strong> with full I-Chart,
+              <strong className="text-content">{drillConfirmMeasure}</strong> with full I-Chart,
               Boxplot, and Pareto analysis?
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={handleCancelDrill}
-                className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-medium text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors"
               >
                 Cancel
               </button>

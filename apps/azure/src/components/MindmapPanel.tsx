@@ -5,9 +5,7 @@ import type { FilterAction, DataRow } from '@variscout/core';
 import { GripVertical } from 'lucide-react';
 import {
   MindmapPanelContent,
-  mindmapPanelAzureColorScheme,
   StratificationGrid,
-  stratificationGridAzureColorScheme,
   exportMindmapPng,
   exportMindmapSvg,
   exportMindmapToClipboard,
@@ -180,18 +178,18 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
     <>
       {/* Draggable divider (matches DataPanel pattern) */}
       <div
-        className={`w-1 bg-slate-700 hover:bg-blue-500 cursor-col-resize flex-shrink-0 flex items-center justify-center transition-colors ${
+        className={`w-1 bg-surface-tertiary hover:bg-blue-500 cursor-col-resize flex-shrink-0 flex items-center justify-center transition-colors ${
           isDragging ? 'bg-blue-500' : ''
         }`}
         onMouseDown={handleMouseDown}
       >
-        <GripVertical size={12} className="text-slate-500" />
+        <GripVertical size={12} className="text-content-muted" />
       </div>
 
       {/* Panel */}
       <div
         ref={panelRef}
-        className="flex-shrink-0 bg-slate-800 border-l border-slate-700 flex flex-col overflow-hidden"
+        className="flex-shrink-0 bg-surface-secondary border-l border-edge flex flex-col overflow-hidden"
         style={{ width }}
       >
         <MindmapPanelContent
@@ -205,7 +203,6 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
           copyFeedback={copyFeedback}
           showSvgExport
           onExportSvg={handleExportSvg}
-          colorScheme={mindmapPanelAzureColorScheme}
           columnAliases={columnAliases}
         >
           {mode === 'drilldown' ? (
@@ -216,7 +213,6 @@ const MindmapPanel: React.FC<MindmapPanelProps> = ({
                 cumulativeVariationPct={cumulativeVariationPct}
                 onCategorySelect={handleCategorySelect}
                 columnAliases={columnAliases}
-                colorScheme={stratificationGridAzureColorScheme}
               />
             </div>
           ) : (

@@ -227,6 +227,18 @@ export {
   type PasteScreenColorScheme,
 } from './components/PasteScreen';
 
+// Dashboard building blocks
+export {
+  FocusedViewOverlay,
+  FocusedChartCard,
+  DashboardChartCard,
+  DashboardGrid,
+  type FocusedViewOverlayProps,
+  type FocusedChartCardProps,
+  type DashboardChartCardProps,
+  type DashboardGridProps,
+} from './components/DashboardBase';
+
 // Services
 export {
   errorService,

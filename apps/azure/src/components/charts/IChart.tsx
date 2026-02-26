@@ -14,7 +14,7 @@ import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
 import { IChartBase, getResponsiveMargins, getScaledFonts } from '@variscout/charts';
 import { useIChartData } from '@variscout/hooks';
-import { ChartAnnotationLayer, YAxisPopover, yAxisPopoverAzureColorScheme } from '@variscout/ui';
+import { ChartAnnotationLayer, YAxisPopover } from '@variscout/ui';
 import type { ChartAnnotation } from '@variscout/hooks';
 
 interface IChartProps {
@@ -127,7 +127,7 @@ const IChart = ({
 
   if (!outcome || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-500 italic">
+      <div className="flex items-center justify-center h-full text-content-muted italic">
         No data available for I-Chart
       </div>
     );
@@ -189,7 +189,6 @@ const IChart = ({
         autoMax={autoMax}
         onSave={setAxisSettings}
         anchorPosition={{ top: margin.top, left: 10 }}
-        colorScheme={yAxisPopoverAzureColorScheme}
       />
     </div>
   );

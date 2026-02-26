@@ -16,7 +16,7 @@ const iconMap = {
 
 const colorMap = {
   success: 'bg-green-900/90 border-green-700/50 text-green-200',
-  info: 'bg-slate-800/90 border-slate-700/50 text-slate-200',
+  info: 'bg-surface-secondary/90 border-edge/50 text-content',
   warning: 'bg-amber-900/90 border-amber-700/50 text-amber-200',
   error: 'bg-red-900/90 border-red-700/50 text-red-200',
 } as const;

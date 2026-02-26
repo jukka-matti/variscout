@@ -19,19 +19,19 @@ const PerformanceSummary: React.FC = () => {
   const { totalChannels, overall, needsAttentionCount } = summary;
 
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-2 bg-slate-800/50 border-b border-slate-700">
+    <div className="flex items-center justify-between gap-4 px-4 py-2 bg-surface-secondary/50 border-b border-edge">
       {/* Summary stats */}
       <div className="flex items-center gap-4 text-sm">
-        <div className="text-slate-400">
-          <span className="font-medium text-slate-200">{totalChannels}</span>{' '}
+        <div className="text-content-secondary">
+          <span className="font-medium text-content">{totalChannels}</span>{' '}
           {measureLabel.toLowerCase()}s
         </div>
-        <div className="text-slate-400 border-l border-slate-600 pl-4">
+        <div className="text-content-secondary border-l border-edge-secondary pl-4">
           Avg Cpk:{' '}
-          <span className="font-mono font-medium text-slate-200">{overall.meanCpk.toFixed(2)}</span>
+          <span className="font-mono font-medium text-content">{overall.meanCpk.toFixed(2)}</span>
         </div>
         {needsAttentionCount > 0 && (
-          <div className="text-amber-400 border-l border-slate-600 pl-4">
+          <div className="text-amber-400 border-l border-edge-secondary pl-4">
             <span className="font-medium">{needsAttentionCount}</span> below target
           </div>
         )}
@@ -41,7 +41,7 @@ const PerformanceSummary: React.FC = () => {
       {selectedMeasure && (
         <button
           onClick={() => setSelectedMeasure(null)}
-          className="text-xs text-slate-400 hover:text-slate-200 underline"
+          className="text-xs text-content-secondary hover:text-content underline"
         >
           Clear selection
         </button>

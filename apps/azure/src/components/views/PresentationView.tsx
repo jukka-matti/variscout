@@ -56,7 +56,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
   if (focused) {
     const idx = chartOrder.indexOf(focused);
     return (
-      <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col">
+      <div className="fixed inset-0 z-50 bg-surface flex flex-col">
         <div className="flex-1 relative">
           <ErrorBoundary componentName={focused}>
             {focused === 'ichart' && <IChart />}
@@ -77,14 +77,14 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
             onClick={() =>
               setFocused(chartOrder[(idx - 1 + chartOrder.length) % chartOrder.length])
             }
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700/80 transition-colors"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-surface-secondary/80 text-content hover:text-content hover:bg-surface-tertiary/80 transition-colors"
             aria-label="Previous chart"
           >
             <ChevronLeft size={24} />
           </button>
           <button
             onClick={() => setFocused(chartOrder[(idx + 1) % chartOrder.length])}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700/80 transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-surface-secondary/80 text-content hover:text-content hover:bg-surface-tertiary/80 transition-colors"
             aria-label="Next chart"
           >
             <ChevronRight size={24} />
@@ -92,7 +92,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
         </div>
 
         {/* Hint bar */}
-        <div className="px-4 py-2 text-center text-xs text-slate-600">
+        <div className="px-4 py-2 text-center text-xs text-content-muted">
           Press Escape to return to overview &middot; Arrow keys to navigate
         </div>
       </div>
@@ -101,10 +101,10 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
 
   // Overview mode: grid of all charts
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col p-4 gap-3">
+    <div className="fixed inset-0 z-50 bg-surface flex flex-col p-4 gap-3">
       {/* Top row: I-Chart (45% height) */}
       <div
-        className="flex-[45] min-h-0 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
+        className="flex-[45] min-h-0 bg-surface-secondary rounded-xl border border-edge overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
         onClick={() => setFocused('ichart')}
         role="button"
         aria-label="Focus I-Chart"
@@ -121,7 +121,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
       {/* Bottom row: Boxplot + Pareto + Stats (55% height) */}
       <div className="flex-[55] min-h-0 flex gap-3">
         <div
-          className="flex-1 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
+          className="flex-1 bg-surface-secondary rounded-xl border border-edge overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
           onClick={() => setFocused('boxplot')}
           role="button"
           aria-label="Focus Boxplot"
@@ -136,7 +136,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
         </div>
 
         <div
-          className="flex-1 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
+          className="flex-1 bg-surface-secondary rounded-xl border border-edge overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
           onClick={() => setFocused('pareto')}
           role="button"
           aria-label="Focus Pareto"
@@ -151,7 +151,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
         </div>
 
         <div
-          className="flex-1 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
+          className="flex-1 bg-surface-secondary rounded-xl border border-edge overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
           onClick={() => setFocused('stats')}
           role="button"
           aria-label="Focus Stats"
@@ -167,7 +167,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
       </div>
 
       {/* Hint bar */}
-      <div className="text-center text-xs text-slate-600 py-1">
+      <div className="text-center text-xs text-content-muted py-1">
         Click a chart to focus &middot; Press Escape to exit presentation
       </div>
     </div>

@@ -73,7 +73,6 @@ vi.mock('@variscout/ui', () => ({
     </div>
   ),
   InvestigationPrompt: () => null,
-  investigationPromptAzureColorScheme: {},
 }));
 
 // ── Mock @variscout/data ──

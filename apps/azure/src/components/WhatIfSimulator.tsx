@@ -1,20 +1,17 @@
 import React, { forwardRef } from 'react';
 import {
   WhatIfSimulator as WhatIfSimulatorBase,
-  whatIfSimulatorAzureColorScheme,
   type WhatIfSimulatorProps,
   type WhatIfSimulatorHandle,
 } from '@variscout/ui';
 
 /**
- * Azure WhatIfSimulator — wraps @variscout/ui with Azure slate color scheme.
+ * Azure WhatIfSimulator — wraps @variscout/ui. Uses default semantic-token-based color scheme.
  */
 const WhatIfSimulator = forwardRef<
   WhatIfSimulatorHandle,
   Omit<WhatIfSimulatorProps, 'colorScheme'>
->((props, ref) => (
-  <WhatIfSimulatorBase ref={ref} {...props} colorScheme={whatIfSimulatorAzureColorScheme} />
-));
+>((props, ref) => <WhatIfSimulatorBase ref={ref} {...props} />);
 
 WhatIfSimulator.displayName = 'WhatIfSimulator';
 

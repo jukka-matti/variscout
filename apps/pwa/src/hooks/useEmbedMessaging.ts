@@ -193,7 +193,7 @@ export function useEmbedMessaging(isEmbedMode: boolean) {
           // Scroll the specified chart into view
           if (message.payload?.chartId) {
             const chartElement = document.querySelector(
-              `[data-chart-id="${message.payload.chartId}"]`
+              `[data-testid="chart-${message.payload.chartId}"]`
             );
             if (chartElement) {
               chartElement.scrollIntoView({ behavior: 'smooth', block: 'center' });

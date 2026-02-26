@@ -68,14 +68,82 @@ vi.mock('@variscout/ui', () => ({
   SelectionPanel: () => <div data-testid="selection-panel">Selection Panel</div>,
   CreateFactorModal: () => <div data-testid="create-factor-modal">Create Factor</div>,
   FilterContextBar: () => null,
-  filterContextBarAzureColorScheme: {},
   BoxplotDisplayToggle: () => <div data-testid="boxplot-display-toggle">Display Toggle</div>,
-  boxplotDisplayToggleAzureColorScheme: {},
   ChartDownloadMenu: () => <div data-testid="chart-download-menu">Download</div>,
-  chartDownloadMenuAzureColorScheme: {},
   AnnotationContextMenu: () => null,
   HelpTooltip: () => null,
   useGlossary: () => ({ getTerm: () => undefined }),
+  DashboardChartCard: ({
+    id,
+    testId,
+    title,
+    controls,
+    filterBar,
+    children,
+    footer,
+    copyFeedback,
+    chartName,
+    onCopyChart,
+    onDownloadPng,
+    onDownloadSvg,
+    onMaximize,
+  }: {
+    id: string;
+    testId: string;
+    title: React.ReactNode;
+    controls?: React.ReactNode;
+    filterBar?: React.ReactNode;
+    children: React.ReactNode;
+    footer?: React.ReactNode;
+    copyFeedback?: string | null;
+    chartName: string;
+    onCopyChart?: (containerId: string, chartName: string) => Promise<void>;
+    onDownloadPng?: (containerId: string, chartName: string) => Promise<void>;
+    onDownloadSvg?: (containerId: string, chartName: string) => void;
+    onMaximize?: () => void;
+  }) => (
+    <div id={id} data-testid={testId}>
+      {title}
+      <div data-export-hide>{controls}</div>
+      {filterBar}
+      {children}
+      {footer}
+      {onCopyChart && onDownloadPng && onDownloadSvg && (
+        <>
+          <button
+            onClick={() => onCopyChart(id, chartName)}
+            aria-label={`Copy ${chartName} to clipboard`}
+          >
+            {copyFeedback === chartName ? 'Copied' : 'Copy'}
+          </button>
+          <div data-testid="chart-download-menu">Download</div>
+        </>
+      )}
+      {onMaximize && (
+        <button onClick={onMaximize} aria-label="Maximize chart">
+          Maximize
+        </button>
+      )}
+    </div>
+  ),
+  DashboardGrid: ({
+    ichartCard,
+    boxplotCard,
+    paretoCard,
+    statsPanel,
+  }: {
+    ichartCard: React.ReactNode;
+    boxplotCard: React.ReactNode;
+    paretoCard?: React.ReactNode;
+    statsPanel: React.ReactNode;
+  }) => (
+    <div data-testid="dashboard-grid">
+      {ichartCard}
+      {boxplotCard}
+      {paretoCard}
+      {statsPanel}
+    </div>
+  ),
 }));
 
 // Mock hooks

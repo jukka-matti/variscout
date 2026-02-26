@@ -87,7 +87,7 @@ const DevTierSwitcherContent: React.FC = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg border border-slate-600 ${currentOption.color} text-white text-sm font-medium transition-colors`}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg border border-edge-secondary ${currentOption.color} text-white text-sm font-medium transition-colors`}
           title="Dev: Switch License Tier"
         >
           <Settings size={16} className="animate-spin-slow" />
@@ -99,23 +99,23 @@ const DevTierSwitcherContent: React.FC = () => {
 
       {/* Panel */}
       {isOpen && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-4 w-64">
+        <div className="bg-surface-secondary border border-edge rounded-xl shadow-2xl p-4 w-64">
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Settings size={16} className="text-slate-400" />
-              <span className="text-sm font-semibold text-white">Dev Tier Switcher</span>
+              <Settings size={16} className="text-content-secondary" />
+              <span className="text-sm font-semibold text-content">Dev Tier Switcher</span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1 text-slate-400 hover:text-white transition-colors"
+              className="p-1 text-content-secondary hover:text-content transition-colors"
             >
               <X size={16} />
             </button>
           </div>
 
           {/* Info */}
-          <p className="text-xs text-slate-500 mb-3">
+          <p className="text-xs text-content-muted mb-3">
             Switch tiers to test feature gating. Changes persist in localStorage.
           </p>
 
@@ -128,7 +128,7 @@ const DevTierSwitcherContent: React.FC = () => {
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                   currentTier === option.tier
                     ? `${option.color} text-white ring-2 ring-white/30`
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    : 'bg-surface-tertiary text-content hover:bg-surface-tertiary/80'
                 }`}
               >
                 {option.icon}
@@ -142,21 +142,21 @@ const DevTierSwitcherContent: React.FC = () => {
           {hasOverride && (
             <button
               onClick={handleClearOverride}
-              className="w-full mt-3 px-3 py-2 text-xs text-slate-400 hover:text-white border border-slate-600 hover:border-slate-500 rounded-lg transition-colors"
+              className="w-full mt-3 px-3 py-2 text-xs text-content-secondary hover:text-content border border-edge-secondary hover:border-edge-secondary rounded-lg transition-colors"
             >
               Clear Override (use env default)
             </button>
           )}
 
           {/* Current state info */}
-          <div className="mt-3 pt-3 border-t border-slate-700 text-xs text-slate-500">
+          <div className="mt-3 pt-3 border-t border-edge text-xs text-content-muted">
             <div className="flex justify-between">
               <span>Current:</span>
-              <span className="text-slate-300">{currentTier}</span>
+              <span className="text-content">{currentTier}</span>
             </div>
             <div className="flex justify-between mt-1">
               <span>Override:</span>
-              <span className={hasOverride ? 'text-amber-400' : 'text-slate-500'}>
+              <span className={hasOverride ? 'text-amber-400' : 'text-content-muted'}>
                 {hasOverride ? 'Active' : 'None'}
               </span>
             </div>

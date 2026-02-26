@@ -137,22 +137,22 @@ const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
     <div className="relative" ref={popoverRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-content-secondary hover:text-content bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
         title="Manage analysis factors"
         aria-label="Manage factors"
       >
         <Settings2 size={14} />
         <span>Factors</span>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-content-muted">
           ({factors.length}/{MAX_FACTORS})
         </span>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-xl shadow-black/30 z-50 overflow-hidden">
-          <div className="p-3 border-b border-slate-700">
-            <h3 className="text-sm font-semibold text-white">Manage Factors</h3>
-            <p className="text-xs text-slate-500 mt-1">
+        <div className="absolute right-0 top-full mt-2 w-72 bg-surface-secondary border border-edge rounded-xl shadow-xl shadow-black/30 z-50 overflow-hidden">
+          <div className="p-3 border-b border-edge">
+            <h3 className="text-sm font-semibold text-content">Manage Factors</h3>
+            <p className="text-xs text-content-muted mt-1">
               Select up to {MAX_FACTORS} categorical columns to analyze.
             </p>
           </div>
@@ -172,20 +172,20 @@ const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
                     isSelected
                       ? 'bg-blue-600/20 text-white border border-blue-500/30'
                       : isDisabled
-                        ? 'text-slate-600 cursor-not-allowed'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                        ? 'text-content-muted cursor-not-allowed'
+                        : 'text-content-secondary hover:text-content hover:bg-surface-tertiary/50'
                   }`}
                 >
                   <div
                     className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                      isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-600'
+                      isSelected ? 'border-blue-500 bg-blue-500' : 'border-edge-secondary'
                     }`}
                   >
                     {isSelected && <Check size={10} className="text-white" />}
                   </div>
                   <span className="truncate flex-1">{col}</span>
                   {variationPct != null && (
-                    <span className="text-xs text-slate-500 tabular-nums flex-shrink-0">
+                    <span className="text-xs text-content-muted tabular-nums flex-shrink-0">
                       {variationPct.toFixed(0)}%
                     </span>
                   )}
@@ -194,19 +194,19 @@ const FactorManagerPopover: React.FC<FactorManagerPopoverProps> = ({
             })}
 
             {categorical.length === 0 && (
-              <p className="text-xs text-slate-500 text-center py-4">
+              <p className="text-xs text-content-muted text-center py-4">
                 No categorical columns found in dataset.
               </p>
             )}
           </div>
 
-          <div className="p-3 border-t border-slate-700 flex justify-end gap-2">
+          <div className="p-3 border-t border-edge flex justify-end gap-2">
             <button
               onClick={() => {
                 setIsOpen(false);
                 setPendingFactors(factors);
               }}
-              className="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+              className="px-3 py-1.5 text-xs font-medium text-content-secondary hover:text-content transition-colors"
             >
               Cancel
             </button>

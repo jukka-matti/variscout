@@ -177,20 +177,16 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     }
   }, [onSaveSpecs, targetInput, lslInput, uslInput]);
 
-  const isAzure = cs === statsPanelAzureColorScheme;
-  const inputClass = isAzure
-    ? 'flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 placeholder-slate-600'
-    : 'flex-1 bg-surface border border-edge rounded px-2 py-1.5 text-sm text-white font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 placeholder-content-muted';
-  const inlineLabelClass = isAzure ? 'text-xs text-slate-400' : 'text-xs text-content-secondary';
-  const inlineHeadingClass = isAzure ? 'text-sm text-slate-300' : 'text-sm text-content';
-  const inlineSubtextClass = isAzure ? 'text-xs text-slate-500' : 'text-xs text-content-muted';
-  const chevronClass = isAzure ? 'text-slate-400' : 'text-content-secondary';
-  const expandButtonClass = isAzure
-    ? 'flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-300 cursor-pointer transition-colors'
-    : 'flex items-center gap-1.5 text-xs text-content-secondary hover:text-content cursor-pointer transition-colors';
-  const inlineContainerClass = isAzure
-    ? 'bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 space-y-3'
-    : 'bg-surface-secondary/50 border border-edge/50 rounded-lg p-4 space-y-3';
+  const inputClass =
+    'flex-1 bg-surface border border-edge rounded px-2 py-1.5 text-sm text-white font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 placeholder-content-muted';
+  const inlineLabelClass = 'text-xs text-content-secondary';
+  const inlineHeadingClass = 'text-sm text-content';
+  const inlineSubtextClass = 'text-xs text-content-muted';
+  const chevronClass = 'text-content-secondary';
+  const expandButtonClass =
+    'flex items-center gap-1.5 text-xs text-content-secondary hover:text-content cursor-pointer transition-colors';
+  const inlineContainerClass =
+    'bg-surface-secondary/50 border border-edge/50 rounded-lg p-4 space-y-3';
 
   const handleStartEditSpecs = () => {
     setTargetInput(specs.target !== undefined ? String(specs.target) : '');
@@ -215,12 +211,9 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     setIsEditingSpecs(false);
   };
 
-  const editButtonClass = isAzure
-    ? 'flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-400 cursor-pointer transition-colors'
-    : 'flex items-center gap-1.5 text-xs text-content-secondary hover:text-blue-400 cursor-pointer transition-colors';
-  const editActionButtonClass = isAzure
-    ? 'px-3 py-1.5 text-xs font-medium rounded transition-colors'
-    : 'px-3 py-1.5 text-xs font-medium rounded transition-colors';
+  const editButtonClass =
+    'flex items-center gap-1.5 text-xs text-content-secondary hover:text-blue-400 cursor-pointer transition-colors';
+  const editActionButtonClass = 'px-3 py-1.5 text-xs font-medium rounded transition-colors';
 
   const renderInlineSpecInputs = (isEditMode: boolean) => {
     if (!onSaveSpecs) return null;
@@ -273,7 +266,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={handleClearSpecs}
-              className={`${editActionButtonClass} ${isAzure ? 'text-red-400 hover:bg-red-900/30' : 'text-red-400 hover:bg-red-900/20'}`}
+              className={`${editActionButtonClass} text-red-400 hover:bg-red-900/20`}
               type="button"
               data-testid="clear-specs-button"
             >
@@ -281,7 +274,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             </button>
             <button
               onClick={handleSaveAndClose}
-              className={`${editActionButtonClass} ${isAzure ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-500'}`}
+              className={`${editActionButtonClass} bg-blue-600 text-white hover:bg-blue-500`}
               type="button"
               data-testid="done-specs-button"
             >

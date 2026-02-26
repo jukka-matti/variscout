@@ -141,9 +141,9 @@ const DataPanel: React.FC<DataPanelProps> = ({
   };
 
   const getStatusColor = (value: unknown): string => {
-    if (!outcome) return 'text-slate-400';
+    if (!outcome) return 'text-content-secondary';
     const numValue = parseFloat(String(value));
-    if (isNaN(numValue)) return 'text-slate-400';
+    if (isNaN(numValue)) return 'text-content-secondary';
 
     const status = getSpecStatus(numValue, specs);
     switch (status) {
@@ -154,7 +154,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
       case 'FAIL_LSL':
         return 'text-amber-500';
       default:
-        return 'text-slate-400';
+        return 'text-content-secondary';
     }
   };
 
@@ -168,24 +168,24 @@ const DataPanel: React.FC<DataPanelProps> = ({
     <>
       {/* Draggable divider */}
       <div
-        className={`w-1 bg-slate-700 hover:bg-blue-500 cursor-col-resize flex-shrink-0 flex items-center justify-center transition-colors ${
+        className={`w-1 bg-edge hover:bg-blue-500 cursor-col-resize flex-shrink-0 flex items-center justify-center transition-colors ${
           isDragging ? 'bg-blue-500' : ''
         }`}
         onMouseDown={handleMouseDown}
       >
-        <GripVertical size={12} className="text-slate-500" />
+        <GripVertical size={12} className="text-content-muted" />
       </div>
 
       {/* Panel */}
       <div
-        className="flex-shrink-0 bg-slate-800 border-l border-slate-700 flex flex-col overflow-hidden"
+        className="flex-shrink-0 bg-surface-secondary border-l border-edge flex flex-col overflow-hidden"
         style={{ width }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700 bg-slate-800/80">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-edge bg-surface-secondary/80">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-white">Data</span>
-            <span className="text-xs text-slate-400">{dataWithIndices.length} rows</span>
+            <span className="text-sm font-semibold text-content">Data</span>
+            <span className="text-xs text-content-secondary">{dataWithIndices.length} rows</span>
           </div>
           <div className="flex items-center gap-1">
             {onOpenEditor && (
@@ -193,7 +193,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
                 onClick={onOpenEditor}
                 aria-label="Edit data"
                 title="Edit Data Table"
-                className="p-1 text-slate-400 hover:text-white rounded transition-colors"
+                className="p-1 text-content-secondary hover:text-content rounded transition-colors"
               >
                 <Pencil size={14} />
               </button>
@@ -201,7 +201,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
             <button
               onClick={onClose}
               aria-label="Close data panel"
-              className="p-1 text-slate-400 hover:text-white rounded transition-colors"
+              className="p-1 text-content-secondary hover:text-content rounded transition-colors"
             >
               <X size={16} />
             </button>
@@ -211,21 +211,21 @@ const DataPanel: React.FC<DataPanelProps> = ({
         {/* Table */}
         <div className="flex-1 overflow-auto">
           {dataWithIndices.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-slate-500 text-sm italic">
+            <div className="flex items-center justify-center h-32 text-content-muted text-sm italic">
               No data to display
             </div>
           ) : (
             <table className="w-full border-collapse text-xs">
-              <thead className="sticky top-0 bg-slate-800 z-10">
+              <thead className="sticky top-0 bg-surface-secondary z-10">
                 <tr>
-                  <th className="px-2 py-1.5 text-left text-slate-500 font-medium border-b border-slate-700 w-8">
+                  <th className="px-2 py-1.5 text-left text-content-muted font-medium border-b border-edge w-8">
                     #
                   </th>
                   {columns.map(col => (
                     <th
                       key={col}
-                      className={`px-2 py-1.5 text-left font-medium border-b border-slate-700 truncate max-w-[80px] ${
-                        col === outcome ? 'text-blue-400' : 'text-slate-400'
+                      className={`px-2 py-1.5 text-left font-medium border-b border-edge truncate max-w-[80px] ${
+                        col === outcome ? 'text-blue-400' : 'text-content-secondary'
                       }`}
                       title={getColumnLabel(col)}
                     >
@@ -253,10 +253,10 @@ const DataPanel: React.FC<DataPanelProps> = ({
                           ? 'bg-blue-500/30'
                           : isExcluded
                             ? 'bg-amber-500/10 hover:bg-amber-500/20'
-                            : 'hover:bg-slate-700/50'
+                            : 'hover:bg-surface-tertiary/50'
                       }`}
                     >
-                      <td className="px-2 py-1 text-slate-500 border-b border-slate-700/50 font-mono">
+                      <td className="px-2 py-1 text-content-muted border-b border-edge/50 font-mono">
                         <span className="flex items-center gap-1">
                           {originalIndex + 1}
                           {isExcluded && (
@@ -280,8 +280,8 @@ const DataPanel: React.FC<DataPanelProps> = ({
                       {columns.map(col => (
                         <td
                           key={col}
-                          className={`px-2 py-1 border-b border-slate-700/50 truncate max-w-[80px] ${
-                            col === outcome ? getStatusColor(row[col]) : 'text-slate-200'
+                          className={`px-2 py-1 border-b border-edge/50 truncate max-w-[80px] ${
+                            col === outcome ? getStatusColor(row[col]) : 'text-content'
                           }`}
                           title={String(row[col] ?? '')}
                         >
@@ -298,23 +298,23 @@ const DataPanel: React.FC<DataPanelProps> = ({
 
         {/* Pagination Footer */}
         {needsPagination && (
-          <div className="flex items-center justify-between px-3 py-2 border-t border-slate-700 bg-slate-800/80">
+          <div className="flex items-center justify-between px-3 py-2 border-t border-edge bg-surface-secondary/80">
             <button
               onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
               disabled={currentPage === 0}
               aria-label="Previous page"
-              className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-content-secondary hover:text-content disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-content-secondary">
               {currentPage + 1} / {totalPages}
             </span>
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={currentPage >= totalPages - 1}
               aria-label="Next page"
-              className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-content-secondary hover:text-content disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronRight size={16} />
             </button>

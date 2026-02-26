@@ -7,37 +7,7 @@ import type { FilterChipData } from '@variscout/hooks';
 let capturedProps: Record<string, unknown> = {};
 
 vi.mock('@variscout/ui', () => {
-  const azureScheme = {
-    containerBg: 'bg-slate-900/50',
-    border: 'border-slate-800',
-    textMuted: 'text-slate-500',
-    textSecondary: 'text-slate-400',
-    chipBg: 'bg-slate-700/50',
-    chipHoverBg: 'hover:bg-slate-700/70',
-    removeBorder: 'border-slate-600/50',
-    variationBar: {
-      barBg: 'bg-slate-700/50',
-      tooltipBg: 'bg-slate-800',
-      tooltipBorder: 'border-slate-700',
-      contentText: 'text-slate-300',
-      mutedText: 'text-slate-500',
-    },
-    dropdown: {
-      secondaryBg: 'bg-slate-800',
-      tertiaryBg: 'bg-slate-700/50',
-      surfaceBg: 'bg-slate-900',
-      border: 'border-slate-700',
-      borderSecondary: 'border-slate-600',
-      textSecondary: 'text-slate-400',
-      textMuted: 'text-slate-500',
-      hoverBg: 'hover:bg-slate-700/50',
-      selectedBg: 'bg-slate-700/30',
-      progressBg: 'bg-slate-700',
-    },
-  };
-
   return {
-    filterBreadcrumbAzureColorScheme: azureScheme,
     FilterBreadcrumb: (props: Record<string, unknown>) => {
       capturedProps = props;
       const chipData = props.filterChipData as FilterChipData[];
@@ -154,7 +124,7 @@ describe('FilterBreadcrumb (Azure wrapper)', () => {
     expect(screen.getByText(/Shift: Night/)).toBeInTheDocument();
   });
 
-  it('passes azure color scheme to base component', () => {
+  it('does not pass a custom color scheme (uses default semantic tokens)', () => {
     render(
       <FilterBreadcrumb
         filterChipData={sampleChipData}
@@ -163,11 +133,7 @@ describe('FilterBreadcrumb (Azure wrapper)', () => {
       />
     );
 
-    expect(capturedProps.colorScheme).toBeDefined();
-    const scheme = capturedProps.colorScheme as Record<string, unknown>;
-    expect(scheme.containerBg).toBe('bg-slate-900/50');
-    expect(scheme.border).toBe('border-slate-800');
-    expect(scheme.chipBg).toBe('bg-slate-700/50');
+    expect(capturedProps.colorScheme).toBeUndefined();
   });
 
   it('calls onRemoveFilter when a chip remove button is clicked', () => {

@@ -17,24 +17,15 @@ import {
   CreateFactorModal,
   BoxplotDisplayToggle,
   AnnotationContextMenu,
-  ChartDownloadMenu,
+  DashboardChartCard,
+  DashboardGrid,
   useIsMobile,
 } from '@variscout/ui';
 import { useKeyboardNavigation, useAnnotations } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
-import {
-  Activity,
-  BarChart3,
-  Beaker,
-  Maximize2,
-  Layers,
-  X,
-  Copy,
-  Check,
-  Download,
-} from 'lucide-react';
+import { Activity, BarChart3, Beaker, Layers, X, Copy, Check, Download } from 'lucide-react';
 import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '@variscout/core';
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -503,107 +494,110 @@ const Dashboard = ({
         <div className="flex-1 flex flex-col min-h-0">
           {!focusedChart ? (
             // Scrollable Layout
-            <div className="flex flex-col gap-4 p-4">
-              {/* I-Chart Section */}
-              <div
-                id="ichart-card"
-                data-chart-id="ichart"
-                data-testid="chart-ichart"
-                onClick={() => handleChartWrapperClick('ichart')}
-                className={`min-h-[400px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 flex flex-col transition-all ${getHighlightClass('ichart')}`}
-              >
-                <div className="flex justify-between items-center mb-2 gap-4">
-                  {/* Left: Editable Title with Subtitle Branding */}
-                  <div className="flex items-center gap-2">
-                    <Activity className="text-blue-400 self-start mt-1" />
-                    <div className="flex flex-col">
-                      <h2 className="text-xl font-bold text-white leading-none">
-                        <EditableChartTitle
-                          defaultTitle={`I-Chart: ${outcome}`}
-                          value={chartTitles.ichart || ''}
-                          onChange={title => setChartTitles({ ...chartTitles, ichart: title })}
-                        />
-                      </h2>
-                      <span className="text-xs font-bold text-blue-400 opacity-80 tracking-widest mt-1">
-                        VARISCOUT
-                      </span>
+            <DashboardGrid
+              ichartCard={
+                <DashboardChartCard
+                  id="ichart-card"
+                  testId="chart-ichart"
+                  chartName="ichart"
+                  minHeight="400px"
+                  highlightClass={getHighlightClass('ichart')}
+                  onClick={() => handleChartWrapperClick('ichart')}
+                  onMaximize={() => setFocusedChart('ichart')}
+                  copyFeedback={copyFeedback}
+                  onCopyChart={handleCopyChart}
+                  onDownloadPng={handleDownloadPng}
+                  onDownloadSvg={handleDownloadSvg}
+                  title={
+                    <div className="flex items-center gap-2">
+                      <Activity className="text-blue-400 self-start mt-1" />
+                      <div className="flex flex-col">
+                        <h2 className="text-xl font-bold text-white leading-none">
+                          <EditableChartTitle
+                            defaultTitle={`I-Chart: ${outcome}`}
+                            value={chartTitles.ichart || ''}
+                            onChange={title => setChartTitles({ ...chartTitles, ichart: title })}
+                          />
+                        </h2>
+                        <span className="text-xs font-bold text-blue-400 opacity-80 tracking-widest mt-1">
+                          VARISCOUT
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  }
+                  controls={
+                    <>
+                      {/* Outcome Selector */}
+                      <select
+                        value={outcome}
+                        onChange={e => setOutcome(e.target.value)}
+                        aria-label="Select outcome variable"
+                        className="bg-surface border border-edge text-sm font-medium text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
+                      >
+                        {availableOutcomes.map(o => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
 
-                  {/* Right: All Controls */}
-                  <div className="flex items-center gap-2 flex-wrap justify-end" data-export-hide>
-                    {/* Outcome Selector */}
-                    <select
-                      value={outcome}
-                      onChange={e => setOutcome(e.target.value)}
-                      aria-label="Select outcome variable"
-                      className="bg-surface border border-edge text-sm font-medium text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
-                    >
-                      {availableOutcomes.map(o => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </select>
-
-                    {/* Stage Controls */}
-                    {availableStageColumns.length > 0 && (
-                      <div className="flex items-center gap-1 pl-2 border-l border-edge">
-                        <Layers size={14} className="text-blue-400" />
-                        <select
-                          value={stageColumn || ''}
-                          onChange={e => setStageColumn(e.target.value || null)}
-                          className="bg-surface border border-edge text-xs text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
-                          title="Divide chart into stages"
-                          aria-label="Select stage column"
-                        >
-                          <option value="">No stages</option>
-                          {availableStageColumns.map(col => (
-                            <option key={col} value={col}>
-                              {columnAliases[col] || col}
-                            </option>
-                          ))}
-                        </select>
-                        {stageColumn && (
+                      {/* Stage Controls */}
+                      {availableStageColumns.length > 0 && (
+                        <div className="flex items-center gap-1 pl-2 border-l border-edge">
+                          <Layers size={14} className="text-blue-400" />
                           <select
-                            value={stageOrderMode}
-                            onChange={e => setStageOrderMode(e.target.value as StageOrderMode)}
-                            className="bg-surface border border-edge text-xs text-content-secondary rounded px-1 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
-                            aria-label="Stage order mode"
+                            value={stageColumn || ''}
+                            onChange={e => setStageColumn(e.target.value || null)}
+                            className="bg-surface border border-edge text-xs text-white rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
+                            title="Divide chart into stages"
+                            aria-label="Select stage column"
                           >
-                            <option value="auto">Auto</option>
-                            <option value="data-order">Data order</option>
+                            <option value="">No stages</option>
+                            {availableStageColumns.map(col => (
+                              <option key={col} value={col}>
+                                {columnAliases[col] || col}
+                              </option>
+                            ))}
                           </select>
-                        )}
+                          {stageColumn && (
+                            <select
+                              value={stageOrderMode}
+                              onChange={e => setStageOrderMode(e.target.value as StageOrderMode)}
+                              className="bg-surface border border-edge text-xs text-content-secondary rounded px-1 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
+                              aria-label="Stage order mode"
+                            >
+                              <option value="auto">Auto</option>
+                              <option value="data-order">Data order</option>
+                            </select>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Specs */}
+                      <div className="pl-2 border-l border-edge">
+                        <SpecsPopover
+                          specs={specs}
+                          onSave={newSpecs => setSpecs(newSpecs)}
+                          onOpenAdvanced={() => setShowSpecEditor(true)}
+                        />
                       </div>
-                    )}
 
-                    {/* Specs */}
-                    <div className="pl-2 border-l border-edge">
-                      <SpecsPopover
-                        specs={specs}
-                        onSave={newSpecs => setSpecs(newSpecs)}
-                        onOpenAdvanced={() => setShowSpecEditor(true)}
-                      />
-                    </div>
-
-                    {/* Stage Stats (if active) */}
-                    {stageColumn && stagedStats && (
-                      <div className="flex gap-2 text-xs bg-surface/50 px-2 py-1 rounded border border-edge/50 pl-2 border-l border-edge">
-                        <span className="text-blue-400 font-medium">
-                          {stagedStats.stageOrder.length} stages
-                        </span>
-                        <span className="text-content-secondary">
-                          μ:{' '}
-                          <span className="text-white font-mono">
-                            {stagedStats.overallStats.mean.toFixed(2)}
+                      {/* Stage Stats (if active) */}
+                      {stageColumn && stagedStats && (
+                        <div className="flex gap-2 text-xs bg-surface/50 px-2 py-1 rounded border border-edge/50 pl-2 border-l border-edge">
+                          <span className="text-blue-400 font-medium">
+                            {stagedStats.stageOrder.length} stages
                           </span>
-                        </span>
-                      </div>
-                    )}
+                          <span className="text-content-secondary">
+                            μ:{' '}
+                            <span className="text-white font-mono">
+                              {stagedStats.overallStats.mean.toFixed(2)}
+                            </span>
+                          </span>
+                        </div>
+                      )}
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-1 pl-2 border-l border-edge">
+                      {/* Annotation clear button */}
                       {ichartAnnotations.length > 0 && (
                         <button
                           onClick={() => clearAnnotations('ichart')}
@@ -614,43 +608,17 @@ const Dashboard = ({
                           <X size={12} />
                         </button>
                       )}
-                      <button
-                        onClick={() => handleCopyChart('ichart-card', 'ichart')}
-                        className={`p-1.5 rounded transition-all ${
-                          copyFeedback === 'ichart'
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
-                        }`}
-                        title="Copy I-Chart to clipboard"
-                        aria-label="Copy I-Chart to clipboard"
-                        data-export-hide
-                      >
-                        {copyFeedback === 'ichart' ? <Check size={14} /> : <Copy size={14} />}
-                      </button>
-                      <ChartDownloadMenu
-                        containerId="ichart-card"
-                        chartName="ichart"
-                        onDownloadPng={handleDownloadPng}
-                        onDownloadSvg={handleDownloadSvg}
-                      />
-                      <button
-                        onClick={() => setFocusedChart('ichart')}
-                        className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
-                        title="Maximize Chart"
-                        aria-label="Maximize chart"
-                      >
-                        <Maximize2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <FilterContextBar
-                  filterChipData={filterChipData}
-                  columnAliases={columnAliases}
-                  cumulativeVariationPct={cumulativeVariationPct}
-                  show={displayOptions.showFilterContext !== false}
-                />
-                <div id="ichart-container" className="flex-1 min-h-[300px] w-full">
+                    </>
+                  }
+                  filterBar={
+                    <FilterContextBar
+                      filterChipData={filterChipData}
+                      columnAliases={columnAliases}
+                      cumulativeVariationPct={cumulativeVariationPct}
+                      show={displayOptions.showFilterContext !== false}
+                    />
+                  }
+                >
                   <ErrorBoundary componentName="I-Chart">
                     <IChart
                       onPointClick={onPointClick}
@@ -661,233 +629,186 @@ const Dashboard = ({
                       onAnnotationsChange={setIChartAnnotations}
                     />
                   </ErrorBoundary>
-                </div>
-              </div>
-
-              {/* Bottom Section: Boxplot, Pareto, Stats */}
-              <div className="flex flex-col lg:flex-row gap-4 min-h-[350px]">
-                {/* Secondary Charts Container */}
-                <div className="flex flex-1 flex-col md:flex-row gap-4">
-                  <div
-                    id="boxplot-card"
-                    data-chart-id="boxplot"
-                    data-testid="chart-boxplot"
-                    onClick={() => handleChartWrapperClick('boxplot')}
-                    className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('boxplot')}`}
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex flex-col">
-                        <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider leading-none">
-                          <EditableChartTitle
-                            defaultTitle={`Boxplot: ${boxplotFactor}`}
-                            value={chartTitles.boxplot || ''}
-                            onChange={title => setChartTitles({ ...chartTitles, boxplot: title })}
-                          />
-                        </h3>
-                        <span className="text-[10px] font-bold text-blue-400 opacity-80 tracking-widest mt-1">
-                          VARISCOUT
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2" data-export-hide>
-                        <FactorSelector
-                          factors={factors}
-                          selected={boxplotFactor}
-                          onChange={setBoxplotFactor}
-                          hasActiveFilter={!!filters?.[boxplotFactor]?.length}
+                </DashboardChartCard>
+              }
+              boxplotCard={
+                <DashboardChartCard
+                  id="boxplot-card"
+                  testId="chart-boxplot"
+                  chartName="boxplot"
+                  highlightClass={getHighlightClass('boxplot')}
+                  onClick={() => handleChartWrapperClick('boxplot')}
+                  onMaximize={() => setFocusedChart('boxplot')}
+                  copyFeedback={copyFeedback}
+                  onCopyChart={handleCopyChart}
+                  onDownloadPng={handleDownloadPng}
+                  onDownloadSvg={handleDownloadSvg}
+                  className="flex-1 min-w-[300px]"
+                  title={
+                    <div className="flex flex-col">
+                      <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider leading-none">
+                        <EditableChartTitle
+                          defaultTitle={`Boxplot: ${boxplotFactor}`}
+                          value={chartTitles.boxplot || ''}
+                          onChange={title => setChartTitles({ ...chartTitles, boxplot: title })}
                         />
-                        <BoxplotDisplayToggle
-                          showViolin={displayOptions.showViolin ?? false}
-                          showContributionLabels={displayOptions.showContributionLabels ?? false}
-                          onToggleViolin={value =>
-                            setDisplayOptions({ ...displayOptions, showViolin: value })
-                          }
-                          onToggleContributionLabels={value =>
-                            setDisplayOptions({ ...displayOptions, showContributionLabels: value })
-                          }
-                          sortBy={displayOptions.boxplotSortBy ?? 'name'}
-                          sortDirection={displayOptions.boxplotSortDirection ?? 'asc'}
-                          onSortChange={(sortBy, direction) =>
-                            setDisplayOptions({
-                              ...displayOptions,
-                              boxplotSortBy: sortBy,
-                              boxplotSortDirection: direction,
-                            })
-                          }
-                        />
-                        {hasAnnotations && (
-                          <button
-                            onClick={() => clearAnnotations('boxplot')}
-                            className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-                            title="Clear boxplot annotations"
-                            aria-label="Clear boxplot annotations"
-                          >
-                            <X size={12} />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleCopyChart('boxplot-card', 'boxplot')}
-                          className={`p-1.5 rounded transition-all ${
-                            copyFeedback === 'boxplot'
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
-                          }`}
-                          title="Copy Boxplot to clipboard"
-                          aria-label="Copy Boxplot to clipboard"
-                          data-export-hide
-                        >
-                          {copyFeedback === 'boxplot' ? <Check size={14} /> : <Copy size={14} />}
-                        </button>
-                        <ChartDownloadMenu
-                          containerId="boxplot-card"
-                          chartName="boxplot"
-                          onDownloadPng={handleDownloadPng}
-                          onDownloadSvg={handleDownloadSvg}
-                        />
-                        <button
-                          onClick={() => setFocusedChart('boxplot')}
-                          className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
-                          title="Maximize Chart"
-                          aria-label="Maximize chart"
-                        >
-                          <Maximize2 size={14} />
-                        </button>
-                      </div>
+                      </h3>
+                      <span className="text-[10px] font-bold text-blue-400 opacity-80 tracking-widest mt-1">
+                        VARISCOUT
+                      </span>
                     </div>
+                  }
+                  controls={
+                    <>
+                      <FactorSelector
+                        factors={factors}
+                        selected={boxplotFactor}
+                        onChange={setBoxplotFactor}
+                        hasActiveFilter={!!filters?.[boxplotFactor]?.length}
+                      />
+                      <BoxplotDisplayToggle
+                        showViolin={displayOptions.showViolin ?? false}
+                        showContributionLabels={displayOptions.showContributionLabels ?? false}
+                        onToggleViolin={value =>
+                          setDisplayOptions({ ...displayOptions, showViolin: value })
+                        }
+                        onToggleContributionLabels={value =>
+                          setDisplayOptions({ ...displayOptions, showContributionLabels: value })
+                        }
+                        sortBy={displayOptions.boxplotSortBy ?? 'name'}
+                        sortDirection={displayOptions.boxplotSortDirection ?? 'asc'}
+                        onSortChange={(sortBy, direction) =>
+                          setDisplayOptions({
+                            ...displayOptions,
+                            boxplotSortBy: sortBy,
+                            boxplotSortDirection: direction,
+                          })
+                        }
+                      />
+                      {hasAnnotations && (
+                        <button
+                          onClick={() => clearAnnotations('boxplot')}
+                          className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
+                          title="Clear boxplot annotations"
+                          aria-label="Clear boxplot annotations"
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </>
+                  }
+                  filterBar={
                     <FilterContextBar
                       filterChipData={filterChipData}
                       columnAliases={columnAliases}
                       cumulativeVariationPct={cumulativeVariationPct}
                       show={displayOptions.showFilterContext !== false}
                     />
-                    <div id="boxplot-container" className="flex-1 min-h-[180px]">
-                      <ErrorBoundary componentName="Boxplot">
-                        {boxplotFactor && (
-                          <Boxplot
-                            factor={boxplotFactor}
-                            onDrillDown={handleDrillDown}
-                            variationPct={factorVariations.get(boxplotFactor)}
-                            categoryContributions={categoryContributions?.get(boxplotFactor)}
-                            showBranding={false}
-                            highlightedCategories={boxplotHighlights}
-                            onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
-                            annotations={boxplotAnnotations}
-                            onAnnotationsChange={setBoxplotAnnotations}
+                  }
+                >
+                  <ErrorBoundary componentName="Boxplot">
+                    {boxplotFactor && (
+                      <Boxplot
+                        factor={boxplotFactor}
+                        onDrillDown={handleDrillDown}
+                        variationPct={factorVariations.get(boxplotFactor)}
+                        categoryContributions={categoryContributions?.get(boxplotFactor)}
+                        showBranding={false}
+                        highlightedCategories={boxplotHighlights}
+                        onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
+                        annotations={boxplotAnnotations}
+                        onAnnotationsChange={setBoxplotAnnotations}
+                      />
+                    )}
+                  </ErrorBoundary>
+                </DashboardChartCard>
+              }
+              paretoCard={
+                showParetoPanel ? (
+                  <DashboardChartCard
+                    id="pareto-card"
+                    testId="chart-pareto"
+                    chartName="pareto"
+                    highlightClass={getHighlightClass('pareto')}
+                    onClick={() => handleChartWrapperClick('pareto')}
+                    onMaximize={() => setFocusedChart('pareto')}
+                    copyFeedback={copyFeedback}
+                    onCopyChart={handleCopyChart}
+                    onDownloadPng={handleDownloadPng}
+                    onDownloadSvg={handleDownloadSvg}
+                    className="flex-1 min-w-[300px]"
+                    title={
+                      <div className="flex flex-col">
+                        <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider leading-none">
+                          <EditableChartTitle
+                            defaultTitle={`Pareto: ${paretoFactor}`}
+                            value={chartTitles.pareto || ''}
+                            onChange={title => setChartTitles({ ...chartTitles, pareto: title })}
                           />
-                        )}
-                      </ErrorBoundary>
-                    </div>
-                  </div>
-
-                  {showParetoPanel && (
-                    <div
-                      id="pareto-card"
-                      data-chart-id="pareto"
-                      data-testid="chart-pareto"
-                      onClick={() => handleChartWrapperClick('pareto')}
-                      className={`flex-1 min-h-[280px] bg-surface-secondary border border-edge p-4 rounded-2xl shadow-xl shadow-black/20 min-w-[300px] flex flex-col transition-all ${getHighlightClass('pareto')}`}
-                    >
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="flex flex-col">
-                          <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider leading-none">
-                            <EditableChartTitle
-                              defaultTitle={`Pareto: ${paretoFactor}`}
-                              value={chartTitles.pareto || ''}
-                              onChange={title => setChartTitles({ ...chartTitles, pareto: title })}
-                            />
-                          </h3>
-                          <span className="text-[10px] font-bold text-blue-400 opacity-80 tracking-widest mt-1">
-                            VARISCOUT
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2" data-export-hide>
-                          <FactorSelector
-                            factors={factors}
-                            selected={paretoFactor}
-                            onChange={setParetoFactor}
-                            hasActiveFilter={!!filters?.[paretoFactor]?.length}
-                          />
-                          {((paretoHighlights && Object.keys(paretoHighlights).length > 0) ||
-                            paretoAnnotations.length > 0) && (
-                            <button
-                              onClick={() => clearAnnotations('pareto')}
-                              className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-                              title="Clear pareto annotations"
-                              aria-label="Clear pareto annotations"
-                            >
-                              <X size={12} />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleCopyChart('pareto-card', 'pareto')}
-                            className={`p-1.5 rounded transition-all ${
-                              copyFeedback === 'pareto'
-                                ? 'bg-green-500/20 text-green-400'
-                                : 'text-content-muted hover:text-white hover:bg-surface-tertiary'
-                            }`}
-                            title="Copy Pareto to clipboard"
-                            aria-label="Copy Pareto to clipboard"
-                            data-export-hide
-                          >
-                            {copyFeedback === 'pareto' ? <Check size={14} /> : <Copy size={14} />}
-                          </button>
-                          <ChartDownloadMenu
-                            containerId="pareto-card"
-                            chartName="pareto"
-                            onDownloadPng={handleDownloadPng}
-                            onDownloadSvg={handleDownloadSvg}
-                          />
-                          <button
-                            onClick={() => setFocusedChart('pareto')}
-                            className="p-1.5 rounded text-content-muted hover:text-white hover:bg-surface-tertiary transition-colors"
-                            title="Maximize Chart"
-                            aria-label="Maximize chart"
-                          >
-                            <Maximize2 size={14} />
-                          </button>
-                        </div>
+                        </h3>
+                        <span className="text-[10px] font-bold text-blue-400 opacity-80 tracking-widest mt-1">
+                          VARISCOUT
+                        </span>
                       </div>
+                    }
+                    controls={
+                      <>
+                        <FactorSelector
+                          factors={factors}
+                          selected={paretoFactor}
+                          onChange={setParetoFactor}
+                          hasActiveFilter={!!filters?.[paretoFactor]?.length}
+                        />
+                        {((paretoHighlights && Object.keys(paretoHighlights).length > 0) ||
+                          paretoAnnotations.length > 0) && (
+                          <button
+                            onClick={() => clearAnnotations('pareto')}
+                            className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
+                            title="Clear pareto annotations"
+                            aria-label="Clear pareto annotations"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
+                      </>
+                    }
+                    filterBar={
                       <FilterContextBar
                         filterChipData={filterChipData}
                         columnAliases={columnAliases}
                         cumulativeVariationPct={cumulativeVariationPct}
                         show={displayOptions.showFilterContext !== false}
                       />
-                      <div id="pareto-container" className="flex-1 min-h-[180px]">
-                        <ErrorBoundary componentName="Pareto Chart">
-                          {paretoFactor && (
-                            <ParetoChart
-                              factor={paretoFactor}
-                              onDrillDown={handleDrillDown}
-                              showComparison={showParetoComparison}
-                              onToggleComparison={() => toggleParetoComparison()}
-                              onHide={() => setShowParetoPanel(false)}
-                              onSelectFactor={handleParetoSelectFactor}
-                              onUploadPareto={onOpenColumnMapping}
-                              availableFactors={factors}
-                              aggregation={paretoAggregation}
-                              onToggleAggregation={() =>
-                                setParetoAggregation(
-                                  paretoAggregation === 'count' ? 'value' : 'count'
-                                )
-                              }
-                              showBranding={false}
-                              highlightedCategories={paretoHighlights}
-                              onContextMenu={(key, event) =>
-                                handleContextMenu('pareto', key, event)
-                              }
-                              annotations={paretoAnnotations}
-                              onAnnotationsChange={setParetoAnnotations}
-                            />
-                          )}
-                        </ErrorBoundary>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Stats Panel */}
+                    }
+                  >
+                    <ErrorBoundary componentName="Pareto Chart">
+                      {paretoFactor && (
+                        <ParetoChart
+                          factor={paretoFactor}
+                          onDrillDown={handleDrillDown}
+                          showComparison={showParetoComparison}
+                          onToggleComparison={() => toggleParetoComparison()}
+                          onHide={() => setShowParetoPanel(false)}
+                          onSelectFactor={handleParetoSelectFactor}
+                          onUploadPareto={onOpenColumnMapping}
+                          availableFactors={factors}
+                          aggregation={paretoAggregation}
+                          onToggleAggregation={() =>
+                            setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
+                          }
+                          showBranding={false}
+                          highlightedCategories={paretoHighlights}
+                          onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+                          annotations={paretoAnnotations}
+                          onAnnotationsChange={setParetoAnnotations}
+                        />
+                      )}
+                    </ErrorBoundary>
+                  </DashboardChartCard>
+                ) : undefined
+              }
+              statsPanel={
                 <div
-                  data-chart-id="stats"
                   data-testid="chart-stats"
                   onClick={() => handleChartWrapperClick('stats')}
                   className={`transition-all ${getHighlightClass('stats')}`}
@@ -899,8 +820,8 @@ const Dashboard = ({
                     outcome={outcome}
                   />
                 </div>
-              </div>
-            </div>
+              }
+            />
           ) : (
             // FOCUSED MODE
             <FocusedChartView

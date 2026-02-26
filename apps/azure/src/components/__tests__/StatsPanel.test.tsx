@@ -42,9 +42,9 @@ describe('StatsPanel', () => {
       />
     );
 
-    // Summary tab should be active (slate-700 background)
+    // Summary tab should be active
     const summaryTab = screen.getByText('Summary');
-    expect(summaryTab).toHaveClass('bg-slate-700');
+    expect(summaryTab).toHaveClass('bg-surface-tertiary');
 
     // Should show pass rate (use getAllByText since HelpTooltip may also contain the term)
     expect(screen.getAllByText('Pass Rate').length).toBeGreaterThanOrEqual(1);
@@ -66,7 +66,7 @@ describe('StatsPanel', () => {
 
     // Histogram tab should now be active
     const histogramTab = screen.getByText('Histogram');
-    expect(histogramTab).toHaveClass('bg-slate-700');
+    expect(histogramTab).toHaveClass('bg-surface-tertiary');
 
     // Should show histogram component
     expect(screen.getByTestId('capability-histogram')).toBeInTheDocument();

@@ -103,15 +103,17 @@ export function AdminTeamsSetup() {
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
-      <h2 className="text-2xl font-bold text-white mb-2">Add VariScout to Microsoft Teams</h2>
-      <p className="text-slate-400 mb-8">
+      <h2 className="text-2xl font-bold text-content mb-2">Add VariScout to Microsoft Teams</h2>
+      <p className="text-content-secondary mb-8">
         Generate a Teams app package for your deployment and upload it to your Teams admin center.
       </p>
 
       {/* Step 1: Download */}
       <section className="mb-8">
-        <h3 className="text-lg font-semibold text-white mb-3">1. Download the Teams App Package</h3>
-        <p className="text-sm text-slate-400 mb-4">
+        <h3 className="text-lg font-semibold text-content mb-3">
+          1. Download the Teams App Package
+        </h3>
+        <p className="text-sm text-content-secondary mb-4">
           This .zip contains the manifest and icons pre-configured for your deployment at{' '}
           <code className="text-blue-400">{origin}</code>.
         </p>
@@ -126,7 +128,7 @@ export function AdminTeamsSetup() {
           </button>
           <button
             onClick={handleCopy}
-            className="flex items-center gap-2 px-4 py-2.5 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition-colors text-sm"
+            className="flex items-center gap-2 px-4 py-2.5 bg-surface-tertiary text-content rounded-lg hover:bg-surface-tertiary/80 transition-colors text-sm"
           >
             {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
             {copied ? 'Copied!' : 'Copy manifest.json'}
@@ -136,8 +138,8 @@ export function AdminTeamsSetup() {
 
       {/* Step 2: Upload */}
       <section className="mb-8">
-        <h3 className="text-lg font-semibold text-white mb-3">2. Upload to Teams Admin Center</h3>
-        <ol className="space-y-3 text-sm text-slate-300">
+        <h3 className="text-lg font-semibold text-content mb-3">2. Upload to Teams Admin Center</h3>
+        <ol className="space-y-3 text-sm text-content">
           <li className="flex gap-3">
             <span className="text-blue-400 font-mono shrink-0">a.</span>
             <span>
@@ -156,7 +158,7 @@ export function AdminTeamsSetup() {
           <li className="flex gap-3">
             <span className="text-blue-400 font-mono shrink-0">b.</span>
             <span>
-              Click <strong className="text-white">Upload new app</strong>
+              Click <strong className="text-content">Upload new app</strong>
             </span>
           </li>
           <li className="flex gap-3">
@@ -169,27 +171,27 @@ export function AdminTeamsSetup() {
           <li className="flex gap-3">
             <span className="text-blue-400 font-mono shrink-0">d.</span>
             <span>
-              The app appears under <strong className="text-white">"Built for your org"</strong> in
-              the Teams app catalog for all users
+              The app appears under <strong className="text-content">"Built for your org"</strong>{' '}
+              in the Teams app catalog for all users
             </span>
           </li>
         </ol>
       </section>
 
       {/* Custom domain note */}
-      <section className="mb-8 bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+      <section className="mb-8 bg-surface-secondary/50 border border-edge rounded-lg p-4">
         <div className="flex gap-3">
           <Info size={18} className="text-blue-400 shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-sm font-semibold text-white mb-1">Custom Domain for Teams SSO</h4>
-            <p className="text-sm text-slate-400">
+            <h4 className="text-sm font-semibold text-content mb-1">Custom Domain for Teams SSO</h4>
+            <p className="text-sm text-content-secondary">
               By default, users see a one-time login redirect when opening VariScout in Teams
               because Microsoft blocks SSO on{' '}
-              <code className="text-slate-300">*.azurewebsites.net</code> domains. To enable
-              seamless single sign-on, map a custom domain (e.g.{' '}
-              <code className="text-slate-300">variscout.yourcompany.com</code>) to your App
-              Service, then update the <code className="text-slate-300">contentUrl</code> and{' '}
-              <code className="text-slate-300">validDomains</code> in the manifest.
+              <code className="text-content">*.azurewebsites.net</code> domains. To enable seamless
+              single sign-on, map a custom domain (e.g.{' '}
+              <code className="text-content">variscout.yourcompany.com</code>) to your App Service,
+              then update the <code className="text-content">contentUrl</code> and{' '}
+              <code className="text-content">validDomains</code> in the manifest.
             </p>
           </div>
         </div>
@@ -197,8 +199,8 @@ export function AdminTeamsSetup() {
 
       {/* Manifest preview */}
       <section>
-        <h3 className="text-lg font-semibold text-white mb-3">Manifest Preview</h3>
-        <pre className="bg-slate-800 border border-slate-700 rounded-lg p-4 text-xs text-slate-300 overflow-x-auto max-h-96 overflow-y-auto">
+        <h3 className="text-lg font-semibold text-content mb-3">Manifest Preview</h3>
+        <pre className="bg-surface-secondary border border-edge rounded-lg p-4 text-xs text-content overflow-x-auto max-h-96 overflow-y-auto">
           {manifestJson}
         </pre>
       </section>

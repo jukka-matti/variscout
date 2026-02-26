@@ -51,14 +51,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       {/* Panel */}
-      <div className="relative w-80 h-full bg-slate-900 border-l border-slate-700 shadow-2xl overflow-y-auto">
+      <div className="relative w-80 h-full bg-surface border-l border-edge shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-200">
         <div className="p-5 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-white">Settings</h2>
+            <h2 className="text-lg font-semibold text-content">Settings</h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              className="p-1.5 rounded text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
               aria-label="Close settings"
             >
               <X size={18} />
@@ -67,13 +67,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
 
           {/* Theme Section */}
           <section>
-            <h3 className="text-sm font-medium text-slate-300 mb-3">Appearance</h3>
+            <h3 className="text-sm font-medium text-content mb-3">Appearance</h3>
             <ThemeToggle />
           </section>
 
           {/* Company Accent Color */}
           <section>
-            <h3 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-medium text-content mb-3 flex items-center gap-2">
               <Palette size={14} />
               Company Accent
             </h3>
@@ -85,7 +85,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                   className={`w-8 h-8 rounded-lg border-2 transition-all ${
                     theme.companyAccent === color
                       ? 'border-white scale-110'
-                      : 'border-slate-600 hover:border-slate-400'
+                      : 'border-edge-secondary hover:border-edge-secondary'
                   }`}
                   style={{ backgroundColor: color }}
                   aria-label={`Set accent color to ${color}`}
@@ -94,10 +94,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
               {/* Reset */}
               <button
                 onClick={() => setTheme({ companyAccent: undefined })}
-                className={`w-8 h-8 rounded-lg border-2 text-xs text-slate-400 transition-all ${
+                className={`w-8 h-8 rounded-lg border-2 text-xs text-content-secondary transition-all ${
                   !theme.companyAccent
-                    ? 'border-white bg-slate-700'
-                    : 'border-slate-600 bg-slate-800 hover:border-slate-400'
+                    ? 'border-white bg-surface-tertiary'
+                    : 'border-edge-secondary bg-surface-secondary hover:border-edge-secondary'
                 }`}
                 aria-label="Reset accent color"
                 title="Reset to default"
@@ -116,7 +116,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                 className="w-8 h-8 rounded border-0 cursor-pointer bg-transparent"
                 aria-label="Custom accent color"
               />
-              <label htmlFor="az-setting-accent-color" className="text-xs text-slate-400">
+              <label htmlFor="az-setting-accent-color" className="text-xs text-content-secondary">
                 Custom color
               </label>
             </div>
@@ -124,7 +124,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
 
           {/* Display Preferences */}
           <section>
-            <h3 className="text-sm font-medium text-slate-300 mb-3">Display Preferences</h3>
+            <h3 className="text-sm font-medium text-content mb-3">Display Preferences</h3>
             <div className="space-y-3">
               <label
                 htmlFor="az-setting-lock-y-axis"
@@ -141,13 +141,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                       lockYAxisToFullData: e.target.checked,
                     })
                   }
-                  className="mt-0.5 w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                  className="mt-0.5 w-4 h-4 rounded border-edge-secondary bg-surface-secondary text-blue-500 focus:ring-blue-500 focus:ring-offset-surface"
                 />
                 <div>
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors block">
+                  <span className="text-sm text-content group-hover:text-content transition-colors block">
                     Lock Y-axis when drilling
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-content-muted">
                     Maintains scale for visual comparison
                   </span>
                 </div>
@@ -167,13 +167,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                       showFilterContext: e.target.checked,
                     })
                   }
-                  className="mt-0.5 w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                  className="mt-0.5 w-4 h-4 rounded border-edge-secondary bg-surface-secondary text-blue-500 focus:ring-blue-500 focus:ring-offset-surface"
                 />
                 <div>
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors block">
+                  <span className="text-sm text-content group-hover:text-content transition-colors block">
                     Show filter context on charts
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-content-muted">
                     Display active filter summary below chart headers
                   </span>
                 </div>
@@ -193,13 +193,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                       showSpecs: e.target.checked,
                     })
                   }
-                  className="mt-0.5 w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                  className="mt-0.5 w-4 h-4 rounded border-edge-secondary bg-surface-secondary text-blue-500 focus:ring-blue-500 focus:ring-offset-surface"
                 />
                 <div>
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors block">
+                  <span className="text-sm text-content group-hover:text-content transition-colors block">
                     Show specification limits on I-Chart
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-content-muted">
                     Display USL/LSL lines when spec limits are set
                   </span>
                 </div>
@@ -219,13 +219,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                       showCpk: e.target.checked,
                     })
                   }
-                  className="mt-0.5 w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                  className="mt-0.5 w-4 h-4 rounded border-edge-secondary bg-surface-secondary text-blue-500 focus:ring-blue-500 focus:ring-offset-surface"
                 />
                 <div>
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors block">
+                  <span className="text-sm text-content group-hover:text-content transition-colors block">
                     Show Cpk values in stats
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-content-muted">
                     Display process capability index in the stats panel
                   </span>
                 </div>
@@ -235,7 +235,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
 
           {/* Chart Font Scale */}
           <section>
-            <h3 className="text-sm font-medium text-slate-300 mb-3">Chart Text Size</h3>
+            <h3 className="text-sm font-medium text-content mb-3">Chart Text Size</h3>
             <div className="flex gap-2">
               {FONT_SCALE_OPTIONS.map(({ value, label }) => (
                 <button
@@ -244,11 +244,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                   className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${
                     (theme.chartFontScale ?? 'normal') === value
                       ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
-                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white hover:border-slate-600'
+                      : 'bg-surface-secondary border-edge text-content-secondary hover:text-content hover:border-edge-secondary'
                   }`}
                 >
                   {label}
-                  <span className="block text-[10px] text-slate-500 mt-0.5">
+                  <span className="block text-[10px] text-content-muted mt-0.5">
                     {CHART_FONT_SCALES[value]}x
                   </span>
                 </button>
