@@ -63,6 +63,8 @@ export interface ColumnMappingProps {
   onTimeExtractionChange?: (config: TimeExtractionConfig) => void;
   /** Maximum number of factors that can be selected (default: 3) */
   maxFactors?: number;
+  /** Mode: 'setup' for first-time mapping, 'edit' for mid-analysis re-edit */
+  mode?: 'setup' | 'edit';
 }
 
 /**
@@ -103,6 +105,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   hasTimeComponent,
   onTimeExtractionChange,
   maxFactors = 3,
+  mode = 'setup',
 }) => {
   const [outcome, setOutcome] = useState<string>(initialOutcome || '');
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
@@ -172,8 +175,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-900/30">
-          {/* Data Quality Banner */}
-          {dataQualityReport && (
+          {/* Data Quality Banner (hidden in edit mode) */}
+          {mode === 'setup' && dataQualityReport && (
             <DataQualityBanner
               report={dataQualityReport}
               filename={datasetName}
@@ -185,8 +188,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             />
           )}
 
-          {/* Data Preview Table (collapsible) */}
-          {previewRows && previewRows.length > 0 && hasRichData && (
+          {/* Data Preview Table (hidden in edit mode) */}
+          {mode === 'setup' && previewRows && previewRows.length > 0 && hasRichData && (
             <DataPreviewTable rows={previewRows} columnAnalysis={columns} totalRows={totalRows} />
           )}
 
@@ -288,17 +291,19 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             )}
           </div>
 
-          {/* Specification Limits (Optional) */}
-          <SpecsSection
-            expanded={specsExpanded}
-            onToggle={() => setSpecsExpanded(!specsExpanded)}
-            target={specTarget}
-            lsl={specLsl}
-            usl={specUsl}
-            onTargetChange={setSpecTarget}
-            onLslChange={setSpecLsl}
-            onUslChange={setSpecUsl}
-          />
+          {/* Specification Limits (hidden in edit mode — specs have their own editor) */}
+          {mode === 'setup' && (
+            <SpecsSection
+              expanded={specsExpanded}
+              onToggle={() => setSpecsExpanded(!specsExpanded)}
+              target={specTarget}
+              lsl={specLsl}
+              usl={specUsl}
+              onTargetChange={setSpecTarget}
+              onLslChange={setSpecLsl}
+              onUslChange={setSpecUsl}
+            />
+          )}
 
           {/* Pareto Source (Optional) */}
           {onParetoFileUpload && (
@@ -351,7 +356,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             disabled={!isValid}
             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"
           >
-            <span>Start Analysis</span>
+            <span>{mode === 'edit' ? 'Apply Changes' : 'Start Analysis'}</span>
             <ArrowRight size={18} />
           </button>
         </div>

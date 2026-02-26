@@ -69,6 +69,8 @@ export interface UsePasteImportFlowReturn {
   handleMappingCancel: () => void;
   handleDismissWideFormat: () => void;
   setIsMapping: (v: boolean) => void;
+  isMappingReEdit: boolean;
+  openFactorManager: () => void;
 }
 
 /**
@@ -99,6 +101,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
   const [isPasteMode, setIsPasteMode] = useState(false);
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [isMapping, setIsMapping] = useState(false);
+  const [isMappingReEdit, setIsMappingReEdit] = useState(false);
 
   const [timeExtractionPrompt, setTimeExtractionPrompt] = useState<{
     timeColumn: string;
@@ -114,6 +117,12 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
 
   const handleWideFormatDetected = useCallback((result: WideFormatDetection) => {
     setWideFormatDetection(result);
+  }, []);
+
+  // Open ColumnMapping in re-edit mode (mid-analysis factor management)
+  const openFactorManager = useCallback(() => {
+    setIsMapping(true);
+    setIsMappingReEdit(true);
   }, []);
 
   // Column analysis for ColumnMapping rich cards
@@ -238,6 +247,10 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       newFactors: string[],
       newSpecs?: { target?: number; lsl?: number; usl?: number }
     ) => {
+      if (isMappingReEdit) {
+        setIsMappingReEdit(false);
+      }
+
       setOutcome(newOutcome);
       setFactors(newFactors);
       if (newSpecs) {
@@ -258,13 +271,21 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       applyTimeExtraction,
       timeExtractionPrompt,
       timeExtractionConfig,
+      isMappingReEdit,
     ]
   );
 
   const handleMappingCancel = useCallback(() => {
+    if (isMappingReEdit) {
+      // Re-edit cancel: just close, don't wipe data
+      setIsMapping(false);
+      setIsMappingReEdit(false);
+      return;
+    }
+    // First-time cancel: wipe data
     clearData();
     setIsMapping(false);
-  }, [clearData]);
+  }, [isMappingReEdit, clearData]);
 
   const handleDismissWideFormat = useCallback(() => {
     setWideFormatDetection(null);
@@ -294,5 +315,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     handleMappingCancel,
     handleDismissWideFormat,
     setIsMapping,
+    isMappingReEdit,
+    openFactorManager,
   };
 }

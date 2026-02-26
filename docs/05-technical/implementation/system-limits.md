@@ -11,7 +11,7 @@ Comprehensive reference for VariScout's data handling limits, classification thr
 | Column limit                  | None enforced                  | —                           | All columns loaded                                                                           |
 | Auto-detected factors         | 3 suggested                    | `parser.ts detectColumns()` | `.slice(0, 3)` default suggestion                                                            |
 | Max selectable factors        | 3 (PWA) / 6 (Azure)            | `ColumnMapping`             | Configurable via `maxFactors` prop                                                           |
-| Factor change during analysis | Azure only                     | `FactorManagerPopover`      | Dashboard popover to add/remove factors                                                      |
+| Factor change during analysis | Both (PWA 3, Azure 6)          | ColumnMapping `mode='edit'` | "Factors" button in nav bar reopens ColumnMapping                                            |
 
 ## Categorical Classification
 

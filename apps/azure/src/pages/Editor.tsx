@@ -298,6 +298,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
         onCancel={dataFlow.handleMappingCancel}
         dataQualityReport={dataQualityReport}
         maxFactors={6}
+        mode={dataFlow.isMappingReEdit ? 'edit' : 'setup'}
       />
     );
   }
@@ -668,6 +669,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               onParetoFactorChange={factor => handleViewStateChange({ paretoFactor: factor })}
               isPresentationMode={panels.isPresentationMode}
               onExitPresentation={() => panels.setIsPresentationMode(false)}
+              onManageFactors={dataFlow.openFactorManager}
             />
             <MindmapPanel
               isOpen={panels.isMindmapOpen}

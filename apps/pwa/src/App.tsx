@@ -364,6 +364,7 @@ function App() {
               timeColumn={importFlow.timeExtractionPrompt?.timeColumn}
               hasTimeComponent={importFlow.timeExtractionPrompt?.hasTimeComponent}
               onTimeExtractionChange={importFlow.setTimeExtractionConfig}
+              mode={importFlow.isMappingReEdit ? 'edit' : 'setup'}
             />
           ) : (
             <Dashboard
@@ -375,7 +376,7 @@ function App() {
               onChartClick={isEmbedMode ? notifyChartClicked : undefined}
               embedFocusChart={embedFocusChart}
               embedStatsTab={embedStatsTab}
-              onOpenColumnMapping={() => importFlow.setIsMapping(true)}
+              onManageFactors={importFlow.openFactorManager}
               openSpecEditorRequested={panels.openSpecEditorRequested}
               onSpecEditorOpened={() => panels.setOpenSpecEditorRequested(false)}
               onOpenWhatIf={() => panels.setIsWhatIfPageOpen(true)}

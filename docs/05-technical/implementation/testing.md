@@ -244,22 +244,22 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 
 ### @variscout/azure-app (15 vitest files, 171 test cases)
 
-| Component/Module       | Tested | Focus                                                                          |
-| :--------------------- | :----- | :----------------------------------------------------------------------------- |
-| `AnovaResults`         | ✅     | Null state, F-stat display, p-value format                                     |
-| `Dashboard`            | ✅     | Tab switching (Analysis/Performance), stats                                    |
-| `StatsPanel`           | ✅     | Conditional display, Cp/Cpk, sigma within                                      |
-| `MindmapWindow`        | ✅     | Window rendering, popout behavior, localStorage sync                           |
-| `WhatIfPage`           | ✅     | Simulator integration, navigation, predictions                                 |
-| `FilterBreadcrumb`     | ✅     | Chip rendering, remove button, contribution %                                  |
-| `Editor`               | ✅     | Empty state, sample loading, navigation                                        |
-| `SettingsPanel`        | ✅     | Theme toggle, display options, panel open/close                                |
-| `FactorManagerPopover` | ✅     | Factor add/remove, checkbox list, stale filter cleanup                         |
-| `PasteScreen`          | ✅     | Paste input, parseText integration, column mapping                             |
-| `easyAuth`             | ✅     | Mock user on localhost, AuthError codes, proactive token refresh, login/logout |
-| `storage`              | ✅     | Offline-first storage, IndexedDB operations                                    |
-| `PresentationView`     | ✅     | Full-screen chart grid, focused chart navigation                               |
-| `SyncToast`            | ✅     | Toast notifications, auto-dismiss, action buttons                              |
+| Component/Module        | Tested | Focus                                                                          |
+| :---------------------- | :----- | :----------------------------------------------------------------------------- |
+| `AnovaResults`          | ✅     | Null state, F-stat display, p-value format                                     |
+| `Dashboard`             | ✅     | Tab switching (Analysis/Performance), stats                                    |
+| `StatsPanel`            | ✅     | Conditional display, Cp/Cpk, sigma within                                      |
+| `MindmapWindow`         | ✅     | Window rendering, popout behavior, localStorage sync                           |
+| `WhatIfPage`            | ✅     | Simulator integration, navigation, predictions                                 |
+| `FilterBreadcrumb`      | ✅     | Chip rendering, remove button, contribution %                                  |
+| `Editor`                | ✅     | Empty state, sample loading, navigation                                        |
+| `SettingsPanel`         | ✅     | Theme toggle, display options, panel open/close                                |
+| ColumnMapping (re-edit) | ✅     | Factor add/remove via ColumnMapping mode='edit', safe cancel                   |
+| `PasteScreen`           | ✅     | Paste input, parseText integration, column mapping                             |
+| `easyAuth`              | ✅     | Mock user on localhost, AuthError codes, proactive token refresh, login/logout |
+| `storage`               | ✅     | Offline-first storage, IndexedDB operations                                    |
+| `PresentationView`      | ✅     | Full-screen chart grid, focused chart navigation                               |
+| `SyncToast`             | ✅     | Toast notifications, auto-dismiss, action buttons                              |
 
 ---
 
@@ -569,7 +569,7 @@ apps/azure/
 │   │   ├── MindmapWindow.test.tsx
 │   │   ├── WhatIfPage.test.tsx
 │   │   ├── FilterBreadcrumb.test.tsx
-│   │   ├── FactorManagerPopover.test.tsx
+│   │   ├── (removed: FactorManagerPopover — replaced by ColumnMapping re-edit)
 │   │   ├── PasteScreen.test.tsx
 │   │   ├── PresentationView.test.tsx
 │   │   └── SyncToast.test.tsx

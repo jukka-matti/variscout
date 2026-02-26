@@ -27,7 +27,17 @@ import { useKeyboardNavigation, useAnnotations } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
-import { Activity, BarChart3, Beaker, Layers, X, Copy, Check, Download } from 'lucide-react';
+import {
+  Activity,
+  BarChart3,
+  Beaker,
+  Layers,
+  X,
+  Copy,
+  Check,
+  Download,
+  Settings2,
+} from 'lucide-react';
 import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '@variscout/core';
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -48,8 +58,8 @@ interface DashboardProps {
   embedFocusChart?: 'ichart' | 'boxplot' | 'pareto' | 'stats' | null;
   // Embed stats tab: when set, auto-selects this tab in StatsPanel
   embedStatsTab?: 'summary' | 'histogram' | 'normality' | null;
-  // Callback to open column mapping dialog (for Pareto upload)
-  onOpenColumnMapping?: () => void;
+  // Callback to open ColumnMapping in re-edit mode for factor management
+  onManageFactors?: () => void;
   // External trigger to open spec editor (from MobileMenu)
   openSpecEditorRequested?: boolean;
   onSpecEditorOpened?: () => void;
@@ -70,7 +80,7 @@ const Dashboard = ({
   onChartClick,
   embedFocusChart,
   embedStatsTab,
-  onOpenColumnMapping,
+  onManageFactors,
   openSpecEditorRequested,
   onSpecEditorOpened,
   onOpenWhatIf,
@@ -351,7 +361,7 @@ const Dashboard = ({
         onPointClick={onPointClick}
         onSpecClick={() => setShowSpecEditor(true)}
         onSelectParetoFactor={handleParetoSelectFactor}
-        onOpenColumnMapping={onOpenColumnMapping}
+        onManageFactors={onManageFactors}
         embedStatsTab={embedStatsTab}
       />
     );
@@ -383,7 +393,7 @@ const Dashboard = ({
           onUpdateFilterValues={handleUpdateFilterValues}
           factorVariations={factorVariations}
           onHideParetoPanel={() => setShowParetoPanel(false)}
-          onUploadPareto={onOpenColumnMapping}
+          onUploadPareto={onManageFactors}
           paretoAggregation={paretoAggregation}
           onToggleParetoAggregation={() =>
             setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
@@ -458,10 +468,22 @@ const Dashboard = ({
             <BarChart3 size={16} />
             Dashboard
           </button>
+          {onManageFactors && factors.length > 0 && (
+            <button
+              onClick={onManageFactors}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium ml-auto text-content-secondary hover:text-white hover:bg-surface-elevated transition-colors"
+              title="Manage analysis factors"
+              aria-label="Manage factors"
+              data-testid="btn-manage-factors"
+            >
+              <Settings2 size={14} />
+              Factors ({factors.length})
+            </button>
+          )}
           {onOpenWhatIf && (
             <button
               onClick={onOpenWhatIf}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ml-auto bg-surface-tertiary text-content-secondary hover:text-white hover:bg-surface-elevated transition-colors"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${!onManageFactors || factors.length === 0 ? 'ml-auto' : ''} bg-surface-tertiary text-content-secondary hover:text-white hover:bg-surface-elevated transition-colors`}
             >
               <Beaker size={16} />
               What-If
@@ -689,6 +711,7 @@ const Dashboard = ({
                         selected={boxplotFactor}
                         onChange={setBoxplotFactor}
                         hasActiveFilter={!!filters?.[boxplotFactor]?.length}
+                        columnAliases={columnAliases}
                       />
                       <BoxplotDisplayToggle
                         showViolin={displayOptions.showViolin ?? false}
@@ -782,6 +805,7 @@ const Dashboard = ({
                           selected={paretoFactor}
                           onChange={setParetoFactor}
                           hasActiveFilter={!!filters?.[paretoFactor]?.length}
+                          columnAliases={columnAliases}
                         />
                         {((paretoHighlights && Object.keys(paretoHighlights).length > 0) ||
                           paretoAnnotations.length > 0) && (
@@ -814,7 +838,7 @@ const Dashboard = ({
                           onToggleComparison={() => toggleParetoComparison()}
                           onHide={() => setShowParetoPanel(false)}
                           onSelectFactor={handleParetoSelectFactor}
-                          onUploadPareto={onOpenColumnMapping}
+                          onUploadPareto={onManageFactors}
                           availableFactors={factors}
                           aggregation={paretoAggregation}
                           onToggleAggregation={() =>
@@ -871,7 +895,7 @@ const Dashboard = ({
               onToggleParetoComparison={() => toggleParetoComparison()}
               onHideParetoPanel={() => setShowParetoPanel(false)}
               onSelectParetoFactor={handleParetoSelectFactor}
-              onOpenColumnMapping={onOpenColumnMapping}
+              onManageFactors={onManageFactors}
               onPointClick={onPointClick}
               onSpecClick={() => setShowSpecEditor(true)}
               onNextChart={handleNextChart}

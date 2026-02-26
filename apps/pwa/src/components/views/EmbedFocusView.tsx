@@ -38,7 +38,7 @@ export interface EmbedFocusViewProps {
   onPointClick?: (index: number) => void;
   onSpecClick: () => void;
   onSelectParetoFactor: () => void;
-  onOpenColumnMapping?: () => void;
+  onManageFactors?: () => void;
   embedStatsTab?: EmbedStatsTab | null;
 }
 
@@ -69,7 +69,7 @@ const EmbedFocusView: React.FC<EmbedFocusViewProps> = ({
   onPointClick,
   onSpecClick,
   onSelectParetoFactor,
-  onOpenColumnMapping,
+  onManageFactors,
   embedStatsTab,
 }) => {
   return (
@@ -151,7 +151,7 @@ const EmbedFocusView: React.FC<EmbedFocusViewProps> = ({
                   showComparison={showParetoComparison}
                   onToggleComparison={onToggleParetoComparison}
                   onSelectFactor={onSelectParetoFactor}
-                  onUploadPareto={onOpenColumnMapping}
+                  onUploadPareto={onManageFactors}
                   availableFactors={factors}
                   aggregation={paretoAggregation}
                   onToggleAggregation={onToggleParetoAggregation}

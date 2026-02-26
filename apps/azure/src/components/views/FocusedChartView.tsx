@@ -257,6 +257,7 @@ const BoxplotFocusedContent: React.FC<{
         onChange={props.onSetBoxplotFactor}
         hasActiveFilter={!!props.filters?.[props.boxplotFactor]?.length}
         size="md"
+        columnAliases={props.columnAliases}
       />
     </>
   );
@@ -331,6 +332,7 @@ const ParetoFocusedContent: React.FC<{
         onChange={props.onSetParetoFactor}
         hasActiveFilter={!!props.filters?.[props.paretoFactor]?.length}
         size="md"
+        columnAliases={props.columnAliases}
       />
     </>
   );

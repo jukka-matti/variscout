@@ -7,7 +7,6 @@ import PerformanceDashboard from './PerformanceDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import FilterBreadcrumb from './FilterBreadcrumb';
 import FactorSelector from './FactorSelector';
-import FactorManagerPopover from './FactorManagerPopover';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
 import PresentationView from './views/PresentationView';
@@ -37,6 +36,7 @@ import {
   Copy,
   Check,
   Download,
+  Settings2,
 } from 'lucide-react';
 
 type DashboardTab = 'analysis' | 'performance';
@@ -68,6 +68,8 @@ interface DashboardProps {
   isPresentationMode?: boolean;
   /** Callback to exit presentation mode */
   onExitPresentation?: () => void;
+  /** Callback to open ColumnMapping in re-edit mode for factor management */
+  onManageFactors?: () => void;
 }
 
 const Dashboard = ({
@@ -87,12 +89,12 @@ const Dashboard = ({
   onParetoFactorChange,
   isPresentationMode,
   onExitPresentation,
+  onManageFactors,
 }: DashboardProps) => {
   const {
     outcome,
     factors,
     setOutcome,
-    setFactors,
     rawData,
     setRawData,
     stats,
@@ -116,8 +118,6 @@ const Dashboard = ({
     setDisplayOptions,
     selectedPoints,
     clearSelection,
-    filterStack: ctxFilterStack,
-    setFilterStack: ctxSetFilterStack,
   } = useData();
   const { getTerm } = useGlossary();
 
@@ -479,17 +479,18 @@ const Dashboard = ({
                             )}
                           </div>
                         )}
-                        <FactorManagerPopover
-                          rawData={rawData}
-                          outcome={outcome}
-                          factors={factors}
-                          filters={filters}
-                          onFactorsChange={setFactors}
-                          onFiltersChange={setFilters}
-                          factorVariations={factorVariations}
-                          filterStack={ctxFilterStack}
-                          onFilterStackChange={ctxSetFilterStack}
-                        />
+                        {onManageFactors && (
+                          <button
+                            onClick={onManageFactors}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-content-secondary hover:text-content bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
+                            title="Manage analysis factors"
+                            aria-label="Manage factors"
+                            data-testid="btn-manage-factors"
+                          >
+                            <Settings2 size={14} />
+                            <span>Factors ({factors.length})</span>
+                          </button>
+                        )}
                       </div>
                       {ichartAnnotations.length > 0 && (
                         <button
@@ -594,6 +595,7 @@ const Dashboard = ({
                           selected={boxplotFactor}
                           onChange={setBoxplotFactor}
                           hasActiveFilter={!!filters?.[boxplotFactor]?.length}
+                          columnAliases={columnAliases}
                         />
                       </div>
                       <BoxplotDisplayToggle
@@ -679,6 +681,7 @@ const Dashboard = ({
                         selected={paretoFactor}
                         onChange={setParetoFactor}
                         hasActiveFilter={!!filters?.[paretoFactor]?.length}
+                        columnAliases={columnAliases}
                       />
                       {((paretoHighlights && Object.keys(paretoHighlights).length > 0) ||
                         paretoAnnotations.length > 0) && (

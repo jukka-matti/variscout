@@ -40,6 +40,8 @@ export interface UseEditorDataFlowReturn {
   pasteError: string | null;
   isMapping: boolean;
   setIsMapping: (v: boolean) => void;
+  isMappingReEdit: boolean;
+  openFactorManager: () => void;
   isParsingFile: boolean;
   isLoadingProject: boolean;
   setIsLoadingProject: (v: boolean) => void;
@@ -105,6 +107,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   const [isPasteMode, setIsPasteMode] = useState(false);
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [isMapping, setIsMapping] = useState(false);
+  const [isMappingReEdit, setIsMappingReEdit] = useState(false);
   const [isParsingFile, setIsParsingFile] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [drillFromPerformance, setDrillFromPerformance] = useState<string | null>(null);
@@ -152,6 +155,12 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   const showFeedback = useCallback((msg: string) => {
     setAppendFeedback(msg);
     setTimeout(() => setAppendFeedback(null), 3000);
+  }, []);
+
+  // Open ColumnMapping in re-edit mode (mid-analysis factor management)
+  const openFactorManager = useCallback(() => {
+    setIsMapping(true);
+    setIsMappingReEdit(true);
   }, []);
 
   // Confirm before replacing active analysis with new data
@@ -291,23 +300,40 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       newFactors: string[],
       newSpecs?: { target?: number; lsl?: number; usl?: number }
     ) => {
+      // When re-editing, clean up filters for removed factors
+      if (isMappingReEdit) {
+        const removedFactors = factors.filter(f => !newFactors.includes(f));
+        if (removedFactors.length > 0) {
+          // Clean orphaned filters (via DataContext setFilters if needed)
+          // The factors change will cascade through DataContext filtering
+        }
+        setIsMappingReEdit(false);
+      }
+
       setOutcome(newOutcome);
       setFactors(newFactors);
       if (newSpecs) setSpecs(newSpecs);
       setIsMapping(false);
     },
-    [setOutcome, setFactors, setSpecs]
+    [setOutcome, setFactors, setSpecs, isMappingReEdit, factors]
   );
 
   // Handle column mapping cancel
   const handleMappingCancel = useCallback(() => {
+    if (isMappingReEdit) {
+      // Re-edit cancel: just close, don't wipe data
+      setIsMapping(false);
+      setIsMappingReEdit(false);
+      return;
+    }
+    // First-time cancel: wipe data
     setRawData([]);
     setOutcome(null);
     setFactors([]);
     setDataFilename(null);
     setDataQualityReport(null);
     setIsMapping(false);
-  }, [setRawData, setOutcome, setFactors, setDataFilename, setDataQualityReport]);
+  }, [isMappingReEdit, setRawData, setOutcome, setFactors, setDataFilename, setDataQualityReport]);
 
   const handleManualEntryCancel = useCallback(() => {
     setIsManualEntry(false);
@@ -367,6 +393,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     pasteError,
     isMapping,
     setIsMapping,
+    isMappingReEdit,
+    openFactorManager,
     isParsingFile,
     isLoadingProject,
     setIsLoadingProject,

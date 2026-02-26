@@ -41,7 +41,7 @@ export interface FocusedChartViewProps {
   onToggleParetoComparison: () => void;
   onHideParetoPanel: () => void;
   onSelectParetoFactor: () => void;
-  onOpenColumnMapping?: () => void;
+  onManageFactors?: () => void;
   onPointClick?: (index: number) => void;
   onSpecClick: () => void;
   onNextChart: () => void;
@@ -97,7 +97,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
   onToggleParetoComparison,
   onHideParetoPanel,
   onSelectParetoFactor,
-  onOpenColumnMapping,
+  onManageFactors,
   onPointClick,
   onSpecClick,
   onNextChart,
@@ -221,6 +221,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
                 onChange={onSetBoxplotFactor}
                 hasActiveFilter={!!filters?.[boxplotFactor]?.length}
                 size="md"
+                columnAliases={columnAliases}
               />
             </div>
           }
@@ -279,6 +280,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
                 onChange={onSetParetoFactor}
                 hasActiveFilter={!!filters?.[paretoFactor]?.length}
                 size="md"
+                columnAliases={columnAliases}
               />
             </div>
           }
@@ -295,7 +297,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
                   onExitFocus();
                 }}
                 onSelectFactor={onSelectParetoFactor}
-                onUploadPareto={onOpenColumnMapping}
+                onUploadPareto={onManageFactors}
                 availableFactors={factors}
                 aggregation={paretoAggregation}
                 onToggleAggregation={onToggleParetoAggregation}

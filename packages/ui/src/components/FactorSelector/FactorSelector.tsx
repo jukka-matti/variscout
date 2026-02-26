@@ -33,6 +33,8 @@ export interface FactorSelectorProps {
   className?: string;
   /** Color scheme for styling (defaults to PWA semantic tokens) */
   colorScheme?: FactorSelectorColorScheme;
+  /** Column aliases for display (shows alias instead of raw column name) */
+  columnAliases?: Record<string, string>;
 }
 
 /**
@@ -47,6 +49,7 @@ const FactorSelector: React.FC<FactorSelectorProps> = ({
   size = 'sm',
   className = '',
   colorScheme = defaultColorScheme,
+  columnAliases,
 }) => {
   if (factors.length === 0) return null;
 
@@ -70,7 +73,7 @@ const FactorSelector: React.FC<FactorSelectorProps> = ({
               ${isSelected ? colorScheme.selected : colorScheme.unselected}
             `}
           >
-            {factor}
+            {columnAliases?.[factor] || factor}
             {showIndicator && (
               <span
                 className={`absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full ${colorScheme.indicatorBorder ? `border ${colorScheme.indicatorBorder}` : ''}`}

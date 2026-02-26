@@ -89,7 +89,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Data validation**               |     ✓     |     ✓      |                                                               |
 | **Row limit**                     |  100,000  |   50,000   | Configurable via `DataIngestionConfig`                        |
 | **Max factors**                   |     6     |     3      | Configurable via `maxFactors` prop                            |
-| **Factor management in analysis** |     ✓     |     -      | Azure: FactorManagerPopover in Dashboard                      |
+| **Factor management in analysis** |     ✓     |     ✓      | Both: ColumnMapping re-edit via "Factors" button in nav bar   |
 
 ---
 

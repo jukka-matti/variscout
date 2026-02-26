@@ -101,7 +101,7 @@ The most common daily task: verify stability of a production process.
 
 When the quick check reveals issues:
 
-1. Add factors via **FactorManagerPopover** (up to 6, can add/change during analysis)
+1. Add or change factors via the **"Factors" button** in the nav bar (reopens ColumnMapping, up to 6)
 2. Check ANOVA: is the factor significant? (p-value, eta-squared)
 3. Drill down: click Boxplot bars or Pareto categories to filter
 4. Follow the breadcrumb trail — each chip shows variation contribution (eta-squared %)
