@@ -24,7 +24,7 @@ import {
   calculateBoxplotStats,
 } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
-import { useChartCopy } from '@variscout/hooks';
+import { useChartCopy, useKeyboardNavigation } from '@variscout/hooks';
 import { useFilterNavigation, useVariationTracking } from '../hooks';
 import type { UseFilterNavigationReturn, FilterChipData } from '../hooks';
 
@@ -183,17 +183,13 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     });
   }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (focusedChart) {
-        if (e.key === 'ArrowRight') handleNextChart();
-        if (e.key === 'ArrowLeft') handlePrevChart();
-        if (e.key === 'Escape') setFocusedChart(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [focusedChart, handleNextChart, handlePrevChart]);
+  // Keyboard navigation for focused chart mode (shared hook)
+  useKeyboardNavigation({
+    focusedItem: focusedChart,
+    onNext: handleNextChart,
+    onPrev: handlePrevChart,
+    onEscape: () => setFocusedChart(null),
+  });
 
   // Cleanup timeout on unmount
   useEffect(() => {

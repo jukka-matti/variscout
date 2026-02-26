@@ -8,9 +8,11 @@ import {
   AnovaResults,
   FocusedViewOverlay,
   FocusedChartCard,
+  HelpTooltip,
+  useGlossary,
 } from '@variscout/ui';
 import { Activity } from 'lucide-react';
-import type { AnovaResult } from '@variscout/core';
+import type { AnovaResult, StatsResult, StagedStatsResult } from '@variscout/core';
 import type { FilterChipData, ChartAnnotation, HighlightColor } from '@variscout/hooks';
 import { BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
 
@@ -29,6 +31,9 @@ export interface FocusedChartViewProps {
   anovaResult: AnovaResult | null;
   boxplotData?: BoxplotGroupData[];
   boxplotCategoryContributions?: Map<string | number, number>;
+  stats?: StatsResult | null;
+  stagedStats?: StagedStatsResult | null;
+  stageColumn?: string | null;
   onSetOutcome: (outcome: string) => void;
   onSetBoxplotFactor: (factor: string) => void;
   onSetParetoFactor: (factor: string) => void;
@@ -82,6 +87,9 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
   anovaResult,
   boxplotData,
   boxplotCategoryContributions,
+  stats,
+  stagedStats,
+  stageColumn,
   onSetOutcome,
   onSetBoxplotFactor,
   onSetParetoFactor,
@@ -114,6 +122,34 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
   onDownloadPng,
   onDownloadSvg,
 }) => {
+  const { getTerm } = useGlossary();
+
+  const ichartHeaderRight =
+    stageColumn && stagedStats ? (
+      <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
+        <span className="text-blue-400 font-medium">{stagedStats.stageOrder.length} stages</span>
+        <span className="text-content-secondary">
+          μ:{' '}
+          <span className="text-white font-mono">{stagedStats.overallStats.mean.toFixed(2)}</span>
+        </span>
+      </div>
+    ) : stats ? (
+      <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
+        <span className="text-content-secondary flex items-center gap-1">
+          UCL: <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
+          <HelpTooltip term={getTerm('ucl')} iconSize={12} />
+        </span>
+        <span className="text-content-secondary flex items-center gap-1">
+          Mean: <span className="text-white font-mono">{stats.mean.toFixed(2)}</span>
+          <HelpTooltip term={getTerm('mean')} iconSize={12} />
+        </span>
+        <span className="text-content-secondary flex items-center gap-1">
+          LCL: <span className="text-white font-mono">{stats.lcl.toFixed(2)}</span>
+          <HelpTooltip term={getTerm('lcl')} iconSize={12} />
+        </span>
+      </div>
+    ) : undefined;
+
   return (
     <FocusedViewOverlay onPrev={onPrevChart} onNext={onNextChart}>
       {focusedChart === 'ichart' && (
@@ -148,6 +184,7 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = ({
               </select>
             </>
           }
+          headerRight={ichartHeaderRight}
         >
           <ErrorBoundary componentName="I-Chart">
             <IChart onPointClick={onPointClick} onSpecClick={onSpecClick} />

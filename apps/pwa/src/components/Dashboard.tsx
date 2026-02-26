@@ -19,7 +19,9 @@ import {
   AnnotationContextMenu,
   DashboardChartCard,
   DashboardGrid,
+  HelpTooltip,
   useIsMobile,
+  useGlossary,
 } from '@variscout/ui';
 import { useKeyboardNavigation, useAnnotations } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
@@ -104,6 +106,8 @@ const Dashboard = ({
     selectedPoints,
     clearSelection,
   } = useData();
+
+  const { getTerm } = useGlossary();
 
   // Internal tab navigation state
   const [activeView, setActiveView] = useState<AnalysisView>('dashboard');
@@ -582,8 +586,8 @@ const Dashboard = ({
                         />
                       </div>
 
-                      {/* Stage Stats (if active) */}
-                      {stageColumn && stagedStats && (
+                      {/* I-Chart stats */}
+                      {stageColumn && stagedStats ? (
                         <div className="flex gap-2 text-xs bg-surface/50 px-2 py-1 rounded border border-edge/50 pl-2 border-l border-edge">
                           <span className="text-blue-400 font-medium">
                             {stagedStats.stageOrder.length} stages
@@ -595,6 +599,26 @@ const Dashboard = ({
                             </span>
                           </span>
                         </div>
+                      ) : (
+                        stats && (
+                          <div className="flex gap-2 text-xs bg-surface/50 px-2 py-1 rounded border border-edge/50">
+                            <span className="text-content-secondary flex items-center gap-1">
+                              UCL:{' '}
+                              <span className="text-white font-mono">{stats.ucl.toFixed(2)}</span>
+                              <HelpTooltip term={getTerm('ucl')} iconSize={12} />
+                            </span>
+                            <span className="text-content-secondary flex items-center gap-1">
+                              Mean:{' '}
+                              <span className="text-white font-mono">{stats.mean.toFixed(2)}</span>
+                              <HelpTooltip term={getTerm('mean')} iconSize={12} />
+                            </span>
+                            <span className="text-content-secondary flex items-center gap-1">
+                              LCL:{' '}
+                              <span className="text-white font-mono">{stats.lcl.toFixed(2)}</span>
+                              <HelpTooltip term={getTerm('lcl')} iconSize={12} />
+                            </span>
+                          </div>
+                        )
                       )}
 
                       {/* Annotation clear button */}
@@ -837,6 +861,9 @@ const Dashboard = ({
               anovaResult={anovaResult}
               boxplotData={boxplotData}
               boxplotCategoryContributions={categoryContributions?.get(boxplotFactor)}
+              stats={stats}
+              stagedStats={stagedStats}
+              stageColumn={stageColumn}
               onSetOutcome={setOutcome}
               onSetBoxplotFactor={setBoxplotFactor}
               onSetParetoFactor={setParetoFactor}
