@@ -528,7 +528,7 @@ describe('storage service', () => {
 
       // Verify folder creation POST calls were made
       const postCalls = fetchSpy.mock.calls.filter(
-        call => (call[1] as Record<string, unknown>)?.method === 'POST'
+        (call: [string, Record<string, unknown>?]) => call[1]?.method === 'POST'
       );
       expect(postCalls).toHaveLength(2);
       expect(postCalls[0][0]).toContain('/me/drive/root/children');
@@ -557,7 +557,7 @@ describe('storage service', () => {
 
       // Should NOT have made folder creation POST calls
       const postCalls = fetchSpy.mock.calls.filter(
-        call => (call[1] as Record<string, unknown>)?.method === 'POST'
+        (call: [string, Record<string, unknown>?]) => call[1]?.method === 'POST'
       );
       expect(postCalls).toHaveLength(0);
     });

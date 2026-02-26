@@ -23,6 +23,8 @@ interface IChartProps {
   onPointClick?: (index: number) => void;
   /** Highlighted point index from data panel (bi-directional sync) */
   highlightedPointIndex?: number | null;
+  /** Callback when a spec label (USL/LSL/Target) is clicked */
+  onSpecClick?: (spec: 'usl' | 'lsl' | 'target') => void;
   // I-Chart annotation support
   ichartAnnotations?: ChartAnnotation[];
   onCreateAnnotation?: (anchorX: number, anchorY: number) => void;
@@ -34,6 +36,7 @@ const IChart = ({
   parentHeight,
   onPointClick,
   highlightedPointIndex,
+  onSpecClick,
   ichartAnnotations = [],
   onCreateAnnotation,
   onAnnotationsChange,
@@ -163,7 +166,7 @@ const IChart = ({
         selectedPoints={selectedPoints}
         onSelectionChange={setSelectedPoints}
         highlightedPointIndex={highlightedPointIndex}
-        showLimitLabels={false}
+        onSpecClick={onSpecClick}
       />
 
       {/* Free-floating annotation overlay */}

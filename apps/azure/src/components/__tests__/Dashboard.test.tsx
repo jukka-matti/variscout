@@ -42,8 +42,8 @@ vi.mock('../FactorSelector', () => ({
     </select>
   ),
 }));
-vi.mock('../settings/SpecsPopover', () => ({
-  default: () => <div data-testid="specs-popover">Specs</div>,
+vi.mock('../settings/SpecEditor', () => ({
+  default: () => <div data-testid="spec-editor">Spec Editor</div>,
 }));
 vi.mock('../FactorManagerPopover', () => ({
   default: () => <div data-testid="factor-manager">Factor Manager</div>,

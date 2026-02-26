@@ -8,7 +8,7 @@ import ErrorBoundary from './ErrorBoundary';
 import FilterBreadcrumb from './FilterBreadcrumb';
 import FactorSelector from './FactorSelector';
 import FactorManagerPopover from './FactorManagerPopover';
-import SpecsPopover from './settings/SpecsPopover';
+import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
 import PresentationView from './views/PresentationView';
 import { useData } from '../context/DataContext';
@@ -123,6 +123,7 @@ const Dashboard = ({
 
   const [activeTab, setActiveTabRaw] = useState<DashboardTab>(initialTab ?? 'analysis');
   const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
+  const [showSpecEditor, setShowSpecEditor] = useState(false);
 
   // Wrap setActiveTab to report changes for persistence
   const setActiveTab = useCallback(
@@ -478,7 +479,6 @@ const Dashboard = ({
                             )}
                           </div>
                         )}
-                        <SpecsPopover specs={specs} onSave={setSpecs} />
                         <FactorManagerPopover
                           rawData={rawData}
                           outcome={outcome}
@@ -557,6 +557,7 @@ const Dashboard = ({
                     <IChart
                       onPointClick={onPointClick}
                       highlightedPointIndex={highlightedPointIndex}
+                      onSpecClick={() => setShowSpecEditor(true)}
                       ichartAnnotations={ichartAnnotations}
                       onCreateAnnotation={createIChartAnnotation}
                       onAnnotationsChange={setIChartAnnotations}
@@ -766,6 +767,7 @@ const Dashboard = ({
               onSetStageColumn={setStageColumn}
               onSetStageOrderMode={setStageOrderMode}
               onSaveSpecs={setSpecs}
+              onSpecClick={() => setShowSpecEditor(true)}
               onIChartTitleChange={title => handleChartTitleChange('ichart', title)}
               onPointClick={onPointClick}
               highlightedPointIndex={highlightedPointIndex}
@@ -829,6 +831,16 @@ const Dashboard = ({
           }
           onAddNote={() => createAnnotation(contextMenu.chartType, contextMenu.categoryKey)}
           onClose={closeContextMenu}
+        />
+      )}
+
+      {/* Spec Editor (opened by clicking spec labels on I-Chart) */}
+      {showSpecEditor && (
+        <SpecEditor
+          specs={specs}
+          onSave={setSpecs}
+          onClose={() => setShowSpecEditor(false)}
+          style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}
         />
       )}
     </div>

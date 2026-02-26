@@ -2,7 +2,6 @@ import React from 'react';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
-import SpecsPopover from '../settings/SpecsPopover';
 import ErrorBoundary from '../ErrorBoundary';
 import {
   FocusedViewOverlay,
@@ -57,6 +56,7 @@ interface FocusedChartViewProps {
   onSetStageColumn: (sc: string | null) => void;
   onSetStageOrderMode: (m: StageOrderMode) => void;
   onSaveSpecs: (specs: SpecLimits) => void;
+  onSpecClick?: () => void;
   onIChartTitleChange: (title: string) => void;
   onPointClick?: (index: number) => void;
   highlightedPointIndex?: number | null;
@@ -158,7 +158,6 @@ const IChartFocusedContent: React.FC<{
           )}
         </div>
       )}
-      <SpecsPopover specs={props.specs} onSave={props.onSaveSpecs} />
       {props.ichartAnnotations &&
         props.ichartAnnotations.length > 0 &&
         props.onClearIChartAnnotations && (
@@ -226,6 +225,7 @@ const IChartFocusedContent: React.FC<{
         <IChart
           onPointClick={props.onPointClick}
           highlightedPointIndex={props.highlightedPointIndex}
+          onSpecClick={props.onSpecClick}
           ichartAnnotations={props.ichartAnnotations}
           onCreateAnnotation={props.onCreateIChartAnnotation}
           onAnnotationsChange={props.onIChartAnnotationsChange}
