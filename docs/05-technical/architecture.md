@@ -341,16 +341,27 @@ variscout-lite/
 │   │   │   ├── index.ts         # Barrel export
 │   │   │   ├── useChartScale.ts # Y-axis scale calculation
 │   │   │   ├── useFilterNavigation.ts  # Filter navigation
-│   │   │   ├── useVariationTracking.ts # Cumulative η² tracking
+│   │   │   ├── useVariationTracking.ts # Cumulative Total SS tracking
 │   │   │   ├── useKeyboardNavigation.ts # Keyboard navigation
 │   │   │   ├── useResponsiveChartMargins.ts # Responsive margins
+│   │   │   ├── useResponsiveChartFonts.ts # Responsive font sizes
+│   │   │   ├── useResponsiveTickCount.ts # Responsive tick counts
+│   │   │   ├── useResponsiveBreakpoints.ts # Responsive breakpoints
 │   │   │   ├── useDataState.ts  # Shared DataContext state
 │   │   │   ├── useDataIngestion.ts # File upload and parsing
 │   │   │   ├── useTier.ts       # Tier state and limits
-│   │   │   ├── useChartNavigation.ts # Chart tab navigation
-│   │   │   ├── useClipboardCopy.ts # Clipboard copy
 │   │   │   ├── useColumnClassification.ts # Column type classification
-│   │   │   └── useRegressionState.ts # Regression analysis state
+│   │   │   ├── useDrillPath.ts  # Drill path state
+│   │   │   ├── useMindmapState.ts # Mindmap state management
+│   │   │   ├── useBoxplotData.ts # Shared d3 boxplot computation
+│   │   │   ├── useIChartData.ts # Shared I-Chart data transform
+│   │   │   ├── useAnnotations.ts # Chart annotation state
+│   │   │   ├── useThemeState.ts # Theme state (light/dark/system)
+│   │   │   ├── useControlViolations.ts # Control/spec violation computation
+│   │   │   ├── useFocusedChartNav.ts # Keyboard chart focus navigation
+│   │   │   ├── useHighlightFade.ts # Highlight fade animation
+│   │   │   ├── useResizablePanel.ts # Resizable panel state
+│   │   │   └── useDataTablePagination.ts # Data table pagination
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
@@ -360,19 +371,43 @@ variscout-lite/
 │       │   ├── colors.ts        # UI color constants (statusColors)
 │       │   ├── hooks/           # useMediaQuery, useGlossary
 │       │   ├── services/        # errorService
+│       │   ├── styles/          # theme.css, components.css
 │       │   ├── components/      # Shared UI components
 │       │   │   ├── AnovaResults/
 │       │   │   ├── FilterBreadcrumb/
 │       │   │   ├── FilterChipDropdown/
+│       │   │   ├── FilterContextBar/
 │       │   │   ├── PerformanceSetupPanel/
-│       │   │   ├── RegressionPanel/
 │       │   │   ├── VariationBar/
 │       │   │   ├── YAxisPopover/
-│       │   │   ├── TierBadge/
 │       │   │   ├── UpgradePrompt/
 │       │   │   ├── ChartCard/
 │       │   │   ├── ColumnMapping/
 │       │   │   ├── HelpTooltip/
+│       │   │   ├── DashboardBase/  # FocusedViewOverlay, FocusedChartCard,
+│       │   │   │                   # DashboardChartCard, DashboardGrid
+│       │   │   ├── StatsPanelBase/
+│       │   │   ├── MindmapWindow/
+│       │   │   ├── MindmapPanel/
+│       │   │   ├── WhatIfSimulator/
+│       │   │   ├── WhatIfPage/
+│       │   │   ├── ErrorBoundary/
+│       │   │   ├── AxisEditor/
+│       │   │   ├── FactorSelector/
+│       │   │   ├── SpecsPopover/
+│       │   │   ├── SpecEditor/
+│       │   │   ├── CapabilityHistogram/
+│       │   │   ├── ProbabilityPlot/
+│       │   │   ├── BoxplotDisplayToggle/
+│       │   │   ├── ChartAnnotationLayer/
+│       │   │   ├── AnnotationContextMenu/
+│       │   │   ├── DataTable/
+│       │   │   ├── ChartDownloadMenu/
+│       │   │   ├── SelectionPanel/
+│       │   │   ├── CreateFactorModal/
+│       │   │   ├── PasteScreen/
+│       │   │   ├── ManualEntry/
+│       │   │   ├── Slider/
 │       │   │   └── ...
 │       │   └── lib/utils.ts     # Utility functions (cn)
 │       ├── package.json

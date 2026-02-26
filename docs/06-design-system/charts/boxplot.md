@@ -562,10 +562,10 @@ Enable with `showContributionLabels={true}` on Boxplot component.
 
 ### Integration Points
 
-| App   | Component                | Mode    | Notes                     |
-| ----- | ------------------------ | ------- | ------------------------- |
-| PWA   | FocusedChartView         | Default | Fullscreen boxplot detail |
-| Azure | Dashboard (focused view) | Default | Same as PWA               |
+| App   | Component        | Mode    | Notes                     |
+| ----- | ---------------- | ------- | ------------------------- |
+| PWA   | FocusedChartView | Default | Fullscreen boxplot detail |
+| Azure | FocusedChartView | Default | Same as PWA               |
 
 ---
 

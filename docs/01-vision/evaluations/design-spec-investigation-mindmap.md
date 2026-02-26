@@ -220,7 +220,7 @@ The Investigation Mindmap is a **PWA + Azure feature only**. The Excel Add-in ha
 - **Pop-out window**: Same as PWA.
 - **Modes available**: All three modes with full functionality.
 - **Trigger**: Labelled "Investigation" button (Network icon + text), same as PWA.
-- **First-drill prompt**: Same `InvestigationPrompt` callout as PWA (azure color scheme variant).
+- **First-drill prompt**: Same `InvestigationPrompt` callout as PWA (same default color scheme).
 - **VariationBar gateway**: Same clickable VariationBar as PWA.
 - **Export**: Copy-to-clipboard, PNG download, and SVG download available in all three modes. SVG export is Azure-only. Annotations are saved with the project (OneDrive sync).
 

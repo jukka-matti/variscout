@@ -399,74 +399,53 @@ Components extracted to `@variscout/ui` use a **colorScheme prop pattern** for p
 ### Pattern
 
 ```tsx
-// Component defines interface and presets
+// Component defines interface and default preset using semantic tokens
 export interface MyComponentColorScheme {
-  background: string; // Tailwind class
+  background: string; // Tailwind class (semantic token)
   text: string;
   border: string;
 }
 
 export const defaultColorScheme: MyComponentColorScheme = {
-  background: 'bg-surface-secondary', // PWA semantic
+  background: 'bg-surface-secondary',
   text: 'text-content',
   border: 'border-edge',
-};
-
-export const azureColorScheme: MyComponentColorScheme = {
-  background: 'bg-slate-800', // Tailwind Slate
-  text: 'text-white',
-  border: 'border-slate-700',
 };
 ```
 
 ### Usage
 
-```tsx
-// PWA - uses default (semantic tokens)
-<FilterBreadcrumb {...props} />;
+Both PWA and Azure use the default color scheme (semantic tokens). No explicit `colorScheme` prop is needed:
 
-// Azure - uses Azure scheme (Slate palette)
-import { filterBreadcrumbAzureColorScheme } from '@variscout/ui';
-<FilterBreadcrumb {...props} colorScheme={filterBreadcrumbAzureColorScheme} />;
+```tsx
+// Both apps — default semantic tokens apply automatically
+<FilterBreadcrumb {...props} />
 ```
 
 ### Available Components
 
 | Component                     | Base | Color Schemes               | Context-Free                              |
 | ----------------------------- | ---- | --------------------------- | ----------------------------------------- |
-| `FilterBreadcrumb`            | ✓    | default, azure              | ✓                                         |
-| `FilterChipDropdown`          | ✓    | default, azure              | ✓                                         |
-| `FilterContextBar`            | ✓    | default, azure              | ✓                                         |
-| `ChartDownloadMenu`           | ✓    | default, azure              | ✓                                         |
-| `PasteScreenBase`             | ✓    | default, azure              | ✓                                         |
-| `InvestigationPrompt`         | ✓    | -                           | First-drill investigation prompt          |
-| `RegressionPanelBase`         | ✓    | default, azure              | Uses render props                         |
-| `PerformanceSetupPanelBase`   | ✓    | default, pwa                | Props + optional tierProps                |
-| `StatsPanelBase`              | ✓    | default, azure              | Uses `onSaveSpecs` prop for inline inputs |
+| `FilterBreadcrumb`            | ✓    | default (semantic tokens)   | ✓                                         |
+| `FilterChipDropdown`          | ✓    | default (semantic tokens)   | ✓                                         |
+| `FilterContextBar`            | ✓    | default (semantic tokens)   | ✓                                         |
+| `ChartDownloadMenu`           | ✓    | default (semantic tokens)   | ✓                                         |
+| `PasteScreenBase`             | ✓    | default (semantic tokens)   | ✓                                         |
+| `InvestigationPrompt`         | ✓    | default (semantic tokens)   | First-drill investigation prompt          |
+| `PerformanceSetupPanelBase`   | ✓    | default (semantic tokens)   | Props + optional tierProps                |
+| `StatsPanelBase`              | ✓    | default (semantic tokens)   | Uses `onSaveSpecs` prop for inline inputs |
 | `ManualEntryBase`             | ✓    | semantic tokens (no scheme) | `enablePerformanceMode` prop              |
 | `ManualEntrySetupBase`        | ✓    | semantic tokens (no scheme) | ✓                                         |
-| `SpecsPopover` / `SpecEditor` | ✓    | default, azure              | ✓                                         |
-| `CapabilityHistogram`         | ✓    | default, azure              | ✓                                         |
-| `ProbabilityPlot`             | ✓    | default, azure              | ✓                                         |
-| `BoxplotDisplayToggle`        | ✓    | default, azure              | Popover with checkboxes + sort controls   |
+| `SpecsPopover` / `SpecEditor` | ✓    | default (semantic tokens)   | ✓                                         |
+| `CapabilityHistogram`         | ✓    | default (semantic tokens)   | ✓                                         |
+| `ProbabilityPlot`             | ✓    | default (semantic tokens)   | ✓                                         |
+| `BoxplotDisplayToggle`        | ✓    | default (semantic tokens)   | Popover with checkboxes + sort controls   |
 | `ChartAnnotationLayer`        | ✓    | -                           | HTML overlay for draggable text notes     |
 | `AnnotationContextMenu`       | ✓    | -                           | Right-click menu (highlight + add note)   |
-
-### Base Components with Render Props
-
-Some components use render props to delegate app-specific rendering:
-
-```tsx
-// RegressionPanelBase delegates chart rendering to apps
-<RegressionPanelBase
-  filteredData={data}
-  outcome={outcome}
-  specs={specs}
-  renderSimpleView={props => <SimpleRegressionView {...props} />}
-  renderAdvancedView={props => <AdvancedRegressionView {...props} />}
-  colorScheme={regressionPanelAzureColorScheme}
-/>
-```
+| `FocusedViewOverlay`          | ✓    | -                           | Full-screen backdrop for focused charts   |
+| `FocusedChartCard`            | ✓    | -                           | Container card for focused chart view     |
+| `DashboardChartCard`          | ✓    | -                           | Dashboard chart card with expand button   |
+| `DashboardGrid`               | ✓    | -                           | Responsive dashboard chart layout grid    |
 
 See [Colors > Shared Component Color Schemes](../../06-design-system/foundations/colors.md#shared-component-color-schemes) for the complete color mapping.
 

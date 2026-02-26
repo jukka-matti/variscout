@@ -92,9 +92,8 @@ interface WhatIfPageBaseProps {
 
 All components follow the standard colorScheme pattern:
 
-- `whatIfPageDefaultColorScheme` — Semantic tokens (PWA)
-- `whatIfPageAzureColorScheme` — Slate palette (Azure)
-- `whatIfSimulatorDefaultColorScheme` / `whatIfSimulatorAzureColorScheme`
+- `whatIfPageDefaultColorScheme` — Semantic tokens (used by both PWA and Azure)
+- `whatIfSimulatorDefaultColorScheme` — Semantic tokens (used by both PWA and Azure)
 
 The `WhatIfSimulatorColorScheme` includes `improvementPositive` and `improvementNegative` for directional change indicators (Cpk/yield improvement or decline), and `cpkGood`/`cpkOk`/`cpkBad` for Cpk status coloring.
 

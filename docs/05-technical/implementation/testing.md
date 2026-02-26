@@ -318,7 +318,7 @@ Azure E2E tests share a helper module at `apps/azure/e2e/helpers.ts` with three 
 
 - **ColumnMapping flow:** Every sample load, paste, or file upload triggers the "Map Your Data" ColumnMapping screen. Tests must call `confirmColumnMapping(page)` (or use `loadSampleInEditor`) to click "Start Analysis" before asserting on charts.
 - **Clean state between samples:** Use `page.goto('/')` between sequential sample loads to reset persisted IndexedDB state. Without this, the second sample load may skip the empty-state editor.
-- **ANOVA location:** ANOVA results are only visible in the FocusedBoxplotView. Tests must maximize the boxplot card first (click the expand button on `[data-testid="chart-boxplot"]`).
+- **ANOVA location:** ANOVA results are only visible in the FocusedChartView (boxplot focused view). Tests must maximize the boxplot card first (click the expand button on `[data-testid="chart-boxplot"]`).
 - **Paste vs Manual Entry:** "Paste Data" button opens a textarea for pasting tabular text. "Manual Entry" opens the setup form for creating columns and entering values row by row.
 
 ---

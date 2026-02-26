@@ -21,7 +21,7 @@ import { VariationBar } from '@variscout/ui';
 | isolatedPct | number                  | required           | Percentage (0-100) of variation in focus                                                                                                                       |
 | showLabels  | boolean                 | true               | Show text labels below bar                                                                                                                                     |
 | className   | string                  | ''                 | Additional CSS classes for container                                                                                                                           |
-| colorScheme | VariationBarColorScheme | defaultColorScheme | Color scheme (PWA semantic tokens or Azure slate palette)                                                                                                      |
+| colorScheme | VariationBarColorScheme | defaultColorScheme | Color scheme (semantic tokens, used by both PWA and Azure)                                                                                                     |
 | onClick     | () => void              | undefined          | Click handler --- opens the Investigation Mindmap panel when provided. Adds `cursor-pointer`, `role="button"`, `tabIndex`, and keyboard support (Enter/Space). |
 
 ## Visual Design

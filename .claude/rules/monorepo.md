@@ -28,6 +28,8 @@ packages/
                #   ErrorBoundary, AxisEditor, FactorSelector, StatsPanelBase,
                #   MindmapWindow, MindmapPanelContent, BoxplotDisplayToggle,
                #   ChartAnnotationLayer, AnnotationContextMenu,
+               #   DashboardBase (FocusedViewOverlay, FocusedChartCard,
+               #     DashboardChartCard, DashboardGrid),
                #   useGlossary, useIsMobile, errorService
 
 apps/
@@ -43,7 +45,7 @@ apps/
 - `@variscout/core` has no React dependencies (exports stats, parser, glossary, tier)
 - `@variscout/charts` depends on `@variscout/core`
 - `@variscout/hooks` depends on `@variscout/core` (for types, utilities, and tier)
-- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `MindmapWindow`, `MindmapPanelContent`, `exportMindmapPng`, `exportMindmapSvg`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `useGlossary`, `useIsMobile`, `errorService`
+- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `MindmapWindow`, `MindmapPanelContent`, `exportMindmapPng`, `exportMindmapSvg`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `FocusedViewOverlay`, `FocusedChartCard`, `DashboardChartCard`, `DashboardGrid`, `useGlossary`, `useIsMobile`, `errorService`
 
 ## Build Commands
 

@@ -112,7 +112,7 @@ Copy-to-clipboard, PNG download, and SVG download are available in **all three m
 | SVG export              | No                                             | Yes                                            |
 | Annotations             | Session-only (sessionStorage)                  | Persistent (saved with project, OneDrive sync) |
 | Trigger button          | Labelled "Investigation" (Network icon + text) | Same                                           |
-| First-drill prompt      | InvestigationPrompt (default color scheme)     | InvestigationPrompt (azure color scheme)       |
+| First-drill prompt      | InvestigationPrompt (default color scheme)     | InvestigationPrompt (default color scheme)     |
 | VariationBar as gateway | onClick opens investigation                    | Same                                           |
 
 ## Discoverability Aids

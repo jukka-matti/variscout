@@ -394,7 +394,7 @@ The Azure app has 9 Playwright spec files in `apps/azure/e2e/` plus a shared hel
 - C-23 Presentation mode (partial — visual verification needed)
 - All section D (Teams integration — requires Teams Admin Center)
 
-**ANOVA check clarification:** ANOVA results (`[data-testid="anova-results"]`) are only visible in FocusedBoxplotView. Tests must first maximize the boxplot card to reach this view.
+**ANOVA check clarification:** ANOVA results (`[data-testid="anova-results"]`) are only visible in FocusedChartView (boxplot focused view). Tests must first maximize the boxplot card to reach this view.
 
 ```bash
 # Run all Azure E2E tests

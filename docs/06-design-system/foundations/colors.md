@@ -184,60 +184,46 @@ const defaultColorScheme: ComponentColorScheme = {
   border: 'border-edge',
   textMuted: 'text-content-muted',
 };
-
-// Azure uses Tailwind Slate palette
-const azureColorScheme: ComponentColorScheme = {
-  containerBg: 'bg-slate-800',
-  border: 'border-slate-700',
-  textMuted: 'text-slate-500',
-};
 ```
 
 ### Color Scheme Mapping
 
-| Semantic Token (PWA)     | Slate Equivalent (Azure) | Usage               |
-| ------------------------ | ------------------------ | ------------------- |
-| `bg-surface`             | `bg-slate-900`           | Main container      |
-| `bg-surface-secondary`   | `bg-slate-800`           | Cards, panels       |
-| `bg-surface-tertiary/50` | `bg-slate-700/50`        | Hover backgrounds   |
-| `border-edge`            | `border-slate-700`       | Primary borders     |
-| `border-edge-secondary`  | `border-slate-600`       | Secondary borders   |
-| `text-content`           | `text-white`             | Primary text        |
-| `text-content-secondary` | `text-slate-400`         | Secondary text      |
-| `text-content-muted`     | `text-slate-500`         | Muted/disabled text |
-| `hover:text-content`     | `hover:text-slate-300`   | Hover text          |
+Both PWA and Azure use the same semantic tokens. The Slate equivalents are shown for historical reference (Azure previously used hardcoded Slate classes before the visual convergence migration):
+
+| Semantic Token           | Resolved Value (Dark)  | Usage               |
+| ------------------------ | ---------------------- | ------------------- |
+| `bg-surface`             | `bg-slate-900`         | Main container      |
+| `bg-surface-secondary`   | `bg-slate-800`         | Cards, panels       |
+| `bg-surface-tertiary/50` | `bg-slate-700/50`      | Hover backgrounds   |
+| `border-edge`            | `border-slate-700`     | Primary borders     |
+| `border-edge-secondary`  | `border-slate-600`     | Secondary borders   |
+| `text-content`           | `text-white`           | Primary text        |
+| `text-content-secondary` | `text-slate-400`       | Secondary text      |
+| `text-content-muted`     | `text-slate-500`       | Muted/disabled text |
+| `hover:text-content`     | `hover:text-slate-300` | Hover text          |
 
 ### Available Color Schemes
 
-Components export both default and Azure color schemes:
+Components export a default color scheme using semantic tokens. Azure-specific exports still exist in code for backwards compatibility but are no longer consumed by the Azure app:
 
-| Component                   | Default Export                            | Azure Export                          |
-| --------------------------- | ----------------------------------------- | ------------------------------------- |
-| `FilterBreadcrumb`          | `filterBreadcrumbDefaultColorScheme`      | `filterBreadcrumbAzureColorScheme`    |
-| `FilterChipDropdown`        | `filterChipDropdownDefaultColorScheme`    | `filterChipDropdownAzureColorScheme`  |
-| `VariationBar`              | `variationBarDefaultColorScheme`          | `variationBarAzureColorScheme`        |
-| `AnovaResults`              | `anovaDefaultColorScheme`                 | `anovaAzureColorScheme`               |
-| `YAxisPopover`              | `yAxisPopoverDefaultColorScheme`          | `yAxisPopoverAzureColorScheme`        |
-| `RegressionPanelBase`       | `regressionPanelDefaultColorScheme`       | `regressionPanelAzureColorScheme`     |
-| `PerformanceSetupPanelBase` | `performanceSetupPanelDefaultColorScheme` | `performanceSetupPanelPwaColorScheme` |
+| Component                   | Default Export                            | Notes                              |
+| --------------------------- | ----------------------------------------- | ---------------------------------- |
+| `FilterBreadcrumb`          | `filterBreadcrumbDefaultColorScheme`      | Semantic tokens, used by both apps |
+| `FilterChipDropdown`        | `filterChipDropdownDefaultColorScheme`    | Semantic tokens, used by both apps |
+| `VariationBar`              | `variationBarDefaultColorScheme`          | Semantic tokens, used by both apps |
+| `AnovaResults`              | `anovaDefaultColorScheme`                 | Semantic tokens, used by both apps |
+| `YAxisPopover`              | `yAxisPopoverDefaultColorScheme`          | Semantic tokens, used by both apps |
+| `PerformanceSetupPanelBase` | `performanceSetupPanelDefaultColorScheme` | Semantic tokens, used by both apps |
 
 ### Usage in Apps
 
-**PWA (uses semantic tokens - default):**
+Both PWA and Azure use the default color scheme (semantic tokens). No explicit `colorScheme` prop is needed:
 
 ```tsx
 import { FilterBreadcrumb } from '@variscout/ui';
 
-// Default colorScheme uses semantic tokens automatically
+// Default colorScheme uses semantic tokens — works for both PWA and Azure
 <FilterBreadcrumb {...props} />;
-```
-
-**Azure (uses Slate palette):**
-
-```tsx
-import { FilterBreadcrumb, filterBreadcrumbAzureColorScheme } from '@variscout/ui';
-
-<FilterBreadcrumb {...props} colorScheme={filterBreadcrumbAzureColorScheme} />;
 ```
 
 ### Nested Color Schemes
@@ -258,11 +244,10 @@ interface FilterBreadcrumbColorScheme {
 
 When extracting a component to `@variscout/ui`:
 
-1. **Identify color differences** between PWA and Azure versions
-2. **Create interface** with all color slots needed
-3. **Define default scheme** using PWA semantic tokens
-4. **Define Azure scheme** using Tailwind Slate classes
-5. **Export both** from component index and main package index
+1. **Identify color slots** needed by the component
+2. **Create interface** with all color slots
+3. **Define default scheme** using semantic tokens
+4. **Export** from component index and main package index
 
 ```tsx
 // packages/ui/src/components/MyComponent/MyComponent.tsx
@@ -276,12 +261,6 @@ export const defaultColorScheme: MyComponentColorScheme = {
   background: 'bg-surface-secondary',
   text: 'text-content',
   border: 'border-edge',
-};
-
-export const azureColorScheme: MyComponentColorScheme = {
-  background: 'bg-slate-800',
-  text: 'text-white',
-  border: 'border-slate-700',
 };
 ```
 
