@@ -1,6 +1,6 @@
 # Form Elements
 
-Form input patterns.
+Form input patterns using semantic Tailwind tokens for theme-aware styling.
 
 ## Text Input
 
@@ -8,7 +8,7 @@ Form input patterns.
 <input
   type="text"
   placeholder="Enter value"
-  className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm placeholder-slate-500 outline-none focus:border-blue-500 transition-colors"
+  className="w-full px-3 py-2 bg-surface border border-edge rounded-lg text-content text-sm placeholder-content-muted outline-none focus:border-blue-500 transition-colors"
 />
 ```
 
@@ -18,14 +18,14 @@ Form input patterns.
 <input
   type="number"
   step="0.01"
-  className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm font-mono text-right outline-none focus:border-blue-500"
+  className="w-full px-3 py-2 bg-surface border border-edge rounded-lg text-content text-sm font-mono text-right outline-none focus:border-blue-500"
 />
 ```
 
 ## Select Dropdown
 
 ```jsx
-<select className="bg-slate-900 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 cursor-pointer">
+<select className="bg-surface border border-edge text-content rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 cursor-pointer">
   <option value="">Select...</option>
   <option value="a">Option A</option>
   <option value="b">Option B</option>
@@ -35,7 +35,7 @@ Form input patterns.
 ### Small Select
 
 ```jsx
-<select className="bg-slate-900 border border-slate-700 text-xs text-white rounded px-2 py-1 outline-none focus:border-blue-500">
+<select className="bg-surface border border-edge text-xs text-content rounded px-2 py-1 outline-none focus:border-blue-500">
   ...
 </select>
 ```
@@ -48,9 +48,9 @@ Form input patterns.
     type="checkbox"
     checked={checked}
     onChange={e => setChecked(e.target.checked)}
-    className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-900"
+    className="w-4 h-4 rounded border-edge bg-surface text-blue-600 focus:ring-blue-500 focus:ring-offset-surface"
   />
-  <span className="text-sm text-slate-300">Show Cpk</span>
+  <span className="text-sm text-content-secondary">Show Cpk</span>
 </label>
 ```
 
@@ -66,9 +66,9 @@ Form input patterns.
         value={option.value}
         checked={selected === option.value}
         onChange={() => setSelected(option.value)}
-        className="w-4 h-4 border-slate-600 bg-slate-900 text-blue-600"
+        className="w-4 h-4 border-edge bg-surface text-blue-600"
       />
-      <span className="text-sm text-slate-300">{option.label}</span>
+      <span className="text-sm text-content-secondary">{option.label}</span>
     </label>
   ))}
 </div>
@@ -95,10 +95,10 @@ Form input patterns.
 
 ```jsx
 <div className="flex flex-col gap-1.5">
-  <label className="text-xs text-slate-400 font-medium">Upper Spec Limit (USL)</label>
+  <label className="text-xs text-content-secondary font-medium">Upper Spec Limit (USL)</label>
   <input
     type="number"
-    className="px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
+    className="px-3 py-2 bg-surface border border-edge rounded-lg text-content"
   />
 </div>
 ```
@@ -107,8 +107,8 @@ Form input patterns.
 
 ```jsx
 <div className="flex items-center gap-2">
-  <label className="text-sm text-slate-400 whitespace-nowrap">Factor:</label>
-  <select className="flex-1 bg-slate-900 border border-slate-700 ...">...</select>
+  <label className="text-sm text-content-secondary whitespace-nowrap">Factor:</label>
+  <select className="flex-1 bg-surface border border-edge ...">...</select>
 </div>
 ```
 
@@ -116,7 +116,7 @@ Form input patterns.
 
 ```jsx
 <div className="flex">
-  <input className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-l-lg text-white" />
+  <input className="flex-1 px-3 py-2 bg-surface border border-edge rounded-l-lg text-content" />
   <button className="px-4 py-2 bg-blue-600 text-white rounded-r-lg">Apply</button>
 </div>
 ```
@@ -124,9 +124,9 @@ Form input patterns.
 ## File Input
 
 ```jsx
-<label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-slate-800/50 transition-colors">
-  <Upload className="text-slate-400" />
-  <span className="text-sm text-slate-400">Drop file or click to browse</span>
+<label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-edge rounded-xl cursor-pointer hover:border-blue-500 hover:bg-surface-secondary/50 transition-colors">
+  <Upload className="text-content-secondary" />
+  <span className="text-sm text-content-secondary">Drop file or click to browse</span>
   <input type="file" className="hidden" onChange={handleFile} />
 </label>
 ```
@@ -149,17 +149,17 @@ Form input patterns.
 ## Disabled State
 
 ```jsx
-<input disabled className="... opacity-50 cursor-not-allowed bg-slate-800" />
+<input disabled className="... opacity-50 cursor-not-allowed bg-surface-secondary" />
 ```
 
 ## Segmented Control (Factor Selector)
 
 Modern pill-button control for selecting from limited options.
 
-Location: `apps/pwa/src/components/FactorSelector.tsx`
+Location: `packages/ui/src/components/FactorSelector/`
 
 ```jsx
-<div className="inline-flex bg-slate-900 rounded-lg p-0.5 border border-slate-700">
+<div className="inline-flex bg-surface rounded-lg p-0.5 border border-edge">
   {options.map(option => (
     <button
       key={option}
@@ -169,13 +169,13 @@ Location: `apps/pwa/src/components/FactorSelector.tsx`
         ${
           selected === option
             ? 'bg-blue-600 text-white shadow-sm'
-            : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            : 'text-content-secondary hover:text-content hover:bg-surface-secondary'
         }
       `}
     >
       {option}
       {hasIndicator && selected === option && (
-        <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full border border-slate-900" />
+        <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full border border-surface" />
       )}
     </button>
   ))}
@@ -190,6 +190,6 @@ Location: `apps/pwa/src/components/FactorSelector.tsx`
 
 ### States
 
-- **Default**: Slate text on transparent
+- **Default**: Secondary text on transparent
 - **Selected**: White text on blue background
 - **Indicator**: Amber dot when filter active on selection

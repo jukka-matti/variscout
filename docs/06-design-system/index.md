@@ -54,7 +54,6 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 - [Boxplot](./charts/boxplot.md) - Boxplot and violin mode design
 - [Pareto](./charts/pareto.md) - Pareto chart design
 - [Capability](./charts/capability.md) - Capability histogram design
-- [Scatter / Regression](./charts/scatter.md) - Scatter plot design
 - [Probability Plot](./charts/probability-plot.md) - Probability plot design
 - [Performance Mode](./charts/performance-mode.md) - Multi-channel chart design
 - [Shared Components](./charts/shared-components.md) - ChartSourceBar, EditableChartTitle, etc.
@@ -66,15 +65,14 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 - [Modals](./components/modals.md) - Modal patterns
 - [Forms](./components/forms.md) - Form elements
 - [VariationBar](./components/variation-funnel.md) - Variation scope progress bar
-- [Investigation Mindmap](./components/investigation-mindmap.md) - Spatial investigation overview (three modes)
 - [What-If Simulator](./components/what-if-simulator.md) - Process improvement exploration
-- [Interaction Guidance](./components/interaction-guidance.md) - Contextual interaction hints
 
 ### Patterns
 
 - [Layout](./patterns/layout.md) - Page layouts
 - [Feedback](./patterns/feedback.md) - Status and loading states
 - [Navigation](./patterns/navigation.md) - Navigation patterns and breadcrumbs
+- [Interactions](./patterns/interactions.md) - Interaction patterns (inline edit, grids, selection cards)
 
 ## Usage
 

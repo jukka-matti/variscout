@@ -274,5 +274,4 @@ import { calculateProbabilityPlotData, normalQuantile } from '@variscout/core';
 - [Colors](./colors.md) - Chart color constants
 - [Responsive](./responsive.md) - Breakpoints and scaling utilities
 - [Hooks](./hooks.md) - useChartLayout
-- [Scatter Plot](./scatter.md) - Regression analysis
 - [Capability](./capability.md) - Distribution histograms
