@@ -267,22 +267,12 @@ Expanded:
 └─────────────────────────────────────┘
 ```
 
-**2. Inline in the Stats Panel (when no specs are set)**
+**2. Pencil link in the Stats Panel**
 
-When the user reaches the dashboard without having set specs, the Stats Panel shows inline spec inputs in place of the silent omission of Cp/Cpk/Pass Rate. The entry is Target-first (lowest commitment), with LSL and USL accessible via an expand toggle.
+The Stats Panel shows a pencil link below the metric cards. The link text changes based on whether specs are already configured:
 
-```
-┌─────────────────────────────────────┐
-│  STATS                              │
-│  Mean: 12.4    Median: 12.2         │
-│  Std Dev: 0.8  Samples: 50          │
-│                                     │
-│  Set a target to enable Cp/Cpk:     │
-│  Target: [________]  [▼ + LSL/USL]  │
-└─────────────────────────────────────┘
-```
-
-Once specs are entered and the field loses focus (on blur), the inline area transforms into the normal Cp/Cpk/Pass Rate cards — no button press required:
+- **No specs set:** `✏ Set spec limits` — clicking opens the SpecEditor popover where the user can enter Target, LSL, and USL.
+- **Specs exist:** `✏ Edit spec limits` — clicking opens the same SpecEditor popover, pre-populated with current values.
 
 ```
 ┌─────────────────────────────────────┐
@@ -290,12 +280,24 @@ Once specs are entered and the field loses focus (on blur), the inline area tran
 │  Mean: 12.4    Median: 12.2         │
 │  Std Dev: 0.8  Samples: 50          │
 │                                     │
-│  Cp:  1.42    Cpk: 0.91 ⚠️          │
-│  Pass Rate: 94%                     │
+│  ✏ Set spec limits                  │
 └─────────────────────────────────────┘
 ```
 
-**Design rationale:** Target is shown first because it requires the least commitment — a user who only knows their ideal value can still unlock partial capability feedback. LSL and USL expand progressively when needed.
+Once specs are saved via the SpecEditor, the capability cards (Cp, Cpk, Pass Rate) appear in the metric grid:
+
+```
+┌─────────────────────────────────────┐
+│  STATS                              │
+│  Pass Rate: 94%  Cp: 1.42  Cpk: 0.91│
+│  Mean: 12.4    Median: 12.2         │
+│  Std Dev: 0.8  Samples: 50          │
+│                                     │
+│  ✏ Edit spec limits                 │
+└─────────────────────────────────────┘
+```
+
+**Design rationale:** A single SpecEditor popover provides a consistent spec editing experience across all entry points (Stats Panel, chart cards, header).
 
 ### 5. Data Table (View/Edit Data)
 

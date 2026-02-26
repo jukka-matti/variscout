@@ -168,7 +168,7 @@ describe('StatsPanel', () => {
     expect(screen.getByText('Samples')).toBeInTheDocument();
   });
 
-  it('shows inline spec inputs when onSaveSpecs provided and no specs', () => {
+  it('shows "Set spec limits" pencil link when onSaveSpecs provided and no specs', () => {
     const onSaveSpecs = vi.fn();
     render(
       <StatsPanel
@@ -180,7 +180,36 @@ describe('StatsPanel', () => {
       />
     );
 
-    expect(screen.getByTestId('inline-spec-inputs')).toBeInTheDocument();
-    expect(screen.getByText('What should this measure be?')).toBeInTheDocument();
+    expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
+    expect(screen.getByText('Set spec limits')).toBeInTheDocument();
+  });
+
+  it('shows "Edit spec limits" pencil link when specs exist and onSaveSpecs provided', () => {
+    const onSaveSpecs = vi.fn();
+    render(
+      <StatsPanel
+        stats={mockStats}
+        specs={mockSpecs}
+        filteredData={mockFilteredData}
+        outcome="value"
+        onSaveSpecs={onSaveSpecs}
+      />
+    );
+
+    expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
+    expect(screen.getByText('Edit spec limits')).toBeInTheDocument();
+  });
+
+  it('does not show pencil link when onSaveSpecs not provided', () => {
+    render(
+      <StatsPanel
+        stats={mockStats}
+        specs={mockSpecs}
+        filteredData={mockFilteredData}
+        outcome="value"
+      />
+    );
+
+    expect(screen.queryByTestId('edit-specs-link')).not.toBeInTheDocument();
   });
 });

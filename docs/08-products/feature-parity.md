@@ -66,7 +66,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Focus mode (fullscreen chart)** |     ✓     |     ✓      |                                                                                                               |
 | **Presentation Mode**             |     ✓     |     -      | Full-screen grid overview + focused chart view                                                                |
 | **Median in Stats Panel**         |     ✓     |     ✓      | Always shown alongside Mean                                                                                   |
-| **Inline spec inputs (Stats)**    |     ✓     |     ✓      | `onSaveSpecs` prop; Target-first progressive disclosure                                                       |
+| **Spec editing (Stats)**          |     ✓     |     ✓      | `onEditSpecs` callback; pencil link opens SpecEditor popover                                                  |
 | **Chart annotations**             |     ✓     |     ✓      | Boxplot/Pareto: right-click context menu (highlight + note); I-Chart: right-click to place free-floating note |
 
 ---

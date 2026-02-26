@@ -163,7 +163,7 @@ describe('StatsPanel', () => {
     expect(screen.getByText('n=3')).toBeInTheDocument(); // 3 items in mockFilteredData
   });
 
-  it('shows inline spec inputs when no specs provided', () => {
+  it('shows "Set spec limits" pencil link when no specs provided', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
     } as unknown as ReturnType<typeof DataContextModule.useData>);
@@ -172,112 +172,31 @@ describe('StatsPanel', () => {
       <StatsPanel stats={mockStats} specs={{}} filteredData={mockFilteredData} outcome="value" />
     );
 
-    // Should show inline spec inputs instead of capability cards
-    expect(screen.getByTestId('inline-spec-inputs')).toBeInTheDocument();
-    expect(screen.getByText('What should this measure be?')).toBeInTheDocument();
-    // Still shows Edit Specifications button in footer
-    expect(screen.getByText('Edit Specifications')).toBeInTheDocument();
+    // Should show pencil link to set specs
+    expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
+    expect(screen.getByText('Set spec limits')).toBeInTheDocument();
   });
 
-  describe('inline spec editing', () => {
-    it('shows pencil edit button when specs are set', () => {
-      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        setSpecs: vi.fn(),
-      } as unknown as ReturnType<typeof DataContextModule.useData>);
+  it('shows "Edit spec limits" pencil link when specs are set', () => {
+    vi.spyOn(DataContextModule, 'useData').mockReturnValue({
+      setSpecs: vi.fn(),
+    } as unknown as ReturnType<typeof DataContextModule.useData>);
 
-      render(
-        <StatsPanel
-          stats={mockStats}
-          specs={mockSpecs}
-          filteredData={mockFilteredData}
-          outcome="value"
-        />
-      );
+    render(
+      <StatsPanel
+        stats={mockStats}
+        specs={mockSpecs}
+        filteredData={mockFilteredData}
+        outcome="value"
+      />
+    );
 
-      expect(screen.getByTestId('edit-specs-button')).toBeInTheDocument();
-      expect(screen.getByText('Edit spec limits')).toBeInTheDocument();
-    });
-
-    it('enters edit mode with pre-populated inputs on click', () => {
-      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        setSpecs: vi.fn(),
-      } as unknown as ReturnType<typeof DataContextModule.useData>);
-
-      render(
-        <StatsPanel
-          stats={mockStats}
-          specs={{ ...mockSpecs, target: 10 }}
-          filteredData={mockFilteredData}
-          outcome="value"
-        />
-      );
-
-      fireEvent.click(screen.getByTestId('edit-specs-button'));
-
-      // Should show edit mode inputs
-      expect(screen.getByTestId('inline-spec-inputs')).toBeInTheDocument();
-      expect(screen.getByText('Edit specification limits')).toBeInTheDocument();
-
-      // Target input should be pre-populated
-      const targetInput = screen.getByLabelText('Target') as HTMLInputElement;
-      expect(targetInput.value).toBe('10');
-
-      // LSL/USL should be expanded and pre-populated
-      const lslInput = screen.getByLabelText('LSL (Min)') as HTMLInputElement;
-      expect(lslInput.value).toBe('5');
-      const uslInput = screen.getByLabelText('USL (Max)') as HTMLInputElement;
-      expect(uslInput.value).toBe('15');
-
-      // Capability cards should be hidden during edit
-      expect(screen.queryByText('Pass Rate')).not.toBeInTheDocument();
-    });
-
-    it('shows Clear specs and Done buttons in edit mode', () => {
-      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        setSpecs: vi.fn(),
-      } as unknown as ReturnType<typeof DataContextModule.useData>);
-
-      render(
-        <StatsPanel
-          stats={mockStats}
-          specs={mockSpecs}
-          filteredData={mockFilteredData}
-          outcome="value"
-        />
-      );
-
-      fireEvent.click(screen.getByTestId('edit-specs-button'));
-
-      expect(screen.getByTestId('clear-specs-button')).toBeInTheDocument();
-      expect(screen.getByText('Clear specs')).toBeInTheDocument();
-      expect(screen.getByTestId('done-specs-button')).toBeInTheDocument();
-      expect(screen.getByText('Done')).toBeInTheDocument();
-    });
-
-    it('clears specs when Clear is clicked', () => {
-      const setSpecs = vi.fn();
-      vi.spyOn(DataContextModule, 'useData').mockReturnValue({
-        setSpecs,
-      } as unknown as ReturnType<typeof DataContextModule.useData>);
-
-      render(
-        <StatsPanel
-          stats={mockStats}
-          specs={mockSpecs}
-          filteredData={mockFilteredData}
-          outcome="value"
-        />
-      );
-
-      fireEvent.click(screen.getByTestId('edit-specs-button'));
-      fireEvent.click(screen.getByTestId('clear-specs-button'));
-
-      expect(setSpecs).toHaveBeenCalledWith({});
-    });
+    expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
+    expect(screen.getByText('Edit spec limits')).toBeInTheDocument();
   });
 
   describe('compact mode', () => {
-    it('hides Edit Specifications button in compact mode', () => {
+    it('shows pencil link in compact mode', () => {
       vi.spyOn(DataContextModule, 'useData').mockReturnValue({
         setSpecs: vi.fn(),
       } as unknown as ReturnType<typeof DataContextModule.useData>);
@@ -292,7 +211,8 @@ describe('StatsPanel', () => {
         />
       );
 
-      expect(screen.queryByText('Edit Specifications')).not.toBeInTheDocument();
+      expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
+      expect(screen.getByText('Edit spec limits')).toBeInTheDocument();
     });
 
     it('shows metrics in compact mode', () => {

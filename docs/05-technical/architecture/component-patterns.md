@@ -424,28 +424,28 @@ Both PWA and Azure use the default color scheme (semantic tokens). No explicit `
 
 ### Available Components
 
-| Component                     | Base | Color Schemes               | Context-Free                              |
-| ----------------------------- | ---- | --------------------------- | ----------------------------------------- |
-| `FilterBreadcrumb`            | ✓    | default (semantic tokens)   | ✓                                         |
-| `FilterChipDropdown`          | ✓    | default (semantic tokens)   | ✓                                         |
-| `FilterContextBar`            | ✓    | default (semantic tokens)   | ✓                                         |
-| `ChartDownloadMenu`           | ✓    | default (semantic tokens)   | ✓                                         |
-| `PasteScreenBase`             | ✓    | default (semantic tokens)   | ✓                                         |
-| `InvestigationPrompt`         | ✓    | default (semantic tokens)   | First-drill investigation prompt          |
-| `PerformanceSetupPanelBase`   | ✓    | default (semantic tokens)   | Props + optional tierProps                |
-| `StatsPanelBase`              | ✓    | default (semantic tokens)   | Uses `onSaveSpecs` prop for inline inputs |
-| `ManualEntryBase`             | ✓    | semantic tokens (no scheme) | `enablePerformanceMode` prop              |
-| `ManualEntrySetupBase`        | ✓    | semantic tokens (no scheme) | ✓                                         |
-| `SpecsPopover` / `SpecEditor` | ✓    | default (semantic tokens)   | ✓                                         |
-| `CapabilityHistogram`         | ✓    | default (semantic tokens)   | ✓                                         |
-| `ProbabilityPlot`             | ✓    | default (semantic tokens)   | ✓                                         |
-| `BoxplotDisplayToggle`        | ✓    | default (semantic tokens)   | Popover with checkboxes + sort controls   |
-| `ChartAnnotationLayer`        | ✓    | -                           | HTML overlay for draggable text notes     |
-| `AnnotationContextMenu`       | ✓    | -                           | Right-click menu (highlight + add note)   |
-| `FocusedViewOverlay`          | ✓    | -                           | Full-screen backdrop for focused charts   |
-| `FocusedChartCard`            | ✓    | -                           | Container card for focused chart view     |
-| `DashboardChartCard`          | ✓    | -                           | Dashboard chart card with expand button   |
-| `DashboardGrid`               | ✓    | -                           | Responsive dashboard chart layout grid    |
+| Component                     | Base | Color Schemes               | Context-Free                            |
+| ----------------------------- | ---- | --------------------------- | --------------------------------------- |
+| `FilterBreadcrumb`            | ✓    | default (semantic tokens)   | ✓                                       |
+| `FilterChipDropdown`          | ✓    | default (semantic tokens)   | ✓                                       |
+| `FilterContextBar`            | ✓    | default (semantic tokens)   | ✓                                       |
+| `ChartDownloadMenu`           | ✓    | default (semantic tokens)   | ✓                                       |
+| `PasteScreenBase`             | ✓    | default (semantic tokens)   | ✓                                       |
+| `InvestigationPrompt`         | ✓    | default (semantic tokens)   | First-drill investigation prompt        |
+| `PerformanceSetupPanelBase`   | ✓    | default (semantic tokens)   | Props + optional tierProps              |
+| `StatsPanelBase`              | ✓    | default (semantic tokens)   | `onEditSpecs` callback opens SpecEditor |
+| `ManualEntryBase`             | ✓    | semantic tokens (no scheme) | `enablePerformanceMode` prop            |
+| `ManualEntrySetupBase`        | ✓    | semantic tokens (no scheme) | ✓                                       |
+| `SpecsPopover` / `SpecEditor` | ✓    | default (semantic tokens)   | ✓                                       |
+| `CapabilityHistogram`         | ✓    | default (semantic tokens)   | ✓                                       |
+| `ProbabilityPlot`             | ✓    | default (semantic tokens)   | ✓                                       |
+| `BoxplotDisplayToggle`        | ✓    | default (semantic tokens)   | Popover with checkboxes + sort controls |
+| `ChartAnnotationLayer`        | ✓    | -                           | HTML overlay for draggable text notes   |
+| `AnnotationContextMenu`       | ✓    | -                           | Right-click menu (highlight + add note) |
+| `FocusedViewOverlay`          | ✓    | -                           | Full-screen backdrop for focused charts |
+| `FocusedChartCard`            | ✓    | -                           | Container card for focused chart view   |
+| `DashboardChartCard`          | ✓    | -                           | Dashboard chart card with expand button |
+| `DashboardGrid`               | ✓    | -                           | Responsive dashboard chart layout grid  |
 
 See [Colors > Shared Component Color Schemes](../../06-design-system/foundations/colors.md#shared-component-color-schemes) for the complete color mapping.
 

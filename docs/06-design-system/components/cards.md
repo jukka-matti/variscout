@@ -47,29 +47,27 @@ The following metrics are always shown in the Stats Panel regardless of whether 
 - **Std Dev** — standard deviation
 - **Samples** — row count (n)
 
-### Spec-Dependent Metrics and Inline Entry (`onSaveSpecs`)
+### Spec-Dependent Metrics and Pencil Link (`onEditSpecs`)
 
-Spec-dependent metrics (Pass Rate, Cp, Cpk) require USL or LSL to be set. When no specs are configured, `StatsPanelBase` renders an **inline spec entry area** in place of those cards — rather than silently omitting them.
+Spec-dependent metrics (Pass Rate, Cp, Cpk) require USL or LSL to be set. When no specs are configured, these cards are omitted from the grid.
 
-The inline entry area uses **Target-first progressive disclosure**:
+`StatsPanelBase` shows a pencil link below the metric cards when `onEditSpecs` is provided:
 
-1. A Target input is shown first (lowest commitment).
-2. An expand toggle ("+ LSL/USL") reveals the full specification range.
-3. Values are applied on blur — no button press required.
-4. Once any value is saved, the inline area transforms into the normal Cp/Cpk/Pass Rate stat cards.
+- **No specs:** Shows `✏ Set spec limits`
+- **Specs exist:** Shows `✏ Edit spec limits`
 
-`StatsPanelBase` accepts an `onSaveSpecs` callback for this purpose:
+Clicking the link calls `onEditSpecs()` — the app wrapper is responsible for opening its SpecEditor popover.
 
 ```tsx
 <StatsPanelBase
   stats={stats}
   specs={specs}
-  onSaveSpecs={newSpecs => updateSpecs(newSpecs)}
+  onEditSpecs={() => setIsEditingSpecs(true)}
   // ...other props
 />
 ```
 
-When `onSaveSpecs` is provided and `specs` has no USL/LSL/Target, the inline entry area is rendered. When `onSaveSpecs` is omitted, the component falls back to the previous behaviour (silent omission of spec-dependent cards).
+When `onEditSpecs` is omitted, no pencil link is shown.
 
 ### ColumnCard
 

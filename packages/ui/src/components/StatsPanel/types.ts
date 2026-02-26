@@ -15,8 +15,6 @@ export interface StatsPanelColorScheme {
   metricValue: string;
   // Empty state
   emptyState: string;
-  // Spec editor
-  specEditButton: string;
 }
 
 export interface StatsPanelBaseProps {
@@ -28,8 +26,8 @@ export interface StatsPanelBaseProps {
   className?: string;
   compact?: boolean;
   colorScheme?: StatsPanelColorScheme;
-  /** Called when user sets specs via inline inputs (shown when no specs are set) */
-  onSaveSpecs?: (specs: { lsl?: number; target?: number; usl?: number }) => void;
+  /** Called when user clicks the pencil link to edit/set spec limits */
+  onEditSpecs?: () => void;
   /** Render histogram chart content */
   renderHistogram?: (
     data: number[],

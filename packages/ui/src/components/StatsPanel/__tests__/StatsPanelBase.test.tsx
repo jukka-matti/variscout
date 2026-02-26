@@ -101,16 +101,34 @@ describe('StatsPanelBase', () => {
     });
   });
 
-  it('shows inline spec inputs when onSaveSpecs provided and no specs set', () => {
-    const onSaveSpecs = vi.fn();
-    render(<StatsPanelBase {...defaultProps} onSaveSpecs={onSaveSpecs} />);
-    expect(screen.getByTestId('inline-spec-inputs')).toBeDefined();
-    expect(screen.getByLabelText('Target')).toBeDefined();
-  });
+  describe('pencil link', () => {
+    it('shows "Set spec limits" when no specs and onEditSpecs provided', () => {
+      const onEditSpecs = vi.fn();
+      render(<StatsPanelBase {...defaultProps} onEditSpecs={onEditSpecs} />);
+      expect(screen.getByTestId('edit-specs-link')).toBeDefined();
+      expect(screen.getByText('Set spec limits')).toBeDefined();
+    });
 
-  it('does not show inline spec inputs without onSaveSpecs', () => {
-    render(<StatsPanelBase {...defaultProps} />);
-    expect(screen.queryByTestId('inline-spec-inputs')).toBeNull();
+    it('shows "Edit spec limits" when specs exist and onEditSpecs provided', () => {
+      const onEditSpecs = vi.fn();
+      render(
+        <StatsPanelBase {...defaultProps} specs={specsWithLimits} onEditSpecs={onEditSpecs} />
+      );
+      expect(screen.getByTestId('edit-specs-link')).toBeDefined();
+      expect(screen.getByText('Edit spec limits')).toBeDefined();
+    });
+
+    it('calls onEditSpecs when pencil link is clicked', () => {
+      const onEditSpecs = vi.fn();
+      render(<StatsPanelBase {...defaultProps} onEditSpecs={onEditSpecs} />);
+      fireEvent.click(screen.getByTestId('edit-specs-link'));
+      expect(onEditSpecs).toHaveBeenCalledOnce();
+    });
+
+    it('does not show pencil link without onEditSpecs', () => {
+      render(<StatsPanelBase {...defaultProps} />);
+      expect(screen.queryByTestId('edit-specs-link')).toBeNull();
+    });
   });
 
   it('compact mode renders tab bar', () => {
@@ -131,7 +149,6 @@ describe('StatsPanelBase', () => {
       metricLabel: 'flex items-center justify-center gap-1 text-xs text-slate-400 mb-1',
       metricValue: 'text-xl font-bold font-mono text-white',
       emptyState: 'flex items-center justify-center h-full text-slate-500 italic text-sm',
-      specEditButton: '',
     };
     const { container } = render(<StatsPanelBase {...defaultProps} colorScheme={customScheme} />);
     // Custom scheme uses bg-slate-800
@@ -144,10 +161,5 @@ describe('StatsPanelBase', () => {
       <StatsPanelBase {...defaultProps} defaultTab="histogram" renderHistogram={renderHistogram} />
     );
     expect(screen.getByTestId('histogram')).toBeDefined();
-  });
-
-  it('shows edit specs button when specs exist and onSaveSpecs provided', () => {
-    render(<StatsPanelBase {...defaultProps} specs={specsWithLimits} onSaveSpecs={vi.fn()} />);
-    expect(screen.getByTestId('edit-specs-button')).toBeDefined();
   });
 });

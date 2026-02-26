@@ -1,5 +1,5 @@
-import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { ChevronDown, ChevronRight, Pencil } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Pencil } from 'lucide-react';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
 import type { StatsPanelBaseProps, StatsPanelColorScheme } from './types';
@@ -39,48 +39,6 @@ const MetricCard = ({
   </div>
 );
 
-// Inline spec input for Target-first progressive disclosure
-interface InlineSpecInputProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  onBlur: () => void;
-  placeholder?: string;
-  inputClass: string;
-  labelClass: string;
-}
-
-const InlineSpecInput = ({
-  label,
-  value,
-  onChange,
-  onBlur,
-  placeholder,
-  inputClass,
-  labelClass,
-}: InlineSpecInputProps) => {
-  const inputId = `inline-spec-${label.toLowerCase().replace(/\s+/g, '-')}`;
-  return (
-    <div className="flex items-center gap-2">
-      <label htmlFor={inputId} className={`${labelClass} w-20 text-right shrink-0`}>
-        {label}
-      </label>
-      <input
-        id={inputId}
-        name={inputId}
-        type="number"
-        step="any"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        onBlur={onBlur}
-        placeholder={placeholder || ''}
-        className={inputClass}
-        aria-label={label}
-      />
-    </div>
-  );
-};
-
 export const statsPanelDefaultColorScheme: StatsPanelColorScheme = {
   container:
     'w-full lg:w-80 bg-surface-secondary rounded-xl border border-edge p-6 flex flex-col gap-4 shadow-lg relative',
@@ -92,8 +50,6 @@ export const statsPanelDefaultColorScheme: StatsPanelColorScheme = {
   metricLabel: 'flex items-center justify-center gap-1 text-xs text-content-secondary mb-1',
   metricValue: 'text-xl font-bold font-mono text-white',
   emptyState: 'flex items-center justify-center h-full text-content-muted italic text-sm',
-  specEditButton:
-    'mt-auto p-3 text-center bg-surface/80 rounded-lg text-xs text-content-muted border border-dashed border-edge cursor-pointer hover:border-edge-secondary hover:text-content hover:bg-surface-tertiary/50 transition-all flex items-center justify-center gap-2',
 };
 
 const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
@@ -105,7 +61,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   className,
   compact = false,
   colorScheme = statsPanelDefaultColorScheme,
-  onSaveSpecs,
+  onEditSpecs,
   showCpk = true,
   renderHistogram,
   renderProbabilityPlot,
@@ -117,25 +73,6 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     defaultTab || 'summary'
   );
 
-  // Inline spec input state
-  const [targetInput, setTargetInput] = useState('');
-  const [lslInput, setLslInput] = useState('');
-  const [uslInput, setUslInput] = useState('');
-  const [limitsExpanded, setLimitsExpanded] = useState(false);
-  const targetAppliedRef = useRef(false);
-
-  // Edit mode for existing specs
-  const [isEditingSpecs, setIsEditingSpecs] = useState(false);
-
-  // Reset edit mode when specs change externally
-  const prevSpecsRef = useRef(specs);
-  useEffect(() => {
-    if (prevSpecsRef.current !== specs) {
-      setIsEditingSpecs(false);
-      prevSpecsRef.current = specs;
-    }
-  }, [specs]);
-
   // Extract numeric values for histogram
   const histogramData = useMemo(() => {
     if (!outcome || filteredData.length === 0) return [];
@@ -146,132 +83,8 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
 
   const emptyState = (message: string) => <div className={cs.emptyState}>{message}</div>;
 
-  const applyInlineSpecs = useCallback(() => {
-    if (!onSaveSpecs) return;
-    const target = targetInput.trim() ? parseFloat(targetInput) : undefined;
-    const lsl = lslInput.trim() ? parseFloat(lslInput) : undefined;
-    const usl = uslInput.trim() ? parseFloat(uslInput) : undefined;
-    // Only apply if at least one value is set
-    if (target !== undefined || lsl !== undefined || usl !== undefined) {
-      const newSpecs: { lsl?: number; target?: number; usl?: number } = {};
-      if (target !== undefined && !isNaN(target)) newSpecs.target = target;
-      if (lsl !== undefined && !isNaN(lsl)) newSpecs.lsl = lsl;
-      if (usl !== undefined && !isNaN(usl)) newSpecs.usl = usl;
-      onSaveSpecs(newSpecs);
-      targetAppliedRef.current = true;
-    }
-  }, [onSaveSpecs, targetInput, lslInput, uslInput]);
-
-  const inputClass =
-    'flex-1 bg-surface border border-edge rounded px-2 py-1.5 text-sm text-white font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 placeholder-content-muted';
-  const inlineLabelClass = 'text-xs text-content-secondary';
-  const inlineHeadingClass = 'text-sm text-content';
-  const inlineSubtextClass = 'text-xs text-content-muted';
-  const chevronClass = 'text-content-secondary';
-  const expandButtonClass =
-    'flex items-center gap-1.5 text-xs text-content-secondary hover:text-content cursor-pointer transition-colors';
-  const inlineContainerClass =
-    'bg-surface-secondary/50 border border-edge/50 rounded-lg p-4 space-y-3';
-
-  const handleStartEditSpecs = () => {
-    setTargetInput(specs.target !== undefined ? String(specs.target) : '');
-    setLslInput(specs.lsl !== undefined ? String(specs.lsl) : '');
-    setUslInput(specs.usl !== undefined ? String(specs.usl) : '');
-    setLimitsExpanded(specs.lsl !== undefined || specs.usl !== undefined);
-    setIsEditingSpecs(true);
-  };
-
-  const handleClearSpecs = () => {
-    if (onSaveSpecs) {
-      onSaveSpecs({});
-    }
-    setIsEditingSpecs(false);
-    setTargetInput('');
-    setLslInput('');
-    setUslInput('');
-  };
-
-  const handleSaveAndClose = () => {
-    applyInlineSpecs();
-    setIsEditingSpecs(false);
-  };
-
   const editButtonClass =
     'flex items-center gap-1.5 text-xs text-content-secondary hover:text-blue-400 cursor-pointer transition-colors';
-  const editActionButtonClass = 'px-3 py-1.5 text-xs font-medium rounded transition-colors';
-
-  const renderInlineSpecInputs = (isEditMode: boolean) => {
-    if (!onSaveSpecs) return null;
-    return (
-      <div className={inlineContainerClass} data-testid="inline-spec-inputs">
-        <p className={inlineHeadingClass}>
-          {isEditMode ? 'Edit specification limits' : 'What should this measure be?'}
-        </p>
-        <InlineSpecInput
-          label="Target"
-          value={targetInput}
-          onChange={setTargetInput}
-          onBlur={applyInlineSpecs}
-          inputClass={inputClass}
-          labelClass={inlineLabelClass}
-        />
-        <button
-          onClick={() => setLimitsExpanded(!limitsExpanded)}
-          className={expandButtonClass}
-          type="button"
-        >
-          {limitsExpanded ? (
-            <ChevronDown size={14} className={chevronClass} />
-          ) : (
-            <ChevronRight size={14} className={chevronClass} />
-          )}
-          <span>Set tolerance limits (LSL / USL)</span>
-        </button>
-        {limitsExpanded && (
-          <div className="space-y-2 pt-1">
-            <InlineSpecInput
-              label="LSL (Min)"
-              value={lslInput}
-              onChange={setLslInput}
-              onBlur={applyInlineSpecs}
-              inputClass={inputClass}
-              labelClass={inlineLabelClass}
-            />
-            <InlineSpecInput
-              label="USL (Max)"
-              value={uslInput}
-              onChange={setUslInput}
-              onBlur={applyInlineSpecs}
-              inputClass={inputClass}
-              labelClass={inlineLabelClass}
-            />
-          </div>
-        )}
-        {isEditMode ? (
-          <div className="flex items-center gap-2 pt-1">
-            <button
-              onClick={handleClearSpecs}
-              className={`${editActionButtonClass} text-red-400 hover:bg-red-900/20`}
-              type="button"
-              data-testid="clear-specs-button"
-            >
-              Clear specs
-            </button>
-            <button
-              onClick={handleSaveAndClose}
-              className={`${editActionButtonClass} bg-blue-600 text-white hover:bg-blue-500`}
-              type="button"
-              data-testid="done-specs-button"
-            >
-              Done
-            </button>
-          </div>
-        ) : (
-          <p className={inlineSubtextClass}>Values apply when you tab or click away.</p>
-        )}
-      </div>
-    );
-  };
 
   const renderMetricGrid = () => {
     const hasSpecs = specs.usl !== undefined || specs.lsl !== undefined;
@@ -282,7 +95,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
           aria-live="polite"
           aria-label="Analysis statistics"
         >
-          {hasSpecs && showCpk && !isEditingSpecs && (
+          {hasSpecs && showCpk && (
             <>
               <MetricCard
                 label="Pass Rate"
@@ -343,17 +156,15 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             valueClass={cs.metricValue}
           />
         </div>
-        {isEditingSpecs && renderInlineSpecInputs(true)}
-        {!hasSpecs && !isEditingSpecs && renderInlineSpecInputs(false)}
-        {hasSpecs && !isEditingSpecs && onSaveSpecs && (
+        {onEditSpecs && (
           <button
-            onClick={handleStartEditSpecs}
+            onClick={onEditSpecs}
             className={editButtonClass}
             type="button"
-            data-testid="edit-specs-button"
+            data-testid="edit-specs-link"
           >
             <Pencil size={12} />
-            <span>Edit spec limits</span>
+            <span>{hasSpecs ? 'Edit spec limits' : 'Set spec limits'}</span>
           </button>
         )}
       </div>

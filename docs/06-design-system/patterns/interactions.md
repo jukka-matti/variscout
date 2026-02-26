@@ -6,13 +6,12 @@ Design system reference for interactive component behaviors across VariScout.
 
 Components that enter edit mode in-place, save on blur/Enter, cancel on Escape.
 
-| Component                     | Trigger            | Save              | Cancel           | Keyboard                                                  |
-| ----------------------------- | ------------------ | ----------------- | ---------------- | --------------------------------------------------------- |
-| `ColumnCard` rename           | Click pencil icon  | Blur or Enter     | Escape (reverts) | Enter commits, Escape reverts                             |
-| `DataTableBase` cells         | Click cell         | Blur or Enter     | Escape (reverts) | Arrow Up/Down move between rows, Tab moves to next column |
-| `EditableChartTitle`          | Click title text   | Blur or Enter     | Escape (reverts) | —                                                         |
-| `StepAnnotation` notes        | Click "+ Add note" | Enter             | Escape           | —                                                         |
-| `StatsPanelBase` inline specs | Focus spec input   | Blur (auto-apply) | —                | Tab between Target/USL/LSL                                |
+| Component              | Trigger            | Save          | Cancel           | Keyboard                                                  |
+| ---------------------- | ------------------ | ------------- | ---------------- | --------------------------------------------------------- |
+| `ColumnCard` rename    | Click pencil icon  | Blur or Enter | Escape (reverts) | Enter commits, Escape reverts                             |
+| `DataTableBase` cells  | Click cell         | Blur or Enter | Escape (reverts) | Arrow Up/Down move between rows, Tab moves to next column |
+| `EditableChartTitle`   | Click title text   | Blur or Enter | Escape (reverts) | —                                                         |
+| `StepAnnotation` notes | Click "+ Add note" | Enter         | Escape           | —                                                         |
 
 **Convention:** Blur always saves (never discards). Escape always reverts to the pre-edit value.
 
@@ -119,15 +118,15 @@ Native HTML5 drag-and-drop (no library dependency).
 
 ## Cross-Cutting Conventions
 
-| Convention        | Pattern                                                       | Where Used                           |
-| ----------------- | ------------------------------------------------------------- | ------------------------------------ |
-| Focus ring        | `focus:border-blue-500` or `focus:ring-2 focus:ring-blue-500` | All interactive elements             |
-| Blur saves        | `onBlur` triggers save/commit, never discard                  | Inline edit, spec inputs, grid cells |
-| Escape cancels    | Revert to pre-edit value                                      | Inline edit, rename, modals          |
-| Monospace numbers | `font-mono text-right`                                        | All numeric inputs and displays      |
-| Semantic tokens   | `bg-surface`, `border-edge`, `text-content`                   | All shared UI components             |
-| Transition        | `transition-colors` or `transition-all`                       | Hover/focus state changes            |
-| Disabled          | `opacity-50 cursor-not-allowed`                               | Cards, buttons, inputs               |
+| Convention        | Pattern                                                       | Where Used                      |
+| ----------------- | ------------------------------------------------------------- | ------------------------------- |
+| Focus ring        | `focus:border-blue-500` or `focus:ring-2 focus:ring-blue-500` | All interactive elements        |
+| Blur saves        | `onBlur` triggers save/commit, never discard                  | Inline edit, grid cells         |
+| Escape cancels    | Revert to pre-edit value                                      | Inline edit, rename, modals     |
+| Monospace numbers | `font-mono text-right`                                        | All numeric inputs and displays |
+| Semantic tokens   | `bg-surface`, `border-edge`, `text-content`                   | All shared UI components        |
+| Transition        | `transition-colors` or `transition-all`                       | Hover/focus state changes       |
+| Disabled          | `opacity-50 cursor-not-allowed`                               | Cards, buttons, inputs          |
 
 ---
 
