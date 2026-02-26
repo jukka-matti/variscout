@@ -209,7 +209,17 @@ const ManualEntryBase = ({
     colIdx: number,
     columns: string[]
   ) => {
-    if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (rowIdx < rows.length - 1) {
+        focusCell(rowIdx + 1, colIdx, columns);
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (rowIdx > 0) {
+        focusCell(rowIdx - 1, colIdx, columns);
+      }
+    } else if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
       e.preventDefault();
       const nextColIdx = colIdx + 1;
       if (nextColIdx < columns.length) {

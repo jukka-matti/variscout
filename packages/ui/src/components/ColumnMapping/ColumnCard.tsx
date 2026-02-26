@@ -172,7 +172,7 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
               onBlur={handleFinishRename}
               onKeyDown={handleKeyDown}
               onClick={e => e.stopPropagation()}
-              className="bg-slate-900 border border-slate-600 rounded px-1.5 py-0.5 text-sm text-white font-medium focus:border-blue-500 focus:outline-none min-w-0 flex-1"
+              className="bg-surface border border-edge rounded px-1.5 py-0.5 text-sm text-white font-medium focus:border-blue-500 focus:outline-none min-w-0 flex-1"
               aria-label={`Rename ${column.name}`}
             />
           ) : (

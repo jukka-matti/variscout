@@ -240,13 +240,20 @@ const StandardEntryGrid: React.FC<StandardEntryGridProps> = ({
 
         <div className="max-w-5xl mx-auto mt-4 text-center text-content-muted text-sm">
           <kbd className="bg-surface-secondary px-2 py-1 rounded border border-edge-secondary font-mono text-xs">
-            Enter
-          </kbd>{' '}
-          or
-          <kbd className="bg-surface-secondary px-2 py-1 rounded border border-edge-secondary font-mono text-xs ml-1">
             Tab
           </kbd>{' '}
-          to move between cells. New rows are added automatically at the end.
+          /{' '}
+          <kbd className="bg-surface-secondary px-2 py-1 rounded border border-edge-secondary font-mono text-xs">
+            Enter
+          </kbd>{' '}
+          to move between cells.{' '}
+          <kbd className="bg-surface-secondary px-2 py-1 rounded border border-edge-secondary font-mono text-xs">
+            ↑
+          </kbd>{' '}
+          <kbd className="bg-surface-secondary px-2 py-1 rounded border border-edge-secondary font-mono text-xs">
+            ↓
+          </kbd>{' '}
+          between rows. New rows are added automatically at the end.
         </div>
       </div>
     </div>
