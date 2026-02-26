@@ -120,8 +120,10 @@ const BoxplotDisplayToggle: React.FC<BoxplotDisplayToggleProps> = ({
           aria-label="Boxplot display options"
         >
           <div className="p-3 space-y-3">
-            <label className="flex items-start gap-3 cursor-pointer">
+            <label htmlFor="boxplot-violin" className="flex items-start gap-3 cursor-pointer">
               <input
+                id="boxplot-violin"
+                name="boxplot-violin"
                 type="checkbox"
                 checked={showViolin}
                 onChange={e => onToggleViolin(e.target.checked)}
@@ -132,8 +134,10 @@ const BoxplotDisplayToggle: React.FC<BoxplotDisplayToggleProps> = ({
                 <span className={`block ${cs.description}`}>Density curves on boxplots</span>
               </div>
             </label>
-            <label className="flex items-start gap-3 cursor-pointer">
+            <label htmlFor="boxplot-contribution" className="flex items-start gap-3 cursor-pointer">
               <input
+                id="boxplot-contribution"
+                name="boxplot-contribution"
                 type="checkbox"
                 checked={showContributionLabels}
                 onChange={e => onToggleContributionLabels(e.target.checked)}

@@ -209,6 +209,8 @@ const PerformanceEntryGrid: React.FC<PerformanceEntryGridProps> = ({
                         className={`p-0 border-r border-edge/50 ${statusColors[valueStatus]}`}
                       >
                         <input
+                          id={`perf-entry-${col}-${idx}`}
+                          name={col}
                           ref={el => {
                             if (el) inputRefs.current.set(`${idx}-${col}`, el);
                           }}

@@ -138,12 +138,17 @@ const AxisEditor = ({
       <div className="space-y-3 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
         {/* Main Axis Name */}
         <div>
-          <label className={`text-[10px] ${colorScheme.label} uppercase block mb-1`}>
+          <label
+            htmlFor="axis-display-name"
+            className={`text-[10px] ${colorScheme.label} uppercase block mb-1`}
+          >
             Display Name
           </label>
           <div className="relative">
             <Type size={12} className={`absolute left-2 top-2 ${colorScheme.muted}`} />
             <input
+              id="axis-display-name"
+              name="axis-display-name"
               type="text"
               value={newAlias}
               onChange={e => setNewAlias(e.target.value)}
@@ -173,6 +178,8 @@ const AxisEditor = ({
                   </span>
                   <span className={colorScheme.arrow}>&rarr;</span>
                   <input
+                    id={`axis-label-${val}`}
+                    name={`axis-label-${val}`}
                     type="text"
                     value={localValueLabels[val] !== undefined ? localValueLabels[val] : val}
                     onChange={e => handleValueChange(val, e.target.value)}

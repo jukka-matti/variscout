@@ -95,8 +95,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
               Display Preferences
             </h3>
             <div className="space-y-3">
-              <label className="flex items-start gap-3 cursor-pointer group">
+              <label
+                htmlFor="pwa-setting-lock-y-axis"
+                className="flex items-start gap-3 cursor-pointer group"
+              >
                 <input
+                  id="pwa-setting-lock-y-axis"
+                  name="pwa-setting-lock-y-axis"
                   type="checkbox"
                   checked={localDisplayOptions.lockYAxisToFullData !== false}
                   onChange={e =>
@@ -116,8 +121,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                   </span>
                 </div>
               </label>
-              <label className="flex items-start gap-3 cursor-pointer group">
+              <label
+                htmlFor="pwa-setting-show-filter-context"
+                className="flex items-start gap-3 cursor-pointer group"
+              >
                 <input
+                  id="pwa-setting-show-filter-context"
+                  name="pwa-setting-show-filter-context"
                   type="checkbox"
                   checked={localDisplayOptions.showFilterContext !== false}
                   onChange={e =>

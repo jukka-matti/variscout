@@ -131,6 +131,8 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
         {/* Textarea */}
         <div className="relative">
           <textarea
+            id="paste-data"
+            name="paste-data"
             ref={textareaRef}
             value={text}
             onChange={e => setText(e.target.value)}

@@ -70,8 +70,12 @@ const SpecEditor = ({
           </h4>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className={cs.label}>LSL (Min)</label>
+              <label htmlFor="spec-lsl" className={cs.label}>
+                LSL (Min)
+              </label>
               <input
+                id="spec-lsl"
+                name="spec-lsl"
                 type="number"
                 step="any"
                 value={localSpecs.lsl}
@@ -82,8 +86,12 @@ const SpecEditor = ({
               />
             </div>
             <div>
-              <label className={cs.label}>Target</label>
+              <label htmlFor="spec-target" className={cs.label}>
+                Target
+              </label>
               <input
+                id="spec-target"
+                name="spec-target"
                 type="number"
                 step="any"
                 value={localSpecs.target}
@@ -94,8 +102,12 @@ const SpecEditor = ({
               />
             </div>
             <div>
-              <label className={cs.label}>USL (Max)</label>
+              <label htmlFor="spec-usl" className={cs.label}>
+                USL (Max)
+              </label>
               <input
+                id="spec-usl"
+                name="spec-usl"
                 type="number"
                 step="any"
                 value={localSpecs.usl}

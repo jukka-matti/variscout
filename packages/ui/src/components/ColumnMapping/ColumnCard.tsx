@@ -133,6 +133,7 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
         {isOutcome ? (
           <>
             <input
+              id={`col-outcome-${column.name}`}
               type="radio"
               name="outcome"
               className="hidden"
@@ -162,6 +163,8 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {isRenaming ? (
             <input
+              id={`col-rename-${column.name}`}
+              name={`rename-${column.name}`}
               ref={inputRef}
               type="text"
               value={renameValue}

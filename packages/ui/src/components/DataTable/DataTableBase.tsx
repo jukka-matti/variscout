@@ -299,6 +299,8 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
                     >
                       {editingCell?.row === originalIndex && editingCell?.col === col ? (
                         <input
+                          id={`datatable-${col}-${originalIndex}`}
+                          name={col}
                           ref={inputRef}
                           type="text"
                           value={editValue}

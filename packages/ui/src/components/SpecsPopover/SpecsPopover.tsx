@@ -178,8 +178,10 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
     placeholder: string;
   }) => (
     <div className="flex items-center gap-2">
-      <label className="flex items-center gap-2 flex-1 cursor-pointer">
+      <label htmlFor={`specpop-${field}`} className="flex items-center gap-2 flex-1 cursor-pointer">
         <input
+          id={`specpop-${field}`}
+          name={`specpop-${field}`}
           type="checkbox"
           checked={checked}
           onChange={e => handleVisibilityChange(field, e.target.checked)}
@@ -188,6 +190,8 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
         <span className={cs.checkboxLabel}>{label}</span>
       </label>
       <input
+        id={`specpop-${field}-value`}
+        name={`specpop-${field}-value`}
         type="number"
         step="any"
         value={value}

@@ -244,12 +244,16 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
       <div className="p-3 space-y-3">
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className={`text-[10px] ${colorScheme.labelText} uppercase`}>Max</label>
+            <label htmlFor="yaxis-max" className={`text-[10px] ${colorScheme.labelText} uppercase`}>
+              Max
+            </label>
             <span className={`text-[10px] ${colorScheme.autoValueText}`}>
               Auto: {autoMax.toFixed(2)}
             </span>
           </div>
           <input
+            id="yaxis-max"
+            name="yaxis-max"
             type="number"
             step="any"
             value={localMax}
@@ -260,12 +264,16 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
         </div>
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className={`text-[10px] ${colorScheme.labelText} uppercase`}>Min</label>
+            <label htmlFor="yaxis-min" className={`text-[10px] ${colorScheme.labelText} uppercase`}>
+              Min
+            </label>
             <span className={`text-[10px] ${colorScheme.autoValueText}`}>
               Auto: {autoMin.toFixed(2)}
             </span>
           </div>
           <input
+            id="yaxis-min"
+            name="yaxis-min"
             type="number"
             step="any"
             value={localMin}

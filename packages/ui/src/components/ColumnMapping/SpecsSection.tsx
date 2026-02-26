@@ -48,8 +48,15 @@ const SpecsSection: React.FC<SpecsSectionProps> = ({
         data-testid="specs-section"
       >
         <div className="flex items-center gap-3">
-          <label className="text-xs text-slate-400 w-20 text-right shrink-0">Target</label>
+          <label
+            htmlFor="setup-spec-target"
+            className="text-xs text-slate-400 w-20 text-right shrink-0"
+          >
+            Target
+          </label>
           <input
+            id="setup-spec-target"
+            name="setup-spec-target"
             type="number"
             step="any"
             value={target}
@@ -60,8 +67,15 @@ const SpecsSection: React.FC<SpecsSectionProps> = ({
           />
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-xs text-slate-400 w-20 text-right shrink-0">LSL (Min)</label>
+          <label
+            htmlFor="setup-spec-lsl"
+            className="text-xs text-slate-400 w-20 text-right shrink-0"
+          >
+            LSL (Min)
+          </label>
           <input
+            id="setup-spec-lsl"
+            name="setup-spec-lsl"
             type="number"
             step="any"
             value={lsl}
@@ -72,8 +86,15 @@ const SpecsSection: React.FC<SpecsSectionProps> = ({
           />
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-xs text-slate-400 w-20 text-right shrink-0">USL (Max)</label>
+          <label
+            htmlFor="setup-spec-usl"
+            className="text-xs text-slate-400 w-20 text-right shrink-0"
+          >
+            USL (Max)
+          </label>
           <input
+            id="setup-spec-usl"
+            name="setup-spec-usl"
             type="number"
             step="any"
             value={usl}

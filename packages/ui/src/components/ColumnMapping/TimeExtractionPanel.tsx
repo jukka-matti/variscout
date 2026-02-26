@@ -49,9 +49,12 @@ const TimeExtractionPanel: React.FC<TimeExtractionPanelProps> = ({
         {options.map(({ key, label, example }) => (
           <label
             key={key}
+            htmlFor={`time-extract-${key}`}
             className="flex items-center gap-3 p-2 rounded hover:bg-slate-700/50 cursor-pointer transition-colors"
           >
             <input
+              id={`time-extract-${key}`}
+              name={`time-extract-${key}`}
               type="checkbox"
               checked={config[key]}
               onChange={e => {

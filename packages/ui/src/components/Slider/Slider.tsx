@@ -72,6 +72,7 @@ const Slider: React.FC<SliderProps> = ({
 }) => {
   const c = colorScheme;
   const displayValue = formatValue ? formatValue(value) : value.toString();
+  const sliderId = `slider-${label.toLowerCase().replace(/\s+/g, '-')}`;
 
   // Calculate percentage for track fill
   const percentage = max !== min ? ((value - min) / (max - min)) * 100 : 0;
@@ -80,13 +81,17 @@ const Slider: React.FC<SliderProps> = ({
     <div className={`${className}`}>
       {/* Label and value row */}
       <div className="flex items-center justify-between mb-1.5">
-        <label className={`text-xs ${c.labelText}`}>{label}</label>
+        <label htmlFor={sliderId} className={`text-xs ${c.labelText}`}>
+          {label}
+        </label>
         <span className={`text-xs font-mono ${c.valueText}`}>{displayValue}</span>
       </div>
 
       {/* Slider */}
       <div className="relative">
         <input
+          id={sliderId}
+          name={sliderId}
           type="range"
           min={min}
           max={max}

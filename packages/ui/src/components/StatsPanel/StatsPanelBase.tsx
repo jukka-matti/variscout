@@ -58,21 +58,28 @@ const InlineSpecInput = ({
   placeholder,
   inputClass,
   labelClass,
-}: InlineSpecInputProps) => (
-  <div className="flex items-center gap-2">
-    <label className={`${labelClass} w-20 text-right shrink-0`}>{label}</label>
-    <input
-      type="number"
-      step="any"
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      onBlur={onBlur}
-      placeholder={placeholder || ''}
-      className={inputClass}
-      aria-label={label}
-    />
-  </div>
-);
+}: InlineSpecInputProps) => {
+  const inputId = `inline-spec-${label.toLowerCase().replace(/\s+/g, '-')}`;
+  return (
+    <div className="flex items-center gap-2">
+      <label htmlFor={inputId} className={`${labelClass} w-20 text-right shrink-0`}>
+        {label}
+      </label>
+      <input
+        id={inputId}
+        name={inputId}
+        type="number"
+        step="any"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onBlur={onBlur}
+        placeholder={placeholder || ''}
+        className={inputClass}
+        aria-label={label}
+      />
+    </div>
+  );
+};
 
 export const statsPanelDefaultColorScheme: StatsPanelColorScheme = {
   container:

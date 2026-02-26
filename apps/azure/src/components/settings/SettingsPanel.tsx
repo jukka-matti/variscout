@@ -108,13 +108,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
             {/* Custom hex input */}
             <div className="mt-3 flex items-center gap-2">
               <input
+                id="az-setting-accent-color"
+                name="az-setting-accent-color"
                 type="color"
                 value={theme.companyAccent || '#3b82f6'}
                 onChange={e => setTheme({ companyAccent: e.target.value })}
                 className="w-8 h-8 rounded border-0 cursor-pointer bg-transparent"
                 aria-label="Custom accent color"
               />
-              <span className="text-xs text-slate-400">Custom color</span>
+              <label htmlFor="az-setting-accent-color" className="text-xs text-slate-400">
+                Custom color
+              </label>
             </div>
           </section>
 
@@ -122,8 +126,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
           <section>
             <h3 className="text-sm font-medium text-slate-300 mb-3">Display Preferences</h3>
             <div className="space-y-3">
-              <label className="flex items-start gap-3 cursor-pointer group">
+              <label
+                htmlFor="az-setting-lock-y-axis"
+                className="flex items-start gap-3 cursor-pointer group"
+              >
                 <input
+                  id="az-setting-lock-y-axis"
+                  name="az-setting-lock-y-axis"
                   type="checkbox"
                   checked={localDisplayOptions.lockYAxisToFullData !== false}
                   onChange={e =>
@@ -143,8 +152,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                   </span>
                 </div>
               </label>
-              <label className="flex items-start gap-3 cursor-pointer group">
+              <label
+                htmlFor="az-setting-show-filter-context"
+                className="flex items-start gap-3 cursor-pointer group"
+              >
                 <input
+                  id="az-setting-show-filter-context"
+                  name="az-setting-show-filter-context"
                   type="checkbox"
                   checked={localDisplayOptions.showFilterContext !== false}
                   onChange={e =>
@@ -164,8 +178,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                   </span>
                 </div>
               </label>
-              <label className="flex items-start gap-3 cursor-pointer group">
+              <label
+                htmlFor="az-setting-show-specs"
+                className="flex items-start gap-3 cursor-pointer group"
+              >
                 <input
+                  id="az-setting-show-specs"
+                  name="az-setting-show-specs"
                   type="checkbox"
                   checked={localDisplayOptions.showSpecs !== false}
                   onChange={e =>
@@ -185,8 +204,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                   </span>
                 </div>
               </label>
-              <label className="flex items-start gap-3 cursor-pointer group">
+              <label
+                htmlFor="az-setting-show-cpk"
+                className="flex items-start gap-3 cursor-pointer group"
+              >
                 <input
+                  id="az-setting-show-cpk"
+                  name="az-setting-show-cpk"
                   type="checkbox"
                   checked={localDisplayOptions.showCpk !== false}
                   onChange={e =>

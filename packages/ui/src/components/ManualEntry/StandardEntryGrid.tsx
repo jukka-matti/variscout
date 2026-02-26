@@ -185,6 +185,8 @@ const StandardEntryGrid: React.FC<StandardEntryGridProps> = ({
                     {factors.map((f, colIdx) => (
                       <td key={colIdx} className="p-0 border-r border-edge/50">
                         <input
+                          id={`entry-${f}-${idx}`}
+                          name={f}
                           ref={el => {
                             if (el) inputRefs.current.set(`${idx}-${f}`, el);
                           }}
@@ -199,6 +201,8 @@ const StandardEntryGrid: React.FC<StandardEntryGridProps> = ({
                     ))}
                     <td className={`p-0 ${statusColors[valueStatus]}`}>
                       <input
+                        id={`entry-${outcomeName}-${idx}`}
+                        name={outcomeName}
                         ref={el => {
                           if (el) inputRefs.current.set(`${idx}-${outcomeName}`, el);
                         }}
