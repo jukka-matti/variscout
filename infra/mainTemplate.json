@@ -109,7 +109,7 @@
           "azureActiveDirectory": {
             "enabled": true,
             "registration": {
-              "openIdIssuer": "[concat('https://sts.windows.net/', subscription().tenantId, '/v2.0')]",
+              "openIdIssuer": "[concat('https://login.microsoftonline.com/', subscription().tenantId, '/v2.0')]",
               "clientId": "[parameters('clientId')]",
               "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
             },

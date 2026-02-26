@@ -43,7 +43,8 @@ Before deploying VariScout, the customer must create an App Registration in Azur
    ```
    Replace `<your-app-name>` with the App Service name you'll use during deployment.
 5. Click **Register**
-6. Copy the **Application (client) ID** from the Overview page — you'll need this during deployment
+6. Go to **Authentication** > **Implicit grant and hybrid flows** and check **ID tokens**. This is required for EasyAuth's hybrid authentication flow.
+7. Copy the **Application (client) ID** from the Overview page — you'll need this during deployment
 
 ### Add API Permissions
 
@@ -156,7 +157,7 @@ App Service Authentication configured for Azure AD, referencing the customer-pro
       "azureActiveDirectory": {
         "enabled": true,
         "registration": {
-          "openIdIssuer": "[concat('https://sts.windows.net/', subscription().tenantId, '/v2.0')]",
+          "openIdIssuer": "[concat('https://login.microsoftonline.com/', subscription().tenantId, '/v2.0')]",
           "clientId": "[parameters('clientId')]",
           "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
         },
@@ -302,9 +303,11 @@ If users can't sign in:
 
 1. Verify the App Registration redirect URI matches the App Service URL + `/.auth/login/aad/callback`
 2. Check the client secret hasn't expired
-3. Check the EasyAuth configuration in Azure Portal > App Service > Authentication
-4. Verify user is in the correct tenant
-5. Check `/.auth/me` returns a valid response (should return JSON array)
+3. Verify **ID tokens** is enabled under App Registration > Authentication > Implicit grant and hybrid flows
+4. Confirm the OpenID issuer uses `login.microsoftonline.com` (not `sts.windows.net`)
+5. Check the EasyAuth configuration in Azure Portal > App Service > Authentication
+6. Verify user is in the correct tenant
+7. Check `/.auth/me` returns a valid response (should return JSON array)
 
 ---
 
@@ -337,13 +340,14 @@ The template requests only necessary permissions:
 
 ## Template Versioning
 
-| Version | Date       | Changes                                                        |
-| ------- | ---------- | -------------------------------------------------------------- |
-| 1.0.0   | 2026-02-01 | Initial release (Solution Template)                            |
-| 2.0.0   | 2026-02-13 | Managed Application format, single plan                        |
-| 3.0.0   | 2026-02-16 | App Service + EasyAuth (replaces Static Web App + MSAL)        |
-| 4.0.0   | 2026-02-16 | Customer-provided App Registration (removes deployment script) |
-| 5.0.0   | 2026-02-25 | API version → 2024-04-01, /health excluded from EasyAuth       |
+| Version | Date       | Changes                                                                                        |
+| ------- | ---------- | ---------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-02-01 | Initial release (Solution Template)                                                            |
+| 2.0.0   | 2026-02-13 | Managed Application format, single plan                                                        |
+| 3.0.0   | 2026-02-16 | App Service + EasyAuth (replaces Static Web App + MSAL)                                        |
+| 4.0.0   | 2026-02-16 | Customer-provided App Registration (removes deployment script)                                 |
+| 5.0.0   | 2026-02-25 | API version → 2024-04-01, /health excluded from EasyAuth                                       |
+| 5.1.0   | 2026-02-26 | Fix OpenID issuer (sts.windows.net → login.microsoftonline.com), document ID token requirement |
 
 ---
 
