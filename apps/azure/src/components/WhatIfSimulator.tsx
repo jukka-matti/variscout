@@ -6,12 +6,11 @@ import {
 } from '@variscout/ui';
 
 /**
- * Azure WhatIfSimulator — wraps @variscout/ui. Uses default semantic-token-based color scheme.
+ * Azure WhatIfSimulator — forwards ref to shared @variscout/ui component.
  */
-const WhatIfSimulator = forwardRef<
-  WhatIfSimulatorHandle,
-  Omit<WhatIfSimulatorProps, 'colorScheme'>
->((props, ref) => <WhatIfSimulatorBase ref={ref} {...props} />);
+const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>((props, ref) => (
+  <WhatIfSimulatorBase ref={ref} {...props} />
+));
 
 WhatIfSimulator.displayName = 'WhatIfSimulator';
 

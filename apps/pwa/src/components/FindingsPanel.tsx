@@ -25,7 +25,6 @@ interface FindingsPanelProps {
 
 /**
  * PWA FindingsPanel — fixed overlay + backdrop + slide-in animation.
- * Replaces the old MindmapPanel.
  */
 const FindingsPanel: React.FC<FindingsPanelProps> = ({
   isOpen,

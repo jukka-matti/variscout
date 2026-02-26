@@ -233,7 +233,7 @@ function AppMain() {
     // Check for duplicate
     const existing = findingsState.findDuplicate(filters);
     if (existing) {
-      panels.setIsMindmapPanelOpen(true);
+      panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(existing.id);
       return;
     }
@@ -256,7 +256,7 @@ function AppMain() {
           : undefined,
     };
     const newFinding = findingsState.addFinding('', context);
-    panels.setIsMindmapPanelOpen(true);
+    panels.setIsFindingsPanelOpen(true);
     setHighlightedFindingId(newFinding.id);
   }, [filters, drillPath, filteredData, outcome, findingsState, panels]);
 
@@ -346,10 +346,10 @@ function AppMain() {
           dataFilename={dataFilename}
           rowCount={rawData.length}
           isDataPanelOpen={panels.isDataPanelOpen}
-          isMindmapPanelOpen={panels.isMindmapPanelOpen}
+          isFindingsPanelOpen={panels.isFindingsPanelOpen}
           onNewAnalysis={panels.handleResetRequest}
           onToggleDataPanel={panels.handleToggleDataPanel}
-          onToggleMindmapPanel={panels.handleToggleMindmapPanel}
+          onToggleFindingsPanel={panels.handleToggleFindingsPanel}
           onOpenDataTable={() => {
             panels.setHighlightRowIndex(null);
             panels.setIsDataTableOpen(true);
@@ -395,8 +395,8 @@ function AppMain() {
       {rawData.length > 0 && outcome && !isEmbedMode && (
         <InvestigationPrompt
           filterCount={filterNav.filterStack.length}
-          isMindmapOpen={panels.isMindmapPanelOpen}
-          onOpenMindmap={panels.handleToggleMindmapPanel}
+          isMindmapOpen={panels.isFindingsPanelOpen}
+          onOpenMindmap={panels.handleToggleFindingsPanel}
         />
       )}
 
@@ -491,9 +491,9 @@ function AppMain() {
       {/* Findings Panel (slide-in from right) */}
       {outcome && (
         <FindingsPanel
-          isOpen={panels.isMindmapPanelOpen}
+          isOpen={panels.isFindingsPanelOpen}
           onClose={() => {
-            panels.handleCloseMindmapPanel();
+            panels.handleCloseFindingsPanel();
             setHighlightedFindingId(null);
           }}
           findings={findingsState.findings}

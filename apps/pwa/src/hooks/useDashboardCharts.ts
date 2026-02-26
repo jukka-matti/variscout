@@ -30,7 +30,7 @@ import { useChartFactors } from './useChartFactors';
 import type { ChartId } from '@variscout/ui';
 
 export interface UseDashboardChartsProps {
-  /** External filter navigation (lifted to parent for shared state with mindmap) */
+  /** External filter navigation (lifted to parent for shared state with findings panel) */
   externalFilterNav?: UseFilterNavigationReturn;
   /** External trigger to open spec editor (from MobileMenu) */
   openSpecEditorRequested?: boolean;

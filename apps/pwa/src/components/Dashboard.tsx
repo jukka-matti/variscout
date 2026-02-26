@@ -55,7 +55,7 @@ interface DashboardProps {
   onSpecEditorOpened?: () => void;
   // Highlighted point index from data panel (bi-directional sync)
   highlightedPointIndex?: number | null;
-  // External filter navigation (shared with mindmap for synchronized drills)
+  // External filter navigation (shared with findings panel for synchronized drills)
   filterNav?: UseFilterNavigationReturn;
   // Callback to pin current filter state as a finding
   onPinFinding?: () => void;

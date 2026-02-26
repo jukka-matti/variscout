@@ -17,10 +17,10 @@ interface AppHeaderProps {
   dataFilename: string | null;
   rowCount: number;
   isDataPanelOpen?: boolean;
-  isMindmapPanelOpen?: boolean;
+  isFindingsPanelOpen?: boolean;
   onNewAnalysis: () => void;
   onToggleDataPanel?: () => void;
-  onToggleMindmapPanel?: () => void;
+  onToggleFindingsPanel?: () => void;
   onOpenDataTable: () => void;
   onExportCSV: () => void;
   onExportImage: () => void;
@@ -45,10 +45,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   dataFilename,
   rowCount,
   isDataPanelOpen = false,
-  isMindmapPanelOpen = false,
+  isFindingsPanelOpen = false,
   onNewAnalysis,
   onToggleDataPanel,
-  onToggleMindmapPanel,
+  onToggleFindingsPanel,
   onOpenDataTable,
   onExportCSV,
   onExportImage,
@@ -139,17 +139,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 )}
 
                 {/* Findings Toggle */}
-                {onToggleMindmapPanel && (
+                {onToggleFindingsPanel && (
                   <button
-                    onClick={onToggleMindmapPanel}
+                    onClick={onToggleFindingsPanel}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                      isMindmapPanelOpen
+                      isFindingsPanelOpen
                         ? 'text-blue-400 bg-blue-400/10'
                         : 'text-content-secondary hover:text-white hover:bg-surface-secondary'
                     }`}
-                    title={isMindmapPanelOpen ? 'Hide Findings' : 'Show Findings'}
-                    aria-label={isMindmapPanelOpen ? 'Hide Findings' : 'Show Findings'}
-                    aria-pressed={isMindmapPanelOpen}
+                    title={isFindingsPanelOpen ? 'Hide Findings' : 'Show Findings'}
+                    aria-label={isFindingsPanelOpen ? 'Hide Findings' : 'Show Findings'}
+                    aria-pressed={isFindingsPanelOpen}
                   >
                     <ClipboardList size={16} />
                     <span className="hidden lg:inline">Findings</span>

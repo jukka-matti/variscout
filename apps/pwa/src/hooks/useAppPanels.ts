@@ -17,8 +17,8 @@ export interface UseAppPanelsReturn {
   setIsDataTableOpen: (v: boolean) => void;
   isDataPanelOpen: boolean;
   setIsDataPanelOpen: (v: boolean) => void;
-  isMindmapPanelOpen: boolean;
-  setIsMindmapPanelOpen: (v: boolean) => void;
+  isFindingsPanelOpen: boolean;
+  setIsFindingsPanelOpen: (v: boolean) => void;
   highlightRowIndex: number | null;
   setHighlightRowIndex: (v: number | null) => void;
   showExcludedOnly: boolean;
@@ -37,8 +37,8 @@ export interface UseAppPanelsReturn {
   openDataTableAtRow: (index: number) => void;
   handleDataPanelRowClick: (index: number) => void;
   handleToggleDataPanel: () => void;
-  handleToggleMindmapPanel: () => void;
-  handleCloseMindmapPanel: () => void;
+  handleToggleFindingsPanel: () => void;
+  handleCloseFindingsPanel: () => void;
   handleCloseDataTable: () => void;
   handleCloseDataPanel: () => void;
   openDataTableExcluded: () => void;
@@ -57,7 +57,7 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDataTableOpen, setIsDataTableOpen] = useState(false);
   const [isDataPanelOpen, setIsDataPanelOpen] = useState(false);
-  const [isMindmapPanelOpen, setIsMindmapPanelOpen] = useState(false);
+  const [isFindingsPanelOpen, setIsFindingsPanelOpen] = useState(false);
   const [highlightRowIndex, setHighlightRowIndex] = useState<number | null>(null);
   const [showExcludedOnly, setShowExcludedOnly] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -125,12 +125,12 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     }
   }, [isDesktop]);
 
-  const handleToggleMindmapPanel = useCallback(() => {
-    setIsMindmapPanelOpen(prev => !prev);
+  const handleToggleFindingsPanel = useCallback(() => {
+    setIsFindingsPanelOpen(prev => !prev);
   }, []);
 
-  const handleCloseMindmapPanel = useCallback(() => {
-    setIsMindmapPanelOpen(false);
+  const handleCloseFindingsPanel = useCallback(() => {
+    setIsFindingsPanelOpen(false);
   }, []);
 
   const handleCloseDataTable = useCallback(() => {
@@ -172,8 +172,8 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     setIsDataTableOpen,
     isDataPanelOpen,
     setIsDataPanelOpen,
-    isMindmapPanelOpen,
-    setIsMindmapPanelOpen,
+    isFindingsPanelOpen,
+    setIsFindingsPanelOpen,
     highlightRowIndex,
     setHighlightRowIndex,
     showExcludedOnly,
@@ -192,8 +192,8 @@ export function useAppPanels(options: UseAppPanelsOptions): UseAppPanelsReturn {
     openDataTableAtRow,
     handleDataPanelRowClick,
     handleToggleDataPanel,
-    handleToggleMindmapPanel,
-    handleCloseMindmapPanel,
+    handleToggleFindingsPanel,
+    handleCloseFindingsPanel,
     handleCloseDataTable,
     handleCloseDataPanel,
     openDataTableExcluded,

@@ -43,7 +43,6 @@ interface FindingsPanelProps {
 
 /**
  * Azure FindingsPanel — inline flex panel with resizable width.
- * Replaces the old MindmapPanel.
  */
 const FindingsPanel: React.FC<FindingsPanelProps> = ({
   isOpen,
