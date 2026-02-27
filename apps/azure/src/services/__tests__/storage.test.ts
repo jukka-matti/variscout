@@ -12,7 +12,7 @@ const {
   mockGetPending,
   mockRemoveFromQueue,
   mockPruneSyncQueue,
-  mockGetAccessToken,
+  mockGetGraphToken,
 } = vi.hoisted(() => ({
   mockProjects: {
     put: vi.fn().mockResolvedValue(undefined),
@@ -29,7 +29,7 @@ const {
   mockGetPending: vi.fn().mockResolvedValue([]),
   mockRemoveFromQueue: vi.fn().mockResolvedValue(undefined),
   mockPruneSyncQueue: vi.fn().mockResolvedValue(0),
-  mockGetAccessToken: vi.fn().mockResolvedValue('mock-token-123'),
+  mockGetGraphToken: vi.fn().mockResolvedValue('mock-token-123'),
 }));
 
 // ---------------------------------------------------------------------------
@@ -50,7 +50,6 @@ vi.mock('../../db/schema', () => ({
 // Mock: ../auth/easyAuth
 // ---------------------------------------------------------------------------
 vi.mock('../../auth/easyAuth', () => ({
-  getAccessToken: mockGetAccessToken,
   isLocalDev: () => false,
   AuthError: class AuthError extends Error {
     code: string;
@@ -60,6 +59,13 @@ vi.mock('../../auth/easyAuth', () => ({
       this.code = code;
     }
   },
+}));
+
+// ---------------------------------------------------------------------------
+// Mock: ../auth/graphToken
+// ---------------------------------------------------------------------------
+vi.mock('../../auth/graphToken', () => ({
+  getGraphToken: mockGetGraphToken,
 }));
 
 // ---------------------------------------------------------------------------
@@ -571,7 +577,7 @@ describe('storage service', () => {
         { name: 'safe-local', location: 'personal', modified: new Date('2026-02-01') },
       ]);
 
-      mockGetAccessToken.mockRejectedValueOnce(new Error('Auth expired'));
+      mockGetGraphToken.mockRejectedValueOnce(new Error('Auth expired'));
 
       const { result } = renderHook(() => useStorage(), { wrapper });
       let projects: CloudProject[] = [];

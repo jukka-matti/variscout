@@ -6,8 +6,8 @@
  * OneDrive path: /VariScout/Photos/{analysisId}/{findingId}/{filename}
  */
 
-import { getAccessToken, isLocalDev, AuthError } from '../auth/easyAuth';
-import { getTeamsSsoToken, isInTeams } from '../teams/teamsContext';
+import { isLocalDev } from '../auth/easyAuth';
+import { getGraphToken } from '../auth/graphToken';
 import { classifySyncError, type StorageLocation } from './storage';
 import { getChannelDriveInfo } from './channelDrive';
 
@@ -21,42 +21,6 @@ export interface PhotoUploadResult {
 // ── Constants ────────────────────────────────────────────────────────────
 
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
-const FUNCTION_URL = import.meta.env.VITE_FUNCTION_URL || '';
-
-// ── Token Acquisition ────────────────────────────────────────────────────
-
-/**
- * Get a Graph API access token. Tries Teams SSO → OBO first,
- * falls back to EasyAuth for Standard plan users.
- */
-export async function getGraphToken(): Promise<string> {
-  if (isLocalDev()) {
-    throw new AuthError('Graph API not available locally', 'local_dev');
-  }
-
-  // Try Teams SSO → OBO exchange
-  if (isInTeams() && FUNCTION_URL) {
-    const ssoToken = await getTeamsSsoToken();
-    if (ssoToken) {
-      try {
-        const res = await fetch(`${FUNCTION_URL}/api/token-exchange`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: ssoToken }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.accessToken) return data.accessToken;
-        }
-      } catch (err) {
-        console.warn('[PhotoUpload] OBO token exchange failed, falling back to EasyAuth:', err);
-      }
-    }
-  }
-
-  // Fallback to EasyAuth
-  return getAccessToken();
-}
 
 // ── Drive Path Resolution ────────────────────────────────────────────────
 

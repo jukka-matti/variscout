@@ -3,7 +3,10 @@
  *
  * Exchanges a Teams SSO token for a Graph API access token via
  * the On-Behalf-Of (OBO) flow. This enables the client to access
- * OneDrive (photo uploads) without an EasyAuth redirect.
+ * OneDrive (sync, photo uploads) without an EasyAuth redirect.
+ *
+ * Security: Validates that the incoming SSO token's audience matches
+ * the app's CLIENT_ID before performing the exchange.
  *
  * Environment variables:
  *   CLIENT_ID     — Azure AD App Registration client ID
@@ -30,6 +33,21 @@ function getClient() {
   return cca;
 }
 
+/**
+ * Validate that the JWT's audience matches our app's CLIENT_ID.
+ * Prevents the function from exchanging tokens issued for other apps.
+ */
+function validateAudience(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+    return payload.aud === process.env.CLIENT_ID;
+  } catch {
+    return false;
+  }
+}
+
 module.exports = async function (context, req) {
   // Only accept POST
   if (req.method !== 'POST') {
@@ -47,6 +65,16 @@ module.exports = async function (context, req) {
     return;
   }
 
+  // Validate audience before exchanging
+  if (!validateAudience(token)) {
+    context.res = {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+      body: { error: 'Token audience mismatch' },
+    };
+    return;
+  }
+
   try {
     const client = getClient();
     const result = await client.acquireTokenOnBehalfOf({
@@ -57,7 +85,10 @@ module.exports = async function (context, req) {
     context.res = {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: { accessToken: result.accessToken },
+      body: {
+        accessToken: result.accessToken,
+        expiresOn: result.expiresOn?.toISOString(),
+      },
     };
   } catch (err) {
     context.log.error('OBO token exchange failed:', err.message);

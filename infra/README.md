@@ -4,10 +4,12 @@ This directory contains the Infrastructure as Code (IaC) templates for the VariS
 
 ## Contents
 
-| File                      | Purpose                               |
-| ------------------------- | ------------------------------------- |
-| `mainTemplate.json`       | ARM template (App Service + EasyAuth) |
-| `createUiDefinition.json` | Azure portal deployment wizard        |
+| File                        | Purpose                                          |
+| --------------------------- | ------------------------------------------------ |
+| `mainTemplate.json`         | ARM template (App Service + EasyAuth + Function) |
+| `createUiDefinition.json`   | Azure portal deployment wizard                   |
+| `functions/`                | Azure Functions code (OBO token exchange)        |
+| `functions/token-exchange/` | Teams SSO → Graph API token exchange (OBO flow)  |
 
 ## Prerequisites
 
@@ -44,6 +46,17 @@ This directory contains the Infrastructure as Code (IaC) templates for the VariS
 - **App Service (B1 Linux):** Hosts the VariScout SPA via `WEBSITE_RUN_FROM_PACKAGE`.
 - **EasyAuth (Azure AD):** App Service Authentication with Azure AD sign-in.
 - **App Service Plan:** B1 Basic Linux plan.
+- **Function App (Team plan only):** OBO token exchange for Teams silent SSO.
+
+## Function App
+
+The `functions/` directory contains an Azure Function that exchanges a Teams SSO token for a Graph API access token via the On-Behalf-Of (OBO) flow. This enables silent authentication when the app runs inside a Teams tab — no redirect flash for OneDrive sync or photo uploads.
+
+**Endpoint:** `POST /api/token-exchange`
+**Security:** Validates the incoming JWT's `aud` claim matches `CLIENT_ID` before exchanging.
+**Dependencies:** `@azure/msal-node` (installed via `npm install` in `functions/`).
+
+The Function App is provisioned by the ARM template (conditional on Team plan) and deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME` is configured.
 
 ## See Also
 

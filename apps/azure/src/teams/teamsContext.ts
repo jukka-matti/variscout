@@ -138,9 +138,9 @@ export function isChannelTab(): boolean {
  * Get a Teams SSO token (client-side).
  *
  * This token is an Azure AD token scoped to the app's client ID.
- * For Graph API access, it needs to be exchanged server-side via OBO flow.
- * Until the OBO function is deployed (Increment 6), the app falls back
- * to EasyAuth redirect for Graph API tokens.
+ * For Graph API access, it needs to be exchanged server-side via OBO flow
+ * (see auth/graphToken.ts → token-exchange function). Falls back to
+ * EasyAuth redirect if OBO is unavailable.
  *
  * @returns The SSO token string, or null if not in Teams or SSO fails
  */

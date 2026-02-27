@@ -216,10 +216,21 @@ When running inside Microsoft Teams, the app uses the Teams SDK for single sign-
 2. This token identifies the user but cannot call Graph API directly
 3. For Graph API access, the app falls back to EasyAuth redirect (standard flow)
 
-### Future: On-Behalf-Of (OBO) function
+### On-Behalf-Of (OBO) Function
 
-- An Azure Function (~50 lines) will exchange the Teams SSO token for a Graph API access token
-- Until deployed, EasyAuth redirect provides the same functionality with a one-time consent popup
+When running inside Teams, the app exchanges the Teams SSO token for a Graph API token via an Azure Function:
+
+1. `getTeamsSsoToken()` acquires an Azure AD token scoped to the app's client ID
+2. The token is POST-ed to the OBO function (`/api/token-exchange`)
+3. The function validates the token's audience matches `CLIENT_ID`, then exchanges it via MSAL OBO flow
+4. The Graph API token is returned and cached client-side (5 min margin)
+5. If OBO fails, the app falls back to EasyAuth redirect (graceful degradation)
+
+This enables **silent SSO** — no redirect flash when saving to OneDrive or uploading photos from within Teams.
+
+- Function code: `infra/functions/token-exchange/index.js`
+- Client module: `apps/azure/src/auth/graphToken.ts`
+- Used by: `storage.ts` (OneDrive sync) and `photoUpload.ts` (photo uploads)
 - See [ADR-016](../../07-decisions/adr-016-teams-integration.md) Phase 6
 
 ### Teams SSO in the manifest
