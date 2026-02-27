@@ -11,6 +11,28 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const DIST = join(__dirname, 'dist');
 const PORT = parseInt(process.env.PORT || '8080', 10);
 
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    "connect-src 'self' https://graph.microsoft.com",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; '),
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+};
+
+function writeResponse(res, statusCode, headers) {
+  res.writeHead(statusCode, { ...SECURITY_HEADERS, ...headers });
+}
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
@@ -38,7 +60,7 @@ const server = createServer(async (req, res) => {
 
   // Health endpoint for App Service health checks
   if (pathname === '/health') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    writeResponse(res, 200, { 'Content-Type': 'text/plain' });
     res.end('ok');
     return;
   }
@@ -50,7 +72,7 @@ const server = createServer(async (req, res) => {
   try {
     if (filePath) {
       const data = await readFile(filePath);
-      res.writeHead(200, {
+      writeResponse(res, 200, {
         'Content-Type': MIME[ext] || 'application/octet-stream',
         'Cache-Control': cacheHeader(pathname),
       });
@@ -59,7 +81,7 @@ const server = createServer(async (req, res) => {
     }
   } catch {
     // File with extension not found → 404 (don't serve index.html for missing .js/.css/etc)
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    writeResponse(res, 404, { 'Content-Type': 'text/plain' });
     res.end('Not Found');
     return;
   }
@@ -67,13 +89,13 @@ const server = createServer(async (req, res) => {
   // SPA fallback: serve index.html for all non-file routes (no extension)
   try {
     const html = await readFile(join(DIST, 'index.html'));
-    res.writeHead(200, {
+    writeResponse(res, 200, {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-cache',
     });
     res.end(html);
   } catch {
-    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    writeResponse(res, 500, { 'Content-Type': 'text/plain' });
     res.end('index.html not found');
   }
 });
