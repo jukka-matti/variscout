@@ -55,6 +55,17 @@ LSL ━━━━━━━━━━━━━━━━━━━━━━━━━�
 
 ---
 
+## Beneficial Special Causes
+
+Not all special causes are problems. When the [characteristic type](../../03-features/analysis/characteristic-types.md) is directional (smaller-is-better or larger-is-better), a special cause that moves the process _toward_ the quality goal is a favorable signal:
+
+- A cycle time (smaller-is-better) dropping below LCL = unexpectedly fast — replicate it
+- A yield (larger-is-better) exceeding UCL = unexpectedly high — understand why
+
+Traditional SPC treats all special causes as "investigate and remove." Direction awareness refines this: investigate favorable signals to _replicate_ them, and harmful signals to _fix_ them. This is the foundation for the green/red dot coloring on the I-Chart.
+
+---
+
 ## The Critical Insight
 
 **Looking at stability is the traditional use of control charts — but it's only half the story.**

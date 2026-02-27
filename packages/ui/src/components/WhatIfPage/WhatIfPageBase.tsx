@@ -1,8 +1,20 @@
 import React, { useMemo } from 'react';
 import { ArrowLeft, Beaker } from 'lucide-react';
-import { calculateStats, toNumericValue, type DataRow, type SpecLimits } from '@variscout/core';
+import {
+  calculateStats,
+  toNumericValue,
+  inferCharacteristicType,
+  getCategoryStats,
+  normalQuantile,
+  normalCDF,
+  type DataRow,
+  type SpecLimits,
+} from '@variscout/core';
 import WhatIfSimulator from '../WhatIfSimulator/WhatIfSimulator';
-import type { WhatIfSimulatorColorScheme } from '../WhatIfSimulator/WhatIfSimulator';
+import type {
+  SimulatorPreset,
+  WhatIfSimulatorColorScheme,
+} from '../WhatIfSimulator/WhatIfSimulator';
 /**
  * Color scheme for WhatIfPage
  */
@@ -54,6 +66,194 @@ export interface WhatIfPageBaseProps {
   simulatorColorScheme?: WhatIfSimulatorColorScheme;
   /** Cpk target for color thresholds (default 1.33) */
   cpkTarget?: number;
+  /** Active factor from boxplot (enables category-based presets) */
+  activeFactor?: string | null;
+}
+
+/**
+ * Compute smart presets based on current stats, specs, and category data
+ */
+function computePresets(
+  currentStats: { mean: number; stdDev: number; median: number },
+  specs: SpecLimits,
+  filteredData: DataRow[],
+  outcome: string,
+  activeFactor?: string | null
+): SimulatorPreset[] {
+  const presets: SimulatorPreset[] = [];
+  const type = inferCharacteristicType(specs);
+
+  // --- Spec-based presets (always available when specs set) ---
+
+  // 1. Shift to target
+  const target =
+    specs.target ??
+    (specs.usl !== undefined && specs.lsl !== undefined ? (specs.usl + specs.lsl) / 2 : undefined);
+
+  if (target !== undefined) {
+    const shift = target - currentStats.mean;
+    if (Math.abs(shift) > currentStats.stdDev * 0.05) {
+      presets.push({
+        label: 'Shift to target',
+        description: `Move mean to ${target.toFixed(1)} (shift ${shift >= 0 ? '+' : ''}${shift.toFixed(1)})`,
+        meanShift: shift,
+        variationReduction: 0,
+        icon: 'target',
+      });
+    }
+  }
+
+  // 2. Shift to median (useful for skewed distributions)
+  if (Math.abs(currentStats.median - currentStats.mean) > currentStats.stdDev * 0.1) {
+    const shift = currentStats.median - currentStats.mean;
+    presets.push({
+      label: 'Shift to median',
+      description: `Move mean to median ${currentStats.median.toFixed(1)} (corrects skew)`,
+      meanShift: shift,
+      variationReduction: 0,
+    });
+  }
+
+  // 5. Reach 95% yield
+  if (specs.usl !== undefined || specs.lsl !== undefined) {
+    const z95 = normalQuantile(0.95); // ~1.645
+
+    // Calculate current yield
+    let currentYield = 100;
+    if (currentStats.stdDev > 0) {
+      if (specs.usl !== undefined && specs.lsl !== undefined) {
+        currentYield =
+          (normalCDF((specs.usl - currentStats.mean) / currentStats.stdDev) -
+            normalCDF((specs.lsl - currentStats.mean) / currentStats.stdDev)) *
+          100;
+      } else if (specs.usl !== undefined) {
+        currentYield = normalCDF((specs.usl - currentStats.mean) / currentStats.stdDev) * 100;
+      } else if (specs.lsl !== undefined) {
+        currentYield = (1 - normalCDF((specs.lsl - currentStats.mean) / currentStats.stdDev)) * 100;
+      }
+    }
+
+    if (currentYield < 95 && currentStats.stdDev > 0) {
+      let yieldShift = 0;
+      let yieldReduction = 0;
+
+      if (type === 'smaller' && specs.usl !== undefined) {
+        // Shift mean down: need mean <= USL - z * sigma
+        yieldShift = specs.usl - z95 * currentStats.stdDev - currentStats.mean;
+        if (yieldShift > 0) {
+          // Already centered enough, reduce spread instead
+          const sigmaNeeded = (specs.usl - currentStats.mean) / z95;
+          yieldReduction = Math.min(1 - sigmaNeeded / currentStats.stdDev, 0.5);
+          yieldShift = 0;
+        }
+      } else if (type === 'larger' && specs.lsl !== undefined) {
+        // Shift mean up: need mean >= LSL + z * sigma
+        yieldShift = specs.lsl + z95 * currentStats.stdDev - currentStats.mean;
+        if (yieldShift < 0) {
+          const sigmaNeeded = (currentStats.mean - specs.lsl) / z95;
+          yieldReduction = Math.min(1 - sigmaNeeded / currentStats.stdDev, 0.5);
+          yieldShift = 0;
+        }
+      } else if (specs.usl !== undefined && specs.lsl !== undefined) {
+        // Nominal: center first, then reduce spread if needed
+        const midpoint = (specs.usl + specs.lsl) / 2;
+        yieldShift = midpoint - currentStats.mean;
+        // Check if centering achieves 95%
+        const centeredYield =
+          (normalCDF((specs.usl - midpoint) / currentStats.stdDev) -
+            normalCDF((specs.lsl - midpoint) / currentStats.stdDev)) *
+          100;
+        if (centeredYield < 95) {
+          // Also need spread reduction
+          const halfRange = (specs.usl - specs.lsl) / 2;
+          const sigmaNeeded = halfRange / z95;
+          yieldReduction = Math.min(1 - sigmaNeeded / currentStats.stdDev, 0.5);
+        }
+      }
+
+      if (Math.abs(yieldShift) > 0.001 || yieldReduction > 0.001) {
+        presets.push({
+          label: 'Reach 95% yield',
+          description: 'Minimum adjustment to achieve 95% in-spec yield',
+          meanShift: yieldShift,
+          variationReduction: Math.max(0, yieldReduction),
+          icon: 'star',
+        });
+      }
+    }
+  }
+
+  // --- Category-based presets (need activeFactor + category data) ---
+
+  if (activeFactor && filteredData.length > 0) {
+    const categoryStats = getCategoryStats(filteredData, activeFactor, outcome);
+
+    if (categoryStats && categoryStats.length >= 2) {
+      // 3. Match best category
+      let bestCategory = categoryStats[0]; // sorted by contribution (highest first)
+      if (type === 'smaller') {
+        bestCategory = categoryStats.reduce((best, cat) => (cat.mean < best.mean ? cat : best));
+      } else if (type === 'larger') {
+        bestCategory = categoryStats.reduce((best, cat) => (cat.mean > best.mean ? cat : best));
+      } else {
+        // Nominal: closest to target
+        const tgt =
+          target ??
+          (specs.usl !== undefined && specs.lsl !== undefined
+            ? (specs.usl + specs.lsl) / 2
+            : currentStats.mean);
+        bestCategory = categoryStats.reduce((best, cat) =>
+          Math.abs(cat.mean - tgt) < Math.abs(best.mean - tgt) ? cat : best
+        );
+      }
+
+      const matchBestShift = bestCategory.mean - currentStats.mean;
+      if (Math.abs(matchBestShift) > currentStats.stdDev * 0.05) {
+        presets.push({
+          label: 'Match best',
+          description: `Shift mean to match "${bestCategory.value}" (mean ${bestCategory.mean.toFixed(1)})`,
+          meanShift: matchBestShift,
+          variationReduction: 0,
+        });
+      }
+
+      // 4. Tighten spread (match tightest category)
+      const tightestCategory = categoryStats.reduce((best, cat) =>
+        cat.stdDev < best.stdDev && cat.stdDev > 0 ? cat : best
+      );
+      if (tightestCategory.stdDev > 0 && tightestCategory.stdDev < currentStats.stdDev) {
+        const reduction = Math.min(1 - tightestCategory.stdDev / currentStats.stdDev, 0.5);
+        if (reduction > 0.02) {
+          presets.push({
+            label: 'Tighten spread',
+            description: `Reduce variation to match "${tightestCategory.value}" (sigma ${tightestCategory.stdDev.toFixed(2)})`,
+            meanShift: 0,
+            variationReduction: reduction,
+          });
+        }
+      }
+
+      // 6. Best of both (combine match best + tighten spread)
+      if (
+        Math.abs(matchBestShift) > currentStats.stdDev * 0.05 &&
+        tightestCategory.stdDev > 0 &&
+        tightestCategory.stdDev < currentStats.stdDev
+      ) {
+        const reduction = Math.min(1 - tightestCategory.stdDev / currentStats.stdDev, 0.5);
+        if (reduction > 0.02) {
+          presets.push({
+            label: 'Best of both',
+            description: `Combine best mean ("${bestCategory.value}") + tightest spread ("${tightestCategory.value}")`,
+            meanShift: matchBestShift,
+            variationReduction: reduction,
+            icon: 'star',
+          });
+        }
+      }
+    }
+  }
+
+  return presets;
 }
 
 const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
@@ -67,6 +267,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
   colorScheme = whatIfPageDefaultColorScheme,
   simulatorColorScheme,
   cpkTarget,
+  activeFactor,
 }) => {
   const c = colorScheme;
 
@@ -99,6 +300,13 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
     const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
     return { mean, stdDev: Math.sqrt(variance), count: values.length };
   }, [rawData, filteredData, outcome]);
+
+  // Compute smart presets
+  const presets = useMemo(() => {
+    if (!currentStats || !outcome) return undefined;
+    const result = computePresets(currentStats, specs, filteredData, outcome, activeFactor);
+    return result.length > 0 ? result : undefined;
+  }, [currentStats, specs, filteredData, outcome, activeFactor]);
 
   // Guard: no data or no outcome
   if (!outcome || rawData.length === 0) {
@@ -170,6 +378,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
               currentStats={currentStats}
               specs={specs}
               defaultExpanded={true}
+              presets={presets}
               colorScheme={simulatorColorScheme}
               cpkTarget={cpkTarget}
               complementStats={complementStats}

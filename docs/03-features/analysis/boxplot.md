@@ -86,6 +86,22 @@ Available in both PWA and Azure App.
 
 ---
 
+## Direction Coloring
+
+When specification limits are set, boxplot categories are colored by how well their mean aligns with the quality goal. The [characteristic type](characteristic-types.md) determines what "best" means:
+
+- **Smaller-is-better**: lowest mean = green (best), highest mean = red (worst)
+- **Larger-is-better**: highest mean = green, lowest mean = red
+- **Nominal**: closest to target = green, furthest = red
+
+Categories are ranked into thirds (green / amber / red). With 2 categories: best = green, worst = red. With 1 category: neutral gray.
+
+Direction coloring combines with the existing [variation contribution](variation-decomposition.md) bars: box fill shows quality direction (green/amber/red), contribution bar shows variation impact. Together they highlight categories that are both high-impact and poorly performing.
+
+Manual annotation highlights (right-click) always override auto-colors. When specs are hidden or cleared, boxes revert to neutral gray.
+
+---
+
 ## Linked Filtering
 
 Click any box to:

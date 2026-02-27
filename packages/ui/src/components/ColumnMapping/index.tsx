@@ -20,6 +20,7 @@ import ParetoUpload from './ParetoUpload';
 import TimeExtractionPanel from './TimeExtractionPanel';
 import type {
   ColumnAnalysis,
+  CharacteristicType,
   DataQualityReport,
   DataRow,
   TimeExtractionConfig,
@@ -44,7 +45,7 @@ export interface ColumnMappingProps {
   onConfirm: (
     outcome: string,
     factors: string[],
-    specs?: { target?: number; lsl?: number; usl?: number }
+    specs?: { target?: number; lsl?: number; usl?: number; characteristicType?: CharacteristicType }
   ) => void;
   onCancel: () => void;
   onBack?: () => void;
@@ -117,6 +118,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   const [specTarget, setSpecTarget] = useState('');
   const [specLsl, setSpecLsl] = useState('');
   const [specUsl, setSpecUsl] = useState('');
+  const [specCharType, setSpecCharType] = useState<CharacteristicType | null>(null);
 
   // Resolve column analysis: prefer rich data, fall back to stubs from names
   const columns = useMemo(() => {
@@ -302,6 +304,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
               onTargetChange={setSpecTarget}
               onLslChange={setSpecLsl}
               onUslChange={setSpecUsl}
+              characteristicType={specCharType}
+              onCharacteristicTypeChange={setSpecCharType}
             />
           )}
 
@@ -349,6 +353,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                     ...(target !== undefined && !isNaN(target) ? { target } : {}),
                     ...(lsl !== undefined && !isNaN(lsl) ? { lsl } : {}),
                     ...(usl !== undefined && !isNaN(usl) ? { usl } : {}),
+                    ...(specCharType ? { characteristicType: specCharType } : {}),
                   }
                 : undefined;
               onConfirm(outcome, factors, specs);

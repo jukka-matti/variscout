@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, MoveVertical, ArrowDown, ArrowUp } from 'lucide-react';
+import { inferCharacteristicType, type CharacteristicType } from '@variscout/core';
 import { useIsMobile } from '../../hooks';
 import type { SpecEditorColorScheme, SpecEditorProps } from './types';
 
@@ -20,6 +21,32 @@ export const specEditorDefaultColorScheme: SpecEditorColorScheme = {
   desktopCloseButton: 'text-content-secondary hover:text-white',
 };
 
+const TYPE_ICONS: {
+  value: CharacteristicType;
+  icon: typeof MoveVertical;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: 'nominal',
+    icon: MoveVertical,
+    label: 'Nominal',
+    description: 'Target-centered (e.g. fill weight)',
+  },
+  {
+    value: 'smaller',
+    icon: ArrowDown,
+    label: 'Smaller is better',
+    description: 'Lower is better (e.g. defects)',
+  },
+  {
+    value: 'larger',
+    icon: ArrowUp,
+    label: 'Larger is better',
+    description: 'Higher is better (e.g. yield)',
+  },
+];
+
 const SpecEditor = ({
   specs,
   onSave,
@@ -33,13 +60,23 @@ const SpecEditor = ({
     lsl: specs.lsl?.toString() || '',
     target: specs.target?.toString() || '',
   });
+  const [typeSelection, setTypeSelection] = useState<CharacteristicType | null>(
+    specs.characteristicType ?? null
+  );
   const isMobile = useIsMobile(MOBILE_BREAKPOINT);
+
+  // Compute what "Auto" would infer for display hint
+  const autoInferred = inferCharacteristicType({
+    usl: localSpecs.usl ? parseFloat(localSpecs.usl) : undefined,
+    lsl: localSpecs.lsl ? parseFloat(localSpecs.lsl) : undefined,
+  });
 
   const handleSave = () => {
     const parsedSpecs = {
       usl: localSpecs.usl ? parseFloat(localSpecs.usl) : undefined,
       lsl: localSpecs.lsl ? parseFloat(localSpecs.lsl) : undefined,
       target: localSpecs.target ? parseFloat(localSpecs.target) : undefined,
+      characteristicType: typeSelection ?? undefined,
     };
     onSave(parsedSpecs);
     onClose();
@@ -85,6 +122,43 @@ const SpecEditor = ({
                 style={{ minHeight: isMobile ? 44 : undefined }}
                 aria-label="Target specification"
               />
+              {/* Characteristic type icons below Target */}
+              <div
+                className="flex justify-center gap-1 mt-1.5"
+                role="radiogroup"
+                aria-label="Characteristic type"
+              >
+                {TYPE_ICONS.map(opt => {
+                  const Icon = opt.icon;
+                  const isExplicit = typeSelection === opt.value;
+                  const isInferred = !typeSelection && autoInferred === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={isExplicit}
+                      aria-label={`${opt.label} — ${opt.description}`}
+                      onClick={() => setTypeSelection(isExplicit ? null : opt.value)}
+                      title={`${opt.label} — ${opt.description}`}
+                      className={`w-7 h-7 flex items-center justify-center rounded transition-colors ${
+                        isExplicit
+                          ? 'bg-blue-600 text-white border border-blue-500'
+                          : isInferred
+                            ? 'border border-dashed border-blue-400/50 text-blue-400/60'
+                            : 'border border-edge text-content-muted hover:border-blue-500/50'
+                      }`}
+                    >
+                      <Icon size={14} />
+                    </button>
+                  );
+                })}
+              </div>
+              {!typeSelection && (localSpecs.usl || localSpecs.lsl) && (
+                <p className="mt-1 text-[10px] text-content-muted text-center">
+                  detected: <span className="text-content-secondary">{autoInferred}</span>
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="spec-usl" className={cs.label}>

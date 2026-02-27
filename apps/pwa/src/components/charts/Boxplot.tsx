@@ -16,7 +16,7 @@ import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotBase } from '@variscout/charts';
 import { AxisEditor, ChartAnnotationLayer } from '@variscout/ui';
 import { useBoxplotData } from '@variscout/hooks';
-import { sortBoxplotData } from '@variscout/core';
+import { sortBoxplotData, computeCategoryDirectionColors } from '@variscout/core';
 import { getResponsiveMargins, getScaledFonts } from '@variscout/charts';
 import { shouldShowBranding, getBrandingText } from '../../lib/edition';
 import type { HighlightColor, ChartAnnotation } from '@variscout/hooks';
@@ -111,6 +111,19 @@ const Boxplot = ({
     return positions;
   }, [data, parentWidth]);
 
+  // Direction-aware auto-coloring: color boxes by how well each category
+  // aligns with the characteristic type (nominal/smaller/larger)
+  const autoColors = useMemo(() => {
+    if (displayOptions.showSpecs === false) return null;
+    return computeCategoryDirectionColors(data, specs);
+  }, [data, specs, displayOptions.showSpecs]);
+
+  // Manual annotation highlights always override auto-colors
+  const effectiveHighlights = useMemo(() => {
+    if (!autoColors && !highlightedCategories) return undefined;
+    return { ...autoColors, ...highlightedCategories };
+  }, [autoColors, highlightedCategories]);
+
   if (!outcome || data.length === 0) return null;
 
   const alias = columnAliases[factor] || factor;
@@ -141,7 +154,7 @@ const Boxplot = ({
         onYAxisClick={() => setIsEditingLabel(true)}
         onXAxisClick={() => setIsEditingLabel(true)}
         xTickFormat={(val: string) => factorLabels[val] || val}
-        highlightedCategories={highlightedCategories}
+        highlightedCategories={effectiveHighlights}
         onBoxContextMenu={onContextMenu}
       />
 

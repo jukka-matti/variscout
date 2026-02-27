@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { StatsResult, DataRow } from '@variscout/core';
+import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
 import { StatsPanelBase, useGlossary } from '@variscout/ui';
 import { useData } from '../context/DataContext';
 import CapabilityHistogram from './charts/CapabilityHistogram';
@@ -8,7 +8,7 @@ import SpecEditor from './settings/SpecEditor';
 
 interface StatsPanelProps {
   stats: StatsResult | null;
-  specs: { usl?: number; lsl?: number; target?: number };
+  specs: SpecLimits;
   filteredData?: DataRow[];
   outcome?: string | null;
   defaultTab?: 'summary' | 'histogram' | 'normality';
@@ -29,7 +29,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
-  const handleSaveSpecs = (newSpecs: { usl?: number; lsl?: number; target?: number }) => {
+  const handleSaveSpecs = (newSpecs: SpecLimits) => {
     setSpecs(newSpecs);
   };
 

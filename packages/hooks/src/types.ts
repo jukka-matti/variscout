@@ -192,9 +192,9 @@ export interface AnalysisState {
   rawData: DataRow[];
   outcome: string | null;
   factors: string[];
-  specs: { usl?: number; lsl?: number; target?: number };
+  specs: SpecLimits;
   /** Per-measure spec overrides for Performance Mode (keyed by measure column name) */
-  measureSpecs?: Record<string, { usl?: number; lsl?: number; target?: number }>;
+  measureSpecs?: Record<string, SpecLimits>;
   filters: Record<string, (string | number)[]>;
   axisSettings: { min?: number; max?: number; scaleMode?: ScaleMode };
   columnAliases?: Record<string, string>;

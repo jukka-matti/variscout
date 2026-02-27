@@ -16,6 +16,7 @@ import {
   determineStageOrder,
   calculateChannelPerformance,
   type DataRow,
+  type SpecLimits,
   type StatsResult,
   type StagedStatsResult,
   type StageOrderMode,
@@ -33,8 +34,8 @@ export interface DataComputationInputs {
   rawData: DataRow[];
   filteredData: DataRow[];
   outcome: string | null;
-  specs: { usl?: number; lsl?: number; target?: number };
-  measureSpecs: Record<string, { usl?: number; lsl?: number; target?: number }>;
+  specs: SpecLimits;
+  measureSpecs: Record<string, SpecLimits>;
   stageColumn: string | null;
   stageOrderMode: StageOrderMode;
   displayOptions: DisplayOptions;
@@ -49,7 +50,7 @@ export interface DataComputationResult {
   stagedData: DataRow[];
   stagedStats: StagedStatsResult | null;
   performanceResult: ChannelPerformanceData | null;
-  getSpecsForMeasure: (measureId: string) => { usl?: number; lsl?: number; target?: number };
+  getSpecsForMeasure: (measureId: string) => SpecLimits;
 }
 
 // ============================================================================
@@ -147,7 +148,7 @@ export function useDataComputation(inputs: DataComputationInputs): DataComputati
    * Returns per-measure override if defined, otherwise global specs.
    */
   const getSpecsForMeasure = useCallback(
-    (measureId: string): { usl?: number; lsl?: number; target?: number } => {
+    (measureId: string): SpecLimits => {
       return measureSpecs[measureId] ?? specs;
     },
     [measureSpecs, specs]

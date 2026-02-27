@@ -10,7 +10,7 @@ interface WhatIfPageProps {
 }
 
 const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack, filterCount = 0, filterStack }) => {
-  const { filteredData, rawData, outcome, specs, columnAliases, cpkTarget } = useData();
+  const { filteredData, rawData, outcome, specs, columnAliases, cpkTarget, viewState } = useData();
 
   const filterNames = useMemo(() => {
     if (!filterStack || filterStack.length === 0) return undefined;
@@ -32,6 +32,7 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack, filterCount = 0, filter
       filterNames={filterNames}
       onBack={onBack}
       cpkTarget={cpkTarget}
+      activeFactor={viewState?.boxplotFactor}
     />
   );
 };

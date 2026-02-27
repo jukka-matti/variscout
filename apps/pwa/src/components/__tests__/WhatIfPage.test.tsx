@@ -3,13 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import WhatIfPage from '../WhatIfPage';
 
 // Mock DataContext
-const defaultContextValue: {
-  filteredData: Record<string, unknown>[];
-  rawData: Record<string, unknown>[];
-  outcome: string;
-  specs: { usl?: number; lsl?: number; target?: number };
-  filters: Record<string, (string | number)[]>;
-} = {
+const defaultContextValue = {
   filteredData: [
     { Machine: 'A', Value: 10 },
     { Machine: 'A', Value: 11 },
@@ -23,8 +17,10 @@ const defaultContextValue: {
     { Machine: 'B', Value: 19 },
   ],
   outcome: 'Value',
-  specs: { usl: 25, lsl: 5 },
-  filters: {},
+  specs: { usl: 25, lsl: 5 } as { usl?: number; lsl?: number; target?: number },
+  filters: {} as Record<string, (string | number)[]>,
+  factors: ['Machine'],
+  cpkTarget: 1.33,
 };
 
 let contextValue = { ...defaultContextValue };

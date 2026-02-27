@@ -6,7 +6,7 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { GridRows } from '@visx/grid';
 import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
-import { getStageBoundaries, type StatsResult } from '@variscout/core';
+import { getStageBoundaries, inferCharacteristicType, type StatsResult } from '@variscout/core';
 import type { IChartProps, StageBoundary } from './types';
 import { getResponsiveTickCount } from './responsive';
 import ChartSourceBar from './ChartSourceBar';
@@ -144,17 +144,37 @@ const IChartBase: React.FC<IChartProps> = ({
     stageBoundaries,
   });
 
+  // Infer characteristic type once for the chart
+  const characteristicType = useMemo(() => inferCharacteristicType(specs), [specs]);
+
+  // Check if a control violation is favorable based on characteristic type
+  const isFavorableControlViolation = (direction: 'above' | 'below'): boolean => {
+    if (characteristicType === 'smaller' && direction === 'below') return true;
+    if (characteristicType === 'larger' && direction === 'above') return true;
+    return false;
+  };
+
   // Get violation reason for tooltip display
   const getViolationReason = (value: number, index: number, stage?: string): string | null => {
     // Priority 1: Check spec limit violations
     if (specs.usl !== undefined && value > specs.usl) return 'Above USL';
     if (specs.lsl !== undefined && value < specs.lsl) return 'Below LSL';
 
-    // Priority 2: Check control limit violations
+    // Priority 2: Check control limit violations (direction-aware)
     const stageStats = getStageStatsForPoint(stage);
     if (stageStats) {
-      if (value > stageStats.ucl) return 'Special Cause: Above UCL';
-      if (value < stageStats.lcl) return 'Special Cause: Below LCL';
+      if (value > stageStats.ucl) {
+        const favorable = isFavorableControlViolation('above');
+        return favorable
+          ? 'Special Cause: Above UCL \u2014 favorable signal'
+          : 'Special Cause: Above UCL';
+      }
+      if (value < stageStats.lcl) {
+        const favorable = isFavorableControlViolation('below');
+        return favorable
+          ? 'Special Cause: Below LCL \u2014 favorable signal'
+          : 'Special Cause: Below LCL';
+      }
     }
 
     // Priority 3: Check Nelson Rule 2 violations
@@ -173,23 +193,28 @@ const IChartBase: React.FC<IChartProps> = ({
     return null; // In-control
   };
 
-  // Determine point color using Two Voices model:
+  // Determine point color using Two Voices model with direction awareness:
   // Orange = spec violation (Voice of Customer - defect)
-  // Red = control violation only (Voice of Process - instability)
+  // Red = harmful control violation (Voice of Process - instability)
+  // Green = favorable control violation (investigate to replicate)
   // Blue = in-control (healthy process)
   const getPointColor = (value: number, index: number, stage?: string): string => {
     // Priority 1: Check spec limit violations -> Orange (customer defect takes priority)
     if (specs.usl !== undefined && value > specs.usl) return chartColors.spec;
     if (specs.lsl !== undefined && value < specs.lsl) return chartColors.spec;
 
-    // Priority 2: Check control limit violations (use stage-specific limits if staged) -> Red
+    // Priority 2: Check control limit violations (direction-aware)
     const stageStats = getStageStatsForPoint(stage);
     if (stageStats) {
-      if (value > stageStats.ucl) return chartColors.fail;
-      if (value < stageStats.lcl) return chartColors.fail;
+      if (value > stageStats.ucl) {
+        return isFavorableControlViolation('above') ? chartColors.pass : chartColors.fail;
+      }
+      if (value < stageStats.lcl) {
+        return isFavorableControlViolation('below') ? chartColors.pass : chartColors.fail;
+      }
     }
 
-    // Priority 3: Check Nelson Rule 2 violations -> Red (process pattern)
+    // Priority 3: Check Nelson Rule 2 violations -> Red (pattern always worth investigating)
     if (nelsonRule2Violations.has(index)) return chartColors.fail;
 
     // Priority 4: In-control default -> Blue (healthy process)
@@ -690,14 +715,19 @@ const IChartBase: React.FC<IChartProps> = ({
           {(() => {
             const reason = getViolationReason(tooltipData.y, tooltipData.index, tooltipData.stage);
             if (reason) {
-              // Check if it's a spec violation (orange) or control violation (red)
+              // Check if it's a spec violation (orange), favorable (green), or harmful (red)
               const isSpecViolation =
                 (specs.usl !== undefined && tooltipData.y > specs.usl) ||
                 (specs.lsl !== undefined && tooltipData.y < specs.lsl);
-              const color = isSpecViolation ? chartColors.spec : chartColors.fail;
+              const isFavorable = reason.includes('favorable signal');
+              const color = isSpecViolation
+                ? chartColors.spec
+                : isFavorable
+                  ? chartColors.pass
+                  : chartColors.fail;
               return (
                 <div style={{ marginTop: 4, color, fontWeight: 500 }}>
-                  {reason.startsWith('Special Cause') ? '⚠️ ' : ''}
+                  {reason.startsWith('Special Cause') && !isFavorable ? '⚠️ ' : ''}
                   {reason}
                 </div>
               );

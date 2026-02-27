@@ -28,7 +28,12 @@ import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity, BarChart3, Layers, X, Copy, Check, Download, Settings2 } from 'lucide-react';
-import { createFactorFromSelection, getColumnNames, type StageOrderMode } from '@variscout/core';
+import {
+  createFactorFromSelection,
+  getColumnNames,
+  type StageOrderMode,
+  type SpecLimits,
+} from '@variscout/core';
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
 
@@ -216,7 +221,7 @@ const Dashboard = ({
 
   // Handler for saving specs from SpecEditor
   const handleSaveSpecs = useCallback(
-    (newSpecs: { usl?: number; lsl?: number; target?: number }) => {
+    (newSpecs: SpecLimits) => {
       setSpecs(newSpecs);
     },
     [setSpecs]

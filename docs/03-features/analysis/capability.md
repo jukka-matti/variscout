@@ -25,6 +25,16 @@ Capability reveals:
 | Cpk       | min(CPU, CPL)           | Actual capability (spread + centering) |
 | Pass Rate | % within specs          | Conformance rate                       |
 
+### One-Sided Characteristics
+
+For directional [characteristic types](characteristic-types.md), capability metrics adapt:
+
+- **Smaller-is-better** (USL only): Cp and Cpk use only the upper specification limit
+- **Larger-is-better** (LSL only): Cp and Cpk use only the lower specification limit
+- **Nominal** (USL + LSL): Standard two-sided Cp/Cpk calculation
+
+When only one spec limit is set, Cp equals Cpk (there is only one side to measure against). The capability histogram still shows the full distribution but marks only the relevant limit.
+
 ---
 
 ## Sigma Estimation (σ_within)

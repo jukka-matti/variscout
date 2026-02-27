@@ -162,6 +162,7 @@ export type {
   DirectAdjustmentParams,
   DirectAdjustmentResult,
   OverallImpactResult,
+  DirectionColor,
 } from './variation';
 
 export {
@@ -179,6 +180,7 @@ export {
   simulateOverallImpact,
   normalCDF,
   normalPDF,
+  computeCategoryDirectionColors,
   DRILL_SWITCH_THRESHOLD,
 } from './variation';
 

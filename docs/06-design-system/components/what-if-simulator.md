@@ -60,6 +60,21 @@ interface WhatIfSimulatorProps {
 
 Uses `simulateDirectAdjustment()` from `@variscout/core` for projection calculations.
 
+### Smart Presets
+
+The simulator auto-computes up to 6 one-click presets based on current stats and [characteristic type](../../../03-features/analysis/characteristic-types.md):
+
+| #   | Preset          | Logic                              |
+| --- | --------------- | ---------------------------------- |
+| 1   | Shift to target | Mean shift to target/midpoint      |
+| 2   | Shift to median | Corrects skew                      |
+| 3   | Match best      | Direction-aware best category mean |
+| 4   | Tighten spread  | Match tightest category's std dev  |
+| 5   | Reach 95% yield | Reverse-calc shift/reduction       |
+| 6   | Best of both    | Combine #3 + #4                    |
+
+Preset 3 ("Match best") uses the characteristic type: for smaller-is-better, it targets the category with the lowest mean; for larger-is-better, the highest mean; for nominal, the closest to target.
+
 ---
 
 ## WhatIfPageBase

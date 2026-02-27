@@ -49,3 +49,7 @@ export {
   normalCDF,
   normalPDF,
 } from './simulation';
+
+// Direction-aware category coloring
+export type { DirectionColor } from './directionColors';
+export { computeCategoryDirectionColors } from './directionColors';

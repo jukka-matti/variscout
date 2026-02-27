@@ -17,6 +17,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import type {
   DataRow,
+  SpecLimits,
   StageOrderMode,
   StatsResult,
   StagedStatsResult,
@@ -54,9 +55,9 @@ export interface DataState {
   outcome: string | null;
   factors: string[];
   timeColumn: string | null;
-  specs: { usl?: number; lsl?: number; target?: number };
+  specs: SpecLimits;
   /** Per-measure spec overrides for Performance Mode (keyed by measure column name) */
-  measureSpecs: Record<string, { usl?: number; lsl?: number; target?: number }>;
+  measureSpecs: Record<string, SpecLimits>;
   stats: StatsResult | null;
 
   // Multi-point selection (Minitab-style brushing)
@@ -108,7 +109,7 @@ export interface DataState {
   cpkTarget: number;
 
   /** Helper to get effective specs for a measure (per-measure override or global) */
-  getSpecsForMeasure: (measureId: string) => { usl?: number; lsl?: number; target?: number };
+  getSpecsForMeasure: (measureId: string) => SpecLimits;
 
   // Filter stack (ordered drill trail for breadcrumb persistence)
   filterStack: FilterAction[];
@@ -126,7 +127,7 @@ export interface DataActions {
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
   setTimeColumn: (col: string | null) => void;
-  setSpecs: (specs: { usl?: number; lsl?: number; target?: number }) => void;
+  setSpecs: (specs: SpecLimits) => void;
 
   // Selection actions (Minitab-style brushing)
   setSelectedPoints: (indices: Set<number>) => void;
@@ -135,14 +136,9 @@ export interface DataActions {
   clearSelection: () => void;
   togglePointSelection: (index: number) => void;
   /** Set per-measure spec overrides for Performance Mode */
-  setMeasureSpecs: (
-    measureSpecs: Record<string, { usl?: number; lsl?: number; target?: number }>
-  ) => void;
+  setMeasureSpecs: (measureSpecs: Record<string, SpecLimits>) => void;
   /** Update specs for a single measure (merges with existing measureSpecs) */
-  setMeasureSpec: (
-    measureId: string,
-    specs: { usl?: number; lsl?: number; target?: number }
-  ) => void;
+  setMeasureSpec: (measureId: string, specs: SpecLimits) => void;
   setFilters: (filters: Record<string, (string | number)[]>) => void;
   setAxisSettings: (settings: { min?: number; max?: number; scaleMode?: ScaleMode }) => void;
   setChartTitles: (titles: ChartTitles) => void;
@@ -214,10 +210,8 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   const [outcome, setOutcome] = useState<string | null>(null);
   const [factors, setFactors] = useState<string[]>([]);
   const [timeColumn, setTimeColumn] = useState<string | null>(null);
-  const [specs, setSpecs] = useState<{ usl?: number; lsl?: number; target?: number }>({});
-  const [measureSpecs, setMeasureSpecs] = useState<
-    Record<string, { usl?: number; lsl?: number; target?: number }>
-  >({});
+  const [specs, setSpecs] = useState<SpecLimits>({});
+  const [measureSpecs, setMeasureSpecs] = useState<Record<string, SpecLimits>>({});
   const [filters, setFilters] = useState<Record<string, (string | number)[]>>({});
   const [axisSettings, setAxisSettings] = useState<{
     min?: number;
@@ -305,15 +299,12 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
   }, []);
 
   // Helper to set specs for a single measure (merges with existing)
-  const setMeasureSpec = useCallback(
-    (measureId: string, measureSpec: { usl?: number; lsl?: number; target?: number }) => {
-      setMeasureSpecs(prev => ({
-        ...prev,
-        [measureId]: measureSpec,
-      }));
-    },
-    []
-  );
+  const setMeasureSpec = useCallback((measureId: string, measureSpec: SpecLimits) => {
+    setMeasureSpecs(prev => ({
+      ...prev,
+      [measureId]: measureSpec,
+    }));
+  }, []);
 
   // ---------------------------------------------------------------------------
   // Filtered data (pure computation — no side effects)

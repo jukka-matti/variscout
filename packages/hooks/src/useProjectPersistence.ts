@@ -9,7 +9,7 @@
  */
 
 import { useCallback } from 'react';
-import type { DataRow, StageOrderMode, FilterAction, Finding } from '@variscout/core';
+import type { DataRow, SpecLimits, StageOrderMode, FilterAction, Finding } from '@variscout/core';
 import type {
   AnalysisState,
   DisplayOptions,
@@ -34,8 +34,8 @@ export interface ProjectPersistenceInputs {
   rawData: DataRow[];
   outcome: string | null;
   factors: string[];
-  specs: { usl?: number; lsl?: number; target?: number };
-  measureSpecs: Record<string, { usl?: number; lsl?: number; target?: number }>;
+  specs: SpecLimits;
+  measureSpecs: Record<string, SpecLimits>;
   filters: Record<string, (string | number)[]>;
   axisSettings: { min?: number; max?: number; scaleMode?: ScaleMode };
   columnAliases: Record<string, string>;
@@ -75,8 +75,8 @@ export interface ProjectPersistenceInputs {
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
   setTimeColumn: (col: string | null) => void;
-  setSpecs: (specs: { usl?: number; lsl?: number; target?: number }) => void;
-  setMeasureSpecs: (specs: Record<string, { usl?: number; lsl?: number; target?: number }>) => void;
+  setSpecs: (specs: SpecLimits) => void;
+  setMeasureSpecs: (specs: Record<string, SpecLimits>) => void;
   setFilters: (filters: Record<string, (string | number)[]>) => void;
   setAxisSettings: (settings: { min?: number; max?: number; scaleMode?: ScaleMode }) => void;
   setChartTitles: (titles: ChartTitles) => void;

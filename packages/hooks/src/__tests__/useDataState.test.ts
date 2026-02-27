@@ -252,4 +252,48 @@ describe('useDataState', () => {
     expect(result.current[0].measureColumns).toEqual(['Col1', 'Col2', 'Col3']);
     expect(result.current[0].measureLabel).toBe('Channel');
   });
+
+  // ---- characteristicType in specs ----
+
+  describe('characteristicType in specs', () => {
+    it('setSpecs preserves characteristicType', () => {
+      const { result } = renderHook(() => useDataState({ persistence: mockPersistence }));
+
+      act(() => {
+        result.current[1].setSpecs({ usl: 10, characteristicType: 'smaller' });
+      });
+
+      expect(result.current[0].specs.usl).toBe(10);
+      expect(result.current[0].specs.characteristicType).toBe('smaller');
+    });
+
+    it('setSpecs with no characteristicType omits it', () => {
+      const { result } = renderHook(() => useDataState({ persistence: mockPersistence }));
+
+      act(() => {
+        result.current[1].setSpecs({ usl: 10 });
+      });
+
+      expect(result.current[0].specs.usl).toBe(10);
+      expect(result.current[0].specs.characteristicType).toBeUndefined();
+    });
+
+    it('setMeasureSpec preserves characteristicType', () => {
+      const { result } = renderHook(() => useDataState({ persistence: mockPersistence }));
+
+      act(() => {
+        result.current[1].setMeasureSpec('FillHead1', {
+          usl: 100,
+          lsl: 90,
+          characteristicType: 'larger',
+        });
+      });
+
+      const measureSpecs = result.current[0].measureSpecs;
+      expect(measureSpecs['FillHead1']).toBeDefined();
+      expect(measureSpecs['FillHead1'].usl).toBe(100);
+      expect(measureSpecs['FillHead1'].lsl).toBe(90);
+      expect(measureSpecs['FillHead1'].characteristicType).toBe('larger');
+    });
+  });
 });

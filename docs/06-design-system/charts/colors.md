@@ -68,6 +68,16 @@ Nelson Rule 2 identifies when 9 or more consecutive points fall on the same side
 
 **Staged mode:** Nelson Rule 2 is computed per-stage using each stage's mean.
 
+### Direction Color Semantics
+
+When a [characteristic type](../../../03-features/analysis/characteristic-types.md) is set, control violation colors gain directional meaning:
+
+- **Green** = favorable signal (process moved toward quality goal)
+- **Red** = harmful signal (process moved away from goal)
+- **Orange** = spec violation (always harmful, regardless of direction)
+
+This applies to I-Chart dots and Boxplot category fills. The color palette itself doesn't change — the assignment logic changes based on whether a deviation is toward or away from the quality target.
+
 ## Line Colors
 
 | Element    | Hex       | Style        | Usage            |

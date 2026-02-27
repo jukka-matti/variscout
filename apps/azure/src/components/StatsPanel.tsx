@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { StatsResult, DataRow } from '@variscout/core';
+import type { StatsResult, DataRow, SpecLimits } from '@variscout/core';
 import { StatsPanelBase, useGlossary } from '@variscout/ui';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
@@ -8,10 +8,10 @@ import WhatIfSimulator from './WhatIfSimulator';
 
 interface StatsPanelProps {
   stats: StatsResult | null;
-  specs: { usl?: number; lsl?: number; target?: number };
+  specs: SpecLimits;
   filteredData?: DataRow[];
   outcome?: string | null;
-  onSaveSpecs?: (specs: { lsl?: number; target?: number; usl?: number }) => void;
+  onSaveSpecs?: (specs: SpecLimits) => void;
   showCpk?: boolean;
 }
 
@@ -26,7 +26,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
   const { getTerm } = useGlossary();
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
 
-  const handleSaveSpecs = (newSpecs: { usl?: number; lsl?: number; target?: number }) => {
+  const handleSaveSpecs = (newSpecs: SpecLimits) => {
     onSaveSpecs?.(newSpecs);
     setIsEditingSpecs(false);
   };

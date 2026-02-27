@@ -97,6 +97,19 @@ const violations = getNelsonRule2ViolationPoints(values, stats.mean);
 
 ---
 
+## Beneficial Signals
+
+When a [characteristic type](characteristic-types.md) is set (or auto-inferred from spec limits), control violations gain directional awareness:
+
+- **Favorable special causes** (green dots) — the process moved in the desired direction. Investigate to _replicate_.
+- **Harmful special causes** (red dots) — the process moved away from the goal. Investigate to _fix_.
+
+For example, a point below LCL on a smaller-is-better chart (e.g. cycle time) is a favorable signal — unexpectedly fast performance worth understanding. Without direction awareness, this would be misidentified as a problem.
+
+See [Characteristic Type Awareness](characteristic-types.md) for the full violation color map.
+
+---
+
 ## See Also
 
 - [CHANGE Lens](../../01-vision/four-lenses/change.md) - Time-based stability concepts

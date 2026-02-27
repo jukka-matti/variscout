@@ -52,9 +52,9 @@ docs/
 │   ├── index.md
 │   ├── specifications.md
 │   ├── user-guide.md
-│   ├── analysis/        # boxplot, capability, i-chart, pareto, performance-mode,
-│   │                    # nelson-rules, staged-analysis, probability-plot,
-│   │                    # variation-decomposition
+│   ├── analysis/        # boxplot, capability, characteristic-types, i-chart, pareto,
+│   │                    # performance-mode, nelson-rules, staged-analysis,
+│   │                    # probability-plot, variation-decomposition
 │   ├── workflows/       # four-lenses, drill-down, performance-mode, quick-check,
 │   │                    # deep-dive, decision-trees, investigation-to-action, process-maps
 │   ├── data/            # data-input, storage, validation
@@ -144,6 +144,7 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Statistics reference     | docs/05-technical/statistics-reference.md                                                               |
 | Investigation workflow   | docs/03-features/workflows/investigation-to-action.md                                                   |
 | Investigation tracking   | docs/07-decisions/adr-015-investigation-board.md, docs/03-features/workflows/investigation-to-action.md |
+| Characteristic types     | docs/03-features/analysis/characteristic-types.md, packages/core/src/types.ts                           |
 | Variation metrics/SS     | docs/03-features/analysis/variation-decomposition.md, packages/core/src/variation/contributions.ts      |
 | What-If/simulation       | docs/06-design-system/components/what-if-simulator.md, packages/core/src/variation/simulation.ts        |
 | Azure CI/CD pipeline     | `.github/workflows/deploy-azure-staging.yml`, `docs/05-technical/implementation/deployment.md`          |

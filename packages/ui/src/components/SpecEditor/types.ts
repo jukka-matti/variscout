@@ -1,4 +1,5 @@
 import type React from 'react';
+import type { SpecLimits } from '@variscout/core';
 
 export interface SpecEditorColorScheme {
   // Labels
@@ -17,8 +18,8 @@ export interface SpecEditorColorScheme {
 }
 
 export interface SpecEditorProps {
-  specs: { usl?: number; lsl?: number; target?: number };
-  onSave: (specs: { usl?: number; lsl?: number; target?: number }) => void;
+  specs: SpecLimits;
+  onSave: (specs: SpecLimits) => void;
   onClose: () => void;
   style?: React.CSSProperties;
   colorScheme?: SpecEditorColorScheme;
