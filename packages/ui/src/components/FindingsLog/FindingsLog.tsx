@@ -33,6 +33,8 @@ export interface FindingsLogProps {
   onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
   /** Show author names on comments */
   showAuthors?: boolean;
+  /** Share a finding via deep link. Passed through to FindingCard. */
+  onShareFinding?: (findingId: string) => void;
 }
 
 /**
@@ -55,6 +57,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onDeleteComment,
   onAddPhoto,
   showAuthors,
+  onShareFinding,
 }) => {
   if (findings.length === 0) {
     return (
@@ -109,6 +112,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           showAuthors={showAuthors}
           columnAliases={columnAliases}
           isActive={finding.id === activeFindingId}
+          onShare={onShareFinding}
         />
       ))}
     </div>

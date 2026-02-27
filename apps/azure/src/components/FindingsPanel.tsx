@@ -37,6 +37,8 @@ interface FindingsPanelProps {
   activeFindingId?: string | null;
   /** Open findings in a separate popout window */
   onPopout?: () => void;
+  /** Share a finding via deep link */
+  onShareFinding?: (findingId: string) => void;
   /** Persisted view mode */
   viewMode?: 'list' | 'board';
   /** Callback to persist view mode change */
@@ -64,6 +66,7 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
   drillPath,
   activeFindingId,
   onPopout,
+  onShareFinding,
   viewMode: externalViewMode,
   onViewModeChange,
 }) => {
@@ -242,6 +245,7 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
           showAuthors={showAuthors}
           columnAliases={columnAliases}
           activeFindingId={activeFindingId}
+          onShareFinding={onShareFinding}
           viewMode={viewMode}
         />
 

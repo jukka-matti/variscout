@@ -53,13 +53,25 @@ import {
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { useEditorPanels } from '../hooks/useEditorPanels';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
+import { useTeamsShare } from '../hooks/useTeamsShare';
+import { buildFindingSharePayload, buildChartSharePayload } from '../services/shareContent';
+import { buildSubPageId } from '../services/deepLinks';
 
 interface EditorProps {
   projectId: string | null;
   onBack: () => void;
+  /** Deep link: auto-open findings panel and highlight this finding */
+  initialFindingId?: string;
+  /** Deep link: auto-focus this chart type */
+  initialChart?: string;
 }
 
-export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
+export const Editor: React.FC<EditorProps> = ({
+  projectId,
+  onBack,
+  initialFindingId,
+  initialChart,
+}) => {
   const { syncStatus } = useStorage();
   const {
     rawData,
@@ -222,6 +234,59 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     onFindingsChange: setPersistedFindings,
   });
   const [highlightedFindingId, setHighlightedFindingId] = useState<string | null>(null);
+
+  // Teams share integration
+  const { share, setDeepLink } = useTeamsShare();
+  const baseUrl = window.location.origin + window.location.pathname;
+  const projectName = currentProjectName || 'New Analysis';
+
+  // Deep link: auto-open findings panel and highlight target finding (one-shot)
+  const [deepLinkConsumed, setDeepLinkConsumed] = useState(false);
+  useEffect(() => {
+    if (deepLinkConsumed || !rawData.length || !outcome) return;
+    if (initialFindingId) {
+      panels.setIsFindingsOpen(true);
+      setHighlightedFindingId(initialFindingId);
+    }
+    if (initialChart) {
+      handleViewStateChange({
+        focusedChart: initialChart as 'ichart' | 'boxplot' | 'pareto' | null,
+      });
+    }
+    // Clear deep link params from URL to avoid re-triggering on refresh
+    if (initialFindingId || initialChart) {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+    }
+    setDeepLinkConsumed(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawData.length, outcome, initialFindingId, initialChart, deepLinkConsumed]);
+
+  // Update Teams deep link context when project/view changes
+  useEffect(() => {
+    if (!projectName || projectName === 'New Analysis') return;
+    const chart = viewState?.focusedChart;
+    setDeepLink(buildSubPageId(projectName, chart ? { chart } : {}), projectName);
+  }, [projectName, viewState?.focusedChart, setDeepLink]);
+
+  // Share handlers
+  const handleShareFinding = useCallback(
+    (findingId: string) => {
+      const finding = findingsState.findings.find(f => f.id === findingId);
+      if (!finding) return;
+      const payload = buildFindingSharePayload(finding, projectName, baseUrl);
+      share(payload);
+    },
+    [findingsState.findings, projectName, baseUrl, share]
+  );
+
+  const handleShareChart = useCallback(
+    (chartType: string) => {
+      const payload = buildChartSharePayload(chartType, projectName, baseUrl);
+      share(payload);
+    },
+    [projectName, baseUrl, share]
+  );
 
   // Current user (for comment author attribution)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
@@ -913,6 +978,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               onExitPresentation={() => panels.setIsPresentationMode(false)}
               onManageFactors={dataFlow.openFactorManager}
               onPinFinding={handlePinFinding}
+              onShareChart={handleShareChart}
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isFindingsOpen ? (
@@ -951,6 +1017,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                   columnAliases={columnAliases}
                   drillPath={drillPath}
                   activeFindingId={highlightedFindingId}
+                  onShareFinding={handleShareFinding}
                   viewMode={viewState?.findingsViewMode}
                   onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
                 />
@@ -977,6 +1044,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 drillPath={drillPath}
                 activeFindingId={highlightedFindingId}
                 onPopout={handleOpenFindingsPopout}
+                onShareFinding={handleShareFinding}
                 viewMode={viewState?.findingsViewMode}
                 onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
               />

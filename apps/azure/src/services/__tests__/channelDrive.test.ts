@@ -136,6 +136,7 @@ describe('getChannelDriveInfo', () => {
       teamId: null,
       userPrincipalName: null,
       theme: null,
+      subPageId: null,
     });
 
     const result = await getChannelDriveInfo('token-123');

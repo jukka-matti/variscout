@@ -30,6 +30,8 @@ export interface TeamsContext {
   userPrincipalName: string | null;
   /** Teams theme: 'default' | 'dark' | 'contrast' */
   theme: string | null;
+  /** Deep link subPageId from Teams tab navigation */
+  subPageId: string | null;
 }
 
 const EMPTY_CONTEXT: TeamsContext = {
@@ -41,6 +43,7 @@ const EMPTY_CONTEXT: TeamsContext = {
   teamId: null,
   userPrincipalName: null,
   theme: null,
+  subPageId: null,
 };
 
 // ── State ────────────────────────────────────────────────────────────────
@@ -83,6 +86,7 @@ async function doInit(): Promise<TeamsContext> {
       teamId: ctx.team?.internalId ?? null,
       userPrincipalName: ctx.user?.userPrincipalName ?? null,
       theme: ctx.app?.theme ?? null,
+      subPageId: ctx.page?.subPageId ?? null,
     };
 
     // Listen for theme changes from Teams

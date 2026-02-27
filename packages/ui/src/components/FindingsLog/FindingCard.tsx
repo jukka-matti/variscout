@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Share2, Trash2 } from 'lucide-react';
 import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
 import { getFindingStatus } from '@variscout/core';
 import FindingEditor from './FindingEditor';
@@ -29,6 +29,8 @@ export interface FindingCardProps {
   onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
   /** Show author names on comments */
   showAuthors?: boolean;
+  /** Callback to share this finding (deep link). Hidden when not provided. */
+  onShare?: (findingId: string) => void;
 }
 
 /**
@@ -49,6 +51,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onDeleteComment,
   onAddPhoto,
   showAuthors,
+  onShare,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
@@ -152,6 +155,19 @@ const FindingCard: React.FC<FindingCardProps> = ({
               </p>
             )}
             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+              {onShare && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onShare(finding.id);
+                  }}
+                  className="p-1 rounded text-content-muted hover:text-blue-400 hover:bg-blue-400/10 transition-colors"
+                  title="Share finding"
+                  aria-label="Share finding"
+                >
+                  <Share2 size={12} />
+                </button>
+              )}
               <button
                 onClick={e => {
                   e.stopPropagation();

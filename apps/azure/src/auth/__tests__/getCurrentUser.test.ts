@@ -53,6 +53,7 @@ describe('getCurrentUser', () => {
       teamId: null,
       userPrincipalName: null,
       theme: null,
+      subPageId: null,
     });
     vi.mocked(getEasyAuthUser).mockResolvedValue(null);
   });
@@ -86,6 +87,7 @@ describe('getCurrentUser', () => {
       teamId: null,
       userPrincipalName: 'john@contoso.com',
       theme: null,
+      subPageId: null,
     });
 
     const user = await getCurrentUser();
@@ -124,6 +126,7 @@ describe('getCurrentUser', () => {
       teamId: null,
       userPrincipalName: null,
       theme: null,
+      subPageId: null,
     });
     vi.mocked(getEasyAuthUser).mockResolvedValue({
       name: 'Fallback User',

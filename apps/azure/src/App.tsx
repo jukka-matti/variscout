@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getEasyAuthUser, login, logout, type EasyAuthUser } from './auth/easyAuth';
 import { DataProvider } from './context/DataContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -13,6 +13,7 @@ import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
 import { Activity, LogOut, Settings, Shield } from 'lucide-react';
 import { useTeamsContext } from './teams';
 import { TeamsTabConfig } from './teams/TeamsTabConfig';
+import { parseDeepLink, parseSubPageId, type DeepLinkParams } from './services/deepLinks';
 
 type View = 'dashboard' | 'editor' | 'admin-teams';
 
@@ -47,6 +48,22 @@ function AppMain() {
   const [currentProject, setCurrentProject] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const teams = useTeamsContext();
+
+  // Resolve deep link from URL params or Teams subPageId
+  const deepLink = useMemo<DeepLinkParams>(() => {
+    const fromUrl = parseDeepLink(window.location.search);
+    if (fromUrl.project) return fromUrl;
+    if (teams.subPageId) return parseSubPageId(teams.subPageId);
+    return { project: null, findingId: null, chart: null };
+  }, [teams.subPageId]);
+
+  // Auto-navigate to editor when a deep link specifies a project
+  useEffect(() => {
+    if (deepLink.project && currentView === 'dashboard') {
+      navigateToEditor(deepLink.project);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLink.project]);
 
   useEffect(() => {
     getEasyAuthUser()
@@ -210,7 +227,20 @@ function AppMain() {
                   <ProjectDashboard onOpenProject={id => navigateToEditor(id)} />
                 )}
                 {currentView === 'editor' && (
-                  <Editor projectId={currentProject} onBack={navigateToDashboard} />
+                  <Editor
+                    projectId={currentProject}
+                    onBack={navigateToDashboard}
+                    initialFindingId={
+                      deepLink.project === currentProject
+                        ? (deepLink.findingId ?? undefined)
+                        : undefined
+                    }
+                    initialChart={
+                      deepLink.project === currentProject
+                        ? (deepLink.chart ?? undefined)
+                        : undefined
+                    }
+                  />
                 )}
                 {currentView === 'admin-teams' && <AdminTeamsSetup />}
               </main>

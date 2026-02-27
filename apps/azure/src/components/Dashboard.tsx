@@ -75,6 +75,8 @@ interface DashboardProps {
   onManageFactors?: () => void;
   /** Callback to pin current filter state as a finding */
   onPinFinding?: () => void;
+  /** Callback to share a chart via deep link */
+  onShareChart?: (chartType: string) => void;
 }
 
 const Dashboard = ({
@@ -96,6 +98,7 @@ const Dashboard = ({
   onExitPresentation,
   onManageFactors,
   onPinFinding,
+  onShareChart,
 }: DashboardProps) => {
   const {
     outcome,
@@ -596,6 +599,7 @@ const Dashboard = ({
                   onDownloadPng={handleDownloadPng}
                   onDownloadSvg={handleDownloadSvg}
                   onMaximize={() => setFocusedChart('ichart')}
+                  onShareChart={onShareChart}
                 >
                   <ErrorBoundary componentName="I-Chart">
                     <IChart
@@ -685,6 +689,7 @@ const Dashboard = ({
                   onDownloadPng={handleDownloadPng}
                   onDownloadSvg={handleDownloadSvg}
                   onMaximize={() => setFocusedChart('boxplot')}
+                  onShareChart={onShareChart}
                 >
                   <ErrorBoundary componentName="Boxplot">
                     {boxplotFactor && (
@@ -752,6 +757,7 @@ const Dashboard = ({
                   onDownloadPng={handleDownloadPng}
                   onDownloadSvg={handleDownloadSvg}
                   onMaximize={() => setFocusedChart('pareto')}
+                  onShareChart={onShareChart}
                 >
                   <ErrorBoundary componentName="Pareto Chart">
                     {paretoFactor && (

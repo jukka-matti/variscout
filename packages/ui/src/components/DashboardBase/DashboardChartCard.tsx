@@ -1,5 +1,5 @@
 import React from 'react';
-import { Copy, Check, Maximize2 } from 'lucide-react';
+import { Copy, Check, Maximize2, Share2 } from 'lucide-react';
 import { ChartDownloadMenu, type ChartDownloadMenuColorScheme } from '../ChartExportMenu';
 
 export interface DashboardChartCardProps {
@@ -39,6 +39,8 @@ export interface DashboardChartCardProps {
   className?: string;
   /** ColorScheme for ChartDownloadMenu */
   downloadMenuColorScheme?: ChartDownloadMenuColorScheme;
+  /** Share this chart via deep link. Hidden when not provided. */
+  onShareChart?: (chartName: string) => void;
 }
 
 /**
@@ -70,6 +72,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
   onClick,
   className = '',
   downloadMenuColorScheme,
+  onShareChart,
 }) => {
   const showExportButtons = onCopyChart && onDownloadPng && onDownloadSvg;
 
@@ -113,6 +116,21 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
                 colorScheme={downloadMenuColorScheme}
               />
             </>
+          )}
+
+          {onShareChart && (
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                onShareChart(chartName);
+              }}
+              className="p-1.5 rounded text-content-muted hover:text-blue-400 hover:bg-blue-400/10 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              title={`Share ${chartName}`}
+              aria-label={`Share ${chartName}`}
+              data-export-hide
+            >
+              <Share2 size={14} />
+            </button>
           )}
 
           {onMaximize && (
