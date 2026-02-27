@@ -230,6 +230,9 @@ export { createFactorFromSelection, isValidFactorName, getColumnNames } from './
 // Numeric utilities (stack-safe for large datasets)
 export { safeMin, safeMax } from './utils/minmax';
 
+// EXIF/GPS metadata stripping (defense-in-depth for photo uploads)
+export { hasExifData, stripExifSegments, stripExifFromBlob } from './utils/exifStrip';
+
 // Findings (scouting report)
 export type {
   Finding,

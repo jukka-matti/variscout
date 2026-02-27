@@ -1,9 +1,15 @@
 /**
  * Photo processing utility — EXIF stripping, thumbnail generation, and resizing.
  *
- * Uses browser-native Canvas API. All EXIF data (including GPS) is stripped
- * by re-encoding through canvas drawImage.
+ * Belt-and-suspenders EXIF removal:
+ * 1. Canvas re-encoding (drawImage → toBlob) strips EXIF as a side effect
+ * 2. Explicit byte-level stripExifFromBlob catches anything the canvas path misses
+ *
+ * Both layers run on the full-res blob. Thumbnails use toDataURL which cannot
+ * carry EXIF metadata.
  */
+
+import { stripExifFromBlob } from '@variscout/core';
 
 // ── Constants ────────────────────────────────────────────────────────────
 
@@ -109,10 +115,13 @@ function resizeToDataUrl(img: HTMLImageElement, maxDim: number, quality: number)
 export async function processPhoto(file: File): Promise<ProcessedPhoto> {
   const img = await loadImage(file);
 
-  const [fullResBlob, thumbnailDataUrl] = await Promise.all([
+  const [rawBlob, thumbnailDataUrl] = await Promise.all([
     resizeToBlob(img, FULLRES_MAX_DIM, FULLRES_QUALITY),
     Promise.resolve(resizeToDataUrl(img, THUMBNAIL_MAX_DIM, THUMBNAIL_QUALITY)),
   ]);
+
+  // Defense-in-depth: explicit byte-level EXIF strip after canvas re-encoding
+  const fullResBlob = await stripExifFromBlob(rawBlob);
 
   // Ensure filename has .jpg extension
   const baseName = file.name.replace(/\.[^.]+$/, '');
