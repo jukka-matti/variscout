@@ -6,12 +6,15 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { Settings, X, Building2, Sparkles } from 'lucide-react';
-import type { LicenseTier } from '@variscout/core';
+import { Settings, X, Building2, Sparkles, Users, User } from 'lucide-react';
+import type { LicenseTier, MarketplacePlan } from '@variscout/core';
 import {
   getTier,
   setDevTierOverride,
   getDevTierOverrideValue,
+  getPlan,
+  setDevPlanOverride,
+  getDevPlanOverrideValue,
   isDevelopmentMode,
 } from '../../lib/edition';
 
@@ -37,6 +40,28 @@ const TIER_OPTIONS: TierOption[] = [
   },
 ];
 
+interface PlanOption {
+  plan: MarketplacePlan;
+  label: string;
+  icon: React.ReactNode;
+  color: string;
+}
+
+const PLAN_OPTIONS: PlanOption[] = [
+  {
+    plan: 'standard',
+    label: 'Standard',
+    icon: <User size={14} />,
+    color: 'bg-blue-600 hover:bg-blue-500',
+  },
+  {
+    plan: 'team',
+    label: 'Team',
+    icon: <Users size={14} />,
+    color: 'bg-violet-600 hover:bg-violet-500',
+  },
+];
+
 /**
  * DevTierSwitcher component
  * Only renders in development mode
@@ -56,12 +81,16 @@ export const DevTierSwitcher: React.FC = () => {
 const DevTierSwitcherContent: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentTier, setCurrentTier] = useState<LicenseTier>(getTier());
-  const [hasOverride, setHasOverride] = useState(getDevTierOverrideValue() !== null);
+  const [currentPlan, setCurrentPlan] = useState<MarketplacePlan>(getPlan());
+  const [hasOverride, setHasOverride] = useState(
+    getDevTierOverrideValue() !== null || getDevPlanOverrideValue() !== null
+  );
 
-  // Update state when tier changes (e.g., from localStorage on mount)
+  // Update state when tier/plan changes (e.g., from localStorage on mount)
   useEffect(() => {
     setCurrentTier(getTier());
-    setHasOverride(getDevTierOverrideValue() !== null);
+    setCurrentPlan(getPlan());
+    setHasOverride(getDevTierOverrideValue() !== null || getDevPlanOverrideValue() !== null);
   }, []);
 
   const handleTierChange = useCallback((tier: LicenseTier) => {
@@ -72,14 +101,24 @@ const DevTierSwitcherContent: React.FC = () => {
     window.location.reload();
   }, []);
 
+  const handlePlanChange = useCallback((plan: MarketplacePlan) => {
+    setDevPlanOverride(plan);
+    setCurrentPlan(plan);
+    setHasOverride(true);
+    window.location.reload();
+  }, []);
+
   const handleClearOverride = useCallback(() => {
     setDevTierOverride(null);
+    setDevPlanOverride(null);
     setCurrentTier(getTier());
+    setCurrentPlan(getPlan());
     setHasOverride(false);
     window.location.reload();
   }, []);
 
   const currentOption = TIER_OPTIONS.find(o => o.tier === currentTier) || TIER_OPTIONS[0];
+  const currentPlanOption = PLAN_OPTIONS.find(o => o.plan === currentPlan) || PLAN_OPTIONS[0];
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -92,7 +131,9 @@ const DevTierSwitcherContent: React.FC = () => {
         >
           <Settings size={16} className="animate-spin-slow" />
           <span className="hidden sm:inline">
-            {hasOverride ? `[DEV] ${currentOption.label}` : currentOption.label}
+            {hasOverride
+              ? `[DEV] ${currentOption.label} / ${currentPlanOption.label}`
+              : `${currentOption.label} / ${currentPlanOption.label}`}
           </span>
         </button>
       )}
@@ -120,6 +161,7 @@ const DevTierSwitcherContent: React.FC = () => {
           </p>
 
           {/* Tier buttons */}
+          <p className="text-xs text-content-secondary font-medium mb-1">License Tier</p>
           <div className="space-y-2">
             {TIER_OPTIONS.map(option => (
               <button
@@ -138,6 +180,26 @@ const DevTierSwitcherContent: React.FC = () => {
             ))}
           </div>
 
+          {/* Plan buttons */}
+          <p className="text-xs text-content-secondary font-medium mt-3 mb-1">Marketplace Plan</p>
+          <div className="space-y-2">
+            {PLAN_OPTIONS.map(option => (
+              <button
+                key={option.plan}
+                onClick={() => handlePlanChange(option.plan)}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  currentPlan === option.plan
+                    ? `${option.color} text-white ring-2 ring-white/30`
+                    : 'bg-surface-tertiary text-content hover:bg-surface-tertiary/80'
+                }`}
+              >
+                {option.icon}
+                <span className="flex-1 text-left">{option.label}</span>
+                {currentPlan === option.plan && <span className="text-xs opacity-75">Active</span>}
+              </button>
+            ))}
+          </div>
+
           {/* Clear override button */}
           {hasOverride && (
             <button
@@ -151,8 +213,12 @@ const DevTierSwitcherContent: React.FC = () => {
           {/* Current state info */}
           <div className="mt-3 pt-3 border-t border-edge text-xs text-content-muted">
             <div className="flex justify-between">
-              <span>Current:</span>
+              <span>Tier:</span>
               <span className="text-content">{currentTier}</span>
+            </div>
+            <div className="flex justify-between mt-1">
+              <span>Plan:</span>
+              <span className="text-content">{currentPlan}</span>
             </div>
             <div className="flex justify-between mt-1">
               <span>Override:</span>

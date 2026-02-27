@@ -630,9 +630,19 @@ export interface BoxplotGroupData {
 /**
  * License tier for VariScout distribution
  * - free: Demo tier (PWA, 5 channels max)
- * - enterprise: Azure Managed Application (€150/month, all features, 1500 channels)
+ * - enterprise: Azure Managed Application (all features, 1500 channels)
  */
 export type LicenseTier = 'free' | 'enterprise';
+
+/**
+ * Marketplace plan for Azure Managed Application
+ * - standard: Local file storage, EasyAuth (User.Read only), no cloud sync (€99/month)
+ * - team: + OneDrive, SharePoint, Teams SDK, photos, mobile Field View (€299/month)
+ *
+ * Orthogonal to LicenseTier: both plans are 'enterprise' tier (same analysis features).
+ * Plan controls collaboration features; tier controls analysis features.
+ */
+export type MarketplacePlan = 'standard' | 'team';
 
 /**
  * Tier-specific limits for feature gating

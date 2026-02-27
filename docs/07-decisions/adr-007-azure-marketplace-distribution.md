@@ -48,17 +48,17 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 │  Offer: VariScout - Statistical Process Control             │
 │         for Quality Teams                                   │
 │                                                             │
-│  Plan: "VariScout Standard"    €150/month                  │
-│    Full analysis suite, personal OneDrive storage           │
-│    Individual workflow, browser-based access                │
+│  Plan: "VariScout Standard"    €99/month                   │
+│    Full analysis suite, local file storage (.vrs on your   │
+│    computer). EasyAuth sign-in (User.Read only),           │
+│    browser-based access                                     │
 │                                                             │
-│  Plan: "VariScout Team"        €300/month (TBD)            │
+│  Plan: "VariScout Team"        €299/month (TBD)            │
 │    Everything in Standard, plus:                            │
+│    - OneDrive + SharePoint channel file storage            │
 │    - Teams integration (SSO, sidebar, Adaptive Cards)      │
-│    - Shared channel file storage (SharePoint)              │
 │    - Mobile gemba companion (Field View + photo comments)  │
-│    - Requires: custom domain + Teams manifest + admin       │
-│      consent                                                │
+│    - Requires: admin consent for Files.ReadWrite.All        │
 │                                                             │
 │  Offer type: Managed Application                           │
 │  Billing: Microsoft (3% fee, monthly)                      │
@@ -69,11 +69,11 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 
 ### Product Hierarchy
 
-| Product                  | Role                           | Distribution      | Price                                                                     |
-| ------------------------ | ------------------------------ | ----------------- | ------------------------------------------------------------------------- |
-| **Azure App (Standard)** | Full analysis, individual      | Azure Marketplace | €150/month (Managed Application)                                          |
-| **Azure App (Team)**     | + Teams, collaboration, mobile | Azure Marketplace | €300/month (TBD — price under evaluation)                                 |
-| **PWA**                  | FREE (training & education)    | Public website    | Free forever (core analysis + Green Belt, copy-paste input, session-only) |
+| Product                  | Role                                 | Distribution      | Price                                                                     |
+| ------------------------ | ------------------------------------ | ----------------- | ------------------------------------------------------------------------- |
+| **Azure App (Standard)** | Full analysis, local files           | Azure Marketplace | €99/month (Managed Application)                                           |
+| **Azure App (Team)**     | + Teams, cloud collaboration, mobile | Azure Marketplace | €299/month (TBD — price under evaluation)                                 |
+| **PWA**                  | FREE (training & education)          | Public website    | Free forever (core analysis + Green Belt, copy-paste input, session-only) |
 
 > **Note (Feb 2026):** Excel Add-in shelved — cost with no revenue, unproven funnel. The PWA serves the same funnel role (free, no friction, shows the methodology) at zero marginal cost. See original 3-product strategy below for historical context.
 
@@ -83,6 +83,7 @@ The ARM template passes a `VARISCOUT_PLAN` environment variable (`standard` or `
 
 Same ARM template is reused across both plans (Azure Marketplace supports up to 100 plans per offer). The plan variable controls:
 
+- Storage mode: Standard = File System Access API (local `.vrs` files, fallback to IndexedDB); Team = + OneDrive personal + SharePoint channel storage
 - Teams SDK initialization (Team plan only)
 - Channel file storage UI (Team plan only)
 - Mobile Field View route (Team plan only)
@@ -93,14 +94,21 @@ See [ADR-016](adr-016-teams-integration.md) for full Teams integration technical
 
 ### Pricing Rationale
 
-| Aspect            | Value                                              |
-| ----------------- | -------------------------------------------------- |
-| Price             | €150/month (all features, unlimited users)         |
-| Annual equivalent | €1,800/year                                        |
-| Microsoft fee     | 3% (€4.50/month)                                   |
-| Net revenue       | €145.50/month (€1,746/year)                        |
-| Billing           | Monthly only (Managed Application limitation)      |
-| Model             | Per-deployment (one subscription per Azure tenant) |
+| Aspect         | Standard                             | Team                    |
+| -------------- | ------------------------------------ | ----------------------- |
+| Price          | €99/month                            | €299/month (TBD)        |
+| Net (after 3%) | €96.03/month                         | €290.03/month           |
+| Annual net     | €1,152/year                          | €3,480/year             |
+| Storage        | Local files (File System Access API) | + OneDrive + SharePoint |
+| Auth scopes    | `User.Read` only                     | + `Files.ReadWrite.All` |
+| Admin consent  | None                                 | Required (one-time)     |
+
+| Aspect  | Value                                              |
+| ------- | -------------------------------------------------- |
+| Billing | Monthly only (Managed Application limitation)      |
+| Model   | Per-deployment (one subscription per Azure tenant) |
+
+> Customer pays their own Azure infrastructure costs (App Service Plan, etc.) separately. Microsoft handles VAT/GST — prices are set excluding tax, Microsoft adds tax at checkout based on customer's billing country (e.g., 24% ALV in Finland).
 
 **Why per-deployment pricing**: Managed Applications are per-deployment, not per-user. There is no mechanism to enforce user-count tiers within a tenant. Plans differentiate by capability (Standard vs Team), not by user count. Both plans include unlimited users in the tenant.
 
@@ -199,7 +207,7 @@ variscout-managed-app.zip
 5. **No per-user pricing**
    - Cannot charge differently based on team size
    - Single plan must be attractive to both small teams and large organizations
-   - €150/month is competitive: cheaper than most alternatives for teams >2 users
+   - €99/month Standard is competitive: cheaper than most alternatives for teams >2 users
 
 ---
 
@@ -241,7 +249,7 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 ### For New Customers
 
 1. Start with free PWA at variscout.com (training & education)
-2. Azure Marketplace for full-featured deployment (€150/month)
+2. Azure Marketplace for full-featured deployment (from €99/month)
 3. Clear upgrade path from free PWA to Azure App
 
 ---
@@ -267,7 +275,7 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 - Partner Center account setup
 - Managed Application offer creation
 - Deployment package (mainTemplate.json + createUiDefinition.json)
-- Single plan at €150/month
+- Standard plan at €99/month
 - Certification and launch
 
 ### Phase 4: Excel Add-in Shelved (Feb 2026)
@@ -278,7 +286,7 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 
 ### Phase 5: Team Plan & Teams Integration (TBD)
 
-- Add second Marketplace plan ("VariScout Team" at €300/month, price TBD)
+- Add second Marketplace plan ("VariScout Team" at €299/month, price TBD)
 - `VARISCOUT_PLAN` environment variable in ARM template
 - Teams SDK integration (SSO, channel tabs, Adaptive Cards)
 - Shared channel file storage (SharePoint) with optimistic merge

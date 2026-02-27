@@ -40,15 +40,15 @@ Teams SDK initialized?
 
 ### Two Deployment Profiles
 
-| Capability    | Standard (Browser)              | Team (Teams-Integrated)                           |
-| ------------- | ------------------------------- | ------------------------------------------------- |
-| Auth          | EasyAuth redirect               | Teams SSO (On-Behalf-Of)                          |
-| Storage       | Personal OneDrive               | + Channel SharePoint                              |
-| Sharing       | Copy URL                        | Adaptive Cards + deep links                       |
-| Mobile        | Mobile browser                  | Teams mobile (sidebar icon)                       |
-| Photos        | N/A                             | Camera capture + channel storage                  |
-| Permissions   | `User.Read` + `Files.ReadWrite` | + `Files.ReadWrite.All` + `Channel.ReadBasic.All` |
-| Admin consent | None                            | Required (one-time, tenant-wide)                  |
+| Capability    | Standard (Browser)                   | Team (Teams-Integrated)                                               |
+| ------------- | ------------------------------------ | --------------------------------------------------------------------- |
+| Auth          | EasyAuth redirect                    | Teams SSO (On-Behalf-Of)                                              |
+| Storage       | Local files (File System Access API) | + OneDrive personal + Channel SharePoint                              |
+| Sharing       | Copy URL                             | Adaptive Cards + deep links                                           |
+| Mobile        | Mobile browser                       | Teams mobile (sidebar icon)                                           |
+| Photos        | N/A                                  | Camera capture + channel storage                                      |
+| Permissions   | `User.Read` only                     | + `Files.ReadWrite` + `Files.ReadWrite.All` + `Channel.ReadBasic.All` |
+| Admin consent | None                                 | Required (one-time, tenant-wide)                                      |
 
 ### Admin Consent Model
 

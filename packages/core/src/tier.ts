@@ -3,7 +3,7 @@
  *
  * Two-tier system:
  * - free: Demo tier (PWA, 5 channels, encourages upgrade)
- * - enterprise: Azure Managed Application (€150/month, all features)
+ * - enterprise: Azure Managed Application (all features)
  *
  * Channel limits:
  * - Free: 5 channels (demo only)
@@ -13,10 +13,10 @@
  * Soft warning appears at 700 channels.
  */
 
-import type { LicenseTier, TierLimits, ChannelLimitResult } from './types';
+import type { LicenseTier, TierLimits, ChannelLimitResult, MarketplacePlan } from './types';
 
 // Re-export types for convenience
-export type { LicenseTier, TierLimits, ChannelLimitResult };
+export type { LicenseTier, TierLimits, ChannelLimitResult, MarketplacePlan };
 
 /**
  * Channel limits by tier
@@ -220,4 +220,50 @@ export function getBrandingText(tier?: LicenseTier): string {
  */
 export function getSignatureText(tier?: LicenseTier): string {
   return shouldShowBranding(tier) ? 'VariScout' : '';
+}
+
+// ---------------------------------------------------------------------------
+// Marketplace plan configuration
+// ---------------------------------------------------------------------------
+
+/**
+ * Default plan when none is configured
+ */
+export const DEFAULT_PLAN: MarketplacePlan = 'standard';
+
+// Current configured plan (set by the app at startup)
+let configuredPlan: MarketplacePlan | null = null;
+
+/**
+ * Configure the marketplace plan at app startup
+ * Call this from your app's initialization code
+ *
+ * @param plan - The marketplace plan to set, or null to reset to default
+ *
+ * @example
+ * // In app initialization
+ * configurePlan('team');
+ */
+export function configurePlan(plan: MarketplacePlan | null): void {
+  configuredPlan = plan;
+}
+
+/**
+ * Get the current configured marketplace plan
+ *
+ * @returns The current plan, or 'standard' if none configured
+ */
+export function getPlan(): MarketplacePlan {
+  return configuredPlan ?? DEFAULT_PLAN;
+}
+
+/**
+ * Check if a plan is the Team plan
+ *
+ * @param plan - The plan to check (uses current plan if not specified)
+ * @returns true if the plan is 'team'
+ */
+export function isTeamPlan(plan?: MarketplacePlan): boolean {
+  const p = plan ?? getPlan();
+  return p === 'team';
 }

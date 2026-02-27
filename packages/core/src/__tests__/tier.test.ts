@@ -16,13 +16,19 @@ import {
   validateChannelCount,
   getTierDescription,
   getUpgradeUrl,
+  DEFAULT_PLAN,
+  configurePlan,
+  getPlan,
+  isTeamPlan,
   type LicenseTier,
+  type MarketplacePlan,
 } from '../tier';
 
 describe('tier module', () => {
-  // Reset tier configuration before each test
+  // Reset tier and plan configuration before each test
   beforeEach(() => {
     configureTier(null);
+    configurePlan(null);
   });
 
   describe('TIER_LIMITS constants', () => {
@@ -269,6 +275,84 @@ describe('tier module', () => {
 
       tiers.forEach((tier, i) => {
         expect(isPaidTier(tier)).toBe(expectedPaid[i]);
+      });
+    });
+  });
+
+  describe('plan module', () => {
+    describe('DEFAULT_PLAN', () => {
+      it('should be standard', () => {
+        expect(DEFAULT_PLAN).toBe('standard');
+      });
+    });
+
+    describe('configurePlan / getPlan', () => {
+      it('should return default plan when not configured', () => {
+        expect(getPlan()).toBe('standard');
+      });
+
+      it('should return configured plan', () => {
+        configurePlan('team');
+        expect(getPlan()).toBe('team');
+      });
+
+      it('should reset to default when configured with null', () => {
+        configurePlan('team');
+        expect(getPlan()).toBe('team');
+
+        configurePlan(null);
+        expect(getPlan()).toBe('standard');
+      });
+    });
+
+    describe('isTeamPlan', () => {
+      it('should return false for standard plan', () => {
+        expect(isTeamPlan('standard')).toBe(false);
+      });
+
+      it('should return true for team plan', () => {
+        expect(isTeamPlan('team')).toBe(true);
+      });
+
+      it('should use current plan when no argument provided', () => {
+        configurePlan('standard');
+        expect(isTeamPlan()).toBe(false);
+
+        configurePlan('team');
+        expect(isTeamPlan()).toBe(true);
+      });
+    });
+
+    describe('plan is orthogonal to tier', () => {
+      it('should configure plan and tier independently', () => {
+        configureTier('enterprise');
+        configurePlan('standard');
+        expect(getTier()).toBe('enterprise');
+        expect(getPlan()).toBe('standard');
+        expect(isPaidTier()).toBe(true);
+        expect(isTeamPlan()).toBe(false);
+
+        configurePlan('team');
+        expect(getTier()).toBe('enterprise');
+        expect(getPlan()).toBe('team');
+        expect(isPaidTier()).toBe(true);
+        expect(isTeamPlan()).toBe(true);
+      });
+
+      it('should allow free tier with team plan (for testing)', () => {
+        configureTier('free');
+        configurePlan('team');
+        expect(isPaidTier()).toBe(false);
+        expect(isTeamPlan()).toBe(true);
+      });
+    });
+
+    it('should correctly map plan to team status', () => {
+      const plans: MarketplacePlan[] = ['standard', 'team'];
+      const expectedTeam = [false, true];
+
+      plans.forEach((plan, i) => {
+        expect(isTeamPlan(plan)).toBe(expectedTeam[i]);
       });
     });
   });

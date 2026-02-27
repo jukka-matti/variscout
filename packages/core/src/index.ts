@@ -61,7 +61,7 @@ export {
 } from './stats';
 
 // Tier (Azure Marketplace multi-tier licensing) — primary module
-export type { LicenseTier, TierLimits, ChannelLimitResult } from './tier';
+export type { LicenseTier, TierLimits, ChannelLimitResult, MarketplacePlan } from './tier';
 export {
   CHANNEL_WARNING_THRESHOLD,
   configureTier,
@@ -79,6 +79,11 @@ export {
   shouldShowBranding,
   getBrandingText,
   getSignatureText,
+  // Marketplace plan helpers
+  DEFAULT_PLAN,
+  configurePlan,
+  getPlan,
+  isTeamPlan,
 } from './tier';
 
 // Export utilities
