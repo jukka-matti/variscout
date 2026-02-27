@@ -1,8 +1,8 @@
 # ADR-007: Azure Marketplace Distribution Strategy
 
-**Status**: Accepted (Revised 2026-02-13)
+**Status**: Accepted (Revised 2026-02-27)
 
-**Date**: 2026-02-05 (Original), 2026-02-13 (Revised)
+**Date**: 2026-02-05 (Original), 2026-02-13 (Revised), 2026-02-27 (Revised)
 
 ---
 
@@ -20,6 +20,10 @@ This approach had several limitations:
 2. **Payment complexity** - Paddle's fees plus VAT handling complexity
 3. **No enterprise support** - Single-user licensing only
 4. **Limited distribution** - Manual installation via URL
+
+### Revision Context (2026-02-27)
+
+Teams integration creates a natural product tier split. Quality teams need mobile gemba access (photo evidence, chart sharing, commenting on findings) and shared channel file storage. This justifies a two-plan Marketplace model: Standard (personal, browser) and Team (collaborative, Teams-integrated). See [ADR-016](adr-016-teams-integration.md) for full technical design.
 
 ### Revision Context (2026-02-13)
 
@@ -41,33 +45,51 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 ┌─────────────────────────────────────────────────────────────┐
 │  VariScout on Azure Marketplace                             │
 │                                                             │
-│  Single Plan       €150/month   All features, unlimited    │
-│                                  users in tenant            │
+│  Offer: VariScout - Statistical Process Control             │
+│         for Quality Teams                                   │
+│                                                             │
+│  Plan: "VariScout Standard"    €150/month                  │
+│    Full analysis suite, personal OneDrive storage           │
+│    Individual workflow, browser-based access                │
+│                                                             │
+│  Plan: "VariScout Team"        €300/month (TBD)            │
+│    Everything in Standard, plus:                            │
+│    - Teams integration (SSO, sidebar, Adaptive Cards)      │
+│    - Shared channel file storage (SharePoint)              │
+│    - Mobile gemba companion (Field View + photo comments)  │
+│    - Requires: custom domain + Teams manifest + admin       │
+│      consent                                                │
 │                                                             │
 │  Offer type: Managed Application                           │
 │  Billing: Microsoft (3% fee, monthly)                      │
 │  Customer access: Full control                             │
 │  Publisher access: Disabled (zero access)                   │
 └─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│  Excel Add-in on AppSource (FREE FOREVER)                   │
-│                                                             │
-│  • Core analysis charts: I-Chart, Boxplot, Pareto, Capability │
-│  • No Performance Mode (Azure App exclusive)               │
-│  • No license detection needed                             │
-│  • Marketing funnel → users upgrade to Azure App           │
-└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Product Hierarchy
 
-| Product       | Role                        | Distribution      | Price                                                                     |
-| ------------- | --------------------------- | ----------------- | ------------------------------------------------------------------------- |
-| **Azure App** | ONLY PAID PRODUCT           | Azure Marketplace | €150/month (Managed Application)                                          |
-| **PWA**       | FREE (training & education) | Public website    | Free forever (core analysis + Green Belt, copy-paste input, session-only) |
+| Product                  | Role                           | Distribution      | Price                                                                     |
+| ------------------------ | ------------------------------ | ----------------- | ------------------------------------------------------------------------- |
+| **Azure App (Standard)** | Full analysis, individual      | Azure Marketplace | €150/month (Managed Application)                                          |
+| **Azure App (Team)**     | + Teams, collaboration, mobile | Azure Marketplace | €300/month (TBD — price under evaluation)                                 |
+| **PWA**                  | FREE (training & education)    | Public website    | Free forever (core analysis + Green Belt, copy-paste input, session-only) |
 
 > **Note (Feb 2026):** Excel Add-in shelved — cost with no revenue, unproven funnel. The PWA serves the same funnel role (free, no friction, shows the methodology) at zero marginal cost. See original 3-product strategy below for historical context.
+
+### Two-Plan Technical Differentiation
+
+The ARM template passes a `VARISCOUT_PLAN` environment variable (`standard` or `team`). The existing `getTier()` infrastructure resolves plan-appropriate feature sets — both plans deploy as `enterprise` tier, but the Team plan unlocks Teams-specific capabilities.
+
+Same ARM template is reused across both plans (Azure Marketplace supports up to 100 plans per offer). The plan variable controls:
+
+- Teams SDK initialization (Team plan only)
+- Channel file storage UI (Team plan only)
+- Mobile Field View route (Team plan only)
+- Photo capture in findings (Team plan only)
+- Admin consent guidance in settings (Team plan only)
+
+See [ADR-016](adr-016-teams-integration.md) for full Teams integration technical design.
 
 ### Pricing Rationale
 
@@ -80,7 +102,7 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 | Billing           | Monthly only (Managed Application limitation)      |
 | Model             | Per-deployment (one subscription per Azure tenant) |
 
-**Why single plan**: Managed Applications are per-deployment, not per-user. There is no mechanism to enforce user-count tiers within a tenant. A single all-inclusive plan is simpler to market, purchase, and support.
+**Why per-deployment pricing**: Managed Applications are per-deployment, not per-user. There is no mechanism to enforce user-count tiers within a tenant. Plans differentiate by capability (Standard vs Team), not by user count. Both plans include unlimited users in the tenant.
 
 ---
 
@@ -136,8 +158,8 @@ variscout-managed-app.zip
    - Monthly billing with automatic renewal
 
 3. **Simplified product model**
-   - One paid product (Azure App), one free product (PWA)
-   - No per-user tier confusion
+   - Two paid plans (Standard + Team), one free product (PWA)
+   - No per-user tier confusion — plans differentiate by capability
    - No license detection complexity
    - GTM: "Try it free at variscout.com. When you're ready for your team, get it on Azure Marketplace."
 
@@ -254,12 +276,24 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 - AppSource submission cancelled
 - PWA serves as the sole free funnel product
 
+### Phase 5: Team Plan & Teams Integration (TBD)
+
+- Add second Marketplace plan ("VariScout Team" at €300/month, price TBD)
+- `VARISCOUT_PLAN` environment variable in ARM template
+- Teams SDK integration (SSO, channel tabs, Adaptive Cards)
+- Shared channel file storage (SharePoint) with optimistic merge
+- Mobile Field View (`/field` route) for gemba investigations
+- Photo comments on findings (camera capture + channel storage)
+- Azure Function for On-Behalf-Of token exchange
+- See [ADR-016](adr-016-teams-integration.md) for phased delivery breakdown
+
 ---
 
 ## Related Decisions
 
 - [ADR-006: Edition System](adr-006-edition-system.md) - Superseded, kept for historical context
 - [ADR-004: Offline-First](adr-004-offline-first.md) - Unchanged, still applies
+- [ADR-016: Teams Integration](adr-016-teams-integration.md) - Technical design for Team plan capabilities
 
 ---
 

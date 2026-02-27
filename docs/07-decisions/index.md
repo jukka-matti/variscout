@@ -23,6 +23,7 @@ This section captures key architectural decisions made during VariScout developm
 | [013](adr-013-architecture-evaluation-ddd-swarms.md) | Architecture Evaluation (DDD/Swarms) | Accepted   | 2026-02-18 |
 | [014](adr-014-regression-deferral.md)                | Defer Regression to Phase 2          | Accepted   | 2026-02-25 |
 | [015](adr-015-investigation-board.md)                | Investigation Board                  | Accepted   | 2026-02-26 |
+| [016](adr-016-teams-integration.md)                  | Teams Integration                    | Proposed   | 2026-02-27 |
 
 ---
 
