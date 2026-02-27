@@ -103,7 +103,7 @@ Azure Function for On-Behalf-Of (OBO) token exchange:
 
 ### New Client-Side Processing
 
-- EXIF/GPS metadata stripping via canvas re-encode before upload
+- Two-layer EXIF/GPS metadata stripping before upload: canvas re-encode + explicit byte-level `stripExifFromBlob` (removes all APP1 markers from JPEG binary)
 - Base64 thumbnail generation (~50KB per photo)
 - Optimistic merge for concurrent `.vrs` edits (conflict detection via `eTag`)
 
@@ -301,20 +301,20 @@ Quality data can be commercially sensitive:
 
 ## 7. Consolidated Risk Matrix
 
-| #   | Area                                   | Microsoft | Enterprise IT | Finnish Mfr | Severity | Mitigation                                                                                                                                                                     | Timeline          |
-| --- | -------------------------------------- | --------- | ------------- | ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
-| 1   | Missing CSP header                     | AMBER     | AMBER         | LOW         | Medium   | Add `Content-Security-Policy` to `server.js` responses. Allow `self`, Graph API, and blob: for chart exports.                                                                  | Before submission |
-| 2   | Missing security headers               | AMBER     | AMBER         | LOW         | Medium   | Add `Strict-Transport-Security`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` to `server.js`.                | Before submission |
-| 3   | `Files.ReadWrite.All` scope            | GREEN     | AMBER         | AMBER       | Medium   | Document justification (channel SharePoint requires `.All`). Create admin consent guide with consent screen screenshot. Explain delegated vs application.                      | Before Team plan  |
-| 4   | IndexedDB unencrypted                  | GREEN     | LOW           | LOW         | Low      | Standard for web apps. Browser manages storage isolation. Document in security FAQ.                                                                                            | Ongoing           |
-| 5   | No Key Vault for client secret         | LOW       | AMBER         | LOW         | Low      | App setting is encrypted at rest by App Service platform. Key Vault is a best practice but not required. Document as optional hardening step for security-conscious customers. | Ongoing           |
-| 6   | EXIF/GPS stripping                     | GREEN     | GREEN         | GREEN       | Medium   | Must be implemented before photo feature ships. Canvas re-encode strips all metadata. Add unit tests to verify EXIF removal.                                                   | Before Team plan  |
-| 7   | OBO Azure Function                     | GREEN     | AMBER         | LOW         | Low      | ~50 lines, stateless, single-purpose. Standard Microsoft pattern. Include in ARM template. Ensure function has no storage bindings, no persistent state.                       | Before Team plan  |
-| 8   | No incident response process           | AMBER     | RED           | AMBER       | High     | Create SECURITY.md with disclosure policy. Establish security@variscout.com. Define response timeline (acknowledge <48h, triage <7 days).                                      | Before submission |
-| 9   | No SBOM                                | LOW       | AMBER         | LOW         | Low      | Generate CycloneDX SBOM in CI pipeline. Include in release artifacts.                                                                                                          | Before submission |
-| 10  | No `pnpm audit` in CI                  | AMBER     | AMBER         | LOW         | Medium   | Add `pnpm audit --audit-level=high` to deploy workflow. Fail the build on high/critical vulnerabilities.                                                                       | Before submission |
-| 11  | No admin consent documentation         | GREEN     | AMBER         | RED         | High     | Create one-page admin guide with consent screen screenshot. Translate to Finnish. Include in onboarding materials.                                                             | Before Team plan  |
-| 12  | Conflict resolution (concurrent edits) | GREEN     | LOW           | AMBER       | Medium   | Optimistic merge for additive operations. Unresolvable conflicts create copies (zero data loss). Document behavior in user guide.                                              | Before Team plan  |
+| #   | Area                                   | Microsoft | Enterprise IT | Finnish Mfr | Severity | Mitigation                                                                                                                                                                                              | Timeline          |
+| --- | -------------------------------------- | --------- | ------------- | ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| 1   | Missing CSP header                     | AMBER     | AMBER         | LOW         | Medium   | Add `Content-Security-Policy` to `server.js` responses. Allow `self`, Graph API, and blob: for chart exports.                                                                                           | Before submission |
+| 2   | Missing security headers               | AMBER     | AMBER         | LOW         | Medium   | Add `Strict-Transport-Security`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` to `server.js`.                                         | Before submission |
+| 3   | `Files.ReadWrite.All` scope            | GREEN     | AMBER         | AMBER       | Medium   | Document justification (channel SharePoint requires `.All`). Create admin consent guide with consent screen screenshot. Explain delegated vs application.                                               | Before Team plan  |
+| 4   | IndexedDB unencrypted                  | GREEN     | LOW           | LOW         | Low      | Standard for web apps. Browser manages storage isolation. Document in security FAQ.                                                                                                                     | Ongoing           |
+| 5   | No Key Vault for client secret         | LOW       | AMBER         | LOW         | Low      | App setting is encrypted at rest by App Service platform. Key Vault is a best practice but not required. Document as optional hardening step for security-conscious customers.                          | Ongoing           |
+| 6   | EXIF/GPS stripping                     | GREEN     | GREEN         | GREEN       | Medium   | Done. Two-layer approach: canvas re-encode + byte-level `stripExifFromBlob` that parses JPEG binary and removes all APP1 markers. 23 unit tests verify GPS, camera model, and orientation are stripped. | Done              |
+| 7   | OBO Azure Function                     | GREEN     | AMBER         | LOW         | Low      | ~50 lines, stateless, single-purpose. Standard Microsoft pattern. Include in ARM template. Ensure function has no storage bindings, no persistent state.                                                | Before Team plan  |
+| 8   | No incident response process           | AMBER     | RED           | AMBER       | High     | Create SECURITY.md with disclosure policy. Establish security@variscout.com. Define response timeline (acknowledge <48h, triage <7 days).                                                               | Before submission |
+| 9   | No SBOM                                | LOW       | AMBER         | LOW         | Low      | Generate CycloneDX SBOM in CI pipeline. Include in release artifacts.                                                                                                                                   | Before submission |
+| 10  | No `pnpm audit` in CI                  | AMBER     | AMBER         | LOW         | Medium   | Add `pnpm audit --audit-level=high` to deploy workflow. Fail the build on high/critical vulnerabilities.                                                                                                | Before submission |
+| 11  | No admin consent documentation         | GREEN     | AMBER         | RED         | High     | Create one-page admin guide with consent screen screenshot. Translate to Finnish. Include in onboarding materials.                                                                                      | Before Team plan  |
+| 12  | Conflict resolution (concurrent edits) | GREEN     | LOW           | AMBER       | Medium   | Optimistic merge for additive operations. Unresolvable conflicts create copies (zero data loss). Document behavior in user guide.                                                                       | Before Team plan  |
 
 ---
 
@@ -340,7 +340,7 @@ These items are required for the Teams-integrated Team plan:
 - [ ] **Publisher Verification** — Complete Entra ID verification for RDMAIC Oy via Partner Center (~2 weeks)
 - [ ] **DPA template** — Draft Data Processing Agreement template even though technically unnecessary (reduces procurement friction)
 - [ ] **Finnish privacy notice** — Translate privacy policy to Finnish (GDPR good practice)
-- [ ] **EXIF stripping implementation** — Canvas re-encode with unit tests verifying metadata removal
+- [x] **EXIF stripping implementation** — Two-layer: canvas re-encode + byte-level `stripExifFromBlob` (APP1 marker removal). 23 unit tests verify GPS, camera model, and orientation stripped.
 - [ ] **Photo immutability enforcement** — Verify no update/delete paths for uploaded photos in storage layer
 - [ ] **OBO function security review** — Verify stateless, no storage bindings, minimal permissions
 - [ ] **Conflict resolution testing** — Test concurrent edit scenarios, verify conflict copy creation
@@ -429,7 +429,7 @@ Complete Graph API permissions used by VariScout, current and proposed:
 │  │  └────┬─────┘  └──────────┘  └──────┬───────┘ │         │
 │  │       │                              │          │         │
 │  │       │    ┌─────────────────────────┘          │         │
-│  │       │    │ EXIF strip (canvas re-encode)      │         │
+│  │       │    │ EXIF strip (canvas + byte-level)   │         │
 │  │  ┌────▼────▼────────────────────────────────┐  │         │
 │  │  │     IndexedDB (offline queue)            │  │         │
 │  │  └────┬─────────────────────────────────────┘  │         │
@@ -458,7 +458,7 @@ Complete Graph API permissions used by VariScout, current and proposed:
 Camera (HTML5)
     │
     ▼
-Canvas re-encode ──── EXIF/GPS stripped
+Canvas re-encode + stripExifFromBlob ──── EXIF/GPS stripped (two layers)
     │
     ├── Base64 thumbnail (~50KB) → embedded in .vrs
     │

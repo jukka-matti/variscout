@@ -145,7 +145,7 @@ An Azure Function (~50 lines) exchanges the Teams SSO token for a Graph API acce
 
 ### Security Considerations
 
-- **EXIF/GPS stripping**: Photo metadata stripped client-side via canvas re-encode before upload. Prevents accidental location disclosure from shop floor photos.
+- **EXIF/GPS stripping**: Two-layer metadata removal before upload. First, canvas re-encode strips most EXIF data as a side effect. Second, explicit byte-level `stripExifFromBlob` parses the JPEG binary and removes all EXIF/GPS APP1 markers, guaranteeing no location or device metadata survives. Both layers run client-side. Unit tests (23 cases) verify GPS coordinates, camera model, and orientation are stripped from real-world JPEG samples.
 - **Tighter personal storage**: `Files.ReadWrite.AppFolder` for personal OneDrive (narrower than `Files.ReadWrite`). Channel storage requires `Files.ReadWrite.All`.
 - **Photo immutability**: Photos are immutable once uploaded — no edit or delete of photo files. Prevents evidence tampering in quality investigations.
 - **No-delete principle**: `Files.ReadWrite.All` technically includes delete capability, but VariScout never calls Graph API delete endpoints. The storage model is strictly additive — `.vrs` projects are created/updated (conflicts save as copies), photos are immutable once uploaded. IT admins can audit this: the app contains no `DELETE /drive/items/{id}` calls.
