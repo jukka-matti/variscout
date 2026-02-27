@@ -5,28 +5,8 @@
  * Local storage is used for auto-save; IndexedDB for offline cache.
  */
 
-import type { DataRow } from '@variscout/core';
+import type { AnalysisState } from '@variscout/hooks';
 import { db } from '../db/schema';
-
-// Display options for capability metrics
-export interface DisplayOptions {
-  /** Lock Y-axis to full dataset range when filtering (default: true) */
-  lockYAxisToFullData?: boolean;
-}
-
-// Types for saved analysis state
-export interface AnalysisState {
-  version: string;
-  rawData: DataRow[];
-  outcome: string | null;
-  factors: string[];
-  specs: { usl?: number; lsl?: number; target?: number };
-  filters: Record<string, (string | number)[]>;
-  axisSettings: { min?: number; max?: number };
-  columnAliases?: Record<string, string>;
-  valueLabels?: Record<string, Record<string, string>>;
-  displayOptions?: DisplayOptions;
-}
 
 export interface SavedProject {
   id: string;

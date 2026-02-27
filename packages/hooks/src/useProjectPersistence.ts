@@ -53,6 +53,14 @@ export interface ProjectPersistenceInputs {
   measureLabel: string;
   chartTitles: ChartTitles;
 
+  // Pareto getters
+  paretoMode: ParetoMode;
+  paretoAggregation: 'count' | 'value';
+  separateParetoData: ParetoRow[] | null;
+
+  // Time column getter
+  timeColumn: string | null;
+
   // Filter stack getter (Phase 2)
   filterStack: FilterAction[];
 
@@ -150,6 +158,10 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     selectedMeasure,
     measureLabel,
     chartTitles,
+    paretoMode,
+    paretoAggregation,
+    separateParetoData,
+    timeColumn,
     filterStack,
     viewState,
     setRawData,
@@ -214,6 +226,14 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     if (measureLabel !== 'Measure') state.measureLabel = measureLabel;
     if (Object.keys(chartTitles).length > 0) state.chartTitles = chartTitles;
 
+    // Pareto fields — only include non-default values for compact serialization
+    if (paretoMode !== 'derived') state.paretoMode = paretoMode;
+    if (paretoAggregation !== 'count') state.paretoAggregation = paretoAggregation;
+    if (separateParetoData) state.separateParetoData = separateParetoData;
+
+    // Time column — only include if set
+    if (timeColumn) state.timeColumn = timeColumn;
+
     // Filter stack — only include if non-empty
     if (filterStack.length > 0) state.filterStack = filterStack;
 
@@ -243,6 +263,10 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     selectedMeasure,
     measureLabel,
     chartTitles,
+    paretoMode,
+    paretoAggregation,
+    separateParetoData,
+    timeColumn,
     filterStack,
     viewState,
     findings,
@@ -288,6 +312,14 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         setMeasureLabel(state.measureLabel ?? 'Measure');
         setChartTitles(state.chartTitles ?? {});
 
+        // Pareto fields
+        setParetoMode(state.paretoMode ?? 'derived');
+        setParetoAggregation(state.paretoAggregation ?? 'count');
+        setSeparateParetoData(state.separateParetoData ?? null);
+
+        // Time column
+        setTimeColumn(state.timeColumn ?? null);
+
         // Filter stack — if present, restore ordered stack + derive flat filters
         if (state.filterStack && state.filterStack.length > 0) {
           setFilterStack(state.filterStack);
@@ -305,8 +337,15 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
           setFilterStack([]);
         }
 
-        // View state
-        setViewState(state.viewState ?? null);
+        // View state — migrate isMindmapOpen → isFindingsOpen for old .vrs files
+        const vs = state.viewState ? { ...state.viewState } : null;
+        if (vs && 'isMindmapOpen' in vs) {
+          vs.isFindingsOpen =
+            vs.isFindingsOpen ??
+            ((vs as Record<string, unknown>).isMindmapOpen as boolean | undefined);
+          delete (vs as Record<string, unknown>).isMindmapOpen;
+        }
+        setViewState(vs);
 
         // Findings
         setFindings(state.findings ?? []);
@@ -339,6 +378,10 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setSelectedMeasure,
       setMeasureLabel,
       setChartTitles,
+      setParetoMode,
+      setParetoAggregation,
+      setSeparateParetoData,
+      setTimeColumn,
       setFilterStack,
       setViewState,
       setFindings,
@@ -400,6 +443,14 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setChartTitles(state.chartTitles ?? {});
       if (state.measureSpecs) setMeasureSpecs(state.measureSpecs);
 
+      // Pareto fields
+      setParetoMode(state.paretoMode ?? 'derived');
+      setParetoAggregation(state.paretoAggregation ?? 'count');
+      setSeparateParetoData(state.separateParetoData ?? null);
+
+      // Time column
+      setTimeColumn(state.timeColumn ?? null);
+
       // Filter stack
       if (state.filterStack && state.filterStack.length > 0) {
         setFilterStack(state.filterStack);
@@ -415,8 +466,15 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         setFilterStack([]);
       }
 
-      // View state
-      setViewState(state.viewState ?? null);
+      // View state — migrate isMindmapOpen → isFindingsOpen for old .vrs files
+      const vs = state.viewState ? { ...state.viewState } : null;
+      if (vs && 'isMindmapOpen' in vs) {
+        vs.isFindingsOpen =
+          vs.isFindingsOpen ??
+          ((vs as Record<string, unknown>).isMindmapOpen as boolean | undefined);
+        delete (vs as Record<string, unknown>).isMindmapOpen;
+      }
+      setViewState(vs);
 
       // Findings
       setFindings(state.findings ?? []);
@@ -448,6 +506,10 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setMeasureLabel,
       setChartTitles,
       setMeasureSpecs,
+      setParetoMode,
+      setParetoAggregation,
+      setSeparateParetoData,
+      setTimeColumn,
       setFilterStack,
       setViewState,
       setFindings,

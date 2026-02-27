@@ -145,8 +145,6 @@ export interface DisplayOptions {
   showSpecs?: boolean;
   /** Show Cpk values in stats panel (default: true) */
   showCpk?: boolean;
-  /** Mindmap step annotations (step index → text), persisted with project */
-  mindmapAnnotations?: Record<string, string>;
 }
 
 /**
@@ -178,7 +176,7 @@ export type ParetoAggregation = 'count' | 'value';
  */
 export interface ViewState {
   activeTab?: 'analysis' | 'performance';
-  isMindmapOpen?: boolean;
+  isFindingsOpen?: boolean;
   isWhatIfOpen?: boolean;
   focusedChart?: 'ichart' | 'boxplot' | 'pareto' | null;
   boxplotFactor?: string;
@@ -220,6 +218,18 @@ export interface AnalysisState {
   measureLabel?: string;
   /** Custom chart titles for reporting/export */
   chartTitles?: ChartTitles;
+
+  // --- Pareto configuration ---
+  /** Pareto chart data mode (default: 'derived') */
+  paretoMode?: ParetoMode;
+  /** Pareto chart aggregation mode (default: 'count') */
+  paretoAggregation?: 'count' | 'value';
+  /** Separately uploaded Pareto data (when paretoMode = 'separate') */
+  separateParetoData?: ParetoRow[];
+
+  // --- Time column ---
+  /** Time column for I-Chart ordering */
+  timeColumn?: string | null;
 
   // --- Filter stack ordering (Phase 2) ---
   /** Ordered filter drill trail — reconstructs breadcrumbs on reload */

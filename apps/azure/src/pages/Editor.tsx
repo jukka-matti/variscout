@@ -214,7 +214,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     // Check for duplicate
     const existing = findingsState.findDuplicate(filters);
     if (existing) {
-      panels.setIsMindmapOpen(true);
+      panels.setIsFindingsOpen(true);
       setHighlightedFindingId(existing.id);
       return;
     }
@@ -236,7 +236,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           : undefined,
     };
     const newFinding = findingsState.addFinding('', context);
-    panels.setIsMindmapOpen(true);
+    panels.setIsFindingsOpen(true);
     setHighlightedFindingId(newFinding.id);
   }, [filters, drillPath, filteredData, outcome, findingsState, panels]);
 
@@ -563,13 +563,13 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
           {/* Findings Toggle */}
           {rawData.length > 0 && outcome && factors.length > 0 && (
             <button
-              onClick={() => panels.setIsMindmapOpen(prev => !prev)}
+              onClick={() => panels.setIsFindingsOpen(prev => !prev)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                panels.isMindmapOpen
+                panels.isFindingsOpen
                   ? 'bg-blue-600 text-white'
                   : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
               }`}
-              title={panels.isMindmapOpen ? 'Hide Findings' : 'Show Findings'}
+              title={panels.isFindingsOpen ? 'Hide Findings' : 'Show Findings'}
               data-testid="btn-findings"
             >
               <ClipboardList size={16} />
@@ -641,8 +641,8 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
       {rawData.length > 0 && outcome && factors.length > 0 && (
         <InvestigationPrompt
           filterCount={filterNav.filterStack.length}
-          isMindmapOpen={panels.isMindmapOpen}
-          onOpenMindmap={() => panels.setIsMindmapOpen(true)}
+          isFindingsOpen={panels.isFindingsOpen}
+          onOpenMindmap={() => panels.setIsFindingsOpen(true)}
         />
       )}
 
@@ -768,9 +768,9 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               onPinFinding={handlePinFinding}
             />
             <FindingsPanel
-              isOpen={panels.isMindmapOpen}
+              isOpen={panels.isFindingsOpen}
               onClose={() => {
-                panels.setIsMindmapOpen(false);
+                panels.setIsFindingsOpen(false);
                 setHighlightedFindingId(null);
               }}
               findings={findingsState.findings}

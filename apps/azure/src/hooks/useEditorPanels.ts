@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { DisplayOptions, ViewState } from '@variscout/hooks';
 
 type BoolSetter = React.Dispatch<React.SetStateAction<boolean>>;
@@ -17,8 +17,8 @@ export interface UseEditorPanelsReturn {
   setIsDataPanelOpen: BoolSetter;
   isDataTableOpen: boolean;
   setIsDataTableOpen: BoolSetter;
-  isMindmapOpen: boolean;
-  setIsMindmapOpen: BoolSetter;
+  isFindingsOpen: boolean;
+  setIsFindingsOpen: BoolSetter;
   isWhatIfOpen: boolean;
   setIsWhatIfOpen: BoolSetter;
   isPresentationMode: boolean;
@@ -29,29 +29,26 @@ export interface UseEditorPanelsReturn {
   setHighlightedChartPoint: (v: number | null) => void;
   handlePointClick: (index: number) => void;
   handleRowClick: (index: number) => void;
-  mindmapAnnotations: Map<number, string>;
-  setMindmapAnnotations: (annotations: Map<number, string>) => void;
 }
 
 /**
- * Manages panel visibility, chart/table highlight sync,
- * and mindmap annotation persistence for the Azure Editor.
+ * Manages panel visibility and chart/table highlight sync for the Azure Editor.
  */
 export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanelsReturn {
-  const { displayOptions, setDisplayOptions, viewState, onViewStateChange } = options;
+  const { viewState, onViewStateChange } = options;
 
   const [isDataPanelOpen, setIsDataPanelOpen] = useState(false);
   const [isDataTableOpen, setIsDataTableOpen] = useState(false);
-  const [isMindmapOpen, setIsMindmapOpenRaw] = useState(viewState?.isMindmapOpen ?? false);
+  const [isFindingsOpen, setIsFindingsOpenRaw] = useState(viewState?.isFindingsOpen ?? false);
   const [isWhatIfOpen, setIsWhatIfOpenRaw] = useState(viewState?.isWhatIfOpen ?? false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
 
-  // Wrap mindmap/whatif setters to report changes for persistence
-  const setIsMindmapOpen: BoolSetter = useCallback(
+  // Wrap findings/whatif setters to report changes for persistence
+  const setIsFindingsOpen: BoolSetter = useCallback(
     value => {
-      setIsMindmapOpenRaw(prev => {
+      setIsFindingsOpenRaw(prev => {
         const next = typeof value === 'function' ? value(prev) : value;
-        onViewStateChange?.({ isMindmapOpen: next });
+        onViewStateChange?.({ isFindingsOpen: next });
         return next;
       });
     },
@@ -88,36 +85,13 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     setTimeout(() => setHighlightedChartPoint(null), 2000);
   }, []);
 
-  // Mindmap annotations persisted in displayOptions (Record<string, string> <-> Map<number, string>)
-  const mindmapAnnotations = useMemo(() => {
-    const map = new Map<number, string>();
-    const stored = displayOptions.mindmapAnnotations;
-    if (stored) {
-      for (const [key, value] of Object.entries(stored)) {
-        map.set(Number(key), value);
-      }
-    }
-    return map;
-  }, [displayOptions]);
-
-  const setMindmapAnnotations = useCallback(
-    (annotations: Map<number, string>) => {
-      const record: Record<string, string> = {};
-      annotations.forEach((value, key) => {
-        record[String(key)] = value;
-      });
-      setDisplayOptions({ ...displayOptions, mindmapAnnotations: record });
-    },
-    [displayOptions, setDisplayOptions]
-  );
-
   return {
     isDataPanelOpen,
     setIsDataPanelOpen,
     isDataTableOpen,
     setIsDataTableOpen,
-    isMindmapOpen,
-    setIsMindmapOpen,
+    isFindingsOpen,
+    setIsFindingsOpen,
     isWhatIfOpen,
     setIsWhatIfOpen,
     isPresentationMode,
@@ -128,7 +102,5 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     setHighlightedChartPoint,
     handlePointClick,
     handleRowClick,
-    mindmapAnnotations,
-    setMindmapAnnotations,
   };
 }

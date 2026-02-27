@@ -23,7 +23,7 @@ export interface InvestigationPromptProps {
   /** Current number of applied filters */
   filterCount: number;
   /** Whether the mindmap panel is already open */
-  isMindmapOpen: boolean;
+  isFindingsOpen: boolean;
   /** Open the mindmap panel */
   onOpenMindmap: () => void;
   /** Color scheme */
@@ -38,7 +38,7 @@ export interface InvestigationPromptProps {
  */
 const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
   filterCount,
-  isMindmapOpen,
+  isFindingsOpen,
   onOpenMindmap,
   colorScheme = investigationPromptDefaultColorScheme,
 }) => {
@@ -54,17 +54,17 @@ const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (filterCount === 1 && !dismissed && !isMindmapOpen) {
+    if (filterCount === 1 && !dismissed && !isFindingsOpen) {
       setVisible(true);
     }
-  }, [filterCount, dismissed, isMindmapOpen]);
+  }, [filterCount, dismissed, isFindingsOpen]);
 
   // Auto-hide if mindmap is opened
   useEffect(() => {
-    if (isMindmapOpen && visible) {
+    if (isFindingsOpen && visible) {
       handleDismiss();
     }
-  }, [isMindmapOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isFindingsOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDismiss = () => {
     setVisible(false);

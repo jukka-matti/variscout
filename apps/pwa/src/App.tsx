@@ -395,7 +395,7 @@ function AppMain() {
       {rawData.length > 0 && outcome && !isEmbedMode && (
         <InvestigationPrompt
           filterCount={filterNav.filterStack.length}
-          isMindmapOpen={panels.isFindingsPanelOpen}
+          isFindingsOpen={panels.isFindingsPanelOpen}
           onOpenMindmap={panels.handleToggleFindingsPanel}
         />
       )}

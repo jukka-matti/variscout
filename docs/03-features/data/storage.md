@@ -82,7 +82,7 @@ When `filterStack` is present, flat `filters` are derived from it on load. When 
 | ----------- | ----------- | ----------- | ----------------------------- |
 | `viewState` | `ViewState` | `undefined` | Where the analyst was working |
 
-`ViewState` includes: `activeTab` ('analysis' | 'regression' | 'performance'), `isMindmapOpen`, `isWhatIfOpen`, `focusedChart` ('ichart' | 'boxplot' | 'pareto' | null), `boxplotFactor`, `paretoFactor`. Captures the analyst's working position so reload resumes their context.
+`ViewState` includes: `activeTab` ('analysis' | 'performance'), `isFindingsOpen`, `isWhatIfOpen`, `focusedChart` ('ichart' | 'boxplot' | 'pareto' | null), `boxplotFactor`, `paretoFactor`, `findingsViewMode`. Captures the analyst's working position so reload resumes their context.
 
 ---
 
