@@ -616,7 +616,36 @@ The `@variscout/charts` `BoxplotBase` component accepts optional `variationPct` 
 - Shows "↓ drill here" indicator when `variationPct ≥ variationThreshold`
 - Red highlighting for high-impact factors
 
-## 12. Performance Budget
+## 12. Teams SDK Integration (Azure App)
+
+The Azure app detects whether it's running inside Microsoft Teams and adapts behavior:
+
+```
+app.initialize() → app.getContext()
+├── Success → Teams mode (isTeams: true)
+│   ├── channelTab → show channel name in header
+│   ├── personalTab → personal tab UX
+│   └── SSO token via authentication.getAuthToken()
+└── Failure → Browser mode (existing EasyAuth flow)
+```
+
+**Key module**: `apps/azure/src/teams/teamsContext.ts`
+
+| Concept             | Implementation                                                   |
+| ------------------- | ---------------------------------------------------------------- |
+| Context detection   | `initTeams()` — called on app startup, caches result             |
+| React hook          | `useTeamsContext()` — provides context + loading state           |
+| SSO token           | `getTeamsSsoToken()` — client-side token (not Graph-ready)       |
+| Tab configuration   | `TeamsTabConfig.tsx` — shown when adding channel tab             |
+| Manifest generation | `AdminTeamsSetup.tsx` — generates `.zip` with `configurableTabs` |
+
+**Plan gating**: `VITE_VARISCOUT_PLAN` env var (`'standard'` or `'team'`) controls feature availability. The Teams SDK initializes regardless of plan (the app works as a tab in either), but Team-plan-only features (channel storage, photos) check `isTeamPlan()` from `@variscout/core/tier`.
+
+**CSP**: `frame-ancestors` updated in `server.js` to allow Teams iframe embedding (`teams.microsoft.com`, `*.teams.microsoft.com`, `*.skype.com`).
+
+See [ADR-016](../07-decisions/adr-016-teams-integration.md) for the full Teams integration design.
+
+## 13. Performance Budget
 
 | Metric              | Budget          |
 | ------------------- | --------------- |
@@ -627,7 +656,7 @@ The `@variscout/charts` `BoxplotBase` component accepts optional `variationPct` 
 | CLS                 | < 0.1           |
 | Time to Interactive | < 3s            |
 
-## 13. Browser Support
+## 14. Browser Support
 
 | Browser | Minimum Version |
 | ------- | --------------- |

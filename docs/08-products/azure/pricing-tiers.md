@@ -1,89 +1,111 @@
 # Pricing
 
-VariScout Azure App pricing structure.
+VariScout Azure App pricing structure — two plans differentiated by storage, collaboration, and mobile capabilities.
 
 ---
 
 ## Plan Overview
 
-| Plan          | Price      | Users     | Features     | Billing |
-| ------------- | ---------- | --------- | ------------ | ------- |
-| **Full Plan** | €150/month | Unlimited | All features | Monthly |
+| Plan         | Price      | Storage                              | Auth Scopes                                      | Mobile               | Users     | Billing |
+| ------------ | ---------- | ------------------------------------ | ------------------------------------------------ | -------------------- | --------- | ------- |
+| **Standard** | €99/month  | Local files (File System Access API) | `User.Read` only                                 | Desktop browser only | Unlimited | Monthly |
+| **Team**     | €299/month | + OneDrive + SharePoint channels     | + `Files.ReadWrite.All`, `Channel.ReadBasic.All` | Teams mobile app     | Unlimited | Monthly |
 
-**Model**: Per-deployment (one subscription per Azure tenant). All users in the tenant have access.
-
----
-
-## Feature Highlights
-
-All features are included in the single plan:
-
-| Feature                  | Included |
-| ------------------------ | :------: |
-| **Core Analysis**        |          |
-| I-Chart                  |    ✓     |
-| Boxplot                  |    ✓     |
-| Pareto                   |    ✓     |
-| Capability (Cp/Cpk)      |    ✓     |
-| Probability Plot         |    ✓     |
-| **Performance Mode**     |          |
-| Multi-channel analysis   |    ✓     |
-| Channel limit            |  1,500   |
-| **Collaboration**        |          |
-| OneDrive sync            |    ✓     |
-| Shared projects          |    ✓     |
-| **Integration**          |          |
-| SSO (Microsoft Entra ID) |    ✓     |
-| **Support**              |          |
-| Email support            |    ✓     |
-| Response time            |   24h    |
+**Model**: Per-deployment (one subscription per Azure tenant). All users in the tenant have access. Plans differentiate by capability, not user count.
 
 ---
 
-## Pricing Rationale
+## Feature Comparison
 
-### Why Single Plan
+| Feature                        | Standard | Team  |
+| ------------------------------ | :------: | :---: |
+| **Core Analysis**              |          |       |
+| I-Chart                        |    ✓     |   ✓   |
+| Boxplot                        |    ✓     |   ✓   |
+| Pareto                         |    ✓     |   ✓   |
+| Capability (Cp/Cpk)            |    ✓     |   ✓   |
+| Probability Plot               |    ✓     |   ✓   |
+| ANOVA                          |    ✓     |   ✓   |
+| **Performance Mode**           |          |       |
+| Multi-channel analysis         |    ✓     |   ✓   |
+| Channel limit                  |  1,500   | 1,500 |
+| **Data Input**                 |          |       |
+| CSV / Excel upload             |    ✓     |   ✓   |
+| Copy-paste from spreadsheets   |    ✓     |   ✓   |
+| Manual data entry              |    ✓     |   ✓   |
+| **Storage**                    |          |       |
+| Local file save/load (.vrs)    |    ✓     |   ✓   |
+| IndexedDB fallback             |    ✓     |   ✓   |
+| OneDrive personal sync         |    —     |   ✓   |
+| SharePoint channel storage     |    —     |   ✓   |
+| **Authentication**             |          |       |
+| EasyAuth SSO (Microsoft Entra) |    ✓     |   ✓   |
+| Admin consent required         |    No    |  Yes  |
+| **Investigation Workflow**     |          |       |
+| Findings log                   |    ✓     |   ✓   |
+| What-If simulation             |    ✓     |   ✓   |
+| Photo evidence in findings     |    —     |   ✓   |
+| **Collaboration**              |          |       |
+| Teams channel tabs             |    —     |   ✓   |
+| Teams SSO                      |    —     |   ✓   |
+| Adaptive Cards                 |    —     |   ✓   |
+| **Mobile**                     |          |       |
+| Mobile gemba companion (Teams) |    —     |   ✓   |
+| **Support**                    |          |       |
+| Email support                  |    ✓     |   ✓   |
+| Response time                  |   24h    |  24h  |
 
-Managed Applications on Azure Marketplace are **per-deployment**, not per-user. There is no mechanism to enforce different user-count tiers within a tenant. A single all-inclusive plan:
+---
 
-- Is simpler to market and purchase
-- Eliminates "which tier do I need?" confusion
-- Requires no user-count enforcement logic
-- Aligns with the per-deployment billing model
+## Why Two Plans
 
-### Why €150/month
+### Standard — Full Analysis, Zero Admin
 
-€150/month (€1,800/year equivalent) is competitive with established SPC tools while reflecting the value of unlimited tenant-wide access:
+Standard is the complete SPC analysis tool for individuals and small teams who work from a desktop browser. Local file storage via the File System Access API means projects live on the user's machine — no cloud permissions, no admin consent, no IT involvement. At €99/month for unlimited users, it undercuts per-seat competitors at any team size above one.
 
-- Cheaper than Minitab for any team size (Minitab charges per-seat)
-- Comparable to SigmaXL for 2+ users
-- Significantly cheaper than InfinityQS for any team
-- No hidden infrastructure costs (runs on customer's Azure)
+### Team — Collaboration via Teams
 
-For a team of 10 users: €15/user/month — well below any competitor.
+Team adds everything needed for shared quality workflows: OneDrive and SharePoint channel storage so projects live where the team works, Teams integration for embedding analysis in channels, and mobile access through the Teams app for gemba investigations with photo evidence. The `Files.ReadWrite.All` and `Channel.ReadBasic.All` permissions require one-time admin consent, justified by the collaborative storage and Teams features they unlock.
+
+### Why Not One Plan
+
+A single plan at €150/month forced a compromise: too expensive for individuals who only need local analysis, not enough revenue from teams who need collaboration features. Two plans let each segment pay for what they use:
+
+- Standard at €99 removes the "do I really need OneDrive?" hesitation
+- Team at €299 captures the collaboration value that teams are willing to pay for
+- Standard requires no admin consent — faster purchase cycle
 
 ---
 
 ## Revenue
 
-### Price Breakdown
+### Standard Plan
 
 ```
-Gross Price:     €150/month
-Microsoft Fee:   -€4.50/month (3%)
-Net Revenue:     €145.50/month
-Annual Net:      €1,746/year
+Gross Price:     €99/month
+Microsoft Fee:   -€2.97/month (3%)
+Net Revenue:     €96.03/month
+Annual Net:      €1,152.36/year
+```
+
+### Team Plan
+
+```
+Gross Price:     €299/month
+Microsoft Fee:   -€8.97/month (3%)
+Net Revenue:     €290.03/month
+Annual Net:      €3,480.36/year
 ```
 
 ### Currency Table
 
-| Region | Currency | Price/Month |
-| ------ | -------- | ----------- |
-| EU     | EUR      | €150        |
-| US     | USD      | ~$165       |
-| UK     | GBP      | ~£128       |
+| Region | Currency | Standard/Month | Team/Month |
+| ------ | -------- | -------------- | ---------- |
+| EU     | EUR      | €99            | €299       |
+| US     | USD      | ~$109          | ~$329      |
+| UK     | GBP      | ~£85           | ~£256      |
 
-Microsoft handles currency conversion automatically.
+Microsoft handles currency conversion automatically. Prices are set excluding tax; Microsoft adds VAT/GST at checkout based on the customer's billing country.
 
 ---
 
@@ -124,6 +146,20 @@ The PWA serves as a marketing funnel — users who need Performance Mode, file u
 
 ---
 
+## Upgrade Path
+
+### PWA to Standard
+
+Users outgrow the PWA when they need file upload, project save/load, Performance Mode, or more than 3 factors. Standard provides all analysis features with local storage and no admin consent.
+
+### Standard to Team
+
+Teams outgrow Standard when they need shared project storage, mobile gemba access, or Teams channel integration. Upgrading from Standard to Team is a plan change in the Azure portal — same deployment, same data, new capabilities.
+
+The ARM template uses a `VARISCOUT_PLAN` environment variable (`standard` or `team`) to control which features are available. Both plans deploy as `enterprise` tier.
+
+---
+
 ## Cancellation
 
 - Cancel any time in Azure portal
@@ -133,36 +169,16 @@ The PWA serves as a marketing funnel — users who need Performance Mode, file u
 
 ---
 
-## Discounts
-
-### Volume Discounts
-
-For customers needing multi-tenant deployments (e.g., multi-site manufacturing):
-
-| Tenants | Discount |
-| ------- | -------- |
-| 2-5     | 10%      |
-| 6-10    | 15%      |
-| 11+     | Custom   |
-
-Contact sales for multi-tenant pricing.
-
-### Academic Discount
-
-- 50% off for verified educational institutions
-- Requires .edu email verification
-
----
-
 ## Competitor Comparison
 
-| Product    | Entry Price | Team of 10     | Deployment      |
-| ---------- | ----------- | -------------- | --------------- |
-| VariScout  | €150/month  | €150/month     | Customer Azure  |
-| Minitab    | ~€150/month | ~€1,500/month  | Minitab Cloud   |
-| JMP        | ~€200/month | ~€2,000/month  | Local/SAS Cloud |
-| SigmaXL    | ~€21/month  | ~€83/month     | Excel Add-in    |
-| InfinityQS | Custom      | ~$4,000+/month | SaaS            |
+| Product            | Entry Price | Team of 10     | Collaboration  | Deployment      |
+| ------------------ | ----------- | -------------- | -------------- | --------------- |
+| VariScout Standard | €99/month   | €99/month      | Local files    | Customer Azure  |
+| VariScout Team     | €299/month  | €299/month     | OneDrive/Teams | Customer Azure  |
+| Minitab            | ~€150/month | ~€1,500/month  | Minitab Cloud  | Minitab Cloud   |
+| JMP                | ~€200/month | ~€2,000/month  | SAS Cloud      | Local/SAS Cloud |
+| SigmaXL            | ~€21/month  | ~€83/month     | None           | Excel Add-in    |
+| InfinityQS         | Custom      | ~$4,000+/month | SaaS           | SaaS            |
 
 ### VariScout Advantages
 
@@ -170,6 +186,7 @@ Contact sales for multi-tenant pricing.
 - **Customer-controlled data** (no vendor lock-in)
 - **No backend costs** for publisher
 - **Microsoft billing integration** (familiar for enterprises)
+- **Two entry points** — Standard for individuals, Team for departments
 
 ---
 
@@ -178,3 +195,4 @@ Contact sales for multi-tenant pricing.
 - [Azure Marketplace Guide](marketplace.md)
 - [Products Overview](../index.md)
 - [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)
+- [ADR-016: Teams Integration](../../07-decisions/adr-016-teams-integration.md)

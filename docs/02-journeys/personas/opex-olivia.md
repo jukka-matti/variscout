@@ -147,9 +147,9 @@ The /product/enterprise page must answer:
 
 ### 3. Pricing
 
-- €150/month flat — all features, unlimited users in your tenant
-- No per-user fees, no hidden costs
-- Single plan, transparent pricing
+- Standard: €99/month — all analysis features, local file storage
+- Team: €299/month — adds OneDrive/SharePoint, Teams integration, photos
+- Both plans: unlimited users in your tenant, no per-user fees
 
 ### 4. Support
 

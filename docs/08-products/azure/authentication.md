@@ -197,6 +197,43 @@ See [ARM Template](arm-template.md) for the complete deployment configuration.
 
 No admin consent required — users grant consent on first login.
 
+**Team plan additional scopes:**
+
+| Permission            | Type      | Admin Consent | Purpose                   |
+| --------------------- | --------- | ------------- | ------------------------- |
+| Files.ReadWrite.All   | Delegated | Yes           | Channel SharePoint access |
+| Channel.ReadBasic.All | Delegated | Yes           | Channel listing           |
+
+---
+
+## Teams SSO (Team Plan)
+
+When running inside Microsoft Teams, the app uses the Teams SDK for single sign-on:
+
+### Client-side token acquisition
+
+1. `@microsoft/teams-js` `authentication.getAuthToken()` acquires an Azure AD token scoped to the app's client ID
+2. This token identifies the user but cannot call Graph API directly
+3. For Graph API access, the app falls back to EasyAuth redirect (standard flow)
+
+### Future: On-Behalf-Of (OBO) function
+
+- An Azure Function (~50 lines) will exchange the Teams SSO token for a Graph API access token
+- Until deployed, EasyAuth redirect provides the same functionality with a one-time consent popup
+- See [ADR-016](../../07-decisions/adr-016-teams-integration.md) Phase 6
+
+### Teams SSO in the manifest
+
+- `webApplicationInfo` in the Teams manifest enables SSO
+- Requires the App Registration's Client ID
+- Custom domains recommended (SSO blocked on `*.azurewebsites.net`)
+
+### Code reference
+
+- Teams SDK init: `apps/azure/src/teams/teamsContext.ts`
+- SSO token: `getTeamsSsoToken()` in the same module
+- Tab configuration: `apps/azure/src/teams/TeamsTabConfig.tsx`
+
 ---
 
 ## See Also

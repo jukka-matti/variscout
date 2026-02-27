@@ -1,5 +1,6 @@
 // EasyAuth helper — wraps App Service Authentication (/.auth/*) endpoints.
 // In local dev, falls back to mock data so the app runs without Azure.
+// In Teams context, attempts Teams SSO before EasyAuth redirect.
 
 export type AuthErrorCode =
   | 'not_authenticated'

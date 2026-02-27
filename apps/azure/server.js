@@ -19,12 +19,14 @@ const SECURITY_HEADERS = {
     "img-src 'self' data: blob:",
     "font-src 'self'",
     "connect-src 'self' https://graph.microsoft.com",
-    "frame-ancestors 'none'",
+    // Allow Teams to embed the app in an iframe
+    "frame-ancestors 'self' https://teams.microsoft.com https://*.teams.microsoft.com https://*.skype.com",
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; '),
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-  'X-Frame-Options': 'DENY',
+  // X-Frame-Options removed: CSP frame-ancestors supersedes it and supports multiple origins.
+  // Teams requires iframe embedding which X-Frame-Options: DENY would block.
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
 };

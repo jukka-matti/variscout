@@ -50,6 +50,9 @@ importers:
 
   apps/azure:
     dependencies:
+      '@microsoft/teams-js':
+        specifier: ^2.49.0
+        version: 2.49.0
       '@variscout/charts':
         specifier: workspace:*
         version: link:../../packages/charts
@@ -1716,6 +1719,9 @@ packages:
   '@microsoft/api-extractor@7.57.5':
     resolution: {integrity: sha512-QwbB6UgdB+ASXA2kdhuOfBOkVdE4PO+rETfBhbIakE3eTSd3gwUvL8PBf4YVRJUq1aBWYP8lkp7PzUShvh2ODw==}
     hasBin: true
+
+  '@microsoft/teams-js@2.49.0':
+    resolution: {integrity: sha512-XFsIcpqrFKP5qXhq9iLhMa2jsQBsQB1mmcXe79viBoSqwAwz9APrxrn1xJbOjPN6iupV/OEzHzUiwBUHXBnWzw==}
 
   '@microsoft/tsdoc-config@0.18.1':
     resolution: {integrity: sha512-9brPoVdfN9k9g0dcWkFeA7IH9bbcttzDJlXvkf8b2OBzd5MueR1V2wkKBL0abn0otvmkHJC6aapBOTJDDeMCZg==}
@@ -4290,6 +4296,7 @@ packages:
 
   lucide-astro@0.556.0:
     resolution: {integrity: sha512-ugMjPb45AMfkLCaduNSbyy5NQEKvB1TxVVMmUS4S6L807PMESnX0Qp+DIKHjbyjJmPXOyLRbrzvR3YikTK7brg==}
+    deprecated: 'Deprecated: Use `@lucide/astro`'
     peerDependencies:
       astro: '>=2.7.1'
 
@@ -7373,6 +7380,13 @@ snapshots:
       typescript: 5.8.2
     transitivePeerDependencies:
       - '@types/node'
+
+  '@microsoft/teams-js@2.49.0':
+    dependencies:
+      base64-js: 1.5.1
+      debug: 4.4.3
+    transitivePeerDependencies:
+      - supports-color
 
   '@microsoft/tsdoc-config@0.18.1':
     dependencies:

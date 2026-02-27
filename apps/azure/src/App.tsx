@@ -11,16 +11,28 @@ import SettingsPanel from './components/settings/SettingsPanel';
 import { SyncToastContainer } from './components/SyncToast';
 import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
 import { Activity, LogOut, Settings, Shield } from 'lucide-react';
+import { useTeamsContext } from './teams';
+import { TeamsTabConfig } from './teams/TeamsTabConfig';
 
 type View = 'dashboard' | 'editor' | 'admin-teams';
 
 function App() {
-  // Popout window route: render standalone FindingsWindow
   const urlParams = new URLSearchParams(window.location.search);
+
+  // Popout window route: render standalone FindingsWindow
   if (urlParams.get('view') === 'findings') {
     return (
       <ThemeProvider>
         <FindingsWindow />
+      </ThemeProvider>
+    );
+  }
+
+  // Teams tab configuration page (shown when adding VariScout to a channel)
+  if (urlParams.get('teamsConfig') === 'true') {
+    return (
+      <ThemeProvider>
+        <TeamsTabConfig />
       </ThemeProvider>
     );
   }
@@ -34,6 +46,7 @@ function AppMain() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [currentProject, setCurrentProject] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const teams = useTeamsContext();
 
   useEffect(() => {
     getEasyAuthUser()
@@ -131,6 +144,15 @@ function AppMain() {
                     <h1 className="text-lg font-bold text-content">VariScout</h1>
                   </div>
 
+                  {teams.isTeams && teams.channelName && currentView !== 'editor' && (
+                    <>
+                      <span className="text-content-muted">/</span>
+                      <span className="text-sm text-content-secondary truncate max-w-[200px]">
+                        {teams.channelName}
+                      </span>
+                    </>
+                  )}
+
                   {currentView === 'editor' && (
                     <>
                       <span className="text-content-muted">/</span>
@@ -167,15 +189,18 @@ function AppMain() {
                   >
                     <Settings size={18} />
                   </button>
-                  <button
-                    onClick={logout}
-                    aria-label="Sign out"
-                    title="Sign Out"
-                    className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
-                    style={{ minWidth: 40, minHeight: 40 }}
-                  >
-                    <LogOut size={18} />
-                  </button>
+                  {/* Hide sign-out in Teams — Teams manages the session */}
+                  {!teams.isTeams && (
+                    <button
+                      onClick={logout}
+                      aria-label="Sign out"
+                      title="Sign Out"
+                      className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-secondary transition-colors"
+                      style={{ minWidth: 40, minHeight: 40 }}
+                    >
+                      <LogOut size={18} />
+                    </button>
+                  )}
                 </nav>
               </header>
 

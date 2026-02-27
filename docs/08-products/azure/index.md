@@ -6,13 +6,12 @@ VariScout for Microsoft 365 enterprises - the only paid product, distributed via
 
 ## Overview
 
-The Azure App is the **only paid VariScout product**, offering:
+The Azure App is the **only paid VariScout product**, available in two plans:
 
-- Full-featured variation analysis (all chart types + Performance Mode)
-- Microsoft Entra ID (Azure AD) authentication
-- OneDrive sync for analyses
-- Team collaboration features
-- Customer-controlled data (stays in their Azure tenant)
+- **Standard (€99/month)**: Full analysis features, local file storage, EasyAuth SSO
+- **Team (€299/month)**: Everything in Standard + OneDrive/SharePoint sync, Teams integration, channel storage, photo capture
+
+Both plans include all chart types, Performance Mode, and customer-controlled data (stays in their Azure tenant).
 
 **No backend required** - deploys entirely to the customer's Azure tenant.
 
@@ -22,23 +21,29 @@ The Azure App is the **only paid VariScout product**, offering:
 
 VariScout Azure App is available on **Azure Marketplace** as a Managed Application:
 
-| Aspect           | Value                                        |
-| ---------------- | -------------------------------------------- |
-| Offer type       | Managed Application                          |
-| Price            | €150/month (all features, unlimited users)   |
-| Billing          | Monthly (Microsoft, 3% fee)                  |
-| Net revenue      | €145.50/month (€1,746/year)                  |
-| Publisher access | Disabled (zero access to customer resources) |
-| Customer access  | Full control                                 |
+| Aspect           | Value                                                                 |
+| ---------------- | --------------------------------------------------------------------- |
+| Offer type       | Managed Application                                                   |
+| Price            | €99/month (Standard) or €299/month (Team)                             |
+| Plans            | Standard (local files) or Team (+ OneDrive/SharePoint, Teams, photos) |
+| Billing          | Monthly (Microsoft, 3% fee)                                           |
+| Publisher access | Disabled (zero access to customer resources)                          |
+| Customer access  | Full control                                                          |
 
-All features included:
+Both plans include:
 
 - All chart types and analysis features
 - Performance Mode (multi-channel Cpk analysis)
-- Microsoft Entra ID SSO
-- OneDrive analysis sync
+- Microsoft Entra ID SSO (EasyAuth)
 - Offline support (cached)
 - Data stays in customer's Azure tenant
+
+Team plan adds:
+
+- Teams SDK integration (channel tabs, SSO)
+- OneDrive/SharePoint analysis sync
+- Channel storage for shared projects
+- Photo capture with EXIF stripping
 
 **Billing**: Handled by Microsoft (3% fee). Supports enterprise procurement with purchase orders and invoicing.
 
@@ -129,11 +134,14 @@ This architecture ensures:
 
 ### Tier Configuration
 
-All Managed Application deployments get full features:
+All Managed Application deployments get full analysis features. The plan determines collaboration capabilities:
 
 ```typescript
-// Deployment configuration always sets enterprise tier
-const tier = import.meta.env.VITE_LICENSE_TIER; // Always 'enterprise' for Managed App
+// Tier: always enterprise for Managed App deployments
+const tier = import.meta.env.VITE_LICENSE_TIER; // Always 'enterprise'
+
+// Plan: determines storage and collaboration features
+const plan = import.meta.env.VARISCOUT_PLAN; // 'standard' or 'team'
 ```
 
 ---
@@ -150,6 +158,12 @@ const tier = import.meta.env.VITE_LICENSE_TIER; // Always 'enterprise' for Manag
 | Performance Mode | Multi-channel Cpk analysis                                   |
 | Presentation     | Full-screen chart overview + focused single-chart navigation |
 | Drill-Down       | Interactive filter navigation                                |
+
+---
+
+## Teams Integration
+
+The Team plan includes Microsoft Teams SDK integration, enabling VariScout to run as a Teams channel tab with silent SSO via the On-Behalf-Of (OBO) flow. Channel tabs store projects in the channel's SharePoint document library, and users can capture photos directly from the shop floor with automatic EXIF/GPS stripping. See [ADR-016: Teams Integration](../../07-decisions/adr-016-teams-integration.md) for the full technical design.
 
 ---
 
@@ -191,12 +205,13 @@ See [Deployment Guide](../../05-technical/implementation/deployment.md) for pipe
 
 All data stays in the customer's tenant:
 
-| Data Type      | Location                     |
-| -------------- | ---------------------------- |
-| App hosting    | Customer's Azure App Service |
-| Analyses       | User's OneDrive              |
-| Settings       | Browser localStorage         |
-| Authentication | Customer's Entra ID          |
+| Data Type      | Standard                     | Team                                      |
+| -------------- | ---------------------------- | ----------------------------------------- |
+| App hosting    | Customer's Azure App Service | Customer's Azure App Service              |
+| Analyses       | Local files (browser)        | OneDrive (personal) or channel SharePoint |
+| Photos         | N/A                          | Channel SharePoint (`Photos/` folder)     |
+| Settings       | Browser localStorage         | Browser localStorage                      |
+| Authentication | Customer's Entra ID          | Customer's Entra ID (+ Teams SSO)         |
 
 **No data sent to VariScout servers.**
 
@@ -226,3 +241,5 @@ The Azure app includes a development-only tier switching component at `apps/azur
 - [Storage](storage.md) — IndexedDB schema, sync queue, persistence model
 - [Submission Checklist](submission-checklist.md) — Marketplace submission preparation
 - [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md)
+- [ADR-016: Teams Integration](../../07-decisions/adr-016-teams-integration.md)
+- [ADR-016: Security Evaluation](../../07-decisions/adr-016-security-evaluation.md)

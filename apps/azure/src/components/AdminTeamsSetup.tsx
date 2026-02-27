@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Copy, Download, Check, ExternalLink, Info } from 'lucide-react';
+import { isInTeams } from '../teams';
 
 // Generate a deterministic GUID from the app URL so reinstalls produce the same ID
 function generateManifestId(origin: string): string {
@@ -11,12 +12,12 @@ function generateManifestId(origin: string): string {
   return `${hex.slice(0, 8)}-${hex.slice(0, 4)}-4${hex.slice(1, 4)}-a${hex.slice(1, 4)}-${hex.slice(0, 12).padEnd(12, '0')}`;
 }
 
-function buildManifest(origin: string): object {
-  return {
+function buildManifest(origin: string, clientId?: string): object {
+  const manifest: Record<string, unknown> = {
     $schema:
       'https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json',
     manifestVersion: '1.16',
-    version: '1.0.0',
+    version: '1.1.0',
     id: generateManifestId(origin),
     developer: {
       name: 'VariScout',
@@ -30,7 +31,7 @@ function buildManifest(origin: string): object {
     },
     description: {
       short: 'Variation analysis for quality teams',
-      full: 'Collaborative variation analysis with I-Charts, Boxplots, Pareto, Capability, and Performance Mode for multi-channel tracking. Data stays in your OneDrive.',
+      full: 'Collaborative variation analysis with I-Charts, Boxplots, Pareto, Capability, and Performance Mode for multi-channel tracking. Data stays in your tenant.',
     },
     icons: {
       color: 'color.png',
@@ -39,24 +40,44 @@ function buildManifest(origin: string): object {
     accentColor: '#3B82F6',
     staticTabs: [
       {
-        entityId: 'variscout-main',
+        entityId: 'variscout-personal',
         name: 'VariScout',
         contentUrl: `${origin}`,
         websiteUrl: `${origin}`,
         scopes: ['personal'],
       },
     ],
+    configurableTabs: [
+      {
+        configurationUrl: `${origin}?teamsConfig=true`,
+        canUpdateConfiguration: true,
+        scopes: ['team', 'groupchat'],
+        context: ['channelTab', 'privateChatTab', 'meetingChatTab'],
+      },
+    ],
     permissions: ['identity', 'messageTeamMembers'],
     validDomains: [new URL(origin).hostname],
   };
+
+  // Add webApplicationInfo for SSO if client ID is provided
+  if (clientId) {
+    manifest.webApplicationInfo = {
+      id: clientId,
+      resource: `api://${new URL(origin).hostname}/${clientId}`,
+    };
+  }
+
+  return manifest;
 }
 
 export function AdminTeamsSetup() {
   const origin = window.location.origin;
-  const manifest = useMemo(() => buildManifest(origin), [origin]);
+  const [clientId, setClientId] = useState('');
+  const manifest = useMemo(() => buildManifest(origin, clientId || undefined), [origin, clientId]);
   const manifestJson = useMemo(() => JSON.stringify(manifest, null, 2), [manifest]);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const inTeams = isInTeams();
 
   // Auto-reset copied state after 2s with proper cleanup on unmount
   useEffect(() => {
@@ -108,10 +129,35 @@ export function AdminTeamsSetup() {
         Generate a Teams app package for your deployment and upload it to your Teams admin center.
       </p>
 
-      {/* Step 1: Download */}
+      {/* Teams status indicator */}
+      {inTeams && (
+        <section className="mb-6 bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+          <p className="text-sm text-green-400 font-medium">Running inside Microsoft Teams</p>
+        </section>
+      )}
+
+      {/* Client ID for SSO */}
       <section className="mb-8">
         <h3 className="text-lg font-semibold text-content mb-3">
-          1. Download the Teams App Package
+          1. App Registration Client ID (Optional)
+        </h3>
+        <p className="text-sm text-content-secondary mb-3">
+          Enter your Azure AD App Registration Client ID to enable Teams SSO in the manifest. This
+          is the same Client ID used for EasyAuth.
+        </p>
+        <input
+          type="text"
+          value={clientId}
+          onChange={e => setClientId(e.target.value.trim())}
+          placeholder="e.g. 12345678-abcd-1234-abcd-123456789012"
+          className="w-full px-3 py-2 bg-surface-secondary border border-edge rounded-lg text-sm text-content placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </section>
+
+      {/* Step 2: Download */}
+      <section className="mb-8">
+        <h3 className="text-lg font-semibold text-content mb-3">
+          2. Download the Teams App Package
         </h3>
         <p className="text-sm text-content-secondary mb-4">
           This .zip contains the manifest and icons pre-configured for your deployment at{' '}
@@ -138,7 +184,7 @@ export function AdminTeamsSetup() {
 
       {/* Step 2: Upload */}
       <section className="mb-8">
-        <h3 className="text-lg font-semibold text-content mb-3">2. Upload to Teams Admin Center</h3>
+        <h3 className="text-lg font-semibold text-content mb-3">3. Upload to Teams Admin Center</h3>
         <ol className="space-y-3 text-sm text-content">
           <li className="flex gap-3">
             <span className="text-blue-400 font-mono shrink-0">a.</span>
@@ -173,6 +219,35 @@ export function AdminTeamsSetup() {
             <span>
               The app appears under <strong className="text-content">"Built for your org"</strong>{' '}
               in the Teams app catalog for all users
+            </span>
+          </li>
+        </ol>
+      </section>
+
+      {/* Step 4: Add to channel */}
+      <section className="mb-8">
+        <h3 className="text-lg font-semibold text-content mb-3">4. Add VariScout to a Channel</h3>
+        <ol className="space-y-3 text-sm text-content">
+          <li className="flex gap-3">
+            <span className="text-blue-400 font-mono shrink-0">a.</span>
+            <span>Open a Teams channel (e.g. your Quality channel)</span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-blue-400 font-mono shrink-0">b.</span>
+            <span>
+              Click the <strong className="text-content">+</strong> icon in the tab bar
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-blue-400 font-mono shrink-0">c.</span>
+            <span>
+              Search for <strong className="text-content">VariScout</strong> and select it
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <span className="text-blue-400 font-mono shrink-0">d.</span>
+            <span>
+              VariScout loads as a tab — the whole team can access it from the channel's tab bar
             </span>
           </li>
         </ol>

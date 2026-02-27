@@ -43,6 +43,8 @@ export interface FindingComment {
   id: string;
   text: string;
   createdAt: number;
+  /** Author display name (from EasyAuth or Teams user context). Optional for backward compat. */
+  author?: string;
 }
 
 // ============================================================================
@@ -122,12 +124,14 @@ export function createFinding(
 /**
  * Create a timestamped comment with a unique ID
  */
-export function createFindingComment(text: string): FindingComment {
-  return {
+export function createFindingComment(text: string, author?: string): FindingComment {
+  const comment: FindingComment = {
     id: generateId(),
     text,
     createdAt: Date.now(),
   };
+  if (author) comment.author = author;
+  return comment;
 }
 
 // ============================================================================

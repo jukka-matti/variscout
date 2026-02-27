@@ -13,16 +13,17 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "@microsoft/teams-js": "^2.49.0",
     "@variscout/charts": "workspace:*",
-    "jszip": "^3.10.1",
     "@variscout/core": "workspace:*",
     "@variscout/data": "workspace:*",
     "@variscout/hooks": "workspace:*",
     "@variscout/ui": "workspace:*",
-    "html-to-image": "^1.11.13",
     "@visx/responsive": "^3.12.0",
     "d3-array": "^3.2.4",
     "dexie": "^4.0.11",
+    "html-to-image": "^1.11.13",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.475.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

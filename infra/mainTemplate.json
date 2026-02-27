@@ -39,6 +39,14 @@
       "metadata": {
         "description": "URL to the VariScout application deployment package"
       }
+    },
+    "variscoutPlan": {
+      "type": "string",
+      "defaultValue": "standard",
+      "allowedValues": ["standard", "team"],
+      "metadata": {
+        "description": "VariScout plan: 'standard' (local files, no Teams features) or 'team' (OneDrive + SharePoint channel storage, Teams integration, photos)"
+      }
     }
   },
   "variables": {
@@ -83,6 +91,10 @@
             {
               "name": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET",
               "value": "[parameters('clientSecret')]"
+            },
+            {
+              "name": "VITE_VARISCOUT_PLAN",
+              "value": "[parameters('variscoutPlan')]"
             }
           ],
           "minTlsVersion": "1.2",
