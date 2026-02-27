@@ -15,14 +15,22 @@ import type { UseFindingsReturn } from '@variscout/hooks';
 import { processPhoto } from '../utils/photoProcessing';
 import { uploadPhoto } from '../services/photoUpload';
 import { isLocalDev } from '../auth/easyAuth';
+import type { StorageLocation } from '../services/storage';
 
 interface UsePhotoCommentsOptions {
   findingsState: UseFindingsReturn;
   analysisId: string;
   author?: string;
+  /** Storage location — photos go to same drive as the project */
+  location?: StorageLocation;
 }
 
-export function usePhotoComments({ findingsState, analysisId, author }: UsePhotoCommentsOptions) {
+export function usePhotoComments({
+  findingsState,
+  analysisId,
+  author,
+  location = 'personal',
+}: UsePhotoCommentsOptions) {
   const handleAddPhoto = useCallback(
     async (findingId: string, commentId: string, file: File) => {
       try {
@@ -43,7 +51,8 @@ export function usePhotoComments({ findingsState, analysisId, author }: UsePhoto
               processed.fullResBlob,
               processed.filename,
               analysisId,
-              findingId
+              findingId,
+              location
             );
 
             // 5. Update status to uploaded
@@ -72,7 +81,7 @@ export function usePhotoComments({ findingsState, analysisId, author }: UsePhoto
         console.error('[PhotoComments] Photo processing failed:', err);
       }
     },
-    [findingsState, analysisId]
+    [findingsState, analysisId, location]
   );
 
   const handleAddCommentWithAuthor = useCallback(

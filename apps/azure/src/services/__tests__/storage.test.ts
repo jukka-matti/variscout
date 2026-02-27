@@ -22,6 +22,8 @@ const {
   },
   mockSyncState: {
     put: vi.fn().mockResolvedValue(undefined),
+    get: vi.fn().mockResolvedValue(null),
+    update: vi.fn().mockResolvedValue(1),
   },
   mockAddToSyncQueue: vi.fn().mockResolvedValue(undefined),
   mockGetPending: vi.fn().mockResolvedValue([]),

@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useStorage, type CloudProject } from '../services/storage';
-import { Plus, RefreshCw, Cloud, CloudOff, FolderOpen, Clock, User, Search } from 'lucide-react';
+import {
+  Plus,
+  RefreshCw,
+  Cloud,
+  CloudOff,
+  FolderOpen,
+  Clock,
+  User,
+  Users,
+  Search,
+} from 'lucide-react';
 
 interface DashboardProps {
   onOpenProject: (id?: string) => void;
@@ -166,6 +176,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
                 <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider hidden lg:table-cell">
                   Modified By
                 </th>
+                <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider hidden md:table-cell">
+                  Location
+                </th>
                 <th className="px-6 py-3 text-xs font-medium text-content-muted uppercase tracking-wider">
                   Action
                 </th>
@@ -199,6 +212,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
                     ) : (
                       '-'
                     )}
+                  </td>
+                  <td className="px-6 py-4 text-content-secondary text-sm hidden md:table-cell">
+                    <div className="flex items-center gap-1.5">
+                      {project.location === 'team' ? <Users size={14} /> : <User size={14} />}
+                      <span>{project.location === 'team' ? 'Channel' : 'Personal'}</span>
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <button

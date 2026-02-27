@@ -16,6 +16,15 @@ export interface SyncStateRecord {
   cloudId: string;
   lastSynced: string;
   etag: string;
+  /** JSON snapshot of the cloud state at last load — used as merge base */
+  baseStateJson?: string;
+}
+
+export interface ChannelDriveCacheRecord {
+  channelId: string;
+  driveId: string;
+  folderId: string;
+  resolvedAt: string;
 }
 
 export interface SyncItem {
@@ -43,6 +52,7 @@ class VariScoutDatabase extends Dexie {
   syncQueue!: Dexie.Table<SyncItem, number>;
   syncState!: Dexie.Table<SyncStateRecord, string>;
   photoQueue!: Dexie.Table<PhotoQueueItem, number>;
+  channelDriveCache!: Dexie.Table<ChannelDriveCacheRecord, string>;
 
   constructor() {
     super('VaRiScoutAzure');
@@ -59,6 +69,15 @@ class VariScoutDatabase extends Dexie {
       syncQueue: '++id, name, location, queuedAt',
       syncState: 'name, cloudId, lastSynced, etag',
       photoQueue: '++id, photoId, findingId, queuedAt',
+    });
+
+    // Version 3: add channel drive cache + baseStateJson in syncState
+    this.version(3).stores({
+      projects: 'name, location, modified, synced',
+      syncQueue: '++id, name, location, queuedAt',
+      syncState: 'name, cloudId, lastSynced, etag',
+      photoQueue: '++id, photoId, findingId, queuedAt',
+      channelDriveCache: 'channelId',
     });
   }
 }

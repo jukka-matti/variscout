@@ -8,7 +8,8 @@
 
 import { getAccessToken, isLocalDev, AuthError } from '../auth/easyAuth';
 import { getTeamsSsoToken, isInTeams } from '../teams/teamsContext';
-import { classifySyncError } from './storage';
+import { classifySyncError, type StorageLocation } from './storage';
+import { getChannelDriveInfo } from './channelDrive';
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -57,16 +58,44 @@ export async function getGraphToken(): Promise<string> {
   return getAccessToken();
 }
 
+// ── Drive Path Resolution ────────────────────────────────────────────────
+
+interface PhotoDrivePaths {
+  rootPath: string; // e.g. '/me/drive/root' or '/drives/{driveId}/root'
+  basePath: string; // e.g. '/me/drive/root:' or '/drives/{driveId}/root:'
+}
+
+async function getPhotoDrivePaths(
+  token: string,
+  location: StorageLocation
+): Promise<PhotoDrivePaths> {
+  if (location === 'personal') {
+    return { rootPath: '/me/drive/root', basePath: '/me/drive/root:' };
+  }
+
+  const driveInfo = await getChannelDriveInfo(token);
+  if (!driveInfo) {
+    // Fallback to personal
+    return { rootPath: '/me/drive/root', basePath: '/me/drive/root:' };
+  }
+
+  return {
+    rootPath: `/drives/${driveInfo.driveId}/root`,
+    basePath: `/drives/${driveInfo.driveId}/root:`,
+  };
+}
+
 // ── Folder Creation ──────────────────────────────────────────────────────
 
 /**
- * Ensure /VariScout/Photos/{analysisId}/{findingId}/ exists in OneDrive.
+ * Ensure /VariScout/Photos/{analysisId}/{findingId}/ exists in the target drive.
  * Uses conflictBehavior: 'replace' (idempotent — no-op if folder exists).
  */
 async function ensurePhotoFolder(
   token: string,
   analysisId: string,
-  findingId: string
+  findingId: string,
+  paths: PhotoDrivePaths
 ): Promise<void> {
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -74,7 +103,7 @@ async function ensurePhotoFolder(
   };
 
   // Create /VariScout (no-op if exists)
-  await fetch(`${GRAPH_BASE}/me/drive/root/children`, {
+  await fetch(`${GRAPH_BASE}${paths.rootPath}/children`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -85,7 +114,7 @@ async function ensurePhotoFolder(
   });
 
   // Create /VariScout/Photos
-  await fetch(`${GRAPH_BASE}/me/drive/root:/VariScout:/children`, {
+  await fetch(`${GRAPH_BASE}${paths.rootPath}:/VariScout:/children`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -96,7 +125,7 @@ async function ensurePhotoFolder(
   });
 
   // Create /VariScout/Photos/{analysisId}
-  await fetch(`${GRAPH_BASE}/me/drive/root:/VariScout/Photos:/children`, {
+  await fetch(`${GRAPH_BASE}${paths.rootPath}:/VariScout/Photos:/children`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -108,7 +137,7 @@ async function ensurePhotoFolder(
 
   // Create /VariScout/Photos/{analysisId}/{findingId}
   await fetch(
-    `${GRAPH_BASE}/me/drive/root:/VariScout/Photos/${encodeURIComponent(analysisId)}:/children`,
+    `${GRAPH_BASE}${paths.rootPath}:/VariScout/Photos/${encodeURIComponent(analysisId)}:/children`,
     {
       method: 'POST',
       headers,
@@ -124,19 +153,21 @@ async function ensurePhotoFolder(
 // ── Upload ───────────────────────────────────────────────────────────────
 
 /**
- * Upload a photo blob to OneDrive.
+ * Upload a photo blob to OneDrive (personal or channel drive).
  *
  * @param blob - The JPEG blob to upload
  * @param filename - Sanitized filename (e.g., "photo_001.jpg")
  * @param analysisId - The project/analysis name
  * @param findingId - The finding this photo belongs to
+ * @param location - Storage location ('personal' or 'team')
  * @returns OneDrive driveItemId + webUrl
  */
 export async function uploadPhoto(
   blob: Blob,
   filename: string,
   analysisId: string,
-  findingId: string
+  findingId: string,
+  location: StorageLocation = 'personal'
 ): Promise<PhotoUploadResult> {
   if (isLocalDev()) {
     // Simulate upload in local dev
@@ -148,12 +179,15 @@ export async function uploadPhoto(
 
   const token = await getGraphToken();
 
+  // Resolve drive paths for the target location
+  const paths = await getPhotoDrivePaths(token, location);
+
   // Ensure folder structure exists
-  await ensurePhotoFolder(token, analysisId, findingId);
+  await ensurePhotoFolder(token, analysisId, findingId, paths);
 
   // Upload file content
   const uploadPath = `/VariScout/Photos/${encodeURIComponent(analysisId)}/${encodeURIComponent(findingId)}/${encodeURIComponent(filename)}`;
-  const res = await fetch(`${GRAPH_BASE}/me/drive/root:${uploadPath}:/content`, {
+  const res = await fetch(`${GRAPH_BASE}${paths.basePath}${uploadPath}:/content`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,

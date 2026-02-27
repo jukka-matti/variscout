@@ -103,22 +103,51 @@ function extractStatusCode(msg: string): number {
 
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 
-// Get the appropriate API path — location reserved for future SharePoint support
-function getApiPath(_location: StorageLocation): string {
-  return '/me/drive/root:/VariScout/Projects';
+// ── Location-aware API paths ────────────────────────────────────────────
+
+interface ApiBase {
+  /** Full path to projects folder, e.g. '/me/drive/root:/VariScout/Projects' */
+  filePath: string;
+  /** Drive root path, e.g. '/me/drive/root' or '/drives/{driveId}/root' */
+  rootPath: string;
+}
+
+async function getApiBase(token: string, location: StorageLocation): Promise<ApiBase> {
+  if (location === 'personal') {
+    return {
+      filePath: '/me/drive/root:/VariScout/Projects',
+      rootPath: '/me/drive/root',
+    };
+  }
+
+  // 'team': resolve channel SharePoint drive
+  const { getChannelDriveInfo } = await import('./channelDrive');
+  const driveInfo = await getChannelDriveInfo(token);
+  if (!driveInfo) {
+    console.warn('[Storage] Channel drive resolution failed, falling back to personal');
+    return {
+      filePath: '/me/drive/root:/VariScout/Projects',
+      rootPath: '/me/drive/root',
+    };
+  }
+
+  return {
+    filePath: `/drives/${driveInfo.driveId}/root:/VariScout/Projects`,
+    rootPath: `/drives/${driveInfo.driveId}/root`,
+  };
 }
 
 // ── Folder auto-creation ────────────────────────────────────────────────
 
-/** Create /VariScout/Projects/ in OneDrive if it doesn't exist yet. Idempotent. */
-async function ensureFolderExists(token: string): Promise<void> {
+/** Create /VariScout/Projects/ in the target drive if it doesn't exist yet. Idempotent. */
+async function ensureFolderExists(token: string, apiBase: ApiBase): Promise<void> {
   const headers = {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
 
   // Create /VariScout (no-op if exists)
-  await fetch(`${GRAPH_BASE}/me/drive/root/children`, {
+  await fetch(`${GRAPH_BASE}${apiBase.rootPath}/children`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -129,7 +158,7 @@ async function ensureFolderExists(token: string): Promise<void> {
   });
 
   // Create /VariScout/Projects (no-op if exists)
-  await fetch(`${GRAPH_BASE}/me/drive/root:/VariScout:/children`, {
+  await fetch(`${GRAPH_BASE}${apiBase.rootPath}:/VariScout:/children`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -175,10 +204,10 @@ async function saveToCloud(
   name: string,
   location: StorageLocation
 ): Promise<{ id: string; etag: string }> {
-  const basePath = getApiPath(location);
+  const apiBase = await getApiBase(token, location);
   const filename = name.endsWith('.vrs') ? name : `${name}.vrs`;
 
-  const response = await fetch(`${GRAPH_BASE}${basePath}/${filename}:/content`, {
+  const response = await fetch(`${GRAPH_BASE}${apiBase.filePath}/${filename}:/content`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -204,10 +233,10 @@ async function loadFromCloud(
   name: string,
   location: StorageLocation
 ): Promise<Project | null> {
-  const basePath = getApiPath(location);
+  const apiBase = await getApiBase(token, location);
   const filename = name.endsWith('.vrs') ? name : `${name}.vrs`;
 
-  const response = await fetch(`${GRAPH_BASE}${basePath}/${filename}:/content`, {
+  const response = await fetch(`${GRAPH_BASE}${apiBase.filePath}/${filename}:/content`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -225,10 +254,10 @@ async function loadFromCloud(
 }
 
 async function listFromCloud(token: string, location: StorageLocation): Promise<CloudProject[]> {
-  const basePath = getApiPath(location);
+  const apiBase = await getApiBase(token, location);
 
   const response = await fetch(
-    `${GRAPH_BASE}${basePath}:/children?$filter=file ne null&$select=id,name,lastModifiedDateTime,lastModifiedBy,size`,
+    `${GRAPH_BASE}${apiBase.filePath}:/children?$filter=file ne null&$select=id,name,lastModifiedDateTime,lastModifiedBy,size`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -238,7 +267,7 @@ async function listFromCloud(token: string, location: StorageLocation): Promise<
 
   if (response.status === 404) {
     // Folder doesn't exist yet — create it for future use
-    await ensureFolderExists(token).catch(() => {});
+    await ensureFolderExists(token, apiBase).catch(() => {});
     return [];
   }
 
@@ -263,7 +292,7 @@ async function listFromCloud(token: string, location: StorageLocation): Promise<
     }));
 }
 
-async function markAsSynced(name: string, cloudId: string, etag: string) {
+async function markAsSynced(name: string, cloudId: string, etag: string, baseStateJson?: string) {
   const record = await db.projects.get(name);
   if (record) {
     await db.projects.update(name, { synced: true });
@@ -272,6 +301,7 @@ async function markAsSynced(name: string, cloudId: string, etag: string) {
       cloudId,
       lastSynced: new Date().toISOString(),
       etag,
+      baseStateJson,
     });
   }
 }
@@ -283,12 +313,12 @@ async function getCloudModifiedDate(
   name: string,
   location: StorageLocation
 ): Promise<string | null> {
-  const basePath = getApiPath(location);
+  const apiBase = await getApiBase(token, location);
   const filename = name.endsWith('.vrs') ? name : `${name}.vrs`;
 
   try {
     const response = await fetch(
-      `${GRAPH_BASE}${basePath}/${filename}?$select=lastModifiedDateTime`,
+      `${GRAPH_BASE}${apiBase.filePath}/${filename}?$select=lastModifiedDateTime`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     if (!response.ok) return null;
@@ -427,7 +457,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, []);
 
-  // ── Save project (offline-first) ───────────────────────────────────
+  // ── Save project (offline-first, with optimistic merge) ────────────
 
   const saveProject = useCallback(
     async (project: Project, name: string, location: StorageLocation) => {
@@ -448,14 +478,48 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
 
-      // Online: sync immediately
+      // Online: sync immediately (with merge if needed)
       try {
         setSyncStatus({ status: 'syncing', message: 'Saving to cloud...' });
 
         const token = await getAccessToken();
-        const { id, etag } = await saveToCloud(token, project, name, location);
+        let projectToSave = project;
+        let baseStateForSync: string | undefined;
 
-        await markAsSynced(name, id, etag);
+        // Check if we need to merge
+        const syncState = await db.syncState.get(name);
+        if (syncState?.baseStateJson) {
+          const cloudModified = await getCloudModifiedDate(token, name, location);
+          if (cloudModified && cloudModified !== syncState.lastSynced) {
+            // Cloud has changed since our last load — merge
+            const remoteProject = await loadFromCloud(token, name, location);
+            if (remoteProject) {
+              const { mergeAnalysisState } = await import('./merge');
+              const base = JSON.parse(syncState.baseStateJson);
+              const result = mergeAnalysisState(base, project as never, remoteProject as never);
+
+              if (result.hasConflict) {
+                // Save conflict copy
+                const conflictName = `${name} (conflict copy)`;
+                await saveToCloud(token, project, conflictName, location);
+                addNotification({
+                  type: 'warning',
+                  message: `Merge conflict detected. Your version saved as "${conflictName}".`,
+                  dismissAfter: 8000,
+                });
+              }
+
+              projectToSave = result.merged as Project;
+              // Update IndexedDB with merged result
+              await saveToIndexedDB(projectToSave, name, location);
+            }
+          }
+        }
+
+        const { id, etag } = await saveToCloud(token, projectToSave, name, location);
+        baseStateForSync = JSON.stringify(projectToSave);
+
+        await markAsSynced(name, id, etag, baseStateForSync);
         setSyncStatus({
           status: 'synced',
           message: 'Saved to cloud',
@@ -535,6 +599,15 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           if (project) {
             // Cache locally
             await saveToIndexedDB(project, name, location);
+
+            // Store as merge base for future three-way merge
+            const existingSyncState = await db.syncState.get(name);
+            if (existingSyncState) {
+              await db.syncState.update(name, {
+                baseStateJson: JSON.stringify(project),
+              });
+            }
+
             return project;
           }
         } catch (error) {
@@ -565,18 +638,26 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const token = await getAccessToken();
       const personalProjects = await listFromCloud(token, 'personal').catch(() => []);
 
-      const cloudProjectMap = new Map<string, CloudProject>();
-      personalProjects.forEach(p => {
-        cloudProjectMap.set(p.name, p);
-      });
+      // In a channel tab with team plan, also list channel projects
+      let teamProjects: CloudProject[] = [];
+      const { isChannelTab } = await import('../teams/teamsContext');
+      const { isTeamPlan } = await import('@variscout/core');
+      if (isChannelTab() && isTeamPlan()) {
+        teamProjects = await listFromCloud(token, 'team').catch(() => []);
+      }
 
+      // Merge: use location:name as key to avoid name collisions across locations
+      const projectMap = new Map<string, CloudProject>();
+      teamProjects.forEach(p => projectMap.set(`team:${p.name}`, p));
+      personalProjects.forEach(p => projectMap.set(`personal:${p.name}`, p));
       localProjects.forEach(p => {
-        if (!cloudProjectMap.has(p.name)) {
-          cloudProjectMap.set(p.name, { ...p, modifiedBy: 'Local' });
+        const key = `${p.location}:${p.name}`;
+        if (!projectMap.has(key)) {
+          projectMap.set(key, { ...p, modifiedBy: 'Local' });
         }
       });
 
-      return Array.from(cloudProjectMap.values()).sort(
+      return Array.from(projectMap.values()).sort(
         (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime()
       );
     } catch (error) {

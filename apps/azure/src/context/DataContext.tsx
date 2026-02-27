@@ -19,6 +19,8 @@ import {
 import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
 import { useStorage, type StorageLocation, type SyncStatus } from '../services/storage';
 import type { StatsResult, StagedStatsResult, StageOrderMode, FilterAction } from '@variscout/core';
+import { isTeamPlan } from '@variscout/core';
+import { getTeamsContext } from '../teams/teamsContext';
 
 // Re-export types for backwards compatibility
 export type { DisplayOptions, ParetoMode, DataQualityReport, ParetoRow, StorageLocation };
@@ -110,8 +112,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     persistence: azurePersistenceAdapter,
   });
 
-  // Azure-specific state
-  const [currentProjectLocation, setCurrentProjectLocation] = useState<StorageLocation>('team');
+  // Azure-specific state — default location based on Teams context
+  const defaultLocation = useMemo<StorageLocation>(() => {
+    const ctx = getTeamsContext();
+    return ctx.tabType === 'channel' && isTeamPlan() ? 'team' : 'personal';
+  }, []);
+  const [currentProjectLocation, setCurrentProjectLocation] =
+    useState<StorageLocation>(defaultLocation);
 
   // Cloud sync hook
   const { saveProject: saveToCloud, syncStatus } = useStorage();

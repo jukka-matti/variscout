@@ -51,7 +51,7 @@ module.exports = async function (context, req) {
     const client = getClient();
     const result = await client.acquireTokenOnBehalfOf({
       oboAssertion: token,
-      scopes: ['https://graph.microsoft.com/Files.ReadWrite'],
+      scopes: ['https://graph.microsoft.com/Files.ReadWrite.All'],
     });
 
     context.res = {

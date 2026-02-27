@@ -93,6 +93,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     setViewState,
     findings: persistedFindings,
     setFindings: setPersistedFindings,
+    currentProjectLocation,
     saveProject,
     loadProject,
   } = useData();
@@ -233,6 +234,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     findingsState,
     analysisId: currentProjectName || 'default',
     author: currentUser?.name,
+    location: currentProjectLocation,
   });
 
   // Drill path for findings panel footer
