@@ -1,0 +1,293 @@
+import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import MobileChartCarousel from '../MobileChartCarousel';
+
+// Mock chart components (they depend on DataContext)
+vi.mock('../charts/IChart', () => ({
+  default: () => <div data-testid="ichart-mock">I-Chart</div>,
+}));
+vi.mock('../charts/Boxplot', () => ({
+  default: ({ factor }: { factor: string }) => (
+    <div data-testid="boxplot-mock">Boxplot: {factor}</div>
+  ),
+}));
+vi.mock('../charts/ParetoChart', () => ({
+  default: ({ factor }: { factor: string }) => (
+    <div data-testid="pareto-mock">Pareto: {factor}</div>
+  ),
+}));
+vi.mock('../StatsPanel', () => ({
+  default: () => <div data-testid="stats-mock">Stats Panel</div>,
+}));
+vi.mock('../ErrorBoundary', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+vi.mock('../FilterBreadcrumb', () => ({
+  default: () => <div data-testid="filter-breadcrumb-mock">Breadcrumb</div>,
+}));
+
+// Mock @variscout/ui components
+vi.mock('@variscout/ui', () => ({
+  AnovaResults: () => <div data-testid="anova-mock">ANOVA</div>,
+  FactorSelector: ({
+    factors,
+    selected,
+    onChange,
+  }: {
+    factors: string[];
+    selected: string;
+    onChange: (v: string) => void;
+  }) => (
+    <select
+      data-testid="factor-selector-mock"
+      value={selected}
+      onChange={e => onChange(e.target.value)}
+    >
+      {factors.map(f => (
+        <option key={f} value={f}>
+          {f}
+        </option>
+      ))}
+    </select>
+  ),
+  ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+const defaultProps = {
+  boxplotFactor: 'Machine',
+  paretoFactor: 'Operator',
+  factors: ['Machine', 'Operator', 'Shift'],
+  onSetBoxplotFactor: vi.fn(),
+  onSetParetoFactor: vi.fn(),
+  filters: {},
+  columnAliases: {},
+  filterChipData: [],
+  cumulativeVariationPct: 0,
+  onUpdateFilterValues: vi.fn(),
+  onRemoveFilter: vi.fn(),
+  onClearAllFilters: vi.fn(),
+  onDrillDown: vi.fn(),
+  factorVariations: new Map<string, number>(),
+  paretoAggregation: 'count' as const,
+  onToggleParetoAggregation: vi.fn(),
+  showParetoComparison: false,
+  onToggleParetoComparison: vi.fn(),
+  stats: null,
+  specs: {},
+  filteredData: [],
+  outcome: 'Weight',
+  onSaveSpecs: vi.fn(),
+  showCpk: true,
+  anovaResult: null,
+};
+
+describe('MobileChartCarousel', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders I-Chart view by default', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+    expect(screen.getByTestId('ichart-mock')).toBeInTheDocument();
+    expect(screen.queryByTestId('boxplot-mock')).not.toBeInTheDocument();
+  });
+
+  it('switches to Boxplot via pill navigation', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    // Click the second pill button (Boxplot)
+    const pillButtons = screen
+      .getAllByRole('button')
+      .filter(btn => btn.classList.contains('rounded-full'));
+    fireEvent.click(pillButtons[1]); // Boxplot is second pill
+
+    expect(screen.getByTestId('boxplot-mock')).toBeInTheDocument();
+    expect(screen.queryByTestId('ichart-mock')).not.toBeInTheDocument();
+  });
+
+  it('switches to next view via chevron right', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    const nextBtn = screen.getByLabelText('Next chart');
+    fireEvent.click(nextBtn);
+
+    // Should now show Boxplot (second view)
+    expect(screen.getByTestId('boxplot-mock')).toBeInTheDocument();
+  });
+
+  it('switches to previous view via chevron left', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    const prevBtn = screen.getByLabelText('Previous chart');
+    fireEvent.click(prevBtn);
+
+    // Should wrap around to Stats (last view)
+    expect(screen.getByTestId('stats-mock')).toBeInTheDocument();
+  });
+
+  it('cycles through all 4 views', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    const nextBtn = screen.getByLabelText('Next chart');
+
+    // Start at ichart
+    expect(screen.getByTestId('ichart-mock')).toBeInTheDocument();
+
+    // Next → boxplot
+    fireEvent.click(nextBtn);
+    expect(screen.getByTestId('boxplot-mock')).toBeInTheDocument();
+
+    // Next → pareto
+    fireEvent.click(nextBtn);
+    expect(screen.getByTestId('pareto-mock')).toBeInTheDocument();
+
+    // Next → stats
+    fireEvent.click(nextBtn);
+    expect(screen.getByTestId('stats-mock')).toBeInTheDocument();
+
+    // Next → wraps to ichart
+    fireEvent.click(nextBtn);
+    expect(screen.getByTestId('ichart-mock')).toBeInTheDocument();
+  });
+
+  it('shows FactorSelector for boxplot view', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    // Navigate to boxplot
+    const nextBtn = screen.getByLabelText('Next chart');
+    fireEvent.click(nextBtn);
+
+    expect(screen.getByTestId('factor-selector-mock')).toBeInTheDocument();
+  });
+
+  it('shows FactorSelector for pareto view', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    // Navigate to pareto (2 clicks)
+    const nextBtn = screen.getByLabelText('Next chart');
+    fireEvent.click(nextBtn);
+    fireEvent.click(nextBtn);
+
+    expect(screen.getByTestId('factor-selector-mock')).toBeInTheDocument();
+  });
+
+  it('does not show FactorSelector for ichart view', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    expect(screen.queryByTestId('factor-selector-mock')).not.toBeInTheDocument();
+  });
+
+  it('shows FilterBreadcrumb when filters are active', () => {
+    const filterChipData = [
+      {
+        factor: 'Machine',
+        values: ['A'] as (string | number)[],
+        contributionPct: 45,
+        availableValues: [
+          { value: 'A', contributionPct: 45, isSelected: true },
+          { value: 'B', contributionPct: 30, isSelected: false },
+        ],
+      },
+    ];
+
+    render(<MobileChartCarousel {...defaultProps} filterChipData={filterChipData} />);
+    expect(screen.getByTestId('filter-breadcrumb-mock')).toBeInTheDocument();
+  });
+
+  it('does not show FilterBreadcrumb when no filters', () => {
+    render(<MobileChartCarousel {...defaultProps} filterChipData={[]} />);
+    expect(screen.queryByTestId('filter-breadcrumb-mock')).not.toBeInTheDocument();
+  });
+
+  it('renders dot indicators for all 4 views', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    const dots = screen
+      .getAllByRole('button')
+      .filter(btn => btn.classList.contains('rounded-full') && btn.classList.contains('w-2'));
+    expect(dots).toHaveLength(4);
+  });
+
+  it('handles swipe left to go to next view', () => {
+    const { container } = render(<MobileChartCarousel {...defaultProps} />);
+
+    const carousel = container.firstChild as HTMLElement;
+
+    // Simulate swipe left (finger moves from right to left)
+    fireEvent.touchStart(carousel, {
+      targetTouches: [{ clientX: 300 }],
+    });
+    fireEvent.touchMove(carousel, {
+      targetTouches: [{ clientX: 100 }],
+    });
+    fireEvent.touchEnd(carousel);
+
+    // Should now show Boxplot
+    expect(screen.getByTestId('boxplot-mock')).toBeInTheDocument();
+  });
+
+  it('handles swipe right to go to previous view', () => {
+    const { container } = render(<MobileChartCarousel {...defaultProps} />);
+
+    const carousel = container.firstChild as HTMLElement;
+
+    // Simulate swipe right (finger moves from left to right)
+    fireEvent.touchStart(carousel, {
+      targetTouches: [{ clientX: 100 }],
+    });
+    fireEvent.touchMove(carousel, {
+      targetTouches: [{ clientX: 300 }],
+    });
+    fireEvent.touchEnd(carousel);
+
+    // Should wrap to Stats (last view)
+    expect(screen.getByTestId('stats-mock')).toBeInTheDocument();
+  });
+
+  it('ignores swipe below minimum distance', () => {
+    const { container } = render(<MobileChartCarousel {...defaultProps} />);
+
+    const carousel = container.firstChild as HTMLElement;
+
+    // Swipe less than 50px
+    fireEvent.touchStart(carousel, {
+      targetTouches: [{ clientX: 200 }],
+    });
+    fireEvent.touchMove(carousel, {
+      targetTouches: [{ clientX: 180 }],
+    });
+    fireEvent.touchEnd(carousel);
+
+    // Should stay on I-Chart
+    expect(screen.getByTestId('ichart-mock')).toBeInTheDocument();
+  });
+
+  it('shows ANOVA results on boxplot view when available', () => {
+    const anovaResult = {
+      groups: [
+        { name: 'A', n: 50, mean: 10, stdDev: 2 },
+        { name: 'B', n: 50, mean: 12, stdDev: 2 },
+      ],
+      ssb: 150,
+      ssw: 430,
+      dfBetween: 2,
+      dfWithin: 97,
+      msb: 75,
+      msw: 4.43,
+      fStatistic: 15.2,
+      pValue: 0.001,
+      isSignificant: true,
+      etaSquared: 0.35,
+      insight: 'Significant difference between groups',
+    };
+
+    render(<MobileChartCarousel {...defaultProps} anovaResult={anovaResult} />);
+
+    // Navigate to boxplot
+    const nextBtn = screen.getByLabelText('Next chart');
+    fireEvent.click(nextBtn);
+
+    expect(screen.getByTestId('anova-mock')).toBeInTheDocument();
+  });
+});

@@ -69,6 +69,8 @@ vi.mock('@variscout/ui', () => ({
     </div>
   ),
   InvestigationPrompt: () => null,
+  useIsMobile: () => false,
+  BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));
 
 // ── Mock @variscout/data ──

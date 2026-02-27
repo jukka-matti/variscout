@@ -385,6 +385,18 @@ button:active:not(:disabled),
 }
 
 /* ========================================
+   Safe area insets for notched phones
+   ======================================== */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* ========================================
    Chart Export: hide interactive chrome
    during html-to-image capture
    ======================================== */

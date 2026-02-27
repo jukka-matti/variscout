@@ -94,7 +94,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
                   e.stopPropagation();
                   onCopyChart(id, chartName);
                 }}
-                className={`p-1.5 rounded transition-all ${
+                className={`p-1.5 rounded transition-all min-w-[44px] min-h-[44px] flex items-center justify-center ${
                   copyFeedback === chartName
                     ? 'bg-green-500/20 text-green-400'
                     : 'text-content-muted hover:text-content hover:bg-surface-tertiary'
@@ -121,7 +121,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
                 e.stopPropagation();
                 onMaximize();
               }}
-              className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors"
+              className="p-1.5 rounded text-content-muted hover:text-content hover:bg-surface-tertiary transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               title="Maximize Chart"
               aria-label="Maximize chart"
             >

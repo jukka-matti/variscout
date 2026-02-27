@@ -44,7 +44,10 @@ import {
   ChevronDown,
   Check,
   Maximize2,
+  EllipsisVertical,
+  X,
 } from 'lucide-react';
+import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { useEditorPanels } from '../hooks/useEditorPanels';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 
@@ -92,6 +95,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   } = useData();
 
   const { handleFileUpload, loadSample } = useDataIngestion();
+  const isPhone = useIsMobile(BREAKPOINTS.phone);
 
   // Report view state changes for persistence (merge partial updates)
   const handleViewStateChange = useCallback(
@@ -113,17 +117,33 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   const [addDataOpen, setAddDataOpen] = useState(false);
   const addDataRef = React.useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
+  // Overflow menu state (phone only)
+  const [overflowOpen, setOverflowOpen] = useState(false);
+  const overflowRef = React.useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click
   useEffect(() => {
-    if (!addDataOpen) return;
+    if (!addDataOpen && !overflowOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (addDataRef.current && !addDataRef.current.contains(e.target as Node)) {
+      if (addDataOpen && addDataRef.current && !addDataRef.current.contains(e.target as Node)) {
         setAddDataOpen(false);
+      }
+      if (overflowOpen && overflowRef.current && !overflowRef.current.contains(e.target as Node)) {
+        setOverflowOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [addDataOpen]);
+  }, [addDataOpen, overflowOpen]);
+
+  // Phone: data panel opens DataTableModal instead of inline panel
+  const handleDataPanelToggle = useCallback(() => {
+    if (isPhone) {
+      panels.setIsDataTableOpen(true);
+    } else {
+      panels.setIsDataPanelOpen(prev => !prev);
+    }
+  }, [isPhone, panels]);
 
   // Manual data merge (for append mode)
   const dataFlow = useEditorDataFlow({
@@ -246,7 +266,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
       if (!ctx) return;
       setFilters(ctx.activeFilters);
     },
-    [findingsState, filterNav, setFilters]
+    [findingsState, setFilters]
   );
 
   // Findings popout: open in separate window
@@ -409,193 +429,202 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)]">
+    <div className={`flex flex-col ${isPhone ? 'h-[calc(100vh-64px)]' : 'h-[calc(100vh-120px)]'}`}>
       {/* Header with back navigation */}
       <div className="flex justify-between items-center mb-4 px-2">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 min-w-0">
           <button
             onClick={onBack}
             aria-label="Back to dashboard"
-            className="flex items-center gap-1 text-content-muted hover:text-content transition-colors"
+            className="flex items-center gap-1 text-content-muted hover:text-content transition-colors flex-shrink-0"
           >
             <ArrowLeft size={18} />
-            <span>Back</span>
+            {!isPhone && <span>Back</span>}
           </button>
-          <h2 className="text-xl font-semibold text-content">
+          <h2
+            className={`font-semibold text-content truncate ${isPhone ? 'text-base' : 'text-xl'}`}
+          >
             {currentProjectName || (projectId ? `Analysis ${projectId}` : 'New Analysis')}
             {hasUnsavedChanges && <span className="text-amber-400 ml-2">•</span>}
           </h2>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Sync Status */}
-          {syncStatus.status === 'error' ? (
-            <button
-              onClick={() => {
-                window.location.href = '/.auth/login/aad';
-              }}
-              className={`flex items-center gap-1.5 text-sm ${syncColor} hover:text-red-300 transition-colors`}
-              title="Click to re-authenticate"
-            >
-              <SyncIcon size={16} />
-              <span className="underline underline-offset-2">
-                {syncStatus.message || 'Auth error'}
-              </span>
-            </button>
-          ) : (
-            <div className={`flex items-center gap-1.5 text-sm ${syncColor}`}>
-              <SyncIcon
-                size={16}
-                className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
-              />
-              <span className="text-content-secondary">
-                {syncStatus.message || syncStatus.status}
-              </span>
-            </div>
-          )}
-
-          {/* Add Data Dropdown */}
-          {rawData.length > 0 && outcome && (
-            <div ref={addDataRef} className="relative">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Sync Status — hidden on phone to save space */}
+          {!isPhone &&
+            (syncStatus.status === 'error' ? (
               <button
-                onClick={() => setAddDataOpen(prev => !prev)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-                title="Add more data"
-                data-testid="btn-add-data"
+                onClick={() => {
+                  window.location.href = '/.auth/login/aad';
+                }}
+                className={`flex items-center gap-1.5 text-sm ${syncColor} hover:text-red-300 transition-colors`}
+                title="Click to re-authenticate"
               >
-                <Plus size={16} />
-                <span className="text-sm">Add Data</span>
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform ${addDataOpen ? 'rotate-180' : ''}`}
-                />
+                <SyncIcon size={16} />
+                <span className="underline underline-offset-2">
+                  {syncStatus.message || 'Auth error'}
+                </span>
               </button>
-              {addDataOpen && (
-                <div className="absolute right-0 top-full mt-1 w-48 bg-surface-secondary border border-edge rounded-lg shadow-xl z-50 py-1">
+            ) : (
+              <div className={`flex items-center gap-1.5 text-sm ${syncColor}`}>
+                <SyncIcon
+                  size={16}
+                  className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
+                />
+                <span className="text-content-secondary">
+                  {syncStatus.message || syncStatus.status}
+                </span>
+              </div>
+            ))}
+
+          {/* ===== Desktop toolbar (hidden on phone) ===== */}
+          {!isPhone && (
+            <>
+              {/* Add Data Dropdown */}
+              {rawData.length > 0 && outcome && (
+                <div ref={addDataRef} className="relative">
                   <button
-                    onClick={() => {
-                      setAddDataOpen(false);
-                      dataFlow.setAppendMode(true);
-                      dataFlow.setIsPasteMode(true);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
-                    data-testid="add-data-paste"
+                    onClick={() => setAddDataOpen(prev => !prev)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+                    title="Add more data"
+                    data-testid="btn-add-data"
                   >
-                    <ClipboardPaste size={15} />
-                    Paste Data
+                    <Plus size={16} />
+                    <span className="text-sm">Add Data</span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform ${addDataOpen ? 'rotate-180' : ''}`}
+                    />
                   </button>
-                  <button
-                    onClick={() => {
-                      setAddDataOpen(false);
-                      dataFlow.setAppendMode(true);
-                      dataFlow.triggerAppendFileUpload();
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
-                    data-testid="add-data-file"
-                  >
-                    <Upload size={15} />
-                    Upload File
-                  </button>
-                  <button
-                    onClick={() => {
-                      setAddDataOpen(false);
-                      dataFlow.handleAddMoreData();
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
-                    data-testid="add-data-manual"
-                  >
-                    <PenLine size={15} />
-                    Manual Entry
-                  </button>
+                  {addDataOpen && (
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-surface-secondary border border-edge rounded-lg shadow-xl z-50 py-1">
+                      <button
+                        onClick={() => {
+                          setAddDataOpen(false);
+                          dataFlow.setAppendMode(true);
+                          dataFlow.setIsPasteMode(true);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
+                        data-testid="add-data-paste"
+                      >
+                        <ClipboardPaste size={15} />
+                        Paste Data
+                      </button>
+                      <button
+                        onClick={() => {
+                          setAddDataOpen(false);
+                          dataFlow.setAppendMode(true);
+                          dataFlow.triggerAppendFileUpload();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
+                        data-testid="add-data-file"
+                      >
+                        <Upload size={15} />
+                        Upload File
+                      </button>
+                      <button
+                        onClick={() => {
+                          setAddDataOpen(false);
+                          dataFlow.handleAddMoreData();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
+                        data-testid="add-data-manual"
+                      >
+                        <PenLine size={15} />
+                        Manual Entry
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+
+              {/* Edit Data */}
+              {rawData.length > 0 && outcome && (
+                <button
+                  onClick={() => panels.setIsDataTableOpen(true)}
+                  className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
+                  title="Edit Data Table"
+                  data-testid="btn-edit-data"
+                >
+                  <Pencil size={18} />
+                </button>
+              )}
+
+              {/* CSV Export */}
+              {rawData.length > 0 && outcome && (
+                <button
+                  onClick={() => downloadCSV(filteredData, outcome, specs)}
+                  className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
+                  title="Export filtered data as CSV"
+                  data-testid="btn-csv-export"
+                >
+                  <Download size={18} />
+                </button>
+              )}
+
+              {/* What-If Simulator */}
+              {rawData.length > 0 && outcome && (
+                <button
+                  onClick={() => panels.setIsWhatIfOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
+                  title="What-If Simulator"
+                  data-testid="btn-what-if"
+                >
+                  <Beaker size={16} />
+                  <span>What-If</span>
+                </button>
+              )}
+
+              {/* Presentation Mode */}
+              {rawData.length > 0 && outcome && (
+                <button
+                  onClick={() => panels.setIsPresentationMode(true)}
+                  className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
+                  title="Presentation Mode"
+                  data-testid="btn-presentation"
+                >
+                  <Maximize2 size={18} />
+                </button>
+              )}
+
+              {/* Findings Toggle */}
+              {rawData.length > 0 && outcome && factors.length > 0 && (
+                <button
+                  onClick={() => panels.setIsFindingsOpen(prev => !prev)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    panels.isFindingsOpen
+                      ? 'bg-blue-600 text-white'
+                      : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
+                  }`}
+                  title={panels.isFindingsOpen ? 'Hide Findings' : 'Show Findings'}
+                  data-testid="btn-findings"
+                >
+                  <ClipboardList size={16} />
+                  <span className="hidden lg:inline">
+                    Findings
+                    {findingsState.findings.length > 0 && ` (${findingsState.findings.length})`}
+                  </span>
+                </button>
+              )}
+
+              {/* Data Panel Toggle */}
+              {rawData.length > 0 && outcome && (
+                <button
+                  onClick={handleDataPanelToggle}
+                  className={`p-2 rounded-lg transition-colors ${
+                    panels.isDataPanelOpen
+                      ? 'bg-blue-600 text-white'
+                      : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
+                  }`}
+                  title={panels.isDataPanelOpen ? 'Hide Data Panel' : 'Show Data Panel'}
+                  data-testid="btn-data-panel"
+                >
+                  <Table2 size={18} />
+                </button>
+              )}
+            </>
           )}
 
-          {/* Edit Data */}
-          {rawData.length > 0 && outcome && (
-            <button
-              onClick={() => panels.setIsDataTableOpen(true)}
-              className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-              title="Edit Data Table"
-              data-testid="btn-edit-data"
-            >
-              <Pencil size={18} />
-            </button>
-          )}
-
-          {/* CSV Export */}
-          {rawData.length > 0 && outcome && (
-            <button
-              onClick={() => downloadCSV(filteredData, outcome, specs)}
-              className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-              title="Export filtered data as CSV"
-              data-testid="btn-csv-export"
-            >
-              <Download size={18} />
-            </button>
-          )}
-
-          {/* What-If Simulator */}
-          {rawData.length > 0 && outcome && (
-            <button
-              onClick={() => panels.setIsWhatIfOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-              title="What-If Simulator"
-              data-testid="btn-what-if"
-            >
-              <Beaker size={16} />
-              <span>What-If</span>
-            </button>
-          )}
-
-          {/* Presentation Mode */}
-          {rawData.length > 0 && outcome && (
-            <button
-              onClick={() => panels.setIsPresentationMode(true)}
-              className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-              title="Presentation Mode"
-              data-testid="btn-presentation"
-            >
-              <Maximize2 size={18} />
-            </button>
-          )}
-
-          {/* Findings Toggle */}
-          {rawData.length > 0 && outcome && factors.length > 0 && (
-            <button
-              onClick={() => panels.setIsFindingsOpen(prev => !prev)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                panels.isFindingsOpen
-                  ? 'bg-blue-600 text-white'
-                  : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
-              }`}
-              title={panels.isFindingsOpen ? 'Hide Findings' : 'Show Findings'}
-              data-testid="btn-findings"
-            >
-              <ClipboardList size={16} />
-              <span className="hidden lg:inline">
-                Findings{findingsState.findings.length > 0 && ` (${findingsState.findings.length})`}
-              </span>
-            </button>
-          )}
-
-          {/* Data Panel Toggle */}
-          {rawData.length > 0 && outcome && (
-            <button
-              onClick={() => panels.setIsDataPanelOpen(prev => !prev)}
-              className={`p-2 rounded-lg transition-colors ${
-                panels.isDataPanelOpen
-                  ? 'bg-blue-600 text-white'
-                  : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
-              }`}
-              title={panels.isDataPanelOpen ? 'Hide Data Panel' : 'Show Data Panel'}
-              data-testid="btn-data-panel"
-            >
-              <Table2 size={18} />
-            </button>
-          )}
-
-          {/* Save Button */}
+          {/* Save Button (always visible) */}
           <button
             onClick={handleSave}
             disabled={rawData.length === 0 || saveStatus === 'saving'}
@@ -609,14 +638,114 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             data-testid="btn-save"
           >
             <Save size={16} />
-            {saveStatus === 'saving'
-              ? 'Saving...'
-              : saveStatus === 'saved'
-                ? 'Saved'
-                : saveStatus === 'error'
-                  ? 'Save Failed'
-                  : 'Save'}
+            {!isPhone &&
+              (saveStatus === 'saving'
+                ? 'Saving...'
+                : saveStatus === 'saved'
+                  ? 'Saved'
+                  : saveStatus === 'error'
+                    ? 'Save Failed'
+                    : 'Save')}
           </button>
+
+          {/* ===== Phone overflow menu ===== */}
+          {isPhone && rawData.length > 0 && outcome && (
+            <div ref={overflowRef} className="relative">
+              <button
+                onClick={() => setOverflowOpen(prev => !prev)}
+                className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+                style={{ minWidth: 44, minHeight: 44 }}
+                title="More actions"
+                aria-label="More actions"
+                data-testid="btn-overflow"
+              >
+                <EllipsisVertical size={20} />
+              </button>
+              {overflowOpen && (
+                <div className="absolute right-0 top-full mt-1 w-52 bg-surface-secondary border border-edge rounded-lg shadow-xl z-50 py-1 animate-fade-in">
+                  <button
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      dataFlow.setAppendMode(true);
+                      dataFlow.setIsPasteMode(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  >
+                    <Plus size={16} />
+                    Add Data
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      panels.setIsDataTableOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  >
+                    <Pencil size={16} />
+                    Edit Data
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      downloadCSV(filteredData, outcome, specs);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  >
+                    <Download size={16} />
+                    Export CSV
+                  </button>
+                  <div className="border-t border-edge my-1" />
+                  <button
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      panels.setIsWhatIfOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  >
+                    <Beaker size={16} />
+                    What-If
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      panels.setIsPresentationMode(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  >
+                    <Maximize2 size={16} />
+                    Presentation
+                  </button>
+                  {factors.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setOverflowOpen(false);
+                        panels.setIsFindingsOpen(prev => !prev);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                    >
+                      <ClipboardList size={16} />
+                      Findings
+                      {findingsState.findings.length > 0 && (
+                        <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
+                          {findingsState.findings.length}
+                        </span>
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setOverflowOpen(false);
+                      handleDataPanelToggle();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                  >
+                    <Table2 size={16} />
+                    Data Table
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -679,7 +808,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 className="hidden"
               />
 
-              <div className="flex gap-3 mb-8">
+              <div className="flex flex-col sm:flex-row gap-3 mb-8">
                 <button
                   onClick={dataFlow.triggerFileUpload}
                   className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -718,7 +847,7 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                   <Database size={14} />
                   Sample Datasets
                 </h4>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {SAMPLES.filter(s => s.featured || s.category === 'cases')
                     .slice(0, 8)
                     .map(sample => (
@@ -741,14 +870,14 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
             </div>
           </div>
         ) : outcome ? (
-          // Dashboard with charts, optional data panel, and optional mindmap
+          // Dashboard with charts, optional data panel, and optional findings
           <div className="flex-1 flex overflow-hidden">
             <Dashboard
               drillFromPerformance={dataFlow.drillFromPerformance}
               onBackToPerformance={dataFlow.handleBackToPerformance}
               onDrillToMeasure={dataFlow.handleDrillToMeasure}
-              onPointClick={panels.handlePointClick}
-              highlightedPointIndex={panels.highlightedChartPoint}
+              onPointClick={isPhone ? undefined : panels.handlePointClick}
+              highlightedPointIndex={isPhone ? undefined : panels.highlightedChartPoint}
               filterNav={filterNav}
               initialTab={viewState?.activeTab}
               onTabChange={tab => handleViewStateChange({ activeTab: tab })}
@@ -767,36 +896,80 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
               onManageFactors={dataFlow.openFactorManager}
               onPinFinding={handlePinFinding}
             />
-            <FindingsPanel
-              isOpen={panels.isFindingsOpen}
-              onClose={() => {
-                panels.setIsFindingsOpen(false);
-                setHighlightedFindingId(null);
-              }}
-              findings={findingsState.findings}
-              onEditFinding={findingsState.editFinding}
-              onDeleteFinding={findingsState.deleteFinding}
-              onRestoreFinding={handleRestoreFinding}
-              onSetFindingStatus={findingsState.setFindingStatus}
-              onSetFindingTag={findingsState.setFindingTag}
-              onAddComment={findingsState.addFindingComment}
-              onEditComment={findingsState.editFindingComment}
-              onDeleteComment={findingsState.deleteFindingComment}
-              columnAliases={columnAliases}
-              drillPath={drillPath}
-              activeFindingId={highlightedFindingId}
-              onPopout={handleOpenFindingsPopout}
-              viewMode={viewState?.findingsViewMode}
-              onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
-            />
-            <DataPanel
-              isOpen={panels.isDataPanelOpen}
-              onClose={() => panels.setIsDataPanelOpen(false)}
-              highlightRowIndex={panels.highlightRowIndex}
-              onRowClick={panels.handleRowClick}
-              controlViolations={controlViolations}
-              onOpenEditor={() => panels.setIsDataTableOpen(true)}
-            />
+            {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
+            {isPhone && panels.isFindingsOpen ? (
+              <div className="fixed inset-0 z-40 bg-surface flex flex-col animate-slide-up safe-area-bottom">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
+                  <h2 className="text-sm font-semibold text-content">Findings</h2>
+                  <button
+                    onClick={() => {
+                      panels.setIsFindingsOpen(false);
+                      setHighlightedFindingId(null);
+                    }}
+                    className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+                    style={{ minWidth: 44, minHeight: 44 }}
+                    aria-label="Close findings"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <FindingsPanel
+                  isOpen={true}
+                  onClose={() => {
+                    panels.setIsFindingsOpen(false);
+                    setHighlightedFindingId(null);
+                  }}
+                  findings={findingsState.findings}
+                  onEditFinding={findingsState.editFinding}
+                  onDeleteFinding={findingsState.deleteFinding}
+                  onRestoreFinding={handleRestoreFinding}
+                  onSetFindingStatus={findingsState.setFindingStatus}
+                  onSetFindingTag={findingsState.setFindingTag}
+                  onAddComment={findingsState.addFindingComment}
+                  onEditComment={findingsState.editFindingComment}
+                  onDeleteComment={findingsState.deleteFindingComment}
+                  columnAliases={columnAliases}
+                  drillPath={drillPath}
+                  activeFindingId={highlightedFindingId}
+                  viewMode={viewState?.findingsViewMode}
+                  onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
+                />
+              </div>
+            ) : (
+              <FindingsPanel
+                isOpen={panels.isFindingsOpen}
+                onClose={() => {
+                  panels.setIsFindingsOpen(false);
+                  setHighlightedFindingId(null);
+                }}
+                findings={findingsState.findings}
+                onEditFinding={findingsState.editFinding}
+                onDeleteFinding={findingsState.deleteFinding}
+                onRestoreFinding={handleRestoreFinding}
+                onSetFindingStatus={findingsState.setFindingStatus}
+                onSetFindingTag={findingsState.setFindingTag}
+                onAddComment={findingsState.addFindingComment}
+                onEditComment={findingsState.editFindingComment}
+                onDeleteComment={findingsState.deleteFindingComment}
+                columnAliases={columnAliases}
+                drillPath={drillPath}
+                activeFindingId={highlightedFindingId}
+                onPopout={handleOpenFindingsPopout}
+                viewMode={viewState?.findingsViewMode}
+                onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
+              />
+            )}
+            {/* DataPanel: hidden on phone (use DataTableModal instead) */}
+            {!isPhone && (
+              <DataPanel
+                isOpen={panels.isDataPanelOpen}
+                onClose={() => panels.setIsDataPanelOpen(false)}
+                highlightRowIndex={panels.highlightRowIndex}
+                onRowClick={panels.handleRowClick}
+                controlViolations={controlViolations}
+                onOpenEditor={() => panels.setIsDataTableOpen(true)}
+              />
+            )}
           </div>
         ) : (
           // Data loaded but no outcome selected -- column mapping fallback

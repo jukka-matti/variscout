@@ -234,4 +234,10 @@ export {
 } from './services';
 
 // Hooks
-export { useIsMobile, useGlossary, type UseGlossaryOptions, type UseGlossaryResult } from './hooks';
+export {
+  useIsMobile,
+  BREAKPOINTS,
+  useGlossary,
+  type UseGlossaryOptions,
+  type UseGlossaryResult,
+} from './hooks';

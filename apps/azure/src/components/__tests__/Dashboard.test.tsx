@@ -17,6 +17,9 @@ vi.mock('../StatsPanel', () => ({
 vi.mock('../PerformanceDashboard', () => ({
   default: () => <div data-testid="performance-dashboard">Performance Dashboard</div>,
 }));
+vi.mock('../MobileChartCarousel', () => ({
+  default: () => <div data-testid="mobile-carousel">Mobile Carousel</div>,
+}));
 vi.mock('../ErrorBoundary', () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -141,6 +144,8 @@ vi.mock('@variscout/ui', () => ({
       {statsPanel}
     </div>
   ),
+  useIsMobile: () => false,
+  BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));
 
 // Mock hooks

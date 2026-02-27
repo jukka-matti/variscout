@@ -14,6 +14,7 @@ How different users find, navigate, and convert on VariScout.
 | [**Student Sara**](personas/student-sara.md)       | LSS student / trainee          | Learn methodology            | Course link, Google        |
 | [**Evaluator Erik**](personas/evaluator-erik.md)   | IT/Procurement                 | Assess for organization      | Direct link from colleague |
 | [**Trainer Tina**](personas/trainer-tina.md)       | LSS Trainer / Consultant       | Tools for courses & clients  | LinkedIn, YouTube          |
+| [**Field Fiona**](personas/field-fiona.md)         | Field Quality Engineer         | Review charts on the go      | Teams mobile app           |
 
 **Secondary personas:** Consultant Chris, Academic Anna, Coffee Coop Carmen
 
@@ -253,6 +254,14 @@ flowchart LR
   Admin deployment, sharing, Teams integration
 
   [:octicons-arrow-right-24: Flow details](flows/azure-team-collaboration.md)
+
+- :material-cellphone:{ .lg .middle } **Azure Teams Mobile**
+
+  ***
+
+  Phone carousel, overflow menu, shop floor review
+
+  [:octicons-arrow-right-24: Flow details](flows/azure-teams-mobile.md)
 
 </div>
 

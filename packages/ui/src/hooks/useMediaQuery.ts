@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
  * Common breakpoints for responsive design
  */
 export const BREAKPOINTS = {
+  /** Phone devices (small screens, single-column layout) */
+  phone: 640,
   /** Mobile devices */
   mobile: 768,
   /** Desktop devices */

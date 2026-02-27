@@ -3,6 +3,7 @@ import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
+import MobileChartCarousel from './MobileChartCarousel';
 import PerformanceDashboard from './PerformanceDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import FilterBreadcrumb from './FilterBreadcrumb';
@@ -22,7 +23,9 @@ import {
   AnnotationContextMenu,
   DashboardChartCard,
   DashboardGrid,
+  useIsMobile,
 } from '@variscout/ui';
+import { BREAKPOINTS } from '@variscout/ui';
 import { getColumnNames, createFactorFromSelection } from '@variscout/core';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useAnnotations } from '@variscout/hooks';
@@ -123,6 +126,7 @@ const Dashboard = ({
     clearSelection,
   } = useData();
   const { getTerm } = useGlossary();
+  const isPhone = useIsMobile(BREAKPOINTS.phone);
 
   const [activeTab, setActiveTabRaw] = useState<DashboardTab>(initialTab ?? 'analysis');
   const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
@@ -281,17 +285,20 @@ const Dashboard = ({
       <div className="sticky top-0 z-30 bg-surface">
         <div className="flex items-center">
           <div className="flex-1 min-w-0">
-            <FilterBreadcrumb
-              filterChipData={filterChipData}
-              columnAliases={columnAliases}
-              onUpdateFilterValues={handleUpdateFilterValues}
-              onRemoveFilter={handleRemoveFilter}
-              onClearAll={handleClearAllFilters}
-              cumulativeVariationPct={cumulativeVariationPct}
-              onPinFinding={onPinFinding}
-            />
+            {/* On phone, FilterBreadcrumb is handled inside MobileChartCarousel */}
+            {!isPhone && (
+              <FilterBreadcrumb
+                filterChipData={filterChipData}
+                columnAliases={columnAliases}
+                onUpdateFilterValues={handleUpdateFilterValues}
+                onRemoveFilter={handleRemoveFilter}
+                onClearAll={handleClearAllFilters}
+                cumulativeVariationPct={cumulativeVariationPct}
+                onPinFinding={onPinFinding}
+              />
+            )}
           </div>
-          {activeTab === 'analysis' && !focusedChart && (
+          {activeTab === 'analysis' && !focusedChart && !isPhone && (
             <div className="flex items-center gap-1 px-3 flex-shrink-0" data-export-hide>
               <button
                 onClick={() => handleCopyChart('dashboard-export-container', 'dashboard')}
@@ -317,8 +324,8 @@ const Dashboard = ({
           )}
         </div>
 
-        {/* Selection Panel */}
-        {selectedPoints.size > 0 && (
+        {/* Selection Panel (desktop only — multi-point selection is a desktop feature) */}
+        {!isPhone && selectedPoints.size > 0 && (
           <SelectionPanel
             selectedIndices={selectedPoints}
             data={filteredData}
@@ -411,7 +418,39 @@ const Dashboard = ({
             </div>
           )}
 
-          {!focusedChart ? (
+          {isPhone ? (
+            <MobileChartCarousel
+              boxplotFactor={boxplotFactor}
+              paretoFactor={paretoFactor}
+              factors={factors}
+              onSetBoxplotFactor={setBoxplotFactor}
+              onSetParetoFactor={setParetoFactor}
+              filters={filters}
+              columnAliases={columnAliases}
+              filterChipData={filterChipData}
+              cumulativeVariationPct={cumulativeVariationPct}
+              onUpdateFilterValues={handleUpdateFilterValues}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAllFilters={handleClearAllFilters}
+              onDrillDown={handleDrillDown}
+              factorVariations={factorVariations}
+              categoryContributions={categoryContributions}
+              paretoAggregation={paretoAggregation}
+              onToggleParetoAggregation={() =>
+                setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
+              }
+              showParetoComparison={showParetoComparison}
+              onToggleParetoComparison={() => setShowParetoComparison(!showParetoComparison)}
+              stats={stats}
+              specs={specs}
+              filteredData={filteredData}
+              outcome={outcome}
+              onSaveSpecs={setSpecs}
+              showCpk={displayOptions.showCpk !== false}
+              anovaResult={anovaResult}
+              onPinFinding={onPinFinding}
+            />
+          ) : !focusedChart ? (
             <DashboardGrid
               ichartCard={
                 <DashboardChartCard
@@ -818,8 +857,8 @@ const Dashboard = ({
         </div>
       )}
 
-      {/* Annotation Context Menu (right-click on boxplot/pareto elements) */}
-      {contextMenu.isOpen && (
+      {/* Annotation Context Menu (right-click on boxplot/pareto elements — desktop only) */}
+      {!isPhone && contextMenu.isOpen && (
         <AnnotationContextMenu
           categoryKey={contextMenu.categoryKey}
           currentHighlight={
