@@ -35,7 +35,7 @@ The same codebase detects its runtime context and adapts behavior accordingly:
 Teams SDK initialized?
 ├── Yes → Channel tab? → shared channel SharePoint storage
 │       → Personal tab? → personal OneDrive
-└── No  → Browser mode → personal OneDrive + EasyAuth
+└── No  → Browser mode → local files (File System Access API)
 ```
 
 ### Two Deployment Profiles
@@ -53,6 +53,8 @@ Teams SDK initialized?
 ### Admin Consent Model
 
 `Files.ReadWrite.All` is a delegated permission requiring one-time, tenant-wide admin approval. It does NOT grant new file access — it allows the app to access files the signed-in user already has access to. Per-channel scoping is enforced by Teams membership (natural access control).
+
+> Note: Microsoft Graph does not offer a "write without delete" scope. `Files.ReadWrite.All` includes delete capability, but VariScout never exercises it — the app's storage model is strictly additive (see Security Considerations).
 
 IT admin flow: Azure AD → Enterprise Apps → VariScout → Grant admin consent.
 
@@ -146,6 +148,7 @@ An Azure Function (~50 lines) exchanges the Teams SSO token for a Graph API acce
 - **EXIF/GPS stripping**: Photo metadata stripped client-side via canvas re-encode before upload. Prevents accidental location disclosure from shop floor photos.
 - **Tighter personal storage**: `Files.ReadWrite.AppFolder` for personal OneDrive (narrower than `Files.ReadWrite`). Channel storage requires `Files.ReadWrite.All`.
 - **Photo immutability**: Photos are immutable once uploaded — no edit or delete of photo files. Prevents evidence tampering in quality investigations.
+- **No-delete principle**: `Files.ReadWrite.All` technically includes delete capability, but VariScout never calls Graph API delete endpoints. The storage model is strictly additive — `.vrs` projects are created/updated (conflicts save as copies), photos are immutable once uploaded. IT admins can audit this: the app contains no `DELETE /drive/items/{id}` calls.
 - **Audit trail**: Author + timestamp on all findings and comments. Combined with photo immutability, creates a reliable investigation record.
 - **Font self-hosting**: Recommend self-hosting Google Fonts for strict CSP environments (no external CDN calls).
 
