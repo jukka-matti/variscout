@@ -237,6 +237,8 @@ export type {
   FindingStatus,
   FindingComment,
   FindingTag,
+  PhotoAttachment,
+  PhotoUploadStatus,
 } from './findings';
 export {
   FINDING_STATUSES,
@@ -245,6 +247,7 @@ export {
   FINDING_TAG_LABELS,
   createFinding,
   createFindingComment,
+  createPhotoAttachment,
   getFindingStatus,
   groupFindingsByStatus,
   formatFindingFilters,

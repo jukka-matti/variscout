@@ -29,6 +29,10 @@ export interface FindingsLogProps {
   onEditComment?: (findingId: string, commentId: string, text: string) => void;
   /** Delete a comment */
   onDeleteComment?: (findingId: string, commentId: string) => void;
+  /** Callback when a photo is attached to a comment */
+  onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
+  /** Show author names on comments */
+  showAuthors?: boolean;
 }
 
 /**
@@ -49,6 +53,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onAddComment,
   onEditComment,
   onDeleteComment,
+  onAddPhoto,
+  showAuthors,
 }) => {
   if (findings.length === 0) {
     return (
@@ -77,6 +83,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
         onAddComment={onAddComment ?? (() => {})}
         onEditComment={onEditComment ?? (() => {})}
         onDeleteComment={onDeleteComment ?? (() => {})}
+        onAddPhoto={onAddPhoto}
+        showAuthors={showAuthors}
         columnAliases={columnAliases}
         activeFindingId={activeFindingId}
       />
@@ -97,6 +105,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onAddComment={onAddComment}
           onEditComment={onEditComment}
           onDeleteComment={onDeleteComment}
+          onAddPhoto={onAddPhoto}
+          showAuthors={showAuthors}
           columnAliases={columnAliases}
           isActive={finding.id === activeFindingId}
         />

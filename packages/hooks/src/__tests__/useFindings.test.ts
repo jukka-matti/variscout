@@ -306,6 +306,160 @@ describe('useFindings', () => {
     expect(result.current.findings[0].tag).toBeUndefined();
   });
 
+  // --- Author on comments ---
+
+  it('addFindingComment with author sets author field', () => {
+    const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
+    const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+    act(() => {
+      result.current.addFindingComment('f-1', 'Checked by me', 'Jane Doe');
+    });
+
+    const comments = result.current.findings[0].comments;
+    expect(comments).toHaveLength(1);
+    expect(comments[0].text).toBe('Checked by me');
+    expect(comments[0].author).toBe('Jane Doe');
+  });
+
+  it('addFindingComment without author leaves author undefined', () => {
+    const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
+    const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+    act(() => {
+      result.current.addFindingComment('f-1', 'No author');
+    });
+
+    expect(result.current.findings[0].comments[0].author).toBeUndefined();
+  });
+
+  // --- Photo operations ---
+
+  it('addPhotoToComment appends a photo to a comment', () => {
+    const initial = [
+      makeFinding({
+        id: 'f-1',
+        text: 'Test',
+        context: makeContext(),
+        comments: [{ id: 'c-1', text: 'Look at this', createdAt: 500 }],
+      }),
+    ];
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useFindings({ initialFindings: initial, onFindingsChange: onChange })
+    );
+
+    act(() => {
+      result.current.addPhotoToComment('f-1', 'c-1', {
+        id: 'p-1',
+        filename: 'photo.jpg',
+        uploadStatus: 'pending',
+        capturedAt: 1000,
+      });
+    });
+
+    const photos = result.current.findings[0].comments[0].photos;
+    expect(photos).toHaveLength(1);
+    expect(photos![0].id).toBe('p-1');
+    expect(photos![0].uploadStatus).toBe('pending');
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it('addPhotoToComment creates photos array if undefined', () => {
+    const initial = [
+      makeFinding({
+        id: 'f-1',
+        text: 'Test',
+        context: makeContext(),
+        comments: [{ id: 'c-1', text: 'No photos yet', createdAt: 500 }],
+      }),
+    ];
+    const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+    act(() => {
+      result.current.addPhotoToComment('f-1', 'c-1', {
+        id: 'p-1',
+        filename: 'test.jpg',
+        uploadStatus: 'pending',
+        capturedAt: 1000,
+      });
+    });
+
+    expect(result.current.findings[0].comments[0].photos).toHaveLength(1);
+  });
+
+  it('updatePhotoStatus changes status from pending to uploaded', () => {
+    const initial = [
+      makeFinding({
+        id: 'f-1',
+        text: 'Test',
+        context: makeContext(),
+        comments: [
+          {
+            id: 'c-1',
+            text: 'Photo here',
+            createdAt: 500,
+            photos: [
+              {
+                id: 'p-1',
+                filename: 'test.jpg',
+                uploadStatus: 'pending' as const,
+                capturedAt: 1000,
+              },
+            ],
+          },
+        ],
+      }),
+    ];
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useFindings({ initialFindings: initial, onFindingsChange: onChange })
+    );
+
+    act(() => {
+      result.current.updatePhotoStatus('f-1', 'c-1', 'p-1', 'uploaded', 'drive-123');
+    });
+
+    const photo = result.current.findings[0].comments[0].photos![0];
+    expect(photo.uploadStatus).toBe('uploaded');
+    expect(photo.driveItemId).toBe('drive-123');
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it('updatePhotoStatus sets failed status without driveItemId', () => {
+    const initial = [
+      makeFinding({
+        id: 'f-1',
+        text: 'Test',
+        context: makeContext(),
+        comments: [
+          {
+            id: 'c-1',
+            text: 'Photo here',
+            createdAt: 500,
+            photos: [
+              {
+                id: 'p-1',
+                filename: 'test.jpg',
+                uploadStatus: 'pending' as const,
+                capturedAt: 1000,
+              },
+            ],
+          },
+        ],
+      }),
+    ];
+    const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+    act(() => {
+      result.current.updatePhotoStatus('f-1', 'c-1', 'p-1', 'failed');
+    });
+
+    const photo = result.current.findings[0].comments[0].photos![0];
+    expect(photo.uploadStatus).toBe('failed');
+    expect(photo.driveItemId).toBeUndefined();
+  });
+
   // --- Migration ---
 
   it('auto-migrates old confirmed/dismissed statuses on initialization', () => {

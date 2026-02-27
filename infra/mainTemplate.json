@@ -51,7 +51,11 @@
   },
   "variables": {
     "appServicePlanName": "[concat(parameters('appName'), '-plan')]",
-    "webAppName": "[parameters('appName')]"
+    "webAppName": "[parameters('appName')]",
+    "functionAppName": "[concat(parameters('appName'), '-func')]",
+    "functionStorageName": "[concat('vsf', uniqueString(resourceGroup().id))]",
+    "functionPlanName": "[concat(parameters('appName'), '-func-plan')]",
+    "isTeamPlan": "[equals(parameters('variscoutPlan'), 'team')]"
   },
   "resources": [
     {
@@ -95,6 +99,10 @@
             {
               "name": "VITE_VARISCOUT_PLAN",
               "value": "[parameters('variscoutPlan')]"
+            },
+            {
+              "name": "VITE_FUNCTION_URL",
+              "value": "[if(variables('isTeamPlan'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
             }
           ],
           "minTlsVersion": "1.2",
@@ -136,12 +144,100 @@
           }
         }
       }
+    },
+    {
+      "condition": "[variables('isTeamPlan')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-05-01",
+      "name": "[variables('functionStorageName')]",
+      "location": "[parameters('location')]",
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "properties": {
+        "supportsHttpsTrafficOnly": true,
+        "minimumTlsVersion": "TLS1_2"
+      }
+    },
+    {
+      "condition": "[variables('isTeamPlan')]",
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2024-04-01",
+      "name": "[variables('functionPlanName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic"
+      },
+      "properties": {}
+    },
+    {
+      "condition": "[variables('isTeamPlan')]",
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2024-04-01",
+      "name": "[variables('functionAppName')]",
+      "location": "[parameters('location')]",
+      "kind": "functionapp",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('functionPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('functionStorageName'))]",
+        "[resourceId('Microsoft.Web/sites', variables('webAppName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionPlanName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('functionStorageName'), ';EndpointSuffix=core.windows.net;AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('functionStorageName')), '2023-05-01').keys[0].value)]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "node"
+            },
+            {
+              "name": "WEBSITE_NODE_DEFAULT_VERSION",
+              "value": "~22"
+            },
+            {
+              "name": "CLIENT_ID",
+              "value": "[parameters('clientId')]"
+            },
+            {
+              "name": "CLIENT_SECRET",
+              "value": "[parameters('clientSecret')]"
+            },
+            {
+              "name": "TENANT_ID",
+              "value": "[subscription().tenantId]"
+            }
+          ],
+          "cors": {
+            "allowedOrigins": [
+              "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
+            ]
+          },
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled"
+        }
+      }
     }
   ],
   "outputs": {
     "appUrl": {
       "type": "string",
       "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
+    },
+    "functionUrl": {
+      "condition": "[variables('isTeamPlan')]",
+      "type": "string",
+      "value": "[if(variables('isTeamPlan'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
     }
   }
 }

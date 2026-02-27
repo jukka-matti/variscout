@@ -54,7 +54,11 @@ export function formatFindingsText(
     // Append comments
     const comments = finding.comments;
     for (const comment of comments) {
-      lines.push(`   > ${comment.text} (${relativeTimeExport(comment.createdAt)})`);
+      const authorPrefix = comment.author ? `${comment.author}: ` : '';
+      const photoSuffix = comment.photos?.length ? ` [${comment.photos.length} photo(s)]` : '';
+      lines.push(
+        `   > ${authorPrefix}${comment.text}${photoSuffix} (${relativeTimeExport(comment.createdAt)})`
+      );
     }
     lines.push('');
   });

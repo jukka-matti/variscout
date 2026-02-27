@@ -15,6 +15,8 @@ export interface FindingBoardViewProps {
   onAddComment: (id: string, text: string) => void;
   onEditComment: (findingId: string, commentId: string, text: string) => void;
   onDeleteComment: (findingId: string, commentId: string) => void;
+  onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
+  showAuthors?: boolean;
   columnAliases?: Record<string, string>;
   activeFindingId?: string | null;
 }
@@ -33,6 +35,8 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   onAddComment,
   onEditComment,
   onDeleteComment,
+  onAddPhoto,
+  showAuthors,
   columnAliases,
   activeFindingId,
 }) => {
@@ -97,6 +101,8 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     onAddComment={onAddComment}
                     onEditComment={onEditComment}
                     onDeleteComment={onDeleteComment}
+                    onAddPhoto={onAddPhoto}
+                    showAuthors={showAuthors}
                     columnAliases={columnAliases}
                     isActive={finding.id === activeFindingId}
                   />

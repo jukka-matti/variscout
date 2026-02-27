@@ -38,6 +38,26 @@ export const FINDING_TAG_LABELS: Record<FindingTag, string> = {
   'low-impact': 'Low Impact',
 };
 
+// ============================================================================
+// Photo Attachment Types
+// ============================================================================
+
+/** Upload lifecycle status for a photo attachment */
+export type PhotoUploadStatus = 'pending' | 'uploaded' | 'failed';
+
+/** A photo attached to a finding comment */
+export interface PhotoAttachment {
+  id: string;
+  filename: string;
+  /** OneDrive file ID, set after successful upload */
+  driveItemId?: string;
+  /** Base64 data URL thumbnail (~50KB), persisted in .vrs for offline viewing */
+  thumbnailDataUrl?: string;
+  uploadStatus: PhotoUploadStatus;
+  /** Timestamp when the photo was captured (Date.now()) */
+  capturedAt: number;
+}
+
 /** A timestamped comment in a finding's investigation log */
 export interface FindingComment {
   id: string;
@@ -45,6 +65,8 @@ export interface FindingComment {
   createdAt: number;
   /** Author display name (from EasyAuth or Teams user context). Optional for backward compat. */
   author?: string;
+  /** Photo attachments (Team plan only) */
+  photos?: PhotoAttachment[];
 }
 
 // ============================================================================
@@ -118,6 +140,18 @@ export function createFinding(
     status: status ?? 'observed',
     comments: [],
     statusChangedAt: Date.now(),
+  };
+}
+
+/**
+ * Create a PhotoAttachment with a unique ID and pending upload status
+ */
+export function createPhotoAttachment(filename: string): PhotoAttachment {
+  return {
+    id: generateId(),
+    filename,
+    uploadStatus: 'pending',
+    capturedAt: Date.now(),
   };
 }
 

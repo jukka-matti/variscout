@@ -8,6 +8,8 @@ import {
   type FindingContext,
   type FindingStatus,
   type FindingTag,
+  type PhotoAttachment,
+  type PhotoUploadStatus,
 } from '@variscout/core';
 
 export interface UseFindingsOptions {
@@ -35,11 +37,21 @@ export interface UseFindingsReturn {
   /** Set or clear a finding's classification tag */
   setFindingTag: (id: string, tag: FindingTag | null) => void;
   /** Add a comment to a finding */
-  addFindingComment: (id: string, text: string) => void;
+  addFindingComment: (id: string, text: string, author?: string) => void;
   /** Edit an existing comment */
   editFindingComment: (findingId: string, commentId: string, text: string) => void;
   /** Delete a comment */
   deleteFindingComment: (findingId: string, commentId: string) => void;
+  /** Add a photo attachment to an existing comment */
+  addPhotoToComment: (findingId: string, commentId: string, photo: PhotoAttachment) => void;
+  /** Update a photo's upload status (and optionally set driveItemId) */
+  updatePhotoStatus: (
+    findingId: string,
+    commentId: string,
+    photoId: string,
+    status: PhotoUploadStatus,
+    driveItemId?: string
+  ) => void;
 }
 
 /**
@@ -135,8 +147,8 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
   );
 
   const addFindingComment = useCallback(
-    (id: string, text: string) => {
-      const comment = createFindingComment(text);
+    (id: string, text: string, author?: string) => {
+      const comment = createFindingComment(text, author);
       setFindings(prev => {
         const next = prev.map(f =>
           f.id === id ? { ...f, comments: [...f.comments, comment] } : f
@@ -179,6 +191,65 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
+  const addPhotoToComment = useCallback(
+    (findingId: string, commentId: string, photo: PhotoAttachment) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === findingId
+            ? {
+                ...f,
+                comments: f.comments.map(c =>
+                  c.id === commentId ? { ...c, photos: [...(c.photos ?? []), photo] } : c
+                ),
+              }
+            : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const updatePhotoStatus = useCallback(
+    (
+      findingId: string,
+      commentId: string,
+      photoId: string,
+      status: PhotoUploadStatus,
+      driveItemId?: string
+    ) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === findingId
+            ? {
+                ...f,
+                comments: f.comments.map(c =>
+                  c.id === commentId
+                    ? {
+                        ...c,
+                        photos: c.photos?.map(p =>
+                          p.id === photoId
+                            ? {
+                                ...p,
+                                uploadStatus: status,
+                                ...(driveItemId ? { driveItemId } : {}),
+                              }
+                            : p
+                        ),
+                      }
+                    : c
+                ),
+              }
+            : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
   return {
     findings,
     addFinding,
@@ -191,5 +262,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     addFindingComment,
     editFindingComment,
     deleteFindingComment,
+    addPhotoToComment,
+    updatePhotoStatus,
   };
 }

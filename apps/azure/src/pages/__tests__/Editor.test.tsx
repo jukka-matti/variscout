@@ -51,6 +51,18 @@ vi.mock('@variscout/core', () => ({
   downloadCSV: vi.fn(),
   getNelsonRule2ViolationPoints: vi.fn(() => []),
   calculateStats: vi.fn(() => ({ mean: 10, ucl: 12, lcl: 8 })),
+  isTeamPlan: vi.fn(() => false),
+}));
+
+vi.mock('../../hooks/usePhotoComments', () => ({
+  usePhotoComments: () => ({
+    handleAddPhoto: vi.fn(),
+    handleAddCommentWithAuthor: vi.fn(),
+  }),
+}));
+
+vi.mock('../../auth/getCurrentUser', () => ({
+  getCurrentUser: vi.fn(() => Promise.resolve({ name: 'Test User', email: 'test@test.com' })),
 }));
 
 // ── Mock @variscout/ui ──

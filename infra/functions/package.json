@@ -1,0 +1,9 @@
+{
+  "name": "variscout-functions",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VariScout Azure Functions — OBO token exchange for Teams SSO",
+  "dependencies": {
+    "@azure/msal-node": "^2.16.0"
+  }
+}

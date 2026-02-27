@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { MessageSquare, Pencil, Trash2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { MessageSquare, Pencil, Trash2, Camera, Loader2, ImageIcon } from 'lucide-react';
 import type { FindingComment } from '@variscout/core';
 import FindingEditor from './FindingEditor';
 
@@ -9,6 +9,10 @@ export interface FindingCommentsProps {
   onAdd: (findingId: string, text: string) => void;
   onEdit: (findingId: string, commentId: string, text: string) => void;
   onDelete: (findingId: string, commentId: string) => void;
+  /** Callback when a photo is attached (Team plan only, main window only) */
+  onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
+  /** Show author names on comments */
+  showAuthors?: boolean;
 }
 
 /** Format a relative time string (e.g., "2h ago", "3d ago") */
@@ -34,10 +38,14 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
   onAdd,
   onEdit,
   onDelete,
+  onAddPhoto,
+  showAuthors,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingPhotoCommentId, setPendingPhotoCommentId] = useState<string | null>(null);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -54,8 +62,36 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
     setEditingId(null);
   };
 
+  const handlePhotoClick = (e: React.MouseEvent, commentId: string) => {
+    e.stopPropagation();
+    setPendingPhotoCommentId(commentId);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onAddPhoto && pendingPhotoCommentId) {
+      onAddPhoto(findingId, pendingPhotoCommentId, file);
+    }
+    // Reset input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    setPendingPhotoCommentId(null);
+  };
+
   return (
     <div className="mt-1.5" onClick={e => e.stopPropagation()}>
+      {/* Hidden file input for photo capture */}
+      {onAddPhoto && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      )}
+
       {/* Toggle button */}
       <button
         onClick={handleToggle}
@@ -86,14 +122,63 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                 />
               ) : (
                 <div className="flex items-start gap-1 pl-2 border-l-2 border-edge">
-                  <p className="flex-1 text-[11px] text-content-secondary leading-relaxed">
-                    {comment.text}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] text-content-secondary leading-relaxed">
+                      {comment.text}
+                    </p>
+                    {/* Photo thumbnails */}
+                    {comment.photos && comment.photos.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {comment.photos.map(photo => (
+                          <div
+                            key={photo.id}
+                            className="relative w-16 h-16 rounded overflow-hidden bg-surface-tertiary flex-shrink-0"
+                          >
+                            {photo.thumbnailDataUrl ? (
+                              <img
+                                src={photo.thumbnailDataUrl}
+                                alt={photo.filename}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <ImageIcon size={16} className="text-content-muted" />
+                              </div>
+                            )}
+                            {/* Upload status overlay */}
+                            {photo.uploadStatus === 'pending' && (
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                <Loader2 size={14} className="text-white animate-spin" />
+                              </div>
+                            )}
+                            {photo.uploadStatus === 'failed' && (
+                              <div className="absolute bottom-0 left-0 right-0 bg-red-600/80 text-white text-[8px] text-center py-0.5">
+                                Failed
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center gap-0.5 flex-shrink-0">
                     <span className="text-[9px] text-content-muted whitespace-nowrap">
+                      {showAuthors && comment.author && (
+                        <span className="text-blue-400 mr-1">{comment.author}</span>
+                      )}
                       {relativeTime(comment.createdAt)}
                     </span>
                     <div className="flex items-center gap-0.5 opacity-0 group-hover/comment:opacity-100 transition-opacity">
+                      {onAddPhoto && (
+                        <button
+                          onClick={e => handlePhotoClick(e, comment.id)}
+                          className="p-0.5 rounded text-content-muted hover:text-content transition-colors"
+                          title="Add photo"
+                          aria-label="Add photo to comment"
+                        >
+                          <Camera size={10} />
+                        </button>
+                      )}
                       <button
                         onClick={e => {
                           e.stopPropagation();

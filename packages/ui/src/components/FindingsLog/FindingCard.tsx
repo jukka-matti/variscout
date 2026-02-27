@@ -25,6 +25,10 @@ export interface FindingCardProps {
   onEditComment?: (findingId: string, commentId: string, text: string) => void;
   /** Callback to delete a comment */
   onDeleteComment?: (findingId: string, commentId: string) => void;
+  /** Callback when a photo is attached to a comment */
+  onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
+  /** Show author names on comments */
+  showAuthors?: boolean;
 }
 
 /**
@@ -43,6 +47,8 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAddComment,
   onEditComment,
   onDeleteComment,
+  onAddPhoto,
+  showAuthors,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
@@ -180,6 +186,8 @@ const FindingCard: React.FC<FindingCardProps> = ({
             onAdd={onAddComment}
             onEdit={onEditComment ?? (() => {})}
             onDelete={onDeleteComment ?? (() => {})}
+            onAddPhoto={onAddPhoto}
+            showAuthors={showAuthors}
           />
         )}
       </div>

@@ -20,6 +20,9 @@ import {
 } from '@variscout/ui';
 import { useControlViolations, useFindings, useDrillPath } from '@variscout/hooks';
 import type { FindingContext } from '@variscout/core';
+import { isTeamPlan } from '@variscout/core';
+import { usePhotoComments } from '../hooks/usePhotoComments';
+import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
 import { downloadCSV } from '@variscout/core';
 import type { ExclusionReason } from '@variscout/core';
@@ -218,6 +221,19 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
     onFindingsChange: setPersistedFindings,
   });
   const [highlightedFindingId, setHighlightedFindingId] = useState<string | null>(null);
+
+  // Current user (for comment author attribution)
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  useEffect(() => {
+    getCurrentUser().then(setCurrentUser);
+  }, []);
+
+  // Photo comments (Team plan only — wires photo processing + upload)
+  const { handleAddPhoto, handleAddCommentWithAuthor } = usePhotoComments({
+    findingsState,
+    analysisId: currentProjectName || 'default',
+    author: currentUser?.name,
+  });
 
   // Drill path for findings panel footer
   const { drillPath } = useDrillPath(rawData, filterNav.filterStack, outcome, specs);
@@ -925,9 +941,11 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                   onRestoreFinding={handleRestoreFinding}
                   onSetFindingStatus={findingsState.setFindingStatus}
                   onSetFindingTag={findingsState.setFindingTag}
-                  onAddComment={findingsState.addFindingComment}
+                  onAddComment={handleAddCommentWithAuthor}
                   onEditComment={findingsState.editFindingComment}
                   onDeleteComment={findingsState.deleteFindingComment}
+                  onAddPhoto={isTeamPlan() ? handleAddPhoto : undefined}
+                  showAuthors={true}
                   columnAliases={columnAliases}
                   drillPath={drillPath}
                   activeFindingId={highlightedFindingId}
@@ -948,9 +966,11 @@ export const Editor: React.FC<EditorProps> = ({ projectId, onBack }) => {
                 onRestoreFinding={handleRestoreFinding}
                 onSetFindingStatus={findingsState.setFindingStatus}
                 onSetFindingTag={findingsState.setFindingTag}
-                onAddComment={findingsState.addFindingComment}
+                onAddComment={handleAddCommentWithAuthor}
                 onEditComment={findingsState.editFindingComment}
                 onDeleteComment={findingsState.deleteFindingComment}
+                onAddPhoto={isTeamPlan() ? handleAddPhoto : undefined}
+                showAuthors={true}
                 columnAliases={columnAliases}
                 drillPath={drillPath}
                 activeFindingId={highlightedFindingId}
