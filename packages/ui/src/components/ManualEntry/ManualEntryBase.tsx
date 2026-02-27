@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import type { DataRow, DataCellValue } from '@variscout/core';
+import type { DataRow, DataCellValue, SpecLimits } from '@variscout/core';
 import ManualEntrySetupBase from './ManualEntrySetupBase';
 import StandardEntryGrid from './StandardEntryGrid';
 import PerformanceEntryGrid from './PerformanceEntryGrid';
@@ -9,7 +9,7 @@ type EntryMode = 'standard' | 'performance';
 export interface ManualEntryConfig {
   outcome: string;
   factors: string[];
-  specs?: { usl?: number; lsl?: number };
+  specs?: Pick<SpecLimits, 'usl' | 'lsl'>;
   isPerformanceMode?: boolean;
   measureColumns?: string[];
   measureLabel?: string;

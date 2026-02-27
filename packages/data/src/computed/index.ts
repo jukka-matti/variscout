@@ -6,7 +6,7 @@
  * calculations at runtime.
  */
 
-import { calculateStats, calculateBoxplotStats } from '@variscout/core';
+import { calculateStats, calculateBoxplotStats, type SpecLimits } from '@variscout/core';
 import { getSample } from '../samples';
 import type {
   ComputedChartData,
@@ -123,7 +123,7 @@ export function computeParetoData(
 export function computeStats(
   data: Record<string, unknown>[],
   outcomeKey: string,
-  specs: { usl?: number; lsl?: number; target?: number }
+  specs: SpecLimits
 ): PrecomputedStats {
   const values = data.map(row => Number(row[outcomeKey])).filter(v => !isNaN(v));
 

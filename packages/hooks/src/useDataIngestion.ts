@@ -26,6 +26,7 @@ import {
   type DataQualityReport,
   type ParetoRow,
   type DataRow,
+  type SpecLimits,
   type TimeExtractionConfig,
 } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
@@ -42,7 +43,7 @@ export interface DataIngestionActions {
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
-  setSpecs: (specs: { usl?: number; lsl?: number; target?: number }) => void;
+  setSpecs: (specs: SpecLimits) => void;
   setFilters: (filters: Record<string, (string | number)[]>) => void;
   setDataFilename: (filename: string | null) => void;
   setDataQualityReport: (report: DataQualityReport | null) => void;

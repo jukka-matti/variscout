@@ -135,6 +135,11 @@ export {
 } from './components/SpecEditor';
 
 export {
+  default as CharacteristicTypeSelector,
+  type CharacteristicTypeSelectorProps,
+} from './components/CharacteristicTypeSelector';
+
+export {
   CapabilityHistogram,
   type CapabilityHistogramProps,
 } from './components/CapabilityHistogram';

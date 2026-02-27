@@ -7,6 +7,7 @@ import type {
   FactorAdjustment,
   ModelSimulationResult,
   MultiRegressionResult,
+  SpecLimits,
 } from '../types';
 import { toNumericValue } from '../types';
 import type {
@@ -65,7 +66,7 @@ export function normalPDF(x: number, mean: number, stdDev: number): number {
 function calculateYieldFromDistribution(
   mean: number,
   stdDev: number,
-  specs?: { usl?: number; lsl?: number }
+  specs?: Pick<SpecLimits, 'usl' | 'lsl'>
 ): number | undefined {
   if (!specs || (specs.usl === undefined && specs.lsl === undefined)) {
     return undefined;
@@ -119,7 +120,7 @@ export function calculateProjectedStats(
   factor: string,
   outcome: string,
   excludedCategories: Set<string | number>,
-  specs?: { usl?: number; lsl?: number; target?: number },
+  specs?: SpecLimits,
   currentStats?: { mean: number; stdDev: number; cpk?: number }
 ): ProjectedStats | null {
   // Filter out excluded categories
@@ -225,7 +226,7 @@ export function calculateProjectedStats(
 export function simulateDirectAdjustment(
   currentStats: { mean: number; stdDev: number; cpk?: number },
   params: DirectAdjustmentParams,
-  specs?: { usl?: number; lsl?: number; target?: number }
+  specs?: SpecLimits
 ): DirectAdjustmentResult {
   // Apply adjustments
   const projectedMean = currentStats.mean + params.meanShift;
@@ -291,7 +292,7 @@ export function simulateOverallImpact(
   subsetStats: { mean: number; stdDev: number; count: number },
   complementStats: { mean: number; stdDev: number; count: number },
   projectedSubsetStats: { mean: number; stdDev: number },
-  specs?: { usl?: number; lsl?: number }
+  specs?: Pick<SpecLimits, 'usl' | 'lsl'>
 ): OverallImpactResult {
   const n = subsetStats.count;
   const m = complementStats.count;
@@ -320,7 +321,7 @@ export function simulateOverallImpact(
   const computeCpk = (
     mean: number,
     stdDev: number,
-    s?: { usl?: number; lsl?: number }
+    s?: Pick<SpecLimits, 'usl' | 'lsl'>
   ): number | undefined => {
     if (!s || stdDev === 0) return undefined;
     const { usl, lsl } = s;

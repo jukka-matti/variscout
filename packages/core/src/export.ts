@@ -3,6 +3,8 @@
  * Generates Excel-compatible CSV files from analysis data
  */
 
+import type { SpecLimits } from './types';
+
 export interface ExportOptions {
   includeRowNumbers?: boolean;
   includeSpecStatus?: boolean;
@@ -14,7 +16,7 @@ export interface ExportOptions {
  */
 export function getSpecStatus(
   value: number,
-  specs: { usl?: number; lsl?: number }
+  specs: Pick<SpecLimits, 'usl' | 'lsl'>
 ): 'PASS' | 'FAIL_USL' | 'FAIL_LSL' | 'N/A' {
   if (specs.usl === undefined && specs.lsl === undefined) {
     return 'N/A';
@@ -53,7 +55,7 @@ function escapeCSVValue(value: unknown): string {
 export function generateCSV(
   data: Record<string, unknown>[],
   outcome: string | null,
-  specs: { usl?: number; lsl?: number },
+  specs: Pick<SpecLimits, 'usl' | 'lsl'>,
   options: ExportOptions = {}
 ): string {
   if (data.length === 0) {
@@ -110,7 +112,7 @@ export function generateCSV(
 export function downloadCSV(
   data: Record<string, unknown>[],
   outcome: string | null,
-  specs: { usl?: number; lsl?: number },
+  specs: Pick<SpecLimits, 'usl' | 'lsl'>,
   options: ExportOptions = {}
 ): void {
   const csv = generateCSV(data, outcome, specs, options);

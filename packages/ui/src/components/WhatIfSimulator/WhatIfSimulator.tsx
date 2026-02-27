@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { ChevronRight, ChevronDown, RotateCcw, Beaker, Target, XCircle, Star } from 'lucide-react';
 import { simulateDirectAdjustment, simulateOverallImpact } from '@variscout/core';
-import type { OverallImpactResult } from '@variscout/core';
+import type { OverallImpactResult, SpecLimits } from '@variscout/core';
 import Slider from '../Slider/Slider';
 import type { SliderColorScheme } from '../Slider/Slider';
 import DistributionPreview from './DistributionPreview';
@@ -103,7 +103,7 @@ export interface WhatIfSimulatorHandle {
 
 export interface WhatIfSimulatorProps {
   currentStats: { mean: number; stdDev: number; cpk?: number };
-  specs?: { usl?: number; lsl?: number; target?: number };
+  specs?: SpecLimits;
   defaultExpanded?: boolean;
   presets?: SimulatorPreset[];
   isExpanded?: boolean;

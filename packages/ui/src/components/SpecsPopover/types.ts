@@ -19,9 +19,11 @@ export interface SpecsPopoverColorScheme {
   applyDisabled: string;
 }
 
+import type { SpecLimits } from '@variscout/core';
+
 export interface SpecsPopoverProps {
-  specs: { usl?: number; lsl?: number; target?: number };
-  onSave: (specs: { usl?: number; lsl?: number; target?: number }) => void;
+  specs: SpecLimits;
+  onSave: (specs: SpecLimits) => void;
   onOpenAdvanced?: () => void;
   className?: string;
   colorScheme?: SpecsPopoverColorScheme;

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import {
   type FilterAction,
   type DataRow,
+  type SpecLimits,
   calculateCategoryTotalSS,
   calculateStats,
   applyFilters,
@@ -75,7 +76,7 @@ export function useDrillPath(
   rawData: DataRow[],
   filterStack: FilterAction[],
   outcome: string | null,
-  specs?: { usl?: number; lsl?: number }
+  specs?: Pick<SpecLimits, 'usl' | 'lsl'>
 ): UseDrillPathReturn {
   return useMemo(() => {
     if (!outcome || rawData.length < 2 || filterStack.length === 0) {

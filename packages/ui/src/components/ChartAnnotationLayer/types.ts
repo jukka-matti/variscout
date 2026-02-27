@@ -1,3 +1,5 @@
+import { chartColors, chromeColors } from '@variscout/charts';
+
 /** Highlight color for annotated chart elements */
 export type HighlightColor = 'red' | 'amber' | 'green';
 
@@ -25,26 +27,23 @@ export interface AnnotationColorDef {
   hex: string;
 }
 
+/** Convert a hex color to rgba fill and border values for annotations */
+function annotationColorDef(hex: string): AnnotationColorDef {
+  // Parse hex to RGB for rgba() values
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return {
+    hex,
+    fill: `rgba(${r},${g},${b},0.12)`,
+    border: `rgba(${r},${g},${b},0.3)`,
+  };
+}
+
 /** Map of annotation colors to their CSS values */
 export const annotationColors: Record<HighlightColor | 'neutral', AnnotationColorDef> = {
-  red: {
-    hex: '#ef4444',
-    fill: 'rgba(239,68,68,0.12)',
-    border: 'rgba(239,68,68,0.3)',
-  },
-  amber: {
-    hex: '#f59e0b',
-    fill: 'rgba(245,158,11,0.12)',
-    border: 'rgba(245,158,11,0.3)',
-  },
-  green: {
-    hex: '#22c55e',
-    fill: 'rgba(34,197,94,0.12)',
-    border: 'rgba(34,197,94,0.3)',
-  },
-  neutral: {
-    hex: '#94a3b8',
-    fill: 'rgba(148,163,184,0.12)',
-    border: 'rgba(148,163,184,0.3)',
-  },
+  red: annotationColorDef(chartColors.fail),
+  amber: annotationColorDef(chartColors.warning),
+  green: annotationColorDef(chartColors.pass),
+  neutral: annotationColorDef(chromeColors.labelSecondary),
 };

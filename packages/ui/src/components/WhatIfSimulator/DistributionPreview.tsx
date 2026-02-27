@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
-import { normalPDF } from '@variscout/core';
+import { normalPDF, type SpecLimits } from '@variscout/core';
+import { chartColors, chromeColors } from '@variscout/charts';
 
 interface DistributionPreviewProps {
   currentMean: number;
   currentStdDev: number;
   projectedMean: number;
   projectedStdDev: number;
-  specs?: { usl?: number; lsl?: number };
+  specs?: Pick<SpecLimits, 'usl' | 'lsl'>;
   height?: number;
 }
 
@@ -88,8 +89,8 @@ export default function DistributionPreview({
 
     // Mean indicator lines
     const mLines = [
-      { x: xScale(currentMean), color: '#94a3b8' },
-      { x: xScale(projectedMean), color: '#60a5fa' },
+      { x: xScale(currentMean), color: chromeColors.labelSecondary },
+      { x: xScale(projectedMean), color: chartColors.mean },
     ];
 
     return {
@@ -111,9 +112,19 @@ export default function DistributionPreview({
         aria-label="Distribution preview showing current and projected normal curves"
       >
         {/* Current curve (gray) */}
-        <path d={currentPath} fill="rgba(148,163,184,0.25)" stroke="#94a3b8" strokeWidth={1.5} />
+        <path
+          d={currentPath}
+          fill={`${chromeColors.labelSecondary}40`}
+          stroke={chromeColors.labelSecondary}
+          strokeWidth={1.5}
+        />
         {/* Projected curve (blue) */}
-        <path d={projectedPath} fill="rgba(96,165,250,0.25)" stroke="#60a5fa" strokeWidth={1.5} />
+        <path
+          d={projectedPath}
+          fill={`${chartColors.mean}40`}
+          stroke={chartColors.mean}
+          strokeWidth={1.5}
+        />
         {/* Spec limit lines */}
         {specLines.map(sl => (
           <line
@@ -122,7 +133,7 @@ export default function DistributionPreview({
             y1={PADDING_Y}
             x2={sl.x}
             y2={height - PADDING_Y}
-            stroke="#f87171"
+            stroke={chartColors.fail}
             strokeWidth={1}
             strokeDasharray="4 3"
           />

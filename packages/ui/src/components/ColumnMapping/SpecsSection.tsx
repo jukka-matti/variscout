@@ -1,6 +1,7 @@
 import React from 'react';
-import { ChevronDown, ChevronRight, Target, MoveVertical, ArrowDown, ArrowUp } from 'lucide-react';
+import { ChevronDown, ChevronRight, Target } from 'lucide-react';
 import { inferCharacteristicType, type CharacteristicType } from '@variscout/core';
+import CharacteristicTypeSelector from '../CharacteristicTypeSelector';
 
 export interface SpecsSectionProps {
   expanded: boolean;
@@ -14,32 +15,6 @@ export interface SpecsSectionProps {
   characteristicType?: CharacteristicType | null;
   onCharacteristicTypeChange?: (type: CharacteristicType | null) => void;
 }
-
-const SPECS_TYPE_ICONS: {
-  value: CharacteristicType;
-  icon: typeof MoveVertical;
-  label: string;
-  description: string;
-}[] = [
-  {
-    value: 'nominal',
-    icon: MoveVertical,
-    label: 'Nominal',
-    description: 'Target-centered (e.g. fill weight)',
-  },
-  {
-    value: 'smaller',
-    icon: ArrowDown,
-    label: 'Smaller is better',
-    description: 'Lower is better (e.g. defects)',
-  },
-  {
-    value: 'larger',
-    icon: ArrowUp,
-    label: 'Larger is better',
-    description: 'Higher is better (e.g. yield)',
-  },
-];
 
 const SpecsSection: React.FC<SpecsSectionProps> = ({
   expanded,
@@ -102,33 +77,12 @@ const SpecsSection: React.FC<SpecsSectionProps> = ({
               className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30 placeholder-slate-600"
               aria-label="Target specification"
             />
-            <div className="flex gap-1 shrink-0" role="radiogroup" aria-label="Characteristic type">
-              {SPECS_TYPE_ICONS.map(opt => {
-                const Icon = opt.icon;
-                const isExplicit = characteristicType === opt.value;
-                const isInferred = !characteristicType && autoInferred === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={isExplicit}
-                    aria-label={`${opt.label} — ${opt.description}`}
-                    onClick={() => onCharacteristicTypeChange?.(isExplicit ? null : opt.value)}
-                    title={`${opt.label} — ${opt.description}`}
-                    className={`w-7 h-7 flex items-center justify-center rounded transition-colors ${
-                      isExplicit
-                        ? 'bg-blue-600 text-white border border-blue-500'
-                        : isInferred
-                          ? 'border border-dashed border-blue-400/50 text-blue-400/60'
-                          : 'border border-slate-600 text-slate-500 hover:border-blue-500/50'
-                    }`}
-                  >
-                    <Icon size={14} />
-                  </button>
-                );
-              })}
-            </div>
+            <CharacteristicTypeSelector
+              value={characteristicType}
+              onChange={type => onCharacteristicTypeChange?.(type)}
+              autoInferred={autoInferred}
+              className="flex gap-1 shrink-0"
+            />
           </div>
           <div className="flex items-center gap-3">
             <label

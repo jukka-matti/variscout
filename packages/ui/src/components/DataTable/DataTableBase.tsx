@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Trash2, ChevronLeft, ChevronRight, AlertTriangle, AlertCircle } from 'lucide-react';
 import { getSpecStatus } from '@variscout/core';
-import type { DataCellValue, ExclusionReason } from '@variscout/core';
+import type { DataCellValue, ExclusionReason, SpecLimits } from '@variscout/core';
 import { useDataTablePagination, useHighlightFade } from '@variscout/hooks';
 
 const DEFAULT_ROWS_PER_PAGE = 500;
@@ -10,7 +10,7 @@ export interface DataTableBaseProps {
   data: Record<string, DataCellValue>[];
   columns: string[];
   outcome: string | null;
-  specs: { usl?: number; lsl?: number };
+  specs: Pick<SpecLimits, 'usl' | 'lsl'>;
   columnAliases?: Record<string, string>;
   onCellChange: (rowIndex: number, col: string, value: DataCellValue) => void;
   onDeleteRow: (rowIndex: number) => void;

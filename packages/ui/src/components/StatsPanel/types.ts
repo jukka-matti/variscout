@@ -1,5 +1,5 @@
 import type React from 'react';
-import type { StatsResult, GlossaryTerm, DataRow } from '@variscout/core';
+import type { StatsResult, SpecLimits, GlossaryTerm, DataRow } from '@variscout/core';
 
 export interface StatsPanelColorScheme {
   // Container
@@ -19,7 +19,7 @@ export interface StatsPanelColorScheme {
 
 export interface StatsPanelBaseProps {
   stats: StatsResult | null;
-  specs: { usl?: number; lsl?: number; target?: number };
+  specs: SpecLimits;
   filteredData?: DataRow[];
   outcome?: string | null;
   defaultTab?: 'summary' | 'histogram' | 'normality';
@@ -31,7 +31,7 @@ export interface StatsPanelBaseProps {
   /** Render histogram chart content */
   renderHistogram?: (
     data: number[],
-    specs: { usl?: number; lsl?: number },
+    specs: Pick<SpecLimits, 'usl' | 'lsl'>,
     mean: number
   ) => React.ReactNode;
   /** Render probability plot content */
@@ -39,10 +39,7 @@ export interface StatsPanelBaseProps {
   /** When false, hides Cp, Cpk, and Pass Rate cards from the summary grid */
   showCpk?: boolean;
   /** Render extra content after summary (e.g., What-If Simulator, Spec Editor button) */
-  renderSummaryFooter?: (
-    stats: StatsResult,
-    specs: { usl?: number; lsl?: number; target?: number }
-  ) => React.ReactNode;
+  renderSummaryFooter?: (stats: StatsResult, specs: SpecLimits) => React.ReactNode;
   /** Glossary term lookup function */
   getTerm: (key: string) => GlossaryTerm | undefined;
 }

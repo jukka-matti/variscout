@@ -6,13 +6,13 @@
  */
 import React from 'react';
 import { CapabilityHistogramBase } from '@variscout/charts';
-import { shouldShowBranding, getBrandingText } from '@variscout/core';
+import { shouldShowBranding, getBrandingText, type SpecLimits } from '@variscout/core';
 
 export interface CapabilityHistogramProps {
   parentWidth: number;
   parentHeight: number;
   data: number[];
-  specs: { usl?: number; lsl?: number; target?: number };
+  specs: SpecLimits;
   mean: number;
 }
 
