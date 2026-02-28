@@ -122,7 +122,7 @@ The Azure app uses a responsive phone layout (< 640px) within the existing Edito
 - Findings panel renders as full-screen overlay on phone, inline sidebar on desktop
 - Phone toolbar: Back + project name (truncated) + Save + overflow menu (`EllipsisVertical`)
 - Touch-optimized: 44px minimum touch targets, safe area insets for notched phones
-- Comment thread with photo capture (`<input type="file" accept="image/*" capture="environment">`)
+- Comment thread with photo capture — Teams SDK `media.selectMedia()` inside Teams (native camera experience), HTML5 file input fallback outside Teams
 - Annotations disabled on phone (no right-click context menu on touch devices)
 
 Reuses PWA responsive patterns adapted for Teams mobile WebView. Desktop layout is completely unchanged (all gated by `useIsMobile(640)`).
@@ -153,18 +153,31 @@ An Azure Function (~50 lines) exchanges the Teams SSO token for a Graph API acce
 - **Photo immutability**: Photos are immutable once uploaded — no edit or delete of photo files. Prevents evidence tampering in quality investigations.
 - **No-delete principle**: `Files.ReadWrite.All` technically includes delete capability, but VariScout never calls Graph API delete endpoints. The storage model is strictly additive — `.vrs` projects are created/updated (conflicts save as copies), photos are immutable once uploaded. IT admins can audit this: the app contains no `DELETE /drive/items/{id}` calls.
 - **Audit trail**: Author + timestamp on all findings and comments. Combined with photo immutability, creates a reliable investigation record.
+- **`devicePermissions: ["media"]`**: Declaring camera access in the Teams manifest makes usage auditable in the Teams Admin Center. IT admins can see which apps request device access during the app permission review. The HTML5 `capture` attribute, by contrast, works silently with no admin visibility.
 - **Font self-hosting**: Recommend self-hosting Google Fonts for strict CSP environments (no external CDN calls).
+
+### Design Principles
+
+1. **Progressive enhancement, not hard dependency** — Teams SDK features enhance the experience but the app must always work without them. Every Teams API call has a non-Teams fallback. `isTeamsMediaAvailable()` / `isInTeams()` gate all SDK calls.
+
+2. **IT admin visibility over silent access** — Prefer Teams SDK APIs that declare permissions in the manifest (`devicePermissions`, Graph scopes) over HTML5 APIs that work silently. This gives tenant admins an audit trail and consent control.
+
+3. **No creative filters on quality evidence** — Photo capture disables Instagram-style filters (`enableFilter: false`), drawing tools (`ink: false`), and text overlays (`textSticker: false`). Quality evidence must be unaltered.
+
+4. **EXIF stripping is non-negotiable** — Every photo path (Teams SDK, HTML5 file input, gallery pick) feeds into the same `processPhoto()` → `stripExifFromBlob()` pipeline. No photo reaches OneDrive with GPS or device metadata.
+
+5. **Additive-only storage** — No delete calls to Graph API. Photos are immutable once uploaded. Conflicts create copies. This is auditable — the app contains no `DELETE /drive/items/{id}` calls.
 
 ### Phased Delivery
 
-| Phase | Scope                                                                        | Dependencies |
-| ----- | ---------------------------------------------------------------------------- | ------------ |
-| 1     | Teams SDK foundation — detect context, manifest with personal + channel tabs | None         |
-| 2     | Mobile layout — responsive phone carousel in Editor, touch navigation        | Phase 1      |
-| 3     | Photo comments — data model, camera capture, OneDrive upload                 | Phase 1      |
-| 4     | Channel file storage — shared `.vrs` + photos, optimistic merge              | Phases 1 + 3 |
-| 5     | Deep links + URL sharing — Teams native dialog, chart/finding links          | Phases 1 + 4 |
-| 6     | Azure Function for On-Behalf-Of — true silent SSO                            | Phase 1      |
+| Phase | Scope                                                                              | Dependencies |
+| ----- | ---------------------------------------------------------------------------------- | ------------ |
+| 1     | Teams SDK foundation — detect context, manifest with personal + channel tabs       | None         |
+| 2     | Mobile layout — responsive phone carousel in Editor, touch navigation              | Phase 1      |
+| 3     | Photo comments — data model, Teams SDK media API + HTML5 fallback, OneDrive upload | Phase 1      |
+| 4     | Channel file storage — shared `.vrs` + photos, optimistic merge                    | Phases 1 + 3 |
+| 5     | Deep links + URL sharing — Teams native dialog, chart/finding links                | Phases 1 + 4 |
+| 6     | Azure Function for On-Behalf-Of — true silent SSO                                  | Phase 1      |
 
 Phases 2 and 3 can proceed in parallel after Phase 1. Phase 6 can be done at any point after Phase 1 but is lowest priority (EasyAuth fallback works).
 

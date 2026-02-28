@@ -257,13 +257,13 @@ Quality data can be commercially sensitive:
 
 ### 6.4 Shop Floor Reality
 
-| Concern                               | How VariScout Addresses It                                                                                                     |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Shared/BYOD devices on the shop floor | Entra ID authentication on every session. No persistent local credentials. Conditional Access can restrict to managed devices. |
-| Poor factory WiFi                     | Offline-first: IndexedDB saves locally, syncs when connected. Sync queue with exponential backoff.                             |
-| Teams mobile sidebar                  | One-tap access from Teams app. HTML5 camera capture (no native app install).                                                   |
-| Multiple operators using one terminal | Each operator signs in with their own Entra ID. Author field on findings provides clear attribution.                           |
-| Language                              | App UI in English. Quality terminology (Cpk, SPC) is international. Privacy notice should be in Finnish (GDPR good practice).  |
+| Concern                               | How VariScout Addresses It                                                                                                                                                                                    |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shared/BYOD devices on the shop floor | Entra ID authentication on every session. No persistent local credentials. Conditional Access can restrict to managed devices.                                                                                |
+| Poor factory WiFi                     | Offline-first: IndexedDB saves locally, syncs when connected. Sync queue with exponential backoff.                                                                                                            |
+| Teams mobile sidebar                  | One-tap access from Teams app. Teams SDK `media.selectMedia()` for native camera experience; `devicePermissions: ["media"]` in manifest gives IT admins audit trail. HTML5 file input fallback outside Teams. |
+| Multiple operators using one terminal | Each operator signs in with their own Entra ID. Author field on findings provides clear attribution.                                                                                                          |
+| Language                              | App UI in English. Quality terminology (Cpk, SPC) is international. Privacy notice should be in Finnish (GDPR good practice).                                                                                 |
 
 ### 6.5 Trust Decision
 
@@ -455,7 +455,9 @@ Complete Graph API permissions used by VariScout, current and proposed:
 #### Photo Capture Flow
 
 ```
-Camera (HTML5)
+Teams SDK media.selectMedia() ─┐
+                                ├──► processPhoto()
+HTML5 file input (fallback) ───┘
     │
     ▼
 Canvas re-encode + stripExifFromBlob ──── EXIF/GPS stripped (two layers)

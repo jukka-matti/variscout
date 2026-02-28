@@ -43,7 +43,7 @@ Team plan adds:
 - Teams SDK integration (channel tabs, SSO)
 - OneDrive/SharePoint analysis sync
 - Channel storage for shared projects
-- Photo capture with EXIF stripping
+- Photo capture with EXIF stripping (Teams SDK native camera + HTML5 fallback)
 
 **Billing**: Handled by Microsoft (3% fee). Supports enterprise procurement with purchase orders and invoicing.
 

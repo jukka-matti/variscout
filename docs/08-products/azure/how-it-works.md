@@ -252,8 +252,8 @@ When running as a channel tab, analyses and photos are stored in the channel's S
 
 Photo evidence flows through a client-side pipeline:
 
-1. Camera capture (`<input type="file" accept="image/*" capture="environment">`)
-2. EXIF/GPS metadata stripped (`exifStrip.ts` — byte-level removal, 23 verification tests)
+1. Camera capture — Teams SDK `media.selectMedia()` inside Teams (native camera, `devicePermissions: ["media"]` for IT audit trail), HTML5 file input fallback outside Teams
+2. EXIF/GPS metadata stripped (`exifStrip.ts` — byte-level removal, 23 verification tests) — both capture paths feed into the same pipeline
 3. Upload to OneDrive or SharePoint (`photoUpload.ts`)
 4. Thumbnail embedded in `.vrs` file for cross-user preview
 

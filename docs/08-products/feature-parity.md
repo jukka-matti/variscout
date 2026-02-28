@@ -112,17 +112,17 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Teams Integration
 
-| Feature                               | Azure Standard | Azure Team | PWA (Free) | Notes                                      |
-| ------------------------------------- | :------------: | :--------: | :--------: | ------------------------------------------ |
-| **Teams channel tab**                 |       -        |     ✓      |     -      | Shared analysis in team channels           |
-| **Teams personal tab**                |       -        |     ✓      |     -      | Personal analysis within Teams             |
-| **Teams SSO**                         |       -        |     ✓      |     -      | On-Behalf-Of token exchange                |
-| **Channel file storage (SharePoint)** |       -        |     ✓      |     -      | .vrs files in channel document library     |
-| **Photo evidence in findings**        |       -        |     ✓      |     -      | Camera capture + channel storage           |
-| **Deep links to charts**              |       -        |     ✓      |     -      | Share chart URLs via Teams chat            |
-| **Adaptive Cards sharing**            |       -        |  Planned   |     -      | Share findings/charts as interactive cards |
-| **Teams mobile access**               |       -        |     ✓      |     -      | Full analysis via Teams mobile app         |
-| **Phone-responsive carousel**         |       -        |     ✓      |     -      | Responsive mobile layout within Editor     |
+| Feature                               | Azure Standard | Azure Team | PWA (Free) | Notes                                                             |
+| ------------------------------------- | :------------: | :--------: | :--------: | ----------------------------------------------------------------- |
+| **Teams channel tab**                 |       -        |     ✓      |     -      | Shared analysis in team channels                                  |
+| **Teams personal tab**                |       -        |     ✓      |     -      | Personal analysis within Teams                                    |
+| **Teams SSO**                         |       -        |     ✓      |     -      | On-Behalf-Of token exchange                                       |
+| **Channel file storage (SharePoint)** |       -        |     ✓      |     -      | .vrs files in channel document library                            |
+| **Photo evidence in findings**        |       -        |     ✓      |     -      | Teams SDK `media.selectMedia()` + HTML5 fallback; channel storage |
+| **Deep links to charts**              |       -        |     ✓      |     -      | Share chart URLs via Teams chat                                   |
+| **Adaptive Cards sharing**            |       -        |  Planned   |     -      | Share findings/charts as interactive cards                        |
+| **Teams mobile access**               |       -        |     ✓      |     -      | Full analysis via Teams mobile app                                |
+| **Phone-responsive carousel**         |       -        |     ✓      |     -      | Responsive mobile layout within Editor                            |
 
 > See [ADR-016](../07-decisions/adr-016-teams-integration.md) for full Teams integration technical design.
 

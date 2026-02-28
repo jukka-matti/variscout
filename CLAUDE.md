@@ -281,5 +281,6 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `apps/azure/src/auth/graphToken.ts`                              | OBO token exchange for Teams SSO (Graph API access)                                                        |
 | `infra/functions/token-exchange/index.js`                        | Azure Function for OBO token exchange (Teams SSO backend)                                                  |
 | `packages/core/src/utils/exifStrip.ts`                           | Byte-level EXIF/GPS metadata stripping for photo evidence                                                  |
+| `apps/azure/src/teams/teamsMedia.ts`                             | Teams SDK camera wrapper (media.selectMedia)                                                               |
 
 > Use `Read` tool to examine these files when needed.
