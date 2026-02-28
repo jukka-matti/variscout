@@ -9,7 +9,7 @@
  * SSO without redirect, channel tab support).
  */
 
-import { app, authentication } from '@microsoft/teams-js';
+import { app, authentication, teamsCore } from '@microsoft/teams-js';
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -52,6 +52,41 @@ let teamsContext: TeamsContext = EMPTY_CONTEXT;
 let initialized = false;
 let initPromise: Promise<TeamsContext> | null = null;
 
+// ── Theme change subscribers ─────────────────────────────────────────────
+
+type ThemeChangeListener = (theme: string) => void;
+const themeListeners: ThemeChangeListener[] = [];
+
+/**
+ * Subscribe to Teams theme changes. Returns an unsubscribe function.
+ * Callback fires when Teams switches between default/dark/contrast.
+ */
+export function onThemeChange(listener: ThemeChangeListener): () => void {
+  themeListeners.push(listener);
+  return () => {
+    const idx = themeListeners.indexOf(listener);
+    if (idx >= 0) themeListeners.splice(idx, 1);
+  };
+}
+
+function notifyThemeListeners(theme: string): void {
+  for (const listener of themeListeners) {
+    listener(theme);
+  }
+}
+
+// ── Before-unload callback ───────────────────────────────────────────────
+
+let beforeUnloadCallback: (() => Promise<void>) | null = null;
+
+/**
+ * Register a callback that runs before Teams unloads the tab.
+ * Use this to auto-save unsaved changes before navigation.
+ */
+export function setBeforeUnloadHandler(cb: () => Promise<void>): void {
+  beforeUnloadCallback = cb;
+}
+
 // ── Initialization ───────────────────────────────────────────────────────
 
 /**
@@ -92,10 +127,25 @@ async function doInit(): Promise<TeamsContext> {
     // Listen for theme changes from Teams
     app.registerOnThemeChangeHandler((theme: string) => {
       teamsContext = { ...teamsContext, theme };
+      notifyThemeListeners(theme);
     });
 
     // Notify Teams that the app loaded successfully
     app.notifySuccess();
+
+    // Register before-unload handler for data loss prevention.
+    // The handler receives readyToUnload callback and returns true if it needs time.
+    try {
+      teamsCore.registerBeforeUnloadHandler(readyToUnload => {
+        if (beforeUnloadCallback) {
+          beforeUnloadCallback().then(readyToUnload);
+          return true; // tell Teams we need time
+        }
+        return false; // unload immediately
+      });
+    } catch {
+      // teamsCore API may not be available in older Teams clients
+    }
 
     initialized = true;
     return teamsContext;
@@ -130,6 +180,21 @@ export function isInTeams(): boolean {
 /** Whether the app is running in a Teams channel tab */
 export function isChannelTab(): boolean {
   return teamsContext.tabType === 'channel';
+}
+
+// ── Failure notification ─────────────────────────────────────────────────
+
+/**
+ * Notify Teams that the app has crashed. Call from error boundaries
+ * so the Teams host reflects the error state.
+ */
+export function notifyTeamsFailure(message: string): void {
+  if (!teamsContext.isTeams) return;
+  try {
+    app.notifyFailure({ reason: app.FailedReason.Other, message });
+  } catch {
+    // ignore if Teams SDK unavailable
+  }
 }
 
 // ── SSO Token ────────────────────────────────────────────────────────────

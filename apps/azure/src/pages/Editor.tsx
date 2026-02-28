@@ -56,6 +56,7 @@ import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 import { useTeamsShare } from '../hooks/useTeamsShare';
 import { buildFindingSharePayload, buildChartSharePayload } from '../services/shareContent';
 import { buildSubPageId } from '../services/deepLinks';
+import { setBeforeUnloadHandler } from '../teams';
 
 interface EditorProps {
   projectId: string | null;
@@ -435,6 +436,17 @@ export const Editor: React.FC<EditorProps> = ({
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
   };
+
+  // Register Teams beforeUnload handler for data loss prevention.
+  // When the user navigates away from the tab, auto-save if there are unsaved changes.
+  useEffect(() => {
+    setBeforeUnloadHandler(async () => {
+      if (hasUnsavedChanges) {
+        const name = currentProjectName || 'New Analysis';
+        await saveProject(name);
+      }
+    });
+  }, [hasUnsavedChanges, currentProjectName, saveProject]);
 
   // Sync status icon
   const SyncIcon =

@@ -156,6 +156,18 @@ An Azure Function (~50 lines) exchanges the Teams SSO token for a Graph API acce
 - **`devicePermissions: ["media"]`**: Declaring camera access in the Teams manifest makes usage auditable in the Teams Admin Center. IT admins can see which apps request device access during the app permission review. The HTML5 `capture` attribute, by contrast, works silently with no admin visibility.
 - **Font self-hosting**: Recommend self-hosting Google Fonts for strict CSP environments (no external CDN calls).
 
+### IT Compliance Hardening (February 2026)
+
+Four gaps identified during Microsoft best practices audit and fixed:
+
+1. **Reactive Teams theme sync** — `useTeamsContext` hook now re-renders on Teams theme changes via a subscriber pattern. Teams theme (default/dark/contrast) is mapped into `ThemeContext` on initial load and on every change. High-contrast mode maps to `light` (closest safe match).
+
+2. **Dynamic CSP `connect-src`** — `server.js` reads the `FUNCTION_URL` environment variable at startup and includes its origin in the Content Security Policy `connect-src` directive. Without this, OBO token exchange to a separate Azure Function origin was silently blocked by CSP.
+
+3. **`app.notifyFailure()` on crash** — The top-level `ErrorBoundary` in `App.tsx` calls `notifyTeamsFailure()` when a render error is caught. This tells the Teams host that the app has crashed, rather than leaving Teams in a "healthy" state while the user sees a fallback error screen.
+
+4. **`registerBeforeUnloadHandler` for data loss prevention** — During Teams SDK initialization, a lifecycle handler is registered. The Editor registers a callback that auto-saves the project (via `saveProject()`) if `hasUnsavedChanges` is true when the user navigates away from the tab.
+
 ### Design Principles
 
 1. **Progressive enhancement, not hard dependency** — Teams SDK features enhance the experience but the app must always work without them. Every Teams API call has a non-Teams fallback. `isTeamsMediaAvailable()` / `isInTeams()` gate all SDK calls.

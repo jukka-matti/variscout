@@ -33,6 +33,8 @@ export interface ErrorBoundaryProps {
   componentName?: string;
   /** Color scheme for styling (defaults to PWA semantic tokens) */
   colorScheme?: ErrorBoundaryColorScheme;
+  /** Called when an error is caught — use to notify external systems (e.g. Teams) */
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
 interface ErrorBoundaryState {
@@ -71,6 +73,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         action: 'render',
       });
     }
+
+    // Notify external systems (e.g. Teams host)
+    this.props.onError?.(error, errorInfo);
   }
 
   handleRetry = (): void => {

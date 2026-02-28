@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { getEasyAuthUser, login, logout, type EasyAuthUser } from './auth/easyAuth';
 import { DataProvider } from './context/DataContext';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { StorageProvider, useStorage } from './services/storage';
 import { Dashboard as ProjectDashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
@@ -11,7 +11,7 @@ import SettingsPanel from './components/settings/SettingsPanel';
 import { SyncToastContainer } from './components/SyncToast';
 import { ErrorBoundary, FindingsWindow } from '@variscout/ui';
 import { Activity, LogOut, Settings, Shield } from 'lucide-react';
-import { useTeamsContext } from './teams';
+import { useTeamsContext, notifyTeamsFailure } from './teams';
 import { TeamsTabConfig } from './teams/TeamsTabConfig';
 import { parseDeepLink, parseSubPageId, type DeepLinkParams } from './services/deepLinks';
 
@@ -39,6 +39,13 @@ function App() {
   }
 
   return <AppMain />;
+}
+
+/** Map Teams theme name to our ThemeMode */
+function mapTeamsTheme(teamsTheme: string): 'light' | 'dark' {
+  if (teamsTheme === 'dark') return 'dark';
+  // 'default' (light) and 'contrast' (high-contrast) → light is the closest safe match
+  return 'light';
 }
 
 function AppMain() {
@@ -87,6 +94,12 @@ function AppMain() {
     setCurrentView('dashboard');
   };
 
+  // Notify Teams host when a render error crashes the app
+  // (must be before early returns to satisfy rules-of-hooks)
+  const handleAppError = useCallback((error: Error) => {
+    notifyTeamsFailure(error.message || 'Application render error');
+  }, []);
+
   // Still checking auth
   if (!authChecked) {
     return (
@@ -132,6 +145,7 @@ function AppMain() {
   // Authenticated
   return (
     <ThemeProvider>
+      {teams.isTeams && <TeamsThemeSync teamsTheme={teams.theme} />}
       <StorageProvider>
         <div className="min-h-screen bg-surface text-content">
           <a
@@ -140,7 +154,7 @@ function AppMain() {
           >
             Skip to main content
           </a>
-          <ErrorBoundary>
+          <ErrorBoundary onError={handleAppError}>
             <DataProvider>
               {/* Header */}
               <header className="h-14 border-b border-edge flex items-center justify-between px-4 sm:px-6 bg-surface/50 backdrop-blur-md sticky top-0 z-50">
@@ -254,6 +268,29 @@ function AppMain() {
       </StorageProvider>
     </ThemeProvider>
   );
+}
+
+/** Syncs Teams theme into ThemeContext on initial load and theme changes. */
+function TeamsThemeSync({ teamsTheme }: { teamsTheme: string | null }) {
+  const { setTheme } = useTheme();
+  const synced = useRef(false);
+
+  useEffect(() => {
+    if (!teamsTheme) return;
+
+    // Sync on initial load and subsequent Teams theme changes.
+    // Skip if already synced with same value to avoid overriding user's manual choice.
+    const mapped = mapTeamsTheme(teamsTheme);
+    if (!synced.current) {
+      setTheme({ mode: mapped });
+      synced.current = true;
+    } else {
+      // Teams actively changed the theme — follow it
+      setTheme({ mode: mapped });
+    }
+  }, [teamsTheme, setTheme]);
+
+  return null;
 }
 
 /** Renders sync toast notifications from the StorageProvider context. */

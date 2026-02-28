@@ -5,6 +5,8 @@ export {
   isInTeams,
   isChannelTab,
   getTeamsSsoToken,
+  notifyTeamsFailure,
+  setBeforeUnloadHandler,
   type TeamsContext,
 } from './teamsContext';
 export { useTeamsContext } from './useTeamsContext';

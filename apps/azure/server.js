@@ -11,6 +11,17 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const DIST = join(__dirname, 'dist');
 const PORT = parseInt(process.env.PORT || '8080', 10);
 
+// Build dynamic connect-src to include Azure Function URL for OBO token exchange
+const functionUrl = process.env.FUNCTION_URL || '';
+let connectSrc = "'self' https://graph.microsoft.com";
+if (functionUrl) {
+  try {
+    connectSrc += ` ${new URL(functionUrl).origin}`;
+  } catch {
+    // Invalid FUNCTION_URL — ignore, CSP stays without it
+  }
+}
+
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
     "default-src 'self'",
@@ -18,7 +29,7 @@ const SECURITY_HEADERS = {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    "connect-src 'self' https://graph.microsoft.com",
+    `connect-src ${connectSrc}`,
     // Allow Teams to embed the app in an iframe
     "frame-ancestors 'self' https://teams.microsoft.com https://*.teams.microsoft.com https://*.skype.com",
     "base-uri 'self'",

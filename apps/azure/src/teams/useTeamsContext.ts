@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { initTeams, getTeamsContext, type TeamsContext } from './teamsContext';
+import { initTeams, getTeamsContext, onThemeChange, type TeamsContext } from './teamsContext';
 
 /**
  * Hook that initializes the Teams SDK and returns the context.
@@ -14,6 +14,7 @@ import { initTeams, getTeamsContext, type TeamsContext } from './teamsContext';
  * - First render: returns `isTeams: false, loading: true`
  * - After init: returns the real context with `loading: false`
  * - Outside Teams: `isTeams: false, loading: false`
+ * - Re-renders when Teams theme changes (default/dark/contrast)
  */
 export function useTeamsContext(): TeamsContext & { loading: boolean } {
   const [context, setContext] = useState<TeamsContext>(getTeamsContext);
@@ -29,8 +30,16 @@ export function useTeamsContext(): TeamsContext & { loading: boolean } {
       }
     });
 
+    // Subscribe to theme changes so the hook re-renders
+    const unsubscribe = onThemeChange(() => {
+      if (mounted) {
+        setContext(getTeamsContext());
+      }
+    });
+
     return () => {
       mounted = false;
+      unsubscribe();
     };
   }, []);
 
