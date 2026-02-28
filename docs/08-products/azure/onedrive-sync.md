@@ -1,17 +1,20 @@
-# OneDrive Sync
+# OneDrive & SharePoint Sync
 
-Analysis synchronization with Microsoft OneDrive.
+Analysis synchronization with Microsoft OneDrive and SharePoint.
+
+> **Team plan only.** OneDrive and SharePoint sync requires the Azure Team plan (€299/month). The Azure Standard plan (€99/month) uses local files via File System Access API — no cloud sync.
 
 ---
 
 ## Overview
 
-The Azure app syncs analyses to OneDrive:
+The Team plan syncs analyses to cloud storage:
 
+- **Personal OneDrive** — for personal tabs and browser access
+- **Channel SharePoint** — for channel tabs (shared with team)
 - Automatic sync when online
 - Offline-first with local cache
 - Conflict resolution
-- Sharing via OneDrive
 
 ---
 
@@ -29,6 +32,30 @@ OneDrive/
 The folder structure is auto-created on first use. When the app first lists
 projects and the folder doesn't exist, it creates `/VariScout/Projects/`
 automatically via the Graph API.
+
+### Channel SharePoint Storage (Team Plan)
+
+When the app runs as a Teams channel tab, analyses are stored in the channel's SharePoint document library:
+
+```
+Channel Files/VariScout/
+├── Projects/
+│   └── Feb-Fill-Line.vrs           ← shared analysis (JSON)
+└── Photos/
+    └── {analysisId}/{findingId}/
+        ├── photo-001.jpg           ← EXIF-stripped evidence
+        └── photo-002.jpg
+```
+
+**Drive resolution**: `getChannelDriveInfo()` in `channelDrive.ts` calls Graph API `/teams/{teamId}/channels/{channelId}/filesFolder` to resolve the SharePoint drive. The result is cached in IndexedDB.
+
+**Storage routing**: The `StorageLocation` type (`'personal' | 'team'`) determines the storage target:
+
+- Channel tab → `'team'` → channel SharePoint drive
+- Personal tab → `'personal'` → user's OneDrive
+- Browser → `'personal'` → user's OneDrive
+
+See [ADR-016](../../07-decisions/adr-016-teams-integration.md) for the full channel storage design.
 
 ---
 

@@ -9,7 +9,7 @@ Complete feature availability across VariScout platforms.
 | Platform           | Primary Use                       | Status      | Distribution      | Price      |
 | ------------------ | --------------------------------- | ----------- | ----------------- | ---------- |
 | **Azure Standard** | Full analysis, local file storage | **PRIMARY** | Azure Marketplace | €99/month  |
-| **Azure Team**     | + Teams, cloud storage, mobile    | Planned     | Azure Marketplace | €299/month |
+| **Azure Team**     | + Teams, cloud storage, mobile    | **PRIMARY** | Azure Marketplace | €299/month |
 | **PWA**            | Training & education              | Production  | Direct URL        | FREE       |
 
 > Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md), Azure App is the only paid product with a two-plan model: Standard (€99/month) and Team (€299/month). Both are Azure Marketplace Managed Applications. PWA is free forever. See [ADR-016](../07-decisions/adr-016-teams-integration.md) for Teams integration design.
@@ -119,9 +119,10 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Teams SSO**                         |       -        |     ✓      |     -      | On-Behalf-Of token exchange                |
 | **Channel file storage (SharePoint)** |       -        |     ✓      |     -      | .vrs files in channel document library     |
 | **Photo evidence in findings**        |       -        |     ✓      |     -      | Camera capture + channel storage           |
+| **Deep links to charts**              |       -        |     ✓      |     -      | Share chart URLs via Teams chat            |
 | **Adaptive Cards sharing**            |       -        |  Planned   |     -      | Share findings/charts as interactive cards |
 | **Teams mobile access**               |       -        |     ✓      |     -      | Full analysis via Teams mobile app         |
-| **Mobile Field View**                 |       -        |     ✓      |     -      | Gemba investigation route (`/field`)       |
+| **Phone-responsive carousel**         |       -        |     ✓      |     -      | Responsive mobile layout within Editor     |
 
 > See [ADR-016](../07-decisions/adr-016-teams-integration.md) for full Teams integration technical design.
 
@@ -198,7 +199,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - SharePoint channel file storage
 - Teams channel tab and personal tab
 - Teams SSO (On-Behalf-Of token exchange)
-- Mobile Field View for gemba investigations (`/field` route)
+- Phone-responsive carousel for gemba investigations (responsive layout within Editor)
 - Photo evidence capture in findings (camera + channel storage)
 - Adaptive Cards sharing (Planned)
 - Teams mobile access

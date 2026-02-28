@@ -1,6 +1,6 @@
 # ADR-016: Microsoft Teams Integration
 
-**Status**: Proposed
+**Status**: Accepted
 
 **Date**: 2026-02-27
 
@@ -44,7 +44,7 @@ Teams SDK initialized?
 | ------------- | ------------------------------------ | --------------------------------------------------------------------- |
 | Auth          | EasyAuth redirect                    | Teams SSO (On-Behalf-Of)                                              |
 | Storage       | Local files (File System Access API) | + OneDrive personal + Channel SharePoint                              |
-| Sharing       | Copy URL                             | Adaptive Cards + deep links                                           |
+| Sharing       | Copy URL                             | URL sharing (Teams native dialog) + deep links                        |
 | Mobile        | Mobile browser                       | Teams mobile (sidebar icon)                                           |
 | Photos        | N/A                                  | Camera capture + channel storage                                      |
 | Permissions   | `User.Read` only                     | + `Files.ReadWrite` + `Files.ReadWrite.All` + `Channel.ReadBasic.All` |
@@ -114,21 +114,24 @@ Unresolvable conflicts (both users edited the same finding text simultaneously):
 - Zero data loss guarantee — worst case is a duplicate file the team resolves manually
 - Notification toast: "Another team member modified this project. A conflict copy was saved."
 
-### Mobile Field View
+### Mobile Layout
 
-A dedicated `/field` route in the Azure app provides a focused gemba companion:
+The Azure app uses a responsive phone layout (< 640px) within the existing Editor — not a separate route:
 
-- Responsive mobile layout (not the full editor — a focused investigation tool)
-- Investigation board (findings list with statuses and tags)
+- `MobileChartCarousel` — swipeable carousel (4 views: I-Chart, Boxplot, Pareto, Stats) replacing `DashboardGrid` on phones
+- Findings panel renders as full-screen overlay on phone, inline sidebar on desktop
+- Phone toolbar: Back + project name (truncated) + Save + overflow menu (`EllipsisVertical`)
+- Touch-optimized: 44px minimum touch targets, safe area insets for notched phones
 - Comment thread with photo capture (`<input type="file" accept="image/*" capture="environment">`)
-- Single chart viewer (deep-linked from findings, swipe between chart types)
-- Touch-optimized: 44px minimum touch targets, swipe gestures for navigation
+- Annotations disabled on phone (no right-click context menu on touch devices)
 
-Reuses PWA patterns (swipe carousel, responsive breakpoints) adapted for the Teams mobile WebView.
+Reuses PWA responsive patterns adapted for Teams mobile WebView. Desktop layout is completely unchanged (all gated by `useIsMobile(640)`).
 
-### Adaptive Cards
+### Sharing (Implemented) and Adaptive Cards (Planned)
 
-Rich sharing into Teams conversations:
+**Implemented**: URL sharing via Teams native dialog (`sharing.shareWebContent`) and deep links (`pages.shareDeepLink`). Share payloads built by `shareContent.ts` for findings and charts.
+
+**Planned (Adaptive Cards)**: Rich sharing into Teams conversations:
 
 - Finding summary card: status badge, Cpk value, filter context, photo thumbnail
 - Deep link buttons: "View Chart", "Open Finding" → navigate directly into the app
@@ -157,10 +160,10 @@ An Azure Function (~50 lines) exchanges the Teams SSO token for a Graph API acce
 | Phase | Scope                                                                        | Dependencies |
 | ----- | ---------------------------------------------------------------------------- | ------------ |
 | 1     | Teams SDK foundation — detect context, manifest with personal + channel tabs | None         |
-| 2     | Mobile Field View — `/field` route, responsive layout, touch navigation      | Phase 1      |
+| 2     | Mobile layout — responsive phone carousel in Editor, touch navigation        | Phase 1      |
 | 3     | Photo comments — data model, camera capture, OneDrive upload                 | Phase 1      |
 | 4     | Channel file storage — shared `.vrs` + photos, optimistic merge              | Phases 1 + 3 |
-| 5     | Adaptive Cards + deep links — compose extension, rich sharing                | Phases 1 + 4 |
+| 5     | Deep links + URL sharing — Teams native dialog, chart/finding links          | Phases 1 + 4 |
 | 6     | Azure Function for On-Behalf-Of — true silent SSO                            | Phase 1      |
 
 Phases 2 and 3 can proceed in parallel after Phase 1. Phase 6 can be done at any point after Phase 1 but is lowest priority (EasyAuth fallback works).
@@ -205,3 +208,20 @@ Phases 2 and 3 can proceed in parallel after Phase 1. Phase 6 can be done at any
 - [On-Behalf-Of Flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow)
 - [Adaptive Cards](https://adaptivecards.io/)
 - [Investigation Workflow](../03-features/workflows/investigation-to-action.md)
+
+---
+
+## Implementation History
+
+All 6 increments implemented in February 2026:
+
+| Increment | Scope                                               | Status      |
+| --------- | --------------------------------------------------- | ----------- |
+| 1         | Teams SDK foundation — context detection, manifest  | Implemented |
+| 2         | Mobile layout — responsive phone carousel           | Implemented |
+| 3         | Photo comments — camera capture, EXIF strip, upload | Implemented |
+| 4         | Channel SharePoint storage — shared .vrs + photos   | Implemented |
+| 5         | Deep links + URL sharing — Teams native dialog      | Implemented |
+| 6         | OBO silent SSO — Azure Function token exchange      | Implemented |
+
+Adaptive Cards remain planned for a future release.

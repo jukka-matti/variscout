@@ -629,6 +629,8 @@ app.initialize() → app.getContext()
 └── Failure → Browser mode (existing EasyAuth flow)
 ```
 
+### Context Detection
+
 **Key module**: `apps/azure/src/teams/teamsContext.ts`
 
 | Concept             | Implementation                                                   |
@@ -642,6 +644,52 @@ app.initialize() → app.getContext()
 **Plan gating**: `VITE_VARISCOUT_PLAN` env var (`'standard'` or `'team'`) controls feature availability. The Teams SDK initializes regardless of plan (the app works as a tab in either), but Team-plan-only features (channel storage, photos) check `isTeamPlan()` from `@variscout/core/tier`.
 
 **CSP**: `frame-ancestors` updated in `server.js` to allow Teams iframe embedding (`teams.microsoft.com`, `*.teams.microsoft.com`, `*.skype.com`).
+
+### OBO Token Exchange
+
+`apps/azure/src/auth/graphToken.ts` implements a token exchange chain for Graph API access:
+
+```
+Teams SSO token → Azure Function OBO exchange → Graph API token
+                         ↓ (if fails)
+                  EasyAuth redirect fallback
+```
+
+The Azure Function (`infra/functions/token-exchange/index.js`) is a single-purpose token exchange with no stored state. Scopes: `User.Read` + `Files.ReadWrite.All`.
+
+### Channel Drive Resolution
+
+`apps/azure/src/teams/channelDrive.ts` resolves the SharePoint document library for a channel:
+
+- Graph API call: `GET /teams/{teamId}/channels/{channelId}/filesFolder`
+- Returns drive ID + root folder path
+- Result cached in IndexedDB to avoid repeated Graph calls
+- `StorageLocation` type (`'personal' | 'team'`) routes to correct storage
+
+### Photo Pipeline
+
+Client-side photo processing chain:
+
+| Module                | Purpose                                           |
+| --------------------- | ------------------------------------------------- |
+| `photoProcessing.ts`  | Camera capture and image preprocessing            |
+| `exifStrip.ts`        | Byte-level EXIF/GPS metadata stripping (23 tests) |
+| `photoUpload.ts`      | Upload to OneDrive or SharePoint via Graph API    |
+| `usePhotoComments.ts` | React hook for photo attachment state in findings |
+
+Photos are immutable once uploaded (no edit/delete). Thumbnails (~50KB base64) embedded in `.vrs` files for cross-user visibility.
+
+### Deep Links and Sharing
+
+| Module             | Purpose                                                 |
+| ------------------ | ------------------------------------------------------- |
+| `deepLinks.ts`     | Build and parse deep link URLs for charts/findings      |
+| `useTeamsShare.ts` | Wraps `sharing.shareWebContent` + `pages.shareDeepLink` |
+| `shareContent.ts`  | Finding/chart payload builders for share dialog         |
+
+### User Identity
+
+`getCurrentUser.ts` extracts user identity from the Teams JWT (UPN claim) with EasyAuth fallback. Enables author tracking on findings and comments.
 
 See [ADR-016](../07-decisions/adr-016-teams-integration.md) for the full Teams integration design.
 

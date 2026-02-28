@@ -34,7 +34,8 @@ CUSTOMER                   AZURE PORTAL                 ARM ENGINE
    │                            │                            │
    │  1. Create App Registration (Azure AD)                  │
    │     - Client ID + Client Secret                         │
-   │     - Permissions: User.Read, Files.ReadWrite           │
+   │     - Permissions: User.Read (Standard) or              │
+   │       + Files.ReadWrite.All, Channel.ReadBasic.All (Team)│
    │                            │                            │
    │  2. Find VariScout ───────▶│                            │
    │     on Marketplace         │                            │
@@ -80,7 +81,7 @@ USER                    APP SERVICE (EasyAuth)         AZURE AD
   │                              │                         │
   │◀────────── Azure AD sign-in page ─────────────────────▶│
   │            User enters credentials                     │
-  │            Consents to User.Read + Files.ReadWrite      │
+  │            Consents to permissions (plan-dependent)     │
   │                              │                         │
   │                              │◀── Session cookie ──────│
   │                              │   + tokens in store     │
@@ -140,10 +141,33 @@ The app supports:
 
 ## Data Persistence
 
-Save is explicit — the user clicks **Save** in the editor header. Data is saved locally first, then synced to OneDrive when online. Unsaved work is lost if the browser tab closes.
+Save is explicit — the user clicks **Save** in the editor header. Unsaved work is lost if the browser tab closes. The storage model depends on the plan:
+
+### Standard Plan — Local Files
+
+Data stays on the user's device. No cloud sync, no OneDrive.
 
 ```
-BROWSER                          USER'S ONEDRIVE
+BROWSER                          USER'S COMPUTER
+(IndexedDB)                      (File System Access API)
+    │                                │
+    │── User clicks Save ───────────▶│
+    │   IndexedDB + local file       │
+    │                                │
+    │◀── User opens project ─────────│
+    │   Load from IndexedDB/file     │
+```
+
+- Projects saved to IndexedDB with optional local file export via File System Access API
+- No internet required after initial deployment
+- Only `User.Read` permission needed
+
+### Team Plan — Local Files + Cloud Sync
+
+Everything in Standard, plus OneDrive personal sync and SharePoint channel storage.
+
+```
+BROWSER                          USER'S ONEDRIVE / CHANNEL SHAREPOINT
 (IndexedDB)                      (Graph API)
     │                                │
     │◀── Load on startup ────────────│
@@ -152,9 +176,6 @@ BROWSER                          USER'S ONEDRIVE
     │── User saves changes ─────────▶│
     │   (debounced write)            │
     │                                │
-    │◀── Periodic sync ──────────────│
-    │   (every 30s if online)        │
-    │                                │
     │── Offline? ────────────────────│
     │   Queue changes locally        │
     │                                │
@@ -162,26 +183,91 @@ BROWSER                          USER'S ONEDRIVE
     │   Flush queued changes         │
 ```
 
-### OneDrive Storage Structure
+**Personal OneDrive** (personal tab or browser):
 
 ```
 OneDrive/
 └── VariScout/
     └── Projects/
         ├── analysis-001.vrs
-        ├── analysis-002.vrs
         └── ...
 ```
 
+**Channel SharePoint** (channel tab):
+
+```
+Channel Files/VariScout/
+├── Projects/
+│   └── Feb-Fill-Line.vrs       ← shared analysis
+└── Photos/
+    └── {analysisId}/{findingId}/
+        └── photo-001.jpg       ← EXIF-stripped evidence
+```
+
+Storage location is automatic: channel tab → SharePoint, personal tab → OneDrive, browser → OneDrive.
+
 ### Offline Behavior
 
-| State     | Behavior                                |
-| --------- | --------------------------------------- |
-| Online    | Syncs to OneDrive on explicit save      |
-| Offline   | Full functionality with local IndexedDB |
-| Reconnect | Flush queued changes to OneDrive        |
+| State     | Standard                 | Team                          |
+| --------- | ------------------------ | ----------------------------- |
+| Online    | Save to IndexedDB + file | + sync to OneDrive/SharePoint |
+| Offline   | Full local functionality | Full local functionality      |
+| Reconnect | N/A                      | Flush queued changes to cloud |
 
-The app uses the EasyAuth token store (`/.auth/me`) to get Graph API access tokens for OneDrive calls. Tokens are scoped to `Files.ReadWrite` — personal OneDrive only, no SharePoint access.
+---
+
+## Teams Integration (Team Plan)
+
+The Team plan adds Microsoft Teams as a collaboration layer. The same codebase detects its runtime context and adapts:
+
+```
+Teams SDK initialized?
+├── Yes → Channel tab? → shared channel SharePoint storage
+│       → Personal tab? → personal OneDrive
+│       → SSO via On-Behalf-Of token exchange
+└── No  → Browser mode → local files (File System Access API)
+```
+
+### Authentication: OBO Token Exchange
+
+Teams SSO provides a client-side token that isn't directly usable for Graph API calls. An Azure Function (`token-exchange`) performs the On-Behalf-Of exchange:
+
+```
+Teams Client → SSO token → Azure Function (OBO) → Graph API token
+                                    ↓
+                           Fallback: EasyAuth redirect
+```
+
+The `graphToken.ts` module handles the chain: Teams SSO → OBO exchange → EasyAuth fallback. The Azure Function is deployed alongside the App Service via ARM template.
+
+### Channel Storage
+
+When running as a channel tab, analyses and photos are stored in the channel's SharePoint document library:
+
+- `channelDrive.ts` resolves the drive via Graph API: `/teams/{teamId}/channels/{channelId}/filesFolder`
+- Drive info is cached in IndexedDB to avoid repeated Graph calls
+- `StorageLocation` type (`'personal' | 'team'`) routes to the correct storage
+
+### Photo Pipeline
+
+Photo evidence flows through a client-side pipeline:
+
+1. Camera capture (`<input type="file" accept="image/*" capture="environment">`)
+2. EXIF/GPS metadata stripped (`exifStrip.ts` — byte-level removal, 23 verification tests)
+3. Upload to OneDrive or SharePoint (`photoUpload.ts`)
+4. Thumbnail embedded in `.vrs` file for cross-user preview
+
+### Deep Links and Sharing
+
+- `deepLinks.ts` — builds and parses deep link URLs for specific charts or findings
+- `useTeamsShare.ts` — wraps Teams SDK `sharing.shareWebContent` and `pages.shareDeepLink`
+- `shareContent.ts` — builds share payloads for findings and charts
+
+### User Identity
+
+`getCurrentUser.ts` extracts user identity from the Teams JWT (UPN claim) with EasyAuth fallback. Author names appear on findings and comments for audit trails.
+
+See [ADR-016](../../07-decisions/adr-016-teams-integration.md) for the full technical design.
 
 ---
 
@@ -199,25 +285,28 @@ CUSTOMER TENANT                          PUBLISHER (VariScout)
 │  Azure AD              │               │  No access to:     │
 │  (authenticates users) │               │  - Customer data   │
 │                        │               │  - App resources   │
-│  OneDrive              │               │  - User identities │
-│  (stores analyses)     │               │  - Usage telemetry │
+│  OneDrive/SharePoint   │               │  - User identities │
+│  (Team plan sync)      │               │  - Usage telemetry │
 │                        │               │                    │
 └────────────────────────┘               └────────────────────┘
 ```
 
 - **Publisher management is disabled** — we have zero access to the customer's deployment
 - **No telemetry** — the app makes no outbound calls to publisher systems
-- **Data survives cancellation** — analyses remain in the user's OneDrive even if the subscription ends
+- **Data survives cancellation** — analyses remain on the user's device (Standard) or in OneDrive/SharePoint (Team) even if the subscription ends
 - **Each deployment is tenant-isolated** — no cross-tenant data access
 
 ### Least-Privilege Permissions
 
-| Permission        | Type      | Purpose                   |
-| ----------------- | --------- | ------------------------- |
-| `User.Read`       | Delegated | Display user name & email |
-| `Files.ReadWrite` | Delegated | OneDrive analysis sync    |
+| Permission              | Type      | Plan      | Purpose                           |
+| ----------------------- | --------- | --------- | --------------------------------- |
+| `User.Read`             | Delegated | Both      | Display user name & email         |
+| `Files.ReadWrite.All`   | Delegated | Team only | OneDrive + SharePoint file sync   |
+| `Channel.ReadBasic.All` | Delegated | Team only | Resolve channel SharePoint drives |
 
-No admin consent is required — users grant consent on first login. No `Sites.ReadWrite.All`, no SharePoint access, no mail access.
+**Standard plan**: Only `User.Read` — no admin consent required, users consent on first login.
+
+**Team plan**: Requires one-time tenant admin consent for `Files.ReadWrite.All` and `Channel.ReadBasic.All`. No mail access, no `Sites.ReadWrite.All`.
 
 ### Secret Handling
 

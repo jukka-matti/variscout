@@ -32,9 +32,11 @@ Create an App Registration before deploying the app. EasyAuth requires customer-
 
 **API Permissions** (Microsoft Graph → Delegated):
 
-- `User.Read` — sign-in and read user profile
-- `Files.ReadWrite` — read and write user's OneDrive files (for project sync)
-- Admin consent is not strictly required for these permissions, but org policy may block user consent
+- `User.Read` — sign-in and read user profile (both plans)
+- `Files.ReadWrite.All` — read and write OneDrive + SharePoint files (Team plan only)
+- `Channel.ReadBasic.All` — resolve channel SharePoint drives (Team plan only)
+- Standard plan: only `User.Read` needed, no admin consent required
+- Team plan: admin consent required for `Files.ReadWrite.All` and `Channel.ReadBasic.All`
 
 **Client Secret:**
 
@@ -321,7 +323,7 @@ Document these with testers so they don't report them as bugs:
 | Limitation                   | Detail                                                                                                                    | Workaround / Timeline                                                                                 |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Teams SSO**                | `*.azurewebsites.net` domains don't support seamless Teams SSO. Users see a one-time login redirect.                      | Custom domain needed for seamless SSO. Not blocking for testing.                                      |
-| **OneDrive scope**           | Personal OneDrive only — no SharePoint or shared drives in v1.                                                            | Files.ReadWrite permission covers personal OneDrive. SharePoint planned for future.                   |
+| **Storage scope**            | Standard plan: local files only (no cloud sync). Team plan: OneDrive personal + SharePoint channel storage.               | Standard needs only `User.Read`. Team needs `Files.ReadWrite.All` + `Channel.ReadBasic.All`.          |
 | **Local dev**                | Graph API unavailable on localhost. Auth returns mock user, OneDrive sync is no-op.                                       | Expected behavior per `easyAuth.ts` — test sync only on deployed instance.                            |
 | **Admin consent**            | `User.Read` + `Files.ReadWrite` don't require admin consent by default, but org Entra ID policies may block user consent. | If blocked, tenant admin grants consent via App Registration → API permissions → Grant admin consent. |
 | **Regression analysis**      | Deferred to Phase 2 (ADR-014). Code exists in `@variscout/core` but is not exposed in the UI.                             | Not a bug — intentional scope decision.                                                               |

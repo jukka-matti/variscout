@@ -40,9 +40,10 @@ flowchart TD
     D --> E[App live at custom URL]
     E --> F[Share URL with team]
     F --> G[Team members sign in via SSO]
-    G --> H[Each user gets personal OneDrive sync]
+    G --> H[Each user gets local storage or cloud sync]
     H --> I{Collaboration}
-    I -->|Share files| J[Share OneDrive folder with colleagues]
+    I -->|Standard| J[Share via file export or chart copy]
+    I -->|Team plan| J2[Channel tabs + deep links + OneDrive]
     I -->|Teams tab| K[Admin generates Teams manifest]
     K --> L[Sideload manifest to Teams]
     L --> M[VariScout appears as Teams tab]
@@ -63,8 +64,8 @@ journey
       First team member logs in: 5: User
       Consent to permissions: 3: User
     section Collaborate
-      Each user syncs to personal OneDrive: 5: User
-      Share analysis files via OneDrive: 4: User
+      Standard: local file storage: 5: User
+      Team: cloud sync + channel sharing: 4: User
       Set up Teams tab: 4: Admin
     section Establish
       Team uses daily: 5: User
@@ -81,14 +82,14 @@ The admin (Olivia or IT) deploys VariScout to the organization's Azure tenant.
 
 **Pre-requisite**: Create an App Registration in Azure AD:
 
-| Step | Action                                           |
-| ---- | ------------------------------------------------ |
-| 1    | Go to Azure AD → App Registrations → New         |
-| 2    | Name: "VariScout" (or any name)                  |
-| 3    | Add redirect URI (configured during deployment)  |
-| 4    | API permissions: `User.Read` + `Files.ReadWrite` |
-| 5    | Create a client secret                           |
-| 6    | Note the Client ID and Client Secret             |
+| Step | Action                                                                                                       |
+| ---- | ------------------------------------------------------------------------------------------------------------ |
+| 1    | Go to Azure AD → App Registrations → New                                                                     |
+| 2    | Name: "VariScout" (or any name)                                                                              |
+| 3    | Add redirect URI (configured during deployment)                                                              |
+| 4    | API permissions: `User.Read` (Standard plan). Team plan adds `Files.ReadWrite.All` + `Channel.ReadBasic.All` |
+| 5    | Create a client secret                                                                                       |
+| 6    | Note the Client ID and Client Secret                                                                         |
 
 **Deploy from Azure Marketplace:**
 
@@ -107,40 +108,55 @@ There is no user provisioning. Anyone in the Azure AD tenant can access the app:
 1. Admin shares the App Service URL (email, Teams message, intranet)
 2. Team member opens the URL
 3. EasyAuth redirects to Azure AD sign-in (existing work account)
-4. First-time consent: `User.Read` + `Files.ReadWrite`
+4. First-time consent: `User.Read` (Standard). Team plan: admin pre-consents cloud permissions
 5. App loads — ready to use
 
 **No separate accounts, no invitations, no license assignment.** The Managed Application covers unlimited users in the tenant.
 
-### 3. Personal OneDrive Sync
+### 3. Data Storage
 
-Each user gets their own analysis storage:
+Storage depends on the plan:
+
+**Standard plan** — local files only:
+
+- Projects saved to IndexedDB + local files via File System Access API
+- No cloud sync, no OneDrive
+- Offline-first: full functionality without internet
+
+**Team plan** — local files + cloud sync:
 
 ```
 User's OneDrive/
 └── VariScout/
     └── Projects/
         ├── analysis-001.vrs
-        ├── analysis-002.vrs
         └── ...
+
+Channel Files/VariScout/     ← channel tab storage (SharePoint)
+├── Projects/
+│   └── shared-analysis.vrs
+└── Photos/
+    └── ...
 ```
 
-- Analyses save to the user's personal OneDrive (not a shared location)
-- Sync happens via Graph API with `Files.ReadWrite` permission (personal only, no SharePoint)
+- Personal OneDrive sync for personal tabs and browser access
+- SharePoint channel storage for channel tabs (shared with team)
+- Sync via Graph API with `Files.ReadWrite.All` permission
 - Offline-first: works without internet, syncs when reconnected
 
 ### 4. Sharing Analyses
 
-Since each user's analyses live in their personal OneDrive:
+| Sharing method            | Plan | How                                                         |
+| ------------------------- | ---- | ----------------------------------------------------------- |
+| Channel tab (shared .vrs) | Team | Analyses stored in channel SharePoint — team sees same data |
+| Teams deep links          | Team | Share chart/finding URLs via Teams native dialog            |
+| Share OneDrive file       | Team | Right-click `.vrs` file in OneDrive → Share with colleague  |
+| Export and send           | Both | CSV export → email/Teams attachment                         |
+| Copy chart                | Both | Copy chart as PNG → paste into email/presentation           |
 
-| Sharing method        | How                                                        |
-| --------------------- | ---------------------------------------------------------- |
-| Share OneDrive file   | Right-click `.vrs` file in OneDrive → Share with colleague |
-| Share OneDrive folder | Share the `VariScout/Projects/` folder for ongoing access  |
-| Export and send       | CSV export → email/Teams attachment                        |
-| Copy chart            | Copy chart as PNG → paste into email/presentation          |
+**Standard plan**: Sharing via file export or chart copy. No cloud-based sharing.
 
-**Note**: v1 uses personal OneDrive only. Shared team libraries (SharePoint) are not supported yet.
+**Team plan**: Channel tabs provide built-in team collaboration — all channel members access the same analysis. Deep links allow sharing specific charts or findings via Teams chat.
 
 ### 5. Teams Integration
 
@@ -191,18 +207,21 @@ CUSTOMER TENANT                        VARISCOUT (Publisher)
 
 - Publisher management is disabled — zero access to customer deployment
 - No telemetry or outbound calls to publisher systems
-- Data survives subscription cancellation (analyses remain in OneDrive)
+- Data survives subscription cancellation (analyses remain on device or in OneDrive/SharePoint)
 
 ---
 
 ## Permissions Summary
 
-| Permission        | Type      | Who consents | Purpose                   |
-| ----------------- | --------- | ------------ | ------------------------- |
-| `User.Read`       | Delegated | Each user    | Display user name & email |
-| `Files.ReadWrite` | Delegated | Each user    | OneDrive analysis sync    |
+| Permission              | Type      | Plan | Who consents | Purpose                           |
+| ----------------------- | --------- | ---- | ------------ | --------------------------------- |
+| `User.Read`             | Delegated | Both | Each user    | Display user name & email         |
+| `Files.ReadWrite.All`   | Delegated | Team | Tenant admin | OneDrive + SharePoint file sync   |
+| `Channel.ReadBasic.All` | Delegated | Team | Tenant admin | Resolve channel SharePoint drives |
 
-No admin consent required. No `Sites.ReadWrite.All`, no SharePoint access, no mail access.
+**Standard plan**: No admin consent required — users consent to `User.Read` on first login.
+
+**Team plan**: Requires one-time tenant admin consent for `Files.ReadWrite.All` and `Channel.ReadBasic.All`. No `Sites.ReadWrite.All`, no mail access.
 
 ---
 

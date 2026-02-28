@@ -66,7 +66,6 @@ flowchart LR
 | Boxplot          | ✓         | ✓          | Planned          |
 | Pareto           | ✓         | ✓          | Planned          |
 | Capability       | ✓         | ✓          | Planned          |
-| Regression       | ✓         | ✓          | -                |
 | Performance Mode | ✓         | -          | -                |
 | File Upload      | ✓         | -          | -                |
 | Save/Persistence | ✓         | -          | Power BI Service |
