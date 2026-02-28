@@ -210,7 +210,7 @@ nav:
           - Data Input: 05-technical/implementation/data-input.md
           - System Limits: 05-technical/implementation/system-limits.md
           - Security Scanning: 05-technical/implementation/security-scanning.md
-          - AI Tooling: 05-technical/implementation/claude-flow.md
+          - AI Tooling: 05-technical/implementation/ruflo.md
       - Integrations:
           - Embed Messaging: 05-technical/integrations/embed-messaging.md
           - Shared UI: 05-technical/integrations/shared-ui.md

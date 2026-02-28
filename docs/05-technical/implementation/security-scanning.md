@@ -2,32 +2,32 @@
 
 ## Overview
 
-VariScout uses Claude Flow v3 for automated OWASP security audits. As an offline-first application with no backend, the attack surface is limited, but security scanning ensures dependency safety and code quality.
+VariScout uses ruflo for automated OWASP security audits. As an offline-first application with no backend, the attack surface is limited, but security scanning ensures dependency safety and code quality.
 
 ## Prerequisites
 
 - Node.js 18+
-- Claude Flow v3 installed (runs via npx)
+- ruflo installed (runs via npx)
 
 ## Running a Security Scan
 
 ### Quick CVE Check
 
 ```bash
-npx claude-flow@v3alpha security cve --check
+npx ruflo@latest security cve --check
 ```
 
 ### Full OWASP Scan
 
 ```bash
-npx claude-flow@v3alpha security scan --depth full
+npx ruflo@latest security scan --depth full
 ```
 
 ### Auto-Fix with Agent Swarm
 
 ```bash
-npx claude-flow@v3alpha swarm init --v3-mode
-npx claude-flow@v3alpha swarm start --objective "Fix security issues identified in scan"
+npx ruflo@latest swarm init --v3-mode
+npx ruflo@latest swarm start --objective "Fix security issues identified in scan"
 ```
 
 ## OWASP Top 10 Coverage
@@ -57,7 +57,7 @@ VariScout is offline-first with no backend. Key security areas:
 ### npm Dependencies
 
 - Regular `pnpm audit` for vulnerability scanning
-- Claude Flow CVE checks for additional coverage
+- ruflo CVE checks for additional coverage
 
 ### Azure EasyAuth (Azure App Only)
 
@@ -109,7 +109,7 @@ Some transitive dependencies have known issues but are low risk for this applica
 After fixes, re-run the scan to confirm remediation:
 
 ```bash
-npx claude-flow@v3alpha security scan --depth full
+npx ruflo@latest security scan --depth full
 ```
 
 ## Integration with CI/CD
@@ -118,5 +118,5 @@ Add to your CI pipeline:
 
 ```yaml
 - name: Security Scan
-  run: npx claude-flow@v3alpha security scan --depth full
+  run: npx ruflo@latest security scan --depth full
 ```

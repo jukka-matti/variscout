@@ -135,7 +135,7 @@ function getUserInfo() {
 function getLearningStats() {
   const memoryPaths = [
     path.join(process.cwd(), '.swarm', 'memory.db'),
-    path.join(process.cwd(), '.claude-flow', 'memory.db'),
+    path.join(process.cwd(), '.ruflo', 'memory.db'),
     path.join(process.cwd(), '.claude', 'memory.db'),
     path.join(process.cwd(), 'data', 'memory.db'),
     path.join(process.cwd(), 'memory.db'),
@@ -183,7 +183,7 @@ function getV3Progress() {
   const learning = getLearningStats();
 
   // Check for metrics file first (created by init)
-  const metricsPath = path.join(process.cwd(), '.claude-flow', 'metrics', 'v3-progress.json');
+  const metricsPath = path.join(process.cwd(), '.ruflo', 'metrics', 'v3-progress.json');
   if (fs.existsSync(metricsPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(metricsPath, 'utf-8'));
@@ -235,7 +235,7 @@ function getSecurityStatus() {
   let cvesFixed = 0;
 
   // Check audit-status.json first (created by init)
-  const auditStatusPath = path.join(process.cwd(), '.claude-flow', 'security', 'audit-status.json');
+  const auditStatusPath = path.join(process.cwd(), '.ruflo', 'security', 'audit-status.json');
   if (fs.existsSync(auditStatusPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(auditStatusPath, 'utf-8'));
@@ -287,7 +287,7 @@ function getSwarmStatus() {
   let coordinationActive = false;
 
   // Check swarm-activity.json first (works on all platforms)
-  const activityPath = path.join(process.cwd(), '.claude-flow', 'metrics', 'swarm-activity.json');
+  const activityPath = path.join(process.cwd(), '.ruflo', 'metrics', 'swarm-activity.json');
   if (fs.existsSync(activityPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(activityPath, 'utf-8'));
@@ -304,7 +304,7 @@ function getSwarmStatus() {
   }
 
   // Also check v3-progress.json for swarm data (secondary source)
-  const progressPath = path.join(process.cwd(), '.claude-flow', 'metrics', 'v3-progress.json');
+  const progressPath = path.join(process.cwd(), '.ruflo', 'metrics', 'v3-progress.json');
   if (fs.existsSync(progressPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(progressPath, 'utf-8'));
@@ -332,7 +332,7 @@ function getSwarmStatus() {
     } else {
       // Unix: use ps - check for various agent process patterns
       try {
-        const ps = execSync('ps aux 2>/dev/null | grep -E "(agentic-flow|claude-flow|mcp.*server)" | grep -v grep | wc -l', { encoding: 'utf-8' });
+        const ps = execSync('ps aux 2>/dev/null | grep -E "(agentic-flow|ruflo|mcp.*server)" | grep -v grep | wc -l', { encoding: 'utf-8' });
         activeAgents = Math.max(0, parseInt(ps.trim()));
         coordinationActive = activeAgents > 0;
       } catch (e) {
@@ -359,7 +359,7 @@ function getSystemMetrics() {
   let subAgents = 0;
 
   // Check learning.json first (works on all platforms)
-  const learningMetricsPath = path.join(process.cwd(), '.claude-flow', 'metrics', 'learning.json');
+  const learningMetricsPath = path.join(process.cwd(), '.ruflo', 'metrics', 'learning.json');
   let intelligenceFromFile = null;
   let contextFromFile = null;
   if (fs.existsSync(learningMetricsPath)) {
@@ -430,7 +430,7 @@ function getSystemMetrics() {
     // Check for Claude session history
     const sessionPaths = [
       path.join(process.cwd(), '.claude', 'sessions'),
-      path.join(process.cwd(), '.claude-flow', 'sessions'),
+      path.join(process.cwd(), '.ruflo', 'sessions'),
     ];
     for (const sessPath of sessionPaths) {
       if (fs.existsSync(sessPath)) {
@@ -489,7 +489,7 @@ function getSystemMetrics() {
     : Math.min(100, Math.floor(learning.sessions * 5));
 
   // Count active sub-agents (cross-platform via metrics file)
-  const activityPath = path.join(process.cwd(), '.claude-flow', 'metrics', 'swarm-activity.json');
+  const activityPath = path.join(process.cwd(), '.ruflo', 'metrics', 'swarm-activity.json');
   if (fs.existsSync(activityPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(activityPath, 'utf-8'));
@@ -502,7 +502,7 @@ function getSystemMetrics() {
   // Fallback to process detection on Unix only
   if (subAgents === 0 && !isWindows) {
     try {
-      const agents = execSync('ps aux 2>/dev/null | grep -c "claude-flow.*agent" || echo "0"', { encoding: 'utf-8' });
+      const agents = execSync('ps aux 2>/dev/null | grep -c "ruflo.*agent" || echo "0"', { encoding: 'utf-8' });
       subAgents = Math.max(0, parseInt(agents.trim()) - 1);
     } catch (e) {
       // Ignore
@@ -525,7 +525,7 @@ function getADRStatus() {
     path.join(process.cwd(), 'docs', '07-decisions'),
     path.join(process.cwd(), 'adr'),
     path.join(process.cwd(), 'ADR'),
-    path.join(process.cwd(), '.claude-flow', 'adrs'),
+    path.join(process.cwd(), '.ruflo', 'adrs'),
     path.join(process.cwd(), 'v3', 'implementation', 'adrs'),
     path.join(process.cwd(), 'implementation', 'adrs'),
   ];
@@ -624,7 +624,7 @@ function getAgentDBStats() {
 
   // Check for database directories
   const dbDirPaths = [
-    path.join(process.cwd(), '.claude-flow', 'agentdb'),
+    path.join(process.cwd(), '.ruflo', 'agentdb'),
     path.join(process.cwd(), '.swarm', 'agentdb'),
     path.join(process.cwd(), 'data', 'agentdb'),
     path.join(process.cwd(), '.claude', 'memory'),
@@ -634,7 +634,7 @@ function getAgentDBStats() {
   // Check for direct database files (memory.db, etc.)
   const dbFilePaths = [
     path.join(process.cwd(), '.swarm', 'memory.db'),
-    path.join(process.cwd(), '.claude-flow', 'memory.db'),
+    path.join(process.cwd(), '.ruflo', 'memory.db'),
     path.join(process.cwd(), '.claude', 'memory.db'),
     path.join(process.cwd(), 'data', 'memory.db'),
     path.join(process.cwd(), 'memory.db'),
@@ -643,7 +643,7 @@ function getAgentDBStats() {
   // Check for HNSW index files
   const hnswPaths = [
     path.join(process.cwd(), '.swarm', 'hnsw.index'),
-    path.join(process.cwd(), '.claude-flow', 'hnsw.index'),
+    path.join(process.cwd(), '.ruflo', 'hnsw.index'),
     path.join(process.cwd(), 'data', 'hnsw.index'),
   ];
 
@@ -708,7 +708,7 @@ function getAgentDBStats() {
   }
 
   // Also check for vectors.json (simple vector store)
-  const vectorsPath = path.join(process.cwd(), '.claude-flow', 'vectors.json');
+  const vectorsPath = path.join(process.cwd(), '.ruflo', 'vectors.json');
   if (fs.existsSync(vectorsPath) && vectorCount === 0) {
     try {
       const data = JSON.parse(fs.readFileSync(vectorsPath, 'utf-8'));
@@ -863,14 +863,14 @@ function getIntegrationStatus() {
   // Check for database (AgentDB, SQLite, etc.)
   const dbPaths = [
     path.join(process.cwd(), '.swarm', 'memory.db'),
-    path.join(process.cwd(), '.claude-flow', 'memory.db'),
+    path.join(process.cwd(), '.ruflo', 'memory.db'),
     path.join(process.cwd(), 'data', 'memory.db'),
   ];
   hasDatabase = dbPaths.some(p => fs.existsSync(p));
 
   // Check for cache
   const cachePaths = [
-    path.join(process.cwd(), '.claude-flow', 'cache'),
+    path.join(process.cwd(), '.ruflo', 'cache'),
     path.join(process.cwd(), '.cache'),
     path.join(process.cwd(), 'node_modules', '.cache'),
   ];
@@ -939,7 +939,7 @@ function getSessionStats() {
 
   // Check for session file
   const sessionPaths = [
-    path.join(process.cwd(), '.claude-flow', 'session.json'),
+    path.join(process.cwd(), '.ruflo', 'session.json'),
     path.join(process.cwd(), '.claude', 'session.json'),
   ];
 
@@ -977,7 +977,7 @@ function getSessionStats() {
 
   // Fallback: check metrics for activity
   if (!duration) {
-    const metricsPath = path.join(process.cwd(), '.claude-flow', 'metrics', 'activity.json');
+    const metricsPath = path.join(process.cwd(), '.ruflo', 'metrics', 'activity.json');
     if (fs.existsSync(metricsPath)) {
       try {
         const data = JSON.parse(fs.readFileSync(metricsPath, 'utf-8'));
@@ -1000,7 +1000,7 @@ function getTrend(current, previous) {
 // Store previous values for trends (persisted between calls)
 let prevIntelligence = null;
 try {
-  const trendPath = path.join(process.cwd(), '.claude-flow', '.trend-cache.json');
+  const trendPath = path.join(process.cwd(), '.ruflo', '.trend-cache.json');
   if (fs.existsSync(trendPath)) {
     const data = JSON.parse(fs.readFileSync(trendPath, 'utf-8'));
     prevIntelligence = data.intelligence;
@@ -1036,7 +1036,7 @@ function generateStatusline() {
 
   // Save current values for next trend calculation
   try {
-    const trendPath = path.join(process.cwd(), '.claude-flow', '.trend-cache.json');
+    const trendPath = path.join(process.cwd(), '.ruflo', '.trend-cache.json');
     const trendDir = path.dirname(trendPath);
     if (!fs.existsSync(trendDir)) fs.mkdirSync(trendDir, { recursive: true });
     fs.writeFileSync(trendPath, JSON.stringify({ intelligence: system.intelligencePct, timestamp: Date.now() }));

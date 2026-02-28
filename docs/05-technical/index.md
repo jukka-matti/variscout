@@ -67,15 +67,15 @@ High-level architecture overview and detailed design documents:
 
 Build, deploy, test, and operate:
 
-| Document                                                  | Description                                |
-| --------------------------------------------------------- | ------------------------------------------ |
-| [Deployment](implementation/deployment.md)                | Build and deployment pipeline              |
-| [Testing](implementation/testing.md)                      | Vitest, Playwright, verification protocols |
-| [Data Input](implementation/data-input.md)                | Parser, paste flow, column detection       |
-| [System Limits](implementation/system-limits.md)          | Row limits, factor limits, performance     |
-| [Security Scanning](implementation/security-scanning.md)  | OWASP scanning, CVE checks                 |
-| [AI Tooling (claude-flow)](implementation/claude-flow.md) | AI development workflow tooling            |
-| [Statistics Reference](statistics-reference.md)           | Exact formulas, algorithms, implementation |
+| Document                                                 | Description                                |
+| -------------------------------------------------------- | ------------------------------------------ |
+| [Deployment](implementation/deployment.md)               | Build and deployment pipeline              |
+| [Testing](implementation/testing.md)                     | Vitest, Playwright, verification protocols |
+| [Data Input](implementation/data-input.md)               | Parser, paste flow, column detection       |
+| [System Limits](implementation/system-limits.md)         | Row limits, factor limits, performance     |
+| [Security Scanning](implementation/security-scanning.md) | OWASP scanning, CVE checks                 |
+| [AI Tooling (ruflo)](implementation/ruflo.md)            | AI development workflow tooling            |
+| [Statistics Reference](statistics-reference.md)          | Exact formulas, algorithms, implementation |
 
 ### Integrations
 
@@ -134,7 +134,7 @@ pnpm build           # Build all packages and apps
 pnpm test            # Run Vitest tests (all packages)
 
 # AI development tooling
-npx claude-flow@v3alpha daemon status              # Check worker state
-npx claude-flow@v3alpha memory search --query "..."  # Semantic search
-npx claude-flow@v3alpha security scan --depth full   # OWASP scan
+npx ruflo@latest daemon status              # Check worker state
+npx ruflo@latest memory search --query "..."  # Semantic search
+npx ruflo@latest security scan --depth full   # OWASP scan
 ```

@@ -1,4 +1,4 @@
-# ADR-011: AI Development Tooling (claude-flow)
+# ADR-011: AI Development Tooling (ruflo)
 
 **Status:** Accepted
 **Date:** 2026-02-18
@@ -16,7 +16,7 @@ Recurring friction points:
 
 ## Decision
 
-Use claude-flow v3alpha as an MCP-integrated development tooling layer. It runs as a local MCP server that Claude Code connects to on session start, providing:
+Use ruflo (formerly claude-flow) as an MCP-integrated development tooling layer. It runs as a local MCP server that Claude Code connects to on session start, providing:
 
 1. **Vector-indexed codebase search** -- HNSW embeddings (all-MiniLM-L6-v2, 384-dim) for semantic file search. "Find Cpk calculation" returns `stats.ts` without needing exact grep patterns.
 2. **Persistent cross-session memory** -- Namespaced key-value store (architecture, conventions, decisions, testing) with semantic search. Survives session restarts.
@@ -25,7 +25,7 @@ Use claude-flow v3alpha as an MCP-integrated development tooling layer. It runs 
 
 ### Key choices
 
-1. **Dev tooling only** -- claude-flow is never a runtime dependency. It does not appear in any `package.json`. It runs via `npx` and its data files (`.claude-flow/`, `.swarm/`) are gitignored.
+1. **Dev tooling only** -- ruflo is never a runtime dependency. It does not appear in any `package.json`. It runs via `npx` and its data files (`.ruflo/`, `.swarm/`) are gitignored.
 
 2. **Hybrid memory backend** -- sql.js for structured storage + HNSW indexing for semantic vector search. 150x-12,500x faster than linear scan for similarity queries.
 
@@ -38,8 +38,8 @@ Use claude-flow v3alpha as an MCP-integrated development tooling layer. It runs 
 ## Implementation
 
 - MCP server config: `.mcp.json` (autoStart: true)
-- Runtime config: `.claude-flow/config.yaml`
-- Daemon state: `.claude-flow/daemon-state.json`
+- Runtime config: `.ruflo/config.yaml`
+- Daemon state: `.ruflo/daemon-state.json`
 - Memory DB: `.swarm/memory.db`
 - Hooks: `.claude/settings.json` (PreToolUse, PostToolUse, SessionStart, UserPromptSubmit)
 - Worker exclusions: `.venv/**`, `node_modules/**`, `dist/**`, `site/**`, `*.min.js`, `*.min.css`
@@ -67,7 +67,7 @@ Use claude-flow v3alpha as an MCP-integrated development tooling layer. It runs 
 
 ## See Also
 
-- [claude-flow Technical Reference](../05-technical/implementation/claude-flow.md)
+- [ruflo Technical Reference](../05-technical/implementation/ruflo.md)
 - [Security Scanning](../05-technical/implementation/security-scanning.md)
 - [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md)
 - [ADR-013: Architecture Evaluation — DDD and Swarms](adr-013-architecture-evaluation-ddd-swarms.md)

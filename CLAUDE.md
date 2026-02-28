@@ -16,8 +16,8 @@ pnpm --filter @variscout/azure-app test # Azure app tests only
 
 claude --chrome              # Enable Chrome browser for E2E testing
 
-npx claude-flow@v3alpha security scan --depth full  # OWASP security scan
-npx claude-flow@v3alpha security cve --check        # CVE check
+npx ruflo@latest security scan --depth full  # OWASP security scan
+npx ruflo@latest security cve --check        # CVE check
 
 # Swarm dev workflows (ADR-013)
 # Parallel test: use Task agents to run vitest across all packages concurrently
@@ -72,7 +72,7 @@ docs/
 │   ├── index.md
 │   ├── architecture.md
 │   ├── architecture/    # offline-first, monorepo, shared-packages, data-flow, component-patterns
-│   ├── implementation/  # data-input, deployment, testing, system-limits, security-scanning, claude-flow
+│   ├── implementation/  # data-input, deployment, testing, system-limits, security-scanning, ruflo
 │   └── integrations/    # shared-ui, embed-messaging
 ├── 06-design-system/    # Design tokens and components
 │   ├── index.md
@@ -140,7 +140,7 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Color/typography         | docs/06-design-system/foundations/                                                                      |
 | Case studies             | docs/04-cases/index.md                                                                                  |
 | Product specs/tagline    | docs/03-features/specifications.md                                                                      |
-| Claude-flow / AI tooling | docs/07-decisions/adr-011-ai-development-tooling.md, docs/05-technical/implementation/claude-flow.md    |
+| Ruflo / AI tooling       | docs/07-decisions/adr-011-ai-development-tooling.md, docs/05-technical/implementation/ruflo.md          |
 | Statistics reference     | docs/05-technical/statistics-reference.md                                                               |
 | Investigation workflow   | docs/03-features/workflows/investigation-to-action.md                                                   |
 | Investigation tracking   | docs/07-decisions/adr-015-investigation-board.md, docs/03-features/workflows/investigation-to-action.md |

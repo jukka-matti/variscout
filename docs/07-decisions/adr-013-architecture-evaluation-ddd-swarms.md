@@ -6,12 +6,12 @@
 
 ## Context
 
-After updating claude-flow to v3alpha (ADR-011), we evaluated whether two architectural approaches could benefit VariScout:
+After updating ruflo (formerly claude-flow) to v3alpha (ADR-011), we evaluated whether two architectural approaches could benefit VariScout:
 
 1. **Domain-Driven Design (DDD)** — tactical patterns (aggregates, repositories, domain events, value objects) applied to the existing package structure.
 2. **AI swarm orchestration** — multi-agent coordination as an architectural layer for the application itself, or as a development workflow tool.
 
-The evaluation was prompted by claude-flow v3's expanded swarm capabilities and its DDD-oriented internal architecture.
+The evaluation was prompted by ruflo's expanded swarm capabilities and its DDD-oriented internal architecture.
 
 ## Decision
 
@@ -38,10 +38,10 @@ VariScout's monorepo structure already implements the most impactful DDD concept
 Three swarm patterns have practical value as **development workflows**, not as application architecture:
 
 1. **Parallel test execution** — Run vitest across all 5 packages concurrently using Task agents. Faster feedback than sequential `pnpm test`.
-2. **Security scanning** — Targeted OWASP scans on Azure auth (`easyAuth.ts`) and storage (`storage.ts`) modules using claude-flow security tools.
+2. **Security scanning** — Targeted OWASP scans on Azure auth (`easyAuth.ts`) and storage (`storage.ts`) modules using ruflo security tools.
 3. **Read-only code review** — Multi-agent review of cross-package changes (e.g., a new shared hook touching `core`, `hooks`, and both apps) without modifying code.
 
-These workflows use existing claude-flow capabilities and Claude Code Task agents. No new configuration files or runtime dependencies are added.
+These workflows use existing ruflo capabilities and Claude Code Task agents. No new configuration files or runtime dependencies are added.
 
 ## Consequences
 

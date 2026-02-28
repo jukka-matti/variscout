@@ -237,7 +237,7 @@ The customer creates an App Registration before deployment (the ARM template ref
 - [ ] Build completes without errors (`pnpm build`)
 - [ ] No TypeScript errors (`pnpm tsc`)
 - [ ] Version numbers updated if releasing
-- [ ] Security scan (`npx claude-flow@v3alpha security scan`)
+- [ ] Security scan (`npx ruflo@latest security scan`)
 
 ### Azure Marketplace Submission
 
