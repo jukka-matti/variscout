@@ -8,14 +8,14 @@
  * 4. Supports annotations (highlight colors + text overlay via right-click)
  * 5. Passes everything to shared BoxplotBase
  */
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
-import { BoxplotBase, getResponsiveMargins, getScaledFonts } from '@variscout/charts';
+import { BoxplotBase, getScaledFonts } from '@variscout/charts';
 import { ChartAnnotationLayer, AxisEditor } from '@variscout/ui';
-import { useBoxplotData } from '@variscout/hooks';
-import { sortBoxplotData, computeCategoryDirectionColors } from '@variscout/core';
+import { useBoxplotData, useBoxplotWrapperData } from '@variscout/hooks';
+import { sortBoxplotData } from '@variscout/core';
 import type { HighlightColor, ChartAnnotation } from '@variscout/hooks';
 
 interface BoxplotProps {
@@ -67,6 +67,14 @@ const Boxplot = ({
     displayOptions.boxplotSortDirection
   );
 
+  const { categoryPositions, effectiveHighlights } = useBoxplotWrapperData({
+    data,
+    specs,
+    displayOptions,
+    parentWidth,
+    highlightedCategories,
+  });
+
   const handleBoxClick = (key: string) => {
     if (onDrillDown) {
       onDrillDown(factor, key);
@@ -85,40 +93,6 @@ const Boxplot = ({
       setValueLabels({ ...valueLabels, [factor]: newValueLabels });
     }
   };
-
-  // Compute category positions for annotation layer
-  const categoryPositions = useMemo(() => {
-    const positions = new Map<string, { x: number; y: number }>();
-    if (data.length === 0 || parentWidth === 0) return positions;
-
-    const margin = getResponsiveMargins(parentWidth, 'boxplot');
-    const chartWidth = parentWidth - margin.left - margin.right;
-    const padding = 0.4;
-    const step = chartWidth / data.length;
-    const bandwidth = step * (1 - padding);
-    const offset = (step * padding) / 2;
-
-    for (const d of data) {
-      const idx = data.indexOf(d);
-      const x = margin.left + idx * step + offset + bandwidth / 2;
-      const y = margin.top;
-      positions.set(d.key, { x, y });
-    }
-    return positions;
-  }, [data, parentWidth]);
-
-  // Direction-aware auto-coloring: color boxes by how well each category
-  // aligns with the characteristic type (nominal/smaller/larger)
-  const autoColors = useMemo(() => {
-    if (displayOptions.showSpecs === false) return null;
-    return computeCategoryDirectionColors(data, specs);
-  }, [data, specs, displayOptions.showSpecs]);
-
-  // Manual annotation highlights always override auto-colors
-  const effectiveHighlights = useMemo(() => {
-    if (!autoColors && !highlightedCategories) return undefined;
-    return { ...autoColors, ...highlightedCategories };
-  }, [autoColors, highlightedCategories]);
 
   if (!outcome || data.length === 0) return null;
 

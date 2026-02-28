@@ -14,17 +14,11 @@
  * - Derived: availableOutcomes, availableStageColumns, ANOVA, boxplot data
  */
 
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useData } from '../context/DataContext';
-import {
-  calculateAnova,
-  type AnovaResult,
-  getNextDrillFactor,
-  sortBoxplotData,
-  calculateBoxplotStats,
-} from '@variscout/core';
+import { type AnovaResult, getNextDrillFactor } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
-import { useChartCopy, useKeyboardNavigation } from '@variscout/hooks';
+import { useChartCopy, useKeyboardNavigation, useDashboardComputedData } from '@variscout/hooks';
 import { useFilterNavigation, useVariationTracking } from '../hooks';
 import type { UseFilterNavigationReturn, FilterChipData } from '../hooks';
 
@@ -200,57 +194,16 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     };
   }, []);
 
-  // Derived: numeric outcome columns
-  const availableOutcomes = useMemo(() => {
-    if (rawData.length === 0) return [];
-    const row = rawData[0];
-    return Object.keys(row).filter(key => typeof row[key] === 'number');
-  }, [rawData]);
-
-  // Derived: columns suitable as stage groupings (2–10 unique values)
-  const availableStageColumns = useMemo(() => {
-    if (rawData.length === 0) return [];
-    const columns = Object.keys(rawData[0]);
-    return columns.filter(col => {
-      if (col === outcome) return false;
-      const uniqueValues = new Set(rawData.map(row => row[col]));
-      return uniqueValues.size >= 2 && uniqueValues.size <= 10;
+  // Shared computed data (availableOutcomes, availableStageColumns, ANOVA, boxplotData)
+  const { availableOutcomes, availableStageColumns, anovaResult, boxplotData } =
+    useDashboardComputedData({
+      rawData,
+      filteredData,
+      outcome,
+      boxplotFactor,
+      boxplotSortBy: displayOptions.boxplotSortBy,
+      boxplotSortDirection: displayOptions.boxplotSortDirection,
     });
-  }, [rawData, outcome]);
-
-  // Derived: ANOVA result for boxplot factor
-  const anovaResult: AnovaResult | null = useMemo(() => {
-    if (!outcome || !boxplotFactor || filteredData.length === 0) return null;
-    return calculateAnova(filteredData, outcome, boxplotFactor);
-  }, [filteredData, outcome, boxplotFactor]);
-
-  // Derived: boxplot group data (for stats table in focused mode)
-  const boxplotData: BoxplotGroupData[] = useMemo(() => {
-    if (!outcome || !boxplotFactor || filteredData.length === 0) return [];
-    const groups = new Map<string, number[]>();
-    for (const row of filteredData) {
-      const key = String(row[boxplotFactor] ?? '');
-      const value = Number(row[outcome]);
-      if (!isNaN(value)) {
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key)!.push(value);
-      }
-    }
-    const unsorted = Array.from(groups.entries()).map(([group, values]) =>
-      calculateBoxplotStats({ group, values })
-    );
-    return sortBoxplotData(
-      unsorted,
-      displayOptions.boxplotSortBy,
-      displayOptions.boxplotSortDirection
-    );
-  }, [
-    filteredData,
-    outcome,
-    boxplotFactor,
-    displayOptions.boxplotSortBy,
-    displayOptions.boxplotSortDirection,
-  ]);
 
   // Update persisted chart title in DataContext
   const handleChartTitleChange = useCallback(

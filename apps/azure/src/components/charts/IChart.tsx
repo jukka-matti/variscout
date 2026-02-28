@@ -8,12 +8,12 @@
  * 4. Supports free-floating text annotations (right-click → note)
  * 5. Passes everything to shared IChartBase
  */
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState } from 'react';
 import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
-import { IChartBase, getResponsiveMargins, getScaledFonts } from '@variscout/charts';
-import { useIChartData } from '@variscout/hooks';
+import { IChartBase, getScaledFonts } from '@variscout/charts';
+import { useIChartData, useIChartWrapperData } from '@variscout/hooks';
 import { ChartAnnotationLayer, YAxisPopover } from '@variscout/ui';
 import type { ChartAnnotation } from '@variscout/hooks';
 
@@ -68,65 +68,16 @@ const IChart = ({
 
   const data = useIChartData(sourceData, outcome, stageColumn, timeColumn);
 
-  // Right-click handler: create free-floating annotation at % position
-  const handleContextMenu = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!onCreateAnnotation) return;
-      e.preventDefault();
-
-      const rect = e.currentTarget.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top;
-
-      const chartMargin = getResponsiveMargins(parentWidth, 'ichart');
-      const chartWidth = parentWidth - chartMargin.left - chartMargin.right;
-      const chartHeight = parentHeight - chartMargin.top - chartMargin.bottom;
-
-      // Clamp to chart area (ignore clicks in margins)
-      if (
-        clickX < chartMargin.left ||
-        clickX > chartMargin.left + chartWidth ||
-        clickY < chartMargin.top ||
-        clickY > chartMargin.top + chartHeight
-      ) {
-        return;
-      }
-
-      const anchorX = (clickX - chartMargin.left) / chartWidth;
-      const anchorY = (clickY - chartMargin.top) / chartHeight;
-      onCreateAnnotation(anchorX, anchorY);
-    },
-    [onCreateAnnotation, parentWidth, parentHeight]
-  );
-
-  // Compute pixel positions from percentage anchors for annotation layer
-  const categoryPositions = useMemo(() => {
-    const positions = new Map<string, { x: number; y: number }>();
-    if (parentWidth === 0 || parentHeight === 0) return positions;
-
-    const chartMargin = getResponsiveMargins(parentWidth, 'ichart');
-    const chartWidth = parentWidth - chartMargin.left - chartMargin.right;
-    const chartHeight = parentHeight - chartMargin.top - chartMargin.bottom;
-
-    for (const a of ichartAnnotations) {
-      if (a.anchorX != null && a.anchorY != null) {
-        positions.set(a.id, {
-          x: a.anchorX * chartWidth + chartMargin.left,
-          y: a.anchorY * chartHeight + chartMargin.top,
-        });
-      }
-    }
-    return positions;
-  }, [ichartAnnotations, parentWidth, parentHeight]);
-
-  const handleYAxisClick = () => {
-    setIsEditingScale(true);
-  };
-
-  // Handle point click - map filtered index back to callback
-  const handlePointClick = (index: number) => {
-    onPointClick?.(index);
-  };
+  const { effectiveStats, effectiveStagedStats, categoryPositions, handleContextMenu } =
+    useIChartWrapperData({
+      parentWidth,
+      parentHeight,
+      stats,
+      stagedStats,
+      displayOptions,
+      ichartAnnotations,
+      onCreateAnnotation,
+    });
 
   if (!outcome || data.length === 0) {
     return (
@@ -136,15 +87,8 @@ const IChart = ({
     );
   }
 
-  const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
-  const effectiveStagedStats =
-    displayOptions.showControlLimits !== false ? (stagedStats ?? undefined) : undefined;
-
   // Hide spec lines when showSpecs is false
   const effectiveSpecs = displayOptions.showSpecs !== false ? specs : {};
-
-  // Calculate margin for popover positioning (simplified)
-  const margin = { top: 20, left: 60 };
 
   const fonts = getScaledFonts(parentWidth);
 
@@ -160,8 +104,8 @@ const IChart = ({
         parentWidth={parentWidth}
         parentHeight={parentHeight}
         showBranding={false}
-        onPointClick={handlePointClick}
-        onYAxisClick={handleYAxisClick}
+        onPointClick={onPointClick}
+        onYAxisClick={() => setIsEditingScale(true)}
         enableBrushSelection={true}
         selectedPoints={selectedPoints}
         onSelectionChange={setSelectedPoints}
@@ -191,7 +135,7 @@ const IChart = ({
         autoMin={autoMin}
         autoMax={autoMax}
         onSave={setAxisSettings}
-        anchorPosition={{ top: margin.top, left: 10 }}
+        anchorPosition={{ top: 20, left: 10 }}
       />
     </div>
   );

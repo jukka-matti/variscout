@@ -9,12 +9,12 @@
  * 5. Supports free-floating text annotations (right-click → note)
  * 6. Passes everything to shared IChartBase
  */
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState } from 'react';
 import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
-import { IChartBase, getResponsiveMargins, getScaledFonts } from '@variscout/charts';
-import { useIChartData } from '@variscout/hooks';
+import { IChartBase, getScaledFonts } from '@variscout/charts';
+import { useIChartData, useIChartWrapperData } from '@variscout/hooks';
 import { YAxisPopover, ChartAnnotationLayer } from '@variscout/ui';
 import { shouldShowBranding, getBrandingText } from '../../lib/edition';
 import type { ChartAnnotation } from '@variscout/hooks';
@@ -68,56 +68,16 @@ const IChart = ({
 
   const data = useIChartData(sourceData, outcome, stageColumn, timeColumn);
 
-  // Right-click handler: create free-floating annotation at % position
-  const handleContextMenu = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!onCreateAnnotation) return;
-      e.preventDefault();
-
-      const rect = e.currentTarget.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top;
-
-      const margin = getResponsiveMargins(parentWidth, 'ichart');
-      const chartWidth = parentWidth - margin.left - margin.right;
-      const chartHeight = parentHeight - margin.top - margin.bottom;
-
-      // Clamp to chart area (ignore clicks in margins)
-      if (
-        clickX < margin.left ||
-        clickX > margin.left + chartWidth ||
-        clickY < margin.top ||
-        clickY > margin.top + chartHeight
-      ) {
-        return;
-      }
-
-      const anchorX = (clickX - margin.left) / chartWidth;
-      const anchorY = (clickY - margin.top) / chartHeight;
-      onCreateAnnotation(anchorX, anchorY);
-    },
-    [onCreateAnnotation, parentWidth, parentHeight]
-  );
-
-  // Compute pixel positions from percentage anchors for annotation layer
-  const categoryPositions = useMemo(() => {
-    const positions = new Map<string, { x: number; y: number }>();
-    if (parentWidth === 0 || parentHeight === 0) return positions;
-
-    const margin = getResponsiveMargins(parentWidth, 'ichart');
-    const chartWidth = parentWidth - margin.left - margin.right;
-    const chartHeight = parentHeight - margin.top - margin.bottom;
-
-    for (const a of ichartAnnotations) {
-      if (a.anchorX != null && a.anchorY != null) {
-        positions.set(a.id, {
-          x: a.anchorX * chartWidth + margin.left,
-          y: a.anchorY * chartHeight + margin.top,
-        });
-      }
-    }
-    return positions;
-  }, [ichartAnnotations, parentWidth, parentHeight]);
+  const { effectiveStats, effectiveStagedStats, categoryPositions, handleContextMenu } =
+    useIChartWrapperData({
+      parentWidth,
+      parentHeight,
+      stats,
+      stagedStats,
+      displayOptions,
+      ichartAnnotations,
+      onCreateAnnotation,
+    });
 
   if (!outcome || data.length === 0) {
     return (
@@ -128,9 +88,6 @@ const IChart = ({
   }
 
   const showBranding = showBrandingProp ?? shouldShowBranding();
-  const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
-  const effectiveStagedStats =
-    displayOptions.showControlLimits !== false ? (stagedStats ?? undefined) : undefined;
 
   const fonts = getScaledFonts(parentWidth);
 

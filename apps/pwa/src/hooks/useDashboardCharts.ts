@@ -12,18 +12,12 @@
  */
 
 import type React from 'react';
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import {
-  calculateAnova,
-  type AnovaResult,
-  getNextDrillFactor,
-  sortBoxplotData,
-  calculateBoxplotStats,
-} from '@variscout/core';
+import { type AnovaResult, getNextDrillFactor } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
 import { useFilterNavigation, type UseFilterNavigationReturn } from './useFilterNavigation';
-import { useVariationTracking } from '@variscout/hooks';
+import { useVariationTracking, useDashboardComputedData } from '@variscout/hooks';
 import { useFocusMode } from './useFocusMode';
 import { useChartCopy } from './useChartCopy';
 import { useChartFactors } from './useChartFactors';
@@ -208,74 +202,16 @@ export function useDashboardCharts({
     [applyFilter, factorVariations, setBoxplotFactor, setParetoFactor]
   );
 
-  // Computed: available outcome columns
-  const availableOutcomes = useMemo(() => {
-    if (rawData.length === 0) return [];
-    const row = rawData[0];
-    return Object.keys(row).filter(key => typeof row[key] === 'number');
-  }, [rawData]);
-
-  // Computed: available stage columns
-  const availableStageColumns = useMemo(() => {
-    if (rawData.length === 0) return [];
-    const candidates: string[] = [];
-    const columns = Object.keys(rawData[0] || {});
-
-    for (const col of columns) {
-      if (col === outcome) continue;
-
-      const uniqueValues = new Set<string>();
-      for (const row of rawData) {
-        const val = row[col];
-        if (val !== undefined && val !== null && val !== '') {
-          uniqueValues.add(String(val));
-        }
-        if (uniqueValues.size > 10) break;
-      }
-
-      if (uniqueValues.size >= 2 && uniqueValues.size <= 10) {
-        candidates.push(col);
-      }
-    }
-
-    return candidates;
-  }, [rawData, outcome]);
-
-  // Computed: ANOVA result
-  const anovaResult: AnovaResult | null = useMemo(() => {
-    if (!outcome || !boxplotFactor || filteredData.length === 0) return null;
-    return calculateAnova(filteredData, outcome, boxplotFactor);
-  }, [filteredData, outcome, boxplotFactor]);
-
-  // Computed: boxplot data
-  const boxplotData: BoxplotGroupData[] = useMemo(() => {
-    if (!outcome || !boxplotFactor || filteredData.length === 0) return [];
-
-    const groups = new Map<string, number[]>();
-    for (const row of filteredData) {
-      const key = String(row[boxplotFactor] ?? '');
-      const value = Number(row[outcome]);
-      if (!isNaN(value)) {
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key)!.push(value);
-      }
-    }
-
-    const unsorted = Array.from(groups.entries()).map(([group, values]) =>
-      calculateBoxplotStats({ group, values })
-    );
-    return sortBoxplotData(
-      unsorted,
-      displayOptions.boxplotSortBy,
-      displayOptions.boxplotSortDirection
-    );
-  }, [
-    filteredData,
-    outcome,
-    boxplotFactor,
-    displayOptions.boxplotSortBy,
-    displayOptions.boxplotSortDirection,
-  ]);
+  // Shared computed data (availableOutcomes, availableStageColumns, ANOVA, boxplotData)
+  const { availableOutcomes, availableStageColumns, anovaResult, boxplotData } =
+    useDashboardComputedData({
+      rawData,
+      filteredData,
+      outcome,
+      boxplotFactor,
+      boxplotSortBy: displayOptions.boxplotSortBy,
+      boxplotSortDirection: displayOptions.boxplotSortDirection,
+    });
 
   return {
     // Factor selection

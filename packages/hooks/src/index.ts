@@ -134,6 +134,31 @@ export {
 // Findings (scouting report)
 export { useFindings, type UseFindingsOptions, type UseFindingsReturn } from './useFindings';
 
+// Chart Wrapper Data Hooks (shared computation for app chart wrappers)
+export {
+  useBoxplotWrapperData,
+  type UseBoxplotWrapperDataOptions,
+  type UseBoxplotWrapperDataResult,
+} from './useBoxplotWrapperData';
+
+export {
+  useIChartWrapperData,
+  type UseIChartWrapperDataOptions,
+  type UseIChartWrapperDataResult,
+} from './useIChartWrapperData';
+
+export {
+  useParetoChartData,
+  type UseParetoChartDataOptions,
+  type UseParetoChartDataResult,
+} from './useParetoChartData';
+
+export {
+  useDashboardComputedData,
+  type UseDashboardComputedDataOptions,
+  type UseDashboardComputedDataResult,
+} from './useDashboardComputedData';
+
 // Theme State
 export {
   useThemeState,

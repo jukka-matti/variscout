@@ -3,25 +3,17 @@
  *
  * This wrapper:
  * 1. Gets data from DataContext via useData()
- * 2. Computes ParetoDataPoint[] with aggregation mode support
- * 3. Handles comparison mode (ghost bars via comparisonData)
- * 4. Handles separate Pareto file data
- * 5. Manages Azure-specific UI (toggle buttons, axis label editing)
- * 6. Supports annotations (highlight colors + text overlay via right-click)
- * 7. Passes everything to shared ParetoChartBase
+ * 2. Uses useParetoChartData for shared data pipeline
+ * 3. Manages Azure-specific UI (toggle buttons, axis label editing)
+ * 4. Supports annotations (highlight colors + text overlay via right-click)
+ * 5. Passes everything to shared ParetoChartBase
  */
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { withParentSize } from '@visx/responsive';
-import { rollup, sum } from 'd3-array';
 import { useData } from '../../context/DataContext';
-import type { DataRow, DataCellValue } from '@variscout/core';
-import {
-  ParetoChartBase,
-  type ParetoDataPoint,
-  getResponsiveMargins,
-  getScaledFonts,
-} from '@variscout/charts';
+import { ParetoChartBase, getScaledFonts } from '@variscout/charts';
 import { ChartAnnotationLayer, AxisEditor } from '@variscout/ui';
+import { useParetoChartData } from '@variscout/hooks';
 import type { HighlightColor, ChartAnnotation } from '@variscout/hooks';
 
 import { Eye, EyeOff, Hash, Sigma, Info } from 'lucide-react';
@@ -74,110 +66,26 @@ const ParetoChart = ({
 
   const [editingAxis, setEditingAxis] = useState<string | null>(null);
 
-  // Determine if using separate Pareto data
-  const usingSeparateData =
-    paretoMode === 'separate' && separateParetoData && separateParetoData.length > 0;
-
-  // Check if any filters are active (for comparison feature)
-  const hasActiveFilters = useMemo(() => {
-    if (!filters) return false;
-    return Object.values(filters).some(values => values && values.length > 0);
-  }, [filters]);
-
-  // Calculate full population data for ghost bars comparison
-  const comparisonData = useMemo(() => {
-    if (!showComparison || !hasActiveFilters || usingSeparateData || rawData.length === 0) {
-      return undefined;
-    }
-
-    const fullCounts = rollup(
-      rawData,
-      (v: DataRow[]) => v.length,
-      (d: DataRow) => d[factor]
-    );
-    const fullTotal = rawData.length;
-
-    // Store percentage map for tooltip use
-    const percentageMap = new Map<string, number>();
-    for (const [key, count] of fullCounts) {
-      percentageMap.set(key as string, ((count as number) / fullTotal) * 100);
-    }
-    return percentageMap;
-  }, [showComparison, hasActiveFilters, usingSeparateData, rawData, factor]);
-
-  // Compute Pareto data from filtered data or separate file
-  const { data, totalCount } = useMemo(() => {
-    let sorted: { key: string; value: number }[];
-
-    if (usingSeparateData && separateParetoData) {
-      sorted = separateParetoData
-        .map(row => ({
-          key: row.category,
-          value: aggregation === 'value' && row.value !== undefined ? row.value : row.count,
-        }))
-        .sort((a, b) => b.value - a.value);
-    } else if (aggregation === 'value' && outcome) {
-      const sums = rollup(
-        filteredData,
-        (rows: DataRow[]) => sum(rows, (d: DataRow) => Number(d[outcome]) || 0),
-        (d: DataRow) => d[factor]
-      );
-      sorted = Array.from(sums, ([key, value]: [DataCellValue, number]) => ({
-        key: String(key),
-        value,
-      })).sort((a, b) => b.value - a.value);
-    } else {
-      const counts = rollup(
-        filteredData,
-        (v: DataRow[]) => v.length,
-        (d: DataRow) => d[factor]
-      );
-      sorted = Array.from(counts, ([key, value]: [DataCellValue, number]) => ({
-        key: String(key),
-        value,
-      })).sort((a, b) => b.value - a.value);
-    }
-
-    const total = sum(sorted, d => d.value);
-    let cumulative = 0;
-    const withCumulative: ParetoDataPoint[] = sorted.map(d => {
-      cumulative += d.value;
-      return { ...d, cumulative, cumulativePercentage: (cumulative / total) * 100 };
-    });
-
-    return { data: withCumulative, totalCount: total };
-  }, [filteredData, factor, aggregation, outcome, usingSeparateData, separateParetoData]);
-
-  // Convert comparison percentages to expected values (same scale as bars)
-  const ghostBarData = useMemo(() => {
-    if (!comparisonData || totalCount === 0) return undefined;
-    const expectedValues = new Map<string, number>();
-    for (const [key, pct] of comparisonData) {
-      expectedValues.set(key, (totalCount * pct) / 100);
-    }
-    return expectedValues;
-  }, [comparisonData, totalCount]);
-
-  // Compute category positions for annotation layer
-  const categoryPositions = useMemo(() => {
-    const positions = new Map<string, { x: number; y: number }>();
-    if (data.length === 0 || parentWidth === 0) return positions;
-
-    const margin = getResponsiveMargins(parentWidth, 'pareto');
-    const chartWidth = parentWidth - margin.left - margin.right;
-    const padding = 0.2;
-    const step = chartWidth / data.length;
-    const bandwidth = step * (1 - padding);
-    const offset = (step * padding) / 2;
-
-    for (let i = 0; i < data.length; i++) {
-      const d = data[i];
-      const x = margin.left + i * step + offset + bandwidth / 2;
-      const y = margin.top;
-      positions.set(d.key, { x, y });
-    }
-    return positions;
-  }, [data, parentWidth]);
+  const {
+    usingSeparateData,
+    hasActiveFilters,
+    data,
+    totalCount,
+    comparisonData,
+    ghostBarData,
+    categoryPositions,
+  } = useParetoChartData({
+    rawData,
+    filteredData,
+    factor,
+    outcome,
+    aggregation,
+    showComparison,
+    paretoMode,
+    separateParetoData,
+    filters,
+    parentWidth,
+  });
 
   const handleBarClick = (key: string) => {
     if (onDrillDown) {
