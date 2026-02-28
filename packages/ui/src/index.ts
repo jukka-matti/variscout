@@ -230,6 +230,22 @@ export { SettingsPanelBase, type SettingsPanelBaseProps } from './components/Set
 // Editable Chart Title
 export { EditableChartTitle, type EditableChartTitleProps } from './components/EditableChartTitle';
 
+// Chart Wrappers
+export { IChartWrapperBase, type IChartWrapperBaseProps } from './components/IChartWrapper';
+
+export { BoxplotWrapperBase, type BoxplotWrapperBaseProps } from './components/BoxplotWrapper';
+
+export {
+  ParetoChartWrapperBase,
+  type ParetoChartWrapperBaseProps,
+} from './components/ParetoChartWrapper';
+
+// Presentation View
+export {
+  PresentationViewBase,
+  type PresentationViewBaseProps,
+} from './components/PresentationView';
+
 // Focused Chart View
 export {
   FocusedChartViewBase,

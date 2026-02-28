@@ -3,8 +3,7 @@ import {
   ChartSourceBar as ChartSourceBarBase,
   getSourceBarHeight as getSourceBarHeightBase,
 } from '@variscout/charts';
-import { BRANDING_COLORS } from '@variscout/core';
-import { shouldShowBranding, getBrandingText } from '../../lib/edition';
+import { BRANDING_COLORS, shouldShowBranding, getBrandingText } from '@variscout/core';
 
 interface ChartSourceBarProps {
   width: number;
