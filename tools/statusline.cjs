@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Claude Flow V3 Statusline Generator
+ * ruflo Statusline Generator
  * Displays real-time V3 implementation progress and system status
  *
  * Usage: node statusline.cjs [--json] [--compact]
@@ -1043,7 +1043,7 @@ function generateStatusline() {
   } catch (e) { /* ignore */ }
 
   // Header Line with git changes indicator
-  let header = `${c.bold}${c.brightPurple}▊ Claude Flow V3 ${c.reset}`;
+  let header = `${c.bold}${c.brightPurple}▊ ruflo ${c.reset}`;
   header += `${swarm.coordinationActive ? c.brightCyan : c.dim}● ${c.brightCyan}${user.name}${c.reset}`;
   if (user.gitBranch) {
     header += `  ${c.dim}│${c.reset}  ${c.brightBlue}⎇ ${user.gitBranch}${c.reset}`;

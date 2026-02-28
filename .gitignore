@@ -125,6 +125,7 @@ dist
 # AI/LLM
 .gemini_brain
 .claude/
+.claude-flow/
 .ruflo/
 .swarm/
 .mcp.json
