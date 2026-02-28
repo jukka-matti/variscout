@@ -267,7 +267,7 @@ function AppMain() {
       if (!ctx) return;
       setFilters(ctx.activeFilters);
     },
-    [findingsState, filterNav, setFilters]
+    [findingsState, setFilters]
   );
 
   // Findings popout: open in separate window
