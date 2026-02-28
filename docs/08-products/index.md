@@ -13,24 +13,27 @@ Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md):
 ```mermaid
 flowchart LR
     subgraph Paid["Paid Product"]
-        A[Azure App<br/>€150/month]
+        A1[Azure Standard<br/>€99/month]
+        A2[Azure Team<br/>€299/month]
     end
 
     subgraph Free["Free Product"]
         C[PWA<br/>Free Training Tool]
     end
 
-    C -->|"Need file upload, save, teams, Performance Mode"| A
+    C -->|"Need file upload, save, Performance Mode"| A1
+    A1 -->|"Need Teams, OneDrive, SharePoint, mobile"| A2
 ```
 
 ## Product Matrix
 
-| Product                         | Status      | Distribution      | Use Case              | Pricing        |
-| ------------------------------- | ----------- | ----------------- | --------------------- | -------------- |
-| **[Azure App](azure/index.md)** | **PRIMARY** | Azure Marketplace | Teams & enterprises   | €150/month     |
-| [PWA](pwa/index.md)             | Production  | Direct URL        | Training & education  | FREE (forever) |
-| [Power BI](powerbi/index.md)    | Planned     | AppSource         | Dashboard integration | TBD            |
-| [Website](website/index.md)     | Production  | Public            | Marketing & docs      | N/A            |
+| Product                              | Status      | Distribution      | Use Case                   | Pricing        |
+| ------------------------------------ | ----------- | ----------------- | -------------------------- | -------------- |
+| **[Azure Standard](azure/index.md)** | **PRIMARY** | Azure Marketplace | Full analysis, local files | €99/month      |
+| **[Azure Team](azure/index.md)**     | **PRIMARY** | Azure Marketplace | + Teams, OneDrive, mobile  | €299/month     |
+| [PWA](pwa/index.md)                  | Production  | Direct URL        | Training & education       | FREE (forever) |
+| [Power BI](powerbi/index.md)         | Planned     | AppSource         | Dashboard integration      | TBD            |
+| [Website](website/index.md)          | Production  | Public            | Marketing & docs           | N/A            |
 
 !!! tip "Getting Started"
 **Free**: Start with the [PWA](pwa/index.md) — free training tool with copy-paste input and 16 sample datasets. Upgrade to the [Azure App](azure/index.md) for file upload, save/persistence, Performance Mode, and team features.
@@ -43,7 +46,8 @@ flowchart LR
 ┌─────────────────────────────────────────────────────────────┐
 │  VariScout on Azure Marketplace (PRIMARY)                   │
 │                                                             │
-│  Single Plan       €150/month   All features               │
+│  Standard Plan     €99/month    Full analysis, local files  │
+│  Team Plan         €299/month   + Teams, OneDrive, mobile   │
 │                                  Unlimited users in tenant  │
 │                                                             │
 │  Offer type: Managed Application                           │
@@ -76,21 +80,19 @@ flowchart LR
 
 ## Pricing (Azure App)
 
-| Aspect      | Value                                              |
-| ----------- | -------------------------------------------------- |
-| Price       | €150/month (all features, unlimited users)         |
-| Billing     | Monthly (Microsoft handles billing, 3% fee)        |
-| Net revenue | €145.50/month (€1,746/year)                        |
-| Model       | Per-deployment (one subscription per Azure tenant) |
+| Plan     | Price      | Net Revenue         | Includes                                       |
+| -------- | ---------- | ------------------- | ---------------------------------------------- |
+| Standard | €99/month  | €96.03/month (−3%)  | Full analysis, file upload, save, SSO, offline |
+| Team     | €299/month | €290.03/month (−3%) | + Teams, OneDrive, SharePoint, mobile, photos  |
 
-All features included:
+| Aspect  | Value                                              |
+| ------- | -------------------------------------------------- |
+| Billing | Monthly (Microsoft handles billing, 3% fee)        |
+| Model   | Per-deployment (one subscription per Azure tenant) |
 
-- All chart types and analysis features
-- Performance Mode (multi-channel Cpk)
-- Microsoft Entra ID (Azure AD) SSO
-- OneDrive project sync
-- Offline support (cached)
-- Data stays in customer's Azure tenant
+**Standard** — all chart types, Performance Mode, Microsoft SSO, offline support, data stays in customer's Azure tenant.
+
+**Team** — everything in Standard, plus Teams integration, OneDrive/SharePoint sync, mobile access, and photo evidence.
 
 ---
 

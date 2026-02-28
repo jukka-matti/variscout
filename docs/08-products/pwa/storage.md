@@ -15,7 +15,7 @@ The PWA is a free training and education tool — data persistence is intentiona
 
 ## Why Session-Only?
 
-The PWA is **free forever** — it exists to teach SPC concepts and let users try VariScout with their own data. Persistence features (save, load, team sharing, OneDrive sync) are part of the [Azure App](../azure/) value proposition at €150/month.
+The PWA is **free forever** — it exists to teach SPC concepts and let users try VariScout with their own data. Persistence features (save, load, team sharing, OneDrive sync) are part of the [Azure App](../azure/) value proposition (from €99/month).
 
 This is documented in [ADR-007](../../07-decisions/adr-007-azure-marketplace-distribution.md).
 

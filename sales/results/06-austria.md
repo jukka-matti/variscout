@@ -12,7 +12,7 @@ Austria: "Technik Nation" — 28% GDP from manufacturing, high-precision, resear
 
 1. **Data Sovereignty** — GDPR strict interpretation; 12-18 month security reviews for SaaS. Azure Managed App = bypass.
 2. **"Citizen Data Scientist" Gap** — Top engineers use Minitab/JMP; 95% use Excel. VariScout = "Excel on Steroids."
-3. **Cost Sensitivity** — High energy prices crushing heavy industry; €150/mo flat fee vs €1,600/yr/user Minitab.
+3. **Cost Sensitivity** — High energy prices crushing heavy industry; from €99/mo vs €1,600/yr/user Minitab.
 
 ### Market Structure
 

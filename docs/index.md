@@ -75,10 +75,11 @@ VariScout is EDA (Exploratory Data Analysis) for process improvement - not stati
 
 ## Products & Pricing
 
-| Product                                 | Distribution      | Pricing                                        | Status      |
-| --------------------------------------- | ----------------- | ---------------------------------------------- | ----------- |
-| [Azure App](08-products/azure/index.md) | Azure Marketplace | €150/month (Managed Application, all features) | **PRIMARY** |
-| [PWA](08-products/pwa/index.md)         | Public URL        | FREE (forever, training & education)           | Production  |
+| Product                                      | Distribution      | Pricing                                            | Status      |
+| -------------------------------------------- | ----------------- | -------------------------------------------------- | ----------- |
+| [Azure Standard](08-products/azure/index.md) | Azure Marketplace | €99/month (full analysis, local files)             | **PRIMARY** |
+| [Azure Team](08-products/azure/index.md)     | Azure Marketplace | €299/month (+ Teams, OneDrive, SharePoint, mobile) | **PRIMARY** |
+| [PWA](08-products/pwa/index.md)              | Public URL        | FREE (forever, training & education)               | Production  |
 
 ---
 

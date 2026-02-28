@@ -87,7 +87,7 @@ Narrowed by:
 
 - **Microsoft ecosystem only** — Azure Marketplace + AppSource
 - **English/EU markets first** — initial language and compliance reach
-- **SMBs with 5–200 employees** — sweet spot for €150/month flat pricing
+- **SMBs with 5–200 employees** — sweet spot for from-€99/month flat pricing
 - **Manufacturing, food, pharma** — core verticals with variation analysis need
 
 ### SOM (Serviceable Obtainable Market): €100K–1M/year
@@ -114,12 +114,12 @@ Near-term realistic capture (solo founder, no sales team):
 
 ### Pricing Comparison
 
-| Product    | Model                  | Price                | VariScout Equivalent          |
-| ---------- | ---------------------- | -------------------- | ----------------------------- |
-| Minitab    | Per-user, annual       | ~€135–155/user/month | €150/month unlimited users    |
-| InfinityQS | Per-user, subscription | €50–100/user/month   | €150/month unlimited users    |
-| PQ Systems | Perpetual license      | ~€595 one-time       | Free Excel + €150/month Azure |
-| VariScout  | Per-deployment         | €150/month all users | —                             |
+| Product    | Model                  | Price                | VariScout Equivalent            |
+| ---------- | ---------------------- | -------------------- | ------------------------------- |
+| Minitab    | Per-user, annual       | ~€135–155/user/month | From €99/month unlimited users  |
+| InfinityQS | Per-user, subscription | €50–100/user/month   | From €99/month unlimited users  |
+| PQ Systems | Perpetual license      | ~€595 one-time       | Free PWA + from €99/month Azure |
+| VariScout  | Per-deployment         | €99–299/month        | —                               |
 
 > **Key insight:** VariScout is Minitab-priced per seat, but unlimited users. A team of 3+ saves money vs Minitab immediately. For a team of 10, it's 10× cheaper.
 
@@ -138,7 +138,7 @@ Near-term realistic capture (solo founder, no sales team):
 
 ## Bottom Line
 
-> VariScout's TAM is **real but niche** (~€100–200M). The product sits in a genuine gap between expensive SPC suites (used at 20% capacity) and DIY spreadsheet approaches. The €150/month flat pricing makes the math work — **200 customers = €360K ARR**, a strong indie SaaS outcome.
+> VariScout's TAM is **real but niche** (~€100–200M). The product sits in a genuine gap between expensive SPC suites (used at 20% capacity) and DIY spreadsheet approaches. The from-€99/month flat pricing (two plans: Standard €99, Team €299) keeps the barrier low for individuals while capturing collaboration value from teams.
 >
 > The biggest variable isn't market size — it's **distribution**. Azure Marketplace reach and the free-to-paid funnel (PWA → Azure App) will determine whether VariScout captures 50 or 5,000 customers.
 

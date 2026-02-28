@@ -69,7 +69,7 @@ Team adds everything needed for shared quality workflows: OneDrive and SharePoin
 
 ### Why Not One Plan
 
-A single plan at €150/month forced a compromise: too expensive for individuals who only need local analysis, not enough revenue from teams who need collaboration features. Two plans let each segment pay for what they use:
+The original single plan at €150/month forced a compromise: too expensive for individuals who only need local analysis, not enough revenue from teams who need collaboration features. Two plans let each segment pay for what they use:
 
 - Standard at €99 removes the "do I really need OneDrive?" hesitation
 - Team at €299 captures the collaboration value that teams are willing to pay for

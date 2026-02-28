@@ -9,7 +9,7 @@
 | Dimension           | Minitab                                                          | VariScout                                               |
 | ------------------- | ---------------------------------------------------------------- | ------------------------------------------------------- |
 | **Platform**        | Desktop application (Windows, macOS)                             | Browser-based (PWA, Azure, Excel Add-in)                |
-| **Pricing**         | ~$1,700/year single user, ~$700/year academic                    | €150/month (Azure) or free (PWA, Excel)                 |
+| **Pricing**         | ~$1,700/year single user, ~$700/year academic                    | From €99/month (Azure) or free (PWA)                    |
 | **Distribution**    | Direct sales, site licenses, academic programs                   | Azure Marketplace, AppSource, public URL                |
 | **Target audience** | Statisticians, quality engineers, Black Belts                    | Quality practitioners, Green Belts, learners            |
 | **Market position** | Industry standard for statistical analysis (30+ years)           | Lightweight variation analysis alternative              |

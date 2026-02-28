@@ -54,4 +54,4 @@
 4. **nFADP** — new Federal Act on Data Protection → "Data stays in your Azure tenant" = deal-closer
 5. **Swiss precision culture** — VariScout = "Ingenieurtool" / "Outil d'ingénieur"
 6. **Swissmem** membership = quality signal; reference in outreach
-7. **High cost** of floating licenses (CHF!) makes €150/mo flat fee even more attractive
+7. **High cost** of floating licenses (CHF!) makes from €99/mo even more attractive

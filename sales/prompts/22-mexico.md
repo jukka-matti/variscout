@@ -9,7 +9,7 @@ I'm researching potential customers for a process variation analysis tool called
 Key facts about VariScout:
 
 - Browser-based, no installation needed
-- €150/month flat fee for unlimited users (vs Minitab at ~€155/user/month)
+- From €99/month (Standard) or €299/month (Team) for unlimited users (vs Minitab at ~€155/user/month)
 - Deployed via Azure Marketplace as a Managed Application
 - Data stays in the customer's own Azure tenant
 - Target users: CI/OpEx teams, quality engineers, Lean Six Sigma practitioners

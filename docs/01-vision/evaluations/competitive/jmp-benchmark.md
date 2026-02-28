@@ -9,7 +9,7 @@
 | Dimension           | JMP                                                             | VariScout                                               |
 | ------------------- | --------------------------------------------------------------- | ------------------------------------------------------- |
 | **Platform**        | Desktop application (macOS, Windows)                            | Browser-based (PWA, Azure, Excel Add-in)                |
-| **Pricing**         | $1,785+/year (Pro: $14,900+/year)                               | €150/month (Azure) or free (PWA, Excel)                 |
+| **Pricing**         | $1,785+/year (Pro: $14,900+/year)                               | From €99/month (Azure) or free (PWA)                    |
 | **Distribution**    | SAS direct sales, academic licenses                             | Azure Marketplace, AppSource, public URL                |
 | **Target audience** | Scientists, engineers, advanced analysts                        | Quality practitioners, Green Belts, learners            |
 | **Market position** | Premium visual analytics + statistics (SAS product)             | Lightweight variation analysis tool                     |
@@ -124,7 +124,7 @@ Each step requires opening a new platform. The platforms don't share filter stat
 
 - **Investigation workflow**: JMP provides excellent tools for building individual analyses. VariScout provides an investigation workflow where one finding leads to the next through connected interactions. The analyst doesn't need to decide which platform to open next — the drill-down guides the investigation.
 - **No model required**: JMP's strongest features (Prediction Profiler, Effect Summary) require fitting a model first. VariScout's progressive stratification works directly on the data without requiring the analyst to specify model terms.
-- **Price and deployment**: JMP starts at $1,785/year for desktop software. VariScout's PWA is free for training; the Azure app is €150/month for teams.
+- **Price and deployment**: JMP starts at $1,785/year for desktop software. VariScout's PWA is free for training; the Azure app starts at €99/month for teams.
 - **Learning curve**: JMP's power comes with complexity. Graph Builder is intuitive, but moving to Fit Model and interpreting diagnostics requires statistical training. VariScout targets analysts who need answers without formal statistics education.
 
 ### What We Can Learn

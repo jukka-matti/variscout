@@ -66,10 +66,11 @@ variscout-lite/
 
 ## Products & Pricing
 
-| Product           | Distribution      | Price      | Features                                        |
-| ----------------- | ----------------- | ---------- | ----------------------------------------------- |
-| **Web App (PWA)** | Public URL        | Free       | Training & education, core analysis, paste-only |
-| **Azure App**     | Azure Marketplace | €150/month | All features, file upload, save, SSO            |
+| Product            | Distribution      | Price      | Features                                        |
+| ------------------ | ----------------- | ---------- | ----------------------------------------------- |
+| **Web App (PWA)**  | Public URL        | Free       | Training & education, core analysis, paste-only |
+| **Azure Standard** | Azure Marketplace | €99/month  | Full analysis, file upload, save, SSO           |
+| **Azure Team**     | Azure Marketplace | €299/month | + Teams, OneDrive, SharePoint, mobile, photos   |
 
 ## Contributing
 

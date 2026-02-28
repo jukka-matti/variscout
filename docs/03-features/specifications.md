@@ -804,10 +804,11 @@ NO backend. NO API calls. Works offline after first visit.
 
 ## Products & Pricing
 
-| Product   | Distribution      | Pricing                                        | Status      |
-| --------- | ----------------- | ---------------------------------------------- | ----------- |
-| Azure App | Azure Marketplace | €150/month (Managed Application, all features) | **PRIMARY** |
-| PWA       | Public URL        | FREE (forever, training & education)           | Production  |
+| Product        | Distribution      | Pricing                                            | Status      |
+| -------------- | ----------------- | -------------------------------------------------- | ----------- |
+| Azure Standard | Azure Marketplace | €99/month (full analysis, local files)             | **PRIMARY** |
+| Azure Team     | Azure Marketplace | €299/month (+ Teams, OneDrive, SharePoint, mobile) | **PRIMARY** |
+| PWA            | Public URL        | FREE (forever, training & education)               | Production  |
 
 ### Free (PWA)
 
@@ -816,14 +817,21 @@ NO backend. NO API calls. Works offline after first visit.
 - VariScout branding on charts
 - Session-only storage (no save)
 
-### Enterprise (Azure App — €150/month)
+### Standard (Azure App — €99/month)
 
 - All features, unlimited users
-- EasyAuth (Microsoft SSO) + OneDrive sync
-- File upload (CSV/Excel), save/persistence, .vrs export
+- EasyAuth (Microsoft SSO), file upload, save/persistence
 - Performance Mode (multi-channel analysis)
 - Watermark-free exports, custom theming
 - Managed Application deployment via Azure Marketplace
+
+### Team (Azure App — €299/month)
+
+- Everything in Standard, plus:
+- Teams integration (channel tabs, SSO)
+- OneDrive and SharePoint sync
+- Mobile access via Teams app
+- Photo evidence with EXIF stripping
 
 **Build Commands:**
 
@@ -897,13 +905,13 @@ A new tab with 2×2 grid of scatter plots:
 
 ### vs Minitab
 
-| Aspect         | Minitab          | VaRiScout            |
-| -------------- | ---------------- | -------------------- |
-| Price          | $1,000+/year     | €150/month or free   |
-| Installation   | Desktop software | Browser (no install) |
-| Learning curve | Steep            | Minimal              |
-| Feature depth  | Deep (30 years)  | Focused (essentials) |
-| Target         | Statisticians    | Everyone             |
+| Aspect         | Minitab          | VaRiScout              |
+| -------------- | ---------------- | ---------------------- |
+| Price          | $1,000+/year     | From €99/month or free |
+| Installation   | Desktop software | Browser (no install)   |
+| Learning curve | Steep            | Minimal                |
+| Feature depth  | Deep (30 years)  | Focused (essentials)   |
+| Target         | Statisticians    | Everyone               |
 
 ### vs Excel
 

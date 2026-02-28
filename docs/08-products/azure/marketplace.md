@@ -49,7 +49,7 @@ Azure Application > Managed Application
 ├── Customer has full access to deployed resources
 ├── Publisher management DISABLED (zero access)
 ├── Microsoft handles billing (3% fee)
-└── Monthly pricing at €150/month
+└── Two plans: Standard €99/month, Team €299/month
 ```
 
 **Why Managed Application (not Solution Template):**
@@ -85,27 +85,28 @@ See [ARM Template Documentation](arm-template.md) for the full template.
 
 ## Pricing Configuration
 
-### Single Plan
+### Two Plans
 
-| Plan ID | Display Name   | Price (EUR) | Billing |
-| ------- | -------------- | ----------- | ------- |
-| `full`  | VariScout Full | €150        | Monthly |
+| Plan ID    | Display Name       | Price (EUR) | Billing |
+| ---------- | ------------------ | ----------- | ------- |
+| `standard` | VariScout Standard | €99         | Monthly |
+| `team`     | VariScout Team     | €299        | Monthly |
 
 ### Price Breakdown
 
 ```
-Gross Price:    €150/month
-Microsoft Fee:  -€4.50 (3%)
-Net Revenue:    €145.50/month (€1,746/year)
+Standard:       €99/month  → Net €96.03/month  (€1,152/year)
+Team:           €299/month → Net €290.03/month (€3,480/year)
+Microsoft Fee:  3% on each plan
 ```
 
 ### Regional Pricing
 
 Partner Center supports per-region pricing. Recommended approach:
 
-- **EUR zone**: €150/month
-- **USD zone**: $165/month
-- **GBP zone**: £128/month
+- **EUR zone**: €99 / €299 per month
+- **USD zone**: $109 / $329 per month
+- **GBP zone**: £85 / £255 per month
 
 Microsoft handles currency conversion and VAT.
 
@@ -163,7 +164,8 @@ Analyze hundreds of measurement channels simultaneously:
 
 ### Pricing
 
-**€150/month** — All features, unlimited users in your tenant.
+**Standard — €99/month** — Full analysis, unlimited users in your tenant.
+**Team — €299/month** — Everything in Standard, plus Teams, OneDrive, SharePoint, mobile, and photo evidence.
 
 ### Integration
 
@@ -193,9 +195,10 @@ before upgrading to the full Azure App for team use.
 
 ### Plan Visibility
 
-| Plan | Visibility | Audience            |
-| ---- | ---------- | ------------------- |
-| Full | Public     | All Azure customers |
+| Plan     | Visibility | Audience            |
+| -------- | ---------- | ------------------- |
+| Standard | Public     | All Azure customers |
+| Team     | Public     | All Azure customers |
 
 ---
 

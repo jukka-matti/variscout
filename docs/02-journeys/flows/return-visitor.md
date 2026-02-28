@@ -229,11 +229,11 @@ But return visitors:
 
 For free tier users returning:
 
-| Trigger              | Prompt                                               |
-| -------------------- | ---------------------------------------------------- |
-| File upload attempt  | "Upload files with Azure App — €150/month for teams" |
-| Save/project attempt | "Save projects with Azure App"                       |
-| Performance Mode     | "Performance Mode available in Azure App"            |
+| Trigger              | Prompt                                         |
+| -------------------- | ---------------------------------------------- |
+| File upload attempt  | "Upload files with Azure App — from €99/month" |
+| Save/project attempt | "Save projects with Azure App"                 |
+| Performance Mode     | "Performance Mode available in Azure App"      |
 
 Upgrade prompts should be helpful, not blocking.
 
