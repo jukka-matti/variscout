@@ -31,6 +31,7 @@ interface FindingsPanelProps {
   onEditComment: (findingId: string, commentId: string, text: string) => void;
   onDeleteComment: (findingId: string, commentId: string) => void;
   onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
+  onCaptureFromTeams?: (findingId: string, commentId: string) => void;
   showAuthors?: boolean;
   columnAliases?: Record<string, string>;
   drillPath: DrillStep[];
@@ -61,6 +62,7 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
   onEditComment,
   onDeleteComment,
   onAddPhoto,
+  onCaptureFromTeams,
   showAuthors,
   columnAliases,
   drillPath,
@@ -242,6 +244,7 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
           onEditComment={onEditComment}
           onDeleteComment={onDeleteComment}
           onAddPhoto={onAddPhoto}
+          onCaptureFromTeams={onCaptureFromTeams}
           showAuthors={showAuthors}
           columnAliases={columnAliases}
           activeFindingId={activeFindingId}

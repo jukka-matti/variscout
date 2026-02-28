@@ -15,6 +15,7 @@ export interface FindingBoardColumnsProps {
   onEditComment: (findingId: string, commentId: string, text: string) => void;
   onDeleteComment: (findingId: string, commentId: string) => void;
   onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
+  onCaptureFromTeams?: (findingId: string, commentId: string) => void;
   showAuthors?: boolean;
   columnAliases?: Record<string, string>;
   activeFindingId?: string | null;
@@ -36,6 +37,7 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
   onEditComment,
   onDeleteComment,
   onAddPhoto,
+  onCaptureFromTeams,
   showAuthors,
   columnAliases,
   activeFindingId,
@@ -105,6 +107,7 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
                     onEditComment={onEditComment}
                     onDeleteComment={onDeleteComment}
                     onAddPhoto={onAddPhoto}
+                    onCaptureFromTeams={onCaptureFromTeams}
                     showAuthors={showAuthors}
                     columnAliases={columnAliases}
                     isActive={finding.id === activeFindingId}

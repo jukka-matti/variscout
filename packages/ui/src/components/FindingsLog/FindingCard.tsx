@@ -27,6 +27,8 @@ export interface FindingCardProps {
   onDeleteComment?: (findingId: string, commentId: string) => void;
   /** Callback when a photo is attached to a comment */
   onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
+  /** Callback to capture photo via Teams SDK */
+  onCaptureFromTeams?: (findingId: string, commentId: string) => void;
   /** Show author names on comments */
   showAuthors?: boolean;
   /** Callback to share this finding (deep link). Hidden when not provided. */
@@ -50,6 +52,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onEditComment,
   onDeleteComment,
   onAddPhoto,
+  onCaptureFromTeams,
   showAuthors,
   onShare,
 }) => {
@@ -203,6 +206,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             onEdit={onEditComment ?? (() => {})}
             onDelete={onDeleteComment ?? (() => {})}
             onAddPhoto={onAddPhoto}
+            onCaptureFromTeams={onCaptureFromTeams}
             showAuthors={showAuthors}
           />
         )}

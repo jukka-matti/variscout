@@ -38,6 +38,14 @@ vi.mock('../../auth/easyAuth', () => ({
   isLocalDev: vi.fn(() => true),
 }));
 
+// Mock teamsMedia
+const mockIsTeamsMediaAvailable = vi.fn(() => false);
+const mockCapturePhotoFromTeams = vi.fn();
+vi.mock('../../teams/teamsMedia', () => ({
+  isTeamsMediaAvailable: () => mockIsTeamsMediaAvailable(),
+  capturePhotoFromTeams: (...args: unknown[]) => mockCapturePhotoFromTeams(...args),
+}));
+
 import { usePhotoComments } from '../usePhotoComments';
 import { processPhoto } from '../../utils/photoProcessing';
 import type { UseFindingsReturn } from '@variscout/hooks';
@@ -140,5 +148,96 @@ describe('usePhotoComments', () => {
     });
 
     expect(mockFindings.addFindingComment).toHaveBeenCalledWith('f-1', 'Note', undefined);
+  });
+
+  describe('Teams camera integration', () => {
+    it('isTeamsCamera reflects isTeamsMediaAvailable', () => {
+      mockIsTeamsMediaAvailable.mockReturnValue(true);
+      const { result } = renderHook(() =>
+        usePhotoComments({
+          findingsState: mockFindings,
+          analysisId: 'test-analysis',
+        })
+      );
+      expect(result.current.isTeamsCamera).toBe(true);
+    });
+
+    it('isTeamsCamera is false when Teams media unavailable', () => {
+      mockIsTeamsMediaAvailable.mockReturnValue(false);
+      const { result } = renderHook(() =>
+        usePhotoComments({
+          findingsState: mockFindings,
+          analysisId: 'test-analysis',
+        })
+      );
+      expect(result.current.isTeamsCamera).toBe(false);
+    });
+
+    it('handleCaptureFromTeams captures and processes photo', async () => {
+      const teamsFile = new File(['teams-img'], 'teams_photo.jpg', { type: 'image/jpeg' });
+      mockCapturePhotoFromTeams.mockResolvedValueOnce(teamsFile);
+
+      const { result } = renderHook(() =>
+        usePhotoComments({
+          findingsState: mockFindings,
+          analysisId: 'test-analysis',
+        })
+      );
+
+      await act(async () => {
+        await result.current.handleCaptureFromTeams('f-1', 'c-1');
+      });
+
+      // Should have called Teams camera
+      expect(mockCapturePhotoFromTeams).toHaveBeenCalledOnce();
+
+      // Should have processed the returned file
+      expect(processPhoto).toHaveBeenCalledWith(teamsFile);
+
+      // Should have added photo optimistically
+      expect(mockFindings.addPhotoToComment).toHaveBeenCalled();
+    });
+
+    it('handleCaptureFromTeams does nothing when user cancels', async () => {
+      mockCapturePhotoFromTeams.mockResolvedValueOnce(null);
+
+      const { result } = renderHook(() =>
+        usePhotoComments({
+          findingsState: mockFindings,
+          analysisId: 'test-analysis',
+        })
+      );
+
+      await act(async () => {
+        await result.current.handleCaptureFromTeams('f-1', 'c-1');
+      });
+
+      expect(mockCapturePhotoFromTeams).toHaveBeenCalledOnce();
+      expect(processPhoto).not.toHaveBeenCalled();
+      expect(mockFindings.addPhotoToComment).not.toHaveBeenCalled();
+    });
+
+    it('handleCaptureFromTeams handles errors gracefully', async () => {
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      mockCapturePhotoFromTeams.mockRejectedValueOnce(new Error('Camera denied'));
+
+      const { result } = renderHook(() =>
+        usePhotoComments({
+          findingsState: mockFindings,
+          analysisId: 'test-analysis',
+        })
+      );
+
+      await act(async () => {
+        await result.current.handleCaptureFromTeams('f-1', 'c-1');
+      });
+
+      expect(consoleWarn).toHaveBeenCalledWith(
+        '[PhotoComments] Teams camera failed:',
+        expect.any(Error)
+      );
+      expect(mockFindings.addPhotoToComment).not.toHaveBeenCalled();
+      consoleWarn.mockRestore();
+    });
   });
 });

@@ -11,6 +11,8 @@ export interface FindingCommentsProps {
   onDelete: (findingId: string, commentId: string) => void;
   /** Callback when a photo is attached (Team plan only, main window only) */
   onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
+  /** Callback to capture photo via Teams SDK (used instead of file input when available) */
+  onCaptureFromTeams?: (findingId: string, commentId: string) => void;
   /** Show author names on comments */
   showAuthors?: boolean;
 }
@@ -39,6 +41,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
   onEdit,
   onDelete,
   onAddPhoto,
+  onCaptureFromTeams,
   showAuthors,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -64,8 +67,12 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
 
   const handlePhotoClick = (e: React.MouseEvent, commentId: string) => {
     e.stopPropagation();
-    setPendingPhotoCommentId(commentId);
-    fileInputRef.current?.click();
+    if (onCaptureFromTeams) {
+      onCaptureFromTeams(findingId, commentId);
+    } else {
+      setPendingPhotoCommentId(commentId);
+      fileInputRef.current?.click();
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

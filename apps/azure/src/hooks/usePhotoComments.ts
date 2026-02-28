@@ -16,6 +16,7 @@ import { processPhoto } from '../utils/photoProcessing';
 import { uploadPhoto } from '../services/photoUpload';
 import { isLocalDev } from '../auth/easyAuth';
 import type { StorageLocation } from '../services/storage';
+import { isTeamsMediaAvailable, capturePhotoFromTeams } from '../teams/teamsMedia';
 
 interface UsePhotoCommentsOptions {
   findingsState: UseFindingsReturn;
@@ -87,6 +88,20 @@ export function usePhotoComments({
     [findingsState, analysisId, location]
   );
 
+  const handleCaptureFromTeams = useCallback(
+    async (findingId: string, commentId: string) => {
+      if (!isTeamPlan()) return;
+      try {
+        const file = await capturePhotoFromTeams();
+        if (!file) return; // User cancelled
+        await handleAddPhoto(findingId, commentId, file);
+      } catch (err) {
+        console.warn('[PhotoComments] Teams camera failed:', err);
+      }
+    },
+    [handleAddPhoto]
+  );
+
   const handleAddCommentWithAuthor = useCallback(
     (findingId: string, text: string) => {
       findingsState.addFindingComment(findingId, text, author);
@@ -94,5 +109,10 @@ export function usePhotoComments({
     [findingsState, author]
   );
 
-  return { handleAddPhoto, handleAddCommentWithAuthor };
+  return {
+    handleAddPhoto,
+    handleCaptureFromTeams,
+    isTeamsCamera: isTeamsMediaAvailable(),
+    handleAddCommentWithAuthor,
+  };
 }

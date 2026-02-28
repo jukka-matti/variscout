@@ -295,12 +295,13 @@ export const Editor: React.FC<EditorProps> = ({
   }, []);
 
   // Photo comments (Team plan only — wires photo processing + upload)
-  const { handleAddPhoto, handleAddCommentWithAuthor } = usePhotoComments({
-    findingsState,
-    analysisId: currentProjectName || 'default',
-    author: currentUser?.name,
-    location: currentProjectLocation,
-  });
+  const { handleAddPhoto, handleCaptureFromTeams, isTeamsCamera, handleAddCommentWithAuthor } =
+    usePhotoComments({
+      findingsState,
+      analysisId: currentProjectName || 'default',
+      author: currentUser?.name,
+      location: currentProjectLocation,
+    });
 
   // Drill path for findings panel footer
   const { drillPath } = useDrillPath(rawData, filterNav.filterStack, outcome, specs);
@@ -1014,6 +1015,9 @@ export const Editor: React.FC<EditorProps> = ({
                   onEditComment={findingsState.editFindingComment}
                   onDeleteComment={findingsState.deleteFindingComment}
                   onAddPhoto={isTeamPlan() ? handleAddPhoto : undefined}
+                  onCaptureFromTeams={
+                    isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
+                  }
                   showAuthors={true}
                   columnAliases={columnAliases}
                   drillPath={drillPath}
@@ -1040,6 +1044,9 @@ export const Editor: React.FC<EditorProps> = ({
                 onEditComment={findingsState.editFindingComment}
                 onDeleteComment={findingsState.deleteFindingComment}
                 onAddPhoto={isTeamPlan() ? handleAddPhoto : undefined}
+                onCaptureFromTeams={
+                  isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
+                }
                 showAuthors={true}
                 columnAliases={columnAliases}
                 drillPath={drillPath}

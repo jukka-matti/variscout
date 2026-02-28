@@ -56,6 +56,7 @@ function buildManifest(origin: string, clientId?: string): object {
       },
     ],
     permissions: ['identity', 'messageTeamMembers'],
+    devicePermissions: ['media'],
     validDomains: [new URL(origin).hostname],
   };
 

@@ -31,6 +31,8 @@ export interface FindingsLogProps {
   onDeleteComment?: (findingId: string, commentId: string) => void;
   /** Callback when a photo is attached to a comment */
   onAddPhoto?: (findingId: string, commentId: string, file: File) => void;
+  /** Callback to capture photo via Teams SDK */
+  onCaptureFromTeams?: (findingId: string, commentId: string) => void;
   /** Show author names on comments */
   showAuthors?: boolean;
   /** Share a finding via deep link. Passed through to FindingCard. */
@@ -56,6 +58,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onEditComment,
   onDeleteComment,
   onAddPhoto,
+  onCaptureFromTeams,
   showAuthors,
   onShareFinding,
 }) => {
@@ -87,6 +90,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
         onEditComment={onEditComment ?? (() => {})}
         onDeleteComment={onDeleteComment ?? (() => {})}
         onAddPhoto={onAddPhoto}
+        onCaptureFromTeams={onCaptureFromTeams}
         showAuthors={showAuthors}
         columnAliases={columnAliases}
         activeFindingId={activeFindingId}
@@ -109,6 +113,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onEditComment={onEditComment}
           onDeleteComment={onDeleteComment}
           onAddPhoto={onAddPhoto}
+          onCaptureFromTeams={onCaptureFromTeams}
           showAuthors={showAuthors}
           columnAliases={columnAliases}
           isActive={finding.id === activeFindingId}
