@@ -21,7 +21,7 @@
 | ---------------------- | -------------------- | ------------------------------------------------------------------- |
 | `@variscout/core`      | Unit                 | stats, parser, tier, export, performance                            |
 | `@variscout/charts`    | Unit                 | colors, accessibility, multi-selection hook                         |
-| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useVariationTracking, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState |
+| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useVariationTracking, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState, useBoxplotWrapperData, useIChartWrapperData, useParetoChartData, useDashboardComputedData |
 | `@variscout/ui`        | Unit                 | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase |
 | `@variscout/pwa`       | Component + E2E      | UI components, context, full user flows                             |
 | `@variscout/azure-app` | Component + E2E      | UI components, auth, storage, editor flows                          |
@@ -83,5 +83,4 @@ Executable via Antigravity agents or `claude --chrome`. Full protocol details in
 6. Multi-Level Drill-Down Verification
 7. Manual Data Entry Verification
 8. What-If Simulation Verification
-9. Mindmap Panel Verification
-10. Theme Switching (Azure) Verification
+9. Theme Switching (Azure) Verification

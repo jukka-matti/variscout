@@ -24,7 +24,7 @@ const testData = [
 function makeFilterAction(factor: string, values: (string | number)[]): FilterAction {
   return createFilterAction({
     type: 'filter',
-    source: 'mindmap',
+    source: 'boxplot',
     factor,
     values,
   });

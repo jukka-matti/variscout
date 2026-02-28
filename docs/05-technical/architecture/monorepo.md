@@ -31,7 +31,6 @@ Pure logic with no React dependencies:
 
 - Statistical calculations (mean, Cp, Cpk, ANOVA)
 - CSV/Excel parsing and validation
-- License key generation and validation
 - TypeScript type definitions
 - Glossary terms and definitions
 

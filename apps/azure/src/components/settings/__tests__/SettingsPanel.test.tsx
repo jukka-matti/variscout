@@ -19,16 +19,20 @@ vi.mock('../../../context/DataContext', () => ({
 // Import component AFTER mocking its dependencies
 import SettingsPanel from '../SettingsPanel';
 
-// Mock lucide-react icons to simplify DOM output
-vi.mock('lucide-react', () => ({
-  X: ({ size, className }: { size?: number; className?: string }) => (
-    <span data-testid="icon-x" data-size={size} className={className} />
-  ),
-  Sun: ({ size }: { size?: number }) => <span data-testid="icon-sun" data-size={size} />,
-  Moon: ({ size }: { size?: number }) => <span data-testid="icon-moon" data-size={size} />,
-  Monitor: ({ size }: { size?: number }) => <span data-testid="icon-monitor" data-size={size} />,
-  Palette: ({ size }: { size?: number }) => <span data-testid="icon-palette" data-size={size} />,
-}));
+// Partially mock lucide-react — keep real exports for transitive @variscout/ui imports
+vi.mock('lucide-react', async importOriginal => {
+  const actual = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...actual,
+    X: ({ size, className }: { size?: number; className?: string }) => (
+      <span data-testid="icon-x" data-size={size} className={className} />
+    ),
+    Sun: ({ size }: { size?: number }) => <span data-testid="icon-sun" data-size={size} />,
+    Moon: ({ size }: { size?: number }) => <span data-testid="icon-moon" data-size={size} />,
+    Monitor: ({ size }: { size?: number }) => <span data-testid="icon-monitor" data-size={size} />,
+    Palette: ({ size }: { size?: number }) => <span data-testid="icon-palette" data-size={size} />,
+  };
+});
 
 function renderPanel(isOpen: boolean, onClose = vi.fn()) {
   return {
@@ -143,11 +147,6 @@ describe('SettingsPanel', () => {
     expect(screen.getByText('Compact')).toBeInTheDocument();
     expect(screen.getByText('Normal')).toBeInTheDocument();
     expect(screen.getByText('Large')).toBeInTheDocument();
-
-    // Should show the multiplier values
-    expect(screen.getByText('0.85x')).toBeInTheDocument();
-    expect(screen.getByText('1x')).toBeInTheDocument();
-    expect(screen.getByText('1.15x')).toBeInTheDocument();
   });
 
   it('calls onClose when close button is clicked', () => {

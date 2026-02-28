@@ -94,7 +94,7 @@ export {
   type UseDataIngestionReturn,
 } from './useDataIngestion';
 
-// Drill Path (Investigation Mindmap)
+// Drill Path
 export { useDrillPath, type DrillStep, type UseDrillPathReturn } from './useDrillPath';
 
 // Tier (Azure Marketplace licensing)
@@ -158,6 +158,13 @@ export {
   type UseDashboardComputedDataOptions,
   type UseDashboardComputedDataResult,
 } from './useDashboardComputedData';
+
+// Dashboard Charts Base (shared composition hook)
+export {
+  useDashboardChartsBase,
+  type UseDashboardChartsBaseOptions,
+  type UseDashboardChartsBaseResult,
+} from './useDashboardChartsBase';
 
 // Theme State
 export {

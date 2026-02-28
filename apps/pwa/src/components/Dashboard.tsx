@@ -7,7 +7,7 @@ import MobileDashboard from './MobileDashboard';
 import SpecEditor from './settings/SpecEditor';
 import SpecsPopover from './settings/SpecsPopover';
 import { PresentationView, EmbedFocusView, FocusedChartView } from './views';
-import { EditableChartTitle } from '@variscout/charts';
+import { EditableChartTitle } from '@variscout/ui';
 import {
   ErrorBoundary,
   FilterBreadcrumb,
@@ -888,6 +888,12 @@ const Dashboard = ({
               onNextChart={handleNextChart}
               onPrevChart={handlePrevChart}
               onExitFocus={() => setFocusedChart(null)}
+              chartTitles={chartTitles}
+              onChartTitleChange={handleChartTitleChange}
+              ichartAnnotations={ichartAnnotations}
+              onCreateAnnotation={createIChartAnnotation}
+              onAnnotationsChange={setIChartAnnotations}
+              onClearIChartAnnotations={() => clearAnnotations('ichart')}
               paretoAggregation={paretoAggregation}
               onToggleParetoAggregation={() =>
                 setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')

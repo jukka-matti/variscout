@@ -42,13 +42,12 @@ The tool must work reliably in these conditions.
 
 ### Data Storage
 
-| Data Type           | Storage               | Retention             |
-| ------------------- | --------------------- | --------------------- |
-| Uploaded datasets   | IndexedDB             | Until deleted         |
-| Computed statistics | IndexedDB (cached)    | Until dataset deleted |
-| User settings       | IndexedDB             | Persistent            |
-| License key         | IndexedDB (encrypted) | Persistent            |
-| Theme preference    | localStorage          | Persistent            |
+| Data Type           | Storage            | Retention             |
+| ------------------- | ------------------ | --------------------- |
+| Uploaded datasets   | IndexedDB          | Until deleted         |
+| Computed statistics | IndexedDB (cached) | Until dataset deleted |
+| User settings       | IndexedDB          | Persistent            |
+| Theme preference    | localStorage       | Persistent            |
 
 ### No Cloud Dependencies
 

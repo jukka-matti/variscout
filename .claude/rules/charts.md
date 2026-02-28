@@ -188,15 +188,6 @@ Dashboard uses auto-height mode (`height: 0` in EXPORT_SIZES) — captures full 
 - Copy button: inline 1-click with Check feedback icon
 - All export icons use `size={14}`
 
-### Mindmap Export
-
-Mindmap has standalone export functions in `packages/ui/src/components/MindmapPanel/export.ts`:
-- `exportMindmapPng(node)` — Download as PNG
-- `exportMindmapSvg(node)` — Download as SVG (Azure-only)
-- `exportMindmapToClipboard(node)` — Copy to clipboard (returns `Promise<boolean>`)
-
-Copy button uses same Check feedback pattern as chart cards. Available in `MindmapPanelContent` (via `onCopyToClipboard`/`copyFeedback` props) and `MindmapWindow`.
-
 ## Adding New Charts
 
 1. Create `NewChart.tsx` with `NewChartBase` export

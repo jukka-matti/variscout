@@ -245,7 +245,7 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `apps/pwa/src/context/DataContext.tsx`                           | Central state management                                                                                   |
 | `apps/pwa/src/context/ThemeContext.tsx`                          | Theme state (light/dark/system, company accent)                                                            |
 | `packages/charts/src/useChartTheme.ts`                           | Theme-aware chart colors hook                                                                              |
-| `apps/pwa/src/components/__tests__/`                             | Component tests (Dashboard, MindmapPanel)                                                                  |
+| `apps/pwa/src/components/__tests__/`                             | Component tests (Dashboard)                                                                                |
 | `packages/core/src/parser.ts`                                    | CSV/Excel parsing, validation, keyword detection (shared)                                                  |
 | `apps/pwa/src/hooks/useDataIngestion.ts`                         | PWA wrapper (adds loadSample to shared hook)                                                               |
 | `packages/ui/src/components/DataQualityBanner/`                  | Shared validation summary UI component                                                                     |

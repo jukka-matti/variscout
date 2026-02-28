@@ -44,9 +44,6 @@ import { sortBoxplotData } from '@variscout/core';
 // Glossary
 import { glossaryTerms, getTerm, hasTerm } from '@variscout/core';
 
-// Edition
-import { getEdition, isThemingEnabled } from '@variscout/core';
-
 // Navigation
 import type { DrillLevel, BreadcrumbItem } from '@variscout/core';
 ```
@@ -119,7 +116,6 @@ import {
   // Navigation & filtering
   useFilterNavigation,
   useVariationTracking,
-  useChartNavigation,
   useKeyboardNavigation,
 
   // Chart helpers
@@ -128,17 +124,24 @@ import {
   useBoxplotData,
   useIChartData,
 
+  // Chart wrapper data
+  useBoxplotWrapperData,
+  useIChartWrapperData,
+  useParetoChartData,
+  useDashboardComputedData,
+
   // Column analysis
-  useAvailableOutcomes,
-  useAvailableStageColumns,
   useColumnClassification,
 
   // Analysis state
   useDrillPath,
-  useMindmapState,
+  useFindings,
+  useAnnotations,
+  useControlViolations,
+  useFocusedChartNav,
+  useThemeState,
 
   // UI utilities
-  useClipboardCopy,
   useDataTablePagination,
   useHighlightFade,
   useResizablePanel,
@@ -210,7 +213,7 @@ import {
 import { FilterBreadcrumb, FilterChipDropdown, FilterContextBar } from '@variscout/ui';
 
 // Navigation
-import { VariationBar, MindmapWindow, MindmapPanelContent } from '@variscout/ui';
+import { VariationBar, FindingsWindow, FindingsLog } from '@variscout/ui';
 
 // Settings
 import {

@@ -396,7 +396,7 @@ function AppMain() {
         <InvestigationPrompt
           filterCount={filterNav.filterStack.length}
           isFindingsOpen={panels.isFindingsPanelOpen}
-          onOpenMindmap={panels.handleToggleFindingsPanel}
+          onOpenFindings={panels.handleToggleFindingsPanel}
         />
       )}
 

@@ -186,7 +186,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `accessibility.ts`  | ✅     | Accessible color generation, contrast ratios |
 | `useMultiSelection` | ✅     | Multi-selection hook for Performance charts  |
 
-### @variscout/hooks (25 files, 270 test cases)
+### @variscout/hooks (29 files, 317 test cases)
 
 | Hook/Module                      | Tested | Focus                                                        |
 | :------------------------------- | :----- | :----------------------------------------------------------- |
@@ -205,7 +205,10 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `useHighlightFade`               | ✅     | Highlight timeout, fade animation state                      |
 | `useIChartData`                  | ✅     | Shared I-Chart data transform (control limits, points)       |
 | `useKeyboardNavigation`          | ✅     | Arrow key navigation, focus management                       |
-| `useMindmapState`                | ✅     | Radial tree layout, eta-squared labels, progress tracking    |
+| `useBoxplotWrapperData`          | ✅     | Shared boxplot wrapper data prep (quartiles, groups)         |
+| `useIChartWrapperData`           | ✅     | Shared I-Chart wrapper data prep (points, limits)            |
+| `useParetoChartData`             | ✅     | Shared Pareto chart data prep (rankings, Cpk)                |
+| `useDashboardComputedData`       | ✅     | Shared dashboard computed stats and chart data               |
 | `useResizablePanel`              | ✅     | Panel size state, drag interaction, constraints              |
 | `useResponsiveChartMargins`      | ✅     | Dynamic chart margins based on container width               |
 | `useThemeState`                  | ✅     | Theme state (light/dark/system), themingEnabled parameter    |
@@ -497,7 +500,10 @@ packages/hooks/
         ├── useHighlightFade.test.ts         # Highlight fade animation
         ├── useIChartData.test.ts            # Shared I-Chart data transform
         ├── useKeyboardNavigation.test.ts    # Arrow key navigation
-        ├── useMindmapState.test.ts          # Mindmap state
+        ├── useBoxplotWrapperData.test.ts     # Boxplot wrapper data prep
+        ├── useIChartWrapperData.test.ts      # I-Chart wrapper data prep
+        ├── useParetoChartData.test.ts        # Pareto chart data prep
+        ├── useDashboardComputedData.test.ts  # Dashboard computed data
         ├── useResizablePanel.test.ts        # Resizable panel state
         ├── useResponsiveChartMargins.test.ts # Dynamic chart margins
         ├── useThemeState.test.ts            # Theme state management

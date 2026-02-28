@@ -868,7 +868,7 @@ export const Editor: React.FC<EditorProps> = ({
         <InvestigationPrompt
           filterCount={filterNav.filterStack.length}
           isFindingsOpen={panels.isFindingsOpen}
-          onOpenMindmap={() => panels.setIsFindingsOpen(true)}
+          onOpenFindings={() => panels.setIsFindingsOpen(true)}
         />
       )}
 

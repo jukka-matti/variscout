@@ -22,10 +22,10 @@ export const investigationPromptDefaultColorScheme: InvestigationPromptColorSche
 export interface InvestigationPromptProps {
   /** Current number of applied filters */
   filterCount: number;
-  /** Whether the mindmap panel is already open */
+  /** Whether the findings panel is already open */
   isFindingsOpen: boolean;
-  /** Open the mindmap panel */
-  onOpenMindmap: () => void;
+  /** Open the findings panel */
+  onOpenFindings: () => void;
   /** Color scheme */
   colorScheme?: InvestigationPromptColorScheme;
 }
@@ -39,7 +39,7 @@ export interface InvestigationPromptProps {
 const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
   filterCount,
   isFindingsOpen,
-  onOpenMindmap,
+  onOpenFindings,
   colorScheme = investigationPromptDefaultColorScheme,
 }) => {
   const c = colorScheme;
@@ -59,7 +59,7 @@ const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
     }
   }, [filterCount, dismissed, isFindingsOpen]);
 
-  // Auto-hide if mindmap is opened
+  // Auto-hide if findings panel is opened
   useEffect(() => {
     if (isFindingsOpen && visible) {
       handleDismiss();
@@ -77,7 +77,7 @@ const InvestigationPrompt: React.FC<InvestigationPromptProps> = ({
   };
 
   const handleOpen = () => {
-    onOpenMindmap();
+    onOpenFindings();
     handleDismiss();
   };
 

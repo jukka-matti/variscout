@@ -13,7 +13,7 @@ export type { OptimalFactorResult };
 
 /**
  * Get the maximum single-category Total SS contribution for a factor.
- * Used for drill suggestion ranking and mindmap node display.
+ * Used for drill suggestion ranking and drill-down investigation.
  *
  * This metric uses the same numbers visible in the category popover,
  * making the suggestion logic transparent: "Machine is suggested because
@@ -99,7 +99,7 @@ export const DRILL_SWITCH_THRESHOLD = 5;
  *
  * After drilling into a factor (e.g., filtering to Machine A), this function
  * finds the remaining factor with highest variation in the filtered data.
- * This guides users through an "Investigation Mindmap" by automatically suggesting
+ * This guides users through drill-down investigation by automatically suggesting
  * the next most impactful analysis direction.
  *
  * @param factorVariations - Map of factor name to variation percentage (0-100)
@@ -186,7 +186,7 @@ function findBestValueForFactor(
  * Find the optimal combination of factors that explain a target percentage of variation
  *
  * Uses a greedy algorithm to select factors by highest eta squared contribution.
- * This enables the "Investigation Mindmap" feature by identifying the 1-3 factors
+ * This enables drill-down investigation by identifying the 1-3 factors
  * that explain ~70% of total variation.
  *
  * @param data - Raw data array

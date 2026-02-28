@@ -15,7 +15,7 @@ import PerformanceSummary from './PerformanceSummary';
 import PerformanceIChart from './charts/PerformanceIChart';
 import PerformanceBoxplot from './charts/PerformanceBoxplot';
 import PerformanceSetupPanel from './PerformanceSetupPanel';
-import ErrorBoundary from './ErrorBoundary';
+import { ErrorBoundary } from '@variscout/ui';
 import CapabilityMetricToggle, {
   type CapabilityMetric,
 } from './performance/CapabilityMetricToggle';

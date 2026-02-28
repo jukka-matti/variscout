@@ -3,7 +3,6 @@
  *
  * Provides a consistent navigation model across all VariScout products:
  * - PWA: Full interactive filter navigation with history
- * - Excel: Read-only display (slicers control filtering)
  * - Azure: Full interactive filter navigation with history
  */
 
@@ -17,7 +16,7 @@ export type FilterType = 'highlight' | 'filter';
 /**
  * Source chart that initiated the filter action
  */
-export type FilterSource = 'ichart' | 'boxplot' | 'pareto' | 'histogram' | 'mindmap';
+export type FilterSource = 'ichart' | 'boxplot' | 'pareto';
 
 /**
  * A single filter action in the navigation history

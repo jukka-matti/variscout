@@ -20,15 +20,10 @@ vi.mock('../charts/ParetoChart', () => ({
 vi.mock('../StatsPanel', () => ({
   default: () => <div data-testid="stats-mock">Stats Panel</div>,
 }));
-vi.mock('../ErrorBoundary', () => ({
-  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-vi.mock('../FilterBreadcrumb', () => ({
-  default: () => <div data-testid="filter-breadcrumb-mock">Breadcrumb</div>,
-}));
-
 // Mock @variscout/ui components
 vi.mock('@variscout/ui', () => ({
+  ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  FilterBreadcrumb: () => <div data-testid="filter-breadcrumb-mock">Breadcrumb</div>,
   AnovaResults: () => <div data-testid="anova-mock">ANOVA</div>,
   FactorSelector: ({
     factors,
@@ -51,7 +46,6 @@ vi.mock('@variscout/ui', () => ({
       ))}
     </select>
   ),
-  ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 const defaultProps = {

@@ -29,12 +29,21 @@ flowchart TB
         ID[useIChartData]
     end
 
+    subgraph ChartWrapperData["Chart Wrapper Data Layer"]
+        BWD[useBoxplotWrapperData]
+        IWD[useIChartWrapperData]
+        PCD[useParetoChartData]
+        DCD[useDashboardComputedData]
+    end
+
     DS --> FN
     DS --> VT
     FN --> VT
     DS --> CS
     DS --> BD
     DS --> ID
+    BD --> BWD
+    ID --> IWD
 ```
 
 ---

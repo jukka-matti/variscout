@@ -1,0 +1,168 @@
+import React, { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
+
+type ChartFontScale = 'compact' | 'normal' | 'large';
+
+export interface SettingsPanelBaseProps<
+  T extends { lockYAxisToFullData?: boolean; showFilterContext?: boolean } = {
+    lockYAxisToFullData?: boolean;
+    showFilterContext?: boolean;
+  },
+> {
+  isOpen: boolean;
+  onClose: () => void;
+  displayOptions: T;
+  setDisplayOptions: (opts: T) => void;
+  chartFontScale: ChartFontScale;
+  onChartFontScaleChange: (scale: ChartFontScale) => void;
+  /** Rendered before Display Preferences (e.g. Theme toggle, Accent picker) */
+  headerSections?: React.ReactNode;
+  /** Rendered after the shared toggles inside Display Preferences */
+  extraToggles?: React.ReactNode;
+  /** ID prefix for input elements (accessibility) */
+  idPrefix?: string;
+}
+
+const FONT_SCALE_OPTIONS: { value: ChartFontScale; label: string }[] = [
+  { value: 'compact', label: 'Compact' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'large', label: 'Large' },
+];
+
+function SettingsPanelBase<
+  T extends { lockYAxisToFullData?: boolean; showFilterContext?: boolean },
+>({
+  isOpen,
+  onClose,
+  displayOptions,
+  setDisplayOptions,
+  chartFontScale,
+  onChartFontScaleChange,
+  headerSections,
+  extraToggles,
+  idPrefix = 'settings',
+}: SettingsPanelBaseProps<T>) {
+  // Local state for display options — synced on open, applied on change
+  const [local, setLocal] = useState<T>(displayOptions);
+
+  useEffect(() => {
+    if (isOpen) setLocal(displayOptions);
+  }, [isOpen, displayOptions]);
+
+  useEffect(() => {
+    if (isOpen && JSON.stringify(local) !== JSON.stringify(displayOptions)) {
+      setDisplayOptions(local);
+    }
+  }, [local, isOpen, setDisplayOptions, displayOptions]);
+
+  // Close on escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-start justify-end">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+
+      {/* Panel */}
+      <div className="relative w-80 h-full bg-surface border-l border-edge shadow-2xl overflow-y-auto animate-slide-in-right">
+        <div className="p-5 space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-content">Settings</h2>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+              aria-label="Close settings"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* App-specific header sections (Theme, Accent, etc.) */}
+          {headerSections}
+
+          {/* Display Preferences */}
+          <section>
+            <h3 className="text-sm font-medium text-content mb-3">Display Preferences</h3>
+            <div className="space-y-3">
+              <label
+                htmlFor={`${idPrefix}-lock-y-axis`}
+                className="flex items-start gap-3 cursor-pointer group"
+              >
+                <input
+                  id={`${idPrefix}-lock-y-axis`}
+                  name={`${idPrefix}-lock-y-axis`}
+                  type="checkbox"
+                  checked={local.lockYAxisToFullData !== false}
+                  onChange={e => setLocal({ ...local, lockYAxisToFullData: e.target.checked })}
+                  className="mt-0.5 w-4 h-4 rounded border-edge-secondary bg-surface-secondary text-blue-500 focus:ring-blue-500 focus:ring-offset-surface"
+                />
+                <div>
+                  <span className="text-sm text-content group-hover:text-content transition-colors block">
+                    Lock Y-axis when drilling
+                  </span>
+                  <span className="text-xs text-content-muted">
+                    Maintains scale for visual comparison
+                  </span>
+                </div>
+              </label>
+              <label
+                htmlFor={`${idPrefix}-show-filter-context`}
+                className="flex items-start gap-3 cursor-pointer group"
+              >
+                <input
+                  id={`${idPrefix}-show-filter-context`}
+                  name={`${idPrefix}-show-filter-context`}
+                  type="checkbox"
+                  checked={local.showFilterContext !== false}
+                  onChange={e => setLocal({ ...local, showFilterContext: e.target.checked })}
+                  className="mt-0.5 w-4 h-4 rounded border-edge-secondary bg-surface-secondary text-blue-500 focus:ring-blue-500 focus:ring-offset-surface"
+                />
+                <div>
+                  <span className="text-sm text-content group-hover:text-content transition-colors block">
+                    Show filter context on charts
+                  </span>
+                  <span className="text-xs text-content-muted">
+                    Display active filter summary below chart headers
+                  </span>
+                </div>
+              </label>
+              {extraToggles}
+            </div>
+          </section>
+
+          {/* Chart Text Size */}
+          <section>
+            <h3 className="text-sm font-medium text-content mb-3">Chart Text Size</h3>
+            <div className="flex gap-2">
+              {FONT_SCALE_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => onChartFontScaleChange(value)}
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${
+                    chartFontScale === value
+                      ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
+                      : 'bg-surface-secondary border-edge text-content-secondary hover:text-content hover:border-edge-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default SettingsPanelBase;

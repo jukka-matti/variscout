@@ -4,7 +4,7 @@ import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
 import StatsPanel from '../StatsPanel';
 import { ErrorBoundary } from '@variscout/ui';
-import { EditableChartTitle } from '@variscout/charts';
+import { EditableChartTitle } from '@variscout/ui';
 import { Activity } from 'lucide-react';
 import type { StatsResult, SpecLimits, DataRow } from '@variscout/core';
 

@@ -3,8 +3,9 @@ import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
 import StatsPanel from '../StatsPanel';
-import ErrorBoundary from '../ErrorBoundary';
+import { ErrorBoundary } from '@variscout/ui';
 import { useData } from '../../context/DataContext';
+import { EditableChartTitle } from '@variscout/ui';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 type FocusedChart = 'ichart' | 'boxplot' | 'pareto' | 'stats';
@@ -16,7 +17,16 @@ interface PresentationViewProps {
 }
 
 const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
-  const { outcome, factors, stats, specs, filteredData } = useData();
+  const {
+    outcome,
+    factors,
+    stats,
+    specs,
+    filteredData,
+    chartTitles: rawChartTitles,
+    setChartTitles,
+  } = useData();
+  const chartTitles = rawChartTitles || {};
   const [focused, setFocused] = useState<FocusedChart | null>(null);
   const defaultFactor = factors[0] || '';
 
@@ -104,7 +114,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
     <div className="fixed inset-0 z-50 bg-surface flex flex-col p-4 gap-3">
       {/* Top row: I-Chart (45% height) */}
       <div
-        className="flex-[45] min-h-0 bg-surface-secondary rounded-xl border border-edge overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
+        className="flex-[45] min-h-0 bg-surface-secondary rounded-xl border border-edge overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors relative"
         onClick={() => setFocused('ichart')}
         role="button"
         aria-label="Focus I-Chart"
@@ -113,6 +123,16 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
           if (e.key === 'Enter') setFocused('ichart');
         }}
       >
+        <div
+          className="absolute top-2 left-3 z-10 text-xs font-semibold text-content-secondary"
+          onClick={e => e.stopPropagation()}
+        >
+          <EditableChartTitle
+            defaultTitle={`I-Chart: ${outcome}`}
+            value={chartTitles.ichart || ''}
+            onChange={title => setChartTitles({ ...chartTitles, ichart: title })}
+          />
+        </div>
         <ErrorBoundary componentName="I-Chart">
           <IChart />
         </ErrorBoundary>
@@ -121,7 +141,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
       {/* Bottom row: Boxplot + Pareto + Stats (55% height) */}
       <div className="flex-[55] min-h-0 flex gap-3">
         <div
-          className="flex-1 bg-surface-secondary rounded-xl border border-edge overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
+          className="flex-1 bg-surface-secondary rounded-xl border border-edge overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors relative"
           onClick={() => setFocused('boxplot')}
           role="button"
           aria-label="Focus Boxplot"
@@ -130,13 +150,23 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
             if (e.key === 'Enter') setFocused('boxplot');
           }}
         >
+          <div
+            className="absolute top-2 left-3 z-10 text-xs font-semibold text-content-secondary"
+            onClick={e => e.stopPropagation()}
+          >
+            <EditableChartTitle
+              defaultTitle={`Boxplot: ${defaultFactor}`}
+              value={chartTitles.boxplot || ''}
+              onChange={title => setChartTitles({ ...chartTitles, boxplot: title })}
+            />
+          </div>
           <ErrorBoundary componentName="Boxplot">
             {defaultFactor && <Boxplot factor={defaultFactor} />}
           </ErrorBoundary>
         </div>
 
         <div
-          className="flex-1 bg-surface-secondary rounded-xl border border-edge overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors"
+          className="flex-1 bg-surface-secondary rounded-xl border border-edge overflow-hidden cursor-pointer hover:border-blue-500/50 transition-colors relative"
           onClick={() => setFocused('pareto')}
           role="button"
           aria-label="Focus Pareto"
@@ -145,6 +175,16 @@ const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
             if (e.key === 'Enter') setFocused('pareto');
           }}
         >
+          <div
+            className="absolute top-2 left-3 z-10 text-xs font-semibold text-content-secondary"
+            onClick={e => e.stopPropagation()}
+          >
+            <EditableChartTitle
+              defaultTitle={`Pareto: ${defaultFactor}`}
+              value={chartTitles.pareto || ''}
+              onChange={title => setChartTitles({ ...chartTitles, pareto: title })}
+            />
+          </div>
           <ErrorBoundary componentName="Pareto">
             {defaultFactor && <ParetoChart factor={defaultFactor} />}
           </ErrorBoundary>

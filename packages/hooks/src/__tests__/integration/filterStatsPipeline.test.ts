@@ -23,7 +23,7 @@ import { useVariationTracking } from '../../useVariationTracking';
 // Fixture loader — simple CSV parser (avoids papaparse dependency)
 // ============================================================================
 
-const REPO_ROOT = path.resolve(__dirname, '../../../../..');
+const REPO_ROOT = path.resolve(import.meta.dirname, '../../../../..');
 
 function loadCsv(relativePath: string): DataRow[] {
   const csv = fs.readFileSync(path.resolve(REPO_ROOT, relativePath), 'utf-8');
@@ -46,7 +46,7 @@ function loadCsv(relativePath: string): DataRow[] {
 function makeFilterAction(factor: string, values: (string | number)[]): FilterAction {
   return createFilterAction({
     type: 'filter',
-    source: 'mindmap',
+    source: 'boxplot',
     factor,
     values,
   });

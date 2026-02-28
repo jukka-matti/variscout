@@ -5,8 +5,6 @@ import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
 import MobileChartCarousel from './MobileChartCarousel';
 import PerformanceDashboard from './PerformanceDashboard';
-import ErrorBoundary from './ErrorBoundary';
-import FilterBreadcrumb from './FilterBreadcrumb';
 import FactorSelector from './FactorSelector';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
@@ -14,7 +12,7 @@ import PresentationView from './views/PresentationView';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
-import { EditableChartTitle } from '@variscout/charts';
+import { EditableChartTitle, ErrorBoundary, FilterBreadcrumb } from '@variscout/ui';
 import {
   SelectionPanel,
   CreateFactorModal,

@@ -8,7 +8,7 @@
 
 ## Context
 
-VariScout consists of multiple applications (PWA, Excel Add-in, Azure App, Marketing Website) that share significant code including statistical calculations, chart components, and UI utilities. We needed a code organization strategy that enables sharing while maintaining clear boundaries.
+VariScout consists of multiple applications (PWA, Azure App, Marketing Website) that share significant code including statistical calculations, chart components, and UI utilities. We needed a code organization strategy that enables sharing while maintaining clear boundaries.
 
 ---
 
@@ -27,8 +27,7 @@ packages/
 apps/
 ├── pwa/          # React + Vite PWA
 ├── azure/        # Azure Team App
-├── website/      # Astro marketing site
-└── excel-addin/  # Office.js Add-in
+└── website/      # Astro marketing site
 ```
 
 ---

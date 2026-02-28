@@ -18,6 +18,11 @@ packages/
 │              #   useTier - License tier state and limits
 │              #   useBoxplotData - Shared d3 boxplot computation
 │              #   useIChartData - Shared I-Chart data transform
+│              #   useBoxplotWrapperData - Shared boxplot wrapper data prep
+│              #   useIChartWrapperData - Shared I-Chart wrapper data prep
+│              #   useParetoChartData - Shared Pareto chart data prep
+│              #   useDashboardComputedData - Shared dashboard computed stats
+│              #   useDashboardChartsBase - Shared dashboard chart state composition
 └── ui/        # @variscout/ui - Shared UI components:
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
                #   PerformanceSetupPanelBase, VariationBar,
@@ -26,8 +31,13 @@ packages/
                #   SelectionPanel, CreateFactorModal, UpgradePrompt,
                #   Slider, WhatIfSimulator, WhatIfPageBase,
                #   ErrorBoundary, AxisEditor, FactorSelector, StatsPanelBase,
-               #   MindmapWindow, MindmapPanelContent, BoxplotDisplayToggle,
+               #   FindingsWindow, FindingsLog, FindingCard, FindingEditor,
+               #   InvestigationPrompt, PasteScreenBase, BoxplotDisplayToggle,
                #   ChartAnnotationLayer, AnnotationContextMenu,
+               #   ManualEntryBase, ManualEntrySetupBase, SpecsPopover, SpecEditor,
+               #   CapabilityHistogram, ProbabilityPlot, DataTableBase,
+               #   ChartDownloadMenu, CharacteristicTypeSelector,
+               #   EditableChartTitle, SettingsPanelBase, FocusedChartViewBase,
                #   DashboardBase (FocusedViewOverlay, FocusedChartCard,
                #     DashboardChartCard, DashboardGrid),
                #   useGlossary, useIsMobile, errorService
@@ -45,7 +55,7 @@ apps/
 - `@variscout/core` has no React dependencies (exports stats, parser, glossary, tier)
 - `@variscout/charts` depends on `@variscout/core`
 - `@variscout/hooks` depends on `@variscout/core` (for types, utilities, and tier)
-- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `MindmapWindow`, `MindmapPanelContent`, `exportMindmapPng`, `exportMindmapSvg`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `FocusedViewOverlay`, `FocusedChartCard`, `DashboardChartCard`, `DashboardGrid`, `useGlossary`, `useIsMobile`, `errorService`
+- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `InvestigationPrompt`, `PasteScreenBase`, `ManualEntryBase`, `ManualEntrySetupBase`, `SpecsPopover`, `SpecEditor`, `CapabilityHistogram`, `ProbabilityPlot`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `DataTableBase`, `ChartDownloadMenu`, `CharacteristicTypeSelector`, `EditableChartTitle`, `SettingsPanelBase`, `FocusedChartViewBase`, `FocusedViewOverlay`, `FocusedChartCard`, `DashboardChartCard`, `DashboardGrid`, `useGlossary`, `useIsMobile`, `errorService`
 
 ## Build Commands
 

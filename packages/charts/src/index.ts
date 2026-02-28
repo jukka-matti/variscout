@@ -113,9 +113,3 @@ export {
   default as PerformanceCapability,
   PerformanceCapabilityBase,
 } from './PerformanceCapability';
-
-// UI Components
-export {
-  default as EditableChartTitle,
-  type EditableChartTitleProps,
-} from './components/EditableChartTitle';

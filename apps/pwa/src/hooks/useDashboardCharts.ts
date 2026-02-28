@@ -1,99 +1,73 @@
 /**
- * useDashboardCharts - Composition hook for Dashboard chart state management
+ * useDashboardCharts - PWA Dashboard chart state management
  *
- * Composes focused sub-hooks:
- * - useFocusMode: focused chart navigation + keyboard
- * - useChartCopy: clipboard copy + feedback
- * - useChartFactors: boxplot/pareto factor selection
- * - useFilterNavigation: filter stack management
- * - useVariationTracking: η² tracking
- *
- * Derived data: availableOutcomes, availableStageColumns, anovaResult, boxplotData
+ * Wraps useDashboardChartsBase with PWA-specific features:
+ * - Focus mode (useFocusedChartNav)
+ * - Embed mode helpers (highlight class, chart click)
+ * - Spec editor + Pareto panel toggles
+ * - Variation breadcrumbs
  */
 
 import type React from 'react';
 import { useState, useCallback, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { type AnovaResult, getNextDrillFactor } from '@variscout/core';
+import type { AnovaResult } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
 import { useFilterNavigation, type UseFilterNavigationReturn } from './useFilterNavigation';
-import { useVariationTracking, useDashboardComputedData } from '@variscout/hooks';
+import {
+  useDashboardChartsBase,
+  useVariationTracking,
+  type FilterChipData,
+} from '@variscout/hooks';
 import { useFocusMode } from './useFocusMode';
-import { useChartCopy } from './useChartCopy';
-import { useChartFactors } from './useChartFactors';
 import type { ChartId } from '@variscout/ui';
 
 export interface UseDashboardChartsProps {
-  /** External filter navigation (lifted to parent for shared state with findings panel) */
   externalFilterNav?: UseFilterNavigationReturn;
-  /** External trigger to open spec editor (from MobileMenu) */
   openSpecEditorRequested?: boolean;
-  /** Callback when spec editor is opened */
   onSpecEditorOpened?: () => void;
-  /** Highlighted chart for embed mode */
   highlightedChart?: ChartId | null;
-  /** Highlight intensity for embed mode */
   highlightIntensity?: 'pulse' | 'glow' | 'border';
-  /** Chart click handler for embed mode */
   onChartClick?: (chartId: ChartId) => void;
 }
 
 export interface UseDashboardChartsResult {
-  // Factor selection
   boxplotFactor: string;
   setBoxplotFactor: (factor: string) => void;
   paretoFactor: string;
   setParetoFactor: (factor: string) => void;
-
-  // Focus mode
   focusedChart: ReturnType<typeof useFocusMode>['focusedChart'];
   setFocusedChart: ReturnType<typeof useFocusMode>['setFocusedChart'];
   handleNextChart: () => void;
   handlePrevChart: () => void;
-
-  // Panel toggles
   showParetoPanel: boolean;
   setShowParetoPanel: (show: boolean) => void;
   showParetoComparison: boolean;
   toggleParetoComparison: () => void;
   showSpecEditor: boolean;
   setShowSpecEditor: (show: boolean) => void;
-
-  // Chart export
   copyFeedback: string | null;
   handleCopyChart: (containerId: string, chartName: string) => Promise<void>;
   handleDownloadPng: (containerId: string, chartName: string) => Promise<void>;
   handleDownloadSvg: (containerId: string, chartName: string) => void;
-
-  // Pareto factor selector ref (for focus from empty state)
   paretoFactorSelectorRef: React.RefObject<HTMLSelectElement>;
-
-  // Embed mode helpers
   getHighlightClass: (chartId: ChartId) => string;
   handleChartWrapperClick: (chartId: ChartId) => void;
-
-  // Computed data
   availableOutcomes: string[];
   availableStageColumns: string[];
   anovaResult: AnovaResult | null;
   boxplotData: BoxplotGroupData[];
-
-  // Filter navigation state
-  filterStack: ReturnType<typeof useFilterNavigation>['filterStack'];
-  applyFilter: ReturnType<typeof useFilterNavigation>['applyFilter'];
-  navigateTo: ReturnType<typeof useFilterNavigation>['navigateTo'];
-  clearFilters: ReturnType<typeof useFilterNavigation>['clearFilters'];
-  updateFilterValues: ReturnType<typeof useFilterNavigation>['updateFilterValues'];
-  removeFilter: ReturnType<typeof useFilterNavigation>['removeFilter'];
-
-  // Variation tracking
+  filterStack: UseFilterNavigationReturn['filterStack'];
+  applyFilter: UseFilterNavigationReturn['applyFilter'];
+  navigateTo: UseFilterNavigationReturn['navigateTo'];
+  clearFilters: UseFilterNavigationReturn['clearFilters'];
+  updateFilterValues: UseFilterNavigationReturn['updateFilterValues'];
+  removeFilter: UseFilterNavigationReturn['removeFilter'];
   breadcrumbItems: ReturnType<typeof useVariationTracking>['breadcrumbsWithVariation'];
   cumulativeVariationPct: number | null;
   factorVariations: Map<string, number>;
   categoryContributions: Map<string, Map<string | number, number>> | undefined;
-  filterChipData: ReturnType<typeof useVariationTracking>['filterChipData'];
-
-  // Drill handler
+  filterChipData: FilterChipData[];
   handleDrillDown: (factor: string, value: string) => void;
 }
 
@@ -112,37 +86,36 @@ export function useDashboardCharts({
     enableHistory: true,
     enableUrlSync: true,
   });
+  const filterNav = externalFilterNav ?? localFilterNav;
   const { filterStack, applyFilter, navigateTo, clearFilters, updateFilterValues, removeFilter } =
-    externalFilterNav ?? localFilterNav;
+    filterNav;
 
-  // Variation tracking
-  const {
-    breadcrumbsWithVariation: breadcrumbItems,
-    cumulativeVariationPct,
-    factorVariations,
-    categoryContributions,
-    filterChipData,
-  } = useVariationTracking(rawData, filterStack, outcome, factors);
+  // Breadcrumbs (variation tracking provides these — base hook doesn't expose them)
+  const { breadcrumbsWithVariation: breadcrumbItems } = useVariationTracking(
+    rawData,
+    filterStack,
+    outcome,
+    factors
+  );
+
+  // Base hook — shared composition
+  const base = useDashboardChartsBase({
+    rawData,
+    filteredData,
+    outcome,
+    factors,
+    filterStack,
+    displayOptions,
+    filterNav,
+  });
 
   // Focus mode + keyboard navigation
   const { focusedChart, setFocusedChart, handleNextChart, handlePrevChart } = useFocusMode();
 
-  // Chart export (clipboard copy + download)
-  const { copyFeedback, handleCopyChart, handleDownloadPng, handleDownloadSvg } = useChartCopy();
-
-  // Factor selection (boxplot + pareto)
-  const {
-    boxplotFactor,
-    setBoxplotFactor,
-    paretoFactor,
-    setParetoFactor,
-    paretoFactorSelectorRef,
-  } = useChartFactors(factors);
-
-  // Panel toggle states
+  // PWA-specific panel states
   const [showParetoPanel, setShowParetoPanel] = useState(true);
-  const [showParetoComparison, setShowParetoComparison] = useState(false);
   const [showSpecEditor, setShowSpecEditor] = useState(false);
+  const paretoFactorSelectorRef = { current: null } as React.RefObject<HTMLSelectElement>;
 
   // Reset Pareto panel on data change
   useEffect(() => {
@@ -157,11 +130,6 @@ export function useDashboardCharts({
     }
   }, [openSpecEditorRequested, onSpecEditorOpened]);
 
-  // Toggle handlers
-  const toggleParetoComparison = useCallback(() => {
-    setShowParetoComparison(prev => !prev);
-  }, []);
-
   // Embed mode helpers
   const getHighlightClass = useCallback(
     (chartId: ChartId): string => {
@@ -173,102 +141,39 @@ export function useDashboardCharts({
 
   const handleChartWrapperClick = useCallback(
     (chartId: ChartId) => {
-      if (onChartClick) {
-        onChartClick(chartId);
-      }
+      if (onChartClick) onChartClick(chartId);
     },
     [onChartClick]
   );
 
-  // Filter handler with auto-switch to highest variation factor
+  // Wrap drill-down to discard return value (PWA doesn't use lastAdvancedFactor)
   const handleDrillDown = useCallback(
     (factor: string, value: string) => {
-      applyFilter({
-        type: 'filter',
-        source: 'boxplot',
-        factor,
-        values: [value],
-      });
-
-      const nextFactor = getNextDrillFactor(factorVariations, factor);
-      if (nextFactor) {
-        setBoxplotFactor(nextFactor);
-        setParetoFactor(nextFactor);
-      } else {
-        setBoxplotFactor(factor);
-        setParetoFactor(factor);
-      }
+      base.handleDrillDown(factor, value);
     },
-    [applyFilter, factorVariations, setBoxplotFactor, setParetoFactor]
+    [base.handleDrillDown]
   );
 
-  // Shared computed data (availableOutcomes, availableStageColumns, ANOVA, boxplotData)
-  const { availableOutcomes, availableStageColumns, anovaResult, boxplotData } =
-    useDashboardComputedData({
-      rawData,
-      filteredData,
-      outcome,
-      boxplotFactor,
-      boxplotSortBy: displayOptions.boxplotSortBy,
-      boxplotSortDirection: displayOptions.boxplotSortDirection,
-    });
-
   return {
-    // Factor selection
-    boxplotFactor,
-    setBoxplotFactor,
-    paretoFactor,
-    setParetoFactor,
-
-    // Focus mode
+    ...base,
     focusedChart,
     setFocusedChart,
     handleNextChart,
     handlePrevChart,
-
-    // Panel toggles
     showParetoPanel,
     setShowParetoPanel,
-    showParetoComparison,
-    toggleParetoComparison,
     showSpecEditor,
     setShowSpecEditor,
-
-    // Chart export
-    copyFeedback,
-    handleCopyChart,
-    handleDownloadPng,
-    handleDownloadSvg,
-
-    // Pareto factor selector ref
     paretoFactorSelectorRef,
-
-    // Embed mode helpers
     getHighlightClass,
     handleChartWrapperClick,
-
-    // Computed data
-    availableOutcomes,
-    availableStageColumns,
-    anovaResult,
-    boxplotData,
-
-    // Filter navigation state
     filterStack,
     applyFilter,
     navigateTo,
     clearFilters,
     updateFilterValues,
     removeFilter,
-
-    // Variation tracking
     breadcrumbItems,
-    cumulativeVariationPct,
-    factorVariations,
-    categoryContributions,
-    filterChipData,
-
-    // Filter handler
     handleDrillDown,
   };
 }

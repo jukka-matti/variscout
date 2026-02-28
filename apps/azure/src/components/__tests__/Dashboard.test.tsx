@@ -20,12 +20,6 @@ vi.mock('../PerformanceDashboard', () => ({
 vi.mock('../MobileChartCarousel', () => ({
   default: () => <div data-testid="mobile-carousel">Mobile Carousel</div>,
 }));
-vi.mock('../ErrorBoundary', () => ({
-  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-vi.mock('../FilterBreadcrumb', () => ({
-  default: () => <div data-testid="filter-breadcrumb">Breadcrumb</div>,
-}));
 vi.mock('../FactorSelector', () => ({
   default: ({
     factors,
@@ -56,15 +50,17 @@ vi.mock('html-to-image', () => ({
 
 // Mock @variscout/charts
 vi.mock('@variscout/charts', () => ({
-  EditableChartTitle: ({ defaultTitle }: { defaultTitle: string }) => (
-    <span data-testid="editable-title">{defaultTitle}</span>
-  ),
   calculateBoxplotStats: vi.fn(() => ({ key: 'A', min: 0, max: 10, median: 5, q1: 2.5, q3: 7.5 })),
   BoxplotStatsTable: () => <div data-testid="boxplot-stats-table">Stats Table</div>,
 }));
 
 // Mock @variscout/ui
 vi.mock('@variscout/ui', () => ({
+  ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  FilterBreadcrumb: () => <div data-testid="filter-breadcrumb">Breadcrumb</div>,
+  EditableChartTitle: ({ defaultTitle }: { defaultTitle: string }) => (
+    <span data-testid="editable-title">{defaultTitle}</span>
+  ),
   SelectionPanel: () => <div data-testid="selection-panel">Selection Panel</div>,
   CreateFactorModal: () => <div data-testid="create-factor-modal">Create Factor</div>,
   FilterContextBar: () => null,

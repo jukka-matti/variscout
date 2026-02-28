@@ -224,6 +224,25 @@ export {
   type DashboardGridProps,
 } from './components/DashboardBase';
 
+// Settings Panel
+export { SettingsPanelBase, type SettingsPanelBaseProps } from './components/SettingsPanel';
+
+// Editable Chart Title
+export { EditableChartTitle, type EditableChartTitleProps } from './components/EditableChartTitle';
+
+// Focused Chart View
+export {
+  FocusedChartViewBase,
+  type FocusedChartViewBaseProps,
+  type FocusedChartNavigation,
+  type ChartExportProps,
+  type FilterContextProps as FocusedFilterContextProps,
+  type IChartSectionProps,
+  type BoxplotSectionProps,
+  type ParetoSectionProps,
+  type FocusedChartType,
+} from './components/FocusedChartViewBase';
+
 // Services
 export {
   errorService,
