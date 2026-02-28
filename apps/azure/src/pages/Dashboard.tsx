@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { isTeamPlan } from '@variscout/core';
 import { useStorage, type CloudProject } from '../services/storage';
 import {
   Plus,
@@ -97,7 +98,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onOpenProject }) => {
           <p className="text-content-secondary text-sm mt-1">Manage your saved analyses</p>
         </div>
         <div className="flex items-center gap-3">
-          {getSyncStatusDisplay()}
+          {isTeamPlan() && getSyncStatusDisplay()}
           <button
             onClick={() => onOpenProject()}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"

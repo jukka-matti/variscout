@@ -4,6 +4,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
+// Mock @variscout/core — isTeamPlan defaults to true (photo comments are Team-only)
+vi.mock('@variscout/core', () => ({
+  isTeamPlan: () => true,
+  createPhotoAttachment: vi.fn((filename: string) => ({
+    id: `photo-${Date.now()}`,
+    filename,
+    uploadStatus: 'pending' as const,
+    thumbnailDataUrl: undefined,
+  })),
+}));
+
 // Mock photo processing
 vi.mock('../../utils/photoProcessing', () => ({
   processPhoto: vi.fn(() =>

@@ -38,7 +38,7 @@ flowchart TD
     B --> C{What to do?}
     C -->|Resume| D[Open saved analysis from list]
     C -->|New data| E[Create new analysis]
-    D --> F[Dashboard loads from OneDrive]
+    D --> F[Dashboard loads from storage]
     E --> G{Data source}
     G -->|Upload| H[CSV/Excel file]
     G -->|Paste| I[Paste from spreadsheet]
@@ -56,7 +56,7 @@ flowchart TD
     P -->|Export CSV| Q[Download filtered data]
     P -->|Copy chart| R[Clipboard: chart as image]
     P -->|Edit title| S[Custom chart title for report]
-    P -->|Done| T[Click Save — syncs to OneDrive]
+    P -->|Done| T[Click Save — local + OneDrive sync on Team plan]
 ```
 
 ### Daily Use Journey
@@ -79,7 +79,7 @@ journey
     section Export
       Copy chart to clipboard: 5: User
       Download CSV export: 5: User
-      Save to OneDrive: 5: User
+      Save analysis: 5: User
 ```
 
 ---
@@ -91,7 +91,7 @@ journey
 The most common daily task: verify stability of a production process.
 
 1. Open the app — SSO authenticates automatically (EasyAuth session cookie)
-2. Open existing analysis from the saved list (loaded from OneDrive)
+2. Open existing analysis from the saved list (loaded from IndexedDB; Team plan also syncs via OneDrive)
 3. Upload or paste today's data batch
 4. Check I-Chart: are points within control limits? Any Nelson rule violations?
 5. Review Stats panel: mean, sigma, Cp/Cpk
@@ -124,13 +124,13 @@ For processes with many measurement points (filling heads, cavities, test statio
 
 ## Export and Sharing
 
-| Action           | How                                   | Output                       |
-| ---------------- | ------------------------------------- | ---------------------------- |
-| CSV export       | Editor header button                  | Filtered data as CSV         |
-| Copy chart       | Chart card menu → "Copy to clipboard" | PNG image on clipboard       |
-| Edit chart title | Click chart title → type custom text  | Appears in copied image      |
-| Download chart   | Chart card menu → "Download"          | PNG file                     |
-| Share analysis   | Share the `.vrs` file from OneDrive   | Colleague opens in their app |
+| Action           | How                                               | Output                       |
+| ---------------- | ------------------------------------------------- | ---------------------------- |
+| CSV export       | Editor header button                              | Filtered data as CSV         |
+| Copy chart       | Chart card menu → "Copy to clipboard"             | PNG image on clipboard       |
+| Edit chart title | Click chart title → type custom text              | Appears in copied image      |
+| Download chart   | Chart card menu → "Download"                      | PNG file                     |
+| Share analysis   | Share the `.vrs` file from OneDrive _(Team plan)_ | Colleague opens in their app |
 
 ---
 
@@ -148,17 +148,15 @@ Accessible from the settings panel:
 
 ## Platform Capabilities (Established User)
 
-| Capability            | Detail                                               |
-| --------------------- | ---------------------------------------------------- |
-| Saved analyses        | Listed on open, synced via OneDrive                  |
-| Factor management     | Add/remove/change up to 6 factors during analysis    |
-| Row capacity          | 100,000 rows                                         |
-| Performance Mode      | Multi-channel Cpk analysis (hundreds of channels)    |
-| Investigation Mindmap | Radial tree showing drill-down path with eta-squared |
-| Offline work          | Full functionality, queues sync for reconnection     |
-| Chart branding        | No VariScout branding (enterprise tier)              |
-| Regression            | Simple + Advanced regression with What-If simulation |
-| Capability analysis   | Histogram + probability plot with Cp/Cpk             |
+| Capability          | Detail                                                                  |
+| ------------------- | ----------------------------------------------------------------------- |
+| Saved analyses      | Listed on open; synced via OneDrive on Team plan (Standard: local-only) |
+| Factor management   | Add/remove/change up to 6 factors during analysis                       |
+| Row capacity        | 100,000 rows                                                            |
+| Performance Mode    | Multi-channel Cpk analysis (hundreds of channels)                       |
+| Offline work        | Full functionality, queues sync for reconnection                        |
+| Chart branding      | No VariScout branding (enterprise tier)                                 |
+| Capability analysis | Histogram + probability plot with Cp/Cpk                                |
 
 ---
 

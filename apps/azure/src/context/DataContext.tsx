@@ -128,7 +128,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
    * Saves locally first (instant feedback), then triggers cloud sync
    */
   const saveProject = useCallback(
-    async (name: string, location: StorageLocation = 'team'): Promise<SavedProject> => {
+    async (name: string, location: StorageLocation = defaultLocation): Promise<SavedProject> => {
       // Update default location for adapter
       setDefaultLocation(location);
       setCurrentProjectLocation(location);

@@ -107,7 +107,7 @@ VariScout has a minimal attack surface for certification:
 
 - **Offline-first SPA** — all statistical processing runs in the browser
 - **No backend API** — no server-side code to exploit
-- **Only external call** — Microsoft Graph API for OneDrive sync (delegated permissions: `User.Read`, `Files.ReadWrite`)
+- **Only external call** — Microsoft Graph API for OneDrive sync (Team plan only; delegated permissions: `User.Read` + `Files.ReadWrite`). Standard plan has no external API calls.
 - **EasyAuth** — authentication handled entirely by Azure App Service platform
 - **HTTPS enforced** — `httpsOnly: true` in ARM template
 - **TLS 1.2 minimum** — `minTlsVersion: "1.2"` in site config

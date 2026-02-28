@@ -36,18 +36,18 @@ VariScout is a client-side statistical process control tool deployed as an Azure
 
 What's already in place, verified against the codebase:
 
-| Area              | Detail                                                                       | Reference                                                                             |
-| ----------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Authentication    | EasyAuth platform-managed (Azure AD), `User.Read` + `Files.ReadWrite` scopes | `infra/mainTemplate.json:96-125`, `apps/azure/src/auth/easyAuth.ts`                   |
-| Transport         | HTTPS-only (`httpsOnly: true`), TLS 1.2+ (`minTlsVersion: "1.2"`)            | `infra/mainTemplate.json:70,88`                                                       |
-| FTP               | Disabled (`ftpsState: "Disabled"`)                                           | `infra/mainTemplate.json:89`                                                          |
-| Secrets in ARM    | `clientSecret` uses `secureString` parameter type                            | `infra/mainTemplate.json:31-35`                                                       |
-| CI/CD credentials | OIDC federated identity — no stored secrets for Azure login                  | `.github/workflows/deploy-azure-staging.yml:13,46-49`                                 |
-| Data sovereignty  | Deployed to customer's managed RG; publisher has zero access                 | `infra/mainTemplate.json` (no publisher authorization)                                |
-| Client storage    | IndexedDB via Dexie (browser sandbox), offline-first with cloud sync         | `apps/azure/src/services/storage.ts`                                                  |
-| Token management  | Proactive refresh (5-minute window), error classification with retry backoff | `apps/azure/src/auth/easyAuth.ts:96-134`, `apps/azure/src/services/storage.ts:70-100` |
-| Health endpoint   | Excluded from auth (`excludedPaths: ["/health"]`) — no data exposure         | `infra/mainTemplate.json:106`                                                         |
-| Telemetry         | None — no analytics, no tracking, no outbound calls except Graph API         | Entire codebase                                                                       |
+| Area              | Detail                                                                                        | Reference                                                                             |
+| ----------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Authentication    | EasyAuth platform-managed (Azure AD); Standard: `User.Read`; Team: + `Files.ReadWrite` scopes | `infra/mainTemplate.json:96-125`, `apps/azure/src/auth/easyAuth.ts`                   |
+| Transport         | HTTPS-only (`httpsOnly: true`), TLS 1.2+ (`minTlsVersion: "1.2"`)                             | `infra/mainTemplate.json:70,88`                                                       |
+| FTP               | Disabled (`ftpsState: "Disabled"`)                                                            | `infra/mainTemplate.json:89`                                                          |
+| Secrets in ARM    | `clientSecret` uses `secureString` parameter type                                             | `infra/mainTemplate.json:31-35`                                                       |
+| CI/CD credentials | OIDC federated identity — no stored secrets for Azure login                                   | `.github/workflows/deploy-azure-staging.yml:13,46-49`                                 |
+| Data sovereignty  | Deployed to customer's managed RG; publisher has zero access                                  | `infra/mainTemplate.json` (no publisher authorization)                                |
+| Client storage    | IndexedDB via Dexie (browser sandbox), offline-first with cloud sync                          | `apps/azure/src/services/storage.ts`                                                  |
+| Token management  | Proactive refresh (5-minute window), error classification with retry backoff                  | `apps/azure/src/auth/easyAuth.ts:96-134`, `apps/azure/src/services/storage.ts:70-100` |
+| Health endpoint   | Excluded from auth (`excludedPaths: ["/health"]`) — no data exposure                          | `infra/mainTemplate.json:106`                                                         |
+| Telemetry         | None — no analytics, no tracking, no outbound calls except Graph API                          | Entire codebase                                                                       |
 
 ### Known Gaps
 
@@ -173,17 +173,17 @@ Microsoft reviews Graph API permission requests during Teams App Store certifica
 
 Common security questionnaire sections mapped to VariScout's architecture:
 
-| Question Area                                   | Answer Pattern                                                                                                                                                                                           |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Where is data stored?**                       | In your own Azure tenant (OneDrive/SharePoint/IndexedDB). The publisher has zero access to your resources. We are not a sub-processor — your data never transits our systems.                            |
-| **What data do you collect?**                   | None. No telemetry, no analytics, no usage tracking. The app makes no outbound calls except to Microsoft Graph API (your own tenant).                                                                    |
-| **How is data encrypted?**                      | In transit: TLS 1.2+ (HTTPS-only). At rest: Azure Storage encryption (platform-managed, your tenant). IndexedDB: browser-managed encryption.                                                             |
-| **What is your authentication model?**          | Azure AD via EasyAuth (platform-managed by App Service). No custom auth code, no password storage, no session tokens in cookies.                                                                         |
-| **Do you have access to our data?**             | No. Publisher management is disabled in the Managed Application. This setting is immutable after marketplace publication.                                                                                |
-| **What permissions does the app require?**      | Standard plan: `User.Read`, `Files.ReadWrite` (personal OneDrive). Team plan adds: `Files.ReadWrite.All` (delegated, admin consent — for channel SharePoint), `Channel.ReadBasic.All` (channel listing). |
-| **Do you have a SOC 2 report?**                 | No formal audit. Architecture makes many SOC 2 controls not applicable (no multi-tenant backend, no data processing, no access to customer data).                                                        |
-| **How do you handle incidents?**                | Gap — no formal incident response process. See hardening checklist (Section 8).                                                                                                                          |
-| **What is your dependency management process?** | Gap — no automated `pnpm audit` in CI pipeline. See hardening checklist.                                                                                                                                 |
+| Question Area                                   | Answer Pattern                                                                                                                                                                                                                             |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Where is data stored?**                       | In your own Azure tenant (OneDrive/SharePoint/IndexedDB). The publisher has zero access to your resources. We are not a sub-processor — your data never transits our systems.                                                              |
+| **What data do you collect?**                   | None. No telemetry, no analytics, no usage tracking. The app makes no outbound calls except to Microsoft Graph API (your own tenant).                                                                                                      |
+| **How is data encrypted?**                      | In transit: TLS 1.2+ (HTTPS-only). At rest: Azure Storage encryption (platform-managed, your tenant). IndexedDB: browser-managed encryption.                                                                                               |
+| **What is your authentication model?**          | Azure AD via EasyAuth (platform-managed by App Service). No custom auth code, no password storage, no session tokens in cookies.                                                                                                           |
+| **Do you have access to our data?**             | No. Publisher management is disabled in the Managed Application. This setting is immutable after marketplace publication.                                                                                                                  |
+| **What permissions does the app require?**      | Standard plan: `User.Read` only (local storage, no OneDrive). Team plan adds: `Files.ReadWrite` (personal OneDrive), `Files.ReadWrite.All` (delegated, admin consent — for channel SharePoint), `Channel.ReadBasic.All` (channel listing). |
+| **Do you have a SOC 2 report?**                 | No formal audit. Architecture makes many SOC 2 controls not applicable (no multi-tenant backend, no data processing, no access to customer data).                                                                                          |
+| **How do you handle incidents?**                | Gap — no formal incident response process. See hardening checklist (Section 8).                                                                                                                                                            |
+| **What is your dependency management process?** | Gap — no automated `pnpm audit` in CI pipeline. See hardening checklist.                                                                                                                                                                   |
 
 ### 5.2 Compliance Posture
 
@@ -230,7 +230,7 @@ A €5M revenue Finnish manufacturer with ~200 employees. They have M365 E3 or E
 
 The quality manager asks IT to approve the app. Here's what happens:
 
-**Standard plan (€99/month)**: No admin consent needed. `User.Read` and `Files.ReadWrite` are user-consentable. IT may still want to review the app registration, but there's no blocker.
+**Standard plan (€99/month)**: No admin consent needed. Only `User.Read` is requested (local-only storage, no OneDrive). IT may still want to review the app registration, but there's no blocker.
 
 **Team plan (€299/month)**: IT admin must grant tenant-wide consent for `Files.ReadWrite.All`. The admin sees a consent screen listing the permission. What they need to understand:
 
@@ -368,7 +368,7 @@ Complete Graph API permissions used by VariScout, current and proposed:
 | `profile`               | OpenID Connect | User      | Both | Display name for author field                                                                                          |
 | `email`                 | OpenID Connect | User      | Both | User identification                                                                                                    |
 | `User.Read`             | Delegated      | User      | Both | Read signed-in user's profile                                                                                          |
-| `Files.ReadWrite`       | Delegated      | User      | Both | Read/write to user's personal OneDrive (`/me/drive/`)                                                                  |
+| `Files.ReadWrite`       | Delegated      | User      | Team | Read/write to user's personal OneDrive (`/me/drive/`)                                                                  |
 | `Files.ReadWrite.All`   | Delegated      | **Admin** | Team | Read/write to channel SharePoint document libraries. Required because `Files.ReadWrite` only covers personal OneDrive. |
 | `Channel.ReadBasic.All` | Delegated      | **Admin** | Team | List channels the user belongs to (for storage location picker). Does NOT read channel messages.                       |
 

@@ -40,7 +40,7 @@ flowchart TB
 
     subgraph Persistence["Storage Layer"]
         E --> H1[(IndexedDB)]
-        E --> H2[(OneDrive)]
+        E --> H2[("OneDrive (Team plan)")]
         E --> H3[(Excel Doc Props)]
     end
 ```
@@ -234,6 +234,8 @@ flowchart TB
 
 ### Azure App Data Flow
 
+Both Standard and Team plans store data locally in IndexedDB. Team plan additionally syncs to OneDrive.
+
 ```mermaid
 flowchart TB
     subgraph Browser["User's Browser"]
@@ -241,7 +243,7 @@ flowchart TB
         B --> C[(IndexedDB)]
     end
 
-    subgraph Cloud["Microsoft Cloud"]
+    subgraph Cloud["Microsoft Cloud (Team plan only)"]
         D[EasyAuth] --> E[Access Token]
         E --> F[Graph API]
         F --> G[(OneDrive)]
@@ -250,7 +252,7 @@ flowchart TB
     B <--> D
     C <--> G
 
-    note1[Bi-directional sync:<br/>Local-first, cloud backup]
+    note1[Team plan: Bi-directional sync — local-first, cloud backup<br/>Standard plan: IndexedDB only — no cloud sync]
 ```
 
 ---

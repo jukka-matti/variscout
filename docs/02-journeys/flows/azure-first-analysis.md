@@ -48,7 +48,7 @@ flowchart TD
     A[Open App Service URL] --> B[EasyAuth redirects to Azure AD]
     B --> C[Sign in with work account]
     C --> D{First-time consent?}
-    D -->|Yes| E[Consent to User.Read + Files.ReadWrite]
+    D -->|Yes| E[Consent to User.Read<br/>+ Files.ReadWrite on Team plan]
     D -->|No| F[Session cookie set]
     E --> F
     F --> G[Empty state: Choose data source]
@@ -66,8 +66,10 @@ flowchart TD
     L --> O[Explore: I-Chart, Boxplot, Stats, ANOVA]
     O --> P[First drill-down: click a filter]
     P --> Q[Charts recalculate, breadcrumbs appear]
-    Q --> R[Click Save — persists to IndexedDB + OneDrive]
-    R --> S[Return next day: analysis loads from cloud]
+    Q --> R[Click Save — persists to IndexedDB]
+    R --> R2{Team plan?}
+    R2 -->|Yes| S[Syncs to OneDrive — loads from cloud next day]
+    R2 -->|No| S2[Standard plan: loads from local storage next day]
 ```
 
 ### First Analysis Journey
@@ -101,7 +103,7 @@ journey
 The user opens the App Service URL (e.g., `https://variscout-contoso.azurewebsites.net`). EasyAuth intercepts the unauthenticated request and redirects to Azure AD sign-in.
 
 - User signs in with their work Microsoft account
-- First-time users consent to `User.Read` (display name) and `Files.ReadWrite` (OneDrive sync)
+- First-time users consent to `User.Read` (display name); Team plan users also consent to `Files.ReadWrite` (OneDrive sync)
 - A platform-managed session cookie is set — no MSAL library, no token in browser storage
 - The app reads user info from `/.auth/me`
 
@@ -155,14 +157,16 @@ This is the "aha moment" — seeing how variation hides inside aggregated data.
 
 Gary clicks **Save** in the editor header to persist his work:
 
-1. **IndexedDB** — immediate local save (offline-first)
-2. **OneDrive** — syncs to `OneDrive/VariScout/Projects/` as a `.vrs` file (when online)
+1. **IndexedDB** — immediate local save (offline-first, all plans)
+2. **OneDrive** _(Team plan only)_ — syncs to `OneDrive/VariScout/Projects/` as a `.vrs` file (when online)
 
-The header shows sync status feedback (saved, syncing, offline). Save is explicit — unsaved work is lost if the tab closes.
+On **Standard plan**, saves are local-only (IndexedDB). The analysis persists on the same device/browser but does not sync to the cloud.
 
-Next day, Gary opens the app and his analysis loads from OneDrive. No setup needed — EasyAuth session persists.
+On **Team plan**, the header shows sync status feedback (saved, syncing, offline). Next day, Gary opens the app and his analysis loads from OneDrive. No setup needed — EasyAuth session persists.
 
-See [OneDrive Sync](../../08-products/azure/onedrive-sync.md) for sync details.
+Save is explicit on both plans — unsaved work is lost if the tab closes.
+
+See [OneDrive Sync](../../08-products/azure/onedrive-sync.md) for Team plan sync details.
 
 ---
 
@@ -174,7 +178,7 @@ See [OneDrive Sync](../../08-products/azure/onedrive-sync.md) for sync details.
 | Data input       | Upload, paste, or manual entry — all parsed in-browser |
 | Factor limit     | Up to 6 factors, can add/change during analysis        |
 | Row limit        | 100,000 rows                                           |
-| Persistence      | IndexedDB + OneDrive sync                              |
+| Persistence      | IndexedDB (all plans) + OneDrive sync (Team plan only) |
 | Offline          | Full functionality, queues changes for sync            |
 | Performance Mode | Available (multi-channel Cpk analysis)                 |
 | Branding         | No VariScout branding on charts (enterprise tier)      |
@@ -188,7 +192,7 @@ See [OneDrive Sync](../../08-products/azure/onedrive-sync.md) for sync details.
 | Login → first chart rendered        | < 3 min |
 | First drill-down in first session   | > 60%   |
 | Return within 7 days                | > 50%   |
-| Analysis saved to OneDrive          | > 80%   |
+| Analysis saved to OneDrive (Team)   | > 80%   |
 | Sample dataset chosen (first visit) | Track   |
 
 ---
@@ -208,7 +212,7 @@ The Azure App first-analysis experience follows different acquisition flows:
 Users who graduated from the free PWA will notice key differences:
 
 - **File upload** — CSV and Excel upload, not just paste and manual entry
-- **Save and sync** — analyses persist to OneDrive (PWA is session-only)
+- **Save and sync** — analyses persist locally; Team plan adds OneDrive sync (PWA is session-only)
 - **Performance Mode** — multi-channel Cpk analysis (not available in PWA)
 - **6 factors** — up to 6 factors, manageable during analysis (PWA: 3, set at start only)
 - **No branding** — charts have no VariScout watermark

@@ -238,10 +238,10 @@ describe('Editor', () => {
     expect(screen.getByText('My Analysis')).toBeInTheDocument();
   });
 
-  it('shows sync status indicator', () => {
+  it('hides sync status indicator on Standard plan', () => {
     renderEditor();
 
-    expect(screen.getByText('Synced')).toBeInTheDocument();
+    expect(screen.queryByText('Synced')).not.toBeInTheDocument();
   });
 
   it('shows CSV export button when data is loaded', () => {

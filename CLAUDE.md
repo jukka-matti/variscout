@@ -148,6 +148,9 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Variation metrics/SS     | docs/03-features/analysis/variation-decomposition.md, packages/core/src/variation/contributions.ts      |
 | What-If/simulation       | docs/06-design-system/components/what-if-simulator.md, packages/core/src/variation/simulation.ts        |
 | Azure CI/CD pipeline     | `.github/workflows/deploy-azure-staging.yml`, `docs/05-technical/implementation/deployment.md`          |
+| Teams integration        | docs/07-decisions/adr-016-teams-integration.md, docs/08-products/azure/authentication.md                |
+| Teams SSO / OBO auth     | apps/azure/src/auth/graphToken.ts, docs/08-products/azure/authentication.md                             |
+| EXIF / photo security    | packages/core/src/utils/exifStrip.ts, docs/07-decisions/adr-016-security-evaluation.md                  |
 
 ## Repository Structure
 
@@ -158,7 +161,7 @@ variscout-lite/
 ├── .github/
 │   └── workflows/     # GitHub Actions CI/CD (staging deploy)
 ├── packages/
-│   ├── core/          # @variscout/core - Stats, parser, tier, types
+│   ├── core/          # @variscout/core - Stats, parser, tier, types, findings, EXIF utils
 │   ├── charts/        # @variscout/charts - Visx chart components
 │   ├── data/          # @variscout/data - Sample datasets with pre-computed chart data
 │   ├── hooks/         # @variscout/hooks - Shared React hooks (filter navigation, scale, tracking)
@@ -185,15 +188,16 @@ variscout-lite/
 - **No Backend**: All processing in browser, data stays local
 - **Shared Logic**: Statistics in `@variscout/core`, charts in `@variscout/charts`
 - **Props-based Charts**: Chart components accept data via props (not context)
-- **Persistence**: IndexedDB + localStorage (PWA/Azure)
+- **Persistence**: PWA = session-only (no persistence); Azure Standard = IndexedDB (local); Azure Team = IndexedDB + OneDrive sync
 - **Offline-first**: PWA works without internet after first visit
 
 ## Products & Pricing
 
-| Product   | Distribution      | Pricing                                        | Status      |
-| --------- | ----------------- | ---------------------------------------------- | ----------- |
-| Azure App | Azure Marketplace | €150/month (Managed Application, all features) | **PRIMARY** |
-| PWA       | Public URL        | FREE (forever, training & education)           | Production  |
+| Product        | Distribution      | Pricing    | Features                                      | Status      |
+| -------------- | ----------------- | ---------- | --------------------------------------------- | ----------- |
+| Azure Standard | Azure Marketplace | €99/month  | Full analysis, local file storage             | **PRIMARY** |
+| Azure Team     | Azure Marketplace | €299/month | + Teams, OneDrive, SharePoint, mobile, photos | **PRIMARY** |
+| PWA            | Public URL        | FREE       | Training & education (forever free)           | Production  |
 
 See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for the distribution strategy.
 
@@ -274,5 +278,8 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `apps/azure/server.js`                                           | Zero-dep Node.js static server for App Service (SPA fallback, cache, /health)                              |
 | `.github/workflows/deploy-azure-staging.yml`                     | CI/CD pipeline: build + OIDC deploy to staging App Service                                                 |
 | `infra/mainTemplate.json`                                        | ARM template for Azure Marketplace Managed Application deployment                                          |
+| `apps/azure/src/auth/graphToken.ts`                              | OBO token exchange for Teams SSO (Graph API access)                                                        |
+| `infra/functions/token-exchange/index.js`                        | Azure Function for OBO token exchange (Teams SSO backend)                                                  |
+| `packages/core/src/utils/exifStrip.ts`                           | Byte-level EXIF/GPS metadata stripping for photo evidence                                                  |
 
 > Use `Read` tool to examine these files when needed.

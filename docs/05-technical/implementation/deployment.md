@@ -91,7 +91,8 @@ The Azure App is published to Azure Marketplace as a **Managed Application**:
 ```
 Azure Marketplace
 └── VariScout (Managed Application)
-    └── Full Plan (€150/month, all features, unlimited users)
+    ├── Standard Plan (€99/month, full analysis, local files)
+    └── Team Plan (€299/month, + Teams, OneDrive, SharePoint)
 ```
 
 ### Publication Process
@@ -103,13 +104,13 @@ Azure Marketplace
 
 2. **Create Azure Application Offer**
    - Offer type: Managed Application
-   - Single plan at €150/month
+   - Two plans: Standard (€99/month) and Team (€299/month)
    - Upload deployment package (.zip with mainTemplate.json + createUiDefinition.json)
    - Publisher management: Disabled (zero access)
    - Customer access: Enabled (full control)
 
 3. **Configure Pricing**
-   - Set monthly price (€150/month)
+   - Set monthly prices (Standard €99, Team €299)
    - Configure regional pricing (EUR, USD, GBP)
    - Microsoft handles VAT and billing (3% fee)
 
@@ -157,6 +158,7 @@ EasyAuth intercepts `/.auth/*` at the platform level before the Node server — 
 1. pnpm install + build Azure app
 2. Assemble zip: `dist/` + `server.js` + minimal `package.json`
 3. OIDC login → `azure/webapps-deploy@v3`
+4. (Conditional) Deploy OBO token-exchange Azure Function — runs only when `AZURE_FUNCTION_APP_NAME` variable is set; deploys `infra/functions/` via `azure/functions-action@v2`
 
 **GitHub secrets** (3, all OIDC — no credentials stored):
 
@@ -168,7 +170,7 @@ EasyAuth intercepts `/.auth/*` at the platform level before the Node server — 
 
 - App Service Plan (B1 Linux)
 - App Service (`variscout-staging`) with EasyAuth (AAD)
-- App Registration ("VariScout Staging") with `User.Read` + `Files.ReadWrite` permissions
+- App Registration ("VariScout Staging") with `User.Read` + `Files.ReadWrite` permissions (Files.ReadWrite only needed for Team plan)
 - Separate App Registration ("VariScout CI/CD") with federated credential for GitHub Actions OIDC
 
 **One-time setup**: See [Azure Staging Setup](#azure-staging-setup) below.
@@ -222,10 +224,12 @@ For demos and development only:
 
 The customer creates an App Registration before deployment (the ARM template references it via `clientId` and `clientSecret` parameters):
 
-| Permission        | Type      | Purpose               |
-| ----------------- | --------- | --------------------- |
-| `User.Read`       | Delegated | Get user profile      |
-| `Files.ReadWrite` | Delegated | OneDrive project sync |
+| Permission        | Type      | Purpose               | Plan      |
+| ----------------- | --------- | --------------------- | --------- |
+| `User.Read`       | Delegated | Get user profile      | All       |
+| `Files.ReadWrite` | Delegated | OneDrive project sync | Team only |
+
+> **Note**: Standard plan deployments only require `User.Read`. The `Files.ReadWrite` permission is needed only for Team plan OneDrive sync. Standard plan stores data locally in IndexedDB.
 
 ---
 
@@ -321,11 +325,12 @@ az ad app create --display-name "VariScout Staging" --sign-in-audience AzureADMy
 az ad app update --id $CLIENT_ID \
   --web-redirect-uris "https://variscout-staging.azurewebsites.net/.auth/login/aad/callback"
 
-# Graph API permissions: User.Read + Files.ReadWrite (OneDrive)
+# Graph API permissions: User.Read (all plans) + Files.ReadWrite (Team plan OneDrive sync)
 az ad app permission add --id $CLIENT_ID \
   --api 00000003-0000-0000-c000-000000000000 \
   --api-permissions "e1fe6dd8-ba31-4d61-89e7-88639da4683d=Scope" \
                     "5c28c081-612b-4536-8c00-47d2f7f0de0a=Scope"
+# Note: Files.ReadWrite is only used by Team plan. Standard plan stores data locally in IndexedDB.
 
 az ad app credential reset --id $CLIENT_ID --display-name "EasyAuth-Staging" --years 2
 # → note password as CLIENT_SECRET (shown once)

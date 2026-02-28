@@ -9,7 +9,7 @@ VariScout is designed to work without internet access after the initial load.
 1. **No backend required** — All statistical processing in browser
 2. **Service Worker** — Cache app shell and assets
 3. **Local-first data** — All data stays in IndexedDB
-4. **Optional sync** — Azure app can sync to OneDrive when online
+4. **Optional sync** — Azure Team plan can sync to OneDrive when online (Standard plan uses local-only storage)
 
 ---
 
@@ -90,13 +90,35 @@ USER                    SERVICE WORKER              CACHE
 
 ---
 
-## Azure App: Optional Sync
+## Azure App: Storage by Plan
 
-The Azure Team App adds optional cloud sync:
+Both Azure plans store data locally in IndexedDB. The Team plan additionally syncs to OneDrive.
+
+**Standard plan (€99/month)** — IndexedDB only, no cloud sync:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    AZURE APP                         │
+│               AZURE STANDARD APP                     │
+│                                                     │
+│  ┌─────────────┐                                    │
+│  │  IndexedDB  │                                    │
+│  │  (local)    │                                    │
+│  └─────────────┘                                    │
+│        │                                            │
+│        │ always available                           │
+│        ▼                                            │
+│   ┌───────────────────────────────────────────┐    │
+│   │              Application                   │    │
+│   └───────────────────────────────────────────┘    │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+**Team plan (€299/month)** — IndexedDB + OneDrive sync:
+
+```
+┌─────────────────────────────────────────────────────┐
+│                 AZURE TEAM APP                       │
 │                                                     │
 │  ┌─────────────┐         ┌─────────────┐           │
 │  │  IndexedDB  │◄───────▶│  OneDrive   │           │
@@ -132,7 +154,7 @@ The Azure Team App adds optional cloud sync:
 
 | Trade-off                    | Mitigation                            |
 | ---------------------------- | ------------------------------------- |
-| No cross-device sync (PWA)   | Azure app adds optional sync          |
+| No cross-device sync (PWA)   | Azure Team plan adds OneDrive sync    |
 | Limited by browser resources | Target datasets are typically small   |
 | Update requires refresh      | Clear messaging when update available |
 

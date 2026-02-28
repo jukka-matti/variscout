@@ -146,7 +146,7 @@ const response = await fetch('https://graph.microsoft.com/v1.0/me/drive/root:/Va
 });
 ```
 
-The token is automatically scoped to the permissions configured in the EasyAuth login parameters (`User.Read`, `Files.ReadWrite`).
+The token is automatically scoped to the permissions configured in the EasyAuth login parameters. Standard plan: `User.Read`. Team plan adds: `Files.ReadWrite`, `Files.ReadWrite.All`, `Channel.ReadBasic.All`.
 
 ---
 
@@ -184,23 +184,27 @@ EasyAuth is configured in the ARM template via `authsettingsV2`:
 }
 ```
 
+> **Note:** The `loginParameters` scope shown above is for the **Team plan**. The actual ARM template uses a conditional expression — Standard plan requests `User.Read` only, Team plan requests the full scope including `Files.ReadWrite`.
+
 See [ARM Template](arm-template.md) for the complete deployment configuration.
 
 ---
 
 ## Required Permissions
 
-| Permission      | Type      | Purpose                |
-| --------------- | --------- | ---------------------- |
-| User.Read       | Delegated | Get user profile       |
-| Files.ReadWrite | Delegated | OneDrive analysis sync |
+**Standard plan (€99/month):**
+
+| Permission | Type      | Admin Consent | Purpose          |
+| ---------- | --------- | ------------- | ---------------- |
+| User.Read  | Delegated | No            | Get user profile |
 
 No admin consent required — users grant consent on first login.
 
-**Team plan additional scopes:**
+**Team plan (€299/month) additional scopes:**
 
 | Permission            | Type      | Admin Consent | Purpose                   |
 | --------------------- | --------- | ------------- | ------------------------- |
+| Files.ReadWrite       | Delegated | No            | OneDrive analysis sync    |
 | Files.ReadWrite.All   | Delegated | Yes           | Channel SharePoint access |
 | Channel.ReadBasic.All | Delegated | Yes           | Channel listing           |
 

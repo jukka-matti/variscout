@@ -151,7 +151,7 @@ Analyze hundreds of measurement channels simultaneously:
 **No Backend Required**
 
 - Deploys entirely to your Azure tenant
-- Data stays in your OneDrive
+- Standard: Data stored locally in browser. Team: Syncs to your OneDrive
 - Zero external API calls
 - Full offline support after initial load
 
@@ -181,7 +181,7 @@ before upgrading to the full Azure App for team use.
 4. Boxplot Comparison - Category comparison
 5. Pareto Chart - Improvement prioritization
 6. Drill-Down Navigation - Filter breadcrumbs
-7. OneDrive Sync - Analysis saving
+7. OneDrive Sync - Analysis saving (Team plan)
 
 ### Videos (Optional but Recommended)
 
@@ -211,7 +211,7 @@ before upgrading to the full Azure App for team use.
 - [ ] createUiDefinition.json renders correctly in sandbox
 - [ ] App deploys without errors from marketplace flow
 - [ ] EasyAuth authentication works post-deployment
-- [ ] OneDrive sync works (save/load analyses)
+- [ ] OneDrive sync works (save/load analyses) — Team plan only
 - [ ] Privacy policy URL accessible
 - [ ] Terms of service URL accessible
 - [ ] Support contact information complete

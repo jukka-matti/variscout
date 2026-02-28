@@ -12,7 +12,7 @@ The ARM template deploys VariScout to a customer's Azure subscription as a Manag
 - App Service Authentication (EasyAuth) with Azure AD
 - Configuration settings (all features enabled)
 
-The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users and access OneDrive via Graph API.
+The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users and access OneDrive via Graph API (Team plan).
 
 **No backend resources** - the app runs entirely in the browser. The App Service serves the static build as a zip package.
 
@@ -49,10 +49,17 @@ Before deploying VariScout, the customer must create an App Registration in Azur
 ### Add API Permissions
 
 1. Go to **API permissions > Add a permission > Microsoft Graph > Delegated permissions**
-2. Add:
+2. Add permissions based on your plan:
+
+   **Standard plan (€99/month):**
    - `User.Read` — sign-in and read user profile
+
+   **Team plan (€299/month) — add all of the above, plus:**
    - `Files.ReadWrite` — read and write user's OneDrive files (for project sync)
-3. Click **Grant admin consent** (optional, otherwise users consent on first login)
+   - `Files.ReadWrite.All` — channel SharePoint access (for shared projects)
+   - `Channel.ReadBasic.All` — channel listing (for Teams integration)
+
+3. Click **Grant admin consent** (optional for Standard; recommended for Team plan, otherwise users consent on first login)
 
 ### Create Client Secret
 
@@ -163,6 +170,8 @@ App Service Authentication configured for Azure AD, referencing the customer-pro
         },
         "login": {
           "loginParameters": ["scope=openid profile email User.Read Files.ReadWrite"]
+          // Actual template uses conditional: Standard = "User.Read" only,
+          // Team = "User.Read Files.ReadWrite"
         }
       }
     },
@@ -176,7 +185,7 @@ App Service Authentication configured for Azure AD, referencing the customer-pro
 Key configuration:
 
 - **Token store enabled**: tokens available at `/.auth/me` for Graph API calls
-- **Login parameters**: requests `User.Read` and `Files.ReadWrite` scopes for OneDrive access
+- **Login parameters**: conditional by plan — Standard requests `User.Read` only; Team requests `User.Read` + `Files.ReadWrite` for OneDrive access
 - **Redirect to login**: unauthenticated users are automatically redirected to Azure AD sign-in
 
 ---
@@ -253,7 +262,7 @@ az deployment group show \
 After deployment, EasyAuth is fully configured:
 
 - Users visit the app URL and are redirected to Azure AD sign-in
-- Consent for `User.Read` and `Files.ReadWrite` is requested on first login
+- Consent for `User.Read` (Standard) or `User.Read` + `Files.ReadWrite` (Team) is requested on first login
 - Tokens are stored in the EasyAuth token store and accessible via `/.auth/me`
 
 ### Verify Redirect URI
@@ -317,9 +326,16 @@ If users can't sign in:
 
 The template requests only necessary permissions:
 
+**Standard plan:**
+
+| Permission  | Scope     | Purpose          |
+| ----------- | --------- | ---------------- |
+| `User.Read` | Delegated | Get user profile |
+
+**Team plan adds:**
+
 | Permission        | Scope     | Purpose               |
 | ----------------- | --------- | --------------------- |
-| `User.Read`       | Delegated | Get user profile      |
 | `Files.ReadWrite` | Delegated | OneDrive project sync |
 
 ### Secret Handling

@@ -1,17 +1,17 @@
 # Azure App Storage
 
-Offline-first persistence with OneDrive cloud sync.
+Offline-first persistence with optional OneDrive cloud sync (Team plan).
 
 ---
 
 ## Overview
 
-The Azure app uses a two-tier storage strategy:
+Storage behavior depends on the plan:
 
-1. **IndexedDB** (local, instant) — via Dexie.js
-2. **OneDrive** (cloud, async) — via Microsoft Graph API
+- **Standard plan (€99/month)**: Local-only storage via **IndexedDB** (Dexie.js). All projects are saved and loaded from the browser. No cloud sync.
+- **Team plan (€299/month)**: Two-tier storage — **IndexedDB** (local, instant) + **OneDrive** (cloud, async) via Microsoft Graph API. Every save writes to IndexedDB first, then syncs to OneDrive when online. Loads prefer the cloud version (fresher) and fall back to local when offline.
 
-Every save writes to IndexedDB first, then syncs to OneDrive when online. Loads prefer the cloud version (fresher) and fall back to local when offline.
+Both plans use IndexedDB as the primary persistence layer. The Team plan adds OneDrive sync on top.
 
 ---
 
@@ -31,38 +31,42 @@ Source: `apps/azure/src/db/schema.ts`
 
 ## Save Flow
 
+> The cloud sync steps below apply to the **Team plan only**. Standard plan saves to IndexedDB and stops.
+
 ```
 User clicks Save
        │
        ▼
-saveToIndexedDB()          ← instant, always succeeds
+saveToIndexedDB()          ← instant, always succeeds (both plans)
        │
-       ├── Online? ──Yes──▶ saveToCloud() via Graph API PUT
+       ├── Online? ──Yes──▶ saveToCloud() via Graph API PUT  (Team plan only)
        │                           │
        │                    ├── Success → markAsSynced() → status: 'synced'
        │                    └── Failure → addToSyncQueue() → status: 'offline'
        │
-       └── Offline ──────▶ addToSyncQueue() → status: 'offline'
+       └── Offline ──────▶ addToSyncQueue() → status: 'offline'  (Team plan only)
 ```
 
 ---
 
 ## Load Flow
 
+> The cloud load steps below apply to the **Team plan only**. Standard plan loads from IndexedDB directly.
+
 ```
 loadProject(name)
        │
-       ├── Online? ──Yes──▶ loadFromCloud() via Graph API GET
+       ├── Online? ──Yes──▶ loadFromCloud() via Graph API GET  (Team plan only)
        │                           │
        │                    ├── Found → cache to IndexedDB → return
        │                    └── Error → fall through to local
        │
-       └── Fallback ──────▶ loadFromIndexedDB() → return
+       └── Fallback ──────▶ loadFromIndexedDB() → return  (both plans)
 ```
 
 ---
 
-## Sync Triggers
+## Sync Triggers (Team Plan Only)
 
 Sync to OneDrive happens on:
 
@@ -97,7 +101,7 @@ Source: `apps/azure/src/services/storage.ts`
 
 ---
 
-## Sync Status States
+## Sync Status States (Team Plan Only)
 
 | Status     | Meaning                                                           |
 | ---------- | ----------------------------------------------------------------- |
@@ -110,7 +114,7 @@ Source: `apps/azure/src/services/storage.ts`
 
 ---
 
-## OneDrive File Structure
+## OneDrive File Structure (Team Plan Only)
 
 ```
 OneDrive/
@@ -127,20 +131,22 @@ Files are `.vrs` extension, containing JSON-serialized `AnalysisState` (see `doc
 
 ## What Is Preserved
 
-| Data                 | Storage      | Synced to Cloud |
-| -------------------- | ------------ | --------------- |
-| Project data + state | IndexedDB    | Yes             |
-| Filter stack         | In project   | Yes             |
-| Regression state     | In project   | Yes             |
-| View state           | In project   | Yes             |
-| Chart titles         | In project   | Yes             |
-| Display options      | localStorage | No              |
-| Theme preference     | localStorage | No              |
-| Company accent       | localStorage | No              |
+| Data                 | Storage      | Synced to Cloud (Team) |
+| -------------------- | ------------ | ---------------------- |
+| Project data + state | IndexedDB    | Yes                    |
+| Filter stack         | In project   | Yes                    |
+| Regression state     | In project   | Yes                    |
+| View state           | In project   | Yes                    |
+| Chart titles         | In project   | Yes                    |
+| Display options      | localStorage | No                     |
+| Theme preference     | localStorage | No                     |
+| Company accent       | localStorage | No                     |
+
+> Standard plan stores all project data in IndexedDB only. The "Synced to Cloud" column applies to the Team plan.
 
 ---
 
-## Queue Pruning
+## Queue Pruning (Team Plan Only)
 
 Stale sync queue items (older than 30 days) are pruned on app mount via `pruneSyncQueue()`. This prevents unbounded queue growth if the user is offline for extended periods.
 

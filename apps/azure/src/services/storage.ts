@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { isLocalDev, AuthError } from '../auth/easyAuth';
 import { getGraphToken } from '../auth/graphToken';
 import { errorService } from '@variscout/ui';
+import { isTeamPlan } from '@variscout/core';
 import {
   addToSyncQueue,
   getPendingSyncItems,
@@ -465,6 +466,12 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Always save to IndexedDB first (instant feedback)
       await saveToIndexedDB(project, name, location);
 
+      // Standard plan: local-only storage, no cloud sync
+      if (!isTeamPlan()) {
+        setSyncStatus({ status: 'saved', message: 'Saved locally' });
+        return;
+      }
+
       if (!navigator.onLine) {
         await addToSyncQueue({ project, name, location });
         setSyncStatus({
@@ -570,6 +577,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const loadProject = useCallback(
     async (name: string, location: StorageLocation): Promise<Project | null> => {
+      // Standard plan: local-only storage
+      if (!isTeamPlan()) {
+        return loadFromIndexedDB(name);
+      }
+
       if (navigator.onLine) {
         try {
           const token = await getGraphToken();
@@ -631,6 +643,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const listProjects = useCallback(async (): Promise<CloudProject[]> => {
     const localProjects = await listFromIndexedDB();
 
+    // Standard plan: local-only storage, no cloud merge
+    if (!isTeamPlan()) {
+      return localProjects;
+    }
+
     if (!navigator.onLine || isLocalDev()) {
       return localProjects;
     }
@@ -675,6 +692,9 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     const handleOnline = async () => {
+      // Standard plan: no background cloud sync
+      if (!isTeamPlan()) return;
+
       const pending = await getPendingSyncItems();
 
       if (pending.length === 0) return;

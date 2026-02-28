@@ -10,7 +10,7 @@
  */
 
 import { useCallback } from 'react';
-import { createPhotoAttachment } from '@variscout/core';
+import { createPhotoAttachment, isTeamPlan } from '@variscout/core';
 import type { UseFindingsReturn } from '@variscout/hooks';
 import { processPhoto } from '../utils/photoProcessing';
 import { uploadPhoto } from '../services/photoUpload';
@@ -33,6 +33,9 @@ export function usePhotoComments({
 }: UsePhotoCommentsOptions) {
   const handleAddPhoto = useCallback(
     async (findingId: string, commentId: string, file: File) => {
+      // Photo upload requires Team plan (OneDrive storage)
+      if (!isTeamPlan()) return;
+
       try {
         // 1. Process photo (EXIF strip + thumbnail)
         const processed = await processPhoto(file);

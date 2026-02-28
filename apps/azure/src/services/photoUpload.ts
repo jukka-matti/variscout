@@ -1,11 +1,11 @@
 /**
  * Photo upload service — uploads full-resolution photos to OneDrive
- * via Graph API. Uses Teams SSO → OBO for token acquisition, with
- * EasyAuth fallback for Standard plan users.
+ * via Graph API. Team plan only.
  *
  * OneDrive path: /VariScout/Photos/{analysisId}/{findingId}/{filename}
  */
 
+import { isTeamPlan } from '@variscout/core';
 import { isLocalDev } from '../auth/easyAuth';
 import { getGraphToken } from '../auth/graphToken';
 import { classifySyncError, type StorageLocation } from './storage';
@@ -133,6 +133,10 @@ export async function uploadPhoto(
   findingId: string,
   location: StorageLocation = 'personal'
 ): Promise<PhotoUploadResult> {
+  if (!isTeamPlan()) {
+    throw new Error('Photo upload requires Team plan');
+  }
+
   if (isLocalDev()) {
     // Simulate upload in local dev
     console.info(

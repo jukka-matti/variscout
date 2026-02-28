@@ -63,7 +63,7 @@ Team plan adds:
 │  │                                                           │  │
 │  │   ┌─────────────────────────────────────────────────────┐ │  │
 │  │   │              VARISCOUT AZURE APP                    │ │  │
-│  │   │   React SPA + EasyAuth + OneDrive Integration      │ │  │
+│  │   │   React SPA + EasyAuth + OneDrive (Team plan)      │ │  │
 │  │   └─────────────────────────────────────────────────────┘ │  │
 │  │                                                           │  │
 │  │   ┌─────────────────────────────────────────────────────┐ │  │
@@ -81,7 +81,7 @@ Team plan adds:
 │                              │                                   │
 │                              ▼                                   │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │                      ONEDRIVE                             │  │
+│  │                  ONEDRIVE (Team plan only)                 │  │
 │  │              (Analysis sync via Graph API)                │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                  │
@@ -114,7 +114,7 @@ Unlike traditional SaaS, VariScout Azure App:
 
 - Deploys entirely to customer's Azure tenant
 - Processes all data in-browser
-- Stores analyses in customer's OneDrive
+- Stores analyses locally (Standard) or in customer's OneDrive (Team)
 - Makes zero calls to external servers
 
 This architecture ensures:
@@ -148,16 +148,16 @@ const plan = import.meta.env.VARISCOUT_PLAN; // 'standard' or 'team'
 
 ## Features
 
-| Feature          | Description                                                  |
-| ---------------- | ------------------------------------------------------------ |
-| SSO              | Microsoft Entra ID via EasyAuth                              |
-| Cloud Sync       | Analyses saved to OneDrive                                   |
-| Sharing          | Share analyses with team members                             |
-| Offline          | Cached locally, syncs when online                            |
-| All Chart Types  | I-Chart, Boxplot, Pareto, Capability, etc.                   |
-| Performance Mode | Multi-channel Cpk analysis                                   |
-| Presentation     | Full-screen chart overview + focused single-chart navigation |
-| Drill-Down       | Interactive filter navigation                                |
+| Feature          | Plan | Description                                                  |
+| ---------------- | ---- | ------------------------------------------------------------ |
+| SSO              | Both | Microsoft Entra ID via EasyAuth                              |
+| Cloud Sync       | Team | Analyses saved to OneDrive                                   |
+| Sharing          | Team | Share analyses with team members via OneDrive/SharePoint     |
+| Offline          | Both | Cached locally; Team plan syncs when online                  |
+| All Chart Types  | Both | I-Chart, Boxplot, Pareto, Capability, etc.                   |
+| Performance Mode | Both | Multi-channel Cpk analysis                                   |
+| Presentation     | Both | Full-screen chart overview + focused single-chart navigation |
+| Drill-Down       | Both | Interactive filter navigation                                |
 
 ---
 

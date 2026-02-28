@@ -532,8 +532,9 @@ export const Editor: React.FC<EditorProps> = ({
           </h2>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          {/* Sync Status — hidden on phone to save space */}
+          {/* Sync Status — Team plan only, hidden on phone to save space */}
           {!isPhone &&
+            isTeamPlan() &&
             (syncStatus.status === 'error' ? (
               <button
                 onClick={() => {

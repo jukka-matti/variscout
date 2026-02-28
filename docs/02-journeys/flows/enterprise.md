@@ -295,7 +295,7 @@ Once Olivia's team deploys via Azure Marketplace, the journey continues in-app:
 | [Azure Daily Use](azure-daily-use.md)                   | Gary (daily user) | Repeat analysis, Performance Mode, exports               |
 | [Azure Team Collaboration](azure-team-collaboration.md) | Olivia (admin)    | Teams setup, sharing, onboarding colleagues              |
 
-Users who tried the [PWA](return-visitor.md) before purchasing will find the same analysis workflow — skills transfer directly. The key differences are persistence (OneDrive), file upload, Performance Mode, and 6-factor support.
+Users who tried the [PWA](return-visitor.md) before purchasing will find the same analysis workflow — skills transfer directly. The key differences are persistence (IndexedDB on Standard; + OneDrive sync on Team plan), file upload, Performance Mode, and 6-factor support.
 
 ---
 

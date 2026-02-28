@@ -62,7 +62,7 @@ VariScout is offline-first with no backend. Key security areas:
 ### Azure EasyAuth (Azure App Only)
 
 - App Service Authentication (EasyAuth) -- no MSAL libraries
-- OneDrive API permissions (User.Read + Files.ReadWrite)
+- API permissions: Standard plan = `User.Read` only; Team plan adds `Files.ReadWrite` (OneDrive sync)
 - Token store via `/.auth/me` endpoint
 
 ### Audit Scope Exclusions
