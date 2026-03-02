@@ -466,6 +466,30 @@ function AppMain() {
           )}
         </div>
 
+        {/* Findings Panel (inline, desktop only) */}
+        {panels.isDesktop && outcome && (
+          <FindingsPanel
+            isOpen={panels.isFindingsPanelOpen}
+            onClose={() => {
+              panels.handleCloseFindingsPanel();
+              setHighlightedFindingId(null);
+            }}
+            findings={findingsState.findings}
+            onEditFinding={findingsState.editFinding}
+            onDeleteFinding={findingsState.deleteFinding}
+            onRestoreFinding={handleRestoreFinding}
+            onSetFindingStatus={findingsState.setFindingStatus}
+            onSetFindingTag={findingsState.setFindingTag}
+            onAddComment={findingsState.addFindingComment}
+            onEditComment={findingsState.editFindingComment}
+            onDeleteComment={findingsState.deleteFindingComment}
+            columnAliases={columnAliases}
+            drillPath={drillPath}
+            activeFindingId={highlightedFindingId}
+            onPopout={handleOpenFindingsPopout}
+          />
+        )}
+
         {/* Data Panel (desktop only, when open) */}
         {panels.isDesktop && rawData.length > 0 && !importFlow.isMapping && (
           <DataPanel
@@ -487,30 +511,6 @@ function AppMain() {
         isOpen={panels.isSettingsOpen}
         onClose={() => panels.setIsSettingsOpen(false)}
       />
-
-      {/* Findings Panel (slide-in from right) */}
-      {outcome && (
-        <FindingsPanel
-          isOpen={panels.isFindingsPanelOpen}
-          onClose={() => {
-            panels.handleCloseFindingsPanel();
-            setHighlightedFindingId(null);
-          }}
-          findings={findingsState.findings}
-          onEditFinding={findingsState.editFinding}
-          onDeleteFinding={findingsState.deleteFinding}
-          onRestoreFinding={handleRestoreFinding}
-          onSetFindingStatus={findingsState.setFindingStatus}
-          onSetFindingTag={findingsState.setFindingTag}
-          onAddComment={findingsState.addFindingComment}
-          onEditComment={findingsState.editFindingComment}
-          onDeleteComment={findingsState.deleteFindingComment}
-          columnAliases={columnAliases}
-          drillPath={drillPath}
-          activeFindingId={highlightedFindingId}
-          onPopout={handleOpenFindingsPopout}
-        />
-      )}
 
       <DataTableModal
         isOpen={panels.isDataTableOpen}

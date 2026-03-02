@@ -232,6 +232,13 @@ export {
 // Settings Panel
 export { SettingsPanelBase, type SettingsPanelBaseProps } from './components/SettingsPanel';
 
+// Findings Panel
+export {
+  FindingsPanelBase,
+  type FindingsPanelBaseProps,
+  type FindingsPanelResizeConfig,
+} from './components/FindingsPanel';
+
 // Editable Chart Title
 export { EditableChartTitle, type EditableChartTitleProps } from './components/EditableChartTitle';
 
