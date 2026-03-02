@@ -14,7 +14,7 @@ import { isInTeams } from './teamsContext';
  * Returns false outside Teams, on desktop web, or in popout windows.
  */
 export function isTeamsMediaAvailable(): boolean {
-  return isInTeams() && media.isSupported();
+  return isInTeams() && typeof media.selectMedia === 'function';
 }
 
 /**
@@ -37,17 +37,30 @@ export async function capturePhotoFromTeams(): Promise<File | null> {
     },
   };
 
-  const result = await media.selectMedia(config);
-  if (!result || result.length === 0) return null;
+  const result = await new Promise<media.Media[]>((resolve, reject) => {
+    media.selectMedia(config, (err, attachments) => {
+      if (err) {
+        reject(new Error(err.message || `Teams media error: ${err.errorCode}`));
+      } else {
+        resolve(attachments || []);
+      }
+    });
+  });
+
+  if (result.length === 0) return null;
 
   const selected = result[0];
 
   // getMedia() returns the full blob via callback
   const blob = await new Promise<Blob>((resolve, reject) => {
     selected.getMedia((err, b) => {
-      if (err) reject(new Error(err.message || `Teams media error: ${err.errorCode}`));
-      else if (b) resolve(b);
-      else reject(new Error('No media returned'));
+      if (err) {
+        reject(new Error(err.message || `Teams media error: ${err.errorCode}`));
+      } else if (b) {
+        resolve(b);
+      } else {
+        reject(new Error('No media returned'));
+      }
     });
   });
 

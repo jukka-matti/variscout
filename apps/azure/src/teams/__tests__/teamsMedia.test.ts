@@ -7,12 +7,11 @@ vi.mock('../teamsContext', () => ({
 }));
 
 // Mock @microsoft/teams-js media module
-const mockIsSupported = vi.fn();
+type SelectMediaCallback = (err: unknown, attachments: unknown[] | null) => void;
 const mockSelectMedia = vi.fn();
 
 vi.mock('@microsoft/teams-js', () => ({
   media: {
-    isSupported: () => mockIsSupported(),
     selectMedia: (...args: unknown[]) => mockSelectMedia(...args),
     MediaType: { Image: 1 },
     Source: { Camera: 1, Gallery: 2 },
@@ -33,23 +32,13 @@ describe('teamsMedia', () => {
   describe('isTeamsMediaAvailable', () => {
     it('returns false when not in Teams', async () => {
       mockIsInTeams.mockReturnValue(false);
-      mockIsSupported.mockReturnValue(true);
 
       const mod = await loadModule();
       expect(mod.isTeamsMediaAvailable()).toBe(false);
     });
 
-    it('returns false when media is not supported', async () => {
+    it('returns true when in Teams and selectMedia is a function', async () => {
       mockIsInTeams.mockReturnValue(true);
-      mockIsSupported.mockReturnValue(false);
-
-      const mod = await loadModule();
-      expect(mod.isTeamsMediaAvailable()).toBe(false);
-    });
-
-    it('returns true when in Teams and media is supported', async () => {
-      mockIsInTeams.mockReturnValue(true);
-      mockIsSupported.mockReturnValue(true);
 
       const mod = await loadModule();
       expect(mod.isTeamsMediaAvailable()).toBe(true);
@@ -58,15 +47,19 @@ describe('teamsMedia', () => {
 
   describe('capturePhotoFromTeams', () => {
     it('returns null when user cancels (empty result)', async () => {
-      mockSelectMedia.mockResolvedValueOnce([]);
+      mockSelectMedia.mockImplementation((_config: unknown, cb: SelectMediaCallback) => {
+        cb(null, []);
+      });
 
       const mod = await loadModule();
       const result = await mod.capturePhotoFromTeams();
       expect(result).toBeNull();
     });
 
-    it('returns null when selectMedia returns null', async () => {
-      mockSelectMedia.mockResolvedValueOnce(null);
+    it('returns null when selectMedia returns null attachments', async () => {
+      mockSelectMedia.mockImplementation((_config: unknown, cb: SelectMediaCallback) => {
+        cb(null, null);
+      });
 
       const mod = await loadModule();
       const result = await mod.capturePhotoFromTeams();
@@ -75,12 +68,14 @@ describe('teamsMedia', () => {
 
     it('returns a File when photo is captured successfully', async () => {
       const testBlob = new Blob(['fake-image-data'], { type: 'image/jpeg' });
-      mockSelectMedia.mockResolvedValueOnce([
-        {
-          name: 'camera_photo.jpg',
-          getMedia: (cb: (err: null, blob: Blob) => void) => cb(null, testBlob),
-        },
-      ]);
+      mockSelectMedia.mockImplementation((_config: unknown, cb: SelectMediaCallback) => {
+        cb(null, [
+          {
+            name: 'camera_photo.jpg',
+            getMedia: (mediaCb: (err: null, blob: Blob) => void) => mediaCb(null, testBlob),
+          },
+        ]);
+      });
 
       const mod = await loadModule();
       const result = await mod.capturePhotoFromTeams();
@@ -92,12 +87,14 @@ describe('teamsMedia', () => {
 
     it('uses fallback filename when name is missing', async () => {
       const testBlob = new Blob(['data'], { type: 'image/jpeg' });
-      mockSelectMedia.mockResolvedValueOnce([
-        {
-          name: undefined,
-          getMedia: (cb: (err: null, blob: Blob) => void) => cb(null, testBlob),
-        },
-      ]);
+      mockSelectMedia.mockImplementation((_config: unknown, cb: SelectMediaCallback) => {
+        cb(null, [
+          {
+            name: undefined,
+            getMedia: (mediaCb: (err: null, blob: Blob) => void) => mediaCb(null, testBlob),
+          },
+        ]);
+      });
 
       const mod = await loadModule();
       const result = await mod.capturePhotoFromTeams();
@@ -106,33 +103,48 @@ describe('teamsMedia', () => {
       expect(result!.name).toMatch(/^teams_photo_\d+\.jpg$/);
     });
 
+    it('rejects when selectMedia returns an error', async () => {
+      mockSelectMedia.mockImplementation((_config: unknown, cb: SelectMediaCallback) => {
+        cb({ message: 'Not supported', errorCode: 100 }, []);
+      });
+
+      const mod = await loadModule();
+      await expect(mod.capturePhotoFromTeams()).rejects.toThrow('Not supported');
+    });
+
     it('rejects when getMedia returns an error', async () => {
-      mockSelectMedia.mockResolvedValueOnce([
-        {
-          name: 'photo.jpg',
-          getMedia: (cb: (err: { message: string; errorCode: number }) => void) =>
-            cb({ message: 'Permission denied', errorCode: 500 }),
-        },
-      ]);
+      mockSelectMedia.mockImplementation((_config: unknown, cb: SelectMediaCallback) => {
+        cb(null, [
+          {
+            name: 'photo.jpg',
+            getMedia: (mediaCb: (err: { message: string; errorCode: number }) => void) =>
+              mediaCb({ message: 'Permission denied', errorCode: 500 }),
+          },
+        ]);
+      });
 
       const mod = await loadModule();
       await expect(mod.capturePhotoFromTeams()).rejects.toThrow('Permission denied');
     });
 
     it('rejects when getMedia returns no blob', async () => {
-      mockSelectMedia.mockResolvedValueOnce([
-        {
-          name: 'photo.jpg',
-          getMedia: (cb: (err: null, blob: null) => void) => cb(null, null),
-        },
-      ]);
+      mockSelectMedia.mockImplementation((_config: unknown, cb: SelectMediaCallback) => {
+        cb(null, [
+          {
+            name: 'photo.jpg',
+            getMedia: (mediaCb: (err: null, blob: null) => void) => mediaCb(null, null),
+          },
+        ]);
+      });
 
       const mod = await loadModule();
       await expect(mod.capturePhotoFromTeams()).rejects.toThrow('No media returned');
     });
 
     it('passes correct config to selectMedia', async () => {
-      mockSelectMedia.mockResolvedValueOnce([]);
+      mockSelectMedia.mockImplementation((_config: unknown, cb: SelectMediaCallback) => {
+        cb(null, []);
+      });
 
       const mod = await loadModule();
       await mod.capturePhotoFromTeams();
@@ -145,7 +157,8 @@ describe('teamsMedia', () => {
             enableFilter: false,
             cameraSwitcher: true,
           }),
-        })
+        }),
+        expect.any(Function)
       );
     });
   });

@@ -811,12 +811,10 @@ const Dashboard = ({
               stageOrderMode={stageOrderMode}
               stagedStats={stagedStats}
               stats={stats}
-              specs={specs}
               ichartChartTitle={chartTitles.ichart || ''}
               onSetOutcome={setOutcome}
               onSetStageColumn={setStageColumn}
               onSetStageOrderMode={setStageOrderMode}
-              onSaveSpecs={setSpecs}
               onSpecClick={() => setShowSpecEditor(true)}
               onIChartTitleChange={title => handleChartTitleChange('ichart', title)}
               onPointClick={onPointClick}

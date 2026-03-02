@@ -10,6 +10,7 @@ function makeFinding(overrides: Partial<Finding> = {}): Finding {
     text: 'High variation in fill head 3',
     createdAt: Date.now(),
     status: 'observed',
+    statusChangedAt: Date.now(),
     comments: [],
     context: {
       activeFilters: { 'Fill Head': ['3'] },
