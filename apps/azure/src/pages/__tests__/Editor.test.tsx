@@ -80,6 +80,7 @@ vi.mock('@variscout/ui', () => ({
       <button onClick={onCancel}>Cancel</button>
     </div>
   ),
+  DataTableModalBase: () => null,
   InvestigationPrompt: () => null,
   useIsMobile: () => false,
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },

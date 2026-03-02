@@ -172,7 +172,12 @@ export {
   type AnnotationContextMenuProps,
 } from './components/AnnotationContextMenu';
 
-export { DataTableBase, type DataTableBaseProps } from './components/DataTable';
+export {
+  DataTableBase,
+  type DataTableBaseProps,
+  DataTableModalBase,
+  type DataTableModalBaseProps,
+} from './components/DataTable';
 
 export {
   ChartDownloadMenu,
