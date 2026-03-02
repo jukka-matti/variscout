@@ -53,6 +53,8 @@ export interface UseParetoChartDataResult {
   ghostBarData: Map<string, number> | undefined;
   /** Pixel positions for annotation layer anchoring */
   categoryPositions: Map<string, { x: number; y: number }>;
+  /** True when every category has exactly 1 row (pre-aggregated data signal) */
+  allSingleRow: boolean;
 }
 
 export function useParetoChartData({
@@ -171,6 +173,12 @@ export function useParetoChartData({
     return positions;
   }, [data, parentWidth]);
 
+  // Detect pre-aggregated data: every category has exactly 1 row in count mode
+  const allSingleRow = useMemo(() => {
+    if (usingSeparateData || aggregation !== 'count' || data.length < 2) return false;
+    return data.every(d => d.value === 1);
+  }, [usingSeparateData, aggregation, data]);
+
   return {
     usingSeparateData,
     hasActiveFilters,
@@ -179,5 +187,6 @@ export function useParetoChartData({
     comparisonData,
     ghostBarData,
     categoryPositions,
+    allSingleRow,
   };
 }

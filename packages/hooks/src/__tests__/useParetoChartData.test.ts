@@ -264,4 +264,109 @@ describe('useParetoChartData', () => {
     );
     expect(withFilters.current.hasActiveFilters).toBe(true);
   });
+
+  describe('allSingleRow', () => {
+    const SINGLE_ROW_DATA = [
+      { Defect: 'Scratch', Count: 45 },
+      { Defect: 'Dent', Count: 30 },
+      { Defect: 'Stain', Count: 15 },
+    ];
+
+    it('returns true when count mode and every category has exactly 1 row', () => {
+      const { result } = renderHook(() =>
+        useParetoChartData({
+          rawData: SINGLE_ROW_DATA,
+          filteredData: SINGLE_ROW_DATA,
+          factor: 'Defect',
+          outcome: 'Count',
+          aggregation: 'count',
+          showComparison: false,
+          paretoMode: null,
+          separateParetoData: null,
+          filters: NO_FILTERS,
+          parentWidth: 800,
+        })
+      );
+
+      expect(result.current.allSingleRow).toBe(true);
+    });
+
+    it('returns false when any category has more than 1 row', () => {
+      const { result } = renderHook(() =>
+        useParetoChartData({
+          rawData: RAW_DATA,
+          filteredData: RAW_DATA,
+          factor: 'Machine',
+          outcome: 'Weight',
+          aggregation: 'count',
+          showComparison: false,
+          paretoMode: null,
+          separateParetoData: null,
+          filters: NO_FILTERS,
+          parentWidth: 800,
+        })
+      );
+
+      // Machine A has 3 rows, B has 2, C has 1
+      expect(result.current.allSingleRow).toBe(false);
+    });
+
+    it('returns false when in value mode', () => {
+      const { result } = renderHook(() =>
+        useParetoChartData({
+          rawData: SINGLE_ROW_DATA,
+          filteredData: SINGLE_ROW_DATA,
+          factor: 'Defect',
+          outcome: 'Count',
+          aggregation: 'value',
+          showComparison: false,
+          paretoMode: null,
+          separateParetoData: null,
+          filters: NO_FILTERS,
+          parentWidth: 800,
+        })
+      );
+
+      expect(result.current.allSingleRow).toBe(false);
+    });
+
+    it('returns false when using separate data', () => {
+      const { result } = renderHook(() =>
+        useParetoChartData({
+          rawData: SINGLE_ROW_DATA,
+          filteredData: SINGLE_ROW_DATA,
+          factor: 'Defect',
+          outcome: 'Count',
+          aggregation: 'count',
+          showComparison: false,
+          paretoMode: 'separate',
+          separateParetoData: SEPARATE_PARETO,
+          filters: NO_FILTERS,
+          parentWidth: 800,
+        })
+      );
+
+      expect(result.current.allSingleRow).toBe(false);
+    });
+
+    it('returns false when fewer than 2 categories', () => {
+      const singleCategory = [{ Defect: 'Scratch', Count: 45 }];
+      const { result } = renderHook(() =>
+        useParetoChartData({
+          rawData: singleCategory,
+          filteredData: singleCategory,
+          factor: 'Defect',
+          outcome: 'Count',
+          aggregation: 'count',
+          showComparison: false,
+          paretoMode: null,
+          separateParetoData: null,
+          filters: NO_FILTERS,
+          parentWidth: 800,
+        })
+      );
+
+      expect(result.current.allSingleRow).toBe(false);
+    });
+  });
 });

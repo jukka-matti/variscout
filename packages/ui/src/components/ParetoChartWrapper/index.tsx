@@ -122,6 +122,7 @@ export const ParetoChartWrapperBase = ({
     comparisonData,
     ghostBarData,
     categoryPositions,
+    allSingleRow,
   } = useParetoChartData({
     rawData,
     filteredData,
@@ -222,6 +223,17 @@ export const ParetoChartWrapperBase = ({
             title="Hide Pareto panel"
           >
             <HideIcon size={14} />
+          </button>
+        )}
+
+        {allSingleRow && aggregation === 'count' && outcome && onToggleAggregation && (
+          <button
+            onClick={onToggleAggregation}
+            className="flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 mr-1 transition-colors"
+            title={`Each category has 1 row — switch to sum of ${columnAliases[outcome] || outcome}`}
+          >
+            <Info size={12} />
+            <span>1 row each — try &Sigma;</span>
           </button>
         )}
 

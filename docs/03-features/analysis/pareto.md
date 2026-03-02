@@ -59,6 +59,17 @@ Click any bar to:
 
 ---
 
+## Data Shapes
+
+Users typically bring Pareto data in one of two shapes:
+
+| Shape                 | Example                                                                 | Recommended Mode     |
+| --------------------- | ----------------------------------------------------------------------- | -------------------- |
+| **One row per event** | Each row is a defect occurrence with a category column                  | Count mode (default) |
+| **Pre-aggregated**    | One row per category with a count/value column (e.g. `Defect \| Count`) | Value mode (Σ)       |
+
+When VariScout detects pre-aggregated data (every category has exactly one row), an amber hint appears on the Pareto chart suggesting the user switch to value mode. Clicking the hint activates value mode automatically.
+
 ---
 
 ## Technical Reference

@@ -77,11 +77,12 @@ Data is automatically sorted by value (descending) with cumulative percentages c
 
 The Pareto chart includes optional control buttons in the top-right corner:
 
-| Button          | Icon       | Condition                                                                   | Action                           |
-| --------------- | ---------- | --------------------------------------------------------------------------- | -------------------------------- |
-| **Hide**        | EyeOff     | `onHide` provided                                                           | Hides the Pareto panel from view |
-| **Aggregation** | Hash/Sigma | `onToggleAggregation` provided + `outcome` exists + not using separate data | Toggles count/value mode         |
-| **Comparison**  | Eye/EyeOff | Filters active + `onToggleComparison` provided + not using separate data    | Toggles ghost bar comparison     |
+| Button                  | Icon       | Condition                                                                       | Action                                           |
+| ----------------------- | ---------- | ------------------------------------------------------------------------------- | ------------------------------------------------ |
+| **Hide**                | EyeOff     | `onHide` provided                                                               | Hides the Pareto panel from view                 |
+| **Aggregation**         | Hash/Sigma | `onToggleAggregation` provided + `outcome` exists + not using separate data     | Toggles count/value mode                         |
+| **Comparison**          | Eye/EyeOff | Filters active + `onToggleComparison` provided + not using separate data        | Toggles ghost bar comparison                     |
+| **Pre-aggregated hint** | Info       | `allSingleRow` + count mode + `outcome` exists + `onToggleAggregation` provided | Clickable amber hint that switches to value mode |
 
 When both buttons are visible, the hide button appears to the left of the comparison toggle.
 
@@ -107,6 +108,8 @@ The Pareto chart supports two aggregation modes for analyzing category importanc
 **Default behavior:** Count mode (shows frequency of each category).
 
 **Value mode:** When enabled, bars represent the sum of the outcome column for each category. This is useful for analyzing total impact (e.g., total cost, total downtime) rather than just frequency.
+
+**Auto-detection:** When every category has exactly 1 row in count mode (pre-aggregated data), `useParetoChartData` sets `allSingleRow: true`. The wrapper renders an amber hint ("1 row each — try Σ") that acts as a clickable shortcut to switch to value mode. The hint disappears once value mode is active.
 
 **Toggle button:**
 
