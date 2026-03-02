@@ -37,7 +37,7 @@ interface ParetoChartProps {
   onToggleComparison?: () => void;
   /** Callback to hide the Pareto panel */
   onHide?: () => void;
-  /** Callback to open factor selector */
+  /** Callback to open factor selector (not currently used — both apps use visible FactorSelector buttons) */
   onSelectFactor?: () => void;
   /** Callback to open Pareto file upload dialog */
   onUploadPareto?: () => void;
@@ -130,11 +130,12 @@ The Pareto chart supports two aggregation modes for analyzing category importanc
 
 ### Empty State
 
-When no Pareto data is available, an actionable empty state is shown with:
+When no Pareto data is available (e.g. all categories filtered out), an actionable empty state is shown:
 
-- **Select Factor** button - visible if `availableFactors.length > 0` and `onSelectFactor` provided
-- **Upload** button - visible if `onUploadPareto` provided
-- **Hide** button - visible if `onHide` provided
+- **Upload** button — visible if `onUploadPareto` provided. Opens ColumnMapping re-edit (factor management).
+- **Hide** button — visible if `onHide` provided. Hides the Pareto card from the dashboard grid.
+
+Both PWA and Azure wire these two actions. The shared component also accepts `onSelectFactor` for a "Select Factor" button, but neither app passes it — factor selection uses the visible `FactorSelector` pill buttons in the card header instead.
 
 ### Separate Pareto Data Mode
 
@@ -161,9 +162,7 @@ import ParetoChart from './components/charts/ParetoChart';
     showComparison={showComparison}
     onToggleComparison={() => setShowComparison(prev => !prev)}
     onHide={() => setParetoVisible(false)}
-    onSelectFactor={() => setFactorModalOpen(true)}
     onUploadPareto={() => setParetoUploadOpen(true)}
-    availableFactors={['Shift', 'Machine', 'Operator']}
   />
 </div>
 
