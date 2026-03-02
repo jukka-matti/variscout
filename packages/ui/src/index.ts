@@ -258,6 +258,13 @@ export {
   type PresentationViewBaseProps,
 } from './components/PresentationView';
 
+// Mobile Category Sheet
+export {
+  MobileCategorySheet,
+  type MobileCategorySheetProps,
+  type MobileCategorySheetData,
+} from './components/MobileCategorySheet';
+
 // Focused Chart View
 export {
   FocusedChartViewBase,

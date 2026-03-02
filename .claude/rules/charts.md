@@ -161,6 +161,8 @@ Three chart types support user annotations via right-click context menu:
 
 State managed by `useAnnotations` hook from `@variscout/hooks`. UI components: `ChartAnnotationLayer` and `AnnotationContextMenu` from `@variscout/ui`.
 
+**Mobile (<640px)**: Tap on boxplot box or Pareto bar opens `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) with category stats, drill-down, highlight, and pin-as-finding actions. Draggable text annotations (`ChartAnnotationLayer`) remain desktop-only. I-Chart annotations are desktop-only on all platforms.
+
 ## Chart Export
 
 Charts export at fixed, presentation-ready dimensions via `useChartCopy` from `@variscout/hooks`. All exports (clipboard copy, PNG download, SVG download) temporarily resize the chart container, wait for visx re-render, then capture — producing identical output from any view (dashboard card or focused).

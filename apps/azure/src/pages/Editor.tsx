@@ -330,35 +330,38 @@ export const Editor: React.FC<EditorProps> = ({
   }, [highlightedFindingId]);
 
   // Findings: pin current filter state (one-click with duplicate detection)
-  const handlePinFinding = useCallback(() => {
-    // Check for duplicate
-    const existing = findingsState.findDuplicate(filters);
-    if (existing) {
+  const handlePinFinding = useCallback(
+    (noteText?: string) => {
+      // Check for duplicate
+      const existing = findingsState.findDuplicate(filters);
+      if (existing) {
+        panels.setIsFindingsOpen(true);
+        setHighlightedFindingId(existing.id);
+        return;
+      }
+      // Build context and create finding immediately
+      const context: FindingContext = {
+        activeFilters: { ...filters },
+        cumulativeScope:
+          drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
+        stats:
+          filteredData.length > 0
+            ? {
+                mean:
+                  filteredData.reduce((sum, r) => {
+                    const v = Number(r[outcome!]);
+                    return isNaN(v) ? sum : sum + v;
+                  }, 0) / filteredData.length,
+                samples: filteredData.length,
+              }
+            : undefined,
+      };
+      const newFinding = findingsState.addFinding(noteText || '', context);
       panels.setIsFindingsOpen(true);
-      setHighlightedFindingId(existing.id);
-      return;
-    }
-    // Build context and create finding immediately
-    const context: FindingContext = {
-      activeFilters: { ...filters },
-      cumulativeScope:
-        drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
-      stats:
-        filteredData.length > 0
-          ? {
-              mean:
-                filteredData.reduce((sum, r) => {
-                  const v = Number(r[outcome!]);
-                  return isNaN(v) ? sum : sum + v;
-                }, 0) / filteredData.length,
-              samples: filteredData.length,
-            }
-          : undefined,
-    };
-    const newFinding = findingsState.addFinding('', context);
-    panels.setIsFindingsOpen(true);
-    setHighlightedFindingId(newFinding.id);
-  }, [filters, drillPath, filteredData, outcome, findingsState, panels]);
+      setHighlightedFindingId(newFinding.id);
+    },
+    [filters, drillPath, filteredData, outcome, findingsState, panels]
+  );
 
   const handleRestoreFinding = useCallback(
     (id: string) => {

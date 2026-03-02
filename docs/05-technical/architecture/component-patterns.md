@@ -489,6 +489,8 @@ See [Colors > Shared Component Color Schemes](../../06-design-system/foundations
 | `clearAnnotations`       | `(chartType) => void`                          | Clears all for chart type (`'boxplot'`, `'pareto'`, `'ichart'`) |
 | `hasAnnotations`         | `boolean`                                      | Any annotations or highlights exist                             |
 
+**Mobile note:** `handleContextMenu` is desktop-only (right-click). On mobile (<640px), `MobileCategorySheet` (from `@variscout/ui`) handles highlight and finding creation for Boxplot and Pareto categories. Text annotations (`ChartAnnotation` boxes) are not created on mobile.
+
 ### Usage Example
 
 ```tsx

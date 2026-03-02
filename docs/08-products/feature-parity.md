@@ -50,25 +50,25 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Navigation & Interaction
 
-| Feature                           | Azure Standard | Azure Team | PWA (Free) | Notes                                                                                                         |
-| --------------------------------- | :------------: | :--------: | :--------: | ------------------------------------------------------------------------------------------------------------- |
-| **Drill-down**                    |       ✓        |     ✓      |     ✓      |                                                                                                               |
-| **Linked filtering**              |       ✓        |     ✓      |     ✓      |                                                                                                               |
-| **Breadcrumb navigation**         |       ✓        |     ✓      |     ✓      |                                                                                                               |
-| **Multi-select filters**          |       ✓        |     ✓      |     ✓      |                                                                                                               |
-| **Findings panel**                |       ✓        |     ✓      |     ✓      | Pin filter states with notes, status tracking, comments, board view; Azure adds: persistence, popout window   |
-| **What-If Simulator**             |       ✓        |     ✓      |     ✓      |                                                                                                               |
-| **Keyboard navigation**           |       ✓        |     ✓      |     ✓      |                                                                                                               |
-| **Copy chart to clipboard**       |       ✓        |     ✓      |     ✓      | Includes filter context bar when active                                                                       |
-| **Filter context on charts**      |       ✓        |     ✓      |     ✓      | Shows active filters inside chart cards; toggle in Settings                                                   |
-| **Editable chart titles**         |       ✓        |     ✓      |     ✓      |                                                                                                               |
-| **Selection panel**               |       ✓        |     ✓      |     ✓      | Minitab-style point brushing                                                                                  |
-| **Create Factor**                 |       ✓        |     ✓      |     ✓      | From point selection                                                                                          |
-| **Focus mode (fullscreen chart)** |       ✓        |     ✓      |     ✓      |                                                                                                               |
-| **Presentation Mode**             |       ✓        |     ✓      |     -      | Full-screen grid overview + focused chart view                                                                |
-| **Median in Stats Panel**         |       ✓        |     ✓      |     ✓      | Always shown alongside Mean                                                                                   |
-| **Spec editing (Stats)**          |       ✓        |     ✓      |     ✓      | `onEditSpecs` callback; pencil link opens SpecEditor popover                                                  |
-| **Chart annotations**             |       ✓        |     ✓      |     ✓      | Boxplot/Pareto: right-click context menu (highlight + note); I-Chart: right-click to place free-floating note |
+| Feature                           | Azure Standard | Azure Team | PWA (Free) | Notes                                                                                                                                          |
+| --------------------------------- | :------------: | :--------: | :--------: | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Drill-down**                    |       ✓        |     ✓      |     ✓      |                                                                                                                                                |
+| **Linked filtering**              |       ✓        |     ✓      |     ✓      |                                                                                                                                                |
+| **Breadcrumb navigation**         |       ✓        |     ✓      |     ✓      |                                                                                                                                                |
+| **Multi-select filters**          |       ✓        |     ✓      |     ✓      |                                                                                                                                                |
+| **Findings panel**                |       ✓        |     ✓      |     ✓      | Pin filter states with notes, status tracking, comments, board view; Azure adds: persistence, popout window                                    |
+| **What-If Simulator**             |       ✓        |     ✓      |     ✓      |                                                                                                                                                |
+| **Keyboard navigation**           |       ✓        |     ✓      |     ✓      |                                                                                                                                                |
+| **Copy chart to clipboard**       |       ✓        |     ✓      |     ✓      | Includes filter context bar when active                                                                                                        |
+| **Filter context on charts**      |       ✓        |     ✓      |     ✓      | Shows active filters inside chart cards; toggle in Settings                                                                                    |
+| **Editable chart titles**         |       ✓        |     ✓      |     ✓      |                                                                                                                                                |
+| **Selection panel**               |       ✓        |     ✓      |     ✓      | Minitab-style point brushing                                                                                                                   |
+| **Create Factor**                 |       ✓        |     ✓      |     ✓      | From point selection                                                                                                                           |
+| **Focus mode (fullscreen chart)** |       ✓        |     ✓      |     ✓      |                                                                                                                                                |
+| **Presentation Mode**             |       ✓        |     ✓      |     -      | Full-screen grid overview + focused chart view                                                                                                 |
+| **Median in Stats Panel**         |       ✓        |     ✓      |     ✓      | Always shown alongside Mean                                                                                                                    |
+| **Spec editing (Stats)**          |       ✓        |     ✓      |     ✓      | `onEditSpecs` callback; pencil link opens SpecEditor popover                                                                                   |
+| **Chart annotations**             |       ✓        |     ✓      |     ✓      | Desktop: right-click context menu (highlight + note). Mobile: tap → action sheet (highlight + pin finding). I-Chart annotations: desktop only. |
 
 ---
 

@@ -67,7 +67,7 @@ flowchart TD
 - Editable chart titles
 - Chart export buttons (copy, download, SVG)
 - Maximize button (carousel IS full-view)
-- Annotation features (no right-click on touch)
+- Draggable text annotations (replaced by bottom-sheet action menu for highlights + findings)
 - FilterContextBar per-card
 - Stage column selector
 - Selection panel (brush selection is desktop-only)

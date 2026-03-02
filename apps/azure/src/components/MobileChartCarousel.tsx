@@ -7,6 +7,10 @@
  *
  * Azure-specific: renders Azure chart wrappers that use useData() context.
  * Does not share code with PWA MobileDashboard (different context model).
+ *
+ * Boxplot/Pareto: tapping a category opens MobileCategorySheet (bottom action sheet)
+ * instead of drilling down immediately. Sheet provides drill-down, highlight, and
+ * pin-as-finding actions.
  */
 import React, { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Activity, BarChart3, PieChart, TrendingUp } from 'lucide-react';
@@ -14,9 +18,22 @@ import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
-import { AnovaResults, FactorSelector, ErrorBoundary, FilterBreadcrumb } from '@variscout/ui';
-import type { StatsResult, SpecLimits, DataRow, AnovaResult } from '@variscout/core';
-import type { FilterChipData } from '@variscout/hooks';
+import {
+  AnovaResults,
+  FactorSelector,
+  ErrorBoundary,
+  FilterBreadcrumb,
+  MobileCategorySheet,
+} from '@variscout/ui';
+import type { MobileCategorySheetData } from '@variscout/ui';
+import type {
+  StatsResult,
+  SpecLimits,
+  DataRow,
+  AnovaResult,
+  BoxplotGroupData,
+} from '@variscout/core';
+import type { FilterChipData, HighlightColor } from '@variscout/hooks';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
@@ -62,7 +79,16 @@ interface MobileChartCarouselProps {
   // ANOVA
   anovaResult: AnovaResult | null;
   // Pin finding
-  onPinFinding?: () => void;
+  onPinFinding?: (noteText?: string) => void;
+  // Category sheet data (from Dashboard)
+  boxplotData: BoxplotGroupData[];
+  boxplotHighlights: Record<string, HighlightColor>;
+  paretoHighlights: Record<string, HighlightColor>;
+  onSetHighlight: (
+    chartType: 'boxplot' | 'pareto',
+    key: string,
+    color: HighlightColor | undefined
+  ) => void;
 }
 
 const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
@@ -93,8 +119,17 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   showCpk,
   anovaResult,
   onPinFinding,
+  boxplotData,
+  boxplotHighlights,
+  paretoHighlights,
+  onSetHighlight,
 }) => {
   const [activeView, setActiveView] = useState<ChartView>('ichart');
+
+  // Category sheet state
+  const [categorySheet, setCategorySheet] = useState<MobileCategorySheetData | null>(null);
+  const [sheetFactor, setSheetFactor] = useState<string>('');
+  const [sheetChartType, setSheetChartType] = useState<'boxplot' | 'pareto'>('boxplot');
 
   const currentIndex = VIEWS.findIndex(v => v.key === activeView);
 
@@ -132,6 +167,80 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
       goToView('prev');
     }
   }, [touchStart, touchEnd, goToView]);
+
+  // Boxplot drill-down interceptor: opens sheet instead of drilling immediately
+  const handleBoxplotDrillDown = useCallback(
+    (factor: string, value: string) => {
+      const group = boxplotData.find(g => g.key === value);
+      const contributions = categoryContributions?.get(factor);
+      const sheetData: MobileCategorySheetData = {
+        categoryKey: value,
+        chartType: 'boxplot',
+        sampleN: group?.values.length,
+        mean: group?.mean,
+        median: group?.median,
+        iqr: group ? group.q3 - group.q1 : undefined,
+        stdDev: group?.stdDev,
+        contributionPct: contributions?.get(value),
+      };
+      setCategorySheet(sheetData);
+      setSheetFactor(factor);
+      setSheetChartType('boxplot');
+    },
+    [boxplotData, categoryContributions]
+  );
+
+  // Pareto drill-down interceptor: opens sheet with contribution % (Option A)
+  const handleParetoDrillDown = useCallback(
+    (factor: string, value: string) => {
+      const contributions = categoryContributions?.get(factor);
+      const sheetData: MobileCategorySheetData = {
+        categoryKey: value,
+        chartType: 'pareto',
+        contributionPct: contributions?.get(value),
+      };
+      setCategorySheet(sheetData);
+      setSheetFactor(factor);
+      setSheetChartType('pareto');
+    },
+    [categoryContributions]
+  );
+
+  const handleSheetClose = useCallback(() => {
+    setCategorySheet(null);
+  }, []);
+
+  // Sheet drill-down: performs the actual drill-down
+  const handleSheetDrillDown = useCallback(() => {
+    if (categorySheet) {
+      onDrillDown(sheetFactor, categorySheet.categoryKey);
+    }
+  }, [categorySheet, sheetFactor, onDrillDown]);
+
+  // Sheet highlight
+  const handleSheetHighlight = useCallback(
+    (color: HighlightColor | undefined) => {
+      if (categorySheet) {
+        onSetHighlight(sheetChartType, categorySheet.categoryKey, color);
+      }
+    },
+    [categorySheet, sheetChartType, onSetHighlight]
+  );
+
+  // Sheet pin finding (with note text)
+  const handleSheetPinFinding = useCallback(
+    (noteText: string) => {
+      onPinFinding?.(noteText);
+    },
+    [onPinFinding]
+  );
+
+  // Current highlight for the open sheet
+  const currentSheetHighlight = categorySheet
+    ? sheetChartType === 'boxplot'
+      ? boxplotHighlights[categorySheet.categoryKey]
+      : paretoHighlights[categorySheet.categoryKey]
+    : undefined;
 
   return (
     <div
@@ -189,7 +298,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
             onRemoveFilter={onRemoveFilter}
             onClearAll={onClearAllFilters}
             cumulativeVariationPct={cumulativeVariationPct}
-            onPinFinding={onPinFinding}
+            onPinFinding={onPinFinding ? () => onPinFinding() : undefined}
           />
         </div>
       )}
@@ -222,19 +331,21 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
             {activeView === 'boxplot' && boxplotFactor && (
               <Boxplot
                 factor={boxplotFactor}
-                onDrillDown={onDrillDown}
+                onDrillDown={handleBoxplotDrillDown}
                 variationPct={factorVariations.get(boxplotFactor)}
                 categoryContributions={categoryContributions?.get(boxplotFactor)}
+                highlightedCategories={boxplotHighlights}
               />
             )}
             {activeView === 'pareto' && paretoFactor && (
               <ParetoChart
                 factor={paretoFactor}
-                onDrillDown={onDrillDown}
+                onDrillDown={handleParetoDrillDown}
                 showComparison={showParetoComparison}
                 onToggleComparison={onToggleParetoComparison}
                 aggregation={paretoAggregation}
                 onToggleAggregation={onToggleParetoAggregation}
+                highlightedCategories={paretoHighlights}
               />
             )}
             {activeView === 'stats' && (
@@ -271,6 +382,17 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
           />
         ))}
       </div>
+
+      {/* Mobile Category Action Sheet */}
+      <MobileCategorySheet
+        data={categorySheet}
+        factor={sheetFactor}
+        currentHighlight={currentSheetHighlight}
+        onDrillDown={handleSheetDrillDown}
+        onSetHighlight={handleSheetHighlight}
+        onPinFinding={onPinFinding ? handleSheetPinFinding : undefined}
+        onClose={handleSheetClose}
+      />
     </div>
   );
 };

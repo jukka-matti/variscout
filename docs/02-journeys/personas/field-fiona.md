@@ -78,4 +78,4 @@ journey
 - **Swipe navigation** between charts (native feel)
 - **Overflow menu** for toolbar actions (too many for phone header)
 - **Full-screen Findings** overlay (sidebar doesn't fit on phone)
-- **No annotations** on phone (right-click doesn't exist on touch)
+- **Bottom-sheet action menu** for category highlights and findings on phone

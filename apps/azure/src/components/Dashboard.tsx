@@ -70,8 +70,8 @@ interface DashboardProps {
   onExitPresentation?: () => void;
   /** Callback to open ColumnMapping in re-edit mode for factor management */
   onManageFactors?: () => void;
-  /** Callback to pin current filter state as a finding */
-  onPinFinding?: () => void;
+  /** Callback to pin current filter state as a finding (optional note text) */
+  onPinFinding?: (noteText?: string) => void;
   /** Callback to share a chart via deep link */
   onShareChart?: (chartType: string) => void;
 }
@@ -161,6 +161,8 @@ const Dashboard = ({
     setFocusedChart,
     handleNextChart,
     handlePrevChart,
+    showParetoPanel,
+    setShowParetoPanel,
     showParetoComparison,
     setShowParetoComparison,
     copyFeedback,
@@ -463,6 +465,10 @@ const Dashboard = ({
               showCpk={displayOptions.showCpk !== false}
               anovaResult={anovaResult}
               onPinFinding={onPinFinding}
+              boxplotData={boxplotData}
+              boxplotHighlights={boxplotHighlights}
+              paretoHighlights={paretoHighlights}
+              onSetHighlight={setHighlight}
             />
           ) : !focusedChart ? (
             <DashboardGrid
@@ -719,76 +725,81 @@ const Dashboard = ({
                 </DashboardChartCard>
               }
               paretoCard={
-                <DashboardChartCard
-                  id="pareto-card"
-                  testId="chart-pareto"
-                  chartName="pareto"
-                  className="flex-1 min-w-[300px]"
-                  title={
-                    <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                      <EditableChartTitle
-                        defaultTitle={`Pareto: ${paretoFactor}`}
-                        value={chartTitles.pareto || ''}
-                        onChange={title => handleChartTitleChange('pareto', title)}
-                      />
-                    </h3>
-                  }
-                  controls={
-                    <>
-                      <FactorSelector
-                        factors={factors}
-                        selected={paretoFactor}
-                        onChange={setParetoFactor}
-                        hasActiveFilter={!!filters?.[paretoFactor]?.length}
+                showParetoPanel ? (
+                  <DashboardChartCard
+                    id="pareto-card"
+                    testId="chart-pareto"
+                    chartName="pareto"
+                    className="flex-1 min-w-[300px]"
+                    title={
+                      <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
+                        <EditableChartTitle
+                          defaultTitle={`Pareto: ${paretoFactor}`}
+                          value={chartTitles.pareto || ''}
+                          onChange={title => handleChartTitleChange('pareto', title)}
+                        />
+                      </h3>
+                    }
+                    controls={
+                      <>
+                        <FactorSelector
+                          factors={factors}
+                          selected={paretoFactor}
+                          onChange={setParetoFactor}
+                          hasActiveFilter={!!filters?.[paretoFactor]?.length}
+                          columnAliases={columnAliases}
+                        />
+                        {((paretoHighlights && Object.keys(paretoHighlights).length > 0) ||
+                          paretoAnnotations.length > 0) && (
+                          <button
+                            onClick={() => clearAnnotations('pareto')}
+                            className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
+                            title="Clear pareto annotations"
+                            aria-label="Clear pareto annotations"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
+                      </>
+                    }
+                    filterBar={
+                      <FilterContextBar
+                        filterChipData={filterChipData}
                         columnAliases={columnAliases}
+                        cumulativeVariationPct={cumulativeVariationPct}
+                        show={displayOptions.showFilterContext !== false}
                       />
-                      {((paretoHighlights && Object.keys(paretoHighlights).length > 0) ||
-                        paretoAnnotations.length > 0) && (
-                        <button
-                          onClick={() => clearAnnotations('pareto')}
-                          className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-                          title="Clear pareto annotations"
-                          aria-label="Clear pareto annotations"
-                        >
-                          <X size={12} />
-                        </button>
+                    }
+                    copyFeedback={copyFeedback}
+                    onCopyChart={handleCopyChart}
+                    onDownloadPng={handleDownloadPng}
+                    onDownloadSvg={handleDownloadSvg}
+                    onMaximize={() => setFocusedChart('pareto')}
+                    onShareChart={onShareChart}
+                  >
+                    <ErrorBoundary componentName="Pareto Chart">
+                      {paretoFactor && (
+                        <ParetoChart
+                          factor={paretoFactor}
+                          onDrillDown={handleDrillDown}
+                          showComparison={showParetoComparison}
+                          onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
+                          onHide={() => setShowParetoPanel(false)}
+                          onUploadPareto={onManageFactors}
+                          availableFactors={factors}
+                          aggregation={paretoAggregation}
+                          onToggleAggregation={() =>
+                            setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
+                          }
+                          highlightedCategories={paretoHighlights}
+                          onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+                          annotations={paretoAnnotations}
+                          onAnnotationsChange={setParetoAnnotations}
+                        />
                       )}
-                    </>
-                  }
-                  filterBar={
-                    <FilterContextBar
-                      filterChipData={filterChipData}
-                      columnAliases={columnAliases}
-                      cumulativeVariationPct={cumulativeVariationPct}
-                      show={displayOptions.showFilterContext !== false}
-                    />
-                  }
-                  copyFeedback={copyFeedback}
-                  onCopyChart={handleCopyChart}
-                  onDownloadPng={handleDownloadPng}
-                  onDownloadSvg={handleDownloadSvg}
-                  onMaximize={() => setFocusedChart('pareto')}
-                  onShareChart={onShareChart}
-                >
-                  <ErrorBoundary componentName="Pareto Chart">
-                    {paretoFactor && (
-                      <ParetoChart
-                        factor={paretoFactor}
-                        onDrillDown={handleDrillDown}
-                        showComparison={showParetoComparison}
-                        onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
-                        aggregation={paretoAggregation}
-                        onToggleAggregation={() =>
-                          setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
-                        }
-                        highlightedCategories={paretoHighlights}
-                        onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
-                        annotations={paretoAnnotations}
-                        onAnnotationsChange={setParetoAnnotations}
-                      />
-                    )}
-                  </ErrorBoundary>
-                </DashboardChartCard>
+                    </ErrorBoundary>
+                  </DashboardChartCard>
+                ) : undefined
               }
               statsPanel={
                 <StatsPanel
@@ -863,6 +874,8 @@ const Dashboard = ({
                 setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
               }
               onParetoTitleChange={title => handleChartTitleChange('pareto', title)}
+              onHidePareto={() => setShowParetoPanel(false)}
+              onUploadPareto={onManageFactors}
               paretoHighlightedCategories={paretoHighlights}
               onParetoContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
               paretoAnnotations={paretoAnnotations}

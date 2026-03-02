@@ -86,6 +86,15 @@ I-Chart, Boxplot, and Pareto charts support user text annotations. Highlight col
 
 **Free-floating anchors** (I-Chart): notes are stored as a percentage position within the chart area. They remain at their visual position when data is filtered or the time range changes. I-Chart dot colors carry semantic meaning (blue = in-control, red = violation) and are never overridden by highlight colors.
 
+### Interaction Model
+
+| Platform        | Interaction               | Charts                   |
+| --------------- | ------------------------- | ------------------------ |
+| Desktop         | Right-click context menu  | Boxplot, Pareto, I-Chart |
+| Mobile (<640px) | Tap → bottom action sheet | Boxplot, Pareto          |
+
+Note: I-Chart annotations (free-floating text) are desktop-only.
+
 ### Components
 
 | Component               | Package         | Purpose                                     |

@@ -8,13 +8,39 @@ vi.mock('../charts/IChart', () => ({
   default: () => <div data-testid="ichart-mock">I-Chart</div>,
 }));
 vi.mock('../charts/Boxplot', () => ({
-  default: ({ factor }: { factor: string }) => (
-    <div data-testid="boxplot-mock">Boxplot: {factor}</div>
+  default: ({
+    factor,
+    onDrillDown,
+  }: {
+    factor: string;
+    onDrillDown?: (factor: string, value: string) => void;
+  }) => (
+    <div data-testid="boxplot-mock">
+      Boxplot: {factor}
+      {onDrillDown && (
+        <button data-testid="boxplot-tap" onClick={() => onDrillDown(factor, 'A')}>
+          Tap A
+        </button>
+      )}
+    </div>
   ),
 }));
 vi.mock('../charts/ParetoChart', () => ({
-  default: ({ factor }: { factor: string }) => (
-    <div data-testid="pareto-mock">Pareto: {factor}</div>
+  default: ({
+    factor,
+    onDrillDown,
+  }: {
+    factor: string;
+    onDrillDown?: (factor: string, value: string) => void;
+  }) => (
+    <div data-testid="pareto-mock">
+      Pareto: {factor}
+      {onDrillDown && (
+        <button data-testid="pareto-tap" onClick={() => onDrillDown(factor, 'X')}>
+          Tap X
+        </button>
+      )}
+    </div>
   ),
 }));
 vi.mock('../StatsPanel', () => ({
@@ -46,6 +72,45 @@ vi.mock('@variscout/ui', () => ({
       ))}
     </select>
   ),
+  MobileCategorySheet: ({
+    data,
+    onDrillDown,
+    onSetHighlight,
+    onPinFinding,
+    onClose,
+    currentHighlight,
+  }: {
+    data: { categoryKey: string; chartType: string } | null;
+    onDrillDown: () => void;
+    onSetHighlight: (color: string | undefined) => void;
+    onPinFinding?: (note: string) => void;
+    onClose: () => void;
+    currentHighlight?: string;
+  }) =>
+    data ? (
+      <div data-testid="mobile-category-sheet">
+        <span data-testid="sheet-category">{data.categoryKey}</span>
+        <span data-testid="sheet-chart-type">{data.chartType}</span>
+        <span data-testid="sheet-highlight">{currentHighlight || 'none'}</span>
+        <button data-testid="sheet-drill-down" onClick={onDrillDown}>
+          Drill down
+        </button>
+        <button data-testid="sheet-highlight-red" onClick={() => onSetHighlight('red')}>
+          Red
+        </button>
+        <button data-testid="sheet-highlight-clear" onClick={() => onSetHighlight(undefined)}>
+          Clear
+        </button>
+        {onPinFinding && (
+          <button data-testid="sheet-pin-finding" onClick={() => onPinFinding('test note')}>
+            Pin
+          </button>
+        )}
+        <button data-testid="sheet-close" onClick={onClose}>
+          Close
+        </button>
+      </div>
+    ) : null,
 }));
 
 const defaultProps = {
@@ -74,6 +139,35 @@ const defaultProps = {
   onSaveSpecs: vi.fn(),
   showCpk: true,
   anovaResult: null,
+  boxplotData: [
+    {
+      key: 'A',
+      values: [10, 11, 12],
+      min: 10,
+      max: 12,
+      q1: 10.5,
+      median: 11,
+      mean: 11,
+      q3: 11.5,
+      outliers: [],
+      stdDev: 1,
+    },
+    {
+      key: 'B',
+      values: [13, 14, 15],
+      min: 13,
+      max: 15,
+      q1: 13.5,
+      median: 14,
+      mean: 14,
+      q3: 14.5,
+      outliers: [],
+      stdDev: 1,
+    },
+  ],
+  boxplotHighlights: {} as Record<string, 'red' | 'amber' | 'green'>,
+  paretoHighlights: {} as Record<string, 'red' | 'amber' | 'green'>,
+  onSetHighlight: vi.fn(),
 };
 
 describe('MobileChartCarousel', () => {
@@ -283,5 +377,109 @@ describe('MobileChartCarousel', () => {
     fireEvent.click(nextBtn);
 
     expect(screen.getByTestId('anova-mock')).toBeInTheDocument();
+  });
+
+  // --- Category Sheet Interceptor Tests ---
+
+  it('opens category sheet when tapping a boxplot category', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    // Navigate to boxplot
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    expect(screen.getByTestId('boxplot-mock')).toBeInTheDocument();
+
+    // Tap a category
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+
+    // Sheet should appear
+    expect(screen.getByTestId('mobile-category-sheet')).toBeInTheDocument();
+    expect(screen.getByTestId('sheet-category')).toHaveTextContent('A');
+    expect(screen.getByTestId('sheet-chart-type')).toHaveTextContent('boxplot');
+  });
+
+  it('opens category sheet when tapping a pareto bar', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    // Navigate to pareto (2 clicks)
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    expect(screen.getByTestId('pareto-mock')).toBeInTheDocument();
+
+    // Tap a bar
+    fireEvent.click(screen.getByTestId('pareto-tap'));
+
+    // Sheet should appear
+    expect(screen.getByTestId('mobile-category-sheet')).toBeInTheDocument();
+    expect(screen.getByTestId('sheet-category')).toHaveTextContent('X');
+    expect(screen.getByTestId('sheet-chart-type')).toHaveTextContent('pareto');
+  });
+
+  it('performs drill-down via category sheet', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    // Navigate to boxplot and tap
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+
+    // Should NOT have called onDrillDown yet (intercepted)
+    expect(defaultProps.onDrillDown).not.toHaveBeenCalled();
+
+    // Click drill-down in sheet
+    fireEvent.click(screen.getByTestId('sheet-drill-down'));
+
+    // Now onDrillDown should fire with the category
+    expect(defaultProps.onDrillDown).toHaveBeenCalledWith('Machine', 'A');
+  });
+
+  it('closes category sheet via close button', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    // Navigate to boxplot and tap
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+    expect(screen.getByTestId('mobile-category-sheet')).toBeInTheDocument();
+
+    // Close the sheet
+    fireEvent.click(screen.getByTestId('sheet-close'));
+    expect(screen.queryByTestId('mobile-category-sheet')).not.toBeInTheDocument();
+  });
+
+  it('delegates highlight to onSetHighlight with correct chart type', () => {
+    render(<MobileChartCarousel {...defaultProps} />);
+
+    // Navigate to boxplot and tap
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+
+    // Set highlight via sheet
+    fireEvent.click(screen.getByTestId('sheet-highlight-red'));
+
+    expect(defaultProps.onSetHighlight).toHaveBeenCalledWith('boxplot', 'A', 'red');
+  });
+
+  it('delegates pin finding with note text', () => {
+    const onPinFinding = vi.fn();
+    render(<MobileChartCarousel {...defaultProps} onPinFinding={onPinFinding} />);
+
+    // Navigate to boxplot and tap
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+
+    // Pin finding via sheet
+    fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+
+    expect(onPinFinding).toHaveBeenCalledWith('test note');
+  });
+
+  it('shows highlights on boxplot categories', () => {
+    const highlights = { A: 'red' as const };
+    render(<MobileChartCarousel {...defaultProps} boxplotHighlights={highlights} />);
+
+    // Navigate to boxplot and tap A
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+
+    // Sheet should show current highlight
+    expect(screen.getByTestId('sheet-highlight')).toHaveTextContent('red');
   });
 });
