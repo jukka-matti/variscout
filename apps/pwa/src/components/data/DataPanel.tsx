@@ -8,7 +8,7 @@ import {
   GripVertical,
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
-import { getSpecStatus } from '../../lib/export';
+import { getSpecStatus } from '@variscout/core';
 import { useDataTablePagination, useHighlightFade, useResizablePanel } from '@variscout/hooks';
 import type { ExclusionReason, DataCellValue } from '@variscout/core';
 

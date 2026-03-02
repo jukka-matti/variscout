@@ -20,25 +20,6 @@ vi.mock('../PerformanceDashboard', () => ({
 vi.mock('../MobileChartCarousel', () => ({
   default: () => <div data-testid="mobile-carousel">Mobile Carousel</div>,
 }));
-vi.mock('../FactorSelector', () => ({
-  default: ({
-    factors,
-    selected,
-    onChange,
-  }: {
-    factors: string[];
-    selected: string;
-    onChange: (v: string) => void;
-  }) => (
-    <select data-testid="factor-selector" value={selected} onChange={e => onChange(e.target.value)}>
-      {factors.map((f: string) => (
-        <option key={f} value={f}>
-          {f}
-        </option>
-      ))}
-    </select>
-  ),
-}));
 vi.mock('../settings/SpecEditor', () => ({
   default: () => <div data-testid="spec-editor">Spec Editor</div>,
 }));
@@ -57,6 +38,23 @@ vi.mock('@variscout/charts', () => ({
 // Mock @variscout/ui
 vi.mock('@variscout/ui', () => ({
   ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  FactorSelector: ({
+    factors,
+    selected,
+    onChange,
+  }: {
+    factors: string[];
+    selected: string;
+    onChange: (v: string) => void;
+  }) => (
+    <select data-testid="factor-selector" value={selected} onChange={e => onChange(e.target.value)}>
+      {factors.map((f: string) => (
+        <option key={f} value={f}>
+          {f}
+        </option>
+      ))}
+    </select>
+  ),
   FilterBreadcrumb: () => <div data-testid="filter-breadcrumb">Breadcrumb</div>,
   EditableChartTitle: ({ defaultTitle }: { defaultTitle: string }) => (
     <span data-testid="editable-title">{defaultTitle}</span>

@@ -4,7 +4,7 @@ import { StatsPanelBase, useGlossary } from '@variscout/ui';
 import CapabilityHistogram from './charts/CapabilityHistogram';
 import ProbabilityPlot from './charts/ProbabilityPlot';
 import SpecEditor from './settings/SpecEditor';
-import WhatIfSimulator from './WhatIfSimulator';
+import { WhatIfSimulator } from '@variscout/ui';
 
 interface StatsPanelProps {
   stats: StatsResult | null;

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
+import { useResizablePanel } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '@variscout/ui';
 
 // Width constraints
@@ -80,44 +81,13 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
     onViewModeChange?.(mode);
   };
 
-  // Panel width state (persisted to localStorage)
-  const [width, setWidth] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? Math.min(Math.max(parseInt(saved, 10), MIN_WIDTH), MAX_WIDTH) : DEFAULT_WIDTH;
-  });
-  const [isDragging, setIsDragging] = useState(false);
-
-  // Save width to localStorage
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, width.toString());
-  }, [width]);
-
-  // Drag handlers for resizing
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = window.innerWidth - e.clientX;
-      setWidth(Math.min(Math.max(newWidth, MIN_WIDTH), MAX_WIDTH));
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
+  // Resizable panel width (persisted to localStorage)
+  const { width, isDragging, handleMouseDown } = useResizablePanel(
+    STORAGE_KEY,
+    MIN_WIDTH,
+    MAX_WIDTH,
+    DEFAULT_WIDTH
+  );
 
   // Close on escape
   useEffect(() => {
