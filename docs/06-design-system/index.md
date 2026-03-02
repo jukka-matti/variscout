@@ -73,6 +73,7 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 - [Feedback](./patterns/feedback.md) - Status and loading states
 - [Navigation](./patterns/navigation.md) - Navigation patterns and breadcrumbs
 - [Interactions](./patterns/interactions.md) - Interaction patterns (inline edit, grids, selection cards)
+- [Panels and Drawers](./patterns/panels-and-drawers.md) - Panel decision framework, drawer types, z-index scale
 
 ## Usage
 
