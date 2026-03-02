@@ -49,13 +49,14 @@ export const PresentationViewBase: React.FC<PresentationViewBaseProps> = ({
   renderBoxplot,
   renderPareto,
   renderStats,
+  onExit,
 }) => {
   return (
     <div className="fixed inset-0 z-50 bg-surface flex flex-col p-4 gap-4">
       {/* I-Chart - top section */}
       <div className="flex-[45] min-h-0 bg-surface-secondary border border-edge rounded-2xl p-4 flex flex-col">
         <div className="flex items-center gap-4 mb-2">
-          <h2 className="text-lg font-bold flex items-center gap-2 text-white">
+          <h2 className="text-lg font-bold flex items-center gap-2 text-content">
             <Activity className="text-blue-400" size={20} />
             <EditableChartTitle
               defaultTitle={`I-Chart: ${outcome}`}
@@ -101,9 +102,13 @@ export const PresentationViewBase: React.FC<PresentationViewBaseProps> = ({
       </div>
 
       {/* Exit hint */}
-      <div className="absolute bottom-4 right-4 text-content-muted text-xs">
+      <button
+        onClick={onExit}
+        className="absolute bottom-4 right-4 text-content-muted text-xs hover:text-content transition-colors cursor-pointer bg-transparent border-none p-1"
+        aria-label="Exit presentation mode"
+      >
         Press Escape to exit
-      </div>
+      </button>
     </div>
   );
 };

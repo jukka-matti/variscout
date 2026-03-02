@@ -273,7 +273,21 @@ const Dashboard = ({
   if (!outcome) return null;
 
   if (isPresentationMode && onExitPresentation) {
-    return <PresentationView onExit={onExitPresentation} />;
+    return (
+      <PresentationView
+        onExit={onExitPresentation}
+        boxplotFactor={boxplotFactor}
+        paretoFactor={paretoFactor}
+        factorVariations={factorVariations}
+        categoryContributions={categoryContributions}
+        showParetoComparison={showParetoComparison}
+        onToggleParetoComparison={() => setShowParetoComparison(!showParetoComparison)}
+        paretoAggregation={paretoAggregation}
+        onToggleParetoAggregation={() =>
+          setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
+        }
+      />
+    );
   }
 
   return (

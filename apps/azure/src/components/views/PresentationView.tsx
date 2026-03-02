@@ -12,36 +12,77 @@ import { useData } from '../../context/DataContext';
 
 interface PresentationViewProps {
   onExit: () => void;
+  boxplotFactor: string;
+  paretoFactor: string;
+  factorVariations: Map<string, number>;
+  categoryContributions?: Map<string, Map<string | number, number>>;
+  showParetoComparison: boolean;
+  onToggleParetoComparison: () => void;
+  paretoAggregation: 'count' | 'value';
+  onToggleParetoAggregation: () => void;
 }
 
-const PresentationView: React.FC<PresentationViewProps> = ({ onExit }) => {
+const PresentationView: React.FC<PresentationViewProps> = ({
+  onExit,
+  boxplotFactor,
+  paretoFactor,
+  factorVariations,
+  categoryContributions,
+  showParetoComparison,
+  onToggleParetoComparison,
+  paretoAggregation,
+  onToggleParetoAggregation,
+}) => {
   const {
     outcome,
-    factors,
     stats,
     specs,
+    setSpecs,
     filteredData,
     chartTitles: rawChartTitles,
     setChartTitles,
   } = useData();
   const chartTitles = rawChartTitles || {};
-  const defaultFactor = factors[0] || '';
 
   if (!outcome) return null;
 
   return (
     <PresentationViewBase
       outcome={outcome}
-      boxplotFactor={defaultFactor}
-      paretoFactor={defaultFactor}
+      boxplotFactor={boxplotFactor}
+      paretoFactor={paretoFactor}
       chartTitles={chartTitles}
       onChartTitleChange={(chart, title) => setChartTitles({ ...chartTitles, [chart]: title })}
       onExit={onExit}
       renderIChart={() => <IChart />}
-      renderBoxplot={() => (defaultFactor ? <Boxplot factor={defaultFactor} /> : null)}
-      renderPareto={() => (defaultFactor ? <ParetoChart factor={defaultFactor} /> : null)}
+      renderBoxplot={() =>
+        boxplotFactor ? (
+          <Boxplot
+            factor={boxplotFactor}
+            variationPct={factorVariations.get(boxplotFactor)}
+            categoryContributions={categoryContributions?.get(boxplotFactor)}
+          />
+        ) : null
+      }
+      renderPareto={() =>
+        paretoFactor ? (
+          <ParetoChart
+            factor={paretoFactor}
+            showComparison={showParetoComparison}
+            onToggleComparison={onToggleParetoComparison}
+            aggregation={paretoAggregation}
+            onToggleAggregation={onToggleParetoAggregation}
+          />
+        ) : null
+      }
       renderStats={() => (
-        <StatsPanel stats={stats} specs={specs} filteredData={filteredData} outcome={outcome} />
+        <StatsPanel
+          stats={stats}
+          specs={specs}
+          filteredData={filteredData}
+          outcome={outcome}
+          onSaveSpecs={setSpecs}
+        />
       )}
     />
   );

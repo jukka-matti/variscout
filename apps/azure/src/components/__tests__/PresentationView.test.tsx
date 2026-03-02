@@ -33,13 +33,24 @@ vi.mock('../StatsPanel', () => ({
 
 describe('PresentationView', () => {
   const onExit = vi.fn();
+  const defaultProps = {
+    onExit,
+    boxplotFactor: 'Machine',
+    paretoFactor: 'Machine',
+    factorVariations: new Map<string, number>([['Machine', 0.45]]),
+    categoryContributions: undefined,
+    showParetoComparison: false,
+    onToggleParetoComparison: vi.fn(),
+    paretoAggregation: 'count' as const,
+    onToggleParetoAggregation: vi.fn(),
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renders all charts in static grid', () => {
-    render(<PresentationView onExit={onExit} />);
+    render(<PresentationView {...defaultProps} />);
 
     expect(screen.getByTestId('i-chart')).toBeInTheDocument();
     expect(screen.getByTestId('boxplot')).toBeInTheDocument();
@@ -48,9 +59,16 @@ describe('PresentationView', () => {
   });
 
   it('shows escape hint text', () => {
-    render(<PresentationView onExit={onExit} />);
+    render(<PresentationView {...defaultProps} />);
 
     expect(screen.getByText(/Press Escape to exit/)).toBeInTheDocument();
+  });
+
+  it('passes correct factor to boxplot and pareto', () => {
+    render(<PresentationView {...defaultProps} boxplotFactor="Operator" paretoFactor="Shift" />);
+
+    expect(screen.getByTestId('boxplot')).toHaveTextContent('Boxplot: Operator');
+    expect(screen.getByTestId('pareto-chart')).toHaveTextContent('Pareto: Shift');
   });
 
   it('returns null when no outcome', () => {
@@ -59,12 +77,13 @@ describe('PresentationView', () => {
       factors: [],
       stats: null,
       specs: {},
+      setSpecs: vi.fn(),
       filteredData: [],
       chartTitles: {},
       setChartTitles: vi.fn(),
     } as unknown as ReturnType<typeof DataContextModule.useData>);
 
-    const { container } = render(<PresentationView onExit={onExit} />);
+    const { container } = render(<PresentationView {...defaultProps} />);
 
     expect(container).toBeEmptyDOMElement();
   });
