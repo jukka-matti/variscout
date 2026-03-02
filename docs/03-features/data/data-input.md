@@ -67,6 +67,9 @@ DETECT COLUMNS (type, sample values, unique count, missing count via detectColum
 VALIDATE DATA
      │
      ▼
+TIME EXTRACTION (if date column detected)
+     │
+     ▼
 USER CONFIRMS/ADJUSTS MAPPING (ColumnMapping with data-rich cards)
      │
      ▼
@@ -86,6 +89,28 @@ The ColumnMapping component displays detected columns as **data-rich cards** wit
 - **Column renaming**: A pencil icon on each card opens an inline text input. Press Enter or click away to save the alias. The original column name appears as a subtitle. Aliases persist through the analysis — filter chips, chart axes, and breadcrumbs all use the renamed label.
 - **Collapsible data preview**: A "Preview Data" toggle expands a mini table showing the first 5 rows with color-coded column headers (blue for numeric, green for categorical, amber for date, slate for text) and a row/column summary.
 - **Specification limits**: An optional collapsible **"Set Specification Limits"** section (Target, LSL, USL) at the bottom, collapsed by default. Users who already know their spec limits can expand it and enter values before proceeding to analysis — values auto-apply on blur and carry through to the dashboard.
+
+### Time Factor Extraction
+
+When a date or datetime column is detected during column mapping, the **TimeExtractionPanel** appears inside the ColumnMapping screen. This lets users extract temporal factors from date columns for drill-down analysis (e.g., "Does performance vary by day of week?" or "Are there monthly trends?").
+
+**Checkboxes:**
+
+| Factor      | Default | Description                 |
+| ----------- | ------- | --------------------------- |
+| Year        | On      | 4-digit year (e.g., 2026)   |
+| Month       | On      | Month name (e.g., January)  |
+| Week        | Off     | ISO week number             |
+| Day of Week | On      | Weekday name (e.g., Monday) |
+| Hour        | Off\*   | Hour of day (0–23)          |
+
+\* Hour is auto-enabled when the data contains time components (timestamps with `T` or `:`).
+
+**Result:** New factor columns are added to the dataset (e.g., `Date_Year`, `Date_Month`, `Date_DayOfWeek`) and appear as available factors for drill-down analysis.
+
+**Availability:** Both PWA and Azure App.
+
+**Technical details:** Uses `augmentWithTimeColumns()` from `@variscout/core/time.ts`. See [Technical: Data Input](../../05-technical/implementation/data-input.md) for the extraction pipeline.
 
 ---
 
@@ -175,6 +200,9 @@ AUTO-MAP (if keywords found)
      │
      ▼
 VALIDATE DATA
+     │
+     ▼
+TIME EXTRACTION (if date column detected)
      │
      ▼
 USER CONFIRMS/ADJUSTS

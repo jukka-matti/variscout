@@ -111,7 +111,17 @@ export const Editor: React.FC<EditorProps> = ({
     loadProject,
   } = useData();
 
-  const { handleFileUpload, loadSample } = useDataIngestion();
+  const ingestion = useDataIngestion({
+    onTimeColumnDetected: prompt => {
+      dataFlowRef.current?.setTimeExtractionPrompt(prompt);
+      if (prompt.hasTimeComponent) {
+        dataFlowRef.current?.setTimeExtractionConfig(prev => ({ ...prev, extractHour: true }));
+      }
+    },
+    getRawData: () => rawData,
+    getOutcome: () => outcome,
+    getFactors: () => factors,
+  });
   const isPhone = useIsMobile(BREAKPOINTS.phone);
 
   // Report view state changes for persistence (merge partial updates)
@@ -184,9 +194,14 @@ export const Editor: React.FC<EditorProps> = ({
     setMeasureColumns,
     setMeasureLabel,
     loadProject,
-    handleFileUpload,
-    loadSample,
+    handleFileUpload: ingestion.handleFileUpload,
+    loadSample: ingestion.loadSample,
+    applyTimeExtraction: ingestion.applyTimeExtraction,
   });
+
+  // Ref to allow ingestion callbacks to reach dataFlow setters
+  const dataFlowRef = React.useRef(dataFlow);
+  dataFlowRef.current = dataFlow;
 
   // Manual data analyze with append-mode merge
   const { handleManualDataAnalyze } = useDataMerge({
@@ -507,6 +522,9 @@ export const Editor: React.FC<EditorProps> = ({
         dataQualityReport={dataQualityReport}
         maxFactors={6}
         mode={dataFlow.isMappingReEdit ? 'edit' : 'setup'}
+        timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
+        hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
+        onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
       />
     );
   }
@@ -1097,6 +1115,9 @@ export const Editor: React.FC<EditorProps> = ({
             onCancel={dataFlow.handleMappingCancel}
             dataQualityReport={dataQualityReport}
             maxFactors={6}
+            timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
+            hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
+            onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
           />
         )}
       </div>

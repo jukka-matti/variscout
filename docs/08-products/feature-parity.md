@@ -84,6 +84,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Spec entry at column mapping**  |       ✓        |     ✓      |     ✓      | Collapsible SpecsSection in ColumnMapping                     |
 | **Column data preview**           |       ✓        |     ✓      |     ✓      | Collapsible mini-table showing first 5 rows                   |
 | **Column renaming at setup**      |       ✓        |     ✓      |     ✓      | Pencil icon on column cards → `columnAliases`                 |
+| **Time factor extraction**        |       ✓        |     ✓      |     ✓      | Extract year/month/weekday/hour from date columns             |
 | **Inline data editing**           |       ✓        |     ✓      |     ✓      | Edit cells, add/delete rows, batch apply                      |
 | **Add data during analysis**      |       ✓        |     ✓      |     -      | Paste/upload/manual append with auto-detection                |
 | **Manual entry**                  |       ✓        |     ✓      |     ✓      |                                                               |

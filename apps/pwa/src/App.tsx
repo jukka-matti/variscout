@@ -94,8 +94,6 @@ function AppMain() {
     columnAliases,
     dataFilename,
     dataQualityReport,
-    paretoMode,
-    separateParetoFilename,
     setRawData,
     setOutcome,
     setFactors,
@@ -106,8 +104,6 @@ function AppMain() {
     clearData: ingestion.clearData,
     clearSelection,
     applyTimeExtraction: ingestion.applyTimeExtraction,
-    handleParetoFileUpload: ingestion.handleParetoFileUpload,
-    clearParetoFile: ingestion.clearParetoFile,
   });
 
   // Ref to allow ingestion callbacks to reach importFlow setters

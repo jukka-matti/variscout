@@ -9,7 +9,6 @@ import {
   type WideFormatDetection,
   type TimeExtractionConfig,
 } from '@variscout/core';
-import type { ParetoMode } from '@variscout/hooks';
 
 export interface UsePasteImportFlowOptions {
   rawData: DataRow[];
@@ -18,8 +17,6 @@ export interface UsePasteImportFlowOptions {
   columnAliases: Record<string, string>;
   dataFilename: string | null;
   dataQualityReport: DataQualityReport | null;
-  paretoMode: ParetoMode;
-  separateParetoFilename: string | null;
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
   setFactors: (cols: string[]) => void;
@@ -30,8 +27,6 @@ export interface UsePasteImportFlowOptions {
   clearData: () => void;
   clearSelection: () => void;
   applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
-  handleParetoFileUpload: (file: File) => Promise<boolean>;
-  clearParetoFile: () => void;
 }
 
 export interface UsePasteImportFlowReturn {

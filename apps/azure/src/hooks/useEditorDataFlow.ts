@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback, useMemo } from 'react';
 import { parseText, detectColumns, validateData, detectWideFormat } from '@variscout/core';
-import type { DataRow, DataQualityReport } from '@variscout/core';
+import type { DataRow, DataQualityReport, TimeExtractionConfig } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
 import { detectMergeStrategy, mergeColumns, mergeRows } from './useDataMerge';
@@ -28,6 +28,7 @@ export interface UseEditorDataFlowOptions {
   loadProject: (id: string) => Promise<void>;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<boolean>;
   loadSample: (sample: SampleDataset) => void;
+  applyTimeExtraction: (col: string, config: TimeExtractionConfig) => void;
 }
 
 export interface UseEditorDataFlowReturn {
@@ -71,6 +72,10 @@ export interface UseEditorDataFlowReturn {
   triggerAppendFileUpload: () => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
   appendFileInputRef: React.RefObject<HTMLInputElement>;
+  timeExtractionPrompt: { timeColumn: string; hasTimeComponent: boolean } | null;
+  setTimeExtractionPrompt: (v: { timeColumn: string; hasTimeComponent: boolean } | null) => void;
+  timeExtractionConfig: TimeExtractionConfig;
+  setTimeExtractionConfig: React.Dispatch<React.SetStateAction<TimeExtractionConfig>>;
 }
 
 /**
@@ -100,6 +105,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     setMeasureLabel,
     handleFileUpload,
     loadSample,
+    applyTimeExtraction,
   } = options;
 
   const [isManualEntry, setIsManualEntry] = useState(false);
@@ -112,6 +118,17 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [drillFromPerformance, setDrillFromPerformance] = useState<string | null>(null);
   const [appendFeedback, setAppendFeedback] = useState<string | null>(null);
+  const [timeExtractionPrompt, setTimeExtractionPrompt] = useState<{
+    timeColumn: string;
+    hasTimeComponent: boolean;
+  } | null>(null);
+  const [timeExtractionConfig, setTimeExtractionConfig] = useState<TimeExtractionConfig>({
+    extractYear: true,
+    extractMonth: true,
+    extractWeek: false,
+    extractDayOfWeek: true,
+    extractHour: false,
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const appendFileInputRef = useRef<HTMLInputElement>(null);
@@ -193,6 +210,21 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           setMeasureColumns(wideFormat.channels.map(c => c.id));
           setMeasureLabel('Channel');
           setPerformanceMode(true);
+        }
+
+        if (detected.timeColumn) {
+          const hasTime = detected.columnAnalysis.some(
+            c =>
+              c.name === detected.timeColumn &&
+              c.sampleValues.some(v => v.includes('T') || v.includes(':'))
+          );
+          setTimeExtractionPrompt({
+            timeColumn: detected.timeColumn,
+            hasTimeComponent: hasTime,
+          });
+          if (hasTime) {
+            setTimeExtractionConfig(prev => ({ ...prev, extractHour: true }));
+          }
         }
 
         setIsPasteMode(false);
@@ -314,8 +346,22 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       setFactors(newFactors);
       if (newSpecs) setSpecs(newSpecs);
       setIsMapping(false);
+
+      if (timeExtractionPrompt?.timeColumn) {
+        applyTimeExtraction(timeExtractionPrompt.timeColumn, timeExtractionConfig);
+      }
+      setTimeExtractionPrompt(null);
     },
-    [setOutcome, setFactors, setSpecs, isMappingReEdit, factors]
+    [
+      setOutcome,
+      setFactors,
+      setSpecs,
+      isMappingReEdit,
+      factors,
+      applyTimeExtraction,
+      timeExtractionPrompt,
+      timeExtractionConfig,
+    ]
   );
 
   // Handle column mapping cancel
@@ -420,5 +466,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     triggerAppendFileUpload,
     fileInputRef: fileInputRef as React.RefObject<HTMLInputElement>,
     appendFileInputRef: appendFileInputRef as React.RefObject<HTMLInputElement>,
+    timeExtractionPrompt,
+    setTimeExtractionPrompt,
+    timeExtractionConfig,
+    setTimeExtractionConfig,
   };
 }

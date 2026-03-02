@@ -76,6 +76,26 @@ The `detectColumns()` function in `parser/detection.ts` follows this logic:
 4. **Select Time Column**:
    - Priority: Column matching time keywords
    - Used for I-Chart ordering when available
+   - When detected, triggers the **Time Factor Extraction** panel in ColumnMapping
+
+### Time Factor Extraction
+
+When `detectColumns()` finds a `timeColumn`, the `TimeExtractionPanel` (from `@variscout/ui`) appears in the ColumnMapping screen. On mapping confirm, `augmentWithTimeColumns()` from `@variscout/core/time.ts` adds derived factor columns:
+
+```typescript
+import { augmentWithTimeColumns } from '@variscout/core';
+
+const augmented = augmentWithTimeColumns(rawData, 'Date', {
+  extractYear: true,
+  extractMonth: true,
+  extractWeek: false,
+  extractDayOfWeek: true,
+  extractHour: false,
+});
+// Adds: Date_Year, Date_Month, Date_DayOfWeek columns
+```
+
+The `applyTimeExtraction()` method in `useDataIngestion` (from `@variscout/hooks`) handles the full pipeline: augmenting data, adding new factor columns, and re-validating.
 
 ### Return Type
 
@@ -491,12 +511,14 @@ const DEFAULT_ROW_HARD_LIMIT = 50000;
 
 ### useDataIngestion (from @variscout/hooks)
 
-| Function                       | Purpose                                    |
-| ------------------------------ | ------------------------------------------ |
-| `handleFileUpload(e)`          | Main file upload handler                   |
-| `handleParetoFileUpload(file)` | Separate Pareto file handler               |
-| `clearParetoFile()`            | Reset to derived Pareto mode               |
-| `clearData()`                  | Reset all data state                       |
-| `onWideFormatDetected`         | Callback when wide format data is detected |
+| Function                           | Purpose                                       |
+| ---------------------------------- | --------------------------------------------- |
+| `handleFileUpload(e)`              | Main file upload handler                      |
+| `handleParetoFileUpload(file)`     | Separate Pareto file handler                  |
+| `clearParetoFile()`                | Reset to derived Pareto mode                  |
+| `clearData()`                      | Reset all data state                          |
+| `applyTimeExtraction(col, config)` | Augment data with time-derived factor columns |
+| `onWideFormatDetected`             | Callback when wide format data is detected    |
+| `onTimeColumnDetected`             | Callback when a date/time column is detected  |
 
 Note: `loadSample()` is added by the PWA-specific wrapper in `apps/pwa/src/hooks/useDataIngestion.ts`.
