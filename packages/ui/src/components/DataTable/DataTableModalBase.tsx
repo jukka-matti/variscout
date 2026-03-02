@@ -45,6 +45,16 @@ const DataTableModalBase: React.FC<DataTableModalBaseProps> = ({
     }
   }, [isOpen, rawData, initialFilterExcluded]);
 
+  // Close on Escape (ADR-017)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const columns = localData.length > 0 ? Object.keys(localData[0]) : [];
@@ -123,8 +133,11 @@ const DataTableModalBase: React.FC<DataTableModalBaseProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-surface-secondary border border-edge rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop (click to close, ADR-017) */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+      <div className="relative bg-surface-secondary border border-edge rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-edge">
           <div className="flex items-center gap-3">

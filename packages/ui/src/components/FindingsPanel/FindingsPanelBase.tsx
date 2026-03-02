@@ -134,7 +134,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
-          <h2 className="text-sm font-semibold text-white">
+          <h2 className="text-sm font-semibold text-content">
             Findings
             {findings.length > 0 && (
               <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
@@ -179,7 +179,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
                 className={`p-1.5 rounded-lg transition-all ${
                   copyFeedback
                     ? 'bg-green-500/20 text-green-400'
-                    : 'text-content-secondary hover:text-white hover:bg-surface-tertiary'
+                    : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
                 }`}
                 title="Copy all findings to clipboard"
                 aria-label="Copy all findings"
@@ -190,7 +190,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
             {onPopout && (
               <button
                 onClick={onPopout}
-                className="hidden sm:inline-flex p-1.5 text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
+                className="hidden sm:inline-flex p-1.5 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors"
                 title="Open in separate window"
                 aria-label="Open findings in separate window"
               >
@@ -199,7 +199,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
             )}
             <button
               onClick={onClose}
-              className="p-1.5 text-content-secondary hover:text-white hover:bg-surface-tertiary rounded-lg transition-colors"
+              className="p-1.5 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors"
               title="Close"
               aria-label="Close findings panel"
             >

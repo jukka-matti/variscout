@@ -72,6 +72,16 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
     }
   }, [isOpen]);
 
+  // Document-level Escape to close (ADR-017)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   // Validate factor name
   const validateName = (name: string): string | null => {
     if (!name.trim()) {
@@ -108,8 +118,6 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleCreate();
-    } else if (e.key === 'Escape') {
-      onClose();
     }
   };
 
@@ -126,10 +134,10 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
       <div className="relative bg-surface-tertiary border border-edge rounded-lg shadow-xl w-full max-w-md mx-4">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-edge">
-          <h2 className="text-lg font-semibold text-white">Create Factor from Selection</h2>
+          <h2 className="text-lg font-semibold text-content">Create Factor from Selection</h2>
           <button
             onClick={onClose}
-            className="text-content-muted hover:text-white transition-colors"
+            className="text-content-muted hover:text-content transition-colors"
             aria-label="Close modal"
           >
             <X size={20} />
@@ -158,7 +166,7 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
                 w-full px-3 py-2 rounded
                 bg-surface-secondary border
                 ${error ? 'border-red-400' : 'border-edge'}
-                text-white placeholder-content-muted
+                text-content placeholder-content-muted
                 focus:outline-none focus:ring-2
                 ${error ? 'focus:ring-red-400/50' : 'focus:ring-blue-500/50'}
               `}

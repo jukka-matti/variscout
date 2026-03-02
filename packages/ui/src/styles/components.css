@@ -111,6 +111,15 @@ button:active:not(:disabled),
   animation: fadeIn 0.15s ease-out;
 }
 
+/* Respect prefers-reduced-motion (ADR-017) */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-in-right,
+  .animate-slide-up,
+  .animate-fade-in {
+    animation: none;
+  }
+}
+
 /* ========================================
    CSS-only Tooltips
    ======================================== */
