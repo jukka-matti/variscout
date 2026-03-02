@@ -190,6 +190,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
                 ? !!filters[boxplotFactor]?.length
                 : !!filters[paretoFactor]?.length
             }
+            columnAliases={columnAliases}
             size="md"
           />
         </div>

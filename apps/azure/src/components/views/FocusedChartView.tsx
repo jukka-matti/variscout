@@ -79,6 +79,8 @@ interface FocusedChartViewProps {
   onToggleComparison: () => void;
   onToggleAggregation: () => void;
   onParetoTitleChange: (title: string) => void;
+  onHidePareto?: () => void;
+  onUploadPareto?: () => void;
   paretoHighlightedCategories?: Record<string, HighlightColor>;
   onParetoContextMenu?: (key: string, event: React.MouseEvent) => void;
   paretoAnnotations?: ChartAnnotation[];
@@ -213,6 +215,9 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
               onDrillDown={props.onDrillDown}
               showComparison={props.showParetoComparison}
               onToggleComparison={props.onToggleComparison}
+              onHide={props.onHidePareto}
+              onUploadPareto={props.onUploadPareto}
+              availableFactors={props.factors}
               aggregation={props.paretoAggregation}
               onToggleAggregation={props.onToggleAggregation}
               highlightedCategories={props.paretoHighlightedCategories}

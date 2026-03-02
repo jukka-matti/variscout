@@ -8,7 +8,6 @@
  * - Variation breadcrumbs
  */
 
-import type React from 'react';
 import { useState, useCallback, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import type { AnovaResult } from '@variscout/core';
@@ -50,7 +49,6 @@ export interface UseDashboardChartsResult {
   handleCopyChart: (containerId: string, chartName: string) => Promise<void>;
   handleDownloadPng: (containerId: string, chartName: string) => Promise<void>;
   handleDownloadSvg: (containerId: string, chartName: string) => void;
-  paretoFactorSelectorRef: React.RefObject<HTMLSelectElement>;
   getHighlightClass: (chartId: ChartId) => string;
   handleChartWrapperClick: (chartId: ChartId) => void;
   availableOutcomes: string[];
@@ -115,7 +113,6 @@ export function useDashboardCharts({
   // PWA-specific panel states
   const [showParetoPanel, setShowParetoPanel] = useState(true);
   const [showSpecEditor, setShowSpecEditor] = useState(false);
-  const paretoFactorSelectorRef = { current: null } as React.RefObject<HTMLSelectElement>;
 
   // Reset Pareto panel on data change
   useEffect(() => {
@@ -164,7 +161,6 @@ export function useDashboardCharts({
     setShowParetoPanel,
     showSpecEditor,
     setShowSpecEditor,
-    paretoFactorSelectorRef,
     getHighlightClass,
     handleChartWrapperClick,
     filterStack,

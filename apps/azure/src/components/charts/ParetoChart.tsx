@@ -14,6 +14,9 @@ interface ParetoChartProps {
   onDrillDown?: (factor: string, value: string) => void;
   showComparison?: boolean;
   onToggleComparison?: () => void;
+  onHide?: () => void;
+  onUploadPareto?: () => void;
+  availableFactors?: string[];
   aggregation?: 'count' | 'value';
   onToggleAggregation?: () => void;
   highlightedCategories?: Record<string, HighlightColor>;

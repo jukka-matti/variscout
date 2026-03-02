@@ -36,7 +36,6 @@ export interface FocusedChartViewProps {
   onDrillDown: (factor: string, value: string) => void;
   onToggleParetoComparison: () => void;
   onHideParetoPanel: () => void;
-  onSelectParetoFactor: () => void;
   onManageFactors?: () => void;
   onPointClick?: (index: number) => void;
   onSpecClick: () => void;
@@ -101,7 +100,6 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
     onDrillDown,
     onToggleParetoComparison,
     onHideParetoPanel,
-    onSelectParetoFactor,
     onManageFactors,
     onPointClick,
     onSpecClick,
@@ -223,7 +221,6 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
                 onHideParetoPanel();
                 onExitFocus();
               }}
-              onSelectFactor={onSelectParetoFactor}
               onUploadPareto={onManageFactors}
               availableFactors={factors}
               aggregation={paretoAggregation}

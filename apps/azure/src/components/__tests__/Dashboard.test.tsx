@@ -174,6 +174,8 @@ vi.mock('../../hooks', () => ({
     removeFilter: vi.fn(),
     handleDrillDown: vi.fn(),
     handleChartTitleChange: vi.fn(),
+    showParetoPanel: true,
+    setShowParetoPanel: vi.fn(),
     lastAdvancedFactor: null,
   }),
 }));

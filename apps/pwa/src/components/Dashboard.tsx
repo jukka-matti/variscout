@@ -174,8 +174,6 @@ const Dashboard = ({
     handleCopyChart,
     handleDownloadPng,
     handleDownloadSvg,
-    // Pareto factor selector ref
-    paretoFactorSelectorRef,
     // Embed mode helpers
     getHighlightClass,
     handleChartWrapperClick,
@@ -212,12 +210,6 @@ const Dashboard = ({
 
   // Responsive mobile detection
   const isMobile = useIsMobile(MOBILE_BREAKPOINT);
-
-  // Callback to focus Pareto factor selector (used by ParetoEmptyState)
-  const handleParetoSelectFactor = useCallback(() => {
-    paretoFactorSelectorRef.current?.focus();
-    paretoFactorSelectorRef.current?.click();
-  }, [paretoFactorSelectorRef]);
 
   // Handler for saving specs from SpecEditor
   const handleSaveSpecs = useCallback(
@@ -355,7 +347,6 @@ const Dashboard = ({
         onDrillDown={handleDrillDown}
         onPointClick={onPointClick}
         onSpecClick={() => setShowSpecEditor(true)}
-        onSelectParetoFactor={handleParetoSelectFactor}
         onManageFactors={onManageFactors}
         embedStatsTab={embedStatsTab}
       />
@@ -824,7 +815,6 @@ const Dashboard = ({
                           showComparison={showParetoComparison}
                           onToggleComparison={() => toggleParetoComparison()}
                           onHide={() => setShowParetoPanel(false)}
-                          onSelectFactor={handleParetoSelectFactor}
                           onUploadPareto={onManageFactors}
                           availableFactors={factors}
                           aggregation={paretoAggregation}
@@ -881,7 +871,6 @@ const Dashboard = ({
               onDrillDown={handleDrillDown}
               onToggleParetoComparison={() => toggleParetoComparison()}
               onHideParetoPanel={() => setShowParetoPanel(false)}
-              onSelectParetoFactor={handleParetoSelectFactor}
               onManageFactors={onManageFactors}
               onPointClick={onPointClick}
               onSpecClick={() => setShowSpecEditor(true)}

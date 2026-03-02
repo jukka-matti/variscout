@@ -50,6 +50,8 @@ export interface UseDashboardChartsResult {
   filterChipData: FilterChipData[];
   factorVariations: Map<string, number>;
   categoryContributions: Map<string, Map<string | number, number>>;
+  showParetoPanel: boolean;
+  setShowParetoPanel: (show: boolean) => void;
   lastAdvancedFactor: string | null;
   filterStack: UseFilterNavigationReturn['filterStack'];
   applyFilter: UseFilterNavigationReturn['applyFilter'];
@@ -109,6 +111,12 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     },
     [base.setParetoFactor, onParetoFactorChange]
   );
+
+  // Pareto panel visibility (reset on data/factor changes)
+  const [showParetoPanel, setShowParetoPanel] = useState(true);
+  useEffect(() => {
+    setShowParetoPanel(true);
+  }, [rawData, factors]);
 
   // Focus mode
   const [focusedChart, setFocusedChart] = useState<FocusedChart>(null);
@@ -186,6 +194,8 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     setFocusedChart,
     handleNextChart,
     handlePrevChart,
+    showParetoPanel,
+    setShowParetoPanel,
     showParetoComparison: base.showParetoComparison,
     setShowParetoComparison: base.setShowParetoComparison,
     copyFeedback: base.copyFeedback,

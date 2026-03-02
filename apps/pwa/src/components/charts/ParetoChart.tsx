@@ -15,7 +15,6 @@ interface ParetoChartProps {
   showComparison?: boolean;
   onToggleComparison?: () => void;
   onHide?: () => void;
-  onSelectFactor?: () => void;
   onUploadPareto?: () => void;
   availableFactors?: string[];
   aggregation?: 'count' | 'value';

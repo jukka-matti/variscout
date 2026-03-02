@@ -37,7 +37,6 @@ export interface EmbedFocusViewProps {
   onDrillDown: (factor: string, value: string) => void;
   onPointClick?: (index: number) => void;
   onSpecClick: () => void;
-  onSelectParetoFactor: () => void;
   onManageFactors?: () => void;
   embedStatsTab?: EmbedStatsTab | null;
 }
@@ -68,7 +67,6 @@ const EmbedFocusView: React.FC<EmbedFocusViewProps> = ({
   onDrillDown,
   onPointClick,
   onSpecClick,
-  onSelectParetoFactor,
   onManageFactors,
   embedStatsTab,
 }) => {
@@ -150,7 +148,6 @@ const EmbedFocusView: React.FC<EmbedFocusViewProps> = ({
                   onDrillDown={onDrillDown}
                   showComparison={showParetoComparison}
                   onToggleComparison={onToggleParetoComparison}
-                  onSelectFactor={onSelectParetoFactor}
                   onUploadPareto={onManageFactors}
                   availableFactors={factors}
                   aggregation={paretoAggregation}
