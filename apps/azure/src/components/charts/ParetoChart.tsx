@@ -5,7 +5,8 @@ import React from 'react';
 import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { ParetoChartWrapperBase } from '@variscout/ui';
-import type { HighlightColor, ChartAnnotation } from '@variscout/hooks';
+import type { HighlightColor } from '@variscout/hooks';
+import type { Finding } from '@variscout/core';
 
 interface ParetoChartProps {
   factor: string;
@@ -21,8 +22,9 @@ interface ParetoChartProps {
   onToggleAggregation?: () => void;
   highlightedCategories?: Record<string, HighlightColor>;
   onContextMenu?: (key: string, event: React.MouseEvent) => void;
-  annotations?: ChartAnnotation[];
-  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  findings?: Finding[];
+  onEditFinding?: (id: string, text: string) => void;
+  onDeleteFinding?: (id: string) => void;
 }
 
 const ParetoChart = ({ parentWidth, parentHeight, ...props }: ParetoChartProps) => {

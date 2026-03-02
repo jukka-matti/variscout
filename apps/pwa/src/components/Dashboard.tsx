@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -33,6 +33,7 @@ import {
   getColumnNames,
   type StageOrderMode,
   type SpecLimits,
+  type Finding,
 } from '@variscout/core';
 
 import type { ChartId, HighlightIntensity } from '../hooks/useEmbedMessaging';
@@ -64,6 +65,16 @@ interface DashboardProps {
   filterNav?: UseFilterNavigationReturn;
   // Callback to pin current filter state as a finding
   onPinFinding?: () => void;
+  // Chart observation/finding props (findings-based annotation system)
+  onAddChartObservation?: (
+    chartType: 'boxplot' | 'pareto' | 'ichart',
+    categoryKey?: string,
+    anchorX?: number,
+    anchorY?: number
+  ) => void;
+  chartFindings?: { boxplot: Finding[]; pareto: Finding[]; ichart: Finding[] };
+  onEditFinding?: (id: string, text: string) => void;
+  onDeleteFinding?: (id: string) => void;
 }
 
 const Dashboard = ({
@@ -81,6 +92,10 @@ const Dashboard = ({
   highlightedPointIndex: _highlightedPointIndex,
   filterNav,
   onPinFinding,
+  onAddChartObservation,
+  chartFindings,
+  onEditFinding,
+  onDeleteFinding,
 }: DashboardProps) => {
   const {
     outcome,
@@ -120,17 +135,7 @@ const Dashboard = ({
   // Modal state for Create Factor
   const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
 
-  // Annotations (right-click context menu, no mode toggle)
-  const dataFingerprint = useMemo(
-    () =>
-      `${filteredData.length}-${JSON.stringify(filters)}-${displayOptions.boxplotSortBy}-${displayOptions.boxplotSortDirection}`,
-    [
-      filteredData.length,
-      filters,
-      displayOptions.boxplotSortBy,
-      displayOptions.boxplotSortDirection,
-    ]
-  );
+  // Annotations (right-click context menu for highlights)
   const {
     hasAnnotations,
     clearAnnotations,
@@ -140,15 +145,7 @@ const Dashboard = ({
     boxplotHighlights,
     paretoHighlights,
     setHighlight,
-    boxplotAnnotations,
-    paretoAnnotations,
-    createAnnotation,
-    setBoxplotAnnotations,
-    setParetoAnnotations,
-    ichartAnnotations,
-    createIChartAnnotation,
-    setIChartAnnotations,
-  } = useAnnotations({ displayOptions, setDisplayOptions, dataFingerprint });
+  } = useAnnotations({ displayOptions, setDisplayOptions });
 
   // Use the consolidated chart state hook
   const {
@@ -512,6 +509,7 @@ const Dashboard = ({
                   onCopyChart={handleCopyChart}
                   onDownloadPng={handleDownloadPng}
                   onDownloadSvg={handleDownloadSvg}
+                  observationCount={chartFindings?.ichart?.length}
                   title={
                     <div className="flex items-center gap-2">
                       <Activity className="text-blue-400 self-start mt-1" />
@@ -620,18 +618,6 @@ const Dashboard = ({
                           </div>
                         )
                       )}
-
-                      {/* Annotation clear button */}
-                      {ichartAnnotations.length > 0 && (
-                        <button
-                          onClick={() => clearAnnotations('ichart')}
-                          className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-                          title="Clear I-Chart annotations"
-                          aria-label="Clear I-Chart annotations"
-                        >
-                          <X size={12} />
-                        </button>
-                      )}
                     </>
                   }
                   filterBar={
@@ -648,9 +634,15 @@ const Dashboard = ({
                       onPointClick={onPointClick}
                       onSpecClick={() => setShowSpecEditor(true)}
                       showBranding={false}
-                      ichartAnnotations={ichartAnnotations}
-                      onCreateAnnotation={createIChartAnnotation}
-                      onAnnotationsChange={setIChartAnnotations}
+                      ichartFindings={chartFindings?.ichart}
+                      onCreateObservation={
+                        onAddChartObservation
+                          ? (ax: number, ay: number) =>
+                              onAddChartObservation('ichart', undefined, ax, ay)
+                          : undefined
+                      }
+                      onEditFinding={onEditFinding}
+                      onDeleteFinding={onDeleteFinding}
                     />
                   </ErrorBoundary>
                 </DashboardChartCard>
@@ -667,6 +659,7 @@ const Dashboard = ({
                   onCopyChart={handleCopyChart}
                   onDownloadPng={handleDownloadPng}
                   onDownloadSvg={handleDownloadSvg}
+                  observationCount={chartFindings?.boxplot?.length}
                   className="flex-1 min-w-[300px]"
                   title={
                     <div className="flex flex-col">
@@ -741,8 +734,9 @@ const Dashboard = ({
                         showBranding={false}
                         highlightedCategories={boxplotHighlights}
                         onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
-                        annotations={boxplotAnnotations}
-                        onAnnotationsChange={setBoxplotAnnotations}
+                        findings={chartFindings?.boxplot}
+                        onEditFinding={onEditFinding}
+                        onDeleteFinding={onDeleteFinding}
                       />
                     )}
                   </ErrorBoundary>
@@ -761,6 +755,7 @@ const Dashboard = ({
                     onCopyChart={handleCopyChart}
                     onDownloadPng={handleDownloadPng}
                     onDownloadSvg={handleDownloadSvg}
+                    observationCount={chartFindings?.pareto?.length}
                     className="flex-1 min-w-[300px]"
                     title={
                       <div className="flex flex-col">
@@ -785,13 +780,12 @@ const Dashboard = ({
                           hasActiveFilter={!!filters?.[paretoFactor]?.length}
                           columnAliases={columnAliases}
                         />
-                        {((paretoHighlights && Object.keys(paretoHighlights).length > 0) ||
-                          paretoAnnotations.length > 0) && (
+                        {paretoHighlights && Object.keys(paretoHighlights).length > 0 && (
                           <button
                             onClick={() => clearAnnotations('pareto')}
                             className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-                            title="Clear pareto annotations"
-                            aria-label="Clear pareto annotations"
+                            title="Clear pareto highlights"
+                            aria-label="Clear pareto highlights"
                           >
                             <X size={12} />
                           </button>
@@ -824,8 +818,9 @@ const Dashboard = ({
                           showBranding={false}
                           highlightedCategories={paretoHighlights}
                           onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
-                          annotations={paretoAnnotations}
-                          onAnnotationsChange={setParetoAnnotations}
+                          findings={chartFindings?.pareto}
+                          onEditFinding={onEditFinding}
+                          onDeleteFinding={onDeleteFinding}
                         />
                       )}
                     </ErrorBoundary>
@@ -879,10 +874,14 @@ const Dashboard = ({
               onExitFocus={() => setFocusedChart(null)}
               chartTitles={chartTitles}
               onChartTitleChange={handleChartTitleChange}
-              ichartAnnotations={ichartAnnotations}
-              onCreateAnnotation={createIChartAnnotation}
-              onAnnotationsChange={setIChartAnnotations}
-              onClearIChartAnnotations={() => clearAnnotations('ichart')}
+              ichartFindings={chartFindings?.ichart}
+              onCreateObservation={
+                onAddChartObservation
+                  ? (ax: number, ay: number) => onAddChartObservation('ichart', undefined, ax, ay)
+                  : undefined
+              }
+              onEditFinding={onEditFinding}
+              onDeleteFinding={onDeleteFinding}
               paretoAggregation={paretoAggregation}
               onToggleParetoAggregation={() =>
                 setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
@@ -893,12 +892,14 @@ const Dashboard = ({
               showFilterContext={displayOptions.showFilterContext !== false}
               boxplotHighlights={boxplotHighlights}
               onBoxplotContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
-              boxplotAnnotations={boxplotAnnotations}
-              onBoxplotAnnotationsChange={setBoxplotAnnotations}
+              boxplotFindings={chartFindings?.boxplot}
+              onBoxplotEditFinding={onEditFinding}
+              onBoxplotDeleteFinding={onDeleteFinding}
               paretoHighlights={paretoHighlights}
               onParetoContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
-              paretoAnnotations={paretoAnnotations}
-              onParetoAnnotationsChange={setParetoAnnotations}
+              paretoFindings={chartFindings?.pareto}
+              onParetoEditFinding={onEditFinding}
+              onParetoDeleteFinding={onDeleteFinding}
               copyFeedback={copyFeedback}
               onCopyChart={handleCopyChart}
               onDownloadPng={handleDownloadPng}
@@ -917,16 +918,20 @@ const Dashboard = ({
               ? boxplotHighlights[contextMenu.categoryKey]
               : paretoHighlights[contextMenu.categoryKey]
           }
-          hasAnnotation={
-            contextMenu.chartType === 'boxplot'
-              ? boxplotAnnotations.some(a => a.anchorCategory === contextMenu.categoryKey)
-              : paretoAnnotations.some(a => a.anchorCategory === contextMenu.categoryKey)
+          hasFinding={
+            chartFindings
+              ? contextMenu.chartType === 'boxplot'
+                ? chartFindings.boxplot.some(f => f.source?.category === contextMenu.categoryKey)
+                : chartFindings.pareto.some(f => f.source?.category === contextMenu.categoryKey)
+              : false
           }
           position={contextMenu.position}
           onSetHighlight={color =>
             setHighlight(contextMenu.chartType, contextMenu.categoryKey, color)
           }
-          onAddNote={() => createAnnotation(contextMenu.chartType, contextMenu.categoryKey)}
+          onAddObservation={() =>
+            onAddChartObservation?.(contextMenu.chartType, contextMenu.categoryKey)
+          }
           onClose={closeContextMenu}
         />
       )}

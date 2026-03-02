@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Pencil, Share2, Trash2 } from 'lucide-react';
-import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
+import { Activity, BarChart3, Layers, Pencil, Share2, Trash2 } from 'lucide-react';
+import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
 import { getFindingStatus } from '@variscout/core';
 import FindingEditor from './FindingEditor';
 import FindingStatusBadge from './FindingStatusBadge';
@@ -33,6 +33,8 @@ export interface FindingCardProps {
   showAuthors?: boolean;
   /** Callback to share this finding (deep link). Hidden when not provided. */
   onShare?: (findingId: string) => void;
+  /** Navigate to the chart that sourced this finding */
+  onNavigateToChart?: (source: FindingSource) => void;
 }
 
 /**
@@ -55,6 +57,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onCaptureFromTeams,
   showAuthors,
   onShare,
+  onNavigateToChart,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
@@ -86,6 +89,21 @@ const FindingCard: React.FC<FindingCardProps> = ({
         {/* Status badge + filter chips row */}
         <div className="flex items-start gap-1.5 mb-1.5">
           <div className="flex flex-wrap gap-1 flex-1">
+            {finding.source && (
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  onNavigateToChart?.(finding.source!);
+                }}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/10 text-[10px] text-blue-400 rounded hover:bg-blue-500/20 transition-colors"
+                title={`Go to ${finding.source.chart} chart`}
+              >
+                {finding.source.chart === 'ichart' && <Activity size={9} />}
+                {finding.source.chart === 'boxplot' && <BarChart3 size={9} />}
+                {finding.source.chart === 'pareto' && <Layers size={9} />}
+                <span>{finding.source.category || 'I-Chart'}</span>
+              </button>
+            )}
             {filterEntries.map(([factor, values]) => {
               const label = columnAliases[factor] || factor;
               const valStr =

@@ -18,8 +18,8 @@ import { useBoxplotData, useBoxplotWrapperData } from '@variscout/hooks';
 import { sortBoxplotData, shouldShowBranding, getBrandingText } from '@variscout/core';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
 import { AxisEditor } from '../AxisEditor';
-import type { DataRow, SpecLimits } from '@variscout/core';
-import type { HighlightColor, ChartAnnotation, DisplayOptions } from '@variscout/hooks';
+import type { DataRow, SpecLimits, Finding } from '@variscout/core';
+import type { HighlightColor, DisplayOptions } from '@variscout/hooks';
 
 export interface BoxplotWrapperBaseProps {
   parentWidth: number;
@@ -64,10 +64,12 @@ export interface BoxplotWrapperBaseProps {
   highlightedCategories?: Record<string, HighlightColor>;
   /** Context menu callback for annotations */
   onContextMenu?: (key: string, event: React.MouseEvent) => void;
-  /** Text annotations */
-  annotations?: ChartAnnotation[];
-  /** Callback when annotations change */
-  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  /** Findings linked to this chart (rendered as annotation boxes) */
+  findings?: Finding[];
+  /** Edit a finding's text from the annotation box */
+  onEditFinding?: (id: string, text: string) => void;
+  /** Delete a finding from the annotation box */
+  onDeleteFinding?: (id: string) => void;
 }
 
 export const BoxplotWrapperBase = ({
@@ -92,8 +94,9 @@ export const BoxplotWrapperBase = ({
   showBranding: showBrandingProp,
   highlightedCategories,
   onContextMenu,
-  annotations = [],
-  onAnnotationsChange,
+  findings = [],
+  onEditFinding,
+  onDeleteFinding,
 }: BoxplotWrapperBaseProps) => {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const rawData = useBoxplotData(filteredData, factor, outcome);
@@ -164,10 +167,11 @@ export const BoxplotWrapperBase = ({
         onBoxContextMenu={onContextMenu}
       />
 
-      {annotations.length > 0 && onAnnotationsChange && (
+      {findings.length > 0 && onEditFinding && onDeleteFinding && (
         <ChartAnnotationLayer
-          annotations={annotations}
-          onAnnotationsChange={onAnnotationsChange}
+          findings={findings}
+          onEditFinding={onEditFinding}
+          onDeleteFinding={onDeleteFinding}
           isActive={true}
           categoryPositions={categoryPositions}
           maxWidth={parentWidth * 0.7}

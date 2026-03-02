@@ -6,7 +6,8 @@ import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
 import { BoxplotWrapperBase } from '@variscout/ui';
-import type { HighlightColor, ChartAnnotation } from '@variscout/hooks';
+import type { HighlightColor } from '@variscout/hooks';
+import type { Finding } from '@variscout/core';
 
 interface BoxplotProps {
   factor: string;
@@ -17,8 +18,9 @@ interface BoxplotProps {
   categoryContributions?: Map<string | number, number>;
   highlightedCategories?: Record<string, HighlightColor>;
   onContextMenu?: (key: string, event: React.MouseEvent) => void;
-  annotations?: ChartAnnotation[];
-  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  findings?: Finding[];
+  onEditFinding?: (id: string, text: string) => void;
+  onDeleteFinding?: (id: string) => void;
 }
 
 const Boxplot = ({ parentWidth, parentHeight, ...props }: BoxplotProps) => {

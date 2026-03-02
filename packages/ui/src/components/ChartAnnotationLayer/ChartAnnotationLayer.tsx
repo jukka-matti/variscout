@@ -1,12 +1,23 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { AnnotationBox } from './AnnotationBox';
-import type { ChartAnnotation } from './types';
+import type { Finding } from '@variscout/core';
+
+/** Local visual state for a finding's annotation box (not persisted) */
+interface AnnotationOffset {
+  offsetX: number;
+  offsetY: number;
+  width: number;
+}
+
+const DEFAULT_OFFSET: AnnotationOffset = { offsetX: 0, offsetY: 0, width: 140 };
 
 export interface ChartAnnotationLayerProps {
-  /** Annotations to render */
-  annotations: ChartAnnotation[];
-  /** Update handler */
-  onAnnotationsChange: (annotations: ChartAnnotation[]) => void;
+  /** Findings to render as annotation boxes */
+  findings: Finding[];
+  /** Edit a finding's text */
+  onEditFinding: (id: string, text: string) => void;
+  /** Delete a finding */
+  onDeleteFinding: (id: string) => void;
   /** Whether annotation mode is active */
   isActive: boolean;
   /** Map from category key to pixel x-center position */
@@ -23,36 +34,84 @@ export interface ChartAnnotationLayerProps {
  * ChartAnnotationLayer — HTML overlay for draggable text annotations
  *
  * Positioned absolutely over the chart SVG. Each annotation is anchored
- * to a category via categoryPositions map. Offsets are pixel deltas from
- * the default anchor position.
+ * to a category via categoryPositions map. Position offsets are local state
+ * (not persisted in Finding). Offsets reset when category keys change.
  */
 export const ChartAnnotationLayer: React.FC<ChartAnnotationLayerProps> = ({
-  annotations,
-  onAnnotationsChange,
+  findings,
+  onEditFinding,
+  onDeleteFinding,
   isActive,
   categoryPositions,
   maxWidth,
   textColor,
   fontSize,
 }) => {
-  const handleUpdate = useCallback(
-    (id: string, updates: Partial<ChartAnnotation>) => {
-      onAnnotationsChange(annotations.map(a => (a.id === id ? { ...a, ...updates } : a)));
+  // Local visual offsets (not persisted) — keyed by finding ID
+  const [offsets, setOffsets] = useState<Map<string, AnnotationOffset>>(new Map());
+  const prevKeysRef = useRef<string>('');
+
+  // Reset offsets when category positions change (data change, filter, sort)
+  useEffect(() => {
+    const keys = Array.from(categoryPositions.keys()).sort().join(',');
+    if (prevKeysRef.current !== '' && prevKeysRef.current !== keys) {
+      setOffsets(new Map());
+    }
+    prevKeysRef.current = keys;
+  }, [categoryPositions]);
+
+  const getOffset = useCallback(
+    (findingId: string): AnnotationOffset => {
+      return offsets.get(findingId) ?? DEFAULT_OFFSET;
     },
-    [annotations, onAnnotationsChange]
+    [offsets]
+  );
+
+  const handleUpdateOffset = useCallback((id: string, updates: Partial<AnnotationOffset>) => {
+    setOffsets(prev => {
+      const next = new Map(prev);
+      const current = prev.get(id) ?? { ...DEFAULT_OFFSET };
+      next.set(id, { ...current, ...updates });
+      return next;
+    });
+  }, []);
+
+  const handleTextChange = useCallback(
+    (id: string, text: string) => {
+      onEditFinding(id, text);
+    },
+    [onEditFinding]
   );
 
   const handleDelete = useCallback(
     (id: string) => {
-      onAnnotationsChange(annotations.filter(a => a.id !== id));
+      onDeleteFinding(id);
+      setOffsets(prev => {
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
     },
-    [annotations, onAnnotationsChange]
+    [onDeleteFinding]
   );
 
-  // Only render visible annotations (those whose anchor category exists)
-  const visibleAnnotations = annotations.filter(a => categoryPositions.has(a.anchorCategory));
+  // Determine anchor key for a finding
+  const getAnchorKey = (finding: Finding): string | null => {
+    if (!finding.source) return null;
+    if (finding.source.chart === 'ichart') {
+      // I-Chart findings use their ID as anchor key (free-floating)
+      return finding.id;
+    }
+    return finding.source.category ?? null;
+  };
 
-  if (visibleAnnotations.length === 0) return null;
+  // Only render visible findings (those whose anchor category exists in positions)
+  const visibleFindings = findings.filter(f => {
+    const key = getAnchorKey(f);
+    return key !== null && categoryPositions.has(key);
+  });
+
+  if (visibleFindings.length === 0) return null;
 
   return (
     <div
@@ -64,21 +123,30 @@ export const ChartAnnotationLayer: React.FC<ChartAnnotationLayerProps> = ({
         overflow: 'hidden',
       }}
     >
-      {visibleAnnotations.map(annotation => {
-        const pos = categoryPositions.get(annotation.anchorCategory);
+      {visibleFindings.map(finding => {
+        const anchorKey = getAnchorKey(finding)!;
+        const pos = categoryPositions.get(anchorKey);
         if (!pos) return null;
+
+        const offset = getOffset(finding.id);
 
         return (
           <AnnotationBox
-            key={annotation.id}
-            annotation={annotation}
+            key={finding.id}
+            findingId={finding.id}
+            findingStatus={finding.status}
+            text={finding.text}
+            offsetX={offset.offsetX}
+            offsetY={offset.offsetY}
+            width={offset.width}
             anchorX={pos.x}
             anchorY={pos.y}
             maxWidth={maxWidth}
             isActive={isActive}
             textColor={textColor}
             fontSize={fontSize}
-            onUpdate={handleUpdate}
+            onUpdateOffset={handleUpdateOffset}
+            onTextChange={handleTextChange}
             onDelete={handleDelete}
           />
         );

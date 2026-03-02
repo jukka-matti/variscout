@@ -1,6 +1,6 @@
 import type React from 'react';
-import type { AnovaResult, StatsResult, StagedStatsResult } from '@variscout/core';
-import type { FilterChipData, ChartAnnotation } from '@variscout/hooks';
+import type { AnovaResult, StatsResult, StagedStatsResult, Finding } from '@variscout/core';
+import type { FilterChipData } from '@variscout/hooks';
 
 export type FocusedChartType = 'ichart' | 'boxplot' | 'pareto';
 
@@ -38,8 +38,7 @@ export interface IChartSectionProps {
   stats: StatsResult | null;
   stageColumn?: string | null;
   stagedStats?: StagedStatsResult | null;
-  annotations?: ChartAnnotation[];
-  onClearAnnotations?: () => void;
+  findings?: Finding[];
   /** Azure injects stage column selector here */
   renderHeaderExtra?: React.ReactNode;
   renderChart: () => React.ReactNode;

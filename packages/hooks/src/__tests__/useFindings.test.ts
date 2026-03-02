@@ -4,7 +4,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFindings } from '../useFindings';
-import type { Finding, FindingContext, FindingStatus } from '@variscout/core';
+import type { Finding, FindingContext, FindingSource, FindingStatus } from '@variscout/core';
 
 const makeContext = (overrides?: Partial<FindingContext>): FindingContext => ({
   activeFilters: { Machine: ['A'] },
@@ -485,5 +485,146 @@ describe('useFindings', () => {
     expect(result.current.findings[1].status).toBe('analyzed');
     expect(result.current.findings[1].tag).toBe('low-impact');
     expect(result.current.findings[2].status).toBe('observed');
+  });
+
+  // --- FindingSource features ---
+
+  describe('FindingSource', () => {
+    it('addFinding with source creates a finding with source metadata', () => {
+      const { result } = renderHook(() => useFindings());
+      const ctx = makeContext();
+      const source: FindingSource = { chart: 'boxplot', category: 'Machine A' };
+
+      let finding: Finding;
+      act(() => {
+        finding = result.current.addFinding('Box spread too wide', ctx, source);
+      });
+
+      expect(result.current.findings).toHaveLength(1);
+      expect(result.current.findings[0].source).toEqual(source);
+      expect(result.current.findings[0].source!.chart).toBe('boxplot');
+      expect(result.current.findings[0].source!.category).toBe('Machine A');
+      expect(finding!.source).toEqual(source);
+    });
+
+    it('findDuplicateSource returns the existing finding when source matches', () => {
+      const source: FindingSource = { chart: 'pareto', category: 'Nozzle 3' };
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Top contributor',
+          context: makeContext(),
+          source,
+        }),
+        makeFinding({
+          id: 'f-2',
+          text: 'No source',
+          createdAt: 2000,
+          context: makeContext(),
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      const dup = result.current.findDuplicateSource({ chart: 'pareto', category: 'Nozzle 3' });
+      expect(dup).toBeDefined();
+      expect(dup!.id).toBe('f-1');
+    });
+
+    it('findDuplicateSource returns undefined when no match', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Boxplot note',
+          context: makeContext(),
+          source: { chart: 'boxplot', category: 'Shift A' },
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      const dup = result.current.findDuplicateSource({ chart: 'pareto', category: 'Shift A' });
+      expect(dup).toBeUndefined();
+    });
+
+    it('getChartFindings("boxplot") returns only boxplot-sourced findings', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Boxplot observation',
+          context: makeContext(),
+          source: { chart: 'boxplot', category: 'Line 1' },
+        }),
+        makeFinding({
+          id: 'f-2',
+          text: 'Pareto observation',
+          createdAt: 2000,
+          context: makeContext(),
+          source: { chart: 'pareto', category: 'Line 2' },
+        }),
+        makeFinding({
+          id: 'f-3',
+          text: 'No source finding',
+          createdAt: 3000,
+          context: makeContext(),
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      const boxplotFindings = result.current.getChartFindings('boxplot');
+      expect(boxplotFindings).toHaveLength(1);
+      expect(boxplotFindings[0].id).toBe('f-1');
+      expect(boxplotFindings[0].source!.chart).toBe('boxplot');
+    });
+
+    it('getChartFindings("ichart") returns only ichart-sourced findings', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'I-Chart note',
+          context: makeContext(),
+          source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 },
+        }),
+        makeFinding({
+          id: 'f-2',
+          text: 'Boxplot note',
+          createdAt: 2000,
+          context: makeContext(),
+          source: { chart: 'boxplot', category: 'Head 1' },
+        }),
+        makeFinding({
+          id: 'f-3',
+          text: 'Another I-Chart note',
+          createdAt: 3000,
+          context: makeContext(),
+          source: { chart: 'ichart', anchorX: 0.8, anchorY: 0.6 },
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      const ichartFindings = result.current.getChartFindings('ichart');
+      expect(ichartFindings).toHaveLength(2);
+      expect(ichartFindings[0].id).toBe('f-1');
+      expect(ichartFindings[1].id).toBe('f-3');
+    });
+
+    it('getChartFindings returns empty array when no findings for that chart type', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Boxplot note',
+          context: makeContext(),
+          source: { chart: 'boxplot', category: 'Zone A' },
+        }),
+        makeFinding({
+          id: 'f-2',
+          text: 'No source',
+          createdAt: 2000,
+          context: makeContext(),
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      const paretoFindings = result.current.getChartFindings('pareto');
+      expect(paretoFindings).toEqual([]);
+    });
   });
 });

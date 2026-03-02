@@ -6,7 +6,7 @@ import { HelpTooltip } from '../HelpTooltip';
 import { useGlossary } from '../../hooks';
 import { ErrorBoundary } from '../ErrorBoundary';
 import { EditableChartTitle } from '../EditableChartTitle';
-import { Activity, X } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import type { FocusedChartViewBaseProps } from './types';
 
 // ---------------------------------------------------------------------------
@@ -42,15 +42,10 @@ const IChartFocusedSection: React.FC<{
         ))}
       </select>
       {ichart.renderHeaderExtra}
-      {ichart.annotations && ichart.annotations.length > 0 && ichart.onClearAnnotations && (
-        <button
-          onClick={ichart.onClearAnnotations}
-          className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-          title="Clear I-Chart annotations"
-          aria-label="Clear I-Chart annotations"
-        >
-          <X size={12} />
-        </button>
+      {ichart.findings && ichart.findings.length > 0 && (
+        <span className="text-xs text-content-muted px-2 py-0.5 bg-surface-secondary rounded-full">
+          {ichart.findings.length} observation{ichart.findings.length !== 1 ? 's' : ''}
+        </span>
       )}
     </>
   );

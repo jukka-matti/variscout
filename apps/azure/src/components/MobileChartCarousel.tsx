@@ -80,6 +80,11 @@ interface MobileChartCarouselProps {
   anovaResult: AnovaResult | null;
   // Pin finding
   onPinFinding?: (noteText?: string) => void;
+  // Chart observation (creates a Finding with source metadata)
+  onAddChartObservation?: (
+    chartType: 'boxplot' | 'pareto' | 'ichart',
+    categoryKey?: string
+  ) => void;
   // Category sheet data (from Dashboard)
   boxplotData: BoxplotGroupData[];
   boxplotHighlights: Record<string, HighlightColor>;
@@ -119,6 +124,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   showCpk,
   anovaResult,
   onPinFinding,
+  onAddChartObservation,
   boxplotData,
   boxplotHighlights,
   paretoHighlights,
@@ -227,12 +233,16 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
     [categorySheet, sheetChartType, onSetHighlight]
   );
 
-  // Sheet pin finding (with note text)
+  // Sheet pin finding: use chart observation if available, else fall back to pin
   const handleSheetPinFinding = useCallback(
     (noteText: string) => {
-      onPinFinding?.(noteText);
+      if (onAddChartObservation && categorySheet) {
+        onAddChartObservation(sheetChartType, categorySheet.categoryKey);
+      } else {
+        onPinFinding?.(noteText);
+      }
     },
-    [onPinFinding]
+    [onPinFinding, onAddChartObservation, categorySheet, sheetChartType]
   );
 
   // Current highlight for the open sheet

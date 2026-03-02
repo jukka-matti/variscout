@@ -72,19 +72,30 @@ See [colors.md](colors.md) for implementation details and graded data handling.
 
 ## Chart Annotations
 
-I-Chart, Boxplot, and Pareto charts support user text annotations. Highlight colors are available on Boxplot and Pareto only.
+I-Chart, Boxplot, and Pareto charts support two types of chart annotations: **color highlights** (lightweight visual markers) and **observations** (text annotations backed by the Findings system).
 
-### Annotation Anchor Types
+### Annotation Types
 
-| Chart   | Anchor Type       | Highlights | How to Create                                   |
-| ------- | ----------------- | ---------- | ----------------------------------------------- |
-| Boxplot | Category-based    | Yes        | Right-click box → context menu → Add note       |
-| Pareto  | Category-based    | Yes        | Right-click bar → context menu → Add note       |
-| I-Chart | Free-floating (%) | No         | Right-click chart area → note appears at cursor |
+| Type              | Charts                   | Stored in                | Creates a Finding? |
+| ----------------- | ------------------------ | ------------------------ | ------------------ |
+| Color highlights  | Boxplot, Pareto          | DisplayOptions           | No                 |
+| Text observations | Boxplot, Pareto, I-Chart | Findings (AnalysisState) | Yes                |
 
-**Category-based anchors** (Boxplot/Pareto): notes follow the named group and are hidden when that category is filtered out. Offsets reset to (0, 0) on data changes (snap back to anchor).
+**Color highlights** (red/amber/green) are lightweight visual markers on Boxplot boxes and Pareto bars. They do not create findings and are stored in DisplayOptions.
 
-**Free-floating anchors** (I-Chart): notes are stored as a percentage position within the chart area. They remain at their visual position when data is filtered or the time range changes. I-Chart dot colors carry semantic meaning (blue = in-control, red = violation) and are never overridden by highlight colors.
+**Text observations** create a Finding with `source` metadata linking it to the originating chart and category. The floating text box on the chart is a visual projection of the underlying Finding — editing either side keeps them in sync. The annotation box displays a small status dot reflecting the finding's investigation status (amber = observed, blue = investigating, purple = analyzed).
+
+### Anchor Types
+
+| Chart   | Anchor Type       | Highlights | How to Create                                          |
+| ------- | ----------------- | ---------- | ------------------------------------------------------ |
+| Boxplot | Category-based    | Yes        | Right-click box → context menu → "Add observation"     |
+| Pareto  | Category-based    | Yes        | Right-click bar → context menu → "Add observation"     |
+| I-Chart | Free-floating (%) | No         | Right-click chart area → observation appears at cursor |
+
+**Category-based anchors** (Boxplot/Pareto): observations follow the named group and are hidden when that category is filtered out. Offsets reset to (0, 0) on data changes (snap back to anchor). The Finding carries a `source` field with chart type and category name.
+
+**Free-floating anchors** (I-Chart): observations are stored as a percentage position within the chart area. They remain at their visual position when data is filtered or the time range changes. I-Chart dot colors carry semantic meaning (blue = in-control, red = violation) and are never overridden by highlight colors.
 
 ### Interaction Model
 
@@ -93,39 +104,43 @@ I-Chart, Boxplot, and Pareto charts support user text annotations. Highlight col
 | Desktop         | Right-click context menu  | Boxplot, Pareto, I-Chart |
 | Mobile (<640px) | Tap → bottom action sheet | Boxplot, Pareto          |
 
-Note: I-Chart annotations (free-floating text) are desktop-only.
+Mobile: `MobileCategorySheet` "Pin as Finding" action includes `source` metadata (chart type and category). I-Chart observations (free-floating text) are desktop-only.
 
 ### Components
 
-| Component               | Package         | Purpose                                     |
-| ----------------------- | --------------- | ------------------------------------------- |
-| `ChartAnnotationLayer`  | `@variscout/ui` | HTML overlay for draggable text annotations |
-| `AnnotationBox`         | `@variscout/ui` | Individual annotation (edit, drag, resize)  |
-| `AnnotationContextMenu` | `@variscout/ui` | Right-click menu (highlight + add note)     |
+| Component               | Package         | Purpose                                                              |
+| ----------------------- | --------------- | -------------------------------------------------------------------- |
+| `ChartAnnotationLayer`  | `@variscout/ui` | HTML overlay for draggable text annotations (reads from `Finding[]`) |
+| `AnnotationBox`         | `@variscout/ui` | Individual annotation (edit, drag, resize, status dot)               |
+| `AnnotationContextMenu` | `@variscout/ui` | Right-click menu (highlight + add observation)                       |
 
-### Data Types (from `@variscout/hooks`)
+### Data Types
+
+Text observations are stored as `Finding` objects (from `@variscout/core`) with a `source` field:
+
+```typescript
+interface FindingSource {
+  chartType: 'boxplot' | 'pareto' | 'ichart';
+  category?: string; // category name (Boxplot/Pareto)
+  anchorX?: number; // 0–1 fraction of chart width (I-Chart)
+  anchorY?: number; // 0–1 fraction of chart height (I-Chart)
+}
+
+// Finding.source links the finding to its chart origin
+interface Finding {
+  id: string;
+  text: string;
+  status: FindingStatus;
+  source?: FindingSource; // present for chart observations
+  // ... other Finding fields
+}
+```
+
+Color highlights remain a separate lightweight type:
 
 ```typescript
 type HighlightColor = 'red' | 'amber' | 'green';
-
-interface ChartAnnotation {
-  id: string;
-  anchorCategory: string;
-  text: string;
-  offsetX: number;
-  offsetY: number;
-  width: number;
-  color: 'red' | 'amber' | 'green' | 'neutral';
-}
-
-// I-Chart free-floating annotation (percentage-based position)
-interface IChartAnnotation {
-  id: string;
-  anchorX: number; // 0–1 fraction of chart width
-  anchorY: number; // 0–1 fraction of chart height
-  text: string;
-  width: number;
-}
+// Stored in DisplayOptions.highlightedCategories
 ```
 
 ### Chart Base Props
@@ -138,7 +153,7 @@ Both `BoxplotBase` and `ParetoChartBase` accept:
 
 `IChartBase` accepts:
 
-- `ichartAnnotations?: IChartAnnotation[]` — free-floating text notes to render
+- `ichartAnnotations?: Finding[]` — findings with chart source to render as floating annotations
 - `onChartContextMenu?: (anchorX: number, anchorY: number, event: React.MouseEvent) => void` — right-click handler
 
 ### Hook: `useAnnotations`
@@ -147,15 +162,13 @@ Shared hook from `@variscout/hooks` managing annotation state:
 
 - `contextMenu` state (open, position, category, chart type)
 - `handleContextMenu(chartType, key, event)` — opens context menu (Boxplot/Pareto)
-- `setHighlight(chartType, key, color)` — direct color setting
-- `createAnnotation(chartType, key)` — creates text annotation anchored to a category
-- `createIChartAnnotation(anchorX, anchorY)` — creates free-floating annotation at % position
-- `setBoxplotAnnotations(annotations)` — updates boxplot annotation list
-- `setParetoAnnotations(annotations)` — updates pareto annotation list
-- `setIChartAnnotations(annotations)` — updates I-Chart annotation list
-- `ichartAnnotations` — current I-Chart annotation array
-- `clearAnnotations(chartType)` — clears all annotations for a chart (`'boxplot'`, `'pareto'`, or `'ichart'`)
+- `setHighlight(chartType, key, color)` — direct color setting (DisplayOptions)
+- `createObservation(chartType, key)` — creates a Finding with chart source metadata
+- `createIChartObservation(anchorX, anchorY)` — creates a Finding at % position with I-Chart source
+- `clearHighlights(chartType)` — clears color highlights for a chart
 - Data fingerprint offset reset (Boxplot/Pareto annotations snap back on data changes)
+
+Text observations are persisted via the Findings system (AnalysisState), not DisplayOptions.
 
 ---
 

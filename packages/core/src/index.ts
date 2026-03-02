@@ -240,6 +240,7 @@ export type {
   FindingStatus,
   FindingComment,
   FindingTag,
+  FindingSource,
   PhotoAttachment,
   PhotoUploadStatus,
 } from './findings';
@@ -256,6 +257,7 @@ export {
   formatFindingFilters,
   filtersEqual,
   findDuplicateFinding,
+  findDuplicateBySource,
   migrateFindingStatus,
   migrateFindings,
 } from './findings';

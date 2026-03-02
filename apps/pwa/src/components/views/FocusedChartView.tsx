@@ -3,13 +3,8 @@ import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
 import { FocusedChartViewBase } from '@variscout/ui';
-import type { AnovaResult, StatsResult, StagedStatsResult } from '@variscout/core';
-import type {
-  FilterChipData,
-  ChartAnnotation,
-  HighlightColor,
-  ChartTitles,
-} from '@variscout/hooks';
+import type { AnovaResult, StatsResult, StagedStatsResult, Finding } from '@variscout/core';
+import type { FilterChipData, HighlightColor, ChartTitles } from '@variscout/hooks';
 import { BoxplotStatsTable, type BoxplotGroupData } from '@variscout/charts';
 
 export type FocusableChart = 'ichart' | 'boxplot' | 'pareto';
@@ -48,21 +43,23 @@ export interface FocusedChartViewProps {
   columnAliases?: Record<string, string>;
   cumulativeVariationPct?: number | null;
   showFilterContext?: boolean;
-  // I-Chart annotation props
-  ichartAnnotations?: ChartAnnotation[];
-  onCreateAnnotation?: (anchorX: number, anchorY: number) => void;
-  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
-  onClearIChartAnnotations?: () => void;
-  // Boxplot annotation props
+  // I-Chart finding props
+  ichartFindings?: Finding[];
+  onCreateObservation?: (anchorX: number, anchorY: number) => void;
+  onEditFinding?: (id: string, text: string) => void;
+  onDeleteFinding?: (id: string) => void;
+  // Boxplot finding props
   boxplotHighlights?: Record<string, HighlightColor>;
   onBoxplotContextMenu?: (key: string, event: React.MouseEvent) => void;
-  boxplotAnnotations?: ChartAnnotation[];
-  onBoxplotAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
-  // Pareto annotation props
+  boxplotFindings?: Finding[];
+  onBoxplotEditFinding?: (id: string, text: string) => void;
+  onBoxplotDeleteFinding?: (id: string) => void;
+  // Pareto finding props
   paretoHighlights?: Record<string, HighlightColor>;
   onParetoContextMenu?: (key: string, event: React.MouseEvent) => void;
-  paretoAnnotations?: ChartAnnotation[];
-  onParetoAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  paretoFindings?: Finding[];
+  onParetoEditFinding?: (id: string, text: string) => void;
+  onParetoDeleteFinding?: (id: string) => void;
   // Chart title props
   chartTitles?: ChartTitles;
   onChartTitleChange?: (chart: keyof ChartTitles, title: string) => void;
@@ -112,18 +109,20 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
     columnAliases = {},
     cumulativeVariationPct,
     showFilterContext = true,
-    ichartAnnotations,
-    onCreateAnnotation,
-    onAnnotationsChange,
-    onClearIChartAnnotations,
+    ichartFindings,
+    onCreateObservation,
+    onEditFinding,
+    onDeleteFinding,
     boxplotHighlights,
     onBoxplotContextMenu,
-    boxplotAnnotations,
-    onBoxplotAnnotationsChange,
+    boxplotFindings,
+    onBoxplotEditFinding,
+    onBoxplotDeleteFinding,
     paretoHighlights,
     onParetoContextMenu,
-    paretoAnnotations,
-    onParetoAnnotationsChange,
+    paretoFindings,
+    onParetoEditFinding,
+    onParetoDeleteFinding,
     chartTitles,
     onChartTitleChange,
     copyFeedback,
@@ -156,15 +155,15 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
         stats: stats ?? null,
         stageColumn,
         stagedStats: stagedStats ?? null,
-        annotations: ichartAnnotations,
-        onClearAnnotations: onClearIChartAnnotations,
+        findings: ichartFindings,
         renderChart: () => (
           <IChart
             onPointClick={onPointClick}
             onSpecClick={onSpecClick}
-            ichartAnnotations={ichartAnnotations}
-            onCreateAnnotation={onCreateAnnotation}
-            onAnnotationsChange={onAnnotationsChange}
+            ichartFindings={ichartFindings}
+            onCreateObservation={onCreateObservation}
+            onEditFinding={onEditFinding}
+            onDeleteFinding={onDeleteFinding}
           />
         ),
       }}
@@ -197,8 +196,9 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
               categoryContributions={boxplotCategoryContributions}
               highlightedCategories={boxplotHighlights}
               onContextMenu={onBoxplotContextMenu}
-              annotations={boxplotAnnotations}
-              onAnnotationsChange={onBoxplotAnnotationsChange}
+              findings={boxplotFindings}
+              onEditFinding={onBoxplotEditFinding}
+              onDeleteFinding={onBoxplotDeleteFinding}
             />
           ) : null,
       }}
@@ -227,8 +227,9 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
               onToggleAggregation={onToggleParetoAggregation}
               highlightedCategories={paretoHighlights}
               onContextMenu={onParetoContextMenu}
-              annotations={paretoAnnotations}
-              onAnnotationsChange={onParetoAnnotationsChange}
+              findings={paretoFindings}
+              onEditFinding={onParetoEditFinding}
+              onDeleteFinding={onParetoDeleteFinding}
             />
           ) : null,
       }}

@@ -41,6 +41,8 @@ export interface DashboardChartCardProps {
   downloadMenuColorScheme?: ChartDownloadMenuColorScheme;
   /** Share this chart via deep link. Hidden when not provided. */
   onShareChart?: (chartName: string) => void;
+  /** Number of chart observations (findings linked to this chart) */
+  observationCount?: number;
 }
 
 /**
@@ -73,6 +75,7 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
   className = '',
   downloadMenuColorScheme,
   onShareChart,
+  observationCount,
 }) => {
   const showExportButtons = onCopyChart && onDownloadPng && onDownloadSvg;
 
@@ -85,7 +88,17 @@ const DashboardChartCard: React.FC<DashboardChartCardProps> = ({
       style={{ minHeight }}
     >
       <div className="flex justify-between items-center mb-2 gap-4">
-        {title}
+        <div className="flex items-center gap-1.5">
+          {title}
+          {observationCount != null && observationCount > 0 && (
+            <span
+              data-testid="observation-count-badge"
+              className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-medium"
+            >
+              {observationCount}
+            </span>
+          )}
+        </div>
 
         <div className="flex items-center gap-2 flex-wrap justify-end" data-export-hide>
           {controls}

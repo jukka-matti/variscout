@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -24,6 +24,7 @@ import {
 } from '@variscout/ui';
 import { BREAKPOINTS } from '@variscout/ui';
 import { getColumnNames, createFactorFromSelection } from '@variscout/core';
+import type { Finding } from '@variscout/core';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useAnnotations } from '@variscout/hooks';
 import {
@@ -74,6 +75,19 @@ interface DashboardProps {
   onPinFinding?: (noteText?: string) => void;
   /** Callback to share a chart via deep link */
   onShareChart?: (chartType: string) => void;
+  /** Callback to add a chart observation (creates a Finding with source) */
+  onAddChartObservation?: (
+    chartType: 'boxplot' | 'pareto' | 'ichart',
+    categoryKey?: string,
+    anchorX?: number,
+    anchorY?: number
+  ) => void;
+  /** Findings grouped by chart type for inline annotation display */
+  chartFindings?: { boxplot: Finding[]; pareto: Finding[]; ichart: Finding[] };
+  /** Callback to edit a finding's text */
+  onEditFinding?: (id: string, text: string) => void;
+  /** Callback to delete a finding */
+  onDeleteFinding?: (id: string) => void;
 }
 
 const Dashboard = ({
@@ -96,6 +110,10 @@ const Dashboard = ({
   onManageFactors,
   onPinFinding,
   onShareChart,
+  onAddChartObservation,
+  chartFindings,
+  onEditFinding,
+  onDeleteFinding,
 }: DashboardProps) => {
   const {
     outcome,
@@ -208,17 +226,7 @@ const Dashboard = ({
     }
   }, [focusedChart, hasRestoredFocusedChart, onFocusedChartChange]);
 
-  // Annotations (right-click context menu, no mode toggle)
-  const dataFingerprint = useMemo(
-    () =>
-      `${filteredData.length}-${JSON.stringify(filters)}-${displayOptions.boxplotSortBy}-${displayOptions.boxplotSortDirection}`,
-    [
-      filteredData.length,
-      filters,
-      displayOptions.boxplotSortBy,
-      displayOptions.boxplotSortDirection,
-    ]
-  );
+  // Annotations (right-click context menu for highlights, no mode toggle)
   const {
     hasAnnotations,
     clearAnnotations,
@@ -228,15 +236,7 @@ const Dashboard = ({
     boxplotHighlights,
     paretoHighlights,
     setHighlight,
-    boxplotAnnotations,
-    paretoAnnotations,
-    createAnnotation,
-    setBoxplotAnnotations,
-    setParetoAnnotations,
-    ichartAnnotations,
-    createIChartAnnotation,
-    setIChartAnnotations,
-  } = useAnnotations({ displayOptions, setDisplayOptions, dataFingerprint });
+  } = useAnnotations({ displayOptions, setDisplayOptions });
 
   // Keyboard: clear selection on Escape (complement to hook's focused-mode ESC)
   useEffect(() => {
@@ -465,6 +465,7 @@ const Dashboard = ({
               showCpk={displayOptions.showCpk !== false}
               anovaResult={anovaResult}
               onPinFinding={onPinFinding}
+              onAddChartObservation={onAddChartObservation}
               boxplotData={boxplotData}
               boxplotHighlights={boxplotHighlights}
               paretoHighlights={paretoHighlights}
@@ -555,16 +556,6 @@ const Dashboard = ({
                           </button>
                         )}
                       </div>
-                      {ichartAnnotations.length > 0 && (
-                        <button
-                          onClick={() => clearAnnotations('ichart')}
-                          className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-                          title="Clear I-Chart annotations"
-                          aria-label="Clear I-Chart annotations"
-                        >
-                          <X size={12} />
-                        </button>
-                      )}
                       {/* Stats display */}
                       {stageColumn && stagedStats ? (
                         <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
@@ -623,9 +614,12 @@ const Dashboard = ({
                       onPointClick={onPointClick}
                       highlightedPointIndex={highlightedPointIndex}
                       onSpecClick={() => setShowSpecEditor(true)}
-                      ichartAnnotations={ichartAnnotations}
-                      onCreateAnnotation={createIChartAnnotation}
-                      onAnnotationsChange={setIChartAnnotations}
+                      ichartFindings={chartFindings?.ichart}
+                      onCreateObservation={(anchorX, anchorY) =>
+                        onAddChartObservation?.('ichart', undefined, anchorX, anchorY)
+                      }
+                      onEditFinding={onEditFinding}
+                      onDeleteFinding={onDeleteFinding}
                     />
                   </ErrorBoundary>
                 </DashboardChartCard>
@@ -685,8 +679,8 @@ const Dashboard = ({
                         <button
                           onClick={() => clearAnnotations('boxplot')}
                           className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-                          title="Clear boxplot annotations"
-                          aria-label="Clear boxplot annotations"
+                          title="Clear boxplot highlights"
+                          aria-label="Clear boxplot highlights"
                         >
                           <X size={12} />
                         </button>
@@ -717,8 +711,9 @@ const Dashboard = ({
                         categoryContributions={categoryContributions?.get(boxplotFactor)}
                         highlightedCategories={boxplotHighlights}
                         onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
-                        annotations={boxplotAnnotations}
-                        onAnnotationsChange={setBoxplotAnnotations}
+                        findings={chartFindings?.boxplot}
+                        onEditFinding={onEditFinding}
+                        onDeleteFinding={onDeleteFinding}
                       />
                     )}
                   </ErrorBoundary>
@@ -749,13 +744,12 @@ const Dashboard = ({
                           hasActiveFilter={!!filters?.[paretoFactor]?.length}
                           columnAliases={columnAliases}
                         />
-                        {((paretoHighlights && Object.keys(paretoHighlights).length > 0) ||
-                          paretoAnnotations.length > 0) && (
+                        {paretoHighlights && Object.keys(paretoHighlights).length > 0 && (
                           <button
                             onClick={() => clearAnnotations('pareto')}
                             className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-                            title="Clear pareto annotations"
-                            aria-label="Clear pareto annotations"
+                            title="Clear pareto highlights"
+                            aria-label="Clear pareto highlights"
                           >
                             <X size={12} />
                           </button>
@@ -793,8 +787,9 @@ const Dashboard = ({
                           }
                           highlightedCategories={paretoHighlights}
                           onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
-                          annotations={paretoAnnotations}
-                          onAnnotationsChange={setParetoAnnotations}
+                          findings={chartFindings?.pareto}
+                          onEditFinding={onEditFinding}
+                          onDeleteFinding={onDeleteFinding}
                         />
                       )}
                     </ErrorBoundary>
@@ -843,10 +838,12 @@ const Dashboard = ({
               onIChartTitleChange={title => handleChartTitleChange('ichart', title)}
               onPointClick={onPointClick}
               highlightedPointIndex={highlightedPointIndex}
-              ichartAnnotations={ichartAnnotations}
-              onCreateIChartAnnotation={createIChartAnnotation}
-              onIChartAnnotationsChange={setIChartAnnotations}
-              onClearIChartAnnotations={() => clearAnnotations('ichart')}
+              ichartFindings={chartFindings?.ichart}
+              onCreateIChartObservation={(anchorX: number, anchorY: number) =>
+                onAddChartObservation?.('ichart', undefined, anchorX, anchorY)
+              }
+              onEditFinding={onEditFinding}
+              onDeleteFinding={onDeleteFinding}
               // Boxplot props
               boxplotFactor={boxplotFactor}
               factors={factors}
@@ -860,8 +857,7 @@ const Dashboard = ({
               onBoxplotTitleChange={title => handleChartTitleChange('boxplot', title)}
               boxplotHighlightedCategories={boxplotHighlights}
               onBoxplotContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
-              boxplotAnnotations={boxplotAnnotations}
-              onBoxplotAnnotationsChange={setBoxplotAnnotations}
+              boxplotFindings={chartFindings?.boxplot}
               categoryContributions={categoryContributions?.get(boxplotFactor)}
               // Pareto props
               paretoFactor={paretoFactor}
@@ -878,8 +874,7 @@ const Dashboard = ({
               onUploadPareto={onManageFactors}
               paretoHighlightedCategories={paretoHighlights}
               onParetoContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
-              paretoAnnotations={paretoAnnotations}
-              onParetoAnnotationsChange={setParetoAnnotations}
+              paretoFindings={chartFindings?.pareto}
             />
           )}
         </div>
@@ -894,16 +889,22 @@ const Dashboard = ({
               ? boxplotHighlights[contextMenu.categoryKey]
               : paretoHighlights[contextMenu.categoryKey]
           }
-          hasAnnotation={
+          hasFinding={
             contextMenu.chartType === 'boxplot'
-              ? boxplotAnnotations.some(a => a.anchorCategory === contextMenu.categoryKey)
-              : paretoAnnotations.some(a => a.anchorCategory === contextMenu.categoryKey)
+              ? (chartFindings?.boxplot ?? []).some(
+                  f => f.source?.category === contextMenu.categoryKey
+                )
+              : (chartFindings?.pareto ?? []).some(
+                  f => f.source?.category === contextMenu.categoryKey
+                )
           }
           position={contextMenu.position}
           onSetHighlight={color =>
             setHighlight(contextMenu.chartType, contextMenu.categoryKey, color)
           }
-          onAddNote={() => createAnnotation(contextMenu.chartType, contextMenu.categoryKey)}
+          onAddObservation={() =>
+            onAddChartObservation?.(contextMenu.chartType, contextMenu.categoryKey)
+          }
           onClose={closeContextMenu}
         />
       )}

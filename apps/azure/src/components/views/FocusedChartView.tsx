@@ -11,8 +11,9 @@ import type {
   StagedStatsResult,
   DisplayOptions,
   AnovaResult,
+  Finding,
 } from '@variscout/core';
-import type { FilterChipData, ChartAnnotation, HighlightColor } from '@variscout/hooks';
+import type { FilterChipData, HighlightColor } from '@variscout/hooks';
 
 type FocusedChartType = 'ichart' | 'boxplot' | 'pareto';
 
@@ -48,10 +49,10 @@ interface FocusedChartViewProps {
   onIChartTitleChange: (title: string) => void;
   onPointClick?: (index: number) => void;
   highlightedPointIndex?: number | null;
-  ichartAnnotations?: ChartAnnotation[];
-  onCreateIChartAnnotation?: (anchorX: number, anchorY: number) => void;
-  onIChartAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
-  onClearIChartAnnotations?: () => void;
+  ichartFindings?: Finding[];
+  onCreateIChartObservation?: (anchorX: number, anchorY: number) => void;
+  onEditFinding?: (id: string, text: string) => void;
+  onDeleteFinding?: (id: string) => void;
 
   // Boxplot props
   boxplotFactor: string;
@@ -66,8 +67,7 @@ interface FocusedChartViewProps {
   onBoxplotTitleChange: (title: string) => void;
   boxplotHighlightedCategories?: Record<string, HighlightColor>;
   onBoxplotContextMenu?: (key: string, event: React.MouseEvent) => void;
-  boxplotAnnotations?: ChartAnnotation[];
-  onBoxplotAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  boxplotFindings?: Finding[];
   categoryContributions?: Map<string | number, number>;
 
   // Pareto props
@@ -83,8 +83,7 @@ interface FocusedChartViewProps {
   onUploadPareto?: () => void;
   paretoHighlightedCategories?: Record<string, HighlightColor>;
   onParetoContextMenu?: (key: string, event: React.MouseEvent) => void;
-  paretoAnnotations?: ChartAnnotation[];
-  onParetoAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  paretoFindings?: Finding[];
 }
 
 /**
@@ -152,17 +151,17 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
         stats: props.stats,
         stageColumn: props.stageColumn,
         stagedStats: props.stagedStats,
-        annotations: props.ichartAnnotations,
-        onClearAnnotations: props.onClearIChartAnnotations,
+        findings: props.ichartFindings,
         renderHeaderExtra: stageColumnSelector,
         renderChart: () => (
           <IChart
             onPointClick={props.onPointClick}
             highlightedPointIndex={props.highlightedPointIndex}
             onSpecClick={props.onSpecClick}
-            ichartAnnotations={props.ichartAnnotations}
-            onCreateAnnotation={props.onCreateIChartAnnotation}
-            onAnnotationsChange={props.onIChartAnnotationsChange}
+            ichartFindings={props.ichartFindings}
+            onCreateObservation={props.onCreateIChartObservation}
+            onEditFinding={props.onEditFinding}
+            onDeleteFinding={props.onDeleteFinding}
           />
         ),
       }}
@@ -195,8 +194,9 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
               categoryContributions={props.categoryContributions}
               highlightedCategories={props.boxplotHighlightedCategories}
               onContextMenu={props.onBoxplotContextMenu}
-              annotations={props.boxplotAnnotations}
-              onAnnotationsChange={props.onBoxplotAnnotationsChange}
+              findings={props.boxplotFindings}
+              onEditFinding={props.onEditFinding}
+              onDeleteFinding={props.onDeleteFinding}
             />
           ) : null,
       }}
@@ -222,8 +222,9 @@ const FocusedChartView: React.FC<FocusedChartViewProps> = props => {
               onToggleAggregation={props.onToggleAggregation}
               highlightedCategories={props.paretoHighlightedCategories}
               onContextMenu={props.onParetoContextMenu}
-              annotations={props.paretoAnnotations}
-              onAnnotationsChange={props.onParetoAnnotationsChange}
+              findings={props.paretoFindings}
+              onEditFinding={props.onEditFinding}
+              onDeleteFinding={props.onDeleteFinding}
             />
           ) : null,
       }}

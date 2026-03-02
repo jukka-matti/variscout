@@ -372,6 +372,55 @@ export const Editor: React.FC<EditorProps> = ({
     [findingsState, setFilters]
   );
 
+  // Chart observation: create a Finding with source metadata
+  const handleAddChartObservation = useCallback(
+    (
+      chartType: 'boxplot' | 'pareto' | 'ichart',
+      categoryKey?: string,
+      anchorX?: number,
+      anchorY?: number
+    ) => {
+      const source = { chart: chartType, category: categoryKey, anchorX, anchorY } as const;
+      // Check for duplicate by source
+      const existing = findingsState.findDuplicateSource(source);
+      if (existing) {
+        panels.setIsFindingsOpen(true);
+        setHighlightedFindingId(existing.id);
+        return;
+      }
+      const context: FindingContext = {
+        activeFilters: { ...filters },
+        cumulativeScope:
+          drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
+        stats:
+          filteredData.length > 0
+            ? {
+                mean:
+                  filteredData.reduce((sum, r) => {
+                    const v = Number(r[outcome!]);
+                    return isNaN(v) ? sum : sum + v;
+                  }, 0) / filteredData.length,
+                samples: filteredData.length,
+              }
+            : undefined,
+      };
+      const newFinding = findingsState.addFinding('', context, source);
+      panels.setIsFindingsOpen(true);
+      setHighlightedFindingId(newFinding.id);
+    },
+    [filters, drillPath, filteredData, outcome, findingsState, panels]
+  );
+
+  // Chart findings grouped by chart type for inline annotation display
+  const chartFindings = useMemo(
+    () => ({
+      boxplot: findingsState.getChartFindings('boxplot'),
+      pareto: findingsState.getChartFindings('pareto'),
+      ichart: findingsState.getChartFindings('ichart'),
+    }),
+    [findingsState]
+  );
+
   // Findings popout: open in separate window
   const popupRef = React.useRef<Window | null>(null);
   const handleOpenFindingsPopout = useCallback(() => {
@@ -1014,6 +1063,10 @@ export const Editor: React.FC<EditorProps> = ({
               onManageFactors={dataFlow.openFactorManager}
               onPinFinding={handlePinFinding}
               onShareChart={handleShareChart}
+              onAddChartObservation={handleAddChartObservation}
+              chartFindings={chartFindings}
+              onEditFinding={findingsState.editFinding}
+              onDeleteFinding={findingsState.deleteFinding}
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isFindingsOpen ? (

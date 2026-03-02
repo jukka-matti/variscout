@@ -91,3 +91,40 @@ On load, `migrateFindings()` maps:
 
 - More UI surface area to maintain (status badge, tag badge, comments, board view)
 - FindingsAction protocol grows (7 action types including set-tag)
+
+---
+
+## Revision: Unified Observations (2026-03-02)
+
+### Change
+
+Chart text annotations are now unified with the Findings system via `FindingSource`.
+Previously, text annotations on charts were transient visual elements stored in
+`DisplayOptions` (alongside color highlights). They are now stored as `Finding`
+objects in `AnalysisState`, with a `source` field linking each finding to its
+originating chart element.
+
+### FindingSource
+
+```typescript
+interface FindingSource {
+  chartType: 'boxplot' | 'pareto' | 'ichart';
+  category?: string; // Boxplot/Pareto category name
+  anchorX?: number; // I-Chart: 0–1 fraction of chart width
+  anchorY?: number; // I-Chart: 0–1 fraction of chart height
+}
+```
+
+`Finding.source` is optional — breadcrumb-pinned findings have no source (they
+capture filter state, not chart position). Chart observations always have a source.
+
+### What changed
+
+| Aspect                | Before                       | After                                  |
+| --------------------- | ---------------------------- | -------------------------------------- |
+| Text annotation store | `DisplayOptions` (transient) | `Finding[]` in `AnalysisState`         |
+| Color highlights      | `DisplayOptions`             | `DisplayOptions` (unchanged)           |
+| Persistence           | Lost on project reload (PWA) | Persisted with findings (Azure .vrs)   |
+| Context menu label    | "Add note"                   | "Add observation"                      |
+| ChartAnnotationLayer  | Reads `ChartAnnotation[]`    | Reads `Finding[]` (filtered by source) |
+| Status visibility     | None                         | Status dot on annotation box           |

@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import {
   filtersEqual,
   findDuplicateFinding,
+  findDuplicateBySource,
   createFinding,
   createFindingComment,
   getFindingStatus,
@@ -16,7 +17,7 @@ import {
   FINDING_TAGS,
   FINDING_TAG_LABELS,
 } from '../findings';
-import type { Finding, FindingStatus } from '../findings';
+import type { Finding, FindingStatus, FindingSource } from '../findings';
 
 describe('filtersEqual', () => {
   it('returns true for identical filters', () => {
@@ -291,5 +292,65 @@ describe('migrateFindings', () => {
     expect(migrated[1].tag).toBe('key-driver');
     expect(migrated[2].status).toBe('analyzed');
     expect(migrated[2].tag).toBe('low-impact');
+  });
+});
+
+// ============================================================================
+// FindingSource Tests
+// ============================================================================
+
+describe('createFinding with source', () => {
+  it('sets source field on the resulting finding', () => {
+    const source: FindingSource = { chart: 'boxplot', category: 'Machine A' };
+    const f = createFinding(
+      'High spread on Machine A',
+      { Machine: ['A'] },
+      42,
+      undefined,
+      undefined,
+      source
+    );
+    expect(f.source).toBeDefined();
+    expect(f.source!.chart).toBe('boxplot');
+    expect(f.source!.category).toBe('Machine A');
+    expect(f.text).toBe('High spread on Machine A');
+    expect(f.status).toBe('observed');
+  });
+});
+
+describe('findDuplicateBySource', () => {
+  const makeFindingWithSource = (id: string, source: FindingSource): Finding => ({
+    id,
+    text: `Finding ${id}`,
+    createdAt: Date.now(),
+    context: { activeFilters: {}, cumulativeScope: null },
+    status: 'observed',
+    comments: [],
+    statusChangedAt: Date.now(),
+    source,
+  });
+
+  it('finds duplicate by same chart + category', () => {
+    const findings = [
+      makeFindingWithSource('f-1', { chart: 'boxplot', category: 'Machine A' }),
+      makeFindingWithSource('f-2', { chart: 'pareto', category: 'Shift B' }),
+    ];
+    const result = findDuplicateBySource(findings, { chart: 'boxplot', category: 'Machine A' });
+    expect(result).toBeDefined();
+    expect(result!.id).toBe('f-1');
+  });
+
+  it('returns undefined for I-Chart (always unique)', () => {
+    const findings = [
+      makeFindingWithSource('f-1', { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 }),
+    ];
+    const result = findDuplicateBySource(findings, { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 });
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when no match', () => {
+    const findings = [makeFindingWithSource('f-1', { chart: 'boxplot', category: 'Machine A' })];
+    const result = findDuplicateBySource(findings, { chart: 'boxplot', category: 'Machine B' });
+    expect(result).toBeUndefined();
   });
 });

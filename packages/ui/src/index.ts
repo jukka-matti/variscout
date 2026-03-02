@@ -163,7 +163,6 @@ export {
 export {
   ChartAnnotationLayer,
   type ChartAnnotationLayerProps,
-  type ChartAnnotation as UIChartAnnotation,
   type HighlightColor as UIHighlightColor,
 } from './components/ChartAnnotationLayer';
 

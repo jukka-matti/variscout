@@ -47,7 +47,13 @@ export function formatFindingsText(
     }
 
     const statsStr = statsParts.length > 0 ? ` | ${statsParts.join(' \u00b7 ')}` : '';
-    lines.push(`${i + 1}. [${statusLabel}${tagLabel}] ${filterStr || '(no filters)'}${statsStr}`);
+    // Chart source prefix
+    const sourceStr = finding.source
+      ? `${finding.source.chart.charAt(0).toUpperCase() + finding.source.chart.slice(1)}${finding.source.category ? `: ${finding.source.category}` : ''} \u00b7 `
+      : '';
+    lines.push(
+      `${i + 1}. [${statusLabel}${tagLabel}] ${sourceStr}${filterStr || '(no filters)'}${statsStr}`
+    );
     if (finding.text) {
       lines.push(`   "${finding.text}"`);
     }

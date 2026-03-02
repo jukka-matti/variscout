@@ -3,9 +3,11 @@ import {
   createFinding,
   createFindingComment,
   findDuplicateFinding,
+  findDuplicateBySource,
   migrateFindings,
   type Finding,
   type FindingContext,
+  type FindingSource,
   type FindingStatus,
   type FindingTag,
   type PhotoAttachment,
@@ -22,8 +24,8 @@ export interface UseFindingsOptions {
 export interface UseFindingsReturn {
   /** Current findings list */
   findings: Finding[];
-  /** Add a new finding with the given note and context */
-  addFinding: (text: string, context: FindingContext) => Finding;
+  /** Add a new finding with the given note and context, optionally linked to a chart source */
+  addFinding: (text: string, context: FindingContext, source?: FindingSource) => Finding;
   /** Update an existing finding's note text */
   editFinding: (id: string, text: string) => void;
   /** Delete a finding */
@@ -32,6 +34,10 @@ export interface UseFindingsReturn {
   getFindingContext: (id: string) => FindingContext | undefined;
   /** Find an existing finding with matching filters (for duplicate detection) */
   findDuplicate: (activeFilters: Record<string, (string | number)[]>) => Finding | undefined;
+  /** Find an existing finding with matching chart source (for duplicate detection) */
+  findDuplicateSource: (source: FindingSource) => Finding | undefined;
+  /** Get findings linked to a specific chart type */
+  getChartFindings: (chartType: FindingSource['chart']) => Finding[];
   /** Change a finding's investigation status */
   setFindingStatus: (id: string, status: FindingStatus) => void;
   /** Set or clear a finding's classification tag */
@@ -69,12 +75,14 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
   );
 
   const addFinding = useCallback(
-    (text: string, context: FindingContext): Finding => {
+    (text: string, context: FindingContext, source?: FindingSource): Finding => {
       const finding = createFinding(
         text,
         context.activeFilters,
         context.cumulativeScope,
-        context.stats
+        context.stats,
+        undefined,
+        source
       );
       setFindings(prev => {
         const next = [finding, ...prev];
@@ -118,6 +126,20 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
   const findDuplicate = useCallback(
     (activeFilters: Record<string, (string | number)[]>): Finding | undefined => {
       return findDuplicateFinding(findings, activeFilters);
+    },
+    [findings]
+  );
+
+  const findDuplicateSource = useCallback(
+    (source: FindingSource): Finding | undefined => {
+      return findDuplicateBySource(findings, source);
+    },
+    [findings]
+  );
+
+  const getChartFindings = useCallback(
+    (chartType: FindingSource['chart']): Finding[] => {
+      return findings.filter(f => f.source?.chart === chartType);
     },
     [findings]
   );
@@ -257,6 +279,8 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     deleteFinding,
     getFindingContext,
     findDuplicate,
+    findDuplicateSource,
+    getChartFindings,
     setFindingStatus,
     setFindingTag,
     addFindingComment,

@@ -6,8 +6,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useIChartWrapperData } from '../useIChartWrapperData';
-import type { StatsResult } from '@variscout/core';
-import type { ChartAnnotation } from '../types';
+import type { StatsResult, Finding } from '@variscout/core';
 
 const MOCK_STATS: StatsResult = {
   mean: 50,
@@ -24,16 +23,14 @@ const MOCK_STATS: StatsResult = {
   median: 50,
 };
 
-const ANNOTATION: ChartAnnotation = {
-  id: 'a1',
-  anchorCategory: '',
+const ICHART_FINDING: Finding = {
+  id: 'f1',
   text: 'Test note',
-  offsetX: 0,
-  offsetY: 0,
-  width: 120,
-  color: 'neutral',
-  anchorX: 0.5,
-  anchorY: 0.3,
+  status: 'observed',
+  context: { activeFilters: {}, cumulativeScope: null },
+  createdAt: new Date().toISOString(),
+  comments: [],
+  source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 },
 };
 
 describe('useIChartWrapperData', () => {
@@ -45,7 +42,6 @@ describe('useIChartWrapperData', () => {
         stats: MOCK_STATS,
         stagedStats: null,
         displayOptions: { showControlLimits: false },
-        ichartAnnotations: [],
       })
     );
 
@@ -61,7 +57,6 @@ describe('useIChartWrapperData', () => {
         stats: MOCK_STATS,
         stagedStats: null,
         displayOptions: { showControlLimits: true },
-        ichartAnnotations: [],
       })
     );
 
@@ -76,14 +71,13 @@ describe('useIChartWrapperData', () => {
         stats: MOCK_STATS,
         stagedStats: null,
         displayOptions: {},
-        ichartAnnotations: [],
       })
     );
 
     expect(result.current.effectiveStats).toBe(MOCK_STATS);
   });
 
-  it('computes pixel positions from annotation percentage anchors', () => {
+  it('computes pixel positions from finding source anchors', () => {
     const { result } = renderHook(() =>
       useIChartWrapperData({
         parentWidth: 800,
@@ -91,12 +85,12 @@ describe('useIChartWrapperData', () => {
         stats: MOCK_STATS,
         stagedStats: null,
         displayOptions: {},
-        ichartAnnotations: [ANNOTATION],
+        ichartFindings: [ICHART_FINDING],
       })
     );
 
     expect(result.current.categoryPositions.size).toBe(1);
-    const pos = result.current.categoryPositions.get('a1')!;
+    const pos = result.current.categoryPositions.get('f1')!;
     expect(pos.x).toBeGreaterThan(0);
     expect(pos.y).toBeGreaterThan(0);
   });
@@ -109,15 +103,15 @@ describe('useIChartWrapperData', () => {
         stats: MOCK_STATS,
         stagedStats: null,
         displayOptions: {},
-        ichartAnnotations: [ANNOTATION],
+        ichartFindings: [ICHART_FINDING],
       })
     );
 
     expect(result.current.categoryPositions.size).toBe(0);
   });
 
-  it('handleContextMenu calls onCreateAnnotation with % positions', () => {
-    const onCreateAnnotation = vi.fn();
+  it('handleContextMenu calls onCreateObservation with % positions', () => {
+    const onCreateObservation = vi.fn();
 
     const { result } = renderHook(() =>
       useIChartWrapperData({
@@ -126,8 +120,7 @@ describe('useIChartWrapperData', () => {
         stats: MOCK_STATS,
         stagedStats: null,
         displayOptions: {},
-        ichartAnnotations: [],
-        onCreateAnnotation,
+        onCreateObservation,
       })
     );
 
@@ -146,16 +139,16 @@ describe('useIChartWrapperData', () => {
     });
 
     expect(mockEvent.preventDefault).toHaveBeenCalled();
-    expect(onCreateAnnotation).toHaveBeenCalledWith(expect.any(Number), expect.any(Number));
+    expect(onCreateObservation).toHaveBeenCalledWith(expect.any(Number), expect.any(Number));
     // Values should be between 0 and 1 (percentage positions)
-    const [anchorX, anchorY] = onCreateAnnotation.mock.calls[0];
+    const [anchorX, anchorY] = onCreateObservation.mock.calls[0];
     expect(anchorX).toBeGreaterThan(0);
     expect(anchorX).toBeLessThanOrEqual(1);
     expect(anchorY).toBeGreaterThan(0);
     expect(anchorY).toBeLessThanOrEqual(1);
   });
 
-  it('handleContextMenu is a no-op without onCreateAnnotation', () => {
+  it('handleContextMenu is a no-op without onCreateObservation', () => {
     const { result } = renderHook(() =>
       useIChartWrapperData({
         parentWidth: 800,
@@ -163,8 +156,6 @@ describe('useIChartWrapperData', () => {
         stats: MOCK_STATS,
         stagedStats: null,
         displayOptions: {},
-        ichartAnnotations: [],
-        // No onCreateAnnotation
       })
     );
 

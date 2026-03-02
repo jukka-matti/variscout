@@ -6,13 +6,13 @@ export interface AnnotationContextMenuProps {
   categoryKey: string;
   /** Current highlight color (or undefined if none) */
   currentHighlight?: HighlightColor;
-  /** Whether an annotation already exists for this category */
-  hasAnnotation: boolean;
+  /** Whether a finding already exists for this category */
+  hasFinding: boolean;
   /** Screen position for the menu */
   position: { x: number; y: number };
   /** Callbacks */
   onSetHighlight: (color: HighlightColor | undefined) => void;
-  onAddNote: () => void;
+  onAddObservation: () => void;
   onClose: () => void;
 }
 
@@ -25,15 +25,15 @@ const highlightOptions: { color: HighlightColor; label: string; dot: string }[] 
 /**
  * AnnotationContextMenu - Right-click context menu for chart annotations
  *
- * Appears at click position. Options: set highlight color, clear highlight, add note.
+ * Appears at click position. Options: set highlight color, clear highlight, add observation.
  * Closes on click-outside or Escape.
  */
 export const AnnotationContextMenu: React.FC<AnnotationContextMenuProps> = ({
   currentHighlight,
-  hasAnnotation,
+  hasFinding,
   position,
   onSetHighlight,
-  onAddNote,
+  onAddObservation,
   onClose,
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -120,18 +120,18 @@ export const AnnotationContextMenu: React.FC<AnnotationContextMenuProps> = ({
       {/* Divider */}
       <div className="my-1 border-t border-slate-700" />
 
-      {/* Add note */}
-      {!hasAnnotation && (
+      {/* Add observation */}
+      {!hasFinding && (
         <button
           role="menuitem"
           onClick={() => {
-            onAddNote();
+            onAddObservation();
             onClose();
           }}
           className="w-full flex items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-slate-700 transition-colors"
         >
           <span className="text-slate-400">+</span>
-          Add note
+          Add observation
         </button>
       )}
     </div>

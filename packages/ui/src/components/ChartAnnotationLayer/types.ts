@@ -3,23 +3,6 @@ import { chartColors, chromeColors } from '@variscout/charts';
 /** Highlight color for annotated chart elements */
 export type HighlightColor = 'red' | 'amber' | 'green';
 
-/** A text annotation anchored to a chart category */
-export interface ChartAnnotation {
-  id: string;
-  /** Category key this annotation is anchored to */
-  anchorCategory: string;
-  /** User's note text */
-  text: string;
-  /** Pixel offset from anchor default position (resets on data change) */
-  offsetX: number;
-  /** Pixel offset from anchor default position (resets on data change) */
-  offsetY: number;
-  /** Width of the text box in pixels */
-  width: number;
-  /** Color of the annotation box */
-  color: HighlightColor | 'neutral';
-}
-
 /** Color definition for annotation styling */
 export interface AnnotationColorDef {
   fill: string;

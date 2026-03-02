@@ -2,14 +2,14 @@
  * useIChartWrapperData - Shared data preparation for IChart chart wrappers
  *
  * Extracts identical computation logic from both PWA and Azure IChart wrappers:
- * - handleContextMenu: right-click → free-floating annotation at % position
- * - categoryPositions: pixel positions from percentage anchors for annotation layer
+ * - handleContextMenu: right-click → observation at % position
+ * - categoryPositions: pixel positions from finding source anchors for annotation layer
  * - effectiveStats / effectiveStagedStats: display options gating
  */
 import React, { useMemo, useCallback } from 'react';
 import { getResponsiveMargins } from '@variscout/charts';
-import type { StatsResult, StagedStatsResult } from '@variscout/core';
-import type { ChartAnnotation, DisplayOptions } from './types';
+import type { StatsResult, StagedStatsResult, Finding } from '@variscout/core';
+import type { DisplayOptions } from './types';
 
 export interface UseIChartWrapperDataOptions {
   /** Chart container width in pixels */
@@ -22,10 +22,10 @@ export interface UseIChartWrapperDataOptions {
   stagedStats: StagedStatsResult | null;
   /** Display options (showControlLimits toggle) */
   displayOptions: Pick<DisplayOptions, 'showControlLimits'>;
-  /** Free-floating I-Chart annotations */
-  ichartAnnotations: ChartAnnotation[];
-  /** Callback to create a new annotation at % position */
-  onCreateAnnotation?: (anchorX: number, anchorY: number) => void;
+  /** Findings linked to this I-Chart */
+  ichartFindings?: Finding[];
+  /** Callback to create a new observation at % position */
+  onCreateObservation?: (anchorX: number, anchorY: number) => void;
 }
 
 export interface UseIChartWrapperDataResult {
@@ -33,9 +33,9 @@ export interface UseIChartWrapperDataResult {
   effectiveStats: StatsResult | null;
   /** Staged stats gated by showControlLimits display option */
   effectiveStagedStats: StagedStatsResult | undefined;
-  /** Pixel positions computed from percentage anchors for annotation layer */
+  /** Pixel positions computed from finding source anchors for annotation layer */
   categoryPositions: Map<string, { x: number; y: number }>;
-  /** Right-click handler that creates free-floating annotations at % position */
+  /** Right-click handler that creates observations at % position */
   handleContextMenu: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
@@ -45,13 +45,13 @@ export function useIChartWrapperData({
   stats,
   stagedStats,
   displayOptions,
-  ichartAnnotations,
-  onCreateAnnotation,
+  ichartFindings = [],
+  onCreateObservation,
 }: UseIChartWrapperDataOptions): UseIChartWrapperDataResult {
-  // Right-click handler: create free-floating annotation at % position
+  // Right-click handler: create observation at % position
   const handleContextMenu = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!onCreateAnnotation) return;
+      if (!onCreateObservation) return;
       e.preventDefault();
 
       const rect = e.currentTarget.getBoundingClientRect();
@@ -74,12 +74,12 @@ export function useIChartWrapperData({
 
       const anchorX = (clickX - margin.left) / chartWidth;
       const anchorY = (clickY - margin.top) / chartHeight;
-      onCreateAnnotation(anchorX, anchorY);
+      onCreateObservation(anchorX, anchorY);
     },
-    [onCreateAnnotation, parentWidth, parentHeight]
+    [onCreateObservation, parentWidth, parentHeight]
   );
 
-  // Compute pixel positions from percentage anchors for annotation layer
+  // Compute pixel positions from finding source anchors for annotation layer
   const categoryPositions = useMemo(() => {
     const positions = new Map<string, { x: number; y: number }>();
     if (parentWidth === 0 || parentHeight === 0) return positions;
@@ -88,16 +88,16 @@ export function useIChartWrapperData({
     const chartWidth = parentWidth - margin.left - margin.right;
     const chartHeight = parentHeight - margin.top - margin.bottom;
 
-    for (const a of ichartAnnotations) {
-      if (a.anchorX != null && a.anchorY != null) {
-        positions.set(a.id, {
-          x: a.anchorX * chartWidth + margin.left,
-          y: a.anchorY * chartHeight + margin.top,
+    for (const f of ichartFindings) {
+      if (f.source?.anchorX != null && f.source?.anchorY != null) {
+        positions.set(f.id, {
+          x: f.source.anchorX * chartWidth + margin.left,
+          y: f.source.anchorY * chartHeight + margin.top,
         });
       }
     }
     return positions;
-  }, [ichartAnnotations, parentWidth, parentHeight]);
+  }, [ichartFindings, parentWidth, parentHeight]);
 
   const effectiveStats = displayOptions.showControlLimits !== false ? stats : null;
   const effectiveStagedStats =

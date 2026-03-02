@@ -5,7 +5,7 @@ import { withParentSize } from '@visx/responsive';
 import { useData } from '../../context/DataContext';
 import { useChartScale } from '../../hooks/useChartScale';
 import { IChartWrapperBase } from '@variscout/ui';
-import type { ChartAnnotation } from '@variscout/hooks';
+import type { Finding } from '@variscout/core';
 
 interface IChartProps {
   parentWidth: number;
@@ -13,9 +13,10 @@ interface IChartProps {
   onPointClick?: (index: number) => void;
   onSpecClick?: (spec: 'usl' | 'lsl' | 'target') => void;
   showBranding?: boolean;
-  ichartAnnotations?: ChartAnnotation[];
-  onCreateAnnotation?: (anchorX: number, anchorY: number) => void;
-  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  ichartFindings?: Finding[];
+  onCreateObservation?: (anchorX: number, anchorY: number) => void;
+  onEditFinding?: (id: string, text: string) => void;
+  onDeleteFinding?: (id: string) => void;
 }
 
 const IChart = ({ parentWidth, parentHeight, ...props }: IChartProps) => {

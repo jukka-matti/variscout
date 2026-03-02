@@ -27,8 +27,8 @@ import {
   Upload,
   EyeOff as HideIcon,
 } from 'lucide-react';
-import type { DataRow, ParetoRow } from '@variscout/core';
-import type { HighlightColor, ChartAnnotation, ParetoMode } from '@variscout/hooks';
+import type { DataRow, ParetoRow, Finding } from '@variscout/core';
+import type { HighlightColor, ParetoMode } from '@variscout/hooks';
 
 export interface ParetoChartWrapperBaseProps {
   parentWidth: number;
@@ -69,10 +69,12 @@ export interface ParetoChartWrapperBaseProps {
   highlightedCategories?: Record<string, HighlightColor>;
   /** Context menu callback for annotations */
   onContextMenu?: (key: string, event: React.MouseEvent) => void;
-  /** Text annotations */
-  annotations?: ChartAnnotation[];
-  /** Callback when annotations change */
-  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  /** Findings linked to this chart (rendered as annotation boxes) */
+  findings?: Finding[];
+  /** Edit a finding's text from the annotation box */
+  onEditFinding?: (id: string, text: string) => void;
+  /** Delete a finding from the annotation box */
+  onDeleteFinding?: (id: string) => void;
   // PWA-specific empty state actions (omit for Azure behavior of returning null)
   /** Callback to hide pareto panel */
   onHide?: () => void;
@@ -105,8 +107,9 @@ export const ParetoChartWrapperBase = ({
   showBranding: showBrandingProp,
   highlightedCategories,
   onContextMenu,
-  annotations = [],
-  onAnnotationsChange,
+  findings = [],
+  onEditFinding,
+  onDeleteFinding,
   onHide,
   onSelectFactor,
   onUploadPareto,
@@ -322,10 +325,11 @@ export const ParetoChartWrapperBase = ({
         }}
       />
 
-      {annotations.length > 0 && onAnnotationsChange && (
+      {findings.length > 0 && onEditFinding && onDeleteFinding && (
         <ChartAnnotationLayer
-          annotations={annotations}
-          onAnnotationsChange={onAnnotationsChange}
+          findings={findings}
+          onEditFinding={onEditFinding}
+          onDeleteFinding={onDeleteFinding}
           isActive={true}
           categoryPositions={categoryPositions}
           maxWidth={parentWidth * 0.7}

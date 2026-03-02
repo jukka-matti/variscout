@@ -96,9 +96,28 @@ Use the dashboard's drill-down workflow to progressively filter the data by fact
 
 2. **Pin findings** — Click the pin button in the breadcrumb bar to instantly capture the current filter state as a finding. Add a note later if desired — the filter chips and statistics are captured automatically.
 
-3. **Review findings** — Open the Findings panel to see all bookmarked states. Click a finding card to restore its filter combination on the dashboard. Edit or delete findings as your understanding evolves.
+3. **Add chart observations** — Right-click a Boxplot category or Pareto bar and select "Add observation" to create a finding anchored to that specific chart element. The observation text appears as a floating annotation on the chart and is stored as a Finding with source metadata.
+
+4. **Review findings** — Open the Findings panel to see all bookmarked states. Click a finding card to restore its filter combination on the dashboard. Edit or delete findings as your understanding evolves.
 
 The Findings panel can be popped out to a separate window for dual-monitor setups — keep findings visible on one screen while drilling on the other.
+
+### Chart Observations
+
+There are two ways to create findings:
+
+| Method                | How                                            | What is captured                                             |
+| --------------------- | ---------------------------------------------- | ------------------------------------------------------------ |
+| **Breadcrumb pin**    | Click pin button in filter breadcrumb bar      | Current filter state, statistics, variation %                |
+| **Chart observation** | Right-click chart category → "Add observation" | Category name, chart type, observation text, source metadata |
+
+Chart-sourced findings carry a `source` chip on the FindingCard (e.g., "Boxplot: Machine C") so analysts can distinguish observations made on a specific chart element from drill-down filter pins.
+
+The floating text box on the chart is a visual projection of the underlying Finding. Editing the text in the annotation box updates the Finding; editing the Finding text in the panel updates the annotation. The annotation box displays a small status dot matching the finding's investigation status color (amber/blue/purple).
+
+Color highlights (red/amber/green) remain as separate lightweight visual markers on Boxplot and Pareto categories. They are stored in DisplayOptions and do not create findings.
+
+In Board view, chart observations appear alongside drill-down findings, grouped by the same status columns (Observed / Investigating / Analyzed). The source chip helps identify which findings came from chart annotations versus breadcrumb pins.
 
 ### Exit criterion
 

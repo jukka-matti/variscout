@@ -124,4 +124,56 @@ describe('FindingsLog', () => {
     const list = container.querySelector('[data-testid="findings-list"]');
     expect(list).toBeDefined();
   });
+
+  it('renders source chip when finding has a source', () => {
+    const findings = [
+      makeFinding({
+        id: 'f-src',
+        text: 'Source finding',
+        source: { chart: 'boxplot', category: 'Machine B' },
+      }),
+    ];
+
+    render(<FindingsLog {...defaultProps} findings={findings} />);
+    // The source chip shows the category name
+    expect(screen.getByText('Machine B')).toBeDefined();
+    // The chip has a title referencing the chart type
+    expect(screen.getByTitle('Go to boxplot chart')).toBeDefined();
+  });
+
+  it('renders source chip for pareto chart', () => {
+    const findings = [
+      makeFinding({
+        id: 'f-pareto',
+        text: 'Pareto finding',
+        source: { chart: 'pareto', category: 'Shift C' },
+      }),
+    ];
+
+    render(<FindingsLog {...defaultProps} findings={findings} />);
+    expect(screen.getByText('Shift C')).toBeDefined();
+    expect(screen.getByTitle('Go to pareto chart')).toBeDefined();
+  });
+
+  it('renders source chip for ichart (shows "I-Chart" when no category)', () => {
+    const findings = [
+      makeFinding({
+        id: 'f-ichart',
+        text: 'IChart finding',
+        source: { chart: 'ichart' },
+      }),
+    ];
+
+    render(<FindingsLog {...defaultProps} findings={findings} />);
+    expect(screen.getByText('I-Chart')).toBeDefined();
+    expect(screen.getByTitle('Go to ichart chart')).toBeDefined();
+  });
+
+  it('does not render source chip when finding has no source', () => {
+    const findings = [makeFinding({ id: 'f-nosrc', text: 'No source' })];
+
+    render(<FindingsLog {...defaultProps} findings={findings} />);
+    // No chart navigation buttons should appear
+    expect(screen.queryByTitle(/Go to .* chart/)).toBeNull();
+  });
 });

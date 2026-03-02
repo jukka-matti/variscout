@@ -147,21 +147,27 @@ Sorting is applied in the **app Boxplot wrapper** (not `BoxplotBase`). State liv
 
 ## Chart Annotations
 
-Three chart types support user annotations via right-click context menu:
+Three chart types support annotations via right-click context menu. Text observations create Findings (not transient annotations). Color highlights remain as separate visual markers.
 
-| Chart   | Anchor Type       | Highlights | Props                                           |
-| ------- | ----------------- | ---------- | ----------------------------------------------- |
-| Boxplot | Category-based    | Yes        | `highlightedCategories`, `onBoxContextMenu`     |
-| Pareto  | Category-based    | Yes        | `highlightedCategories`, `onBarContextMenu`     |
-| I-Chart | Free-floating (%) | No         | `ichartAnnotations`, `onChartContextMenu`       |
+| Chart   | Anchor Type       | Highlights | Text Observations | Props                                           |
+| ------- | ----------------- | ---------- | ----------------- | ----------------------------------------------- |
+| Boxplot | Category-based    | Yes        | Yes (Finding)     | `highlightedCategories`, `onBoxContextMenu`     |
+| Pareto  | Category-based    | Yes        | Yes (Finding)     | `highlightedCategories`, `onBarContextMenu`     |
+| I-Chart | Free-floating (%) | No         | Yes (Finding)     | `ichartAnnotations`, `onChartContextMenu`       |
 
-**Category-based** (Boxplot/Pareto): Annotations anchor to a named category. Offsets reset on data changes.
+**"Add observation"** (context menu) creates a `Finding` with `source` metadata (`FindingSource` with chartType, category, anchorX/Y). The floating text box rendered by `ChartAnnotationLayer` is a visual projection of the Finding. `ChartAnnotationLayer` reads from `Finding[]` (filtered by source), not `ChartAnnotation[]`.
 
-**Free-floating** (I-Chart): Annotations store percentage positions (0.0-1.0) within the chart area. Position is data-independent. I-Chart dot colors are never overridden (blue = in-control, red = violation).
+**Color highlights** (red/amber/green) remain in `DisplayOptions` as lightweight visual markers. They do not create findings.
+
+**Category-based** (Boxplot/Pareto): Observations anchor to a named category. Offsets reset on data changes. Finding carries `source.category`.
+
+**Free-floating** (I-Chart): Observations store percentage positions (0.0-1.0) within the chart area. Position is data-independent. Finding carries `source.anchorX`/`source.anchorY`. I-Chart dot colors are never overridden (blue = in-control, red = violation).
+
+**Status dot**: Each annotation box displays a status dot matching the finding's investigation status (amber = observed, blue = investigating, purple = analyzed).
 
 State managed by `useAnnotations` hook from `@variscout/hooks`. UI components: `ChartAnnotationLayer` and `AnnotationContextMenu` from `@variscout/ui`.
 
-**Mobile (<640px)**: Tap on boxplot box or Pareto bar opens `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) with category stats, drill-down, highlight, and pin-as-finding actions. Draggable text annotations (`ChartAnnotationLayer`) remain desktop-only. I-Chart annotations are desktop-only on all platforms.
+**Mobile (<640px)**: Tap on boxplot box or Pareto bar opens `MobileCategorySheet` bottom action sheet (from `@variscout/ui`) with category stats, drill-down, highlight, and pin-as-finding actions. "Pin as Finding" includes `source` metadata (chart type and category). Draggable text annotations (`ChartAnnotationLayer`) remain desktop-only. I-Chart annotations are desktop-only on all platforms.
 
 ## Chart Export
 

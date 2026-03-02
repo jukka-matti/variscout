@@ -58,6 +58,8 @@ function createMockFindingsState(): UseFindingsReturn {
     deleteFinding: vi.fn(),
     getFindingContext: vi.fn(),
     findDuplicate: vi.fn(),
+    findDuplicateSource: vi.fn(),
+    getChartFindings: vi.fn().mockReturnValue([]),
     setFindingStatus: vi.fn(),
     setFindingTag: vi.fn(),
     addFindingComment: vi.fn(),

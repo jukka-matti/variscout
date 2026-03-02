@@ -1,14 +1,26 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { X } from 'lucide-react';
-import type { ChartAnnotation, HighlightColor } from './types';
+import type { FindingStatus } from '@variscout/core';
 import { annotationColors } from './types';
 
 const MIN_WIDTH = 80;
 
-const COLOR_OPTIONS: Array<HighlightColor | 'neutral'> = ['red', 'amber', 'green', 'neutral'];
+/** Status colors for the indicator dot */
+const STATUS_DOT_COLORS: Record<FindingStatus, string> = {
+  observed: '#f59e0b', // amber
+  investigating: '#3b82f6', // blue
+  analyzed: '#a855f7', // purple
+};
 
 interface AnnotationBoxProps {
-  annotation: ChartAnnotation;
+  findingId: string;
+  findingStatus: FindingStatus;
+  text: string;
+  /** Pixel offset from anchor default position */
+  offsetX: number;
+  offsetY: number;
+  /** Width of the text box in pixels */
+  width: number;
   /** Pixel position of the anchor (center-x of the category element) */
   anchorX: number;
   /** Pixel position above the category element (top whisker / bar top) */
@@ -21,19 +33,29 @@ interface AnnotationBoxProps {
   textColor: string;
   /** Font size from chart layout */
   fontSize: number;
-  onUpdate: (id: string, updates: Partial<ChartAnnotation>) => void;
+  onUpdateOffset: (
+    id: string,
+    updates: { offsetX?: number; offsetY?: number; width?: number }
+  ) => void;
+  onTextChange: (id: string, text: string) => void;
   onDelete: (id: string) => void;
 }
 
 export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
-  annotation,
+  findingId,
+  findingStatus,
+  text,
+  offsetX,
+  offsetY,
+  width,
   anchorX,
   anchorY,
   maxWidth,
   isActive,
   textColor,
   fontSize,
-  onUpdate,
+  onUpdateOffset,
+  onTextChange,
   onDelete,
 }) => {
   const boxRef = useRef<HTMLDivElement>(null);
@@ -44,11 +66,11 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
   const dragStart = useRef({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
   const resizeStart = useRef({ x: 0, width: 0 });
 
-  const colorDef = annotationColors[annotation.color];
+  const colorDef = annotationColors['neutral'];
 
   // Position: anchor point minus half width (centered), plus offset
-  const left = anchorX - annotation.width / 2 + annotation.offsetX;
-  const top = anchorY - 40 + annotation.offsetY; // 40px above anchor by default
+  const left = anchorX - width / 2 + offsetX;
+  const top = anchorY - 40 + offsetY; // 40px above anchor by default
 
   // Drag handlers
   const handleDragStart = useCallback(
@@ -60,11 +82,11 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
       dragStart.current = {
         x: e.clientX,
         y: e.clientY,
-        offsetX: annotation.offsetX,
-        offsetY: annotation.offsetY,
+        offsetX,
+        offsetY,
       };
     },
-    [isActive, annotation.offsetX, annotation.offsetY]
+    [isActive, offsetX, offsetY]
   );
 
   useEffect(() => {
@@ -73,7 +95,7 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
     const handleMove = (e: MouseEvent) => {
       const dx = e.clientX - dragStart.current.x;
       const dy = e.clientY - dragStart.current.y;
-      onUpdate(annotation.id, {
+      onUpdateOffset(findingId, {
         offsetX: dragStart.current.offsetX + dx,
         offsetY: dragStart.current.offsetY + dy,
       });
@@ -87,7 +109,7 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('mouseup', handleUp);
     };
-  }, [isDragging, annotation.id, onUpdate]);
+  }, [isDragging, findingId, onUpdateOffset]);
 
   // Resize handlers
   const handleResizeStart = useCallback(
@@ -96,9 +118,9 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
       e.preventDefault();
       e.stopPropagation();
       setIsResizing(true);
-      resizeStart.current = { x: e.clientX, width: annotation.width };
+      resizeStart.current = { x: e.clientX, width };
     },
-    [isActive, annotation.width]
+    [isActive, width]
   );
 
   useEffect(() => {
@@ -107,7 +129,7 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
     const handleMove = (e: MouseEvent) => {
       const dx = e.clientX - resizeStart.current.x;
       const newWidth = Math.max(MIN_WIDTH, Math.min(maxWidth, resizeStart.current.width + dx));
-      onUpdate(annotation.id, { width: newWidth });
+      onUpdateOffset(findingId, { width: newWidth });
     };
 
     const handleUp = () => setIsResizing(false);
@@ -118,32 +140,32 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('mouseup', handleUp);
     };
-  }, [isResizing, annotation.id, maxWidth, onUpdate]);
+  }, [isResizing, findingId, maxWidth, onUpdateOffset]);
 
   // Text editing
   const handleTextBlur = useCallback(() => {
-    const text = textRef.current?.textContent || '';
-    if (text !== annotation.text) {
-      onUpdate(annotation.id, { text });
+    const newText = textRef.current?.textContent || '';
+    if (newText !== text) {
+      onTextChange(findingId, newText);
     }
-  }, [annotation.id, annotation.text, onUpdate]);
+  }, [findingId, text, onTextChange]);
 
   // Auto-focus new empty annotations
   useEffect(() => {
-    if (isActive && annotation.text === '' && textRef.current) {
+    if (isActive && text === '' && textRef.current) {
       textRef.current.focus();
     }
-  }, [isActive, annotation.text]);
+  }, [isActive, text]);
 
   return (
     <div
       ref={boxRef}
-      data-testid={`annotation-box-${annotation.id}`}
+      data-testid={`annotation-box-${findingId}`}
       style={{
         position: 'absolute',
         left,
         top,
-        width: annotation.width,
+        width,
         backgroundColor: colorDef.fill,
         border: `1px solid ${colorDef.border}`,
         borderRadius: 6,
@@ -158,6 +180,20 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Status indicator dot */}
+      <span
+        data-testid={`annotation-status-${findingId}`}
+        style={{
+          position: 'absolute',
+          top: -3,
+          left: -3,
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          backgroundColor: STATUS_DOT_COLORS[findingStatus],
+        }}
+      />
+
       {/* Text content */}
       <div
         ref={textRef}
@@ -175,7 +211,7 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
         }}
         data-placeholder="Add note..."
       >
-        {annotation.text}
+        {text}
       </div>
 
       {/* Controls (visible on hover/focus when active) */}
@@ -185,7 +221,7 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
           <button
             onClick={e => {
               e.stopPropagation();
-              onDelete(annotation.id);
+              onDelete(findingId);
             }}
             onMouseDown={e => e.stopPropagation()}
             style={{
@@ -203,44 +239,10 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
               cursor: 'pointer',
               padding: 0,
             }}
-            title="Delete annotation"
+            title="Delete observation"
           >
             <X size={10} color="#fff" />
           </button>
-
-          {/* Color dots */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 4,
-              marginTop: 4,
-              justifyContent: 'center',
-            }}
-            onMouseDown={e => e.stopPropagation()}
-          >
-            {COLOR_OPTIONS.map(c => (
-              <button
-                key={c}
-                onClick={e => {
-                  e.stopPropagation();
-                  onUpdate(annotation.id, { color: c });
-                }}
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  backgroundColor: annotationColors[c].hex,
-                  border:
-                    annotation.color === c
-                      ? `2px solid ${textColor}`
-                      : '1px solid rgba(148,163,184,0.4)',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-                title={c}
-              />
-            ))}
-          </div>
 
           {/* Resize handle */}
           <div

@@ -16,8 +16,8 @@ import { useIChartData, useIChartWrapperData } from '@variscout/hooks';
 import { shouldShowBranding, getBrandingText } from '@variscout/core';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
 import { YAxisPopover } from '../YAxisPopover';
-import type { DataRow, StatsResult, SpecLimits, StagedStatsResult } from '@variscout/core';
-import type { ChartAnnotation, DisplayOptions } from '@variscout/hooks';
+import type { DataRow, StatsResult, SpecLimits, StagedStatsResult, Finding } from '@variscout/core';
+import type { DisplayOptions } from '@variscout/hooks';
 
 export interface IChartWrapperBaseProps {
   parentWidth: number;
@@ -64,12 +64,14 @@ export interface IChartWrapperBaseProps {
   showLimitLabels?: boolean;
   /** Highlighted point index from data panel sync (Azure) */
   highlightedPointIndex?: number | null;
-  /** Free-floating annotation data */
-  ichartAnnotations?: ChartAnnotation[];
-  /** Callback to create annotation at position */
-  onCreateAnnotation?: (anchorX: number, anchorY: number) => void;
-  /** Callback when annotations change */
-  onAnnotationsChange?: (annotations: ChartAnnotation[]) => void;
+  /** Findings linked to this chart (rendered as annotation boxes) */
+  ichartFindings?: Finding[];
+  /** Callback to create a chart observation at position */
+  onCreateObservation?: (anchorX: number, anchorY: number) => void;
+  /** Edit a finding's text from the annotation box */
+  onEditFinding?: (id: string, text: string) => void;
+  /** Delete a finding from the annotation box */
+  onDeleteFinding?: (id: string) => void;
 }
 
 export const IChartWrapperBase = ({
@@ -96,9 +98,10 @@ export const IChartWrapperBase = ({
   showBranding: showBrandingProp,
   showLimitLabels = true,
   highlightedPointIndex,
-  ichartAnnotations = [],
-  onCreateAnnotation,
-  onAnnotationsChange,
+  ichartFindings = [],
+  onCreateObservation,
+  onEditFinding,
+  onDeleteFinding,
 }: IChartWrapperBaseProps) => {
   const [isEditingScale, setIsEditingScale] = useState(false);
 
@@ -114,8 +117,8 @@ export const IChartWrapperBase = ({
       stats,
       stagedStats,
       displayOptions,
-      ichartAnnotations,
-      onCreateAnnotation,
+      ichartFindings,
+      onCreateObservation,
     });
 
   if (!outcome || data.length === 0) {
@@ -152,10 +155,11 @@ export const IChartWrapperBase = ({
         showLimitLabels={showLimitLabels}
       />
 
-      {ichartAnnotations.length > 0 && onAnnotationsChange && (
+      {ichartFindings.length > 0 && onEditFinding && onDeleteFinding && (
         <ChartAnnotationLayer
-          annotations={ichartAnnotations}
-          onAnnotationsChange={onAnnotationsChange}
+          findings={ichartFindings}
+          onEditFinding={onEditFinding}
+          onDeleteFinding={onDeleteFinding}
           isActive={true}
           categoryPositions={categoryPositions}
           maxWidth={parentWidth * 0.7}

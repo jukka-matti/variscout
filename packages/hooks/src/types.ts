@@ -88,27 +88,6 @@ export interface DataContextInterface {
 /** Highlight color for annotated chart elements */
 export type HighlightColor = 'red' | 'amber' | 'green';
 
-/** A text annotation anchored to a chart category */
-export interface ChartAnnotation {
-  id: string;
-  /** Category key this annotation is anchored to */
-  anchorCategory: string;
-  /** User's note text */
-  text: string;
-  /** Pixel offset from anchor default position (resets on data change) */
-  offsetX: number;
-  /** Pixel offset from anchor default position (resets on data change) */
-  offsetY: number;
-  /** Width of the text box in pixels */
-  width: number;
-  /** Color of the annotation box */
-  color: HighlightColor | 'neutral';
-  /** Percentage X position within chart area (0.0–1.0), used for I-Chart free-floating notes */
-  anchorX?: number;
-  /** Percentage Y position within chart area (0.0–1.0), used for I-Chart free-floating notes */
-  anchorY?: number;
-}
-
 // ============================================================================
 // Persistence Types - For shared DataContext hook
 // ============================================================================
@@ -135,12 +114,6 @@ export interface DisplayOptions {
   boxplotHighlights?: Record<string, HighlightColor>;
   /** Highlighted pareto categories (category key → color) */
   paretoHighlights?: Record<string, HighlightColor>;
-  /** Text annotations anchored to boxplot categories */
-  boxplotAnnotations?: ChartAnnotation[];
-  /** Text annotations anchored to pareto categories */
-  paretoAnnotations?: ChartAnnotation[];
-  /** Free-floating text annotations on I-Chart (percentage-positioned) */
-  ichartAnnotations?: ChartAnnotation[];
   /** Show specification limits on I-Chart (default: true) */
   showSpecs?: boolean;
   /** Show Cpk values in stats panel (default: true) */

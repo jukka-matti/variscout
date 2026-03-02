@@ -186,17 +186,11 @@ vi.mock('@variscout/hooks', () => ({
     hasAnnotations: false,
     boxplotHighlights: {},
     paretoHighlights: {},
-    boxplotAnnotations: [],
-    paretoAnnotations: [],
-    ichartAnnotations: [],
     contextMenu: { isOpen: false, categoryKey: '', chartType: 'boxplot', position: { x: 0, y: 0 } },
     setHighlight: vi.fn(),
-    createAnnotation: vi.fn(),
-    createIChartAnnotation: vi.fn(),
-    setIChartAnnotations: vi.fn(),
+    handleContextMenu: vi.fn(),
     closeContextMenu: vi.fn(),
     clearAnnotations: vi.fn(),
-    openContextMenu: vi.fn(),
   }),
 }));
 

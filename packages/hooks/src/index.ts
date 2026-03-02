@@ -28,7 +28,6 @@ export type {
   ParetoRow,
   ScaleMode,
   HighlightColor,
-  ChartAnnotation,
   ViewState,
 } from './types';
 

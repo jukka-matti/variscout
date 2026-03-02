@@ -70,6 +70,22 @@ export interface FindingComment {
 }
 
 // ============================================================================
+// Finding Source (chart observation origin)
+// ============================================================================
+
+/** Where a chart observation originated */
+export interface FindingSource {
+  /** Which chart type the observation was made on */
+  chart: 'boxplot' | 'pareto' | 'ichart';
+  /** Category key (boxplot/pareto anchor) */
+  category?: string;
+  /** Percentage X position within chart area (0.0–1.0), I-Chart only */
+  anchorX?: number;
+  /** Percentage Y position within chart area (0.0–1.0), I-Chart only */
+  anchorY?: number;
+}
+
+// ============================================================================
 // Finding Types
 // ============================================================================
 
@@ -105,6 +121,8 @@ export interface Finding {
   comments: FindingComment[];
   /** When status was last changed */
   statusChangedAt: number;
+  /** Chart observation origin — links finding to a specific chart element */
+  source?: FindingSource;
 }
 
 // ============================================================================
@@ -126,9 +144,10 @@ export function createFinding(
   activeFilters: Record<string, (string | number)[]>,
   cumulativeScope: number | null,
   stats?: { mean: number; cpk?: number; samples: number },
-  status?: FindingStatus
+  status?: FindingStatus,
+  source?: FindingSource
 ): Finding {
-  return {
+  const finding: Finding = {
     id: generateId(),
     text,
     createdAt: Date.now(),
@@ -141,6 +160,8 @@ export function createFinding(
     comments: [],
     statusChangedAt: Date.now(),
   };
+  if (source) finding.source = source;
+  return finding;
 }
 
 /**
@@ -233,6 +254,24 @@ export function findDuplicateFinding(
   activeFilters: Record<string, (string | number)[]>
 ): Finding | undefined {
   return findings.find(f => filtersEqual(f.context.activeFilters, activeFilters));
+}
+
+/**
+ * Find an existing finding with matching chart source (same chart type + category).
+ * Used for duplicate detection when adding chart observations.
+ */
+export function findDuplicateBySource(
+  findings: Finding[],
+  source: FindingSource
+): Finding | undefined {
+  return findings.find(f => {
+    if (!f.source) return false;
+    if (f.source.chart !== source.chart) return false;
+    // Category-based charts (boxplot/pareto)
+    if (source.category) return f.source.category === source.category;
+    // I-Chart: no duplicate detection by position (each is unique)
+    return false;
+  });
 }
 
 // ============================================================================
