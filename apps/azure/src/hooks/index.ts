@@ -22,6 +22,10 @@ export { useDrillConfirmation, type UseDrillConfirmationReturn } from './useDril
 
 export { useControlViolations } from '@variscout/hooks';
 export { useDataMerge } from './useDataMerge';
+export {
+  useFindingsOrchestration,
+  type UseFindingsOrchestrationReturn,
+} from './useFindingsOrchestration';
 
 export {
   useDashboardCharts,

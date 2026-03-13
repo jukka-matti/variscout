@@ -87,17 +87,10 @@ export interface FindingAssignee {
 // Finding Source (chart observation origin)
 // ============================================================================
 
-/** Where a chart observation originated */
-export interface FindingSource {
-  /** Which chart type the observation was made on */
-  chart: 'boxplot' | 'pareto' | 'ichart';
-  /** Category key (boxplot/pareto anchor) */
-  category?: string;
-  /** Percentage X position within chart area (0.0–1.0), I-Chart only */
-  anchorX?: number;
-  /** Percentage Y position within chart area (0.0–1.0), I-Chart only */
-  anchorY?: number;
-}
+/** Where a chart observation originated — discriminated union by chart type */
+export type FindingSource =
+  | { chart: 'boxplot' | 'pareto'; category: string }
+  | { chart: 'ichart'; anchorX: number; anchorY: number };
 
 // ============================================================================
 // Finding Types
@@ -284,7 +277,9 @@ export function findDuplicateBySource(
     if (!f.source) return false;
     if (f.source.chart !== source.chart) return false;
     // Category-based charts (boxplot/pareto)
-    if (source.category) return f.source.category === source.category;
+    if (source.chart !== 'ichart') {
+      return f.source.chart !== 'ichart' && f.source.category === source.category;
+    }
     // I-Chart: no duplicate detection by position (each is unique)
     return false;
   });
@@ -312,11 +307,36 @@ export function migrateFindingStatus(finding: Finding): Finding {
 }
 
 /**
+ * Normalize a legacy flat FindingSource to the discriminated union shape.
+ * Safe to call on already-migrated data.
+ */
+function migrateSource(source: FindingSource | undefined): FindingSource | undefined {
+  if (!source) return undefined;
+  if (source.chart === 'ichart') {
+    // Ensure ichart shape has required anchorX/anchorY
+    const s = source as Record<string, unknown>;
+    return {
+      chart: 'ichart',
+      anchorX: (s.anchorX as number) ?? 0,
+      anchorY: (s.anchorY as number) ?? 0,
+    };
+  }
+  // Ensure boxplot/pareto shape has required category
+  const s = source as Record<string, unknown>;
+  return { chart: source.chart, category: (s.category as string) ?? '' };
+}
+
+/**
  * Migrate an array of findings from old status model to new.
+ * Also normalizes FindingSource to discriminated union shape.
  * Safe to call on already-migrated data.
  */
 export function migrateFindings(findings: Finding[]): Finding[] {
-  return findings.map(migrateFindingStatus);
+  return findings.map(f => {
+    const migrated = migrateFindingStatus(f);
+    const source = migrateSource(migrated.source);
+    return source !== migrated.source ? { ...migrated, source } : migrated;
+  });
 }
 
 export function formatFindingFilters(

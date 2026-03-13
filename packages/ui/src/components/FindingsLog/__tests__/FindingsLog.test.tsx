@@ -160,7 +160,7 @@ describe('FindingsLog', () => {
       makeFinding({
         id: 'f-ichart',
         text: 'IChart finding',
-        source: { chart: 'ichart' },
+        source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 },
       }),
     ];
 

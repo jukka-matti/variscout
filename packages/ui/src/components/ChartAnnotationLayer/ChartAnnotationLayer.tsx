@@ -102,7 +102,7 @@ export const ChartAnnotationLayer: React.FC<ChartAnnotationLayerProps> = ({
       // I-Chart findings use their ID as anchor key (free-floating)
       return finding.id;
     }
-    return finding.source.category ?? null;
+    return finding.source.category;
   };
 
   // Only render visible findings (those whose anchor category exists in positions)

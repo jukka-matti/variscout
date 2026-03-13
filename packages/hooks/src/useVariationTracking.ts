@@ -110,56 +110,38 @@ export function useVariationTracking(
   outcome: string | null,
   factors: string[]
 ): VariationTrackingResult {
-  // Calculate factor variations for the current data level (for filter suggestions)
-  const factorVariations = useMemo(() => {
+  // Compute filtered data once for both factorVariations and categoryContributions
+  const { factorVariations, categoryContributions } = useMemo(() => {
+    const emptyFactorVar = new Map<string, number>();
+    const emptyContrib = new Map<string, Map<string | number, number>>();
+
     if (!outcome || rawData.length < 2) {
-      return new Map<string, number>();
+      return { factorVariations: emptyFactorVar, categoryContributions: emptyContrib };
     }
 
-    // Get the current filtered data based on filter stack
     const currentFilters = filterStackToFilters(filterStack);
     const filteredData = applyFilters(rawData, currentFilters);
 
     if (filteredData.length < 2) {
-      return new Map<string, number>();
+      return { factorVariations: emptyFactorVar, categoryContributions: emptyContrib };
     }
 
-    // Get factors that are already filtered (to exclude)
+    // Factor variations (for filter suggestions)
     const filteredFactors = filterStack
       .filter(a => a.type === 'filter' && a.factor)
       .map(a => a.factor!);
+    const fv = calculateFactorVariations(filteredData, factors, outcome, filteredFactors);
 
-    // Use shared calculation function
-    return calculateFactorVariations(filteredData, factors, outcome, filteredFactors);
-  }, [rawData, filterStack, outcome, factors]);
-
-  // Calculate category Total SS contributions for each factor
-  // Uses calculateCategoryTotalSS which captures both mean shift AND spread
-  const categoryContributions = useMemo(() => {
-    const contributions = new Map<string, Map<string | number, number>>();
-
-    if (!outcome || rawData.length < 2) {
-      return contributions;
-    }
-
-    // Get the current filtered data based on filter stack
-    const currentFilters = filterStackToFilters(filterStack);
-    const filteredData = applyFilters(rawData, currentFilters);
-
-    if (filteredData.length < 2) {
-      return contributions;
-    }
-
-    // Calculate Total SS contributions for each factor
-    // This captures both mean shift + spread (not just between-group variance)
+    // Category Total SS contributions (captures mean shift + spread)
+    const cc = new Map<string, Map<string | number, number>>();
     for (const factor of factors) {
       const result = calculateCategoryTotalSS(filteredData, factor, outcome);
       if (result) {
-        contributions.set(factor, result.contributions);
+        cc.set(factor, result.contributions);
       }
     }
 
-    return contributions;
+    return { factorVariations: fv, categoryContributions: cc };
   }, [rawData, filterStack, outcome, factors]);
 
   // Pre-compute category contributions from ORIGINAL (unfiltered) data

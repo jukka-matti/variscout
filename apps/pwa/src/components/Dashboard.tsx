@@ -895,8 +895,18 @@ const Dashboard = ({
           hasFinding={
             chartFindings
               ? contextMenu.chartType === 'boxplot'
-                ? chartFindings.boxplot.some(f => f.source?.category === contextMenu.categoryKey)
-                : chartFindings.pareto.some(f => f.source?.category === contextMenu.categoryKey)
+                ? chartFindings.boxplot.some(
+                    f =>
+                      f.source &&
+                      f.source.chart !== 'ichart' &&
+                      f.source.category === contextMenu.categoryKey
+                  )
+                : chartFindings.pareto.some(
+                    f =>
+                      f.source &&
+                      f.source.chart !== 'ichart' &&
+                      f.source.category === contextMenu.categoryKey
+                  )
               : false
           }
           position={contextMenu.position}

@@ -871,10 +871,16 @@ const Dashboard = ({
           hasFinding={
             contextMenu.chartType === 'boxplot'
               ? (chartFindings?.boxplot ?? []).some(
-                  f => f.source?.category === contextMenu.categoryKey
+                  f =>
+                    f.source &&
+                    f.source.chart !== 'ichart' &&
+                    f.source.category === contextMenu.categoryKey
                 )
               : (chartFindings?.pareto ?? []).some(
-                  f => f.source?.category === contextMenu.categoryKey
+                  f =>
+                    f.source &&
+                    f.source.chart !== 'ichart' &&
+                    f.source.category === contextMenu.categoryKey
                 )
           }
           position={contextMenu.position}

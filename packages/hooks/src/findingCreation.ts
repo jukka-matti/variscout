@@ -43,5 +43,8 @@ export function buildFindingSource(
   anchorX?: number,
   anchorY?: number
 ): FindingSource {
-  return { chart: chartType, category: categoryKey, anchorX, anchorY };
+  if (chartType === 'ichart') {
+    return { chart: 'ichart', anchorX: anchorX ?? 0, anchorY: anchorY ?? 0 };
+  }
+  return { chart: chartType, category: categoryKey ?? '' };
 }

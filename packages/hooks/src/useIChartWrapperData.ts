@@ -89,7 +89,7 @@ export function useIChartWrapperData({
     const chartHeight = parentHeight - margin.top - margin.bottom;
 
     for (const f of ichartFindings) {
-      if (f.source?.anchorX != null && f.source?.anchorY != null) {
+      if (f.source && f.source.chart === 'ichart') {
         positions.set(f.id, {
           x: f.source.anchorX * chartWidth + margin.left,
           y: f.source.anchorY * chartHeight + margin.top,

@@ -107,7 +107,9 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 {finding.source.chart === 'ichart' && <Activity size={9} />}
                 {finding.source.chart === 'boxplot' && <BarChart3 size={9} />}
                 {finding.source.chart === 'pareto' && <Layers size={9} />}
-                <span>{finding.source.category || 'I-Chart'}</span>
+                <span>
+                  {finding.source.chart === 'ichart' ? 'I-Chart' : finding.source.category}
+                </span>
               </button>
             )}
             {filterEntries.map(([factor, values]) => {

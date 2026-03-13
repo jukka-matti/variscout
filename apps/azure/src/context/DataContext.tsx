@@ -3,6 +3,9 @@
  *
  * Uses the shared useDataState hook from @variscout/hooks for core state management,
  * while adding Azure-specific cloud sync functionality via useStorage.
+ *
+ * Split into DataStateContext and DataActionsContext following Kent C. Dodds pattern
+ * for optimal re-render behavior: action-only consumers don't re-render on state changes.
  */
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import {
@@ -14,11 +17,10 @@ import {
   type DataQualityReport,
   type ParetoRow,
   type SavedProject,
-  type ViewState,
 } from '@variscout/hooks';
 import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
 import { useStorage, type StorageLocation, type SyncStatus } from '../services/storage';
-import type { StatsResult, StagedStatsResult, StageOrderMode, FilterAction } from '@variscout/core';
+import type { StatsResult, StagedStatsResult, StageOrderMode } from '@variscout/core';
 import { isTeamPlan } from '@variscout/core';
 import { getTeamsContext } from '../teams/teamsContext';
 
@@ -26,85 +28,34 @@ import { getTeamsContext } from '../teams/teamsContext';
 export type { DisplayOptions, ParetoMode, DataQualityReport, ParetoRow, StorageLocation };
 
 /**
- * Extended DataContext interface for Azure app
- * Includes cloud sync features beyond the base DataState/DataActions
+ * Azure-specific state beyond base DataState
  */
-interface DataContextType extends Omit<DataState, 'saveProject' | 'loadProject'> {
-  // All DataState fields are inherited
-
-  // Multi-point selection (Minitab-style brushing)
-  selectedPoints: Set<number>;
-  selectionIndexMap: Map<number, number>;
-
-  // Azure-specific state
+interface AzureDataState extends Omit<DataState, 'saveProject' | 'loadProject'> {
   currentProjectLocation: StorageLocation;
   syncStatus: SyncStatus;
-
-  // All DataActions are inherited except for persistence methods we override
-  setRawData: DataActions['setRawData'];
-  setOutcome: DataActions['setOutcome'];
-  setFactors: DataActions['setFactors'];
-  setTimeColumn: DataActions['setTimeColumn'];
-  setSpecs: DataActions['setSpecs'];
-  setFilters: DataActions['setFilters'];
-  setAxisSettings: DataActions['setAxisSettings'];
-  setChartTitles: DataActions['setChartTitles'];
-  setColumnAliases: DataActions['setColumnAliases'];
-  setValueLabels: DataActions['setValueLabels'];
-  setDisplayOptions: DataActions['setDisplayOptions'];
-  setDataFilename: DataActions['setDataFilename'];
-  setDataQualityReport: DataActions['setDataQualityReport'];
-  setParetoMode: DataActions['setParetoMode'];
-  setParetoAggregation: DataActions['setParetoAggregation'];
-  setSeparateParetoData: DataActions['setSeparateParetoData'];
-  setSeparateParetoFilename: DataActions['setSeparateParetoFilename'];
-  setStageColumn: DataActions['setStageColumn'];
-  setStageOrderMode: DataActions['setStageOrderMode'];
-
-  // Performance mode (multi-measure analysis)
-  setPerformanceMode: DataActions['setPerformanceMode'];
-  setMeasureColumns: DataActions['setMeasureColumns'];
-  setMeasureLabel: DataActions['setMeasureLabel'];
-  setSelectedMeasure: DataActions['setSelectedMeasure'];
-  setCpkTarget: DataActions['setCpkTarget'];
-  setMeasureSpecs: DataActions['setMeasureSpecs'];
-  setMeasureSpec: DataActions['setMeasureSpec'];
-
-  // Multi-point selection actions (Minitab-style brushing)
-  setSelectedPoints: DataActions['setSelectedPoints'];
-  addToSelection: DataActions['addToSelection'];
-  removeFromSelection: DataActions['removeFromSelection'];
-  clearSelection: DataActions['clearSelection'];
-  togglePointSelection: DataActions['togglePointSelection'];
-
-  // Azure-specific persistence methods (with location support)
-  saveProject: (name: string, location?: StorageLocation) => Promise<SavedProject>;
-  loadProject: (name: string) => Promise<void>;
-  listProjects: () => Promise<SavedProject[]>;
-  deleteProject: (name: string) => Promise<void>;
-  renameProject: (oldName: string, newName: string) => Promise<void>;
-  exportProject: DataActions['exportProject'];
-  importProject: DataActions['importProject'];
-  newProject: DataActions['newProject'];
-
-  // Per-measure specs (Performance Mode)
-  measureSpecs: Record<string, { usl?: number; lsl?: number; target?: number }>;
-  getSpecsForMeasure: (measureId: string) => { usl?: number; lsl?: number; target?: number };
-
-  // Filter stack (ordered drill trail for breadcrumb persistence)
-  filterStack: FilterAction[];
-  setFilterStack: (stack: FilterAction[]) => void;
-
-  // View state (for restoring analyst's working context)
-  viewState: ViewState | null;
-  setViewState: (state: ViewState | null) => void;
-
-  // Findings (persisted with project)
-  findings: import('@variscout/core').Finding[];
-  setFindings: (findings: import('@variscout/core').Finding[]) => void;
 }
 
-const DataContext = createContext<DataContextType | undefined>(undefined);
+/**
+ * Azure-specific actions beyond base DataActions
+ */
+interface AzureDataActions extends Omit<
+  DataActions,
+  'saveProject' | 'loadProject' | 'deleteProject' | 'renameProject'
+> {
+  saveProject: (name: string, location?: StorageLocation) => Promise<SavedProject>;
+  loadProject: (name: string) => Promise<void>;
+  deleteProject: (name: string) => Promise<void>;
+  renameProject: (oldName: string, newName: string) => Promise<void>;
+}
+
+/**
+ * Full DataContext interface - combines state and actions
+ * Maintains backwards compatibility with existing component imports
+ */
+type DataContextType = AzureDataState & AzureDataActions;
+
+const DataStateContext = createContext<AzureDataState | undefined>(undefined);
+const DataActionsContext = createContext<AzureDataActions | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Core state from shared hook
@@ -141,12 +92,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return project;
     },
-    [actions, state, saveToCloud]
+    [actions, state, saveToCloud, defaultLocation]
   );
 
   /**
    * Load project - delegates to shared hook
-   * Note: Azure uses name-based lookups
    */
   const loadProject = useCallback(
     async (name: string): Promise<void> => {
@@ -157,7 +107,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   /**
    * Delete project - delegates to shared hook
-   * Note: Azure uses name-based lookups
    */
   const deleteProject = useCallback(
     async (name: string): Promise<void> => {
@@ -168,7 +117,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   /**
    * Rename project - delegates to shared hook
-   * Note: Azure uses name-based lookups
    */
   const renameProject = useCallback(
     async (oldName: string, newName: string): Promise<void> => {
@@ -177,10 +125,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [actions]
   );
 
-  // Combine state and actions into memoized context value
-  const value = useMemo<DataContextType>(
+  // Memoize state context
+  const stateValue = useMemo<AzureDataState>(
     () => ({
-      // Core state from shared hook
+      // Core state
       rawData: state.rawData,
       filteredData: state.filteredData,
       outcome: state.outcome,
@@ -226,21 +174,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Filter stack (ordered drill trail)
       filterStack: state.filterStack,
-      setFilterStack: actions.setFilterStack,
 
       // View state
       viewState: state.viewState,
-      setViewState: actions.setViewState,
 
       // Findings
       findings: state.findings,
-      setFindings: actions.setFindings,
 
       // Azure-specific state
       currentProjectLocation,
       syncStatus,
+    }),
+    [state, currentProjectLocation, syncStatus]
+  );
 
-      // Core setters from shared hook
+  // Memoize actions context
+  const actionsValue = useMemo<AzureDataActions>(
+    () => ({
+      // Core setters
       setRawData: actions.setRawData,
       setOutcome: actions.setOutcome,
       setFactors: actions.setFactors,
@@ -277,6 +228,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearSelection: actions.clearSelection,
       togglePointSelection: actions.togglePointSelection,
 
+      // Filter stack / view state / findings setters
+      setFilterStack: actions.setFilterStack,
+      setViewState: actions.setViewState,
+      setFindings: actions.setFindings,
+
       // Azure-enhanced persistence methods
       saveProject,
       loadProject,
@@ -287,31 +243,46 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       importProject: actions.importProject,
       newProject: actions.newProject,
     }),
-    [
-      state,
-      actions,
-      currentProjectLocation,
-      syncStatus,
-      saveProject,
-      loadProject,
-      deleteProject,
-      renameProject,
-    ]
+    [actions, saveProject, loadProject, deleteProject, renameProject]
   );
 
-  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+  return (
+    <DataStateContext.Provider value={stateValue}>
+      <DataActionsContext.Provider value={actionsValue}>{children}</DataActionsContext.Provider>
+    </DataStateContext.Provider>
+  );
 };
 
 /**
- * Hook to access the DataContext
- * @throws Error if used outside of DataProvider
+ * Hook to access only state (re-renders on state changes)
  */
-export const useData = (): DataContextType => {
-  const context = useContext(DataContext);
+export const useDataStateCtx = (): AzureDataState => {
+  const context = useContext(DataStateContext);
   if (!context) {
-    throw new Error('useData must be used within DataProvider');
+    throw new Error('useDataStateCtx must be used within DataProvider');
   }
   return context;
+};
+
+/**
+ * Hook to access only actions (stable — never triggers re-renders)
+ */
+export const useDataActions = (): AzureDataActions => {
+  const context = useContext(DataActionsContext);
+  if (!context) {
+    throw new Error('useDataActions must be used within DataProvider');
+  }
+  return context;
+};
+
+/**
+ * Hook to access the full DataContext (backward compatible)
+ * Prefer useDataStateCtx/useDataActions for new code to minimize re-renders.
+ */
+export const useData = (): DataContextType => {
+  const state = useDataStateCtx();
+  const actions = useDataActions();
+  return { ...state, ...actions };
 };
 
 // Export additional types for component type annotations

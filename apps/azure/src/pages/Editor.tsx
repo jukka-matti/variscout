@@ -11,17 +11,9 @@ import FindingsPanel from '../components/FindingsPanel';
 import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
-import {
-  ColumnMapping,
-  InvestigationPrompt,
-  openFindingsPopout,
-  updateFindingsPopout,
-  FINDINGS_ACTION_KEY,
-  type FindingsAction,
-} from '@variscout/ui';
-import { useControlViolations, useFindings, useDrillPath } from '@variscout/hooks';
+import { ColumnMapping, InvestigationPrompt } from '@variscout/ui';
+import { useControlViolations } from '@variscout/hooks';
 import { isTeamPlan } from '@variscout/core';
-import { buildFindingContext, buildFindingSource } from '@variscout/hooks';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
@@ -42,6 +34,7 @@ import { useEditorPanels } from '../hooks/useEditorPanels';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 import { useTeamsShare } from '../hooks/useTeamsShare';
 import { useShareFinding } from '../hooks/useShareFinding';
+import { useFindingsOrchestration } from '../hooks/useFindingsOrchestration';
 import { buildChartSharePayload } from '../services/shareContent';
 import { buildSubPageId } from '../services/deepLinks';
 import { setBeforeUnloadHandler } from '../teams';
@@ -208,17 +201,42 @@ export const Editor: React.FC<EditorProps> = ({
     enableUrlSync: false,
   });
 
-  // Findings state (persisted via DataContext)
-  const findingsState = useFindings({
-    initialFindings: persistedFindings,
-    onFindingsChange: setPersistedFindings,
-  });
-  const [highlightedFindingId, setHighlightedFindingId] = useState<string | null>(null);
-
   // Teams share integration
   const { share, setDeepLink } = useTeamsShare();
   const baseUrl = window.location.origin + window.location.pathname;
   const projectName = currentProjectName || 'New Analysis';
+
+  // Share handlers
+  const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
+
+  // Findings orchestration (extracted from Editor — pin, restore, chart observation, popout, etc.)
+  const {
+    findingsState,
+    highlightedFindingId,
+    setHighlightedFindingId,
+    handlePinFinding,
+    handleRestoreFinding,
+    findingsCallbacks,
+    handleOpenFindingsPopout,
+    handleNavigateToChart,
+    handleShareFinding,
+    drillPath,
+  } = useFindingsOrchestration({
+    persistedFindings,
+    setPersistedFindings,
+    filters,
+    filteredData,
+    outcome,
+    specs,
+    rawData,
+    columnAliases,
+    filterNav,
+    setFilters,
+    setIsFindingsOpen: panels.setIsFindingsOpen,
+    shareFinding,
+    canMentionInChannel,
+    onViewStateChange: handleViewStateChange,
+  });
 
   // Deep link: auto-open findings panel and highlight target finding (one-shot)
   const deepLinkConsumedRef = React.useRef(false);
@@ -249,32 +267,12 @@ export const Editor: React.FC<EditorProps> = ({
     setDeepLink(buildSubPageId(projectName, chart ? { chart } : {}), projectName);
   }, [projectName, viewState?.focusedChart, setDeepLink]);
 
-  // Share handlers
-  const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
-
-  const handleShareFinding = useCallback(
-    async (findingId: string) => {
-      const finding = findingsState.findings.find(f => f.id === findingId);
-      if (!finding) return;
-      await shareFinding(finding, finding.assignee);
-    },
-    [findingsState.findings, shareFinding]
-  );
-
   const handleShareChart = useCallback(
     (chartType: string) => {
       const payload = buildChartSharePayload(chartType, projectName, baseUrl);
       share(payload);
     },
     [projectName, baseUrl, share]
-  );
-
-  // Navigate to chart from finding source badge
-  const handleNavigateToChart = useCallback(
-    (source: import('@variscout/core').FindingSource) => {
-      handleViewStateChange({ focusedChart: source.chart });
-    },
-    [handleViewStateChange]
   );
 
   // Current user (for comment author attribution)
@@ -291,141 +289,6 @@ export const Editor: React.FC<EditorProps> = ({
       author: currentUser?.name,
       location: currentProjectLocation,
     });
-
-  // Drill path for findings panel footer
-  const { drillPath } = useDrillPath(rawData, filterNav.filterStack, outcome, specs);
-
-  // Auto-clear highlight after 3 seconds
-  useEffect(() => {
-    if (!highlightedFindingId) return;
-    const timer = setTimeout(() => setHighlightedFindingId(null), 3000);
-    return () => clearTimeout(timer);
-  }, [highlightedFindingId]);
-
-  // Findings: pin current filter state (one-click with duplicate detection)
-  const handlePinFinding = useCallback(
-    (noteText?: string) => {
-      const existing = findingsState.findDuplicate(filters);
-      if (existing) {
-        panels.setIsFindingsOpen(true);
-        setHighlightedFindingId(existing.id);
-        return;
-      }
-      const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
-      const newFinding = findingsState.addFinding(noteText || '', context);
-      panels.setIsFindingsOpen(true);
-      setHighlightedFindingId(newFinding.id);
-    },
-    [filters, drillPath, filteredData, outcome, specs, findingsState, panels]
-  );
-
-  const handleRestoreFinding = useCallback(
-    (id: string) => {
-      const ctx = findingsState.getFindingContext(id);
-      if (!ctx) return;
-      setFilters(ctx.activeFilters);
-    },
-    [findingsState, setFilters]
-  );
-
-  // Chart observation: create a Finding with source metadata
-  const handleAddChartObservation = useCallback(
-    (
-      chartType: 'boxplot' | 'pareto' | 'ichart',
-      categoryKey?: string,
-      noteText?: string,
-      anchorX?: number,
-      anchorY?: number
-    ) => {
-      const source = buildFindingSource(chartType, categoryKey, anchorX, anchorY);
-      const existing = findingsState.findDuplicateSource(source);
-      if (existing) {
-        panels.setIsFindingsOpen(true);
-        setHighlightedFindingId(existing.id);
-        return;
-      }
-      const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
-      const newFinding = findingsState.addFinding(noteText ?? '', context, source);
-      panels.setIsFindingsOpen(true);
-      setHighlightedFindingId(newFinding.id);
-      return newFinding;
-    },
-    [filters, drillPath, filteredData, outcome, specs, findingsState, panels]
-  );
-
-  // Chart findings grouped by chart type for inline annotation display
-  const chartFindings = useMemo(
-    () => ({
-      boxplot: findingsState.getChartFindings('boxplot'),
-      pareto: findingsState.getChartFindings('pareto'),
-      ichart: findingsState.getChartFindings('ichart'),
-    }),
-    [findingsState]
-  );
-
-  // Grouped findings callbacks for Dashboard → child components
-  const findingsCallbacks = useMemo(
-    () => ({
-      onAddChartObservation: handleAddChartObservation,
-      chartFindings,
-      onEditFinding: findingsState.editFinding,
-      onDeleteFinding: findingsState.deleteFinding,
-      canMentionInChannel,
-      onShareFinding: shareFinding,
-      onSetFindingAssignee: findingsState.setFindingAssignee,
-    }),
-    [handleAddChartObservation, chartFindings, findingsState, canMentionInChannel, shareFinding]
-  );
-
-  // Findings popout: open in separate window
-  const popupRef = React.useRef<Window | null>(null);
-  const handleOpenFindingsPopout = useCallback(() => {
-    popupRef.current = openFindingsPopout(findingsState.findings, columnAliases, drillPath);
-  }, [findingsState.findings, columnAliases, drillPath]);
-
-  // Findings popout: sync data when findings/drillPath change
-  useEffect(() => {
-    if (!popupRef.current || popupRef.current.closed) return;
-    updateFindingsPopout(findingsState.findings, columnAliases, drillPath);
-  }, [findingsState.findings, columnAliases, drillPath]);
-
-  // Findings popout: listen for actions from popout window
-  useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key !== FINDINGS_ACTION_KEY || !e.newValue) return;
-      try {
-        const action = JSON.parse(e.newValue) as FindingsAction;
-        switch (action.type) {
-          case 'edit':
-            if (action.text !== undefined) findingsState.editFinding(action.id, action.text);
-            break;
-          case 'delete':
-            findingsState.deleteFinding(action.id);
-            break;
-          case 'set-status':
-            if (action.status) findingsState.setFindingStatus(action.id, action.status);
-            break;
-          case 'set-tag':
-            findingsState.setFindingTag(action.id, action.tag ?? null);
-            break;
-          case 'add-comment':
-            if (action.text !== undefined) findingsState.addFindingComment(action.id, action.text);
-            break;
-          case 'edit-comment':
-            if (action.commentId && action.text !== undefined)
-              findingsState.editFindingComment(action.id, action.commentId, action.text);
-            break;
-          case 'delete-comment':
-            if (action.commentId) findingsState.deleteFindingComment(action.id, action.commentId);
-            break;
-        }
-      } catch {
-        // ignore parse errors
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, [findingsState]);
 
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
