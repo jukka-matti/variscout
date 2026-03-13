@@ -176,4 +176,55 @@ describe('FindingsLog', () => {
     // No chart navigation buttons should appear
     expect(screen.queryByTitle(/Go to .* chart/)).toBeNull();
   });
+
+  // --- Assign button tests ---
+
+  it('renders assign button when onAssignFinding is provided', () => {
+    const onAssign = vi.fn();
+    const findings = [makeFinding({ id: 'f-1' })];
+
+    render(<FindingsLog {...defaultProps} findings={findings} onAssignFinding={onAssign} />);
+    expect(screen.getByLabelText('Assign finding')).toBeDefined();
+  });
+
+  it('does not render assign button when onAssignFinding is not provided', () => {
+    const findings = [makeFinding({ id: 'f-1' })];
+
+    render(<FindingsLog {...defaultProps} findings={findings} />);
+    expect(screen.queryByLabelText('Assign finding')).toBeNull();
+  });
+
+  it('assign button calls onAssignFinding with finding ID', () => {
+    const onAssign = vi.fn();
+    const findings = [makeFinding({ id: 'f-99' })];
+
+    render(<FindingsLog {...defaultProps} findings={findings} onAssignFinding={onAssign} />);
+
+    fireEvent.click(screen.getByLabelText('Assign finding'));
+    expect(onAssign).toHaveBeenCalledWith('f-99');
+  });
+
+  it('renders assignee chip when finding has an assignee', () => {
+    const findings = [
+      makeFinding({
+        id: 'f-assigned',
+        assignee: {
+          upn: 'jane@contoso.com',
+          displayName: 'Jane Smith',
+          userId: 'user-123',
+        },
+      }),
+    ];
+
+    render(<FindingsLog {...defaultProps} findings={findings} />);
+    expect(screen.getByText('Jane Smith')).toBeDefined();
+  });
+
+  it('does not render assignee chip when no assignee', () => {
+    const findings = [makeFinding({ id: 'f-1' })];
+
+    render(<FindingsLog {...defaultProps} findings={findings} />);
+    // No assignee chip should be visible
+    expect(screen.queryByText(/Jane|John|assignee/i)).toBeNull();
+  });
 });

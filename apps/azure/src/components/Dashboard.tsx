@@ -24,7 +24,7 @@ import {
 } from '@variscout/ui';
 import { BREAKPOINTS } from '@variscout/ui';
 import { getColumnNames, createFactorFromSelection } from '@variscout/core';
-import type { Finding } from '@variscout/core';
+import type { Finding, FindingAssignee } from '@variscout/core';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useAnnotations } from '@variscout/hooks';
 import {
@@ -89,6 +89,12 @@ interface DashboardProps {
   onEditFinding?: (id: string, text: string) => void;
   /** Callback to delete a finding */
   onDeleteFinding?: (id: string) => void;
+  /** Whether Teams channel @mention is available */
+  canMentionInChannel?: boolean;
+  /** Share a finding (with optional @mention) to the channel */
+  onShareFinding?: (finding: Finding, assignee?: FindingAssignee) => Promise<boolean>;
+  /** Set or clear assignee on a finding */
+  onSetFindingAssignee?: (id: string, assignee: FindingAssignee | null) => void;
 }
 
 const Dashboard = ({
@@ -115,6 +121,9 @@ const Dashboard = ({
   chartFindings,
   onEditFinding,
   onDeleteFinding,
+  canMentionInChannel,
+  onShareFinding,
+  onSetFindingAssignee,
 }: DashboardProps) => {
   const {
     outcome,
@@ -471,6 +480,9 @@ const Dashboard = ({
               boxplotHighlights={boxplotHighlights}
               paretoHighlights={paretoHighlights}
               onSetHighlight={setHighlight}
+              canMentionInChannel={canMentionInChannel}
+              onShareFinding={onShareFinding}
+              onSetFindingAssignee={onSetFindingAssignee}
             />
           ) : !focusedChart ? (
             <DashboardGrid

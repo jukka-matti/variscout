@@ -20,6 +20,7 @@ export interface FindingBoardViewProps {
   showAuthors?: boolean;
   columnAliases?: Record<string, string>;
   activeFindingId?: string | null;
+  onAssignFinding?: (findingId: string) => void;
 }
 
 /**
@@ -41,6 +42,7 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   showAuthors,
   columnAliases,
   activeFindingId,
+  onAssignFinding,
 }) => {
   const groups = groupFindingsByStatus(findings);
 
@@ -108,6 +110,7 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     showAuthors={showAuthors}
                     columnAliases={columnAliases}
                     isActive={finding.id === activeFindingId}
+                    onAssign={onAssignFinding}
                   />
                 ))}
               </div>

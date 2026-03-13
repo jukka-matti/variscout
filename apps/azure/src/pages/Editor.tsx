@@ -20,7 +20,7 @@ import {
 } from '@variscout/ui';
 import { useControlViolations, useFindings, useDrillPath } from '@variscout/hooks';
 import type { FindingContext } from '@variscout/core';
-import { isTeamPlan } from '@variscout/core';
+import { isTeamPlan, calculateStats } from '@variscout/core';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
@@ -54,7 +54,8 @@ import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { useEditorPanels } from '../hooks/useEditorPanels';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 import { useTeamsShare } from '../hooks/useTeamsShare';
-import { buildFindingSharePayload, buildChartSharePayload } from '../services/shareContent';
+import { useShareFinding } from '../hooks/useShareFinding';
+import { buildChartSharePayload } from '../services/shareContent';
 import { buildSubPageId } from '../services/deepLinks';
 import { setBeforeUnloadHandler } from '../teams';
 
@@ -286,14 +287,15 @@ export const Editor: React.FC<EditorProps> = ({
   }, [projectName, viewState?.focusedChart, setDeepLink]);
 
   // Share handlers
+  const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
+
   const handleShareFinding = useCallback(
-    (findingId: string) => {
+    async (findingId: string) => {
       const finding = findingsState.findings.find(f => f.id === findingId);
       if (!finding) return;
-      const payload = buildFindingSharePayload(finding, projectName, baseUrl);
-      share(payload);
+      await shareFinding(finding, finding.assignee);
     },
-    [findingsState.findings, projectName, baseUrl, share]
+    [findingsState.findings, shareFinding]
   );
 
   const handleShareChart = useCallback(
@@ -389,21 +391,21 @@ export const Editor: React.FC<EditorProps> = ({
         setHighlightedFindingId(existing.id);
         return;
       }
+      const values = filteredData.map(r => Number(r[outcome!])).filter(v => !isNaN(v));
+      let statsCtx: FindingContext['stats'];
+      if (values.length > 0) {
+        const computed = calculateStats(values, specs?.usl, specs?.lsl);
+        statsCtx = {
+          mean: computed.mean,
+          samples: values.length,
+          cpk: computed.cpk,
+        };
+      }
       const context: FindingContext = {
         activeFilters: { ...filters },
         cumulativeScope:
           drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
-        stats:
-          filteredData.length > 0
-            ? {
-                mean:
-                  filteredData.reduce((sum, r) => {
-                    const v = Number(r[outcome!]);
-                    return isNaN(v) ? sum : sum + v;
-                  }, 0) / filteredData.length,
-                samples: filteredData.length,
-              }
-            : undefined,
+        stats: statsCtx,
       };
       const newFinding = findingsState.addFinding(noteText ?? '', context, source);
       panels.setIsFindingsOpen(true);
@@ -1069,6 +1071,9 @@ export const Editor: React.FC<EditorProps> = ({
               chartFindings={chartFindings}
               onEditFinding={findingsState.editFinding}
               onDeleteFinding={findingsState.deleteFinding}
+              canMentionInChannel={canMentionInChannel}
+              onShareFinding={shareFinding}
+              onSetFindingAssignee={findingsState.setFindingAssignee}
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isFindingsOpen ? (
@@ -1111,6 +1116,7 @@ export const Editor: React.FC<EditorProps> = ({
                   drillPath={drillPath}
                   activeFindingId={highlightedFindingId}
                   onShareFinding={handleShareFinding}
+                  onSetFindingAssignee={findingsState.setFindingAssignee}
                   viewMode={viewState?.findingsViewMode}
                   onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
                 />
@@ -1141,6 +1147,7 @@ export const Editor: React.FC<EditorProps> = ({
                 activeFindingId={highlightedFindingId}
                 onPopout={handleOpenFindingsPopout}
                 onShareFinding={handleShareFinding}
+                onSetFindingAssignee={findingsState.setFindingAssignee}
                 viewMode={viewState?.findingsViewMode}
                 onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
               />

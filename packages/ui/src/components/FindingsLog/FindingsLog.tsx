@@ -37,6 +37,8 @@ export interface FindingsLogProps {
   showAuthors?: boolean;
   /** Share a finding via deep link. Passed through to FindingCard. */
   onShareFinding?: (findingId: string) => void;
+  /** Assign someone to a finding. Passed through to FindingCard. */
+  onAssignFinding?: (findingId: string) => void;
 }
 
 /**
@@ -61,6 +63,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onCaptureFromTeams,
   showAuthors,
   onShareFinding,
+  onAssignFinding,
 }) => {
   if (findings.length === 0) {
     return (
@@ -94,6 +97,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
         showAuthors={showAuthors}
         columnAliases={columnAliases}
         activeFindingId={activeFindingId}
+        onAssignFinding={onAssignFinding}
       />
     );
   }
@@ -118,6 +122,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           columnAliases={columnAliases}
           isActive={finding.id === activeFindingId}
           onShare={onShareFinding}
+          onAssign={onAssignFinding}
         />
       ))}
     </div>

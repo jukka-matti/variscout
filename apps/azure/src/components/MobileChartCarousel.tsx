@@ -163,6 +163,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   const [assignee, setAssignee] = useState<FindingAssignee | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
+  const [shareError, setShareError] = useState(false);
 
   const currentIndex = VIEWS.findIndex(v => v.key === activeView);
 
@@ -246,6 +247,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
     setAssignee(null);
     setIsSharing(false);
     setShareSuccess(false);
+    setShareError(false);
   }, []);
 
   // Sheet drill-down: performs the actual drill-down
@@ -302,9 +304,11 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
         setTimeout(() => handleSheetClose(), 1500);
       } else {
         setIsSharing(false);
+        setShareError(true);
       }
     } catch {
       setIsSharing(false);
+      setShareError(true);
     }
   }, [pinnedFinding, assignee, onShareFinding, onSetFindingAssignee, handleSheetClose]);
 
@@ -347,6 +351,23 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
             />
           </div>
 
+          {/* Error message */}
+          {shareError && (
+            <div className="flex items-center gap-2 text-red-400 text-sm" data-testid="share-error">
+              <span>Couldn&apos;t share</span>
+              <button
+                onClick={() => {
+                  setShareError(false);
+                  handleAssignAndShare();
+                }}
+                className="text-blue-400 underline text-xs"
+                data-testid="share-retry"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
           {/* Action buttons */}
           <div className="flex gap-2">
             <button
@@ -361,7 +382,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
               ) : (
                 <Send size={14} />
               )}
-              {assignee ? 'Share to Channel' : 'Share to Channel'}
+              Share to Channel
             </button>
             <button
               onClick={handleSheetClose}
@@ -381,6 +402,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
     assignee,
     isSharing,
     shareSuccess,
+    shareError,
     handleAssignAndShare,
     handleSheetClose,
   ]);

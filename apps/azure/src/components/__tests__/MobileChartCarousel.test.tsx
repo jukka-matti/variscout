@@ -46,6 +46,20 @@ vi.mock('../charts/ParetoChart', () => ({
 vi.mock('../StatsPanel', () => ({
   default: () => <div data-testid="stats-mock">Stats Panel</div>,
 }));
+vi.mock('../PeoplePicker', () => ({
+  default: ({
+    onSelect,
+  }: {
+    onSelect: (assignee: { upn: string; displayName: string; userId: string }) => void;
+  }) => (
+    <button
+      data-testid="people-picker-mock"
+      onClick={() => onSelect({ upn: 'jane@co.com', displayName: 'Jane', userId: 'u-1' })}
+    >
+      Pick person
+    </button>
+  ),
+}));
 // Mock @variscout/ui components
 vi.mock('@variscout/ui', () => ({
   ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -79,6 +93,7 @@ vi.mock('@variscout/ui', () => ({
     onPinFinding,
     onClose,
     currentHighlight,
+    renderExtra,
   }: {
     data: { categoryKey: string; chartType: string } | null;
     onDrillDown: () => void;
@@ -86,6 +101,7 @@ vi.mock('@variscout/ui', () => ({
     onPinFinding?: (note: string) => void;
     onClose: () => void;
     currentHighlight?: string;
+    renderExtra?: () => React.ReactNode;
   }) =>
     data ? (
       <div data-testid="mobile-category-sheet">
@@ -109,6 +125,7 @@ vi.mock('@variscout/ui', () => ({
         <button data-testid="sheet-close" onClick={onClose}>
           Close
         </button>
+        {renderExtra && <div data-testid="sheet-extra">{renderExtra()}</div>}
       </div>
     ) : null,
 }));
@@ -505,5 +522,192 @@ describe('MobileChartCarousel', () => {
 
     // Sheet should show current highlight
     expect(screen.getByTestId('sheet-highlight')).toHaveTextContent('red');
+  });
+
+  // --- Channel @mention share flow tests ---
+
+  it('transitions to confirm phase when canMentionInChannel=true and finding returned', () => {
+    const mockFinding = {
+      id: 'f-new',
+      text: 'test note',
+      createdAt: Date.now(),
+      context: { activeFilters: {}, cumulativeScope: null },
+      status: 'observed' as const,
+      comments: [],
+      statusChangedAt: Date.now(),
+    };
+    const onAddChartObservation = vi.fn().mockReturnValue(mockFinding);
+    const onPinFinding = vi.fn();
+
+    render(
+      <MobileChartCarousel
+        {...defaultProps}
+        onPinFinding={onPinFinding}
+        onAddChartObservation={onAddChartObservation}
+        canMentionInChannel={true}
+        onShareFinding={vi.fn()}
+      />
+    );
+
+    // Navigate to boxplot and tap
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+    fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+
+    // Should show confirm phase (post-pin flow)
+    expect(screen.getByTestId('post-pin-flow')).toBeInTheDocument();
+    expect(screen.getByTestId('share-to-channel')).toBeInTheDocument();
+  });
+
+  it('"Share to Channel" calls onShareFinding with finding and assignee', async () => {
+    const mockFinding = {
+      id: 'f-new',
+      text: 'test note',
+      createdAt: Date.now(),
+      context: { activeFilters: {}, cumulativeScope: null },
+      status: 'observed' as const,
+      comments: [],
+      statusChangedAt: Date.now(),
+    };
+    const onAddChartObservation = vi.fn().mockReturnValue(mockFinding);
+    const onShareFinding = vi.fn().mockResolvedValue(true);
+    const onSetFindingAssignee = vi.fn();
+
+    render(
+      <MobileChartCarousel
+        {...defaultProps}
+        onPinFinding={vi.fn()}
+        onAddChartObservation={onAddChartObservation}
+        canMentionInChannel={true}
+        onShareFinding={onShareFinding}
+        onSetFindingAssignee={onSetFindingAssignee}
+      />
+    );
+
+    // Navigate to boxplot, tap, pin
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+    fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+
+    // Select a person via mock PeoplePicker
+    fireEvent.click(screen.getByTestId('people-picker-mock'));
+
+    // Click share
+    fireEvent.click(screen.getByTestId('share-to-channel'));
+
+    // Wait for async
+    await vi.waitFor(() => {
+      expect(onShareFinding).toHaveBeenCalledWith(mockFinding, {
+        upn: 'jane@co.com',
+        displayName: 'Jane',
+        userId: 'u-1',
+      });
+    });
+  });
+
+  it('shows success state after successful share', async () => {
+    const mockFinding = {
+      id: 'f-new',
+      text: 'test note',
+      createdAt: Date.now(),
+      context: { activeFilters: {}, cumulativeScope: null },
+      status: 'observed' as const,
+      comments: [],
+      statusChangedAt: Date.now(),
+    };
+    const onAddChartObservation = vi.fn().mockReturnValue(mockFinding);
+    const onShareFinding = vi.fn().mockResolvedValue(true);
+
+    render(
+      <MobileChartCarousel
+        {...defaultProps}
+        onPinFinding={vi.fn()}
+        onAddChartObservation={onAddChartObservation}
+        canMentionInChannel={true}
+        onShareFinding={onShareFinding}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+    fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+    fireEvent.click(screen.getByTestId('share-to-channel'));
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('share-success')).toBeInTheDocument();
+      expect(screen.getByText('Shared to channel')).toBeInTheDocument();
+    });
+  });
+
+  it('shows error state on share promise rejection', async () => {
+    const mockFinding = {
+      id: 'f-new',
+      text: 'test note',
+      createdAt: Date.now(),
+      context: { activeFilters: {}, cumulativeScope: null },
+      status: 'observed' as const,
+      comments: [],
+      statusChangedAt: Date.now(),
+    };
+    const onAddChartObservation = vi.fn().mockReturnValue(mockFinding);
+    const onShareFinding = vi.fn().mockRejectedValue(new Error('Network error'));
+
+    render(
+      <MobileChartCarousel
+        {...defaultProps}
+        onPinFinding={vi.fn()}
+        onAddChartObservation={onAddChartObservation}
+        canMentionInChannel={true}
+        onShareFinding={onShareFinding}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+    fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+    fireEvent.click(screen.getByTestId('share-to-channel'));
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('share-error')).toBeInTheDocument();
+    });
+  });
+
+  it('"Done" closes sheet without sharing', () => {
+    const mockFinding = {
+      id: 'f-new',
+      text: 'test note',
+      createdAt: Date.now(),
+      context: { activeFilters: {}, cumulativeScope: null },
+      status: 'observed' as const,
+      comments: [],
+      statusChangedAt: Date.now(),
+    };
+    const onAddChartObservation = vi.fn().mockReturnValue(mockFinding);
+    const onShareFinding = vi.fn();
+
+    render(
+      <MobileChartCarousel
+        {...defaultProps}
+        onPinFinding={vi.fn()}
+        onAddChartObservation={onAddChartObservation}
+        canMentionInChannel={true}
+        onShareFinding={onShareFinding}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+    fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+
+    // Confirm phase shown
+    expect(screen.getByTestId('post-pin-flow')).toBeInTheDocument();
+
+    // Click Done instead of sharing
+    fireEvent.click(screen.getByTestId('post-pin-done'));
+
+    // Sheet should close
+    expect(screen.queryByTestId('mobile-category-sheet')).not.toBeInTheDocument();
+    // onShareFinding should NOT have been called
+    expect(onShareFinding).not.toHaveBeenCalled();
   });
 });

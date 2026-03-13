@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, BarChart3, Layers, Pencil, Share2, Trash2 } from 'lucide-react';
+import { Activity, BarChart3, Layers, Pencil, Share2, Trash2, UserPlus } from 'lucide-react';
 import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
 import { getFindingStatus } from '@variscout/core';
 import FindingEditor from './FindingEditor';
@@ -35,6 +35,8 @@ export interface FindingCardProps {
   onShare?: (findingId: string) => void;
   /** Navigate to the chart that sourced this finding */
   onNavigateToChart?: (source: FindingSource) => void;
+  /** Callback to assign someone to this finding */
+  onAssign?: (findingId: string) => void;
 }
 
 /**
@@ -58,6 +60,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   showAuthors,
   onShare,
   onNavigateToChart,
+  onAssign,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
@@ -176,6 +179,19 @@ const FindingCard: React.FC<FindingCardProps> = ({
               </p>
             )}
             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+              {onAssign && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onAssign(finding.id);
+                  }}
+                  className="p-1 rounded text-content-muted hover:text-purple-400 hover:bg-purple-400/10 transition-colors"
+                  title="Assign finding"
+                  aria-label="Assign finding"
+                >
+                  <UserPlus size={12} />
+                </button>
+              )}
               {onShare && (
                 <button
                   onClick={e => {
@@ -212,6 +228,16 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 <Trash2 size={12} />
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Assignee chip */}
+        {finding.assignee && (
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-500/10 text-[10px] text-purple-400 rounded-full">
+              <UserPlus size={9} />
+              {finding.assignee.displayName}
+            </span>
           </div>
         )}
 

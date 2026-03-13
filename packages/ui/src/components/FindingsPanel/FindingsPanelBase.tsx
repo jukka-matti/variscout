@@ -40,6 +40,7 @@ export interface FindingsPanelBaseProps {
   onCaptureFromTeams?: (findingId: string, commentId: string) => void;
   showAuthors?: boolean;
   onShareFinding?: (findingId: string) => void;
+  onAssignFinding?: (findingId: string) => void;
 
   // Panel chrome
   columnAliases?: Record<string, string>;
@@ -75,6 +76,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   activeFindingId,
   onPopout,
   onShareFinding,
+  onAssignFinding,
   viewMode: externalViewMode,
   onViewModeChange,
   resizeConfig,
@@ -225,6 +227,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           columnAliases={columnAliases}
           activeFindingId={activeFindingId}
           onShareFinding={onShareFinding}
+          onAssignFinding={onAssignFinding}
           viewMode={viewMode}
         />
 
