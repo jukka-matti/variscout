@@ -135,7 +135,7 @@
             },
             "login": {
               "loginParameters": [
-                "[if(variables('isTeamPlan'), 'scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All', 'scope=openid profile email User.Read')]"
+                "[if(variables('isTeamPlan'), 'scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All People.Read ChannelMessage.Send', 'scope=openid profile email User.Read')]"
               ]
             }
           }

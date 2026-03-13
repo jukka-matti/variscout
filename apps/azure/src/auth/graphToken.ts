@@ -59,6 +59,44 @@ export async function getGraphToken(): Promise<string> {
   return getAccessToken();
 }
 
+/**
+ * Get a Graph API access token with specific scopes.
+ * Used for @mention workflow which needs ChannelMessage.Send.
+ *
+ * Scopes are sent to the OBO function which validates against an allowlist.
+ * Falls back to standard getGraphToken() if OBO is unavailable.
+ */
+export async function getGraphTokenWithScopes(scopes: string[]): Promise<string> {
+  if (isLocalDev()) {
+    throw new AuthError('Graph API not available locally', 'local_dev');
+  }
+
+  // Try Teams SSO → OBO exchange with specific scopes
+  if (isInTeams() && FUNCTION_URL) {
+    const ssoToken = await getTeamsSsoToken();
+    if (ssoToken) {
+      try {
+        const res = await fetch(`${FUNCTION_URL}/api/token-exchange`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: ssoToken, scopes }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.accessToken) {
+            return data.accessToken;
+          }
+        }
+      } catch (err) {
+        console.warn('[GraphToken] Scoped OBO exchange failed:', err);
+      }
+    }
+  }
+
+  // Fallback to standard token (may not have the requested scopes)
+  return getGraphToken();
+}
+
 /** Clear the cached token (e.g. on logout). */
 export function clearGraphTokenCache(): void {
   cachedToken = null;

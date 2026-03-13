@@ -65,6 +65,7 @@ function createMockFindingsState(): UseFindingsReturn {
     addFindingComment: vi.fn(),
     editFindingComment: vi.fn(),
     deleteFindingComment: vi.fn(),
+    setFindingAssignee: vi.fn(),
     addPhotoToComment: vi.fn(),
     updatePhotoStatus: vi.fn(),
   };

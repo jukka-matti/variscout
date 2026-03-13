@@ -48,6 +48,34 @@ function validateAudience(token) {
   }
 }
 
+/**
+ * Allowlist of Graph scopes the client can request via OBO.
+ * The client sends a `scopes` array; any scope not in this set is rejected.
+ */
+const ALLOWED_SCOPES = new Set([
+  'https://graph.microsoft.com/Files.ReadWrite.All',
+  'https://graph.microsoft.com/ChannelMessage.Send',
+  'https://graph.microsoft.com/People.Read',
+]);
+
+const DEFAULT_SCOPES = ['https://graph.microsoft.com/Files.ReadWrite.All'];
+
+/**
+ * Validate that all requested scopes are in the allowlist.
+ * Returns the validated scopes array, or null if any scope is invalid.
+ */
+function validateScopes(requestedScopes) {
+  if (!requestedScopes || !Array.isArray(requestedScopes) || requestedScopes.length === 0) {
+    return DEFAULT_SCOPES;
+  }
+  for (const scope of requestedScopes) {
+    if (typeof scope !== 'string' || !ALLOWED_SCOPES.has(scope)) {
+      return null;
+    }
+  }
+  return requestedScopes;
+}
+
 module.exports = async function (context, req) {
   // Only accept POST
   if (req.method !== 'POST') {
@@ -75,11 +103,22 @@ module.exports = async function (context, req) {
     return;
   }
 
+  // Validate and resolve scopes
+  const scopes = validateScopes(req.body?.scopes);
+  if (scopes === null) {
+    context.res = {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+      body: { error: 'Invalid or disallowed scope requested' },
+    };
+    return;
+  }
+
   try {
     const client = getClient();
     const result = await client.acquireTokenOnBehalfOf({
       oboAssertion: token,
-      scopes: ['https://graph.microsoft.com/Files.ReadWrite.All'],
+      scopes,
     });
 
     context.res = {

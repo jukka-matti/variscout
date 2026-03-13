@@ -70,6 +70,20 @@ export interface FindingComment {
 }
 
 // ============================================================================
+// Finding Assignee (Team plan @mention workflow)
+// ============================================================================
+
+/** A lightweight assignee for Team plan channel @mention workflow */
+export interface FindingAssignee {
+  /** Azure AD user principal name (e.g. jane@contoso.com) */
+  upn: string;
+  /** Display name for UI rendering */
+  displayName: string;
+  /** Azure AD object ID — used for Graph @mention entity */
+  userId?: string;
+}
+
+// ============================================================================
 // Finding Source (chart observation origin)
 // ============================================================================
 
@@ -123,6 +137,8 @@ export interface Finding {
   statusChangedAt: number;
   /** Chart observation origin — links finding to a specific chart element */
   source?: FindingSource;
+  /** Optional assignee for Team plan @mention workflow */
+  assignee?: FindingAssignee;
 }
 
 // ============================================================================

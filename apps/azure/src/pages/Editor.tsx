@@ -377,6 +377,7 @@ export const Editor: React.FC<EditorProps> = ({
     (
       chartType: 'boxplot' | 'pareto' | 'ichart',
       categoryKey?: string,
+      noteText?: string,
       anchorX?: number,
       anchorY?: number
     ) => {
@@ -404,9 +405,10 @@ export const Editor: React.FC<EditorProps> = ({
               }
             : undefined,
       };
-      const newFinding = findingsState.addFinding('', context, source);
+      const newFinding = findingsState.addFinding(noteText ?? '', context, source);
       panels.setIsFindingsOpen(true);
       setHighlightedFindingId(newFinding.id);
+      return newFinding;
     },
     [filters, drillPath, filteredData, outcome, findingsState, panels]
   );

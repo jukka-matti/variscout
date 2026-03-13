@@ -354,3 +354,32 @@ describe('findDuplicateBySource', () => {
     expect(result).toBeUndefined();
   });
 });
+
+// ============================================================================
+// FindingAssignee Tests
+// ============================================================================
+
+describe('FindingAssignee', () => {
+  it('createFinding returns a finding without assignee by default', () => {
+    const f = createFinding('test finding', { Machine: ['A'] }, 50);
+    expect(f.assignee).toBeUndefined();
+  });
+
+  it('a finding can have assignee set after creation', () => {
+    const f = createFinding('test finding', { Machine: ['A'] }, 50);
+    const assignee = { upn: 'user@company.com', displayName: 'Jane Doe', userId: 'user-123' };
+    f.assignee = assignee;
+    expect(f.assignee).toBeDefined();
+    expect(f.assignee!.upn).toBe('user@company.com');
+    expect(f.assignee!.displayName).toBe('Jane Doe');
+    expect(f.assignee!.userId).toBe('user-123');
+  });
+
+  it('assignee userId field is optional', () => {
+    const f = createFinding('test finding', {}, null);
+    const assignee = { upn: 'user@company.com', displayName: 'John Smith' };
+    f.assignee = assignee;
+    expect(f.assignee).toBeDefined();
+    expect(f.assignee!.userId).toBeUndefined();
+  });
+});

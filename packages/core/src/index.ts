@@ -236,6 +236,7 @@ export { hasExifData, stripExifSegments, stripExifFromBlob } from './utils/exifS
 // Findings (scouting report)
 export type {
   Finding,
+  FindingAssignee,
   FindingContext,
   FindingStatus,
   FindingComment,

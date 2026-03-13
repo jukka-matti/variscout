@@ -627,4 +627,49 @@ describe('useFindings', () => {
       expect(paretoFindings).toEqual([]);
     });
   });
+
+  // --- Assignee ---
+
+  describe('setFindingAssignee', () => {
+    it('sets an assignee on a finding', () => {
+      const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      act(() => {
+        result.current.setFindingAssignee('f-1', {
+          upn: 'jane@contoso.com',
+          displayName: 'Jane Smith',
+          userId: 'user-123',
+        });
+      });
+
+      expect(result.current.findings[0].assignee).toEqual({
+        upn: 'jane@contoso.com',
+        displayName: 'Jane Smith',
+        userId: 'user-123',
+      });
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('clears assignee when null is passed', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          assignee: { upn: 'jane@contoso.com', displayName: 'Jane Smith' },
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.setFindingAssignee('f-1', null);
+      });
+
+      expect(result.current.findings[0].assignee).toBeUndefined();
+    });
+  });
 });

@@ -36,6 +36,8 @@ export interface MobileCategorySheetProps {
   onSetHighlight: (color: HighlightColor | undefined) => void;
   onPinFinding?: (noteText: string) => void;
   onClose: () => void;
+  /** Render extra content after the pin-as-finding section (e.g. post-pin assign flow) */
+  renderExtra?: () => React.ReactNode;
 }
 
 const highlightOptions: { color: HighlightColor; label: string; hex: string }[] = [
@@ -57,6 +59,7 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
   onSetHighlight,
   onPinFinding,
   onClose,
+  renderExtra,
 }) => {
   const [noteText, setNoteText] = useState('');
   const touchStartY = useRef<number | null>(null);
@@ -297,6 +300,9 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
             </div>
           </>
         )}
+
+        {/* Extra content slot (e.g. post-pin assign flow) */}
+        {renderExtra?.()}
 
         {/* Safe area bottom */}
         <div className="safe-area-bottom" />

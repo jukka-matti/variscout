@@ -6,6 +6,7 @@ import {
   findDuplicateBySource,
   migrateFindings,
   type Finding,
+  type FindingAssignee,
   type FindingContext,
   type FindingSource,
   type FindingStatus,
@@ -48,6 +49,8 @@ export interface UseFindingsReturn {
   editFindingComment: (findingId: string, commentId: string, text: string) => void;
   /** Delete a comment */
   deleteFindingComment: (findingId: string, commentId: string) => void;
+  /** Set or clear a finding's assignee (Team plan @mention workflow) */
+  setFindingAssignee: (id: string, assignee: FindingAssignee | null) => void;
   /** Add a photo attachment to an existing comment */
   addPhotoToComment: (findingId: string, commentId: string, photo: PhotoAttachment) => void;
   /** Update a photo's upload status (and optionally set driveItemId) */
@@ -161,6 +164,17 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     (id: string, tag: FindingTag | null) => {
       setFindings(prev => {
         const next = prev.map(f => (f.id === id ? { ...f, tag: tag ?? undefined } : f));
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const setFindingAssignee = useCallback(
+    (id: string, assignee: FindingAssignee | null) => {
+      setFindings(prev => {
+        const next = prev.map(f => (f.id === id ? { ...f, assignee: assignee ?? undefined } : f));
         onFindingsChange?.(next);
         return next;
       });
@@ -283,6 +297,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     getChartFindings,
     setFindingStatus,
     setFindingTag,
+    setFindingAssignee,
     addFindingComment,
     editFindingComment,
     deleteFindingComment,

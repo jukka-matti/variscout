@@ -137,6 +137,9 @@ Reuses PWA responsive patterns adapted for Teams mobile WebView. Desktop layout 
 - Deep link buttons: "View Chart", "Open Finding" → navigate directly into the app
 - Compose extension in Teams manifest for sharing from the message compose box
 
+**Channel @mention**: See [ADR-018](adr-018-channel-mention-workflow.md) for the channel
+mention workflow that extends URL sharing with true @mention notifications in channel tabs.
+
 ### On-Behalf-Of SSO Flow
 
 An Azure Function (~50 lines) exchanges the Teams SSO token for a Graph API access token:

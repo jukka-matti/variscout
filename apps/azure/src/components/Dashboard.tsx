@@ -79,9 +79,10 @@ interface DashboardProps {
   onAddChartObservation?: (
     chartType: 'boxplot' | 'pareto' | 'ichart',
     categoryKey?: string,
+    noteText?: string,
     anchorX?: number,
     anchorY?: number
-  ) => void;
+  ) => Finding | void;
   /** Findings grouped by chart type for inline annotation display */
   chartFindings?: { boxplot: Finding[]; pareto: Finding[]; ichart: Finding[] };
   /** Callback to edit a finding's text */
@@ -616,7 +617,7 @@ const Dashboard = ({
                       onSpecClick={() => setShowSpecEditor(true)}
                       ichartFindings={chartFindings?.ichart}
                       onCreateObservation={(anchorX, anchorY) =>
-                        onAddChartObservation?.('ichart', undefined, anchorX, anchorY)
+                        onAddChartObservation?.('ichart', undefined, undefined, anchorX, anchorY)
                       }
                       onEditFinding={onEditFinding}
                       onDeleteFinding={onDeleteFinding}
@@ -840,7 +841,7 @@ const Dashboard = ({
               highlightedPointIndex={highlightedPointIndex}
               ichartFindings={chartFindings?.ichart}
               onCreateIChartObservation={(anchorX: number, anchorY: number) =>
-                onAddChartObservation?.('ichart', undefined, anchorX, anchorY)
+                onAddChartObservation?.('ichart', undefined, undefined, anchorX, anchorY)
               }
               onEditFinding={onEditFinding}
               onDeleteFinding={onDeleteFinding}

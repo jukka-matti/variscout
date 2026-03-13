@@ -457,7 +457,7 @@ describe('MobileChartCarousel', () => {
     expect(defaultProps.onSetHighlight).toHaveBeenCalledWith('boxplot', 'A', 'red');
   });
 
-  it('delegates pin finding with note text', () => {
+  it('delegates pin finding with note text (no chart observation)', () => {
     const onPinFinding = vi.fn();
     render(<MobileChartCarousel {...defaultProps} onPinFinding={onPinFinding} />);
 
@@ -469,6 +469,30 @@ describe('MobileChartCarousel', () => {
     fireEvent.click(screen.getByTestId('sheet-pin-finding'));
 
     expect(onPinFinding).toHaveBeenCalledWith('test note');
+  });
+
+  it('passes noteText through to onAddChartObservation (bug fix)', () => {
+    const onAddChartObservation = vi.fn();
+    const onPinFinding = vi.fn();
+    render(
+      <MobileChartCarousel
+        {...defaultProps}
+        onPinFinding={onPinFinding}
+        onAddChartObservation={onAddChartObservation}
+      />
+    );
+
+    // Navigate to boxplot and tap
+    fireEvent.click(screen.getByLabelText('Next chart'));
+    fireEvent.click(screen.getByTestId('boxplot-tap'));
+
+    // Pin finding via sheet (mock sends 'test note')
+    fireEvent.click(screen.getByTestId('sheet-pin-finding'));
+
+    // Should call onAddChartObservation WITH the note text
+    expect(onAddChartObservation).toHaveBeenCalledWith('boxplot', 'A', 'test note');
+    // Should NOT fall through to onPinFinding
+    expect(onPinFinding).not.toHaveBeenCalled();
   });
 
   it('shows highlights on boxplot categories', () => {

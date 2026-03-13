@@ -13,11 +13,21 @@
  * pin-as-finding actions.
  */
 import React, { useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Activity, BarChart3, PieChart, TrendingUp } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  Send,
+  Check,
+} from 'lucide-react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
+import PeoplePicker from './PeoplePicker';
 import {
   AnovaResults,
   FactorSelector,
@@ -32,6 +42,8 @@ import type {
   DataRow,
   AnovaResult,
   BoxplotGroupData,
+  Finding,
+  FindingAssignee,
 } from '@variscout/core';
 import type { FilterChipData, HighlightColor } from '@variscout/hooks';
 
@@ -83,8 +95,9 @@ interface MobileChartCarouselProps {
   // Chart observation (creates a Finding with source metadata)
   onAddChartObservation?: (
     chartType: 'boxplot' | 'pareto' | 'ichart',
-    categoryKey?: string
-  ) => void;
+    categoryKey?: string,
+    noteText?: string
+  ) => Finding | void;
   // Category sheet data (from Dashboard)
   boxplotData: BoxplotGroupData[];
   boxplotHighlights: Record<string, HighlightColor>;
@@ -94,6 +107,10 @@ interface MobileChartCarouselProps {
     key: string,
     color: HighlightColor | undefined
   ) => void;
+  // Assign & Share (Team plan channel @mention)
+  canMentionInChannel?: boolean;
+  onShareFinding?: (finding: Finding, assignee?: FindingAssignee) => Promise<boolean>;
+  onSetFindingAssignee?: (findingId: string, assignee: FindingAssignee | null) => void;
 }
 
 const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
@@ -129,6 +146,9 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   boxplotHighlights,
   paretoHighlights,
   onSetHighlight,
+  canMentionInChannel = false,
+  onShareFinding,
+  onSetFindingAssignee,
 }) => {
   const [activeView, setActiveView] = useState<ChartView>('ichart');
 
@@ -136,6 +156,13 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   const [categorySheet, setCategorySheet] = useState<MobileCategorySheetData | null>(null);
   const [sheetFactor, setSheetFactor] = useState<string>('');
   const [sheetChartType, setSheetChartType] = useState<'boxplot' | 'pareto'>('boxplot');
+
+  // Post-pin "Assign & Share" state
+  const [pinnedFinding, setPinnedFinding] = useState<Finding | null>(null);
+  const [sheetPhase, setSheetPhase] = useState<'input' | 'confirm'>('input');
+  const [assignee, setAssignee] = useState<FindingAssignee | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
 
   const currentIndex = VIEWS.findIndex(v => v.key === activeView);
 
@@ -214,6 +241,11 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
 
   const handleSheetClose = useCallback(() => {
     setCategorySheet(null);
+    setPinnedFinding(null);
+    setSheetPhase('input');
+    setAssignee(null);
+    setIsSharing(false);
+    setShareSuccess(false);
   }, []);
 
   // Sheet drill-down: performs the actual drill-down
@@ -234,16 +266,124 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   );
 
   // Sheet pin finding: use chart observation if available, else fall back to pin
+  // If canMentionInChannel, transition to confirm phase instead of closing sheet
   const handleSheetPinFinding = useCallback(
     (noteText: string) => {
+      let finding: Finding | undefined;
       if (onAddChartObservation && categorySheet) {
-        onAddChartObservation(sheetChartType, categorySheet.categoryKey);
+        const result = onAddChartObservation(sheetChartType, categorySheet.categoryKey, noteText);
+        if (result) finding = result;
       } else {
         onPinFinding?.(noteText);
       }
+
+      // Transition to confirm phase if we got a Finding back and can @mention
+      if (finding && canMentionInChannel) {
+        setPinnedFinding(finding);
+        setSheetPhase('confirm');
+        // Don't close the sheet — it transitions to confirm UI
+      }
     },
-    [onPinFinding, onAddChartObservation, categorySheet, sheetChartType]
+    [onPinFinding, onAddChartObservation, categorySheet, sheetChartType, canMentionInChannel]
   );
+
+  // Assign & Share handler
+  const handleAssignAndShare = useCallback(async () => {
+    if (!pinnedFinding || !onShareFinding) return;
+    setIsSharing(true);
+    try {
+      // Persist assignee on the finding
+      if (assignee && onSetFindingAssignee) {
+        onSetFindingAssignee(pinnedFinding.id, assignee);
+      }
+      const success = await onShareFinding(pinnedFinding, assignee ?? undefined);
+      if (success) {
+        setShareSuccess(true);
+        setTimeout(() => handleSheetClose(), 1500);
+      } else {
+        setIsSharing(false);
+      }
+    } catch {
+      setIsSharing(false);
+    }
+  }, [pinnedFinding, assignee, onShareFinding, onSetFindingAssignee, handleSheetClose]);
+
+  // Post-pin confirm UI (rendered inside sheet via renderExtra slot)
+  const renderPostPinFlow = useCallback(() => {
+    if (sheetPhase !== 'confirm' || !pinnedFinding) return null;
+
+    if (shareSuccess) {
+      return (
+        <div className="px-4 py-3" data-testid="share-success">
+          <div className="flex items-center gap-2 text-green-500 text-sm font-medium">
+            <Check size={16} />
+            <span>Shared to channel</span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="mx-4 border-t border-edge" />
+        <div className="px-4 py-3 space-y-3" data-testid="post-pin-flow">
+          <div className="text-sm text-content-secondary">
+            <Check size={14} className="inline text-green-500 mr-1" />
+            Finding created
+            {pinnedFinding.text && (
+              <span className="block text-content mt-1 truncate">
+                &ldquo;{pinnedFinding.text}&rdquo;
+              </span>
+            )}
+          </div>
+
+          {/* People Picker */}
+          <div>
+            <label className="text-xs text-content-secondary mb-1 block">Assign to:</label>
+            <PeoplePicker
+              selected={assignee}
+              onSelect={setAssignee}
+              onClear={() => setAssignee(null)}
+            />
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleAssignAndShare}
+              disabled={isSharing}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl transition-colors touch-feedback"
+              style={{ minHeight: 44 }}
+              data-testid="share-to-channel"
+            >
+              {isSharing ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Send size={14} />
+              )}
+              {assignee ? 'Share to Channel' : 'Share to Channel'}
+            </button>
+            <button
+              onClick={handleSheetClose}
+              className="px-4 py-2.5 text-sm font-medium text-content-secondary bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-xl transition-colors touch-feedback"
+              style={{ minHeight: 44 }}
+              data-testid="post-pin-done"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }, [
+    sheetPhase,
+    pinnedFinding,
+    assignee,
+    isSharing,
+    shareSuccess,
+    handleAssignAndShare,
+    handleSheetClose,
+  ]);
 
   // Current highlight for the open sheet
   const currentSheetHighlight = categorySheet
@@ -402,6 +542,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
         onSetHighlight={handleSheetHighlight}
         onPinFinding={onPinFinding ? handleSheetPinFinding : undefined}
         onClose={handleSheetClose}
+        renderExtra={canMentionInChannel ? renderPostPinFlow : undefined}
       />
     </div>
   );
