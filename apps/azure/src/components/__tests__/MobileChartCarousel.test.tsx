@@ -131,24 +131,40 @@ vi.mock('@variscout/ui', () => ({
 }));
 
 const defaultProps = {
-  boxplotFactor: 'Machine',
-  paretoFactor: 'Operator',
-  factors: ['Machine', 'Operator', 'Shift'],
-  onSetBoxplotFactor: vi.fn(),
-  onSetParetoFactor: vi.fn(),
-  filters: {},
-  columnAliases: {},
-  filterChipData: [],
-  cumulativeVariationPct: 0,
-  onUpdateFilterValues: vi.fn(),
-  onRemoveFilter: vi.fn(),
-  onClearAllFilters: vi.fn(),
+  factorState: {
+    boxplotFactor: 'Machine',
+    paretoFactor: 'Operator',
+    factors: ['Machine', 'Operator', 'Shift'],
+    onSetBoxplotFactor: vi.fn(),
+    onSetParetoFactor: vi.fn(),
+  },
+  filterContext: {
+    filters: {},
+    columnAliases: {},
+    filterChipData: [] as {
+      factor: string;
+      values: (string | number)[];
+      contributionPct: number;
+      availableValues: { value: string | number; contributionPct: number; isSelected: boolean }[];
+    }[],
+    cumulativeVariationPct: 0,
+    onUpdateFilterValues: vi.fn(),
+    onRemoveFilter: vi.fn(),
+    onClearAllFilters: vi.fn(),
+  },
+  paretoOptions: {
+    paretoAggregation: 'count' as const,
+    onToggleParetoAggregation: vi.fn(),
+    showParetoComparison: false,
+    onToggleParetoComparison: vi.fn(),
+  },
+  highlights: {
+    boxplotHighlights: {} as Record<string, 'red' | 'amber' | 'green'>,
+    paretoHighlights: {} as Record<string, 'red' | 'amber' | 'green'>,
+    onSetHighlight: vi.fn(),
+  },
   onDrillDown: vi.fn(),
   factorVariations: new Map<string, number>(),
-  paretoAggregation: 'count' as const,
-  onToggleParetoAggregation: vi.fn(),
-  showParetoComparison: false,
-  onToggleParetoComparison: vi.fn(),
   stats: null,
   specs: {},
   filteredData: [],
@@ -182,9 +198,6 @@ const defaultProps = {
       stdDev: 1,
     },
   ],
-  boxplotHighlights: {} as Record<string, 'red' | 'amber' | 'green'>,
-  paretoHighlights: {} as Record<string, 'red' | 'amber' | 'green'>,
-  onSetHighlight: vi.fn(),
 };
 
 describe('MobileChartCarousel', () => {
@@ -296,12 +309,22 @@ describe('MobileChartCarousel', () => {
       },
     ];
 
-    render(<MobileChartCarousel {...defaultProps} filterChipData={filterChipData} />);
+    render(
+      <MobileChartCarousel
+        {...defaultProps}
+        filterContext={{ ...defaultProps.filterContext, filterChipData }}
+      />
+    );
     expect(screen.getByTestId('filter-breadcrumb-mock')).toBeInTheDocument();
   });
 
   it('does not show FilterBreadcrumb when no filters', () => {
-    render(<MobileChartCarousel {...defaultProps} filterChipData={[]} />);
+    render(
+      <MobileChartCarousel
+        {...defaultProps}
+        filterContext={{ ...defaultProps.filterContext, filterChipData: [] }}
+      />
+    );
     expect(screen.queryByTestId('filter-breadcrumb-mock')).not.toBeInTheDocument();
   });
 
@@ -471,7 +494,7 @@ describe('MobileChartCarousel', () => {
     // Set highlight via sheet
     fireEvent.click(screen.getByTestId('sheet-highlight-red'));
 
-    expect(defaultProps.onSetHighlight).toHaveBeenCalledWith('boxplot', 'A', 'red');
+    expect(defaultProps.highlights.onSetHighlight).toHaveBeenCalledWith('boxplot', 'A', 'red');
   });
 
   it('delegates pin finding with note text (no chart observation)', () => {
@@ -513,8 +536,13 @@ describe('MobileChartCarousel', () => {
   });
 
   it('shows highlights on boxplot categories', () => {
-    const highlights = { A: 'red' as const };
-    render(<MobileChartCarousel {...defaultProps} boxplotHighlights={highlights} />);
+    const boxplotHighlights = { A: 'red' as const };
+    render(
+      <MobileChartCarousel
+        {...defaultProps}
+        highlights={{ ...defaultProps.highlights, boxplotHighlights }}
+      />
+    );
 
     // Navigate to boxplot and tap A
     fireEvent.click(screen.getByLabelText('Next chart'));

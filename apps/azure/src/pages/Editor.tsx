@@ -4,6 +4,7 @@ import { useData } from '../context/DataContext';
 import { useDataIngestion } from '../hooks/useDataIngestion';
 import { useFilterNavigation } from '../hooks';
 import Dashboard from '../components/Dashboard';
+import { EditorToolbar } from '../components/EditorToolbar';
 import DataPanel from '../components/data/DataPanel';
 import DataTableModal from '../components/data/DataTableModal';
 import FindingsPanel from '../components/FindingsPanel';
@@ -19,35 +20,21 @@ import {
   type FindingsAction,
 } from '@variscout/ui';
 import { useControlViolations, useFindings, useDrillPath } from '@variscout/hooks';
-import type { FindingContext } from '@variscout/core';
-import { isTeamPlan, calculateStats } from '@variscout/core';
+import { isTeamPlan } from '@variscout/core';
+import { buildFindingContext, buildFindingSource } from '@variscout/hooks';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
-import { downloadCSV } from '@variscout/core';
 import type { ExclusionReason } from '@variscout/core';
 import { SAMPLES } from '@variscout/data';
 import {
   Upload,
-  ArrowLeft,
-  Save,
   FileText,
-  Cloud,
-  CloudOff,
   PenLine,
   ClipboardPaste,
-  Table2,
-  Pencil,
-  Plus,
-  ClipboardList,
-  Beaker,
-  Download,
   Database,
   RefreshCw,
-  ChevronDown,
   Check,
-  Maximize2,
-  EllipsisVertical,
   X,
 } from 'lucide-react';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
@@ -141,29 +128,6 @@ export const Editor: React.FC<EditorProps> = ({
     onViewStateChange: handleViewStateChange,
   });
 
-  // Add Data dropdown state
-  const [addDataOpen, setAddDataOpen] = useState(false);
-  const addDataRef = React.useRef<HTMLDivElement>(null);
-
-  // Overflow menu state (phone only)
-  const [overflowOpen, setOverflowOpen] = useState(false);
-  const overflowRef = React.useRef<HTMLDivElement>(null);
-
-  // Close dropdowns on outside click
-  useEffect(() => {
-    if (!addDataOpen && !overflowOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (addDataOpen && addDataRef.current && !addDataRef.current.contains(e.target as Node)) {
-        setAddDataOpen(false);
-      }
-      if (overflowOpen && overflowRef.current && !overflowRef.current.contains(e.target as Node)) {
-        setOverflowOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [addDataOpen, overflowOpen]);
-
   // Phone: data panel opens DataTableModal instead of inline panel
   const handleDataPanelToggle = useCallback(() => {
     if (isPhone) {
@@ -219,8 +183,7 @@ export const Editor: React.FC<EditorProps> = ({
     setMeasureLabel,
     setPerformanceMode,
     onDone: () => {
-      dataFlow.setIsManualEntry(false);
-      dataFlow.setAppendMode(false);
+      dataFlow.manualEntryDone();
     },
   });
 
@@ -228,13 +191,13 @@ export const Editor: React.FC<EditorProps> = ({
   const [loadError, setLoadError] = useState<string | null>(null);
   useEffect(() => {
     if (projectId && rawData.length === 0 && !dataFlow.isLoadingProject) {
-      dataFlow.setIsLoadingProject(true);
+      dataFlow.startProjectLoad();
       setLoadError(null);
       loadProject(projectId)
         .catch(() => {
           setLoadError('Failed to load project. Please try again.');
         })
-        .finally(() => dataFlow.setIsLoadingProject(false));
+        .finally(() => dataFlow.projectLoaded());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]); // intentionally exclude rawData/dataFlow to avoid re-triggering
@@ -258,9 +221,9 @@ export const Editor: React.FC<EditorProps> = ({
   const projectName = currentProjectName || 'New Analysis';
 
   // Deep link: auto-open findings panel and highlight target finding (one-shot)
-  const [deepLinkConsumed, setDeepLinkConsumed] = useState(false);
+  const deepLinkConsumedRef = React.useRef(false);
   useEffect(() => {
-    if (deepLinkConsumed || !rawData.length || !outcome) return;
+    if (deepLinkConsumedRef.current || !rawData.length || !outcome) return;
     if (initialFindingId) {
       panels.setIsFindingsOpen(true);
       setHighlightedFindingId(initialFindingId);
@@ -275,9 +238,9 @@ export const Editor: React.FC<EditorProps> = ({
       const cleanUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, '', cleanUrl);
     }
-    setDeepLinkConsumed(true);
+    deepLinkConsumedRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawData.length, outcome, initialFindingId, initialChart, deepLinkConsumed]);
+  }, [rawData.length, outcome, initialFindingId, initialChart]);
 
   // Update Teams deep link context when project/view changes
   useEffect(() => {
@@ -342,36 +305,18 @@ export const Editor: React.FC<EditorProps> = ({
   // Findings: pin current filter state (one-click with duplicate detection)
   const handlePinFinding = useCallback(
     (noteText?: string) => {
-      // Check for duplicate
       const existing = findingsState.findDuplicate(filters);
       if (existing) {
         panels.setIsFindingsOpen(true);
         setHighlightedFindingId(existing.id);
         return;
       }
-      // Build context and create finding immediately
-      const context: FindingContext = {
-        activeFilters: { ...filters },
-        cumulativeScope:
-          drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
-        stats:
-          filteredData.length > 0
-            ? (() => {
-                const values = filteredData.map(r => Number(r[outcome!])).filter(v => !isNaN(v));
-                const mean = values.reduce((s, v) => s + v, 0) / values.length;
-                const sorted = [...values].sort((a, b) => a - b);
-                const mid = Math.floor(sorted.length / 2);
-                const median =
-                  sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-                return { mean, median, samples: values.length };
-              })()
-            : undefined,
-      };
+      const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText || '', context);
       panels.setIsFindingsOpen(true);
       setHighlightedFindingId(newFinding.id);
     },
-    [filters, drillPath, filteredData, outcome, findingsState, panels]
+    [filters, drillPath, filteredData, outcome, specs, findingsState, panels]
   );
 
   const handleRestoreFinding = useCallback(
@@ -392,37 +337,20 @@ export const Editor: React.FC<EditorProps> = ({
       anchorX?: number,
       anchorY?: number
     ) => {
-      const source = { chart: chartType, category: categoryKey, anchorX, anchorY } as const;
-      // Check for duplicate by source
+      const source = buildFindingSource(chartType, categoryKey, anchorX, anchorY);
       const existing = findingsState.findDuplicateSource(source);
       if (existing) {
         panels.setIsFindingsOpen(true);
         setHighlightedFindingId(existing.id);
         return;
       }
-      const values = filteredData.map(r => Number(r[outcome!])).filter(v => !isNaN(v));
-      let statsCtx: FindingContext['stats'];
-      if (values.length > 0) {
-        const computed = calculateStats(values, specs?.usl, specs?.lsl);
-        statsCtx = {
-          mean: computed.mean,
-          median: computed.median,
-          samples: values.length,
-          cpk: computed.cpk,
-        };
-      }
-      const context: FindingContext = {
-        activeFilters: { ...filters },
-        cumulativeScope:
-          drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
-        stats: statsCtx,
-      };
+      const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding(noteText ?? '', context, source);
       panels.setIsFindingsOpen(true);
       setHighlightedFindingId(newFinding.id);
       return newFinding;
     },
-    [filters, drillPath, filteredData, outcome, specs?.usl, specs?.lsl, findingsState, panels]
+    [filters, drillPath, filteredData, outcome, specs, findingsState, panels]
   );
 
   // Chart findings grouped by chart type for inline annotation display
@@ -543,20 +471,6 @@ export const Editor: React.FC<EditorProps> = ({
     });
   }, [hasUnsavedChanges, currentProjectName, saveProject]);
 
-  // Sync status icon
-  const SyncIcon =
-    syncStatus.status === 'synced' || syncStatus.status === 'syncing' ? Cloud : CloudOff;
-  const syncColor =
-    syncStatus.status === 'synced'
-      ? 'text-green-400'
-      : syncStatus.status === 'syncing'
-        ? 'text-blue-400'
-        : syncStatus.status === 'error'
-          ? 'text-red-400'
-          : syncStatus.status === 'conflict'
-            ? 'text-amber-400'
-            : 'text-content-muted';
-
   // If in paste mode, show PasteScreen full screen
   if (dataFlow.isPasteMode) {
     const isAppendPaste = dataFlow.appendMode && rawData.length > 0 && !!outcome;
@@ -624,325 +538,39 @@ export const Editor: React.FC<EditorProps> = ({
 
   return (
     <div className={`flex flex-col ${isPhone ? 'h-[calc(100vh-64px)]' : 'h-[calc(100vh-120px)]'}`}>
-      {/* Header with back navigation */}
-      <div className="flex justify-between items-center mb-4 px-2">
-        <div className="flex items-center gap-4 min-w-0">
-          <button
-            onClick={onBack}
-            aria-label="Back to dashboard"
-            className="flex items-center gap-1 text-content-muted hover:text-content transition-colors flex-shrink-0"
-          >
-            <ArrowLeft size={18} />
-            {!isPhone && <span>Back</span>}
-          </button>
-          <h2
-            className={`font-semibold text-content truncate ${isPhone ? 'text-base' : 'text-xl'}`}
-          >
-            {currentProjectName || (projectId ? `Analysis ${projectId}` : 'New Analysis')}
-            {hasUnsavedChanges && <span className="text-amber-400 ml-2">•</span>}
-          </h2>
-        </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          {/* Sync Status — Team plan only, hidden on phone to save space */}
-          {!isPhone &&
-            isTeamPlan() &&
-            (syncStatus.status === 'error' ? (
-              <button
-                onClick={() => {
-                  window.location.href = '/.auth/login/aad';
-                }}
-                className={`flex items-center gap-1.5 text-sm ${syncColor} hover:text-red-300 transition-colors`}
-                title="Click to re-authenticate"
-              >
-                <SyncIcon size={16} />
-                <span className="underline underline-offset-2">
-                  {syncStatus.message || 'Auth error'}
-                </span>
-              </button>
-            ) : (
-              <div className={`flex items-center gap-1.5 text-sm ${syncColor}`}>
-                <SyncIcon
-                  size={16}
-                  className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
-                />
-                <span className="text-content-secondary">
-                  {syncStatus.message || syncStatus.status}
-                </span>
-              </div>
-            ))}
-
-          {/* ===== Desktop toolbar (hidden on phone) ===== */}
-          {!isPhone && (
-            <>
-              {/* Add Data Dropdown */}
-              {rawData.length > 0 && outcome && (
-                <div ref={addDataRef} className="relative">
-                  <button
-                    onClick={() => setAddDataOpen(prev => !prev)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-                    title="Add more data"
-                    data-testid="btn-add-data"
-                  >
-                    <Plus size={16} />
-                    <span className="text-sm">Add Data</span>
-                    <ChevronDown
-                      size={14}
-                      className={`transition-transform ${addDataOpen ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  {addDataOpen && (
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-surface-secondary border border-edge rounded-lg shadow-xl z-50 py-1">
-                      <button
-                        onClick={() => {
-                          setAddDataOpen(false);
-                          dataFlow.setAppendMode(true);
-                          dataFlow.setIsPasteMode(true);
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
-                        data-testid="add-data-paste"
-                      >
-                        <ClipboardPaste size={15} />
-                        Paste Data
-                      </button>
-                      <button
-                        onClick={() => {
-                          setAddDataOpen(false);
-                          dataFlow.setAppendMode(true);
-                          dataFlow.triggerAppendFileUpload();
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
-                        data-testid="add-data-file"
-                      >
-                        <Upload size={15} />
-                        Upload File
-                      </button>
-                      <button
-                        onClick={() => {
-                          setAddDataOpen(false);
-                          dataFlow.handleAddMoreData();
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-content hover:text-content hover:bg-surface-tertiary transition-colors"
-                        data-testid="add-data-manual"
-                      >
-                        <PenLine size={15} />
-                        Manual Entry
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Edit Data */}
-              {rawData.length > 0 && outcome && (
-                <button
-                  onClick={() => panels.setIsDataTableOpen(true)}
-                  className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                  title="Edit Data Table"
-                  data-testid="btn-edit-data"
-                >
-                  <Pencil size={18} />
-                </button>
-              )}
-
-              {/* CSV Export */}
-              {rawData.length > 0 && outcome && (
-                <button
-                  onClick={() => downloadCSV(filteredData, outcome, specs)}
-                  className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                  title="Export filtered data as CSV"
-                  data-testid="btn-csv-export"
-                >
-                  <Download size={18} />
-                </button>
-              )}
-
-              {/* What-If Simulator */}
-              {rawData.length > 0 && outcome && (
-                <button
-                  onClick={() => panels.setIsWhatIfOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                  title="What-If Simulator"
-                  data-testid="btn-what-if"
-                >
-                  <Beaker size={16} />
-                  <span>What-If</span>
-                </button>
-              )}
-
-              {/* Presentation Mode */}
-              {rawData.length > 0 && outcome && (
-                <button
-                  onClick={() => panels.setIsPresentationMode(true)}
-                  className="p-2 rounded-lg transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
-                  title="Presentation Mode"
-                  data-testid="btn-presentation"
-                >
-                  <Maximize2 size={18} />
-                </button>
-              )}
-
-              {/* Findings Toggle */}
-              {rawData.length > 0 && outcome && factors.length > 0 && (
-                <button
-                  onClick={() => panels.setIsFindingsOpen(prev => !prev)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                    panels.isFindingsOpen
-                      ? 'bg-blue-600 text-white'
-                      : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
-                  }`}
-                  title={panels.isFindingsOpen ? 'Hide Findings' : 'Show Findings'}
-                  data-testid="btn-findings"
-                >
-                  <ClipboardList size={16} />
-                  <span className="hidden lg:inline">
-                    Findings
-                    {findingsState.findings.length > 0 && ` (${findingsState.findings.length})`}
-                  </span>
-                </button>
-              )}
-
-              {/* Data Panel Toggle */}
-              {rawData.length > 0 && outcome && (
-                <button
-                  onClick={handleDataPanelToggle}
-                  className={`p-2 rounded-lg transition-colors ${
-                    panels.isDataPanelOpen
-                      ? 'bg-blue-600 text-white'
-                      : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
-                  }`}
-                  title={panels.isDataPanelOpen ? 'Hide Data Panel' : 'Show Data Panel'}
-                  data-testid="btn-data-panel"
-                >
-                  <Table2 size={18} />
-                </button>
-              )}
-            </>
-          )}
-
-          {/* Save Button (always visible) */}
-          <button
-            onClick={handleSave}
-            disabled={rawData.length === 0 || saveStatus === 'saving'}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-              saveStatus === 'saved'
-                ? 'bg-green-600 text-white'
-                : saveStatus === 'error'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-            data-testid="btn-save"
-          >
-            <Save size={16} />
-            {!isPhone &&
-              (saveStatus === 'saving'
-                ? 'Saving...'
-                : saveStatus === 'saved'
-                  ? 'Saved'
-                  : saveStatus === 'error'
-                    ? 'Save Failed'
-                    : 'Save')}
-          </button>
-
-          {/* ===== Phone overflow menu ===== */}
-          {isPhone && rawData.length > 0 && outcome && (
-            <div ref={overflowRef} className="relative">
-              <button
-                onClick={() => setOverflowOpen(prev => !prev)}
-                className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
-                style={{ minWidth: 44, minHeight: 44 }}
-                title="More actions"
-                aria-label="More actions"
-                data-testid="btn-overflow"
-              >
-                <EllipsisVertical size={20} />
-              </button>
-              {overflowOpen && (
-                <div className="absolute right-0 top-full mt-1 w-52 bg-surface-secondary border border-edge rounded-lg shadow-xl z-50 py-1 animate-fade-in">
-                  <button
-                    onClick={() => {
-                      setOverflowOpen(false);
-                      dataFlow.setAppendMode(true);
-                      dataFlow.setIsPasteMode(true);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
-                  >
-                    <Plus size={16} />
-                    Add Data
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOverflowOpen(false);
-                      panels.setIsDataTableOpen(true);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
-                  >
-                    <Pencil size={16} />
-                    Edit Data
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOverflowOpen(false);
-                      downloadCSV(filteredData, outcome, specs);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
-                  >
-                    <Download size={16} />
-                    Export CSV
-                  </button>
-                  <div className="border-t border-edge my-1" />
-                  <button
-                    onClick={() => {
-                      setOverflowOpen(false);
-                      panels.setIsWhatIfOpen(true);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
-                  >
-                    <Beaker size={16} />
-                    What-If
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOverflowOpen(false);
-                      panels.setIsPresentationMode(true);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
-                  >
-                    <Maximize2 size={16} />
-                    Presentation
-                  </button>
-                  {factors.length > 0 && (
-                    <button
-                      onClick={() => {
-                        setOverflowOpen(false);
-                        panels.setIsFindingsOpen(prev => !prev);
-                      }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
-                    >
-                      <ClipboardList size={16} />
-                      Findings
-                      {findingsState.findings.length > 0 && (
-                        <span className="ml-auto px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
-                          {findingsState.findings.length}
-                        </span>
-                      )}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => {
-                      setOverflowOpen(false);
-                      handleDataPanelToggle();
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
-                  >
-                    <Table2 size={16} />
-                    Data Table
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+      <EditorToolbar
+        onBack={onBack}
+        projectName={currentProjectName || (projectId ? `Analysis ${projectId}` : 'New Analysis')}
+        hasUnsavedChanges={hasUnsavedChanges}
+        dataState={{
+          hasData: rawData.length > 0,
+          hasOutcome: !!outcome,
+          hasFactors: factors.length > 0,
+          filteredData,
+          outcome,
+          specs,
+        }}
+        syncState={{
+          syncStatus,
+          saveStatus,
+          onSave: handleSave,
+        }}
+        panelState={{
+          isFindingsOpen: panels.isFindingsOpen,
+          isDataPanelOpen: panels.isDataPanelOpen,
+          findingsCount: findingsState.findings.length,
+          onToggleFindings: () => panels.setIsFindingsOpen(prev => !prev),
+          onToggleDataPanel: handleDataPanelToggle,
+        }}
+        dataActions={{
+          onAddPasteData: () => dataFlow.startAppendPaste(),
+          onAddFileData: () => dataFlow.startAppendFileUpload(),
+          onAddManualData: dataFlow.handleAddMoreData,
+          onOpenDataTable: () => panels.setIsDataTableOpen(true),
+          onOpenWhatIf: () => panels.setIsWhatIfOpen(true),
+          onOpenPresentation: () => panels.setIsPresentationMode(true),
+        }}
+      />
 
       {/* Hidden file input for append-mode file upload */}
       <input
@@ -1013,7 +641,7 @@ export const Editor: React.FC<EditorProps> = ({
                 </button>
 
                 <button
-                  onClick={() => dataFlow.setIsPasteMode(true)}
+                  onClick={() => dataFlow.startPaste()}
                   className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface-tertiary text-content rounded-lg hover:bg-surface-tertiary/80 transition-colors font-medium"
                 >
                   <ClipboardPaste size={20} />
@@ -1021,7 +649,7 @@ export const Editor: React.FC<EditorProps> = ({
                 </button>
 
                 <button
-                  onClick={() => dataFlow.setIsManualEntry(true)}
+                  onClick={() => dataFlow.startManualEntry()}
                   className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface-tertiary text-content rounded-lg hover:bg-surface-tertiary/80 transition-colors font-medium"
                 >
                   <PenLine size={20} />
@@ -1074,18 +702,8 @@ export const Editor: React.FC<EditorProps> = ({
               onPointClick={isPhone ? undefined : panels.handlePointClick}
               highlightedPointIndex={isPhone ? undefined : panels.highlightedChartPoint}
               filterNav={filterNav}
-              initialTab={viewState?.activeTab}
-              onTabChange={tab => handleViewStateChange({ activeTab: tab })}
-              initialFocusedChart={viewState?.focusedChart}
-              onFocusedChartChange={chart =>
-                handleViewStateChange({
-                  focusedChart: chart as 'ichart' | 'boxplot' | 'pareto' | null,
-                })
-              }
-              initialBoxplotFactor={viewState?.boxplotFactor}
-              initialParetoFactor={viewState?.paretoFactor}
-              onBoxplotFactorChange={factor => handleViewStateChange({ boxplotFactor: factor })}
-              onParetoFactorChange={factor => handleViewStateChange({ paretoFactor: factor })}
+              initialViewState={viewState ?? undefined}
+              onViewStateChange={handleViewStateChange}
               isPresentationMode={panels.isPresentationMode}
               onExitPresentation={() => panels.setIsPresentationMode(false)}
               onManageFactors={dataFlow.openFactorManager}

@@ -27,6 +27,7 @@ import { getColumnNames, createFactorFromSelection } from '@variscout/core';
 import type { FindingsCallbacks } from '../types/findingsCallbacks';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useAnnotations } from '@variscout/hooks';
+import type { ViewState } from '@variscout/hooks';
 import {
   Activity,
   BarChart3,
@@ -49,22 +50,10 @@ interface DashboardProps {
   onBackToPerformance?: () => void;
   onDrillToMeasure?: (measureId: string) => void;
   filterNav?: UseFilterNavigationReturn;
-  /** Initial tab from persisted view state */
-  initialTab?: DashboardTab;
-  /** Report tab changes for persistence */
-  onTabChange?: (tab: DashboardTab) => void;
-  /** Initial focused chart from persisted view state */
-  initialFocusedChart?: 'ichart' | 'boxplot' | 'pareto' | null;
-  /** Report focused chart changes for persistence */
-  onFocusedChartChange?: (chart: string | null) => void;
-  /** Initial boxplot factor from persisted view state */
-  initialBoxplotFactor?: string;
-  /** Initial pareto factor from persisted view state */
-  initialParetoFactor?: string;
-  /** Report boxplot factor changes for persistence */
-  onBoxplotFactorChange?: (factor: string) => void;
-  /** Report pareto factor changes for persistence */
-  onParetoFactorChange?: (factor: string) => void;
+  /** Initial view state from persistence (tab, focused chart, factors) */
+  initialViewState?: ViewState;
+  /** Report view state changes for persistence */
+  onViewStateChange?: (partial: Partial<ViewState>) => void;
   /** Whether presentation mode is active */
   isPresentationMode?: boolean;
   /** Callback to exit presentation mode */
@@ -86,14 +75,8 @@ const Dashboard = ({
   onBackToPerformance,
   onDrillToMeasure,
   filterNav: externalFilterNav,
-  initialTab,
-  onTabChange,
-  initialFocusedChart,
-  onFocusedChartChange,
-  initialBoxplotFactor,
-  initialParetoFactor,
-  onBoxplotFactorChange,
-  onParetoFactorChange,
+  initialViewState,
+  onViewStateChange,
   isPresentationMode,
   onExitPresentation,
   onManageFactors,
@@ -134,7 +117,9 @@ const Dashboard = ({
   const { getTerm } = useGlossary();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
 
-  const [activeTab, setActiveTabRaw] = useState<DashboardTab>(initialTab ?? 'analysis');
+  const [activeTab, setActiveTabRaw] = useState<DashboardTab>(
+    initialViewState?.activeTab ?? 'analysis'
+  );
   const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
   const [showSpecEditor, setShowSpecEditor] = useState(false);
 
@@ -142,9 +127,9 @@ const Dashboard = ({
   const setActiveTab = useCallback(
     (tab: DashboardTab) => {
       setActiveTabRaw(tab);
-      onTabChange?.(tab);
+      onViewStateChange?.({ activeTab: tab });
     },
-    [onTabChange]
+    [onViewStateChange]
   );
 
   // Initialize focused chart from persisted view state (one-time on mount)
@@ -191,28 +176,27 @@ const Dashboard = ({
     handleChartTitleChange,
   } = useDashboardCharts({
     externalFilterNav,
-    initialBoxplotFactor,
-    initialParetoFactor,
-    onBoxplotFactorChange,
-    onParetoFactorChange,
+    initialBoxplotFactor: initialViewState?.boxplotFactor,
+    initialParetoFactor: initialViewState?.paretoFactor,
+    onViewStateChange,
   });
 
   // Restore persisted focused chart (one-time after hook initializes)
   useEffect(() => {
-    if (!hasRestoredFocusedChart && initialFocusedChart) {
-      setFocusedChart(initialFocusedChart);
+    if (!hasRestoredFocusedChart && initialViewState?.focusedChart) {
+      setFocusedChart(initialViewState.focusedChart);
       setHasRestoredFocusedChart(true);
     } else if (!hasRestoredFocusedChart) {
       setHasRestoredFocusedChart(true);
     }
-  }, [hasRestoredFocusedChart, initialFocusedChart, setFocusedChart]);
+  }, [hasRestoredFocusedChart, initialViewState?.focusedChart, setFocusedChart]);
 
   // Report focused chart changes for persistence
   useEffect(() => {
     if (hasRestoredFocusedChart) {
-      onFocusedChartChange?.(focusedChart);
+      onViewStateChange?.({ focusedChart });
     }
-  }, [focusedChart, hasRestoredFocusedChart, onFocusedChartChange]);
+  }, [focusedChart, hasRestoredFocusedChart, onViewStateChange]);
 
   // Annotations (right-click context menu for highlights, no mode toggle)
   const {
@@ -424,27 +408,37 @@ const Dashboard = ({
 
           {isPhone ? (
             <MobileChartCarousel
-              boxplotFactor={boxplotFactor}
-              paretoFactor={paretoFactor}
-              factors={factors}
-              onSetBoxplotFactor={setBoxplotFactor}
-              onSetParetoFactor={setParetoFactor}
-              filters={filters}
-              columnAliases={columnAliases}
-              filterChipData={filterChipData}
-              cumulativeVariationPct={cumulativeVariationPct}
-              onUpdateFilterValues={handleUpdateFilterValues}
-              onRemoveFilter={handleRemoveFilter}
-              onClearAllFilters={handleClearAllFilters}
+              factorState={{
+                boxplotFactor,
+                paretoFactor,
+                factors,
+                onSetBoxplotFactor: setBoxplotFactor,
+                onSetParetoFactor: setParetoFactor,
+              }}
+              filterContext={{
+                filters,
+                columnAliases,
+                filterChipData,
+                cumulativeVariationPct,
+                onUpdateFilterValues: handleUpdateFilterValues,
+                onRemoveFilter: handleRemoveFilter,
+                onClearAllFilters: handleClearAllFilters,
+              }}
+              paretoOptions={{
+                paretoAggregation,
+                onToggleParetoAggregation: () =>
+                  setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count'),
+                showParetoComparison,
+                onToggleParetoComparison: () => setShowParetoComparison(!showParetoComparison),
+              }}
+              highlights={{
+                boxplotHighlights,
+                paretoHighlights,
+                onSetHighlight: setHighlight,
+              }}
               onDrillDown={handleDrillDown}
               factorVariations={factorVariations}
               categoryContributions={categoryContributions}
-              paretoAggregation={paretoAggregation}
-              onToggleParetoAggregation={() =>
-                setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
-              }
-              showParetoComparison={showParetoComparison}
-              onToggleParetoComparison={() => setShowParetoComparison(!showParetoComparison)}
               stats={stats}
               specs={specs}
               filteredData={filteredData}
@@ -454,9 +448,6 @@ const Dashboard = ({
               anovaResult={anovaResult}
               onPinFinding={onPinFinding}
               boxplotData={boxplotData}
-              boxplotHighlights={boxplotHighlights}
-              paretoHighlights={paretoHighlights}
-              onSetHighlight={setHighlight}
               findingsCallbacks={findingsCallbacks}
             />
           ) : !focusedChart ? (

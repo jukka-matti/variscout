@@ -57,14 +57,17 @@ const VIEWS: { key: ChartView; label: string; icon: React.ReactNode }[] = [
   { key: 'stats', label: 'Stats', icon: <TrendingUp size={18} /> },
 ];
 
-interface MobileChartCarouselProps {
-  // Factor state
+/** Factor selection state for boxplot and pareto charts */
+export interface CarouselFactorState {
   boxplotFactor: string;
   paretoFactor: string;
   factors: string[];
   onSetBoxplotFactor: (f: string) => void;
   onSetParetoFactor: (f: string) => void;
-  // Filter state
+}
+
+/** Filter navigation state and callbacks */
+export interface CarouselFilterContext {
   filters: Record<string, (string | number)[]>;
   columnAliases?: Record<string, string>;
   filterChipData: FilterChipData[];
@@ -72,16 +75,37 @@ interface MobileChartCarouselProps {
   onUpdateFilterValues: (factor: string, newValues: (string | number)[]) => void;
   onRemoveFilter: (factor: string) => void;
   onClearAllFilters: () => void;
+}
+
+/** Pareto chart display options */
+export interface CarouselParetoOptions {
+  paretoAggregation: 'count' | 'value';
+  onToggleParetoAggregation: () => void;
+  showParetoComparison: boolean;
+  onToggleParetoComparison: () => void;
+}
+
+/** Chart highlight state for boxplot and pareto */
+export interface CarouselHighlights {
+  boxplotHighlights: Record<string, HighlightColor>;
+  paretoHighlights: Record<string, HighlightColor>;
+  onSetHighlight: (
+    chartType: 'boxplot' | 'pareto',
+    key: string,
+    color: HighlightColor | undefined
+  ) => void;
+}
+
+interface MobileChartCarouselProps {
+  factorState: CarouselFactorState;
+  filterContext: CarouselFilterContext;
+  paretoOptions: CarouselParetoOptions;
+  highlights: CarouselHighlights;
   // Drill down
   onDrillDown: (factor: string, value: string) => void;
   // Variation tracking
   factorVariations: Map<string, number>;
   categoryContributions?: Map<string, Map<string | number, number>>;
-  // Pareto
-  paretoAggregation: 'count' | 'value';
-  onToggleParetoAggregation: () => void;
-  showParetoComparison: boolean;
-  onToggleParetoComparison: () => void;
   // Stats
   stats: StatsResult | null;
   specs: SpecLimits;
@@ -95,37 +119,31 @@ interface MobileChartCarouselProps {
   onPinFinding?: (noteText?: string) => void;
   // Category sheet data (from Dashboard)
   boxplotData: BoxplotGroupData[];
-  boxplotHighlights: Record<string, HighlightColor>;
-  paretoHighlights: Record<string, HighlightColor>;
-  onSetHighlight: (
-    chartType: 'boxplot' | 'pareto',
-    key: string,
-    color: HighlightColor | undefined
-  ) => void;
   // Grouped findings callbacks
   findingsCallbacks?: FindingsCallbacks;
 }
 
 const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
-  boxplotFactor,
-  paretoFactor,
-  factors,
-  onSetBoxplotFactor,
-  onSetParetoFactor,
-  filters,
-  columnAliases = {},
-  filterChipData,
-  cumulativeVariationPct,
-  onUpdateFilterValues,
-  onRemoveFilter,
-  onClearAllFilters,
+  factorState: { boxplotFactor, paretoFactor, factors, onSetBoxplotFactor, onSetParetoFactor },
+  filterContext: {
+    filters,
+    columnAliases = {},
+    filterChipData,
+    cumulativeVariationPct,
+    onUpdateFilterValues,
+    onRemoveFilter,
+    onClearAllFilters,
+  },
+  paretoOptions: {
+    paretoAggregation,
+    onToggleParetoAggregation,
+    showParetoComparison,
+    onToggleParetoComparison,
+  },
+  highlights: { boxplotHighlights, paretoHighlights, onSetHighlight },
   onDrillDown,
   factorVariations,
   categoryContributions,
-  paretoAggregation,
-  onToggleParetoAggregation,
-  showParetoComparison,
-  onToggleParetoComparison,
   stats,
   specs,
   filteredData,
@@ -135,9 +153,6 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   anovaResult,
   onPinFinding,
   boxplotData,
-  boxplotHighlights,
-  paretoHighlights,
-  onSetHighlight,
   findingsCallbacks,
 }) => {
   const {

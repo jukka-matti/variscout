@@ -16,8 +16,12 @@ import {
   FINDINGS_ACTION_KEY,
   type FindingsAction,
 } from '@variscout/ui';
-import { useFindings, useDrillPath } from '@variscout/hooks';
-import type { FindingContext } from '@variscout/core';
+import {
+  useFindings,
+  useDrillPath,
+  buildFindingContext,
+  buildFindingSource,
+} from '@variscout/hooks';
 import Dashboard from './components/Dashboard';
 import HomeScreen from './components/HomeScreen';
 import PasteScreen from './components/data/PasteScreen';
@@ -114,7 +118,7 @@ function AppMain() {
   const panels = useAppPanels({
     clearData: ingestion.clearData,
     wideFormatDetection: importFlow.wideFormatDetection,
-    setWideFormatDetection: importFlow.setWideFormatDetection,
+    dismissWideFormat: importFlow.handleDismissWideFormat,
   });
 
   // Findings state
@@ -226,35 +230,17 @@ function AppMain() {
 
   // Findings: pin current filter state (one-click with duplicate detection)
   const handlePinFinding = useCallback(() => {
-    // Check for duplicate
     const existing = findingsState.findDuplicate(filters);
     if (existing) {
       panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(existing.id);
       return;
     }
-    // Build context and create finding immediately
-    const context: FindingContext = {
-      activeFilters: { ...filters },
-      cumulativeScope:
-        drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
-      stats:
-        filteredData.length > 0
-          ? (() => {
-              const values = filteredData.map(r => Number(r[outcome!])).filter(v => !isNaN(v));
-              const mean = values.reduce((s, v) => s + v, 0) / values.length;
-              const sorted = [...values].sort((a, b) => a - b);
-              const mid = Math.floor(sorted.length / 2);
-              const median =
-                sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-              return { mean, median, samples: values.length };
-            })()
-          : undefined,
-    };
+    const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
     const newFinding = findingsState.addFinding('', context);
     panels.setIsFindingsPanelOpen(true);
     setHighlightedFindingId(newFinding.id);
-  }, [filters, drillPath, filteredData, outcome, findingsState, panels]);
+  }, [filters, drillPath, filteredData, outcome, specs, findingsState, panels]);
 
   // Chart observation: create a Finding with source metadata
   const handleAddChartObservation = useCallback(
@@ -264,36 +250,19 @@ function AppMain() {
       anchorX?: number,
       anchorY?: number
     ) => {
-      const source = { chart: chartType, category: categoryKey, anchorX, anchorY } as const;
-      // Check for duplicate by source
+      const source = buildFindingSource(chartType, categoryKey, anchorX, anchorY);
       const existing = findingsState.findDuplicateSource(source);
       if (existing) {
         panels.setIsFindingsPanelOpen(true);
         setHighlightedFindingId(existing.id);
         return;
       }
-      const context: FindingContext = {
-        activeFilters: { ...filters },
-        cumulativeScope:
-          drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
-        stats:
-          filteredData.length > 0
-            ? (() => {
-                const values = filteredData.map(r => Number(r[outcome!])).filter(v => !isNaN(v));
-                const mean = values.reduce((s, v) => s + v, 0) / values.length;
-                const sorted = [...values].sort((a, b) => a - b);
-                const mid = Math.floor(sorted.length / 2);
-                const median =
-                  sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-                return { mean, median, samples: values.length };
-              })()
-            : undefined,
-      };
+      const context = buildFindingContext(filters, filteredData, outcome!, specs, drillPath);
       const newFinding = findingsState.addFinding('', context, source);
       panels.setIsFindingsPanelOpen(true);
       setHighlightedFindingId(newFinding.id);
     },
-    [filters, drillPath, filteredData, outcome, findingsState, panels]
+    [filters, drillPath, filteredData, outcome, specs, findingsState, panels]
   );
 
   // Chart findings grouped by chart type for inline annotation display
@@ -508,10 +477,12 @@ function AppMain() {
               highlightedPointIndex={panels.highlightedChartPoint}
               filterNav={filterNav}
               onPinFinding={handlePinFinding}
-              onAddChartObservation={handleAddChartObservation}
-              chartFindings={chartFindings}
-              onEditFinding={findingsState.editFinding}
-              onDeleteFinding={findingsState.deleteFinding}
+              findingsCallbacks={{
+                onAddChartObservation: handleAddChartObservation,
+                chartFindings,
+                onEditFinding: findingsState.editFinding,
+                onDeleteFinding: findingsState.deleteFinding,
+              }}
             />
           )}
         </div>

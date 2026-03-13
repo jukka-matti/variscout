@@ -1,9 +1,141 @@
-import React, { useRef, useState, useCallback, useMemo } from 'react';
+import React, { useRef, useReducer, useState, useCallback, useMemo } from 'react';
 import { parseText, detectColumns, validateData, detectWideFormat } from '@variscout/core';
 import type { DataRow, DataQualityReport, TimeExtractionConfig } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
 import { detectMergeStrategy, mergeColumns, mergeRows } from './useDataMerge';
+
+// ── Reducer types ──────────────────────────────────────────────────────────
+
+export interface EditorFlowState {
+  isManualEntry: boolean;
+  appendMode: boolean;
+  isPasteMode: boolean;
+  pasteError: string | null;
+  isMapping: boolean;
+  isMappingReEdit: boolean;
+  isParsingFile: boolean;
+  isLoadingProject: boolean;
+  drillFromPerformance: string | null;
+  appendFeedback: string | null;
+}
+
+export type EditorFlowAction =
+  | { type: 'START_PASTE' }
+  | { type: 'START_APPEND_PASTE' }
+  | { type: 'PASTE_ERROR'; error: string }
+  | { type: 'PASTE_ANALYZED' }
+  | { type: 'CANCEL_PASTE' }
+  | { type: 'START_MANUAL_ENTRY' }
+  | { type: 'START_APPEND_MANUAL' }
+  | { type: 'CANCEL_MANUAL_ENTRY' }
+  | { type: 'MANUAL_ENTRY_DONE' }
+  | { type: 'OPEN_FACTOR_MANAGER' }
+  | { type: 'OPEN_MAPPING' }
+  | { type: 'CONFIRM_MAPPING' }
+  | { type: 'CANCEL_MAPPING' }
+  | { type: 'START_FILE_PARSE' }
+  | { type: 'FILE_PARSED_TO_MAPPING' }
+  | { type: 'FILE_PARSE_DONE' }
+  | { type: 'START_APPEND_FILE' }
+  | { type: 'APPEND_FILE_TO_MAPPING' }
+  | { type: 'APPEND_FILE_DONE' }
+  | { type: 'APPEND_ROWS_DONE'; feedback: string }
+  | { type: 'APPEND_COLUMNS_DONE'; feedback: string }
+  | { type: 'CLEAR_APPEND_FEEDBACK' }
+  | { type: 'START_PROJECT_LOAD' }
+  | { type: 'PROJECT_LOADED' }
+  | { type: 'DRILL_TO_MEASURE'; measureId: string }
+  | { type: 'BACK_TO_PERFORMANCE' };
+
+export const initialFlowState: EditorFlowState = {
+  isManualEntry: false,
+  appendMode: false,
+  isPasteMode: false,
+  pasteError: null,
+  isMapping: false,
+  isMappingReEdit: false,
+  isParsingFile: false,
+  isLoadingProject: false,
+  drillFromPerformance: null,
+  appendFeedback: null,
+};
+
+/** Pure reducer — testable without React. */
+export function editorFlowReducer(
+  state: EditorFlowState,
+  action: EditorFlowAction
+): EditorFlowState {
+  switch (action.type) {
+    case 'START_PASTE':
+      return { ...state, isPasteMode: true, pasteError: null };
+    case 'START_APPEND_PASTE':
+      return { ...state, isPasteMode: true, appendMode: true, pasteError: null };
+    case 'PASTE_ERROR':
+      return { ...state, pasteError: action.error };
+    case 'PASTE_ANALYZED':
+      return { ...state, isPasteMode: false, isMapping: true };
+    case 'CANCEL_PASTE':
+      return { ...state, isPasteMode: false, appendMode: false, pasteError: null };
+    case 'START_MANUAL_ENTRY':
+      return { ...state, isManualEntry: true };
+    case 'START_APPEND_MANUAL':
+      return { ...state, isManualEntry: true, appendMode: true };
+    case 'CANCEL_MANUAL_ENTRY':
+      return { ...state, isManualEntry: false, appendMode: false };
+    case 'MANUAL_ENTRY_DONE':
+      return { ...state, isManualEntry: false, appendMode: false };
+    case 'OPEN_FACTOR_MANAGER':
+      return { ...state, isMapping: true, isMappingReEdit: true };
+    case 'OPEN_MAPPING':
+      return { ...state, isMapping: true, isMappingReEdit: false };
+    case 'CONFIRM_MAPPING':
+      return { ...state, isMapping: false, isMappingReEdit: false };
+    case 'CANCEL_MAPPING':
+      return { ...state, isMapping: false, isMappingReEdit: false };
+    case 'START_FILE_PARSE':
+      return { ...state, isParsingFile: true };
+    case 'FILE_PARSED_TO_MAPPING':
+      return { ...state, isParsingFile: false, isMapping: true };
+    case 'FILE_PARSE_DONE':
+      return { ...state, isParsingFile: false };
+    case 'START_APPEND_FILE':
+      return { ...state, isParsingFile: true, appendMode: true };
+    case 'APPEND_FILE_TO_MAPPING':
+      return { ...state, isParsingFile: false, appendMode: false, isMapping: true };
+    case 'APPEND_FILE_DONE':
+      return { ...state, isParsingFile: false };
+    case 'APPEND_ROWS_DONE':
+      return {
+        ...state,
+        isPasteMode: false,
+        appendMode: false,
+        appendFeedback: action.feedback,
+      };
+    case 'APPEND_COLUMNS_DONE':
+      return {
+        ...state,
+        isPasteMode: false,
+        appendMode: false,
+        isMapping: true,
+        appendFeedback: action.feedback,
+      };
+    case 'CLEAR_APPEND_FEEDBACK':
+      return { ...state, appendFeedback: null };
+    case 'START_PROJECT_LOAD':
+      return { ...state, isLoadingProject: true };
+    case 'PROJECT_LOADED':
+      return { ...state, isLoadingProject: false };
+    case 'DRILL_TO_MEASURE':
+      return { ...state, drillFromPerformance: action.measureId };
+    case 'BACK_TO_PERFORMANCE':
+      return { ...state, drillFromPerformance: null };
+    default:
+      return state;
+  }
+}
+
+// ── Hook interface ─────────────────────────────────────────────────────────
 
 export interface UseEditorDataFlowOptions {
   rawData: DataRow[];
@@ -32,25 +164,32 @@ export interface UseEditorDataFlowOptions {
 }
 
 export interface UseEditorDataFlowReturn {
+  // Read-only state from reducer
   isManualEntry: boolean;
-  setIsManualEntry: (v: boolean) => void;
   appendMode: boolean;
-  setAppendMode: (v: boolean) => void;
   isPasteMode: boolean;
-  setIsPasteMode: (v: boolean) => void;
   pasteError: string | null;
   isMapping: boolean;
-  setIsMapping: (v: boolean) => void;
   isMappingReEdit: boolean;
-  openFactorManager: () => void;
   isParsingFile: boolean;
   isLoadingProject: boolean;
-  setIsLoadingProject: (v: boolean) => void;
   drillFromPerformance: string | null;
-  setDrillFromPerformance: (v: string | null) => void;
+  appendFeedback: string | null;
+  // Semantic action methods (replace raw setters)
+  startPaste: () => void;
+  startAppendPaste: () => void;
+  startManualEntry: () => void;
+  startAppendManual: () => void;
+  manualEntryDone: () => void;
+  startProjectLoad: () => void;
+  projectLoaded: () => void;
+  startAppendFileUpload: () => void;
+  openFactorManager: () => void;
+  // Computed
   mappingColumnAnalysis: ReturnType<typeof detectColumns>['columnAnalysis'] | undefined;
   handleColumnRename: (originalName: string, alias: string) => void;
   existingConfig: ManualEntryConfig | undefined;
+  // Flow handlers
   handlePasteAnalyze: (text: string) => Promise<void>;
   handlePasteCancel: () => void;
   handleLoadSample: (sample: SampleDataset) => void;
@@ -67,16 +206,18 @@ export interface UseEditorDataFlowReturn {
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   handleAppendPaste: (text: string) => Promise<void>;
   handleAppendFile: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
-  appendFeedback: string | null;
   triggerFileUpload: () => void;
   triggerAppendFileUpload: () => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
   appendFileInputRef: React.RefObject<HTMLInputElement>;
+  // Independent state (not part of flow reducer)
   timeExtractionPrompt: { timeColumn: string; hasTimeComponent: boolean } | null;
   setTimeExtractionPrompt: (v: { timeColumn: string; hasTimeComponent: boolean } | null) => void;
   timeExtractionConfig: TimeExtractionConfig;
   setTimeExtractionConfig: React.Dispatch<React.SetStateAction<TimeExtractionConfig>>;
 }
+
+// ── Hook implementation ────────────────────────────────────────────────────
 
 /**
  * Manages data ingestion orchestration for the Azure Editor:
@@ -108,16 +249,9 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     applyTimeExtraction,
   } = options;
 
-  const [isManualEntry, setIsManualEntry] = useState(false);
-  const [appendMode, setAppendMode] = useState(false);
-  const [isPasteMode, setIsPasteMode] = useState(false);
-  const [pasteError, setPasteError] = useState<string | null>(null);
-  const [isMapping, setIsMapping] = useState(false);
-  const [isMappingReEdit, setIsMappingReEdit] = useState(false);
-  const [isParsingFile, setIsParsingFile] = useState(false);
-  const [isLoadingProject, setIsLoadingProject] = useState(false);
-  const [drillFromPerformance, setDrillFromPerformance] = useState<string | null>(null);
-  const [appendFeedback, setAppendFeedback] = useState<string | null>(null);
+  const [flowState, dispatch] = useReducer(editorFlowReducer, initialFlowState);
+
+  // Independent state (not part of flow state machine)
   const [timeExtractionPrompt, setTimeExtractionPrompt] = useState<{
     timeColumn: string;
     hasTimeComponent: boolean;
@@ -169,16 +303,24 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     };
   }, [outcome, factors, specs, isPerformanceMode, measureColumns, measureLabel]);
 
-  const showFeedback = useCallback((msg: string) => {
-    setAppendFeedback(msg);
-    setTimeout(() => setAppendFeedback(null), 3000);
+  const showFeedback = useCallback((_msg: string) => {
+    // Feedback is set via dispatch (APPEND_ROWS_DONE / APPEND_COLUMNS_DONE)
+    // but clearance is a side-effect timeout
+    setTimeout(() => dispatch({ type: 'CLEAR_APPEND_FEEDBACK' }), 3000);
   }, []);
 
+  // ── Semantic action methods ──────────────────────────────────────────────
+
+  const startPaste = useCallback(() => dispatch({ type: 'START_PASTE' }), []);
+  const startAppendPaste = useCallback(() => dispatch({ type: 'START_APPEND_PASTE' }), []);
+  const startManualEntry = useCallback(() => dispatch({ type: 'START_MANUAL_ENTRY' }), []);
+  const startAppendManual = useCallback(() => dispatch({ type: 'START_APPEND_MANUAL' }), []);
+  const manualEntryDone = useCallback(() => dispatch({ type: 'MANUAL_ENTRY_DONE' }), []);
+  const startProjectLoad = useCallback(() => dispatch({ type: 'START_PROJECT_LOAD' }), []);
+  const projectLoaded = useCallback(() => dispatch({ type: 'PROJECT_LOADED' }), []);
+
   // Open ColumnMapping in re-edit mode (mid-analysis factor management)
-  const openFactorManager = useCallback(() => {
-    setIsMapping(true);
-    setIsMappingReEdit(true);
-  }, []);
+  const openFactorManager = useCallback(() => dispatch({ type: 'OPEN_FACTOR_MANAGER' }), []);
 
   // Confirm before replacing active analysis with new data
   const confirmReplaceIfNeeded = useCallback((): boolean => {
@@ -188,11 +330,13 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     return true;
   }, [rawData.length, outcome]);
 
-  // Handle paste -> parse -> auto-detect -> show ColumnMapping (initial load, replaces data)
+  // ── Flow handlers ────────────────────────────────────────────────────────
+
+  // Handle paste -> parse -> auto-detect -> show ColumnMapping (initial load)
   const handlePasteAnalyze = useCallback(
     async (text: string) => {
       if (!confirmReplaceIfNeeded()) return;
-      setPasteError(null);
+      dispatch({ type: 'PASTE_ERROR', error: '' }); // clear previous error
       try {
         const data = await parseText(text);
         setRawData(data);
@@ -227,10 +371,12 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
           }
         }
 
-        setIsPasteMode(false);
-        setIsMapping(true);
+        dispatch({ type: 'PASTE_ANALYZED' });
       } catch (err) {
-        setPasteError(err instanceof Error ? err.message : 'Failed to parse data');
+        dispatch({
+          type: 'PASTE_ERROR',
+          error: err instanceof Error ? err.message : 'Failed to parse data',
+        });
       }
     },
     [
@@ -249,7 +395,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   // Handle paste in append context: auto-detect rows vs columns
   const handleAppendPaste = useCallback(
     async (text: string) => {
-      setPasteError(null);
+      dispatch({ type: 'PASTE_ERROR', error: '' }); // clear previous error
       try {
         const incoming = await parseText(text);
         const existingCols = rawData.length > 0 ? Object.keys(rawData[0]) : [];
@@ -257,30 +403,27 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         const strategy = detectMergeStrategy(existingCols, incomingCols);
 
         if (strategy === 'rows') {
-          // Append rows — concat and fill missing columns with null
           const merged = mergeRows(rawData, incoming);
           setRawData(merged);
           const report = validateData(merged, outcome!);
           setDataQualityReport(report);
-          setIsPasteMode(false);
-          setAppendMode(false);
-          showFeedback(`Appended ${incoming.length} rows (${merged.length} total)`);
+          const feedback = `Appended ${incoming.length} rows (${merged.length} total)`;
+          dispatch({ type: 'APPEND_ROWS_DONE', feedback });
+          showFeedback(feedback);
         } else {
-          // Add columns — index-aligned merge
           const { data: merged, addedColumns } = mergeColumns(rawData, incoming);
           setRawData(merged);
           const report = validateData(merged, outcome!);
           setDataQualityReport(report);
-          setIsPasteMode(false);
-          setAppendMode(false);
-          // Show column mapping for the new columns so user can classify them
-          setIsMapping(true);
-          showFeedback(
-            `Added ${addedColumns.length} column${addedColumns.length !== 1 ? 's' : ''} (${addedColumns.join(', ')})`
-          );
+          const feedback = `Added ${addedColumns.length} column${addedColumns.length !== 1 ? 's' : ''} (${addedColumns.join(', ')})`;
+          dispatch({ type: 'APPEND_COLUMNS_DONE', feedback });
+          showFeedback(feedback);
         }
       } catch (err) {
-        setPasteError(err instanceof Error ? err.message : 'Failed to parse data');
+        dispatch({
+          type: 'PASTE_ERROR',
+          error: err instanceof Error ? err.message : 'Failed to parse data',
+        });
       }
     },
     [rawData, outcome, setRawData, setDataQualityReport, showFeedback]
@@ -289,38 +432,38 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
   // Handle file upload in append context
   const handleAppendFile = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
-      setIsParsingFile(true);
+      dispatch({ type: 'START_APPEND_FILE' });
       try {
         const success = await handleFileUpload(e);
-        if (!success) return;
-        // After handleFileUpload, rawData is already set via the hook — but we need
-        // the parsed data. handleFileUpload sets rawData directly, so we read
-        // from the next render. Instead, go to mapping which will pick up the data.
-        setAppendMode(false);
-        setIsMapping(true);
-      } finally {
-        setIsParsingFile(false);
+        if (!success) {
+          dispatch({ type: 'APPEND_FILE_DONE' });
+          return;
+        }
+        dispatch({ type: 'APPEND_FILE_TO_MAPPING' });
+      } catch {
+        dispatch({ type: 'APPEND_FILE_DONE' });
       }
     },
     [handleFileUpload]
   );
 
+  const startAppendFileUpload = useCallback(() => {
+    dispatch({ type: 'START_APPEND_FILE' });
+    appendFileInputRef.current?.click();
+  }, []);
+
   const triggerAppendFileUpload = useCallback(() => {
     appendFileInputRef.current?.click();
   }, []);
 
-  const handlePasteCancel = useCallback(() => {
-    setIsPasteMode(false);
-    setAppendMode(false);
-    setPasteError(null);
-  }, []);
+  const handlePasteCancel = useCallback(() => dispatch({ type: 'CANCEL_PASTE' }), []);
 
   // Handle sample load -> show ColumnMapping (with replace confirmation)
   const handleLoadSample = useCallback(
     (sample: SampleDataset) => {
       if (!confirmReplaceIfNeeded()) return;
       loadSample(sample);
-      setIsMapping(true);
+      dispatch({ type: 'OPEN_MAPPING' });
     },
     [confirmReplaceIfNeeded, loadSample]
   );
@@ -332,20 +475,18 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       newFactors: string[],
       newSpecs?: { target?: number; lsl?: number; usl?: number }
     ) => {
-      // When re-editing, clean up filters for removed factors
-      if (isMappingReEdit) {
+      if (flowState.isMappingReEdit) {
         const removedFactors = factors.filter(f => !newFactors.includes(f));
         if (removedFactors.length > 0) {
           // Clean orphaned filters (via DataContext setFilters if needed)
           // The factors change will cascade through DataContext filtering
         }
-        setIsMappingReEdit(false);
       }
 
       setOutcome(newOutcome);
       setFactors(newFactors);
       if (newSpecs) setSpecs(newSpecs);
-      setIsMapping(false);
+      dispatch({ type: 'CONFIRM_MAPPING' });
 
       if (timeExtractionPrompt?.timeColumn) {
         applyTimeExtraction(timeExtractionPrompt.timeColumn, timeExtractionConfig);
@@ -356,7 +497,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
       setOutcome,
       setFactors,
       setSpecs,
-      isMappingReEdit,
+      flowState.isMappingReEdit,
       factors,
       applyTimeExtraction,
       timeExtractionPrompt,
@@ -366,10 +507,8 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
   // Handle column mapping cancel
   const handleMappingCancel = useCallback(() => {
-    if (isMappingReEdit) {
-      // Re-edit cancel: just close, don't wipe data
-      setIsMapping(false);
-      setIsMappingReEdit(false);
+    if (flowState.isMappingReEdit) {
+      dispatch({ type: 'CANCEL_MAPPING' });
       return;
     }
     // First-time cancel: wipe data
@@ -378,47 +517,45 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     setFactors([]);
     setDataFilename(null);
     setDataQualityReport(null);
-    setIsMapping(false);
-  }, [isMappingReEdit, setRawData, setOutcome, setFactors, setDataFilename, setDataQualityReport]);
+    dispatch({ type: 'CANCEL_MAPPING' });
+  }, [
+    flowState.isMappingReEdit,
+    setRawData,
+    setOutcome,
+    setFactors,
+    setDataFilename,
+    setDataQualityReport,
+  ]);
 
-  const handleManualEntryCancel = useCallback(() => {
-    setIsManualEntry(false);
-    setAppendMode(false);
-  }, []);
+  const handleManualEntryCancel = useCallback(() => dispatch({ type: 'CANCEL_MANUAL_ENTRY' }), []);
 
   // handleAddMoreData is now just a signal — the dropdown in Editor controls what happens
-  const handleAddMoreData = useCallback(() => {
-    setAppendMode(true);
-    setIsManualEntry(true);
-  }, []);
+  const handleAddMoreData = useCallback(() => dispatch({ type: 'START_APPEND_MANUAL' }), []);
 
   // Performance Mode drill navigation
   const handleDrillToMeasure = useCallback(
     (measureId: string) => {
-      setDrillFromPerformance(measureId);
+      dispatch({ type: 'DRILL_TO_MEASURE', measureId });
       setOutcome(measureId);
     },
     [setOutcome]
   );
 
-  const handleBackToPerformance = useCallback(() => {
-    setDrillFromPerformance(null);
-  }, []);
+  const handleBackToPerformance = useCallback(() => dispatch({ type: 'BACK_TO_PERFORMANCE' }), []);
 
   // File upload handling (initial load, replaces data)
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!confirmReplaceIfNeeded()) {
-        // Reset the input so the same file can be re-selected
         if (e.target) e.target.value = '';
         return;
       }
-      setIsParsingFile(true);
+      dispatch({ type: 'START_FILE_PARSE' });
       try {
         await handleFileUpload(e);
-        setIsMapping(true);
-      } finally {
-        setIsParsingFile(false);
+        dispatch({ type: 'FILE_PARSED_TO_MAPPING' });
+      } catch {
+        dispatch({ type: 'FILE_PARSE_DONE' });
       }
     },
     [confirmReplaceIfNeeded, handleFileUpload]
@@ -428,27 +565,24 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     fileInputRef.current?.click();
   }, []);
 
-  // Expose setIsLoadingProject for the project loading effect in Editor
   return {
-    isManualEntry,
-    setIsManualEntry,
-    appendMode,
-    setAppendMode,
-    isPasteMode,
-    setIsPasteMode,
-    pasteError,
-    isMapping,
-    setIsMapping,
-    isMappingReEdit,
+    // State (from reducer)
+    ...flowState,
+    // Semantic action methods
+    startPaste,
+    startAppendPaste,
+    startManualEntry,
+    startAppendManual,
+    manualEntryDone,
+    startProjectLoad,
+    projectLoaded,
+    startAppendFileUpload,
     openFactorManager,
-    isParsingFile,
-    isLoadingProject,
-    setIsLoadingProject,
-    drillFromPerformance,
-    setDrillFromPerformance,
+    // Computed
     mappingColumnAnalysis,
     handleColumnRename,
     existingConfig,
+    // Flow handlers
     handlePasteAnalyze,
     handlePasteCancel,
     handleLoadSample,
@@ -461,11 +595,11 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
     handleFileChange,
     handleAppendPaste,
     handleAppendFile,
-    appendFeedback,
     triggerFileUpload,
     triggerAppendFileUpload,
     fileInputRef: fileInputRef as React.RefObject<HTMLInputElement>,
     appendFileInputRef: appendFileInputRef as React.RefObject<HTMLInputElement>,
+    // Independent state
     timeExtractionPrompt,
     setTimeExtractionPrompt,
     timeExtractionConfig,

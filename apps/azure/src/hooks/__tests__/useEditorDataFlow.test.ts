@@ -323,8 +323,7 @@ describe('useEditorDataFlow', () => {
       const { result } = renderHook(() => useEditorDataFlow(options));
 
       act(() => {
-        result.current.setIsPasteMode(true);
-        result.current.setAppendMode(true);
+        result.current.startAppendPaste();
       });
 
       act(() => {
@@ -375,9 +374,9 @@ describe('useEditorDataFlow', () => {
       const options = createMockOptions();
       const { result } = renderHook(() => useEditorDataFlow(options));
 
-      // Enter mapping state first
+      // Enter mapping state via sample load flow
       act(() => {
-        result.current.setIsMapping(true);
+        result.current.handleLoadSample({ id: 'coffee' } as never);
       });
 
       act(() => {
@@ -454,8 +453,9 @@ describe('useEditorDataFlow', () => {
       const options = createMockOptions();
       const { result } = renderHook(() => useEditorDataFlow(options));
 
+      // Enter fresh mapping via sample load
       act(() => {
-        result.current.setIsMapping(true);
+        result.current.handleLoadSample({ id: 'coffee' } as never);
       });
 
       act(() => {
@@ -598,8 +598,7 @@ describe('useEditorDataFlow', () => {
       const { result } = renderHook(() => useEditorDataFlow(options));
 
       act(() => {
-        result.current.setIsManualEntry(true);
-        result.current.setAppendMode(true);
+        result.current.startAppendManual();
       });
 
       act(() => {

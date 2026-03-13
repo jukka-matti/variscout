@@ -13,6 +13,7 @@ import { useData } from '../context/DataContext';
 import type { AnovaResult } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
 import { useDashboardChartsBase, useKeyboardNavigation } from '@variscout/hooks';
+import type { ViewState } from '@variscout/hooks';
 import { useFilterNavigation } from '../hooks';
 import type { UseFilterNavigationReturn, FilterChipData } from '../hooks';
 
@@ -23,8 +24,8 @@ export interface UseDashboardChartsProps {
   externalFilterNav?: UseFilterNavigationReturn;
   initialBoxplotFactor?: string;
   initialParetoFactor?: string;
-  onBoxplotFactorChange?: (factor: string) => void;
-  onParetoFactorChange?: (factor: string) => void;
+  /** Report view state changes for persistence (replaces individual factor callbacks) */
+  onViewStateChange?: (partial: Partial<ViewState>) => void;
 }
 
 export interface UseDashboardChartsResult {
@@ -66,8 +67,7 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   const { outcome, factors, rawData, filteredData, chartTitles, setChartTitles, displayOptions } =
     useData();
 
-  const { initialBoxplotFactor, initialParetoFactor, onBoxplotFactorChange, onParetoFactorChange } =
-    props ?? {};
+  const { initialBoxplotFactor, initialParetoFactor, onViewStateChange } = props ?? {};
 
   // Filter navigation — use external if provided, otherwise create local
   const localFilterNav = useFilterNavigation({
@@ -100,16 +100,16 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
   const setBoxplotFactor = useCallback(
     (f: string) => {
       base.setBoxplotFactor(f);
-      onBoxplotFactorChange?.(f);
+      onViewStateChange?.({ boxplotFactor: f });
     },
-    [base.setBoxplotFactor, onBoxplotFactorChange]
+    [base.setBoxplotFactor, onViewStateChange]
   );
   const setParetoFactor = useCallback(
     (f: string) => {
       base.setParetoFactor(f);
-      onParetoFactorChange?.(f);
+      onViewStateChange?.({ paretoFactor: f });
     },
-    [base.setParetoFactor, onParetoFactorChange]
+    [base.setParetoFactor, onViewStateChange]
   );
 
   // Pareto panel visibility (reset on data/factor changes)
@@ -167,17 +167,15 @@ export function useDashboardCharts(props?: UseDashboardChartsProps): UseDashboar
     (factor: string, value: string) => {
       const nextFactor = base.handleDrillDown(factor, value);
       if (nextFactor) {
-        onBoxplotFactorChange?.(nextFactor);
-        onParetoFactorChange?.(nextFactor);
+        onViewStateChange?.({ boxplotFactor: nextFactor, paretoFactor: nextFactor });
         setLastAdvancedFactor(nextFactor);
         if (advancedFactorTimeoutRef.current) clearTimeout(advancedFactorTimeoutRef.current);
         advancedFactorTimeoutRef.current = setTimeout(() => setLastAdvancedFactor(null), 2000);
       } else {
-        onBoxplotFactorChange?.(factor);
-        onParetoFactorChange?.(factor);
+        onViewStateChange?.({ boxplotFactor: factor, paretoFactor: factor });
       }
     },
-    [base.handleDrillDown, onBoxplotFactorChange, onParetoFactorChange]
+    [base.handleDrillDown, onViewStateChange]
   );
 
   // Coerce nulls to match Azure's stricter types

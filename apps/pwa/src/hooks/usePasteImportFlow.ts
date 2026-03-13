@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useReducer, useState, useCallback, useMemo } from 'react';
 import {
   validateData,
   parseText,
@@ -9,6 +9,82 @@ import {
   type WideFormatDetection,
   type TimeExtractionConfig,
 } from '@variscout/core';
+
+// ── Reducer types ──────────────────────────────────────────────────────────
+
+export interface PasteFlowState {
+  isPasteMode: boolean;
+  pasteError: string | null;
+  isMapping: boolean;
+  isMappingReEdit: boolean;
+  isManualEntry: boolean;
+  wideFormatDetection: WideFormatDetection | null;
+}
+
+export type PasteFlowAction =
+  | { type: 'START_PASTE' }
+  | { type: 'PASTE_ERROR'; error: string }
+  | { type: 'PASTE_ANALYZED' }
+  | { type: 'PASTE_ANALYZED_WIDE'; detection: WideFormatDetection }
+  | { type: 'CANCEL_PASTE' }
+  | { type: 'START_MANUAL_ENTRY' }
+  | { type: 'CANCEL_MANUAL_ENTRY' }
+  | { type: 'MANUAL_ENTRY_DONE' }
+  | { type: 'OPEN_FACTOR_MANAGER' }
+  | { type: 'CONFIRM_MAPPING' }
+  | { type: 'CANCEL_MAPPING' }
+  | { type: 'WIDE_FORMAT_DETECTED'; detection: WideFormatDetection }
+  | { type: 'DISMISS_WIDE_FORMAT' };
+
+export const initialPasteFlowState: PasteFlowState = {
+  isPasteMode: false,
+  pasteError: null,
+  isMapping: false,
+  isMappingReEdit: false,
+  isManualEntry: false,
+  wideFormatDetection: null,
+};
+
+/** Pure reducer — testable without React. */
+export function pasteFlowReducer(state: PasteFlowState, action: PasteFlowAction): PasteFlowState {
+  switch (action.type) {
+    case 'START_PASTE':
+      return { ...state, isPasteMode: true, pasteError: null };
+    case 'PASTE_ERROR':
+      return { ...state, pasteError: action.error };
+    case 'PASTE_ANALYZED':
+      return { ...state, isPasteMode: false, isMapping: true };
+    case 'PASTE_ANALYZED_WIDE':
+      return {
+        ...state,
+        isPasteMode: false,
+        isMapping: true,
+        wideFormatDetection: action.detection,
+      };
+    case 'CANCEL_PASTE':
+      return { ...state, isPasteMode: false, pasteError: null };
+    case 'START_MANUAL_ENTRY':
+      return { ...state, isManualEntry: true };
+    case 'CANCEL_MANUAL_ENTRY':
+      return { ...state, isManualEntry: false };
+    case 'MANUAL_ENTRY_DONE':
+      return { ...state, isManualEntry: false };
+    case 'OPEN_FACTOR_MANAGER':
+      return { ...state, isMapping: true, isMappingReEdit: true };
+    case 'CONFIRM_MAPPING':
+      return { ...state, isMapping: false, isMappingReEdit: false };
+    case 'CANCEL_MAPPING':
+      return { ...state, isMapping: false, isMappingReEdit: false };
+    case 'WIDE_FORMAT_DETECTED':
+      return { ...state, wideFormatDetection: action.detection };
+    case 'DISMISS_WIDE_FORMAT':
+      return { ...state, wideFormatDetection: null };
+    default:
+      return state;
+  }
+}
+
+// ── Hook options & return ──────────────────────────────────────────────────
 
 export interface UsePasteImportFlowOptions {
   rawData: DataRow[];
@@ -35,7 +111,6 @@ export interface UsePasteImportFlowReturn {
   isMapping: boolean;
   isManualEntry: boolean;
   wideFormatDetection: WideFormatDetection | null;
-  setWideFormatDetection: (v: WideFormatDetection | null) => void;
   timeExtractionPrompt: { timeColumn: string; hasTimeComponent: boolean } | null;
   setTimeExtractionPrompt: (v: { timeColumn: string; hasTimeComponent: boolean } | null) => void;
   timeExtractionConfig: TimeExtractionConfig;
@@ -63,7 +138,6 @@ export interface UsePasteImportFlowReturn {
   ) => void;
   handleMappingCancel: () => void;
   handleDismissWideFormat: () => void;
-  setIsMapping: (v: boolean) => void;
   isMappingReEdit: boolean;
   openFactorManager: () => void;
 }
@@ -90,14 +164,10 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     applyTimeExtraction,
   } = options;
 
-  // State for performance mode auto-detection (wide format dismissal)
-  const [wideFormatDetection, setWideFormatDetection] = useState<WideFormatDetection | null>(null);
-  const [isManualEntry, setIsManualEntry] = useState(false);
-  const [isPasteMode, setIsPasteMode] = useState(false);
-  const [pasteError, setPasteError] = useState<string | null>(null);
-  const [isMapping, setIsMapping] = useState(false);
-  const [isMappingReEdit, setIsMappingReEdit] = useState(false);
+  // Flow state machine
+  const [flowState, dispatch] = useReducer(pasteFlowReducer, initialPasteFlowState);
 
+  // Independent lifecycle — not part of the flow state machine
   const [timeExtractionPrompt, setTimeExtractionPrompt] = useState<{
     timeColumn: string;
     hasTimeComponent: boolean;
@@ -111,13 +181,12 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
   });
 
   const handleWideFormatDetected = useCallback((result: WideFormatDetection) => {
-    setWideFormatDetection(result);
+    dispatch({ type: 'WIDE_FORMAT_DETECTED', detection: result });
   }, []);
 
   // Open ColumnMapping in re-edit mode (mid-analysis factor management)
   const openFactorManager = useCallback(() => {
-    setIsMapping(true);
-    setIsMappingReEdit(true);
+    dispatch({ type: 'OPEN_FACTOR_MANAGER' });
   }, []);
 
   // Column analysis for ColumnMapping rich cards
@@ -141,7 +210,9 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
 
   const handlePasteAnalyze = useCallback(
     async (text: string) => {
-      setPasteError(null);
+      dispatch({ type: 'START_PASTE' }); // clears pasteError
+      // Immediately re-clear — START_PASTE sets isPasteMode=true but we're already in paste mode
+      // The purpose here is just to clear pasteError before attempting parse
       try {
         const data = await parseText(text);
         setRawData(data);
@@ -160,7 +231,9 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
 
         const wideFormat = detectWideFormat(data);
         if (wideFormat.isWideFormat) {
-          setWideFormatDetection(wideFormat);
+          dispatch({ type: 'PASTE_ANALYZED_WIDE', detection: wideFormat });
+        } else {
+          dispatch({ type: 'PASTE_ANALYZED' });
         }
 
         if (detected.timeColumn) {
@@ -173,24 +246,22 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
             ),
           });
         }
-
-        setIsPasteMode(false);
-        setIsMapping(true);
       } catch (err) {
-        setPasteError(err instanceof Error ? err.message : 'Failed to parse data');
+        dispatch({
+          type: 'PASTE_ERROR',
+          error: err instanceof Error ? err.message : 'Failed to parse data',
+        });
       }
     },
     [setRawData, setDataFilename, setOutcome, setFactors, setDataQualityReport]
   );
 
   const handlePasteCancel = useCallback(() => {
-    setIsPasteMode(false);
-    setPasteError(null);
+    dispatch({ type: 'CANCEL_PASTE' });
   }, []);
 
   const handleOpenPaste = useCallback(() => {
-    setIsPasteMode(true);
-    setPasteError(null);
+    dispatch({ type: 'START_PASTE' });
   }, []);
 
   const handleManualDataAnalyze = useCallback(
@@ -215,7 +286,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       setDataQualityReport(report);
 
       clearSelection();
-      setIsManualEntry(false);
+      dispatch({ type: 'MANUAL_ENTRY_DONE' });
     },
     [
       setRawData,
@@ -229,11 +300,11 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
   );
 
   const handleManualEntryCancel = useCallback(() => {
-    setIsManualEntry(false);
+    dispatch({ type: 'CANCEL_MANUAL_ENTRY' });
   }, []);
 
   const handleOpenManualEntry = useCallback(() => {
-    setIsManualEntry(true);
+    dispatch({ type: 'START_MANUAL_ENTRY' });
   }, []);
 
   const handleMappingConfirm = useCallback(
@@ -242,16 +313,12 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       newFactors: string[],
       newSpecs?: { target?: number; lsl?: number; usl?: number }
     ) => {
-      if (isMappingReEdit) {
-        setIsMappingReEdit(false);
-      }
-
       setOutcome(newOutcome);
       setFactors(newFactors);
       if (newSpecs) {
         setSpecs(newSpecs);
       }
-      setIsMapping(false);
+      dispatch({ type: 'CONFIRM_MAPPING' });
 
       if (timeExtractionPrompt?.timeColumn) {
         applyTimeExtraction(timeExtractionPrompt.timeColumn, timeExtractionConfig);
@@ -266,33 +333,30 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
       applyTimeExtraction,
       timeExtractionPrompt,
       timeExtractionConfig,
-      isMappingReEdit,
     ]
   );
 
   const handleMappingCancel = useCallback(() => {
-    if (isMappingReEdit) {
+    if (flowState.isMappingReEdit) {
       // Re-edit cancel: just close, don't wipe data
-      setIsMapping(false);
-      setIsMappingReEdit(false);
+      dispatch({ type: 'CANCEL_MAPPING' });
       return;
     }
     // First-time cancel: wipe data
     clearData();
-    setIsMapping(false);
-  }, [isMappingReEdit, clearData]);
+    dispatch({ type: 'CANCEL_MAPPING' });
+  }, [flowState.isMappingReEdit, clearData]);
 
   const handleDismissWideFormat = useCallback(() => {
-    setWideFormatDetection(null);
+    dispatch({ type: 'DISMISS_WIDE_FORMAT' });
   }, []);
 
   return {
-    isPasteMode,
-    pasteError,
-    isMapping,
-    isManualEntry,
-    wideFormatDetection,
-    setWideFormatDetection,
+    isPasteMode: flowState.isPasteMode,
+    pasteError: flowState.pasteError,
+    isMapping: flowState.isMapping,
+    isManualEntry: flowState.isManualEntry,
+    wideFormatDetection: flowState.wideFormatDetection,
     timeExtractionPrompt,
     setTimeExtractionPrompt,
     timeExtractionConfig,
@@ -309,8 +373,7 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     handleMappingConfirm,
     handleMappingCancel,
     handleDismissWideFormat,
-    setIsMapping,
-    isMappingReEdit,
+    isMappingReEdit: flowState.isMappingReEdit,
     openFactorManager,
   };
 }

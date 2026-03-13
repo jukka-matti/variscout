@@ -96,6 +96,9 @@ export {
 // Drill Path
 export { useDrillPath, type DrillStep, type UseDrillPathReturn } from './useDrillPath';
 
+// Finding Creation Utilities
+export { buildFindingContext, buildFindingSource } from './findingCreation';
+
 // Tier (Azure Marketplace licensing)
 export { useTier, type UseTierResult, type ChannelWarningMessage } from './useTier';
 

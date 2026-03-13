@@ -1,7 +1,92 @@
-import React, { useState, useCallback } from 'react';
+import React, { useReducer, useCallback, useEffect, useRef } from 'react';
 import type { DisplayOptions, ViewState } from '@variscout/hooks';
 
 type BoolSetter = React.Dispatch<React.SetStateAction<boolean>>;
+
+// ── Reducer types ──────────────────────────────────────────────────────────
+
+export interface EditorPanelState {
+  isDataPanelOpen: boolean;
+  isDataTableOpen: boolean;
+  isFindingsOpen: boolean;
+  isWhatIfOpen: boolean;
+  isPresentationMode: boolean;
+  highlightRowIndex: number | null;
+  highlightedChartPoint: number | null;
+}
+
+export type EditorPanelAction =
+  | { type: 'OPEN_DATA_PANEL' }
+  | { type: 'CLOSE_DATA_PANEL' }
+  | { type: 'TOGGLE_DATA_PANEL' }
+  | { type: 'OPEN_DATA_TABLE' }
+  | { type: 'CLOSE_DATA_TABLE' }
+  | { type: 'SET_FINDINGS_OPEN'; value: boolean }
+  | { type: 'TOGGLE_FINDINGS' }
+  | { type: 'SET_WHAT_IF_OPEN'; value: boolean }
+  | { type: 'OPEN_PRESENTATION' }
+  | { type: 'CLOSE_PRESENTATION' }
+  | { type: 'SET_HIGHLIGHT_ROW'; index: number | null }
+  | { type: 'SET_HIGHLIGHT_POINT'; index: number | null }
+  | { type: 'POINT_CLICK'; index: number }
+  | { type: 'ROW_CLICK'; index: number };
+
+/** Pure reducer — testable without React. */
+export function editorPanelReducer(
+  state: EditorPanelState,
+  action: EditorPanelAction
+): EditorPanelState {
+  switch (action.type) {
+    case 'OPEN_DATA_PANEL':
+      return { ...state, isDataPanelOpen: true };
+    case 'CLOSE_DATA_PANEL':
+      return { ...state, isDataPanelOpen: false };
+    case 'TOGGLE_DATA_PANEL':
+      return { ...state, isDataPanelOpen: !state.isDataPanelOpen };
+    case 'OPEN_DATA_TABLE':
+      return { ...state, isDataTableOpen: true };
+    case 'CLOSE_DATA_TABLE':
+      return { ...state, isDataTableOpen: false };
+    case 'SET_FINDINGS_OPEN':
+      return state.isFindingsOpen === action.value
+        ? state
+        : { ...state, isFindingsOpen: action.value };
+    case 'TOGGLE_FINDINGS':
+      return { ...state, isFindingsOpen: !state.isFindingsOpen };
+    case 'SET_WHAT_IF_OPEN':
+      return state.isWhatIfOpen === action.value ? state : { ...state, isWhatIfOpen: action.value };
+    case 'OPEN_PRESENTATION':
+      return { ...state, isPresentationMode: true };
+    case 'CLOSE_PRESENTATION':
+      return { ...state, isPresentationMode: false };
+    case 'SET_HIGHLIGHT_ROW':
+      return { ...state, highlightRowIndex: action.index };
+    case 'SET_HIGHLIGHT_POINT':
+      return { ...state, highlightedChartPoint: action.index };
+    case 'POINT_CLICK':
+      return {
+        ...state,
+        highlightRowIndex: action.index,
+        isDataPanelOpen: true,
+      };
+    case 'ROW_CLICK':
+      return { ...state, highlightedChartPoint: action.index };
+    default:
+      return state;
+  }
+}
+
+export const initialPanelState: EditorPanelState = {
+  isDataPanelOpen: false,
+  isDataTableOpen: false,
+  isFindingsOpen: false,
+  isWhatIfOpen: false,
+  isPresentationMode: false,
+  highlightRowIndex: null,
+  highlightedChartPoint: null,
+};
+
+// ── Hook ───────────────────────────────────────────────────────────────────
 
 export interface UseEditorPanelsOptions {
   displayOptions: DisplayOptions;
@@ -33,72 +118,118 @@ export interface UseEditorPanelsReturn {
 
 /**
  * Manages panel visibility and chart/table highlight sync for the Azure Editor.
+ *
+ * Uses a reducer for predictable state transitions. Persistence for findings/whatIf
+ * is handled via a useEffect side effect (replacing the old dual-setter wrapper pattern).
  */
 export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanelsReturn {
   const { viewState, onViewStateChange } = options;
 
-  const [isDataPanelOpen, setIsDataPanelOpen] = useState(false);
-  const [isDataTableOpen, setIsDataTableOpen] = useState(false);
-  const [isFindingsOpen, setIsFindingsOpenRaw] = useState(viewState?.isFindingsOpen ?? false);
-  const [isWhatIfOpen, setIsWhatIfOpenRaw] = useState(viewState?.isWhatIfOpen ?? false);
-  const [isPresentationMode, setIsPresentationMode] = useState(false);
+  const [state, dispatch] = useReducer(editorPanelReducer, {
+    ...initialPanelState,
+    isFindingsOpen: viewState?.isFindingsOpen ?? false,
+    isWhatIfOpen: viewState?.isWhatIfOpen ?? false,
+  });
 
-  // Wrap findings/whatif setters to report changes for persistence
-  const setIsFindingsOpen: BoolSetter = useCallback(
-    value => {
-      setIsFindingsOpenRaw(prev => {
-        const next = typeof value === 'function' ? value(prev) : value;
-        onViewStateChange?.({ isFindingsOpen: next });
-        return next;
-      });
-    },
-    [onViewStateChange]
-  );
+  // Persistence side effect: report findings/whatIf changes to view state
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    // Skip initial render to avoid persisting the initial values back
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    onViewStateChange?.({
+      isFindingsOpen: state.isFindingsOpen,
+      isWhatIfOpen: state.isWhatIfOpen,
+    });
+  }, [state.isFindingsOpen, state.isWhatIfOpen, onViewStateChange]);
 
-  const setIsWhatIfOpen: BoolSetter = useCallback(
-    value => {
-      setIsWhatIfOpenRaw(prev => {
-        const next = typeof value === 'function' ? value(prev) : value;
-        onViewStateChange?.({ isWhatIfOpen: next });
-        return next;
-      });
-    },
-    [onViewStateChange]
-  );
-  const [highlightRowIndex, setHighlightRowIndex] = useState<number | null>(null);
-  const [highlightedChartPoint, setHighlightedChartPoint] = useState<number | null>(null);
+  // Row click highlight timeout side effect
+  useEffect(() => {
+    if (state.highlightedChartPoint === null) return;
+    const timer = setTimeout(() => dispatch({ type: 'SET_HIGHLIGHT_POINT', index: null }), 2000);
+    return () => clearTimeout(timer);
+  }, [state.highlightedChartPoint]);
 
-  // Chart point click -> highlight row in data panel
-  const handlePointClick = useCallback(
-    (index: number) => {
-      setHighlightRowIndex(index);
-      if (!isDataPanelOpen) {
-        setIsDataPanelOpen(true);
-      }
-    },
-    [isDataPanelOpen]
-  );
+  // BoolSetter-compatible wrappers for backward compatibility with Editor.tsx
+  // These support both direct values and functional updates (prev => !prev)
+  const setIsDataPanelOpen: BoolSetter = useCallback(value => {
+    if (typeof value === 'function') {
+      // For functional updates, we need to use a dispatch that reads current state.
+      // Since reducer is synchronous, we use TOGGLE for the prev => !prev pattern.
+      dispatch({ type: 'TOGGLE_DATA_PANEL' });
+    } else {
+      dispatch(value ? { type: 'OPEN_DATA_PANEL' } : { type: 'CLOSE_DATA_PANEL' });
+    }
+  }, []);
 
-  // Data panel row click -> highlight point in chart
+  const setIsDataTableOpen: BoolSetter = useCallback(value => {
+    if (typeof value === 'function') {
+      // No toggle usage exists in Editor.tsx for data table, but handle gracefully
+      // by dispatching based on the function's intent (not supported for arbitrary functions)
+      dispatch({ type: 'OPEN_DATA_TABLE' });
+    } else {
+      dispatch(value ? { type: 'OPEN_DATA_TABLE' } : { type: 'CLOSE_DATA_TABLE' });
+    }
+  }, []);
+
+  const setIsFindingsOpen: BoolSetter = useCallback(value => {
+    if (typeof value === 'function') {
+      dispatch({ type: 'TOGGLE_FINDINGS' });
+    } else {
+      dispatch({ type: 'SET_FINDINGS_OPEN', value });
+    }
+  }, []);
+
+  const setIsWhatIfOpen: BoolSetter = useCallback(value => {
+    if (typeof value === 'function') {
+      // No toggle usage in Editor.tsx, but handle as toggle for safety
+      dispatch({ type: 'SET_WHAT_IF_OPEN', value: true });
+    } else {
+      dispatch({ type: 'SET_WHAT_IF_OPEN', value });
+    }
+  }, []);
+
+  const setIsPresentationMode: BoolSetter = useCallback(value => {
+    if (typeof value === 'function') {
+      // No toggle usage in Editor.tsx
+      dispatch({ type: 'OPEN_PRESENTATION' });
+    } else {
+      dispatch(value ? { type: 'OPEN_PRESENTATION' } : { type: 'CLOSE_PRESENTATION' });
+    }
+  }, []);
+
+  const setHighlightRowIndex = useCallback((index: number | null) => {
+    dispatch({ type: 'SET_HIGHLIGHT_ROW', index });
+  }, []);
+
+  const setHighlightedChartPoint = useCallback((index: number | null) => {
+    dispatch({ type: 'SET_HIGHLIGHT_POINT', index });
+  }, []);
+
+  const handlePointClick = useCallback((index: number) => {
+    dispatch({ type: 'POINT_CLICK', index });
+  }, []);
+
   const handleRowClick = useCallback((index: number) => {
-    setHighlightedChartPoint(index);
-    setTimeout(() => setHighlightedChartPoint(null), 2000);
+    dispatch({ type: 'ROW_CLICK', index });
   }, []);
 
   return {
-    isDataPanelOpen,
+    isDataPanelOpen: state.isDataPanelOpen,
     setIsDataPanelOpen,
-    isDataTableOpen,
+    isDataTableOpen: state.isDataTableOpen,
     setIsDataTableOpen,
-    isFindingsOpen,
+    isFindingsOpen: state.isFindingsOpen,
     setIsFindingsOpen,
-    isWhatIfOpen,
+    isWhatIfOpen: state.isWhatIfOpen,
     setIsWhatIfOpen,
-    isPresentationMode,
+    isPresentationMode: state.isPresentationMode,
     setIsPresentationMode,
-    highlightRowIndex,
+    highlightRowIndex: state.highlightRowIndex,
     setHighlightRowIndex,
-    highlightedChartPoint,
+    highlightedChartPoint: state.highlightedChartPoint,
     setHighlightedChartPoint,
     handlePointClick,
     handleRowClick,

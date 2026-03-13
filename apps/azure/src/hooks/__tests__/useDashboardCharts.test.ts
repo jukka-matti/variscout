@@ -196,31 +196,31 @@ describe('useDashboardCharts', () => {
   });
 
   describe('factor setter persistence callbacks', () => {
-    it('calls onBoxplotFactorChange when setBoxplotFactor is called', () => {
-      const onBoxplotFactorChange = vi.fn();
-      const { result } = renderHook(() => useDashboardCharts({ onBoxplotFactorChange }));
+    it('calls onViewStateChange with boxplotFactor when setBoxplotFactor is called', () => {
+      const onViewStateChange = vi.fn();
+      const { result } = renderHook(() => useDashboardCharts({ onViewStateChange }));
 
       act(() => {
         result.current.setBoxplotFactor('Line');
       });
 
       expect(mockBaseSetBoxplotFactor).toHaveBeenCalledWith('Line');
-      expect(onBoxplotFactorChange).toHaveBeenCalledWith('Line');
+      expect(onViewStateChange).toHaveBeenCalledWith({ boxplotFactor: 'Line' });
     });
 
-    it('calls onParetoFactorChange when setParetoFactor is called', () => {
-      const onParetoFactorChange = vi.fn();
-      const { result } = renderHook(() => useDashboardCharts({ onParetoFactorChange }));
+    it('calls onViewStateChange with paretoFactor when setParetoFactor is called', () => {
+      const onViewStateChange = vi.fn();
+      const { result } = renderHook(() => useDashboardCharts({ onViewStateChange }));
 
       act(() => {
         result.current.setParetoFactor('Operator');
       });
 
       expect(mockBaseSetParetoFactor).toHaveBeenCalledWith('Operator');
-      expect(onParetoFactorChange).toHaveBeenCalledWith('Operator');
+      expect(onViewStateChange).toHaveBeenCalledWith({ paretoFactor: 'Operator' });
     });
 
-    it('does not throw when persistence callbacks are not provided', () => {
+    it('does not throw when onViewStateChange is not provided', () => {
       const { result } = renderHook(() => useDashboardCharts());
 
       expect(() => {
@@ -404,39 +404,37 @@ describe('useDashboardCharts', () => {
   });
 
   describe('handleDrillDown', () => {
-    it('delegates to base handleDrillDown and reports factor change', () => {
+    it('delegates to base handleDrillDown and reports factor change via onViewStateChange', () => {
       mockBaseHandleDrillDown.mockReturnValue('Line');
-      const onBoxplotFactorChange = vi.fn();
-      const onParetoFactorChange = vi.fn();
+      const onViewStateChange = vi.fn();
 
-      const { result } = renderHook(() =>
-        useDashboardCharts({ onBoxplotFactorChange, onParetoFactorChange })
-      );
+      const { result } = renderHook(() => useDashboardCharts({ onViewStateChange }));
 
       act(() => {
         result.current.handleDrillDown('Operator', 'A');
       });
 
       expect(mockBaseHandleDrillDown).toHaveBeenCalledWith('Operator', 'A');
-      expect(onBoxplotFactorChange).toHaveBeenCalledWith('Line');
-      expect(onParetoFactorChange).toHaveBeenCalledWith('Line');
+      expect(onViewStateChange).toHaveBeenCalledWith({
+        boxplotFactor: 'Line',
+        paretoFactor: 'Line',
+      });
     });
 
     it('reports the original factor when no next factor exists', () => {
       mockBaseHandleDrillDown.mockReturnValue(null);
-      const onBoxplotFactorChange = vi.fn();
-      const onParetoFactorChange = vi.fn();
+      const onViewStateChange = vi.fn();
 
-      const { result } = renderHook(() =>
-        useDashboardCharts({ onBoxplotFactorChange, onParetoFactorChange })
-      );
+      const { result } = renderHook(() => useDashboardCharts({ onViewStateChange }));
 
       act(() => {
         result.current.handleDrillDown('Operator', 'A');
       });
 
-      expect(onBoxplotFactorChange).toHaveBeenCalledWith('Operator');
-      expect(onParetoFactorChange).toHaveBeenCalledWith('Operator');
+      expect(onViewStateChange).toHaveBeenCalledWith({
+        boxplotFactor: 'Operator',
+        paretoFactor: 'Operator',
+      });
     });
   });
 
@@ -531,7 +529,15 @@ describe('useDashboardCharts', () => {
 
       const externalFilterNav = {
         filterStack: [
-          { type: 'filter' as const, source: 'boxplot' as const, factor: 'Op', values: ['A'] },
+          {
+            type: 'filter' as const,
+            source: 'boxplot' as const,
+            factor: 'Op',
+            values: ['A'],
+            id: '1',
+            timestamp: Date.now(),
+            label: 'Op: A',
+          },
         ],
         applyFilter: externalApplyFilter,
         clearFilters: externalClearFilters,
@@ -540,7 +546,14 @@ describe('useDashboardCharts', () => {
         filters: {},
         setFilters: vi.fn(),
         columnAliases: {},
-      };
+        breadcrumbs: [],
+        currentHighlight: null,
+        removeLastFilter: vi.fn(),
+        navigateTo: vi.fn(),
+        setHighlight: vi.fn(),
+        clearHighlight: vi.fn(),
+        hasFilters: true,
+      } as unknown as import('../../hooks').UseFilterNavigationReturn;
 
       const { result } = renderHook(() => useDashboardCharts({ externalFilterNav }));
 
