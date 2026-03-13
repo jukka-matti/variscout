@@ -39,6 +39,10 @@ export interface FindingsLogProps {
   onShareFinding?: (findingId: string) => void;
   /** Assign someone to a finding. Passed through to FindingCard. */
   onAssignFinding?: (findingId: string) => void;
+  /** Render inline assign UI for a specific finding (e.g., PeoplePicker) */
+  renderAssignSlot?: (findingId: string) => React.ReactNode;
+  /** Navigate to the chart that sourced a finding */
+  onNavigateToChart?: (source: import('@variscout/core').FindingSource) => void;
 }
 
 /**
@@ -64,6 +68,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   showAuthors,
   onShareFinding,
   onAssignFinding,
+  renderAssignSlot,
+  onNavigateToChart,
 }) => {
   if (findings.length === 0) {
     return (
@@ -98,6 +104,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
         columnAliases={columnAliases}
         activeFindingId={activeFindingId}
         onAssignFinding={onAssignFinding}
+        renderAssignSlot={renderAssignSlot}
+        onNavigateToChart={onNavigateToChart}
       />
     );
   }
@@ -123,6 +131,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           isActive={finding.id === activeFindingId}
           onShare={onShareFinding}
           onAssign={onAssignFinding}
+          renderAssignSlot={renderAssignSlot?.(finding.id)}
+          onNavigateToChart={onNavigateToChart}
         />
       ))}
     </div>

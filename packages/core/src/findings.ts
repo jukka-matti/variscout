@@ -112,7 +112,7 @@ export interface FindingContext {
   /** Cumulative variation % isolated (0–100), or null if no filters */
   cumulativeScope: number | null;
   /** Key statistics at time of capture */
-  stats?: { mean: number; cpk?: number; samples: number };
+  stats?: { mean: number; median?: number; cpk?: number; samples: number };
 }
 
 /**
@@ -159,7 +159,7 @@ export function createFinding(
   text: string,
   activeFilters: Record<string, (string | number)[]>,
   cumulativeScope: number | null,
-  stats?: { mean: number; cpk?: number; samples: number },
+  stats?: { mean: number; median?: number; cpk?: number; samples: number },
   status?: FindingStatus,
   source?: FindingSource
 ): Finding {

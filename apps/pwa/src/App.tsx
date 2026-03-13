@@ -240,15 +240,15 @@ function AppMain() {
         drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
       stats:
         filteredData.length > 0
-          ? {
-              mean:
-                filteredData.reduce((sum, r) => {
-                  const v = Number(r[outcome!]);
-                  return isNaN(v) ? sum : sum + v;
-                }, 0) / filteredData.length,
-              cpk: undefined, // computed stats come from dashboard, keep simple here
-              samples: filteredData.length,
-            }
+          ? (() => {
+              const values = filteredData.map(r => Number(r[outcome!])).filter(v => !isNaN(v));
+              const mean = values.reduce((s, v) => s + v, 0) / values.length;
+              const sorted = [...values].sort((a, b) => a - b);
+              const mid = Math.floor(sorted.length / 2);
+              const median =
+                sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+              return { mean, median, samples: values.length };
+            })()
           : undefined,
     };
     const newFinding = findingsState.addFinding('', context);
@@ -278,15 +278,15 @@ function AppMain() {
           drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
         stats:
           filteredData.length > 0
-            ? {
-                mean:
-                  filteredData.reduce((sum, r) => {
-                    const v = Number(r[outcome!]);
-                    return isNaN(v) ? sum : sum + v;
-                  }, 0) / filteredData.length,
-                cpk: undefined,
-                samples: filteredData.length,
-              }
+            ? (() => {
+                const values = filteredData.map(r => Number(r[outcome!])).filter(v => !isNaN(v));
+                const mean = values.reduce((s, v) => s + v, 0) / values.length;
+                const sorted = [...values].sort((a, b) => a - b);
+                const mid = Math.floor(sorted.length / 2);
+                const median =
+                  sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+                return { mean, median, samples: values.length };
+              })()
             : undefined,
       };
       const newFinding = findingsState.addFinding('', context, source);

@@ -495,7 +495,7 @@ describe('MobileChartCarousel', () => {
       <MobileChartCarousel
         {...defaultProps}
         onPinFinding={onPinFinding}
-        onAddChartObservation={onAddChartObservation}
+        findingsCallbacks={{ onAddChartObservation }}
       />
     );
 
@@ -543,9 +543,11 @@ describe('MobileChartCarousel', () => {
       <MobileChartCarousel
         {...defaultProps}
         onPinFinding={onPinFinding}
-        onAddChartObservation={onAddChartObservation}
-        canMentionInChannel={true}
-        onShareFinding={vi.fn()}
+        findingsCallbacks={{
+          onAddChartObservation,
+          canMentionInChannel: true,
+          onShareFinding: vi.fn(),
+        }}
       />
     );
 
@@ -577,10 +579,12 @@ describe('MobileChartCarousel', () => {
       <MobileChartCarousel
         {...defaultProps}
         onPinFinding={vi.fn()}
-        onAddChartObservation={onAddChartObservation}
-        canMentionInChannel={true}
-        onShareFinding={onShareFinding}
-        onSetFindingAssignee={onSetFindingAssignee}
+        findingsCallbacks={{
+          onAddChartObservation,
+          canMentionInChannel: true,
+          onShareFinding,
+          onSetFindingAssignee,
+        }}
       />
     );
 
@@ -622,9 +626,7 @@ describe('MobileChartCarousel', () => {
       <MobileChartCarousel
         {...defaultProps}
         onPinFinding={vi.fn()}
-        onAddChartObservation={onAddChartObservation}
-        canMentionInChannel={true}
-        onShareFinding={onShareFinding}
+        findingsCallbacks={{ onAddChartObservation, canMentionInChannel: true, onShareFinding }}
       />
     );
 
@@ -656,9 +658,7 @@ describe('MobileChartCarousel', () => {
       <MobileChartCarousel
         {...defaultProps}
         onPinFinding={vi.fn()}
-        onAddChartObservation={onAddChartObservation}
-        canMentionInChannel={true}
-        onShareFinding={onShareFinding}
+        findingsCallbacks={{ onAddChartObservation, canMentionInChannel: true, onShareFinding }}
       />
     );
 
@@ -689,9 +689,7 @@ describe('MobileChartCarousel', () => {
       <MobileChartCarousel
         {...defaultProps}
         onPinFinding={vi.fn()}
-        onAddChartObservation={onAddChartObservation}
-        canMentionInChannel={true}
-        onShareFinding={onShareFinding}
+        findingsCallbacks={{ onAddChartObservation, canMentionInChannel: true, onShareFinding }}
       />
     );
 

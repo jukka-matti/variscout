@@ -306,6 +306,14 @@ export const Editor: React.FC<EditorProps> = ({
     [projectName, baseUrl, share]
   );
 
+  // Navigate to chart from finding source badge
+  const handleNavigateToChart = useCallback(
+    (source: import('@variscout/core').FindingSource) => {
+      handleViewStateChange({ focusedChart: source.chart });
+    },
+    [handleViewStateChange]
+  );
+
   // Current user (for comment author attribution)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   useEffect(() => {
@@ -348,14 +356,15 @@ export const Editor: React.FC<EditorProps> = ({
           drillPath.length > 0 ? drillPath[drillPath.length - 1].cumulativeScope * 100 : null,
         stats:
           filteredData.length > 0
-            ? {
-                mean:
-                  filteredData.reduce((sum, r) => {
-                    const v = Number(r[outcome!]);
-                    return isNaN(v) ? sum : sum + v;
-                  }, 0) / filteredData.length,
-                samples: filteredData.length,
-              }
+            ? (() => {
+                const values = filteredData.map(r => Number(r[outcome!])).filter(v => !isNaN(v));
+                const mean = values.reduce((s, v) => s + v, 0) / values.length;
+                const sorted = [...values].sort((a, b) => a - b);
+                const mid = Math.floor(sorted.length / 2);
+                const median =
+                  sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+                return { mean, median, samples: values.length };
+              })()
             : undefined,
       };
       const newFinding = findingsState.addFinding(noteText || '', context);
@@ -397,6 +406,7 @@ export const Editor: React.FC<EditorProps> = ({
         const computed = calculateStats(values, specs?.usl, specs?.lsl);
         statsCtx = {
           mean: computed.mean,
+          median: computed.median,
           samples: values.length,
           cpk: computed.cpk,
         };
@@ -412,7 +422,7 @@ export const Editor: React.FC<EditorProps> = ({
       setHighlightedFindingId(newFinding.id);
       return newFinding;
     },
-    [filters, drillPath, filteredData, outcome, findingsState, panels]
+    [filters, drillPath, filteredData, outcome, specs?.usl, specs?.lsl, findingsState, panels]
   );
 
   // Chart findings grouped by chart type for inline annotation display
@@ -423,6 +433,20 @@ export const Editor: React.FC<EditorProps> = ({
       ichart: findingsState.getChartFindings('ichart'),
     }),
     [findingsState]
+  );
+
+  // Grouped findings callbacks for Dashboard → child components
+  const findingsCallbacks = useMemo(
+    () => ({
+      onAddChartObservation: handleAddChartObservation,
+      chartFindings,
+      onEditFinding: findingsState.editFinding,
+      onDeleteFinding: findingsState.deleteFinding,
+      canMentionInChannel,
+      onShareFinding: shareFinding,
+      onSetFindingAssignee: findingsState.setFindingAssignee,
+    }),
+    [handleAddChartObservation, chartFindings, findingsState, canMentionInChannel, shareFinding]
   );
 
   // Findings popout: open in separate window
@@ -1067,13 +1091,7 @@ export const Editor: React.FC<EditorProps> = ({
               onManageFactors={dataFlow.openFactorManager}
               onPinFinding={handlePinFinding}
               onShareChart={handleShareChart}
-              onAddChartObservation={handleAddChartObservation}
-              chartFindings={chartFindings}
-              onEditFinding={findingsState.editFinding}
-              onDeleteFinding={findingsState.deleteFinding}
-              canMentionInChannel={canMentionInChannel}
-              onShareFinding={shareFinding}
-              onSetFindingAssignee={findingsState.setFindingAssignee}
+              findingsCallbacks={findingsCallbacks}
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isFindingsOpen ? (
@@ -1117,6 +1135,7 @@ export const Editor: React.FC<EditorProps> = ({
                   activeFindingId={highlightedFindingId}
                   onShareFinding={handleShareFinding}
                   onSetFindingAssignee={findingsState.setFindingAssignee}
+                  onNavigateToChart={handleNavigateToChart}
                   viewMode={viewState?.findingsViewMode}
                   onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
                 />
@@ -1148,6 +1167,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onPopout={handleOpenFindingsPopout}
                 onShareFinding={handleShareFinding}
                 onSetFindingAssignee={findingsState.setFindingAssignee}
+                onNavigateToChart={handleNavigateToChart}
                 viewMode={viewState?.findingsViewMode}
                 onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
               />

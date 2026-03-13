@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
+import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
 import { FINDING_STATUSES, FINDING_STATUS_LABELS, groupFindingsByStatus } from '@variscout/core';
 import FindingCard from './FindingCard';
 import { STATUS_DOT_COLORS } from './FindingStatusBadge';
@@ -21,6 +21,8 @@ export interface FindingBoardViewProps {
   columnAliases?: Record<string, string>;
   activeFindingId?: string | null;
   onAssignFinding?: (findingId: string) => void;
+  renderAssignSlot?: (findingId: string) => React.ReactNode;
+  onNavigateToChart?: (source: FindingSource) => void;
 }
 
 /**
@@ -43,6 +45,8 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   columnAliases,
   activeFindingId,
   onAssignFinding,
+  renderAssignSlot,
+  onNavigateToChart,
 }) => {
   const groups = groupFindingsByStatus(findings);
 
@@ -111,6 +115,8 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     columnAliases={columnAliases}
                     isActive={finding.id === activeFindingId}
                     onAssign={onAssignFinding}
+                    renderAssignSlot={renderAssignSlot?.(finding.id)}
+                    onNavigateToChart={onNavigateToChart}
                   />
                 ))}
               </div>

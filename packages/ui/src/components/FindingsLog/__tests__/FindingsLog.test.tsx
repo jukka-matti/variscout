@@ -220,6 +220,28 @@ describe('FindingsLog', () => {
     expect(screen.getByText('Jane Smith')).toBeDefined();
   });
 
+  it('renders renderAssignSlot content inside the card when provided', () => {
+    const findings = [makeFinding({ id: 'f-slot' })];
+    const renderSlot = (findingId: string) => (
+      <div data-testid={`assign-slot-${findingId}`}>Assign UI for {findingId}</div>
+    );
+
+    render(<FindingsLog {...defaultProps} findings={findings} renderAssignSlot={renderSlot} />);
+    expect(screen.getByTestId('assign-slot-f-slot')).toBeDefined();
+    expect(screen.getByText('Assign UI for f-slot')).toBeDefined();
+  });
+
+  it('fires onNavigateToChart when source badge is clicked', () => {
+    const onNavigate = vi.fn();
+    const source = { chart: 'boxplot' as const, category: 'Machine B' };
+    const findings = [makeFinding({ id: 'f-nav', source })];
+
+    render(<FindingsLog {...defaultProps} findings={findings} onNavigateToChart={onNavigate} />);
+
+    fireEvent.click(screen.getByTitle('Go to boxplot chart'));
+    expect(onNavigate).toHaveBeenCalledWith(source);
+  });
+
   it('does not render assignee chip when no assignee', () => {
     const findings = [makeFinding({ id: 'f-1' })];
 

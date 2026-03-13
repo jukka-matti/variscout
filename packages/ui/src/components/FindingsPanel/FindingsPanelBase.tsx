@@ -8,7 +8,7 @@ import {
   List,
   LayoutGrid,
 } from 'lucide-react';
-import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
+import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import { useResizablePanel } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
@@ -41,6 +41,8 @@ export interface FindingsPanelBaseProps {
   showAuthors?: boolean;
   onShareFinding?: (findingId: string) => void;
   onAssignFinding?: (findingId: string) => void;
+  renderAssignSlot?: (findingId: string) => React.ReactNode;
+  onNavigateToChart?: (source: FindingSource) => void;
 
   // Panel chrome
   columnAliases?: Record<string, string>;
@@ -77,6 +79,8 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onPopout,
   onShareFinding,
   onAssignFinding,
+  renderAssignSlot,
+  onNavigateToChart,
   viewMode: externalViewMode,
   onViewModeChange,
   resizeConfig,
@@ -228,6 +232,8 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           activeFindingId={activeFindingId}
           onShareFinding={onShareFinding}
           onAssignFinding={onAssignFinding}
+          renderAssignSlot={renderAssignSlot}
+          onNavigateToChart={onNavigateToChart}
           viewMode={viewMode}
         />
 

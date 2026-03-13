@@ -24,7 +24,7 @@ import {
 } from '@variscout/ui';
 import { BREAKPOINTS } from '@variscout/ui';
 import { getColumnNames, createFactorFromSelection } from '@variscout/core';
-import type { Finding, FindingAssignee } from '@variscout/core';
+import type { FindingsCallbacks } from '../types/findingsCallbacks';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useAnnotations } from '@variscout/hooks';
 import {
@@ -75,26 +75,8 @@ interface DashboardProps {
   onPinFinding?: (noteText?: string) => void;
   /** Callback to share a chart via deep link */
   onShareChart?: (chartType: string) => void;
-  /** Callback to add a chart observation (creates a Finding with source) */
-  onAddChartObservation?: (
-    chartType: 'boxplot' | 'pareto' | 'ichart',
-    categoryKey?: string,
-    noteText?: string,
-    anchorX?: number,
-    anchorY?: number
-  ) => Finding | void;
-  /** Findings grouped by chart type for inline annotation display */
-  chartFindings?: { boxplot: Finding[]; pareto: Finding[]; ichart: Finding[] };
-  /** Callback to edit a finding's text */
-  onEditFinding?: (id: string, text: string) => void;
-  /** Callback to delete a finding */
-  onDeleteFinding?: (id: string) => void;
-  /** Whether Teams channel @mention is available */
-  canMentionInChannel?: boolean;
-  /** Share a finding (with optional @mention) to the channel */
-  onShareFinding?: (finding: Finding, assignee?: FindingAssignee) => Promise<boolean>;
-  /** Set or clear assignee on a finding */
-  onSetFindingAssignee?: (id: string, assignee: FindingAssignee | null) => void;
+  /** Grouped findings-related callbacks */
+  findingsCallbacks?: FindingsCallbacks;
 }
 
 const Dashboard = ({
@@ -117,14 +99,10 @@ const Dashboard = ({
   onManageFactors,
   onPinFinding,
   onShareChart,
-  onAddChartObservation,
-  chartFindings,
-  onEditFinding,
-  onDeleteFinding,
-  canMentionInChannel,
-  onShareFinding,
-  onSetFindingAssignee,
+  findingsCallbacks,
 }: DashboardProps) => {
+  const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
+    findingsCallbacks ?? {};
   const {
     outcome,
     factors,
@@ -475,14 +453,11 @@ const Dashboard = ({
               showCpk={displayOptions.showCpk !== false}
               anovaResult={anovaResult}
               onPinFinding={onPinFinding}
-              onAddChartObservation={onAddChartObservation}
               boxplotData={boxplotData}
               boxplotHighlights={boxplotHighlights}
               paretoHighlights={paretoHighlights}
               onSetHighlight={setHighlight}
-              canMentionInChannel={canMentionInChannel}
-              onShareFinding={onShareFinding}
-              onSetFindingAssignee={onSetFindingAssignee}
+              findingsCallbacks={findingsCallbacks}
             />
           ) : !focusedChart ? (
             <DashboardGrid

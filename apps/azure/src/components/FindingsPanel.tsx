@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { FindingsPanelBase, type FindingsPanelBaseProps } from '@variscout/ui';
-import type { FindingAssignee } from '@variscout/core';
+import type { FindingAssignee, FindingSource } from '@variscout/core';
 import PeoplePicker from './PeoplePicker';
 
 const RESIZE_CONFIG = {
@@ -13,23 +13,16 @@ const RESIZE_CONFIG = {
 interface FindingsPanelProps extends Omit<FindingsPanelBaseProps, 'resizeConfig'> {
   /** Callback to persist assignee on a finding */
   onSetFindingAssignee?: (id: string, assignee: FindingAssignee | null) => void;
+  /** Navigate to the chart that sourced a finding */
+  onNavigateToChart?: (source: FindingSource) => void;
 }
 
-const FindingsPanel: React.FC<FindingsPanelProps> = ({ onSetFindingAssignee, ...props }) => {
+const FindingsPanel: React.FC<FindingsPanelProps> = ({
+  onSetFindingAssignee,
+  onNavigateToChart,
+  ...props
+}) => {
   const [assigningFindingId, setAssigningFindingId] = useState<string | null>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-
-  // Close popover on click outside
-  useEffect(() => {
-    if (!assigningFindingId) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        setAssigningFindingId(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [assigningFindingId]);
 
   const handleAssignFinding = useCallback((findingId: string) => {
     setAssigningFindingId(prev => (prev === findingId ? null : findingId));
@@ -45,22 +38,15 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({ onSetFindingAssignee, ...
     [assigningFindingId, onSetFindingAssignee]
   );
 
-  return (
-    <div className="relative flex flex-col">
-      <FindingsPanelBase
-        {...props}
-        resizeConfig={RESIZE_CONFIG}
-        onAssignFinding={onSetFindingAssignee ? handleAssignFinding : undefined}
-      />
-
-      {/* PeoplePicker popover — floating over the findings panel */}
-      {assigningFindingId && (
+  const renderAssignSlot = useCallback(
+    (findingId: string) => {
+      if (findingId !== assigningFindingId) return null;
+      return (
         <div
-          ref={popoverRef}
-          className="absolute top-12 left-4 right-4 z-50 bg-surface border border-edge rounded-xl shadow-lg p-3"
-          data-testid="assign-popover"
+          className="mt-1.5 border border-edge rounded-lg p-2 bg-surface"
+          data-testid="assign-inline"
         >
-          <div className="text-xs text-content-secondary mb-2">Assign to:</div>
+          <div className="text-xs text-content-secondary mb-1.5">Assign to:</div>
           <PeoplePicker
             selected={null}
             onSelect={handlePersonSelect}
@@ -68,8 +54,19 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({ onSetFindingAssignee, ...
             placeholder="Search people..."
           />
         </div>
-      )}
-    </div>
+      );
+    },
+    [assigningFindingId, handlePersonSelect]
+  );
+
+  return (
+    <FindingsPanelBase
+      {...props}
+      resizeConfig={RESIZE_CONFIG}
+      onAssignFinding={onSetFindingAssignee ? handleAssignFinding : undefined}
+      renderAssignSlot={onSetFindingAssignee ? renderAssignSlot : undefined}
+      onNavigateToChart={onNavigateToChart}
+    />
   );
 };
 

@@ -46,6 +46,7 @@ import type {
   FindingAssignee,
 } from '@variscout/core';
 import type { FilterChipData, HighlightColor } from '@variscout/hooks';
+import type { FindingsCallbacks } from '../types/findingsCallbacks';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
@@ -92,12 +93,6 @@ interface MobileChartCarouselProps {
   anovaResult: AnovaResult | null;
   // Pin finding
   onPinFinding?: (noteText?: string) => void;
-  // Chart observation (creates a Finding with source metadata)
-  onAddChartObservation?: (
-    chartType: 'boxplot' | 'pareto' | 'ichart',
-    categoryKey?: string,
-    noteText?: string
-  ) => Finding | void;
   // Category sheet data (from Dashboard)
   boxplotData: BoxplotGroupData[];
   boxplotHighlights: Record<string, HighlightColor>;
@@ -107,10 +102,8 @@ interface MobileChartCarouselProps {
     key: string,
     color: HighlightColor | undefined
   ) => void;
-  // Assign & Share (Team plan channel @mention)
-  canMentionInChannel?: boolean;
-  onShareFinding?: (finding: Finding, assignee?: FindingAssignee) => Promise<boolean>;
-  onSetFindingAssignee?: (findingId: string, assignee: FindingAssignee | null) => void;
+  // Grouped findings callbacks
+  findingsCallbacks?: FindingsCallbacks;
 }
 
 const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
@@ -141,15 +134,18 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   showCpk,
   anovaResult,
   onPinFinding,
-  onAddChartObservation,
   boxplotData,
   boxplotHighlights,
   paretoHighlights,
   onSetHighlight,
-  canMentionInChannel = false,
-  onShareFinding,
-  onSetFindingAssignee,
+  findingsCallbacks,
 }) => {
+  const {
+    onAddChartObservation,
+    canMentionInChannel = false,
+    onShareFinding,
+    onSetFindingAssignee,
+  } = findingsCallbacks ?? {};
   const [activeView, setActiveView] = useState<ChartView>('ichart');
 
   // Category sheet state

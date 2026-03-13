@@ -68,7 +68,7 @@ import type { DrillLevel, BreadcrumbItem } from '@variscout/core';
 
 ```typescript
 // Standard charts
-import { IChart, Boxplot, ParetoChart, ScatterPlot } from '@variscout/charts';
+import { IChart, Boxplot, ParetoChart } from '@variscout/charts';
 
 // Performance charts (multi-channel)
 import {

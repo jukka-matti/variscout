@@ -37,6 +37,8 @@ export interface FindingCardProps {
   onNavigateToChart?: (source: FindingSource) => void;
   /** Callback to assign someone to this finding */
   onAssign?: (findingId: string) => void;
+  /** Optional slot for inline assignment UI (e.g., PeoplePicker rendered by Azure) */
+  renderAssignSlot?: React.ReactNode;
 }
 
 /**
@@ -61,6 +63,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onShare,
   onNavigateToChart,
   onAssign,
+  renderAssignSlot,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
@@ -240,6 +243,9 @@ const FindingCard: React.FC<FindingCardProps> = ({
             </span>
           </div>
         )}
+
+        {/* Inline assign slot (e.g., PeoplePicker) */}
+        {renderAssignSlot}
 
         {/* Comments section */}
         {onAddComment && (
