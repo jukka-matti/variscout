@@ -131,6 +131,7 @@ dist
 .mcp.json
 .venv/
 agents/
+.superpowers/brainstorm/
 
 # Playwright
 playwright-report/
