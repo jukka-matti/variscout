@@ -66,6 +66,8 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 - [Forms](./components/forms.md) - Form elements
 - [VariationBar](./components/variation-funnel.md) - Variation scope progress bar
 - [What-If Simulator](./components/what-if-simulator.md) - Process improvement exploration
+- [Findings](./components/findings.md) - Investigation findings, board view, actions
+- [AI Components](./components/ai-components.md) - NarrativeBar, ChartInsightChip, CopilotPanel
 
 ### Patterns
 

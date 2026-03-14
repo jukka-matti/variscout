@@ -50,25 +50,25 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Navigation & Interaction
 
-| Feature                           | Azure Standard | Azure Team | PWA (Free) | Notes                                                                                                                                     |
-| --------------------------------- | :------------: | :--------: | :--------: | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Drill-down**                    |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Linked filtering**              |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Breadcrumb navigation**         |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Multi-select filters**          |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Observations & Findings**       |       ✓        |     ✓      |     ✓      | Pin filter states + chart observations as findings; status tracking, comments, board view; Azure adds: persistence, popout window         |
-| **What-If Simulator**             |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Keyboard navigation**           |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Copy chart to clipboard**       |       ✓        |     ✓      |     ✓      | Includes filter context bar when active                                                                                                   |
-| **Filter context on charts**      |       ✓        |     ✓      |     ✓      | Shows active filters inside chart cards; toggle in Settings                                                                               |
-| **Editable chart titles**         |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Selection panel**               |       ✓        |     ✓      |     ✓      | Minitab-style point brushing                                                                                                              |
-| **Create Factor**                 |       ✓        |     ✓      |     ✓      | From point selection                                                                                                                      |
-| **Focus mode (fullscreen chart)** |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Presentation Mode**             |       ✓        |     ✓      |     -      | Full-screen grid overview + focused chart view                                                                                            |
-| **Median in Stats Panel**         |       ✓        |     ✓      |     ✓      | Always shown alongside Mean                                                                                                               |
-| **Spec editing (Stats)**          |       ✓        |     ✓      |     ✓      | `onEditSpecs` callback; pencil link opens SpecEditor popover                                                                              |
-| **Chart color highlights**        |       ✓        |     ✓      |     ✓      | Desktop: right-click context menu. Mobile: tap → action sheet. Red/amber/green category markers (Boxplot, Pareto). I-Chart: desktop only. |
+| Feature                           | Azure Standard | Azure Team | PWA (Free) | Notes                                                                                                                                                                                                                       |
+| --------------------------------- | :------------: | :--------: | :--------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Drill-down**                    |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                             |
+| **Linked filtering**              |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                             |
+| **Breadcrumb navigation**         |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                             |
+| **Multi-select filters**          |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                             |
+| **Observations & Findings**       |       ✓        |     ✓      |     ✓      | Pin filter states + chart observations as findings; 5-status tracking (observed → resolved), suspected cause, corrective actions, outcome assessment, comments, 5-column board view; Azure adds: persistence, popout window |
+| **What-If Simulator**             |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                             |
+| **Keyboard navigation**           |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                             |
+| **Copy chart to clipboard**       |       ✓        |     ✓      |     ✓      | Includes filter context bar when active                                                                                                                                                                                     |
+| **Filter context on charts**      |       ✓        |     ✓      |     ✓      | Shows active filters inside chart cards; toggle in Settings                                                                                                                                                                 |
+| **Editable chart titles**         |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                             |
+| **Selection panel**               |       ✓        |     ✓      |     ✓      | Minitab-style point brushing                                                                                                                                                                                                |
+| **Create Factor**                 |       ✓        |     ✓      |     ✓      | From point selection                                                                                                                                                                                                        |
+| **Focus mode (fullscreen chart)** |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                             |
+| **Presentation Mode**             |       ✓        |     ✓      |     -      | Full-screen grid overview + focused chart view                                                                                                                                                                              |
+| **Median in Stats Panel**         |       ✓        |     ✓      |     ✓      | Always shown alongside Mean                                                                                                                                                                                                 |
+| **Spec editing (Stats)**          |       ✓        |     ✓      |     ✓      | `onEditSpecs` callback; pencil link opens SpecEditor popover                                                                                                                                                                |
+| **Chart color highlights**        |       ✓        |     ✓      |     ✓      | Desktop: right-click context menu. Mobile: tap → action sheet. Red/amber/green category markers (Boxplot, Pareto). I-Chart: desktop only.                                                                                   |
 
 ---
 
@@ -108,6 +108,21 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | **Export JSON**        |                  ✓                   |                  ✓                  |     -      | Azure App only                               |
 | **Screenshot export**  |                  ✓                   |                  ✓                  |     ✓      |                                              |
 | **Sync notifications** |                  -                   |                  ✓                  |     -      | Toast feedback for sync status, errors, auth |
+
+---
+
+## AI Features
+
+| Feature                       | Azure Standard | Azure Team | PWA (Free) | Notes                                                                  |
+| ----------------------------- | :------------: | :--------: | :--------: | ---------------------------------------------------------------------- |
+| **Narrative Summary Bar**     |    Optional    |  Optional  |     -      | Plain-language analysis summary at dashboard bottom                    |
+| **Chart Insight Chips**       |    Optional    |  Optional  |     -      | Per-chart contextual suggestions                                       |
+| **Copilot Panel**             |    Optional    |  Optional  |     -      | Conversational AI assistant (slide-out panel)                          |
+| **Azure AI Search**           |       -        |  Optional  |     -      | Knowledge base from findings + SharePoint docs (Team plan only)        |
+| **Process description field** |    Optional    |  Optional  |     -      | Free-text process context for AI grounding                             |
+| **AI visibility toggle**      |    Optional    |  Optional  |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists |
+
+> AI features require customer-deployed Azure AI Foundry resources (optional ARM deployment checkbox). See [ADR-019](../07-decisions/adr-019-ai-integration.md). PWA never has AI.
 
 ---
 
@@ -193,6 +208,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - ARM template deployment (Managed Application)
 - Add data during analysis (paste/upload append with row/column auto-detection)
 - Presentation mode (full-screen chart overview with focused navigation)
+- Closed-loop investigations (suspected cause, corrective actions, outcome assessment)
 
 ### Azure Team Only (vs Standard)
 
@@ -216,9 +232,12 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Planned Features (Roadmap)
 
-| Feature        | Target Platform | Status  |
-| -------------- | --------------- | ------- |
-| Adaptive Cards | Azure Team      | Planned |
+| Feature                     | Target Platform       | Status   |
+| --------------------------- | --------------------- | -------- |
+| Adaptive Cards              | Azure Team            | Planned  |
+| AI Integration (Phase 1)    | Azure Standard + Team | Proposed |
+| AI Knowledge Base (Phase 3) | Azure Team            | Proposed |
+| Closed-loop investigations  | Azure Standard + Team | Proposed |
 
 ---
 

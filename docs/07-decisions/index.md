@@ -25,6 +25,8 @@ This section captures key architectural decisions made during VariScout developm
 | [015](adr-015-investigation-board.md)                | Investigation Board                  | Accepted   | 2026-02-26 |
 | [016](adr-016-teams-integration.md)                  | Teams Integration                    | Proposed   | 2026-02-27 |
 | [017](adr-017-fluent-design-alignment.md)            | Fluent 2 Design Principle Alignment  | Accepted   | 2026-03-02 |
+| [018](adr-018-channel-mention-workflow.md)           | Channel @Mention Workflow            | Accepted   | 2026-03-05 |
+| [019](adr-019-ai-integration.md)                     | AI Integration (Azure App)           | Proposed   | 2026-03-14 |
 
 ---
 

@@ -131,11 +131,13 @@ Stop investigating when:
 
 As findings accumulate, track their investigation progress:
 
-| Status            | Badge  | Meaning                               |
-| ----------------- | ------ | ------------------------------------- |
-| **Observed**      | Amber  | Pattern spotted, not yet investigated |
-| **Investigating** | Blue   | Actively drilling into this finding   |
-| **Analyzed**      | Purple | Analysis completed                    |
+| Status            | Badge  | Meaning                                     |
+| ----------------- | ------ | ------------------------------------------- |
+| **Observed**      | Amber  | Pattern spotted, not yet investigated       |
+| **Investigating** | Blue   | Actively drilling into this finding         |
+| **Analyzed**      | Purple | Suspected cause identified                  |
+| **Improving**     | Cyan   | Corrective actions assigned and in progress |
+| **Resolved**      | Green  | Actions completed, outcome verified         |
 
 Click a finding's status badge to change its status. Add timestamped comments
 to record what you checked and what you learned.
@@ -154,15 +156,81 @@ Tags reflect _contribution magnitude_, not causal certainty. VariScout quantifie
 contribution, not causation — we measure how much variation a factor accounts for,
 not whether it's the "root cause."
 
+### Suspected Cause
+
+When a finding reaches "Analyzed" status, document the suspected cause — a free text
+description of what you believe is driving the variation.
+
+**"Suspected cause" vs "root cause":** VariScout finds _where_ variation is hiding
+(the key factors), but identifying a factor (Machine A explains 47%) is not proving
+root cause. True root cause is only confirmed when the corrective action proves
+effective (outcome = effective at "Resolved" status). VariScout uses "suspected cause"
+throughout to maintain this distinction.
+
+This maps to PDCA:
+
+- **Plan:** Observed → Investigating → Analyzed (find variation, identify suspected cause)
+- **Do:** Improving (define and implement corrective actions)
+- **Check/Act:** Resolved (verify the fix worked)
+
+### Corrective Actions
+
+When a suspected cause is identified, define corrective actions:
+
+- **Action text** — What needs to be done (required)
+- **Assignee** — Person responsible (people picker, optional)
+- **Due date** — When the action should be completed (optional)
+- **Completion** — Checkbox to mark done (sets completion timestamp)
+
+When the first action is added to an "analyzed" finding, the status automatically
+transitions to "improving."
+
+**Overdue indicators:** When a due date has passed and the action is not completed,
+the action row shows a red border and "Overdue" label. No notifications are sent —
+this is a visual indicator on the card and in Teams postings.
+
+### Outcome Assessment
+
+When all corrective actions are completed, assess the outcome:
+
+- **Effective** — "Yes" / "No" / "Partial" selector
+- **Cpk after** — Measured capability after the corrective action (compared with original Cpk)
+- **Notes** — Free-text description of the outcome
+
+When all actions are completed AND the outcome is set, the status automatically
+transitions to "resolved."
+
+If the outcome is "No" or "Partial," consider starting a new PDCA cycle — pin a new
+finding from the current state to investigate further.
+
 ### Board View
 
 Toggle the Findings panel to Board view for a grouped layout:
 
-- **Panel**: Collapsible accordion sections per status (3 columns)
+- **Panel**: Collapsible accordion sections per status (5 columns)
 - **Popout window**: Horizontal columns with native drag-and-drop
+
+| Observed | Investigating | Analyzed | Improving | Resolved |
+| -------- | ------------- | -------- | --------- | -------- |
+
+- **Analyzed** cards: show suspected cause badge if populated
+- **Improving** cards: show action progress (e.g., "2/3 done") and overdue indicators
+- **Resolved** cards: show outcome badge (green check = effective, red = not, amber = partial)
 
 The Board view helps organize findings during complex investigations with
 many observations. Key Driver findings become a natural shortlist for action.
+
+#### Board Time Filter
+
+The board includes a time filter for managing finding accumulation in daily monitoring:
+
+- **This week** — Shows findings created this week (or resolved this week)
+- **This month** — Shows findings created this month (or resolved this month)
+- **All time** (default) — Shows everything
+
+A team leader doing daily monitoring sets filter to "This week" to focus on current
+findings. Resolved findings from previous weeks are hidden but remain in the data.
+Persisted in ViewState per project.
 
 ### Why keep Low Impact findings?
 
@@ -175,8 +243,38 @@ Low Impact findings document what was ruled out. This is valuable for:
 ### Output
 
 A list of pinned findings, each with filter context, variation %, tags, and analyst notes.
+Findings at "Improving" or "Resolved" status additionally carry corrective actions,
+outcomes, and Cpk improvement data.
 
 See [Drill-Down Workflow](drill-down-workflow.md) for detailed drill-down mechanics.
+
+### Teams Auto-Posting
+
+When a finding reaches key statuses, VariScout auto-posts to the Teams channel (Team plan only):
+
+**On Analyzed** (with suspected cause + actions):
+
+```
+📌 Finding Analyzed: Fill Head 3 drift — morning shift
+
+Suspected cause: Nozzle tip worn beyond tolerance
+
+Actions:
+☐ Replace nozzle tip on Fill Head 3 — @Kim Larsson — Due: Mar 15
+☐ Add nozzle inspection to daily checklist — @Jan Virtanen — Due: Mar 25
+```
+
+**On Resolved** (with outcome):
+
+```
+✅ Finding Resolved: Fill Head 3 drift — morning shift
+
+Outcome: Effective ✓
+Cpk: 0.85 → 1.35
+Notes: Nozzle replacement resolved drift. Monitoring for 2 weeks.
+```
+
+Uses [ADR-018](../../07-decisions/adr-018-channel-mention-workflow.md) @mention workflow infrastructure.
 
 ## What-If Simulator — Project Improvement
 
@@ -214,12 +312,13 @@ These are estimates, not guarantees. Use them for:
 
 ## Workflow Combinations
 
-| Your situation                          | Use                           |
-| --------------------------------------- | ----------------------------- |
-| "I don't know what's causing variation" | Findings (investigate)        |
-| "I want to set a Cpk target"            | What-If (project)             |
-| "I have findings, want to project"      | Findings then What-If         |
-| "Full investigation from scratch"       | Findings → classify → What-If |
+| Your situation                          | Use                                              |
+| --------------------------------------- | ------------------------------------------------ |
+| "I don't know what's causing variation" | Findings (investigate)                           |
+| "I want to set a Cpk target"            | What-If (project)                                |
+| "I have findings, want to project"      | Findings then What-If                            |
+| "Full investigation from scratch"       | Findings → classify → What-If                    |
+| "Full closed-loop improvement"          | Findings → actions → resolve → verify Cpk change |
 
 ## Example: Pizza Delivery Dataset
 

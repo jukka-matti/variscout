@@ -273,8 +273,25 @@ This enables **silent SSO** — no redirect flash when saving to OneDrive or upl
 
 ---
 
+## Cognitive Services Scope (AI Features)
+
+When AI features are enabled (`enableAI` parameter in ARM template), EasyAuth additionally requests the Cognitive Services scope:
+
+| Scope                                          | Purpose                     | Conditional             |
+| ---------------------------------------------- | --------------------------- | ----------------------- |
+| `https://cognitiveservices.azure.com/.default` | Azure AI Foundry API access | Only when AI is enabled |
+
+**How it works:** Same EasyAuth pattern as Graph API — the scope is added to `loginParameters` in `authsettingsV2` conditionally based on `enableAI`. The browser obtains Cognitive Services tokens via the existing `getAccessToken()` helper.
+
+**RBAC requirement:** Users need the "Cognitive Services User" role on the Azure AI Services resource. This is configured in the ARM template alongside the AI resource deployment.
+
+**No API keys in client code:** AI endpoint URL (`VITE_AI_ENDPOINT`) is a build-time setting (not a secret). Authentication uses bearer tokens from EasyAuth, not API keys.
+
+---
+
 ## See Also
 
 - [OneDrive Sync](onedrive-sync.md)
 - [ARM Template](arm-template.md)
+- [AI Architecture](../../05-technical/architecture/ai-architecture.md)
 - [App Service Authentication Docs](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization)

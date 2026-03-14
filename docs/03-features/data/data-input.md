@@ -80,6 +80,21 @@ The paste flow uses the same `parseText()` → `detectColumns()` → `ColumnMapp
 
 `PasteScreenBase` accepts optional `title` and `submitLabel` props, allowing the Azure "Add Data" flow to reuse the same component with contextual labels (e.g., "Paste Data to Add" / "Add Data").
 
+### Factor Role Inference
+
+During column detection, VariScout matches column names against keyword groups to auto-infer factor roles for AI context enrichment:
+
+| Column Name Contains                   | Inferred Role | Example                          |
+| -------------------------------------- | ------------- | -------------------------------- |
+| machine, line, head, nozzle, equipment | Equipment     | "Fill Head" → equipmentFactor    |
+| shift, day, week, hour, period         | Temporal      | "Shift" → temporalFactor         |
+| operator, technician, inspector        | Operator      | "Operator Name" → operatorFactor |
+| batch, lot, supplier, vendor           | Material      | "Batch ID" → materialFactor      |
+
+Measurement unit is inferred from outcome column name suffixes ("Weight_g" → grams, "Temp_C" → °C). Inferred roles are stored in `ProcessContext` on `AnalysisState` and shown as dismissable confirmation chips in ColumnMapping. This extends the existing keyword infrastructure in `packages/core/src/parser/keywords.ts`.
+
+**Value without AI:** Factor roles improve chart labels and drill suggestions even without AI configured.
+
 ### ColumnMapping Features
 
 The ColumnMapping component displays detected columns as **data-rich cards** with:

@@ -125,6 +125,26 @@ Near-term realistic capture (solo founder, no sales team):
 
 ---
 
+## AI Competitive Landscape
+
+### Minitab AI (April 2025)
+
+Minitab added AI that interprets existing statistics — "AI you can trust." AI never calculates, only explains. Privacy-first. VariScout's architecture aligns with this approach: deterministic-first, AI-explains.
+
+**VariScout's differentiators vs Minitab AI:**
+
+- **Closed-loop feedback:** VariScout's Finding system captures investigation outcomes with measured Cpk before/after. After 50+ resolved findings, AI has real organizational knowledge.
+- **Team knowledge:** Minitab is single-user desktop. VariScout's Team plan connects findings across projects via Azure AI Search.
+- **Unlimited users:** Minitab is per-seat (~€135-155/user/month). VariScout is per-deployment (from €99/month, unlimited users).
+
+### ISO 9001:2026 + EU AI Act
+
+- **ISO 9001:2026** (DIS approved, final publication Sept 2026): Emphasizes digitalization and data-driven decisions. VariScout's measured investigation → action → verification workflow aligns directly.
+- **EU AI Act** (high-risk obligations effective August 2, 2026): Requires human oversight, transparency, risk management. VariScout's deterministic-first architecture is naturally compliant: "The statistical engine identified the pattern. AI explained it. Both are auditable."
+- **Marketing opportunity:** "AI you can audit" — measurement-backed knowledge vs subjective RPN scores.
+
+---
+
 ## Key Risks
 
 | Risk                                  | Impact                    | Mitigation                          |

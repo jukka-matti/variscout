@@ -54,14 +54,16 @@ VARISCOUT ARCHITECTURE (Browser-Only)
 
 High-level architecture overview and detailed design documents:
 
-| Document                                                 | Description                                  |
-| -------------------------------------------------------- | -------------------------------------------- |
-| [Architecture Overview](architecture.md)                 | High-level system architecture               |
-| [Monorepo Structure](architecture/monorepo.md)           | pnpm workspaces, package boundaries          |
-| [Offline-First](architecture/offline-first.md)           | PWA, service worker, IndexedDB               |
-| [Shared Packages](architecture/shared-packages.md)       | Package extraction and reuse strategy        |
-| [Data Flow](architecture/data-flow.md)                   | Data pipeline from input to visualization    |
-| [Component Patterns](architecture/component-patterns.md) | Hook integration, colorScheme, base patterns |
+| Document                                                   | Description                                          |
+| ---------------------------------------------------------- | ---------------------------------------------------- |
+| [Architecture Overview](architecture.md)                   | High-level system architecture                       |
+| [Monorepo Structure](architecture/monorepo.md)             | pnpm workspaces, package boundaries                  |
+| [Offline-First](architecture/offline-first.md)             | PWA, service worker, IndexedDB                       |
+| [Shared Packages](architecture/shared-packages.md)         | Package extraction and reuse strategy                |
+| [Data Flow](architecture/data-flow.md)                     | Data pipeline from input to visualization            |
+| [Component Patterns](architecture/component-patterns.md)   | Hook integration, colorScheme, base patterns         |
+| [AI Architecture](architecture/ai-architecture.md)         | AI integration, Azure AI Foundry, context pipeline   |
+| [AI Readiness Review](architecture/ai-readiness-review.md) | Strategic architecture assessment for AI integration |
 
 ### Implementation
 

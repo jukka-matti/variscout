@@ -8,7 +8,10 @@
 
 ## What Is It?
 
-A lightweight, offline variation analysis tool for quality professionals. No AI, no API keys — just fast, linked charts that reveal hidden variation.
+A lightweight, offline variation analysis tool for quality professionals. Fast, linked charts that reveal hidden variation.
+
+- **PWA (Free):** No AI, no API keys — a pure training tool where the struggle is the point.
+- **Azure App:** Optional AI-assisted analysis via customer-deployed Azure AI Foundry. AI augments investigation, never replaces statistical analysis.
 
 **Tagline:** _"Cut through your watermelons — without the cloud."_
 
@@ -753,19 +756,31 @@ Charts are copied to clipboard as PNG — paste directly into PowerPoint, Word, 
 
 ---
 
-## What's NOT Included
+## What's NOT Included (PWA)
 
-| Feature                                   | Why excluded                 |
-| ----------------------------------------- | ---------------------------- |
-| AI recommendations                        | Requires LLM, ongoing costs  |
-| Natural language insights                 | AI-dependent                 |
-| Intent modes (Explore/Hypothesis/Monitor) | Adds complexity              |
-| Investigation lifecycle                   | Overkill for simple analysis |
-| Playbooks / guided workflows              | AI-dependent                 |
-| Cloud sync                                | Offline-first design         |
-| Multi-user / collaboration                | Single-user tool             |
+| Feature                                   | Why excluded                         |
+| ----------------------------------------- | ------------------------------------ |
+| AI assistance                             | PWA is a training tool — no AI, ever |
+| Intent modes (Explore/Hypothesis/Monitor) | Adds complexity                      |
+| Playbooks / guided workflows              | AI-dependent                         |
+| Cloud sync                                | Offline-first design                 |
+| Multi-user / collaboration                | Single-user tool                     |
 
-**Philosophy:** Lite users know what they're doing. They need visualization, not guidance.
+**Philosophy:** PWA users are learning. They need visualization, not AI shortcuts.
+
+## Azure App — Optional AI Features
+
+The Azure App (Standard and Team plans) supports optional AI-assisted analysis via customer-deployed Azure AI Foundry. See [ADR-019](../07-decisions/adr-019-ai-integration.md).
+
+| Feature                   | Standard |   Team   | Description                                |
+| ------------------------- | :------: | :------: | ------------------------------------------ |
+| Narrative Summary Bar     | Optional | Optional | Plain-language analysis summary            |
+| Chart Insight Chips       | Optional | Optional | Per-chart contextual suggestions           |
+| Copilot Panel             | Optional | Optional | Conversational AI assistant                |
+| Knowledge Base            |    -     | Optional | Cross-project findings + SharePoint docs   |
+| Process description field | Optional | Optional | Free-text process context for AI grounding |
+
+AI is always optional, dismissable, and controlled by a user-visible Settings toggle. No AI endpoint configured = no AI UI shown.
 
 ---
 
@@ -951,6 +966,6 @@ A new tab with 2×2 grid of scatter plots:
 
 ## Summary
 
-> **VariScout** is a fast, offline variation analysis tool for people who know what they're doing but need better tools than Excel. No AI, no subscriptions, no complexity — just linked charts that reveal hidden variation.
+> **VariScout** is a fast, offline variation analysis tool for people who know what they're doing but need better tools than Excel. Linked charts that reveal hidden variation — with optional AI-assisted analysis for Azure App customers who want natural language guidance.
 >
-> Perfect for quality professionals and LSS trainers: distribute freely, zero ongoing costs, clean licensing.
+> Perfect for quality professionals and LSS trainers: free PWA for training, Azure App for real work.

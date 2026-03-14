@@ -286,6 +286,46 @@ flowchart TD
 
 ---
 
+## AI Context Layer (Azure App, Optional)
+
+When AI features are enabled, a context assembly layer sits between the analysis engine and the AI service:
+
+```mermaid
+flowchart LR
+    subgraph Analysis["Analysis Engine"]
+        S[Statistics]
+        A[ANOVA]
+        F[Findings]
+    end
+
+    subgraph Context["AI Context Assembly"]
+        BC[buildAIContext]
+        PC[ProcessContext]
+        GL[Glossary]
+    end
+
+    subgraph AI["AI Service (Azure)"]
+        NB[NarrativeBar]
+        CC[ChartChips]
+        CP[CopilotPanel]
+    end
+
+    S --> BC
+    A --> BC
+    F --> BC
+    PC --> BC
+    GL --> BC
+    BC --> NB
+    BC --> CC
+    BC --> CP
+```
+
+`buildAIContext()` is a pure function in `@variscout/core` — no React dependency. It assembles computed stats, process context, glossary terms, and findings into a structured payload (typically <500 tokens). AI never receives raw measurement data.
+
+See [AI Architecture](ai-architecture.md) for the full context collection design.
+
+---
+
 ## Data Export
 
 ### Export Formats

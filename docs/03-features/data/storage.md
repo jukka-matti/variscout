@@ -56,6 +56,16 @@ When `filterStack` is present, flat `filters` are derived from it on load. When 
 | `valueLabels`   | `Record<string, Record<string, string>>` | `{}`    | Custom value labels                           |
 | `chartTitles`   | `ChartTitles`                            | `{}`    | Custom chart names (I-Chart, Boxplot, Pareto) |
 
+### Process Context
+
+| Field            | Type             | Default | Notes                                        |
+| ---------------- | ---------------- | ------- | -------------------------------------------- |
+| `processContext` | `ProcessContext` | `{}`    | Structured process metadata for AI grounding |
+
+`ProcessContext` includes: `description` (free text), `processType` ('manufacturing' | 'service' | 'laboratory' | 'logistics' | 'other'), `industry` (string), `measurementUnit` (string), `equipmentFactor` / `temporalFactor` / `operatorFactor` / `materialFactor` (factor role mappings, auto-inferred from column names), `processSteps` (string[]). All fields are optional — backward compatible with older .vrs files.
+
+Factor roles are auto-inferred during `detectColumns()` using the parser keyword infrastructure. Users can confirm or correct inferred roles in ColumnMapping. The `description` field is editable in Settings.
+
 ### Workflow State
 
 | Field               | Type             | Default     | Notes                          |
@@ -126,6 +136,7 @@ Load:
 
 Old `.vrs` files load without error. Every new field is optional with a safe default:
 
+- Missing `processContext` → empty object, no process metadata
 - Missing `filterStack` → breadcrumbs empty, flat `filters` still work
 - Missing `regressionState` → fresh regression panel
 - Missing `viewState` → Analysis tab, all panels closed

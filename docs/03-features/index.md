@@ -49,6 +49,7 @@ How analysts combine VariScout tools to solve real problems. See the [Workflows 
 | [Deep Dive](workflows/deep-dive.md)                             | 30-minute systematic investigation     |
 | [Decision Trees](workflows/decision-trees.md)                   | Chart selection flowcharts             |
 | [Investigation to Action](workflows/investigation-to-action.md) | Investigate, refine, project           |
+| [AI-Assisted Analysis](workflows/ai-assisted-analysis.md)       | AI-enhanced investigation (Azure only) |
 | [Process Maps](workflows/process-maps.md)                       | Step-by-step visual action maps        |
 
 ---
