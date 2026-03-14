@@ -91,7 +91,8 @@ export interface ChartInsightData {
   deterministicInsight: string;
   /** I-Chart specifics */
   ichart?: {
-    nelsonSequenceCount: number;
+    nelsonRule2Count: number;
+    nelsonRule3Count: number;
     outOfControlCount: number;
     totalPoints: number;
   };
@@ -143,9 +144,11 @@ export function buildChartInsightPrompt(context: AIContext, data: ChartInsightDa
   // Chart-specific data
   if (data.ichart) {
     const d = data.ichart;
-    parts.push(
-      `I-Chart: ${d.totalPoints} points, ${d.outOfControlCount} out-of-control, ${d.nelsonSequenceCount} Nelson sequences`
-    );
+    const ichartParts = [`${d.totalPoints} points`];
+    if (d.outOfControlCount > 0) ichartParts.push(`${d.outOfControlCount} out-of-control`);
+    if (d.nelsonRule2Count > 0) ichartParts.push(`${d.nelsonRule2Count} Rule 2 (shift)`);
+    if (d.nelsonRule3Count > 0) ichartParts.push(`${d.nelsonRule3Count} Rule 3 (trend)`);
+    parts.push(`I-Chart: ${ichartParts.join(', ')}`);
   }
   if (data.boxplot) {
     const d = data.boxplot;

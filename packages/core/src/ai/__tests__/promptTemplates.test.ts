@@ -101,7 +101,7 @@ describe('buildChartInsightPrompt', () => {
     const prompt = buildChartInsightPrompt(ctx, {
       chartType: 'ichart',
       deterministicInsight: 'Process shift detected',
-      ichart: { nelsonSequenceCount: 1, outOfControlCount: 3, totalPoints: 50 },
+      ichart: { nelsonRule2Count: 1, nelsonRule3Count: 0, outOfControlCount: 3, totalPoints: 50 },
     });
     expect(prompt).toContain('Process shift detected');
     expect(prompt).toContain('ichart');

@@ -186,7 +186,8 @@ export function useChartInsights({
         // Add chart-specific context fields
         if (chartType === 'ichart' && deterministicData.nelsonSequences !== undefined) {
           chartData.ichart = {
-            nelsonSequenceCount: deterministicData.nelsonSequences?.length ?? 0,
+            nelsonRule2Count: deterministicData.nelsonSequences?.length ?? 0,
+            nelsonRule3Count: deterministicData.nelsonRule3Sequences?.length ?? 0,
             outOfControlCount: deterministicData.outOfControlCount ?? 0,
             totalPoints: deterministicData.totalPoints ?? 0,
           };
