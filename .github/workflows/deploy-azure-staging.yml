@@ -39,7 +39,7 @@ jobs:
         run: pnpm --filter @variscout/azure-app build
 
       - name: Generate SBOM
-        run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json
+        run: npx @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-file sbom.json
 
       - name: Upload SBOM
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
