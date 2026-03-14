@@ -73,8 +73,8 @@ export const TOOLS: ToolData[] = [
       ],
       quickCheck: [
         'Any points outside control limits?',
-        'Any runs of 7+ points on one side?',
-        'Any trends of 7+ points up or down?',
+        'Any runs of 9+ points on one side? (Nelson Rule 2)',
+        'Any trends of 6+ points up or down? (Nelson Rule 3)',
       ],
     },
     patterns: [
@@ -84,13 +84,14 @@ export const TOOLS: ToolData[] = [
         action: 'Investigate what happened at that time',
       },
       {
-        name: 'Run of 7+',
-        description: 'Process mean has shifted',
+        name: 'Run of 9+ (Nelson Rule 2)',
+        description: 'Process mean has shifted — 9+ consecutive points on same side of mean',
         action: 'Look for what changed before the run started',
       },
       {
-        name: 'Trend of 7+',
-        description: 'Process is drifting in one direction',
+        name: 'Trend of 6+ (Nelson Rule 3)',
+        description:
+          'Process is drifting — 6+ consecutive points steadily increasing or decreasing',
         action: 'Check for wear, degradation, or accumulation',
       },
       {
@@ -101,6 +102,11 @@ export const TOOLS: ToolData[] = [
     ],
     features: [
       { name: 'Auto-calculated limits', description: 'UCL and LCL computed from your data' },
+      {
+        name: 'Nelson Rules',
+        description:
+          'Automatic detection of shifts (Rule 2) and trends (Rule 3) with visual markers',
+      },
       { name: 'Click to filter', description: 'Click any point to filter other charts' },
       {
         name: 'Point selection',
@@ -114,7 +120,7 @@ export const TOOLS: ToolData[] = [
     ],
     sampleKey: 'journey',
     nextTools: ['boxplot', 'capability'],
-    relatedLearn: ['two-voices', 'four-lenses', 'staged-analysis'],
+    relatedLearn: ['two-voices', 'four-lenses', 'staged-analysis', 'control-charts'],
     relatedCases: ['bottleneck', 'hospital-ward', 'coffee', 'cookie-weight'],
   },
   {

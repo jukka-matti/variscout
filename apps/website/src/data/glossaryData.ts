@@ -430,6 +430,11 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
             label: '9+ Consecutive Points on One Side',
             description: 'Persistent process shift detected',
           },
+          {
+            value: 'Nelson Rule 3',
+            label: '6+ Consecutive Points Trending Up or Down',
+            description: 'Gradual drift or trend detected',
+          },
         ],
       },
       {
@@ -548,6 +553,59 @@ export const GLOSSARY_EXTENSIONS: Record<string, Partial<GlossaryPageData>> = {
     ],
     practicalTip:
       'When Nelson Rule 2 triggers, check your timeline: What changed when the sequence started? Look at batch numbers, shift changes, material lots, maintenance events, and environmental conditions.',
+  },
+
+  nelsonRule3: {
+    seoTitle: 'Nelson Rule 3 — Trend Detection | VariScout Glossary',
+    seoDescription:
+      'Nelson Rule 3 in control charts: Detecting process trends through 6 consecutive points steadily increasing or decreasing. Learn what this drift pattern signals and how to investigate.',
+    relatedTools: ['i-chart'],
+    relatedLearn: ['control-charts', 'two-voices'],
+    sections: [
+      {
+        type: 'interpretation',
+        title: 'Rule Definition',
+        content: 'Nelson Rule 3 detects gradual drift in the process level:',
+        items: [
+          {
+            value: '6+ Points',
+            label: 'Six or More Consecutive',
+            description: 'Each point strictly higher (or lower) than the previous',
+          },
+          {
+            value: 'Direction',
+            label: 'Monotonic Trend',
+            description: 'All increasing OR all decreasing — any equal value breaks the trend',
+          },
+          {
+            value: 'Progressive',
+            label: 'Indicates Drift',
+            description: 'Process is gradually moving — unlike Rule 2 (sudden shift)',
+          },
+        ],
+      },
+      {
+        type: 'diagram',
+        title: 'Visual Pattern',
+        content:
+          'VariScout highlights Nelson Rule 3 sequences with directional triangle markers (▲ upward trend, ▼ downward trend) and dotted connector lines, making the drift immediately visible.',
+      },
+      {
+        type: 'example',
+        title: 'Real-World Example',
+        content:
+          'A CNC machining process shows 8 consecutive cuts with steadily increasing part diameter (Nelson Rule 3). Investigation reveals progressive tool wear. Corrective action: Implement tool change schedule based on cut count, not calendar time.',
+      },
+    ],
+    examples: [
+      'Tool wear causing gradually increasing dimensions',
+      'Temperature drift as equipment warms up over a shift',
+      'Chemical bath depletion reducing coating thickness',
+      'Sensor calibration drift over time',
+      'Operator fatigue increasing cycle time across a shift',
+    ],
+    practicalTip:
+      'Check the rate of change — a gradual drift may be acceptable if it stays within limits for the production run. A steep trend may hit limits soon. Extrapolate the trend to estimate when your process will exceed control or spec limits.',
   },
 
   violinPlot: {

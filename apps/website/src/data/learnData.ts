@@ -1485,7 +1485,8 @@ export const LEARN_TOPICS: LearnTopic[] = [
               items: [
                 'Point above UCL or below LCL',
                 'Nelson Rule 2: 9 consecutive points on one side',
-                'Indicates process shift or unusual event',
+                'Nelson Rule 3: 6 consecutive points trending up or down',
+                'Indicates process shift, trend, or unusual event',
                 'Assignable cause - can be identified',
                 'Action required: Find and fix',
               ],
@@ -1523,7 +1524,7 @@ export const LEARN_TOPICS: LearnTopic[] = [
               {
                 title: '🔴 Red Dots (Special Cause)',
                 description:
-                  'Points outside control limits (above UCL, below LCL) or showing special patterns (Nelson Rule 2). Process is unstable - something unusual happened. Investigation required to find the assignable cause.',
+                  'Points outside control limits (above UCL, below LCL) or showing special patterns (Nelson Rule 2 shifts, Nelson Rule 3 trends). Process is unstable - something unusual happened. Investigation required to find the assignable cause.',
               },
               {
                 title: '🟠 Orange Dots (Out-of-Spec)',
@@ -1558,6 +1559,37 @@ export const LEARN_TOPICS: LearnTopic[] = [
               {
                 label: '4. Investigate',
                 description: 'Check timeline: What changed when the sequence started?',
+              },
+            ],
+          },
+        },
+      },
+      {
+        id: 'nelson-rule-3',
+        title: 'Nelson Rule 3: Detecting Process Trends',
+        content:
+          'Nelson Rule 3 detects gradual drift: 6 or more consecutive points steadily increasing or decreasing. Unlike Rule 2 (sudden shift to a new level), Rule 3 catches progressive changes like tool wear, temperature drift, or chemical bath depletion. VariScout marks trend points with directional triangles (▲ upward, ▼ downward) and dotted connector lines.',
+        visual: {
+          type: 'diagram',
+          data: {
+            steps: [
+              {
+                label: '1. Monitor',
+                description: 'Chart tracks direction of consecutive point changes',
+              },
+              {
+                label: '2. Detect',
+                description:
+                  '6+ consecutive points all increasing (or all decreasing) triggers alert',
+              },
+              {
+                label: '3. Visualize',
+                description:
+                  'VariScout highlights with directional triangles ▲▼ and dotted connector',
+              },
+              {
+                label: '4. Investigate',
+                description: 'Check for wear, depletion, drift — what is progressively changing?',
               },
             ],
           },
