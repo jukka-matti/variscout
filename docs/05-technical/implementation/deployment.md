@@ -148,7 +148,10 @@ The staging environment deploys automatically on push to `main` via GitHub Actio
 
 - SPA fallback routing (all non-file paths → `index.html`)
 - Cache headers (hashed `/assets/*` get 1-year immutable, rest `no-cache`)
+- Security headers on every response: CSP, HSTS (1 year, includeSubDomains), X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+- Dynamic `connect-src` in CSP: includes `graph.microsoft.com` and OBO function URL (from `FUNCTION_URL` env var)
 - Health endpoint (`GET /health` → 200)
+- SIGTERM graceful shutdown (closes server, exits cleanly)
 - Listens on `process.env.PORT` (set by App Service)
 
 EasyAuth intercepts `/.auth/*` at the platform level before the Node server — no conflict.
@@ -156,9 +159,18 @@ EasyAuth intercepts `/.auth/*` at the platform level before the Node server — 
 **Pipeline** (`.github/workflows/deploy-azure-staging.yml`):
 
 1. pnpm install + build Azure app
-2. Assemble zip: `dist/` + `server.js` + minimal `package.json`
-3. OIDC login → `azure/webapps-deploy@v3`
-4. (Conditional) Deploy OBO token-exchange Azure Function — runs only when `AZURE_FUNCTION_APP_NAME` variable is set; deploys `infra/functions/` via `azure/functions-action@v2`
+2. `pnpm audit --audit-level=high` — fail on high/critical vulnerabilities
+3. Generate CycloneDX SBOM (`sbom.json`) and upload as build artifact
+4. Assemble zip: `dist/` + `server.js` + minimal `package.json`
+5. OIDC login → `azure/webapps-deploy@v3`
+6. Health check (`GET /health`) — verifies deployment stability
+7. (Conditional, separate job) Deploy OBO token-exchange Azure Function — runs only when `AZURE_FUNCTION_APP_NAME` variable is set; deploys `infra/functions/` via `azure/functions-action@v2`
+
+### Supply Chain Security
+
+- **Dependabot** (`.github/dependabot.yml`): weekly updates for both npm and GitHub Actions ecosystems
+- **SHA-pinned actions**: all 6 GitHub Actions use commit SHA (not version tags) to prevent supply chain attacks via tag mutation
+- **SBOM**: CycloneDX JSON generated per build, uploaded as artifact for audit trail
 
 **GitHub secrets** (3, all OIDC — no credentials stored):
 
@@ -205,6 +217,8 @@ Static Astro 5 site deployed to Vercel:
 
 The website is fully static — no server-side code, no database, no runtime environment variables. Workspace packages (`@variscout/core`, `@variscout/charts`, `@variscout/data`) are resolved at build time for chart demos.
 
+Security headers (CSP, Permissions-Policy, X-Content-Type-Options) configured in `apps/website/vercel.json`. Vulnerability disclosure via `/.well-known/security.txt`.
+
 See `apps/website/README.md` for the development guide.
 
 ### PWA (Internal Hosting)
@@ -215,6 +229,8 @@ For demos and development only:
 # Static hosting (internal)
 { 'buildCommand': 'pnpm build', 'outputDirectory': 'apps/pwa/dist' }
 ```
+
+Security headers (CSP, Permissions-Policy) configured in `apps/pwa/vercel.json`. Service worker (`sw.js`) served with `no-cache` to ensure prompt updates.
 
 ---
 

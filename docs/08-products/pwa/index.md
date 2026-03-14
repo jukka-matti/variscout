@@ -10,7 +10,7 @@
 
 The PWA is a **free variation analysis training tool** that provides:
 
-1. **Core analysis for everyone** — I-Chart, Boxplot, Pareto, Capability, Regression, ANOVA
+1. **Core analysis for everyone** — I-Chart, Boxplot, Pareto, Capability, ANOVA
 2. **Pre-loaded case study datasets** — Same datasets as documentation
 3. **Copy-paste from Excel/Sheets** — No file upload, paste data directly
 4. **Zero friction** — No signup, no payment, no installation required
@@ -56,8 +56,7 @@ The PWA comes with datasets from the documentation case studies:
 
 All core analysis features:
 
-- I-Chart, Boxplot, Pareto, Capability Histogram
-- Regression analysis, ANOVA
+- I-Chart, Boxplot, Pareto, Capability Histogram, ANOVA
 - Drill-down with breadcrumb navigation
 - Linked filtering across charts
 - Data input: copy-paste from Excel/Sheets + sample datasets
@@ -98,14 +97,14 @@ All core analysis features:
 
 ## Technical Stack
 
-| Component | Technology               |
-| --------- | ------------------------ |
-| Framework | React 18 + TypeScript    |
-| Build     | Vite                     |
-| Styling   | Tailwind CSS             |
-| Charts    | Visx (@variscout/charts) |
-| State     | React Context            |
-| Offline   | Service Worker           |
+| Component | Technology                |
+| --------- | ------------------------- |
+| Framework | React 18 + TypeScript     |
+| Build     | Vite                      |
+| Styling   | Tailwind CSS              |
+| Charts    | Visx (@variscout/charts)  |
+| State     | React Context             |
+| Offline   | Workbox (vite-plugin-pwa) |
 
 ---
 
@@ -121,10 +120,29 @@ All core analysis features:
 │  └─────────────────────────────────────────────────────────────┘ │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────────┐ │
-│  │                   Service Worker (offline)                   │ │
+│  │              Service Worker (Workbox, offline)               │ │
 │  └─────────────────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────────┘
 ```
+
+### Service Worker (Workbox)
+
+Configured via `vite-plugin-pwa` with `autoUpdate` strategy:
+
+- **clientsClaim + skipWaiting** — new service worker activates immediately
+- **navigateFallback** — `/index.html` for SPA offline routing
+- **globPatterns** — caches `**/*.{js,css,html,ico,png,svg,woff,woff2}`
+- Self-hosted Caveat font (no CDN dependency — works fully offline)
+
+### Code Splitting
+
+`React.lazy` splits 9 route-level components (Dashboard, HomeScreen, PasteScreen, ManualEntry, WhatIfPage, SettingsPanel, DataTableModal, DataPanel, FindingsPanel). Bundle analysis available via `ANALYZE=true pnpm build`.
+
+### Accessibility
+
+- `aria-live` region for dynamic chart updates (Dashboard)
+- Per-chart `ErrorBoundary` — one chart failure doesn't crash the app
+- `prefers-reduced-motion` media query respected in CSS animations
 
 ---
 

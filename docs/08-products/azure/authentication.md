@@ -130,6 +130,17 @@ Flow:
    - Failure → return existing token (still valid)
 3. If not near expiry → return token directly
 
+### Periodic Background Refresh
+
+`startPeriodicRefresh()` runs a 45-minute interval that calls `/.auth/refresh` in the background. This prevents session expiry during long analysis sessions (EasyAuth tokens typically expire after 1 hour).
+
+- Started on app mount, stopped on unmount
+- Safe to call multiple times — clears any existing interval first
+- Failures are logged but do not interrupt the user session
+- Companion: `stopPeriodicRefresh()` for cleanup
+
+Source: `apps/azure/src/auth/easyAuth.ts`
+
 ---
 
 ## Graph API Token Usage
@@ -231,6 +242,17 @@ When running inside Teams, the app exchanges the Teams SSO token for a Graph API
 5. If OBO fails, the app falls back to EasyAuth redirect (graceful degradation)
 
 This enables **silent SSO** — no redirect flash when saving to OneDrive or uploading photos from within Teams.
+
+**Security controls on the OBO function:**
+
+| Control             | Detail                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| Audience validation | JWT `aud` must match `CLIENT_ID` — prevents exchanging tokens issued for other apps               |
+| Scope allowlist     | Only `Files.ReadWrite.All`, `ChannelMessage.Send`, `People.Read` — other scopes rejected with 400 |
+| CORS                | Configurable `ALLOWED_ORIGIN` env var (defaults to `*` for dev); `OPTIONS` preflight supported    |
+| Function-key auth   | Optional `FUNCTION_KEY` env var — if set, requests must include `X-Functions-Key` header          |
+| Generic errors      | Catch block returns `"Token exchange failed"` — no MSAL internals leaked to clients               |
+| Method restriction  | Only `POST` accepted; other methods return 405                                                    |
 
 - Function code: `infra/functions/token-exchange/index.js`
 - Client module: `apps/azure/src/auth/graphToken.ts`

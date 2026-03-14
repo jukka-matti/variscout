@@ -81,16 +81,17 @@ Before deploying VariScout, the customer must create an App Registration in Azur
 
 ### Optional Parameters
 
-| Parameter  | Type   | Default                 | Description                 |
-| ---------- | ------ | ----------------------- | --------------------------- |
-| `location` | string | Resource group location | Azure region for deployment |
-| `appName`  | string | `variscout-{unique}`    | Name for App Service (3-24) |
-
-All Managed Application deployments get full features — no tier parameter needed.
+| Parameter       | Type   | Default                 | Description                                                  |
+| --------------- | ------ | ----------------------- | ------------------------------------------------------------ |
+| `location`      | string | Resource group location | Azure region for deployment                                  |
+| `appName`       | string | `variscout-{unique}`    | Name for App Service (3-24)                                  |
+| `variscoutPlan` | string | `standard`              | Plan: `standard` (local files) or `team` (+ OneDrive, Teams) |
 
 ---
 
 ## Resources
+
+All resources are tagged with `product: VariScout`, `plan: <selected>`, and `managedBy: AzureMarketplace` for cost tracking and governance.
 
 ### 1. App Service Plan
 
@@ -212,6 +213,15 @@ The `createUiDefinition.json` defines the Azure portal wizard shown to customers
 ### Basics Step
 
 The customer provides an app name and selects a region.
+
+### Plan Selection Step
+
+The customer selects their VariScout plan:
+
+- **Standard (€99/month)** — Full analysis, local file storage
+- **Team (€299/month)** — Teams, OneDrive, SharePoint, mobile, photos
+
+The selected `variscoutPlan` parameter is passed to the ARM template, which conditionally provisions Team plan resources (Function App, Storage Account) and adjusts EasyAuth login scopes.
 
 ### Authentication Step
 
@@ -364,6 +374,7 @@ The template requests only necessary permissions:
 | 4.0.0   | 2026-02-16 | Customer-provided App Registration (removes deployment script)                                 |
 | 5.0.0   | 2026-02-25 | API version → 2024-04-01, /health excluded from EasyAuth                                       |
 | 5.1.0   | 2026-02-26 | Fix OpenID issuer (sts.windows.net → login.microsoftonline.com), document ID token requirement |
+| 6.0.0   | 2026-03-14 | Plan selector (Standard/Team), resource tags, conditional Function App + Storage for Team plan |
 
 ---
 

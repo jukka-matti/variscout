@@ -32,18 +32,18 @@ npx ruflo@latest swarm start --objective "Fix security issues identified in scan
 
 ## OWASP Top 10 Coverage
 
-| Category                       | What We Check                                      |
-| ------------------------------ | -------------------------------------------------- |
-| A01: Broken Access Control     | Tier feature gates, Azure Marketplace subscription |
-| A02: Cryptographic Failures    | No sensitive keys (tier via ARM params)            |
-| A03: Injection                 | CSV parser input sanitization                      |
-| A04: Insecure Design           | Architecture review                                |
-| A05: Security Misconfiguration | Build configs, env vars                            |
-| A06: Vulnerable Components     | npm audit, CVE database                            |
-| A07: Authentication Failures   | Azure EasyAuth configuration (Azure app)           |
-| A08: Data Integrity Failures   | Data validation, import/export                     |
-| A09: Logging Failures          | Sensitive data exposure checks                     |
-| A10: SSRF                      | External request handling                          |
+| Category                       | What We Check                                                                         |
+| ------------------------------ | ------------------------------------------------------------------------------------- |
+| A01: Broken Access Control     | Tier feature gates, Azure Marketplace subscription                                    |
+| A02: Cryptographic Failures    | No sensitive keys (tier via ARM params)                                               |
+| A03: Injection                 | CSV parser input sanitization                                                         |
+| A04: Insecure Design           | Architecture review                                                                   |
+| A05: Security Misconfiguration | CSP headers, Permissions-Policy, security headers on all 3 apps, CORS on OBO function |
+| A06: Vulnerable Components     | npm audit, CVE database                                                               |
+| A07: Authentication Failures   | Azure EasyAuth configuration (Azure app)                                              |
+| A08: Data Integrity Failures   | Data validation, import/export                                                        |
+| A09: Logging Failures          | Sensitive data exposure checks                                                        |
+| A10: SSRF                      | External request handling                                                             |
 
 ## Attack Surface
 
@@ -61,13 +61,43 @@ VariScout is offline-first with no backend. Key security areas:
 
 ### Azure EasyAuth (Azure App Only)
 
-- App Service Authentication (EasyAuth) -- no MSAL libraries
-- API permissions: Standard plan = `User.Read` only; Team plan adds `Files.ReadWrite` (OneDrive sync)
+- App Service Authentication (EasyAuth) — no MSAL libraries
+- API permissions: Standard plan = `User.Read` only; Team plan adds `Files.ReadWrite`, `Files.ReadWrite.All`, `Channel.ReadBasic.All`, `People.Read`, `ChannelMessage.Send`
 - Token store via `/.auth/me` endpoint
+- Periodic background token refresh (45-minute interval) prevents session expiry
+
+### OBO Token Exchange Function (Team Plan)
+
+- Audience validation (`aud === CLIENT_ID`) before token exchange
+- Scope allowlist: only `Files.ReadWrite.All`, `ChannelMessage.Send`, `People.Read` — other scopes rejected
+- CORS with configurable `ALLOWED_ORIGIN` (defaults to `*` for dev)
+- OPTIONS preflight support
+- Optional function-key auth (`FUNCTION_KEY` env var)
+- Generic error messages — no MSAL internals leaked to clients
+- See [authentication.md](../../08-products/azure/authentication.md) for full details
 
 ### Audit Scope Exclusions
 
 The security audit worker excludes non-application paths (`.venv/`, `node_modules/`, `dist/`, `site/`, minified files) to avoid false positives from build tooling and Python MkDocs dependencies.
+
+## Security Hardening
+
+| Measure                                                                                                | Scope                   | Details                                                            |
+| ------------------------------------------------------------------------------------------------------ | ----------------------- | ------------------------------------------------------------------ |
+| Security headers (CSP, HSTS, Permissions-Policy)                                                       | Azure App, PWA, Website | See [deployment.md](deployment.md)                                 |
+| OBO function hardening (generic errors, CORS, scope allowlist, audience validation, function-key auth) | Azure App (Team plan)   | See [authentication.md](../../08-products/azure/authentication.md) |
+| Service worker (Workbox via vite-plugin-pwa)                                                           | PWA                     | See [PWA docs](../../08-products/pwa/index.md)                     |
+| Supply chain (Dependabot, SHA-pinned actions, CycloneDX SBOM)                                          | CI/CD                   | See [deployment.md](deployment.md)                                 |
+| Graceful shutdown (SIGTERM handler)                                                                    | Azure App server        | See [deployment.md](deployment.md)                                 |
+| Periodic token refresh (45-min interval)                                                               | Azure App               | See [authentication.md](../../08-products/azure/authentication.md) |
+| Vulnerability disclosure (`/.well-known/security.txt`)                                                 | Website                 | `apps/website/public/.well-known/security.txt`                     |
+
+## Security Backlog
+
+- [ ] PWA icons — generate `pwa-192x192.png` and `pwa-512x512.png` (requires image generation)
+- [ ] Penetration testing — engage external vendor before Marketplace GA
+- [ ] Threat model — STRIDE model covering EasyAuth, OBO, OneDrive sync, service worker
+- [ ] Incident response plan — classification, escalation paths, response procedures
 
 ## When to Run
 
