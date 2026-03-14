@@ -11,10 +11,12 @@ export interface UseAICopilotOptions {
   /** Current analysis context */
   context: AIContext | null;
   /** Injected fetch function (from aiService.ts) */
-  fetchResponse?: (messages: Array<{ role: string; content: string }>) => Promise<string>;
+  fetchResponse?: (
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>
+  ) => Promise<string>;
   /** Injected streaming fetch function */
   fetchStreamingResponse?: (
-    messages: Array<{ role: string; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     onChunk: (delta: string) => void,
     signal: AbortSignal
   ) => Promise<void>;

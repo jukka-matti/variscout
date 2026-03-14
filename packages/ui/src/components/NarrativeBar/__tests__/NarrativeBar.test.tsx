@@ -28,6 +28,13 @@ describe('NarrativeBar', () => {
     expect(screen.getByText(/Process is stable/)).toBeTruthy();
   });
 
+  it('shows AI label when not cached', () => {
+    render(
+      <NarrativeBar narrative="AI generated text" isLoading={false} isCached={false} error={null} />
+    );
+    expect(screen.getByText('AI')).toBeTruthy();
+  });
+
   it('shows cached label when from cache', () => {
     render(
       <NarrativeBar narrative="Cached result" isLoading={false} isCached={true} error={null} />

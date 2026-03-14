@@ -11,6 +11,10 @@ Azure App only (Standard and Team plans). All AI components require:
 1. AI endpoint configured in ARM deployment (`enableAI` parameter)
 2. User Settings toggle "Show AI assistance" set to ON
 
+### PWA Availability
+
+The PWA (free tier) uses **deterministic `ChartInsightChip` only** (`isAI={false}`). No `NarrativeBar`, no `CopilotPanel`, no AI service calls. The PWA is a training tool where "the struggle is the point."
+
 ### User Control
 
 "Show AI assistance" toggle in SettingsPanel. Per-user preference stored in localStorage. Default: ON when endpoint available.
@@ -36,8 +40,9 @@ interface NarrativeBarProps {
   narrative: string | null;
   isLoading: boolean;
   isCached: boolean;
-  onAskClick: () => void; // opens CopilotPanel
-  colorScheme?: NarrativeBarColorScheme;
+  error: string | null;
+  onAsk?: () => void;
+  onRetry?: () => void;
 }
 ```
 
@@ -74,8 +79,11 @@ Small chip displayed below a chart card. Provides one contextual suggestion per 
 ```typescript
 interface ChartInsightChipProps {
   text: string;
+  chipType?: 'suggestion' | 'warning' | 'info';
+  isAI?: boolean;
+  isLoading?: boolean;
   onDismiss: () => void;
-  colorScheme?: ChartInsightChipColorScheme;
+  chartType: string;
 }
 ```
 
@@ -112,14 +120,18 @@ Resizable slide-out panel for conversational AI interaction. Follows the same pa
 ### Props
 
 ```typescript
-interface CopilotPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
+interface CopilotPanelBaseProps {
   messages: CopilotMessage[];
   onSend: (text: string) => void;
+  isLoading: boolean;
   isStreaming: boolean;
-  error?: CopilotError;
-  colorScheme?: CopilotPanelColorScheme;
+  error: CopilotError | null;
+  onRetry?: () => void;
+  onClear?: () => void;
+  onStopStreaming?: () => void;
+  onCopyLastResponse?: () => Promise<boolean>;
+  suggestedQuestions?: string[];
+  onAskSuggested?: (question: string) => void;
 }
 ```
 
@@ -469,6 +481,20 @@ const showAI = aiEndpointConfigured && userAIToggle;
 ```
 
 When `showAI` is false, no AI components render. The dashboard layout is unchanged — no empty spaces, no "configure AI" placeholders. The app behaves identically to a non-AI deployment.
+
+---
+
+## E2E Test Selectors
+
+| Element           | Selector                               |
+| ----------------- | -------------------------------------- |
+| NarrativeBar      | `[data-testid="narrative-bar"]`        |
+| Narrative shimmer | `[data-testid="narrative-shimmer"]`    |
+| Ask button        | `[data-testid="narrative-ask-button"]` |
+| CopilotPanel      | `[data-testid="copilot-panel"]`        |
+| Copilot input     | `[data-testid="copilot-input"]`        |
+| Copilot message   | `[data-testid^="copilot-message-"]`    |
+| ChartInsightChip  | `[data-testid^="insight-chip-"]`       |
 
 ---
 

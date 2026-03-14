@@ -68,15 +68,17 @@ describe('ChartInsightChip', () => {
     expect(chip.className).toContain('bg-slate-500/10');
   });
 
-  it('shows sparkle icon when isAI is true', () => {
+  it('shows sparkle icon and AI label when isAI is true', () => {
     const { container } = render(<ChartInsightChip {...defaultProps} isAI />);
     const sparkle = container.querySelector('.text-purple-400');
     expect(sparkle).not.toBeNull();
+    expect(screen.getByText('AI')).toBeDefined();
   });
 
-  it('does not show sparkle icon when isAI is false', () => {
+  it('does not show sparkle icon or AI label when isAI is false', () => {
     const { container } = render(<ChartInsightChip {...defaultProps} isAI={false} />);
     const sparkle = container.querySelector('.text-purple-400');
     expect(sparkle).toBeNull();
+    expect(screen.queryByText('AI')).toBeNull();
   });
 });

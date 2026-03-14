@@ -1,5 +1,9 @@
 /**
  * Prompt templates for AI narration.
+ *
+ * Structure optimized for Azure AI Foundry automatic prompt caching:
+ * System prompts place static content (role + glossary) first as a cacheable prefix (≥1,024 tokens),
+ * with variable context (stats, filters, findings) in subsequent messages.
  */
 
 import type { AIContext, CopilotMessage, FactorRole } from './types';
@@ -7,16 +11,27 @@ import type { InsightChartType } from './chartInsights';
 
 /**
  * Build the system prompt for narration.
+ * Includes glossary grounding as static prefix for prompt caching.
  */
-export function buildNarrationSystemPrompt(): string {
-  return `You are a quality engineering assistant for VariScout, a variation analysis tool.
+export function buildNarrationSystemPrompt(glossaryFragment?: string): string {
+  const parts = [
+    `You are a quality engineering assistant for VariScout, a variation analysis tool.
 You explain statistical analysis results in clear, actionable language for quality professionals.
 Keep responses concise (1-2 sentences for summaries). Use the provided terminology definitions.
-Never invent data — only describe what is provided in the context.`;
+Never invent data — only describe what is provided in the context.`,
+  ];
+
+  if (glossaryFragment) {
+    parts.push(glossaryFragment);
+  }
+
+  return parts.join('\n\n');
 }
 
 /**
  * Build the user prompt for a summary narration.
+ * Contains only variable context (stats, filters, findings).
+ * Glossary is placed in the system prompt for prompt caching.
  */
 export function buildSummaryPrompt(context: AIContext): string {
   const parts: string[] = [];
@@ -62,11 +77,6 @@ export function buildSummaryPrompt(context: AIContext): string {
     if (context.findings.keyDrivers.length > 0) {
       parts.push(`Key drivers: ${context.findings.keyDrivers.join(', ')}`);
     }
-  }
-
-  // Glossary
-  if (context.glossaryFragment) {
-    parts.push(context.glossaryFragment);
   }
 
   parts.push('Summarize this analysis state in 1-2 sentences for a quality professional.');
@@ -181,14 +191,23 @@ export function buildChartInsightPrompt(context: AIContext, data: ChartInsightDa
 
 /**
  * Build the system prompt for conversational copilot.
+ * Includes glossary grounding as static prefix for prompt caching.
  */
-export function buildCopilotSystemPrompt(): string {
-  return `You are a quality engineering copilot for VariScout, a variation analysis tool.
+export function buildCopilotSystemPrompt(glossaryFragment?: string): string {
+  const parts = [
+    `You are a quality engineering copilot for VariScout, a variation analysis tool.
 You help quality professionals understand their analysis results by answering questions clearly and concisely.
 Use the provided context (statistics, filters, violations, findings) to ground every answer.
 Keep responses focused and practical — 2-4 sentences unless the user asks for more detail.
 Never invent data or statistics. If the context does not contain enough information to answer, say so.
-Use standard SPC/quality terminology (Cpk, control limits, variation, etc.) when appropriate.`;
+Use standard SPC/quality terminology (Cpk, control limits, variation, etc.) when appropriate.`,
+  ];
+
+  if (glossaryFragment) {
+    parts.push(glossaryFragment);
+  }
+
+  return parts.join('\n\n');
 }
 
 /** Maximum number of history messages to include in copilot API calls */
@@ -196,19 +215,25 @@ const COPILOT_HISTORY_LIMIT = 10;
 
 /**
  * Build the full messages array for a copilot API call.
- * Returns [system, context summary, ...recent history, user message].
+ * Returns [system (with glossary), context summary, ...recent history, user message].
+ *
+ * Glossary is placed in the system prompt (static prefix) for Azure AI Foundry
+ * automatic prompt caching. Variable context follows in a separate system message.
  */
 export function buildCopilotMessages(
   context: AIContext,
   history: CopilotMessage[],
   userMessage: string
-): Array<{ role: string; content: string }> {
-  const messages: Array<{ role: string; content: string }> = [];
+): Array<{ role: 'user' | 'assistant' | 'system'; content: string }> {
+  const messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
 
-  // System prompt
-  messages.push({ role: 'system', content: buildCopilotSystemPrompt() });
+  // System prompt with glossary (static cacheable prefix)
+  messages.push({
+    role: 'system',
+    content: buildCopilotSystemPrompt(context.glossaryFragment),
+  });
 
-  // Context summary (reuse the summary prompt builder)
+  // Context summary — variable per analysis state
   const contextSummary = buildSummaryPrompt(context).replace(
     /Summarize this analysis state.*$/,
     "This is the current analysis context. Use it to answer the user's question."
@@ -219,7 +244,7 @@ export function buildCopilotMessages(
   const recentHistory = history.slice(-COPILOT_HISTORY_LIMIT);
   for (const msg of recentHistory) {
     if (!msg.error) {
-      messages.push({ role: msg.role, content: msg.content });
+      messages.push({ role: msg.role as 'user' | 'assistant', content: msg.content });
     }
   }
 

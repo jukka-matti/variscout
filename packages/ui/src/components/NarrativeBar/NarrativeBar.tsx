@@ -77,7 +77,11 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
     >
       <p className="flex-1 text-xs text-content-secondary leading-relaxed truncate">
         {narrative}
-        {isCached && <span className="ml-1.5 text-[10px] text-content-muted">(cached)</span>}
+        {isCached ? (
+          <span className="ml-1.5 text-[10px] text-content-muted">(cached)</span>
+        ) : (
+          <span className="ml-1.5 text-[10px] text-purple-400 font-medium">AI</span>
+        )}
       </p>
       {onAsk && (
         <button

@@ -1,6 +1,6 @@
 # ADR-019: AI Integration (Azure App)
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Date:** 2026-03-14
 
@@ -97,16 +97,16 @@ Conditional AI resources in `infra/mainTemplate.json`:
 
 ### Package Architecture
 
-| Component           | Package                   | Rationale                                                |
-| ------------------- | ------------------------- | -------------------------------------------------------- |
-| `buildAIContext()`  | `@variscout/core`         | Pure function, no React                                  |
-| Prompt templates    | `@variscout/core`         | String templates, no React                               |
-| `aiService.ts`      | `apps/azure/src/services` | Network calls + IndexedDB caching (mirrors `storage.ts`) |
-| `useAIContext` hook | `@variscout/hooks`        | React hook wrapping buildAIContext                       |
-| `useAICopilot` hook | `@variscout/hooks`        | Chat state, history, streaming                           |
-| `NarrativeBar`      | `@variscout/ui`           | Shared UI component                                      |
-| `ChartInsightChip`  | `@variscout/ui`           | Inline chart badge                                       |
-| `CopilotPanel`      | `@variscout/ui`           | Slide-out chat panel                                     |
+| Component           | Package                   | Rationale                                                                                                  |
+| ------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `buildAIContext()`  | `@variscout/core`         | Pure function, no React                                                                                    |
+| Prompt templates    | `@variscout/core`         | String templates, no React                                                                                 |
+| `aiService.ts`      | `apps/azure/src/services` | Network calls + localStorage caching. Auth via `getAuthHeaders()` (EasyAuth). Retry + exponential backoff. |
+| `useAIContext` hook | `@variscout/hooks`        | React hook wrapping buildAIContext                                                                         |
+| `useAICopilot` hook | `@variscout/hooks`        | Chat state, history, streaming                                                                             |
+| `NarrativeBar`      | `@variscout/ui`           | Shared UI component                                                                                        |
+| `ChartInsightChip`  | `@variscout/ui`           | Inline chart badge                                                                                         |
+| `CopilotPanel`      | `@variscout/ui`           | Slide-out chat panel                                                                                       |
 
 ### Context Enrichment
 
@@ -129,7 +129,7 @@ See [AI Readiness Review](../05-technical/architecture/ai-readiness-review.md) f
 
 - Stats-only payloads: typically <500 tokens of context
 - Client-side throttle: max 1 narration request per 5 seconds
-- Response caching in IndexedDB (24h TTL or until data changes)
+- Response caching in localStorage (24h TTL or until data changes)
 - Dual-model routing minimizes reasoning-tier spend
 - Configurable monthly budget via ARM template parameters
 
@@ -165,6 +165,21 @@ See [AI Readiness Review](../05-technical/architecture/ai-readiness-review.md) f
 | EDAScout-style chatbot backlash     | AI never auto-acts. Always dismissable. Shows stats source alongside explanation.                            |
 | Model quality for SPC domain        | Prompt templates grounded in VariScout glossary. Stats-only context reduces hallucination.                   |
 | Privacy / data sovereignty          | All AI resources in customer tenant. Stats-only payloads. Same EasyAuth + RBAC.                              |
+
+---
+
+## Implementation Notes
+
+Phase 1-3 client-side AI delivered across 5 commits (86f3ccb → 4e5382c, March 2026):
+
+- **Phase 1:** AI service layer (`aiService.ts`), `NarrativeBar`, process description field, factor role inference (`inferFactorRoles`), glossary expansion (25→28 terms), `buildAIContext()`
+- **Phase 2:** `ChartInsightChip` with 4 deterministic insight builders + optional AI enhancement, per-chart chips in PWA (deterministic only) + Azure (AI-enhanced)
+- **Phase 2.5:** Factor role auto-inference from column names, `ProcessContext` persistence
+- **Phase 3:** `CopilotPanelBase` with streaming, suggested questions, conversation history, overflow menu
+
+**Phase 3 knowledge layer deferred:** Azure AI Search, Foundry IQ agentic retrieval, SharePoint connector, findings indexer Azure Function, and ARM template AI resources are documented but not yet implemented. Pending Foundry IQ GA and SharePoint connector stability.
+
+**Teams AI SDK not applicable:** `@microsoft/teams-ai` is for bot-based apps. VariScout's tab app pattern uses direct Azure AI Foundry calls via EasyAuth, which is the correct architecture for embedded tab applications.
 
 ---
 

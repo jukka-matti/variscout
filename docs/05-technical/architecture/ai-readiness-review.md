@@ -24,12 +24,12 @@ The existing architecture is fundamentally sound for AI integration. No major re
 
 ### Four Targeted Gaps
 
-| Gap                                        | Impact on AI                                       | Effort | Current State                                                        |
-| ------------------------------------------ | -------------------------------------------------- | ------ | -------------------------------------------------------------------- |
-| **1. No structured process metadata**      | AI is generic narrator vs. domain-aware assistant  | Medium | Only free-text `processDescription` planned                          |
-| **2. No closed-loop investigation data**   | AI can't recommend actions or verify effectiveness | Large  | `suspectedCause`, `actions[]`, `outcome` planned in ADR-015 revision |
-| **3. Glossary too small for AI grounding** | Higher hallucination risk in SPC domain            | Small  | 25 terms, needs ~40-50                                               |
-| **4. No `buildAIContext()` function**      | No structured bridge between data layer and AI     | Medium | All data exists, no serialization function                           |
+| Gap                                        | Impact on AI                                       | Effort | Current State                                                                                                  |
+| ------------------------------------------ | -------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------- |
+| **1. No structured process metadata**      | AI is generic narrator vs. domain-aware assistant  | Medium | ✅ Resolved — `ProcessContext` type with `factorRoles` auto-inference and `description` field (commit 6d83814) |
+| **2. No closed-loop investigation data**   | AI can't recommend actions or verify effectiveness | Large  | ✅ Resolved — 5-status finding workflow with `suspectedCause`, `actions[]`, `outcome` (commit 86f3ccb)         |
+| **3. Glossary too small for AI grounding** | Higher hallucination risk in SPC domain            | Small  | ✅ Resolved — expanded to 28 terms with AI-relevant categories (commit 86f3ccb)                                |
+| **4. No `buildAIContext()` function**      | No structured bridge between data layer and AI     | Medium | ✅ Resolved — pure function in `@variscout/core/ai/buildAIContext.ts` (commit 86f3ccb)                         |
 
 The `@variscout/core` → `@variscout/hooks` → `@variscout/ui` → `apps/azure` layering is correct. AI fits naturally. The gaps are additive (new types, new functions), not structural.
 

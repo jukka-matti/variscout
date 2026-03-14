@@ -15,6 +15,7 @@ import type {
   AIContext,
   ChartInsightData,
   NelsonRule2Sequence,
+  NelsonRule3Sequence,
 } from '@variscout/core';
 import {
   buildIChartInsight,
@@ -32,6 +33,7 @@ import {
 export interface DeterministicData {
   // I-Chart
   nelsonSequences?: NelsonRule2Sequence[];
+  nelsonRule3Sequences?: NelsonRule3Sequence[];
   outOfControlCount?: number;
   totalPoints?: number;
   // Boxplot
@@ -57,7 +59,7 @@ export interface UseChartInsightsOptions {
   /** Current AI context (null when not available) */
   aiContext: AIContext | null;
   /** AI fetch function (injected by app -- Azure provides real impl, PWA passes undefined) */
-  fetchInsight?: (systemPrompt: string, userPrompt: string) => Promise<string>;
+  fetchInsight?: (userPrompt: string) => Promise<string>;
   /** Data for deterministic computation */
   deterministicData: DeterministicData;
   /** AI debounce delay in ms (default: 3000). Useful for testing. */
@@ -107,7 +109,8 @@ export function useChartInsights({
         return buildIChartInsight(
           deterministicData.nelsonSequences ?? [],
           deterministicData.outOfControlCount ?? 0,
-          deterministicData.totalPoints ?? 0
+          deterministicData.totalPoints ?? 0,
+          deterministicData.nelsonRule3Sequences
         );
       case 'boxplot':
         return buildBoxplotInsight(
@@ -215,7 +218,7 @@ export function useChartInsights({
         const userPrompt = buildChartInsightPrompt(aiContext, chartData);
         // The fetchInsight callback receives a prompt key and user prompt.
         // The AI service layer builds the actual system prompt internally.
-        const result = await fetchInsight('chart-insight', userPrompt);
+        const result = await fetchInsight(userPrompt);
         setAiText(result);
       } catch {
         // Fall back to deterministic -- no error state for chips

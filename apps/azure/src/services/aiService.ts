@@ -16,6 +16,17 @@ interface CacheEntry {
 }
 
 /**
+ * DJB2 hash for cache keys.
+ */
+function hashString(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return String(hash);
+}
+
+/**
  * Get the AI endpoint from environment variable.
  * Returns null if not configured (AI features hidden).
  */
@@ -33,13 +44,13 @@ export function isAIAvailable(): boolean {
 /**
  * Get cached response from localStorage.
  */
-function getCachedResponse(key: string): string | null {
+function getCached(prefix: string, key: string): string | null {
   try {
-    const raw = localStorage.getItem(`${CACHE_KEY_PREFIX}${key}`);
+    const raw = localStorage.getItem(`${prefix}${key}`);
     if (!raw) return null;
     const entry: CacheEntry = JSON.parse(raw);
     if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
-      localStorage.removeItem(`${CACHE_KEY_PREFIX}${key}`);
+      localStorage.removeItem(`${prefix}${key}`);
       return null;
     }
     return entry.text;
@@ -51,10 +62,10 @@ function getCachedResponse(key: string): string | null {
 /**
  * Cache a response.
  */
-function setCachedResponse(key: string, text: string): void {
+function setCached(prefix: string, key: string, text: string): void {
   try {
     const entry: CacheEntry = { text, timestamp: Date.now() };
-    localStorage.setItem(`${CACHE_KEY_PREFIX}${key}`, JSON.stringify(entry));
+    localStorage.setItem(`${prefix}${key}`, JSON.stringify(entry));
   } catch {
     // Silently fail on quota exceeded
   }
@@ -75,35 +86,13 @@ export function classifyError(status: number, message?: string): AIErrorType {
 }
 
 /**
- * Fetch a narration from Azure AI Foundry.
- * Used as the `fetchNarration` callback for useNarration hook.
+ * Get auth headers for AI requests.
  */
-export async function fetchNarration(context: AIContext): Promise<string> {
-  const endpoint = getAIEndpoint();
-  if (!endpoint) throw new Error('AI endpoint not configured');
-
-  // Build the prompt
-  const systemPrompt = buildNarrationSystemPrompt();
-  const userPrompt = buildSummaryPrompt(context);
-
-  // Simple cache key from user prompt hash
-  let cacheKey = 0;
-  for (let i = 0; i < userPrompt.length; i++) {
-    cacheKey = ((cacheKey << 5) - cacheKey + userPrompt.charCodeAt(i)) | 0;
-  }
-  const cacheKeyStr = String(cacheKey);
-
-  // Check cache
-  const cached = getCachedResponse(cacheKeyStr);
-  if (cached) return cached;
-
-  // Get auth token
+async function getAuthHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-
   try {
-    // Try EasyAuth token for Cognitive Services scope
     const tokenResponse = await fetch('/.auth/me');
     if (tokenResponse.ok) {
       const authData = await tokenResponse.json();
@@ -113,8 +102,31 @@ export async function fetchNarration(context: AIContext): Promise<string> {
       }
     }
   } catch {
-    // Dev mode — no auth header needed for local endpoints
+    // Dev mode — no auth needed
   }
+  return headers;
+}
+
+/**
+ * Fetch a narration from Azure AI Foundry.
+ * Used as the `fetchNarration` callback for useNarration hook.
+ */
+export async function fetchNarration(context: AIContext): Promise<string> {
+  const endpoint = getAIEndpoint();
+  if (!endpoint) throw new Error('AI endpoint not configured');
+
+  // Build the prompt — glossary in system prompt for prompt caching
+  const systemPrompt = buildNarrationSystemPrompt(context.glossaryFragment);
+  const userPrompt = buildSummaryPrompt(context);
+
+  // Simple cache key from user prompt hash
+  const cacheKeyStr = hashString(userPrompt);
+
+  // Check cache
+  const cached = getCached(CACHE_KEY_PREFIX, cacheKeyStr);
+  if (cached) return cached;
+
+  const headers = await getAuthHeaders();
 
   // Retry with exponential backoff (max 3 attempts)
   let lastError: Error | null = null;
@@ -148,7 +160,7 @@ export async function fetchNarration(context: AIContext): Promise<string> {
       if (!text) throw new Error('Empty response from AI');
 
       // Cache successful response
-      setCachedResponse(cacheKeyStr, text);
+      setCached(CACHE_KEY_PREFIX, cacheKeyStr, text);
       return text;
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
@@ -160,75 +172,22 @@ export async function fetchNarration(context: AIContext): Promise<string> {
 }
 
 /**
- * Get cached chip response from localStorage.
- */
-function getCachedChipResponse(key: string): string | null {
-  try {
-    const raw = localStorage.getItem(`${CHIP_CACHE_KEY_PREFIX}${key}`);
-    if (!raw) return null;
-    const entry: CacheEntry = JSON.parse(raw);
-    if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
-      localStorage.removeItem(`${CHIP_CACHE_KEY_PREFIX}${key}`);
-      return null;
-    }
-    return entry.text;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Cache a chip response.
- */
-function setCachedChipResponse(key: string, text: string): void {
-  try {
-    const entry: CacheEntry = { text, timestamp: Date.now() };
-    localStorage.setItem(`${CHIP_CACHE_KEY_PREFIX}${key}`, JSON.stringify(entry));
-  } catch {
-    // Silently fail on quota exceeded
-  }
-}
-
-/**
  * Fetch an AI-enhanced chart insight.
  * Lighter than fetchNarration: shorter output, lower temperature, no retry on rate-limit.
  * Falls back to deterministic insight (caller handles this) on any error.
  */
-export async function fetchChartInsight(
-  systemPromptKey: string,
-  userPrompt: string
-): Promise<string> {
+export async function fetchChartInsight(userPrompt: string): Promise<string> {
   const endpoint = getAIEndpoint();
   if (!endpoint) throw new Error('AI endpoint not configured');
 
   // Cache key from user prompt hash
-  let cacheKey = 0;
-  for (let i = 0; i < userPrompt.length; i++) {
-    cacheKey = ((cacheKey << 5) - cacheKey + userPrompt.charCodeAt(i)) | 0;
-  }
-  const cacheKeyStr = `chip-${String(cacheKey)}`;
+  const cacheKeyStr = `chip-${hashString(userPrompt)}`;
 
-  // Check cache (reuse same TTL, different prefix)
-  const cached = getCachedChipResponse(cacheKeyStr);
+  // Check cache
+  const cached = getCached(CHIP_CACHE_KEY_PREFIX, cacheKeyStr);
   if (cached) return cached;
 
-  // Auth header
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  try {
-    const tokenResponse = await fetch('/.auth/me');
-    if (tokenResponse.ok) {
-      const authData = await tokenResponse.json();
-      const accessToken = authData?.[0]?.access_token;
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-    }
-  } catch {
-    // Dev mode — no auth needed
-  }
+  const headers = await getAuthHeaders();
 
   // Single attempt — no retry (fall back to deterministic instead)
   const systemPrompt = `You are a quality engineering assistant for VariScout.
@@ -258,30 +217,8 @@ Be specific and actionable. Never invent data.`;
   if (!text) throw new Error('Empty response from AI');
 
   // Cache successful response
-  setCachedChipResponse(cacheKeyStr, text);
+  setCached(CHIP_CACHE_KEY_PREFIX, cacheKeyStr, text);
   return text;
-}
-
-/**
- * Get auth headers for AI requests.
- */
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  try {
-    const tokenResponse = await fetch('/.auth/me');
-    if (tokenResponse.ok) {
-      const authData = await tokenResponse.json();
-      const accessToken = authData?.[0]?.access_token;
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-    }
-  } catch {
-    // Dev mode — no auth needed
-  }
-  return headers;
 }
 
 /**
@@ -290,28 +227,12 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
  * No caching (conversations are contextual). Single retry on 429.
  */
 export async function fetchCopilotResponse(
-  messages: Array<{ role: string; content: string }>
+  messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>
 ): Promise<string> {
   const endpoint = getAIEndpoint();
   if (!endpoint) throw new Error('AI endpoint not configured');
 
-  // Auth header
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  try {
-    const tokenResponse = await fetch('/.auth/me');
-    if (tokenResponse.ok) {
-      const authData = await tokenResponse.json();
-      const accessToken = authData?.[0]?.access_token;
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-    }
-  } catch {
-    // Dev mode — no auth needed
-  }
+  const headers = await getAuthHeaders();
 
   // Single retry on 429
   let lastError: Error | null = null;
@@ -356,7 +277,7 @@ export async function fetchCopilotResponse(
  * Calls onChunk for each token delta. Falls back to non-streaming on error.
  */
 export async function fetchCopilotStreamingResponse(
-  messages: Array<{ role: string; content: string }>,
+  messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
   onChunk: (delta: string) => void,
   signal: AbortSignal
 ): Promise<void> {

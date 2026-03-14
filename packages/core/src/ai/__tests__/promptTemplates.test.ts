@@ -16,6 +16,14 @@ describe('buildNarrationSystemPrompt', () => {
     expect(prompt).toContain('VariScout');
     expect(typeof prompt).toBe('string');
   });
+
+  it('includes glossary fragment when provided', () => {
+    const prompt = buildNarrationSystemPrompt(
+      '## Terminology\n\n- **Cpk**: Process capability index'
+    );
+    expect(prompt).toContain('## Terminology');
+    expect(prompt).toContain('Cpk');
+  });
 });
 
 describe('buildSummaryPrompt', () => {
@@ -163,6 +171,12 @@ describe('buildCopilotSystemPrompt', () => {
     const prompt = buildCopilotSystemPrompt();
     expect(prompt.length).toBeGreaterThan(0);
     expect(prompt).toContain('copilot');
+  });
+
+  it('includes glossary fragment when provided', () => {
+    const prompt = buildCopilotSystemPrompt('## Terminology\n\n- **Cp**: Process potential');
+    expect(prompt).toContain('## Terminology');
+    expect(prompt).toContain('Cp');
   });
 });
 

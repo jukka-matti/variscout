@@ -34,7 +34,11 @@ import type { FindingsCallbacks } from '../types/findingsCallbacks';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useAnnotations, useChartInsights } from '@variscout/hooks';
 import { ChartInsightChip } from '@variscout/ui';
-import { getNelsonRule2Sequences, getNextDrillFactor } from '@variscout/core';
+import {
+  getNelsonRule2Sequences,
+  getNelsonRule3Sequences,
+  getNextDrillFactor,
+} from '@variscout/core';
 import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import {
@@ -76,7 +80,7 @@ interface DashboardProps {
   /** Grouped findings-related callbacks */
   findingsCallbacks?: FindingsCallbacks;
   /** AI-enhanced chart insight fetch function (from Editor) */
-  fetchChartInsight?: (systemPromptKey: string, userPrompt: string) => Promise<string>;
+  fetchChartInsight?: (userPrompt: string) => Promise<string>;
   /** AI context for chart insights */
   aiContext?: AIContext | null;
   /** Whether AI is enabled */
@@ -290,8 +294,14 @@ const Dashboard = ({
         })
         .filter(v => !isNaN(v));
       const sequences = getNelsonRule2Sequences(values, stats.mean);
+      const rule3Sequences = getNelsonRule3Sequences(values);
       const ooc = values.filter(v => v > stats.ucl || v < stats.lcl).length;
-      return { nelsonSequences: sequences, outOfControlCount: ooc, totalPoints: values.length };
+      return {
+        nelsonSequences: sequences,
+        nelsonRule3Sequences: rule3Sequences,
+        outOfControlCount: ooc,
+        totalPoints: values.length,
+      };
     }, [filteredData, outcome, stats]),
   });
 

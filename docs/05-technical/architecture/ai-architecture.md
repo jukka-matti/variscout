@@ -17,10 +17,12 @@ Technical architecture for optional AI integration in the Azure App.
 │                                                      │
 │  AI Service                Prompt Templates           │
 │  (apps/azure/services)     (@variscout/core)          │
-│  aiService.askAI()         narration, suggestion,     │
-│                            copilot, report            │
+│  fetchNarration()          narration, suggestion,     │
+│  fetchChartInsight()       copilot, report            │
+│  fetchCopilotResponse()                              │
+│  fetchCopilotStreamingResponse()                     │
 │                                                      │
-│  IndexedDB Cache                                     │
+│  localStorage Cache                                  │
 │  (cached AI responses + conversation history)         │
 └──────────────────────┬──────────────────────────────┘
                        │ (when online)
@@ -42,16 +44,18 @@ Technical architecture for optional AI integration in the Azure App.
 
 ## Package Responsibilities
 
-| Component           | Package                   | Description                                                                                                                      |
-| ------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `buildAIContext()`  | `@variscout/core`         | Pure function. Collects computed stats, filters, findings, violations into a structured payload. No React dependency.            |
-| Prompt templates    | `@variscout/core`         | String templates for narration, suggestion, copilot, and report tasks. Grounded in VariScout glossary terms.                     |
-| `aiService.ts`      | `apps/azure/src/services` | Network calls to Azure AI Foundry. Dual-model routing. IndexedDB response caching. Error handling. Pattern mirrors `storage.ts`. |
-| `useAIContext` hook | `@variscout/hooks`        | React hook wrapping `buildAIContext()`. Recomputes on DataContext changes.                                                       |
-| `useAICopilot` hook | `@variscout/hooks`        | Chat state management, conversation history, streaming response handling.                                                        |
-| `NarrativeBar`      | `@variscout/ui`           | Single-line summary bar component.                                                                                               |
-| `ChartInsightChip`  | `@variscout/ui`           | Per-chart suggestion badge.                                                                                                      |
-| `CopilotPanel`      | `@variscout/ui`           | Slide-out conversational panel.                                                                                                  |
+| Component               | Package                   | Description                                                                                                           |
+| ----------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `buildAIContext()`      | `@variscout/core`         | Pure function. Collects computed stats, filters, findings, violations into a structured payload. No React dependency. |
+| Prompt templates        | `@variscout/core`         | String templates for narration, suggestion, copilot, and report tasks. Grounded in VariScout glossary terms.          |
+| `aiService.ts`          | `apps/azure/src/services` | localStorage response caching. Auth via `getAuthHeaders()` (EasyAuth). Retry + exponential backoff.                   |
+| `useAIContext` hook     | `@variscout/hooks`        | React hook wrapping `buildAIContext()`. Recomputes on DataContext changes.                                            |
+| `useAICopilot` hook     | `@variscout/hooks`        | Chat state management, conversation history, streaming response handling.                                             |
+| `useNarration` hook     | `@variscout/hooks`        | React hook for narrative bar state (loading, cached, error). Wraps `fetchNarration`.                                  |
+| `useChartInsights` hook | `@variscout/hooks`        | Per-chart deterministic + AI-enhanced insight orchestration. Debounced AI with fallback.                              |
+| `NarrativeBar`          | `@variscout/ui`           | Single-line summary bar component.                                                                                    |
+| `ChartInsightChip`      | `@variscout/ui`           | Per-chart suggestion badge.                                                                                           |
+| `CopilotPanel`          | `@variscout/ui`           | Slide-out conversational panel.                                                                                       |
 
 ---
 
@@ -134,7 +138,7 @@ The service accepts a `tier` parameter and routes to the appropriate model deplo
 ### Response Caching
 
 - **Cache key:** Hash of context payload (stats + filters + finding count + process description hash)
-- **Storage:** IndexedDB
+- **Storage:** localStorage
 - **TTL:** 24 hours or until analysis data changes (whichever first)
 - **Stale indicator:** "(cached)" label when showing cached response after data change
 
@@ -160,6 +164,8 @@ No `VITE_AI_KEY` environment variable. The AI endpoint URL (`VITE_AI_ENDPOINT`) 
 ---
 
 ## Knowledge Layer: Azure AI Search + Foundry IQ
+
+> **Status:** Planned — not yet implemented. See Implementation Notes in [ADR-019](../../07-decisions/adr-019-ai-integration.md).
 
 Azure AI Search is a managed service — not a custom RAG pipeline. No custom embeddings, no vector database, no dedicated infrastructure. **Azure AI Foundry IQ** (late 2025) adds a managed orchestration layer on top that simplifies and enhances the approach:
 
@@ -195,6 +201,8 @@ The function runs in the customer's tenant with Managed Identity for auth. Brows
 ### SharePoint Connector
 
 The SharePoint Online indexer is in public preview (March 2026). Foundry IQ's SharePoint Indexed Knowledge Source simplifies configuration by auto-generating the full indexing pipeline. Teams channel files are stored in SharePoint document libraries, so they are accessible. Have a Blob Storage fallback if the SharePoint connector has reliability issues.
+
+**Data Zone Standard:** For EU customers, Azure now offers Data Zone Standard deployments with EU data residency and higher quota than regional. Recommended for GDPR compliance.
 
 ### Findings as Knowledge Base
 
@@ -238,6 +246,8 @@ EasyAuth `authsettingsV2` updated to include Cognitive Services scope.
 | Response caching     | Reduces repeat queries for same analysis state                  |
 | Dual-model routing   | Cheap model for simple tasks, reasoning model only for copilot  |
 | Monthly budget       | Configurable via ARM template parameters (Azure spending limit) |
+
+**API version:** Requests use the API version configured on the Azure AI Foundry endpoint. Client-side code does not pin an API version.
 
 ---
 

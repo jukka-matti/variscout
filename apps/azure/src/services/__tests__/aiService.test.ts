@@ -40,8 +40,6 @@ describe('isAIAvailable', () => {
 
 describe('fetchChartInsight', () => {
   it('throws when AI endpoint not configured', async () => {
-    await expect(fetchChartInsight('chart-insight', 'test prompt')).rejects.toThrow(
-      'AI endpoint not configured'
-    );
+    await expect(fetchChartInsight('test prompt')).rejects.toThrow('AI endpoint not configured');
   });
 });

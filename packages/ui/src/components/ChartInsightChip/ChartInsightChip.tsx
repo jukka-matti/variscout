@@ -68,7 +68,12 @@ const ChartInsightChip: React.FC<ChartInsightChipProps> = ({
       data-testid={`insight-chip-${chartType}`}
     >
       <Icon size={12} className={`${style.text} flex-shrink-0`} />
-      {isAI && <Sparkles size={10} className="text-purple-400 flex-shrink-0" />}
+      {isAI && (
+        <>
+          <Sparkles size={10} className="text-purple-400 flex-shrink-0" />
+          <span className="text-[10px] text-purple-400 flex-shrink-0 font-medium">AI</span>
+        </>
+      )}
       <span
         className={`flex-1 text-xs sm:text-xs text-[11px] ${style.text} truncate leading-tight`}
       >
