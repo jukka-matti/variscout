@@ -138,6 +138,7 @@ vi.mock('@variscout/ui', () => ({
       {statsPanel}
     </div>
   ),
+  ChartInsightChip: () => null,
   useIsMobile: () => false,
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));
@@ -191,6 +192,14 @@ vi.mock('@variscout/hooks', () => ({
     handleContextMenu: vi.fn(),
     closeContextMenu: vi.fn(),
     clearAnnotations: vi.fn(),
+  }),
+  useChartInsights: () => ({
+    chipText: null,
+    chipType: 'info',
+    isDismissed: false,
+    dismiss: vi.fn(),
+    isLoading: false,
+    isAI: false,
   }),
 }));
 

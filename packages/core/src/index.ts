@@ -252,6 +252,17 @@ export type {
 } from './ai';
 export { buildAIContext, buildNarrationSystemPrompt, buildSummaryPrompt } from './ai';
 
+// AI (Phase 2 — Chart Insights)
+export type { InsightChartType, ChipType, DeterministicInsight, ChartInsightData } from './ai';
+export {
+  buildIChartInsight,
+  buildBoxplotInsight,
+  buildParetoInsight,
+  buildStatsInsight,
+  buildChartInsightPrompt,
+  buildChartInsightSystemPrompt,
+} from './ai';
+
 // Factor role inference
 export { FACTOR_ROLE_KEYWORDS, inferFactorRole } from './parser';
 

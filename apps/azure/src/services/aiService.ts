@@ -7,6 +7,7 @@ import type { AIContext } from '@variscout/core';
 import { buildNarrationSystemPrompt, buildSummaryPrompt } from '@variscout/core';
 
 const CACHE_KEY_PREFIX = 'variscout-ai-cache-';
+const CHIP_CACHE_KEY_PREFIX = 'variscout-ai-chip-';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface CacheEntry {
@@ -155,4 +156,107 @@ export async function fetchNarration(context: AIContext): Promise<string> {
   }
 
   throw lastError || new Error('AI request failed');
+}
+
+/**
+ * Get cached chip response from localStorage.
+ */
+function getCachedChipResponse(key: string): string | null {
+  try {
+    const raw = localStorage.getItem(`${CHIP_CACHE_KEY_PREFIX}${key}`);
+    if (!raw) return null;
+    const entry: CacheEntry = JSON.parse(raw);
+    if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+      localStorage.removeItem(`${CHIP_CACHE_KEY_PREFIX}${key}`);
+      return null;
+    }
+    return entry.text;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cache a chip response.
+ */
+function setCachedChipResponse(key: string, text: string): void {
+  try {
+    const entry: CacheEntry = { text, timestamp: Date.now() };
+    localStorage.setItem(`${CHIP_CACHE_KEY_PREFIX}${key}`, JSON.stringify(entry));
+  } catch {
+    // Silently fail on quota exceeded
+  }
+}
+
+/**
+ * Fetch an AI-enhanced chart insight.
+ * Lighter than fetchNarration: shorter output, lower temperature, no retry on rate-limit.
+ * Falls back to deterministic insight (caller handles this) on any error.
+ */
+export async function fetchChartInsight(
+  systemPromptKey: string,
+  userPrompt: string
+): Promise<string> {
+  const endpoint = getAIEndpoint();
+  if (!endpoint) throw new Error('AI endpoint not configured');
+
+  // Cache key from user prompt hash
+  let cacheKey = 0;
+  for (let i = 0; i < userPrompt.length; i++) {
+    cacheKey = ((cacheKey << 5) - cacheKey + userPrompt.charCodeAt(i)) | 0;
+  }
+  const cacheKeyStr = `chip-${String(cacheKey)}`;
+
+  // Check cache (reuse same TTL, different prefix)
+  const cached = getCachedChipResponse(cacheKeyStr);
+  if (cached) return cached;
+
+  // Auth header
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  try {
+    const tokenResponse = await fetch('/.auth/me');
+    if (tokenResponse.ok) {
+      const authData = await tokenResponse.json();
+      const accessToken = authData?.[0]?.access_token;
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+    }
+  } catch {
+    // Dev mode — no auth needed
+  }
+
+  // Single attempt — no retry (fall back to deterministic instead)
+  const systemPrompt = `You are a quality engineering assistant for VariScout.
+Enhance the provided deterministic insight with process context.
+Respond in exactly one sentence, under 120 characters.
+Be specific and actionable. Never invent data.`;
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: 80,
+      temperature: 0.2,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AI chip request failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const text = data?.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error('Empty response from AI');
+
+  // Cache successful response
+  setCachedChipResponse(cacheKeyStr, text);
+  return text;
 }

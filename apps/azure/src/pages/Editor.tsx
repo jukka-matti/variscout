@@ -14,7 +14,11 @@ import WhatIfPage from '../components/WhatIfPage';
 import { ColumnMapping, InvestigationPrompt } from '@variscout/ui';
 import { useControlViolations, useAIContext, useNarration } from '@variscout/hooks';
 import { isTeamPlan } from '@variscout/core';
-import { fetchNarration as fetchNarrationFromAI, isAIAvailable } from '../services/aiService';
+import {
+  fetchNarration as fetchNarrationFromAI,
+  fetchChartInsight as fetchChartInsightFromAI,
+  isAIAvailable,
+} from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
@@ -594,6 +598,9 @@ export const Editor: React.FC<EditorProps> = ({
               onPinFinding={handlePinFinding}
               onShareChart={handleShareChart}
               findingsCallbacks={findingsCallbacks}
+              fetchChartInsight={aiEnabled && isAIAvailable() ? fetchChartInsightFromAI : undefined}
+              aiContext={aiContext.context}
+              aiEnabled={(aiEnabled ?? false) && isAIAvailable()}
               narrative={narration.narrative}
               narrativeLoading={narration.isLoading}
               narrativeCached={narration.isCached}

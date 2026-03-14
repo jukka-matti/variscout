@@ -293,6 +293,9 @@ export {
   type ProcessDescriptionFieldProps,
 } from './components/ProcessDescriptionField';
 
+// Chart Insight Chip
+export { ChartInsightChip, type ChartInsightChipProps } from './components/ChartInsightChip';
+
 // Hooks
 export {
   useIsMobile,

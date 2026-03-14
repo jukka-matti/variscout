@@ -11,4 +11,18 @@ export type {
 } from './types';
 
 export { buildAIContext, type BuildAIContextOptions, type AIStatsInput } from './buildAIContext';
-export { buildNarrationSystemPrompt, buildSummaryPrompt } from './promptTemplates';
+export type { ChartInsightData } from './promptTemplates';
+export {
+  buildNarrationSystemPrompt,
+  buildSummaryPrompt,
+  buildChartInsightSystemPrompt,
+  buildChartInsightPrompt,
+} from './promptTemplates';
+
+export type { InsightChartType, ChipType, DeterministicInsight } from './chartInsights';
+export {
+  buildIChartInsight,
+  buildBoxplotInsight,
+  buildParetoInsight,
+  buildStatsInsight,
+} from './chartInsights';

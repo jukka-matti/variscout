@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -32,7 +32,10 @@ import { BREAKPOINTS } from '@variscout/ui';
 import { getColumnNames, createFactorFromSelection } from '@variscout/core';
 import type { FindingsCallbacks } from '../types/findingsCallbacks';
 import { HelpTooltip, useGlossary } from '@variscout/ui';
-import { useAnnotations } from '@variscout/hooks';
+import { useAnnotations, useChartInsights } from '@variscout/hooks';
+import { ChartInsightChip } from '@variscout/ui';
+import { getNelsonRule2Sequences, getNextDrillFactor } from '@variscout/core';
+import type { AIContext } from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import {
   Activity,
@@ -72,6 +75,12 @@ interface DashboardProps {
   onShareChart?: (chartType: string) => void;
   /** Grouped findings-related callbacks */
   findingsCallbacks?: FindingsCallbacks;
+  /** AI-enhanced chart insight fetch function (from Editor) */
+  fetchChartInsight?: (systemPromptKey: string, userPrompt: string) => Promise<string>;
+  /** AI context for chart insights */
+  aiContext?: AIContext | null;
+  /** Whether AI is enabled */
+  aiEnabled?: boolean;
   /** AI narration state */
   narrative?: string | null;
   narrativeLoading?: boolean;
@@ -96,6 +105,9 @@ const Dashboard = ({
   onPinFinding,
   onShareChart,
   findingsCallbacks,
+  fetchChartInsight,
+  aiContext,
+  aiEnabled,
   narrative,
   narrativeLoading,
   narrativeCached,
@@ -262,6 +274,75 @@ const Dashboard = ({
     },
     [rawData, selectedPoints, filters, setRawData, setFilters, clearSelection]
   );
+
+  // --- Chart Insight Chips (AI-enhanced when available) ---
+  const ichartInsight = useChartInsights({
+    chartType: 'ichart',
+    aiEnabled: aiEnabled ?? false,
+    aiContext: aiContext ?? null,
+    fetchInsight: fetchChartInsight,
+    deterministicData: useMemo(() => {
+      if (!stats || !filteredData.length || !outcome) return {};
+      const values = filteredData
+        .map(r => {
+          const v = r[outcome];
+          return typeof v === 'number' ? v : parseFloat(String(v));
+        })
+        .filter(v => !isNaN(v));
+      const sequences = getNelsonRule2Sequences(values, stats.mean);
+      const ooc = values.filter(v => v > stats.ucl || v < stats.lcl).length;
+      return { nelsonSequences: sequences, outOfControlCount: ooc, totalPoints: values.length };
+    }, [filteredData, outcome, stats]),
+  });
+
+  const boxplotInsight = useChartInsights({
+    chartType: 'boxplot',
+    aiEnabled: aiEnabled ?? false,
+    aiContext: aiContext ?? null,
+    fetchInsight: fetchChartInsight,
+    deterministicData: useMemo(
+      () => ({
+        factorVariations,
+        currentFactor: boxplotFactor,
+        nextDrillFactor: getNextDrillFactor(factorVariations, boxplotFactor),
+      }),
+      [factorVariations, boxplotFactor]
+    ),
+  });
+
+  const paretoInsight = useChartInsights({
+    chartType: 'pareto',
+    aiEnabled: aiEnabled ?? false,
+    aiContext: aiContext ?? null,
+    fetchInsight: fetchChartInsight,
+    deterministicData: useMemo(() => {
+      const innerMap = categoryContributions?.get(paretoFactor);
+      const converted = innerMap
+        ? new Map([...innerMap.entries()].map(([k, v]) => [String(k), v]))
+        : undefined;
+      return {
+        categoryContributions: converted,
+        categoryCount: innerMap?.size ?? 0,
+      };
+    }, [categoryContributions, paretoFactor]),
+  });
+
+  const statsInsight = useChartInsights({
+    chartType: 'stats',
+    aiEnabled: aiEnabled ?? false,
+    aiContext: aiContext ?? null,
+    fetchInsight: fetchChartInsight,
+    deterministicData: useMemo(
+      () => ({
+        cpk: stats?.cpk,
+        cp: stats?.cp,
+        cpkTarget: 1.33,
+        passRate: stats ? 100 - stats.outOfSpecPercentage : undefined,
+        hasSpecs: !!(specs?.usl !== undefined || specs?.lsl !== undefined),
+      }),
+      [stats, specs]
+    ),
+  });
 
   if (!outcome) return null;
 
@@ -606,6 +687,18 @@ const Dashboard = ({
                   onDownloadSvg={handleDownloadSvg}
                   onMaximize={() => setFocusedChart('ichart')}
                   onShareChart={onShareChart}
+                  footer={
+                    ichartInsight.chipText ? (
+                      <ChartInsightChip
+                        text={ichartInsight.chipText}
+                        chipType={ichartInsight.chipType}
+                        isAI={ichartInsight.isAI}
+                        isLoading={ichartInsight.isLoading}
+                        onDismiss={ichartInsight.dismiss}
+                        chartType="ichart"
+                      />
+                    ) : undefined
+                  }
                 >
                   <ErrorBoundary componentName="I-Chart">
                     <IChart
@@ -699,6 +792,18 @@ const Dashboard = ({
                   onDownloadSvg={handleDownloadSvg}
                   onMaximize={() => setFocusedChart('boxplot')}
                   onShareChart={onShareChart}
+                  footer={
+                    boxplotInsight.chipText ? (
+                      <ChartInsightChip
+                        text={boxplotInsight.chipText}
+                        chipType={boxplotInsight.chipType}
+                        isAI={boxplotInsight.isAI}
+                        isLoading={boxplotInsight.isLoading}
+                        onDismiss={boxplotInsight.dismiss}
+                        chartType="boxplot"
+                      />
+                    ) : undefined
+                  }
                 >
                   <ErrorBoundary componentName="Boxplot">
                     {boxplotFactor && (
@@ -768,6 +873,18 @@ const Dashboard = ({
                     onDownloadSvg={handleDownloadSvg}
                     onMaximize={() => setFocusedChart('pareto')}
                     onShareChart={onShareChart}
+                    footer={
+                      paretoInsight.chipText ? (
+                        <ChartInsightChip
+                          text={paretoInsight.chipText}
+                          chipType={paretoInsight.chipType}
+                          isAI={paretoInsight.isAI}
+                          isLoading={paretoInsight.isLoading}
+                          onDismiss={paretoInsight.dismiss}
+                          chartType="pareto"
+                        />
+                      ) : undefined
+                    }
                   >
                     <ErrorBoundary componentName="Pareto Chart">
                       {paretoFactor && (
@@ -795,14 +912,26 @@ const Dashboard = ({
                 ) : undefined
               }
               statsPanel={
-                <StatsPanel
-                  stats={stats}
-                  specs={specs}
-                  filteredData={filteredData}
-                  outcome={outcome}
-                  onSaveSpecs={setSpecs}
-                  showCpk={displayOptions.showCpk !== false}
-                />
+                <div data-testid="chart-stats">
+                  <StatsPanel
+                    stats={stats}
+                    specs={specs}
+                    filteredData={filteredData}
+                    outcome={outcome}
+                    onSaveSpecs={setSpecs}
+                    showCpk={displayOptions.showCpk !== false}
+                  />
+                  {statsInsight.chipText && (
+                    <ChartInsightChip
+                      text={statsInsight.chipText}
+                      chipType={statsInsight.chipType}
+                      isAI={statsInsight.isAI}
+                      isLoading={statsInsight.isLoading}
+                      onDismiss={statsInsight.dismiss}
+                      chartType="stats"
+                    />
+                  )}
+                </div>
               }
             />
           ) : (

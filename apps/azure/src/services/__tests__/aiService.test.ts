@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifyError, isAIAvailable } from '../aiService';
+import { classifyError, isAIAvailable, fetchChartInsight } from '../aiService';
 
 describe('classifyError', () => {
   it('classifies 401 as auth', () => {
@@ -35,5 +35,13 @@ describe('isAIAvailable', () => {
   it('returns false when VITE_AI_ENDPOINT is not set', () => {
     // In test env, VITE_AI_ENDPOINT is not set
     expect(isAIAvailable()).toBe(false);
+  });
+});
+
+describe('fetchChartInsight', () => {
+  it('throws when AI endpoint not configured', async () => {
+    await expect(fetchChartInsight('chart-insight', 'test prompt')).rejects.toThrow(
+      'AI endpoint not configured'
+    );
   });
 });

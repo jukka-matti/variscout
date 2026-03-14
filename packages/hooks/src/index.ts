@@ -189,3 +189,11 @@ export {
   type UseNarrationReturn,
   type NarrationStatus,
 } from './useNarration';
+
+// Chart Insights
+export {
+  useChartInsights,
+  type UseChartInsightsOptions,
+  type UseChartInsightsReturn,
+  type DeterministicData,
+} from './useChartInsights';

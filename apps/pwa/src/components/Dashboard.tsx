@@ -25,7 +25,9 @@ import {
   BREAKPOINTS,
   type ChartId,
 } from '@variscout/ui';
-import { useKeyboardNavigation, useAnnotations } from '@variscout/hooks';
+import { useKeyboardNavigation, useAnnotations, useChartInsights } from '@variscout/hooks';
+import { ChartInsightChip } from '@variscout/ui';
+import { getNelsonRule2Sequences, getNextDrillFactor } from '@variscout/core';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
@@ -292,6 +294,71 @@ const Dashboard = ({
     }
     return parts.join('. ');
   }, [filteredData.length, rawData.length, filters]);
+
+  // --- Chart Insight Chips (deterministic only in PWA) ---
+  const ichartInsight = useChartInsights({
+    chartType: 'ichart',
+    aiEnabled: false,
+    aiContext: null,
+    deterministicData: useMemo(() => {
+      if (!stats || !filteredData.length || !outcome) return {};
+      const values = filteredData
+        .map(r => {
+          const v = r[outcome];
+          return typeof v === 'number' ? v : parseFloat(String(v));
+        })
+        .filter(v => !isNaN(v));
+      const sequences = getNelsonRule2Sequences(values, stats.mean);
+      const ooc = values.filter(v => v > stats.ucl || v < stats.lcl).length;
+      return { nelsonSequences: sequences, outOfControlCount: ooc, totalPoints: values.length };
+    }, [filteredData, outcome, stats]),
+  });
+
+  const boxplotInsight = useChartInsights({
+    chartType: 'boxplot',
+    aiEnabled: false,
+    aiContext: null,
+    deterministicData: useMemo(
+      () => ({
+        factorVariations,
+        currentFactor: boxplotFactor,
+        nextDrillFactor: getNextDrillFactor(factorVariations, boxplotFactor),
+      }),
+      [factorVariations, boxplotFactor]
+    ),
+  });
+
+  const paretoInsight = useChartInsights({
+    chartType: 'pareto',
+    aiEnabled: false,
+    aiContext: null,
+    deterministicData: useMemo(() => {
+      const innerMap = categoryContributions?.get(paretoFactor);
+      const converted = innerMap
+        ? new Map([...innerMap.entries()].map(([k, v]) => [String(k), v]))
+        : undefined;
+      return {
+        categoryContributions: converted,
+        categoryCount: innerMap?.size ?? 0,
+      };
+    }, [categoryContributions, paretoFactor]),
+  });
+
+  const statsInsight = useChartInsights({
+    chartType: 'stats',
+    aiEnabled: false,
+    aiContext: null,
+    deterministicData: useMemo(
+      () => ({
+        cpk: stats?.cpk,
+        cp: stats?.cp,
+        cpkTarget: 1.33,
+        passRate: stats ? 100 - stats.outOfSpecPercentage : undefined,
+        hasSpecs: !!(specs?.usl !== undefined || specs?.lsl !== undefined),
+      }),
+      [stats, specs]
+    ),
+  });
 
   if (!outcome) return null;
 
@@ -618,6 +685,18 @@ const Dashboard = ({
                     show={displayOptions.showFilterContext !== false}
                   />
                 }
+                footer={
+                  ichartInsight.chipText ? (
+                    <ChartInsightChip
+                      text={ichartInsight.chipText}
+                      chipType={ichartInsight.chipType}
+                      isAI={false}
+                      isLoading={false}
+                      onDismiss={ichartInsight.dismiss}
+                      chartType="ichart"
+                    />
+                  ) : undefined
+                }
               >
                 <ErrorBoundary componentName="I-Chart">
                   <IChart
@@ -713,6 +792,18 @@ const Dashboard = ({
                     show={displayOptions.showFilterContext !== false}
                   />
                 }
+                footer={
+                  boxplotInsight.chipText ? (
+                    <ChartInsightChip
+                      text={boxplotInsight.chipText}
+                      chipType={boxplotInsight.chipType}
+                      isAI={false}
+                      isLoading={false}
+                      onDismiss={boxplotInsight.dismiss}
+                      chartType="boxplot"
+                    />
+                  ) : undefined
+                }
               >
                 <ErrorBoundary componentName="Boxplot">
                   {boxplotFactor && (
@@ -790,6 +881,18 @@ const Dashboard = ({
                       show={displayOptions.showFilterContext !== false}
                     />
                   }
+                  footer={
+                    paretoInsight.chipText ? (
+                      <ChartInsightChip
+                        text={paretoInsight.chipText}
+                        chipType={paretoInsight.chipType}
+                        isAI={false}
+                        isLoading={false}
+                        onDismiss={paretoInsight.dismiss}
+                        chartType="pareto"
+                      />
+                    ) : undefined
+                  }
                 >
                   <ErrorBoundary componentName="Pareto Chart">
                     {paretoFactor && (
@@ -831,6 +934,16 @@ const Dashboard = ({
                     outcome={outcome}
                   />
                 </ErrorBoundary>
+                {statsInsight.chipText && (
+                  <ChartInsightChip
+                    text={statsInsight.chipText}
+                    chipType={statsInsight.chipType}
+                    isAI={false}
+                    isLoading={false}
+                    onDismiss={statsInsight.dismiss}
+                    chartType="stats"
+                  />
+                )}
               </div>
             }
           />
