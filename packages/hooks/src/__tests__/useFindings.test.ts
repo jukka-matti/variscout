@@ -4,7 +4,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFindings } from '../useFindings';
-import type { Finding, FindingContext, FindingSource, FindingStatus } from '@variscout/core';
+import type {
+  Finding,
+  FindingContext,
+  FindingSource,
+  FindingStatus,
+  FindingOutcome,
+} from '@variscout/core';
 
 const makeContext = (overrides?: Partial<FindingContext>): FindingContext => ({
   activeFilters: { Machine: ['A'] },
@@ -670,6 +676,261 @@ describe('useFindings', () => {
       });
 
       expect(result.current.findings[0].assignee).toBeUndefined();
+    });
+  });
+
+  // --- 5-Status: Suspected Cause ---
+
+  describe('setSuspectedCause', () => {
+    it('sets suspected cause text on a finding', () => {
+      const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      act(() => {
+        result.current.setSuspectedCause('f-1', 'Worn bearing');
+      });
+
+      expect(result.current.findings[0].suspectedCause).toBe('Worn bearing');
+      expect(onChange).toHaveBeenCalled();
+    });
+  });
+
+  // --- 5-Status: Action Items ---
+
+  describe('addAction', () => {
+    it('adds an action item to a finding', () => {
+      const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      act(() => {
+        result.current.addAction('f-1', 'Replace gasket', 'Bob', '2026-04-01');
+      });
+
+      const actions = result.current.findings[0].actions;
+      expect(actions).toHaveLength(1);
+      expect(actions![0].text).toBe('Replace gasket');
+      expect(actions![0].assignee).toBe('Bob');
+      expect(actions![0].dueDate).toBe('2026-04-01');
+      expect(actions![0].id).toBeTruthy();
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('auto-transitions from analyzed to improving on first action', () => {
+      const initial = [
+        makeFinding({ id: 'f-1', text: 'Test', status: 'analyzed', context: makeContext() }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.addAction('f-1', 'Fix it');
+      });
+
+      expect(result.current.findings[0].status).toBe('improving');
+      expect(result.current.findings[0].actions).toHaveLength(1);
+    });
+
+    it('does not auto-transition if already has actions', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          status: 'analyzed',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Existing', createdAt: 1000 }],
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.addAction('f-1', 'Another action');
+      });
+
+      // Status stays analyzed because there were already actions
+      expect(result.current.findings[0].status).toBe('analyzed');
+      expect(result.current.findings[0].actions).toHaveLength(2);
+    });
+
+    it('does not auto-transition if status is not analyzed', () => {
+      const initial = [
+        makeFinding({ id: 'f-1', text: 'Test', status: 'investigating', context: makeContext() }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.addAction('f-1', 'Some action');
+      });
+
+      expect(result.current.findings[0].status).toBe('investigating');
+    });
+  });
+
+  describe('updateAction', () => {
+    it('updates action text and assignee', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Old text', assignee: 'Alice', createdAt: 1000 }],
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.updateAction('f-1', 'a-1', { text: 'New text', assignee: 'Bob' });
+      });
+
+      const action = result.current.findings[0].actions![0];
+      expect(action.text).toBe('New text');
+      expect(action.assignee).toBe('Bob');
+    });
+  });
+
+  describe('completeAction', () => {
+    it('sets completedAt timestamp on action', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Do it', createdAt: 1000 }],
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.completeAction('f-1', 'a-1');
+      });
+
+      expect(result.current.findings[0].actions![0].completedAt).toBeGreaterThan(0);
+    });
+  });
+
+  describe('deleteAction', () => {
+    it('removes an action by id', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          actions: [
+            { id: 'a-1', text: 'Keep', createdAt: 1000 },
+            { id: 'a-2', text: 'Remove', createdAt: 2000 },
+          ],
+        }),
+      ];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      act(() => {
+        result.current.deleteAction('f-1', 'a-2');
+      });
+
+      expect(result.current.findings[0].actions).toHaveLength(1);
+      expect(result.current.findings[0].actions![0].id).toBe('a-1');
+      expect(onChange).toHaveBeenCalled();
+    });
+  });
+
+  // --- 5-Status: Outcome ---
+
+  describe('setOutcome', () => {
+    it('sets outcome on a finding', () => {
+      const initial = [
+        makeFinding({ id: 'f-1', text: 'Test', status: 'improving', context: makeContext() }),
+      ];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      const outcome: FindingOutcome = {
+        effective: 'yes',
+        cpkAfter: 1.5,
+        notes: 'Fixed',
+        verifiedAt: Date.now(),
+      };
+
+      act(() => {
+        result.current.setOutcome('f-1', outcome);
+      });
+
+      expect(result.current.findings[0].outcome).toEqual(outcome);
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('auto-transitions to resolved when all actions complete + outcome set', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          status: 'improving',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Done', createdAt: 1000, completedAt: 2000 }],
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.setOutcome('f-1', {
+          effective: 'yes',
+          verifiedAt: Date.now(),
+        });
+      });
+
+      expect(result.current.findings[0].status).toBe('resolved');
+    });
+
+    it('does not auto-transition when actions are incomplete', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          status: 'improving',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Not done', createdAt: 1000 }],
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.setOutcome('f-1', {
+          effective: 'partial',
+          verifiedAt: Date.now(),
+        });
+      });
+
+      expect(result.current.findings[0].status).toBe('improving');
+    });
+
+    it('does not auto-transition when status is not improving', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          status: 'analyzed',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Done', createdAt: 1000, completedAt: 2000 }],
+        }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.setOutcome('f-1', {
+          effective: 'yes',
+          verifiedAt: Date.now(),
+        });
+      });
+
+      expect(result.current.findings[0].status).toBe('analyzed');
     });
   });
 });

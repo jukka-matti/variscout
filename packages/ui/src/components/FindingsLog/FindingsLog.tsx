@@ -43,6 +43,26 @@ export interface FindingsLogProps {
   renderAssignSlot?: (findingId: string) => React.ReactNode;
   /** Navigate to the chart that sourced a finding */
   onNavigateToChart?: (source: import('@variscout/core').FindingSource) => void;
+  /** Maximum statuses to show in status badge dropdown (3=PWA, 5=Azure). Default: all. */
+  maxStatuses?: number;
+  /** Set suspected root cause text */
+  onSetSuspectedCause?: (id: string, cause: string) => void;
+  /** Add an action item */
+  onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  /** Complete an action item */
+  onCompleteAction?: (id: string, actionId: string) => void;
+  /** Delete an action item */
+  onDeleteAction?: (id: string, actionId: string) => void;
+  /** Set outcome assessment */
+  onSetOutcome?: (
+    id: string,
+    outcome: {
+      effective: 'yes' | 'no' | 'partial';
+      cpkAfter?: number;
+      notes?: string;
+      verifiedAt: number;
+    }
+  ) => void;
 }
 
 /**
@@ -70,6 +90,12 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onAssignFinding,
   renderAssignSlot,
   onNavigateToChart,
+  maxStatuses,
+  onSetSuspectedCause,
+  onAddAction,
+  onCompleteAction,
+  onDeleteAction,
+  onSetOutcome,
 }) => {
   if (findings.length === 0) {
     return (
@@ -106,6 +132,12 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
         onAssignFinding={onAssignFinding}
         renderAssignSlot={renderAssignSlot}
         onNavigateToChart={onNavigateToChart}
+        maxStatuses={maxStatuses}
+        onSetSuspectedCause={onSetSuspectedCause}
+        onAddAction={onAddAction}
+        onCompleteAction={onCompleteAction}
+        onDeleteAction={onDeleteAction}
+        onSetOutcome={onSetOutcome}
       />
     );
   }
@@ -133,6 +165,12 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onAssign={onAssignFinding}
           renderAssignSlot={renderAssignSlot?.(finding.id)}
           onNavigateToChart={onNavigateToChart}
+          maxStatuses={maxStatuses}
+          onSetSuspectedCause={onSetSuspectedCause}
+          onAddAction={onAddAction}
+          onCompleteAction={onCompleteAction}
+          onDeleteAction={onDeleteAction}
+          onSetOutcome={onSetOutcome}
         />
       ))}
     </div>

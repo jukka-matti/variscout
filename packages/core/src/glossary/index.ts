@@ -4,6 +4,7 @@
 
 export type { GlossaryTerm, GlossaryCategory, GlossaryLocale } from './types';
 export { glossaryTerms, glossaryMap, getTerm, getTermsByCategory, hasTerm } from './terms';
+export { buildGlossaryPrompt } from './buildGlossaryPrompt';
 
 // Locale exports
 export { deGlossary } from './locales/de';

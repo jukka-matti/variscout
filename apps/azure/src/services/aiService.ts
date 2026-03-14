@@ -1,0 +1,158 @@
+/**
+ * AI Service for Azure AI Foundry integration.
+ * Handles narration requests with caching, retry, and auth.
+ */
+
+import type { AIContext } from '@variscout/core';
+import { buildNarrationSystemPrompt, buildSummaryPrompt } from '@variscout/core';
+
+const CACHE_KEY_PREFIX = 'variscout-ai-cache-';
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+interface CacheEntry {
+  text: string;
+  timestamp: number;
+}
+
+/**
+ * Get the AI endpoint from environment variable.
+ * Returns null if not configured (AI features hidden).
+ */
+export function getAIEndpoint(): string | null {
+  return import.meta.env.VITE_AI_ENDPOINT || null;
+}
+
+/**
+ * Check if AI features are available (endpoint configured).
+ */
+export function isAIAvailable(): boolean {
+  return getAIEndpoint() !== null;
+}
+
+/**
+ * Get cached response from localStorage.
+ */
+function getCachedResponse(key: string): string | null {
+  try {
+    const raw = localStorage.getItem(`${CACHE_KEY_PREFIX}${key}`);
+    if (!raw) return null;
+    const entry: CacheEntry = JSON.parse(raw);
+    if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+      localStorage.removeItem(`${CACHE_KEY_PREFIX}${key}`);
+      return null;
+    }
+    return entry.text;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cache a response.
+ */
+function setCachedResponse(key: string, text: string): void {
+  try {
+    const entry: CacheEntry = { text, timestamp: Date.now() };
+    localStorage.setItem(`${CACHE_KEY_PREFIX}${key}`, JSON.stringify(entry));
+  } catch {
+    // Silently fail on quota exceeded
+  }
+}
+
+/**
+ * Classify an error for appropriate UI feedback.
+ */
+export type AIErrorType = 'auth' | 'rate-limit' | 'network' | 'server' | 'unknown';
+
+export function classifyError(status: number, message?: string): AIErrorType {
+  if (status === 401 || status === 403) return 'auth';
+  if (status === 429) return 'rate-limit';
+  if (status === 0 || message?.includes('fetch')) return 'network';
+  if (status >= 500) return 'server';
+  return 'unknown';
+}
+
+/**
+ * Fetch a narration from Azure AI Foundry.
+ * Used as the `fetchNarration` callback for useNarration hook.
+ */
+export async function fetchNarration(context: AIContext): Promise<string> {
+  const endpoint = getAIEndpoint();
+  if (!endpoint) throw new Error('AI endpoint not configured');
+
+  // Build the prompt
+  const systemPrompt = buildNarrationSystemPrompt();
+  const userPrompt = buildSummaryPrompt(context);
+
+  // Simple cache key from user prompt hash
+  let cacheKey = 0;
+  for (let i = 0; i < userPrompt.length; i++) {
+    cacheKey = ((cacheKey << 5) - cacheKey + userPrompt.charCodeAt(i)) | 0;
+  }
+  const cacheKeyStr = String(cacheKey);
+
+  // Check cache
+  const cached = getCachedResponse(cacheKeyStr);
+  if (cached) return cached;
+
+  // Get auth token
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  try {
+    // Try EasyAuth token for Cognitive Services scope
+    const tokenResponse = await fetch('/.auth/me');
+    if (tokenResponse.ok) {
+      const authData = await tokenResponse.json();
+      const accessToken = authData?.[0]?.access_token;
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+    }
+  } catch {
+    // Dev mode — no auth header needed for local endpoints
+  }
+
+  // Retry with exponential backoff (max 3 attempts)
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+    }
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          max_tokens: 200,
+          temperature: 0.3,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorType = classifyError(response.status);
+        if (errorType === 'rate-limit' && attempt < 2) continue;
+        throw new Error(`AI request failed (${errorType}): ${response.status}`);
+      }
+
+      const data = await response.json();
+      const text = data?.choices?.[0]?.message?.content?.trim();
+      if (!text) throw new Error('Empty response from AI');
+
+      // Cache successful response
+      setCachedResponse(cacheKeyStr, text);
+      return text;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (attempt === 2) throw lastError;
+    }
+  }
+
+  throw lastError || new Error('AI request failed');
+}

@@ -44,6 +44,22 @@ export interface FindingsPanelBaseProps {
   renderAssignSlot?: (findingId: string) => React.ReactNode;
   onNavigateToChart?: (source: FindingSource) => void;
 
+  // 5-status investigation (Azure only)
+  maxStatuses?: number;
+  onSetSuspectedCause?: (id: string, cause: string) => void;
+  onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  onCompleteAction?: (id: string, actionId: string) => void;
+  onDeleteAction?: (id: string, actionId: string) => void;
+  onSetOutcome?: (
+    id: string,
+    outcome: {
+      effective: 'yes' | 'no' | 'partial';
+      cpkAfter?: number;
+      notes?: string;
+      verifiedAt: number;
+    }
+  ) => void;
+
   // Panel chrome
   columnAliases?: Record<string, string>;
   drillPath: DrillStep[];
@@ -81,6 +97,12 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onAssignFinding,
   renderAssignSlot,
   onNavigateToChart,
+  maxStatuses,
+  onSetSuspectedCause,
+  onAddAction,
+  onCompleteAction,
+  onDeleteAction,
+  onSetOutcome,
   viewMode: externalViewMode,
   onViewModeChange,
   resizeConfig,
@@ -235,6 +257,12 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           renderAssignSlot={renderAssignSlot}
           onNavigateToChart={onNavigateToChart}
           viewMode={viewMode}
+          maxStatuses={maxStatuses}
+          onSetSuspectedCause={onSetSuspectedCause}
+          onAddAction={onAddAction}
+          onCompleteAction={onCompleteAction}
+          onDeleteAction={onDeleteAction}
+          onSetOutcome={onSetOutcome}
         />
 
         {/* Drill path footer */}

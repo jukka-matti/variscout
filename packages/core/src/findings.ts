@@ -10,16 +10,24 @@
 // ============================================================================
 
 /** Investigation lifecycle status */
-export type FindingStatus = 'observed' | 'investigating' | 'analyzed';
+export type FindingStatus = 'observed' | 'investigating' | 'analyzed' | 'improving' | 'resolved';
 
 /** Ordered list of all finding statuses */
-export const FINDING_STATUSES: FindingStatus[] = ['observed', 'investigating', 'analyzed'];
+export const FINDING_STATUSES: FindingStatus[] = [
+  'observed',
+  'investigating',
+  'analyzed',
+  'improving',
+  'resolved',
+];
 
 /** Human-readable labels for finding statuses */
 export const FINDING_STATUS_LABELS: Record<FindingStatus, string> = {
   observed: 'Observed',
   investigating: 'Investigating',
   analyzed: 'Analyzed',
+  improving: 'Improving',
+  resolved: 'Resolved',
 };
 
 // ============================================================================
@@ -37,6 +45,9 @@ export const FINDING_TAG_LABELS: Record<FindingTag, string> = {
   'key-driver': 'Key Driver',
   'low-impact': 'Low Impact',
 };
+
+/** Statuses available in PWA (free tier) — hides improving/resolved */
+export const PWA_STATUSES: FindingStatus[] = ['observed', 'investigating', 'analyzed'];
 
 // ============================================================================
 // Photo Attachment Types
@@ -81,6 +92,32 @@ export interface FindingAssignee {
   displayName: string;
   /** Azure AD object ID — used for Graph @mention entity */
   userId?: string;
+}
+
+// ============================================================================
+// Action Items (investigation tasks)
+// ============================================================================
+
+/** A corrective/preventive action task within a finding */
+export interface ActionItem {
+  id: string;
+  text: string;
+  assignee?: string;
+  dueDate?: string; // ISO date string (YYYY-MM-DD)
+  completedAt?: number; // Date.now() timestamp
+  createdAt: number;
+}
+
+// ============================================================================
+// Finding Outcome (effectiveness verification)
+// ============================================================================
+
+/** Outcome assessment after corrective actions are complete */
+export interface FindingOutcome {
+  effective: 'yes' | 'no' | 'partial';
+  cpkAfter?: number;
+  notes?: string;
+  verifiedAt: number;
 }
 
 // ============================================================================
@@ -132,6 +169,12 @@ export interface Finding {
   source?: FindingSource;
   /** Optional assignee for Team plan @mention workflow */
   assignee?: FindingAssignee;
+  /** Suspected root cause (free text, set during investigation) */
+  suspectedCause?: string;
+  /** Corrective/preventive action items */
+  actions?: ActionItem[];
+  /** Outcome assessment after actions complete */
+  outcome?: FindingOutcome;
 }
 
 // ============================================================================
@@ -198,6 +241,35 @@ export function createFindingComment(text: string, author?: string): FindingComm
   return comment;
 }
 
+/**
+ * Create a new ActionItem with a unique ID
+ */
+export function createActionItem(text: string, assignee?: string, dueDate?: string): ActionItem {
+  return {
+    id: generateId(),
+    text,
+    assignee,
+    dueDate,
+    createdAt: Date.now(),
+  };
+}
+
+/**
+ * Create a FindingOutcome
+ */
+export function createFindingOutcome(
+  effective: 'yes' | 'no' | 'partial',
+  notes?: string,
+  cpkAfter?: number
+): FindingOutcome {
+  return {
+    effective,
+    notes,
+    cpkAfter,
+    verifiedAt: Date.now(),
+  };
+}
+
 // ============================================================================
 // Status Helpers
 // ============================================================================
@@ -217,6 +289,8 @@ export function groupFindingsByStatus(findings: Finding[]): Record<FindingStatus
     observed: [],
     investigating: [],
     analyzed: [],
+    improving: [],
+    resolved: [],
   };
 
   for (const finding of findings) {

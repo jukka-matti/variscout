@@ -12,8 +12,9 @@ import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
 import { ColumnMapping, InvestigationPrompt } from '@variscout/ui';
-import { useControlViolations } from '@variscout/hooks';
+import { useControlViolations, useAIContext, useNarration } from '@variscout/hooks';
 import { isTeamPlan } from '@variscout/core';
+import { fetchNarration as fetchNarrationFromAI, isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
@@ -46,6 +47,8 @@ interface EditorProps {
   initialFindingId?: string;
   /** Deep link: auto-focus this chart type */
   initialChart?: string;
+  /** Whether AI narration is enabled */
+  aiEnabled?: boolean;
 }
 
 export const Editor: React.FC<EditorProps> = ({
@@ -53,6 +56,7 @@ export const Editor: React.FC<EditorProps> = ({
   onBack,
   initialFindingId,
   initialChart,
+  aiEnabled,
 }) => {
   const { syncStatus } = useStorage();
   const {
@@ -90,6 +94,8 @@ export const Editor: React.FC<EditorProps> = ({
     currentProjectLocation,
     saveProject,
     loadProject,
+    stats,
+    processContext,
   } = useData();
 
   const ingestion = useDataIngestion({
@@ -292,6 +298,21 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
+
+  // AI narration
+  const aiContext = useAIContext({
+    enabled: (aiEnabled ?? false) && isAIAvailable(),
+    process: processContext,
+    stats: stats ?? undefined,
+    sampleCount: filteredData.length,
+    specs: specs ?? undefined,
+    filters,
+    findings: persistedFindings,
+  });
+  const narration = useNarration({
+    context: aiContext.context,
+    fetchNarration: aiEnabled && isAIAvailable() ? fetchNarrationFromAI : undefined,
+  });
 
   // Compute excluded row data for DataTableModal
   const excludedRowIndices = useMemo(() => {
@@ -573,6 +594,11 @@ export const Editor: React.FC<EditorProps> = ({
               onPinFinding={handlePinFinding}
               onShareChart={handleShareChart}
               findingsCallbacks={findingsCallbacks}
+              narrative={narration.narrative}
+              narrativeLoading={narration.isLoading}
+              narrativeCached={narration.isCached}
+              narrativeError={narration.error}
+              onNarrativeRetry={narration.refresh}
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isFindingsOpen ? (
@@ -610,6 +636,11 @@ export const Editor: React.FC<EditorProps> = ({
                   onCaptureFromTeams={
                     isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
                   }
+                  onSetSuspectedCause={findingsState.setSuspectedCause}
+                  onAddAction={findingsState.addAction}
+                  onCompleteAction={findingsState.completeAction}
+                  onDeleteAction={findingsState.deleteAction}
+                  onSetOutcome={findingsState.setOutcome}
                   showAuthors={true}
                   columnAliases={columnAliases}
                   drillPath={drillPath}
@@ -641,6 +672,11 @@ export const Editor: React.FC<EditorProps> = ({
                 onCaptureFromTeams={
                   isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
                 }
+                onSetSuspectedCause={findingsState.setSuspectedCause}
+                onAddAction={findingsState.addAction}
+                onCompleteAction={findingsState.completeAction}
+                onDeleteAction={findingsState.deleteAction}
+                onSetOutcome={findingsState.setOutcome}
                 showAuthors={true}
                 columnAliases={columnAliases}
                 drillPath={drillPath}

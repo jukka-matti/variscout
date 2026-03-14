@@ -178,3 +178,14 @@ export {
   type UseThemeStateOptions,
   type UseThemeStateReturn,
 } from './useThemeState';
+
+// AI Context
+export { useAIContext, type UseAIContextOptions, type UseAIContextReturn } from './useAIContext';
+
+// Narration
+export {
+  useNarration,
+  type UseNarrationOptions,
+  type UseNarrationReturn,
+  type NarrationStatus,
+} from './useNarration';

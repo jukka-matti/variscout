@@ -20,7 +20,12 @@ import {
 } from '@variscout/hooks';
 import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
 import { useStorage, type StorageLocation, type SyncStatus } from '../services/storage';
-import type { StatsResult, StagedStatsResult, StageOrderMode } from '@variscout/core';
+import type {
+  StatsResult,
+  StagedStatsResult,
+  StageOrderMode,
+  ProcessContext,
+} from '@variscout/core';
 import { isTeamPlan } from '@variscout/core';
 import { getTeamsContext } from '../teams/teamsContext';
 
@@ -33,6 +38,7 @@ export type { DisplayOptions, ParetoMode, DataQualityReport, ParetoRow, StorageL
 interface AzureDataState extends Omit<DataState, 'saveProject' | 'loadProject'> {
   currentProjectLocation: StorageLocation;
   syncStatus: SyncStatus;
+  processContext: ProcessContext;
 }
 
 /**
@@ -46,6 +52,7 @@ interface AzureDataActions extends Omit<
   loadProject: (name: string) => Promise<void>;
   deleteProject: (name: string) => Promise<void>;
   renameProject: (oldName: string, newName: string) => Promise<void>;
+  setProcessContext: (ctx: ProcessContext) => void;
 }
 
 /**
@@ -62,6 +69,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [state, actions] = useDataState({
     persistence: azurePersistenceAdapter,
   });
+
+  // AI process context
+  const [processContext, setProcessContext] = useState<ProcessContext>({});
 
   // Azure-specific state — default location based on Teams context
   const defaultLocation = useMemo<StorageLocation>(() => {
@@ -184,8 +194,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Azure-specific state
       currentProjectLocation,
       syncStatus,
+      processContext,
     }),
-    [state, currentProjectLocation, syncStatus]
+    [state, currentProjectLocation, syncStatus, processContext]
   );
 
   // Memoize actions context
@@ -233,6 +244,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setViewState: actions.setViewState,
       setFindings: actions.setFindings,
 
+      // AI
+      setProcessContext,
+
       // Azure-enhanced persistence methods
       saveProject,
       loadProject,
@@ -243,7 +257,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       importProject: actions.importProject,
       newProject: actions.newProject,
     }),
-    [actions, saveProject, loadProject, deleteProject, renameProject]
+    [actions, saveProject, loadProject, deleteProject, renameProject, setProcessContext]
   );
 
   return (

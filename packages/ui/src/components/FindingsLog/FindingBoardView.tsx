@@ -23,6 +23,20 @@ export interface FindingBoardViewProps {
   onAssignFinding?: (findingId: string) => void;
   renderAssignSlot?: (findingId: string) => React.ReactNode;
   onNavigateToChart?: (source: FindingSource) => void;
+  maxStatuses?: number;
+  onSetSuspectedCause?: (id: string, cause: string) => void;
+  onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  onCompleteAction?: (id: string, actionId: string) => void;
+  onDeleteAction?: (id: string, actionId: string) => void;
+  onSetOutcome?: (
+    id: string,
+    outcome: {
+      effective: 'yes' | 'no' | 'partial';
+      cpkAfter?: number;
+      notes?: string;
+      verifiedAt: number;
+    }
+  ) => void;
 }
 
 /**
@@ -47,6 +61,12 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   onAssignFinding,
   renderAssignSlot,
   onNavigateToChart,
+  maxStatuses,
+  onSetSuspectedCause,
+  onAddAction,
+  onCompleteAction,
+  onDeleteAction,
+  onSetOutcome,
 }) => {
   const groups = groupFindingsByStatus(findings);
 
@@ -117,6 +137,12 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     onAssign={onAssignFinding}
                     renderAssignSlot={renderAssignSlot?.(finding.id)}
                     onNavigateToChart={onNavigateToChart}
+                    maxStatuses={maxStatuses}
+                    onSetSuspectedCause={onSetSuspectedCause}
+                    onAddAction={onAddAction}
+                    onCompleteAction={onCompleteAction}
+                    onDeleteAction={onDeleteAction}
+                    onSetOutcome={onSetOutcome}
                   />
                 ))}
               </div>

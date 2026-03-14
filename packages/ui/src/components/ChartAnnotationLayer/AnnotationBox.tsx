@@ -10,6 +10,8 @@ const STATUS_DOT_COLORS: Record<FindingStatus, string> = {
   observed: '#f59e0b', // amber
   investigating: '#3b82f6', // blue
   analyzed: '#a855f7', // purple
+  improving: '#06b6d4', // cyan
+  resolved: '#22c55e', // green
 };
 
 interface AnnotationBoxProps {

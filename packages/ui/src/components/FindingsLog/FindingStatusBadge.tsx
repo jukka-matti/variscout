@@ -5,25 +5,35 @@ export interface FindingStatusBadgeProps {
   status: FindingStatus;
   /** If provided, badge is clickable with dropdown to change status */
   onStatusChange?: (status: FindingStatus) => void;
+  /** Maximum number of statuses to show in the dropdown. Default: show all. */
+  maxStatuses?: number;
 }
 
 const STATUS_STYLES: Record<FindingStatus, string> = {
   observed: 'bg-amber-500/20 text-amber-400',
   investigating: 'bg-blue-500/20 text-blue-400',
   analyzed: 'bg-purple-500/20 text-purple-400',
+  improving: 'bg-cyan-500/20 text-cyan-400',
+  resolved: 'bg-green-500/20 text-green-400',
 };
 
 const STATUS_DOT_COLORS: Record<FindingStatus, string> = {
   observed: 'bg-amber-400',
   investigating: 'bg-blue-400',
   analyzed: 'bg-purple-400',
+  improving: 'bg-cyan-400',
+  resolved: 'bg-green-400',
 };
 
 /**
  * Colored status pill with optional dropdown to change status.
  * Uses same popover pattern as BoxplotDisplayToggle.
  */
-const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({ status, onStatusChange }) => {
+const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({
+  status,
+  onStatusChange,
+  maxStatuses,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -76,7 +86,7 @@ const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({ status, onStatu
 
       {isOpen && (
         <div className="absolute right-0 top-full mt-1 z-50 bg-surface border border-edge rounded-lg shadow-lg py-1 min-w-[140px]">
-          {FINDING_STATUSES.map(s => (
+          {(maxStatuses ? FINDING_STATUSES.slice(0, maxStatuses) : FINDING_STATUSES).map(s => (
             <button
               key={s}
               onClick={e => {

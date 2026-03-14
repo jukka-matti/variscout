@@ -120,3 +120,40 @@ export function matchesChannelPattern(colName: string): boolean {
 export function matchesMetadataPattern(colName: string): boolean {
   return METADATA_PATTERNS.some(pattern => pattern.test(colName.trim()));
 }
+
+/** Keyword groups for inferring factor roles (AI context) */
+export const FACTOR_ROLE_KEYWORDS: Record<string, string[]> = {
+  equipment: [
+    'machine',
+    'head',
+    'nozzle',
+    'cavity',
+    'spindle',
+    'station',
+    'line',
+    'cell',
+    'tool',
+    'die',
+    'valve',
+    'sensor',
+    'equipment',
+  ],
+  temporal: ['shift', 'day', 'week', 'month', 'hour', 'date', 'time', 'period', 'quarter', 'year'],
+  operator: ['operator', 'technician', 'inspector', 'worker', 'crew', 'team', 'person'],
+  material: ['batch', 'lot', 'supplier', 'vendor', 'material', 'raw', 'resin', 'grade', 'compound'],
+  location: ['plant', 'site', 'zone', 'area', 'department', 'building', 'room', 'floor'],
+};
+
+/**
+ * Infer a factor role from column name using keyword matching.
+ * Returns null if no role can be inferred.
+ */
+export function inferFactorRole(columnName: string): string | null {
+  const lower = columnName.toLowerCase().trim();
+  for (const [role, keywords] of Object.entries(FACTOR_ROLE_KEYWORDS)) {
+    if (keywords.some(kw => lower.includes(kw))) {
+      return role;
+    }
+  }
+  return null;
+}

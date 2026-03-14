@@ -199,7 +199,14 @@ export {
 
 // Glossary
 export type { GlossaryTerm, GlossaryCategory, GlossaryLocale } from './glossary';
-export { glossaryTerms, glossaryMap, getTerm, getTermsByCategory, hasTerm } from './glossary';
+export {
+  glossaryTerms,
+  glossaryMap,
+  getTerm,
+  getTermsByCategory,
+  hasTerm,
+  buildGlossaryPrompt,
+} from './glossary';
 
 // Formatting utilities
 export { formatPValue, getStars } from './format';
@@ -233,6 +240,21 @@ export { safeMin, safeMax } from './utils/minmax';
 // EXIF/GPS metadata stripping (defense-in-depth for photo uploads)
 export { hasExifData, stripExifSegments, stripExifFromBlob } from './utils/exifStrip';
 
+// AI (Phase 1)
+export type {
+  FactorRole,
+  ProcessContext,
+  AIContext,
+  NarrationRequest,
+  NarrationResponse,
+  BuildAIContextOptions,
+  AIStatsInput,
+} from './ai';
+export { buildAIContext, buildNarrationSystemPrompt, buildSummaryPrompt } from './ai';
+
+// Factor role inference
+export { FACTOR_ROLE_KEYWORDS, inferFactorRole } from './parser';
+
 // Findings (scouting report)
 export type {
   Finding,
@@ -244,15 +266,20 @@ export type {
   FindingSource,
   PhotoAttachment,
   PhotoUploadStatus,
+  ActionItem,
+  FindingOutcome,
 } from './findings';
 export {
   FINDING_STATUSES,
   FINDING_STATUS_LABELS,
   FINDING_TAGS,
   FINDING_TAG_LABELS,
+  PWA_STATUSES,
   createFinding,
   createFindingComment,
   createPhotoAttachment,
+  createActionItem,
+  createFindingOutcome,
   getFindingStatus,
   groupFindingsByStatus,
   formatFindingFilters,

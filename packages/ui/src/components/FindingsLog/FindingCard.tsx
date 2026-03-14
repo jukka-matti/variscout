@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
-import { Activity, BarChart3, Layers, Pencil, Share2, Trash2, UserPlus } from 'lucide-react';
+import {
+  Activity,
+  BarChart3,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Layers,
+  Pencil,
+  Share2,
+  Target,
+  Trash2,
+  UserPlus,
+} from 'lucide-react';
 import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
 import { getFindingStatus } from '@variscout/core';
 import FindingEditor from './FindingEditor';
@@ -39,7 +52,307 @@ export interface FindingCardProps {
   onAssign?: (findingId: string) => void;
   /** Optional slot for inline assignment UI (e.g., PeoplePicker rendered by Azure) */
   renderAssignSlot?: React.ReactNode;
+  /** Maximum number of statuses to show in status badge dropdown (PWA=3, Azure=5). Default: all. */
+  maxStatuses?: number;
+  /** Callback to set suspected cause */
+  onSetSuspectedCause?: (id: string, cause: string) => void;
+  /** Callback to add an action item */
+  onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  /** Callback to complete an action item */
+  onCompleteAction?: (id: string, actionId: string) => void;
+  /** Callback to delete an action item */
+  onDeleteAction?: (id: string, actionId: string) => void;
+  /** Callback to set outcome */
+  onSetOutcome?: (
+    id: string,
+    outcome: {
+      effective: 'yes' | 'no' | 'partial';
+      cpkAfter?: number;
+      notes?: string;
+      verifiedAt: number;
+    }
+  ) => void;
 }
+
+// ============================================================================
+// Progressive Sections (5-status investigation workflow)
+// ============================================================================
+
+interface SuspectedCauseSectionProps {
+  findingId: string;
+  suspectedCause?: string;
+  onSetSuspectedCause: (id: string, cause: string) => void;
+  readOnly?: boolean;
+}
+
+const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({
+  findingId,
+  suspectedCause,
+  onSetSuspectedCause,
+  readOnly,
+}) => {
+  const [isOpen, setIsOpen] = useState(!!suspectedCause);
+  const [draft, setDraft] = useState(suspectedCause ?? '');
+
+  return (
+    <div className="mt-2 border-t border-edge/50 pt-2">
+      <button
+        onClick={e => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        className="flex items-center gap-1 text-[10px] text-content-muted hover:text-content transition-colors w-full text-left"
+      >
+        {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+        <Target size={10} />
+        <span>Suspected Cause</span>
+        {suspectedCause && !isOpen && (
+          <span className="ml-1 text-content-secondary truncate flex-1">
+            &mdash; {suspectedCause}
+          </span>
+        )}
+      </button>
+      {isOpen && (
+        <div className="mt-1">
+          <textarea
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onBlur={() => {
+              if (draft !== (suspectedCause ?? '')) onSetSuspectedCause(findingId, draft);
+            }}
+            placeholder="What do you think is causing this?"
+            className="w-full text-[11px] bg-surface-tertiary/50 border border-edge/50 rounded px-2 py-1.5 text-content placeholder:text-content-muted resize-none focus:outline-none focus:border-blue-500/50"
+            rows={2}
+            readOnly={readOnly}
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface ActionItemsSectionProps {
+  findingId: string;
+  actions: Array<{
+    id: string;
+    text: string;
+    assignee?: string;
+    dueDate?: string;
+    completedAt?: number;
+    createdAt: number;
+  }>;
+  onAddAction: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  onCompleteAction?: (id: string, actionId: string) => void;
+  onDeleteAction?: (id: string, actionId: string) => void;
+  readOnly?: boolean;
+}
+
+const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
+  findingId,
+  actions,
+  onAddAction,
+  onCompleteAction,
+  onDeleteAction,
+  readOnly,
+}) => {
+  const [isOpen, setIsOpen] = useState(actions.length > 0);
+  const [newActionText, setNewActionText] = useState('');
+
+  const overdue = actions.filter(
+    a => a.dueDate && !a.completedAt && new Date(a.dueDate) < new Date()
+  );
+  const completed = actions.filter(a => a.completedAt);
+
+  return (
+    <div className="mt-2 border-t border-edge/50 pt-2">
+      <button
+        onClick={e => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        className="flex items-center gap-1 text-[10px] text-content-muted hover:text-content transition-colors w-full text-left"
+      >
+        {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+        <CheckCircle2 size={10} />
+        <span>
+          Actions ({completed.length}/{actions.length})
+        </span>
+        {overdue.length > 0 && (
+          <span className="ml-1 text-red-400 text-[9px]">{overdue.length} overdue</span>
+        )}
+      </button>
+      {isOpen && (
+        <div className="mt-1 space-y-1">
+          {actions.map(action => (
+            <div
+              key={action.id}
+              className="flex items-start gap-1.5 group/action"
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  if (!action.completedAt && onCompleteAction)
+                    onCompleteAction(findingId, action.id);
+                }}
+                className={`mt-0.5 w-3.5 h-3.5 rounded border flex-shrink-0 flex items-center justify-center transition-colors ${
+                  action.completedAt
+                    ? 'bg-green-500/20 border-green-500/50 text-green-400'
+                    : 'border-edge hover:border-blue-500/50'
+                }`}
+                disabled={readOnly || !!action.completedAt}
+                title={action.completedAt ? 'Completed' : 'Mark complete'}
+              >
+                {action.completedAt && <CheckCircle2 size={8} />}
+              </button>
+              <div className="flex-1 min-w-0">
+                <span
+                  className={`text-[11px] ${action.completedAt ? 'line-through text-content-muted' : 'text-content-secondary'}`}
+                >
+                  {action.text}
+                </span>
+                {(action.assignee || action.dueDate) && (
+                  <div className="flex items-center gap-2 text-[9px] text-content-muted mt-0.5">
+                    {action.assignee && <span>{action.assignee}</span>}
+                    {action.dueDate && (
+                      <span
+                        className={`flex items-center gap-0.5 ${
+                          !action.completedAt && new Date(action.dueDate) < new Date()
+                            ? 'text-red-400'
+                            : ''
+                        }`}
+                      >
+                        <Clock size={8} />
+                        {action.dueDate}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+              {!readOnly && onDeleteAction && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onDeleteAction(findingId, action.id);
+                  }}
+                  className="p-0.5 rounded text-content-muted hover:text-red-400 opacity-0 group-hover/action:opacity-100 transition-opacity"
+                  title="Delete action"
+                >
+                  <Trash2 size={10} />
+                </button>
+              )}
+            </div>
+          ))}
+          {!readOnly && (
+            <div className="flex gap-1 mt-1" onClick={e => e.stopPropagation()}>
+              <input
+                type="text"
+                value={newActionText}
+                onChange={e => setNewActionText(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && newActionText.trim()) {
+                    onAddAction(findingId, newActionText.trim());
+                    setNewActionText('');
+                  }
+                }}
+                placeholder="Add action..."
+                className="flex-1 text-[11px] bg-surface-tertiary/50 border border-edge/50 rounded px-2 py-1 text-content placeholder:text-content-muted focus:outline-none focus:border-blue-500/50"
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface OutcomeSectionProps {
+  findingId: string;
+  outcome?: {
+    effective: 'yes' | 'no' | 'partial';
+    cpkAfter?: number;
+    notes?: string;
+    verifiedAt: number;
+  };
+  onSetOutcome: (
+    id: string,
+    outcome: {
+      effective: 'yes' | 'no' | 'partial';
+      cpkAfter?: number;
+      notes?: string;
+      verifiedAt: number;
+    }
+  ) => void;
+  readOnly?: boolean;
+}
+
+const OutcomeSection: React.FC<OutcomeSectionProps> = ({
+  findingId,
+  outcome,
+  onSetOutcome,
+  readOnly,
+}) => {
+  const [isOpen, setIsOpen] = useState(!!outcome);
+
+  const effectiveLabels = { yes: 'Effective', no: 'Not Effective', partial: 'Partially Effective' };
+  const effectiveColors = { yes: 'text-green-400', no: 'text-red-400', partial: 'text-amber-400' };
+
+  return (
+    <div className="mt-2 border-t border-edge/50 pt-2">
+      <button
+        onClick={e => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        className="flex items-center gap-1 text-[10px] text-content-muted hover:text-content transition-colors w-full text-left"
+      >
+        {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+        <Activity size={10} />
+        <span>Outcome</span>
+        {outcome && !isOpen && (
+          <span className={`ml-1 ${effectiveColors[outcome.effective]}`}>
+            &mdash; {effectiveLabels[outcome.effective]}
+          </span>
+        )}
+      </button>
+      {isOpen && (
+        <div className="mt-1 space-y-1.5" onClick={e => e.stopPropagation()}>
+          {!readOnly && !outcome && (
+            <div className="flex gap-1.5">
+              {(['yes', 'no', 'partial'] as const).map(eff => (
+                <button
+                  key={eff}
+                  onClick={() =>
+                    onSetOutcome(findingId, { effective: eff, verifiedAt: Date.now() })
+                  }
+                  className={`px-2 py-1 text-[10px] rounded border border-edge/50 hover:border-blue-500/50 transition-colors ${effectiveColors[eff]}`}
+                >
+                  {effectiveLabels[eff]}
+                </button>
+              ))}
+            </div>
+          )}
+          {outcome && (
+            <div className="text-[11px]">
+              <span className={effectiveColors[outcome.effective]}>
+                {effectiveLabels[outcome.effective]}
+              </span>
+              {outcome.cpkAfter !== undefined && (
+                <span className="ml-2 text-content-muted">
+                  Cpk after: {outcome.cpkAfter.toFixed(2)}
+                </span>
+              )}
+              {outcome.notes && (
+                <p className="text-content-secondary mt-0.5 italic">{outcome.notes}</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 /**
  * Individual finding card showing filter chips, stats, and analyst note.
@@ -64,6 +377,12 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onNavigateToChart,
   onAssign,
   renderAssignSlot,
+  maxStatuses,
+  onSetSuspectedCause,
+  onAddAction,
+  onCompleteAction,
+  onDeleteAction,
+  onSetOutcome,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
@@ -137,6 +456,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             <FindingStatusBadge
               status={status}
               onStatusChange={onSetStatus ? s => onSetStatus(finding.id, s) : undefined}
+              maxStatuses={maxStatuses}
             />
             {status === 'analyzed' && (
               <FindingTagBadge
@@ -248,6 +568,39 @@ const FindingCard: React.FC<FindingCardProps> = ({
 
         {/* Inline assign slot (e.g., PeoplePicker) */}
         {renderAssignSlot}
+
+        {/* Suspected Cause (visible from 'investigating' onward) */}
+        {onSetSuspectedCause &&
+          ['investigating', 'analyzed', 'improving', 'resolved'].includes(status) && (
+            <SuspectedCauseSection
+              findingId={finding.id}
+              suspectedCause={finding.suspectedCause}
+              onSetSuspectedCause={onSetSuspectedCause}
+              readOnly={status === 'resolved'}
+            />
+          )}
+
+        {/* Action Items (visible from 'analyzed' onward) */}
+        {onAddAction && ['analyzed', 'improving', 'resolved'].includes(status) && (
+          <ActionItemsSection
+            findingId={finding.id}
+            actions={finding.actions ?? []}
+            onAddAction={onAddAction}
+            onCompleteAction={onCompleteAction}
+            onDeleteAction={onDeleteAction}
+            readOnly={status === 'resolved'}
+          />
+        )}
+
+        {/* Outcome (visible for 'improving' and 'resolved') */}
+        {onSetOutcome && ['improving', 'resolved'].includes(status) && (
+          <OutcomeSection
+            findingId={finding.id}
+            outcome={finding.outcome}
+            onSetOutcome={onSetOutcome}
+            readOnly={status === 'resolved'}
+          />
+        )}
 
         {/* Comments section */}
         {onAddComment && (

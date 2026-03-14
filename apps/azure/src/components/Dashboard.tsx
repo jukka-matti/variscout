@@ -11,7 +11,13 @@ import PresentationView from './views/PresentationView';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
-import { EditableChartTitle, ErrorBoundary, FactorSelector, FilterBreadcrumb } from '@variscout/ui';
+import {
+  EditableChartTitle,
+  ErrorBoundary,
+  FactorSelector,
+  FilterBreadcrumb,
+  NarrativeBar,
+} from '@variscout/ui';
 import {
   SelectionPanel,
   CreateFactorModal,
@@ -66,6 +72,13 @@ interface DashboardProps {
   onShareChart?: (chartType: string) => void;
   /** Grouped findings-related callbacks */
   findingsCallbacks?: FindingsCallbacks;
+  /** AI narration state */
+  narrative?: string | null;
+  narrativeLoading?: boolean;
+  narrativeCached?: boolean;
+  narrativeError?: string | null;
+  onNarrativeAsk?: () => void;
+  onNarrativeRetry?: () => void;
 }
 
 const Dashboard = ({
@@ -83,6 +96,12 @@ const Dashboard = ({
   onPinFinding,
   onShareChart,
   findingsCallbacks,
+  narrative,
+  narrativeLoading,
+  narrativeCached,
+  narrativeError,
+  onNarrativeAsk,
+  onNarrativeRetry,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
     findingsCallbacks ?? {};
@@ -901,6 +920,18 @@ const Dashboard = ({
           onSave={setSpecs}
           onClose={() => setShowSpecEditor(false)}
           style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}
+        />
+      )}
+
+      {/* AI Narrative Bar */}
+      {(narrative || narrativeLoading || narrativeError) && (
+        <NarrativeBar
+          narrative={narrative ?? null}
+          isLoading={narrativeLoading ?? false}
+          isCached={narrativeCached ?? false}
+          error={narrativeError ?? null}
+          onAsk={onNarrativeAsk}
+          onRetry={onNarrativeRetry}
         />
       )}
     </div>

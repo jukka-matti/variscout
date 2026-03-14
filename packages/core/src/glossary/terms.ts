@@ -288,6 +288,157 @@ export const glossaryTerms: GlossaryTerm[] = [
     category: 'charts',
     relatedTerms: ['boxplot', 'stdDev'],
   },
+
+  // Investigation (5-status workflow + AI grounding)
+  {
+    id: 'controlVsSpec',
+    label: 'Control vs Spec Limits',
+    definition:
+      'Control limits reflect process behavior (voice of the process); specification limits reflect customer requirements (voice of the customer).',
+    description:
+      'Control limits (UCL/LCL) are calculated from data and show what the process IS doing. Specification limits (USL/LSL) are set by the customer and show what the process SHOULD do. A process can be in-control but out-of-spec, or in-spec but out-of-control.',
+    category: 'methodology',
+    learnMorePath: '/learn/two-voices',
+    relatedTerms: ['ucl', 'lcl', 'usl', 'lsl'],
+  },
+  {
+    id: 'naturalVariation',
+    label: 'Natural Variation',
+    definition:
+      'The inherent variation in a stable process, determined by common causes only. Represented by the spread between control limits.',
+    category: 'methodology',
+    relatedTerms: ['commonCause', 'ucl', 'lcl', 'stdDev'],
+  },
+  {
+    id: 'processStability',
+    label: 'Process Stability',
+    definition:
+      'Whether a process is in statistical control — all points within control limits with no special patterns detected.',
+    description:
+      'A stable process is predictable: future output will fall within the control limits. Stability is a prerequisite for meaningful capability analysis. An unstable process may produce good parts today but fail tomorrow.',
+    category: 'methodology',
+    relatedTerms: ['inControl', 'specialCause', 'commonCause'],
+  },
+  {
+    id: 'outOfControl',
+    label: 'Out of Control',
+    definition:
+      'A data point beyond control limits or exhibiting a Nelson rule pattern, signaling special cause variation.',
+    description:
+      'Out-of-control signals (red points on the I-Chart) mean something unusual happened. This requires investigation — identify the assignable cause and take corrective action to restore stability.',
+    category: 'methodology',
+    relatedTerms: ['specialCause', 'nelsonRule2', 'inControl'],
+  },
+  {
+    id: 'rationalSubgrouping',
+    label: 'Rational Subgrouping',
+    definition:
+      'Grouping data by meaningful time periods or sources so within-group variation represents only common cause.',
+    description:
+      'The foundation of effective stratification. Group data so that variation within each group is homogeneous (common cause only), and differences between groups can reveal special causes. Poor subgrouping masks real signals.',
+    category: 'methodology',
+    relatedTerms: ['stratification', 'commonCause', 'specialCause'],
+  },
+  {
+    id: 'stratification',
+    label: 'Stratification',
+    definition:
+      'Separating data by factors (machine, shift, operator) to reveal hidden sources of variation.',
+    description:
+      'Stratification is the core analytical technique in VariScout. By drilling down through factors, you decompose total variation into contributions from each source. The variation bar shows cumulative progress toward explaining total variation.',
+    category: 'methodology',
+    relatedTerms: ['rationalSubgrouping', 'etaSquared', 'totalSSContribution'],
+  },
+  {
+    id: 'rootCauseAnalysis',
+    label: 'Root Cause Analysis',
+    definition:
+      'Systematic method to identify the fundamental reason a defect or variation occurred, not just its symptoms.',
+    description:
+      'Root cause analysis goes beyond the immediate trigger to find the underlying system failure. In VariScout, the drill-down workflow and findings log support this process by capturing observations, suspected causes, and corrective actions.',
+    category: 'investigation',
+    relatedTerms: ['specialCause', 'finding', 'correctiveAction'],
+  },
+  {
+    id: 'correctiveAction',
+    label: 'Corrective Action',
+    definition:
+      'Action taken to eliminate the cause of a detected nonconformity or other undesirable situation.',
+    description:
+      'Corrective actions address existing problems. They should target the root cause, not just the symptom. In the 5-status workflow, corrective actions are tracked as action items on findings.',
+    category: 'investigation',
+    relatedTerms: ['preventiveAction', 'rootCauseAnalysis', 'actionItem'],
+  },
+  {
+    id: 'preventiveAction',
+    label: 'Preventive Action',
+    definition:
+      'Action taken to eliminate the cause of a potential nonconformity or other undesirable potential situation.',
+    description:
+      'Preventive actions address problems before they occur. They emerge from trend analysis and findings review — seeing a process drifting toward a limit before it actually fails.',
+    category: 'investigation',
+    relatedTerms: ['correctiveAction', 'rootCauseAnalysis'],
+  },
+  {
+    id: 'finding',
+    label: 'Finding',
+    definition:
+      'An analyst observation bookmarked for investigation — captures filter state, statistics, and context at a specific point in the analysis.',
+    description:
+      'Findings are the building blocks of investigation in VariScout. Each finding snapshots the dashboard state (filters, stats, variation context) so the analyst can return to it later. Findings progress through statuses: observed → investigating → analyzed → improving → resolved.',
+    category: 'investigation',
+    relatedTerms: ['investigationStatus', 'actionItem', 'keyDriver'],
+  },
+  {
+    id: 'investigationStatus',
+    label: 'Investigation Status',
+    definition:
+      'Lifecycle stage of a finding: observed, investigating, analyzed, improving, or resolved.',
+    description:
+      'The 5-status workflow tracks a finding from initial observation through root cause analysis to verified resolution. Observed: spotted but not yet explored. Investigating: actively being analyzed. Analyzed: root cause identified with suspected cause and tag. Improving: corrective actions in progress. Resolved: actions complete and effectiveness verified.',
+    category: 'investigation',
+    relatedTerms: ['finding', 'actionItem', 'correctiveAction'],
+  },
+  {
+    id: 'keyDriver',
+    label: 'Key Driver',
+    definition:
+      'A factor identified as a significant source of variation, worthy of corrective action.',
+    description:
+      'Key drivers are the factors that matter most. In VariScout, a finding tagged as "key-driver" indicates the analyst has confirmed this factor significantly contributes to process variation and should be addressed.',
+    category: 'investigation',
+    relatedTerms: ['finding', 'totalSSContribution', 'etaSquared'],
+  },
+  {
+    id: 'actionItem',
+    label: 'Action Item',
+    definition:
+      'A specific corrective or preventive task assigned to address a finding, with optional assignee and due date.',
+    description:
+      'Action items track the work needed to resolve a finding. Each item has a completion status. When the first action is added to an analyzed finding, it automatically transitions to "improving" status.',
+    category: 'investigation',
+    relatedTerms: ['finding', 'correctiveAction', 'investigationStatus'],
+  },
+  {
+    id: 'findingOutcome',
+    label: 'Finding Outcome',
+    definition:
+      'Assessment of whether corrective actions were effective: yes, no, or partially effective.',
+    description:
+      'The outcome closes the investigation loop. Compare Cpk before and after to quantify improvement. When all actions are complete and an outcome is recorded, the finding transitions to "resolved" status.',
+    category: 'investigation',
+    relatedTerms: ['finding', 'actionItem', 'investigationStatus', 'cpk'],
+  },
+  {
+    id: 'processContext',
+    label: 'Process Context',
+    definition:
+      'Background information about the manufacturing process (product, equipment, materials) that helps AI generate relevant analysis narratives.',
+    description:
+      'Process context grounds AI assistance in domain knowledge. Describing what you are measuring, what equipment produces it, and what factors matter helps the AI narrator explain statistical findings in terms meaningful to your specific process.',
+    category: 'investigation',
+    relatedTerms: ['finding', 'stratification'],
+  },
 ];
 
 /**

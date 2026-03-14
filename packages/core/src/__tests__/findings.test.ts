@@ -8,6 +8,8 @@ import {
   findDuplicateBySource,
   createFinding,
   createFindingComment,
+  createActionItem,
+  createFindingOutcome,
   getFindingStatus,
   groupFindingsByStatus,
   migrateFindingStatus,
@@ -16,6 +18,7 @@ import {
   FINDING_STATUS_LABELS,
   FINDING_TAGS,
   FINDING_TAG_LABELS,
+  PWA_STATUSES,
 } from '../findings';
 import type { Finding, FindingStatus, FindingSource } from '../findings';
 
@@ -160,18 +163,21 @@ describe('groupFindingsByStatus', () => {
     statusChangedAt: Date.now(),
   });
 
-  it('groups findings correctly', () => {
+  it('groups findings correctly across 5 statuses', () => {
     const findings = [
       makeFinding('f-1', 'observed'),
       makeFinding('f-2', 'investigating'),
       makeFinding('f-3', 'analyzed'),
-      makeFinding('f-4', 'analyzed'),
-      makeFinding('f-5', 'observed'),
+      makeFinding('f-4', 'improving'),
+      makeFinding('f-5', 'resolved'),
+      makeFinding('f-6', 'observed'),
     ];
     const groups = groupFindingsByStatus(findings);
     expect(groups.observed).toHaveLength(2);
     expect(groups.investigating).toHaveLength(1);
-    expect(groups.analyzed).toHaveLength(2);
+    expect(groups.analyzed).toHaveLength(1);
+    expect(groups.improving).toHaveLength(1);
+    expect(groups.resolved).toHaveLength(1);
   });
 
   it('returns empty arrays for empty input', () => {
@@ -179,18 +185,28 @@ describe('groupFindingsByStatus', () => {
     expect(groups.observed).toEqual([]);
     expect(groups.investigating).toEqual([]);
     expect(groups.analyzed).toEqual([]);
+    expect(groups.improving).toEqual([]);
+    expect(groups.resolved).toEqual([]);
   });
 });
 
 describe('status constants', () => {
-  it('FINDING_STATUSES has 3 statuses', () => {
-    expect(FINDING_STATUSES).toEqual(['observed', 'investigating', 'analyzed']);
+  it('FINDING_STATUSES has 5 statuses', () => {
+    expect(FINDING_STATUSES).toEqual([
+      'observed',
+      'investigating',
+      'analyzed',
+      'improving',
+      'resolved',
+    ]);
   });
 
   it('FINDING_STATUS_LABELS matches statuses', () => {
     expect(FINDING_STATUS_LABELS.observed).toBe('Observed');
     expect(FINDING_STATUS_LABELS.investigating).toBe('Investigating');
     expect(FINDING_STATUS_LABELS.analyzed).toBe('Analyzed');
+    expect(FINDING_STATUS_LABELS.improving).toBe('Improving');
+    expect(FINDING_STATUS_LABELS.resolved).toBe('Resolved');
   });
 
   it('FINDING_TAGS has 2 tags', () => {
@@ -200,6 +216,13 @@ describe('status constants', () => {
   it('FINDING_TAG_LABELS matches tags', () => {
     expect(FINDING_TAG_LABELS['key-driver']).toBe('Key Driver');
     expect(FINDING_TAG_LABELS['low-impact']).toBe('Low Impact');
+  });
+
+  it('PWA_STATUSES is a subset of FINDING_STATUSES (first 3)', () => {
+    expect(PWA_STATUSES).toEqual(['observed', 'investigating', 'analyzed']);
+    for (const s of PWA_STATUSES) {
+      expect(FINDING_STATUSES).toContain(s);
+    }
   });
 });
 
@@ -352,6 +375,95 @@ describe('findDuplicateBySource', () => {
     const findings = [makeFindingWithSource('f-1', { chart: 'boxplot', category: 'Machine A' })];
     const result = findDuplicateBySource(findings, { chart: 'boxplot', category: 'Machine B' });
     expect(result).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// ActionItem Tests
+// ============================================================================
+
+describe('createActionItem', () => {
+  it('creates an action item with text and timestamp', () => {
+    const action = createActionItem('Replace gasket');
+    expect(action.id).toBeTruthy();
+    expect(action.text).toBe('Replace gasket');
+    expect(action.createdAt).toBeGreaterThan(0);
+    expect(action.assignee).toBeUndefined();
+    expect(action.dueDate).toBeUndefined();
+    expect(action.completedAt).toBeUndefined();
+  });
+
+  it('accepts optional assignee and dueDate', () => {
+    const action = createActionItem('Calibrate sensor', 'Jane', '2026-04-01');
+    expect(action.assignee).toBe('Jane');
+    expect(action.dueDate).toBe('2026-04-01');
+  });
+
+  it('generates unique ids', () => {
+    const a1 = createActionItem('a');
+    const a2 = createActionItem('b');
+    expect(a1.id).not.toBe(a2.id);
+  });
+});
+
+// ============================================================================
+// FindingOutcome Tests
+// ============================================================================
+
+describe('createFindingOutcome', () => {
+  it('creates an outcome with effectiveness and timestamp', () => {
+    const outcome = createFindingOutcome('yes');
+    expect(outcome.effective).toBe('yes');
+    expect(outcome.verifiedAt).toBeGreaterThan(0);
+    expect(outcome.notes).toBeUndefined();
+    expect(outcome.cpkAfter).toBeUndefined();
+  });
+
+  it('accepts optional notes and cpkAfter', () => {
+    const outcome = createFindingOutcome('partial', 'Improved but not fixed', 1.45);
+    expect(outcome.effective).toBe('partial');
+    expect(outcome.notes).toBe('Improved but not fixed');
+    expect(outcome.cpkAfter).toBe(1.45);
+  });
+
+  it('accepts no effectiveness', () => {
+    const outcome = createFindingOutcome('no', 'No change observed');
+    expect(outcome.effective).toBe('no');
+    expect(outcome.notes).toBe('No change observed');
+  });
+});
+
+// ============================================================================
+// Finding with 5-status fields
+// ============================================================================
+
+describe('Finding 5-status extensions', () => {
+  it('Finding can have suspectedCause', () => {
+    const f = createFinding('High variation', { Machine: ['A'] }, 50);
+    f.suspectedCause = 'Worn bearing on head 3';
+    expect(f.suspectedCause).toBe('Worn bearing on head 3');
+  });
+
+  it('Finding can have actions array', () => {
+    const f = createFinding('Drift detected', {}, null);
+    const action = createActionItem('Replace part', 'Bob', '2026-04-15');
+    f.actions = [action];
+    expect(f.actions).toHaveLength(1);
+    expect(f.actions[0].text).toBe('Replace part');
+  });
+
+  it('Finding can have outcome', () => {
+    const f = createFinding('OOS condition', {}, null);
+    f.outcome = createFindingOutcome('yes', 'Cpk improved', 1.8);
+    expect(f.outcome!.effective).toBe('yes');
+    expect(f.outcome!.cpkAfter).toBe(1.8);
+  });
+
+  it('new fields default to undefined (backward compat)', () => {
+    const f = createFinding('test', {}, null);
+    expect(f.suspectedCause).toBeUndefined();
+    expect(f.actions).toBeUndefined();
+    expect(f.outcome).toBeUndefined();
   });
 });
 

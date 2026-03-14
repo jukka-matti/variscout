@@ -7,7 +7,8 @@ export type GlossaryCategory =
   | 'capability'
   | 'statistics'
   | 'charts'
-  | 'methodology';
+  | 'methodology'
+  | 'investigation';
 
 export interface GlossaryTerm {
   /** Unique identifier for the term (e.g., 'cp', 'ucl', 'pValue') */

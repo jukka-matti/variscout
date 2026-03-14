@@ -286,6 +286,13 @@ export {
   type ErrorNotificationHandler,
 } from './services';
 
+// AI Components
+export { NarrativeBar, type NarrativeBarProps } from './components/NarrativeBar';
+export {
+  ProcessDescriptionField,
+  type ProcessDescriptionFieldProps,
+} from './components/ProcessDescriptionField';
+
 // Hooks
 export {
   useIsMobile,

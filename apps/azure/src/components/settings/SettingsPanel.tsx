@@ -1,9 +1,10 @@
 import React from 'react';
 import { X, Palette } from 'lucide-react';
-import { SettingsPanelBase } from '@variscout/ui';
+import { SettingsPanelBase, ProcessDescriptionField } from '@variscout/ui';
 import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
 import ThemeToggle from './ThemeToggle';
+import { isAIAvailable } from '../../services/aiService';
 
 const ACCENT_PRESETS = [
   '#3b82f6', // blue (default)
@@ -18,9 +19,20 @@ const ACCENT_PRESETS = [
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  processDescription?: string;
+  onProcessDescriptionChange?: (value: string) => void;
+  aiEnabled?: boolean;
+  onAIEnabledChange?: (enabled: boolean) => void;
 }
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({
+  isOpen,
+  onClose,
+  processDescription,
+  onProcessDescriptionChange,
+  aiEnabled,
+  onAIEnabledChange,
+}) => {
   const { theme, setTheme } = useTheme();
   const { displayOptions, setDisplayOptions } = useData();
 
@@ -135,6 +147,38 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
               </span>
             </div>
           </label>
+          {isAIAvailable() && (
+            <div className="space-y-3 pt-3 border-t border-edge">
+              <h3 className="text-xs font-semibold text-content-secondary uppercase tracking-wider">
+                AI Assistance
+              </h3>
+              <label
+                htmlFor="az-setting-ai-narration"
+                className="flex items-center gap-2 text-xs text-content-secondary cursor-pointer"
+              >
+                <input
+                  id="az-setting-ai-narration"
+                  name="az-setting-ai-narration"
+                  type="checkbox"
+                  checked={aiEnabled ?? false}
+                  onChange={e => onAIEnabledChange?.(e.target.checked)}
+                  className="rounded border-edge"
+                />
+                Show AI narration
+              </label>
+              {aiEnabled && processDescription !== undefined && (
+                <div>
+                  <label className="text-[11px] text-content-muted mb-1 block">
+                    Process Description
+                  </label>
+                  <ProcessDescriptionField
+                    value={processDescription}
+                    onChange={onProcessDescriptionChange ?? (() => {})}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </>
       }
     />

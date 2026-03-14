@@ -54,6 +54,8 @@ function AppMain() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [currentProject, setCurrentProject] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [aiEnabled, setAIEnabled] = useState(false);
+  const [processDescription, setProcessDescription] = useState('');
   const teams = useTeamsContext();
 
   // Resolve deep link from URL params or Teams subPageId
@@ -254,13 +256,21 @@ function AppMain() {
                         ? (deepLink.chart ?? undefined)
                         : undefined
                     }
+                    aiEnabled={aiEnabled}
                   />
                 )}
                 {currentView === 'admin-teams' && <AdminTeamsSetup />}
               </main>
 
               {/* Settings Panel */}
-              <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+              <SettingsPanel
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                processDescription={processDescription}
+                onProcessDescriptionChange={setProcessDescription}
+                aiEnabled={aiEnabled}
+                onAIEnabledChange={setAIEnabled}
+              />
             </DataProvider>
           </ErrorBoundary>
           <SyncToasts />

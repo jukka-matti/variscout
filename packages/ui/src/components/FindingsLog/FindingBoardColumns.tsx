@@ -19,6 +19,20 @@ export interface FindingBoardColumnsProps {
   showAuthors?: boolean;
   columnAliases?: Record<string, string>;
   activeFindingId?: string | null;
+  maxStatuses?: number;
+  onSetSuspectedCause?: (id: string, cause: string) => void;
+  onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  onCompleteAction?: (id: string, actionId: string) => void;
+  onDeleteAction?: (id: string, actionId: string) => void;
+  onSetOutcome?: (
+    id: string,
+    outcome: {
+      effective: 'yes' | 'no' | 'partial';
+      cpkAfter?: number;
+      notes?: string;
+      verifiedAt: number;
+    }
+  ) => void;
 }
 
 /**
@@ -41,6 +55,12 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
   showAuthors,
   columnAliases,
   activeFindingId,
+  maxStatuses,
+  onSetSuspectedCause,
+  onAddAction,
+  onCompleteAction,
+  onDeleteAction,
+  onSetOutcome,
 }) => {
   const groups = groupFindingsByStatus(findings);
 
@@ -111,6 +131,12 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
                     showAuthors={showAuthors}
                     columnAliases={columnAliases}
                     isActive={finding.id === activeFindingId}
+                    maxStatuses={maxStatuses}
+                    onSetSuspectedCause={onSetSuspectedCause}
+                    onAddAction={onAddAction}
+                    onCompleteAction={onCompleteAction}
+                    onDeleteAction={onDeleteAction}
+                    onSetOutcome={onSetOutcome}
                   />
                 </div>
               ))}

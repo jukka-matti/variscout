@@ -2,12 +2,15 @@ import { useState, useCallback } from 'react';
 import {
   createFinding,
   createFindingComment,
+  createActionItem,
   findDuplicateFinding,
   findDuplicateBySource,
   migrateFindings,
+  type ActionItem,
   type Finding,
   type FindingAssignee,
   type FindingContext,
+  type FindingOutcome,
   type FindingSource,
   type FindingStatus,
   type FindingTag,
@@ -61,6 +64,22 @@ export interface UseFindingsReturn {
     status: PhotoUploadStatus,
     driveItemId?: string
   ) => void;
+  /** Set suspected root cause text */
+  setSuspectedCause: (id: string, cause: string) => void;
+  /** Add an action item to a finding */
+  addAction: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  /** Update an existing action item */
+  updateAction: (
+    id: string,
+    actionId: string,
+    updates: Partial<Pick<ActionItem, 'text' | 'assignee' | 'dueDate'>>
+  ) => void;
+  /** Mark an action item as completed */
+  completeAction: (id: string, actionId: string) => void;
+  /** Delete an action item */
+  deleteAction: (id: string, actionId: string) => void;
+  /** Set outcome assessment */
+  setOutcome: (id: string, outcome: FindingOutcome) => void;
 }
 
 /**
@@ -286,6 +305,111 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
+  const setSuspectedCause = useCallback(
+    (id: string, cause: string) => {
+      setFindings(prev => {
+        const next = prev.map(f => (f.id === id ? { ...f, suspectedCause: cause } : f));
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const addAction = useCallback(
+    (id: string, text: string, assignee?: string, dueDate?: string) => {
+      const action = createActionItem(text, assignee, dueDate);
+      setFindings(prev => {
+        const next = prev.map(f => {
+          if (f.id !== id) return f;
+          const updated = { ...f, actions: [...(f.actions ?? []), action] };
+          // Auto-transition: first action on 'analyzed' → 'improving'
+          if (f.status === 'analyzed' && !f.actions?.length) {
+            updated.status = 'improving';
+            updated.statusChangedAt = Date.now();
+          }
+          return updated;
+        });
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const updateAction = useCallback(
+    (
+      id: string,
+      actionId: string,
+      updates: Partial<Pick<ActionItem, 'text' | 'assignee' | 'dueDate'>>
+    ) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === id
+            ? {
+                ...f,
+                actions: f.actions?.map(a => (a.id === actionId ? { ...a, ...updates } : a)),
+              }
+            : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const completeAction = useCallback(
+    (id: string, actionId: string) => {
+      setFindings(prev => {
+        const next = prev.map(f => {
+          if (f.id !== id) return f;
+          const updatedActions = f.actions?.map(a =>
+            a.id === actionId ? { ...a, completedAt: Date.now() } : a
+          );
+          return { ...f, actions: updatedActions };
+        });
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const deleteAction = useCallback(
+    (id: string, actionId: string) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === id ? { ...f, actions: f.actions?.filter(a => a.id !== actionId) } : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const setOutcome = useCallback(
+    (id: string, outcome: FindingOutcome) => {
+      setFindings(prev => {
+        const next = prev.map(f => {
+          if (f.id !== id) return f;
+          const updated = { ...f, outcome };
+          // Auto-transition: outcome set + all actions complete → 'resolved'
+          const allDone = updated.actions?.length && updated.actions.every(a => a.completedAt);
+          if (allDone && updated.status === 'improving') {
+            updated.status = 'resolved';
+            updated.statusChangedAt = Date.now();
+          }
+          return updated;
+        });
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
   return {
     findings,
     addFinding,
@@ -303,5 +427,11 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     deleteFindingComment,
     addPhotoToComment,
     updatePhotoStatus,
+    setSuspectedCause,
+    addAction,
+    updateAction,
+    completeAction,
+    deleteAction,
+    setOutcome,
   };
 }
