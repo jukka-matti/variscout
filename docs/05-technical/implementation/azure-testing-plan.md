@@ -35,8 +35,10 @@ Create an App Registration before deploying the app. EasyAuth requires customer-
 - `User.Read` — sign-in and read user profile (both plans)
 - `Files.ReadWrite.All` — read and write OneDrive + SharePoint files (Team plan only)
 - `Channel.ReadBasic.All` — resolve channel SharePoint drives (Team plan only)
+- `People.Read` — people picker for @mentions (Team plan only)
+- `ChannelMessage.Send` — post findings to Teams channel (Team plan only)
 - Standard plan: only `User.Read` needed, no admin consent required
-- Team plan: admin consent required for `Files.ReadWrite.All` and `Channel.ReadBasic.All`
+- Team plan: admin consent required for `Files.ReadWrite.All`, `Channel.ReadBasic.All`, `ChannelMessage.Send`
 
 **Client Secret:**
 
@@ -81,47 +83,84 @@ az appservice plan create \
   --name variscout-test-plan \
   --resource-group rg-variscout-test \
   --sku B1 \
-  --is-linux false
+  --is-linux
 
 # 3. Create Web App
 az webapp create \
   --name variscout-test-rdmaic \
   --resource-group rg-variscout-test \
   --plan variscout-test-plan \
-  --runtime "NODE:20-lts"
+  --runtime "NODE|22-lts"
 
 # 4. Configure app settings
 az webapp config appsettings set \
   --name variscout-test-rdmaic \
   --resource-group rg-variscout-test \
   --settings \
-    WEBSITE_NODE_DEFAULT_VERSION="~20" \
+    VITE_LICENSE_TIER="enterprise" \
+    VITE_VARISCOUT_PLAN="team" \
     SCM_DO_BUILD_DURING_DEPLOYMENT="false"
 
-# 5. Configure EasyAuth
-az webapp auth config-version upgrade \
-  --name variscout-test-rdmaic \
-  --resource-group rg-variscout-test
-
-az webapp auth update \
+# 5. Set startup command (Node server.js, not PM2)
+az webapp config set \
   --name variscout-test-rdmaic \
   --resource-group rg-variscout-test \
-  --enabled true \
-  --action LoginWithAzureActiveDirectory \
-  --aad-client-id "<YOUR_CLIENT_ID>" \
-  --aad-client-secret "<YOUR_CLIENT_SECRET>" \
-  --aad-allowed-token-audiences "api://<YOUR_CLIENT_ID>"
+  --startup-file "node server.js"
 
-# 6. Zip and deploy the build
-cd apps/azure/dist
-zip -r ../../../variscout-azure.zip .
-cd ../../..
+# 6. Configure EasyAuth (authsettingsV2)
+#    Store the client secret as an app setting first
+az webapp config appsettings set \
+  --name variscout-test-rdmaic \
+  --resource-group rg-variscout-test \
+  --settings MICROSOFT_PROVIDER_AUTHENTICATION_SECRET="<YOUR_CLIENT_SECRET>"
+
+#    Then configure authsettingsV2 via REST API (most reliable method)
+az rest --method PUT \
+  --uri "/subscriptions/{subscriptionId}/resourceGroups/rg-variscout-test/providers/Microsoft.Web/sites/variscout-test-rdmaic/config/authsettingsV2?api-version=2024-04-01" \
+  --body '{
+    "properties": {
+      "platform": { "enabled": true },
+      "globalValidation": {
+        "requireAuthentication": true,
+        "unauthenticatedClientAction": "RedirectToLoginPage",
+        "redirectToProvider": "azureactivedirectory",
+        "excludedPaths": ["/health"]
+      },
+      "identityProviders": {
+        "azureActiveDirectory": {
+          "enabled": true,
+          "registration": {
+            "openIdIssuer": "https://login.microsoftonline.com/<YOUR_TENANT_ID>/v2.0",
+            "clientId": "<YOUR_CLIENT_ID>",
+            "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+          },
+          "login": {
+            "loginParameters": ["scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All People.Read ChannelMessage.Send"]
+          }
+        }
+      },
+      "login": {
+        "tokenStore": { "enabled": true }
+      }
+    }
+  }'
+
+# 7. Build, package, and deploy
+#    Package must include server.js + package.json (not just dist/)
+mkdir -p deploy/dist
+cp -r apps/azure/dist/* deploy/dist/
+cp apps/azure/server.js deploy/server.js
+echo '{"type":"module","scripts":{"start":"node server.js"}}' > deploy/package.json
+cd deploy && zip -r ../variscout-azure.zip . && cd ..
 
 az webapp deploy \
   --name variscout-test-rdmaic \
   --resource-group rg-variscout-test \
   --src-path variscout-azure.zip \
   --type zip
+
+# Cleanup
+rm -rf deploy variscout-azure.zip
 ```
 
 ### Option 2: ARM Template Deploy (mirrors Marketplace)
@@ -134,7 +173,14 @@ az group create \
   --name rg-variscout-test \
   --location westeurope
 
-# 2. Upload the build zip to a storage account (or use a SAS URL)
+# 2. Build the deployment zip (server.js + package.json + dist/)
+mkdir -p deploy/dist
+cp -r apps/azure/dist/* deploy/dist/
+cp apps/azure/server.js deploy/server.js
+echo '{"type":"module","scripts":{"start":"node server.js"}}' > deploy/package.json
+cd deploy && zip -r ../variscout-azure.zip . && cd ..
+
+# 3. Upload the zip to a storage account
 # The ARM template expects a publicly accessible URL for WEBSITE_RUN_FROM_PACKAGE
 az storage account create \
   --name variscoutreleases \
@@ -152,12 +198,13 @@ az storage blob upload \
   --name variscout-azure-test.zip \
   --file variscout-azure.zip
 
-# 3. Deploy ARM template
+# 4. Deploy ARM template
 az deployment group create \
   --resource-group rg-variscout-test \
   --template-file infra/mainTemplate.json \
   --parameters \
     appName="variscout-test-rdmaic" \
+    variscoutPlan="team" \
     clientId="<YOUR_CLIENT_ID>" \
     clientSecret="<YOUR_CLIENT_SECRET>" \
     packageUrl="https://variscoutreleases.blob.core.windows.net/releases/variscout-azure-test.zip"
@@ -176,31 +223,31 @@ az deployment group create \
 
 Test the app at `https://<app-name>.azurewebsites.net` in a desktop browser.
 
-| #   | Scenario                  | Steps                                                                                                             | What to Record                                                                           |
-| --- | ------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| 1   | **Authentication**        | Visit app URL → redirected to Entra ID → sign in → see user name in header                                        | Redirect speed, error messages, user display name correctness                            |
-| 2   | **Sample data loading**   | Click a sample dataset in the empty-state Editor → charts render                                                  | Load time, chart correctness, all 4 chart types visible                                  |
-| 3   | **Paste data input**      | Editor → Add Data → Paste → paste CSV text → column mapping → analysis                                            | Tab/comma detection accuracy, column type detection, mapping UX                          |
-| 4   | **File upload (CSV)**     | Editor → Add Data → Upload File → select CSV → column mapping → analysis                                          | Parse correctness, column detection, large file handling (try 10K+ rows)                 |
-| 5   | **Manual entry**          | Editor → Add Data → Manual Entry → create columns → add rows → analyze                                            | Input UX, validation feedback, performance mode toggle                                   |
-| 6   | **I-Chart analysis**      | Load data with spec limits → verify control limits, Nelson rule markers, dot colors                               | Blue=in-control, red=violation, correct UCL/LCL, Nelson sequence overlays                |
-| 7   | **Boxplot analysis**      | Drill by category factor → verify groups, toggle violin mode, try sorting (name/mean/spread), contribution labels | Visual quality, violin overlay, sort correctness, contribution % labels                  |
-| 8   | **Pareto analysis**       | Verify Cpk ranking chart → click bar to drill into channel                                                        | Chart readability, bar ordering (worst first), drill interaction                         |
-| 9   | **Capability (Cp/Cpk)**   | Set spec limits via SpecEditor popover → verify histogram + probability plot                                      | SpecEditor UX, Cp/Cpk calculation correctness                                            |
-| 10  | **ANOVA results**         | Drill by factor → check F-statistic, p-value, η² in ANOVA panel                                                   | Statistical accuracy (spot-check against known dataset values)                           |
-| 11  | **Performance Mode**      | Load multi-column CSV → PerformanceSetupPanel → select measures → Cpk scatter, boxplot, Pareto                    | Column detection, measure selection, channel drill navigation                            |
-| 12  | **Filter navigation**     | Apply factor filters → verify breadcrumbs → navigate back → apply multi-select                                    | Filter chips display, variation % contribution, back navigation, cumulative scope        |
-| 13  | **Mindmap panel**         | Open investigation panel → see drill tree → verify node sizes (∝ η²) → What-If                                    | Mindmap rendering, node sizing, green pulse on biggest node, What-If slider              |
-| 14  | **OneDrive sync**         | Save project → check OneDrive/VariScout/Projects folder → close tab → reopen → verify data loads                  | Sync speed, file appears in OneDrive, data persists across sessions                      |
-| 15  | **Theme switching**       | Settings → toggle dark/light/system → verify all views adapt                                                      | Color consistency across charts, panels, editor; chrome color adaptation                 |
-| 16  | **Chart export**          | Copy chart to clipboard → paste in document; download PNG; download SVG                                           | Export quality, correct dimensions (see chart export sizes), branding hidden (paid tier) |
-| 17  | **Settings persistence**  | Change display options (Y-axis lock, show specs, chart text size) → reload → verify retained                      | localStorage reliability, all toggle states restored                                     |
-| 18  | **Factor management**     | Click "Factors" in nav bar → ColumnMapping opens in edit mode → add/remove factor → Apply → verify filter cleanup | State consistency, orphaned filters cleaned, cancel preserves data                       |
-| 19  | **Data table editing**    | Open data table → edit cell values → verify charts update                                                         | Inline editing UX, bi-directional sync, undo behavior                                    |
-| 20  | **Chart annotations**     | Right-click boxplot/Pareto → highlight + add note; right-click I-Chart → add free-floating note                   | Context menu positioning, annotation persistence, drag-to-reposition                     |
-| 21  | **CSV export**            | Editor header → export CSV → open in Excel                                                                        | Data completeness, column ordering, encoding (UTF-8 with special characters)             |
-| 22  | **Editable chart titles** | Click chart title → edit text → verify persistence                                                                | Inline editing UX, title saved across sessions                                           |
-| 23  | **Presentation mode**     | Enter presentation mode → full-screen chart overlay → navigate charts                                             | Full-screen rendering, keyboard navigation, exit behavior                                |
+| #   | Scenario                  | Steps                                                                                                                      | What to Record                                                                           |
+| --- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 1   | **Authentication**        | Visit app URL → redirected to Entra ID → sign in → see user name in header                                                 | Redirect speed, error messages, user display name correctness                            |
+| 2   | **Sample data loading**   | Click a sample dataset in the empty-state Editor → charts render                                                           | Load time, chart correctness, all 4 chart types visible                                  |
+| 3   | **Paste data input**      | Editor → Add Data → Paste → paste CSV text → column mapping → analysis                                                     | Tab/comma detection accuracy, column type detection, mapping UX                          |
+| 4   | **File upload (CSV)**     | Editor → Add Data → Upload File → select CSV → column mapping → analysis                                                   | Parse correctness, column detection, large file handling (try 10K+ rows)                 |
+| 5   | **Manual entry**          | Editor → Add Data → Manual Entry → create columns → add rows → analyze                                                     | Input UX, validation feedback, performance mode toggle                                   |
+| 6   | **I-Chart analysis**      | Load data with spec limits → verify control limits, Nelson rule markers, dot colors                                        | Blue=in-control, red=violation, correct UCL/LCL, Nelson sequence overlays                |
+| 7   | **Boxplot analysis**      | Drill by category factor → verify groups, toggle violin mode, try sorting (name/mean/spread), contribution labels          | Visual quality, violin overlay, sort correctness, contribution % labels                  |
+| 8   | **Pareto analysis**       | Verify Cpk ranking chart → click bar to drill into channel                                                                 | Chart readability, bar ordering (worst first), drill interaction                         |
+| 9   | **Capability (Cp/Cpk)**   | Set spec limits via SpecEditor popover → verify histogram + probability plot                                               | SpecEditor UX, Cp/Cpk calculation correctness                                            |
+| 10  | **ANOVA results**         | Drill by factor → check F-statistic, p-value, η² in ANOVA panel                                                            | Statistical accuracy (spot-check against known dataset values)                           |
+| 11  | **Performance Mode**      | Load multi-column CSV → PerformanceSetupPanel → select measures → Cpk scatter, boxplot, Pareto                             | Column detection, measure selection, channel drill navigation                            |
+| 12  | **Filter navigation**     | Apply factor filters → verify breadcrumbs → navigate back → apply multi-select                                             | Filter chips display, variation % contribution, back navigation, cumulative scope        |
+| 13  | **Findings panel**        | Open findings panel → pin observation from chart → change status (observed→investigating→analyzed) → add comment → What-If | Findings list rendering, status transitions, comment persistence, What-If slider         |
+| 14  | **OneDrive sync**         | Save project → check OneDrive/VariScout/Projects folder → close tab → reopen → verify data loads                           | Sync speed, file appears in OneDrive, data persists across sessions                      |
+| 15  | **Theme switching**       | Settings → toggle dark/light/system → verify all views adapt                                                               | Color consistency across charts, panels, editor; chrome color adaptation                 |
+| 16  | **Chart export**          | Copy chart to clipboard → paste in document; download PNG; download SVG                                                    | Export quality, correct dimensions (see chart export sizes), branding hidden (paid tier) |
+| 17  | **Settings persistence**  | Change display options (Y-axis lock, show specs, chart text size) → reload → verify retained                               | localStorage reliability, all toggle states restored                                     |
+| 18  | **Factor management**     | Click "Factors" in nav bar → ColumnMapping opens in edit mode → add/remove factor → Apply → verify filter cleanup          | State consistency, orphaned filters cleaned, cancel preserves data                       |
+| 19  | **Data table editing**    | Open data table → edit cell values → verify charts update                                                                  | Inline editing UX, bi-directional sync, undo behavior                                    |
+| 20  | **Chart annotations**     | Right-click boxplot/Pareto → highlight + add note; right-click I-Chart → add free-floating note                            | Context menu positioning, annotation persistence, drag-to-reposition                     |
+| 21  | **CSV export**            | Editor header → export CSV → open in Excel                                                                                 | Data completeness, column ordering, encoding (UTF-8 with special characters)             |
+| 22  | **Editable chart titles** | Click chart title → edit text → verify persistence                                                                         | Inline editing UX, title saved across sessions                                           |
+| 23  | **Presentation mode**     | Enter presentation mode → full-screen chart overlay → navigate charts                                                      | Full-screen rendering, keyboard navigation, exit behavior                                |
 
 ---
 
@@ -218,7 +265,7 @@ The Azure app includes an admin page (`AdminTeamsSetup.tsx`) that generates a Te
 | 4   | **Auth in Teams**          | First open → expect login redirect to `*.azurewebsites.net` → sign in via Entra ID             | SSO behavior (note: `*.azurewebsites.net` domains require one-time redirect, no seamless SSO), redirect UX |
 | 5   | **Full workflow in Teams** | Load sample → drill by factor → set specs → export chart                                       | Iframe constraints, scrolling behavior, popup/modal rendering                                              |
 | 6   | **Responsive in Teams**    | Resize Teams window → check chart responsiveness → try narrow sidebar mode                     | Layout adaptation, breakpoints, chart readability at small sizes                                           |
-| 7   | **Mindmap popout**         | Open mindmap → click popout to new window                                                      | `window.open` behavior in Teams (may be blocked), fallback behavior                                        |
+| 7   | **Findings popout**        | Open findings panel → click popout to new window                                               | `window.open` behavior in Teams (may be blocked), fallback behavior                                        |
 | 8   | **OneDrive sync in Teams** | Save project in Teams tab → verify appears in OneDrive                                         | Same Graph API flow as standalone, verify token available                                                  |
 
 ---
@@ -290,7 +337,7 @@ Fill this form during and after testing. Rate items 1–5 (1=poor, 5=excellent) 
 | App renders correctly in Teams iframe? | yes / no        |
 | Auth flow in Teams                     | /5              |
 | Any iframe-specific issues?            |                 |
-| Popout windows work (mindmap)?         | yes / no        |
+| Popout windows work (findings)?        | yes / no        |
 | Scrolling behavior in Teams            | /5              |
 
 ### Accessibility
@@ -326,7 +373,6 @@ Document these with testers so they don't report them as bugs:
 | **Storage scope**            | Standard plan: local files only (no cloud sync). Team plan: OneDrive personal + SharePoint channel storage.               | Standard needs only `User.Read`. Team needs `Files.ReadWrite.All` + `Channel.ReadBasic.All`.          |
 | **Local dev**                | Graph API unavailable on localhost. Auth returns mock user, OneDrive sync is no-op.                                       | Expected behavior per `easyAuth.ts` — test sync only on deployed instance.                            |
 | **Admin consent**            | `User.Read` + `Files.ReadWrite` don't require admin consent by default, but org Entra ID policies may block user consent. | If blocked, tenant admin grants consent via App Registration → API permissions → Grant admin consent. |
-| **Regression analysis**      | Deferred to Phase 2 (ADR-014). Code exists in `@variscout/core` but is not exposed in the UI.                             | Not a bug — intentional scope decision.                                                               |
 | **Performance Mode in PWA**  | PWA detection modal shows "available in Azure App" — Performance Mode is Azure-only.                                      | Expected behavior — PWA is free tier.                                                                 |
 | **Client secret expiration** | Test secret expires based on chosen duration. Production deployments should use 24-month secrets.                         | Set calendar reminder to rotate before expiration.                                                    |
 
@@ -385,7 +431,7 @@ The Azure app has 9 Playwright spec files in `apps/azure/e2e/` plus a shared hel
 | `stats-anova.spec.ts`      | C-9 (Cp/Cpk), C-10 (ANOVA)                                                    |
 | `user-flows.spec.ts`       | C-3 (paste), C-12 (filter navigation), multi-step workflows                   |
 | `edge-cases.spec.ts`       | Boundary conditions, empty states, error handling                             |
-| `editor-features.spec.ts`  | C-13 (mindmap), C-19 (data table), C-21 (CSV export), C-22 (chart titles)     |
+| `editor-features.spec.ts`  | C-13 (findings), C-19 (data table), C-21 (CSV export), C-22 (chart titles)    |
 | `performance-mode.spec.ts` | C-11 (Performance Mode), Cp/Cpk toggle, spec limits                           |
 | `settings-theme.spec.ts`   | C-15 (theme switching), C-17 (settings persistence)                           |
 
