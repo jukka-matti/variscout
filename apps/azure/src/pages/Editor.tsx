@@ -13,7 +13,12 @@ import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
 import { ColumnMapping, InvestigationPrompt, CopilotPanelBase } from '@variscout/ui';
 import { useControlViolations, useAIContext, useNarration, useAICopilot } from '@variscout/hooks';
-import { isTeamPlan, buildSuggestedQuestions } from '@variscout/core';
+import {
+  isTeamPlan,
+  buildSuggestedQuestions,
+  getNelsonRule2Sequences,
+  getNelsonRule3Sequences,
+} from '@variscout/core';
 import {
   fetchNarration as fetchNarrationFromAI,
   fetchChartInsight as fetchChartInsightFromAI,
@@ -312,6 +317,34 @@ export const Editor: React.FC<EditorProps> = ({
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
 
+  // Aggregate violation counts for AI narration context
+  const violationCounts = useMemo(() => {
+    if (!outcome || !stats || filteredData.length === 0) return undefined;
+
+    const values = filteredData
+      .map(r => {
+        const v = r[outcome];
+        return typeof v === 'number' ? v : parseFloat(String(v));
+      })
+      .filter(v => !isNaN(v));
+    if (values.length === 0) return undefined;
+
+    const outOfControl = values.filter(v => v > stats.ucl || v < stats.lcl).length;
+    const aboveUSL = specs.usl !== undefined ? values.filter(v => v > specs.usl!).length : 0;
+    const belowLSL = specs.lsl !== undefined ? values.filter(v => v < specs.lsl!).length : 0;
+
+    const rule2Sequences = getNelsonRule2Sequences(values, stats.mean);
+    const rule3Sequences = getNelsonRule3Sequences(values);
+
+    return {
+      outOfControl,
+      aboveUSL,
+      belowLSL,
+      nelsonRule2Count: rule2Sequences.length,
+      nelsonRule3Count: rule3Sequences.length,
+    };
+  }, [filteredData, outcome, stats, specs]);
+
   // AI narration
   const aiContext = useAIContext({
     enabled: aiEnabled && isAIAvailable(),
@@ -321,6 +354,7 @@ export const Editor: React.FC<EditorProps> = ({
     specs: specs ?? undefined,
     filters,
     factorRoles,
+    violations: violationCounts,
     findings: persistedFindings,
   });
   const narration = useNarration({

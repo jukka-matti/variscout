@@ -87,6 +87,28 @@ describe('useAIContext', () => {
     });
   });
 
+  it('includes Nelson rule counts in violations', () => {
+    const { result } = renderHook(() =>
+      useAIContext({
+        enabled: true,
+        violations: {
+          outOfControl: 1,
+          aboveUSL: 0,
+          belowLSL: 2,
+          nelsonRule2Count: 2,
+          nelsonRule3Count: 1,
+        },
+      })
+    );
+    expect(result.current.context!.violations).toEqual({
+      outOfControl: 1,
+      aboveUSL: 0,
+      belowLSL: 2,
+      nelsonRule2Count: 2,
+      nelsonRule3Count: 1,
+    });
+  });
+
   it('memoizes context when inputs unchanged', () => {
     const { result, rerender } = renderHook(() => useAIContext({ enabled: true }));
     const first = result.current.context;

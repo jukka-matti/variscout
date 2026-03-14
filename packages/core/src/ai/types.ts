@@ -62,6 +62,8 @@ export interface AIContext {
     outOfControl: number;
     aboveUSL: number;
     belowLSL: number;
+    nelsonRule2Count?: number;
+    nelsonRule3Count?: number;
   };
   /** Summary of findings */
   findings?: {

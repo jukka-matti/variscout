@@ -46,6 +46,25 @@ describe('buildAIContext', () => {
     expect(ctx.violations).toEqual({ outOfControl: 3, aboveUSL: 1, belowLSL: 0 });
   });
 
+  it('passes through Nelson rule counts in violations', () => {
+    const ctx = buildAIContext({
+      violations: {
+        outOfControl: 2,
+        aboveUSL: 0,
+        belowLSL: 1,
+        nelsonRule2Count: 3,
+        nelsonRule3Count: 1,
+      },
+    });
+    expect(ctx.violations).toEqual({
+      outOfControl: 2,
+      aboveUSL: 0,
+      belowLSL: 1,
+      nelsonRule2Count: 3,
+      nelsonRule3Count: 1,
+    });
+  });
+
   it('includes findings summary', () => {
     const findings: Finding[] = [
       {

@@ -194,6 +194,7 @@ VariScout highlights both Nelson Rule 2 and Rule 3 violations directly on the I-
 - **Rule 1 (out-of-control)**: Affected points are rendered as **diamonds** — this takes priority over Rule 2 and Rule 3 if a point is part of multiple violations.
 - Sequences are tracked in Performance Mode across all channels.
 - The `ChartInsightChip` surfaces Rule 2 and Rule 3 violations as deterministic insight text, with Rule 2 taking priority when both are present.
+- Nelson Rule 2 and Rule 3 sequence counts are also included in the NarrativeBar and Copilot AI context via `buildAIContext()` violations.
 
 ---
 

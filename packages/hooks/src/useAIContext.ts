@@ -24,7 +24,13 @@ export interface UseAIContextOptions {
   /** Inferred factor roles */
   factorRoles?: Record<string, FactorRole>;
   /** Control/spec violations */
-  violations?: { outOfControl: number; aboveUSL: number; belowLSL: number };
+  violations?: {
+    outOfControl: number;
+    aboveUSL: number;
+    belowLSL: number;
+    nelsonRule2Count?: number;
+    nelsonRule3Count?: number;
+  };
   /** Current findings */
   findings?: Finding[];
 }

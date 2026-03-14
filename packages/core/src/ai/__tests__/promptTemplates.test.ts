@@ -69,6 +69,40 @@ describe('buildSummaryPrompt', () => {
     expect(prompt).toContain('2 above USL');
   });
 
+  it('includes Nelson Rule 2 and 3 counts in violations', () => {
+    const ctx: AIContext = {
+      process: {},
+      filters: [],
+      violations: {
+        outOfControl: 1,
+        aboveUSL: 0,
+        belowLSL: 0,
+        nelsonRule2Count: 2,
+        nelsonRule3Count: 1,
+      },
+    };
+    const prompt = buildSummaryPrompt(ctx);
+    expect(prompt).toContain('2 Nelson Rule 2 (process shift)');
+    expect(prompt).toContain('1 Nelson Rule 3 (trend/drift)');
+  });
+
+  it('omits Nelson counts when zero', () => {
+    const ctx: AIContext = {
+      process: {},
+      filters: [],
+      violations: {
+        outOfControl: 3,
+        aboveUSL: 0,
+        belowLSL: 0,
+        nelsonRule2Count: 0,
+        nelsonRule3Count: 0,
+      },
+    };
+    const prompt = buildSummaryPrompt(ctx);
+    expect(prompt).not.toContain('Nelson Rule 2');
+    expect(prompt).not.toContain('Nelson Rule 3');
+  });
+
   it('includes findings summary', () => {
     const ctx: AIContext = {
       process: {},

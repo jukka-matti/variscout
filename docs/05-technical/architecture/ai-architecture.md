@@ -69,7 +69,7 @@ Everything already in DataContext, extracted by `buildAIContext()`:
 
 - Computed statistics: mean, median, stdDev, Cp, Cpk, pass rate
 - Variation metrics: η² per factor, cumulative scope, Total SS
-- Violations: Nelson Rule 2 points, control/spec limit breaches
+- Violations: Nelson Rule 2 (shift) and Rule 3 (trend) sequence counts, control/spec limit breaches
 - Findings: title, status, tag, factor, contribution %, suspected cause, actions, outcome
 - Filter state: active drill path and breadcrumbs
 

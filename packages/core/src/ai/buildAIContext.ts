@@ -27,7 +27,13 @@ export interface BuildAIContextOptions {
   stats?: AIStatsInput;
   filters?: Record<string, (string | number)[]>;
   factorRoles?: Record<string, FactorRole>;
-  violations?: { outOfControl: number; aboveUSL: number; belowLSL: number };
+  violations?: {
+    outOfControl: number;
+    aboveUSL: number;
+    belowLSL: number;
+    nelsonRule2Count?: number;
+    nelsonRule3Count?: number;
+  };
   findings?: Finding[];
   /** Maximum token budget for glossary (default 40 terms) */
   maxGlossaryTerms?: number;

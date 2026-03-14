@@ -66,6 +66,10 @@ export function buildSummaryPrompt(context: AIContext): string {
     if (v.outOfControl > 0) violationParts.push(`${v.outOfControl} out-of-control`);
     if (v.aboveUSL > 0) violationParts.push(`${v.aboveUSL} above USL`);
     if (v.belowLSL > 0) violationParts.push(`${v.belowLSL} below LSL`);
+    if (v.nelsonRule2Count && v.nelsonRule2Count > 0)
+      violationParts.push(`${v.nelsonRule2Count} Nelson Rule 2 (process shift)`);
+    if (v.nelsonRule3Count && v.nelsonRule3Count > 0)
+      violationParts.push(`${v.nelsonRule3Count} Nelson Rule 3 (trend/drift)`);
     if (violationParts.length > 0) {
       parts.push(`Violations: ${violationParts.join(', ')}`);
     }
