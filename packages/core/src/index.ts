@@ -21,6 +21,7 @@ export type {
   StagedStatsResult,
   StageBoundary,
   NelsonRule2Sequence,
+  NelsonRule3Sequence,
   // Boxplot Types
   BoxplotGroupInput,
   BoxplotGroupData,
@@ -53,6 +54,8 @@ export {
   // Nelson rules
   getNelsonRule2ViolationPoints,
   getNelsonRule2Sequences,
+  getNelsonRule3ViolationPoints,
+  getNelsonRule3Sequences,
   // Boxplot statistics
   calculateBoxplotStats,
   sortBoxplotData,

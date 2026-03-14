@@ -173,7 +173,7 @@ export const glossaryTerms: GlossaryTerm[] = [
       'Special cause variation indicates something unusual happened in the process - a machine malfunction, operator error, material change, or other assignable cause. Unlike common cause variation (random, inherent), special causes are detectable, identifiable, and correctable. Red dots on control charts signal special cause - investigate and take action.',
     category: 'methodology',
     learnMorePath: '/learn/two-voices',
-    relatedTerms: ['commonCause', 'ucl', 'lcl', 'nelsonRule2', 'inControl'],
+    relatedTerms: ['commonCause', 'ucl', 'lcl', 'nelsonRule2', 'nelsonRule3', 'inControl'],
   },
   {
     id: 'commonCause',
@@ -195,7 +195,18 @@ export const glossaryTerms: GlossaryTerm[] = [
       'Nelson Rule 2 detects special cause variation in the form of a sustained process shift. When 9+ consecutive points fall on one side of the mean, the process has moved to a new level - not just random fluctuation. This pattern signals something systematic changed: new material batch, adjusted settings, different operator technique, etc. Investigate the timeline to identify what changed.',
     category: 'methodology',
     learnMorePath: '/tools/i-chart',
-    relatedTerms: ['specialCause', 'mean', 'ucl', 'lcl'],
+    relatedTerms: ['specialCause', 'mean', 'ucl', 'lcl', 'nelsonRule3'],
+  },
+  {
+    id: 'nelsonRule3',
+    label: 'Nelson Rule 3',
+    definition:
+      'Six or more consecutive points steadily increasing or decreasing. Indicates a process trend.',
+    description:
+      'Nelson Rule 3 detects special cause variation in the form of a trend - a sustained drift in one direction. When 6+ consecutive points are strictly increasing or decreasing, the process is moving away from its center. This pattern signals progressive change: tool wear, temperature drift, material degradation, etc. Investigate what is causing the directional shift before the process moves out of control.',
+    category: 'methodology',
+    learnMorePath: '/tools/i-chart',
+    relatedTerms: ['specialCause', 'nelsonRule2', 'mean'],
   },
   {
     id: 'inControl',

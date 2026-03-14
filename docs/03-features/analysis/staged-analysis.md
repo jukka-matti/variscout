@@ -190,6 +190,8 @@ const boundaries = getStageBoundaries(sortedData, stagedStats);
 
 **Test coverage:** See `packages/core/src/__tests__/stats.test.ts` for stage boundary tests.
 
+**Note on Nelson rules in staged mode:** Both Nelson Rule 2 (9+ same-side runs) and Nelson Rule 3 (6+ consecutive trend) are computed per-stage, using each stage's own data slice. This ensures that a trend or run that spans a stage boundary is not reported as a violation unless it occurs entirely within a single stage.
+
 ---
 
 ## See Also

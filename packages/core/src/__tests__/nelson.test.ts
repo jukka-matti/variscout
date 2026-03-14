@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { getNelsonRule2ViolationPoints, getNelsonRule2Sequences } from '../stats';
+import {
+  getNelsonRule2ViolationPoints,
+  getNelsonRule2Sequences,
+  getNelsonRule3ViolationPoints,
+  getNelsonRule3Sequences,
+} from '../stats';
 
 describe('Nelson Rule 2 Detection', () => {
   it('should return empty set for datasets with fewer than 9 points', () => {
@@ -334,6 +339,187 @@ describe('Nelson Rule 2 Sequence Detection', () => {
 
   it('should return empty array for empty input', () => {
     const sequences = getNelsonRule2Sequences([], 0);
+    expect(sequences).toEqual([]);
+  });
+});
+
+describe('Nelson Rule 3 Detection', () => {
+  it('should return empty set for datasets with fewer than 6 points', () => {
+    const violations = getNelsonRule3ViolationPoints([1, 2, 3, 4, 5]);
+    expect(violations.size).toBe(0);
+  });
+
+  it('should detect 6 consecutive strictly increasing points', () => {
+    const values = [1, 2, 3, 4, 5, 6];
+    const violations = getNelsonRule3ViolationPoints(values);
+
+    expect(violations.size).toBe(6);
+    for (let i = 0; i < 6; i++) {
+      expect(violations.has(i)).toBe(true);
+    }
+  });
+
+  it('should detect 6 consecutive strictly decreasing points', () => {
+    const values = [6, 5, 4, 3, 2, 1];
+    const violations = getNelsonRule3ViolationPoints(values);
+
+    expect(violations.size).toBe(6);
+    for (let i = 0; i < 6; i++) {
+      expect(violations.has(i)).toBe(true);
+    }
+  });
+
+  it('should not flag exactly 5 points (boundary case)', () => {
+    // 5 increasing = not enough
+    const values = [1, 2, 3, 4, 5];
+    const violations = getNelsonRule3ViolationPoints(values);
+    expect(violations.size).toBe(0);
+  });
+
+  it('should break trend when values are equal', () => {
+    // 4 increasing, equal, 4 increasing = no violations
+    const values = [1, 2, 3, 4, 4, 5, 6, 7, 8];
+    const violations = getNelsonRule3ViolationPoints(values);
+    expect(violations.size).toBe(0);
+  });
+
+  it('should detect extended runs (>6) and mark all points', () => {
+    const values = [1, 2, 3, 4, 5, 6, 7, 8];
+    const violations = getNelsonRule3ViolationPoints(values);
+
+    expect(violations.size).toBe(8);
+    for (let i = 0; i < 8; i++) {
+      expect(violations.has(i)).toBe(true);
+    }
+  });
+
+  it('should detect multiple separate trends', () => {
+    // 6 increasing, break, 6 decreasing
+    const values = [1, 2, 3, 4, 5, 6, 5, 10, 9, 8, 7, 6, 5, 4];
+    const violations = getNelsonRule3ViolationPoints(values);
+
+    // First trend: indices 0-5 (6 increasing)
+    for (let i = 0; i <= 5; i++) {
+      expect(violations.has(i)).toBe(true);
+    }
+    // Break at index 6 (5 < 6, direction change starts new run)
+    // Second trend: indices 7-13 (7 decreasing: 10, 9, 8, 7, 6, 5, 4)
+    for (let i = 7; i <= 13; i++) {
+      expect(violations.has(i)).toBe(true);
+    }
+  });
+
+  it('should handle run ending at array end', () => {
+    const values = [10, 5, 1, 2, 3, 4, 5, 6];
+    const violations = getNelsonRule3ViolationPoints(values);
+
+    expect(violations.size).toBe(6);
+    for (let i = 2; i <= 7; i++) {
+      expect(violations.has(i)).toBe(true);
+    }
+  });
+
+  it('should handle floating point values', () => {
+    const values = [1.1, 1.2, 1.3, 1.4, 1.5, 1.6];
+    const violations = getNelsonRule3ViolationPoints(values);
+    expect(violations.size).toBe(6);
+  });
+
+  it('should return empty set for empty array', () => {
+    const violations = getNelsonRule3ViolationPoints([]);
+    expect(violations.size).toBe(0);
+  });
+
+  it('should not flag constant values', () => {
+    const violations = getNelsonRule3ViolationPoints([5, 5, 5, 5, 5, 5, 5]);
+    expect(violations.size).toBe(0);
+  });
+
+  it('should handle alternating values', () => {
+    const violations = getNelsonRule3ViolationPoints([1, 2, 1, 2, 1, 2, 1, 2]);
+    expect(violations.size).toBe(0);
+  });
+});
+
+describe('Nelson Rule 3 Sequence Detection', () => {
+  it('should return empty array for datasets with fewer than 6 points', () => {
+    const sequences = getNelsonRule3Sequences([1, 2, 3, 4, 5]);
+    expect(sequences).toEqual([]);
+  });
+
+  it('should detect single increasing sequence', () => {
+    const values = [1, 2, 3, 4, 5, 6];
+    const sequences = getNelsonRule3Sequences(values);
+
+    expect(sequences).toHaveLength(1);
+    expect(sequences[0]).toEqual({
+      startIndex: 0,
+      endIndex: 5,
+      direction: 'increasing',
+    });
+  });
+
+  it('should detect single decreasing sequence', () => {
+    const values = [6, 5, 4, 3, 2, 1];
+    const sequences = getNelsonRule3Sequences(values);
+
+    expect(sequences).toHaveLength(1);
+    expect(sequences[0]).toEqual({
+      startIndex: 0,
+      endIndex: 5,
+      direction: 'decreasing',
+    });
+  });
+
+  it('should detect extended runs as single sequence', () => {
+    const values = [1, 2, 3, 4, 5, 6, 7, 8];
+    const sequences = getNelsonRule3Sequences(values);
+
+    expect(sequences).toHaveLength(1);
+    expect(sequences[0]).toEqual({
+      startIndex: 0,
+      endIndex: 7,
+      direction: 'increasing',
+    });
+  });
+
+  it('should not detect run of exactly 5 points', () => {
+    // 5 increasing points with non-monotone neighbors
+    const values = [10, 5, 1, 2, 3, 4, 5, 3];
+    const sequences = getNelsonRule3Sequences(values);
+    expect(sequences).toEqual([]);
+  });
+
+  it('should handle sequence at end of array', () => {
+    const values = [10, 5, 1, 2, 3, 4, 5, 6];
+    const sequences = getNelsonRule3Sequences(values);
+
+    expect(sequences).toHaveLength(1);
+    expect(sequences[0]).toEqual({
+      startIndex: 2,
+      endIndex: 7,
+      direction: 'increasing',
+    });
+  });
+
+  it('should detect correct direction for each sequence', () => {
+    // 6 increasing, break, 6 decreasing
+    const values = [1, 2, 3, 4, 5, 6, 5, 10, 9, 8, 7, 6, 5, 4];
+    const sequences = getNelsonRule3Sequences(values);
+
+    expect(sequences).toHaveLength(2);
+    expect(sequences[0].direction).toBe('increasing');
+    expect(sequences[1].direction).toBe('decreasing');
+  });
+
+  it('should return empty array for empty input', () => {
+    const sequences = getNelsonRule3Sequences([]);
+    expect(sequences).toEqual([]);
+  });
+
+  it('should break on equal values', () => {
+    const values = [1, 2, 3, 4, 4, 5, 6, 7, 8];
+    const sequences = getNelsonRule3Sequences(values);
     expect(sequences).toEqual([]);
   });
 });

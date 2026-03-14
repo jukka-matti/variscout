@@ -5,7 +5,7 @@ import {
   buildParetoInsight,
   buildStatsInsight,
 } from '../chartInsights';
-import type { NelsonRule2Sequence } from '../../types';
+import type { NelsonRule2Sequence, NelsonRule3Sequence } from '../../types';
 
 describe('buildIChartInsight', () => {
   it('returns null when no violations', () => {
@@ -44,6 +44,46 @@ describe('buildIChartInsight', () => {
     const result = buildIChartInsight([], 1, 3);
     expect(result).not.toBeNull();
     expect(result!.text).toBe('1 of 3 points outside control limits (33%)');
+  });
+
+  it('returns trend warning for Nelson Rule 3 sequences', () => {
+    const rule3: NelsonRule3Sequence[] = [
+      { startIndex: 10, endIndex: 17, direction: 'increasing' },
+    ];
+    const result = buildIChartInsight([], 0, 50, rule3);
+    expect(result).not.toBeNull();
+    expect(result!.chipType).toBe('warning');
+    expect(result!.priority).toBe(2.5);
+    expect(result!.text).toBe('Trend detected: 8 consecutive increasing points from obs. 11');
+  });
+
+  it('picks the longest Rule 3 sequence', () => {
+    const rule3: NelsonRule3Sequence[] = [
+      { startIndex: 0, endIndex: 5, direction: 'increasing' },
+      { startIndex: 20, endIndex: 29, direction: 'decreasing' },
+    ];
+    const result = buildIChartInsight([], 0, 50, rule3);
+    expect(result).not.toBeNull();
+    expect(result!.text).toContain('10 consecutive decreasing');
+  });
+
+  it('Nelson Rule 2 takes priority over Rule 3', () => {
+    const rule2: NelsonRule2Sequence[] = [{ startIndex: 0, endIndex: 8, side: 'above' }];
+    const rule3: NelsonRule3Sequence[] = [
+      { startIndex: 10, endIndex: 17, direction: 'increasing' },
+    ];
+    const result = buildIChartInsight(rule2, 0, 50, rule3);
+    expect(result).not.toBeNull();
+    expect(result!.priority).toBe(3);
+    expect(result!.text).toContain('Process shift');
+  });
+
+  it('Rule 3 takes priority over OOC points', () => {
+    const rule3: NelsonRule3Sequence[] = [{ startIndex: 0, endIndex: 6, direction: 'decreasing' }];
+    const result = buildIChartInsight([], 2, 50, rule3);
+    expect(result).not.toBeNull();
+    expect(result!.priority).toBe(2.5);
+    expect(result!.text).toContain('Trend detected');
   });
 });
 

@@ -4,7 +4,7 @@
  * These are the fallback path AND data foundation for AI prompts.
  */
 
-import type { NelsonRule2Sequence } from '../types';
+import type { NelsonRule2Sequence, NelsonRule3Sequence } from '../types';
 
 export type InsightChartType = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 export type ChipType = 'suggestion' | 'warning' | 'info';
@@ -19,12 +19,13 @@ export interface DeterministicInsight {
 }
 
 /**
- * Build insight chip for I-Chart based on Nelson Rule 2 sequences and OOC points.
+ * Build insight chip for I-Chart based on Nelson Rule 2/3 sequences and OOC points.
  */
 export function buildIChartInsight(
   nelsonSequences: NelsonRule2Sequence[],
   outOfControlCount: number,
-  totalPoints: number
+  totalPoints: number,
+  nelsonRule3Sequences?: NelsonRule3Sequence[]
 ): DeterministicInsight | null {
   // Priority 3: Nelson Rule 2 detected — pick the longest sequence
   if (nelsonSequences.length > 0) {
@@ -38,6 +39,21 @@ export function buildIChartInsight(
       text: `Process shift: ${length} points ${longest.side} mean from obs. ${longest.startIndex + 1}`,
       chipType: 'warning',
       priority: 3,
+    };
+  }
+
+  // Priority 2.5: Nelson Rule 3 detected — pick the longest trend
+  if (nelsonRule3Sequences && nelsonRule3Sequences.length > 0) {
+    const longest = nelsonRule3Sequences.reduce((best, seq) => {
+      const bestLen = best.endIndex - best.startIndex + 1;
+      const seqLen = seq.endIndex - seq.startIndex + 1;
+      return seqLen > bestLen ? seq : best;
+    });
+    const length = longest.endIndex - longest.startIndex + 1;
+    return {
+      text: `Trend detected: ${length} consecutive ${longest.direction} points from obs. ${longest.startIndex + 1}`,
+      chipType: 'warning',
+      priority: 2.5,
     };
   }
 

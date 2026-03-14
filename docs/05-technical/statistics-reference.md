@@ -67,7 +67,7 @@ MR-bar = (1/(n-1)) Σ MR_i
 
 The constant **d2 = 1.128** is the Hartley unbiasing constant for a moving range with span 2. Since VariScout always uses individual measurements (n = 1), the span is always 2 and d2 is fixed.
 
-**Why two sigmas?** σ_within captures short-term, inherent process variation — the variation between consecutive measurements. It excludes between-subgroup shifts. This makes it the correct denominator for Shewhart control limits and capability indices (Wheeler, _Understanding Variation_). σ_overall includes all sources of variation and is used for ANOVA, where both within-group and between-group variation matter.
+**Why two sigmas?** σ*within captures short-term, inherent process variation — the variation between consecutive measurements. It excludes between-subgroup shifts. This makes it the correct denominator for Shewhart control limits and capability indices (Wheeler, \_Understanding Variation*). σ_overall includes all sources of variation and is used for ANOVA, where both within-group and between-group variation matter.
 
 **Edge case**: when `data.length < 2`, the moving range cannot be computed. The implementation falls back to `d3.deviation(data)` for σ_within and returns `mrBar = 0`.
 
@@ -294,7 +294,7 @@ Non-numeric, NaN, and Infinity values are filtered before computation. Data is s
 
 ---
 
-## Part 6 — Nelson Rule 2
+## Part 6a — Nelson Rule 2
 
 > Source: `packages/core/src/stats/nelson.ts`
 > User docs: [Nelson Rules](../03-features/analysis/nelson-rules.md)
@@ -323,6 +323,44 @@ Two functions provide different output formats:
 | `getNelsonRule2Sequences()`       | `Array<{ startIndex, endIndex, side }>` | Segment highlight rendering    |
 
 Returns empty results for arrays with fewer than 9 values.
+
+---
+
+## Part 6b — Nelson Rule 3
+
+> Source: `packages/core/src/stats/nelson.ts`
+> User docs: [Nelson Rules](../03-features/analysis/nelson-rules.md)
+
+### Definition
+
+**6 or more consecutive strictly increasing or decreasing values** — a signal of a sustained trend (drift) in the process. This rule is distinct from Rule 2 (same-side runs): Rule 3 detects monotonic direction, not deviation from the mean.
+
+### Algorithm
+
+Single-pass scan with direction tracking:
+
+1. Initialize `runStart = 1`, `currentDirection = null`, `runLength = 1`
+2. For each consecutive pair (i−1, i), compute `delta = x_i - x_{i-1}`
+3. Determine step direction: `'up'` if `delta > 0`, `'down'` if `delta < 0`, `null` if `delta === 0`
+4. If step direction matches `currentDirection`: increment `runLength`
+5. If step direction differs (including equal values, which break the trend): check completed run (if `runLength ≥ 6`, record all points in the run), reset with new direction and `runLength = 2` (the current pair starts a new candidate run)
+6. After loop, check the final open run
+
+### Edge Cases
+
+- **Equal consecutive values** (`delta === 0`) break the current trend run — a plateau is not a trend in either direction.
+- **Exactly 6** consecutive strictly monotonic values is the minimum qualifying run.
+- **Overlapping runs** are not possible since each point belongs to at most one run at a time; a new run begins only after the previous direction changes.
+- Returns empty results for arrays with fewer than 6 values.
+
+### Exports
+
+Two functions provide different output formats, matching the Rule 2 API:
+
+| Function                          | Returns                                                                 | Use case                       |
+| --------------------------------- | ----------------------------------------------------------------------- | ------------------------------ | --------------------- |
+| `getNelsonRule3ViolationPoints()` | `Set<number>` of indices                                                | Point-level violation coloring |
+| `getNelsonRule3Sequences()`       | `Array<{ startIndex, endIndex, direction }>` where `direction` is `'up' | 'down'`                        | Trend arrow rendering |
 
 ---
 
@@ -758,3 +796,4 @@ These will enable model-driven simulation in a future release: regression coeffi
 | Incomplete beta / continued fraction | Lentz's algorithm (max 200 iterations, ε = 1e-10)                           |
 | Node area encoding                   | Stevens' Power Law — area ∝ magnitude for perceptual accuracy               |
 | Nelson Rule 2                        | Nelson, _Journal of Quality Technology_ (1984) — 9-point runs               |
+| Nelson Rule 3                        | Nelson, _Journal of Quality Technology_ (1984) — 6-point trends             |

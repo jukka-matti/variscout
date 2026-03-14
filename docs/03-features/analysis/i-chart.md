@@ -19,25 +19,27 @@ The I-Chart reveals:
 
 ## Key Elements
 
-| Element       | Description                               |
-| ------------- | ----------------------------------------- |
-| Data points   | Individual measurements plotted over time |
-| Mean line (x̄) | Process average                           |
-| UCL           | Upper Control Limit (x̄ + 2.66MR̄)          |
-| LCL           | Lower Control Limit (x̄ - 2.66MR̄)          |
-| Spec lines    | Optional USL/LSL overlay                  |
+| Element          | Description                                                                                                               |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Data points      | Individual measurements plotted over time                                                                                 |
+| Mean line (x̄)    | Process average                                                                                                           |
+| UCL              | Upper Control Limit (x̄ + 2.66MR̄)                                                                                          |
+| LCL              | Lower Control Limit (x̄ - 2.66MR̄)                                                                                          |
+| Spec lines       | Optional USL/LSL overlay                                                                                                  |
+| Violation shapes | Shape encodes rule type: circle = spec/control violation, diamond (◆) = Nelson Rule 2, square (■) = Nelson Rule 3 (trend) |
 
 ---
 
 ## Interpretation
 
-| Pattern                      | Meaning              | Action      |
-| ---------------------------- | -------------------- | ----------- |
-| Points within limits, random | Stable process       | Maintain    |
-| Point above UCL              | Special cause (high) | Investigate |
-| Point below LCL              | Special cause (low)  | Investigate |
-| 7+ points one side           | Shift in mean        | Investigate |
-| Trending up/down             | Drift                | Investigate |
+| Pattern                      | Meaning                        | Symbol | Action      |
+| ---------------------------- | ------------------------------ | ------ | ----------- |
+| Points within limits, random | Stable process                 |        | Maintain    |
+| Point above UCL              | Special cause (high)           | ●      | Investigate |
+| Point below LCL              | Special cause (low)            | ●      | Investigate |
+| 7+ points one side           | Shift in mean                  | ◆      | Investigate |
+| 9+ points one side           | Shift in mean — Rule 2         | ◆      | Investigate |
+| 6+ trending up/down          | Trend (Rule 3) — ▲ up / ▼ down | ■      | Investigate |
 
 ---
 
@@ -84,16 +86,37 @@ VariScout's implementation:
 
 ```typescript
 // From @variscout/core
-import { calculateStats, getNelsonRule2ViolationPoints } from '@variscout/core';
+import {
+  calculateStats,
+  getNelsonRule2ViolationPoints,
+  getNelsonRule3ViolationPoints,
+} from '@variscout/core';
 
 const stats = calculateStats(values, usl, lsl);
 // Returns: { mean, stdDev, ucl, lcl, cp, cpk, outOfSpecPercentage }
 
-const violations = getNelsonRule2ViolationPoints(values, stats.mean);
-// Returns: Set of indices in violation runs
+const rule2Violations = getNelsonRule2ViolationPoints(values, stats.mean);
+// Returns: Set of indices in 9+ same-side runs
+
+const rule3Violations = getNelsonRule3ViolationPoints(values);
+// Returns: Set of indices in 6+ strictly monotonic trend runs
 ```
 
 **Test coverage:** See `packages/core/src/__tests__/stats.test.ts` and `packages/core/src/__tests__/nelson.test.ts`.
+
+---
+
+## Violation Symbols
+
+Each violation type is encoded by both color and shape, so patterns remain distinguishable even in grayscale or when multiple rule violations coexist on the same chart.
+
+| Shape     | Rule                     | Meaning                                     |
+| --------- | ------------------------ | ------------------------------------------- |
+| ● Circle  | Spec / control violation | Point outside spec or control limits        |
+| ◆ Diamond | Nelson Rule 2            | 9+ consecutive points on the same side      |
+| ■ Square  | Nelson Rule 3            | 6+ strictly increasing or decreasing values |
+
+When a point qualifies for more than one rule simultaneously, the highest-priority shape is rendered: spec/control violation (●) takes priority over Rule 2 (◆), which takes priority over Rule 3 (■). Color still reflects whether the signal is harmful or favorable (see [Beneficial Signals](#beneficial-signals) and [Characteristic Types](characteristic-types.md)).
 
 ---
 

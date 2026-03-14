@@ -1,5 +1,5 @@
 /**
- * Nelson Rule 2 violation detection for I-Chart
+ * Nelson Rule 2 & 3 violation detection for I-Chart
  *
  * Computes violation points and sequences for both staged and non-staged modes.
  */
@@ -8,8 +8,11 @@ import { useMemo } from 'react';
 import {
   getNelsonRule2ViolationPoints,
   getNelsonRule2Sequences,
+  getNelsonRule3ViolationPoints,
+  getNelsonRule3Sequences,
   type StatsResult,
   type NelsonRule2Sequence,
+  type NelsonRule3Sequence,
   type StagedStatsResult,
 } from '@variscout/core';
 import type { StageBoundary } from '../types';
@@ -34,10 +37,14 @@ interface UseNelsonViolationsResult {
   nelsonRule2Violations: Set<number>;
   /** Sequences with start/end indices and side (above/below mean) */
   nelsonRule2Sequences: NelsonRule2Sequence[];
+  /** Set of global data indices that are part of Nelson Rule 3 violations */
+  nelsonRule3Violations: Set<number>;
+  /** Sequences with start/end indices and direction (increasing/decreasing) */
+  nelsonRule3Sequences: NelsonRule3Sequence[];
 }
 
 /**
- * Hook to compute Nelson Rule 2 violations (9+ consecutive points on same side of mean).
+ * Hook to compute Nelson Rule 2 & 3 violations.
  * Handles both staged and non-staged modes by mapping stage-local indices to global indices.
  */
 export function useNelsonViolations({
@@ -124,5 +131,75 @@ export function useNelsonViolations({
     return [];
   }, [data, stats, isStaged, stagedStats, stageBoundaries]);
 
-  return { nelsonRule2Violations, nelsonRule2Sequences };
+  const nelsonRule3Violations = useMemo(() => {
+    if (isStaged && stagedStats) {
+      const allViolations = new Set<number>();
+      let dataIndex = 0;
+
+      stageBoundaries.forEach(boundary => {
+        const stageData = data.filter(d => d.stage === boundary.name);
+        const stageValues = stageData.map(d => d.y);
+        const stageViolations = getNelsonRule3ViolationPoints(stageValues);
+
+        stageViolations.forEach(localIdx => {
+          const globalIdx = data.findIndex(
+            (d, i) =>
+              i >= dataIndex && d.stage === boundary.name && stageData.indexOf(d) === localIdx
+          );
+          if (globalIdx !== -1) {
+            allViolations.add(globalIdx);
+          }
+        });
+        dataIndex += stageData.length;
+      });
+      return allViolations;
+    }
+
+    const values = data.map(d => d.y);
+    return getNelsonRule3ViolationPoints(values);
+  }, [data, isStaged, stagedStats, stageBoundaries]);
+
+  const nelsonRule3Sequences = useMemo(() => {
+    if (isStaged && stagedStats) {
+      const allSequences: NelsonRule3Sequence[] = [];
+      let dataIndex = 0;
+
+      stageBoundaries.forEach(boundary => {
+        const stageData = data.filter(d => d.stage === boundary.name);
+        const stageValues = stageData.map(d => d.y);
+        const stageSequences = getNelsonRule3Sequences(stageValues);
+
+        stageSequences.forEach(seq => {
+          const globalStartIdx = data.findIndex(
+            (d, i) =>
+              i >= dataIndex && d.stage === boundary.name && stageData.indexOf(d) === seq.startIndex
+          );
+          const globalEndIdx = data.findIndex(
+            (d, i) =>
+              i >= dataIndex && d.stage === boundary.name && stageData.indexOf(d) === seq.endIndex
+          );
+
+          if (globalStartIdx !== -1 && globalEndIdx !== -1) {
+            allSequences.push({
+              startIndex: globalStartIdx,
+              endIndex: globalEndIdx,
+              direction: seq.direction,
+            });
+          }
+        });
+        dataIndex += stageData.length;
+      });
+      return allSequences;
+    }
+
+    const values = data.map(d => d.y);
+    return getNelsonRule3Sequences(values);
+  }, [data, isStaged, stagedStats, stageBoundaries]);
+
+  return {
+    nelsonRule2Violations,
+    nelsonRule2Sequences,
+    nelsonRule3Violations,
+    nelsonRule3Sequences,
+  };
 }
