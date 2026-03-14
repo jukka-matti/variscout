@@ -1,0 +1,13 @@
+data: {"choices":[{"delta":{"content":"The"}}]}
+
+data: {"choices":[{"delta":{"content":" process"}}]}
+
+data: {"choices":[{"delta":{"content":" is"}}]}
+
+data: {"choices":[{"delta":{"content":" showing"}}]}
+
+data: {"choices":[{"delta":{"content":" good"}}]}
+
+data: {"choices":[{"delta":{"content":" stability."}}]}
+
+data: [DONE]

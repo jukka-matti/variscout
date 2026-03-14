@@ -18,6 +18,7 @@ describe('useAICopilot', () => {
     const { result } = renderHook(() => useAICopilot({ context: baseContext }));
     expect(result.current.messages).toEqual([]);
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.isStreaming).toBe(false);
     expect(result.current.error).toBeNull();
   });
 
@@ -75,6 +76,7 @@ describe('useAICopilot', () => {
     });
     expect(result.current.messages).toEqual([]);
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.isStreaming).toBe(false);
     expect(result.current.error).toBeNull();
   });
 
@@ -123,5 +125,149 @@ describe('useAICopilot', () => {
       result.current.send('Question');
     });
     expect(fetchResponse).not.toHaveBeenCalled();
+  });
+
+  describe('copyLastResponse', () => {
+    it('copies last assistant message to clipboard', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.assign(navigator, { clipboard: { writeText } });
+
+      const fetchResponse = vi.fn().mockResolvedValue('AI response text');
+      const { result } = renderHook(() => useAICopilot({ context: baseContext, fetchResponse }));
+
+      await act(async () => {
+        result.current.send('Question');
+      });
+      await waitFor(() => expect(result.current.messages).toHaveLength(2));
+
+      let success = false;
+      await act(async () => {
+        success = await result.current.copyLastResponse();
+      });
+      expect(success).toBe(true);
+      expect(writeText).toHaveBeenCalledWith('AI response text');
+    });
+
+    it('returns false when no assistant messages exist', async () => {
+      const { result } = renderHook(() => useAICopilot({ context: baseContext }));
+
+      let success = true;
+      await act(async () => {
+        success = await result.current.copyLastResponse();
+      });
+      expect(success).toBe(false);
+    });
+
+    it('skips error messages and copies last valid response', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.assign(navigator, { clipboard: { writeText } });
+
+      const fetchResponse = vi
+        .fn()
+        .mockResolvedValueOnce('Good response')
+        .mockRejectedValueOnce(new Error('network error'));
+      const { result } = renderHook(() => useAICopilot({ context: baseContext, fetchResponse }));
+
+      await act(async () => {
+        result.current.send('Q1');
+      });
+      await waitFor(() => expect(result.current.messages).toHaveLength(2));
+
+      await act(async () => {
+        result.current.send('Q2');
+      });
+      await waitFor(() => expect(result.current.messages).toHaveLength(4));
+
+      let success = false;
+      await act(async () => {
+        success = await result.current.copyLastResponse();
+      });
+      expect(success).toBe(true);
+      expect(writeText).toHaveBeenCalledWith('Good response');
+    });
+  });
+
+  describe('streaming', () => {
+    it('streams response progressively', async () => {
+      const fetchStreamingResponse = vi
+        .fn()
+        .mockImplementation(async (_msgs: unknown, onChunk: (d: string) => void) => {
+          onChunk('Hello');
+          onChunk(' world');
+        });
+      const { result } = renderHook(() =>
+        useAICopilot({ context: baseContext, fetchStreamingResponse })
+      );
+
+      await act(async () => {
+        result.current.send('Question');
+      });
+
+      await waitFor(() => {
+        expect(result.current.messages).toHaveLength(2);
+        expect(result.current.messages[1].content).toBe('Hello world');
+      });
+      expect(result.current.isStreaming).toBe(false);
+    });
+
+    it('stopStreaming keeps partial content', async () => {
+      let resolveStream: () => void;
+      const streamPromise = new Promise<void>(r => {
+        resolveStream = r;
+      });
+
+      const fetchStreamingResponse = vi
+        .fn()
+        .mockImplementation(
+          async (_msgs: unknown, onChunk: (d: string) => void, signal: AbortSignal) => {
+            onChunk('Partial');
+            // Wait for abort or manual resolve
+            await new Promise<void>(r => {
+              signal.addEventListener('abort', () => r());
+              streamPromise.then(r);
+            });
+          }
+        );
+
+      const { result } = renderHook(() =>
+        useAICopilot({ context: baseContext, fetchStreamingResponse })
+      );
+
+      // Start sending (don't await — it's still streaming)
+      act(() => {
+        result.current.send('Question');
+      });
+
+      await waitFor(() => expect(result.current.isStreaming).toBe(true));
+
+      act(() => {
+        result.current.stopStreaming();
+      });
+
+      expect(result.current.isStreaming).toBe(false);
+      expect(result.current.isLoading).toBe(false);
+      // Partial content preserved in messages
+      resolveStream!();
+    });
+
+    it('falls back to non-streaming when streaming throws', async () => {
+      const fetchStreamingResponse = vi
+        .fn()
+        .mockRejectedValue(new Error('streaming not supported'));
+      const fetchResponse = vi.fn().mockResolvedValue('Fallback response');
+
+      const { result } = renderHook(() =>
+        useAICopilot({ context: baseContext, fetchResponse, fetchStreamingResponse })
+      );
+
+      await act(async () => {
+        result.current.send('Question');
+      });
+
+      await waitFor(() => {
+        expect(result.current.messages).toHaveLength(2);
+        expect(result.current.messages[1].content).toBe('Fallback response');
+      });
+    });
   });
 });

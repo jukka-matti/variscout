@@ -16,6 +16,12 @@ vi.mock('lucide-react', () => ({
   X: (props: Record<string, unknown>) => <span data-testid="x-icon" {...props} />,
   Send: (props: Record<string, unknown>) => <span data-testid="send-icon" {...props} />,
   RotateCw: (props: Record<string, unknown>) => <span data-testid="rotate-icon" {...props} />,
+  MoreVertical: (props: Record<string, unknown>) => (
+    <span data-testid="more-vertical-icon" {...props} />
+  ),
+  Square: (props: Record<string, unknown>) => <span data-testid="square-icon" {...props} />,
+  Copy: (props: Record<string, unknown>) => <span data-testid="copy-icon" {...props} />,
+  Check: (props: Record<string, unknown>) => <span data-testid="check-icon" {...props} />,
 }));
 
 import { CopilotPanelBase } from '../CopilotPanelBase';
@@ -152,15 +158,170 @@ describe('CopilotPanelBase', () => {
     expect(onSend).not.toHaveBeenCalled();
   });
 
-  it('shows clear button when messages exist and onClear provided', () => {
-    const onClear = vi.fn();
-    const messages: CopilotMessage[] = [
+  describe('suggested question chips', () => {
+    it('renders chips when questions provided and not loading', () => {
+      const questions = ['What is Cpk?', 'Why out of control?', 'What next?'];
+      render(
+        <CopilotPanelBase
+          {...defaultProps}
+          suggestedQuestions={questions}
+          onSuggestedQuestionClick={vi.fn()}
+        />
+      );
+
+      expect(screen.getByTestId('copilot-suggested-questions')).toBeDefined();
+      expect(screen.getByTestId('copilot-suggestion-0')).toBeDefined();
+      expect(screen.getByTestId('copilot-suggestion-1')).toBeDefined();
+      expect(screen.getByTestId('copilot-suggestion-2')).toBeDefined();
+    });
+
+    it('clicking a chip calls onSuggestedQuestionClick', () => {
+      const onClick = vi.fn();
+      render(
+        <CopilotPanelBase
+          {...defaultProps}
+          suggestedQuestions={['What is Cpk?']}
+          onSuggestedQuestionClick={onClick}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('copilot-suggestion-0'));
+      expect(onClick).toHaveBeenCalledWith('What is Cpk?');
+    });
+
+    it('hides chips when no questions', () => {
+      render(<CopilotPanelBase {...defaultProps} suggestedQuestions={[]} />);
+      expect(screen.queryByTestId('copilot-suggested-questions')).toBeNull();
+    });
+
+    it('hides chips when loading', () => {
+      render(
+        <CopilotPanelBase
+          {...defaultProps}
+          isLoading={true}
+          suggestedQuestions={['Q1']}
+          onSuggestedQuestionClick={vi.fn()}
+        />
+      );
+      expect(screen.queryByTestId('copilot-suggested-questions')).toBeNull();
+    });
+  });
+
+  describe('overflow menu', () => {
+    const messagesWithContent: CopilotMessage[] = [
       { id: '1', role: 'assistant', content: 'Hello', timestamp: 1 },
     ];
-    render(<CopilotPanelBase {...defaultProps} messages={messages} onClear={onClear} />);
 
-    const clearBtn = screen.getByLabelText('Clear conversation');
-    fireEvent.click(clearBtn);
-    expect(onClear).toHaveBeenCalled();
+    it('shows overflow menu button when messages exist', () => {
+      render(
+        <CopilotPanelBase
+          {...defaultProps}
+          messages={messagesWithContent}
+          onClear={vi.fn()}
+          onCopyLastResponse={vi.fn()}
+        />
+      );
+      expect(screen.getByTestId('copilot-overflow-menu')).toBeDefined();
+    });
+
+    it('does not show overflow when no messages', () => {
+      render(<CopilotPanelBase {...defaultProps} onClear={vi.fn()} onCopyLastResponse={vi.fn()} />);
+      expect(screen.queryByTestId('copilot-overflow-menu')).toBeNull();
+    });
+
+    it('opens/closes dropdown on click', () => {
+      render(
+        <CopilotPanelBase
+          {...defaultProps}
+          messages={messagesWithContent}
+          onClear={vi.fn()}
+          onCopyLastResponse={vi.fn()}
+        />
+      );
+
+      expect(screen.queryByTestId('copilot-menu-clear')).toBeNull();
+      fireEvent.click(screen.getByTestId('copilot-overflow-menu'));
+      expect(screen.getByTestId('copilot-menu-clear')).toBeDefined();
+    });
+
+    it('clear with confirm calls onClear', () => {
+      const onClear = vi.fn();
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+      render(
+        <CopilotPanelBase
+          {...defaultProps}
+          messages={messagesWithContent}
+          onClear={onClear}
+          onCopyLastResponse={vi.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('copilot-overflow-menu'));
+      fireEvent.click(screen.getByTestId('copilot-menu-clear'));
+      expect(window.confirm).toHaveBeenCalledWith('Clear conversation?');
+      expect(onClear).toHaveBeenCalled();
+    });
+
+    it('clear cancelled does not call onClear', () => {
+      const onClear = vi.fn();
+      vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+      render(
+        <CopilotPanelBase
+          {...defaultProps}
+          messages={messagesWithContent}
+          onClear={onClear}
+          onCopyLastResponse={vi.fn()}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('copilot-overflow-menu'));
+      fireEvent.click(screen.getByTestId('copilot-menu-clear'));
+      expect(onClear).not.toHaveBeenCalled();
+    });
+
+    it('copy calls onCopyLastResponse', () => {
+      const onCopy = vi.fn();
+
+      render(
+        <CopilotPanelBase
+          {...defaultProps}
+          messages={messagesWithContent}
+          onClear={vi.fn()}
+          onCopyLastResponse={onCopy}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('copilot-overflow-menu'));
+      fireEvent.click(screen.getByTestId('copilot-menu-copy'));
+      expect(onCopy).toHaveBeenCalled();
+    });
+  });
+
+  describe('streaming', () => {
+    it('shows stop button when streaming', () => {
+      render(<CopilotPanelBase {...defaultProps} isStreaming={true} onStopStreaming={vi.fn()} />);
+      expect(screen.getByTestId('copilot-stop-button')).toBeDefined();
+    });
+
+    it('shows send button when not streaming', () => {
+      render(<CopilotPanelBase {...defaultProps} isStreaming={false} />);
+      expect(screen.queryByTestId('copilot-stop-button')).toBeNull();
+      expect(screen.getByLabelText('Send message')).toBeDefined();
+    });
+
+    it('calls onStopStreaming when stop button clicked', () => {
+      const onStop = vi.fn();
+      render(<CopilotPanelBase {...defaultProps} isStreaming={true} onStopStreaming={onStop} />);
+      fireEvent.click(screen.getByTestId('copilot-stop-button'));
+      expect(onStop).toHaveBeenCalled();
+    });
+
+    it('disables textarea during streaming', () => {
+      render(<CopilotPanelBase {...defaultProps} isStreaming={true} onStopStreaming={vi.fn()} />);
+      const input = screen.getByTestId('copilot-input') as HTMLTextAreaElement;
+      expect(input.disabled).toBe(true);
+    });
   });
 });

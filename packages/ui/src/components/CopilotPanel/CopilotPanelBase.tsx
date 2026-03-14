@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GripVertical, X, Send, RotateCw } from 'lucide-react';
+import { GripVertical, X, Send, MoreVertical, Square, Copy, RotateCw, Check } from 'lucide-react';
 import type { CopilotMessage, CopilotError } from '@variscout/core';
 import { useResizablePanel } from '@variscout/hooks';
 
@@ -19,7 +19,12 @@ export interface CopilotPanelBaseProps {
   error?: CopilotError | null;
   onRetry?: () => void;
   onClear?: () => void;
+  onCopyLastResponse?: () => void;
   resizeConfig: CopilotPanelResizeConfig;
+  suggestedQuestions?: string[];
+  onSuggestedQuestionClick?: (question: string) => void;
+  isStreaming?: boolean;
+  onStopStreaming?: () => void;
 }
 
 function getErrorText(error: CopilotError): string {
@@ -42,11 +47,21 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
   error: _error,
   onRetry,
   onClear,
+  onCopyLastResponse,
   resizeConfig,
+  suggestedQuestions,
+  onSuggestedQuestionClick,
+  isStreaming,
+  onStopStreaming,
 }) => {
   const [input, setInput] = useState('');
+  const [inputFocused, setInputFocused] = useState(false);
+  const [overflowOpen, setOverflowOpen] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const overflowRef = useRef<HTMLDivElement>(null);
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { width, isDragging, handleMouseDown } = useResizablePanel(
     resizeConfig.storageKey,
@@ -55,20 +70,39 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
     resizeConfig.defaultWidth ?? 384
   );
 
-  // Auto-scroll on new messages
+  // Auto-scroll on new messages or streaming content
+  const lastMessageContent = messages.length > 0 ? messages[messages.length - 1]?.content : '';
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
-  }, [messages.length, isLoading]);
+  }, [messages.length, isLoading, lastMessageContent]);
 
   // Close on Escape
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (overflowOpen) {
+          setOverflowOpen(false);
+        } else {
+          onClose();
+        }
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, overflowOpen]);
+
+  // Close overflow on click outside
+  useEffect(() => {
+    if (!overflowOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (overflowRef.current && !overflowRef.current.contains(e.target as Node)) {
+        setOverflowOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [overflowOpen]);
 
   // Focus textarea when panel opens
   useEffect(() => {
@@ -76,6 +110,13 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
       setTimeout(() => textareaRef.current?.focus(), 100);
     }
   }, [isOpen]);
+
+  // Cleanup blur timeout
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+    };
+  }, []);
 
   const handleSend = useCallback(() => {
     const text = input.trim();
@@ -106,7 +147,43 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
     el.style.height = Math.min(el.scrollHeight, 96) + 'px'; // max ~4 rows
   }, []);
 
+  const handleInputFocus = useCallback(() => {
+    if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+    setInputFocused(true);
+  }, []);
+
+  const handleInputBlur = useCallback(() => {
+    // Delay hiding chips so click can register
+    blurTimeoutRef.current = setTimeout(() => setInputFocused(false), 200);
+  }, []);
+
+  const handleClearWithConfirm = useCallback(() => {
+    setOverflowOpen(false);
+    if (window.confirm('Clear conversation?')) {
+      onClear?.();
+    }
+  }, [onClear]);
+
+  const handleCopyLastResponse = useCallback(() => {
+    setOverflowOpen(false);
+    onCopyLastResponse?.();
+    setCopyFeedback(true);
+    setTimeout(() => setCopyFeedback(false), 1500);
+  }, [onCopyLastResponse]);
+
   if (!isOpen) return null;
+
+  const showSuggestions =
+    suggestedQuestions &&
+    suggestedQuestions.length > 0 &&
+    !inputFocused &&
+    !isLoading &&
+    !isStreaming;
+
+  const showLoadingDots =
+    isLoading &&
+    (!isStreaming ||
+      (isStreaming && messages.length > 0 && messages[messages.length - 1]?.content === ''));
 
   return (
     <>
@@ -130,15 +207,43 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
         <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
           <h2 className="text-sm font-semibold text-content">Copilot</h2>
           <div className="flex items-center gap-1">
-            {onClear && messages.length > 0 && (
-              <button
-                onClick={onClear}
-                className="p-1.5 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors"
-                title="Clear conversation"
-                aria-label="Clear conversation"
-              >
-                <RotateCw size={14} />
-              </button>
+            {/* Overflow menu */}
+            {(onClear || onCopyLastResponse) && messages.length > 0 && (
+              <div className="relative" ref={overflowRef}>
+                <button
+                  onClick={() => setOverflowOpen(prev => !prev)}
+                  className="p-1.5 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors"
+                  title="More options"
+                  aria-label="More options"
+                  data-testid="copilot-overflow-menu"
+                >
+                  <MoreVertical size={14} />
+                </button>
+                {overflowOpen && (
+                  <div className="absolute right-0 top-full mt-1 bg-surface-secondary border border-edge rounded-lg shadow-xl z-50 min-w-[180px]">
+                    {onClear && (
+                      <button
+                        onClick={handleClearWithConfirm}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors rounded-t-lg"
+                        data-testid="copilot-menu-clear"
+                      >
+                        <RotateCw size={12} />
+                        Clear conversation
+                      </button>
+                    )}
+                    {onCopyLastResponse && (
+                      <button
+                        onClick={handleCopyLastResponse}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors rounded-b-lg"
+                        data-testid="copilot-menu-copy"
+                      >
+                        {copyFeedback ? <Check size={12} /> : <Copy size={12} />}
+                        {copyFeedback ? 'Copied!' : 'Copy last response'}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
             <button
               onClick={onClose}
@@ -187,8 +292,8 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
             </div>
           ))}
 
-          {/* Loading indicator */}
-          {isLoading && (
+          {/* Loading indicator — show when loading and not yet streaming content */}
+          {showLoadingDots && (
             <div className="flex justify-start">
               <div className="border border-edge rounded-lg p-3">
                 <div className="flex gap-1">
@@ -212,6 +317,25 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Suggested question chips */}
+        {showSuggestions && (
+          <div
+            className="overflow-x-auto flex gap-2 px-3 py-2 border-t border-edge"
+            data-testid="copilot-suggested-questions"
+          >
+            {suggestedQuestions.map((q, i) => (
+              <button
+                key={i}
+                data-testid={`copilot-suggestion-${i}`}
+                onClick={() => onSuggestedQuestionClick?.(q)}
+                className="bg-surface-tertiary text-content-secondary text-xs px-3 py-1.5 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Input footer */}
         <div className="border-t border-edge p-3">
           <div className="flex items-end gap-2">
@@ -221,19 +345,34 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
               placeholder="Ask about your analysis..."
               rows={1}
-              className="flex-1 resize-none bg-surface border border-edge rounded-lg px-3 py-2 text-xs text-content placeholder-content-muted focus:outline-none focus:border-blue-500 transition-colors"
+              disabled={isStreaming}
+              className="flex-1 resize-none bg-surface border border-edge rounded-lg px-3 py-2 text-xs text-content placeholder-content-muted focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50"
             />
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-              title="Send"
-              aria-label="Send message"
-            >
-              <Send size={14} />
-            </button>
+            {isStreaming ? (
+              <button
+                onClick={onStopStreaming}
+                className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors flex-shrink-0"
+                title="Stop"
+                aria-label="Stop streaming"
+                data-testid="copilot-stop-button"
+              >
+                <Square size={14} />
+              </button>
+            ) : (
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || isLoading}
+                className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                title="Send"
+                aria-label="Send message"
+              >
+                <Send size={14} />
+              </button>
+            )}
           </div>
         </div>
       </div>

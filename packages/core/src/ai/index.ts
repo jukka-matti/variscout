@@ -32,3 +32,5 @@ export {
   buildParetoInsight,
   buildStatsInsight,
 } from './chartInsights';
+
+export { buildSuggestedQuestions } from './suggestedQuestions';

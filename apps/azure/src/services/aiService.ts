@@ -263,6 +263,28 @@ Be specific and actionable. Never invent data.`;
 }
 
 /**
+ * Get auth headers for AI requests.
+ */
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  try {
+    const tokenResponse = await fetch('/.auth/me');
+    if (tokenResponse.ok) {
+      const authData = await tokenResponse.json();
+      const accessToken = authData?.[0]?.access_token;
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+    }
+  } catch {
+    // Dev mode — no auth needed
+  }
+  return headers;
+}
+
+/**
  * Fetch a copilot conversational response from Azure AI Foundry.
  * Used as the `fetchResponse` callback for useAICopilot hook.
  * No caching (conversations are contextual). Single retry on 429.
@@ -327,4 +349,91 @@ export async function fetchCopilotResponse(
   }
 
   throw lastError || new Error('AI request failed');
+}
+
+/**
+ * Fetch a streaming copilot response from Azure AI Foundry.
+ * Calls onChunk for each token delta. Falls back to non-streaming on error.
+ */
+export async function fetchCopilotStreamingResponse(
+  messages: Array<{ role: string; content: string }>,
+  onChunk: (delta: string) => void,
+  signal: AbortSignal
+): Promise<void> {
+  const endpoint = getAIEndpoint();
+  if (!endpoint) throw new Error('AI endpoint not configured');
+
+  const headers = await getAuthHeaders();
+
+  // Single retry on 429
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+    if (signal.aborted) return;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        signal,
+        body: JSON.stringify({
+          messages,
+          max_tokens: 800,
+          temperature: 0.4,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorType = classifyError(response.status);
+        if (errorType === 'rate-limit' && attempt < 1) continue;
+        throw new Error(`AI request failed (${errorType}): ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('No response body for streaming');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        if (signal.aborted) return;
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith('data: ')) continue;
+          const data = trimmed.slice(6);
+          if (data === '[DONE]') return;
+
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed?.choices?.[0]?.delta?.content;
+            if (delta) {
+              onChunk(delta);
+            }
+          } catch {
+            // Skip unparseable SSE lines
+          }
+        }
+      }
+
+      return;
+    } catch (err) {
+      if (signal.aborted) return;
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (attempt === 1) throw lastError;
+    }
+  }
+
+  throw lastError || new Error('AI streaming request failed');
 }

@@ -1,6 +1,6 @@
 /**
  * useAICopilot - Session-only conversational AI state management.
- * Manages message history, send/retry/clear, and abort control.
+ * Manages message history, send/retry/clear, streaming, and abort control.
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -12,6 +12,12 @@ export interface UseAICopilotOptions {
   context: AIContext | null;
   /** Injected fetch function (from aiService.ts) */
   fetchResponse?: (messages: Array<{ role: string; content: string }>) => Promise<string>;
+  /** Injected streaming fetch function */
+  fetchStreamingResponse?: (
+    messages: Array<{ role: string; content: string }>,
+    onChunk: (delta: string) => void,
+    signal: AbortSignal
+  ) => Promise<void>;
   /** Seed the conversation with the current narration */
   initialNarrative?: string | null;
 }
@@ -21,8 +27,11 @@ export interface UseAICopilotReturn {
   send: (text: string) => void;
   retry: () => void;
   isLoading: boolean;
+  isStreaming: boolean;
   error: CopilotError | null;
   clear: () => void;
+  stopStreaming: () => void;
+  copyLastResponse: () => Promise<boolean>;
 }
 
 let nextId = 0;
@@ -45,14 +54,16 @@ function classifyErrorToCopilotError(err: unknown): CopilotError {
 }
 
 export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
-  const { context, fetchResponse, initialNarrative } = options;
+  const { context, fetchResponse, fetchStreamingResponse, initialNarrative } = options;
 
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<CopilotError | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const narrativeSeeded = useRef(false);
+  const streamingContentRef = useRef('');
   // Ref to always have current messages for async operations
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
@@ -76,7 +87,7 @@ export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
 
   const send = useCallback(
     async (text: string) => {
-      if (!context || !fetchResponse || !text.trim()) return;
+      if (!context || (!fetchResponse && !fetchStreamingResponse) || !text.trim()) return;
 
       // Abort previous request
       abortRef.current?.abort();
@@ -97,17 +108,67 @@ export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
       try {
         // Use ref for current history; buildCopilotMessages appends the user message
         const apiMessages = buildCopilotMessages(context, messagesRef.current, text.trim());
-        const result = await fetchResponse(apiMessages);
-        if (controller.signal.aborted) return;
 
-        const assistantMessage: CopilotMessage = {
-          id: generateId(),
-          role: 'assistant',
-          content: result,
-          timestamp: Date.now(),
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-        setError(null);
+        // Try streaming first, fall back to non-streaming
+        if (fetchStreamingResponse) {
+          const placeholderId = generateId();
+          const placeholder: CopilotMessage = {
+            id: placeholderId,
+            role: 'assistant',
+            content: '',
+            timestamp: Date.now(),
+          };
+          setMessages(prev => [...prev, placeholder]);
+          setIsStreaming(true);
+          streamingContentRef.current = '';
+
+          try {
+            await fetchStreamingResponse(
+              apiMessages,
+              (delta: string) => {
+                streamingContentRef.current += delta;
+                const content = streamingContentRef.current;
+                setMessages(prev =>
+                  prev.map(m => (m.id === placeholderId ? { ...m, content } : m))
+                );
+              },
+              controller.signal
+            );
+            if (controller.signal.aborted) return;
+            setIsStreaming(false);
+            setIsLoading(false);
+            setError(null);
+            return;
+          } catch (streamErr) {
+            if (controller.signal.aborted) return;
+            // If streaming had partial content, keep it
+            if (streamingContentRef.current) {
+              setIsStreaming(false);
+              setIsLoading(false);
+              return;
+            }
+            // Remove the empty placeholder and fall through to non-streaming
+            setMessages(prev => prev.filter(m => m.id !== placeholderId));
+            setIsStreaming(false);
+            // Fall through to non-streaming if available
+            if (!fetchResponse) throw streamErr;
+          }
+        }
+
+        // Non-streaming path
+        if (fetchResponse) {
+          const result = await fetchResponse(apiMessages);
+          if (controller.signal.aborted) return;
+
+          const assistantMessage: CopilotMessage = {
+            id: generateId(),
+            role: 'assistant',
+            content: result,
+            timestamp: Date.now(),
+          };
+          setMessages(prev => [...prev, assistantMessage]);
+          setError(null);
+        }
       } catch (err) {
         if (controller.signal.aborted) return;
         const copilotError = classifyErrorToCopilotError(err);
@@ -123,11 +184,18 @@ export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
       } finally {
         if (!controller.signal.aborted) {
           setIsLoading(false);
+          setIsStreaming(false);
         }
       }
     },
-    [context, fetchResponse]
+    [context, fetchResponse, fetchStreamingResponse]
   );
+
+  const stopStreaming = useCallback(() => {
+    abortRef.current?.abort();
+    setIsStreaming(false);
+    setIsLoading(false);
+  }, []);
 
   const retry = useCallback(() => {
     const msgs = messagesRef.current;
@@ -157,8 +225,25 @@ export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
     abortRef.current?.abort();
     setMessages([]);
     setIsLoading(false);
+    setIsStreaming(false);
     setError(null);
     narrativeSeeded.current = false;
+  }, []);
+
+  const copyLastResponse = useCallback(async (): Promise<boolean> => {
+    const msgs = messagesRef.current;
+    // Find last non-error assistant message
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].role === 'assistant' && !msgs[i].error && msgs[i].content) {
+        try {
+          await navigator.clipboard.writeText(msgs[i].content);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+    }
+    return false;
   }, []);
 
   // Cleanup on unmount
@@ -168,5 +253,15 @@ export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
     };
   }, []);
 
-  return { messages, send, retry, isLoading, error, clear };
+  return {
+    messages,
+    send,
+    retry,
+    isLoading,
+    isStreaming,
+    error,
+    clear,
+    stopStreaming,
+    copyLastResponse,
+  };
 }

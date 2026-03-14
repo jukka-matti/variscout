@@ -1,0 +1,11 @@
+{
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "Based on your data, the process shows a Cpk of 1.45 which indicates good capability. The I-Chart shows all points within control limits, suggesting the process is statistically stable."
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

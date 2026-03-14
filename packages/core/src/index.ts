@@ -270,6 +270,7 @@ export {
   buildStatsInsight,
   buildChartInsightPrompt,
   buildChartInsightSystemPrompt,
+  buildSuggestedQuestions,
 } from './ai';
 
 // Factor role inference

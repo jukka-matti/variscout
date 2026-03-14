@@ -13,11 +13,12 @@ import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
 import { ColumnMapping, InvestigationPrompt, CopilotPanelBase } from '@variscout/ui';
 import { useControlViolations, useAIContext, useNarration, useAICopilot } from '@variscout/hooks';
-import { isTeamPlan } from '@variscout/core';
+import { isTeamPlan, buildSuggestedQuestions } from '@variscout/core';
 import {
   fetchNarration as fetchNarrationFromAI,
   fetchChartInsight as fetchChartInsightFromAI,
   fetchCopilotResponse,
+  fetchCopilotStreamingResponse,
   isAIAvailable,
 } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
@@ -331,8 +332,15 @@ export const Editor: React.FC<EditorProps> = ({
   const copilot = useAICopilot({
     context: aiContext.context,
     fetchResponse: aiEnabled && isAIAvailable() ? fetchCopilotResponse : undefined,
+    fetchStreamingResponse:
+      aiEnabled && isAIAvailable() ? fetchCopilotStreamingResponse : undefined,
     initialNarrative: narration.narrative,
   });
+
+  const suggestedQuestions = useMemo(
+    () => (aiContext.context ? buildSuggestedQuestions(aiContext.context) : []),
+    [aiContext.context]
+  );
 
   const handleNarrativeAsk = useCallback(() => {
     panels.setIsCopilotOpen(true);
@@ -754,10 +762,15 @@ export const Editor: React.FC<EditorProps> = ({
                   messages={copilot.messages}
                   onSend={copilot.send}
                   isLoading={copilot.isLoading}
+                  isStreaming={copilot.isStreaming}
+                  onStopStreaming={copilot.stopStreaming}
                   error={copilot.error}
                   onRetry={copilot.retry}
                   onClear={copilot.clear}
+                  onCopyLastResponse={copilot.copyLastResponse}
                   resizeConfig={COPILOT_RESIZE_CONFIG}
+                  suggestedQuestions={suggestedQuestions}
+                  onSuggestedQuestionClick={copilot.send}
                 />
               </div>
             ) : (
@@ -767,10 +780,15 @@ export const Editor: React.FC<EditorProps> = ({
                 messages={copilot.messages}
                 onSend={copilot.send}
                 isLoading={copilot.isLoading}
+                isStreaming={copilot.isStreaming}
+                onStopStreaming={copilot.stopStreaming}
                 error={copilot.error}
                 onRetry={copilot.retry}
                 onClear={copilot.clear}
+                onCopyLastResponse={copilot.copyLastResponse}
                 resizeConfig={COPILOT_RESIZE_CONFIG}
+                suggestedQuestions={suggestedQuestions}
+                onSuggestedQuestionClick={copilot.send}
               />
             )}
             {/* DataPanel: hidden on phone (use DataTableModal instead) */}
