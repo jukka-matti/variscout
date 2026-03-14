@@ -88,3 +88,28 @@ export interface NarrationResponse {
   /** Timestamp of generation */
   generatedAt: number;
 }
+
+/** AI error classification */
+export type AIErrorType =
+  | 'auth'
+  | 'rate-limit'
+  | 'network'
+  | 'server'
+  | 'content-filter'
+  | 'unknown';
+
+/** Copilot conversation message */
+export interface CopilotMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+  error?: CopilotError;
+}
+
+/** Error attached to a copilot message */
+export interface CopilotError {
+  type: AIErrorType;
+  message: string;
+  retryable: boolean;
+}

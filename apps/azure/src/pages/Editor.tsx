@@ -11,12 +11,13 @@ import FindingsPanel from '../components/FindingsPanel';
 import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
-import { ColumnMapping, InvestigationPrompt } from '@variscout/ui';
-import { useControlViolations, useAIContext, useNarration } from '@variscout/hooks';
+import { ColumnMapping, InvestigationPrompt, CopilotPanelBase } from '@variscout/ui';
+import { useControlViolations, useAIContext, useNarration, useAICopilot } from '@variscout/hooks';
 import { isTeamPlan } from '@variscout/core';
 import {
   fetchNarration as fetchNarrationFromAI,
   fetchChartInsight as fetchChartInsightFromAI,
+  fetchCopilotResponse,
   isAIAvailable,
 } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
@@ -43,6 +44,13 @@ import { useFindingsOrchestration } from '../hooks/useFindingsOrchestration';
 import { buildChartSharePayload } from '../services/shareContent';
 import { buildSubPageId } from '../services/deepLinks';
 import { setBeforeUnloadHandler } from '../teams';
+
+const COPILOT_RESIZE_CONFIG = {
+  storageKey: 'variscout-azure-copilot-panel-width',
+  min: 320,
+  max: 600,
+  defaultWidth: 384,
+};
 
 interface EditorProps {
   projectId: string | null;
@@ -318,6 +326,17 @@ export const Editor: React.FC<EditorProps> = ({
     context: aiContext.context,
     fetchNarration: aiEnabled && isAIAvailable() ? fetchNarrationFromAI : undefined,
   });
+
+  // AI copilot conversation
+  const copilot = useAICopilot({
+    context: aiContext.context,
+    fetchResponse: aiEnabled && isAIAvailable() ? fetchCopilotResponse : undefined,
+    initialNarrative: narration.narrative,
+  });
+
+  const handleNarrativeAsk = useCallback(() => {
+    panels.setIsCopilotOpen(true);
+  }, [panels]);
 
   // Pass factorRoles from ColumnMapping into DataContext
   const handleMappingConfirmWithRoles = useCallback(
@@ -624,6 +643,7 @@ export const Editor: React.FC<EditorProps> = ({
               narrativeCached={narration.isCached}
               narrativeError={narration.error}
               onNarrativeRetry={narration.refresh}
+              onNarrativeAsk={handleNarrativeAsk}
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isFindingsOpen ? (
@@ -712,6 +732,45 @@ export const Editor: React.FC<EditorProps> = ({
                 onNavigateToChart={handleNavigateToChart}
                 viewMode={viewState?.findingsViewMode}
                 onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
+              />
+            )}
+            {/* CopilotPanel: full-screen overlay on phone, inline sidebar on desktop */}
+            {isPhone && panels.isCopilotOpen ? (
+              <div className="fixed inset-0 z-40 bg-surface flex flex-col animate-slide-up safe-area-bottom">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
+                  <h2 className="text-sm font-semibold text-content">Copilot</h2>
+                  <button
+                    onClick={() => panels.setIsCopilotOpen(false)}
+                    className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+                    style={{ minWidth: 44, minHeight: 44 }}
+                    aria-label="Close copilot"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <CopilotPanelBase
+                  isOpen={true}
+                  onClose={() => panels.setIsCopilotOpen(false)}
+                  messages={copilot.messages}
+                  onSend={copilot.send}
+                  isLoading={copilot.isLoading}
+                  error={copilot.error}
+                  onRetry={copilot.retry}
+                  onClear={copilot.clear}
+                  resizeConfig={COPILOT_RESIZE_CONFIG}
+                />
+              </div>
+            ) : (
+              <CopilotPanelBase
+                isOpen={panels.isCopilotOpen}
+                onClose={() => panels.setIsCopilotOpen(false)}
+                messages={copilot.messages}
+                onSend={copilot.send}
+                isLoading={copilot.isLoading}
+                error={copilot.error}
+                onRetry={copilot.retry}
+                onClear={copilot.clear}
+                resizeConfig={COPILOT_RESIZE_CONFIG}
               />
             )}
             {/* DataPanel: hidden on phone (use DataTableModal instead) */}

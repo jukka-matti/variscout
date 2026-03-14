@@ -8,6 +8,9 @@ export type {
   AIContext,
   NarrationRequest,
   NarrationResponse,
+  AIErrorType,
+  CopilotMessage,
+  CopilotError,
 } from './types';
 export { isFactorRole } from './types';
 
@@ -18,6 +21,8 @@ export {
   buildSummaryPrompt,
   buildChartInsightSystemPrompt,
   buildChartInsightPrompt,
+  buildCopilotSystemPrompt,
+  buildCopilotMessages,
 } from './promptTemplates';
 
 export type { InsightChartType, ChipType, DeterministicInsight } from './chartInsights';

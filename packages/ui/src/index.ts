@@ -296,6 +296,13 @@ export {
 // Chart Insight Chip
 export { ChartInsightChip, type ChartInsightChipProps } from './components/ChartInsightChip';
 
+// Copilot Panel
+export {
+  CopilotPanelBase,
+  type CopilotPanelBaseProps,
+  type CopilotPanelResizeConfig,
+} from './components/CopilotPanel';
+
 // Hooks
 export {
   useIsMobile,

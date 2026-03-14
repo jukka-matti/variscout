@@ -247,10 +247,19 @@ export type {
   AIContext,
   NarrationRequest,
   NarrationResponse,
+  AIErrorType,
+  CopilotMessage,
+  CopilotError,
   BuildAIContextOptions,
   AIStatsInput,
 } from './ai';
-export { buildAIContext, buildNarrationSystemPrompt, buildSummaryPrompt } from './ai';
+export {
+  buildAIContext,
+  buildNarrationSystemPrompt,
+  buildSummaryPrompt,
+  buildCopilotSystemPrompt,
+  buildCopilotMessages,
+} from './ai';
 
 // AI (Phase 2 — Chart Insights)
 export type { InsightChartType, ChipType, DeterministicInsight, ChartInsightData } from './ai';

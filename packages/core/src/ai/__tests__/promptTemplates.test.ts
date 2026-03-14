@@ -4,8 +4,10 @@ import {
   buildSummaryPrompt,
   buildChartInsightSystemPrompt,
   buildChartInsightPrompt,
+  buildCopilotSystemPrompt,
+  buildCopilotMessages,
 } from '../promptTemplates';
-import type { AIContext } from '../types';
+import type { AIContext, CopilotMessage } from '../types';
 
 describe('buildNarrationSystemPrompt', () => {
   it('returns a system prompt string', () => {
@@ -153,5 +155,77 @@ describe('buildChartInsightPrompt', () => {
       deterministicInsight: 'Stable process',
     });
     expect(prompt).toContain('Machine=A');
+  });
+});
+
+describe('buildCopilotSystemPrompt', () => {
+  it('returns a non-empty system prompt', () => {
+    const prompt = buildCopilotSystemPrompt();
+    expect(prompt.length).toBeGreaterThan(0);
+    expect(prompt).toContain('copilot');
+  });
+});
+
+describe('buildCopilotMessages', () => {
+  const baseCtx: AIContext = {
+    process: { description: 'Fill weight analysis' },
+    filters: [],
+    stats: { mean: 10.5, stdDev: 0.5, samples: 100 },
+  };
+
+  it('includes system prompt, context, and user message', () => {
+    const messages = buildCopilotMessages(baseCtx, [], 'What does this Cpk mean?');
+    expect(messages.length).toBe(3); // system + context + user
+    expect(messages[0].role).toBe('system');
+    expect(messages[2].role).toBe('user');
+    expect(messages[2].content).toBe('What does this Cpk mean?');
+  });
+
+  it('includes context summary with stats', () => {
+    const messages = buildCopilotMessages(baseCtx, [], 'question');
+    const contextMsg = messages[1];
+    expect(contextMsg.content).toContain('Mean=10.50');
+  });
+
+  it('includes conversation history', () => {
+    const history: CopilotMessage[] = [
+      { id: '1', role: 'user', content: 'Hello', timestamp: 1 },
+      { id: '2', role: 'assistant', content: 'Hi there', timestamp: 2 },
+    ];
+    const messages = buildCopilotMessages(baseCtx, history, 'Follow-up');
+    // system + context + 2 history + user = 5
+    expect(messages.length).toBe(5);
+    expect(messages[2].content).toBe('Hello');
+    expect(messages[3].content).toBe('Hi there');
+  });
+
+  it('truncates history to last 10 messages', () => {
+    const history: CopilotMessage[] = Array.from({ length: 14 }, (_, i) => ({
+      id: String(i),
+      role: i % 2 === 0 ? ('user' as const) : ('assistant' as const),
+      content: `Message ${i}`,
+      timestamp: i,
+    }));
+    const messages = buildCopilotMessages(baseCtx, history, 'Latest');
+    // system + context + 10 history + user = 13
+    expect(messages.length).toBe(13);
+    // First history message should be #4 (14 - 10 = 4)
+    expect(messages[2].content).toBe('Message 4');
+  });
+
+  it('skips error messages from history', () => {
+    const history: CopilotMessage[] = [
+      { id: '1', role: 'user', content: 'Question', timestamp: 1 },
+      {
+        id: '2',
+        role: 'assistant',
+        content: 'Error',
+        timestamp: 2,
+        error: { type: 'network', message: 'Failed', retryable: true },
+      },
+    ];
+    const messages = buildCopilotMessages(baseCtx, history, 'Retry');
+    // system + context + 1 valid history (error skipped) + user = 4
+    expect(messages.length).toBe(4);
   });
 });

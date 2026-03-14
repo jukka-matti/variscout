@@ -197,3 +197,6 @@ export {
   type UseChartInsightsReturn,
   type DeterministicData,
 } from './useChartInsights';
+
+// AI Copilot
+export { useAICopilot, type UseAICopilotOptions, type UseAICopilotReturn } from './useAICopilot';

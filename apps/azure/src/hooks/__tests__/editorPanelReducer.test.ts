@@ -18,6 +18,7 @@ describe('editorPanelReducer', () => {
         isDataPanelOpen: false,
         isDataTableOpen: false,
         isFindingsOpen: false,
+        isCopilotOpen: false,
         isWhatIfOpen: false,
         isPresentationMode: false,
         highlightRowIndex: null,
@@ -188,6 +189,85 @@ describe('editorPanelReducer', () => {
     it('sets highlighted chart point', () => {
       const state = editorPanelReducer(initialPanelState, { type: 'ROW_CLICK', index: 22 });
       expect(state.highlightedChartPoint).toBe(22);
+    });
+  });
+
+  describe('copilot panel', () => {
+    it('SET_COPILOT_OPEN opens copilot', () => {
+      const state = editorPanelReducer(initialPanelState, {
+        type: 'SET_COPILOT_OPEN',
+        value: true,
+      });
+      expect(state.isCopilotOpen).toBe(true);
+    });
+
+    it('SET_COPILOT_OPEN closes copilot', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isCopilotOpen: true },
+        { type: 'SET_COPILOT_OPEN', value: false }
+      );
+      expect(state.isCopilotOpen).toBe(false);
+    });
+
+    it('SET_COPILOT_OPEN returns same reference when value unchanged', () => {
+      const before = { ...initialPanelState, isCopilotOpen: true };
+      const after = editorPanelReducer(before, { type: 'SET_COPILOT_OPEN', value: true });
+      expect(after).toBe(before);
+    });
+
+    it('TOGGLE_COPILOT toggles copilot panel', () => {
+      const opened = editorPanelReducer(initialPanelState, { type: 'TOGGLE_COPILOT' });
+      expect(opened.isCopilotOpen).toBe(true);
+
+      const closed = editorPanelReducer(opened, { type: 'TOGGLE_COPILOT' });
+      expect(closed.isCopilotOpen).toBe(false);
+    });
+  });
+
+  describe('copilot/findings mutual exclusivity', () => {
+    it('opening copilot closes findings', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isFindingsOpen: true },
+        { type: 'SET_COPILOT_OPEN', value: true }
+      );
+      expect(state.isCopilotOpen).toBe(true);
+      expect(state.isFindingsOpen).toBe(false);
+    });
+
+    it('opening findings closes copilot', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isCopilotOpen: true },
+        { type: 'SET_FINDINGS_OPEN', value: true }
+      );
+      expect(state.isFindingsOpen).toBe(true);
+      expect(state.isCopilotOpen).toBe(false);
+    });
+
+    it('toggling copilot open closes findings', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isFindingsOpen: true },
+        { type: 'TOGGLE_COPILOT' }
+      );
+      expect(state.isCopilotOpen).toBe(true);
+      expect(state.isFindingsOpen).toBe(false);
+    });
+
+    it('toggling findings open closes copilot', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isCopilotOpen: true },
+        { type: 'TOGGLE_FINDINGS' }
+      );
+      expect(state.isFindingsOpen).toBe(true);
+      expect(state.isCopilotOpen).toBe(false);
+    });
+
+    it('closing copilot does not open findings', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isCopilotOpen: true },
+        { type: 'SET_COPILOT_OPEN', value: false }
+      );
+      expect(state.isCopilotOpen).toBe(false);
+      expect(state.isFindingsOpen).toBe(false);
     });
   });
 
