@@ -460,72 +460,72 @@ function AppMain() {
         {/* Main content area */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <Suspense fallback={<LazyFallback />}>
-          {importFlow.isPasteMode ? (
-            <PasteScreen
-              onAnalyze={importFlow.handlePasteAnalyze}
-              onCancel={importFlow.handlePasteCancel}
-              error={importFlow.pasteError}
-            />
-          ) : importFlow.isManualEntry ? (
-            <ManualEntry
-              onAnalyze={importFlow.handleManualDataAnalyze}
-              onCancel={importFlow.handleManualEntryCancel}
-            />
-          ) : rawData.length === 0 ? (
-            <HomeScreen
-              onLoadSample={ingestion.loadSample}
-              onOpenPaste={importFlow.handleOpenPaste}
-              onOpenManualEntry={importFlow.handleOpenManualEntry}
-            />
-          ) : importFlow.isMapping ? (
-            <ColumnMapping
-              columnAnalysis={importFlow.mappingColumnAnalysis}
-              availableColumns={Object.keys(rawData[0])}
-              previewRows={rawData.slice(0, 5)}
-              totalRows={rawData.length}
-              columnAliases={columnAliases}
-              onColumnRename={importFlow.handleColumnRename}
-              initialOutcome={outcome}
-              initialFactors={factors}
-              datasetName={dataFilename || undefined}
-              onConfirm={importFlow.handleMappingConfirm}
-              onCancel={importFlow.handleMappingCancel}
-              dataQualityReport={dataQualityReport}
-              onViewExcludedRows={panels.openDataTableExcluded}
-              onViewAllData={panels.openDataTableAll}
-              paretoMode={paretoMode}
-              separateParetoFilename={separateParetoFilename}
-              onParetoFileUpload={ingestion.handleParetoFileUpload}
-              onClearParetoFile={ingestion.clearParetoFile}
-              timeColumn={importFlow.timeExtractionPrompt?.timeColumn}
-              hasTimeComponent={importFlow.timeExtractionPrompt?.hasTimeComponent}
-              onTimeExtractionChange={importFlow.setTimeExtractionConfig}
-              mode={importFlow.isMappingReEdit ? 'edit' : 'setup'}
-            />
-          ) : (
-            <Dashboard
-              onPointClick={panels.openDataTableAtRow}
-              isPresentationMode={panels.isPresentationMode}
-              onExitPresentation={() => panels.setIsPresentationMode(false)}
-              highlightedChart={highlightedChart}
-              highlightIntensity={highlightIntensity}
-              onChartClick={isEmbedMode ? notifyChartClicked : undefined}
-              embedFocusChart={embedFocusChart}
-              embedStatsTab={embedStatsTab}
-              onManageFactors={importFlow.openFactorManager}
-              openSpecEditorRequested={panels.openSpecEditorRequested}
-              onSpecEditorOpened={() => panels.setOpenSpecEditorRequested(false)}
-              highlightedPointIndex={panels.highlightedChartPoint}
-              filterNav={filterNav}
-              onPinFinding={handlePinFinding}
-              findingsCallbacks={{
-                onAddChartObservation: handleAddChartObservation,
-                chartFindings,
-                onEditFinding: findingsState.editFinding,
-                onDeleteFinding: findingsState.deleteFinding,
-              }}
-            />
-          )}
+            {importFlow.isPasteMode ? (
+              <PasteScreen
+                onAnalyze={importFlow.handlePasteAnalyze}
+                onCancel={importFlow.handlePasteCancel}
+                error={importFlow.pasteError}
+              />
+            ) : importFlow.isManualEntry ? (
+              <ManualEntry
+                onAnalyze={importFlow.handleManualDataAnalyze}
+                onCancel={importFlow.handleManualEntryCancel}
+              />
+            ) : rawData.length === 0 ? (
+              <HomeScreen
+                onLoadSample={ingestion.loadSample}
+                onOpenPaste={importFlow.handleOpenPaste}
+                onOpenManualEntry={importFlow.handleOpenManualEntry}
+              />
+            ) : importFlow.isMapping ? (
+              <ColumnMapping
+                columnAnalysis={importFlow.mappingColumnAnalysis}
+                availableColumns={Object.keys(rawData[0])}
+                previewRows={rawData.slice(0, 5)}
+                totalRows={rawData.length}
+                columnAliases={columnAliases}
+                onColumnRename={importFlow.handleColumnRename}
+                initialOutcome={outcome}
+                initialFactors={factors}
+                datasetName={dataFilename || undefined}
+                onConfirm={importFlow.handleMappingConfirm}
+                onCancel={importFlow.handleMappingCancel}
+                dataQualityReport={dataQualityReport}
+                onViewExcludedRows={panels.openDataTableExcluded}
+                onViewAllData={panels.openDataTableAll}
+                paretoMode={paretoMode}
+                separateParetoFilename={separateParetoFilename}
+                onParetoFileUpload={ingestion.handleParetoFileUpload}
+                onClearParetoFile={ingestion.clearParetoFile}
+                timeColumn={importFlow.timeExtractionPrompt?.timeColumn}
+                hasTimeComponent={importFlow.timeExtractionPrompt?.hasTimeComponent}
+                onTimeExtractionChange={importFlow.setTimeExtractionConfig}
+                mode={importFlow.isMappingReEdit ? 'edit' : 'setup'}
+              />
+            ) : (
+              <Dashboard
+                onPointClick={panels.openDataTableAtRow}
+                isPresentationMode={panels.isPresentationMode}
+                onExitPresentation={() => panels.setIsPresentationMode(false)}
+                highlightedChart={highlightedChart}
+                highlightIntensity={highlightIntensity}
+                onChartClick={isEmbedMode ? notifyChartClicked : undefined}
+                embedFocusChart={embedFocusChart}
+                embedStatsTab={embedStatsTab}
+                onManageFactors={importFlow.openFactorManager}
+                openSpecEditorRequested={panels.openSpecEditorRequested}
+                onSpecEditorOpened={() => panels.setOpenSpecEditorRequested(false)}
+                highlightedPointIndex={panels.highlightedChartPoint}
+                filterNav={filterNav}
+                onPinFinding={handlePinFinding}
+                findingsCallbacks={{
+                  onAddChartObservation: handleAddChartObservation,
+                  chartFindings,
+                  onEditFinding: findingsState.editFinding,
+                  onDeleteFinding: findingsState.deleteFinding,
+                }}
+              />
+            )}
           </Suspense>
         </div>
 

@@ -259,25 +259,24 @@ async function saveToCloudLargeFile(
   filePath: string
 ): Promise<{ id: string; etag: string }> {
   // 1. Create an upload session
-  const sessionResponse = await graphFetch(
-    `${GRAPH_BASE}${filePath}:/createUploadSession`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+  const sessionResponse = await graphFetch(`${GRAPH_BASE}${filePath}:/createUploadSession`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      item: {
+        '@microsoft.graph.conflictBehavior': 'replace',
       },
-      body: JSON.stringify({
-        item: {
-          '@microsoft.graph.conflictBehavior': 'replace',
-        },
-      }),
-    }
-  );
+    }),
+  });
 
   if (!sessionResponse.ok) {
     const error = await sessionResponse.json().catch(() => ({}));
-    throw new Error(error.error?.message || `Failed to create upload session: ${sessionResponse.status}`);
+    throw new Error(
+      error.error?.message || `Failed to create upload session: ${sessionResponse.status}`
+    );
   }
 
   const session = await sessionResponse.json();
@@ -559,9 +558,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         item.attempt++;
         // Use server-specified Retry-After if available, otherwise exponential backoff
         const serverDelay =
-          error instanceof GraphError && error.retryAfterMs
-            ? error.retryAfterMs
-            : undefined;
+          error instanceof GraphError && error.retryAfterMs ? error.retryAfterMs : undefined;
         const delayIdx = Math.min(item.attempt - 1, RETRY_DELAYS.length - 1);
         const delay = Math.min(serverDelay ?? RETRY_DELAYS[delayIdx], MAX_RETRY_DELAY);
         retryTimerRef.current = setTimeout(processRetryQueue, delay);
