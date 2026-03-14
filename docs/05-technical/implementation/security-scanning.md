@@ -131,16 +131,19 @@ The xlsx package was replaced with ExcelJS to resolve CVE-2023-30533 (Prototype 
 
 Transitive dependencies (pulled in by our dev/build tooling) sometimes lag behind security patches. pnpm's `overrides` field in the root `package.json` pins these to patched versions within their declared semver ranges, so no compatibility breakage occurs.
 
-**Current overrides (6):**
+**Current overrides (9):**
 
-| Override                      | Pinned To | Pulled In By                                      | Vulnerability             |
-| ----------------------------- | --------- | ------------------------------------------------- | ------------------------- |
-| `minimatch@^3.0.0`            | 3.1.5     | eslint 9 → @eslint/eslintrc, @eslint/config-array | ReDoS (high)              |
-| `minimatch@^10.0.0`           | 10.2.4    | @typescript-eslint → typescript-estree            | ReDoS (high)              |
-| `rollup@^4.0.0`               | 4.59.0    | vite → rollup                                     | Path traversal (high)     |
-| `serialize-javascript@^6.0.0` | 7.0.3     | workbox-build → @rollup/plugin-terser             | RCE (high)                |
-| `ajv@^6.0.0`                  | 6.14.0    | eslint 9 → @eslint/eslintrc                       | ReDoS (moderate)          |
-| `devalue@^5.0.0`              | 5.6.3     | astro → devalue                                   | Prototype pollution (low) |
+| Override                      | Pinned To | Pulled In By                                      | Vulnerability                   |
+| ----------------------------- | --------- | ------------------------------------------------- | ------------------------------- |
+| `minimatch@^3.0.0`            | 3.1.5     | eslint 9 → @eslint/eslintrc, @eslint/config-array | ReDoS (high)                    |
+| `minimatch@^10.0.0`           | 10.2.4    | @typescript-eslint → typescript-estree            | ReDoS (high)                    |
+| `rollup@^4.0.0`               | 4.59.0    | vite → rollup                                     | Path traversal (high)           |
+| `serialize-javascript@^6.0.0` | 7.0.3     | workbox-build → @rollup/plugin-terser             | RCE (high)                      |
+| `undici@>=7.0.0`              | 7.24.0    | vitest → jsdom → undici                           | Unhandled exception (high)      |
+| `svgo@^4.0.0`                 | 4.0.1     | astro → svgo                                      | DoS via entity expansion (high) |
+| `flatted@^3.0.0`              | 3.4.0     | eslint → file-entry-cache → flat-cache → flatted  | Unbounded recursion DoS (high)  |
+| `ajv@^6.0.0`                  | 6.14.0    | eslint 9 → @eslint/eslintrc                       | ReDoS (moderate)                |
+| `devalue@^5.0.0`              | 5.6.3     | astro → devalue                                   | Prototype pollution (low)       |
 
 All are dev/build tooling — none affect the deployed runtime bundle.
 
@@ -150,7 +153,7 @@ All are dev/build tooling — none affect the deployed runtime bundle.
 2. Only add overrides for packages actually in the dependency tree — verify with `pnpm --filter <pkg> why <dep>`
 3. When the patched version becomes the natural resolution, the override is harmless but can be removed for cleanliness
 
-**ESLint 10 migration path:** When `eslint-plugin-react` and `eslint-plugin-react-hooks` ship ESLint 10 support, migrating will eliminate the `minimatch@^3.0.0` and `ajv@^6.0.0` overrides (both pulled in via `@eslint/eslintrc`, which ESLint 10 drops). This reduces overrides from 6 → 4.
+**ESLint 10 migration path:** When `eslint-plugin-react` and `eslint-plugin-react-hooks` ship ESLint 10 support, migrating will eliminate the `minimatch@^3.0.0` and `ajv@^6.0.0` overrides (both pulled in via `@eslint/eslintrc`, which ESLint 10 drops). This reduces overrides from 9 → 7.
 
 ## Running Verification
 
