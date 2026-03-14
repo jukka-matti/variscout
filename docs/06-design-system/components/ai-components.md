@@ -1,6 +1,6 @@
 # AI Components
 
-NarrativeBar, ChartInsightChip, and CopilotPanel for AI-assisted analysis.
+NarrativeBar, ChartInsightChip, and CoScoutPanel for AI-assisted analysis.
 
 ---
 
@@ -13,7 +13,7 @@ Azure App only (Standard and Team plans). All AI components require:
 
 ### PWA Availability
 
-The PWA (free tier) uses **deterministic `ChartInsightChip` only** (`isAI={false}`). No `NarrativeBar`, no `CopilotPanel`, no AI service calls. The PWA is a training tool where "the struggle is the point."
+The PWA (free tier) uses **deterministic `ChartInsightChip` only** (`isAI={false}`). No `NarrativeBar`, no `CoScoutPanel`, no AI service calls. The PWA is a training tool where "the struggle is the point."
 
 ### User Control
 
@@ -60,13 +60,13 @@ interface NarrativeBarProps {
 
 - Fixed at dashboard bottom (above any mobile safe area)
 - Full width, single line with text truncation
-- "Ask →" button at right edge (opens CopilotPanel)
+- "Ask →" button at right edge (opens CoScoutPanel)
 - Height: 40px (compact, does not obscure chart content)
 
 ### Accessibility
 
 - `aria-live="polite"` — announces narrative changes to screen readers
-- "Ask →" button: `aria-label="Open AI copilot"`
+- "Ask →" button: `aria-label="Open AI CoScout"`
 
 ---
 
@@ -113,19 +113,19 @@ interface ChartInsightChipProps {
 
 ---
 
-## CopilotPanel
+## CoScoutPanel
 
 Resizable slide-out panel for conversational AI interaction. Follows the same panel pattern as FindingsPanel (see [Panels and Drawers](../patterns/panels-and-drawers.md)).
 
 ### Props
 
 ```typescript
-interface CopilotPanelBaseProps {
-  messages: CopilotMessage[];
+interface CoScoutPanelBaseProps {
+  messages: CoScoutMessage[];
   onSend: (text: string) => void;
   isLoading: boolean;
   isStreaming: boolean;
-  error: CopilotError | null;
+  error: CoScoutError | null;
   onRetry?: () => void;
   onClear?: () => void;
   onStopStreaming?: () => void;
@@ -139,7 +139,7 @@ interface CopilotPanelBaseProps {
 
 - Resizable width: 320px–600px (same as FindingsPanel)
 - Slides in from the right edge
-- Header: "Copilot" title + close button
+- Header: "CoScout" title + close button
 - Body: scrollable message history
 - Footer: text input + send button
 
@@ -195,7 +195,7 @@ const narrativeBarDefaultColorScheme: NarrativeBarColorScheme = {
 | ---------------- | -------------------- | ---------------------------------------------------- |
 | NarrativeBar     | Fixed bottom bar     | Fixed bottom bar (above safe area)                   |
 | ChartInsightChip | Below chart card     | Below chart in carousel                              |
-| CopilotPanel     | Resizable side panel | Full-screen overlay (same as FindingsPanel on phone) |
+| CoScoutPanel     | Resizable side panel | Full-screen overlay (same as FindingsPanel on phone) |
 
 ---
 
@@ -230,7 +230,7 @@ Carousel chart card
 - Shimmer loading skeleton matches the full bar width during the debounce/loading period
 - The bar does not capture horizontal swipe gestures — touch events pass through to the carousel via CSS `touch-action: pan-x` on the carousel container
 
-**Collapse/expand animation:** `transition: max-height 200ms ease-out`. Tap anywhere on the text area toggles between collapsed (1 line) and expanded (up to 3 lines). Tap on "Ask →" always opens CopilotPanel regardless of expand state.
+**Collapse/expand animation:** `transition: max-height 200ms ease-out`. Tap anywhere on the text area toggles between collapsed (1 line) and expanded (up to 3 lines). Tap on "Ask →" always opens CoScoutPanel regardless of expand state.
 
 ### ChartInsightChip on Phone
 
@@ -260,7 +260,7 @@ Chips are per-card — each carousel view has its own chip(s). Chips swipe toget
 
 **Swipe-to-dismiss:** Horizontal swipe-left on a chip triggers dismiss animation (opacity 0, translateX -100%, 200ms). The `onDismiss` callback fires after animation completes. Swipe direction is left-only to avoid conflict with carousel navigation (which also uses horizontal swipes — chips consume the gesture when touch starts on a chip element).
 
-### CopilotPanel on Phone
+### CoScoutPanel on Phone
 
 Full-screen overlay following the same pattern as FindingsPanel on phone (`fixed inset-0 z-40`). Reference: [Findings responsive behavior](findings.md#responsive-behavior) and [Azure Teams Mobile Flow](../../02-journeys/flows/azure-teams-mobile.md).
 
@@ -268,7 +268,7 @@ Full-screen overlay following the same pattern as FindingsPanel on phone (`fixed
 
 ```
 ┌──────────────────────────────┐
-│  [←] Copilot            [⋮]  │  ← header (44px height)
+│  [←] CoScout            [⋮]  │  ← header (44px height)
 ├──────────────────────────────┤
 │                              │
 │  Message history             │  ← scrollable, flex-1
@@ -285,7 +285,7 @@ Full-screen overlay following the same pattern as FindingsPanel on phone (`fixed
 | Element             | Spec                                                                                                                         |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Back button (←)     | Top-left, 44px touch target. Closes panel (same as FindingsPanel close)                                                      |
-| Header              | "Copilot" title, centered. Height 44px.                                                                                      |
+| Header              | "CoScout" title, centered. Height 44px.                                                                                      |
 | Message bubbles     | Full-width layout (no left/right alignment waste on narrow screens)                                                          |
 | Suggested questions | Horizontal scroll chips above input field. 3-5 context-aware suggestions.                                                    |
 | Input field         | Fixed at bottom, above keyboard (`position: fixed; bottom: env(safe-area-inset-bottom)`). Full width minus 48px send button. |
@@ -491,9 +491,9 @@ When `showAI` is false, no AI components render. The dashboard layout is unchang
 | NarrativeBar      | `[data-testid="narrative-bar"]`        |
 | Narrative shimmer | `[data-testid="narrative-shimmer"]`    |
 | Ask button        | `[data-testid="narrative-ask-button"]` |
-| CopilotPanel      | `[data-testid="copilot-panel"]`        |
-| Copilot input     | `[data-testid="copilot-input"]`        |
-| Copilot message   | `[data-testid^="copilot-message-"]`    |
+| CoScoutPanel      | `[data-testid="coscout-panel"]`        |
+| CoScout input     | `[data-testid="coscout-input"]`        |
+| CoScout message   | `[data-testid^="coscout-message-"]`    |
 | ChartInsightChip  | `[data-testid^="insight-chip-"]`       |
 
 ---

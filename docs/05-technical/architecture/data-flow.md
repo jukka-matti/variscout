@@ -307,7 +307,7 @@ flowchart LR
     subgraph AI["AI Service (Azure)"]
         NB[NarrativeBar]
         CC[ChartChips]
-        CP[CopilotPanel]
+        CP[CoScoutPanel]
     end
 
     S --> BC

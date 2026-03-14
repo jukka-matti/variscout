@@ -1,5 +1,5 @@
 /**
- * Build context-aware suggested questions for the CopilotPanel.
+ * Build context-aware suggested questions for the CoScoutPanel.
  * Deterministic — no AI call. Examines AIContext and returns 3-5 questions.
  */
 

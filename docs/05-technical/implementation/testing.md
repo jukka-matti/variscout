@@ -736,7 +736,7 @@ Specific prompts for verifying complex features. These protocols can be executed
 - [ ] No "Ask →" button anywhere in the UI
 - [ ] All analysis features work normally (charts, drill-down, ANOVA, findings)
 - [ ] Settings panel shows AI section as disabled with configuration message
-- [ ] No console errors related to AI service, endpoint, or copilot
+- [ ] No console errors related to AI service, endpoint, or CoScout
 - [ ] App is functionally identical to pre-AI version (ADR-019 Phase 0 baseline)
 
 ### 11. NarrativeBar Lifecycle Verification
@@ -759,25 +759,25 @@ Specific prompts for verifying complex features. These protocols can be executed
 - [ ] No jarring transitions between loading/response/cached/error states
 - [ ] `aria-live="polite"` announces narrative changes to screen readers
 
-### 12. CopilotPanel Conversation Verification
+### 12. CoScoutPanel Conversation Verification
 
-**Goal:** Verify conversational AI interaction through the CopilotPanel slide-out panel.
+**Goal:** Verify conversational AI interaction through the CoScoutPanel slide-out panel.
 
 **Agent Prompt:**
 
-> "With AI configured, load sample data and click the 'Ask →' button on the NarrativeBar. Verify the CopilotPanel opens as a resizable slide-in from the right (on desktop) or full-screen overlay (on phone <640px). Verify the current analysis context is shown at the top of the panel. Type a question (e.g., 'Why is Machine A the biggest contributor?') and send it. Verify a streaming response appears with a typing indicator. Check that a 'Stop generating' button appears during streaming — click it and verify generation stops cleanly. Send a follow-up question (e.g., 'What should I check first?') and verify conversation context is maintained. Close the panel with Escape or the close button, then reopen it — verify conversation history is preserved for the current session. Simulate an AI error mid-stream (block network) — verify an inline error message and retry button appear."
+> "With AI configured, load sample data and click the 'Ask →' button on the NarrativeBar. Verify the CoScoutPanel opens as a resizable slide-in from the right (on desktop) or full-screen overlay (on phone <640px). Verify the current analysis context is shown at the top of the panel. Type a question (e.g., 'Why is Machine A the biggest contributor?') and send it. Verify a streaming response appears with a typing indicator. Check that a 'Stop generating' button appears during streaming — click it and verify generation stops cleanly. Send a follow-up question (e.g., 'What should I check first?') and verify conversation context is maintained. Close the panel with Escape or the close button, then reopen it — verify conversation history is preserved for the current session. Simulate an AI error mid-stream (block network) — verify an inline error message and retry button appear."
 
 **Success Criteria:**
 
-- [ ] CopilotPanel opens from "Ask →" button (`[data-testid="copilot-panel"]`)
+- [ ] CoScoutPanel opens from "Ask →" button (`[data-testid="coscout-panel"]`)
 - [ ] Desktop: resizable side panel (320px–600px); Phone: full-screen overlay
 - [ ] Analysis context summary shown at top of panel
-- [ ] Text input accepts typing and send (`[data-testid="copilot-input"]`)
+- [ ] Text input accepts typing and send (`[data-testid="coscout-input"]`)
 - [ ] Streaming response appears with typing indicator
 - [ ] "Stop generating" button visible during stream and stops cleanly when clicked
 - [ ] Follow-up questions maintain conversation context
 - [ ] Conversation history preserved when panel is closed and reopened (session)
-- [ ] Messages rendered with correct alignment (user right, AI left) (`[data-testid^="copilot-message-"]`)
+- [ ] Messages rendered with correct alignment (user right, AI left) (`[data-testid^="coscout-message-"]`)
 - [ ] Error mid-stream shows inline error message with "Retry" button
 - [ ] Keyboard: Enter sends, Shift+Enter adds newline, Escape closes panel
 
@@ -786,10 +786,10 @@ Specific prompts for verifying complex features. These protocols can be executed
 All AI-related E2E tests use **recorded fixtures** (mock AI responses), not live endpoints. This ensures deterministic, reproducible test results unaffected by AI model variability, latency, or availability.
 
 - **Fixture format:** JSON files with request/response pairs stored in `e2e/fixtures/ai/`
-- **Fixture categories:** `narration/` (NarrativeBar summaries), `copilot/` (Q&A conversation turns), `insights/` (ChartInsightChip content)
+- **Fixture categories:** `narration/` (NarrativeBar summaries), `coscout/` (Q&A conversation turns), `insights/` (ChartInsightChip content)
 - **Mock interceptor:** Playwright `page.route()` handler intercepts all calls to the AI endpoint URL and returns matching fixture responses
 - **Deterministic:** Same fixture = same test result. No flakiness from AI response variability
-- **Streaming simulation:** Copilot fixtures include chunked responses to test streaming UI states
+- **Streaming simulation:** CoScout fixtures include chunked responses to test streaming UI states
 - **Error fixtures:** Dedicated fixtures for API errors, content filter blocks, rate limits, and timeouts
 
 See [AI Architecture — Testing Strategy](../architecture/ai-architecture.md#testing-strategy) for unit and component test approach.

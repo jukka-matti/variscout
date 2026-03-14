@@ -424,6 +424,6 @@ Filter to Store C + Weekend, then use What-If:
 - [Decision Trees](decision-trees.md) — Which analysis to use when
 - [Four Lenses Workflow](four-lenses-workflow.md) — Foundational methodology
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
-- [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CopilotPanel specs
+- [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
 - [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Architectural decisions
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Knowledge base dependency

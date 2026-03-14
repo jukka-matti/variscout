@@ -12,7 +12,7 @@ AI-assisted analysis adds three progressive layers to the Azure App dashboard. E
 | ----- | ---------------- | --------------------------------- | ------- |
 | 1     | NarrativeBar     | Plain-language analysis summary   | Phase 1 |
 | 2     | ChartInsightChip | Per-chart contextual suggestions  | Phase 2 |
-| 3     | CopilotPanel     | Conversational analysis assistant | Phase 3 |
+| 3     | CoScoutPanel     | Conversational analysis assistant | Phase 3 |
 
 **Availability:** Azure App only (Standard and Team plans). Requires AI endpoint configured in ARM deployment AND user Settings toggle "Show AI assistance" set to ON. PWA never has AI.
 
@@ -59,7 +59,7 @@ A single-line bar at the bottom of the Azure Dashboard. Summarizes the current a
 | Offline (no cache) | Bar hidden                             |
 | Error              | Bar hidden (errors are always quiet)   |
 
-The "Ask →" button at the bar's right edge opens the Copilot Panel (Layer 3).
+The "Ask →" button at the bar's right edge opens the CoScout Panel (Layer 3).
 
 ---
 
@@ -97,14 +97,14 @@ AI never overrides deterministic suggestions. If they disagree, the deterministi
 
 ---
 
-## Layer 3: Copilot Panel
+## Layer 3: CoScout Panel
 
 A resizable slide-out panel (same pattern as FindingsPanel) for conversational analysis assistance.
 
 ### Activation
 
 - "Ask →" button in Narrative Summary Bar
-- Dedicated copilot button in toolbar
+- Dedicated CoScout button in toolbar
 
 ### Capabilities
 
@@ -116,10 +116,10 @@ A resizable slide-out panel (same pattern as FindingsPanel) for conversational a
 ### Example Interactions
 
 **Analyst:** "Why is Fill Head 3 drifting?"
-**Copilot:** "Based on your findings, Fill Head 3 accounts for 47% of variation with a downward drift starting at point 34. Your team's FMEA lists nozzle wear (RPN 180) as the top failure mode for fill head drift. Past investigations (3 resolved findings) show nozzle replacement resolved similar drift 90% of the time."
+**CoScout:** "Based on your findings, Fill Head 3 accounts for 47% of variation with a downward drift starting at point 34. Your team's FMEA lists nozzle wear (RPN 180) as the top failure mode for fill head drift. Past investigations (3 resolved findings) show nozzle replacement resolved similar drift 90% of the time."
 
 **Analyst:** "Generate a summary for the improvement project review"
-**Copilot:** Produces structured report from findings data — key drivers, actions taken, Cpk improvements, outstanding items.
+**CoScout:** Produces structured report from findings data — key drivers, actions taken, Cpk improvements, outstanding items.
 
 ### Knowledge Layer: Azure AI Search
 
@@ -147,7 +147,7 @@ Azure AI Search provides built-in hybrid search (keyword + semantic ranking) and
 | ---------------- | ----------------- | --------------------------------------------------- | --------------------------------------------------- |
 | NarrativeBar     | Live response     | Cached summary shown                                | Hidden                                              |
 | ChartInsightChip | Live response     | Cached chips shown                                  | Hidden                                              |
-| CopilotPanel     | Live conversation | Conversation history visible, new messages disabled | Conversation history visible, new messages disabled |
+| CoScoutPanel     | Live conversation | Conversation history visible, new messages disabled | Conversation history visible, new messages disabled |
 
 All cached responses have a 24-hour TTL or expire when analysis data changes.
 
@@ -210,9 +210,9 @@ Each resolved finding adds real, measured, outcome-verified knowledge. After 50+
 | 2. Locate            | Drill-down by factors    | Chart chip: "→ Drill Machine A (47%)"                                     |
 | 3. Problem statement | Pin finding              | Auto-generated from filters + stats                                       |
 | 4. Assign            | Assign to investigator   | —                                                                         |
-| 5. Investigate       | Check shop floor         | Copilot: "Last time Machine A drifted, it was nozzle wear (3 of 4 times)" |
+| 5. Investigate       | Check shop floor         | CoScout: "Last time Machine A drifted, it was nozzle wear (3 of 4 times)" |
 | 6. Suspected cause   | Enter in finding         | —                                                                         |
-| 7. Derive action     | Define corrective action | Copilot: "SOP says: replace nozzle tip, perform alignment procedure"      |
+| 7. Derive action     | Define corrective action | CoScout: "SOP says: replace nozzle tip, perform alignment procedure"      |
 | 8. Verify            | Load new data, check Cpk | Narrative bar: "Cpk improved from 0.85 to 1.35 after corrective action"   |
 
 ## What AI Does NOT Do

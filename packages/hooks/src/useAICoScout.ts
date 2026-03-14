@@ -1,13 +1,13 @@
 /**
- * useAICopilot - Session-only conversational AI state management.
+ * useAICoScout - Session-only conversational AI state management.
  * Manages message history, send/retry/clear, streaming, and abort control.
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { AIContext, CopilotMessage, CopilotError, AIErrorType } from '@variscout/core';
-import { buildCopilotMessages } from '@variscout/core';
+import type { AIContext, CoScoutMessage, CoScoutError, AIErrorType } from '@variscout/core';
+import { buildCoScoutMessages } from '@variscout/core';
 
-export interface UseAICopilotOptions {
+export interface UseAICoScoutOptions {
   /** Current analysis context */
   context: AIContext | null;
   /** Injected fetch function (from aiService.ts) */
@@ -24,13 +24,13 @@ export interface UseAICopilotOptions {
   initialNarrative?: string | null;
 }
 
-export interface UseAICopilotReturn {
-  messages: CopilotMessage[];
+export interface UseAICoScoutReturn {
+  messages: CoScoutMessage[];
   send: (text: string) => void;
   retry: () => void;
   isLoading: boolean;
   isStreaming: boolean;
-  error: CopilotError | null;
+  error: CoScoutError | null;
   clear: () => void;
   stopStreaming: () => void;
   copyLastResponse: () => Promise<boolean>;
@@ -38,10 +38,10 @@ export interface UseAICopilotReturn {
 
 let nextId = 0;
 function generateId(): string {
-  return `cop-${Date.now()}-${nextId++}`;
+  return `cos-${Date.now()}-${nextId++}`;
 }
 
-function classifyErrorToCopilotError(err: unknown): CopilotError {
+function classifyErrorToCoScoutError(err: unknown): CoScoutError {
   const message = err instanceof Error ? err.message : String(err);
   let type: AIErrorType = 'unknown';
   if (message.includes('rate-limit') || message.includes('429')) type = 'rate-limit';
@@ -55,13 +55,13 @@ function classifyErrorToCopilotError(err: unknown): CopilotError {
   return { type, message: message.slice(0, 200), retryable };
 }
 
-export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
+export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
   const { context, fetchResponse, fetchStreamingResponse, initialNarrative } = options;
 
-  const [messages, setMessages] = useState<CopilotMessage[]>([]);
+  const [messages, setMessages] = useState<CoScoutMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [error, setError] = useState<CopilotError | null>(null);
+  const [error, setError] = useState<CoScoutError | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const narrativeSeeded = useRef(false);
@@ -96,7 +96,7 @@ export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
       const controller = new AbortController();
       abortRef.current = controller;
 
-      const userMessage: CopilotMessage = {
+      const userMessage: CoScoutMessage = {
         id: generateId(),
         role: 'user',
         content: text.trim(),
@@ -108,13 +108,13 @@ export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
       setError(null);
 
       try {
-        // Use ref for current history; buildCopilotMessages appends the user message
-        const apiMessages = buildCopilotMessages(context, messagesRef.current, text.trim());
+        // Use ref for current history; buildCoScoutMessages appends the user message
+        const apiMessages = buildCoScoutMessages(context, messagesRef.current, text.trim());
 
         // Try streaming first, fall back to non-streaming
         if (fetchStreamingResponse) {
           const placeholderId = generateId();
-          const placeholder: CopilotMessage = {
+          const placeholder: CoScoutMessage = {
             id: placeholderId,
             role: 'assistant',
             content: '',
@@ -162,7 +162,7 @@ export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
           const result = await fetchResponse(apiMessages);
           if (controller.signal.aborted) return;
 
-          const assistantMessage: CopilotMessage = {
+          const assistantMessage: CoScoutMessage = {
             id: generateId(),
             role: 'assistant',
             content: result,
@@ -173,14 +173,14 @@ export function useAICopilot(options: UseAICopilotOptions): UseAICopilotReturn {
         }
       } catch (err) {
         if (controller.signal.aborted) return;
-        const copilotError = classifyErrorToCopilotError(err);
-        setError(copilotError);
-        const errorMessage: CopilotMessage = {
+        const coscoutError = classifyErrorToCoScoutError(err);
+        setError(coscoutError);
+        const errorMessage: CoScoutMessage = {
           id: generateId(),
           role: 'assistant',
           content: '',
           timestamp: Date.now(),
-          error: copilotError,
+          error: coscoutError,
         };
         setMessages(prev => [...prev, errorMessage]);
       } finally {

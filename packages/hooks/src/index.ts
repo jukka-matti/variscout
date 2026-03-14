@@ -198,5 +198,5 @@ export {
   type DeterministicData,
 } from './useChartInsights';
 
-// AI Copilot
-export { useAICopilot, type UseAICopilotOptions, type UseAICopilotReturn } from './useAICopilot';
+// AI CoScout
+export { useAICoScout, type UseAICoScoutOptions, type UseAICoScoutReturn } from './useAICoScout';

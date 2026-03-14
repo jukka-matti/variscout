@@ -180,14 +180,14 @@ If the admin enabled AI during deployment, all team members have access to AI-as
 | ----------------------- | ---- | ----- | ----------------------------------------------------------------------------------------------- |
 | **NarrativeBar**        | Both | 1     | Plain-language summary at dashboard bottom, visible to all users                                |
 | **ChartInsightChip**    | Both | 2     | Per-chart suggestions (e.g., "Drill Machine A (47%)")                                           |
-| **CopilotPanel**        | Both | 3     | Conversational AI for deeper questions                                                          |
+| **CoScoutPanel**        | Both | 3     | Conversational AI for deeper questions                                                          |
 | **Team knowledge base** | Team | 2+    | Resolved findings accumulate as searchable organizational knowledge                             |
-| **Document retrieval**  | Team | 3     | CopilotPanel can reference team SOPs, fault trees, and past investigations via Azure AI Search  |
+| **Document retrieval**  | Team | 3     | CoScoutPanel can reference team SOPs, fault trees, and past investigations via Azure AI Search  |
 | **Shared AI insights**  | Both | 1+    | NarrativeBar and ChartInsightChip content visible to all team members viewing the same analysis |
 
-**Team knowledge base (Phase 2+):** Each resolved finding — with its factor, contribution %, Cpk, corrective action, and measured outcome — is indexed via Azure AI Search. After 50+ resolved findings, the AI has genuine organizational knowledge backed by measurement data. CopilotPanel can answer questions like "Have we seen this pattern before?" by retrieving past investigations.
+**Team knowledge base (Phase 2+):** Each resolved finding — with its factor, contribution %, Cpk, corrective action, and measured outcome — is indexed via Azure AI Search. After 50+ resolved findings, the AI has genuine organizational knowledge backed by measurement data. CoScoutPanel can answer questions like "Have we seen this pattern before?" by retrieving past investigations.
 
-**Document retrieval (Phase 3):** On the Team plan, CopilotPanel can reference quality documents stored in the Teams channel SharePoint (fault trees, SOPs, control plans). Azure AI Search with Foundry IQ orchestration provides semantic search across these documents.
+**Document retrieval (Phase 3):** On the Team plan, CoScoutPanel can reference quality documents stored in the Teams channel SharePoint (fault trees, SOPs, control plans). Azure AI Search with Foundry IQ orchestration provides semantic search across these documents.
 
 Each user controls their own AI visibility via the "Show AI assistance" toggle in Settings. AI features are always optional — the app works identically without them.
 

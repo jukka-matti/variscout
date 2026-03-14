@@ -222,11 +222,11 @@ Be specific and actionable. Never invent data.`;
 }
 
 /**
- * Fetch a copilot conversational response from Azure AI Foundry.
- * Used as the `fetchResponse` callback for useAICopilot hook.
+ * Fetch a CoScout conversational response from Azure AI Foundry.
+ * Used as the `fetchResponse` callback for useAICoScout hook.
  * No caching (conversations are contextual). Single retry on 429.
  */
-export async function fetchCopilotResponse(
+export async function fetchCoScoutResponse(
   messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>
 ): Promise<string> {
   const endpoint = getAIEndpoint();
@@ -273,10 +273,10 @@ export async function fetchCopilotResponse(
 }
 
 /**
- * Fetch a streaming copilot response from Azure AI Foundry.
+ * Fetch a streaming CoScout response from Azure AI Foundry.
  * Calls onChunk for each token delta. Falls back to non-streaming on error.
  */
-export async function fetchCopilotStreamingResponse(
+export async function fetchCoScoutStreamingResponse(
   messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
   onChunk: (delta: string) => void,
   signal: AbortSignal

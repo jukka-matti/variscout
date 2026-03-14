@@ -71,7 +71,7 @@ The glossary currently contains 25 terms across 5 categories. For AI Phase 1 (AD
 
 Terms are organized by priority for AI Phase 1 launch. Each term will follow the existing `GlossaryTerm` interface with `id`, `label`, `definition`, `description`, `category`, `learnMorePath`, and `relatedTerms`.
 
-#### Priority 1 — Required for AI Phase 1 (grounding AI narration and copilot responses)
+#### Priority 1 — Required for AI Phase 1 (grounding AI narration and CoScout responses)
 
 **Statistical/Quality foundations:**
 
@@ -103,7 +103,7 @@ Terms are organized by priority for AI Phase 1 launch. Each term will follow the
 | `actionItem`          | Action Item          | A specific task assigned during investigation to address a finding's suspected cause.                                            | investigation |
 | `outcomeVerification` | Outcome Verification | Comparing process capability (Cpk) before and after corrective action to confirm improvement.                                    | investigation |
 
-#### Priority 2 — Needed for AI Phase 2 (enriching copilot conversation quality)
+#### Priority 2 — Needed for AI Phase 2 (enriching CoScout conversation quality)
 
 **AI-specific terms (accessible to quality professionals, not AI jargon):**
 
@@ -132,7 +132,7 @@ Terms are organized by priority for AI Phase 1 launch. Each term will follow the
 - New category `ai` for AI-specific terms — only populated when AI features are active
 - `buildGlossaryPrompt()` in `@variscout/core` will serialize relevant terms into AI prompt context
 - Priority 1 terms should be implemented before AI Phase 1 launch (ADR-019)
-- Priority 2 terms can ship with AI Phase 2 (copilot conversation improvements)
+- Priority 2 terms can ship with AI Phase 2 (CoScout conversation improvements)
 - Priority 3 terms are additive improvements with no AI dependency
 - Total after expansion: ~50 terms (25 existing + 25 new)
 

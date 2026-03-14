@@ -21,8 +21,8 @@ This design explores how AI can be integrated into the Azure App to enhance — 
 ### Industry Validation
 
 - 2026 industry consensus: Hybrid SPC + AI (SPC for reliability, AI for foresight)
-- 53% of manufacturers prefer copilot model over full automation
-- Minitab adding AI assistant features; SPC copilots emerging in steel/manufacturing
+- 53% of manufacturers prefer AI assistant model over full automation
+- Minitab adding AI assistant features; SPC AI assistants emerging in steel/manufacturing
 - EDAScout rolled back AI chatbot (Gemini) v6→v7 due to friction; VariScout avoids this pattern
 - Explainable AI is non-negotiable in quality/regulated contexts
 
@@ -40,13 +40,13 @@ AI features are **optional** for both Azure plans. Customer opts in during ARM d
 
 ### Use Case 1: Improvement Team Project
 
-A quality improvement team creates a Teams channel for their project (e.g., "Fill Line Improvement"). They upload process maps, fault trees (FMEA), and SOPs to the channel's SharePoint folder. Team members analyze data in VariScout, pinning findings as they investigate. The AI copilot references both the team's quality documents AND accumulated investigation findings to provide context-aware guidance.
+A quality improvement team creates a Teams channel for their project (e.g., "Fill Line Improvement"). They upload process maps, fault trees (FMEA), and SOPs to the channel's SharePoint folder. Team members analyze data in VariScout, pinning findings as they investigate. The AI CoScout references both the team's quality documents AND accumulated investigation findings to provide context-aware guidance.
 
 **Flow:** Teams channel setup → upload docs → analyze in VariScout → AI references docs + findings → knowledge accumulates
 
 ### Use Case 2: Daily Process Owner
 
-A process owner or team leader uses VariScout for daily monitoring. Their SharePoint contains standing documents: process maps, control plans, FMEA, equipment specs. When VariScout detects a Nelson Rule violation, the AI copilot can reference the fault tree: "Your FMEA lists this failure mode as RPN 180. Control plan says: check nozzle alignment."
+A process owner or team leader uses VariScout for daily monitoring. Their SharePoint contains standing documents: process maps, control plans, FMEA, equipment specs. When VariScout detects a Nelson Rule violation, the AI CoScout can reference the fault tree: "Your FMEA lists this failure mode as RPN 180. Control plan says: check nozzle alignment."
 
 **Flow:** Standing docs in SharePoint → daily data load → AI references docs during analysis → findings grow knowledge base over time
 
@@ -73,9 +73,9 @@ Small chips/badges on chart cards. Examples:
 
 Builds on existing `getNextDrillFactor()` and `shouldHighlightDrill()` from `packages/core/src/variation/suggestions.ts`. AI adds natural language explanation layer.
 
-### Slide-out Copilot Panel (Phase 3)
+### Slide-out CoScout Panel (Phase 3)
 
-Resizable side panel (same pattern as FindingsPanel and DataPanel). Activated via "Ask →" button in narrative bar or dedicated ✦ copilot tab.
+Resizable side panel (same pattern as FindingsPanel and DataPanel). Activated via "Ask →" button in narrative bar or dedicated ✦ CoScout tab.
 
 - Context-aware: knows current filters, charts, findings, violations
 - Can reference team documents via Azure AI Search
@@ -98,7 +98,7 @@ Resizable side panel (same pattern as FindingsPanel and DataPanel). Activated vi
 │  AI Service                Prompt Templates           │
 │  (apps/azure/services)     (@variscout/core)          │
 │  aiService.askAI()         narration, suggestion,     │
-│                            copilot, report            │
+│                            coscout, report            │
 │                                                      │
 │  IndexedDB Cache                                     │
 │  (cached AI responses + conversation history)         │
@@ -126,12 +126,12 @@ Resizable side panel (same pattern as FindingsPanel and DataPanel). Activated vi
 | --------------------- | ---------------------------------------------------- | ---------------------------- |
 | Narration / summaries | GPT-4o-mini ($0.15/M input)                          | Cheapest, sufficient quality |
 | Chart insight chips   | GPT-4o-mini                                          | Simple template completion   |
-| Copilot chat          | GPT-4o ($2.50/M input) or Claude Sonnet ($3/M input) | Better reasoning             |
+| CoScout chat          | GPT-4o ($2.50/M input) or Claude Sonnet ($3/M input) | Better reasoning             |
 
 **Dual-model routing.** The AI service accepts a `tier` parameter that routes to cheap vs. smart models:
 
 - `tier: 'fast'` → cheap model (narrative bar, chart chips, suggestions)
-- `tier: 'reasoning'` → smart model (copilot conversation, report generation)
+- `tier: 'reasoning'` → smart model (CoScout conversation, report generation)
 
 **Stats-only context payloads.** AI never receives raw measurement data. Context includes:
 
@@ -148,7 +148,7 @@ Resizable side panel (same pattern as FindingsPanel and DataPanel). Activated vi
 
 **Layer 2 — Process Context (user-provided).** A text field in project settings where the analyst describes their process. Examples: "Coffee sachet filling line. 4 fill heads, 3 shifts. Target weight 250g. Key concerns: nozzle clogging, hopper timing." Persisted in AnalysisState.
 
-**Layer 3 — Team Documents (Azure AI Search, Phase 3).** Fault trees, process maps, SOPs, control plans uploaded to Teams channel SharePoint. Azure AI Search indexes them. Copilot retrieves relevant sections when answering questions.
+**Layer 3 — Team Documents (Azure AI Search, Phase 3).** Fault trees, process maps, SOPs, control plans uploaded to Teams channel SharePoint. Azure AI Search indexes them. CoScout retrieves relevant sections when answering questions.
 
 ### Azure AI Search Integration (Phase 3)
 
@@ -226,10 +226,10 @@ Following existing monorepo conventions:
 | Prompt templates            | `@variscout/core`         | String templates, no React                            |
 | AI service (`aiService.ts`) | `apps/azure/src/services` | Network calls + IndexedDB caching (like `storage.ts`) |
 | `useAIContext` hook         | `@variscout/hooks`        | React hook wrapping buildAIContext                    |
-| `useAICopilot` hook         | `@variscout/hooks`        | Chat state, history, streaming                        |
+| `useAICoScout` hook         | `@variscout/hooks`        | Chat state, history, streaming                        |
 | `NarrativeBar`              | `@variscout/ui`           | Shared UI component                                   |
 | `ChartInsightChip`          | `@variscout/ui`           | Inline chart badge                                    |
-| `CopilotPanel`              | `@variscout/ui`           | Slide-out chat panel                                  |
+| `CoScoutPanel`              | `@variscout/ui`           | Slide-out chat panel                                  |
 | AI config in DataContext    | `apps/azure`              | App-specific wiring                                   |
 
 ## Prerequisite: Investigation Workflow Enhancement
@@ -244,7 +244,7 @@ Key extensions to the Finding type:
 - `actions[]` — list of corrective action items (text, assignee, due date, completion)
 - `outcome` — effectiveness assessment (yes/no/partial, Cpk after, notes)
 
-These extensions are valuable independently of AI (closed-loop investigations, team accountability, improvement reports) and serve as the data foundation that makes AI narration, suggestion, and copilot features dramatically more useful.
+These extensions are valuable independently of AI (closed-loop investigations, team accountability, improvement reports) and serve as the data foundation that makes AI narration, suggestion, and CoScout features dramatically more useful.
 
 The workflow enhancement should be implemented **before or in parallel with** Phase 1 AI work.
 
@@ -283,13 +283,13 @@ The workflow enhancement should be implemented **before or in parallel with** Ph
 - What-If scenario narration ("Reducing variation 15% improves Cpk from 1.05 to 1.31")
 - Prompt templates for suggestions + explanations
 
-### Phase 3: Copilot — Chat + Azure AI Search
+### Phase 3: CoScout — Chat + Azure AI Search
 
 **Deliverables:**
 
-- `CopilotPanel` component in `@variscout/ui` (resizable slide-out, same pattern as FindingsPanel)
-- "Ask →" button in narrative bar bridging to copilot
-- `useAICopilot` hook in `@variscout/hooks` (chat state, history, streaming responses)
+- `CoScoutPanel` component in `@variscout/ui` (resizable slide-out, same pattern as FindingsPanel)
+- "Ask →" button in narrative bar bridging to CoScout
+- `useAICoScout` hook in `@variscout/hooks` (chat state, history, streaming responses)
 - Azure AI Search integration (index findings on save/sync)
 - SharePoint document indexing (fault trees, SOPs, process maps)
 - Cross-project knowledge queries ("Have we seen this pattern before?")
@@ -315,14 +315,14 @@ Cache key: hash of context payload (stats + filters + finding count + process de
 - **TTL:** 24 hours or until analysis data changes (whichever comes first)
 - **Cache hit:** Show cached response immediately. No network call.
 - **Cache miss + online:** Fetch from AI, cache response, display.
-- **Cache miss + offline:** NarrativeBar shows nothing (hidden). ChartInsightChips hidden. CopilotPanel shows "AI unavailable offline" with last conversation history still visible.
+- **Cache miss + offline:** NarrativeBar shows nothing (hidden). ChartInsightChips hidden. CoScoutPanel shows "AI unavailable offline" with last conversation history still visible.
 - **Stale indicator:** When showing cached response after data change, show subtle "(cached)" label.
 
 Debounce: AI requests throttled to max 1 per 5 seconds (prevents rapid-fire on filter drilling).
 
 ## Cost Controls
 
-- **Max context tokens:** 2K for narration (fast tier), 8K for copilot chat (reasoning tier)
+- **Max context tokens:** 2K for narration (fast tier), 8K for CoScout chat (reasoning tier)
 - **Client-side throttle:** Max 1 narration request per 5 seconds, debounced on filter changes
 - **Monthly budget:** Configurable in ARM template parameters (Azure resource spending limit)
 - **Response caching:** Reduces repeat queries for same analysis state
@@ -350,9 +350,9 @@ This keeps the browser free of Search SDK dependencies and uses the existing `in
 | NarrativeBar     | AI endpoint error | Show last cached response, or hide bar quietly     |
 | NarrativeBar     | Timeout (>10s)    | Cancel request, hide bar, log to `errorService`    |
 | ChartInsightChip | Any error         | Hide chip entirely — never show error on charts    |
-| CopilotPanel     | API error         | Inline error message with retry button             |
-| CopilotPanel     | Content filter    | "I can't answer that question. Try rephrasing."    |
-| CopilotPanel     | Rate limit        | "Please wait a moment before asking again."        |
+| CoScoutPanel     | API error         | Inline error message with retry button             |
+| CoScoutPanel     | Content filter    | "I can't answer that question. Try rephrasing."    |
+| CoScoutPanel     | Rate limit        | "Please wait a moment before asking again."        |
 | All              | No AI configured  | UI elements hidden entirely (graceful degradation) |
 
 All errors logged to `errorService` (existing in `@variscout/ui`). No user-facing error modals — AI errors are always quiet/inline.
@@ -365,17 +365,17 @@ All errors logged to `errorService` (existing in `@variscout/ui`). No user-facin
 | Prompt templates            | Snapshot (`@variscout/core`) | Verify template output structure, not exact wording       |
 | AI service (`aiService.ts`) | Unit (`apps/azure`)          | Mock `fetch()`, test routing, caching, error handling     |
 | `useAIContext` hook         | Unit (`@variscout/hooks`)    | Mock DataContext, verify context shape                    |
-| `useAICopilot` hook         | Unit (`@variscout/hooks`)    | Mock AI service, test chat state management               |
+| `useAICoScout` hook         | Unit (`@variscout/hooks`)    | Mock AI service, test chat state management               |
 | `NarrativeBar`              | Component (`@variscout/ui`)  | Render with/without AI response, verify hide on no-config |
 | `ChartInsightChip`          | Component (`@variscout/ui`)  | Render with suggestion data, verify dismissal             |
-| `CopilotPanel`              | Component (`@variscout/ui`)  | Render chat, verify send/receive, error states            |
+| `CoScoutPanel`              | Component (`@variscout/ui`)  | Render chat, verify send/receive, error states            |
 | Graceful degradation        | E2E (`apps/azure`)           | Load app without AI endpoint — verify all features work   |
 | AI integration              | Integration (`apps/azure`)   | Recorded response fixtures (replay, not live AI)          |
 
 ## Accessibility
 
 - `NarrativeBar`: ARIA live region (`aria-live="polite"`) — announces changes to screen readers
-- `CopilotPanel`: Keyboard focus management (same pattern as FindingsPanel) — Tab/Escape to open/close
+- `CoScoutPanel`: Keyboard focus management (same pattern as FindingsPanel) — Tab/Escape to open/close
 - `ChartInsightChip`: Sufficient color contrast (meets WCAG AA), focusable with keyboard
 - All AI-generated text: Selectable, copyable, readable by assistive technology
 
@@ -390,7 +390,7 @@ All errors logged to `errorService` (existing in `@variscout/ui`). No user-facin
 | Risk                                | Mitigation                                                                                                                                         |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | SharePoint indexer stays in preview | VariScout findings indexing works independently (Blob Storage indexer is GA). SharePoint docs are a Phase 3 enhancement.                           |
-| AI costs concern customers          | Default to GPT-4o-mini (cheapest). Dual-model routing minimizes copilot token spend. Response caching reduces repeat queries.                      |
+| AI costs concern customers          | Default to GPT-4o-mini (cheapest). Dual-model routing minimizes CoScout token spend. Response caching reduces repeat queries.                      |
 | EDAScout-style chatbot backlash     | AI never auto-acts. Always dismissable. Shows stats source alongside explanation. Analyst drives, AI assists.                                      |
 | Model quality for SPC domain        | Prompt templates grounded in VariScout's glossary terms. Stats-only context reduces hallucination surface. Semantic grounding via Azure AI Search. |
 | Privacy / data sovereignty          | All AI resources in customer's Azure tenant. Stats-only payloads (no raw data). Same EasyAuth + RBAC.                                              |

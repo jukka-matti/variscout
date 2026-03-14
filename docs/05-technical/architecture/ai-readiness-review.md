@@ -176,7 +176,7 @@ Note: the AIAG-VDA joint FMEA handbook (2019) already eliminated RPN in favor of
 | Known causes per defect type     | Control plan in SharePoint        | Domain knowledge — don't duplicate |
 | Reaction plans / SOPs            | Control plan + SOPs in SharePoint | Maintained by quality team         |
 | Measured investigation outcomes  | VariScout findings (accumulated)  | This IS VariScout's value          |
-| Combined knowledge at query time | AI copilot (merges both)          | Best of both worlds                |
+| Combined knowledge at query time | AI CoScout (merges both)          | Best of both worlds                |
 
 ### Two Knowledge Tiers
 
@@ -223,7 +223,7 @@ The existing Azure AI Search-based architecture in ADR-019 is correct. **Azure A
 
 When team documents are uploaded to the Teams channel SharePoint:
 
-**Level 1 (query-time reference — already planned):** AI copilot queries Azure AI Search during conversation and references document sections directly. No extraction.
+**Level 1 (query-time reference — already planned):** AI CoScout queries Azure AI Search during conversation and references document sections directly. No extraction.
 
 **Level 2 (proactive extraction — new capability):** Azure Function triggers on document upload, sends to AI with structured extraction prompt, and **suggests** ProcessContext updates:
 

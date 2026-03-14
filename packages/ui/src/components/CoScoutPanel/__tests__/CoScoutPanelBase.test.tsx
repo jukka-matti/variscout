@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import type { CopilotMessage } from '@variscout/core';
+import type { CoScoutMessage } from '@variscout/core';
 
 // Mock dependencies BEFORE component import (critical vitest pattern)
 vi.mock('@variscout/hooks', () => ({
@@ -24,50 +24,50 @@ vi.mock('lucide-react', () => ({
   Check: (props: Record<string, unknown>) => <span data-testid="check-icon" {...props} />,
 }));
 
-import { CopilotPanelBase } from '../CopilotPanelBase';
+import { CoScoutPanelBase } from '../CoScoutPanelBase';
 
 const defaultProps = {
   isOpen: true,
   onClose: vi.fn(),
-  messages: [] as CopilotMessage[],
+  messages: [] as CoScoutMessage[],
   onSend: vi.fn(),
   isLoading: false,
   resizeConfig: { storageKey: 'test-key' },
 };
 
-describe('CopilotPanelBase', () => {
+describe('CoScoutPanelBase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renders nothing when isOpen is false', () => {
-    const { container } = render(<CopilotPanelBase {...defaultProps} isOpen={false} />);
+    const { container } = render(<CoScoutPanelBase {...defaultProps} isOpen={false} />);
     expect(container.innerHTML).toBe('');
   });
 
   it('renders panel with correct test id when open', () => {
-    render(<CopilotPanelBase {...defaultProps} />);
-    expect(screen.getByTestId('copilot-panel')).toBeDefined();
+    render(<CoScoutPanelBase {...defaultProps} />);
+    expect(screen.getByTestId('coscout-panel')).toBeDefined();
   });
 
   it('renders messages with correct alignment', () => {
-    const messages: CopilotMessage[] = [
+    const messages: CoScoutMessage[] = [
       { id: '1', role: 'user', content: 'Hello', timestamp: 1 },
       { id: '2', role: 'assistant', content: 'Hi there', timestamp: 2 },
     ];
-    render(<CopilotPanelBase {...defaultProps} messages={messages} />);
+    render(<CoScoutPanelBase {...defaultProps} messages={messages} />);
 
-    const msg0 = screen.getByTestId('copilot-message-0');
-    const msg1 = screen.getByTestId('copilot-message-1');
+    const msg0 = screen.getByTestId('coscout-message-0');
+    const msg1 = screen.getByTestId('coscout-message-1');
     expect(msg0.className).toContain('justify-end'); // user = right
     expect(msg1.className).toContain('justify-start'); // assistant = left
   });
 
   it('calls onSend on Enter key', () => {
     const onSend = vi.fn();
-    render(<CopilotPanelBase {...defaultProps} onSend={onSend} />);
+    render(<CoScoutPanelBase {...defaultProps} onSend={onSend} />);
 
-    const input = screen.getByTestId('copilot-input');
+    const input = screen.getByTestId('coscout-input');
     fireEvent.change(input, { target: { value: 'Question' } });
     fireEvent.keyDown(input, { key: 'Enter' });
 
@@ -76,9 +76,9 @@ describe('CopilotPanelBase', () => {
 
   it('does not send on Shift+Enter (newline)', () => {
     const onSend = vi.fn();
-    render(<CopilotPanelBase {...defaultProps} onSend={onSend} />);
+    render(<CoScoutPanelBase {...defaultProps} onSend={onSend} />);
 
-    const input = screen.getByTestId('copilot-input');
+    const input = screen.getByTestId('coscout-input');
     fireEvent.change(input, { target: { value: 'Text' } });
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
 
@@ -87,21 +87,21 @@ describe('CopilotPanelBase', () => {
 
   it('calls onClose on Escape key', () => {
     const onClose = vi.fn();
-    render(<CopilotPanelBase {...defaultProps} onClose={onClose} />);
+    render(<CoScoutPanelBase {...defaultProps} onClose={onClose} />);
 
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
   });
 
   it('shows loading indicator when isLoading', () => {
-    render(<CopilotPanelBase {...defaultProps} isLoading={true} />);
+    render(<CoScoutPanelBase {...defaultProps} isLoading={true} />);
     const dots = document.querySelectorAll('.animate-bounce');
     expect(dots.length).toBe(3);
   });
 
   it('shows error with retry button when retryable', () => {
     const onRetry = vi.fn();
-    const messages: CopilotMessage[] = [
+    const messages: CoScoutMessage[] = [
       { id: '1', role: 'user', content: 'Question', timestamp: 1 },
       {
         id: '2',
@@ -111,7 +111,7 @@ describe('CopilotPanelBase', () => {
         error: { type: 'network', message: 'Failed', retryable: true },
       },
     ];
-    render(<CopilotPanelBase {...defaultProps} messages={messages} onRetry={onRetry} />);
+    render(<CoScoutPanelBase {...defaultProps} messages={messages} onRetry={onRetry} />);
 
     expect(screen.getByText('Something went wrong.')).toBeDefined();
     const retryBtn = screen.getByText('Retry');
@@ -120,7 +120,7 @@ describe('CopilotPanelBase', () => {
   });
 
   it('shows rate-limit error without retry button', () => {
-    const messages: CopilotMessage[] = [
+    const messages: CoScoutMessage[] = [
       {
         id: '1',
         role: 'assistant',
@@ -129,14 +129,14 @@ describe('CopilotPanelBase', () => {
         error: { type: 'rate-limit', message: 'Too many', retryable: false },
       },
     ];
-    render(<CopilotPanelBase {...defaultProps} messages={messages} onRetry={vi.fn()} />);
+    render(<CoScoutPanelBase {...defaultProps} messages={messages} onRetry={vi.fn()} />);
 
     expect(screen.getByText('Please wait a moment before asking again.')).toBeDefined();
     expect(screen.queryByText('Retry')).toBeNull();
   });
 
   it('shows content-filter error text', () => {
-    const messages: CopilotMessage[] = [
+    const messages: CoScoutMessage[] = [
       {
         id: '1',
         role: 'assistant',
@@ -145,15 +145,15 @@ describe('CopilotPanelBase', () => {
         error: { type: 'content-filter', message: 'Filtered', retryable: false },
       },
     ];
-    render(<CopilotPanelBase {...defaultProps} messages={messages} />);
+    render(<CoScoutPanelBase {...defaultProps} messages={messages} />);
     expect(screen.getByText("I can't answer that question. Try rephrasing.")).toBeDefined();
   });
 
   it('does not send empty input', () => {
     const onSend = vi.fn();
-    render(<CopilotPanelBase {...defaultProps} onSend={onSend} />);
+    render(<CoScoutPanelBase {...defaultProps} onSend={onSend} />);
 
-    const input = screen.getByTestId('copilot-input');
+    const input = screen.getByTestId('coscout-input');
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onSend).not.toHaveBeenCalled();
   });
@@ -162,76 +162,76 @@ describe('CopilotPanelBase', () => {
     it('renders chips when questions provided and not loading', () => {
       const questions = ['What is Cpk?', 'Why out of control?', 'What next?'];
       render(
-        <CopilotPanelBase
+        <CoScoutPanelBase
           {...defaultProps}
           suggestedQuestions={questions}
           onSuggestedQuestionClick={vi.fn()}
         />
       );
 
-      expect(screen.getByTestId('copilot-suggested-questions')).toBeDefined();
-      expect(screen.getByTestId('copilot-suggestion-0')).toBeDefined();
-      expect(screen.getByTestId('copilot-suggestion-1')).toBeDefined();
-      expect(screen.getByTestId('copilot-suggestion-2')).toBeDefined();
+      expect(screen.getByTestId('coscout-suggested-questions')).toBeDefined();
+      expect(screen.getByTestId('coscout-suggestion-0')).toBeDefined();
+      expect(screen.getByTestId('coscout-suggestion-1')).toBeDefined();
+      expect(screen.getByTestId('coscout-suggestion-2')).toBeDefined();
     });
 
     it('clicking a chip calls onSuggestedQuestionClick', () => {
       const onClick = vi.fn();
       render(
-        <CopilotPanelBase
+        <CoScoutPanelBase
           {...defaultProps}
           suggestedQuestions={['What is Cpk?']}
           onSuggestedQuestionClick={onClick}
         />
       );
 
-      fireEvent.click(screen.getByTestId('copilot-suggestion-0'));
+      fireEvent.click(screen.getByTestId('coscout-suggestion-0'));
       expect(onClick).toHaveBeenCalledWith('What is Cpk?');
     });
 
     it('hides chips when no questions', () => {
-      render(<CopilotPanelBase {...defaultProps} suggestedQuestions={[]} />);
-      expect(screen.queryByTestId('copilot-suggested-questions')).toBeNull();
+      render(<CoScoutPanelBase {...defaultProps} suggestedQuestions={[]} />);
+      expect(screen.queryByTestId('coscout-suggested-questions')).toBeNull();
     });
 
     it('hides chips when loading', () => {
       render(
-        <CopilotPanelBase
+        <CoScoutPanelBase
           {...defaultProps}
           isLoading={true}
           suggestedQuestions={['Q1']}
           onSuggestedQuestionClick={vi.fn()}
         />
       );
-      expect(screen.queryByTestId('copilot-suggested-questions')).toBeNull();
+      expect(screen.queryByTestId('coscout-suggested-questions')).toBeNull();
     });
   });
 
   describe('overflow menu', () => {
-    const messagesWithContent: CopilotMessage[] = [
+    const messagesWithContent: CoScoutMessage[] = [
       { id: '1', role: 'assistant', content: 'Hello', timestamp: 1 },
     ];
 
     it('shows overflow menu button when messages exist', () => {
       render(
-        <CopilotPanelBase
+        <CoScoutPanelBase
           {...defaultProps}
           messages={messagesWithContent}
           onClear={vi.fn()}
           onCopyLastResponse={vi.fn()}
         />
       );
-      expect(screen.getByTestId('copilot-overflow-menu')).toBeDefined();
+      expect(screen.getByTestId('coscout-overflow-menu')).toBeDefined();
     });
 
     it('does not show overflow when no messages', () => {
-      render(<CopilotPanelBase {...defaultProps} onClear={vi.fn()} onCopyLastResponse={vi.fn()} />);
-      expect(screen.queryByTestId('copilot-overflow-menu')).toBeNull();
+      render(<CoScoutPanelBase {...defaultProps} onClear={vi.fn()} onCopyLastResponse={vi.fn()} />);
+      expect(screen.queryByTestId('coscout-overflow-menu')).toBeNull();
     });
 
     it('opens/closes dropdown on click', () => {
       render(
-        <CopilotPanelBase
+        <CoScoutPanelBase
           {...defaultProps}
           messages={messagesWithContent}
           onClear={vi.fn()}
@@ -239,9 +239,9 @@ describe('CopilotPanelBase', () => {
         />
       );
 
-      expect(screen.queryByTestId('copilot-menu-clear')).toBeNull();
-      fireEvent.click(screen.getByTestId('copilot-overflow-menu'));
-      expect(screen.getByTestId('copilot-menu-clear')).toBeDefined();
+      expect(screen.queryByTestId('coscout-menu-clear')).toBeNull();
+      fireEvent.click(screen.getByTestId('coscout-overflow-menu'));
+      expect(screen.getByTestId('coscout-menu-clear')).toBeDefined();
     });
 
     it('clear with confirm calls onClear', () => {
@@ -249,7 +249,7 @@ describe('CopilotPanelBase', () => {
       vi.spyOn(window, 'confirm').mockReturnValue(true);
 
       render(
-        <CopilotPanelBase
+        <CoScoutPanelBase
           {...defaultProps}
           messages={messagesWithContent}
           onClear={onClear}
@@ -257,8 +257,8 @@ describe('CopilotPanelBase', () => {
         />
       );
 
-      fireEvent.click(screen.getByTestId('copilot-overflow-menu'));
-      fireEvent.click(screen.getByTestId('copilot-menu-clear'));
+      fireEvent.click(screen.getByTestId('coscout-overflow-menu'));
+      fireEvent.click(screen.getByTestId('coscout-menu-clear'));
       expect(window.confirm).toHaveBeenCalledWith('Clear conversation?');
       expect(onClear).toHaveBeenCalled();
     });
@@ -268,7 +268,7 @@ describe('CopilotPanelBase', () => {
       vi.spyOn(window, 'confirm').mockReturnValue(false);
 
       render(
-        <CopilotPanelBase
+        <CoScoutPanelBase
           {...defaultProps}
           messages={messagesWithContent}
           onClear={onClear}
@@ -276,8 +276,8 @@ describe('CopilotPanelBase', () => {
         />
       );
 
-      fireEvent.click(screen.getByTestId('copilot-overflow-menu'));
-      fireEvent.click(screen.getByTestId('copilot-menu-clear'));
+      fireEvent.click(screen.getByTestId('coscout-overflow-menu'));
+      fireEvent.click(screen.getByTestId('coscout-menu-clear'));
       expect(onClear).not.toHaveBeenCalled();
     });
 
@@ -285,7 +285,7 @@ describe('CopilotPanelBase', () => {
       const onCopy = vi.fn();
 
       render(
-        <CopilotPanelBase
+        <CoScoutPanelBase
           {...defaultProps}
           messages={messagesWithContent}
           onClear={vi.fn()}
@@ -293,34 +293,34 @@ describe('CopilotPanelBase', () => {
         />
       );
 
-      fireEvent.click(screen.getByTestId('copilot-overflow-menu'));
-      fireEvent.click(screen.getByTestId('copilot-menu-copy'));
+      fireEvent.click(screen.getByTestId('coscout-overflow-menu'));
+      fireEvent.click(screen.getByTestId('coscout-menu-copy'));
       expect(onCopy).toHaveBeenCalled();
     });
   });
 
   describe('streaming', () => {
     it('shows stop button when streaming', () => {
-      render(<CopilotPanelBase {...defaultProps} isStreaming={true} onStopStreaming={vi.fn()} />);
-      expect(screen.getByTestId('copilot-stop-button')).toBeDefined();
+      render(<CoScoutPanelBase {...defaultProps} isStreaming={true} onStopStreaming={vi.fn()} />);
+      expect(screen.getByTestId('coscout-stop-button')).toBeDefined();
     });
 
     it('shows send button when not streaming', () => {
-      render(<CopilotPanelBase {...defaultProps} isStreaming={false} />);
-      expect(screen.queryByTestId('copilot-stop-button')).toBeNull();
+      render(<CoScoutPanelBase {...defaultProps} isStreaming={false} />);
+      expect(screen.queryByTestId('coscout-stop-button')).toBeNull();
       expect(screen.getByLabelText('Send message')).toBeDefined();
     });
 
     it('calls onStopStreaming when stop button clicked', () => {
       const onStop = vi.fn();
-      render(<CopilotPanelBase {...defaultProps} isStreaming={true} onStopStreaming={onStop} />);
-      fireEvent.click(screen.getByTestId('copilot-stop-button'));
+      render(<CoScoutPanelBase {...defaultProps} isStreaming={true} onStopStreaming={onStop} />);
+      fireEvent.click(screen.getByTestId('coscout-stop-button'));
       expect(onStop).toHaveBeenCalled();
     });
 
     it('disables textarea during streaming', () => {
-      render(<CopilotPanelBase {...defaultProps} isStreaming={true} onStopStreaming={vi.fn()} />);
-      const input = screen.getByTestId('copilot-input') as HTMLTextAreaElement;
+      render(<CoScoutPanelBase {...defaultProps} isStreaming={true} onStopStreaming={vi.fn()} />);
+      const input = screen.getByTestId('coscout-input') as HTMLTextAreaElement;
       expect(input.disabled).toBe(true);
     });
   });

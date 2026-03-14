@@ -117,7 +117,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 | ----------------------------- | :------------: | :--------: | :--------: | ---------------------------------------------------------------------- |
 | **NarrativeBar**              |    Optional    |  Optional  |     -      | Plain-language analysis summary at dashboard bottom                    |
 | **ChartInsightChip**          |    Optional    |  Optional  |     -      | Per-chart contextual suggestions                                       |
-| **CopilotPanel**              |    Optional    |  Optional  |     -      | Conversational AI assistant (slide-out panel)                          |
+| **CoScoutPanel**              |    Optional    |  Optional  |     -      | Conversational AI assistant (slide-out panel)                          |
 | **Azure AI Search**           |       -        |  Optional  |     -      | Knowledge base from findings + SharePoint docs (Team plan only)        |
 | **Process description field** |    Optional    |  Optional  |     -      | Free-text process context for AI grounding                             |
 | **AI visibility toggle**      |    Optional    |  Optional  |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists |

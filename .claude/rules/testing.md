@@ -73,9 +73,9 @@ Key `data-testid` attributes used in Playwright E2E tests:
 | NarrativeBar     | `[data-testid="narrative-bar"]`             |
 | Narrative shimmer| `[data-testid="narrative-shimmer"]`         |
 | Ask button       | `[data-testid="narrative-ask-button"]`      |
-| CopilotPanel     | `[data-testid="copilot-panel"]`             |
-| Copilot input    | `[data-testid="copilot-input"]`             |
-| Copilot message  | `[data-testid^="copilot-message-"]`         |
+| CoScoutPanel     | `[data-testid="coscout-panel"]`             |
+| CoScout input    | `[data-testid="coscout-input"]`             |
+| CoScout message  | `[data-testid^="coscout-message-"]`         |
 | ChartInsightChip | `[data-testid^="insight-chip-"]`            |
 
 ## Feature Verification Protocols
@@ -93,4 +93,4 @@ Executable via Antigravity agents or `claude --chrome`. Full protocol details in
 9. Theme Switching (Azure) Verification
 10. AI Graceful Degradation Verification
 11. NarrativeBar Lifecycle Verification
-12. CopilotPanel Conversation Verification
+12. CoScoutPanel Conversation Verification

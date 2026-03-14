@@ -6,7 +6,7 @@
  * with variable context (stats, filters, findings) in subsequent messages.
  */
 
-import type { AIContext, CopilotMessage, FactorRole } from './types';
+import type { AIContext, CoScoutMessage, FactorRole } from './types';
 import type { InsightChartType } from './chartInsights';
 
 /**
@@ -197,12 +197,12 @@ export function buildChartInsightPrompt(context: AIContext, data: ChartInsightDa
 }
 
 /**
- * Build the system prompt for conversational copilot.
+ * Build the system prompt for conversational CoScout assistant.
  * Includes glossary grounding as static prefix for prompt caching.
  */
-export function buildCopilotSystemPrompt(glossaryFragment?: string): string {
+export function buildCoScoutSystemPrompt(glossaryFragment?: string): string {
   const parts = [
-    `You are a quality engineering copilot for VariScout, a variation analysis tool.
+    `You are a quality engineering assistant called CoScout for VariScout, a variation analysis tool.
 You help quality professionals understand their analysis results by answering questions clearly and concisely.
 Use the provided context (statistics, filters, violations, findings) to ground every answer.
 Keep responses focused and practical — 2-4 sentences unless the user asks for more detail.
@@ -217,19 +217,19 @@ Use standard SPC/quality terminology (Cpk, control limits, variation, etc.) when
   return parts.join('\n\n');
 }
 
-/** Maximum number of history messages to include in copilot API calls */
-const COPILOT_HISTORY_LIMIT = 10;
+/** Maximum number of history messages to include in CoScout API calls */
+const COSCOUT_HISTORY_LIMIT = 10;
 
 /**
- * Build the full messages array for a copilot API call.
+ * Build the full messages array for a CoScout API call.
  * Returns [system (with glossary), context summary, ...recent history, user message].
  *
  * Glossary is placed in the system prompt (static prefix) for Azure AI Foundry
  * automatic prompt caching. Variable context follows in a separate system message.
  */
-export function buildCopilotMessages(
+export function buildCoScoutMessages(
   context: AIContext,
-  history: CopilotMessage[],
+  history: CoScoutMessage[],
   userMessage: string
 ): Array<{ role: 'user' | 'assistant' | 'system'; content: string }> {
   const messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
@@ -237,7 +237,7 @@ export function buildCopilotMessages(
   // System prompt with glossary (static cacheable prefix)
   messages.push({
     role: 'system',
-    content: buildCopilotSystemPrompt(context.glossaryFragment),
+    content: buildCoScoutSystemPrompt(context.glossaryFragment),
   });
 
   // Context summary — variable per analysis state
@@ -248,7 +248,7 @@ export function buildCopilotMessages(
   messages.push({ role: 'system', content: contextSummary });
 
   // Recent history (last N messages to stay within token budget)
-  const recentHistory = history.slice(-COPILOT_HISTORY_LIMIT);
+  const recentHistory = history.slice(-COSCOUT_HISTORY_LIMIT);
   for (const msg of recentHistory) {
     if (!msg.error) {
       messages.push({ role: msg.role as 'user' | 'assistant', content: msg.content });

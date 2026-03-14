@@ -10,9 +10,9 @@
 
 ## Context
 
-Industry trends show consensus around hybrid SPC + AI (SPC for reliability, AI for foresight). 53% of manufacturers prefer a copilot model over full automation. Competitors (Minitab, SPC copilots in manufacturing) are adding AI assistants.
+Industry trends show consensus around hybrid SPC + AI (SPC for reliability, AI for foresight). 53% of manufacturers prefer an AI assistant model over full automation. Competitors (Minitab, SPC AI assistants in manufacturing) are adding AI features.
 
-VariScout's deliberate "no AI, no API keys" positioning protects the PWA as a training tool. However, Azure App customers working on improvement projects would benefit from AI-enhanced analysis — natural language stat explanations, investigation suggestions, and document-grounded copilot conversation.
+VariScout's deliberate "no AI, no API keys" positioning protects the PWA as a training tool. However, Azure App customers working on improvement projects would benefit from AI-enhanced analysis — natural language stat explanations, investigation suggestions, and document-grounded CoScout conversation.
 
 **Key lesson:** EDAScout rolled back its AI chatbot (v6→v7) due to user friction. VariScout avoids this pattern by making AI always optional, dismissable, and augmentation-only.
 
@@ -43,7 +43,7 @@ AI features are user-controllable via a "Show AI assistance" toggle in Settings:
 | State                            | Behavior                                              |
 | -------------------------------- | ----------------------------------------------------- |
 | No AI endpoint configured        | AI UI never shown                                     |
-| Endpoint configured + toggle ON  | NarrativeBar, ChartInsightChips, CopilotPanel visible |
+| Endpoint configured + toggle ON  | NarrativeBar, ChartInsightChips, CoScoutPanel visible |
 | Endpoint configured + toggle OFF | All AI UI hidden by user choice                       |
 
 The toggle persists per-user in AnalysisState/localStorage. Default: ON when endpoint available.
@@ -54,7 +54,7 @@ The toggle persists per-user in AnalysisState/localStorage. Default: ON when end
 
 2. **Chart Insight Chips** — Small badges below chart cards. Per-chart contextual suggestions (e.g., "→ Drill Machine A (47%)"). Builds on existing deterministic suggestions (`getNextDrillFactor()`, `shouldHighlightDrill()`).
 
-3. **Copilot Panel** — Resizable slide-out panel (same pattern as FindingsPanel). Context-aware conversation. Azure AI Search document retrieval (Phase 3). Report generation.
+3. **CoScout Panel** — Resizable slide-out panel (same pattern as FindingsPanel). Context-aware conversation. Azure AI Search document retrieval (Phase 3). Report generation.
 
 ### AI vs. Deterministic Suggestions
 
@@ -67,7 +67,7 @@ Azure AI Foundry hosts both OpenAI and Anthropic models with a unified API. Cust
 **Dual-model routing:**
 
 - `tier: 'fast'` → cheap model (narrative bar, chart chips) — e.g., GPT-4o-mini
-- `tier: 'reasoning'` → smart model (copilot, reports) — e.g., GPT-4o or Claude Sonnet
+- `tier: 'reasoning'` → smart model (CoScout, reports) — e.g., GPT-4o or Claude Sonnet
 
 ### Authentication
 
@@ -103,10 +103,10 @@ Conditional AI resources in `infra/mainTemplate.json`:
 | Prompt templates    | `@variscout/core`         | String templates, no React                                                                                 |
 | `aiService.ts`      | `apps/azure/src/services` | Network calls + localStorage caching. Auth via `getAuthHeaders()` (EasyAuth). Retry + exponential backoff. |
 | `useAIContext` hook | `@variscout/hooks`        | React hook wrapping buildAIContext                                                                         |
-| `useAICopilot` hook | `@variscout/hooks`        | Chat state, history, streaming                                                                             |
+| `useAICoScout` hook | `@variscout/hooks`        | Chat state, history, streaming                                                                             |
 | `NarrativeBar`      | `@variscout/ui`           | Shared UI component                                                                                        |
 | `ChartInsightChip`  | `@variscout/ui`           | Inline chart badge                                                                                         |
-| `CopilotPanel`      | `@variscout/ui`           | Slide-out chat panel                                                                                       |
+| `CoScoutPanel`      | `@variscout/ui`           | Slide-out chat panel                                                                                       |
 
 ### Context Enrichment
 
@@ -123,7 +123,7 @@ See [AI Readiness Review](../05-technical/architecture/ai-readiness-review.md) f
 
 - **Phase 1:** AI service layer + NarrativeBar + process description field + factor role inference + ARM template
 - **Phase 2:** ChartInsightChip + AI-enhanced Nelson Rule explanations + drill suggestions + optional process wizard
-- **Phase 3:** CopilotPanel + Azure AI Search (with Foundry IQ orchestration) + SharePoint indexing + report generation + AI-extracted context from documents
+- **Phase 3:** CoScoutPanel + Azure AI Search (with Foundry IQ orchestration) + SharePoint indexing + report generation + AI-extracted context from documents
 
 ### Cost Controls
 
@@ -175,7 +175,7 @@ Phase 1-3 client-side AI delivered across 5 commits (86f3ccb → 4e5382c, March 
 - **Phase 1:** AI service layer (`aiService.ts`), `NarrativeBar`, process description field, factor role inference (`inferFactorRoles`), glossary expansion (25→28 terms), `buildAIContext()`
 - **Phase 2:** `ChartInsightChip` with 4 deterministic insight builders + optional AI enhancement, per-chart chips in PWA (deterministic only) + Azure (AI-enhanced)
 - **Phase 2.5:** Factor role auto-inference from column names, `ProcessContext` persistence
-- **Phase 3:** `CopilotPanelBase` with streaming, suggested questions, conversation history, overflow menu
+- **Phase 3:** `CoScoutPanelBase` with streaming, suggested questions, conversation history, overflow menu
 
 **Phase 3 knowledge layer deferred:** Azure AI Search, Foundry IQ agentic retrieval, SharePoint connector, findings indexer Azure Function, and ARM template AI resources are documented but not yet implemented. Pending Foundry IQ GA and SharePoint connector stability.
 

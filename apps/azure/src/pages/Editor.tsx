@@ -11,8 +11,8 @@ import FindingsPanel from '../components/FindingsPanel';
 import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
-import { ColumnMapping, InvestigationPrompt, CopilotPanelBase } from '@variscout/ui';
-import { useControlViolations, useAIContext, useNarration, useAICopilot } from '@variscout/hooks';
+import { ColumnMapping, InvestigationPrompt, CoScoutPanelBase } from '@variscout/ui';
+import { useControlViolations, useAIContext, useNarration, useAICoScout } from '@variscout/hooks';
 import {
   isTeamPlan,
   buildSuggestedQuestions,
@@ -22,8 +22,8 @@ import {
 import {
   fetchNarration as fetchNarrationFromAI,
   fetchChartInsight as fetchChartInsightFromAI,
-  fetchCopilotResponse,
-  fetchCopilotStreamingResponse,
+  fetchCoScoutResponse,
+  fetchCoScoutStreamingResponse,
   isAIAvailable,
 } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
@@ -51,8 +51,8 @@ import { buildChartSharePayload } from '../services/shareContent';
 import { buildSubPageId } from '../services/deepLinks';
 import { setBeforeUnloadHandler } from '../teams';
 
-const COPILOT_RESIZE_CONFIG = {
-  storageKey: 'variscout-azure-copilot-panel-width',
+const COSCOUT_RESIZE_CONFIG = {
+  storageKey: 'variscout-azure-coscout-panel-width',
   min: 320,
   max: 600,
   defaultWidth: 384,
@@ -362,12 +362,12 @@ export const Editor: React.FC<EditorProps> = ({
     fetchNarration: aiEnabled && isAIAvailable() ? fetchNarrationFromAI : undefined,
   });
 
-  // AI copilot conversation
-  const copilot = useAICopilot({
+  // AI CoScout conversation
+  const coscout = useAICoScout({
     context: aiContext.context,
-    fetchResponse: aiEnabled && isAIAvailable() ? fetchCopilotResponse : undefined,
+    fetchResponse: aiEnabled && isAIAvailable() ? fetchCoScoutResponse : undefined,
     fetchStreamingResponse:
-      aiEnabled && isAIAvailable() ? fetchCopilotStreamingResponse : undefined,
+      aiEnabled && isAIAvailable() ? fetchCoScoutStreamingResponse : undefined,
     initialNarrative: narration.narrative,
   });
 
@@ -377,7 +377,7 @@ export const Editor: React.FC<EditorProps> = ({
   );
 
   const handleNarrativeAsk = useCallback(() => {
-    panels.setIsCopilotOpen(true);
+    panels.setIsCoScoutOpen(true);
   }, [panels]);
 
   // Pass factorRoles from ColumnMapping into DataContext
@@ -776,53 +776,53 @@ export const Editor: React.FC<EditorProps> = ({
                 onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
               />
             )}
-            {/* CopilotPanel: full-screen overlay on phone, inline sidebar on desktop */}
-            {isPhone && panels.isCopilotOpen ? (
+            {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}
+            {isPhone && panels.isCoScoutOpen ? (
               <div className="fixed inset-0 z-40 bg-surface flex flex-col animate-slide-up safe-area-bottom">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
-                  <h2 className="text-sm font-semibold text-content">Copilot</h2>
+                  <h2 className="text-sm font-semibold text-content">CoScout</h2>
                   <button
-                    onClick={() => panels.setIsCopilotOpen(false)}
+                    onClick={() => panels.setIsCoScoutOpen(false)}
                     className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
                     style={{ minWidth: 44, minHeight: 44 }}
-                    aria-label="Close copilot"
+                    aria-label="Close CoScout"
                   >
                     <X size={20} />
                   </button>
                 </div>
-                <CopilotPanelBase
+                <CoScoutPanelBase
                   isOpen={true}
-                  onClose={() => panels.setIsCopilotOpen(false)}
-                  messages={copilot.messages}
-                  onSend={copilot.send}
-                  isLoading={copilot.isLoading}
-                  isStreaming={copilot.isStreaming}
-                  onStopStreaming={copilot.stopStreaming}
-                  error={copilot.error}
-                  onRetry={copilot.retry}
-                  onClear={copilot.clear}
-                  onCopyLastResponse={copilot.copyLastResponse}
-                  resizeConfig={COPILOT_RESIZE_CONFIG}
+                  onClose={() => panels.setIsCoScoutOpen(false)}
+                  messages={coscout.messages}
+                  onSend={coscout.send}
+                  isLoading={coscout.isLoading}
+                  isStreaming={coscout.isStreaming}
+                  onStopStreaming={coscout.stopStreaming}
+                  error={coscout.error}
+                  onRetry={coscout.retry}
+                  onClear={coscout.clear}
+                  onCopyLastResponse={coscout.copyLastResponse}
+                  resizeConfig={COSCOUT_RESIZE_CONFIG}
                   suggestedQuestions={suggestedQuestions}
-                  onSuggestedQuestionClick={copilot.send}
+                  onSuggestedQuestionClick={coscout.send}
                 />
               </div>
             ) : (
-              <CopilotPanelBase
-                isOpen={panels.isCopilotOpen}
-                onClose={() => panels.setIsCopilotOpen(false)}
-                messages={copilot.messages}
-                onSend={copilot.send}
-                isLoading={copilot.isLoading}
-                isStreaming={copilot.isStreaming}
-                onStopStreaming={copilot.stopStreaming}
-                error={copilot.error}
-                onRetry={copilot.retry}
-                onClear={copilot.clear}
-                onCopyLastResponse={copilot.copyLastResponse}
-                resizeConfig={COPILOT_RESIZE_CONFIG}
+              <CoScoutPanelBase
+                isOpen={panels.isCoScoutOpen}
+                onClose={() => panels.setIsCoScoutOpen(false)}
+                messages={coscout.messages}
+                onSend={coscout.send}
+                isLoading={coscout.isLoading}
+                isStreaming={coscout.isStreaming}
+                onStopStreaming={coscout.stopStreaming}
+                error={coscout.error}
+                onRetry={coscout.retry}
+                onClear={coscout.clear}
+                onCopyLastResponse={coscout.copyLastResponse}
+                resizeConfig={COSCOUT_RESIZE_CONFIG}
                 suggestedQuestions={suggestedQuestions}
-                onSuggestedQuestionClick={copilot.send}
+                onSuggestedQuestionClick={coscout.send}
               />
             )}
             {/* DataPanel: hidden on phone (use DataTableModal instead) */}

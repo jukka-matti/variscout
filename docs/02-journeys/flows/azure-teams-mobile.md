@@ -95,7 +95,7 @@ The ⋮ overflow menu contains:
 - Presentation
 - Findings (with count badge)
 - Data Table
-- Ask AI (if AI enabled — opens CopilotPanel)
+- Ask AI (if AI enabled — opens CoScoutPanel)
 
 ### Desktop Header
 
@@ -124,7 +124,7 @@ When AI is configured and the user toggle is ON, three components adapt to the p
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **NarrativeBar**     | Fixed at bottom of screen, above safe area inset. 48px collapsed height (tap to expand up to 96px / 3 lines). Single line with text truncation. "Ask →" button at right edge.              |
 | **ChartInsightChip** | Displayed below the current carousel card. One chip per chart view. Dismissable.                                                                                                           |
-| **CopilotPanel**     | Opens as **full-screen overlay** (same pattern as FindingsPanel on phone). Close button with 44px touch target. Triggered from NarrativeBar "Ask →" button or overflow menu "Ask AI" item. |
+| **CoScoutPanel**     | Opens as **full-screen overlay** (same pattern as FindingsPanel on phone). Close button with 44px touch target. Triggered from NarrativeBar "Ask →" button or overflow menu "Ask AI" item. |
 
 When AI is unavailable (no endpoint, toggle off, offline with no cache), all three components are hidden. The phone layout is identical to a non-AI deployment.
 

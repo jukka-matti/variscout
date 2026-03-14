@@ -9,8 +9,8 @@ export type {
   NarrationRequest,
   NarrationResponse,
   AIErrorType,
-  CopilotMessage,
-  CopilotError,
+  CoScoutMessage,
+  CoScoutError,
 } from './types';
 export { isFactorRole } from './types';
 
@@ -21,8 +21,8 @@ export {
   buildSummaryPrompt,
   buildChartInsightSystemPrompt,
   buildChartInsightPrompt,
-  buildCopilotSystemPrompt,
-  buildCopilotMessages,
+  buildCoScoutSystemPrompt,
+  buildCoScoutMessages,
 } from './promptTemplates';
 
 export type { InsightChartType, ChipType, DeterministicInsight } from './chartInsights';

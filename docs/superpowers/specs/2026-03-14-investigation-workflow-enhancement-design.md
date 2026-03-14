@@ -263,4 +263,4 @@ With these extensions, the AI knowledge base gains:
 - **Time-to-resolution** — "Findings about Fill Head 3 take average 5 days to resolve"
 - **Team workload** — "Kim has 3 open actions; Jan has completed 8 this month"
 
-This data feeds directly into the AI copilot's ability to suggest actions, estimate improvement potential, and generate investigation reports.
+This data feeds directly into the AI CoScout's ability to suggest actions, estimate improvement potential, and generate investigation reports.

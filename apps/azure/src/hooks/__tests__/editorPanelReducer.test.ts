@@ -18,7 +18,7 @@ describe('editorPanelReducer', () => {
         isDataPanelOpen: false,
         isDataTableOpen: false,
         isFindingsOpen: false,
-        isCopilotOpen: false,
+        isCoScoutOpen: false,
         isWhatIfOpen: false,
         isPresentationMode: false,
         highlightRowIndex: null,
@@ -192,81 +192,81 @@ describe('editorPanelReducer', () => {
     });
   });
 
-  describe('copilot panel', () => {
-    it('SET_COPILOT_OPEN opens copilot', () => {
+  describe('CoScout panel', () => {
+    it('SET_COSCOUT_OPEN opens CoScout', () => {
       const state = editorPanelReducer(initialPanelState, {
-        type: 'SET_COPILOT_OPEN',
+        type: 'SET_COSCOUT_OPEN',
         value: true,
       });
-      expect(state.isCopilotOpen).toBe(true);
+      expect(state.isCoScoutOpen).toBe(true);
     });
 
-    it('SET_COPILOT_OPEN closes copilot', () => {
+    it('SET_COSCOUT_OPEN closes CoScout', () => {
       const state = editorPanelReducer(
-        { ...initialPanelState, isCopilotOpen: true },
-        { type: 'SET_COPILOT_OPEN', value: false }
+        { ...initialPanelState, isCoScoutOpen: true },
+        { type: 'SET_COSCOUT_OPEN', value: false }
       );
-      expect(state.isCopilotOpen).toBe(false);
+      expect(state.isCoScoutOpen).toBe(false);
     });
 
-    it('SET_COPILOT_OPEN returns same reference when value unchanged', () => {
-      const before = { ...initialPanelState, isCopilotOpen: true };
-      const after = editorPanelReducer(before, { type: 'SET_COPILOT_OPEN', value: true });
+    it('SET_COSCOUT_OPEN returns same reference when value unchanged', () => {
+      const before = { ...initialPanelState, isCoScoutOpen: true };
+      const after = editorPanelReducer(before, { type: 'SET_COSCOUT_OPEN', value: true });
       expect(after).toBe(before);
     });
 
-    it('TOGGLE_COPILOT toggles copilot panel', () => {
-      const opened = editorPanelReducer(initialPanelState, { type: 'TOGGLE_COPILOT' });
-      expect(opened.isCopilotOpen).toBe(true);
+    it('TOGGLE_COSCOUT toggles CoScout panel', () => {
+      const opened = editorPanelReducer(initialPanelState, { type: 'TOGGLE_COSCOUT' });
+      expect(opened.isCoScoutOpen).toBe(true);
 
-      const closed = editorPanelReducer(opened, { type: 'TOGGLE_COPILOT' });
-      expect(closed.isCopilotOpen).toBe(false);
+      const closed = editorPanelReducer(opened, { type: 'TOGGLE_COSCOUT' });
+      expect(closed.isCoScoutOpen).toBe(false);
     });
   });
 
-  describe('copilot/findings mutual exclusivity', () => {
-    it('opening copilot closes findings', () => {
+  describe('CoScout/findings mutual exclusivity', () => {
+    it('opening CoScout closes findings', () => {
       const state = editorPanelReducer(
         { ...initialPanelState, isFindingsOpen: true },
-        { type: 'SET_COPILOT_OPEN', value: true }
+        { type: 'SET_COSCOUT_OPEN', value: true }
       );
-      expect(state.isCopilotOpen).toBe(true);
+      expect(state.isCoScoutOpen).toBe(true);
       expect(state.isFindingsOpen).toBe(false);
     });
 
-    it('opening findings closes copilot', () => {
+    it('opening findings closes CoScout', () => {
       const state = editorPanelReducer(
-        { ...initialPanelState, isCopilotOpen: true },
+        { ...initialPanelState, isCoScoutOpen: true },
         { type: 'SET_FINDINGS_OPEN', value: true }
       );
       expect(state.isFindingsOpen).toBe(true);
-      expect(state.isCopilotOpen).toBe(false);
+      expect(state.isCoScoutOpen).toBe(false);
     });
 
-    it('toggling copilot open closes findings', () => {
+    it('toggling CoScout open closes findings', () => {
       const state = editorPanelReducer(
         { ...initialPanelState, isFindingsOpen: true },
-        { type: 'TOGGLE_COPILOT' }
+        { type: 'TOGGLE_COSCOUT' }
       );
-      expect(state.isCopilotOpen).toBe(true);
+      expect(state.isCoScoutOpen).toBe(true);
       expect(state.isFindingsOpen).toBe(false);
     });
 
-    it('toggling findings open closes copilot', () => {
+    it('toggling findings open closes CoScout', () => {
       const state = editorPanelReducer(
-        { ...initialPanelState, isCopilotOpen: true },
+        { ...initialPanelState, isCoScoutOpen: true },
         { type: 'TOGGLE_FINDINGS' }
       );
       expect(state.isFindingsOpen).toBe(true);
-      expect(state.isCopilotOpen).toBe(false);
+      expect(state.isCoScoutOpen).toBe(false);
     });
 
-    it('closing copilot does not open findings', () => {
+    it('closing CoScout does not open findings', () => {
       const state = editorPanelReducer(
-        { ...initialPanelState, isCopilotOpen: true },
-        { type: 'SET_COPILOT_OPEN', value: false }
+        { ...initialPanelState, isCoScoutOpen: true },
+        { type: 'SET_COSCOUT_OPEN', value: false }
       );
-      expect(state.isCopilotOpen).toBe(false);
+      expect(state.isCoScoutOpen).toBe(false);
       expect(state.isFindingsOpen).toBe(false);
     });
   });

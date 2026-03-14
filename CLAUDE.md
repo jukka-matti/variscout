@@ -287,9 +287,9 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/core/src/utils/exifStrip.ts`                           | Byte-level EXIF/GPS metadata stripping for photo evidence                                                     |
 | `apps/azure/src/teams/teamsMedia.ts`                             | Teams SDK camera wrapper (media.selectMedia)                                                                  |
 | `packages/core/src/ai/`                                          | AI module: buildAIContext, prompt templates, chart insight builders, suggested questions                      |
-| `apps/azure/src/services/aiService.ts`                           | AI Foundry integration: fetchNarration, fetchChartInsight, fetchCopilotResponse/Streaming, localStorage cache |
+| `apps/azure/src/services/aiService.ts`                           | AI Foundry integration: fetchNarration, fetchChartInsight, fetchCoScoutResponse/Streaming, localStorage cache |
 | `packages/hooks/src/useNarration.ts`                             | NarrativeBar state (loading, cached, error, refresh). Wraps fetchNarration                                    |
 | `packages/hooks/src/useChartInsights.ts`                         | Per-chart deterministic + AI-enhanced insight orchestration with debounced AI fallback                        |
-| `packages/hooks/src/useAICopilot.ts`                             | Copilot conversation state, streaming, abort control                                                          |
+| `packages/hooks/src/useAICoScout.ts`                             | CoScout conversation state, streaming, abort control                                                          |
 
 > Use `Read` tool to examine these files when needed.

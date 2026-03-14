@@ -100,17 +100,17 @@ export type AIErrorType =
   | 'content-filter'
   | 'unknown';
 
-/** Copilot conversation message */
-export interface CopilotMessage {
+/** CoScout conversation message */
+export interface CoScoutMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
-  error?: CopilotError;
+  error?: CoScoutError;
 }
 
-/** Error attached to a copilot message */
-export interface CopilotError {
+/** Error attached to a CoScout message */
+export interface CoScoutError {
   type: AIErrorType;
   message: string;
   retryable: boolean;

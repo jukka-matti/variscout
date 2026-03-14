@@ -50,7 +50,7 @@ export async function loadPerformanceSample(page: Page) {
  * Mock the AI endpoint with a fixture response.
  * Intercepts requests to the AI endpoint and returns fixture data.
  *
- * @param fixtureName - Name of fixture file (without extension) in e2e/fixtures/ai/copilot/
+ * @param fixtureName - Name of fixture file (without extension) in e2e/fixtures/ai/coscout/
  * @param options - Optional: status code override, streaming mode
  */
 export async function mockAIEndpoint(
@@ -58,7 +58,7 @@ export async function mockAIEndpoint(
   fixtureName: string,
   options?: { status?: number; streaming?: boolean }
 ): Promise<void> {
-  const fixturesDir = path.join(__dirname, 'fixtures', 'ai', 'copilot');
+  const fixturesDir = path.join(__dirname, 'fixtures', 'ai', 'coscout');
 
   await page.route('**/openai/**', async route => {
     const status = options?.status ?? 200;

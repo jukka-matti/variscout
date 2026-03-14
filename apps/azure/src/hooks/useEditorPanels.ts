@@ -9,7 +9,7 @@ export interface EditorPanelState {
   isDataPanelOpen: boolean;
   isDataTableOpen: boolean;
   isFindingsOpen: boolean;
-  isCopilotOpen: boolean;
+  isCoScoutOpen: boolean;
   isWhatIfOpen: boolean;
   isPresentationMode: boolean;
   highlightRowIndex: number | null;
@@ -24,8 +24,8 @@ export type EditorPanelAction =
   | { type: 'CLOSE_DATA_TABLE' }
   | { type: 'SET_FINDINGS_OPEN'; value: boolean }
   | { type: 'TOGGLE_FINDINGS' }
-  | { type: 'SET_COPILOT_OPEN'; value: boolean }
-  | { type: 'TOGGLE_COPILOT' }
+  | { type: 'SET_COSCOUT_OPEN'; value: boolean }
+  | { type: 'TOGGLE_COSCOUT' }
   | { type: 'SET_WHAT_IF_OPEN'; value: boolean }
   | { type: 'OPEN_PRESENTATION' }
   | { type: 'CLOSE_PRESENTATION' }
@@ -55,28 +55,28 @@ export function editorPanelReducer(
       return {
         ...state,
         isFindingsOpen: action.value,
-        ...(action.value ? { isCopilotOpen: false } : {}),
+        ...(action.value ? { isCoScoutOpen: false } : {}),
       };
     case 'TOGGLE_FINDINGS': {
       const opening = !state.isFindingsOpen;
       return {
         ...state,
         isFindingsOpen: opening,
-        ...(opening ? { isCopilotOpen: false } : {}),
+        ...(opening ? { isCoScoutOpen: false } : {}),
       };
     }
-    case 'SET_COPILOT_OPEN':
-      if (state.isCopilotOpen === action.value) return state;
+    case 'SET_COSCOUT_OPEN':
+      if (state.isCoScoutOpen === action.value) return state;
       return {
         ...state,
-        isCopilotOpen: action.value,
+        isCoScoutOpen: action.value,
         ...(action.value ? { isFindingsOpen: false } : {}),
       };
-    case 'TOGGLE_COPILOT': {
-      const opening = !state.isCopilotOpen;
+    case 'TOGGLE_COSCOUT': {
+      const opening = !state.isCoScoutOpen;
       return {
         ...state,
-        isCopilotOpen: opening,
+        isCoScoutOpen: opening,
         ...(opening ? { isFindingsOpen: false } : {}),
       };
     }
@@ -107,7 +107,7 @@ export const initialPanelState: EditorPanelState = {
   isDataPanelOpen: false,
   isDataTableOpen: false,
   isFindingsOpen: false,
-  isCopilotOpen: false,
+  isCoScoutOpen: false,
   isWhatIfOpen: false,
   isPresentationMode: false,
   highlightRowIndex: null,
@@ -132,8 +132,8 @@ export interface UseEditorPanelsReturn {
   setIsDataTableOpen: BoolSetter;
   isFindingsOpen: boolean;
   setIsFindingsOpen: BoolSetter;
-  isCopilotOpen: boolean;
-  setIsCopilotOpen: BoolSetter;
+  isCoScoutOpen: boolean;
+  setIsCoScoutOpen: BoolSetter;
   isWhatIfOpen: boolean;
   setIsWhatIfOpen: BoolSetter;
   isPresentationMode: boolean;
@@ -212,11 +212,11 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     }
   }, []);
 
-  const setIsCopilotOpen: BoolSetter = useCallback(value => {
+  const setIsCoScoutOpen: BoolSetter = useCallback(value => {
     if (typeof value === 'function') {
-      dispatch({ type: 'TOGGLE_COPILOT' });
+      dispatch({ type: 'TOGGLE_COSCOUT' });
     } else {
-      dispatch({ type: 'SET_COPILOT_OPEN', value });
+      dispatch({ type: 'SET_COSCOUT_OPEN', value });
     }
   }, []);
 
@@ -261,8 +261,8 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     setIsDataTableOpen,
     isFindingsOpen: state.isFindingsOpen,
     setIsFindingsOpen,
-    isCopilotOpen: state.isCopilotOpen,
-    setIsCopilotOpen,
+    isCoScoutOpen: state.isCoScoutOpen,
+    setIsCoScoutOpen,
     isWhatIfOpen: state.isWhatIfOpen,
     setIsWhatIfOpen,
     isPresentationMode: state.isPresentationMode,

@@ -2,14 +2,14 @@ import { test, expect } from '@playwright/test';
 import { loadSampleInEditor, mockAIEndpoint } from './helpers';
 
 /**
- * E2E Test: CopilotPanel — Conversational AI
+ * E2E Test: CoScoutPanel — Conversational AI
  *
  * Covers the 11-point checklist from testing.md:769-783 plus
  * suggested question chips and overflow menu.
  * Uses recorded fixtures — no live AI endpoint required.
  */
 
-test.describe('CopilotPanel', () => {
+test.describe('CoScoutPanel', () => {
   test.beforeEach(async ({ page }) => {
     // Set VITE_AI_ENDPOINT so isAIAvailable() returns true
     await page.addInitScript(() => {
@@ -24,14 +24,14 @@ test.describe('CopilotPanel', () => {
 
     // Wait for NarrativeBar to appear (it may take time for narration)
     const narrativeBar = page.locator('[data-testid="narrative-bar"]');
-    // NarrativeBar may or may not show if AI endpoint is mocked — check copilot button directly
+    // NarrativeBar may or may not show if AI endpoint is mocked — check CoScout button directly
     const askButton = page.locator('[data-testid="narrative-ask-button"]');
 
-    // If NarrativeBar is visible, use Ask button; otherwise open copilot via toolbar
+    // If NarrativeBar is visible, use Ask button; otherwise open CoScout via toolbar
     if (await narrativeBar.isVisible({ timeout: 3000 }).catch(() => false)) {
       if (await askButton.isVisible({ timeout: 1000 }).catch(() => false)) {
         await askButton.click();
-        await expect(page.locator('[data-testid="copilot-panel"]')).toBeVisible();
+        await expect(page.locator('[data-testid="coscout-panel"]')).toBeVisible();
       }
     }
   });
@@ -40,13 +40,13 @@ test.describe('CopilotPanel', () => {
     await mockAIEndpoint(page, 'basic-qa');
     await loadSampleInEditor(page);
 
-    // Open copilot via NarrativeBar ask button if available
+    // Open CoScout via NarrativeBar ask button if available
     const askButton = page.locator('[data-testid="narrative-ask-button"]');
     if (await askButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await askButton.click();
     }
 
-    const panel = page.locator('[data-testid="copilot-panel"]');
+    const panel = page.locator('[data-testid="coscout-panel"]');
     if (await panel.isVisible({ timeout: 2000 }).catch(() => false)) {
       const box = await panel.boundingBox();
       expect(box).toBeTruthy();
@@ -61,24 +61,24 @@ test.describe('CopilotPanel', () => {
     await mockAIEndpoint(page, 'basic-qa');
     await loadSampleInEditor(page);
 
-    // Open copilot
+    // Open CoScout
     const askButton = page.locator('[data-testid="narrative-ask-button"]');
     if (await askButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await askButton.click();
     }
 
-    const panel = page.locator('[data-testid="copilot-panel"]');
+    const panel = page.locator('[data-testid="coscout-panel"]');
     if (!(await panel.isVisible({ timeout: 2000 }).catch(() => false))) {
       test.skip();
       return;
     }
 
-    const input = page.locator('[data-testid="copilot-input"]');
+    const input = page.locator('[data-testid="coscout-input"]');
     await input.fill('What is Cpk?');
     await input.press('Enter');
 
     // User message should appear right-aligned
-    const userMsg = page.locator('[data-testid="copilot-message-0"]');
+    const userMsg = page.locator('[data-testid="coscout-message-0"]');
     await expect(userMsg).toBeVisible({ timeout: 5000 });
     await expect(userMsg).toContainText('What is Cpk?');
   });
@@ -92,18 +92,18 @@ test.describe('CopilotPanel', () => {
       await askButton.click();
     }
 
-    const panel = page.locator('[data-testid="copilot-panel"]');
+    const panel = page.locator('[data-testid="coscout-panel"]');
     if (!(await panel.isVisible({ timeout: 2000 }).catch(() => false))) {
       test.skip();
       return;
     }
 
-    const input = page.locator('[data-testid="copilot-input"]');
+    const input = page.locator('[data-testid="coscout-input"]');
     await input.fill('Tell me about this process');
     await input.press('Enter');
 
     // Wait for AI response
-    const aiMsg = page.locator('[data-testid="copilot-message-1"]');
+    const aiMsg = page.locator('[data-testid="coscout-message-1"]');
     await expect(aiMsg).toBeVisible({ timeout: 10000 });
     // AI messages are left-aligned (justify-start)
     await expect(aiMsg).toHaveClass(/justify-start/);
@@ -117,7 +117,7 @@ test.describe('CopilotPanel', () => {
       const fs = await import('fs');
       const path = await import('path');
       const body = fs.readFileSync(
-        path.join(__dirname, 'fixtures', 'ai', 'copilot', `${fixture}.json`),
+        path.join(__dirname, 'fixtures', 'ai', 'coscout', `${fixture}.json`),
         'utf-8'
       );
       await route.fulfill({
@@ -134,26 +134,26 @@ test.describe('CopilotPanel', () => {
       await askButton.click();
     }
 
-    const panel = page.locator('[data-testid="copilot-panel"]');
+    const panel = page.locator('[data-testid="coscout-panel"]');
     if (!(await panel.isVisible({ timeout: 2000 }).catch(() => false))) {
       test.skip();
       return;
     }
 
-    const input = page.locator('[data-testid="copilot-input"]');
+    const input = page.locator('[data-testid="coscout-input"]');
 
     // First question
     await input.fill('What is Cpk?');
     await input.press('Enter');
-    await expect(page.locator('[data-testid="copilot-message-1"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="coscout-message-1"]')).toBeVisible({ timeout: 10000 });
 
     // Follow-up
     await input.fill('Tell me more about Line B');
     await input.press('Enter');
-    await expect(page.locator('[data-testid="copilot-message-3"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="coscout-message-3"]')).toBeVisible({ timeout: 10000 });
 
     // Should have 4 messages total: user, ai, user, ai
-    await expect(page.locator('[data-testid="copilot-message-3"]')).toContainText('Line B');
+    await expect(page.locator('[data-testid="coscout-message-3"]')).toContainText('Line B');
   });
 
   test('close/reopen preserves conversation', async ({ page }) => {
@@ -165,17 +165,17 @@ test.describe('CopilotPanel', () => {
       await askButton.click();
     }
 
-    const panel = page.locator('[data-testid="copilot-panel"]');
+    const panel = page.locator('[data-testid="coscout-panel"]');
     if (!(await panel.isVisible({ timeout: 2000 }).catch(() => false))) {
       test.skip();
       return;
     }
 
     // Send a message
-    const input = page.locator('[data-testid="copilot-input"]');
+    const input = page.locator('[data-testid="coscout-input"]');
     await input.fill('What is Cpk?');
     await input.press('Enter');
-    await expect(page.locator('[data-testid="copilot-message-1"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="coscout-message-1"]')).toBeVisible({ timeout: 10000 });
 
     // Close panel (Escape)
     await page.keyboard.press('Escape');
@@ -186,8 +186,8 @@ test.describe('CopilotPanel', () => {
       await askButton.click();
       await expect(panel).toBeVisible({ timeout: 2000 });
       // Messages should still be there
-      await expect(page.locator('[data-testid="copilot-message-0"]')).toBeVisible();
-      await expect(page.locator('[data-testid="copilot-message-1"]')).toBeVisible();
+      await expect(page.locator('[data-testid="coscout-message-0"]')).toBeVisible();
+      await expect(page.locator('[data-testid="coscout-message-1"]')).toBeVisible();
     }
   });
 
@@ -200,18 +200,18 @@ test.describe('CopilotPanel', () => {
       await askButton.click();
     }
 
-    const panel = page.locator('[data-testid="copilot-panel"]');
+    const panel = page.locator('[data-testid="coscout-panel"]');
     if (!(await panel.isVisible({ timeout: 2000 }).catch(() => false))) {
       test.skip();
       return;
     }
 
-    const input = page.locator('[data-testid="copilot-input"]');
+    const input = page.locator('[data-testid="coscout-input"]');
     await input.fill('Test alignment');
     await input.press('Enter');
 
-    const userMsg = page.locator('[data-testid="copilot-message-0"]');
-    const aiMsg = page.locator('[data-testid="copilot-message-1"]');
+    const userMsg = page.locator('[data-testid="coscout-message-0"]');
+    const aiMsg = page.locator('[data-testid="coscout-message-1"]');
 
     await expect(userMsg).toBeVisible({ timeout: 5000 });
     await expect(aiMsg).toBeVisible({ timeout: 10000 });
@@ -229,13 +229,13 @@ test.describe('CopilotPanel', () => {
       await askButton.click();
     }
 
-    const panel = page.locator('[data-testid="copilot-panel"]');
+    const panel = page.locator('[data-testid="coscout-panel"]');
     if (!(await panel.isVisible({ timeout: 2000 }).catch(() => false))) {
       test.skip();
       return;
     }
 
-    const input = page.locator('[data-testid="copilot-input"]');
+    const input = page.locator('[data-testid="coscout-input"]');
     await input.fill('This will fail');
     await input.press('Enter');
 
@@ -254,18 +254,18 @@ test.describe('CopilotPanel', () => {
       await askButton.click();
     }
 
-    const panel = page.locator('[data-testid="copilot-panel"]');
+    const panel = page.locator('[data-testid="coscout-panel"]');
     if (!(await panel.isVisible({ timeout: 2000 }).catch(() => false))) {
       test.skip();
       return;
     }
 
-    const input = page.locator('[data-testid="copilot-input"]');
+    const input = page.locator('[data-testid="coscout-input"]');
 
     // Shift+Enter should not send
     await input.fill('Line 1');
     await input.press('Shift+Enter');
-    expect(await page.locator('[data-testid="copilot-message-0"]').count()).toBe(0);
+    expect(await page.locator('[data-testid="coscout-message-0"]').count()).toBe(0);
 
     // Escape closes the panel
     await page.keyboard.press('Escape');
@@ -281,27 +281,27 @@ test.describe('CopilotPanel', () => {
       await askButton.click();
     }
 
-    const panel = page.locator('[data-testid="copilot-panel"]');
+    const panel = page.locator('[data-testid="coscout-panel"]');
     if (!(await panel.isVisible({ timeout: 2000 }).catch(() => false))) {
       test.skip();
       return;
     }
 
     // Suggested questions should appear
-    const suggestions = page.locator('[data-testid="copilot-suggested-questions"]');
+    const suggestions = page.locator('[data-testid="coscout-suggested-questions"]');
     if (await suggestions.isVisible({ timeout: 2000 }).catch(() => false)) {
       // Click first suggestion
-      const firstChip = page.locator('[data-testid="copilot-suggestion-0"]');
+      const firstChip = page.locator('[data-testid="coscout-suggestion-0"]');
       await expect(firstChip).toBeVisible();
       const chipText = await firstChip.textContent();
       await firstChip.click();
 
       // Should trigger a message send
-      await expect(page.locator('[data-testid="copilot-message-0"]')).toBeVisible({
+      await expect(page.locator('[data-testid="coscout-message-0"]')).toBeVisible({
         timeout: 5000,
       });
       if (chipText) {
-        await expect(page.locator('[data-testid="copilot-message-0"]')).toContainText(chipText);
+        await expect(page.locator('[data-testid="coscout-message-0"]')).toContainText(chipText);
       }
     }
   });
@@ -315,31 +315,31 @@ test.describe('CopilotPanel', () => {
       await askButton.click();
     }
 
-    const panel = page.locator('[data-testid="copilot-panel"]');
+    const panel = page.locator('[data-testid="coscout-panel"]');
     if (!(await panel.isVisible({ timeout: 2000 }).catch(() => false))) {
       test.skip();
       return;
     }
 
     // Send a message first
-    const input = page.locator('[data-testid="copilot-input"]');
+    const input = page.locator('[data-testid="coscout-input"]');
     await input.fill('Test question');
     await input.press('Enter');
-    await expect(page.locator('[data-testid="copilot-message-1"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="coscout-message-1"]')).toBeVisible({ timeout: 10000 });
 
     // Overflow menu should appear
-    const overflowBtn = page.locator('[data-testid="copilot-overflow-menu"]');
+    const overflowBtn = page.locator('[data-testid="coscout-overflow-menu"]');
     await expect(overflowBtn).toBeVisible();
     await overflowBtn.click();
 
     // Menu items should be visible
-    await expect(page.locator('[data-testid="copilot-menu-clear"]')).toBeVisible();
-    await expect(page.locator('[data-testid="copilot-menu-copy"]')).toBeVisible();
+    await expect(page.locator('[data-testid="coscout-menu-clear"]')).toBeVisible();
+    await expect(page.locator('[data-testid="coscout-menu-copy"]')).toBeVisible();
 
     // Click copy
-    await page.locator('[data-testid="copilot-menu-copy"]').click();
+    await page.locator('[data-testid="coscout-menu-copy"]').click();
     // Menu should close after action
-    await expect(page.locator('[data-testid="copilot-menu-clear"]')).not.toBeVisible({
+    await expect(page.locator('[data-testid="coscout-menu-clear"]')).not.toBeVisible({
       timeout: 1000,
     });
   });

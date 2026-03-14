@@ -18,9 +18,9 @@ Technical architecture for optional AI integration in the Azure App.
 │  AI Service                Prompt Templates           │
 │  (apps/azure/services)     (@variscout/core)          │
 │  fetchNarration()          narration, suggestion,     │
-│  fetchChartInsight()       copilot, report            │
-│  fetchCopilotResponse()                              │
-│  fetchCopilotStreamingResponse()                     │
+│  fetchChartInsight()       coscout, report            │
+│  fetchCoScoutResponse()                              │
+│  fetchCoScoutStreamingResponse()                     │
 │                                                      │
 │  localStorage Cache                                  │
 │  (cached AI responses + conversation history)         │
@@ -47,15 +47,15 @@ Technical architecture for optional AI integration in the Azure App.
 | Component               | Package                   | Description                                                                                                           |
 | ----------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `buildAIContext()`      | `@variscout/core`         | Pure function. Collects computed stats, filters, findings, violations into a structured payload. No React dependency. |
-| Prompt templates        | `@variscout/core`         | String templates for narration, suggestion, copilot, and report tasks. Grounded in VariScout glossary terms.          |
+| Prompt templates        | `@variscout/core`         | String templates for narration, suggestion, CoScout, and report tasks. Grounded in VariScout glossary terms.          |
 | `aiService.ts`          | `apps/azure/src/services` | localStorage response caching. Auth via `getAuthHeaders()` (EasyAuth). Retry + exponential backoff.                   |
 | `useAIContext` hook     | `@variscout/hooks`        | React hook wrapping `buildAIContext()`. Recomputes on DataContext changes.                                            |
-| `useAICopilot` hook     | `@variscout/hooks`        | Chat state management, conversation history, streaming response handling.                                             |
+| `useAICoScout` hook     | `@variscout/hooks`        | Chat state management, conversation history, streaming response handling.                                             |
 | `useNarration` hook     | `@variscout/hooks`        | React hook for narrative bar state (loading, cached, error). Wraps `fetchNarration`.                                  |
 | `useChartInsights` hook | `@variscout/hooks`        | Per-chart deterministic + AI-enhanced insight orchestration. Debounced AI with fallback.                              |
 | `NarrativeBar`          | `@variscout/ui`           | Single-line summary bar component.                                                                                    |
 | `ChartInsightChip`      | `@variscout/ui`           | Per-chart suggestion badge.                                                                                           |
-| `CopilotPanel`          | `@variscout/ui`           | Slide-out conversational panel.                                                                                       |
+| `CoScoutPanel`          | `@variscout/ui`           | Slide-out conversational panel.                                                                                       |
 
 ---
 
@@ -116,7 +116,7 @@ Current: 25 terms. Target: ~40-50 terms covering all SPC concepts referenced in 
 
 ### Layer 4 — Team Documents (Azure AI Search, Phase 3)
 
-Fault trees, process maps, SOPs, control plans from Teams channel SharePoint. Indexed by Azure AI Search (enhanced by Foundry IQ managed orchestration) and retrieved by the Copilot Panel during conversation.
+Fault trees, process maps, SOPs, control plans from Teams channel SharePoint. Indexed by Azure AI Search (enhanced by Foundry IQ managed orchestration) and retrieved by the CoScout Panel during conversation.
 
 **AI-extracted context from documents:** When team documents are uploaded to SharePoint, an Azure Function can extract structured ProcessContext suggestions (process steps, measurement units) and present them to the user for confirmation. AI suggests, user confirms — never auto-overwrite.
 
@@ -130,7 +130,7 @@ Fault trees, process maps, SOPs, control plans from Teams channel SharePoint. In
 type AITier = 'fast' | 'reasoning';
 
 // fast → cheap model (narrative bar, chart chips)
-// reasoning → capable model (copilot conversation, reports)
+// reasoning → capable model (CoScout conversation, reports)
 ```
 
 The service accepts a `tier` parameter and routes to the appropriate model deployment. Model names are configured in the ARM template (customer chooses during deployment).
@@ -223,7 +223,7 @@ All AI resources are conditional on `parameters('enableAI')`:
 | -------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- |
 | AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: AIServices, SKU: S0) | Azure AI Foundry host                                 |
 | Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`                 | Cheap model (e.g., GPT-4o-mini) for narration + chips |
-| Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`                 | Capable model (e.g., GPT-4o) for copilot + reports    |
+| Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`                 | Capable model (e.g., GPT-4o) for CoScout + reports    |
 | AI Search service          | `Microsoft.Search/searchServices` (Phase 3)                        | Knowledge index                                       |
 | Azure Function             | `Microsoft.Web/sites` (Phase 3)                                    | Findings indexer                                      |
 
@@ -241,10 +241,10 @@ EasyAuth `authsettingsV2` updated to include Cognitive Services scope.
 | Control              | Mechanism                                                       |
 | -------------------- | --------------------------------------------------------------- |
 | Stats-only payloads  | Typically <500 tokens per request                               |
-| Max context tokens   | 2K for narration (fast tier), 8K for copilot (reasoning tier)   |
+| Max context tokens   | 2K for narration (fast tier), 8K for CoScout (reasoning tier)   |
 | Client-side throttle | Max 1 narration request per 5 seconds                           |
 | Response caching     | Reduces repeat queries for same analysis state                  |
-| Dual-model routing   | Cheap model for simple tasks, reasoning model only for copilot  |
+| Dual-model routing   | Cheap model for simple tasks, reasoning model only for CoScout  |
 | Monthly budget       | Configurable via ARM template parameters (Azure spending limit) |
 
 **API version:** Requests use the API version configured on the Azure AI Foundry endpoint. Client-side code does not pin an API version.
@@ -258,9 +258,9 @@ EasyAuth `authsettingsV2` updated to include Cognitive Services scope.
 | NarrativeBar     | API error        | Show last cached response, or hide bar          |
 | NarrativeBar     | Timeout (>10s)   | Cancel request, hide bar, log to `errorService` |
 | ChartInsightChip | Any error        | Hide chip entirely                              |
-| CopilotPanel     | API error        | Inline error with retry button                  |
-| CopilotPanel     | Content filter   | "I can't answer that question. Try rephrasing." |
-| CopilotPanel     | Rate limit       | "Please wait a moment before asking again."     |
+| CoScoutPanel     | API error        | Inline error with retry button                  |
+| CoScoutPanel     | Content filter   | "I can't answer that question. Try rephrasing." |
+| CoScoutPanel     | Rate limit       | "Please wait a moment before asking again."     |
 | All              | No AI configured | UI elements hidden entirely                     |
 
 All errors logged to `errorService` (existing in `@variscout/ui`). No user-facing error modals.
@@ -275,10 +275,10 @@ All errors logged to `errorService` (existing in `@variscout/ui`). No user-facin
 | Prompt templates     | Snapshot (`@variscout/core`) | Verify template output structure, not exact wording      |
 | `aiService.ts`       | Unit (`apps/azure`)          | Mock `fetch()`, test routing, caching, error handling    |
 | `useAIContext`       | Unit (`@variscout/hooks`)    | Mock DataContext, verify context shape                   |
-| `useAICopilot`       | Unit (`@variscout/hooks`)    | Mock AI service, test chat state management              |
+| `useAICoScout`       | Unit (`@variscout/hooks`)    | Mock AI service, test chat state management              |
 | `NarrativeBar`       | Component (`@variscout/ui`)  | Render with/without response, verify hide on no-config   |
 | `ChartInsightChip`   | Component (`@variscout/ui`)  | Render with data, verify dismissal, verify hide on error |
-| `CopilotPanel`       | Component (`@variscout/ui`)  | Render chat, verify send/receive, error states           |
+| `CoScoutPanel`       | Component (`@variscout/ui`)  | Render chat, verify send/receive, error states           |
 | Graceful degradation | E2E (`apps/azure`)           | Load app without AI endpoint — verify all features work  |
 | AI integration       | Integration (`apps/azure`)   | Recorded response fixtures (replay, not live AI)         |
 

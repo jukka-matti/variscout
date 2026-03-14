@@ -4,10 +4,10 @@ import {
   buildSummaryPrompt,
   buildChartInsightSystemPrompt,
   buildChartInsightPrompt,
-  buildCopilotSystemPrompt,
-  buildCopilotMessages,
+  buildCoScoutSystemPrompt,
+  buildCoScoutMessages,
 } from '../promptTemplates';
-import type { AIContext, CopilotMessage } from '../types';
+import type { AIContext, CoScoutMessage } from '../types';
 
 describe('buildNarrationSystemPrompt', () => {
   it('returns a system prompt string', () => {
@@ -200,21 +200,21 @@ describe('buildChartInsightPrompt', () => {
   });
 });
 
-describe('buildCopilotSystemPrompt', () => {
+describe('buildCoScoutSystemPrompt', () => {
   it('returns a non-empty system prompt', () => {
-    const prompt = buildCopilotSystemPrompt();
+    const prompt = buildCoScoutSystemPrompt();
     expect(prompt.length).toBeGreaterThan(0);
-    expect(prompt).toContain('copilot');
+    expect(prompt).toContain('CoScout');
   });
 
   it('includes glossary fragment when provided', () => {
-    const prompt = buildCopilotSystemPrompt('## Terminology\n\n- **Cp**: Process potential');
+    const prompt = buildCoScoutSystemPrompt('## Terminology\n\n- **Cp**: Process potential');
     expect(prompt).toContain('## Terminology');
     expect(prompt).toContain('Cp');
   });
 });
 
-describe('buildCopilotMessages', () => {
+describe('buildCoScoutMessages', () => {
   const baseCtx: AIContext = {
     process: { description: 'Fill weight analysis' },
     filters: [],
@@ -222,7 +222,7 @@ describe('buildCopilotMessages', () => {
   };
 
   it('includes system prompt, context, and user message', () => {
-    const messages = buildCopilotMessages(baseCtx, [], 'What does this Cpk mean?');
+    const messages = buildCoScoutMessages(baseCtx, [], 'What does this Cpk mean?');
     expect(messages.length).toBe(3); // system + context + user
     expect(messages[0].role).toBe('system');
     expect(messages[2].role).toBe('user');
@@ -230,17 +230,17 @@ describe('buildCopilotMessages', () => {
   });
 
   it('includes context summary with stats', () => {
-    const messages = buildCopilotMessages(baseCtx, [], 'question');
+    const messages = buildCoScoutMessages(baseCtx, [], 'question');
     const contextMsg = messages[1];
     expect(contextMsg.content).toContain('Mean=10.50');
   });
 
   it('includes conversation history', () => {
-    const history: CopilotMessage[] = [
+    const history: CoScoutMessage[] = [
       { id: '1', role: 'user', content: 'Hello', timestamp: 1 },
       { id: '2', role: 'assistant', content: 'Hi there', timestamp: 2 },
     ];
-    const messages = buildCopilotMessages(baseCtx, history, 'Follow-up');
+    const messages = buildCoScoutMessages(baseCtx, history, 'Follow-up');
     // system + context + 2 history + user = 5
     expect(messages.length).toBe(5);
     expect(messages[2].content).toBe('Hello');
@@ -248,13 +248,13 @@ describe('buildCopilotMessages', () => {
   });
 
   it('truncates history to last 10 messages', () => {
-    const history: CopilotMessage[] = Array.from({ length: 14 }, (_, i) => ({
+    const history: CoScoutMessage[] = Array.from({ length: 14 }, (_, i) => ({
       id: String(i),
       role: i % 2 === 0 ? ('user' as const) : ('assistant' as const),
       content: `Message ${i}`,
       timestamp: i,
     }));
-    const messages = buildCopilotMessages(baseCtx, history, 'Latest');
+    const messages = buildCoScoutMessages(baseCtx, history, 'Latest');
     // system + context + 10 history + user = 13
     expect(messages.length).toBe(13);
     // First history message should be #4 (14 - 10 = 4)
@@ -262,7 +262,7 @@ describe('buildCopilotMessages', () => {
   });
 
   it('skips error messages from history', () => {
-    const history: CopilotMessage[] = [
+    const history: CoScoutMessage[] = [
       { id: '1', role: 'user', content: 'Question', timestamp: 1 },
       {
         id: '2',
@@ -272,7 +272,7 @@ describe('buildCopilotMessages', () => {
         error: { type: 'network', message: 'Failed', retryable: true },
       },
     ];
-    const messages = buildCopilotMessages(baseCtx, history, 'Retry');
+    const messages = buildCoScoutMessages(baseCtx, history, 'Retry');
     // system + context + 1 valid history (error skipped) + user = 4
     expect(messages.length).toBe(4);
   });

@@ -251,8 +251,8 @@ export type {
   NarrationRequest,
   NarrationResponse,
   AIErrorType,
-  CopilotMessage,
-  CopilotError,
+  CoScoutMessage,
+  CoScoutError,
   BuildAIContextOptions,
   AIStatsInput,
 } from './ai';
@@ -260,8 +260,8 @@ export {
   buildAIContext,
   buildNarrationSystemPrompt,
   buildSummaryPrompt,
-  buildCopilotSystemPrompt,
-  buildCopilotMessages,
+  buildCoScoutSystemPrompt,
+  buildCoScoutMessages,
 } from './ai';
 
 // AI (Phase 2 — Chart Insights)

@@ -70,7 +70,7 @@ journey
     section Verify
       Open app and load data: 5: Admin
       NarrativeBar appears: 5: Admin
-      Click Ask → CopilotPanel: 5: Admin
+      Click Ask → CoScoutPanel: 5: Admin
     section Team Rollout
       Share URL with team: 5: Admin
       Team members see AI features: 5: User
@@ -98,13 +98,13 @@ AI is an optional checkbox in the ARM template deployment wizard.
 | Model         | Tier      | Best for                         | Relative cost |
 | ------------- | --------- | -------------------------------- | ------------- |
 | GPT-4o-mini   | Fast      | Narration, chart chips (default) | Lowest        |
-| GPT-4o        | Reasoning | Copilot conversations, reports   | Medium        |
-| Claude Sonnet | Reasoning | Copilot conversations, reports   | Medium        |
+| GPT-4o        | Reasoning | CoScout conversations, reports   | Medium        |
+| Claude Sonnet | Reasoning | CoScout conversations, reports   | Medium        |
 
 5. Click Deploy — the ARM template creates:
    - App Service Plan + App Service + EasyAuth (standard resources)
    - Azure AI Foundry account (AI Services, S0 SKU)
-   - Model deployment(s) — fast model for narration/chips, reasoning model for copilot
+   - Model deployment(s) — fast model for narration/chips, reasoning model for CoScout
    - EasyAuth updated with Cognitive Services scope
 
 6. Deployment completes in ~2–3 minutes
@@ -138,7 +138,7 @@ After deployment, Olivia opens the app and loads a dataset to verify AI is worki
 2. Upload or paste data, complete column mapping
 3. Dashboard loads — after ~2 seconds of stable data, the **NarrativeBar** appears at the bottom
 4. NarrativeBar shows a one-line summary (e.g., "Process stable. Cpk 1.42, no Nelson Rule violations detected.")
-5. Click **"Ask →"** in the NarrativeBar — the **CopilotPanel** slides open from the right
+5. Click **"Ask →"** in the NarrativeBar — the **CoScoutPanel** slides open from the right
 6. Type a question (e.g., "What should I investigate first?") — AI responds with context-aware guidance
 7. Drill into a factor — **ChartInsightChip** appears below the Boxplot (e.g., "Drill Machine A (47%)")
 8. NarrativeBar updates with the new drill scope
@@ -155,7 +155,7 @@ Each user controls their own AI experience via the Settings panel:
 
 The toggle only appears when an AI endpoint is configured. When toggled OFF:
 
-- NarrativeBar, ChartInsightChip, and CopilotPanel are all hidden
+- NarrativeBar, ChartInsightChip, and CoScoutPanel are all hidden
 - Dashboard layout is unchanged — no empty spaces or placeholders
 - The app behaves identically to a non-AI deployment
 
@@ -168,7 +168,7 @@ AI costs are consumption-based (pay per token). VariScout minimizes costs throug
 | Control              | How it works                                                      |
 | -------------------- | ----------------------------------------------------------------- |
 | Stats-only payloads  | AI receives computed stats (~500 tokens), never raw data          |
-| Dual-model routing   | NarrativeBar/chips use cheap model; CopilotPanel uses smart model |
+| Dual-model routing   | NarrativeBar/chips use cheap model; CoScoutPanel uses smart model |
 | Response caching     | Identical analysis states reuse cached AI responses (24h TTL)     |
 | Client-side throttle | Max 1 narration request per 5 seconds                             |
 | Monthly budget       | Configurable via ARM template parameters (Azure spending limit)   |
@@ -177,7 +177,7 @@ AI costs are consumption-based (pay per token). VariScout minimizes costs throug
 
 - NarrativeBar: ~500 tokens per request, fast model (very low cost)
 - ChartInsightChip: ~200 tokens per chip, fast model
-- CopilotPanel: ~2K–8K tokens per conversation turn, reasoning model (higher cost per query, but used less frequently)
+- CoScoutPanel: ~2K–8K tokens per conversation turn, reasoning model (higher cost per query, but used less frequently)
 
 Monitor costs in Azure portal under the AI Services resource → Cost Analysis.
 
@@ -191,7 +191,7 @@ AI features are delivered in three phases (see [ADR-019](../../07-decisions/adr-
 | ----- | ------------------------------------------------------------------------------------- | ----------------------------------- |
 | 1     | AI service layer, NarrativeBar, process description field, factor role inference, ARM | Marketplace update                  |
 | 2     | ChartInsightChip, AI-enhanced Nelson Rule explanations, drill suggestions             | App update (no ARM changes)         |
-| 3     | CopilotPanel, Azure AI Search, SharePoint indexing, report generation                 | ARM update (adds Search + Function) |
+| 3     | CoScoutPanel, Azure AI Search, SharePoint indexing, report generation                 | ARM update (adds Search + Function) |
 
 Each phase is backward compatible. Existing deployments continue working when new features ship. Phase 3 requires a template redeployment to provision Azure AI Search and the findings indexer Function.
 
@@ -229,14 +229,14 @@ This architecture satisfies GDPR requirements by design. The customer's IT team 
 | Symptom                     | Likely cause                      | Fix                                                                  |
 | --------------------------- | --------------------------------- | -------------------------------------------------------------------- |
 | Slow NarrativeBar (>5s)     | Cold start on AI model deployment | First request after idle may be slow; subsequent requests are faster |
-| CopilotPanel timeout (>10s) | Reasoning model capacity          | Check Azure portal for throttling; consider scaling the deployment   |
+| CoScoutPanel timeout (>10s) | Reasoning model capacity          | Check Azure portal for throttling; consider scaling the deployment   |
 | Responses feel stale        | Response caching (24h TTL)        | Data changes automatically invalidate the cache                      |
 
 ### Cost unexpectedly high
 
 1. Check Azure portal → AI Services resource → Cost Analysis
-2. Review CopilotPanel usage — reasoning model is the largest cost driver
-3. Consider switching reasoning model to GPT-4o-mini if deep copilot conversations are rare
+2. Review CoScoutPanel usage — reasoning model is the largest cost driver
+3. Consider switching reasoning model to GPT-4o-mini if deep CoScout conversations are rare
 4. Set a monthly spending limit via Azure budget alerts
 
 ---
@@ -248,7 +248,7 @@ This architecture satisfies GDPR requirements by design. The customer's IT team 
 | AI enabled at deployment                  | Track  |
 | Users with AI toggle ON                   | > 70%  |
 | NarrativeBar impressions per session      | Track  |
-| CopilotPanel conversations per user/week  | Track  |
+| CoScoutPanel conversations per user/week  | Track  |
 | AI cost per user per month                | < €5   |
 | Time to first AI insight (from data load) | < 5s   |
 
@@ -259,7 +259,7 @@ This architecture satisfies GDPR requirements by design. The customer's IT team 
 - [Team Collaboration](azure-team-collaboration.md) — admin deployment and team setup
 - [Daily Use](azure-daily-use.md) — how AI fits into daily analysis workflows
 - [Teams Mobile](azure-teams-mobile.md) — AI on phone
-- [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CopilotPanel specs
+- [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
 - [AI Architecture](../../05-technical/architecture/ai-architecture.md) — technical implementation
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — architectural decision
 - [ARM Template](../../08-products/azure/arm-template.md) — deployment resources

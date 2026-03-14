@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useAICopilot } from '../useAICopilot';
+import { useAICoScout } from '../useAICoScout';
 import type { AIContext } from '@variscout/core';
 
 const baseContext: AIContext = {
@@ -9,13 +9,13 @@ const baseContext: AIContext = {
   stats: { mean: 10, stdDev: 1, samples: 50 },
 };
 
-describe('useAICopilot', () => {
+describe('useAICoScout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('starts with empty messages and no loading', () => {
-    const { result } = renderHook(() => useAICopilot({ context: baseContext }));
+    const { result } = renderHook(() => useAICoScout({ context: baseContext }));
     expect(result.current.messages).toEqual([]);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isStreaming).toBe(false);
@@ -23,7 +23,7 @@ describe('useAICopilot', () => {
   });
 
   it('does nothing when send is called without fetchResponse', async () => {
-    const { result } = renderHook(() => useAICopilot({ context: baseContext }));
+    const { result } = renderHook(() => useAICoScout({ context: baseContext }));
     await act(async () => {
       result.current.send('Hello');
     });
@@ -32,7 +32,7 @@ describe('useAICopilot', () => {
 
   it('send appends user and assistant messages', async () => {
     const fetchResponse = vi.fn().mockResolvedValue('AI response');
-    const { result } = renderHook(() => useAICopilot({ context: baseContext, fetchResponse }));
+    const { result } = renderHook(() => useAICoScout({ context: baseContext, fetchResponse }));
 
     await act(async () => {
       result.current.send('What is Cpk?');
@@ -51,7 +51,7 @@ describe('useAICopilot', () => {
 
   it('sets error on fetch failure', async () => {
     const fetchResponse = vi.fn().mockRejectedValue(new Error('network error'));
-    const { result } = renderHook(() => useAICopilot({ context: baseContext, fetchResponse }));
+    const { result } = renderHook(() => useAICoScout({ context: baseContext, fetchResponse }));
 
     await act(async () => {
       result.current.send('Question');
@@ -64,7 +64,7 @@ describe('useAICopilot', () => {
 
   it('clear resets all state', async () => {
     const fetchResponse = vi.fn().mockResolvedValue('Response');
-    const { result } = renderHook(() => useAICopilot({ context: baseContext, fetchResponse }));
+    const { result } = renderHook(() => useAICoScout({ context: baseContext, fetchResponse }));
 
     await act(async () => {
       result.current.send('Question');
@@ -82,7 +82,7 @@ describe('useAICopilot', () => {
 
   it('seeds initial narrative as first assistant message', () => {
     const { result } = renderHook(() =>
-      useAICopilot({
+      useAICoScout({
         context: baseContext,
         initialNarrative: 'Process is stable with Cpk 1.5',
       })
@@ -94,7 +94,7 @@ describe('useAICopilot', () => {
   });
 
   it('does not seed narrative twice', () => {
-    const { result, rerender } = renderHook(props => useAICopilot(props), {
+    const { result, rerender } = renderHook(props => useAICoScout(props), {
       initialProps: { context: baseContext, initialNarrative: 'Narrative text' },
     });
 
@@ -108,7 +108,7 @@ describe('useAICopilot', () => {
 
   it('does not send empty or whitespace-only messages', async () => {
     const fetchResponse = vi.fn().mockResolvedValue('Response');
-    const { result } = renderHook(() => useAICopilot({ context: baseContext, fetchResponse }));
+    const { result } = renderHook(() => useAICoScout({ context: baseContext, fetchResponse }));
 
     await act(async () => {
       result.current.send('   ');
@@ -119,7 +119,7 @@ describe('useAICopilot', () => {
 
   it('does not send when context is null', async () => {
     const fetchResponse = vi.fn().mockResolvedValue('Response');
-    const { result } = renderHook(() => useAICopilot({ context: null, fetchResponse }));
+    const { result } = renderHook(() => useAICoScout({ context: null, fetchResponse }));
 
     await act(async () => {
       result.current.send('Question');
@@ -133,7 +133,7 @@ describe('useAICopilot', () => {
       Object.assign(navigator, { clipboard: { writeText } });
 
       const fetchResponse = vi.fn().mockResolvedValue('AI response text');
-      const { result } = renderHook(() => useAICopilot({ context: baseContext, fetchResponse }));
+      const { result } = renderHook(() => useAICoScout({ context: baseContext, fetchResponse }));
 
       await act(async () => {
         result.current.send('Question');
@@ -149,7 +149,7 @@ describe('useAICopilot', () => {
     });
 
     it('returns false when no assistant messages exist', async () => {
-      const { result } = renderHook(() => useAICopilot({ context: baseContext }));
+      const { result } = renderHook(() => useAICoScout({ context: baseContext }));
 
       let success = true;
       await act(async () => {
@@ -166,7 +166,7 @@ describe('useAICopilot', () => {
         .fn()
         .mockResolvedValueOnce('Good response')
         .mockRejectedValueOnce(new Error('network error'));
-      const { result } = renderHook(() => useAICopilot({ context: baseContext, fetchResponse }));
+      const { result } = renderHook(() => useAICoScout({ context: baseContext, fetchResponse }));
 
       await act(async () => {
         result.current.send('Q1');
@@ -196,7 +196,7 @@ describe('useAICopilot', () => {
           onChunk(' world');
         });
       const { result } = renderHook(() =>
-        useAICopilot({ context: baseContext, fetchStreamingResponse })
+        useAICoScout({ context: baseContext, fetchStreamingResponse })
       );
 
       await act(async () => {
@@ -230,7 +230,7 @@ describe('useAICopilot', () => {
         );
 
       const { result } = renderHook(() =>
-        useAICopilot({ context: baseContext, fetchStreamingResponse })
+        useAICoScout({ context: baseContext, fetchStreamingResponse })
       );
 
       // Start sending (don't await — it's still streaming)
@@ -257,7 +257,7 @@ describe('useAICopilot', () => {
       const fetchResponse = vi.fn().mockResolvedValue('Fallback response');
 
       const { result } = renderHook(() =>
-        useAICopilot({ context: baseContext, fetchResponse, fetchStreamingResponse })
+        useAICoScout({ context: baseContext, fetchResponse, fetchStreamingResponse })
       );
 
       await act(async () => {

@@ -58,7 +58,7 @@ flowchart TD
     N --> N2[ChartInsightChip suggests next drill — optional]
     N2 --> P
     O --> P
-    P -->|Ask AI| P2[NarrativeBar Ask → opens CopilotPanel]
+    P -->|Ask AI| P2[NarrativeBar Ask → opens CoScoutPanel]
     P -->|Export CSV| Q[Download filtered data]
     P -->|Copy chart| R[Clipboard: chart as image]
     P -->|Edit title| S[Custom chart title for report]
@@ -85,7 +85,7 @@ journey
       Pareto ranking worst-first: 5: User
       Drill into worst channel: 5: User
     section AI Assist (optional)
-      Ask AI via CopilotPanel: 4: User
+      Ask AI via CoScoutPanel: 4: User
     section Export
       Copy chart to clipboard: 5: User
       Download CSV export: 5: User
@@ -118,7 +118,7 @@ When the quick check reveals issues:
 4. Drill down: click Boxplot bars or Pareto categories to filter
 5. Follow the breadcrumb trail — each chip shows variation contribution (eta-squared %)
 6. _(If AI enabled)_ NarrativeBar updates with each drill step, summarizing the new scope (e.g., "Machine A explains 47% of variation. Morning shift shows Nelson Rule 2 violation.")
-7. _(If AI enabled)_ Click **"Ask →"** in the NarrativeBar to open the **CopilotPanel** for deeper questions (e.g., "Have we seen this pattern before?" or "What should I investigate next?")
+7. _(If AI enabled)_ Click **"Ask →"** in the NarrativeBar to open the **CoScoutPanel** for deeper questions (e.g., "Have we seen this pattern before?" or "What should I investigate next?")
 8. Identify the root cause factor/level combination
 
 ### Performance Mode (Multi-Channel Analysis)
@@ -155,7 +155,7 @@ When AI is configured (see [AI Setup](azure-ai-setup.md)), three components enha
 | -------------------- | ---------------------------- | ----------------------------------------------------------------------- |
 | **NarrativeBar**     | Fixed at dashboard bottom    | One-line plain-language summary of current analysis state               |
 | **ChartInsightChip** | Below chart cards            | Per-chart contextual suggestion (e.g., drill target, violation context) |
-| **CopilotPanel**     | Slide-out panel (right edge) | Conversational AI for deeper questions, grounded in analysis context    |
+| **CoScoutPanel**     | Slide-out panel (right edge) | Conversational AI for deeper questions, grounded in analysis context    |
 
 All AI features are **optional and dismissable**. The dashboard works identically without AI — no empty spaces, no placeholders. Users control AI visibility via the "Show AI assistance" toggle in Settings.
 
@@ -213,5 +213,5 @@ The "Show AI assistance" toggle only appears when an AI endpoint is configured. 
 - [Performance Mode](../../03-features/analysis/performance-mode.md) — multi-channel analysis
 - [Drill-Down Workflow](../../03-features/workflows/drill-down-workflow.md) — investigation methodology
 - [Four Lenses Workflow](../../03-features/workflows/four-lenses-workflow.md) — analysis framework
-- [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CopilotPanel specs
+- [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — architectural decision

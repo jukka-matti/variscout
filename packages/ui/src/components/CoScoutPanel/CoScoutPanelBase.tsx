@@ -1,33 +1,33 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GripVertical, X, Send, MoreVertical, Square, Copy, RotateCw, Check } from 'lucide-react';
-import type { CopilotMessage, CopilotError } from '@variscout/core';
+import type { CoScoutMessage, CoScoutError } from '@variscout/core';
 import { useResizablePanel } from '@variscout/hooks';
 
-export interface CopilotPanelResizeConfig {
+export interface CoScoutPanelResizeConfig {
   storageKey: string;
   min?: number;
   max?: number;
   defaultWidth?: number;
 }
 
-export interface CopilotPanelBaseProps {
+export interface CoScoutPanelBaseProps {
   isOpen: boolean;
   onClose: () => void;
-  messages: CopilotMessage[];
+  messages: CoScoutMessage[];
   onSend: (text: string) => void;
   isLoading: boolean;
-  error?: CopilotError | null;
+  error?: CoScoutError | null;
   onRetry?: () => void;
   onClear?: () => void;
   onCopyLastResponse?: () => void;
-  resizeConfig: CopilotPanelResizeConfig;
+  resizeConfig: CoScoutPanelResizeConfig;
   suggestedQuestions?: string[];
   onSuggestedQuestionClick?: (question: string) => void;
   isStreaming?: boolean;
   onStopStreaming?: () => void;
 }
 
-function getErrorText(error: CopilotError): string {
+function getErrorText(error: CoScoutError): string {
   switch (error.type) {
     case 'rate-limit':
       return 'Please wait a moment before asking again.';
@@ -38,7 +38,7 @@ function getErrorText(error: CopilotError): string {
   }
 }
 
-const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
+const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   isOpen,
   onClose,
   messages,
@@ -201,11 +201,11 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
       <div
         className="flex-shrink-0 bg-surface-secondary border-l border-edge flex flex-col overflow-hidden"
         style={{ width }}
-        data-testid="copilot-panel"
+        data-testid="coscout-panel"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
-          <h2 className="text-sm font-semibold text-content">Copilot</h2>
+          <h2 className="text-sm font-semibold text-content">CoScout</h2>
           <div className="flex items-center gap-1">
             {/* Overflow menu */}
             {(onClear || onCopyLastResponse) && messages.length > 0 && (
@@ -215,7 +215,7 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
                   className="p-1.5 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors"
                   title="More options"
                   aria-label="More options"
-                  data-testid="copilot-overflow-menu"
+                  data-testid="coscout-overflow-menu"
                 >
                   <MoreVertical size={14} />
                 </button>
@@ -225,7 +225,7 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
                       <button
                         onClick={handleClearWithConfirm}
                         className="w-full flex items-center gap-2 px-3 py-2 text-xs text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors rounded-t-lg"
-                        data-testid="copilot-menu-clear"
+                        data-testid="coscout-menu-clear"
                       >
                         <RotateCw size={12} />
                         Clear conversation
@@ -235,7 +235,7 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
                       <button
                         onClick={handleCopyLastResponse}
                         className="w-full flex items-center gap-2 px-3 py-2 text-xs text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors rounded-b-lg"
-                        data-testid="copilot-menu-copy"
+                        data-testid="coscout-menu-copy"
                       >
                         {copyFeedback ? <Check size={12} /> : <Copy size={12} />}
                         {copyFeedback ? 'Copied!' : 'Copy last response'}
@@ -249,7 +249,7 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
               onClick={onClose}
               className="p-1.5 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors"
               title="Close"
-              aria-label="Close copilot panel"
+              aria-label="Close CoScout panel"
             >
               <X size={14} />
             </button>
@@ -261,7 +261,7 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
           {messages.map((msg, index) => (
             <div
               key={msg.id}
-              data-testid={`copilot-message-${index}`}
+              data-testid={`coscout-message-${index}`}
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {msg.error ? (
@@ -321,12 +321,12 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
         {showSuggestions && (
           <div
             className="overflow-x-auto flex gap-2 px-3 py-2 border-t border-edge"
-            data-testid="copilot-suggested-questions"
+            data-testid="coscout-suggested-questions"
           >
             {suggestedQuestions.map((q, i) => (
               <button
                 key={i}
-                data-testid={`copilot-suggestion-${i}`}
+                data-testid={`coscout-suggestion-${i}`}
                 onClick={() => onSuggestedQuestionClick?.(q)}
                 className="bg-surface-tertiary text-content-secondary text-xs px-3 py-1.5 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
               >
@@ -341,7 +341,7 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
           <div className="flex items-end gap-2">
             <textarea
               ref={textareaRef}
-              data-testid="copilot-input"
+              data-testid="coscout-input"
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
@@ -358,7 +358,7 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
                 className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors flex-shrink-0"
                 title="Stop"
                 aria-label="Stop streaming"
-                data-testid="copilot-stop-button"
+                data-testid="coscout-stop-button"
               >
                 <Square size={14} />
               </button>
@@ -380,4 +380,4 @@ const CopilotPanelBase: React.FC<CopilotPanelBaseProps> = ({
   );
 };
 
-export { CopilotPanelBase };
+export { CoScoutPanelBase };
