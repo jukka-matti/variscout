@@ -19,22 +19,18 @@ const ACCENT_PRESETS = [
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  processDescription?: string;
-  onProcessDescriptionChange?: (value: string) => void;
-  aiEnabled?: boolean;
-  onAIEnabledChange?: (enabled: boolean) => void;
 }
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({
-  isOpen,
-  onClose,
-  processDescription,
-  onProcessDescriptionChange,
-  aiEnabled,
-  onAIEnabledChange,
-}) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
   const { theme, setTheme } = useTheme();
-  const { displayOptions, setDisplayOptions } = useData();
+  const {
+    displayOptions,
+    setDisplayOptions,
+    processContext,
+    setProcessContext,
+    aiEnabled,
+    setAIEnabled,
+  } = useData();
 
   return (
     <SettingsPanelBase
@@ -160,20 +156,20 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   id="az-setting-ai-narration"
                   name="az-setting-ai-narration"
                   type="checkbox"
-                  checked={aiEnabled ?? false}
-                  onChange={e => onAIEnabledChange?.(e.target.checked)}
+                  checked={aiEnabled}
+                  onChange={e => setAIEnabled(e.target.checked)}
                   className="rounded border-edge"
                 />
                 Show AI narration
               </label>
-              {aiEnabled && processDescription !== undefined && (
+              {aiEnabled && (
                 <div>
                   <label className="text-[11px] text-content-muted mb-1 block">
                     Process Description
                   </label>
                   <ProcessDescriptionField
-                    value={processDescription}
-                    onChange={onProcessDescriptionChange ?? (() => {})}
+                    value={processContext.description || ''}
+                    onChange={value => setProcessContext({ ...processContext, description: value })}
                   />
                 </div>
               )}

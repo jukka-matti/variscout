@@ -9,6 +9,7 @@ export type {
   NarrationRequest,
   NarrationResponse,
 } from './types';
+export { isFactorRole } from './types';
 
 export { buildAIContext, type BuildAIContextOptions, type AIStatsInput } from './buildAIContext';
 export type { ChartInsightData } from './promptTemplates';

@@ -43,4 +43,4 @@ export { validateData } from './validation';
 export { parseParetoFile } from './pareto';
 
 // Factor role inference (AI context)
-export { FACTOR_ROLE_KEYWORDS, inferFactorRole } from './keywords';
+export { FACTOR_ROLE_KEYWORDS, inferFactorRole, findMatchedFactorKeyword } from './keywords';

@@ -7,7 +7,8 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { Pencil, AlertTriangle, CheckSquare } from 'lucide-react';
-import type { ColumnAnalysis } from '@variscout/core';
+import type { ColumnAnalysis, FactorRole } from '@variscout/core';
+import { RoleBadge } from './RoleBadge';
 
 export interface ColumnCardProps {
   column: ColumnAnalysis;
@@ -18,6 +19,8 @@ export interface ColumnCardProps {
   alias?: string;
   onSelect: () => void;
   onRename?: (originalName: string, alias: string) => void;
+  /** Inferred role badge for factor columns */
+  roleBadge?: { role: FactorRole; matchedKeyword: string; onDismiss: () => void };
 }
 
 const TYPE_BADGE: Record<ColumnAnalysis['type'], { label: string; bg: string; text: string }> = {
@@ -36,6 +39,7 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
   alias,
   onSelect,
   onRename,
+  roleBadge,
 }) => {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(alias || column.name);
@@ -217,11 +221,18 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
         )}
       </div>
 
-      {/* Sample values + summary */}
+      {/* Sample values + role badge + summary */}
       <div className="pl-6 flex flex-col gap-0.5">
         <span className="text-xs text-slate-500 truncate" title={sampleDisplay}>
           {sampleDisplay}
         </span>
+        {role === 'factor' && roleBadge && (
+          <RoleBadge
+            role={roleBadge.role}
+            matchedKeyword={roleBadge.matchedKeyword}
+            onDismiss={roleBadge.onDismiss}
+          />
+        )}
         <span className="text-[10px] text-slate-600">{summaryParts.join(' \u00b7 ')}</span>
       </div>
     </Wrapper>

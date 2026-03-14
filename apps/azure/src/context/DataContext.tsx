@@ -25,6 +25,7 @@ import type {
   StagedStatsResult,
   StageOrderMode,
   ProcessContext,
+  FactorRole,
 } from '@variscout/core';
 import { isTeamPlan } from '@variscout/core';
 import { getTeamsContext } from '../teams/teamsContext';
@@ -39,6 +40,8 @@ interface AzureDataState extends Omit<DataState, 'saveProject' | 'loadProject'> 
   currentProjectLocation: StorageLocation;
   syncStatus: SyncStatus;
   processContext: ProcessContext;
+  factorRoles: Record<string, FactorRole>;
+  aiEnabled: boolean;
 }
 
 /**
@@ -53,6 +56,8 @@ interface AzureDataActions extends Omit<
   deleteProject: (name: string) => Promise<void>;
   renameProject: (oldName: string, newName: string) => Promise<void>;
   setProcessContext: (ctx: ProcessContext) => void;
+  setFactorRoles: (roles: Record<string, FactorRole>) => void;
+  setAIEnabled: (enabled: boolean) => void;
 }
 
 /**
@@ -72,6 +77,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // AI process context
   const [processContext, setProcessContext] = useState<ProcessContext>({});
+  const [factorRoles, setFactorRoles] = useState<Record<string, FactorRole>>({});
+  const [aiEnabled, setAIEnabled] = useState(false);
 
   // Azure-specific state — default location based on Teams context
   const defaultLocation = useMemo<StorageLocation>(() => {
@@ -195,8 +202,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       currentProjectLocation,
       syncStatus,
       processContext,
+      factorRoles,
+      aiEnabled,
     }),
-    [state, currentProjectLocation, syncStatus, processContext]
+    [state, currentProjectLocation, syncStatus, processContext, factorRoles, aiEnabled]
   );
 
   // Memoize actions context
@@ -246,6 +255,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // AI
       setProcessContext,
+      setFactorRoles,
+      setAIEnabled,
 
       // Azure-enhanced persistence methods
       saveProject,
@@ -257,7 +268,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       importProject: actions.importProject,
       newProject: actions.newProject,
     }),
-    [actions, saveProject, loadProject, deleteProject, renameProject, setProcessContext]
+    [
+      actions,
+      saveProject,
+      loadProject,
+      deleteProject,
+      renameProject,
+      setProcessContext,
+      setFactorRoles,
+      setAIEnabled,
+    ]
   );
 
   return (

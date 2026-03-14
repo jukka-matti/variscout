@@ -264,7 +264,7 @@ export {
 } from './ai';
 
 // Factor role inference
-export { FACTOR_ROLE_KEYWORDS, inferFactorRole } from './parser';
+export { FACTOR_ROLE_KEYWORDS, inferFactorRole, findMatchedFactorKeyword } from './parser';
 
 // Findings (scouting report)
 export type {

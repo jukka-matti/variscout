@@ -2,6 +2,8 @@
  * Keyword lists and patterns for smart column and channel detection
  */
 
+import type { FactorRole } from '../ai/types';
+
 export const OUTCOME_KEYWORDS = [
   'time',
   'duration',
@@ -148,12 +150,25 @@ export const FACTOR_ROLE_KEYWORDS: Record<string, string[]> = {
  * Infer a factor role from column name using keyword matching.
  * Returns null if no role can be inferred.
  */
-export function inferFactorRole(columnName: string): string | null {
+export function inferFactorRole(columnName: string): FactorRole | null {
   const lower = columnName.toLowerCase().trim();
   for (const [role, keywords] of Object.entries(FACTOR_ROLE_KEYWORDS)) {
     if (keywords.some(kw => lower.includes(kw))) {
-      return role;
+      return role as FactorRole;
     }
+  }
+  return null;
+}
+
+/**
+ * Find the keyword that matched a column name for tooltip display.
+ * Returns null if no keyword matches.
+ */
+export function findMatchedFactorKeyword(columnName: string): string | null {
+  const lower = columnName.toLowerCase().trim();
+  for (const keywords of Object.values(FACTOR_ROLE_KEYWORDS)) {
+    const match = keywords.find(kw => lower.includes(kw));
+    if (match) return match;
   }
   return null;
 }

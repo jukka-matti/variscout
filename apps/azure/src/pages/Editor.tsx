@@ -51,8 +51,6 @@ interface EditorProps {
   initialFindingId?: string;
   /** Deep link: auto-focus this chart type */
   initialChart?: string;
-  /** Whether AI narration is enabled */
-  aiEnabled?: boolean;
 }
 
 export const Editor: React.FC<EditorProps> = ({
@@ -60,7 +58,6 @@ export const Editor: React.FC<EditorProps> = ({
   onBack,
   initialFindingId,
   initialChart,
-  aiEnabled,
 }) => {
   const { syncStatus } = useStorage();
   const {
@@ -100,6 +97,9 @@ export const Editor: React.FC<EditorProps> = ({
     loadProject,
     stats,
     processContext,
+    factorRoles,
+    aiEnabled,
+    setFactorRoles,
   } = useData();
 
   const ingestion = useDataIngestion({
@@ -305,18 +305,35 @@ export const Editor: React.FC<EditorProps> = ({
 
   // AI narration
   const aiContext = useAIContext({
-    enabled: (aiEnabled ?? false) && isAIAvailable(),
+    enabled: aiEnabled && isAIAvailable(),
     process: processContext,
     stats: stats ?? undefined,
     sampleCount: filteredData.length,
     specs: specs ?? undefined,
     filters,
+    factorRoles,
     findings: persistedFindings,
   });
   const narration = useNarration({
     context: aiContext.context,
     fetchNarration: aiEnabled && isAIAvailable() ? fetchNarrationFromAI : undefined,
   });
+
+  // Pass factorRoles from ColumnMapping into DataContext
+  const handleMappingConfirmWithRoles = useCallback(
+    (
+      newOutcome: string,
+      newFactors: string[],
+      newSpecs?: { target?: number; lsl?: number; usl?: number },
+      newFactorRoles?: Record<string, import('@variscout/core').FactorRole>
+    ) => {
+      if (newFactorRoles) {
+        setFactorRoles(newFactorRoles);
+      }
+      dataFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
+    },
+    [dataFlow, setFactorRoles]
+  );
 
   // Compute excluded row data for DataTableModal
   const excludedRowIndices = useMemo(() => {
@@ -399,11 +416,12 @@ export const Editor: React.FC<EditorProps> = ({
         initialOutcome={outcome}
         initialFactors={factors}
         datasetName={dataFilename || 'Pasted Data'}
-        onConfirm={dataFlow.handleMappingConfirm}
+        onConfirm={handleMappingConfirmWithRoles}
         onCancel={dataFlow.handleMappingCancel}
         dataQualityReport={dataQualityReport}
         maxFactors={6}
         mode={dataFlow.isMappingReEdit ? 'edit' : 'setup'}
+        initialFactorRoles={factorRoles}
         timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
         hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
         onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
@@ -600,7 +618,7 @@ export const Editor: React.FC<EditorProps> = ({
               findingsCallbacks={findingsCallbacks}
               fetchChartInsight={aiEnabled && isAIAvailable() ? fetchChartInsightFromAI : undefined}
               aiContext={aiContext.context}
-              aiEnabled={(aiEnabled ?? false) && isAIAvailable()}
+              aiEnabled={aiEnabled && isAIAvailable()}
               narrative={narration.narrative}
               narrativeLoading={narration.isLoading}
               narrativeCached={narration.isCached}
@@ -720,10 +738,11 @@ export const Editor: React.FC<EditorProps> = ({
             initialOutcome={outcome}
             initialFactors={factors}
             datasetName={dataFilename || 'Data'}
-            onConfirm={dataFlow.handleMappingConfirm}
+            onConfirm={handleMappingConfirmWithRoles}
             onCancel={dataFlow.handleMappingCancel}
             dataQualityReport={dataQualityReport}
             maxFactors={6}
+            initialFactorRoles={factorRoles}
             timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
             hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
             onTimeExtractionChange={dataFlow.setTimeExtractionConfig}

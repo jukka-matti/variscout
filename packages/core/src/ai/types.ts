@@ -19,6 +19,23 @@ export interface ProcessContext {
   product?: string;
   /** Measurement being analyzed */
   measurement?: string;
+  /** Inferred or confirmed factor roles (factor column name → role) */
+  factorRoles?: Record<string, FactorRole>;
+}
+
+/** Known FactorRole values */
+const FACTOR_ROLES: readonly string[] = [
+  'equipment',
+  'temporal',
+  'operator',
+  'material',
+  'location',
+  'unknown',
+] as const;
+
+/** Type guard: checks if a string is a valid FactorRole */
+export function isFactorRole(value: string): value is FactorRole {
+  return FACTOR_ROLES.includes(value);
 }
 
 /** Structured AI context assembled from current analysis state */

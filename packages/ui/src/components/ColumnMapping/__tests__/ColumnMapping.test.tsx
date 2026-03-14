@@ -89,7 +89,12 @@ describe('ColumnMapping', () => {
       fireEvent.change(screen.getByLabelText('USL specification'), { target: { value: '12' } });
       fireEvent.click(screen.getByText('Start Analysis'));
 
-      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], { target: 10, lsl: 8, usl: 12 });
+      expect(onConfirm).toHaveBeenCalledWith(
+        'Value',
+        ['Machine'],
+        { target: 10, lsl: 8, usl: 12 },
+        { Machine: 'equipment' }
+      );
     });
   });
 
@@ -243,7 +248,12 @@ describe('ColumnMapping', () => {
       fireEvent.change(screen.getByLabelText('USL specification'), { target: { value: '12' } });
       fireEvent.click(screen.getByText('Start Analysis'));
 
-      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], { target: 10, lsl: 8, usl: 12 });
+      expect(onConfirm).toHaveBeenCalledWith(
+        'Value',
+        ['Machine'],
+        { target: 10, lsl: 8, usl: 12 },
+        { Machine: 'equipment' }
+      );
     });
 
     it('passes undefined specs when no values entered', () => {
@@ -252,7 +262,9 @@ describe('ColumnMapping', () => {
 
       fireEvent.click(screen.getByText('Start Analysis'));
 
-      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], undefined);
+      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], undefined, {
+        Machine: 'equipment',
+      });
     });
 
     it('passes partial specs when only some values entered', () => {
@@ -265,7 +277,12 @@ describe('ColumnMapping', () => {
       });
       fireEvent.click(screen.getByText('Start Analysis'));
 
-      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], { target: 10.5 });
+      expect(onConfirm).toHaveBeenCalledWith(
+        'Value',
+        ['Machine'],
+        { target: 10.5 },
+        { Machine: 'equipment' }
+      );
     });
   });
 

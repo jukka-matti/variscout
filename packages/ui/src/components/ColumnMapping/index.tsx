@@ -24,7 +24,9 @@ import type {
   DataQualityReport,
   DataRow,
   TimeExtractionConfig,
+  FactorRole,
 } from '@variscout/core';
+import { inferFactorRole, findMatchedFactorKeyword } from '@variscout/core';
 
 export interface ColumnMappingProps {
   /** Rich column metadata from detectColumns(). Preferred over availableColumns. */
@@ -45,10 +47,18 @@ export interface ColumnMappingProps {
   onConfirm: (
     outcome: string,
     factors: string[],
-    specs?: { target?: number; lsl?: number; usl?: number; characteristicType?: CharacteristicType }
+    specs?: {
+      target?: number;
+      lsl?: number;
+      usl?: number;
+      characteristicType?: CharacteristicType;
+    },
+    factorRoles?: Record<string, FactorRole>
   ) => void;
   onCancel: () => void;
   onBack?: () => void;
+  /** Pre-existing factor roles (from project load / previous mapping) */
+  initialFactorRoles?: Record<string, FactorRole>;
   // Validation integration
   dataQualityReport?: DataQualityReport | null;
   onViewExcludedRows?: () => void;
@@ -107,11 +117,32 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   onTimeExtractionChange,
   maxFactors = 3,
   mode = 'setup',
+  initialFactorRoles,
 }) => {
   const [outcome, setOutcome] = useState<string>(initialOutcome || '');
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
   const [showAllOutcome, setShowAllOutcome] = useState(false);
   const [showAllFactors, setShowAllFactors] = useState(false);
+  const [dismissedRoles, setDismissedRoles] = useState<Set<string>>(new Set());
+
+  // Infer roles for selected factors
+  const inferredRoles = useMemo(() => {
+    const roles: Record<string, { role: FactorRole; keyword: string }> = {};
+    for (const factor of factors) {
+      if (dismissedRoles.has(factor)) continue;
+      // Check initialFactorRoles first (persisted from previous session)
+      if (initialFactorRoles?.[factor]) {
+        roles[factor] = { role: initialFactorRoles[factor], keyword: '' };
+        continue;
+      }
+      const role = inferFactorRole(factor);
+      if (role) {
+        const keyword = findMatchedFactorKeyword(factor) || '';
+        roles[factor] = { role, keyword };
+      }
+    }
+    return roles;
+  }, [factors, dismissedRoles, initialFactorRoles]);
 
   // Optional specs state
   const [specsExpanded, setSpecsExpanded] = useState(false);
@@ -261,6 +292,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
               {factorColumns.map(col => {
                 const isOutcomeCol = outcome === col.name;
+                const inferred = inferredRoles[col.name];
                 return (
                   <ColumnCard
                     key={`factor-${col.name}`}
@@ -272,6 +304,16 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                     alias={columnAliases?.[col.name]}
                     onSelect={() => toggleFactor(col.name)}
                     onRename={onColumnRename}
+                    roleBadge={
+                      inferred
+                        ? {
+                            role: inferred.role,
+                            matchedKeyword: inferred.keyword,
+                            onDismiss: () =>
+                              setDismissedRoles(prev => new Set([...prev, col.name])),
+                          }
+                        : undefined
+                    }
                   />
                 );
               })}
@@ -356,7 +398,13 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                     ...(specCharType ? { characteristicType: specCharType } : {}),
                   }
                 : undefined;
-              onConfirm(outcome, factors, specs);
+              // Build factor roles map from inferred (non-dismissed) roles
+              const roleMap: Record<string, FactorRole> = {};
+              for (const [name, { role }] of Object.entries(inferredRoles)) {
+                roleMap[name] = role;
+              }
+              const roles = Object.keys(roleMap).length > 0 ? roleMap : undefined;
+              onConfirm(outcome, factors, specs, roles);
             }}
             disabled={!isValid}
             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"

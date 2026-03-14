@@ -16,6 +16,7 @@ import type {
   FilterAction,
   StageOrderMode,
   Finding,
+  ProcessContext,
 } from '@variscout/core';
 
 // Re-export for convenience
@@ -215,6 +216,10 @@ export interface AnalysisState {
   // --- Findings (scouting report) ---
   /** Analyst findings — bookmarked filter states with notes */
   findings?: Finding[];
+
+  // --- AI process context ---
+  /** Process description and factor roles for AI grounding */
+  processContext?: ProcessContext;
 }
 
 /**
