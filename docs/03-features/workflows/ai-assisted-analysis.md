@@ -8,11 +8,11 @@ Optional AI enhancement for the Azure App investigation workflow.
 
 AI-assisted analysis adds three progressive layers to the Azure App dashboard. Each layer builds on the previous, but all are optional — the app works perfectly without AI configured.
 
-| Layer | Component             | Purpose                           | Phase   |
-| ----- | --------------------- | --------------------------------- | ------- |
-| 1     | Narrative Summary Bar | Plain-language analysis summary   | Phase 1 |
-| 2     | Chart Insight Chips   | Per-chart contextual suggestions  | Phase 2 |
-| 3     | Copilot Panel         | Conversational analysis assistant | Phase 3 |
+| Layer | Component        | Purpose                           | Phase   |
+| ----- | ---------------- | --------------------------------- | ------- |
+| 1     | NarrativeBar     | Plain-language analysis summary   | Phase 1 |
+| 2     | ChartInsightChip | Per-chart contextual suggestions  | Phase 2 |
+| 3     | CopilotPanel     | Conversational analysis assistant | Phase 3 |
 
 **Availability:** Azure App only (Standard and Team plans). Requires AI endpoint configured in ARM deployment AND user Settings toggle "Show AI assistance" set to ON. PWA never has AI.
 
@@ -143,11 +143,11 @@ Azure AI Search provides built-in hybrid search (keyword + semantic ranking) and
 
 ## Offline Behavior
 
-| Layer         | Online            | Offline (cached)                                    | Offline (no cache)                                  |
-| ------------- | ----------------- | --------------------------------------------------- | --------------------------------------------------- |
-| Narrative Bar | Live response     | Cached summary shown                                | Hidden                                              |
-| Chart Chips   | Live response     | Cached chips shown                                  | Hidden                                              |
-| Copilot Panel | Live conversation | Conversation history visible, new messages disabled | Conversation history visible, new messages disabled |
+| Layer            | Online            | Offline (cached)                                    | Offline (no cache)                                  |
+| ---------------- | ----------------- | --------------------------------------------------- | --------------------------------------------------- |
+| NarrativeBar     | Live response     | Cached summary shown                                | Hidden                                              |
+| ChartInsightChip | Live response     | Cached chips shown                                  | Hidden                                              |
+| CopilotPanel     | Live conversation | Conversation history visible, new messages disabled | Conversation history visible, new messages disabled |
 
 All cached responses have a 24-hour TTL or expire when analysis data changes.
 

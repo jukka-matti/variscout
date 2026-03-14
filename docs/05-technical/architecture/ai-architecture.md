@@ -88,17 +88,16 @@ interface ProcessContext {
   measurementUnit?: string;
 
   // Factor role mapping (auto-inferred from column names, user can correct)
-  equipmentFactor?: string;
-  temporalFactor?: string;
-  operatorFactor?: string;
-  materialFactor?: string;
+  // Keyed by column name → role type. Multiple columns can share the same role.
+  // See ai-components.md ProcessContext Entry for UX spec.
+  factorRoles?: Record<string, 'equipment' | 'temporal' | 'operator' | 'material' | 'location'>;
 
   // Process structure (Phase 2 — optional)
   processSteps?: string[];
 }
 ```
 
-**Factor role auto-inference:** During `detectColumns()`, VariScout matches column names against keyword groups (equipment, temporal, operator, material) using the existing parser keyword infrastructure in `packages/core/src/parser/keywords.ts`. Inferred roles are stored in ProcessContext and shown as dismissable confirmation chips in ColumnMapping.
+**Factor role auto-inference:** During `detectColumns()`, VariScout matches column names against keyword groups (equipment, temporal, operator, material, location) using the existing parser keyword infrastructure in `packages/core/src/parser/keywords.ts`. Inferred roles are stored in `ProcessContext.factorRoles` and shown as dismissable badge chips on column cards in ColumnMapping.
 
 **Progressive disclosure:**
 

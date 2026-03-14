@@ -774,9 +774,9 @@ The Azure App (Standard and Team plans) supports optional AI-assisted analysis v
 
 | Feature                   | Standard |   Team   | Description                                |
 | ------------------------- | :------: | :------: | ------------------------------------------ |
-| Narrative Summary Bar     | Optional | Optional | Plain-language analysis summary            |
-| Chart Insight Chips       | Optional | Optional | Per-chart contextual suggestions           |
-| Copilot Panel             | Optional | Optional | Conversational AI assistant                |
+| NarrativeBar              | Optional | Optional | Plain-language analysis summary            |
+| ChartInsightChip          | Optional | Optional | Per-chart contextual suggestions           |
+| CopilotPanel              | Optional | Optional | Conversational AI assistant                |
 | Knowledge Base            |    -     | Optional | Cross-project findings + SharePoint docs   |
 | Process description field | Optional | Optional | Free-text process context for AI grounding |
 

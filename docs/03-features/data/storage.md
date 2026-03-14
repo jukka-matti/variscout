@@ -62,7 +62,7 @@ When `filterStack` is present, flat `filters` are derived from it on load. When 
 | ---------------- | ---------------- | ------- | -------------------------------------------- |
 | `processContext` | `ProcessContext` | `{}`    | Structured process metadata for AI grounding |
 
-`ProcessContext` includes: `description` (free text), `processType` ('manufacturing' | 'service' | 'laboratory' | 'logistics' | 'other'), `industry` (string), `measurementUnit` (string), `equipmentFactor` / `temporalFactor` / `operatorFactor` / `materialFactor` (factor role mappings, auto-inferred from column names), `processSteps` (string[]). All fields are optional — backward compatible with older .vrs files.
+`ProcessContext` includes: `description` (free text), `processType` ('manufacturing' | 'service' | 'laboratory' | 'logistics' | 'other'), `industry` (string), `measurementUnit` (string), `factorRoles` (Record<string, FactorRole> — keyed by column name, auto-inferred from column names), `processSteps` (string[]). All fields are optional — backward compatible with older .vrs files.
 
 Factor roles are auto-inferred during `detectColumns()` using the parser keyword infrastructure. Users can confirm or correct inferred roles in ColumnMapping. The `description` field is editable in Settings.
 

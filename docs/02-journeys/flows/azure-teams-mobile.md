@@ -20,14 +20,16 @@ flowchart TD
     C -->|Tablet 640px+| E[Grid View]
 
     D --> F[Swipe Between Charts]
-    F --> G[I-Chart → Boxplot → Pareto → Stats]
-    G --> H{Need to Drill?}
+    F --> F2[NarrativeBar fixed at bottom — above safe area]
+    F2 --> G[I-Chart → Boxplot → Pareto → Stats]
+    G --> G2[ChartInsightChip below carousel card — optional]
+    G2 --> H{Need to Drill?}
     H -->|Yes| I[Tap Category on Boxplot/Pareto]
     I --> J[Filter Applied, Next Factor Auto-Selected]
     H -->|No| K{Need Actions?}
 
     K -->|Yes| L[Tap ⋮ Overflow Menu]
-    L --> M[Findings / What-If / Export / Data Table]
+    L --> M[Findings / What-If / Export / Data Table / Ask AI]
     K -->|No| N[Done - Close Teams]
 
     E --> O[Full Desktop Layout]
@@ -38,11 +40,11 @@ flowchart TD
 
 ## Breakpoints
 
-| Viewport            | Layout                            | Navigation                      | Toolbar             | FindingsPanel       |
-| ------------------- | --------------------------------- | ------------------------------- | ------------------- | ------------------- |
-| < 640px (phone)     | Carousel: 1 chart at a time       | Swipe + pill buttons + chevrons | Save + ⋮ overflow   | Full-screen overlay |
-| 640–1024px (tablet) | Grid: charts stacked/side-by-side | Click                           | Full inline toolbar | Resizable sidebar   |
-| > 1024px (desktop)  | Grid: optimal layout              | Click + keyboard                | Full inline toolbar | Resizable sidebar   |
+| Viewport            | Layout                            | Navigation                      | Toolbar             | FindingsPanel       | NarrativeBar (if AI)               |
+| ------------------- | --------------------------------- | ------------------------------- | ------------------- | ------------------- | ---------------------------------- |
+| < 640px (phone)     | Carousel: 1 chart at a time       | Swipe + pill buttons + chevrons | Save + ⋮ overflow   | Full-screen overlay | Fixed bottom bar (above safe area) |
+| 640–1024px (tablet) | Grid: charts stacked/side-by-side | Click                           | Full inline toolbar | Resizable sidebar   | Fixed bottom bar                   |
+| > 1024px (desktop)  | Grid: optimal layout              | Click + keyboard                | Full inline toolbar | Resizable sidebar   | Fixed bottom bar                   |
 
 ---
 
@@ -58,9 +60,11 @@ flowchart TD
 ### What's Shown
 
 - Current chart (full width, maximized)
+- ChartInsightChip below the current carousel card (if AI enabled, one chip per chart)
 - Factor selector (Boxplot/Pareto views only)
 - Filter breadcrumbs (when filters active, horizontal scroll)
 - ANOVA results (below Boxplot)
+- NarrativeBar fixed at bottom of screen, above safe area inset (if AI enabled)
 
 ### What's Hidden on Phone
 
@@ -91,6 +95,7 @@ The ⋮ overflow menu contains:
 - Presentation
 - Findings (with count badge)
 - Data Table
+- Ask AI (if AI enabled — opens CopilotPanel)
 
 ### Desktop Header
 
@@ -108,6 +113,20 @@ On phone, the FindingsPanel renders as a **fixed full-screen overlay** instead o
 - Close button (44px touch target) in header
 - Same FindingsLog content as desktop
 - Popout button hidden (no multi-window on mobile)
+
+---
+
+## AI on Phone
+
+When AI is configured and the user toggle is ON, three components adapt to the phone layout:
+
+| Component            | Phone Layout                                                                                                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **NarrativeBar**     | Fixed at bottom of screen, above safe area inset. 48px collapsed height (tap to expand up to 96px / 3 lines). Single line with text truncation. "Ask →" button at right edge.              |
+| **ChartInsightChip** | Displayed below the current carousel card. One chip per chart view. Dismissable.                                                                                                           |
+| **CopilotPanel**     | Opens as **full-screen overlay** (same pattern as FindingsPanel on phone). Close button with 44px touch target. Triggered from NarrativeBar "Ask →" button or overflow menu "Ask AI" item. |
+
+When AI is unavailable (no endpoint, toggle off, offline with no cache), all three components are hidden. The phone layout is identical to a non-AI deployment.
 
 ---
 

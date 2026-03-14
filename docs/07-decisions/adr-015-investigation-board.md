@@ -1,8 +1,8 @@
 # ADR-015: Investigation Board — Finding Status & Comments
 
-**Status:** Accepted (revised 2026-02-26)
+**Status:** Accepted (amended 2026-03-14)
 **Date:** 2026-02-26
-**Related:** ADR-014 (regression deferral — Phase 2 boundary)
+**Related:** ADR-014 (regression deferral — Phase 2 boundary), ADR-019 (AI integration — knowledge base dependency)
 
 ---
 
@@ -62,11 +62,11 @@ Two layouts for the grouped-by-status view:
 - Panel (≤500px): Accordion — collapsible sections per status (3 columns)
 - Popout window (≥500px): Horizontal columns with native drag-and-drop
 
-### Scope boundary
+### Scope boundary (original)
 
 This enriches the investigation workflow. It does NOT:
 
-- Add task management features (assignees, due dates, priorities)
+- Add task management features (assignees, due dates, priorities) _(revised in 2026-03: lightweight action items added for Azure, see below)_
 - Affect the What-If Simulator (independent tool)
 
 ### Migration
@@ -233,8 +233,11 @@ Uses existing ADR-018 @mention workflow infrastructure.
 ### Rationale
 
 - Completes PDCA cycle within VariScout (investigate → act → verify)
-- Prerequisite for AI knowledge base (ADR-019) — structured actions and outcomes enable AI recommendations
+- **PWA retains the 3-status model** (observed/investigating/analyzed) — the educational scope does not require operational action tracking; this keeps the PWA simple for training
+- Prerequisite for AI knowledge base ([ADR-019](adr-019-ai-integration.md)) — structured actions and outcomes enable AI recommendations; the closed-loop investigation system is the primary data source for the AI knowledge loop
+- **No breaking changes** — new statuses and fields are additive; the 3-status model is a proper subset of the 5-status model
 - New fields are optional — existing .vrs files load safely without migration
+- Lightweight action items (not full project management) — no Gantt charts, dependencies, or priority levels; just enough structure to track corrective actions through completion
 
 ### Migration
 

@@ -54,10 +54,9 @@ interface ProcessContext {
   measurementUnit?: string; // "grams", "mm", "°C"
 
   // Factor role mapping (auto-inferred, user can correct)
-  equipmentFactor?: string; // Which factor = machines/equipment?
-  temporalFactor?: string; // Which factor = time periods/shifts?
-  operatorFactor?: string; // Which factor = people?
-  materialFactor?: string; // Which factor = materials/lots?
+  // Keyed by column name → role type. Multiple columns can share the same role.
+  // See ai-components.md ProcessContext Entry for UX spec.
+  factorRoles?: Record<string, 'equipment' | 'temporal' | 'operator' | 'material' | 'location'>;
 
   // Process structure (Phase 2 — optional)
   processSteps?: string[]; // ["mixing", "filling", "sealing", "packaging"]
@@ -89,6 +88,16 @@ const EQUIPMENT_KEYWORDS = [
 const TEMPORAL_KEYWORDS = ['shift', 'day', 'week', 'hour', 'period', 'time'];
 const OPERATOR_KEYWORDS = ['operator', 'technician', 'inspector', 'worker', 'person'];
 const MATERIAL_KEYWORDS = ['batch', 'lot', 'supplier', 'vendor', 'material', 'raw'];
+const LOCATION_KEYWORDS = [
+  'location',
+  'zone',
+  'area',
+  'site',
+  'plant',
+  'facility',
+  'building',
+  'room',
+];
 ```
 
 This makes auto-inference nearly free to implement — extending an existing pattern, not building new infrastructure.

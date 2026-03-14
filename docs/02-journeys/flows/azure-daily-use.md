@@ -46,13 +46,19 @@ flowchart TD
     I --> J
     J --> K[Dashboard]
     F --> K
-    K --> L{Analysis workflow}
+    K --> K2{AI configured?}
+    K2 -->|Yes| K3[NarrativeBar appears ~2s after stable data]
+    K2 -->|No| L
+    K3 --> L{Analysis workflow}
     L -->|Quick check| M[I-Chart stability + Stats review]
     L -->|Deep dive| N[Add factors, drill-down, Pareto]
     L -->|Multi-channel| O[Performance Mode]
-    M --> P{Share or export?}
-    N --> P
+    M --> M2[ChartInsightChip below chart cards — optional]
+    M2 --> P{Share or export?}
+    N --> N2[ChartInsightChip suggests next drill — optional]
+    N2 --> P
     O --> P
+    P -->|Ask AI| P2[NarrativeBar Ask → opens CopilotPanel]
     P -->|Export CSV| Q[Download filtered data]
     P -->|Copy chart| R[Clipboard: chart as image]
     P -->|Edit title| S[Custom chart title for report]
@@ -70,12 +76,16 @@ journey
       Open saved analysis or start new: 5: User
     section Analyze
       Quick check I-Chart: 5: User
+      NarrativeBar summarizes state: 5: User
       Review stats and ANOVA: 5: User
       Drill into problem area: 5: User
+      ChartInsightChip suggests next step: 5: User
     section Performance Mode
       Switch to multi-channel view: 4: User
       Pareto ranking worst-first: 5: User
       Drill into worst channel: 5: User
+    section AI Assist (optional)
+      Ask AI via CopilotPanel: 4: User
     section Export
       Copy chart to clipboard: 5: User
       Download CSV export: 5: User
@@ -95,7 +105,8 @@ The most common daily task: verify stability of a production process.
 3. Upload or paste today's data batch
 4. Check I-Chart: are points within control limits? Any Nelson rule violations?
 5. Review Stats panel: mean, sigma, Cp/Cpk
-6. Done — close or continue to deep dive
+6. _(If AI enabled)_ Glance at **NarrativeBar** at the bottom of the dashboard — a single-line summary appears ~2 seconds after stable data (e.g., "Process stable. Cpk 1.42, no violations detected.")
+7. Done — close or continue to deep dive
 
 ### Deep Dive (5–15 minutes)
 
@@ -103,10 +114,12 @@ When the quick check reveals issues:
 
 1. Add or change factors via the **"Factors" button** in the nav bar (reopens ColumnMapping, up to 6)
 2. Check ANOVA: is the factor significant? (p-value, eta-squared)
-3. Drill down: click Boxplot bars or Pareto categories to filter
-4. Follow the breadcrumb trail — each chip shows variation contribution (eta-squared %)
-5. Use the **Investigation Mindmap** to visualize the drill-down tree
-6. Identify the root cause factor/level combination
+3. _(If AI enabled)_ **ChartInsightChip** appears below the Boxplot card with a contextual suggestion (e.g., "Drill Machine A (47% contribution)"). Chips are dismissable and never block the workflow.
+4. Drill down: click Boxplot bars or Pareto categories to filter
+5. Follow the breadcrumb trail — each chip shows variation contribution (eta-squared %)
+6. _(If AI enabled)_ NarrativeBar updates with each drill step, summarizing the new scope (e.g., "Machine A explains 47% of variation. Morning shift shows Nelson Rule 2 violation.")
+7. _(If AI enabled)_ Click **"Ask →"** in the NarrativeBar to open the **CopilotPanel** for deeper questions (e.g., "Have we seen this pattern before?" or "What should I investigate next?")
+8. Identify the root cause factor/level combination
 
 ### Performance Mode (Multi-Channel Analysis)
 
@@ -134,15 +147,34 @@ For processes with many measurement points (filling heads, cavities, test statio
 
 ---
 
+## AI-Assisted Analysis (Optional)
+
+When AI is configured (see [AI Setup](azure-ai-setup.md)), three components enhance the daily workflow without changing it:
+
+| Component            | Where                        | What it does                                                            |
+| -------------------- | ---------------------------- | ----------------------------------------------------------------------- |
+| **NarrativeBar**     | Fixed at dashboard bottom    | One-line plain-language summary of current analysis state               |
+| **ChartInsightChip** | Below chart cards            | Per-chart contextual suggestion (e.g., drill target, violation context) |
+| **CopilotPanel**     | Slide-out panel (right edge) | Conversational AI for deeper questions, grounded in analysis context    |
+
+All AI features are **optional and dismissable**. The dashboard works identically without AI — no empty spaces, no placeholders. Users control AI visibility via the "Show AI assistance" toggle in Settings.
+
+AI never sends raw measurement data — only computed statistics (mean, Cpk, violations). See [ADR-019](../../07-decisions/adr-019-ai-integration.md) for the full design rationale.
+
+---
+
 ## Settings
 
 Accessible from the settings panel:
 
-| Setting          | Options               | Effect                  |
-| ---------------- | --------------------- | ----------------------- |
-| Theme            | Light / Dark / System | Switches all UI colors  |
-| Company accent   | Color picker          | Brand color on headers  |
-| Chart font scale | Slider                | Adjusts chart text size |
+| Setting            | Options               | Effect                         |
+| ------------------ | --------------------- | ------------------------------ |
+| Theme              | Light / Dark / System | Switches all UI colors         |
+| Company accent     | Color picker          | Brand color on headers         |
+| Chart font scale   | Slider                | Adjusts chart text size        |
+| Show AI assistance | Toggle (on/off)       | Show or hide all AI components |
+
+The "Show AI assistance" toggle only appears when an AI endpoint is configured. Default: ON.
 
 ---
 
@@ -177,6 +209,9 @@ Accessible from the settings panel:
 
 - [First Analysis](azure-first-analysis.md) — onboarding journey
 - [Team Collaboration](azure-team-collaboration.md) — sharing and admin setup
+- [AI Setup](azure-ai-setup.md) — admin flow for enabling AI features
 - [Performance Mode](../../03-features/analysis/performance-mode.md) — multi-channel analysis
 - [Drill-Down Workflow](../../03-features/workflows/drill-down-workflow.md) — investigation methodology
 - [Four Lenses Workflow](../../03-features/workflows/four-lenses-workflow.md) — analysis framework
+- [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CopilotPanel specs
+- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — architectural decision

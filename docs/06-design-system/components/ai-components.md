@@ -187,6 +187,279 @@ const narrativeBarDefaultColorScheme: NarrativeBarColorScheme = {
 
 ---
 
+## Mobile Responsive Behavior
+
+Detailed phone (<640px) specifications for each AI component. All mobile behavior is gated by `useIsMobile(640)` (same breakpoint as MobileChartCarousel, FindingsPanel, and MobileCategorySheet).
+
+### NarrativeBar on Phone
+
+Fixed at the bottom of the screen, above `safe-area-bottom`. Does not interfere with MobileChartCarousel swipe gestures — the bar sits below the carousel's dot indicators and chevron navigation.
+
+| Property       | Collapsed                             | Expanded                      |
+| -------------- | ------------------------------------- | ----------------------------- |
+| Height         | 48px                                  | Up to 96px (3 lines max)      |
+| Text           | Single line, ellipsis overflow        | Up to 3 lines, full text      |
+| Trigger        | Default state                         | Tap on text area              |
+| "Ask →" button | Right-aligned, always visible         | Right-aligned, always visible |
+| z-index        | `z-30` (below panels, above carousel) | `z-30`                        |
+
+**Layout stacking (bottom to top):**
+
+```
+safe-area-bottom (env(safe-area-inset-bottom))
+NarrativeBar (48–96px, z-30)
+Carousel dot indicators
+Carousel chart card
+```
+
+**Carousel interaction:**
+
+- When the carousel swipes to a new chart view, the NarrativeBar narrative updates for the newly visible chart (debounced 300ms to avoid flicker during rapid swipes)
+- Shimmer loading skeleton matches the full bar width during the debounce/loading period
+- The bar does not capture horizontal swipe gestures — touch events pass through to the carousel via CSS `touch-action: pan-x` on the carousel container
+
+**Collapse/expand animation:** `transition: max-height 200ms ease-out`. Tap anywhere on the text area toggles between collapsed (1 line) and expanded (up to 3 lines). Tap on "Ask →" always opens CopilotPanel regardless of expand state.
+
+### ChartInsightChip on Phone
+
+Chips are per-card — each carousel view has its own chip(s). Chips swipe together with their parent card during carousel navigation.
+
+| Property          | Phone (<640px)                           | Desktop                        |
+| ----------------- | ---------------------------------------- | ------------------------------ |
+| Max visible chips | 2 (horizontal scroll for additional)     | 3                              |
+| Position          | Below chart card, above dot indicators   | Below chart card               |
+| Interaction       | Tap to expand (no hover)                 | Hover to expand, click dismiss |
+| Dismiss gesture   | Swipe-left on chip (velocity > 0.3px/ms) | Click X button                 |
+| X button          | Always visible (no hover gate)           | Visible on hover               |
+
+**Layout within carousel card:**
+
+```
+┌──────────────────────────────┐
+│  Chart (full width)          │
+├──────────────────────────────┤
+│  [✦ Insight chip 1] [✦ ...]  │  ← horizontal scroll
+├──────────────────────────────┤
+│  ● ● ○ ●                    │  ← dot indicators
+└──────────────────────────────┘
+```
+
+**Chip expansion:** Tap on a truncated chip expands it inline (max 2 lines). Second tap collapses. Only one chip can be expanded at a time on phone.
+
+**Swipe-to-dismiss:** Horizontal swipe-left on a chip triggers dismiss animation (opacity 0, translateX -100%, 200ms). The `onDismiss` callback fires after animation completes. Swipe direction is left-only to avoid conflict with carousel navigation (which also uses horizontal swipes — chips consume the gesture when touch starts on a chip element).
+
+### CopilotPanel on Phone
+
+Full-screen overlay following the same pattern as FindingsPanel on phone (`fixed inset-0 z-40`). Reference: [Findings responsive behavior](findings.md#responsive-behavior) and [Azure Teams Mobile Flow](../../02-journeys/flows/azure-teams-mobile.md).
+
+**Layout:**
+
+```
+┌──────────────────────────────┐
+│  [←] Copilot            [⋮]  │  ← header (44px height)
+├──────────────────────────────┤
+│                              │
+│  Message history             │  ← scrollable, flex-1
+│  (full-width bubbles)        │
+│                              │
+├──────────────────────────────┤
+│  [Question chip] [chip] →    │  ← horizontal scroll
+├──────────────────────────────┤
+│  [Type a question...] [Send] │  ← fixed above keyboard
+│  safe-area-bottom            │
+└──────────────────────────────┘
+```
+
+| Element             | Spec                                                                                                                         |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Back button (←)     | Top-left, 44px touch target. Closes panel (same as FindingsPanel close)                                                      |
+| Header              | "Copilot" title, centered. Height 44px.                                                                                      |
+| Message bubbles     | Full-width layout (no left/right alignment waste on narrow screens)                                                          |
+| Suggested questions | Horizontal scroll chips above input field. 3-5 context-aware suggestions.                                                    |
+| Input field         | Fixed at bottom, above keyboard (`position: fixed; bottom: env(safe-area-inset-bottom)`). Full width minus 48px send button. |
+| Send button         | 44px square, right of input. Icon only (arrow-up).                                                                           |
+| Stop button         | Replaces send button during streaming. Red square icon, 44px. Calls `onStopStreaming()`.                                     |
+| z-index             | `z-40` (same as FindingsPanel overlay)                                                                                       |
+
+**Keyboard handling:**
+
+- Input field uses `position: fixed` with `bottom` adjusted for keyboard presence via `visualViewport` API resize events
+- When keyboard opens, message history scrolls to bottom automatically
+- Suggested question chips hidden when keyboard is open (input field takes priority)
+
+**Overflow menu (⋮):**
+
+- "Clear conversation" — clears message history with confirmation
+- "Copy last response" — copies most recent AI response to clipboard
+
+### AI Onboarding (First-Time Experience)
+
+When the AI endpoint is first configured and the user opens an analysis, a one-time onboarding sequence introduces the AI features without blocking the workflow.
+
+**Sequence:**
+
+1. NarrativeBar appears with welcome message: _"AI-powered insights are now available for your analysis."_
+2. A one-time tooltip points to the NarrativeBar "Ask →" button: _"Tap 'Ask →' to explore your data with AI assistance. You can control this in Settings."_
+3. Tooltip dismisses on tap anywhere. Never shows again.
+
+**Tooltip spec:**
+
+| Property     | Value                                                       |
+| ------------ | ----------------------------------------------------------- |
+| Position     | Above NarrativeBar, arrow pointing down to "Ask →" button   |
+| Background   | `bg-blue-600` (high contrast against dashboard)             |
+| Text color   | `text-white`                                                |
+| Max width    | 280px                                                       |
+| z-index      | `z-50` (above everything including panels)                  |
+| Persistence  | `localStorage` flag: `variscout_ai_onboarding_seen`         |
+| Animation    | Fade-in 300ms on mount. Fade-out 200ms on dismiss.          |
+| Phone layout | Centered above NarrativeBar. Same spec, no position change. |
+
+**Settings toggle default:** ON when endpoint is available. The onboarding tooltip references Settings so the user knows where to disable AI if desired.
+
+**No subsequent prompts:** After dismissal, the AI features behave normally. No recurring tips, no "did you know" popups, no feature tours.
+
+---
+
+## ProcessContext Entry
+
+### Process Description in Settings Panel
+
+A new "Process Description" section in `SettingsPanelBase`, positioned below the theme section and above the about section. Provides free-text context that enriches AI prompts.
+
+**Layout:**
+
+```
+┌──────────────────────────────┐
+│  Settings                    │
+│                              │
+│  Theme                       │
+│  [Light] [Dark] [System]     │
+│                              │
+│  ─────────────────────────   │
+│                              │
+│  AI Assistance               │
+│  [Toggle: Show AI assistance]│
+│                              │
+│  Process Description         │
+│  Describe your manufacturing │
+│  process, what you're        │
+│  measuring, and quality      │
+│  goals...                    │
+│  ┌──────────────────────┐    │
+│  │                      │    │  ← textarea, 4 rows
+│  │                      │    │
+│  │                      │    │
+│  │                      │    │
+│  └──────────────────────┘    │
+│  Helper: This helps AI       │
+│  understand your process     │
+│  and provide more relevant   │
+│  insights.                   │
+│                 423 / 500     │  ← character counter
+│                              │
+│  ─────────────────────────   │
+│                              │
+│  About                       │
+│  VariScout v2.x              │
+└──────────────────────────────┘
+```
+
+**Props (extension to SettingsPanelBase):**
+
+```typescript
+interface ProcessDescriptionProps {
+  value: string;
+  onChange: (value: string) => void;
+  maxLength?: number; // default: 500
+}
+```
+
+| Property        | Spec                                                                                                                          |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Textarea rows   | 4 (default), auto-expands up to 8 rows on phone for easier editing                                                            |
+| Placeholder     | "Describe your manufacturing process, what you're measuring, and quality goals..."                                            |
+| Character limit | 500 characters. Counter shows `{current} / 500` below textarea, right-aligned.                                                |
+| Counter color   | `text-content-secondary` normally, `text-red-400` when within 20 chars of limit                                               |
+| Persistence     | Azure: saved in `AnalysisState.processContext.description` (per-project). PWA: session-only (not persisted across reloads).   |
+| Save behavior   | Auto-save on blur (Azure). No explicit save button.                                                                           |
+| Visibility      | Only shown when AI endpoint is configured (hidden alongside AI toggle when no endpoint).                                      |
+| Helper text     | Below textarea: "This helps AI understand your process and provide more relevant insights." `text-content-secondary text-sm`. |
+| Optional        | AI works without a process description. No validation, no required state.                                                     |
+
+**Phone layout:** Textarea expands to full width. Character counter remains right-aligned below. Same placeholder text. The Settings panel on phone is already a full-screen overlay, so no additional layout changes are needed.
+
+### Factor Role Inference in ColumnMapping
+
+During column detection (`detectColumns()` in `@variscout/core/parser`), column names are matched against keyword groups to auto-infer factor roles. Inferred roles appear as dismissable badge chips on column cards in ColumnMapping.
+
+**Role Types:**
+
+```typescript
+type FactorRole = 'equipment' | 'temporal' | 'operator' | 'material' | 'location';
+```
+
+**Keyword Inference Rules:**
+
+| Role      | Keywords (case-insensitive)                                   | Badge Color                                                                |
+| --------- | ------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Equipment | machine, equipment, head, nozzle, cavity, line, station, tool | `bg-blue-100 text-blue-700` (dark: `bg-blue-900/30 text-blue-300`)         |
+| Temporal  | date, time, shift, day, week, month, hour, batch, lot, run    | `bg-purple-100 text-purple-700` (dark: `bg-purple-900/30 text-purple-300`) |
+| Operator  | operator, worker, technician, inspector, person, staff, user  | `bg-green-100 text-green-700` (dark: `bg-green-900/30 text-green-300`)     |
+| Material  | material, supplier, grade, resin, alloy, compound, raw, input | `bg-amber-100 text-amber-700` (dark: `bg-amber-900/30 text-amber-300`)     |
+| Location  | location, zone, area, site, plant, facility, building, room   | `bg-cyan-100 text-cyan-700` (dark: `bg-cyan-900/30 text-cyan-300`)         |
+
+**Badge on Column Card:**
+
+```
+┌──────────────────────────────────────┐
+│  Machine_ID                          │
+│  Categorical · 5 unique values       │
+│  [Equipment ×]  [? Why]              │  ← dismissable badge + tooltip
+│  Sample: A, B, C, D, E              │
+└──────────────────────────────────────┘
+```
+
+| Element        | Spec                                                                                                                                   |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Badge          | Rounded pill, role name + × dismiss button. 24px height.                                                                               |
+| × dismiss      | 16px touch target (expanded to 24px hit area). Removes badge, sets role to `undefined`.                                                |
+| "Why?" tooltip | On hover (desktop) or tap (phone): explains the inference rule. E.g., "Detected 'machine' in column name." Dismisses on tap elsewhere. |
+| Max one badge  | Each column card shows at most one inferred role badge.                                                                                |
+| No badge       | Columns that don't match any keyword group show no badge.                                                                              |
+
+**Persistence:**
+
+```typescript
+// In AnalysisState
+interface AnalysisState {
+  // ... existing fields
+  processContext?: ProcessContext;
+}
+
+// In ProcessContext (from ai-architecture.md)
+interface ProcessContext {
+  description?: string;
+  // Factor roles keyed by column name
+  factorRoles?: Record<string, FactorRole>;
+  // ... other Phase 2 fields
+}
+```
+
+- Inferred roles are stored in `AnalysisState.processContext.factorRoles`
+- User dismissals remove the entry from `factorRoles`
+- Roles persist with the `.vrs` project file (Azure) or session (PWA)
+- Roles are included in `buildAIContext()` payload for AI prompt enrichment
+
+**Behavior rules:**
+
+- Badges are **suggestions only** — dismissing a badge has no effect on analysis behavior, filtering, or chart rendering
+- Re-opening ColumnMapping in edit mode preserves user dismissals (does not re-infer dismissed roles)
+- If a column is renamed via ColumnMapping's rename feature, the role is not re-inferred automatically (user can manually re-assign via a future role selector in Phase 2)
+- Multiple columns can share the same role (e.g., two equipment-related columns)
+
+---
+
 ## Graceful Degradation
 
 All three components share a common visibility check:
@@ -206,3 +479,6 @@ When `showAI` is false, no AI components render. The dashboard layout is unchang
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Architectural decision
 - [Findings](findings.md) — Investigation findings system
 - [Panels and Drawers](../patterns/panels-and-drawers.md) — Panel patterns
+- [Azure Daily Use](../../02-journeys/flows/azure-daily-use.md) — AI in daily analysis workflow
+- [Azure AI Setup](../../02-journeys/flows/azure-ai-setup.md) — Admin AI setup flow
+- [Azure Teams Mobile](../../02-journeys/flows/azure-teams-mobile.md) — AI on phone

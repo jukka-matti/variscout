@@ -96,8 +96,9 @@ The admin (Olivia or IT) deploys VariScout to the organization's Azure tenant.
 1. Find VariScout on Azure Marketplace
 2. Click "Create"
 3. Enter: app name, region, Client ID, Client Secret
-4. Deploy — ARM template creates App Service Plan + App Service + EasyAuth config
-5. App is live at `https://<app-name>.azurewebsites.net` (~2 minutes)
+4. _(Optional)_ Check **"Enable AI-powered analysis"** — provisions Azure AI Foundry resources in the same tenant. Select model (GPT-4o-mini default). See [AI Setup](azure-ai-setup.md) for the full admin flow.
+5. Deploy — ARM template creates App Service Plan + App Service + EasyAuth config (+ AI resources if enabled)
+6. App is live at `https://<app-name>.azurewebsites.net` (~2 minutes)
 
 See [ARM Template](../../08-products/azure/arm-template.md) and [Marketplace Guide](../../08-products/azure/marketplace.md) for details.
 
@@ -171,15 +172,37 @@ The admin can add VariScout as a Teams tab:
 
 Team members can then add VariScout to any Teams channel as a tab — SSO flows through seamlessly.
 
-### 6. Settings and Branding
+### 6. AI-Powered Analysis (Optional)
+
+If the admin enabled AI during deployment, all team members have access to AI-assisted analysis features:
+
+| Feature                 | Plan | Phase | Description                                                                                     |
+| ----------------------- | ---- | ----- | ----------------------------------------------------------------------------------------------- |
+| **NarrativeBar**        | Both | 1     | Plain-language summary at dashboard bottom, visible to all users                                |
+| **ChartInsightChip**    | Both | 2     | Per-chart suggestions (e.g., "Drill Machine A (47%)")                                           |
+| **CopilotPanel**        | Both | 3     | Conversational AI for deeper questions                                                          |
+| **Team knowledge base** | Team | 2+    | Resolved findings accumulate as searchable organizational knowledge                             |
+| **Document retrieval**  | Team | 3     | CopilotPanel can reference team SOPs, fault trees, and past investigations via Azure AI Search  |
+| **Shared AI insights**  | Both | 1+    | NarrativeBar and ChartInsightChip content visible to all team members viewing the same analysis |
+
+**Team knowledge base (Phase 2+):** Each resolved finding — with its factor, contribution %, Cpk, corrective action, and measured outcome — is indexed via Azure AI Search. After 50+ resolved findings, the AI has genuine organizational knowledge backed by measurement data. CopilotPanel can answer questions like "Have we seen this pattern before?" by retrieving past investigations.
+
+**Document retrieval (Phase 3):** On the Team plan, CopilotPanel can reference quality documents stored in the Teams channel SharePoint (fault trees, SOPs, control plans). Azure AI Search with Foundry IQ orchestration provides semantic search across these documents.
+
+Each user controls their own AI visibility via the "Show AI assistance" toggle in Settings. AI features are always optional — the app works identically without them.
+
+See [AI Setup](azure-ai-setup.md) for the admin deployment flow and [ADR-019](../../07-decisions/adr-019-ai-integration.md) for the phased rollout plan.
+
+### 7. Settings and Branding
 
 Admin or any user can customize via the Settings panel:
 
-| Setting          | Purpose                                   |
-| ---------------- | ----------------------------------------- |
-| Theme            | Light / Dark / System (per user)          |
-| Company accent   | Brand color applied to headers (per user) |
-| Chart font scale | Adjust chart text size (per user)         |
+| Setting            | Purpose                                              |
+| ------------------ | ---------------------------------------------------- |
+| Theme              | Light / Dark / System (per user)                     |
+| Company accent     | Brand color applied to headers (per user)            |
+| Chart font scale   | Adjust chart text size (per user)                    |
+| Show AI assistance | Show or hide AI components (per user, if configured) |
 
 Settings are stored in browser `localStorage` (per device, not synced).
 
@@ -187,7 +210,7 @@ Settings are stored in browser `localStorage` (per device, not synced).
 
 ## Data Ownership
 
-All data stays within the customer's Azure tenant:
+All data stays within the customer's Azure tenant — including AI resources:
 
 ```
 CUSTOMER TENANT                        VARISCOUT (Publisher)
@@ -200,10 +223,15 @@ CUSTOMER TENANT                        VARISCOUT (Publisher)
 │  (authenticates)     │               │  - Customer data   │
 │                      │               │  - User identities │
 │  OneDrive            │               │  - App resources   │
-│  (stores analyses)   │               │  - Usage telemetry │
+│  (stores analyses)   │               │  - AI prompts/data │
+│                      │               │  - Usage telemetry │
+│  Azure AI Foundry    │               │                    │
+│  (optional, in-tenant) │             │                    │
 │                      │               │                    │
 └──────────────────────┘               └────────────────────┘
 ```
+
+When AI is enabled, Azure AI Foundry resources are deployed in the customer's tenant. AI receives only computed statistics (mean, Cpk, violations) — never raw measurement data. GDPR by design.
 
 - Publisher management is disabled — zero access to customer deployment
 - No telemetry or outbound calls to publisher systems
@@ -245,6 +273,8 @@ CUSTOMER TENANT                        VARISCOUT (Publisher)
 - [ARM Template](../../08-products/azure/arm-template.md) — deployment resources
 - [Authentication](../../08-products/azure/authentication.md) — EasyAuth details
 - [OneDrive Sync](../../08-products/azure/onedrive-sync.md) — sync and offline behavior
+- [AI Setup](azure-ai-setup.md) — admin flow for enabling AI features
 - [Enterprise Evaluation](enterprise.md) — how Olivia evaluated before deploying
 - [First Analysis](azure-first-analysis.md) — what team members experience on day one
 - [Daily Use](azure-daily-use.md) — ongoing workflow
+- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — AI architectural decision
