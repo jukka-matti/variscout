@@ -11,6 +11,9 @@ export type FactorRole =
   | 'location'
   | 'unknown';
 
+/** Target metric type for improvement tracking */
+export type TargetMetric = 'mean' | 'sigma' | 'cpk' | 'yield' | 'passRate';
+
 /** Process context provided by the user for AI grounding */
 export interface ProcessContext {
   /** Free-text description of the process (max 500 chars) */
@@ -21,6 +24,14 @@ export interface ProcessContext {
   measurement?: string;
   /** Inferred or confirmed factor roles (factor column name → role) */
   factorRoles?: Record<string, FactorRole>;
+  /** Problem statement: why this analysis is being done (max 500 chars) */
+  problemStatement?: string;
+  /** Target metric for improvement tracking */
+  targetMetric?: TargetMetric;
+  /** Target value for the chosen metric */
+  targetValue?: number;
+  /** Direction of improvement relative to target */
+  targetDirection?: 'minimize' | 'maximize' | 'target';
 }
 
 /** Known FactorRole values */
@@ -70,6 +81,25 @@ export interface AIContext {
     total: number;
     byStatus: Record<string, number>;
     keyDrivers: string[];
+  };
+  /** Investigation context (for investigation page CoScout) */
+  investigation?: {
+    problemStatement?: string;
+    targetMetric?: TargetMetric;
+    targetValue?: number;
+    currentValue?: number;
+    progressPercent?: number;
+    selectedFinding?: {
+      text: string;
+      hypothesis?: string;
+      projection?: { meanDelta: number; sigmaDelta: number };
+      actions?: Array<{ text: string; status: string }>;
+    };
+    allHypotheses?: Array<{
+      text: string;
+      status: string;
+      contribution?: number;
+    }>;
   };
   /** Glossary terms for grounding */
   glossaryFragment?: string;

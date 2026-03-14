@@ -54,8 +54,12 @@ export interface FindingCardProps {
   renderAssignSlot?: React.ReactNode;
   /** Maximum number of statuses to show in status badge dropdown (PWA=3, Azure=5). Default: all. */
   maxStatuses?: number;
-  /** Callback to set suspected cause */
-  onSetSuspectedCause?: (id: string, cause: string) => void;
+  /** Callback to link a hypothesis to a finding */
+  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
+  /** Callback to create a new hypothesis and link to a finding */
+  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  /** Map of hypothesis IDs to hypothesis objects for display */
+  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   /** Callback to add an action item */
   onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
   /** Callback to complete an action item */
@@ -78,21 +82,31 @@ export interface FindingCardProps {
 // Progressive Sections (5-status investigation workflow)
 // ============================================================================
 
-interface SuspectedCauseSectionProps {
+interface HypothesisSectionProps {
   findingId: string;
-  suspectedCause?: string;
-  onSetSuspectedCause: (id: string, cause: string) => void;
+  hypothesisId?: string;
+  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
   readOnly?: boolean;
 }
 
-const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({
+const HYPOTHESIS_STATUS_COLORS: Record<string, string> = {
+  untested: 'text-content-muted',
+  supported: 'text-green-400',
+  contradicted: 'text-red-400',
+  partial: 'text-amber-400',
+};
+
+const HypothesisSection: React.FC<HypothesisSectionProps> = ({
   findingId,
-  suspectedCause,
-  onSetSuspectedCause,
+  hypothesisId,
+  hypothesesMap,
+  onCreateHypothesis,
   readOnly,
 }) => {
-  const [isOpen, setIsOpen] = useState(!!suspectedCause);
-  const [draft, setDraft] = useState(suspectedCause ?? '');
+  const hypothesis = hypothesisId ? hypothesesMap?.[hypothesisId] : undefined;
+  const [isOpen, setIsOpen] = useState(!!hypothesis);
+  const [draft, setDraft] = useState('');
 
   return (
     <div className="mt-2 border-t border-edge/50 pt-2">
@@ -105,27 +119,55 @@ const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({
       >
         {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
         <Target size={10} />
-        <span>Suspected Cause</span>
-        {suspectedCause && !isOpen && (
-          <span className="ml-1 text-content-secondary truncate flex-1">
-            &mdash; {suspectedCause}
+        <span>Hypothesis</span>
+        {hypothesis && !isOpen && (
+          <span
+            className={`ml-1 truncate flex-1 ${HYPOTHESIS_STATUS_COLORS[hypothesis.status] ?? 'text-content-secondary'}`}
+          >
+            &mdash; {hypothesis.text}
           </span>
         )}
       </button>
       {isOpen && (
         <div className="mt-1">
-          <textarea
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            onBlur={() => {
-              if (draft !== (suspectedCause ?? '')) onSetSuspectedCause(findingId, draft);
-            }}
-            placeholder="What do you think is causing this?"
-            className="w-full text-[11px] bg-surface-tertiary/50 border border-edge/50 rounded px-2 py-1.5 text-content placeholder:text-content-muted resize-none focus:outline-none focus:border-blue-500/50"
-            rows={2}
-            readOnly={readOnly}
-            onClick={e => e.stopPropagation()}
-          />
+          {hypothesis ? (
+            <div className="text-[11px] space-y-1" onClick={e => e.stopPropagation()}>
+              <p className="text-content-secondary italic">&ldquo;{hypothesis.text}&rdquo;</p>
+              <div className="flex items-center gap-2 text-[10px]">
+                <span
+                  className={HYPOTHESIS_STATUS_COLORS[hypothesis.status] ?? 'text-content-muted'}
+                >
+                  {hypothesis.status.charAt(0).toUpperCase() + hypothesis.status.slice(1)}
+                </span>
+                {hypothesis.factor && (
+                  <span className="text-content-muted">
+                    {hypothesis.factor}
+                    {hypothesis.level ? `=${hypothesis.level}` : ''}
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : (
+            !readOnly &&
+            onCreateHypothesis && (
+              <div onClick={e => e.stopPropagation()}>
+                <textarea
+                  value={draft}
+                  onChange={e => setDraft(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey && draft.trim()) {
+                      e.preventDefault();
+                      onCreateHypothesis(findingId, draft.trim());
+                      setDraft('');
+                    }
+                  }}
+                  placeholder="What do you think is causing this? (Enter to create)"
+                  className="w-full text-[11px] bg-surface-tertiary/50 border border-edge/50 rounded px-2 py-1.5 text-content placeholder:text-content-muted resize-none focus:outline-none focus:border-blue-500/50"
+                  rows={2}
+                />
+              </div>
+            )
+          )}
         </div>
       )}
     </div>
@@ -378,7 +420,9 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAssign,
   renderAssignSlot,
   maxStatuses,
-  onSetSuspectedCause,
+  onLinkHypothesis: _onLinkHypothesis,
+  onCreateHypothesis,
+  hypothesesMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -569,13 +613,14 @@ const FindingCard: React.FC<FindingCardProps> = ({
         {/* Inline assign slot (e.g., PeoplePicker) */}
         {renderAssignSlot}
 
-        {/* Suspected Cause (visible from 'investigating' onward) */}
-        {onSetSuspectedCause &&
+        {/* Hypothesis (visible from 'investigating' onward) */}
+        {(onCreateHypothesis || finding.hypothesisId) &&
           ['investigating', 'analyzed', 'improving', 'resolved'].includes(status) && (
-            <SuspectedCauseSection
+            <HypothesisSection
               findingId={finding.id}
-              suspectedCause={finding.suspectedCause}
-              onSetSuspectedCause={onSetSuspectedCause}
+              hypothesisId={finding.hypothesisId}
+              hypothesesMap={hypothesesMap}
+              onCreateHypothesis={onCreateHypothesis}
               readOnly={status === 'resolved'}
             />
           )}

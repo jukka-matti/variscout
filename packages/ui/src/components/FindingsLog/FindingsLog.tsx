@@ -45,8 +45,12 @@ export interface FindingsLogProps {
   onNavigateToChart?: (source: import('@variscout/core').FindingSource) => void;
   /** Maximum statuses to show in status badge dropdown (3=PWA, 5=Azure). Default: all. */
   maxStatuses?: number;
-  /** Set suspected root cause text */
-  onSetSuspectedCause?: (id: string, cause: string) => void;
+  /** Link a hypothesis to a finding */
+  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
+  /** Create a new hypothesis and link to a finding */
+  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  /** Map of hypothesis IDs to hypothesis objects for display */
+  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   /** Add an action item */
   onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
   /** Complete an action item */
@@ -91,7 +95,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   renderAssignSlot,
   onNavigateToChart,
   maxStatuses,
-  onSetSuspectedCause,
+  onLinkHypothesis,
+  onCreateHypothesis,
+  hypothesesMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -133,7 +139,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
         renderAssignSlot={renderAssignSlot}
         onNavigateToChart={onNavigateToChart}
         maxStatuses={maxStatuses}
-        onSetSuspectedCause={onSetSuspectedCause}
+        onLinkHypothesis={onLinkHypothesis}
+        onCreateHypothesis={onCreateHypothesis}
+        hypothesesMap={hypothesesMap}
         onAddAction={onAddAction}
         onCompleteAction={onCompleteAction}
         onDeleteAction={onDeleteAction}
@@ -166,7 +174,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           renderAssignSlot={renderAssignSlot?.(finding.id)}
           onNavigateToChart={onNavigateToChart}
           maxStatuses={maxStatuses}
-          onSetSuspectedCause={onSetSuspectedCause}
+          onLinkHypothesis={onLinkHypothesis}
+          onCreateHypothesis={onCreateHypothesis}
+          hypothesesMap={hypothesesMap}
           onAddAction={onAddAction}
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}

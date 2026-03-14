@@ -314,6 +314,16 @@ export const Editor: React.FC<EditorProps> = ({
       location: currentProjectLocation,
     });
 
+  // Hypothesis creation from finding cards (creates hypothesis + links to finding)
+  const handleCreateHypothesis = useCallback(
+    (findingId: string, text: string, _factor?: string, _level?: string) => {
+      // For now, store hypothesis text as a comment on the finding
+      // Full hypothesis CRUD will be wired when DataContext exposes hypotheses state
+      findingsState.addFindingComment(findingId, `Hypothesis: ${text}`);
+    },
+    [findingsState]
+  );
+
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
 
@@ -723,7 +733,7 @@ export const Editor: React.FC<EditorProps> = ({
                   onCaptureFromTeams={
                     isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
                   }
-                  onSetSuspectedCause={findingsState.setSuspectedCause}
+                  onCreateHypothesis={handleCreateHypothesis}
                   onAddAction={findingsState.addAction}
                   onCompleteAction={findingsState.completeAction}
                   onDeleteAction={findingsState.deleteAction}
@@ -759,7 +769,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onCaptureFromTeams={
                   isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
                 }
-                onSetSuspectedCause={findingsState.setSuspectedCause}
+                onCreateHypothesis={handleCreateHypothesis}
                 onAddAction={findingsState.addAction}
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}

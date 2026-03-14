@@ -46,7 +46,9 @@ export interface FindingsPanelBaseProps {
 
   // 5-status investigation (Azure only)
   maxStatuses?: number;
-  onSetSuspectedCause?: (id: string, cause: string) => void;
+  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
+  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
@@ -98,7 +100,9 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   renderAssignSlot,
   onNavigateToChart,
   maxStatuses,
-  onSetSuspectedCause,
+  onLinkHypothesis,
+  onCreateHypothesis,
+  hypothesesMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -258,7 +262,9 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onNavigateToChart={onNavigateToChart}
           viewMode={viewMode}
           maxStatuses={maxStatuses}
-          onSetSuspectedCause={onSetSuspectedCause}
+          onLinkHypothesis={onLinkHypothesis}
+          onCreateHypothesis={onCreateHypothesis}
+          hypothesesMap={hypothesesMap}
           onAddAction={onAddAction}
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}

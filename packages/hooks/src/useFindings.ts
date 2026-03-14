@@ -11,6 +11,7 @@ import {
   type FindingAssignee,
   type FindingContext,
   type FindingOutcome,
+  type FindingProjection,
   type FindingSource,
   type FindingStatus,
   type FindingTag,
@@ -64,8 +65,18 @@ export interface UseFindingsReturn {
     status: PhotoUploadStatus,
     driveItemId?: string
   ) => void;
-  /** Set suspected root cause text */
-  setSuspectedCause: (id: string, cause: string) => void;
+  /** Link a finding to a hypothesis */
+  linkHypothesis: (
+    id: string,
+    hypothesisId: string,
+    validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
+  ) => void;
+  /** Unlink a finding from its hypothesis */
+  unlinkHypothesis: (id: string) => void;
+  /** Set a projection on a finding */
+  setProjection: (id: string, projection: FindingProjection) => void;
+  /** Clear a finding's projection */
+  clearProjection: (id: string) => void;
   /** Add an action item to a finding */
   addAction: (id: string, text: string, assignee?: string, dueDate?: string) => void;
   /** Update an existing action item */
@@ -305,10 +316,53 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     [onFindingsChange]
   );
 
-  const setSuspectedCause = useCallback(
-    (id: string, cause: string) => {
+  const linkHypothesis = useCallback(
+    (
+      id: string,
+      hypothesisId: string,
+      validationStatus?: 'supports' | 'contradicts' | 'inconclusive'
+    ) => {
       setFindings(prev => {
-        const next = prev.map(f => (f.id === id ? { ...f, suspectedCause: cause } : f));
+        const next = prev.map(f =>
+          f.id === id
+            ? { ...f, hypothesisId, validationStatus: validationStatus ?? f.validationStatus }
+            : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const unlinkHypothesis = useCallback(
+    (id: string) => {
+      setFindings(prev => {
+        const next = prev.map(f =>
+          f.id === id ? { ...f, hypothesisId: undefined, validationStatus: undefined } : f
+        );
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const setProjection = useCallback(
+    (id: string, projection: FindingProjection) => {
+      setFindings(prev => {
+        const next = prev.map(f => (f.id === id ? { ...f, projection } : f));
+        onFindingsChange?.(next);
+        return next;
+      });
+    },
+    [onFindingsChange]
+  );
+
+  const clearProjection = useCallback(
+    (id: string) => {
+      setFindings(prev => {
+        const next = prev.map(f => (f.id === id ? { ...f, projection: undefined } : f));
         onFindingsChange?.(next);
         return next;
       });
@@ -427,7 +481,10 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
     deleteFindingComment,
     addPhotoToComment,
     updatePhotoStatus,
-    setSuspectedCause,
+    linkHypothesis,
+    unlinkHypothesis,
+    setProjection,
+    clearProjection,
     addAction,
     updateAction,
     completeAction,

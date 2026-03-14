@@ -679,10 +679,10 @@ describe('useFindings', () => {
     });
   });
 
-  // --- 5-Status: Suspected Cause ---
+  // --- Hypothesis linking ---
 
-  describe('setSuspectedCause', () => {
-    it('sets suspected cause text on a finding', () => {
+  describe('linkHypothesis', () => {
+    it('sets hypothesisId on a finding', () => {
       const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
       const onChange = vi.fn();
       const { result } = renderHook(() =>
@@ -690,10 +690,202 @@ describe('useFindings', () => {
       );
 
       act(() => {
-        result.current.setSuspectedCause('f-1', 'Worn bearing');
+        result.current.linkHypothesis('f-1', 'hyp-42');
       });
 
-      expect(result.current.findings[0].suspectedCause).toBe('Worn bearing');
+      expect(result.current.findings[0].hypothesisId).toBe('hyp-42');
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('sets hypothesisId and validationStatus together', () => {
+      const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.linkHypothesis('f-1', 'hyp-99', 'supports');
+      });
+
+      expect(result.current.findings[0].hypothesisId).toBe('hyp-99');
+      expect(result.current.findings[0].validationStatus).toBe('supports');
+    });
+
+    it('accepts all valid validationStatus values', () => {
+      const initial = [
+        makeFinding({ id: 'f-1', text: 'Test', context: makeContext() }),
+        makeFinding({ id: 'f-2', text: 'Test 2', createdAt: 2000, context: makeContext() }),
+        makeFinding({ id: 'f-3', text: 'Test 3', createdAt: 3000, context: makeContext() }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      act(() => {
+        result.current.linkHypothesis('f-1', 'h-1', 'supports');
+      });
+      act(() => {
+        result.current.linkHypothesis('f-2', 'h-1', 'contradicts');
+      });
+      act(() => {
+        result.current.linkHypothesis('f-3', 'h-1', 'inconclusive');
+      });
+
+      expect(result.current.findings[0].validationStatus).toBe('supports');
+      expect(result.current.findings[1].validationStatus).toBe('contradicts');
+      expect(result.current.findings[2].validationStatus).toBe('inconclusive');
+    });
+  });
+
+  describe('unlinkHypothesis', () => {
+    it('clears hypothesisId and validationStatus from a finding', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          hypothesisId: 'hyp-10',
+          validationStatus: 'supports',
+        } as Finding & { hypothesisId: string; validationStatus: 'supports' }),
+      ];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      act(() => {
+        result.current.unlinkHypothesis('f-1');
+      });
+
+      expect(result.current.findings[0].hypothesisId).toBeUndefined();
+      expect(result.current.findings[0].validationStatus).toBeUndefined();
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('is a no-op for finding without a hypothesis link', () => {
+      const initial = [makeFinding({ id: 'f-1', text: 'No link', context: makeContext() })];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      act(() => {
+        result.current.unlinkHypothesis('f-1');
+      });
+
+      expect(result.current.findings[0].hypothesisId).toBeUndefined();
+      expect(onChange).toHaveBeenCalled();
+    });
+  });
+
+  // --- Projection ---
+
+  describe('setProjection', () => {
+    it('attaches a projection to a finding', () => {
+      const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      const projection = {
+        baselineMean: 10.0,
+        baselineSigma: 0.5,
+        projectedMean: 10.2,
+        projectedSigma: 0.3,
+        meanDelta: 0.2,
+        sigmaDelta: -0.2,
+        simulationParams: { meanAdjustment: 0.2, variationReduction: 40 },
+        createdAt: new Date().toISOString(),
+      };
+
+      act(() => {
+        result.current.setProjection('f-1', projection);
+      });
+
+      expect(result.current.findings[0].projection).toEqual(projection);
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('overwrites an existing projection', () => {
+      const existingProjection = {
+        baselineMean: 5.0,
+        baselineSigma: 0.2,
+        projectedMean: 5.5,
+        projectedSigma: 0.2,
+        meanDelta: 0.5,
+        sigmaDelta: 0,
+        simulationParams: { meanAdjustment: 0.5, variationReduction: 0 },
+        createdAt: '2026-01-01T00:00:00.000Z',
+      };
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          projection: existingProjection,
+        } as Finding & { projection: typeof existingProjection }),
+      ];
+      const { result } = renderHook(() => useFindings({ initialFindings: initial }));
+
+      const newProjection = {
+        ...existingProjection,
+        projectedMean: 6.0,
+        meanDelta: 1.0,
+        simulationParams: { meanAdjustment: 1.0, variationReduction: 0 },
+        createdAt: new Date().toISOString(),
+      };
+
+      act(() => {
+        result.current.setProjection('f-1', newProjection);
+      });
+
+      expect(result.current.findings[0].projection!.projectedMean).toBe(6.0);
+      expect(result.current.findings[0].projection!.meanDelta).toBe(1.0);
+    });
+  });
+
+  describe('clearProjection', () => {
+    it('removes projection from a finding', () => {
+      const projection = {
+        baselineMean: 10.0,
+        baselineSigma: 0.5,
+        projectedMean: 10.2,
+        projectedSigma: 0.3,
+        meanDelta: 0.2,
+        sigmaDelta: -0.2,
+        simulationParams: { meanAdjustment: 0.2, variationReduction: 40 },
+        createdAt: '2026-03-01T00:00:00.000Z',
+      };
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          context: makeContext(),
+          projection,
+        } as Finding & { projection: typeof projection }),
+      ];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      act(() => {
+        result.current.clearProjection('f-1');
+      });
+
+      expect(result.current.findings[0].projection).toBeUndefined();
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('is a no-op for finding without a projection', () => {
+      const initial = [makeFinding({ id: 'f-1', text: 'No projection', context: makeContext() })];
+      const onChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onFindingsChange: onChange })
+      );
+
+      act(() => {
+        result.current.clearProjection('f-1');
+      });
+
+      expect(result.current.findings[0].projection).toBeUndefined();
       expect(onChange).toHaveBeenCalled();
     });
   });

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildAIContext } from '../buildAIContext';
 import type { AIStatsInput } from '../buildAIContext';
-import type { Finding } from '../../types';
+import type { Finding } from '../../findings';
 import type { ProcessContext } from '../types';
 
 const mockStats: AIStatsInput = {

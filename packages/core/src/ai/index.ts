@@ -5,6 +5,7 @@
 export type {
   FactorRole,
   ProcessContext,
+  TargetMetric,
   AIContext,
   NarrationRequest,
   NarrationResponse,

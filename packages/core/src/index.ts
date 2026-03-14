@@ -192,6 +192,10 @@ export {
   DRILL_SWITCH_THRESHOLD,
 } from './variation';
 
+// Improvement Progress Tracking
+export type { ImprovementProgress, FindingContribution } from './variation/progress';
+export { computeImprovementProgress } from './variation/progress';
+
 // URL parameter utilities
 export {
   filtersToSearchParams,
@@ -247,6 +251,7 @@ export { hasExifData, stripExifSegments, stripExifFromBlob } from './utils/exifS
 export type {
   FactorRole,
   ProcessContext,
+  TargetMetric,
   AIContext,
   NarrationRequest,
   NarrationResponse,
@@ -288,22 +293,29 @@ export type {
   FindingComment,
   FindingTag,
   FindingSource,
+  FindingProjection,
   PhotoAttachment,
   PhotoUploadStatus,
   ActionItem,
   FindingOutcome,
+  Hypothesis,
+  HypothesisStatus,
 } from './findings';
 export {
   FINDING_STATUSES,
   FINDING_STATUS_LABELS,
   FINDING_TAGS,
   FINDING_TAG_LABELS,
+  HYPOTHESIS_STATUSES,
+  HYPOTHESIS_STATUS_LABELS,
   PWA_STATUSES,
+  generateId,
   createFinding,
   createFindingComment,
   createPhotoAttachment,
   createActionItem,
   createFindingOutcome,
+  createHypothesis,
   getFindingStatus,
   groupFindingsByStatus,
   formatFindingFilters,

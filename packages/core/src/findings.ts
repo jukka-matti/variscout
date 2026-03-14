@@ -121,6 +121,101 @@ export interface FindingOutcome {
 }
 
 // ============================================================================
+// Hypothesis Types
+// ============================================================================
+
+/** Status of a hypothesis based on evidence */
+export type HypothesisStatus = 'untested' | 'supported' | 'contradicted' | 'partial';
+
+/** Ordered list of hypothesis statuses */
+export const HYPOTHESIS_STATUSES: HypothesisStatus[] = [
+  'untested',
+  'supported',
+  'contradicted',
+  'partial',
+];
+
+/** Human-readable labels for hypothesis statuses */
+export const HYPOTHESIS_STATUS_LABELS: Record<HypothesisStatus, string> = {
+  untested: 'Untested',
+  supported: 'Supported',
+  contradicted: 'Contradicted',
+  partial: 'Partial',
+};
+
+/**
+ * A causal hypothesis — a shared theory that multiple findings can reference.
+ */
+export interface Hypothesis {
+  /** Unique identifier */
+  id: string;
+  /** Hypothesis text (e.g., "New operators lack system training") */
+  text: string;
+  /** Linked factor column name */
+  factor?: string;
+  /** Specific factor level (e.g., "Night") */
+  level?: string;
+  /** Validation status based on evidence */
+  status: HypothesisStatus;
+  /** IDs of findings that link to this hypothesis */
+  linkedFindingIds: string[];
+  /** Timestamp of creation */
+  createdAt: string;
+  /** Timestamp of last update */
+  updatedAt: string;
+}
+
+// ============================================================================
+// Finding Projection Types
+// ============================================================================
+
+/**
+ * A What-If projection attached to a finding.
+ * Captures baseline and projected stats for improvement tracking.
+ */
+export interface FindingProjection {
+  /** Baseline mean at projection time */
+  baselineMean: number;
+  /** Baseline sigma at projection time */
+  baselineSigma: number;
+  /** Baseline Cpk (only if specs exist) */
+  baselineCpk?: number;
+  /** Baseline yield percentage */
+  baselineYield?: number;
+  /** Baseline pass rate percentage */
+  baselinePassRate?: number;
+
+  /** Projected mean after improvement */
+  projectedMean: number;
+  /** Projected sigma after improvement */
+  projectedSigma: number;
+  /** Projected Cpk */
+  projectedCpk?: number;
+  /** Projected yield percentage */
+  projectedYield?: number;
+  /** Projected pass rate percentage */
+  projectedPassRate?: number;
+
+  /** Mean delta (projected - baseline) */
+  meanDelta: number;
+  /** Sigma delta (projected - baseline) */
+  sigmaDelta: number;
+
+  /** Contribution to improvement target (0.0-1.0) */
+  targetContribution?: number;
+
+  /** What-If simulation parameters used */
+  simulationParams: {
+    meanAdjustment: number;
+    variationReduction: number; // 0-100%
+    presetUsed?: string; // e.g., "match-best", "reach-target"
+  };
+
+  /** Timestamp of projection creation */
+  createdAt: string;
+}
+
+// ============================================================================
 // Finding Source (chart observation origin)
 // ============================================================================
 
@@ -169,8 +264,12 @@ export interface Finding {
   source?: FindingSource;
   /** Optional assignee for Team plan @mention workflow */
   assignee?: FindingAssignee;
-  /** Suspected root cause (free text, set during investigation) */
-  suspectedCause?: string;
+  /** Link to a hypothesis (replaces deprecated suspectedCause) */
+  hypothesisId?: string;
+  /** How this finding relates to its linked hypothesis */
+  validationStatus?: 'supports' | 'contradicts' | 'inconclusive';
+  /** What-If projection attached to this finding */
+  projection?: FindingProjection;
   /** Corrective/preventive action items */
   actions?: ActionItem[];
   /** Outcome assessment after actions complete */
@@ -182,10 +281,27 @@ export interface Finding {
 // ============================================================================
 
 /** Generate a unique ID */
-function generateId(): string {
+export function generateId(): string {
   return typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
     : `f-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+/**
+ * Create a new Hypothesis with a unique ID
+ */
+export function createHypothesis(text: string, factor?: string, level?: string): Hypothesis {
+  const now = new Date().toISOString();
+  return {
+    id: generateId(),
+    text,
+    factor,
+    level,
+    status: factor ? 'untested' : 'untested',
+    linkedFindingIds: [],
+    createdAt: now,
+    updatedAt: now,
+  };
 }
 
 /**

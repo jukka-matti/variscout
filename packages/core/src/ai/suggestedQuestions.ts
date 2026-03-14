@@ -11,7 +11,18 @@ const FALLBACK_QUESTIONS = [
   'How do I interpret the control chart?',
 ];
 
+const INVESTIGATION_FALLBACK_QUESTIONS = [
+  'Summarize the investigation progress',
+  'What should we investigate next?',
+  'Are any hypotheses contradicted by the data?',
+];
+
 export function buildSuggestedQuestions(context: AIContext): string[] {
+  // Investigation mode — different question set when on investigation page
+  if (context.investigation) {
+    return buildInvestigationQuestions(context);
+  }
+
   const questions: string[] = [];
 
   // Out-of-control points
@@ -53,6 +64,47 @@ export function buildSuggestedQuestions(context: AIContext): string[] {
       capped.push(fb);
     }
     fallbackIdx++;
+  }
+
+  return capped.slice(0, 5);
+}
+
+function buildInvestigationQuestions(context: AIContext): string[] {
+  const inv = context.investigation!;
+  const questions: string[] = [];
+
+  // Progress-aware
+  if (inv.progressPercent !== undefined && inv.progressPercent < 100) {
+    questions.push(`We're at ${Math.round(inv.progressPercent)}% of the target — what's missing?`);
+  }
+
+  // Hypothesis-aware
+  if (inv.allHypotheses && inv.allHypotheses.length > 0) {
+    const supported = inv.allHypotheses.filter(h => h.status === 'supported');
+    const untested = inv.allHypotheses.filter(h => h.status === 'untested');
+    if (supported.length > 0) {
+      questions.push(`What actions would address "${supported[0].text}"?`);
+    }
+    if (untested.length > 0) {
+      questions.push(`How can we test the hypothesis: "${untested[0].text}"?`);
+    }
+  }
+
+  // Selected finding
+  if (inv.selectedFinding) {
+    questions.push(`What do SOPs say about this type of issue?`);
+    if (inv.selectedFinding.projection) {
+      questions.push(`Is this projection realistic?`);
+    }
+  }
+
+  // Pad with investigation fallbacks
+  const capped = questions.slice(0, 5);
+  let idx = 0;
+  while (capped.length < 3 && idx < INVESTIGATION_FALLBACK_QUESTIONS.length) {
+    const fb = INVESTIGATION_FALLBACK_QUESTIONS[idx];
+    if (!capped.includes(fb)) capped.push(fb);
+    idx++;
   }
 
   return capped.slice(0, 5);

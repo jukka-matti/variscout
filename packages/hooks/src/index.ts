@@ -136,6 +136,13 @@ export {
 // Findings (scouting report)
 export { useFindings, type UseFindingsOptions, type UseFindingsReturn } from './useFindings';
 
+// Hypotheses (causal theories linked to findings)
+export {
+  useHypotheses,
+  type UseHypothesesOptions,
+  type UseHypothesesReturn,
+} from './useHypotheses';
+
 // Chart Wrapper Data Hooks (shared computation for app chart wrappers)
 export {
   useBoxplotWrapperData,

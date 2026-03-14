@@ -20,7 +20,9 @@ export interface FindingBoardColumnsProps {
   columnAliases?: Record<string, string>;
   activeFindingId?: string | null;
   maxStatuses?: number;
-  onSetSuspectedCause?: (id: string, cause: string) => void;
+  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
+  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
@@ -56,7 +58,9 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
   columnAliases,
   activeFindingId,
   maxStatuses,
-  onSetSuspectedCause,
+  onLinkHypothesis,
+  onCreateHypothesis,
+  hypothesesMap,
   onAddAction,
   onCompleteAction,
   onDeleteAction,
@@ -132,7 +136,9 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
                     columnAliases={columnAliases}
                     isActive={finding.id === activeFindingId}
                     maxStatuses={maxStatuses}
-                    onSetSuspectedCause={onSetSuspectedCause}
+                    onLinkHypothesis={onLinkHypothesis}
+                    onCreateHypothesis={onCreateHypothesis}
+                    hypothesesMap={hypothesesMap}
                     onAddAction={onAddAction}
                     onCompleteAction={onCompleteAction}
                     onDeleteAction={onDeleteAction}

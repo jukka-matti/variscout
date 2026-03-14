@@ -10,6 +10,7 @@ import {
   createFindingComment,
   createActionItem,
   createFindingOutcome,
+  createHypothesis,
   getFindingStatus,
   groupFindingsByStatus,
   migrateFindingStatus,
@@ -438,12 +439,6 @@ describe('createFindingOutcome', () => {
 // ============================================================================
 
 describe('Finding 5-status extensions', () => {
-  it('Finding can have suspectedCause', () => {
-    const f = createFinding('High variation', { Machine: ['A'] }, 50);
-    f.suspectedCause = 'Worn bearing on head 3';
-    expect(f.suspectedCause).toBe('Worn bearing on head 3');
-  });
-
   it('Finding can have actions array', () => {
     const f = createFinding('Drift detected', {}, null);
     const action = createActionItem('Replace part', 'Bob', '2026-04-15');
@@ -461,9 +456,41 @@ describe('Finding 5-status extensions', () => {
 
   it('new fields default to undefined (backward compat)', () => {
     const f = createFinding('test', {}, null);
-    expect(f.suspectedCause).toBeUndefined();
+    expect(f.hypothesisId).toBeUndefined();
     expect(f.actions).toBeUndefined();
     expect(f.outcome).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// createHypothesis Tests
+// ============================================================================
+
+describe('createHypothesis', () => {
+  it('creates a hypothesis with required fields', () => {
+    const h = createHypothesis('Worn bearing on head 3');
+    expect(h.id).toBeTruthy();
+    expect(h.text).toBe('Worn bearing on head 3');
+    expect(h.createdAt).toBeTruthy();
+    expect(h.updatedAt).toBeTruthy();
+    expect(h.linkedFindingIds).toEqual([]);
+  });
+
+  it('generates unique ids for each hypothesis', () => {
+    const h1 = createHypothesis('Cause A');
+    const h2 = createHypothesis('Cause B');
+    expect(h1.id).not.toBe(h2.id);
+  });
+
+  it('accepts optional factor and level', () => {
+    const h = createHypothesis('Tool wear', 'Machine', 'A');
+    expect(h.factor).toBe('Machine');
+    expect(h.level).toBe('A');
+  });
+
+  it('defaults status to untested', () => {
+    const h = createHypothesis('Vibration');
+    expect(h.status).toBe('untested');
   });
 });
 

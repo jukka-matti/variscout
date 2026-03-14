@@ -2,8 +2,8 @@
  * Assembles the structured AI context from current analysis state.
  */
 
-import type { AIContext, ProcessContext, FactorRole } from './types';
-import type { Finding } from '../findings';
+import type { AIContext, ProcessContext, FactorRole, TargetMetric } from './types';
+import type { Finding, Hypothesis } from '../findings';
 import { groupFindingsByStatus } from '../findings';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
 import type { GlossaryCategory } from '../glossary/types';
@@ -35,6 +35,15 @@ export interface BuildAIContextOptions {
     nelsonRule3Count?: number;
   };
   findings?: Finding[];
+  /** Hypotheses for investigation context */
+  hypotheses?: Hypothesis[];
+  /** Investigation progress data */
+  investigationProgress?: {
+    targetMetric: TargetMetric;
+    targetValue: number;
+    currentValue: number;
+    progressPercent: number;
+  };
   /** Maximum token budget for glossary (default 40 terms) */
   maxGlossaryTerms?: number;
 }
@@ -51,6 +60,8 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     factorRoles = {},
     violations,
     findings,
+    hypotheses,
+    investigationProgress,
     maxGlossaryTerms = 40,
   } = options;
 
@@ -106,6 +117,29 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       ),
       keyDrivers,
     };
+  }
+
+  // Add investigation context if problem statement or hypotheses exist
+  if (process.problemStatement || (hypotheses && hypotheses.length > 0) || investigationProgress) {
+    context.investigation = {};
+
+    if (process.problemStatement) {
+      context.investigation.problemStatement = process.problemStatement;
+    }
+
+    if (investigationProgress) {
+      context.investigation.targetMetric = investigationProgress.targetMetric;
+      context.investigation.targetValue = investigationProgress.targetValue;
+      context.investigation.currentValue = investigationProgress.currentValue;
+      context.investigation.progressPercent = investigationProgress.progressPercent;
+    }
+
+    if (hypotheses && hypotheses.length > 0) {
+      context.investigation.allHypotheses = hypotheses.map(h => ({
+        text: h.text,
+        status: h.status,
+      }));
+    }
   }
 
   return context;

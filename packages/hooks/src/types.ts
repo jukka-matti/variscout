@@ -16,6 +16,7 @@ import type {
   FilterAction,
   StageOrderMode,
   Finding,
+  Hypothesis,
   ProcessContext,
 } from '@variscout/core';
 
@@ -216,6 +217,10 @@ export interface AnalysisState {
   // --- Findings (scouting report) ---
   /** Analyst findings — bookmarked filter states with notes */
   findings?: Finding[];
+
+  // --- Hypotheses (causal theories linked to findings) ---
+  /** Causal hypotheses for investigation workflow */
+  hypotheses?: Hypothesis[];
 
   // --- AI process context ---
   /** Process description and factor roles for AI grounding */
