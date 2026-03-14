@@ -156,6 +156,28 @@ export function login(): void {
   window.location.href = '/.auth/login/aad';
 }
 
+// ── Periodic Token Refresh ──────────────────────────────────────────────
+
+const REFRESH_INTERVAL_MS = 45 * 60 * 1000; // 45 minutes
+let refreshIntervalId: ReturnType<typeof setInterval> | null = null;
+
+/** Start a periodic background token refresh (every 45 minutes).
+ *  Safe to call multiple times — clears any existing interval first. */
+export function startPeriodicRefresh(): void {
+  stopPeriodicRefresh();
+  refreshIntervalId = setInterval(() => {
+    refreshToken().catch(console.warn);
+  }, REFRESH_INTERVAL_MS);
+}
+
+/** Stop the periodic background token refresh. */
+export function stopPeriodicRefresh(): void {
+  if (refreshIntervalId !== null) {
+    clearInterval(refreshIntervalId);
+    refreshIntervalId = null;
+  }
+}
+
 /** Redirect to EasyAuth logout. */
 export function logout(): void {
   if (isLocalDev()) {

@@ -9,9 +9,11 @@
  * the app's CLIENT_ID before performing the exchange.
  *
  * Environment variables:
- *   CLIENT_ID     — Azure AD App Registration client ID
- *   CLIENT_SECRET — Azure AD App Registration client secret
- *   TENANT_ID     — Azure AD tenant ID
+ *   CLIENT_ID      — Azure AD App Registration client ID
+ *   CLIENT_SECRET  — Azure AD App Registration client secret
+ *   TENANT_ID      — Azure AD tenant ID
+ *   ALLOWED_ORIGIN — CORS allowed origin (defaults to '*' for dev)
+ *   FUNCTION_KEY   — Optional function-level auth key (skipped if unset)
  */
 
 const msal = require('@azure/msal-node');
@@ -61,6 +63,18 @@ const ALLOWED_SCOPES = new Set([
 const DEFAULT_SCOPES = ['https://graph.microsoft.com/Files.ReadWrite.All'];
 
 /**
+ * CORS headers applied to every response.
+ */
+function getCorsHeaders() {
+  const origin = process.env.ALLOWED_ORIGIN || '*';
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Functions-Key',
+  };
+}
+
+/**
  * Validate that all requested scopes are in the allowlist.
  * Returns the validated scopes array, or null if any scope is invalid.
  */
@@ -77,9 +91,28 @@ function validateScopes(requestedScopes) {
 }
 
 module.exports = async function (context, req) {
+  const corsHeaders = getCorsHeaders();
+
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    context.res = { status: 204, headers: corsHeaders };
+    return;
+  }
+
   // Only accept POST
   if (req.method !== 'POST') {
-    context.res = { status: 405, body: { error: 'Method not allowed' } };
+    context.res = { status: 405, headers: corsHeaders, body: { error: 'Method not allowed' } };
+    return;
+  }
+
+  // Function-level auth check (skip if FUNCTION_KEY is not configured)
+  const functionKey = process.env.FUNCTION_KEY;
+  if (functionKey && req.headers['x-functions-key'] !== functionKey) {
+    context.res = {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      body: { error: 'Unauthorized' },
+    };
     return;
   }
 
@@ -87,7 +120,7 @@ module.exports = async function (context, req) {
   if (!token || typeof token !== 'string') {
     context.res = {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
       body: { error: 'Missing or invalid token in request body' },
     };
     return;
@@ -97,7 +130,7 @@ module.exports = async function (context, req) {
   if (!validateAudience(token)) {
     context.res = {
       status: 403,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
       body: { error: 'Token audience mismatch' },
     };
     return;
@@ -108,7 +141,7 @@ module.exports = async function (context, req) {
   if (scopes === null) {
     context.res = {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
       body: { error: 'Invalid or disallowed scope requested' },
     };
     return;
@@ -123,7 +156,7 @@ module.exports = async function (context, req) {
 
     context.res = {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
       body: {
         accessToken: result.accessToken,
         expiresOn: result.expiresOn?.toISOString(),
@@ -133,8 +166,8 @@ module.exports = async function (context, req) {
     context.log.error('OBO token exchange failed:', err.message);
     context.res = {
       status: 401,
-      headers: { 'Content-Type': 'application/json' },
-      body: { error: 'Token exchange failed: ' + err.message },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      body: { error: 'Token exchange failed' },
     };
   }
 };

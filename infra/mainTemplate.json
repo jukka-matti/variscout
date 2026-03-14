@@ -30,7 +30,7 @@
     "clientSecret": {
       "type": "secureString",
       "metadata": {
-        "description": "Client secret of the Azure AD App Registration"
+        "description": "Client secret of the Azure AD App Registration. TODO: Store in Key Vault and reference via @Microsoft.KeyVault(SecretUri=...) in app settings instead of passing the raw value to MICROSOFT_PROVIDER_AUTHENTICATION_SECRET and Function App CLIENT_SECRET."
       }
     },
     "packageUrl": {
@@ -63,6 +63,11 @@
       "apiVersion": "2024-04-01",
       "name": "[variables('appServicePlanName')]",
       "location": "[parameters('location')]",
+      "tags": {
+        "product": "VariScout",
+        "plan": "[parameters('variscoutPlan')]",
+        "managedBy": "AzureMarketplace"
+      },
       "kind": "linux",
       "sku": {
         "name": "B1",
@@ -77,6 +82,11 @@
       "apiVersion": "2024-04-01",
       "name": "[variables('webAppName')]",
       "location": "[parameters('location')]",
+      "tags": {
+        "product": "VariScout",
+        "plan": "[parameters('variscoutPlan')]",
+        "managedBy": "AzureMarketplace"
+      },
       "dependsOn": ["[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
@@ -153,6 +163,11 @@
       "apiVersion": "2023-05-01",
       "name": "[variables('functionStorageName')]",
       "location": "[parameters('location')]",
+      "tags": {
+        "product": "VariScout",
+        "plan": "[parameters('variscoutPlan')]",
+        "managedBy": "AzureMarketplace"
+      },
       "kind": "StorageV2",
       "sku": {
         "name": "Standard_LRS"
@@ -168,6 +183,11 @@
       "apiVersion": "2024-04-01",
       "name": "[variables('functionPlanName')]",
       "location": "[parameters('location')]",
+      "tags": {
+        "product": "VariScout",
+        "plan": "[parameters('variscoutPlan')]",
+        "managedBy": "AzureMarketplace"
+      },
       "sku": {
         "name": "Y1",
         "tier": "Dynamic"
@@ -180,6 +200,11 @@
       "apiVersion": "2024-04-01",
       "name": "[variables('functionAppName')]",
       "location": "[parameters('location')]",
+      "tags": {
+        "product": "VariScout",
+        "plan": "[parameters('variscoutPlan')]",
+        "managedBy": "AzureMarketplace"
+      },
       "kind": "functionapp",
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('functionPlanName'))]",

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -283,6 +283,16 @@ const Dashboard = ({
     [chartTitles, setChartTitles]
   );
 
+  // Accessible live region text for screen readers
+  const liveRegionText = useMemo(() => {
+    const filterCount = Object.keys(filters || {}).length;
+    const parts = [`Showing ${filteredData.length} of ${rawData.length} data points`];
+    if (filterCount > 0) {
+      parts.push(`${filterCount} filter${filterCount > 1 ? 's' : ''} active`);
+    }
+    return parts.join('. ');
+  }, [filteredData.length, rawData.length, filters]);
+
   if (!outcome) return null;
 
   // Presentation Mode - Fullscreen overlay with all charts
@@ -385,6 +395,11 @@ const Dashboard = ({
       id="dashboard-export-container"
       className="flex flex-col h-full overflow-y-auto bg-surface relative"
     >
+      {/* Accessible live region for screen readers */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {liveRegionText}
+      </div>
+
       {/* Sticky Navigation */}
       <div className="sticky top-0 z-30 bg-surface">
         {/* Filter Breadcrumb Navigation with Variation Tracking */}
@@ -808,12 +823,14 @@ const Dashboard = ({
                 onClick={() => handleChartWrapperClick('stats')}
                 className={`transition-all ${getHighlightClass('stats')}`}
               >
-                <StatsPanel
-                  stats={stats}
-                  specs={specs}
-                  filteredData={filteredData}
-                  outcome={outcome}
-                />
+                <ErrorBoundary componentName="Stats Panel">
+                  <StatsPanel
+                    stats={stats}
+                    specs={specs}
+                    filteredData={filteredData}
+                    outcome={outcome}
+                  />
+                </ErrorBoundary>
               </div>
             }
           />

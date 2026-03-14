@@ -34,12 +34,14 @@ const SECURITY_HEADERS = {
     "frame-ancestors 'self' https://teams.microsoft.com https://*.teams.microsoft.com https://*.skype.com",
     "base-uri 'self'",
     "form-action 'self'",
+    "object-src 'none'",
   ].join('; '),
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
   // X-Frame-Options removed: CSP frame-ancestors supersedes it and supports multiple origins.
   // Teams requires iframe embedding which X-Frame-Options: DENY would block.
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(self), microphone=(), geolocation=(), payment=()',
 };
 
 function writeResponse(res, statusCode, headers) {
@@ -115,4 +117,8 @@ const server = createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`VariScout serving from ${DIST} on port ${PORT}`);
+});
+
+process.on('SIGTERM', () => {
+  server.close(() => process.exit(0));
 });

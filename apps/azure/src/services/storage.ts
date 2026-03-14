@@ -73,6 +73,9 @@ export function classifySyncError(error: unknown): ClassifiedError {
   if (error instanceof AuthError) {
     return { category: 'auth', retryable: false, message: error.message };
   }
+  if (error instanceof GraphError) {
+    return { category: 'throttle', retryable: true, message: error.message };
+  }
 
   const msg = error instanceof Error ? error.message : String(error);
   const status = extractStatusCode(msg);
@@ -99,6 +102,52 @@ export function classifySyncError(error: unknown): ClassifiedError {
 function extractStatusCode(msg: string): number {
   const match = msg.match(/\b(\d{3})\b/);
   return match ? parseInt(match[1], 10) : 0;
+}
+
+// ── Graph API errors ────────────────────────────────────────────────────
+
+export class GraphError extends Error {
+  retryAfterMs?: number;
+  constructor(message: string, retryAfterMs?: number) {
+    super(message);
+    this.name = 'GraphError';
+    this.retryAfterMs = retryAfterMs;
+  }
+}
+
+/** Parse the Retry-After header value into milliseconds.
+ *  The value can be seconds (integer) or an HTTP date string. */
+function parseRetryAfter(value: string | null): number | undefined {
+  if (!value) return undefined;
+
+  // Try as integer seconds first
+  const seconds = parseInt(value, 10);
+  if (!isNaN(seconds) && String(seconds) === value.trim()) {
+    return seconds * 1000;
+  }
+
+  // Try as HTTP date
+  const date = new Date(value);
+  if (!isNaN(date.getTime())) {
+    const ms = date.getTime() - Date.now();
+    return ms > 0 ? ms : 1000; // at least 1s if date is in the past
+  }
+
+  return undefined;
+}
+
+/** Perform a Graph API fetch, throwing GraphError with retryAfterMs on 429. */
+async function graphFetch(url: string, init: globalThis.RequestInit): Promise<Response> {
+  const response = await fetch(url, init);
+
+  if (response.status === 429) {
+    const retryAfterMs = parseRetryAfter(response.headers.get('Retry-After'));
+    const body = await response.json().catch(() => ({}));
+    const message = body.error?.message || `Graph API throttled: 429`;
+    throw new GraphError(message, retryAfterMs);
+  }
+
+  return response;
 }
 
 // ── Graph API base URL ──────────────────────────────────────────────────
@@ -149,7 +198,7 @@ async function ensureFolderExists(token: string, apiBase: ApiBase): Promise<void
   };
 
   // Create /VariScout (no-op if exists)
-  await fetch(`${GRAPH_BASE}${apiBase.rootPath}/children`, {
+  await graphFetch(`${GRAPH_BASE}${apiBase.rootPath}/children`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -160,7 +209,7 @@ async function ensureFolderExists(token: string, apiBase: ApiBase): Promise<void
   });
 
   // Create /VariScout/Projects (no-op if exists)
-  await fetch(`${GRAPH_BASE}${apiBase.rootPath}:/VariScout:/children`, {
+  await graphFetch(`${GRAPH_BASE}${apiBase.rootPath}:/VariScout:/children`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -200,6 +249,65 @@ async function listFromIndexedDB(): Promise<CloudProject[]> {
 
 // ── Cloud operations ────────────────────────────────────────────────────
 
+const LARGE_FILE_THRESHOLD = 4 * 1024 * 1024; // 4MB — Graph simple upload limit
+
+/** Upload a large file (>4MB) via a Graph upload session.
+ *  Uses a single PUT chunk, which covers files up to 60MB (all realistic VariScout files). */
+async function saveToCloudLargeFile(
+  token: string,
+  content: string,
+  filePath: string
+): Promise<{ id: string; etag: string }> {
+  // 1. Create an upload session
+  const sessionResponse = await graphFetch(
+    `${GRAPH_BASE}${filePath}:/createUploadSession`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        item: {
+          '@microsoft.graph.conflictBehavior': 'replace',
+        },
+      }),
+    }
+  );
+
+  if (!sessionResponse.ok) {
+    const error = await sessionResponse.json().catch(() => ({}));
+    throw new Error(error.error?.message || `Failed to create upload session: ${sessionResponse.status}`);
+  }
+
+  const session = await sessionResponse.json();
+  const uploadUrl = session.uploadUrl;
+
+  // 2. Upload entire content in a single PUT (works for files up to 60MB)
+  const contentBytes = new TextEncoder().encode(content);
+  const contentLength = contentBytes.byteLength;
+
+  const uploadResponse = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Length': String(contentLength),
+      'Content-Range': `bytes 0-${contentLength - 1}/${contentLength}`,
+    },
+    body: contentBytes,
+  });
+
+  if (!uploadResponse.ok) {
+    const error = await uploadResponse.json().catch(() => ({}));
+    throw new Error(error.error?.message || `Upload session failed: ${uploadResponse.status}`);
+  }
+
+  const data = await uploadResponse.json();
+  return {
+    id: data.id,
+    etag: data.eTag,
+  };
+}
+
 async function saveToCloud(
   token: string,
   project: Project,
@@ -208,14 +316,20 @@ async function saveToCloud(
 ): Promise<{ id: string; etag: string }> {
   const apiBase = await getApiBase(token, location);
   const filename = name.endsWith('.vrs') ? name : `${name}.vrs`;
+  const content = JSON.stringify(project);
 
-  const response = await fetch(`${GRAPH_BASE}${apiBase.filePath}/${filename}:/content`, {
+  // Use upload session for files larger than 4MB
+  if (new TextEncoder().encode(content).byteLength > LARGE_FILE_THRESHOLD) {
+    return saveToCloudLargeFile(token, content, `${apiBase.filePath}/${filename}`);
+  }
+
+  const response = await graphFetch(`${GRAPH_BASE}${apiBase.filePath}/${filename}:/content`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(project),
+    body: content,
   });
 
   if (!response.ok) {
@@ -238,7 +352,7 @@ async function loadFromCloud(
   const apiBase = await getApiBase(token, location);
   const filename = name.endsWith('.vrs') ? name : `${name}.vrs`;
 
-  const response = await fetch(`${GRAPH_BASE}${apiBase.filePath}/${filename}:/content`, {
+  const response = await graphFetch(`${GRAPH_BASE}${apiBase.filePath}/${filename}:/content`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -258,7 +372,7 @@ async function loadFromCloud(
 async function listFromCloud(token: string, location: StorageLocation): Promise<CloudProject[]> {
   const apiBase = await getApiBase(token, location);
 
-  const response = await fetch(
+  const response = await graphFetch(
     `${GRAPH_BASE}${apiBase.filePath}:/children?$filter=file ne null&$select=id,name,lastModifiedDateTime,lastModifiedBy,size`,
     {
       headers: {
@@ -319,7 +433,7 @@ async function getCloudModifiedDate(
   const filename = name.endsWith('.vrs') ? name : `${name}.vrs`;
 
   try {
-    const response = await fetch(
+    const response = await graphFetch(
       `${GRAPH_BASE}${apiBase.filePath}/${filename}?$select=lastModifiedDateTime`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -443,8 +557,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       } else {
         item.attempt++;
+        // Use server-specified Retry-After if available, otherwise exponential backoff
+        const serverDelay =
+          error instanceof GraphError && error.retryAfterMs
+            ? error.retryAfterMs
+            : undefined;
         const delayIdx = Math.min(item.attempt - 1, RETRY_DELAYS.length - 1);
-        const delay = Math.min(RETRY_DELAYS[delayIdx], MAX_RETRY_DELAY);
+        const delay = Math.min(serverDelay ?? RETRY_DELAYS[delayIdx], MAX_RETRY_DELAY);
         retryTimerRef.current = setTimeout(processRetryQueue, delay);
       }
     }

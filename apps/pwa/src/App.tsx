@@ -1,11 +1,7 @@
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import React, { Suspense, useCallback, useState, useEffect, useMemo } from 'react';
 import { toPng } from 'html-to-image';
 import { useData } from './context/DataContext';
 import { downloadCSV } from './lib/export';
-import SettingsPanel from './components/settings/SettingsPanel';
-import DataTableModal from './components/data/DataTableModal';
-import DataPanel from './components/data/DataPanel';
-import FindingsPanel from './components/FindingsPanel';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
@@ -22,13 +18,8 @@ import {
   buildFindingContext,
   buildFindingSource,
 } from '@variscout/hooks';
-import Dashboard from './components/Dashboard';
-import HomeScreen from './components/HomeScreen';
-import PasteScreen from './components/data/PasteScreen';
-import ManualEntry from './components/data/ManualEntry';
 import AppHeader from './components/layout/AppHeader';
 import AppFooter from './components/layout/AppFooter';
-import WhatIfPage from './components/WhatIfPage';
 import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
@@ -36,6 +27,42 @@ import { type ExclusionReason } from '@variscout/core';
 import { useControlViolations } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
+
+// Lazy-loaded heavy components for code splitting
+const Dashboard = React.lazy(() => import('./components/Dashboard'));
+const HomeScreen = React.lazy(() => import('./components/HomeScreen'));
+const PasteScreen = React.lazy(() => import('./components/data/PasteScreen'));
+const ManualEntry = React.lazy(() => import('./components/data/ManualEntry'));
+const WhatIfPage = React.lazy(() => import('./components/WhatIfPage'));
+const SettingsPanel = React.lazy(() => import('./components/settings/SettingsPanel'));
+const DataTableModal = React.lazy(() => import('./components/data/DataTableModal'));
+const DataPanel = React.lazy(() => import('./components/data/DataPanel'));
+const FindingsPanel = React.lazy(() => import('./components/FindingsPanel'));
+
+const LazyFallback = () => (
+  <div className="flex items-center justify-center h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+  </div>
+);
+
+function useOnlineStatus() {
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  return isOnline;
+}
 
 function App() {
   // Popout window route: render standalone FindingsWindow
@@ -335,19 +362,32 @@ function AppMain() {
     return () => window.removeEventListener('storage', handleStorage);
   }, [findingsState]);
 
+  const isOnline = useOnlineStatus();
+
   // Full-page What-If Simulator
   if (panels.isWhatIfPageOpen) {
     return (
-      <WhatIfPage
-        onBack={() => {
-          panels.setIsWhatIfPageOpen(false);
-        }}
-      />
+      <Suspense fallback={<LazyFallback />}>
+        <WhatIfPage
+          onBack={() => {
+            panels.setIsWhatIfPageOpen(false);
+          }}
+        />
+      </Suspense>
     );
   }
 
   return (
     <div className="flex flex-col h-screen bg-surface text-content font-sans selection:bg-blue-500/30">
+      {/* Offline status banner */}
+      {!isOnline && (
+        <div
+          className="bg-amber-600 text-white text-center text-sm py-1.5 px-4 font-medium"
+          role="alert"
+        >
+          You are offline. Analysis continues to work.
+        </div>
+      )}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
@@ -419,6 +459,7 @@ function AppMain() {
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
         {/* Main content area */}
         <div className="flex-1 overflow-hidden flex flex-col">
+          <Suspense fallback={<LazyFallback />}>
           {importFlow.isPasteMode ? (
             <PasteScreen
               onAnalyze={importFlow.handlePasteAnalyze}
@@ -485,6 +526,7 @@ function AppMain() {
               }}
             />
           )}
+          </Suspense>
         </div>
 
         {/* Findings Panel (inline, desktop only) */}

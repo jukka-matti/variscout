@@ -19,6 +19,32 @@
     ],
     "steps": [
       {
+        "name": "planStep",
+        "label": "Plan Selection",
+        "elements": [
+          {
+            "name": "planSelector",
+            "type": "Microsoft.Common.DropDown",
+            "label": "VariScout Plan",
+            "toolTip": "Select your VariScout subscription plan",
+            "defaultValue": "Standard (€99/month) - Full analysis, local file storage",
+            "constraints": {
+              "required": true,
+              "allowedValues": [
+                {
+                  "label": "Standard (€99/month) - Full analysis, local file storage",
+                  "value": "standard"
+                },
+                {
+                  "label": "Team (€299/month) - Teams, OneDrive, SharePoint, mobile, photos",
+                  "value": "team"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
         "name": "authentication",
         "label": "Authentication",
         "elements": [
@@ -63,7 +89,8 @@
       "appName": "[basics('appName')]",
       "location": "[location()]",
       "clientId": "[steps('authentication').clientId]",
-      "clientSecret": "[steps('authentication').clientSecret]"
+      "clientSecret": "[steps('authentication').clientSecret]",
+      "variscoutPlan": "[steps('planStep').planSelector]"
     }
   }
 }
