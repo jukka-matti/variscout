@@ -13,7 +13,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@microsoft/teams-js": "^2.49.0",
+    "@microsoft/teams-js": "^2.50.0",
     "@variscout/charts": "workspace:*",
     "@variscout/core": "workspace:*",
     "@variscout/data": "workspace:*",
