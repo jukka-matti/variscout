@@ -147,14 +147,44 @@ export const FACTOR_ROLE_KEYWORDS: Record<string, string[]> = {
 };
 
 /**
+ * Display names for category inference from keyword groups.
+ * Maps internal role keys to user-facing category names.
+ */
+export const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
+  equipment: 'Equipment',
+  temporal: 'Temporal',
+  operator: 'People',
+  material: 'Material',
+  location: 'Location',
+};
+
+/**
  * Infer a factor role from column name using keyword matching.
  * Returns null if no role can be inferred.
+ *
+ * @deprecated Use `inferCategoryName()` which returns a display-ready category name string.
  */
 export function inferFactorRole(columnName: string): FactorRole | null {
   const lower = columnName.toLowerCase().trim();
   for (const [role, keywords] of Object.entries(FACTOR_ROLE_KEYWORDS)) {
     if (keywords.some(kw => lower.includes(kw))) {
       return role as FactorRole;
+    }
+  }
+  return null;
+}
+
+/**
+ * Infer a category name from a column name using keyword matching.
+ * Returns a user-facing display name (e.g., "Equipment", "People") or null.
+ *
+ * This replaces `inferFactorRole()` for the dynamic category system.
+ */
+export function inferCategoryName(columnName: string): string | null {
+  const lower = columnName.toLowerCase().trim();
+  for (const [role, keywords] of Object.entries(FACTOR_ROLE_KEYWORDS)) {
+    if (keywords.some(kw => lower.includes(kw))) {
+      return CATEGORY_DISPLAY_NAMES[role] || role;
     }
   }
   return null;

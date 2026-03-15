@@ -286,6 +286,9 @@ export {
 // Factor role inference
 export { FACTOR_ROLE_KEYWORDS, inferFactorRole, findMatchedFactorKeyword } from './parser';
 
+// Category inference (dynamic investigation categories)
+export { CATEGORY_DISPLAY_NAMES, inferCategoryName } from './parser';
+
 // Findings (scouting report)
 export type {
   Finding,
@@ -303,6 +306,7 @@ export type {
   Hypothesis,
   HypothesisStatus,
   HypothesisValidationType,
+  InvestigationCategory,
 } from './findings';
 export {
   FINDING_STATUSES,
@@ -312,6 +316,7 @@ export {
   HYPOTHESIS_STATUSES,
   HYPOTHESIS_STATUS_LABELS,
   PWA_STATUSES,
+  CATEGORY_COLORS,
   generateId,
   createFinding,
   createFindingComment,
@@ -319,6 +324,9 @@ export {
   createActionItem,
   createFindingOutcome,
   createHypothesis,
+  createInvestigationCategory,
+  migrateFactorRolesToCategories,
+  getCategoryForFactor,
   getFindingStatus,
   groupFindingsByStatus,
   formatFindingFilters,

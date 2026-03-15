@@ -96,6 +96,7 @@ function createMockSetters() {
     setViewState: vi.fn(),
     setFindings: vi.fn(),
     setHypotheses: vi.fn(),
+    setCategories: vi.fn(),
   };
 }
 
@@ -132,6 +133,7 @@ function createDefaultInputs(
     viewState: null,
     findings: [],
     hypotheses: [],
+    categories: [],
     ...setters,
     ...overrides,
   };

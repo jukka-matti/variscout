@@ -18,6 +18,7 @@ import type {
   Finding,
   Hypothesis,
   ProcessContext,
+  InvestigationCategory,
 } from '@variscout/core';
 
 // Re-export for convenience
@@ -221,6 +222,10 @@ export interface AnalysisState {
   // --- Hypotheses (causal theories linked to findings) ---
   /** Causal hypotheses for investigation workflow */
   hypotheses?: Hypothesis[];
+
+  // --- Investigation categories (dynamic factor grouping) ---
+  /** User-defined categories grouping factor columns (replaces factorRoles) */
+  categories?: InvestigationCategory[];
 
   // --- AI process context ---
   /** Process description and factor roles for AI grounding */

@@ -2,7 +2,11 @@
  * AI integration types for VariScout
  */
 
-/** Factor role for AI context grounding */
+/**
+ * Factor role for AI context grounding.
+ * @deprecated Use dynamic `InvestigationCategory` from `@variscout/core/findings` instead.
+ * Kept for backward compatibility with old .vrs files and migration.
+ */
 export type FactorRole =
   | 'equipment'
   | 'temporal'
@@ -25,7 +29,11 @@ export interface ProcessContext {
   product?: string;
   /** Measurement being analyzed */
   measurement?: string;
-  /** Inferred or confirmed factor roles (factor column name → role) */
+  /**
+   * Inferred or confirmed factor roles (factor column name → role).
+   * @deprecated Use `InvestigationCategory[]` in `AnalysisState.categories` instead.
+   * Kept for backward compatibility — migrated on project load.
+   */
   factorRoles?: Record<string, FactorRole>;
   /** Problem statement: why this analysis is being done (max 500 chars) */
   problemStatement?: string;

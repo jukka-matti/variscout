@@ -16,7 +16,9 @@ import type {
   FilterAction,
   Finding,
   Hypothesis,
+  InvestigationCategory,
 } from '@variscout/core';
+import { migrateFactorRolesToCategories } from '@variscout/core';
 import type {
   AnalysisState,
   DisplayOptions,
@@ -80,6 +82,9 @@ export interface ProjectPersistenceInputs {
   // Hypotheses getter
   hypotheses: Hypothesis[];
 
+  // Categories getter
+  categories: InvestigationCategory[];
+
   // All setters for load/import/new
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
@@ -121,6 +126,9 @@ export interface ProjectPersistenceInputs {
 
   // Hypotheses setter
   setHypotheses: (hypotheses: Hypothesis[]) => void;
+
+  // Categories setter
+  setCategories: (categories: InvestigationCategory[]) => void;
 }
 
 export interface ProjectPersistenceResult {
@@ -211,6 +219,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setFindings,
     hypotheses,
     setHypotheses,
+    categories,
+    setCategories,
   } = inputs;
 
   // ---------------------------------------------------------------------------
@@ -261,6 +271,9 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     // Hypotheses — only include if non-empty
     if (hypotheses.length > 0) state.hypotheses = hypotheses;
 
+    // Categories — only include if non-empty
+    if (categories.length > 0) state.categories = categories;
+
     return state;
   }, [
     rawData,
@@ -289,6 +302,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     viewState,
     findings,
     hypotheses,
+    categories,
   ]);
 
   // ---------------------------------------------------------------------------
@@ -372,6 +386,18 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         // Hypotheses
         setHypotheses(state.hypotheses ?? []);
 
+        // Categories — migrate from old factorRoles if needed
+        if (state.categories && state.categories.length > 0) {
+          setCategories(state.categories);
+        } else if (
+          state.processContext?.factorRoles &&
+          Object.keys(state.processContext.factorRoles).length > 0
+        ) {
+          setCategories(migrateFactorRolesToCategories(state.processContext.factorRoles));
+        } else {
+          setCategories([]);
+        }
+
         setCurrentProjectId(project.id);
         setCurrentProjectName(project.name);
         setHasUnsavedChanges(false);
@@ -408,6 +434,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setViewState,
       setFindings,
       setHypotheses,
+      setCategories,
     ]
   );
 
@@ -505,6 +532,18 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       // Hypotheses
       setHypotheses(state.hypotheses ?? []);
 
+      // Categories — migrate from old factorRoles if needed
+      if (state.categories && state.categories.length > 0) {
+        setCategories(state.categories);
+      } else if (
+        state.processContext?.factorRoles &&
+        Object.keys(state.processContext.factorRoles).length > 0
+      ) {
+        setCategories(migrateFactorRolesToCategories(state.processContext.factorRoles));
+      } else {
+        setCategories([]);
+      }
+
       setCurrentProjectId(null);
       setCurrentProjectName(file.name.replace('.vrs', ''));
       setHasUnsavedChanges(true);
@@ -540,6 +579,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setViewState,
       setFindings,
       setHypotheses,
+      setCategories,
     ]
   );
 
@@ -575,11 +615,12 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureLabel('Measure');
     setSelectedMeasure(null);
     setCpkTarget(1.33);
-    // Reset filter stack, view state, findings, and hypotheses
+    // Reset filter stack, view state, findings, hypotheses, and categories
     setFilterStack([]);
     setViewState(null);
     setFindings([]);
     setHypotheses([]);
+    setCategories([]);
   }, [
     setRawData,
     setOutcome,
@@ -613,6 +654,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setViewState,
     setFindings,
     setHypotheses,
+    setCategories,
   ]);
 
   return {

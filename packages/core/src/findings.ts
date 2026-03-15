@@ -293,6 +293,111 @@ export interface Finding {
 }
 
 // ============================================================================
+// Investigation Categories (dynamic, user-defined factor grouping)
+// ============================================================================
+
+/**
+ * A user-defined investigation category that groups factor columns.
+ * Replaces the fixed FactorRole enum with dynamic, domain-agnostic categories.
+ *
+ * Three-level investigation tree: Category → Factor → Hypothesis
+ */
+export interface InvestigationCategory {
+  id: string;
+  /** User-defined name: "Equipment", "Drying Method", "Staff", etc. */
+  name: string;
+  /** Which factor columns belong to this category */
+  factorNames: string[];
+  /** Badge color — auto-assigned from palette or user-picked */
+  color?: string;
+  /** Keyword that triggered inference, if any (for tooltip display) */
+  inferredFrom?: string;
+}
+
+/**
+ * Color palette for auto-assigning category badge colors.
+ * Cycles through 8 distinct colors for visual differentiation.
+ */
+export const CATEGORY_COLORS = [
+  '#3b82f6', // blue
+  '#a855f7', // purple
+  '#22c55e', // green
+  '#f59e0b', // amber
+  '#06b6d4', // cyan
+  '#ef4444', // red
+  '#ec4899', // pink
+  '#64748b', // slate
+] as const;
+
+/**
+ * Create a new InvestigationCategory with a unique ID and auto-assigned color.
+ */
+export function createInvestigationCategory(
+  name: string,
+  factorNames: string[],
+  existingCount: number = 0,
+  inferredFrom?: string
+): InvestigationCategory {
+  const category: InvestigationCategory = {
+    id: generateId(),
+    name,
+    factorNames,
+    color: CATEGORY_COLORS[existingCount % CATEGORY_COLORS.length],
+  };
+  if (inferredFrom) category.inferredFrom = inferredFrom;
+  return category;
+}
+
+/**
+ * Migrate legacy factorRoles (Record<string, FactorRole>) to InvestigationCategory[].
+ * Each unique FactorRole value becomes a category, factors mapped accordingly.
+ *
+ * @param factorRoles - Old-style factor role map (column name → role enum value)
+ * @returns Array of InvestigationCategory objects
+ */
+export function migrateFactorRolesToCategories(
+  factorRoles: Record<string, string>
+): InvestigationCategory[] {
+  // Group factors by their role
+  const roleGroups = new Map<string, string[]>();
+  for (const [factor, role] of Object.entries(factorRoles)) {
+    if (role === 'unknown') continue; // Skip unknown — these go to "Other" implicitly
+    const existing = roleGroups.get(role) || [];
+    existing.push(factor);
+    roleGroups.set(role, existing);
+  }
+
+  // Convert each role group to a category
+  const categories: InvestigationCategory[] = [];
+  const ROLE_DISPLAY_NAMES: Record<string, string> = {
+    equipment: 'Equipment',
+    temporal: 'Temporal',
+    operator: 'People',
+    material: 'Material',
+    location: 'Location',
+  };
+
+  let index = 0;
+  for (const [role, factors] of roleGroups) {
+    const name = ROLE_DISPLAY_NAMES[role] || role.charAt(0).toUpperCase() + role.slice(1);
+    categories.push(createInvestigationCategory(name, factors, index));
+    index++;
+  }
+
+  return categories;
+}
+
+/**
+ * Get the category that a factor belongs to, or undefined if uncategorized.
+ */
+export function getCategoryForFactor(
+  categories: InvestigationCategory[],
+  factorName: string
+): InvestigationCategory | undefined {
+  return categories.find(c => c.factorNames.includes(factorName));
+}
+
+// ============================================================================
 // Factory Functions
 // ============================================================================
 
