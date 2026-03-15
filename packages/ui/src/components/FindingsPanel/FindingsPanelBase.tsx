@@ -96,6 +96,14 @@ export interface FindingsPanelBaseProps {
     total: number;
   };
 
+  // --- Validation Task (passed through to FindingsLog → HypothesisTreeView) ---
+  onSetValidationTask?: (id: string, task: string) => void;
+  onCompleteTask?: (id: string) => void;
+  onSetManualStatus?: (
+    id: string,
+    status: import('@variscout/core').HypothesisStatus,
+    note?: string
+  ) => void;
   // --- Improvement Ideas (passed through to FindingsLog → HypothesisTreeView) ---
   ideaImpacts?: Record<string, IdeaImpact | undefined>;
   onAddIdea?: (hypothesisId: string, text: string) => void;
@@ -165,6 +173,9 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onSelectHypothesis,
   onAddSubHypothesis,
   getChildrenSummary,
+  onSetValidationTask,
+  onCompleteTask,
+  onSetManualStatus,
   ideaImpacts,
   onAddIdea,
   onUpdateIdea,
@@ -353,6 +364,9 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onSelectHypothesis={onSelectHypothesis}
           onAddSubHypothesis={onAddSubHypothesis}
           getChildrenSummary={getChildrenSummary}
+          onSetValidationTask={onSetValidationTask}
+          onCompleteTask={onCompleteTask}
+          onSetManualStatus={onSetManualStatus}
           maxStatuses={maxStatuses}
           onLinkHypothesis={onLinkHypothesis}
           onCreateHypothesis={onCreateHypothesis}

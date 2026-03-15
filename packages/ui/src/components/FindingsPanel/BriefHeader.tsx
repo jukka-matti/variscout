@@ -17,6 +17,8 @@ export interface BriefHeaderProps {
   hypotheses?: Hypothesis[];
   /** Current metric value for progress computation */
   currentValue?: number;
+  /** Projected metric value from selected improvement ideas */
+  projectedValue?: number;
   /** Whether to start collapsed */
   defaultCollapsed?: boolean;
 }
@@ -40,6 +42,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
   processContext,
   hypotheses = [],
   currentValue,
+  projectedValue,
   defaultCollapsed = false,
 }) => {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
@@ -80,6 +83,35 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
       // target: bidirectional
       const gap = Math.abs(currentValue - target);
       progressPercent =
+        gap < 0.01 ? 100 : Math.min(100, Math.max(0, (1 - gap / Math.abs(target || 1)) * 100));
+    }
+  }
+
+  // Compute projected progress (from selected ideas)
+  let projectedProgressPercent: number | undefined;
+  if (
+    projectedValue !== undefined &&
+    processContext?.targetMetric &&
+    processContext?.targetValue !== undefined
+  ) {
+    const target = processContext.targetValue;
+    const direction = processContext.targetDirection || 'minimize';
+
+    if (direction === 'minimize') {
+      const initialGap = (currentValue ?? projectedValue) - target;
+      projectedProgressPercent =
+        initialGap > 0
+          ? Math.min(100, Math.max(0, (1 - (projectedValue - target) / initialGap) * 100))
+          : 100;
+    } else if (direction === 'maximize') {
+      const initialGap = target - (currentValue ?? projectedValue);
+      projectedProgressPercent =
+        initialGap > 0
+          ? Math.min(100, Math.max(0, (1 - (target - projectedValue) / initialGap) * 100))
+          : 100;
+    } else {
+      const gap = Math.abs(projectedValue - target);
+      projectedProgressPercent =
         gap < 0.01 ? 100 : Math.min(100, Math.max(0, (1 - gap / Math.abs(target || 1)) * 100));
     }
   }
@@ -135,11 +167,21 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
                     : '='}{' '}
                 {processContext.targetValue}
               </span>
-              <div className="flex-1 h-1.5 bg-surface-tertiary rounded-full overflow-hidden">
+              <div className="flex-1 h-1.5 bg-surface-tertiary rounded-full overflow-hidden flex">
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all"
+                  className="h-full bg-blue-500 rounded-l-full transition-all"
                   style={{ width: `${progressPercent ?? 0}%` }}
                 />
+                {projectedProgressPercent !== undefined &&
+                  projectedProgressPercent > (progressPercent ?? 0) && (
+                    <div
+                      className="h-full bg-blue-400/30 border-l border-dashed border-blue-400 transition-all"
+                      style={{
+                        width: `${Math.min(100, projectedProgressPercent) - (progressPercent ?? 0)}%`,
+                      }}
+                      data-testid="projected-progress-segment"
+                    />
+                  )}
               </div>
               {currentValue !== undefined && (
                 <span className="text-[10px] text-content-muted">

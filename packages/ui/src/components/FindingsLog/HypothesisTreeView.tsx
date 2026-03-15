@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import type {
   Hypothesis,
+  HypothesisStatus,
   Finding,
   InvestigationCategory,
   ImprovementIdea,
@@ -40,6 +41,13 @@ export interface HypothesisTreeViewProps {
   categories?: InvestigationCategory[];
   /** Factor name → η² percentage (for variation display on factor/category headers) */
   factorVariations?: Record<string, number>;
+  // --- Validation Task (passed through to HypothesisNode) ---
+  /** Set a validation task description */
+  onSetValidationTask?: (id: string, task: string) => void;
+  /** Mark a validation task as complete */
+  onCompleteTask?: (id: string) => void;
+  /** Manually set hypothesis status with optional note */
+  onSetManualStatus?: (id: string, status: HypothesisStatus, note?: string) => void;
   // --- Improvement Ideas (passed through to HypothesisNode) ---
   /** Computed impact for each idea (keyed by idea.id) */
   ideaImpacts?: Record<string, IdeaImpact | undefined>;
@@ -85,6 +93,9 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   searchFilter,
   categories,
   factorVariations,
+  onSetValidationTask,
+  onCompleteTask,
+  onSetManualStatus,
   ideaImpacts,
   onAddIdea,
   onUpdateIdea,
@@ -208,6 +219,9 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
             childrenSummary={getChildrenSummary?.(hypothesis.id)}
             canAddChild={canAddChild}
             showContradicted={showContradicted}
+            onSetValidationTask={onSetValidationTask}
+            onCompleteTask={onCompleteTask}
+            onSetManualStatus={onSetManualStatus}
             ideaImpacts={ideaImpacts}
             onAddIdea={onAddIdea}
             onUpdateIdea={onUpdateIdea}
@@ -232,6 +246,9 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
       showContradicted,
       maxDepth,
       maxChildrenPerParent,
+      onSetValidationTask,
+      onCompleteTask,
+      onSetManualStatus,
       ideaImpacts,
       onAddIdea,
       onUpdateIdea,

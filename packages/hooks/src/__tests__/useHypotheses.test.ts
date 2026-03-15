@@ -408,6 +408,83 @@ describe('useHypotheses', () => {
     });
   });
 
+  describe('status propagation from children', () => {
+    it('parent with all children contradicted → parent contradicted', () => {
+      const parent = createHypothesis('Root');
+      const c1 = createHypothesis('C1', 'A', undefined, parent.id);
+      const c2 = createHypothesis('C2', 'B', undefined, parent.id);
+      const anova = {
+        A: makeAnova(0.02), // contradicted
+        B: makeAnova(0.03), // contradicted
+      };
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [parent, c1, c2], anovaByFactor: anova })
+      );
+      expect(result.current.hypotheses.find(h => h.id === parent.id)!.status).toBe('contradicted');
+    });
+
+    it('parent with one supported child → parent supported', () => {
+      const parent = createHypothesis('Root');
+      const c1 = createHypothesis('C1', 'A', undefined, parent.id);
+      const c2 = createHypothesis('C2', 'B', undefined, parent.id);
+      const anova = {
+        A: makeAnova(0.2), // supported
+        B: makeAnova(0.03), // contradicted
+      };
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [parent, c1, c2], anovaByFactor: anova })
+      );
+      expect(result.current.hypotheses.find(h => h.id === parent.id)!.status).toBe('supported');
+    });
+
+    it('parent with mix of partial and contradicted → partial', () => {
+      const parent = createHypothesis('Root');
+      const c1 = createHypothesis('C1', 'A', undefined, parent.id);
+      const c2 = createHypothesis('C2', 'B', undefined, parent.id);
+      const anova = {
+        A: makeAnova(0.1), // partial
+        B: makeAnova(0.03), // contradicted
+      };
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [parent, c1, c2], anovaByFactor: anova })
+      );
+      expect(result.current.hypotheses.find(h => h.id === parent.id)!.status).toBe('partial');
+    });
+
+    it('parent with any untested child → keeps own status', () => {
+      const parent = createHypothesis('Root', 'Machine');
+      const c1 = createHypothesis('C1', 'A', undefined, parent.id);
+      const c2 = createHypothesis('C2', undefined, undefined, parent.id); // no factor → untested
+      const anova = {
+        Machine: makeAnova(0.2), // parent's own factor → supported
+        A: makeAnova(0.2), // child supported
+      };
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [parent, c1, c2], anovaByFactor: anova })
+      );
+      // Parent keeps its own data-derived status because one child is untested
+      expect(result.current.hypotheses.find(h => h.id === parent.id)!.status).toBe('supported');
+    });
+
+    it('multi-level propagation (grandchild → child → root)', () => {
+      const root = createHypothesis('Root');
+      const child = createHypothesis('Child', undefined, undefined, root.id);
+      const gc1 = createHypothesis('GC1', 'A', undefined, child.id);
+      const gc2 = createHypothesis('GC2', 'B', undefined, child.id);
+      const anova = {
+        A: makeAnova(0.2), // supported
+        B: makeAnova(0.1), // partial
+      };
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [root, child, gc1, gc2], anovaByFactor: anova })
+      );
+      // Grandchildren: supported + partial → child becomes supported (has at least one supported)
+      expect(result.current.hypotheses.find(h => h.id === child.id)!.status).toBe('supported');
+      // Child is only child of root, and is supported → root becomes supported
+      expect(result.current.hypotheses.find(h => h.id === root.id)!.status).toBe('supported');
+    });
+  });
+
   describe('improvement ideas', () => {
     const makeProjection = (): FindingProjection => ({
       baselineMean: 18.3,

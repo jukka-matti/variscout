@@ -65,6 +65,8 @@ export interface UseFindingsOrchestrationOptions {
   processContext?: ProcessContext;
   /** Current Cpk or mean value for popout sync */
   currentValue?: number;
+  /** Projected metric value from selected improvement ideas */
+  projectedValue?: number;
   /** Factor role classifications for sidebar */
   factorRoles?: Record<string, string>;
   /** Whether AI features are available */
@@ -122,6 +124,7 @@ export function useFindingsOrchestration({
   hypotheses,
   processContext,
   currentValue,
+  projectedValue,
   factorRoles,
   aiAvailable,
 }: UseFindingsOrchestrationOptions): UseFindingsOrchestrationReturn {
@@ -242,8 +245,8 @@ export function useFindingsOrchestration({
   const popupRef = useRef<Window | null>(null);
 
   const popoutOptions = useMemo(
-    () => ({ hypotheses, processContext, currentValue, factorRoles, aiAvailable }),
-    [hypotheses, processContext, currentValue, factorRoles, aiAvailable]
+    () => ({ hypotheses, processContext, currentValue, projectedValue, factorRoles, aiAvailable }),
+    [hypotheses, processContext, currentValue, projectedValue, factorRoles, aiAvailable]
   );
 
   const handleOpenFindingsPopout = useCallback(() => {

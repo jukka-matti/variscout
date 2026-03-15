@@ -138,6 +138,18 @@ function computeStatus(
 }
 
 /**
+ * Derive a parent's status from its children's statuses.
+ * Returns null if any child is untested (no override — keep own status).
+ */
+function deriveStatusFromChildren(childStatuses: HypothesisStatus[]): HypothesisStatus | null {
+  if (childStatuses.length === 0) return null;
+  if (childStatuses.some(s => s === 'untested')) return null;
+  if (childStatuses.every(s => s === 'contradicted')) return 'contradicted';
+  if (childStatuses.some(s => s === 'supported')) return 'supported';
+  return 'partial';
+}
+
+/**
  * Get the depth of a hypothesis in the tree.
  */
 function getHypothesisDepth(id: string, hypotheses: Hypothesis[]): number {
@@ -169,13 +181,65 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>(initialHypotheses ?? []);
 
   // Auto-validate statuses when ANOVA changes (data-validated only)
+  // Then propagate children statuses upward to parents (bottom-up).
   const validatedHypotheses = useMemo(() => {
-    return hypotheses.map(h => {
+    // Pass 1: compute per-hypothesis data status
+    const withStatus = hypotheses.map(h => {
       const computed = computeStatus(h, anovaByFactor);
       return computed !== h.status
         ? { ...h, status: computed, updatedAt: new Date().toISOString() }
         : h;
     });
+
+    // Pass 2: propagate children → parent (bottom-up by depth)
+    // Build depth map and parent→children index
+    const byId = new Map<string, number>();
+    for (let i = 0; i < withStatus.length; i++) {
+      byId.set(withStatus[i].id, i);
+    }
+
+    const childrenOf = new Map<string, number[]>();
+    for (let i = 0; i < withStatus.length; i++) {
+      const pid = withStatus[i].parentId;
+      if (pid) {
+        const siblings = childrenOf.get(pid);
+        if (siblings) siblings.push(i);
+        else childrenOf.set(pid, [i]);
+      }
+    }
+
+    // Only process parents that have children
+    if (childrenOf.size === 0) return withStatus;
+
+    // Compute depths, sort parents deepest-first
+    const parentIds = [...childrenOf.keys()];
+    const depthOf = (id: string): number => {
+      let d = 0;
+      let cur = withStatus[byId.get(id)!];
+      while (cur?.parentId) {
+        d++;
+        const idx = byId.get(cur.parentId);
+        if (idx === undefined) break;
+        cur = withStatus[idx];
+        if (d > MAX_HYPOTHESIS_DEPTH + 1) break;
+      }
+      return d;
+    };
+    parentIds.sort((a, b) => depthOf(b) - depthOf(a));
+
+    const result = [...withStatus];
+    for (const pid of parentIds) {
+      const pidx = byId.get(pid);
+      if (pidx === undefined) continue;
+      const childIndices = childrenOf.get(pid)!;
+      const childStatuses = childIndices.map(i => result[i].status);
+      const derived = deriveStatusFromChildren(childStatuses);
+      if (derived !== null && derived !== result[pidx].status) {
+        result[pidx] = { ...result[pidx], status: derived, updatedAt: new Date().toISOString() };
+      }
+    }
+
+    return result;
   }, [hypotheses, anovaByFactor]);
 
   const isAtCapacity = validatedHypotheses.length >= MAX_TOTAL_HYPOTHESES;

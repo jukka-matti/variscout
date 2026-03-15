@@ -34,6 +34,8 @@ export interface FindingsSyncData {
   processContext?: ProcessContext;
   /** Current metric value for progress bar */
   currentValue?: number;
+  /** Projected metric value from selected improvement ideas */
+  projectedValue?: number;
   /** Current investigation phase */
   investigationPhase?: InvestigationPhase;
   /** Suggested questions from AI context */
@@ -338,6 +340,7 @@ const FindingsWindow: React.FC = () => {
         processContext={processContext}
         hypotheses={hypotheses}
         currentValue={currentValue}
+        projectedValue={syncData.projectedValue}
       />
 
       {/* Header bar */}
@@ -534,6 +537,7 @@ export interface PopoutSyncOptions {
   hypotheses?: Hypothesis[];
   processContext?: ProcessContext;
   currentValue?: number;
+  projectedValue?: number;
   investigationPhase?: InvestigationPhase;
   suggestedQuestions?: string[];
   factorRoles?: Record<string, string>;
@@ -554,6 +558,7 @@ export function openFindingsPopout(
     hypotheses: options?.hypotheses,
     processContext: options?.processContext,
     currentValue: options?.currentValue,
+    projectedValue: options?.projectedValue,
     investigationPhase: options?.investigationPhase,
     suggestedQuestions: options?.suggestedQuestions,
     factorRoles: options?.factorRoles,
@@ -588,6 +593,7 @@ export function updateFindingsPopout(
     hypotheses: options?.hypotheses,
     processContext: options?.processContext,
     currentValue: options?.currentValue,
+    projectedValue: options?.projectedValue,
     investigationPhase: options?.investigationPhase,
     suggestedQuestions: options?.suggestedQuestions,
     factorRoles: options?.factorRoles,

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import HypothesisTreeView from '../HypothesisTreeView';
+import HypothesisNode from '../HypothesisNode';
 import { createHypothesis, createInvestigationCategory } from '@variscout/core';
 
 const makeHypothesis = (text: string, parentId?: string, factor?: string) => {
@@ -198,6 +199,127 @@ describe('HypothesisTreeView', () => {
       // Click factor header to expand
       fireEvent.click(screen.getByTestId('factor-header-Machine'));
       expect(screen.getByText('Machine worn out')).toBeTruthy();
+    });
+  });
+
+  describe('ValidationTaskSection (gemba/expert)', () => {
+    it('renders task input for gemba type without validationTask', () => {
+      const h = createHypothesis('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      render(
+        <HypothesisNode
+          hypothesis={h}
+          depth={0}
+          children={[]}
+          linkedFindings={[]}
+          isExpanded={true}
+          onToggle={() => {}}
+          canAddChild={false}
+          showContradicted={false}
+        />
+      );
+      expect(screen.getByTestId(`validation-task-input-${h.id}`)).toBeTruthy();
+      expect(screen.getByPlaceholderText('What needs to be checked?')).toBeTruthy();
+    });
+
+    it('calls onSetValidationTask on Enter', () => {
+      const onSet = vi.fn();
+      const h = createHypothesis('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      render(
+        <HypothesisNode
+          hypothesis={h}
+          depth={0}
+          children={[]}
+          linkedFindings={[]}
+          isExpanded={true}
+          onToggle={() => {}}
+          canAddChild={false}
+          showContradicted={false}
+          onSetValidationTask={onSet}
+        />
+      );
+      const input = screen.getByTestId(`validation-task-input-${h.id}`);
+      fireEvent.change(input, { target: { value: 'Go inspect Machine 5' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+      expect(onSet).toHaveBeenCalledWith(h.id, 'Go inspect Machine 5');
+    });
+
+    it('shows complete checkbox when task exists', () => {
+      const h = createHypothesis('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      h.validationTask = 'Go check Machine 5';
+      render(
+        <HypothesisNode
+          hypothesis={h}
+          depth={0}
+          children={[]}
+          linkedFindings={[]}
+          isExpanded={true}
+          onToggle={() => {}}
+          canAddChild={false}
+          showContradicted={false}
+        />
+      );
+      expect(screen.getByText('Go check Machine 5')).toBeTruthy();
+      expect(screen.getByTestId(`validation-task-complete-${h.id}`)).toBeTruthy();
+    });
+
+    it('calls onCompleteTask when checkbox clicked', () => {
+      const onComplete = vi.fn();
+      const h = createHypothesis('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      h.validationTask = 'Go check Machine 5';
+      render(
+        <HypothesisNode
+          hypothesis={h}
+          depth={0}
+          children={[]}
+          linkedFindings={[]}
+          isExpanded={true}
+          onToggle={() => {}}
+          canAddChild={false}
+          showContradicted={false}
+          onCompleteTask={onComplete}
+        />
+      );
+      fireEvent.click(screen.getByTestId(`validation-task-complete-${h.id}`));
+      expect(onComplete).toHaveBeenCalledWith(h.id);
+    });
+
+    it('shows status buttons after task completed', () => {
+      const h = createHypothesis('Check nozzle', 'Machine', undefined, undefined, 'gemba');
+      h.validationTask = 'Go check Machine 5';
+      h.taskCompleted = true;
+      render(
+        <HypothesisNode
+          hypothesis={h}
+          depth={0}
+          children={[]}
+          linkedFindings={[]}
+          isExpanded={true}
+          onToggle={() => {}}
+          canAddChild={false}
+          showContradicted={false}
+        />
+      );
+      expect(screen.getByTestId(`validation-status-supported-${h.id}`)).toBeTruthy();
+      expect(screen.getByTestId(`validation-status-contradicted-${h.id}`)).toBeTruthy();
+      expect(screen.getByTestId(`validation-status-partial-${h.id}`)).toBeTruthy();
+    });
+
+    it('does NOT render for data-validated hypotheses', () => {
+      const h = createHypothesis('Data check', 'Machine');
+      // validationType is undefined (defaults to data)
+      render(
+        <HypothesisNode
+          hypothesis={h}
+          depth={0}
+          children={[]}
+          linkedFindings={[]}
+          isExpanded={true}
+          onToggle={() => {}}
+          canAddChild={false}
+          showContradicted={false}
+        />
+      );
+      expect(screen.queryByTestId(`validation-task-section-${h.id}`)).toBeNull();
     });
   });
 });

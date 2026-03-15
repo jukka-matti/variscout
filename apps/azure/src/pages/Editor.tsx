@@ -44,7 +44,7 @@ import {
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
-import type { ExclusionReason } from '@variscout/core';
+import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import { SAMPLES } from '@variscout/data';
 import {
   Upload,
@@ -251,6 +251,28 @@ export const Editor: React.FC<EditorProps> = ({
   // Share handlers
   const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
 
+  // Compute projected metric value from selected improvement ideas (for BriefHeader progress bar)
+  const projectedFromIdeas = useMemo(() => {
+    if (!processContext?.targetMetric || processContext?.targetValue === undefined)
+      return undefined;
+    if (!stats) return undefined;
+    let totalMeanShift = 0;
+    let totalSigmaReduction = 0;
+    for (const h of persistedHypotheses ?? []) {
+      for (const idea of h.ideas ?? []) {
+        if (idea.selected && idea.projection) {
+          totalMeanShift += idea.projection.meanDelta;
+          totalSigmaReduction += idea.projection.sigmaDelta;
+        }
+      }
+    }
+    if (totalMeanShift === 0 && totalSigmaReduction === 0) return undefined;
+    const metric = processContext.targetMetric;
+    if (metric === 'mean') return stats.mean + totalMeanShift;
+    if (metric === 'sigma') return stats.stdDev + totalSigmaReduction;
+    return undefined; // cpk would need recalculation
+  }, [persistedHypotheses, processContext, stats]);
+
   // Findings orchestration (extracted from Editor — pin, restore, chart observation, popout, etc.)
   const {
     findingsState,
@@ -281,6 +303,7 @@ export const Editor: React.FC<EditorProps> = ({
     hypotheses: persistedHypotheses,
     processContext,
     currentValue: stats?.cpk ?? stats?.mean,
+    projectedValue: projectedFromIdeas,
     factorRoles: processContext?.factorRoles,
     aiAvailable: aiEnabled && isAIAvailable(),
   });
@@ -396,6 +419,28 @@ export const Editor: React.FC<EditorProps> = ({
       panels.setIsWhatIfOpen(true);
     },
     [panels]
+  );
+
+  // Idea → Action conversion: when a finding moves to 'improving', convert selected ideas to actions
+  const handleSetFindingStatus = useCallback(
+    (id: string, status: FindingStatus) => {
+      if (status === 'improving') {
+        const finding = findingsState.findings.find(f => f.id === id);
+        if (finding?.hypothesisId) {
+          const hypothesis = hypothesesState.getHypothesis(finding.hypothesisId);
+          const selectedIdeas = hypothesis?.ideas?.filter(i => i.selected) ?? [];
+          if (selectedIdeas.length > 0) {
+            findingsState.setFindingStatus(id, status);
+            for (const idea of selectedIdeas) {
+              findingsState.addAction(id, idea.text);
+            }
+            return;
+          }
+        }
+      }
+      findingsState.setFindingStatus(id, status);
+    },
+    [findingsState, hypothesesState]
   );
 
   // Control violations for DataPanel annotations
@@ -954,7 +999,7 @@ export const Editor: React.FC<EditorProps> = ({
                   onEditFinding={findingsState.editFinding}
                   onDeleteFinding={findingsState.deleteFinding}
                   onRestoreFinding={handleRestoreFinding}
-                  onSetFindingStatus={findingsState.setFindingStatus}
+                  onSetFindingStatus={handleSetFindingStatus}
                   onSetFindingTag={findingsState.setFindingTag}
                   onAddComment={handleAddCommentWithAuthor}
                   onEditComment={findingsState.editFindingComment}
@@ -977,6 +1022,9 @@ export const Editor: React.FC<EditorProps> = ({
                     if (text) hypothesesState.addSubHypothesis(parentId, text);
                   }}
                   getChildrenSummary={hypothesesState.getChildrenSummary}
+                  onSetValidationTask={hypothesesState.setValidationTask}
+                  onCompleteTask={hypothesesState.completeTask}
+                  onSetManualStatus={hypothesesState.setManualStatus}
                   onAddAction={findingsState.addAction}
                   onCompleteAction={findingsState.completeAction}
                   onDeleteAction={findingsState.deleteAction}
@@ -1020,7 +1068,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onEditFinding={findingsState.editFinding}
                 onDeleteFinding={findingsState.deleteFinding}
                 onRestoreFinding={handleRestoreFinding}
-                onSetFindingStatus={findingsState.setFindingStatus}
+                onSetFindingStatus={handleSetFindingStatus}
                 onSetFindingTag={findingsState.setFindingTag}
                 onAddComment={handleAddCommentWithAuthor}
                 onEditComment={findingsState.editFindingComment}
@@ -1030,6 +1078,9 @@ export const Editor: React.FC<EditorProps> = ({
                   isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
                 }
                 onCreateHypothesis={handleCreateHypothesis}
+                onSetValidationTask={hypothesesState.setValidationTask}
+                onCompleteTask={hypothesesState.completeTask}
+                onSetManualStatus={hypothesesState.setManualStatus}
                 onAddAction={findingsState.addAction}
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}

@@ -95,6 +95,14 @@ export interface FindingsLogProps {
   onProjectImprovement?: (findingId: string) => void;
   /** Whether spec limits exist (affects projection display metrics) */
   hasSpecs?: boolean;
+  // --- Validation Task (passed through to HypothesisTreeView) ---
+  onSetValidationTask?: (id: string, task: string) => void;
+  onCompleteTask?: (id: string) => void;
+  onSetManualStatus?: (
+    id: string,
+    status: import('@variscout/core').HypothesisStatus,
+    note?: string
+  ) => void;
   // --- Improvement Ideas (passed through to HypothesisTreeView) ---
   ideaImpacts?: Record<string, IdeaImpact | undefined>;
   onAddIdea?: (hypothesisId: string, text: string) => void;
@@ -153,6 +161,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onSetOutcome,
   onProjectImprovement,
   hasSpecs,
+  onSetValidationTask,
+  onCompleteTask,
+  onSetManualStatus,
   ideaImpacts,
   onAddIdea,
   onUpdateIdea,
@@ -186,6 +197,9 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onSelectHypothesis={onSelectHypothesis}
           onAddSubHypothesis={onAddSubHypothesis}
           getChildrenSummary={getChildrenSummary}
+          onSetValidationTask={onSetValidationTask}
+          onCompleteTask={onCompleteTask}
+          onSetManualStatus={onSetManualStatus}
           ideaImpacts={ideaImpacts}
           onAddIdea={onAddIdea}
           onUpdateIdea={onUpdateIdea}

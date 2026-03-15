@@ -49,6 +49,13 @@ export interface HypothesisNodeProps {
   canAddChild: boolean;
   /** Whether this hypothesis is contradicted (dims the node) */
   showContradicted: boolean;
+  // --- Validation Task (gemba/expert) ---
+  /** Set a validation task description */
+  onSetValidationTask?: (id: string, task: string) => void;
+  /** Mark a validation task as complete */
+  onCompleteTask?: (id: string) => void;
+  /** Manually set hypothesis status with optional note */
+  onSetManualStatus?: (id: string, status: HypothesisStatus, note?: string) => void;
   // --- Improvement Ideas ---
   /** Computed impact for each idea (keyed by idea.id) */
   ideaImpacts?: Record<string, IdeaImpact | undefined>;
@@ -295,6 +302,125 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
 };
 
 // ============================================================================
+// Validation Task Sub-Component (gemba/expert)
+// ============================================================================
+
+interface ValidationTaskSectionProps {
+  hypothesisId: string;
+  validationTask?: string;
+  taskCompleted?: boolean;
+  manualNote?: string;
+  onSetValidationTask?: (id: string, task: string) => void;
+  onCompleteTask?: (id: string) => void;
+  onSetManualStatus?: (id: string, status: HypothesisStatus, note?: string) => void;
+}
+
+const ValidationTaskSection: React.FC<ValidationTaskSectionProps> = ({
+  hypothesisId,
+  validationTask,
+  taskCompleted,
+  manualNote,
+  onSetValidationTask,
+  onCompleteTask,
+  onSetManualStatus,
+}) => {
+  const [taskInput, setTaskInput] = useState('');
+  const [noteInput, setNoteInput] = useState(manualNote ?? '');
+
+  const handleTaskKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const trimmed = taskInput.trim();
+        if (trimmed && onSetValidationTask) {
+          onSetValidationTask(hypothesisId, trimmed);
+          setTaskInput('');
+        }
+      }
+    },
+    [hypothesisId, taskInput, onSetValidationTask]
+  );
+
+  // State 1: No task yet
+  if (!validationTask) {
+    return (
+      <div className="ml-6 mt-1.5" data-testid={`validation-task-section-${hypothesisId}`}>
+        <input
+          type="text"
+          className="w-full text-xs bg-transparent border-b border-edge text-content placeholder:text-content-muted focus:outline-none focus:border-blue-400 py-0.5"
+          placeholder="What needs to be checked?"
+          value={taskInput}
+          onChange={e => setTaskInput(e.target.value)}
+          onKeyDown={handleTaskKeyDown}
+          data-testid={`validation-task-input-${hypothesisId}`}
+        />
+      </div>
+    );
+  }
+
+  // State 2: Task exists but not completed
+  if (!taskCompleted) {
+    return (
+      <div className="ml-6 mt-1.5" data-testid={`validation-task-section-${hypothesisId}`}>
+        <label className="flex items-center gap-2 text-xs text-content cursor-pointer">
+          <input
+            type="checkbox"
+            className="rounded border-edge"
+            onChange={() => onCompleteTask?.(hypothesisId)}
+            data-testid={`validation-task-complete-${hypothesisId}`}
+          />
+          <span>{validationTask}</span>
+        </label>
+      </div>
+    );
+  }
+
+  // State 3: Task completed — show strikethrough, note input, and status buttons
+  return (
+    <div
+      className="ml-6 mt-1.5 space-y-1.5"
+      data-testid={`validation-task-section-${hypothesisId}`}
+    >
+      <div className="flex items-center gap-2 text-xs">
+        <span className="text-green-400">&#10003;</span>
+        <span className="text-content-muted line-through">{validationTask}</span>
+      </div>
+      <textarea
+        className="w-full text-xs bg-transparent border border-edge rounded px-2 py-1 text-content placeholder:text-content-muted focus:outline-none focus:border-blue-400 resize-none"
+        placeholder="What did you observe?"
+        rows={2}
+        value={noteInput}
+        onChange={e => setNoteInput(e.target.value)}
+        data-testid={`validation-task-note-${hypothesisId}`}
+      />
+      <div className="flex items-center gap-1.5">
+        <button
+          className="text-[10px] px-2 py-0.5 rounded bg-green-500/15 text-green-400 hover:bg-green-500/25"
+          onClick={() => onSetManualStatus?.(hypothesisId, 'supported', noteInput || undefined)}
+          data-testid={`validation-status-supported-${hypothesisId}`}
+        >
+          Supported
+        </button>
+        <button
+          className="text-[10px] px-2 py-0.5 rounded bg-red-500/15 text-red-400 hover:bg-red-500/25"
+          onClick={() => onSetManualStatus?.(hypothesisId, 'contradicted', noteInput || undefined)}
+          data-testid={`validation-status-contradicted-${hypothesisId}`}
+        >
+          Contradicted
+        </button>
+        <button
+          className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 hover:bg-amber-500/25"
+          onClick={() => onSetManualStatus?.(hypothesisId, 'partial', noteInput || undefined)}
+          data-testid={`validation-status-partial-${hypothesisId}`}
+        >
+          Partial
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
 // HypothesisNode Component
 // ============================================================================
 
@@ -310,6 +436,9 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
   childrenSummary,
   canAddChild,
   showContradicted,
+  onSetValidationTask,
+  onCompleteTask,
+  onSetManualStatus,
   ideaImpacts,
   onAddIdea,
   onUpdateIdea,
@@ -434,6 +563,19 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
             </div>
           ))}
         </div>
+      )}
+
+      {/* Validation task section — for gemba/expert hypotheses */}
+      {isExpanded && hypothesis.validationType && hypothesis.validationType !== 'data' && (
+        <ValidationTaskSection
+          hypothesisId={hypothesis.id}
+          validationTask={hypothesis.validationTask}
+          taskCompleted={hypothesis.taskCompleted}
+          manualNote={hypothesis.manualNote}
+          onSetValidationTask={onSetValidationTask}
+          onCompleteTask={onCompleteTask}
+          onSetManualStatus={onSetManualStatus}
+        />
       )}
 
       {/* Improvement Ideas section — visible for supported/partial hypotheses */}
