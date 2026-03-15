@@ -122,6 +122,9 @@ dist
 *.swp
 *.swo
 
+# Git worktrees
+.worktrees/
+
 # AI/LLM
 .gemini_brain
 .claude/
