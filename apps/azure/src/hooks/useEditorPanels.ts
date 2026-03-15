@@ -52,34 +52,14 @@ export function editorPanelReducer(
       return { ...state, isDataTableOpen: false };
     case 'SET_FINDINGS_OPEN':
       if (state.isFindingsOpen === action.value) return state;
-      return {
-        ...state,
-        isFindingsOpen: action.value,
-        ...(action.value ? { isCoScoutOpen: false } : {}),
-      };
-    case 'TOGGLE_FINDINGS': {
-      const opening = !state.isFindingsOpen;
-      return {
-        ...state,
-        isFindingsOpen: opening,
-        ...(opening ? { isCoScoutOpen: false } : {}),
-      };
-    }
+      return { ...state, isFindingsOpen: action.value };
+    case 'TOGGLE_FINDINGS':
+      return { ...state, isFindingsOpen: !state.isFindingsOpen };
     case 'SET_COSCOUT_OPEN':
       if (state.isCoScoutOpen === action.value) return state;
-      return {
-        ...state,
-        isCoScoutOpen: action.value,
-        ...(action.value ? { isFindingsOpen: false } : {}),
-      };
-    case 'TOGGLE_COSCOUT': {
-      const opening = !state.isCoScoutOpen;
-      return {
-        ...state,
-        isCoScoutOpen: opening,
-        ...(opening ? { isFindingsOpen: false } : {}),
-      };
-    }
+      return { ...state, isCoScoutOpen: action.value };
+    case 'TOGGLE_COSCOUT':
+      return { ...state, isCoScoutOpen: !state.isCoScoutOpen };
     case 'SET_WHAT_IF_OPEN':
       return state.isWhatIfOpen === action.value ? state : { ...state, isWhatIfOpen: action.value };
     case 'OPEN_PRESENTATION':

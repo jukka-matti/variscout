@@ -533,7 +533,8 @@ export const Editor: React.FC<EditorProps> = ({
   const handleAskCoScoutFromFinding = useCallback(
     (ctx: import('@variscout/core').AIContext['focusContext']) => {
       setFocusContext(ctx);
-      panels.setIsCoScoutOpen(true);
+      // Open findings panel (CoScout inline lives there now)
+      panels.setIsFindingsOpen(true);
       const findingText = ctx?.finding?.text;
       if (findingText) {
         setTimeout(() => {
@@ -960,6 +961,15 @@ export const Editor: React.FC<EditorProps> = ({
                   onNavigateToChart={handleNavigateToChart}
                   viewMode={viewState?.findingsViewMode}
                   onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
+                  coScoutMessages={coscout.messages}
+                  coScoutOnSend={coscout.send}
+                  coScoutIsLoading={coscout.isLoading}
+                  coScoutIsStreaming={coscout.isStreaming}
+                  coScoutOnStopStreaming={coscout.stopStreaming}
+                  coScoutError={coscout.error}
+                  coScoutOnRetry={coscout.retry}
+                  investigationPhase={aiContext.context?.investigation?.phase}
+                  coScoutSuggestedQuestions={suggestedQuestions}
                 />
               </div>
             ) : (
@@ -994,6 +1004,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onSelectIdea={hypothesesState.selectIdea}
                 onProjectIdea={handleProjectIdea}
                 onAskCoScout={handleAskCoScoutFromIdeas}
+                onAskCoScoutAboutFinding={handleAskCoScoutFromFinding}
                 showAuthors={true}
                 columnAliases={columnAliases}
                 drillPath={drillPath}
@@ -1004,6 +1015,15 @@ export const Editor: React.FC<EditorProps> = ({
                 onNavigateToChart={handleNavigateToChart}
                 viewMode={viewState?.findingsViewMode}
                 onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
+                coScoutMessages={coscout.messages}
+                coScoutOnSend={coscout.send}
+                coScoutIsLoading={coscout.isLoading}
+                coScoutIsStreaming={coscout.isStreaming}
+                coScoutOnStopStreaming={coscout.stopStreaming}
+                coScoutError={coscout.error}
+                coScoutOnRetry={coscout.retry}
+                investigationPhase={aiContext.context?.investigation?.phase}
+                coScoutSuggestedQuestions={suggestedQuestions}
               />
             )}
             {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}

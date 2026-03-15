@@ -44,18 +44,21 @@ Technical architecture for optional AI integration in the Azure App.
 
 ## Package Responsibilities
 
-| Component               | Package                   | Description                                                                                                           |
-| ----------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `buildAIContext()`      | `@variscout/core`         | Pure function. Collects computed stats, filters, findings, violations into a structured payload. No React dependency. |
-| Prompt templates        | `@variscout/core`         | String templates for narration, suggestion, CoScout, and report tasks. Grounded in VariScout glossary terms.          |
-| `aiService.ts`          | `apps/azure/src/services` | localStorage response caching. Auth via `getAuthHeaders()` (EasyAuth). Retry + exponential backoff.                   |
-| `useAIContext` hook     | `@variscout/hooks`        | React hook wrapping `buildAIContext()`. Recomputes on DataContext changes.                                            |
-| `useAICoScout` hook     | `@variscout/hooks`        | Chat state management, conversation history, streaming response handling.                                             |
-| `useNarration` hook     | `@variscout/hooks`        | React hook for narrative bar state (loading, cached, error). Wraps `fetchNarration`.                                  |
-| `useChartInsights` hook | `@variscout/hooks`        | Per-chart deterministic + AI-enhanced insight orchestration. Debounced AI with fallback.                              |
-| `NarrativeBar`          | `@variscout/ui`           | Single-line summary bar component.                                                                                    |
-| `ChartInsightChip`      | `@variscout/ui`           | Per-chart suggestion badge.                                                                                           |
-| `CoScoutPanel`          | `@variscout/ui`           | Slide-out conversational panel.                                                                                       |
+| Component                 | Package                   | Description                                                                                                                                                                                                                                  |
+| ------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `buildAIContext()`        | `@variscout/core`         | Pure function. Collects computed stats, filters, findings, violations into a structured payload. No React dependency.                                                                                                                        |
+| Prompt templates          | `@variscout/core`         | String templates for narration, suggestion, CoScout, and report tasks. Grounded in VariScout glossary terms.                                                                                                                                 |
+| `aiService.ts`            | `apps/azure/src/services` | localStorage response caching. Auth via `getAuthHeaders()` (EasyAuth). Retry + exponential backoff.                                                                                                                                          |
+| `useAIContext` hook       | `@variscout/hooks`        | React hook wrapping `buildAIContext()`. Recomputes on DataContext changes.                                                                                                                                                                   |
+| `useAICoScout` hook       | `@variscout/hooks`        | Chat state management, conversation history, streaming response handling. The inline CoScout (in FindingsPanel) and standalone CoScout panel share the same `useAICoScout` hook instance — conversation state persists across both surfaces. |
+| `useNarration` hook       | `@variscout/hooks`        | React hook for narrative bar state (loading, cached, error). Wraps `fetchNarration`.                                                                                                                                                         |
+| `useChartInsights` hook   | `@variscout/hooks`        | Per-chart deterministic + AI-enhanced insight orchestration. Debounced AI with fallback.                                                                                                                                                     |
+| `NarrativeBar`            | `@variscout/ui`           | Single-line summary bar component.                                                                                                                                                                                                           |
+| `ChartInsightChip`        | `@variscout/ui`           | Per-chart suggestion badge.                                                                                                                                                                                                                  |
+| `CoScoutPanel`            | `@variscout/ui`           | Slide-out conversational panel.                                                                                                                                                                                                              |
+| `CoScoutInline`           | `@variscout/ui`           | Compact collapsible CoScout conversation embedded in FindingsPanel.                                                                                                                                                                          |
+| `CoScoutMessages`         | `@variscout/ui`           | Shared message rendering (user/assistant bubbles, loading dots).                                                                                                                                                                             |
+| `InvestigationPhaseBadge` | `@variscout/ui`           | Colored pill badge showing investigation phase (initial/diverging/validating/converging/acting).                                                                                                                                             |
 
 ---
 

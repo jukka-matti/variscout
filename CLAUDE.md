@@ -233,6 +233,7 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/ui/src/colors.ts`                                      | Shared UI colors (statusColors)                                                                               |
 | `packages/ui/src/hooks/useMediaQuery.ts`                         | Responsive hooks (useIsMobile)                                                                                |
 | `packages/ui/src/components/HelpTooltip/`                        | Help tooltip component with CSS theming and "Learn more"                                                      |
+| `packages/ui/src/components/InvestigationPhaseBadge/`            | Colored phase badge (initial/diverging/validating/converging/acting)                                          |
 | `packages/ui/src/hooks/useGlossary.ts`                           | Hook for accessing glossary terms and definitions                                                             |
 | `packages/core/src/glossary/types.ts`                            | Glossary term type definitions (GlossaryTerm, etc.)                                                           |
 | `packages/core/src/glossary/terms.ts`                            | Glossary content (~20 terms for capability, statistics)                                                       |
@@ -246,6 +247,8 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/hooks/src/useBoxplotData.ts`                           | Shared boxplot d3 computation hook                                                                            |
 | `packages/hooks/src/useIChartData.ts`                            | Shared I-Chart data transform hook                                                                            |
 | `packages/hooks/src/useAnnotationMode.ts`                        | Chart annotation state (highlights, text notes, context menu)                                                 |
+| `packages/ui/src/components/CoScoutInline/`                      | CoScout inline conversation in FindingsPanel                                                                  |
+| `packages/ui/src/components/CoScoutPanel/CoScoutMessages.tsx`    | Shared message rendering (user/assistant bubbles, loading dots)                                               |
 | `packages/ui/src/components/ChartAnnotationLayer/`               | Draggable text annotation overlay for charts                                                                  |
 | `packages/ui/src/components/AnnotationContextMenu/`              | Right-click menu for chart annotations (highlight + add note)                                                 |
 | `packages/ui/src/components/DashboardBase/`                      | Shared dashboard building blocks (FocusedViewOverlay, FocusedChartCard, DashboardChartCard, DashboardGrid)    |

@@ -40,6 +40,7 @@ packages/
                #   EditableChartTitle, SettingsPanelBase, FocusedChartViewBase,
                #   DashboardBase (FocusedViewOverlay, FocusedChartCard,
                #     DashboardChartCard, DashboardGrid),
+               #   CoScoutInline, CoScoutMessages, InvestigationPhaseBadge,
                #   useGlossary, useIsMobile, errorService
 
 apps/
@@ -55,7 +56,7 @@ apps/
 - `@variscout/core` has no React dependencies (exports stats, parser, glossary, tier)
 - `@variscout/charts` depends on `@variscout/core`
 - `@variscout/hooks` depends on `@variscout/core` (for types, utilities, and tier)
-- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `InvestigationPrompt`, `PasteScreenBase`, `ManualEntryBase`, `ManualEntrySetupBase`, `SpecsPopover`, `SpecEditor`, `CapabilityHistogram`, `ProbabilityPlot`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `MobileCategorySheet`, `DataTableBase`, `ChartDownloadMenu`, `CharacteristicTypeSelector`, `EditableChartTitle`, `SettingsPanelBase`, `FocusedChartViewBase`, `FocusedViewOverlay`, `FocusedChartCard`, `DashboardChartCard`, `DashboardGrid`, `useGlossary`, `useIsMobile`, `errorService`
+- `@variscout/ui` exports `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `FilterContextBar`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `Slider`, `WhatIfSimulator`, `WhatIfPageBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `StatsPanelBase`, `FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `InvestigationPrompt`, `PasteScreenBase`, `ManualEntryBase`, `ManualEntrySetupBase`, `SpecsPopover`, `SpecEditor`, `CapabilityHistogram`, `ProbabilityPlot`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `MobileCategorySheet`, `DataTableBase`, `ChartDownloadMenu`, `CharacteristicTypeSelector`, `EditableChartTitle`, `SettingsPanelBase`, `FocusedChartViewBase`, `FocusedViewOverlay`, `FocusedChartCard`, `DashboardChartCard`, `DashboardGrid`, `CoScoutInline`, `CoScoutMessages`, `InvestigationPhaseBadge`, `useGlossary`, `useIsMobile`, `errorService`
 
 ## Build Commands
 

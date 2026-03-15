@@ -558,6 +558,39 @@ Full-width button at the bottom of the sidebar. Opens CoScoutPanel (slide-out or
 
 ---
 
+## CoScout Inline (FindingsPanel)
+
+Compact CoScout conversation embedded within the FindingsPanel. Azure-only (PWA unaffected).
+
+**States:**
+
+- **Collapsed (~48px):** Phase badge + horizontal question chips + expand chevron. Clicking a chip calls `onSend` and auto-expands.
+- **Expanded (~50% of parent):** Same header + `CoScoutMessages` + input textarea + send/stop button.
+
+**Components:**
+
+- `CoScoutInline` — Collapsible conversation area within FindingsPanel
+- `CoScoutMessages` — Shared message rendering (user/assistant bubbles, loading dots)
+- `InvestigationPhaseBadge` — Colored pill badge showing investigation phase
+
+**Behavior:**
+
+- Shares `useAICoScout` hook instance with standalone CoScout panel — conversation persists across both
+- Auto-expands when new messages arrive while collapsed
+- Phase badge reflects `detectInvestigationPhase()` from AI context
+
+**E2E Test Selectors:**
+
+| Element            | Selector                                     |
+| ------------------ | -------------------------------------------- |
+| CoScout inline     | `[data-testid="coscout-inline"]`             |
+| Toggle button      | `[data-testid="coscout-inline-toggle"]`      |
+| Inline input       | `[data-testid="coscout-inline-input"]`       |
+| Inline suggestions | `[data-testid="coscout-inline-suggestions"]` |
+| Phase badge        | `[data-testid="investigation-phase-badge"]`  |
+
+---
+
 ## HelpTooltip Phone Behavior
 
 On phone (<640px), the HelpTooltip switches from hover to touch-toggle interaction.

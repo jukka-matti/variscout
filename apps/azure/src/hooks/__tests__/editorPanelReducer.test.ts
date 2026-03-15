@@ -224,50 +224,50 @@ describe('editorPanelReducer', () => {
     });
   });
 
-  describe('CoScout/findings mutual exclusivity', () => {
-    it('opening CoScout closes findings', () => {
+  describe('CoScout/findings coexistence', () => {
+    it('opening CoScout keeps findings open', () => {
       const state = editorPanelReducer(
         { ...initialPanelState, isFindingsOpen: true },
         { type: 'SET_COSCOUT_OPEN', value: true }
       );
       expect(state.isCoScoutOpen).toBe(true);
-      expect(state.isFindingsOpen).toBe(false);
+      expect(state.isFindingsOpen).toBe(true);
     });
 
-    it('opening findings closes CoScout', () => {
+    it('opening findings keeps CoScout open', () => {
       const state = editorPanelReducer(
         { ...initialPanelState, isCoScoutOpen: true },
         { type: 'SET_FINDINGS_OPEN', value: true }
       );
       expect(state.isFindingsOpen).toBe(true);
-      expect(state.isCoScoutOpen).toBe(false);
+      expect(state.isCoScoutOpen).toBe(true);
     });
 
-    it('toggling CoScout open closes findings', () => {
+    it('toggling CoScout open keeps findings open', () => {
       const state = editorPanelReducer(
         { ...initialPanelState, isFindingsOpen: true },
         { type: 'TOGGLE_COSCOUT' }
       );
       expect(state.isCoScoutOpen).toBe(true);
-      expect(state.isFindingsOpen).toBe(false);
+      expect(state.isFindingsOpen).toBe(true);
     });
 
-    it('toggling findings open closes CoScout', () => {
+    it('toggling findings open keeps CoScout open', () => {
       const state = editorPanelReducer(
         { ...initialPanelState, isCoScoutOpen: true },
         { type: 'TOGGLE_FINDINGS' }
       );
       expect(state.isFindingsOpen).toBe(true);
-      expect(state.isCoScoutOpen).toBe(false);
+      expect(state.isCoScoutOpen).toBe(true);
     });
 
-    it('closing CoScout does not open findings', () => {
+    it('closing CoScout does not affect findings', () => {
       const state = editorPanelReducer(
-        { ...initialPanelState, isCoScoutOpen: true },
+        { ...initialPanelState, isCoScoutOpen: true, isFindingsOpen: true },
         { type: 'SET_COSCOUT_OPEN', value: false }
       );
       expect(state.isCoScoutOpen).toBe(false);
-      expect(state.isFindingsOpen).toBe(false);
+      expect(state.isFindingsOpen).toBe(true);
     });
   });
 

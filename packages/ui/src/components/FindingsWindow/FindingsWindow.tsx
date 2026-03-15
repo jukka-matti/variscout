@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ClipboardCopy, Check, List, LayoutGrid } from 'lucide-react';
+import { ClipboardCopy, Check, List, LayoutGrid, Copy } from 'lucide-react';
 import type {
   Finding,
   FindingStatus,
   FindingTag,
   Hypothesis,
   ProcessContext,
+  InvestigationPhase,
 } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import FindingsLog from '../FindingsLog/FindingsLog';
@@ -13,6 +14,7 @@ import FindingBoardColumns from '../FindingsLog/FindingBoardColumns';
 import { copyFindingsToClipboard } from '../FindingsLog/export';
 import BriefHeader from '../FindingsPanel/BriefHeader';
 import FindingDetailPanel from '../FindingsPanel/FindingDetailPanel';
+import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
 
 /**
  * Storage keys for cross-window data sync
@@ -31,6 +33,10 @@ export interface FindingsSyncData {
   processContext?: ProcessContext;
   /** Current metric value for progress bar */
   currentValue?: number;
+  /** Current investigation phase */
+  investigationPhase?: InvestigationPhase;
+  /** Suggested questions from AI context */
+  suggestedQuestions?: string[];
 }
 
 export interface FindingsAction {
@@ -282,7 +288,16 @@ const FindingsWindow: React.FC = () => {
     );
   }
 
-  const { findings, columnAliases, drillPath, hypotheses, processContext, currentValue } = syncData;
+  const {
+    findings,
+    columnAliases,
+    drillPath,
+    hypotheses,
+    processContext,
+    currentValue,
+    investigationPhase,
+    suggestedQuestions,
+  } = syncData;
   const selectedFinding = selectedFindingId
     ? (findings.find(f => f.id === selectedFindingId) ?? null)
     : null;
@@ -300,61 +315,89 @@ const FindingsWindow: React.FC = () => {
       />
 
       {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-2 flex-shrink-0 border-b border-edge">
-        <h1 className="text-sm font-semibold text-content">
-          Investigation
-          {findings.length > 0 && (
-            <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
-              {findings.length}
-            </span>
-          )}
-        </h1>
+      <div className="flex-shrink-0 border-b border-edge">
+        <div className="flex items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-sm font-semibold text-content">
+              Investigation
+              {findings.length > 0 && (
+                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
+                  {findings.length}
+                </span>
+              )}
+            </h1>
+            {investigationPhase && <InvestigationPhaseBadge phase={investigationPhase} />}
+          </div>
 
-        <div className="flex items-center gap-1">
-          {/* View toggle */}
-          {findings.length > 0 && (
-            <div className="flex items-center rounded-lg border border-edge overflow-hidden mr-1">
+          <div className="flex items-center gap-1">
+            {/* View toggle */}
+            {findings.length > 0 && (
+              <div className="flex items-center rounded-lg border border-edge overflow-hidden mr-1">
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1.5 transition-colors ${
+                    viewMode === 'list'
+                      ? 'bg-surface-tertiary text-content'
+                      : 'text-content-muted hover:text-content-secondary'
+                  }`}
+                  title="List view"
+                  aria-label="List view"
+                >
+                  <List size={12} />
+                </button>
+                <button
+                  onClick={() => setViewMode('board')}
+                  className={`p-1.5 transition-colors ${
+                    viewMode === 'board'
+                      ? 'bg-surface-tertiary text-content'
+                      : 'text-content-muted hover:text-content-secondary'
+                  }`}
+                  title="Board view"
+                  aria-label="Board view"
+                >
+                  <LayoutGrid size={12} />
+                </button>
+              </div>
+            )}
+            {findings.length > 0 && (
               <button
-                onClick={() => setViewMode('list')}
-                className={`p-1.5 transition-colors ${
-                  viewMode === 'list'
-                    ? 'bg-surface-tertiary text-content'
-                    : 'text-content-muted hover:text-content-secondary'
+                onClick={handleCopyAll}
+                className={`p-1.5 rounded-lg transition-all ${
+                  copyFeedback
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
                 }`}
-                title="List view"
-                aria-label="List view"
+                title="Copy all findings to clipboard"
+                aria-label="Copy all findings"
               >
-                <List size={12} />
+                {copyFeedback ? <Check size={14} /> : <ClipboardCopy size={14} />}
               </button>
-              <button
-                onClick={() => setViewMode('board')}
-                className={`p-1.5 transition-colors ${
-                  viewMode === 'board'
-                    ? 'bg-surface-tertiary text-content'
-                    : 'text-content-muted hover:text-content-secondary'
-                }`}
-                title="Board view"
-                aria-label="Board view"
-              >
-                <LayoutGrid size={12} />
-              </button>
-            </div>
-          )}
-          {findings.length > 0 && (
-            <button
-              onClick={handleCopyAll}
-              className={`p-1.5 rounded-lg transition-all ${
-                copyFeedback
-                  ? 'bg-green-500/20 text-green-400'
-                  : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
-              }`}
-              title="Copy all findings to clipboard"
-              aria-label="Copy all findings"
-            >
-              {copyFeedback ? <Check size={14} /> : <ClipboardCopy size={14} />}
-            </button>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Suggested question chips — click copies to clipboard */}
+        {suggestedQuestions && suggestedQuestions.length > 0 && (
+          <div
+            className="overflow-x-auto flex gap-1.5 px-4 pb-2"
+            data-testid="popout-suggested-questions"
+          >
+            {suggestedQuestions.map((q, i) => (
+              <button
+                key={i}
+                data-testid={`popout-suggestion-${i}`}
+                onClick={() => {
+                  navigator.clipboard.writeText(q).catch(() => {});
+                }}
+                className="inline-flex items-center gap-1 bg-surface-tertiary text-content-secondary text-[10px] px-2.5 py-1 whitespace-nowrap rounded-full hover:bg-surface-tertiary/80 hover:text-content transition-colors flex-shrink-0"
+                title="Copy to clipboard"
+              >
+                {q}
+                <Copy size={8} className="opacity-50" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Zone 2 + Zone 3: Board + Detail Panel */}
@@ -453,6 +496,8 @@ export interface PopoutSyncOptions {
   hypotheses?: Hypothesis[];
   processContext?: ProcessContext;
   currentValue?: number;
+  investigationPhase?: InvestigationPhase;
+  suggestedQuestions?: string[];
 }
 
 export function openFindingsPopout(
@@ -469,6 +514,8 @@ export function openFindingsPopout(
     hypotheses: options?.hypotheses,
     processContext: options?.processContext,
     currentValue: options?.currentValue,
+    investigationPhase: options?.investigationPhase,
+    suggestedQuestions: options?.suggestedQuestions,
   };
   localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
 
@@ -499,6 +546,8 @@ export function updateFindingsPopout(
     hypotheses: options?.hypotheses,
     processContext: options?.processContext,
     currentValue: options?.currentValue,
+    investigationPhase: options?.investigationPhase,
+    suggestedQuestions: options?.suggestedQuestions,
   };
   localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
 }

@@ -313,7 +313,18 @@ export {
   CoScoutPanelBase,
   type CoScoutPanelBaseProps,
   type CoScoutPanelResizeConfig,
+  CoScoutMessages,
+  type CoScoutMessagesProps,
 } from './components/CoScoutPanel';
+
+// CoScout Inline
+export { CoScoutInline, type CoScoutInlineProps } from './components/CoScoutInline';
+
+// Investigation Phase Badge
+export {
+  InvestigationPhaseBadge,
+  type InvestigationPhaseBadgeProps,
+} from './components/InvestigationPhaseBadge';
 
 // Hooks
 export {

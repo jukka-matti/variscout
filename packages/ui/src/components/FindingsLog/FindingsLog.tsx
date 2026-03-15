@@ -13,6 +13,8 @@ import FindingBoardView from './FindingBoardView';
 import HypothesisTreeView from './HypothesisTreeView';
 
 export interface FindingsLogProps {
+  /** Optional className for the root wrapper */
+  className?: string;
   /** List of findings to display */
   findings: Finding[];
   /** Edit a finding's note */
@@ -117,6 +119,7 @@ export interface FindingsLogProps {
  * Shows empty state with guidance when no findings exist.
  */
 const FindingsLog: React.FC<FindingsLogProps> = ({
+  className,
   findings,
   onEditFinding,
   onDeleteFinding,
@@ -176,77 +179,45 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
 
   if (viewMode === 'tree' && hypotheses) {
     return (
-      <HypothesisTreeView
-        hypotheses={hypotheses}
-        findings={findings}
-        onSelectHypothesis={onSelectHypothesis}
-        onAddSubHypothesis={onAddSubHypothesis}
-        getChildrenSummary={getChildrenSummary}
-        ideaImpacts={ideaImpacts}
-        onAddIdea={onAddIdea}
-        onUpdateIdea={onUpdateIdea}
-        onRemoveIdea={onRemoveIdea}
-        onSelectIdea={onSelectIdea}
-        onProjectIdea={onProjectIdea}
-        onAskCoScout={onAskCoScout}
-      />
+      <div className={`flex-1 min-h-0 flex flex-col ${className ?? ''}`}>
+        <HypothesisTreeView
+          hypotheses={hypotheses}
+          findings={findings}
+          onSelectHypothesis={onSelectHypothesis}
+          onAddSubHypothesis={onAddSubHypothesis}
+          getChildrenSummary={getChildrenSummary}
+          ideaImpacts={ideaImpacts}
+          onAddIdea={onAddIdea}
+          onUpdateIdea={onUpdateIdea}
+          onRemoveIdea={onRemoveIdea}
+          onSelectIdea={onSelectIdea}
+          onProjectIdea={onProjectIdea}
+          onAskCoScout={onAskCoScout}
+        />
+      </div>
     );
   }
 
   if (viewMode === 'board' && onSetFindingStatus) {
     return (
-      <FindingBoardView
-        findings={findings}
-        onEditFinding={onEditFinding}
-        onDeleteFinding={onDeleteFinding}
-        onRestoreFinding={onRestoreFinding}
-        onSetFindingStatus={onSetFindingStatus}
-        onSetFindingTag={onSetFindingTag}
-        onAddComment={onAddComment ?? (() => {})}
-        onEditComment={onEditComment ?? (() => {})}
-        onDeleteComment={onDeleteComment ?? (() => {})}
-        onAddPhoto={onAddPhoto}
-        onCaptureFromTeams={onCaptureFromTeams}
-        showAuthors={showAuthors}
-        columnAliases={columnAliases}
-        activeFindingId={activeFindingId}
-        onAssignFinding={onAssignFinding}
-        renderAssignSlot={renderAssignSlot}
-        onNavigateToChart={onNavigateToChart}
-        maxStatuses={maxStatuses}
-        onLinkHypothesis={onLinkHypothesis}
-        onCreateHypothesis={onCreateHypothesis}
-        hypothesesMap={hypothesesMap}
-        onAddAction={onAddAction}
-        onCompleteAction={onCompleteAction}
-        onDeleteAction={onDeleteAction}
-        onSetOutcome={onSetOutcome}
-      />
-    );
-  }
-
-  return (
-    <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2" data-testid="findings-list">
-      {findings.map(finding => (
-        <FindingCard
-          key={finding.id}
-          finding={finding}
-          onEdit={onEditFinding}
-          onDelete={onDeleteFinding}
-          onRestore={onRestoreFinding}
-          onSetStatus={onSetFindingStatus}
-          onSetTag={onSetFindingTag}
-          onAddComment={onAddComment}
-          onEditComment={onEditComment}
-          onDeleteComment={onDeleteComment}
+      <div className={`flex-1 min-h-0 flex flex-col ${className ?? ''}`}>
+        <FindingBoardView
+          findings={findings}
+          onEditFinding={onEditFinding}
+          onDeleteFinding={onDeleteFinding}
+          onRestoreFinding={onRestoreFinding}
+          onSetFindingStatus={onSetFindingStatus}
+          onSetFindingTag={onSetFindingTag}
+          onAddComment={onAddComment ?? (() => {})}
+          onEditComment={onEditComment ?? (() => {})}
+          onDeleteComment={onDeleteComment ?? (() => {})}
           onAddPhoto={onAddPhoto}
           onCaptureFromTeams={onCaptureFromTeams}
           showAuthors={showAuthors}
           columnAliases={columnAliases}
-          isActive={finding.id === activeFindingId}
-          onShare={onShareFinding}
-          onAssign={onAssignFinding}
-          renderAssignSlot={renderAssignSlot?.(finding.id)}
+          activeFindingId={activeFindingId}
+          onAssignFinding={onAssignFinding}
+          renderAssignSlot={renderAssignSlot}
           onNavigateToChart={onNavigateToChart}
           maxStatuses={maxStatuses}
           onLinkHypothesis={onLinkHypothesis}
@@ -256,11 +227,49 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
           onSetOutcome={onSetOutcome}
-          onProjectImprovement={onProjectImprovement}
-          hasSpecs={hasSpecs}
-          onAskCoScout={onAskCoScoutAboutFinding}
         />
-      ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`flex-1 min-h-0 flex flex-col ${className ?? ''}`}>
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2" data-testid="findings-list">
+        {findings.map(finding => (
+          <FindingCard
+            key={finding.id}
+            finding={finding}
+            onEdit={onEditFinding}
+            onDelete={onDeleteFinding}
+            onRestore={onRestoreFinding}
+            onSetStatus={onSetFindingStatus}
+            onSetTag={onSetFindingTag}
+            onAddComment={onAddComment}
+            onEditComment={onEditComment}
+            onDeleteComment={onDeleteComment}
+            onAddPhoto={onAddPhoto}
+            onCaptureFromTeams={onCaptureFromTeams}
+            showAuthors={showAuthors}
+            columnAliases={columnAliases}
+            isActive={finding.id === activeFindingId}
+            onShare={onShareFinding}
+            onAssign={onAssignFinding}
+            renderAssignSlot={renderAssignSlot?.(finding.id)}
+            onNavigateToChart={onNavigateToChart}
+            maxStatuses={maxStatuses}
+            onLinkHypothesis={onLinkHypothesis}
+            onCreateHypothesis={onCreateHypothesis}
+            hypothesesMap={hypothesesMap}
+            onAddAction={onAddAction}
+            onCompleteAction={onCompleteAction}
+            onDeleteAction={onDeleteAction}
+            onSetOutcome={onSetOutcome}
+            onProjectImprovement={onProjectImprovement}
+            hasSpecs={hasSpecs}
+            onAskCoScout={onAskCoScoutAboutFinding}
+          />
+        ))}
+      </div>
     </div>
   );
 };

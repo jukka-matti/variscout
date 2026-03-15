@@ -16,10 +16,14 @@ import type {
   FindingTag,
   ImprovementIdea,
   IdeaImpact,
+  CoScoutMessage,
+  CoScoutError,
+  InvestigationPhase,
 } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import { useResizablePanel } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
+import { CoScoutInline } from '../CoScoutInline';
 
 export interface FindingsPanelResizeConfig {
   storageKey: string;
@@ -111,6 +115,17 @@ export interface FindingsPanelBaseProps {
 
   // Resize config
   resizeConfig: FindingsPanelResizeConfig;
+
+  // CoScout inline (Azure only — omit in PWA)
+  coScoutMessages?: CoScoutMessage[];
+  coScoutOnSend?: (text: string) => void;
+  coScoutIsLoading?: boolean;
+  coScoutIsStreaming?: boolean;
+  coScoutOnStopStreaming?: () => void;
+  coScoutError?: CoScoutError | null;
+  coScoutOnRetry?: () => void;
+  investigationPhase?: InvestigationPhase;
+  coScoutSuggestedQuestions?: string[];
 }
 
 const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
@@ -159,8 +174,18 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onAskCoScout,
   onAskCoScoutAboutFinding,
   resizeConfig,
+  coScoutMessages,
+  coScoutOnSend,
+  coScoutIsLoading,
+  coScoutIsStreaming,
+  coScoutOnStopStreaming,
+  coScoutError,
+  coScoutOnRetry,
+  investigationPhase,
+  coScoutSuggestedQuestions,
 }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [coScoutExpanded, setCoScoutExpanded] = useState(false);
   const [localViewMode, setLocalViewMode] = useState<'list' | 'board' | 'tree'>('list');
   const viewMode = externalViewMode ?? localViewMode;
 
@@ -345,6 +370,23 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onAskCoScout={onAskCoScout}
           onAskCoScoutAboutFinding={onAskCoScoutAboutFinding}
         />
+
+        {/* CoScout inline (Azure only) */}
+        {coScoutMessages && coScoutOnSend && (
+          <CoScoutInline
+            messages={coScoutMessages}
+            onSend={coScoutOnSend}
+            isLoading={coScoutIsLoading ?? false}
+            isStreaming={coScoutIsStreaming}
+            onStopStreaming={coScoutOnStopStreaming}
+            error={coScoutError}
+            onRetry={coScoutOnRetry}
+            phase={investigationPhase}
+            suggestedQuestions={coScoutSuggestedQuestions}
+            isExpanded={coScoutExpanded}
+            onToggleExpand={() => setCoScoutExpanded(prev => !prev)}
+          />
+        )}
 
         {/* Drill path footer */}
         {drillPath.length > 0 && (
