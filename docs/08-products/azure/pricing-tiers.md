@@ -1,6 +1,6 @@
 # Pricing
 
-VariScout Azure App pricing structure — two plans differentiated by storage, collaboration, and mobile capabilities.
+VariScout Azure App pricing structure — three plans differentiated by storage, collaboration, mobile, and AI capabilities.
 
 ---
 
@@ -9,7 +9,8 @@ VariScout Azure App pricing structure — two plans differentiated by storage, c
 | Plan         | Price      | Storage                              | Auth Scopes                                      | Mobile               | Users     | Billing |
 | ------------ | ---------- | ------------------------------------ | ------------------------------------------------ | -------------------- | --------- | ------- |
 | **Standard** | €99/month  | Local files (File System Access API) | `User.Read` only                                 | Desktop browser only | Unlimited | Monthly |
-| **Team**     | €299/month | + OneDrive + SharePoint channels     | + `Files.ReadWrite.All`, `Channel.ReadBasic.All` | Teams mobile app     | Unlimited | Monthly |
+| **Team**     | €199/month | + OneDrive + SharePoint channels     | + `Files.ReadWrite.All`, `Channel.ReadBasic.All` | Teams mobile app     | Unlimited | Monthly |
+| **Team AI**  | €279/month | + OneDrive + SharePoint + AI Search  | + `Files.ReadWrite.All`, `Channel.ReadBasic.All` | Teams mobile app     | Unlimited | Monthly |
 
 **Model**: Per-deployment (one subscription per Azure tenant). All users in the tenant have access. Plans differentiate by capability, not user count.
 
@@ -17,47 +18,51 @@ VariScout Azure App pricing structure — two plans differentiated by storage, c
 
 ## Feature Comparison
 
-| Feature                        | Standard | Team  |
-| ------------------------------ | :------: | :---: |
-| **Core Analysis**              |          |       |
-| I-Chart                        |    ✓     |   ✓   |
-| Boxplot                        |    ✓     |   ✓   |
-| Pareto                         |    ✓     |   ✓   |
-| Capability (Cp/Cpk)            |    ✓     |   ✓   |
-| Probability Plot               |    ✓     |   ✓   |
-| ANOVA                          |    ✓     |   ✓   |
-| **Performance Mode**           |          |       |
-| Multi-channel analysis         |    ✓     |   ✓   |
-| Channel limit                  |  1,500   | 1,500 |
-| **Data Input**                 |          |       |
-| CSV / Excel upload             |    ✓     |   ✓   |
-| Copy-paste from spreadsheets   |    ✓     |   ✓   |
-| Manual data entry              |    ✓     |   ✓   |
-| **Storage**                    |          |       |
-| Local file save/load (.vrs)    |    ✓     |   ✓   |
-| IndexedDB fallback             |    ✓     |   ✓   |
-| OneDrive personal sync         |    —     |   ✓   |
-| SharePoint channel storage     |    —     |   ✓   |
-| **Authentication**             |          |       |
-| EasyAuth SSO (Microsoft Entra) |    ✓     |   ✓   |
-| Admin consent required         |    No    |  Yes  |
-| **Investigation Workflow**     |          |       |
-| Findings log                   |    ✓     |   ✓   |
-| What-If simulation             |    ✓     |   ✓   |
-| Photo evidence in findings     |    —     |   ✓   |
-| **Collaboration**              |          |       |
-| Teams channel tabs             |    —     |   ✓   |
-| Teams SSO                      |    —     |   ✓   |
-| Adaptive Cards                 |    —     |   ✓   |
-| **Mobile**                     |          |       |
-| Mobile gemba companion (Teams) |    —     |   ✓   |
-| **Support**                    |          |       |
-| Email support                  |    ✓     |   ✓   |
-| Response time                  |   24h    |  24h  |
+| Feature                        | Standard | Team  | Team AI |
+| ------------------------------ | :------: | :---: | :-----: |
+| **Core Analysis**              |          |       |         |
+| I-Chart                        |    ✓     |   ✓   |    ✓    |
+| Boxplot                        |    ✓     |   ✓   |    ✓    |
+| Pareto                         |    ✓     |   ✓   |    ✓    |
+| Capability (Cp/Cpk)            |    ✓     |   ✓   |    ✓    |
+| Probability Plot               |    ✓     |   ✓   |    ✓    |
+| ANOVA                          |    ✓     |   ✓   |    ✓    |
+| **Performance Mode**           |          |       |         |
+| Multi-channel analysis         |    ✓     |   ✓   |    ✓    |
+| Channel limit                  |  1,500   | 1,500 |  1,500  |
+| **Data Input**                 |          |       |         |
+| CSV / Excel upload             |    ✓     |   ✓   |    ✓    |
+| Copy-paste from spreadsheets   |    ✓     |   ✓   |    ✓    |
+| Manual data entry              |    ✓     |   ✓   |    ✓    |
+| **Storage**                    |          |       |         |
+| Local file save/load (.vrs)    |    ✓     |   ✓   |    ✓    |
+| IndexedDB fallback             |    ✓     |   ✓   |    ✓    |
+| OneDrive personal sync         |    —     |   ✓   |    ✓    |
+| SharePoint channel storage     |    —     |   ✓   |    ✓    |
+| **Authentication**             |          |       |         |
+| EasyAuth SSO (Microsoft Entra) |    ✓     |   ✓   |    ✓    |
+| Admin consent required         |    No    |  Yes  |   Yes   |
+| **Investigation Workflow**     |          |       |         |
+| Findings log                   |    ✓     |   ✓   |    ✓    |
+| What-If simulation             |    ✓     |   ✓   |    ✓    |
+| Photo evidence in findings     |    —     |   ✓   |    ✓    |
+| **Collaboration**              |          |       |         |
+| Teams channel tabs             |    —     |   ✓   |    ✓    |
+| Teams SSO                      |    —     |   ✓   |    ✓    |
+| Adaptive Cards                 |    —     |   ✓   |    ✓    |
+| **AI**                         |          |       |         |
+| AI Knowledge Base              |    —     |   —   |    ✓    |
+| AI-enhanced CoScout            |    —     |   —   |    ✓    |
+| Organizational learning        |    —     |   —   |    ✓    |
+| **Mobile**                     |          |       |         |
+| Mobile gemba companion (Teams) |    —     |   ✓   |    ✓    |
+| **Support**                    |          |       |         |
+| Email support                  |    ✓     |   ✓   |    ✓    |
+| Response time                  |   24h    |  24h  |   24h   |
 
 ---
 
-## Why Two Plans
+## Why Three Plans
 
 ### Standard — Full Analysis, Zero Admin
 
@@ -67,12 +72,17 @@ Standard is the complete SPC analysis tool for individuals and small teams who w
 
 Team adds everything needed for shared quality workflows: OneDrive and SharePoint channel storage so projects live where the team works, Teams integration for embedding analysis in channels, and mobile access through the Teams app for gemba investigations with photo evidence. The `Files.ReadWrite.All` and `Channel.ReadBasic.All` permissions require one-time admin consent, justified by the collaborative storage and Teams features they unlock.
 
-### Why Not One Plan
+### Team AI — AI-Enhanced Collaboration
 
-The original single plan at €150/month forced a compromise: too expensive for individuals who only need local analysis, not enough revenue from teams who need collaboration features. Two plans let each segment pay for what they use:
+Team AI adds persistent AI capabilities on top of the Team plan: an AI Knowledge Base powered by Azure AI Search that indexes resolved findings, an enhanced CoScout assistant grounded in VariScout methodology and organizational knowledge, and organizational learning that feeds insights from resolved investigations back into the knowledge base for future use.
+
+### Why Three Plans
+
+The original single plan at €150/month forced a compromise: too expensive for individuals who only need local analysis, not enough revenue from teams who need collaboration features. Three plans let each segment pay for what they use:
 
 - Standard at €99 removes the "do I really need OneDrive?" hesitation
-- Team at €299 captures the collaboration value that teams are willing to pay for
+- Team at €199 captures the collaboration value that teams are willing to pay for
+- Team AI at €279 captures organizations investing in AI-enhanced quality workflows
 - Standard requires no admin consent — faster purchase cycle
 
 ---
@@ -91,19 +101,28 @@ Annual Net:      €1,152.36/year
 ### Team Plan
 
 ```
-Gross Price:     €299/month
-Microsoft Fee:   -€8.97/month (3%)
-Net Revenue:     €290.03/month
-Annual Net:      €3,480.36/year
+Gross Price:     €199/month
+Microsoft Fee:   -€5.97/month (3%)
+Net Revenue:     €193.03/month
+Annual Net:      €2,316.36/year
+```
+
+### Team AI Plan
+
+```
+Gross Price:     €279/month
+Microsoft Fee:   -€8.37/month (3%)
+Net Revenue:     €270.63/month
+Annual Net:      €3,247.56/year
 ```
 
 ### Currency Table
 
-| Region | Currency | Standard/Month | Team/Month |
-| ------ | -------- | -------------- | ---------- |
-| EU     | EUR      | €99            | €299       |
-| US     | USD      | ~$109          | ~$329      |
-| UK     | GBP      | ~£85           | ~£256      |
+| Region | Currency | Standard/Month | Team/Month | Team AI/Month |
+| ------ | -------- | -------------- | ---------- | ------------- |
+| EU     | EUR      | €99            | €199       | €279          |
+| US     | USD      | ~$109          | ~$219      | ~$309         |
+| UK     | GBP      | ~£85           | ~£171      | ~£239         |
 
 Microsoft handles currency conversion automatically. Prices are set excluding tax; Microsoft adds VAT/GST at checkout based on the customer's billing country.
 
@@ -156,7 +175,11 @@ Users outgrow the PWA when they need file upload, project save/load, Performance
 
 Teams outgrow Standard when they need shared project storage, mobile gemba access, or Teams channel integration. Upgrading from Standard to Team is a plan change in the Azure portal — same deployment, same data, new capabilities.
 
-The ARM template uses a `VARISCOUT_PLAN` environment variable (`standard` or `team`) to control which features are available. Both plans deploy as `enterprise` tier.
+### Team to Team AI
+
+Organizations outgrow Team when they want AI-enhanced quality workflows: a knowledge base that learns from resolved findings, an enhanced CoScout assistant grounded in methodology and organizational context, and organizational learning that compounds over time.
+
+The ARM template uses a `VARISCOUT_PLAN` environment variable (`standard`, `team`, or `team-ai`) to control which features are available. All plans deploy as `enterprise` tier.
 
 ---
 
@@ -174,7 +197,8 @@ The ARM template uses a `VARISCOUT_PLAN` environment variable (`standard` or `te
 | Product            | Entry Price | Team of 10     | Collaboration  | Deployment      |
 | ------------------ | ----------- | -------------- | -------------- | --------------- |
 | VariScout Standard | €99/month   | €99/month      | Local files    | Customer Azure  |
-| VariScout Team     | €299/month  | €299/month     | OneDrive/Teams | Customer Azure  |
+| VariScout Team     | €199/month  | €199/month     | OneDrive/Teams | Customer Azure  |
+| VariScout Team AI  | €279/month  | €279/month     | + AI Knowledge | Customer Azure  |
 | Minitab            | ~€150/month | ~€1,500/month  | Minitab Cloud  | Minitab Cloud   |
 | JMP                | ~€200/month | ~€2,000/month  | SAS Cloud      | Local/SAS Cloud |
 | SigmaXL            | ~€21/month  | ~€83/month     | None           | Excel Add-in    |
@@ -186,7 +210,7 @@ The ARM template uses a `VARISCOUT_PLAN` environment variable (`standard` or `te
 - **Customer-controlled data** (no vendor lock-in)
 - **No backend costs** for publisher
 - **Microsoft billing integration** (familiar for enterprises)
-- **Two entry points** — Standard for individuals, Team for departments
+- **Three entry points** — Standard for individuals, Team for departments, Team AI for AI-forward organizations
 
 ---
 

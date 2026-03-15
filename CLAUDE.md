@@ -202,11 +202,12 @@ variscout-lite/
 
 ## Products & Pricing
 
-| Product        | Distribution      | Pricing    | Features                                      | Status      |
-| -------------- | ----------------- | ---------- | --------------------------------------------- | ----------- |
-| Azure Standard | Azure Marketplace | €99/month  | Full analysis, local file storage             | **PRIMARY** |
-| Azure Team     | Azure Marketplace | €299/month | + Teams, OneDrive, SharePoint, mobile, photos | **PRIMARY** |
-| PWA            | Public URL        | FREE       | Training & education (forever free)           | Production  |
+| Product        | Distribution      | Pricing    | Features                                               | Status      |
+| -------------- | ----------------- | ---------- | ------------------------------------------------------ | ----------- |
+| Azure Standard | Azure Marketplace | €99/month  | Full analysis, local file storage                      | **PRIMARY** |
+| Azure Team     | Azure Marketplace | €199/month | + Teams, OneDrive, SharePoint, mobile, photos          | **PRIMARY** |
+| Azure Team AI  | Azure Marketplace | €279/month | + AI Knowledge Base, AI-enhanced CoScout, org learning | **PRIMARY** |
+| PWA            | Public URL        | FREE       | Training & education (forever free)                    | Production  |
 
 See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for the distribution strategy.
 

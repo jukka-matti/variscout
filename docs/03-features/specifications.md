@@ -822,7 +822,8 @@ NO backend. NO API calls. Works offline after first visit.
 | Product        | Distribution      | Pricing                                            | Status      |
 | -------------- | ----------------- | -------------------------------------------------- | ----------- |
 | Azure Standard | Azure Marketplace | €99/month (full analysis, local files)             | **PRIMARY** |
-| Azure Team     | Azure Marketplace | €299/month (+ Teams, OneDrive, SharePoint, mobile) | **PRIMARY** |
+| Azure Team     | Azure Marketplace | €199/month (+ Teams, OneDrive, SharePoint, mobile) | **PRIMARY** |
+| Azure Team AI  | Azure Marketplace | €279/month (+ AI-assisted analysis)                | **PRIMARY** |
 | PWA            | Public URL        | FREE (forever, training & education)               | Production  |
 
 ### Free (PWA)
@@ -840,13 +841,19 @@ NO backend. NO API calls. Works offline after first visit.
 - Watermark-free exports, custom theming
 - Managed Application deployment via Azure Marketplace
 
-### Team (Azure App — €299/month)
+### Team (Azure App — €199/month)
 
 - Everything in Standard, plus:
 - Teams integration (channel tabs, SSO)
 - OneDrive and SharePoint sync
 - Mobile access via Teams app
 - Photo evidence with EXIF stripping
+
+### Team AI (Azure App — €279/month)
+
+- Everything in Team, plus:
+- AI-assisted analysis (CoScout, narrative insights, chart insights)
+- AI-powered suggested questions and hypothesis generation
 
 **Build Commands:**
 

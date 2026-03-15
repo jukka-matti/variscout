@@ -92,7 +92,8 @@ The Azure App is published to Azure Marketplace as a **Managed Application**:
 Azure Marketplace
 └── VariScout (Managed Application)
     ├── Standard Plan (€99/month, full analysis, local files)
-    └── Team Plan (€299/month, + Teams, OneDrive, SharePoint)
+    ├── Team Plan (€199/month, + Teams, OneDrive, SharePoint)
+    └── Team AI Plan (€279/month, + AI-assisted analysis)
 ```
 
 ### Publication Process
@@ -104,13 +105,13 @@ Azure Marketplace
 
 2. **Create Azure Application Offer**
    - Offer type: Managed Application
-   - Two plans: Standard (€99/month) and Team (€299/month)
+   - Three plans: Standard (€99/month), Team (€199/month), and Team AI (€279/month)
    - Upload deployment package (.zip with mainTemplate.json + createUiDefinition.json)
    - Publisher management: Disabled (zero access)
    - Customer access: Enabled (full control)
 
 3. **Configure Pricing**
-   - Set monthly prices (Standard €99, Team €299)
+   - Set monthly prices (Standard €99, Team €199, Team AI €279)
    - Configure regional pricing (EUR, USD, GBP)
    - Microsoft handles VAT and billing (3% fee)
 

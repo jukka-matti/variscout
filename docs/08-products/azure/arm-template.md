@@ -54,7 +54,7 @@ Before deploying VariScout, the customer must create an App Registration in Azur
    **Standard plan (€99/month):**
    - `User.Read` — sign-in and read user profile
 
-   **Team plan (€299/month) — add all of the above, plus:**
+   **Team plan (€199/month) / Team AI plan (€279/month) — add all of the above, plus:**
    - `Files.ReadWrite` — read and write user's OneDrive files (for project sync)
    - `Files.ReadWrite.All` — channel SharePoint access (for shared projects)
    - `Channel.ReadBasic.All` — channel listing (for Teams integration)
@@ -219,7 +219,8 @@ The customer provides an app name and selects a region.
 The customer selects their VariScout plan:
 
 - **Standard (€99/month)** — Full analysis, local file storage
-- **Team (€299/month)** — Teams, OneDrive, SharePoint, mobile, photos
+- **Team (€199/month)** — Teams, OneDrive, SharePoint, mobile, photos
+- **Team AI (€279/month)** — Everything in Team + AI-powered analysis
 
 The selected `variscoutPlan` parameter is passed to the ARM template, which conditionally provisions Team plan resources (Function App, Storage Account) and adjusts EasyAuth login scopes.
 

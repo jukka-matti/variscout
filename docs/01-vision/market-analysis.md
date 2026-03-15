@@ -158,7 +158,7 @@ Minitab added AI that interprets existing statistics — "AI you can trust." AI 
 
 ## Bottom Line
 
-> VariScout's TAM is **real but niche** (~€100–200M). The product sits in a genuine gap between expensive SPC suites (used at 20% capacity) and DIY spreadsheet approaches. The from-€99/month flat pricing (two plans: Standard €99, Team €299) keeps the barrier low for individuals while capturing collaboration value from teams.
+> VariScout's TAM is **real but niche** (~€100–200M). The product sits in a genuine gap between expensive SPC suites (used at 20% capacity) and DIY spreadsheet approaches. The from-€99/month flat pricing (three plans: Standard €99, Team €199, Team AI €279) keeps the barrier low for individuals while capturing collaboration value from teams.
 >
 > The biggest variable isn't market size — it's **distribution**. Azure Marketplace reach and the free-to-paid funnel (PWA → Azure App) will determine whether VariScout captures 50 or 5,000 customers.
 

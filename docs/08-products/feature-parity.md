@@ -6,13 +6,14 @@ Complete feature availability across VariScout platforms.
 
 ## Platform Overview
 
-| Platform           | Primary Use                       | Status      | Distribution      | Price      |
-| ------------------ | --------------------------------- | ----------- | ----------------- | ---------- |
-| **Azure Standard** | Full analysis, local file storage | **PRIMARY** | Azure Marketplace | €99/month  |
-| **Azure Team**     | + Teams, cloud storage, mobile    | **PRIMARY** | Azure Marketplace | €299/month |
-| **PWA**            | Training & education              | Production  | Direct URL        | FREE       |
+| Platform           | Primary Use                           | Status      | Distribution      | Price      |
+| ------------------ | ------------------------------------- | ----------- | ----------------- | ---------- |
+| **Azure Standard** | Full analysis, local file storage     | **PRIMARY** | Azure Marketplace | €99/month  |
+| **Azure Team**     | + Teams, cloud storage, mobile        | **PRIMARY** | Azure Marketplace | €199/month |
+| **Azure Team AI**  | + AI Knowledge Base, enhanced CoScout | **PRIMARY** | Azure Marketplace | €279/month |
+| **PWA**            | Training & education                  | Production  | Direct URL        | FREE       |
 
-> Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md), Azure App is the only paid product with a two-plan model: Standard (€99/month) and Team (€299/month). Both are Azure Marketplace Managed Applications. PWA is free forever. See [ADR-016](../07-decisions/adr-016-teams-integration.md) for Teams integration design.
+> Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md), Azure App is the only paid product with a three-plan model: Standard (€99/month), Team (€199/month), and Team AI (€279/month). All are Azure Marketplace Managed Applications. PWA is free forever. See [ADR-016](../07-decisions/adr-016-teams-integration.md) for Teams integration design and [ADR-019](../07-decisions/adr-019-ai-integration.md) for AI integration design.
 
 ---
 
@@ -115,14 +116,15 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## AI Features
 
-| Feature                       | Azure Standard | Azure Team | PWA (Free) | Notes                                                                  |
-| ----------------------------- | :------------: | :--------: | :--------: | ---------------------------------------------------------------------- |
-| **NarrativeBar**              |    Optional    |  Optional  |     -      | Plain-language analysis summary at dashboard bottom                    |
-| **ChartInsightChip**          |    Optional    |  Optional  |     -      | Per-chart contextual suggestions                                       |
-| **CoScoutPanel**              |    Optional    |  Optional  |     -      | Conversational AI assistant (slide-out panel)                          |
-| **Azure AI Search**           |       -        |  Optional  |     -      | Knowledge base from findings + SharePoint docs (Team plan only)        |
-| **Process description field** |    Optional    |  Optional  |     -      | Free-text process context for AI grounding                             |
-| **AI visibility toggle**      |    Optional    |  Optional  |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists |
+| Feature                       | Azure Standard | Azure Team | Azure Team AI | PWA (Free) | Notes                                                                  |
+| ----------------------------- | :------------: | :--------: | :-----------: | :--------: | ---------------------------------------------------------------------- |
+| **NarrativeBar**              |    Optional    |  Optional  |   Optional    |     -      | Plain-language analysis summary at dashboard bottom                    |
+| **ChartInsightChip**          |    Optional    |  Optional  |   Optional    |     -      | Per-chart contextual suggestions                                       |
+| **CoScoutPanel**              |    Optional    |  Optional  |   Enhanced    |     -      | Team AI: methodology-grounded, knowledge-base-aware                    |
+| **AI Knowledge Base**         |       -        |     -      |       ✓       |     -      | Azure AI Search index from resolved findings (Team AI only)            |
+| **Organizational learning**   |       -        |     -      |       ✓       |     -      | Resolved findings feed back into knowledge base (Team AI only)         |
+| **Process description field** |    Optional    |  Optional  |   Optional    |     -      | Free-text process context for AI grounding                             |
+| **AI visibility toggle**      |    Optional    |  Optional  |   Optional    |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists |
 
 > AI features require customer-deployed Azure AI Foundry resources (optional ARM deployment checkbox). See [ADR-019](../07-decisions/adr-019-ai-integration.md). PWA never has AI.
 
@@ -203,16 +205,16 @@ Features that behave differently on phone (<640px) versus desktop.
 
 ## Licensing & Pricing
 
-| Aspect            | Azure Standard                       | Azure Team                                    | PWA (Free)                                                |
-| ----------------- | ------------------------------------ | --------------------------------------------- | --------------------------------------------------------- |
-| **Distribution**  | Azure Marketplace                    | Azure Marketplace                             | Direct URL                                                |
-| **Pricing**       | €99/month                            | €299/month                                    | FREE (forever)                                            |
-| **Billing**       | Monthly (Managed Application)        | Monthly (Managed Application)                 | N/A                                                       |
-| **Users**         | Unlimited (per-deployment)           | Unlimited (per-deployment)                    | N/A                                                       |
-| **Features**      | All analysis features                | All analysis + Teams + cloud storage + mobile | Core analysis + Green Belt (no Performance Mode, no save) |
-| **Auth**          | EasyAuth / Entra (User.Read)         | EasyAuth + Teams SSO (+ Files, Channels)      | None                                                      |
-| **Storage**       | Local files (File System Access API) | + OneDrive + SharePoint channels              | Session-only                                              |
-| **Admin consent** | None                                 | Required (one-time)                           | N/A                                                       |
+| Aspect            | Azure Standard                       | Azure Team                                    | Azure Team AI                                            | PWA (Free)                                                |
+| ----------------- | ------------------------------------ | --------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
+| **Distribution**  | Azure Marketplace                    | Azure Marketplace                             | Azure Marketplace                                        | Direct URL                                                |
+| **Pricing**       | €99/month                            | €199/month                                    | €279/month                                               | FREE (forever)                                            |
+| **Billing**       | Monthly (Managed Application)        | Monthly (Managed Application)                 | Monthly (Managed Application)                            | N/A                                                       |
+| **Users**         | Unlimited (per-deployment)           | Unlimited (per-deployment)                    | Unlimited (per-deployment)                               | N/A                                                       |
+| **Features**      | All analysis features                | All analysis + Teams + cloud storage + mobile | All Team features + AI Knowledge Base + enhanced CoScout | Core analysis + Green Belt (no Performance Mode, no save) |
+| **Auth**          | EasyAuth / Entra (User.Read)         | EasyAuth + Teams SSO (+ Files, Channels)      | EasyAuth + Teams SSO (+ Files, Channels)                 | None                                                      |
+| **Storage**       | Local files (File System Access API) | + OneDrive + SharePoint channels              | + OneDrive + SharePoint channels + AI Search index       | Session-only                                              |
+| **Admin consent** | None                                 | Required (one-time)                           | Required (one-time)                                      | N/A                                                       |
 
 ---
 
@@ -243,7 +245,12 @@ Features that behave differently on phone (<640px) versus desktop.
 - Sync notifications (toast feedback for cloud operations)
 - Team assignment on corrective actions (people picker for team members)
 - Teams auto-posting on finding analyzed + resolved status changes
-- Knowledge base contribution from resolved findings (Phase 2 AI, see [ADR-019](../07-decisions/adr-019-ai-integration.md))
+
+### Azure Team AI Only (vs Team)
+
+- AI Knowledge Base via Azure AI Search (organizational findings index)
+- AI-enhanced CoScout with methodology-grounded assistant
+- Organizational learning from resolved findings
 
 ### PWA Only
 
@@ -258,7 +265,7 @@ Features that behave differently on phone (<640px) versus desktop.
 | Feature                     | Target Platform       | Status                      |
 | --------------------------- | --------------------- | --------------------------- |
 | AI Integration (Phase 1)    | Azure Standard + Team | Proposed                    |
-| AI Knowledge Base (Phase 3) | Azure Team            | Proposed                    |
+| AI Knowledge Base (Phase 3) | Azure Team AI         | Proposed                    |
 | Closed-loop investigations  | Azure Standard + Team | Designed (ADR-015 accepted) |
 
 ---

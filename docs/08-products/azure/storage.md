@@ -9,7 +9,7 @@ Offline-first persistence with optional OneDrive cloud sync (Team plan).
 Storage behavior depends on the plan:
 
 - **Standard plan (€99/month)**: Local-only storage via **IndexedDB** (Dexie.js). All projects are saved and loaded from the browser. No cloud sync.
-- **Team plan (€299/month)**: Two-tier storage — **IndexedDB** (local, instant) + **OneDrive** (cloud, async) via Microsoft Graph API. Every save writes to IndexedDB first, then syncs to OneDrive when online. Loads prefer the cloud version (fresher) and fall back to local when offline.
+- **Team plan (€199/month) / Team AI (€279/month)**: Two-tier storage — **IndexedDB** (local, instant) + **OneDrive** (cloud, async) via Microsoft Graph API. Every save writes to IndexedDB first, then syncs to OneDrive when online. Loads prefer the cloud version (fresher) and fall back to local when offline.
 
 Both plans use IndexedDB as the primary persistence layer. The Team plan adds OneDrive sync on top.
 

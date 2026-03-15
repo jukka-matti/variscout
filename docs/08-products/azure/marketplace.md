@@ -49,7 +49,7 @@ Azure Application > Managed Application
 ├── Customer has full access to deployed resources
 ├── Publisher management DISABLED (zero access)
 ├── Microsoft handles billing (3% fee)
-└── Two plans: Standard €99/month, Team €299/month
+└── Three plans: Standard €99/month, Team €199/month, Team AI €279/month
 ```
 
 **Why Managed Application (not Solution Template):**
@@ -85,18 +85,20 @@ See [ARM Template Documentation](arm-template.md) for the full template.
 
 ## Pricing Configuration
 
-### Two Plans
+### Three Plans
 
 | Plan ID    | Display Name       | Price (EUR) | Billing |
 | ---------- | ------------------ | ----------- | ------- |
 | `standard` | VariScout Standard | €99         | Monthly |
-| `team`     | VariScout Team     | €299        | Monthly |
+| `team`     | VariScout Team     | €199        | Monthly |
+| `team-ai`  | VariScout Team AI  | €279        | Monthly |
 
 ### Price Breakdown
 
 ```
 Standard:       €99/month  → Net €96.03/month  (€1,152/year)
-Team:           €299/month → Net €290.03/month (€3,480/year)
+Team:           €199/month → Net €193.03/month (€2,316/year)
+Team AI:        €279/month → Net €270.63/month (€3,248/year)
 Microsoft Fee:  3% on each plan
 ```
 
@@ -104,9 +106,9 @@ Microsoft Fee:  3% on each plan
 
 Partner Center supports per-region pricing. Recommended approach:
 
-- **EUR zone**: €99 / €299 per month
-- **USD zone**: $109 / $329 per month
-- **GBP zone**: £85 / £255 per month
+- **EUR zone**: €99 / €199 / €279 per month
+- **USD zone**: $109 / $219 / $305 per month
+- **GBP zone**: £85 / £170 / £240 per month
 
 Microsoft handles currency conversion and VAT.
 
@@ -165,7 +167,8 @@ Analyze hundreds of measurement channels simultaneously:
 ### Pricing
 
 **Standard — €99/month** — Full analysis, unlimited users in your tenant.
-**Team — €299/month** — Everything in Standard, plus Teams, OneDrive, SharePoint, mobile, and photo evidence.
+**Team — €199/month** — Everything in Standard, plus Teams, OneDrive, SharePoint, mobile, and photo evidence.
+**Team AI — €279/month** — Everything in Team, plus AI Knowledge Base, AI-enhanced CoScout, and organizational learning.
 
 ### Integration
 
@@ -199,6 +202,7 @@ before upgrading to the full Azure App for team use.
 | -------- | ---------- | ------------------- |
 | Standard | Public     | All Azure customers |
 | Team     | Public     | All Azure customers |
+| Team AI  | Public     | All Azure customers |
 
 ---
 

@@ -6,12 +6,13 @@ VariScout for Microsoft 365 enterprises - the only paid product, distributed via
 
 ## Overview
 
-The Azure App is the **only paid VariScout product**, available in two plans:
+The Azure App is the **only paid VariScout product**, available in three plans:
 
 - **Standard (€99/month)**: Full analysis features, local file storage, EasyAuth SSO
-- **Team (€299/month)**: Everything in Standard + OneDrive/SharePoint sync, Teams integration, channel storage, photo capture
+- **Team (€199/month)**: Everything in Standard + OneDrive/SharePoint sync, Teams integration, channel storage, photo capture
+- **Team AI (€279/month)**: Everything in Team + AI Knowledge Base, AI-enhanced CoScout, organizational learning
 
-Both plans include all chart types, Performance Mode, and customer-controlled data (stays in their Azure tenant).
+All plans include all chart types, Performance Mode, and customer-controlled data (stays in their Azure tenant).
 
 **No backend required** - deploys entirely to the customer's Azure tenant.
 
@@ -21,16 +22,16 @@ Both plans include all chart types, Performance Mode, and customer-controlled da
 
 VariScout Azure App is available on **Azure Marketplace** as a Managed Application:
 
-| Aspect           | Value                                                                 |
-| ---------------- | --------------------------------------------------------------------- |
-| Offer type       | Managed Application                                                   |
-| Price            | €99/month (Standard) or €299/month (Team)                             |
-| Plans            | Standard (local files) or Team (+ OneDrive/SharePoint, Teams, photos) |
-| Billing          | Monthly (Microsoft, 3% fee)                                           |
-| Publisher access | Disabled (zero access to customer resources)                          |
-| Customer access  | Full control                                                          |
+| Aspect           | Value                                                                  |
+| ---------------- | ---------------------------------------------------------------------- |
+| Offer type       | Managed Application                                                    |
+| Price            | €99/month (Standard), €199/month (Team), €279/month (Team AI)          |
+| Plans            | Standard, Team (+ OneDrive/SharePoint, Teams), Team AI (+ AI features) |
+| Billing          | Monthly (Microsoft, 3% fee)                                            |
+| Publisher access | Disabled (zero access to customer resources)                           |
+| Customer access  | Full control                                                           |
 
-Both plans include:
+All plans include:
 
 - All chart types and analysis features
 - Performance Mode (multi-channel Cpk analysis)
@@ -44,6 +45,13 @@ Team plan adds:
 - OneDrive/SharePoint analysis sync
 - Channel storage for shared projects
 - Photo capture with EXIF stripping (Teams SDK native camera + HTML5 fallback)
+- Automatic Teams Adaptive Cards posted to the channel when findings reach 'analyzed' or 'resolved' status (with @mentions, Cpk deltas, and deep links)
+
+Team AI plan adds:
+
+- AI Knowledge Base for organizational learning
+- AI-enhanced CoScout assistant
+- Organizational learning across analyses
 
 **Billing**: Handled by Microsoft (3% fee). Supports enterprise procurement with purchase orders and invoicing.
 
@@ -141,7 +149,7 @@ All Managed Application deployments get full analysis features. The plan determi
 const tier = import.meta.env.VITE_LICENSE_TIER; // Always 'enterprise'
 
 // Plan: determines storage and collaboration features
-const plan = import.meta.env.VARISCOUT_PLAN; // 'standard' or 'team'
+const plan = import.meta.env.VARISCOUT_PLAN; // 'standard', 'team', or 'team-ai'
 ```
 
 ---
