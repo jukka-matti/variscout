@@ -212,96 +212,98 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 
 ## Key Files
 
-| File                                                             | Purpose                                                                                                       |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `packages/core/src/stats.ts`                                     | Statistics engine (mean, Cp, Cpk, ANOVA)                                                                      |
-| `packages/core/src/__tests__/stats.test.ts`                      | Unit tests for statistics engine                                                                              |
-| `packages/core/src/types.ts`                                     | Shared TypeScript interfaces                                                                                  |
-| `packages/core/src/navigation.ts`                                | Navigation types and utilities                                                                                |
-| `packages/core/src/tier.ts`                                      | Tier configuration (`getTier()`, `isPaidTier()`, channel limits)                                              |
-| `packages/hooks/src/useTier.ts`                                  | React hook for tier state and limits                                                                          |
-| `packages/ui/src/components/TierBadge/`                          | Tier indicator badge component                                                                                |
-| `packages/ui/src/components/UpgradePrompt/`                      | Upgrade call-to-action component                                                                              |
-| `packages/charts/src/`                                           | IChart, Boxplot, ParetoChart                                                                                  |
-| `packages/charts/src/PerformanceIChart.tsx`                      | Multi-channel Cpk scatter plot (shared)                                                                       |
-| `packages/charts/src/PerformanceBoxplot.tsx`                     | Multi-channel distribution comparison (shared)                                                                |
-| `packages/charts/src/PerformancePareto.tsx`                      | Multi-channel Cpk ranking chart (shared)                                                                      |
-| `packages/charts/src/PerformanceCapability.tsx`                  | Single channel histogram (shared)                                                                             |
-| `packages/charts/src/colors.ts`                                  | Chart color constants (chartColors, chromeColors)                                                             |
-| `packages/data/src/`                                             | Sample datasets with pre-computed stats and chart data                                                        |
-| `packages/data/src/samples/`                                     | Individual sample files (coffee, journey, bottleneck, sachets)                                                |
-| `packages/ui/src/colors.ts`                                      | Shared UI colors (statusColors)                                                                               |
-| `packages/ui/src/hooks/useMediaQuery.ts`                         | Responsive hooks (useIsMobile)                                                                                |
-| `packages/ui/src/components/HelpTooltip/`                        | Help tooltip component with CSS theming and "Learn more"                                                      |
-| `packages/ui/src/components/InvestigationPhaseBadge/`            | Colored phase badge (initial/diverging/validating/converging/acting)                                          |
-| `packages/ui/src/hooks/useGlossary.ts`                           | Hook for accessing glossary terms and definitions                                                             |
-| `packages/core/src/glossary/types.ts`                            | Glossary term type definitions (GlossaryTerm, etc.)                                                           |
-| `packages/core/src/glossary/terms.ts`                            | Glossary content (~20 terms for capability, statistics)                                                       |
-| `packages/hooks/src/useChartScale.ts`                            | Chart Y-axis scale calculation                                                                                |
-| `packages/hooks/src/useFilterNavigation.ts`                      | Filter navigation with multi-select, updateFilterValues(), removeFilter()                                     |
-| `packages/hooks/src/useDataIngestion.ts`                         | Shared file upload and data parsing                                                                           |
-| `packages/hooks/src/useVariationTracking.ts`                     | Cumulative Total SS scope tracking + filterChipData with contribution %                                       |
-| `packages/hooks/src/useKeyboardNavigation.ts`                    | Keyboard navigation (arrow keys, focus management)                                                            |
-| `packages/hooks/src/useResponsiveChartMargins.ts`                | Dynamic chart margins based on container width                                                                |
-| `packages/hooks/src/useDataState.ts`                             | Shared DataContext state (used by PWA & Azure)                                                                |
-| `packages/hooks/src/useBoxplotData.ts`                           | Shared boxplot d3 computation hook                                                                            |
-| `packages/hooks/src/useIChartData.ts`                            | Shared I-Chart data transform hook                                                                            |
-| `packages/hooks/src/useAnnotationMode.ts`                        | Chart annotation state (highlights, text notes, context menu)                                                 |
-| `packages/ui/src/components/CoScoutInline/`                      | CoScout inline conversation in FindingsPanel                                                                  |
-| `packages/ui/src/components/CoScoutPanel/CoScoutMessages.tsx`    | Shared message rendering (user/assistant bubbles, loading dots)                                               |
-| `packages/ui/src/components/ChartAnnotationLayer/`               | Draggable text annotation overlay for charts                                                                  |
-| `packages/ui/src/components/AnnotationContextMenu/`              | Right-click menu for chart annotations (highlight + add note)                                                 |
-| `packages/ui/src/components/DashboardBase/`                      | Shared dashboard building blocks (FocusedViewOverlay, FocusedChartCard, DashboardChartCard, DashboardGrid)    |
-| `apps/pwa/src/hooks/useDashboardCharts.ts`                       | PWA dashboard chart state                                                                                     |
-| `apps/azure/src/hooks/useDashboardCharts.ts`                     | Azure dashboard chart state (categoryContributions)                                                           |
-| `apps/pwa/src/context/DataContext.tsx`                           | Central state management                                                                                      |
-| `apps/pwa/src/context/ThemeContext.tsx`                          | Theme state (light/dark/system, company accent)                                                               |
-| `packages/charts/src/useChartTheme.ts`                           | Theme-aware chart colors hook                                                                                 |
-| `apps/pwa/src/components/__tests__/`                             | Component tests (Dashboard)                                                                                   |
-| `packages/core/src/parser.ts`                                    | CSV/Excel parsing, validation, keyword detection (shared)                                                     |
-| `apps/pwa/src/hooks/useDataIngestion.ts`                         | PWA wrapper (adds loadSample to shared hook)                                                                  |
-| `packages/ui/src/components/DataQualityBanner/`                  | Shared validation summary UI component                                                                        |
-| `packages/ui/src/components/ColumnMapping/`                      | Shared column mapping UI component                                                                            |
-| `packages/ui/src/components/MeasureColumnSelector/`              | Shared measure column selector                                                                                |
-| `packages/ui/src/components/PerformanceDetectedModal/`           | Shared wide-format detection modal                                                                            |
-| `apps/pwa/src/components/FilterBreadcrumb.tsx`                   | Filter chips UI component (multi-select, contribution %)                                                      |
-| `apps/pwa/src/components/MobileMenu.tsx`                         | Mobile navigation hamburger menu                                                                              |
-| `apps/pwa/src/components/PerformanceSetupPanel.tsx`              | Setup panel for multi-measure analysis                                                                        |
-| `apps/pwa/src/components/PerformanceDashboard.tsx`               | Performance Mode dashboard (Cp/Cpk toggle, drill navigation)                                                  |
-| `apps/pwa/src/components/Dashboard.tsx`                          | Main dashboard (drillFromPerformance, onBackToPerformance)                                                    |
-| `apps/pwa/src/components/views/`                                 | Extracted view components (chart containers)                                                                  |
-| `apps/azure/src/context/DataContext.tsx`                         | Azure app central state (mirrors PWA)                                                                         |
-| `apps/azure/src/services/storage.ts`                             | StorageProvider singleton — offline-first storage, OneDrive sync, error classification, retry backoff         |
-| `apps/azure/src/components/__tests__/`                           | Azure app component tests                                                                                     |
-| `apps/azure/src/components/PerformanceDashboard.tsx`             | Azure Performance Mode dashboard (Cp/Cpk toggle, drill navigation)                                            |
-| `apps/azure/src/components/DataPanel.tsx`                        | Azure data table panel (resizable, bi-directional sync)                                                       |
-| `apps/azure/src/auth/easyAuth.ts`                                | EasyAuth helper (AuthError, refreshToken, proactive token refresh)                                            |
-| `apps/azure/src/components/SyncToast.tsx`                        | Sync notification toasts (success, error, auth prompt)                                                        |
-| `apps/azure/src/components/views/PresentationView.tsx`           | Presentation mode (full-screen chart overlay)                                                                 |
-| `apps/azure/src/hooks/useEditorPanels.ts`                        | Editor panel visibility + presentation mode state                                                             |
-| `apps/azure/src/components/FilterBreadcrumb.tsx`                 | Azure filter chips UI component                                                                               |
-| `apps/azure/src/components/FilterChips.tsx`                      | Azure active filter chips display                                                                             |
-| `packages/core/src/variation/simulation.ts`                      | What-If simulation (directAdjustment)                                                                         |
-| `packages/ui/src/components/WhatIfSimulator/`                    | WhatIfSimulator + WhatIfPageBase                                                                              |
-| `docs/03-features/workflows/investigation-to-action.md`          | 2-phase workflow: Findings → What-If                                                                          |
-| `packages/ui/src/components/FindingsLog/`                        | FindingsLog, FindingCard, FindingStatusBadge, FindingBoardView, FindingComments                               |
-| `packages/ui/src/components/FindingsLog/FindingBoardColumns.tsx` | Horizontal drag-and-drop board for popout window                                                              |
-| `packages/ui/src/components/FindingsLog/HypothesisTreeView.tsx`  | Hypothesis tree view with collapsible nodes                                                                   |
-| `packages/ui/src/components/FindingsLog/HypothesisNode.tsx`      | Individual tree node component (status, badges, validation type)                                              |
-| `docs/04-cases/`                                                 | Case studies with demo data and teaching briefs                                                               |
-| `apps/azure/server.js`                                           | Zero-dep Node.js static server for App Service (SPA fallback, cache, /health)                                 |
-| `.github/workflows/deploy-azure-staging.yml`                     | CI/CD pipeline: build + OIDC deploy to staging App Service                                                    |
-| `infra/mainTemplate.json`                                        | ARM template for Azure Marketplace Managed Application deployment                                             |
-| `apps/azure/src/auth/graphToken.ts`                              | OBO token exchange for Teams SSO (Graph API access)                                                           |
-| `infra/functions/token-exchange/index.js`                        | Azure Function for OBO token exchange (Teams SSO backend)                                                     |
-| `packages/core/src/utils/exifStrip.ts`                           | Byte-level EXIF/GPS metadata stripping for photo evidence                                                     |
-| `apps/azure/src/teams/teamsMedia.ts`                             | Teams SDK camera wrapper (media.selectMedia)                                                                  |
-| `packages/core/src/ai/`                                          | AI module: buildAIContext, prompt templates, chart insight builders, suggested questions                      |
-| `packages/core/src/glossary/concepts.ts`                         | ~15 methodology concepts (Four Lenses, phases, principles) with typed relations                               |
-| `packages/core/src/glossary/knowledge.ts`                        | Unified knowledge lookup (getEntry, getRelated, getReferencedBy) across terms + concepts                      |
-| `apps/azure/src/services/aiService.ts`                           | AI Foundry integration: fetchNarration, fetchChartInsight, fetchCoScoutResponse/Streaming, localStorage cache |
-| `packages/hooks/src/useNarration.ts`                             | NarrativeBar state (loading, cached, error, refresh). Wraps fetchNarration                                    |
-| `packages/hooks/src/useChartInsights.ts`                         | Per-chart deterministic + AI-enhanced insight orchestration with debounced AI fallback                        |
-| `packages/hooks/src/useAICoScout.ts`                             | CoScout conversation state, streaming, abort control                                                          |
+| File                                                                 | Purpose                                                                                                                       |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `packages/core/src/stats.ts`                                         | Statistics engine (mean, Cp, Cpk, ANOVA)                                                                                      |
+| `packages/core/src/__tests__/stats.test.ts`                          | Unit tests for statistics engine                                                                                              |
+| `packages/core/src/types.ts`                                         | Shared TypeScript interfaces                                                                                                  |
+| `packages/core/src/navigation.ts`                                    | Navigation types and utilities                                                                                                |
+| `packages/core/src/tier.ts`                                          | Tier configuration (`getTier()`, `isPaidTier()`, channel limits)                                                              |
+| `packages/hooks/src/useTier.ts`                                      | React hook for tier state and limits                                                                                          |
+| `packages/ui/src/components/TierBadge/`                              | Tier indicator badge component                                                                                                |
+| `packages/ui/src/components/UpgradePrompt/`                          | Upgrade call-to-action component                                                                                              |
+| `packages/charts/src/`                                               | IChart, Boxplot, ParetoChart                                                                                                  |
+| `packages/charts/src/PerformanceIChart.tsx`                          | Multi-channel Cpk scatter plot (shared)                                                                                       |
+| `packages/charts/src/PerformanceBoxplot.tsx`                         | Multi-channel distribution comparison (shared)                                                                                |
+| `packages/charts/src/PerformancePareto.tsx`                          | Multi-channel Cpk ranking chart (shared)                                                                                      |
+| `packages/charts/src/PerformanceCapability.tsx`                      | Single channel histogram (shared)                                                                                             |
+| `packages/charts/src/colors.ts`                                      | Chart color constants (chartColors, chromeColors)                                                                             |
+| `packages/data/src/`                                                 | Sample datasets with pre-computed stats and chart data                                                                        |
+| `packages/data/src/samples/`                                         | Individual sample files (coffee, journey, bottleneck, sachets)                                                                |
+| `packages/ui/src/colors.ts`                                          | Shared UI colors (statusColors)                                                                                               |
+| `packages/ui/src/hooks/useMediaQuery.ts`                             | Responsive hooks (useIsMobile)                                                                                                |
+| `packages/ui/src/components/HelpTooltip/`                            | Help tooltip component with CSS theming and "Learn more"                                                                      |
+| `packages/ui/src/components/InvestigationPhaseBadge/`                | Colored phase badge (initial/diverging/validating/converging/acting)                                                          |
+| `packages/ui/src/hooks/useGlossary.ts`                               | Hook for accessing glossary terms and definitions                                                                             |
+| `packages/core/src/glossary/types.ts`                                | Glossary term type definitions (GlossaryTerm, etc.)                                                                           |
+| `packages/core/src/glossary/terms.ts`                                | Glossary content (~20 terms for capability, statistics)                                                                       |
+| `packages/hooks/src/useChartScale.ts`                                | Chart Y-axis scale calculation                                                                                                |
+| `packages/hooks/src/useFilterNavigation.ts`                          | Filter navigation with multi-select, updateFilterValues(), removeFilter()                                                     |
+| `packages/hooks/src/useDataIngestion.ts`                             | Shared file upload and data parsing                                                                                           |
+| `packages/hooks/src/useVariationTracking.ts`                         | Cumulative Total SS scope tracking + filterChipData with contribution %                                                       |
+| `packages/hooks/src/useKeyboardNavigation.ts`                        | Keyboard navigation (arrow keys, focus management)                                                                            |
+| `packages/hooks/src/useResponsiveChartMargins.ts`                    | Dynamic chart margins based on container width                                                                                |
+| `packages/hooks/src/useDataState.ts`                                 | Shared DataContext state (used by PWA & Azure)                                                                                |
+| `packages/hooks/src/useBoxplotData.ts`                               | Shared boxplot d3 computation hook                                                                                            |
+| `packages/hooks/src/useIChartData.ts`                                | Shared I-Chart data transform hook                                                                                            |
+| `packages/hooks/src/useAnnotationMode.ts`                            | Chart annotation state (highlights, text notes, context menu)                                                                 |
+| `packages/ui/src/components/CoScoutInline/`                          | CoScout inline conversation in FindingsPanel                                                                                  |
+| `packages/ui/src/components/CoScoutPanel/CoScoutMessages.tsx`        | Shared message rendering (user/assistant bubbles, loading dots)                                                               |
+| `packages/ui/src/components/ChartAnnotationLayer/`                   | Draggable text annotation overlay for charts                                                                                  |
+| `packages/ui/src/components/AnnotationContextMenu/`                  | Right-click menu for chart annotations (highlight + add note)                                                                 |
+| `packages/ui/src/components/DashboardBase/`                          | Shared dashboard building blocks (FocusedViewOverlay, FocusedChartCard, DashboardChartCard, DashboardGrid)                    |
+| `apps/pwa/src/hooks/useDashboardCharts.ts`                           | PWA dashboard chart state                                                                                                     |
+| `apps/azure/src/hooks/useDashboardCharts.ts`                         | Azure dashboard chart state (categoryContributions)                                                                           |
+| `apps/pwa/src/context/DataContext.tsx`                               | Central state management                                                                                                      |
+| `apps/pwa/src/context/ThemeContext.tsx`                              | Theme state (light/dark/system, company accent)                                                                               |
+| `packages/charts/src/useChartTheme.ts`                               | Theme-aware chart colors hook                                                                                                 |
+| `apps/pwa/src/components/__tests__/`                                 | Component tests (Dashboard)                                                                                                   |
+| `packages/core/src/parser.ts`                                        | CSV/Excel parsing, validation, keyword detection (shared)                                                                     |
+| `apps/pwa/src/hooks/useDataIngestion.ts`                             | PWA wrapper (adds loadSample to shared hook)                                                                                  |
+| `packages/ui/src/components/DataQualityBanner/`                      | Shared validation summary UI component                                                                                        |
+| `packages/ui/src/components/ColumnMapping/`                          | Shared column mapping UI component                                                                                            |
+| `packages/ui/src/components/MeasureColumnSelector/`                  | Shared measure column selector                                                                                                |
+| `packages/ui/src/components/PerformanceDetectedModal/`               | Shared wide-format detection modal                                                                                            |
+| `apps/pwa/src/components/FilterBreadcrumb.tsx`                       | Filter chips UI component (multi-select, contribution %)                                                                      |
+| `apps/pwa/src/components/MobileMenu.tsx`                             | Mobile navigation hamburger menu                                                                                              |
+| `apps/pwa/src/components/PerformanceSetupPanel.tsx`                  | Setup panel for multi-measure analysis                                                                                        |
+| `apps/pwa/src/components/PerformanceDashboard.tsx`                   | Performance Mode dashboard (Cp/Cpk toggle, drill navigation)                                                                  |
+| `apps/pwa/src/components/Dashboard.tsx`                              | Main dashboard (drillFromPerformance, onBackToPerformance)                                                                    |
+| `apps/pwa/src/components/views/`                                     | Extracted view components (chart containers)                                                                                  |
+| `apps/azure/src/context/DataContext.tsx`                             | Azure app central state (mirrors PWA)                                                                                         |
+| `apps/azure/src/services/storage.ts`                                 | StorageProvider singleton — offline-first storage, OneDrive sync, error classification, retry backoff                         |
+| `apps/azure/src/components/__tests__/`                               | Azure app component tests                                                                                                     |
+| `apps/azure/src/components/PerformanceDashboard.tsx`                 | Azure Performance Mode dashboard (Cp/Cpk toggle, drill navigation)                                                            |
+| `apps/azure/src/components/DataPanel.tsx`                            | Azure data table panel (resizable, bi-directional sync)                                                                       |
+| `apps/azure/src/auth/easyAuth.ts`                                    | EasyAuth helper (AuthError, refreshToken, proactive token refresh)                                                            |
+| `apps/azure/src/components/SyncToast.tsx`                            | Sync notification toasts (success, error, auth prompt)                                                                        |
+| `apps/azure/src/components/views/PresentationView.tsx`               | Presentation mode (full-screen chart overlay)                                                                                 |
+| `apps/azure/src/hooks/useEditorPanels.ts`                            | Editor panel visibility + presentation mode state                                                                             |
+| `apps/azure/src/components/FilterBreadcrumb.tsx`                     | Azure filter chips UI component                                                                                               |
+| `apps/azure/src/components/FilterChips.tsx`                          | Azure active filter chips display                                                                                             |
+| `packages/core/src/variation/simulation.ts`                          | What-If simulation (directAdjustment)                                                                                         |
+| `packages/ui/src/components/WhatIfSimulator/`                        | WhatIfSimulator + WhatIfPageBase                                                                                              |
+| `docs/03-features/workflows/investigation-to-action.md`              | 2-phase workflow: Findings → What-If                                                                                          |
+| `packages/ui/src/components/AIOnboardingTooltip/`                    | AI onboarding tooltip (first-time "Ask" button hint)                                                                          |
+| `packages/ui/src/components/FindingsWindow/InvestigationSidebar.tsx` | Investigation sidebar for FindingsWindow popout (phase, uncovered factors, suggested questions, Ask CoScout)                  |
+| `packages/ui/src/components/FindingsLog/`                            | FindingsLog, FindingCard, FindingStatusBadge, FindingBoardView, FindingComments; FindingsWindow includes InvestigationSidebar |
+| `packages/ui/src/components/FindingsLog/FindingBoardColumns.tsx`     | Horizontal drag-and-drop board for popout window                                                                              |
+| `packages/ui/src/components/FindingsLog/HypothesisTreeView.tsx`      | Hypothesis tree view with collapsible nodes                                                                                   |
+| `packages/ui/src/components/FindingsLog/HypothesisNode.tsx`          | Individual tree node component (status, badges, validation type)                                                              |
+| `docs/04-cases/`                                                     | Case studies with demo data and teaching briefs                                                                               |
+| `apps/azure/server.js`                                               | Zero-dep Node.js static server for App Service (SPA fallback, cache, /health)                                                 |
+| `.github/workflows/deploy-azure-staging.yml`                         | CI/CD pipeline: build + OIDC deploy to staging App Service                                                                    |
+| `infra/mainTemplate.json`                                            | ARM template for Azure Marketplace Managed Application deployment                                                             |
+| `apps/azure/src/auth/graphToken.ts`                                  | OBO token exchange for Teams SSO (Graph API access)                                                                           |
+| `infra/functions/token-exchange/index.js`                            | Azure Function for OBO token exchange (Teams SSO backend)                                                                     |
+| `packages/core/src/utils/exifStrip.ts`                               | Byte-level EXIF/GPS metadata stripping for photo evidence                                                                     |
+| `apps/azure/src/teams/teamsMedia.ts`                                 | Teams SDK camera wrapper (media.selectMedia)                                                                                  |
+| `packages/core/src/ai/`                                              | AI module: buildAIContext, prompt templates, chart insight builders, suggested questions                                      |
+| `packages/core/src/glossary/concepts.ts`                             | ~15 methodology concepts (Four Lenses, phases, principles) with typed relations                                               |
+| `packages/core/src/glossary/knowledge.ts`                            | Unified knowledge lookup (getEntry, getRelated, getReferencedBy) across terms + concepts                                      |
+| `apps/azure/src/services/aiService.ts`                               | AI Foundry integration: fetchNarration, fetchChartInsight, fetchCoScoutResponse/Streaming, localStorage cache                 |
+| `packages/hooks/src/useNarration.ts`                                 | NarrativeBar state (loading, cached, error, refresh). Wraps fetchNarration                                                    |
+| `packages/hooks/src/useChartInsights.ts`                             | Per-chart deterministic + AI-enhanced insight orchestration with debounced AI fallback                                        |
+| `packages/hooks/src/useAICoScout.ts`                                 | CoScout conversation state, streaming, abort control                                                                          |
 
 > Use `Read` tool to examine these files when needed.

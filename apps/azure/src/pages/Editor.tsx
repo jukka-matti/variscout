@@ -15,6 +15,7 @@ import {
   ColumnMapping,
   InvestigationPrompt,
   CoScoutPanelBase,
+  AIOnboardingTooltip,
   updateFindingsPopout,
   type AnalysisBrief,
 } from '@variscout/ui';
@@ -280,6 +281,8 @@ export const Editor: React.FC<EditorProps> = ({
     hypotheses: persistedHypotheses,
     processContext,
     currentValue: stats?.cpk ?? stats?.mean,
+    factorRoles: processContext?.factorRoles,
+    aiAvailable: aiEnabled && isAIAvailable(),
   });
 
   // Deep link: auto-open findings panel and highlight target finding (one-shot)
@@ -527,6 +530,8 @@ export const Editor: React.FC<EditorProps> = ({
       currentValue: stats?.cpk ?? stats?.mean,
       investigationPhase: phase,
       suggestedQuestions,
+      factorRoles: processContext?.factorRoles,
+      aiAvailable: aiEnabled && isAIAvailable(),
     });
   }, [
     aiContext.context?.investigation?.phase,
@@ -537,6 +542,7 @@ export const Editor: React.FC<EditorProps> = ({
     persistedHypotheses,
     processContext,
     stats,
+    aiEnabled,
   ]);
 
   const handleNarrativeAsk = useCallback(() => {
@@ -915,6 +921,11 @@ export const Editor: React.FC<EditorProps> = ({
               onNarrativeRetry={narration.refresh}
               onNarrativeAsk={handleNarrativeAsk}
               onAskCoScoutFromCategory={handleAskCoScoutFromCategory}
+            />
+            {/* AI onboarding tooltip — first-time hint for NarrativeBar Ask button */}
+            <AIOnboardingTooltip
+              isAIAvailable={aiEnabled && isAIAvailable()}
+              anchorSelector='[data-testid="narrative-ask-button"]'
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isFindingsOpen ? (

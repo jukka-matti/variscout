@@ -105,10 +105,18 @@ Fields planned for Tier 3 (Dynamic) and investigation-aware context enrichment.
 
 ### `variationContributions` (Tier 3 — Dynamic)
 
-- **Type:** `Array<{ factor: string; etaSquared: number }>`
-- **Source:** `useVariationTracking` output (η² per factor)
-- **Purpose:** CoScout can answer "Which factor matters most?" with data-backed responses
+- **Type:** `Array<{ factor: string; etaSquared: number; category?: string }>`
+- **Source:** `useVariationTracking` output (η² per factor); `category` auto-derived from `InvestigationCategory[]` via `getCategoryForFactor()` in `@variscout/core/ai`
+- **Purpose:** CoScout can answer "Which factor matters most?" with data-backed responses, and understands whether each factor is a machine, material, method, etc.
 - **Placement:** Tier 3 dynamic system message
+
+### `factorRoles` (Tier 3 — Dynamic)
+
+- **Type:** `Array<{ factor: string; role: string }>` (derived, not persisted)
+- **Source:** Built at context-build time by `buildAIContext()` — maps each variation contribution's `category` to a human-readable role label (e.g., "Machine", "Material")
+- **Purpose:** Gives CoScout domain awareness of what each factor represents in the process, enabling more specific questions and hypotheses
+- **Consumer:** `buildSummaryPrompt()` emits a "Factor roles:" line in the context summary; flows to CoScout via the system message
+- **Placement:** Tier 3 dynamic system message (alongside `variationContributions`)
 
 ### `drillPath` (Tier 3 — Dynamic)
 
@@ -129,16 +137,16 @@ focusContext?: {
 }
 ```
 
-### `selectedFinding` — Wire Existing Dead Code
+### `selectedFinding` (Tier 2 — Investigation)
 
 - Already typed in `AIContext.investigation` (types.ts lines 70-75)
-- **Action:** Populate from FindingsPanel active selection
-- **Consumer:** `buildSuggestedQuestions()` already has code that uses this field
+- **Status:** Wiring complete — populated from FindingsPanel active selection
+- **Consumer:** `buildSuggestedQuestions()` uses this field; also rendered in `buildCoScoutSystemPrompt()` to ground conversation in the currently focused finding
 
 ### `teamContributors` (Teams Context)
 
 - **Type:** `{ count: number; hypothesisAreas: string[] }`
-- **Source:** Distinct `finding.author` values + hypothesis factor names
+- **Source:** Distinct `finding.assignee` display names + `comment.author` values, combined with hypothesis factor names
 - **Purpose:** CoScout coordinates multi-investigator Teams scenarios (e.g., "Alex already tested Machine A — consider checking Machine B instead")
 - **Note:** Only populated in Azure Team plan when findings have author metadata
 

@@ -107,6 +107,8 @@ export {
   FINDINGS_ACTION_KEY,
   type FindingsSyncData,
   type FindingsAction,
+  InvestigationSidebar,
+  type InvestigationSidebarProps,
 } from './components/FindingsWindow';
 
 export {
@@ -325,6 +327,12 @@ export {
   InvestigationPhaseBadge,
   type InvestigationPhaseBadgeProps,
 } from './components/InvestigationPhaseBadge';
+
+// AI Onboarding Tooltip
+export {
+  AIOnboardingTooltip,
+  type AIOnboardingTooltipProps,
+} from './components/AIOnboardingTooltip';
 
 // Hooks
 export {

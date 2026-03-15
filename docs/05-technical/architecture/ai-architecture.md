@@ -322,17 +322,18 @@ The `buildAIContext()` function in `@variscout/core` is the structured bridge be
 
 When running in a Teams channel tab (Azure Team plan), the AI context includes team collaboration metadata.
 
-| Field                              | Type       | Source                            | Purpose                                    |
-| ---------------------------------- | ---------- | --------------------------------- | ------------------------------------------ |
-| `teamContributors.count`           | `number`   | Distinct `finding.author` values  | Know how many people are investigating     |
-| `teamContributors.hypothesisAreas` | `string[]` | Hypothesis factor names by author | Know which factors each person has covered |
+| Field                              | Type       | Source                                                              | Purpose                                    |
+| ---------------------------------- | ---------- | ------------------------------------------------------------------- | ------------------------------------------ |
+| `teamContributors.count`           | `number`   | Distinct `finding.assignee` display names + `comment.author` values | Know how many people are investigating     |
+| `teamContributors.hypothesisAreas` | `string[]` | Hypothesis factor names by author                                   | Know which factors each person has covered |
 
 **Behavior:**
 
 - CoScout can suggest: "Alex already tested Machine A — consider checking Machine B instead"
-- Author metadata flows from `Finding.author` (captured via EasyAuth `getEasyAuthUser()`)
+- Contributor metadata is derived from `Finding.assignee` and `FindingComment.author` fields (captured via EasyAuth `getEasyAuthUser()`)
+- `teamContributors` is rendered in both `buildSummaryPrompt()` and `buildCoScoutSystemPrompt()` so both the NarrativeBar and CoScout conversation are team-aware
 - No raw channel history is accessed — only structured finding/hypothesis metadata
-- Field is only populated when `isTeamPlan()` returns true and findings have author data
+- Field is only populated when `isTeamPlan()` returns true and findings have contributor data
 
 ---
 

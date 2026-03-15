@@ -556,6 +556,12 @@ Phase-aware suggestion chips (same style as CoScoutPanel suggested questions). C
 
 Full-width button at the bottom of the sidebar. Opens CoScoutPanel (slide-out or full-screen on phone) with investigation context pre-loaded in the system prompt — including problem statement, hypothesis tree state, phase, and uncovered factors.
 
+**Note:** Because the sidebar lives in the FindingsWindow popout (a separate browser window), clicking "Ask CoScout" copies the pre-filled question to the clipboard rather than making an API call directly. The popout has no auth context for AI API calls. The main window CoScoutPanel is opened for the actual conversation.
+
+### Mobile Behavior
+
+The Investigation Sidebar is hidden on phone screens (`hidden sm:block`). On screens narrower than 640px the FindingsWindow popout is not used; investigation context is accessed via the CoScoutInline component embedded in FindingsPanel instead.
+
 ---
 
 ## CoScout Inline (FindingsPanel)

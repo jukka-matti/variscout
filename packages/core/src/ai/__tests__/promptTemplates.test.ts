@@ -140,6 +140,28 @@ describe('buildSummaryPrompt', () => {
     expect(prompt).toContain('Batch: η²=12.0%');
   });
 
+  it('includes team contributors when present', () => {
+    const ctx: AIContext = {
+      process: {},
+      filters: [],
+      teamContributors: { count: 3, hypothesisAreas: ['Machine', 'Shift'] },
+    };
+    const prompt = buildSummaryPrompt(ctx);
+    expect(prompt).toContain('Team: 3 contributors');
+    expect(prompt).toContain('investigating Machine, Shift');
+  });
+
+  it('includes team contributors without areas', () => {
+    const ctx: AIContext = {
+      process: {},
+      filters: [],
+      teamContributors: { count: 2, hypothesisAreas: [] },
+    };
+    const prompt = buildSummaryPrompt(ctx);
+    expect(prompt).toContain('Team: 2 contributors');
+    expect(prompt).not.toContain('investigating');
+  });
+
   it('handles minimal context', () => {
     const ctx: AIContext = { process: {}, filters: [] };
     const prompt = buildSummaryPrompt(ctx);
@@ -341,6 +363,53 @@ describe('buildCoScoutSystemPrompt', () => {
       allHypotheses: [{ text: 'Root cause', status: 'supported' }],
     });
     expect(prompt).not.toContain('Existing improvement ideas');
+  });
+
+  it('includes selected finding in investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, {
+      selectedFinding: {
+        text: 'Head 3 shows high variation',
+        hypothesis: 'Nozzle wear',
+        projection: { meanDelta: -0.5, sigmaDelta: -0.12 },
+        actions: [
+          { text: 'Replace nozzle', status: 'done' },
+          { text: 'Verify Cpk', status: 'pending' },
+        ],
+      },
+    });
+    expect(prompt).toContain('Currently focused finding: "Head 3 shows high variation"');
+    expect(prompt).toContain('hypothesis: "Nozzle wear"');
+    expect(prompt).toContain('mean -0.50');
+    expect(prompt).toContain('sigma -0.12');
+    expect(prompt).toContain('Actions: 1/2 complete');
+  });
+
+  it('includes selected finding without optional fields', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, {
+      selectedFinding: { text: 'Simple finding' },
+    });
+    expect(prompt).toContain('Currently focused finding: "Simple finding"');
+    expect(prompt).not.toContain('hypothesis');
+    expect(prompt).not.toContain('Projected');
+    expect(prompt).not.toContain('Actions');
+  });
+
+  it('includes team collaboration when count > 1', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, undefined, {
+      count: 3,
+      hypothesisAreas: ['Machine', 'Shift'],
+    });
+    expect(prompt).toContain('Team collaboration: 3 investigators');
+    expect(prompt).toContain('Areas being investigated: Machine, Shift');
+    expect(prompt).toContain('Avoid suggesting investigation steps already covered');
+  });
+
+  it('does not include team collaboration when count is 1', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, undefined, {
+      count: 1,
+      hypothesisAreas: [],
+    });
+    expect(prompt).not.toContain('Team collaboration');
   });
 });
 

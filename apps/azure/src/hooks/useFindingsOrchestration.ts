@@ -65,6 +65,10 @@ export interface UseFindingsOrchestrationOptions {
   processContext?: ProcessContext;
   /** Current Cpk or mean value for popout sync */
   currentValue?: number;
+  /** Factor role classifications for sidebar */
+  factorRoles?: Record<string, string>;
+  /** Whether AI features are available */
+  aiAvailable?: boolean;
 }
 
 export interface UseFindingsOrchestrationReturn {
@@ -118,6 +122,8 @@ export function useFindingsOrchestration({
   hypotheses,
   processContext,
   currentValue,
+  factorRoles,
+  aiAvailable,
 }: UseFindingsOrchestrationOptions): UseFindingsOrchestrationReturn {
   // Core findings state
   const findingsState = useFindings({
@@ -236,8 +242,8 @@ export function useFindingsOrchestration({
   const popupRef = useRef<Window | null>(null);
 
   const popoutOptions = useMemo(
-    () => ({ hypotheses, processContext, currentValue }),
-    [hypotheses, processContext, currentValue]
+    () => ({ hypotheses, processContext, currentValue, factorRoles, aiAvailable }),
+    [hypotheses, processContext, currentValue, factorRoles, aiAvailable]
   );
 
   const handleOpenFindingsPopout = useCallback(() => {

@@ -102,6 +102,15 @@ export function buildSummaryPrompt(context: AIContext): string {
     }
   }
 
+  // Team contributors
+  if (context.teamContributors && context.teamContributors.count > 0) {
+    let teamLine = `Team: ${context.teamContributors.count} contributors`;
+    if (context.teamContributors.hypothesisAreas.length > 0) {
+      teamLine += ` investigating ${context.teamContributors.hypothesisAreas.join(', ')}`;
+    }
+    parts.push(teamLine);
+  }
+
   // Problem statement
   if (context.process?.problemStatement) {
     parts.push(`Problem statement: ${context.process.problemStatement}`);
@@ -228,7 +237,8 @@ export function buildChartInsightPrompt(context: AIContext, data: ChartInsightDa
  */
 export function buildCoScoutSystemPrompt(
   glossaryFragment?: string,
-  investigation?: AIContext['investigation']
+  investigation?: AIContext['investigation'],
+  teamContributors?: AIContext['teamContributors']
 ): string {
   const parts = [
     `You are CoScout, the quality engineering assistant for VariScout — an Exploratory Data Analysis tool for process improvement.
@@ -331,9 +341,35 @@ Never invent data or statistics. If the context does not contain enough informat
       }
     }
 
+    // Selected finding context
+    if (investigation.selectedFinding) {
+      const sf = investigation.selectedFinding;
+      let findingLine = `Currently focused finding: "${sf.text}"`;
+      if (sf.hypothesis) findingLine += ` (hypothesis: "${sf.hypothesis}")`;
+      if (sf.projection) {
+        findingLine += `. Projected impact: mean ${sf.projection.meanDelta > 0 ? '+' : ''}${sf.projection.meanDelta.toFixed(2)}, sigma ${sf.projection.sigmaDelta > 0 ? '+' : ''}${sf.projection.sigmaDelta.toFixed(2)}`;
+      }
+      if (sf.actions && sf.actions.length > 0) {
+        const done = sf.actions.filter(a => a.status === 'done').length;
+        findingLine += `. Actions: ${done}/${sf.actions.length} complete`;
+      }
+      invParts.push(findingLine);
+    }
+
     if (invParts.length > 0) {
       parts.push('Investigation context:\n' + invParts.join('\n'));
     }
+  }
+
+  // Team collaboration awareness
+  if (teamContributors && teamContributors.count > 1) {
+    parts.push(
+      `Team collaboration: ${teamContributors.count} investigators are working on this analysis` +
+        (teamContributors.hypothesisAreas.length > 0
+          ? `. Areas being investigated: ${teamContributors.hypothesisAreas.join(', ')}`
+          : '') +
+        `. Avoid suggesting investigation steps already covered by team members.`
+    );
   }
 
   return parts.join('\n\n');
@@ -359,7 +395,11 @@ export function buildCoScoutMessages(
   // System prompt with glossary (static cacheable prefix) + investigation context
   messages.push({
     role: 'system',
-    content: buildCoScoutSystemPrompt(context.glossaryFragment, context.investigation),
+    content: buildCoScoutSystemPrompt(
+      context.glossaryFragment,
+      context.investigation,
+      context.teamContributors
+    ),
   });
 
   // Context summary — variable per analysis state

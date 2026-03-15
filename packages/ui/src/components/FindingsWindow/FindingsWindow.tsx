@@ -15,6 +15,7 @@ import { copyFindingsToClipboard } from '../FindingsLog/export';
 import BriefHeader from '../FindingsPanel/BriefHeader';
 import FindingDetailPanel from '../FindingsPanel/FindingDetailPanel';
 import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
+import { InvestigationSidebar } from './InvestigationSidebar';
 
 /**
  * Storage keys for cross-window data sync
@@ -37,6 +38,10 @@ export interface FindingsSyncData {
   investigationPhase?: InvestigationPhase;
   /** Suggested questions from AI context */
   suggestedQuestions?: string[];
+  /** Factor role classifications */
+  factorRoles?: Record<string, string>;
+  /** Whether AI features are available */
+  aiAvailable?: boolean;
 }
 
 export interface FindingsAction {
@@ -73,6 +78,25 @@ const FindingsWindow: React.FC = () => {
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'board'>('board');
   const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('variscout_findings_sidebar_collapsed') === '1';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleSidebarToggle = useCallback(() => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('variscout_findings_sidebar_collapsed', next ? '1' : '');
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }, []);
 
   // Load initial data from localStorage
   useEffect(() => {
@@ -297,6 +321,8 @@ const FindingsWindow: React.FC = () => {
     currentValue,
     investigationPhase,
     suggestedQuestions,
+    factorRoles,
+    aiAvailable,
   } = syncData;
   const selectedFinding = selectedFindingId
     ? (findings.find(f => f.id === selectedFindingId) ?? null)
@@ -455,6 +481,18 @@ const FindingsWindow: React.FC = () => {
             />
           </div>
         )}
+
+        {/* Zone 4: Investigation Sidebar (AI-enabled only) */}
+        {aiAvailable && (
+          <InvestigationSidebar
+            phase={investigationPhase}
+            hypotheses={hypotheses}
+            factorRoles={factorRoles}
+            suggestedQuestions={suggestedQuestions}
+            collapsed={sidebarCollapsed}
+            onToggle={handleSidebarToggle}
+          />
+        )}
       </div>
 
       {/* Drill path footer */}
@@ -498,6 +536,8 @@ export interface PopoutSyncOptions {
   currentValue?: number;
   investigationPhase?: InvestigationPhase;
   suggestedQuestions?: string[];
+  factorRoles?: Record<string, string>;
+  aiAvailable?: boolean;
 }
 
 export function openFindingsPopout(
@@ -516,6 +556,8 @@ export function openFindingsPopout(
     currentValue: options?.currentValue,
     investigationPhase: options?.investigationPhase,
     suggestedQuestions: options?.suggestedQuestions,
+    factorRoles: options?.factorRoles,
+    aiAvailable: options?.aiAvailable,
   };
   localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
 
@@ -548,6 +590,8 @@ export function updateFindingsPopout(
     currentValue: options?.currentValue,
     investigationPhase: options?.investigationPhase,
     suggestedQuestions: options?.suggestedQuestions,
+    factorRoles: options?.factorRoles,
+    aiAvailable: options?.aiAvailable,
   };
   localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
 }
