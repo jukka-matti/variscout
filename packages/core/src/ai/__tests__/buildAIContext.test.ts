@@ -182,6 +182,82 @@ describe('buildAIContext', () => {
     expect(ctx.glossaryFragment).toContain('Four Lenses');
   });
 
+  it('includes activeChart when provided', () => {
+    const ctx = buildAIContext({ activeChart: 'boxplot' });
+    expect(ctx.activeChart).toBe('boxplot');
+  });
+
+  it('does not include activeChart when not provided', () => {
+    const ctx = buildAIContext({});
+    expect(ctx.activeChart).toBeUndefined();
+  });
+
+  it('includes variationContributions when provided', () => {
+    const contributions = [
+      { factor: 'Machine', etaSquared: 0.45 },
+      { factor: 'Shift', etaSquared: 0.12 },
+    ];
+    const ctx = buildAIContext({ variationContributions: contributions });
+    expect(ctx.variationContributions).toHaveLength(2);
+    expect(ctx.variationContributions![0].factor).toBe('Machine');
+    expect(ctx.variationContributions![0].etaSquared).toBe(0.45);
+  });
+
+  it('does not include empty variationContributions', () => {
+    const ctx = buildAIContext({ variationContributions: [] });
+    expect(ctx.variationContributions).toBeUndefined();
+  });
+
+  it('includes drillPath when provided', () => {
+    const ctx = buildAIContext({ drillPath: ['Machine', 'Shift'] });
+    expect(ctx.drillPath).toEqual(['Machine', 'Shift']);
+  });
+
+  it('does not include empty drillPath', () => {
+    const ctx = buildAIContext({ drillPath: [] });
+    expect(ctx.drillPath).toBeUndefined();
+  });
+
+  it('includes focusContext when provided', () => {
+    const ctx = buildAIContext({
+      focusContext: {
+        chartType: 'boxplot',
+        category: { name: 'Machine A', mean: 10.2, contributionPct: 45 },
+      },
+    });
+    expect(ctx.focusContext).toBeDefined();
+    expect(ctx.focusContext!.chartType).toBe('boxplot');
+    expect(ctx.focusContext!.category!.name).toBe('Machine A');
+  });
+
+  it('includes teamContributors when count > 0', () => {
+    const ctx = buildAIContext({
+      teamContributors: { count: 3, hypothesisAreas: ['Machine', 'Shift'] },
+    });
+    expect(ctx.teamContributors).toBeDefined();
+    expect(ctx.teamContributors!.count).toBe(3);
+  });
+
+  it('omits teamContributors when count is 0', () => {
+    const ctx = buildAIContext({
+      teamContributors: { count: 0, hypothesisAreas: [] },
+    });
+    expect(ctx.teamContributors).toBeUndefined();
+  });
+
+  it('includes selectedFinding in investigation context', () => {
+    const ctx = buildAIContext({
+      process: { problemStatement: 'Cpk below target' },
+      selectedFinding: {
+        text: 'Head 3 drift',
+        hypothesis: 'Worn nozzle',
+      },
+    });
+    expect(ctx.investigation?.selectedFinding).toBeDefined();
+    expect(ctx.investigation!.selectedFinding!.text).toBe('Head 3 drift');
+    expect(ctx.investigation!.selectedFinding!.hypothesis).toBe('Worn nozzle');
+  });
+
   it('detects investigation phase', () => {
     const root = createHypothesis('Root');
     root.status = 'supported';

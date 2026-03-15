@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
 
 export interface NarrativeBarProps {
@@ -14,6 +14,8 @@ export interface NarrativeBarProps {
   onAsk?: () => void;
   /** Callback to retry after error */
   onRetry?: () => void;
+  /** Enable tap-to-expand on mobile */
+  isMobile?: boolean;
 }
 
 /**
@@ -27,7 +29,15 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
   error,
   onAsk,
   onRetry,
+  isMobile = false,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleTextTap = useCallback(() => {
+    if (isMobile) {
+      setIsExpanded(prev => !prev);
+    }
+  }, [isMobile]);
   // Loading shimmer
   if (isLoading) {
     return (
@@ -75,7 +85,16 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
       className="flex items-center gap-3 px-4 py-3 bg-surface-secondary border-t border-edge"
       data-testid="narrative-bar"
     >
-      <p className="flex-1 text-xs text-content-secondary leading-relaxed truncate">
+      <p
+        className={`flex-1 text-xs text-content-secondary leading-relaxed ${
+          isMobile ? (isExpanded ? 'line-clamp-3' : 'truncate') : 'truncate'
+        } ${isMobile ? 'cursor-pointer' : ''}`}
+        style={isMobile ? { transition: 'max-height 200ms ease-out' } : undefined}
+        onClick={handleTextTap}
+        role={isMobile ? 'button' : undefined}
+        aria-expanded={isMobile ? isExpanded : undefined}
+        data-testid={isMobile ? 'narrative-text-toggle' : undefined}
+      >
         {narrative}
         {isCached ? (
           <span className="ml-1.5 text-[10px] text-content-muted">(cached)</span>

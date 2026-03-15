@@ -49,9 +49,38 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [isTouchToggled, setIsTouchToggled] = useState(false);
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const tooltipId = `help-tooltip-${termId || 'custom'}`;
+
+  // Touch toggle: tap ⓘ to show/hide on touch devices
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    // Don't toggle if clicking "Learn more" link inside tooltip
+    if ((e.target as HTMLElement).closest('.help-tooltip__link')) return;
+    setIsTouchToggled(prev => !prev);
+  }, []);
+
+  // Dismiss on tap outside (for touch-toggled state)
+  useEffect(() => {
+    if (!isTouchToggled) return;
+
+    const handleOutsideClick = (e: MouseEvent) => {
+      const trigger = triggerRef.current;
+      const tooltip = tooltipRef.current;
+      if (
+        trigger &&
+        !trigger.contains(e.target as Node) &&
+        tooltip &&
+        !tooltip.contains(e.target as Node)
+      ) {
+        setIsTouchToggled(false);
+      }
+    };
+
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, [isTouchToggled]);
 
   // Handle click on learn more link
   const handleLearnMoreClick = useCallback(
@@ -75,28 +104,30 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
   // Close tooltip on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && (isVisible || isFocused)) {
+      if (e.key === 'Escape' && (isVisible || isFocused || isTouchToggled)) {
         setIsVisible(false);
         setIsFocused(false);
+        setIsTouchToggled(false);
         triggerRef.current?.blur();
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isVisible, isFocused]);
+  }, [isVisible, isFocused, isTouchToggled]);
 
   // No term data - render nothing or just children
   if (!term) {
     return children ? <>{children}</> : null;
   }
 
-  const showTooltip = isVisible || isFocused;
+  const showTooltip = isVisible || isFocused || isTouchToggled;
 
   return (
     <span
       ref={triggerRef}
       className={`help-tooltip-wrapper ${className}`}
+      onClick={handleClick}
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
       onFocus={() => setIsFocused(true)}

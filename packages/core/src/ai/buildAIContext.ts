@@ -3,6 +3,7 @@
  */
 
 import type { AIContext, ProcessContext, TargetMetric, InvestigationPhase } from './types';
+import type { InsightChartType } from './chartInsights';
 import type { Finding, Hypothesis, InvestigationCategory } from '../findings';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
@@ -45,6 +46,23 @@ export interface BuildAIContextOptions {
     currentValue: number;
     progressPercent: number;
   };
+  /** Currently active/focused chart */
+  activeChart?: InsightChartType;
+  /** Variation contributions per factor (η²) */
+  variationContributions?: Array<{ factor: string; etaSquared: number }>;
+  /** Drill path: ordered factor names from filter stack */
+  drillPath?: string[];
+  /** Selected finding for context-aware suggestions */
+  selectedFinding?: {
+    text: string;
+    hypothesis?: string;
+    projection?: { meanDelta: number; sigmaDelta: number };
+    actions?: Array<{ text: string; status: string }>;
+  };
+  /** Focus context from "Ask CoScout about this" actions */
+  focusContext?: AIContext['focusContext'];
+  /** Team contributor awareness (Teams plan only) */
+  teamContributors?: AIContext['teamContributors'];
   /** Maximum token budget for glossary (default 40 terms) */
   maxGlossaryTerms?: number;
 }
@@ -63,6 +81,12 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     findings,
     hypotheses,
     investigationProgress,
+    activeChart,
+    variationContributions,
+    drillPath,
+    selectedFinding,
+    focusContext,
+    teamContributors,
     maxGlossaryTerms = 40,
   } = options;
 
@@ -86,6 +110,26 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       includeConcepts: true,
     }),
   };
+
+  if (activeChart) {
+    context.activeChart = activeChart;
+  }
+
+  if (variationContributions && variationContributions.length > 0) {
+    context.variationContributions = variationContributions;
+  }
+
+  if (drillPath && drillPath.length > 0) {
+    context.drillPath = drillPath;
+  }
+
+  if (focusContext) {
+    context.focusContext = focusContext;
+  }
+
+  if (teamContributors && teamContributors.count > 0) {
+    context.teamContributors = teamContributors;
+  }
 
   if (stats) {
     const passRate =
@@ -131,6 +175,10 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 
     if (process.problemStatement) {
       context.investigation.problemStatement = process.problemStatement;
+    }
+
+    if (selectedFinding) {
+      context.investigation.selectedFinding = selectedFinding;
     }
 
     if (investigationProgress) {

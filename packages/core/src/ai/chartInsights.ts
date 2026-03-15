@@ -6,7 +6,7 @@
 
 import type { NelsonRule2Sequence, NelsonRule3Sequence } from '../types';
 
-export type InsightChartType = 'ichart' | 'boxplot' | 'pareto' | 'stats';
+export type InsightChartType = 'ichart' | 'boxplot' | 'pareto' | 'capability' | 'stats';
 export type ChipType = 'suggestion' | 'warning' | 'info';
 
 export interface DeterministicInsight {

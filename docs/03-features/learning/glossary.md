@@ -179,6 +179,23 @@ Terms are organized by priority for AI Phase 1 launch. Each term will follow the
 
 ---
 
+## Mobile Tooltip Behavior
+
+On phone (<640px), the HelpTooltip ⓘ icon uses touch-toggle interaction instead of hover.
+
+| Interaction         | Behavior                                                |
+| ------------------- | ------------------------------------------------------- |
+| Tap ⓘ icon          | Toggles tooltip visibility (open → close, close → open) |
+| Tap outside tooltip | Dismisses tooltip                                       |
+| Scroll page         | Dismisses tooltip                                       |
+| Tap ⓘ again         | Dismisses tooltip                                       |
+| Position            | Bottom-anchored on phone to avoid viewport overflow     |
+| Content             | Same as desktop: label, definition, "Learn more" link   |
+
+Implementation uses `@media (hover: none)` to disable mouse enter/leave on touch devices. The component switches to click-to-toggle mode automatically.
+
+---
+
 ## See Also
 
 - [Help Tooltips](help-tooltips.md)

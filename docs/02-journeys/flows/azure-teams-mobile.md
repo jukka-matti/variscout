@@ -139,6 +139,42 @@ The inline DataPanel is hidden on phone. Instead:
 
 ---
 
+## Offline Sync Indicator on Phone
+
+When offline or sync is in progress, show a status icon in the phone toolbar area alongside the overflow menu.
+
+| State      | Icon            | Color            | Tooltip                      |
+| ---------- | --------------- | ---------------- | ---------------------------- |
+| Synced     | Cloud check     | `text-green-500` | "All changes saved"          |
+| Syncing    | Cloud + spinner | `text-blue-400`  | "Syncing..."                 |
+| Offline    | Cloud off       | `text-amber-500` | "Working offline"            |
+| Sync error | Cloud alert     | `text-red-400`   | "Sync failed — tap to retry" |
+
+**Phone header with sync indicator:**
+
+```
+[←] [Project name (truncated)] [☁️] [💾] [⋮]
+```
+
+The sync icon (☁️) is 20px, positioned between the project name and save button. Tap opens a brief toast with sync details. Only shown on Azure Team plan (`isTeamPlan()`).
+
+---
+
+## ColumnMapping Phone Optimization
+
+On phone (<640px), the ColumnMapping dialog adapts for touch-first interaction.
+
+| Element                 | Desktop                           | Phone                             |
+| ----------------------- | --------------------------------- | --------------------------------- |
+| Spec limits section     | Collapsible (expanded by default) | Accordion (collapsed by default)  |
+| "Start Analysis" button | Bottom of dialog                  | Sticky at bottom of viewport      |
+| Column cards            | Standard size                     | Larger tap targets (min-h-[56px]) |
+| Preview table           | Collapsible                       | Hidden (saves vertical space)     |
+
+The sticky "Start Analysis" button uses `position: sticky; bottom: env(safe-area-inset-bottom)` to remain accessible as the user scrolls through column cards.
+
+---
+
 ## Key Design Principles
 
 1. **One thing at a time**: Phone shows a single chart, not a miniaturized dashboard

@@ -92,6 +92,58 @@ This means the first ~950 tokens of every CoScout request are served from cache 
 
 ---
 
+## Extended Dynamic Context Fields
+
+Fields planned for Tier 3 (Dynamic) and investigation-aware context enrichment.
+
+### `activeChart` (Tier 3 — Dynamic)
+
+- **Type:** `'ichart' | 'boxplot' | 'pareto' | 'capability' | 'stats' | undefined`
+- **Source:** Carousel view state (mobile) or focused chart (desktop)
+- **Purpose:** CoScout knows which chart the user is currently viewing/asking about
+- **Placement:** Tier 3 dynamic system message
+
+### `variationContributions` (Tier 3 — Dynamic)
+
+- **Type:** `Array<{ factor: string; etaSquared: number }>`
+- **Source:** `useVariationTracking` output (η² per factor)
+- **Purpose:** CoScout can answer "Which factor matters most?" with data-backed responses
+- **Placement:** Tier 3 dynamic system message
+
+### `drillPath` (Tier 3 — Dynamic)
+
+- **Type:** `string[]` — ordered factor names from filterStack
+- **Source:** `filterStack.map(f => f.factor)` from AnalysisState
+- **Purpose:** CoScout understands the analyst's reasoning trajectory through the data
+- **Placement:** Tier 3 dynamic system message
+
+### `focusContext` (Between Tier 2 and Tier 3)
+
+Populated by "Ask CoScout about this" actions in MobileCategorySheet, FindingCard, and HypothesisNode. Injected as an additional system message to preserve Tier 1 prompt caching.
+
+```typescript
+focusContext?: {
+  chartType?: 'ichart' | 'boxplot' | 'pareto' | 'capability' | 'stats';
+  category?: { name: string; mean?: number; contributionPct?: number };
+  finding?: { text: string; status: string; hypothesis?: string };
+}
+```
+
+### `selectedFinding` — Wire Existing Dead Code
+
+- Already typed in `AIContext.investigation` (types.ts lines 70-75)
+- **Action:** Populate from FindingsPanel active selection
+- **Consumer:** `buildSuggestedQuestions()` already has code that uses this field
+
+### `teamContributors` (Teams Context)
+
+- **Type:** `{ count: number; hypothesisAreas: string[] }`
+- **Source:** Distinct `finding.author` values + hypothesis factor names
+- **Purpose:** CoScout coordinates multi-investigator Teams scenarios (e.g., "Alex already tested Machine A — consider checking Machine B instead")
+- **Note:** Only populated in Azure Team plan when findings have author metadata
+
+---
+
 ## References
 
 - [Effective Context Engineering — Anthropic](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)

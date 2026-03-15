@@ -547,6 +547,40 @@ Uses the same palette as HypothesisStatus (distinct from FindingStatus):
 
 ---
 
+## "Ask CoScout About This" Action
+
+Context-aware entry point for AI assistance from investigation UI elements. Azure App only.
+
+| Source              | Trigger                      | Focus Context                                |
+| ------------------- | ---------------------------- | -------------------------------------------- |
+| FindingCard         | "Ask CoScout" button         | Finding text, status, hypothesis (if linked) |
+| HypothesisNode      | Context menu → "Ask CoScout" | Hypothesis text, factor, validation type     |
+| MobileCategorySheet | "Ask CoScout" action button  | Category name, mean, contribution %          |
+
+Each action populates a `focusContext` object and opens the CoScout panel with the context pre-loaded as an additional system message. See [AI Context Engineering](../../05-technical/architecture/ai-context-engineering.md#focuscontext-between-tier-2-and-tier-3).
+
+---
+
+## Teams Adaptive Cards for Findings (Planned)
+
+When sharing a finding to a Teams channel, send an Adaptive Card instead of a plain URL.
+
+**Card layout:**
+
+- Finding text (bold header)
+- Status badge (colored dot + label)
+- Category and chart type
+- Assignee (if set)
+- "Open in VariScout" button (deep link: `?project=<name>&finding=<id>`)
+
+**Status update cards:** When a finding status changes to `analyzed` or `resolved`, post an update card to the channel showing old status → new status, conclusion text (if analyzed), and a "View" button.
+
+**Teams Activity Feed:** When a finding is assigned via @mention, push a Teams activity notification to the assignee: "You've been assigned a quality finding: [text]". Tap navigates to the finding via deep link.
+
+> Implementation deferred to a dedicated Teams sprint.
+
+---
+
 ## See Also
 
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — Workflow documentation

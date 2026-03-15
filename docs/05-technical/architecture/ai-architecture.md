@@ -315,6 +315,24 @@ The `buildAIContext()` function in `@variscout/core` is the structured bridge be
 
 ---
 
+## Team-Aware AI Context
+
+When running in a Teams channel tab (Azure Team plan), the AI context includes team collaboration metadata.
+
+| Field                              | Type       | Source                            | Purpose                                    |
+| ---------------------------------- | ---------- | --------------------------------- | ------------------------------------------ |
+| `teamContributors.count`           | `number`   | Distinct `finding.author` values  | Know how many people are investigating     |
+| `teamContributors.hypothesisAreas` | `string[]` | Hypothesis factor names by author | Know which factors each person has covered |
+
+**Behavior:**
+
+- CoScout can suggest: "Alex already tested Machine A — consider checking Machine B instead"
+- Author metadata flows from `Finding.author` (captured via EasyAuth `getEasyAuthUser()`)
+- No raw channel history is accessed — only structured finding/hypothesis metadata
+- Field is only populated when `isTeamPlan()` returns true and findings have author data
+
+---
+
 ## See Also
 
 - [Knowledge Model Architecture](knowledge-model.md) — Unified term + concept registry

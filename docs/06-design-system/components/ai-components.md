@@ -232,6 +232,14 @@ Carousel chart card
 
 **Collapse/expand animation:** `transition: max-height 200ms ease-out`. Tap anywhere on the text area toggles between collapsed (1 line) and expanded (up to 3 lines). Tap on "Ask →" always opens CoScoutPanel regardless of expand state.
 
+**Carousel sync:** When the carousel swipes to a new chart view, the NarrativeBar:
+
+1. Shows shimmer for 300ms debounce period
+2. If user swipes again within debounce, timer resets (no stale narratives)
+3. NarrativeBar receives `activeChart` prop from carousel parent to trigger updates
+
+The `activeChart` prop type: `'ichart' | 'boxplot' | 'pareto' | 'capability' | 'stats' | undefined`.
+
 ### ChartInsightChip on Phone
 
 Chips are per-card — each carousel view has its own chip(s). Chips swipe together with their parent card during carousel navigation.
@@ -259,6 +267,8 @@ Chips are per-card — each carousel view has its own chip(s). Chips swipe toget
 **Chip expansion:** Tap on a truncated chip expands it inline (max 2 lines). Second tap collapses. Only one chip can be expanded at a time on phone.
 
 **Swipe-to-dismiss:** Horizontal swipe-left on a chip triggers dismiss animation (opacity 0, translateX -100%, 200ms). The `onDismiss` callback fires after animation completes. Swipe direction is left-only to avoid conflict with carousel navigation (which also uses horizontal swipes — chips consume the gesture when touch starts on a chip element).
+
+**Mobile AI debounce:** On phone, the AI enhancement debounce increases from 3s to 5s. Rapid carousel swiping causes visual instability at the desktop 3s threshold. The `useChartInsights` hook accepts an `isMobile` parameter to control this.
 
 ### CoScoutPanel on Phone
 
@@ -545,6 +555,21 @@ Phase-aware suggestion chips (same style as CoScoutPanel suggested questions). C
 ### "Ask CoScout" Button
 
 Full-width button at the bottom of the sidebar. Opens CoScoutPanel (slide-out or full-screen on phone) with investigation context pre-loaded in the system prompt — including problem statement, hypothesis tree state, phase, and uncovered factors.
+
+---
+
+## HelpTooltip Phone Behavior
+
+On phone (<640px), the HelpTooltip switches from hover to touch-toggle interaction.
+
+| Property   | Desktop                                  | Phone (<640px)                                     |
+| ---------- | ---------------------------------------- | -------------------------------------------------- |
+| Activation | Hover (`onMouseEnter`)                   | Tap/click toggles visibility                       |
+| Dismiss    | Mouse leave (`onMouseLeave`)             | Tap outside, scroll, tap ⓘ again, or "X"           |
+| Position   | Relative to icon (top/bottom/left/right) | Bottom-anchored popover to avoid viewport overflow |
+| Content    | Label + definition + Learn more          | Same — no content differences                      |
+
+Implementation: `onClick` handler toggles `isVisible` state. On touch devices (`@media (hover: none)`), `onMouseEnter`/`onMouseLeave` become no-ops via CSS or JS detection. Tap outside dismissal via document click listener (skips when click is within tooltip).
 
 ---
 

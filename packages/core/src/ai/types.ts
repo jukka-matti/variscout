@@ -2,6 +2,8 @@
  * AI integration types for VariScout
  */
 
+import type { InsightChartType } from './chartInsights';
+
 /** Target metric type for improvement tracking */
 export type TargetMetric = 'mean' | 'sigma' | 'cpk' | 'yield' | 'passRate';
 
@@ -30,6 +32,8 @@ export interface ProcessContext {
 export interface AIContext {
   /** Process context from user */
   process: ProcessContext;
+  /** Currently active/focused chart */
+  activeChart?: InsightChartType;
   /** Current statistics snapshot */
   stats?: {
     mean: number;
@@ -54,6 +58,10 @@ export interface AIContext {
     nelsonRule2Count?: number;
     nelsonRule3Count?: number;
   };
+  /** Variation contributions per factor (η²) */
+  variationContributions?: Array<{ factor: string; etaSquared: number }>;
+  /** Drill path: ordered factor names from filter stack */
+  drillPath?: string[];
   /** Summary of findings */
   findings?: {
     total: number;
@@ -97,6 +105,17 @@ export interface AIContext {
     phase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'acting';
     /** Investigation categories for completeness prompting */
     categories?: Array<{ name: string; factorNames: string[] }>;
+  };
+  /** Focus context from "Ask CoScout about this" actions */
+  focusContext?: {
+    chartType?: InsightChartType;
+    category?: { name: string; mean?: number; contributionPct?: number };
+    finding?: { text: string; status: string; hypothesis?: string };
+  };
+  /** Team contributor awareness (Teams plan only) */
+  teamContributors?: {
+    count: number;
+    hypothesisAreas: string[];
   };
   /** Glossary terms for grounding */
   glossaryFragment?: string;

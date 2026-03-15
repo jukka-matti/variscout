@@ -183,6 +183,24 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ---
 
+## Mobile-Specific Behavior
+
+Features that behave differently on phone (<640px) versus desktop.
+
+| Feature                          | PWA Desktop  |     PWA Mobile     | Azure Desktop |    Azure Mobile     |
+| -------------------------------- | :----------: | :----------------: | :-----------: | :-----------------: |
+| HelpTooltip                      |    Hover     |  Tap toggle (P0)   |     Hover     |   Tap toggle (P0)   |
+| NarrativeBar                     |  Full text   | Tap-to-expand (P0) |   Full text   | Tap-to-expand (P0)  |
+| MobileCategorySheet              |     N/A      |    Planned (P1)    |      N/A      |          ✓          |
+| Findings from charts             | Context menu |    Planned (P1)    | Context menu  | MobileCategorySheet |
+| CoScout focus context            |   Planned    |      Planned       |    Planned    |       Planned       |
+| Offline sync indicator           |     N/A      |        N/A         |    Toolbar    |    Planned (P2)     |
+| ColumnMapping phone optimization |      -       |    Planned (P2)    |       -       |    Planned (P2)     |
+
+> P0 = Critical, P1 = High Impact, P2 = Polish. See ai-components.md and findings.md for detailed specs.
+
+---
+
 ## Licensing & Pricing
 
 | Aspect            | Azure Standard                       | Azure Team                                    | PWA (Free)                                                |
