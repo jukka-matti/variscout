@@ -8,6 +8,8 @@ import type {
 } from '@variscout/core';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import HypothesisNode from './HypothesisNode';
+import { HelpTooltip } from '../HelpTooltip';
+import { useGlossary } from '../../hooks';
 
 export interface HypothesisTreeViewProps {
   /** All hypotheses (flat list with parentId tree structure) */
@@ -91,6 +93,8 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   onProjectIdea,
   onAskCoScout,
 }) => {
+  const { getTerm } = useGlossary();
+
   // Track which nodes are expanded
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   // Track expanded categories and factors
@@ -264,7 +268,10 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   if (hypotheses.length === 0 && (!categories || categories.length === 0)) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
-        <p className="text-sm text-content-secondary mb-1">No hypotheses yet</p>
+        <p className="text-sm text-content-secondary mb-1 flex items-center gap-1">
+          No hypotheses yet
+          <HelpTooltip term={getTerm('hypothesis')} iconSize={12} />
+        </p>
         <p className="text-xs text-content-muted leading-relaxed max-w-[240px]">
           Create hypotheses from finding cards to build a causal investigation tree.
         </p>
@@ -289,6 +296,12 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
 
     return (
       <div className="flex-1 overflow-y-auto px-2 py-2" role="tree" data-testid="hypothesis-tree">
+        <div className="flex items-center gap-1 px-1 pb-1 mb-1 border-b border-edge/30">
+          <span className="text-xs font-semibold text-content-secondary uppercase tracking-wider">
+            Hypotheses
+          </span>
+          <HelpTooltip term={getTerm('hypothesis')} iconSize={12} />
+        </div>
         {categoryGroups.map(({ category, factorGroups }) => {
           const isCatExpanded = expandedCategories.has(category.id);
           const hasContent = factorGroups.size > 0;
@@ -397,6 +410,12 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   // Flat rendering (no categories — PWA compatibility)
   return (
     <div className="flex-1 overflow-y-auto px-2 py-2" role="tree" data-testid="hypothesis-tree">
+      <div className="flex items-center gap-1 px-1 pb-1 mb-1 border-b border-edge/30">
+        <span className="text-xs font-semibold text-content-secondary uppercase tracking-wider">
+          Hypotheses
+        </span>
+        <HelpTooltip term={getTerm('hypothesis')} iconSize={12} />
+      </div>
       {roots.map(root => renderNode(root))}
     </div>
   );

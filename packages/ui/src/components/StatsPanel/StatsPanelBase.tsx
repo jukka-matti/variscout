@@ -189,18 +189,21 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   const TabButton = ({
     tab,
     label,
+    helpTerm,
   }: {
     tab: 'summary' | 'histogram' | 'normality';
     label: string;
+    helpTerm?: GlossaryTerm;
   }) => (
     <button
       onClick={() => setActiveTab(tab)}
-      className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
+      className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${
         activeTab === tab ? cs.tabActive : cs.tabInactive
       } ${compact ? 'flex-1 px-2 py-2' : ''}`}
       style={compact ? { minHeight: 44 } : undefined}
     >
       {label}
+      {helpTerm && <HelpTooltip term={helpTerm} iconSize={10} />}
     </button>
   );
 
@@ -210,7 +213,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
       <div className={cs.containerCompact}>
         <div className={`${cs.tabBar} mb-4`}>
           <TabButton tab="summary" label="Summary" />
-          <TabButton tab="histogram" label="Histogram" />
+          <TabButton tab="histogram" label="Histogram" helpTerm={getTerm('capabilityAnalysis')} />
           <TabButton tab="normality" label="Prob Plot" />
         </div>
 
@@ -234,7 +237,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
       <div className="flex justify-between items-center border-b border-inherit pb-4">
         <div className={cs.tabBar}>
           <TabButton tab="summary" label="Summary" />
-          <TabButton tab="histogram" label="Histogram" />
+          <TabButton tab="histogram" label="Histogram" helpTerm={getTerm('capabilityAnalysis')} />
           <TabButton tab="normality" label="Prob Plot" />
         </div>
       </div>

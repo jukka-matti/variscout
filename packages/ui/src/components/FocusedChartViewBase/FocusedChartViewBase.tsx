@@ -28,6 +28,7 @@ const IChartFocusedSection: React.FC<{
           value={ichart.chartTitle}
           onChange={ichart.onTitleChange}
         />
+        <HelpTooltip term={getTerm('iChart')} iconSize={12} />
       </h2>
       <select
         value={ichart.outcome}
@@ -106,15 +107,17 @@ const BoxplotFocusedSection: React.FC<{
   props: FocusedChartViewBaseProps;
 }> = ({ props }) => {
   const { boxplot, navigation, chartExport, filterContext } = props;
+  const { getTerm } = useGlossary();
 
   const header = (
     <>
-      <h3 className="text-sm font-semibold text-content uppercase tracking-wider">
+      <h3 className="text-sm font-semibold text-content uppercase tracking-wider flex items-center gap-1">
         <EditableChartTitle
           defaultTitle={`Boxplot: ${boxplot.factor}`}
           value={boxplot.chartTitle}
           onChange={boxplot.onTitleChange}
         />
+        <HelpTooltip term={getTerm('boxplot')} iconSize={12} />
       </h3>
       <FactorSelector
         factors={boxplot.factors}
@@ -163,15 +166,17 @@ const ParetoFocusedSection: React.FC<{
   props: FocusedChartViewBaseProps;
 }> = ({ props }) => {
   const { pareto, navigation, chartExport, filterContext } = props;
+  const { getTerm } = useGlossary();
 
   const header = (
     <>
-      <h3 className="text-sm font-semibold text-content uppercase tracking-wider">
+      <h3 className="text-sm font-semibold text-content uppercase tracking-wider flex items-center gap-1">
         <EditableChartTitle
           defaultTitle={`Pareto: ${pareto.factor}`}
           value={pareto.chartTitle}
           onChange={pareto.onTitleChange}
         />
+        <HelpTooltip term={getTerm('paretoChart')} iconSize={12} />
       </h3>
       <FactorSelector
         factors={pareto.factors}
