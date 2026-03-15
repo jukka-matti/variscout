@@ -28,6 +28,7 @@ import type {
 } from '@variscout/core';
 import { hasTeamFeatures } from '@variscout/core';
 import { getTeamsContext } from '../teams/teamsContext';
+import { indexFindingsToSearch } from '../services/indexService';
 
 // Re-export types for backwards compatibility
 export type { DisplayOptions, ParetoMode, DataQualityReport, ParetoRow, StorageLocation };
@@ -102,6 +103,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Trigger cloud sync
       await saveToCloud(state, name, location);
+
+      // Index findings to AI Search (fire-and-forget, debounced, self-guarding)
+      indexFindingsToSearch(name, state.currentProjectId || name, state.findings, state.hypotheses);
 
       return project;
     },

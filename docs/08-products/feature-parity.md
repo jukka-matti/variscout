@@ -116,15 +116,18 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## AI Features
 
-| Feature                       | Azure Standard | Azure Team | Azure Team AI | PWA (Free) | Notes                                                                  |
-| ----------------------------- | :------------: | :--------: | :-----------: | :--------: | ---------------------------------------------------------------------- |
-| **NarrativeBar**              |    Optional    |  Optional  |   Optional    |     -      | Plain-language analysis summary at dashboard bottom                    |
-| **ChartInsightChip**          |    Optional    |  Optional  |   Optional    |     -      | Per-chart contextual suggestions                                       |
-| **CoScoutPanel**              |    Optional    |  Optional  |   Enhanced    |     -      | Team AI: methodology-grounded, knowledge-base-aware                    |
-| **AI Knowledge Base**         |       -        |     -      |       ✓       |     -      | Azure AI Search index from resolved findings (Team AI only)            |
-| **Organizational learning**   |       -        |     -      |       ✓       |     -      | Resolved findings feed back into knowledge base (Team AI only)         |
-| **Process description field** |    Optional    |  Optional  |   Optional    |     -      | Free-text process context for AI grounding                             |
-| **AI visibility toggle**      |    Optional    |  Optional  |   Optional    |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists |
+| Feature                         | Azure Standard | Azure Team | Azure Team AI | PWA (Free) | Notes                                                                  |
+| ------------------------------- | :------------: | :--------: | :-----------: | :--------: | ---------------------------------------------------------------------- |
+| **NarrativeBar**                |    Optional    |  Optional  |   Optional    |     -      | Plain-language analysis summary at dashboard bottom                    |
+| **ChartInsightChip**            |    Optional    |  Optional  |   Optional    |     -      | Per-chart contextual suggestions                                       |
+| **CoScoutPanel**                |    Optional    |  Optional  |   Enhanced    |     -      | Team AI: methodology-grounded, knowledge-base-aware                    |
+| **AI Knowledge Base**           |       -        |     -      |       ✓       |     -      | Azure AI Search index from resolved findings (Team AI only)            |
+| **Organizational learning**     |       -        |     -      |       ✓       |     -      | Resolved findings feed back into knowledge base (Team AI only)         |
+| **Process description field**   |    Optional    |  Optional  |   Optional    |     -      | Free-text process context for AI grounding                             |
+| **AI visibility toggle**        |    Optional    |  Optional  |   Optional    |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists |
+| **Knowledge Base Search**       |       -        |     -      | Yes (preview) |     -      | Azure AI Search index from resolved findings (Team AI only)            |
+| **Findings Export (CSV/JSON)**  |       -        |     ✓      |       ✓       |     -      | Download findings as CSV (Excel-compatible) or structured JSON         |
+| **Findings Export (AI Report)** |       -        |     -      |       ✓       |     -      | AI-generated quality engineering report from findings data             |
 
 > AI features require customer-deployed Azure AI Foundry resources (optional ARM deployment checkbox). See [ADR-019](../07-decisions/adr-019-ai-integration.md). PWA never has AI.
 
@@ -260,13 +263,14 @@ Features that behave differently on phone (<640px) versus desktop.
 
 ---
 
-## Planned Features (Roadmap)
+## Delivered Features (Recently Shipped)
 
-| Feature                     | Target Platform       | Status                      |
-| --------------------------- | --------------------- | --------------------------- |
-| AI Integration (Phase 1)    | Azure Standard + Team | Proposed                    |
-| AI Knowledge Base (Phase 3) | Azure Team AI         | Proposed                    |
-| Closed-loop investigations  | Azure Standard + Team | Designed (ADR-015 accepted) |
+| Feature                              | Target Platform       | Status                          |
+| ------------------------------------ | --------------------- | ------------------------------- |
+| AI Integration (Phases 1–3)          | Azure Standard + Team | Delivered (March 2026)          |
+| AI Knowledge Base (Phase 3)          | Azure Team AI         | Delivered (March 2026, preview) |
+| Closed-loop investigations           | Azure Standard + Team | Delivered (ADR-015)             |
+| Findings Export (CSV/JSON/AI Report) | Azure Standard+       | Delivered (March 2026)          |
 
 ---
 

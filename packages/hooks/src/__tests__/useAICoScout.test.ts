@@ -270,4 +270,58 @@ describe('useAICoScout', () => {
       });
     });
   });
+
+  describe('onBeforeSend', () => {
+    it('calls onBeforeSend with text and context before API call', async () => {
+      const onBeforeSend = vi.fn().mockResolvedValue(undefined);
+      const fetchResponse = vi.fn().mockResolvedValue('Response');
+      const { result } = renderHook(() =>
+        useAICoScout({ context: baseContext, fetchResponse, onBeforeSend })
+      );
+
+      await act(async () => {
+        result.current.send('What is Cpk?');
+      });
+
+      expect(onBeforeSend).toHaveBeenCalledWith('What is Cpk?', baseContext);
+      expect(fetchResponse).toHaveBeenCalled();
+      // onBeforeSend is called before fetchResponse
+      expect(onBeforeSend.mock.invocationCallOrder[0]).toBeLessThan(
+        fetchResponse.mock.invocationCallOrder[0]
+      );
+    });
+
+    it('allows onBeforeSend to mutate context', async () => {
+      const onBeforeSend = vi.fn().mockImplementation(async (_text: string, ctx: AIContext) => {
+        ctx.knowledgeResults = [
+          {
+            projectName: 'Test',
+            factor: 'Machine',
+            status: 'resolved',
+            etaSquared: 0.5,
+            cpkBefore: 0.8,
+            cpkAfter: 1.5,
+            suspectedCause: 'Wear',
+            actionsText: 'Replace',
+            outcomeEffective: true,
+          },
+        ];
+      });
+      const fetchResponse = vi.fn().mockResolvedValue('Response');
+      const { result } = renderHook(() =>
+        useAICoScout({ context: baseContext, fetchResponse, onBeforeSend })
+      );
+
+      await act(async () => {
+        result.current.send('Question');
+      });
+
+      // Verify the fetch was called with messages that include knowledge context
+      const apiMessages = fetchResponse.mock.calls[0][0];
+      const knowledgeMsg = apiMessages.find(
+        (m: { content: string }) => m.content && m.content.includes('Knowledge Base')
+      );
+      expect(knowledgeMsg).toBeDefined();
+    });
+  });
 });

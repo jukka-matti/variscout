@@ -8,6 +8,7 @@
 
 import type { AIContext, CoScoutMessage } from './types';
 import type { InsightChartType } from './chartInsights';
+import type { Finding, Hypothesis } from '../findings';
 
 /**
  * Build the system prompt for narration.
@@ -379,6 +380,48 @@ Never invent data or statistics. If the context does not contain enough informat
 const COSCOUT_HISTORY_LIMIT = 10;
 
 /**
+ * Format Knowledge Base results for injection into CoScout system prompt.
+ * Shows past findings from other projects as reference context.
+ * Optionally includes document results with source attribution.
+ */
+export function formatKnowledgeContext(
+  results: NonNullable<AIContext['knowledgeResults']>,
+  documents?: AIContext['knowledgeDocuments']
+): string {
+  const sections: string[] = [];
+
+  if (results.length > 0) {
+    const lines = results.map((r, i) => {
+      const parts = [
+        `${i + 1}. [From: findings] "${r.suspectedCause || 'Unknown cause'}" — ${r.projectName}`,
+      ];
+      parts.push(`   Factor: ${r.factor}, Status: ${r.status}`);
+      if (r.etaSquared !== null) parts.push(`   η²: ${(r.etaSquared * 100).toFixed(1)}%`);
+      if (r.cpkBefore !== null && r.cpkAfter !== null)
+        parts.push(`   Cpk: ${r.cpkBefore.toFixed(2)} → ${r.cpkAfter.toFixed(2)}`);
+      if (r.actionsText) parts.push(`   Actions: ${r.actionsText}`);
+      if (r.outcomeEffective !== null)
+        parts.push(`   Outcome: ${r.outcomeEffective ? 'effective' : 'not effective'}`);
+      return parts.join('\n');
+    });
+    sections.push(lines.join('\n\n'));
+  }
+
+  if (documents && documents.length > 0) {
+    const docLines = documents.map((d, i) => {
+      const parts = [`${i + 1}. [From: ${d.source}] "${d.title}"`];
+      if (d.snippet) parts.push(`   ${d.snippet.slice(0, 300)}`);
+      return parts.join('\n');
+    });
+    sections.push(docLines.join('\n\n'));
+  }
+
+  if (sections.length === 0) return '';
+
+  return `Past findings from the Knowledge Base (similar situations from other projects — reference only, do not present as current data):\n${sections.join('\n\n')}`;
+}
+
+/**
  * Build the full messages array for a CoScout API call.
  * Returns [system (with glossary), context summary, ...recent history, user message].
  *
@@ -409,6 +452,19 @@ export function buildCoScoutMessages(
   );
   messages.push({ role: 'system', content: contextSummary });
 
+  // Knowledge Base context (when preview enabled and results/documents available)
+  const hasKnowledgeResults = context.knowledgeResults && context.knowledgeResults.length > 0;
+  const hasKnowledgeDocs = context.knowledgeDocuments && context.knowledgeDocuments.length > 0;
+  if (hasKnowledgeResults || hasKnowledgeDocs) {
+    const knowledgeContent = formatKnowledgeContext(
+      context.knowledgeResults ?? [],
+      context.knowledgeDocuments
+    );
+    if (knowledgeContent) {
+      messages.push({ role: 'system', content: knowledgeContent });
+    }
+  }
+
   // Recent history (last N messages to stay within token budget)
   const recentHistory = history.slice(-COSCOUT_HISTORY_LIMIT);
   for (const msg of recentHistory) {
@@ -421,4 +477,86 @@ export function buildCoScoutMessages(
   messages.push({ role: 'user', content: userMessage });
 
   return messages;
+}
+
+// ============================================================================
+// Findings Report Prompts
+// ============================================================================
+
+/**
+ * Build the system prompt for AI findings report generation.
+ */
+export function buildReportSystemPrompt(): string {
+  return `You are a quality engineering report writer for VariScout.
+Write a structured Markdown report summarizing the investigation findings.
+Be precise and data-driven. Never invent data — only reference what is provided.
+Use professional quality engineering language.`;
+}
+
+/**
+ * Build the user prompt for generating an AI findings report.
+ * Caps at 20 most significant findings (key-drivers + resolved first).
+ */
+export function buildReportPrompt(
+  context: AIContext,
+  findings: Finding[],
+  hypotheses: Hypothesis[]
+): string {
+  const parts: string[] = [];
+
+  // Process context
+  if (context.process?.description) {
+    parts.push(`## Process\n${context.process.description}`);
+  }
+  if (context.process?.problemStatement) {
+    parts.push(`## Problem Statement\n${context.process.problemStatement}`);
+  }
+
+  // Stats
+  if (context.stats) {
+    const s = context.stats;
+    let statsLine = `Mean=${s.mean.toFixed(2)}, StdDev=${s.stdDev.toFixed(3)}, n=${s.samples}`;
+    if (s.cpk !== undefined) statsLine += `, Cpk=${s.cpk.toFixed(2)}`;
+    parts.push(`## Current Statistics\n${statsLine}`);
+  }
+
+  // Prioritize findings: key-drivers first, then resolved, then by date
+  const sorted = [...findings].sort((a, b) => {
+    if (a.tag === 'key-driver' && b.tag !== 'key-driver') return -1;
+    if (b.tag === 'key-driver' && a.tag !== 'key-driver') return 1;
+    if (a.status === 'resolved' && b.status !== 'resolved') return -1;
+    if (b.status === 'resolved' && a.status !== 'resolved') return 1;
+    return b.createdAt - a.createdAt;
+  });
+
+  const top = sorted.slice(0, 20);
+  const hypothesisMap = new Map(hypotheses.map(h => [h.id, h]));
+
+  const findingLines = top.map((f, i) => {
+    const h = f.hypothesisId ? hypothesisMap.get(f.hypothesisId) : undefined;
+    let line = `${i + 1}. [${f.status.toUpperCase()}${f.tag ? ` · ${f.tag}` : ''}] ${f.text}`;
+    if (h) line += `\n   Hypothesis: "${h.text}" (${h.status})`;
+    if (f.context.stats?.cpk !== undefined) line += `\n   Cpk: ${f.context.stats.cpk.toFixed(2)}`;
+    if (f.outcome) {
+      line += `\n   Outcome: ${f.outcome.effective}`;
+      if (f.outcome.cpkAfter) line += ` (Cpk after: ${f.outcome.cpkAfter.toFixed(2)})`;
+    }
+    if (f.actions?.length) {
+      const done = f.actions.filter(a => a.completedAt).length;
+      line += `\n   Actions: ${done}/${f.actions.length} complete`;
+    }
+    return line;
+  });
+
+  parts.push(`## Findings (${top.length} of ${findings.length})\n${findingLines.join('\n\n')}`);
+
+  parts.push(`Generate a quality engineering report with these sections:
+1. Executive Summary (2-3 sentences)
+2. Key Findings (bullet points)
+3. Root Causes (from hypotheses)
+4. Actions Taken (from action items)
+5. Outcomes (effectiveness)
+6. Recommendations (next steps)`);
+
+  return parts.join('\n\n');
 }

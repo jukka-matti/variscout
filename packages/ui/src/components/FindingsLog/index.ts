@@ -12,3 +12,4 @@ export {
 export { default as HypothesisTreeView, type HypothesisTreeViewProps } from './HypothesisTreeView';
 export { default as HypothesisNode, type HypothesisNodeProps } from './HypothesisNode';
 export { copyFindingsToClipboard, formatFindingsText } from './export';
+export { default as FindingsExportMenu, type FindingsExportMenuProps } from './FindingsExportMenu';

@@ -15,7 +15,7 @@ vi.mock('@variscout/core', async () => {
   };
 });
 
-import { isKnowledgeBaseAvailable, searchRelatedFindings } from '../searchService';
+import { isKnowledgeBaseAvailable, searchRelatedFindings, searchDocuments } from '../searchService';
 import { isTeamAIPlan, isPreviewEnabled } from '@variscout/core';
 
 const mockIsTeamAIPlan = vi.mocked(isTeamAIPlan);
@@ -159,6 +159,142 @@ describe('searchService', () => {
 
       const body = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(body.top).toBe(10);
+    });
+  });
+
+  describe('searchDocuments', () => {
+    const mockDocResponse = {
+      response: [
+        {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify([
+                {
+                  title: 'SOP: Nozzle Maintenance',
+                  content: 'Clean nozzles every 8 hours',
+                  source: 'SOPs',
+                  url: 'https://sharepoint.example.com/sop-1',
+                  relevance_score: 0.88,
+                },
+              ]),
+            },
+          ],
+        },
+      ],
+    };
+
+    it('returns mapped results on success', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockDocResponse),
+      });
+
+      const results = await searchDocuments('nozzle maintenance');
+
+      expect(results).toHaveLength(1);
+      expect(results[0]).toEqual({
+        title: 'SOP: Nozzle Maintenance',
+        snippet: 'Clean nozzles every 8 hours',
+        source: 'SOPs',
+        url: 'https://sharepoint.example.com/sop-1',
+        relevanceScore: 0.88,
+      });
+    });
+
+    it('sends correct request to agentic retrieval API', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ response: [] }),
+      });
+      globalThis.fetch = mockFetch;
+
+      await searchDocuments('test query');
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain('/knowledgebases/variscout-kb/retrieve');
+      expect(url).toContain('api-version=2025-11-01-preview');
+      expect(options.method).toBe('POST');
+      expect(options.headers.Authorization).toBe('Bearer mock-token');
+
+      const body = JSON.parse(options.body);
+      expect(body.messages).toBeDefined();
+      expect(body.messages[0].role).toBe('user');
+      expect(body.outputMode).toBe('ExtractedData');
+    });
+
+    it('returns empty array when not Team AI plan', async () => {
+      mockIsTeamAIPlan.mockReturnValue(false);
+
+      const results = await searchDocuments('test');
+      expect(results).toEqual([]);
+    });
+
+    it('returns empty array when no endpoint configured', async () => {
+      import.meta.env.VITE_AI_SEARCH_ENDPOINT = '';
+
+      const results = await searchDocuments('test');
+      expect(results).toEqual([]);
+    });
+
+    it('returns empty array on 404 without warning', async () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      });
+
+      const results = await searchDocuments('test');
+      expect(results).toEqual([]);
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('returns empty array on HTTP error with warning', async () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+      });
+
+      const results = await searchDocuments('test');
+      expect(results).toEqual([]);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[SearchService]'),
+        expect.anything()
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('handles raw text (non-JSON) response gracefully', async () => {
+      const rawTextResponse = {
+        response: [
+          {
+            content: [
+              {
+                type: 'text',
+                text: 'This is plain text, not JSON',
+              },
+            ],
+          },
+        ],
+      };
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(rawTextResponse),
+      });
+
+      const results = await searchDocuments('test');
+      expect(results).toHaveLength(1);
+      expect(results[0].title).toBe('Knowledge Base result');
+      expect(results[0].snippet).toBe('This is plain text, not JSON');
+      expect(results[0].source).toBe('Knowledge Base');
     });
   });
 });

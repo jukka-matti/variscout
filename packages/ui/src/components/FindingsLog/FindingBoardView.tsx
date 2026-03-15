@@ -27,7 +27,12 @@ export interface FindingBoardViewProps {
   onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
   onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
   hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
-  onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  onAddAction?: (
+    id: string,
+    text: string,
+    assignee?: import('@variscout/core').FindingAssignee,
+    dueDate?: string
+  ) => void;
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
   onSetOutcome?: (

@@ -102,7 +102,7 @@ export interface FindingAssignee {
 export interface ActionItem {
   id: string;
   text: string;
-  assignee?: string;
+  assignee?: FindingAssignee;
   dueDate?: string; // ISO date string (YYYY-MM-DD)
   completedAt?: number; // Date.now() timestamp
   createdAt: number;
@@ -484,7 +484,11 @@ export function createFindingComment(text: string, author?: string): FindingComm
 /**
  * Create a new ActionItem with a unique ID
  */
-export function createActionItem(text: string, assignee?: string, dueDate?: string): ActionItem {
+export function createActionItem(
+  text: string,
+  assignee?: FindingAssignee,
+  dueDate?: string
+): ActionItem {
   return {
     id: generateId(),
     text,
@@ -652,15 +656,47 @@ function migrateSource(source: FindingSource | undefined): FindingSource | undef
 }
 
 /**
+ * Migrate a legacy string assignee on an ActionItem to FindingAssignee.
+ * - undefined → undefined
+ * - string → { upn: string, displayName: string } (uses string for both)
+ * - FindingAssignee → pass through
+ */
+export function migrateActionAssignee(
+  assignee: string | FindingAssignee | undefined
+): FindingAssignee | undefined {
+  if (assignee === undefined) return undefined;
+  if (typeof assignee === 'string') {
+    return { upn: assignee, displayName: assignee };
+  }
+  return assignee;
+}
+
+/**
  * Migrate an array of findings from old status model to new.
- * Also normalizes FindingSource to discriminated union shape.
+ * Also normalizes FindingSource to discriminated union shape
+ * and migrates ActionItem assignees from string to FindingAssignee.
  * Safe to call on already-migrated data.
  */
 export function migrateFindings(findings: Finding[]): Finding[] {
   return findings.map(f => {
-    const migrated = migrateFindingStatus(f);
+    let migrated = migrateFindingStatus(f);
     const source = migrateSource(migrated.source);
-    return source !== migrated.source ? { ...migrated, source } : migrated;
+    if (source !== migrated.source) {
+      migrated = { ...migrated, source };
+    }
+    // Migrate action assignees from string to FindingAssignee
+    if (migrated.actions?.length) {
+      const migratedActions = migrated.actions.map(a => {
+        const newAssignee = migrateActionAssignee(
+          a.assignee as string | FindingAssignee | undefined
+        );
+        return newAssignee !== a.assignee ? { ...a, assignee: newAssignee } : a;
+      });
+      if (migratedActions.some((a, i) => a !== migrated.actions![i])) {
+        migrated = { ...migrated, actions: migratedActions };
+      }
+    }
+    return migrated;
   });
 }
 

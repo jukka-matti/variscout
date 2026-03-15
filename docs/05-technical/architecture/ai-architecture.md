@@ -171,9 +171,26 @@ No `VITE_AI_KEY` environment variable. The AI endpoint URL (`VITE_AI_ENDPOINT`) 
 
 ---
 
+## Runtime Configuration
+
+For Azure Marketplace Managed Application deployments, the AI endpoint and feature flags are loaded at runtime from a `/config` endpoint served by the static server (`apps/azure/server.js`). This avoids baking customer-specific values into the build artifact.
+
+```typescript
+// apps/azure/src/lib/runtimeConfig.ts
+interface RuntimeConfig {
+  aiEndpoint?: string;
+  searchEndpoint?: string;
+  enableKnowledgeBase?: boolean;
+}
+```
+
+The config is fetched once on app startup and merged with environment variables. Falls back gracefully when `/config` returns 404 (local development).
+
+---
+
 ## Knowledge Layer: Azure AI Search + Foundry IQ
 
-> **Status:** Planned — not yet implemented. See Implementation Notes in [ADR-019](../../07-decisions/adr-019-ai-integration.md).
+> **Status:** Implemented (March 2026). See Implementation Notes in [ADR-019](../../07-decisions/adr-019-ai-integration.md).
 
 Azure AI Search is a managed service — not a custom RAG pipeline. No custom embeddings, no vector database, no dedicated infrastructure. **Azure AI Foundry IQ** (late 2025) adds a managed orchestration layer on top that simplifies and enhances the approach:
 
@@ -186,20 +203,20 @@ Azure AI Search is a managed service — not a custom RAG pipeline. No custom em
 
 | Source                 | Index Method                                  | Content                                                                                                         |
 | ---------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| VariScout findings     | Azure Function (OneDrive webhook)             | Structured documents: project, title, factor, contribution %, Cpk, suspected cause, corrective actions, outcome |
+| VariScout findings     | Azure Function (HTTP trigger, client-called)  | Structured documents: project, title, factor, contribution %, Cpk, suspected cause, corrective actions, outcome |
 | Team quality documents | SharePoint connector (Foundry IQ auto-config) | DOCX, XLSX, PPTX, PDF from Teams channel document libraries                                                     |
 | Process descriptions   | Bundled with findings                         | Per-project context text                                                                                        |
 
 ### Findings Write Path
 
-Azure Function triggered by OneDrive file changes (Graph webhook):
+Azure Function with HTTP trigger (client calls directly after save):
 
-1. Receives notification of `.vrs` file change
-2. Downloads and parses the file
-3. Extracts findings as structured documents
-4. Pushes to Azure AI Search index via Search SDK (upsert by finding ID)
+1. Client calls the Function endpoint after a successful `.vrs` file save
+2. Function receives findings payload (structured documents — no raw measurement data)
+3. Batch-replaces the tenant's findings in the Azure AI Search index (consistent state, handles deletions)
+4. Returns index document count on success
 
-The function runs in the customer's tenant with Managed Identity for auth. Browser stays free of Search SDK dependencies.
+The function uses API keys stored in Function App settings only — the client routes through the Function proxy, never holding Search keys. Batch-replace ensures index consistency and simplifies deletion of stale documents.
 
 ### Search Capabilities
 
@@ -227,13 +244,13 @@ After 50+ resolved findings, the AI has genuine organizational knowledge that no
 
 All AI resources are conditional on `parameters('enableAI')`:
 
-| Resource                   | Type                                                               | Purpose                                               |
-| -------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- |
-| AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: AIServices, SKU: S0) | Azure AI Foundry host                                 |
-| Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`                 | Cheap model (e.g., GPT-4o-mini) for narration + chips |
-| Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`                 | Capable model (e.g., GPT-4o) for CoScout + reports    |
-| AI Search service          | `Microsoft.Search/searchServices` (Phase 3)                        | Knowledge index                                       |
-| Azure Function             | `Microsoft.Web/sites` (Phase 3)                                    | Findings indexer                                      |
+| Resource                   | Type                                                           | Purpose                                               |
+| -------------------------- | -------------------------------------------------------------- | ----------------------------------------------------- |
+| AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: OpenAI, SKU: S0) | Azure AI Foundry host                                 |
+| Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`             | Cheap model (e.g., GPT-4o-mini) for narration + chips |
+| Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`             | Capable model (e.g., GPT-4o) for CoScout + reports    |
+| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Knowledge index for findings                          |
+| Azure Function             | `Microsoft.Web/sites`                                          | Findings indexer (HTTP trigger, tenant-isolated)      |
 
 `createUiDefinition.json` additions:
 

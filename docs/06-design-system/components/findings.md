@@ -561,9 +561,9 @@ Each action populates a `focusContext` object and opens the CoScout panel with t
 
 ---
 
-## Teams Adaptive Cards for Findings (Planned)
+## Teams Adaptive Cards for Findings (Implemented)
 
-When sharing a finding to a Teams channel, send an Adaptive Card instead of a plain URL.
+When a finding reaches a key status in a Teams channel tab, VariScout posts an Adaptive Card to the channel via the Graph API (`POST /teams/{teamId}/channels/{channelId}/messages`).
 
 **Card layout:**
 
@@ -573,11 +573,39 @@ When sharing a finding to a Teams channel, send an Adaptive Card instead of a pl
 - Assignee (if set)
 - "Open in VariScout" button (deep link: `?project=<name>&finding=<id>`)
 
-**Status update cards:** When a finding status changes to `analyzed` or `resolved`, post an update card to the channel showing old status → new status, conclusion text (if analyzed), and a "View" button.
+**Status update cards:** When a finding status changes to `analyzed` or `resolved`, an Adaptive Card is automatically posted to the channel showing the suspected cause (if analyzed), Cpk delta (if resolved), @mentions for assignees, and a "View" button deep-linking into the app.
 
-**Teams Activity Feed:** When a finding is assigned via @mention, push a Teams activity notification to the assignee: "You've been assigned a quality finding: [text]". Tap navigates to the finding via deep link.
+**Teams Activity Feed:** When a finding is assigned via @mention, the assignee receives a Teams notification bell with a deep link directly to the finding. Uses the same `ChannelMessage.Send` Graph permission and OBO token infrastructure as the @mention workflow (see [ADR-018](../../07-decisions/adr-018-channel-mention-workflow.md)).
 
-> Implementation deferred to a dedicated Teams sprint.
+---
+
+## FindingsExportMenu
+
+Dropdown menu for exporting findings data. Appears in the FindingsLog header.
+
+### Options
+
+| Option             | Availability   | Description                                  |
+| ------------------ | -------------- | -------------------------------------------- |
+| Copy as text       | All paid plans | Copies formatted findings text to clipboard  |
+| Download CSV       | All paid plans | Downloads findings as CSV with BOM for Excel |
+| Download JSON      | All paid plans | Downloads structured JSON with metadata      |
+| Generate AI report | Team AI only   | Generates quality engineering report via AI  |
+
+### Props
+
+```ts
+interface FindingsExportMenuProps {
+  findings: Finding[];
+  hypotheses?: Hypothesis[];
+  processContext?: ProcessContext;
+  onGenerateAIReport?: () => Promise<string>;
+  columnAliases?: Record<string, string>;
+  className?: string;
+}
+```
+
+The AI report option only appears when `onGenerateAIReport` is provided (injected by the Azure app for Team AI plan).
 
 ---
 

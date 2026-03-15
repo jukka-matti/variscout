@@ -8,8 +8,12 @@
 
 import { getAccessToken, isLocalDev, AuthError } from './easyAuth';
 import { getTeamsSsoToken, isInTeams } from '../teams/teamsContext';
+import { getRuntimeConfig } from '../lib/runtimeConfig';
 
-const FUNCTION_URL = import.meta.env.VITE_FUNCTION_URL || '';
+function getFunctionUrl(): string {
+  return getRuntimeConfig()?.functionUrl || import.meta.env.VITE_FUNCTION_URL || '';
+}
+
 const CACHE_MARGIN_MS = 5 * 60 * 1000; // 5 min before expiry
 
 let cachedToken: string | null = null;
@@ -30,11 +34,11 @@ export async function getGraphToken(): Promise<string> {
   }
 
   // Try Teams SSO → OBO exchange
-  if (isInTeams() && FUNCTION_URL) {
+  if (isInTeams() && getFunctionUrl()) {
     const ssoToken = await getTeamsSsoToken();
     if (ssoToken) {
       try {
-        const res = await fetch(`${FUNCTION_URL}/api/token-exchange`, {
+        const res = await fetch(`${getFunctionUrl()}/api/token-exchange`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: ssoToken }),
@@ -72,11 +76,11 @@ export async function getGraphTokenWithScopes(scopes: string[]): Promise<string>
   }
 
   // Try Teams SSO → OBO exchange with specific scopes
-  if (isInTeams() && FUNCTION_URL) {
+  if (isInTeams() && getFunctionUrl()) {
     const ssoToken = await getTeamsSsoToken();
     if (ssoToken) {
       try {
-        const res = await fetch(`${FUNCTION_URL}/api/token-exchange`, {
+        const res = await fetch(`${getFunctionUrl()}/api/token-exchange`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: ssoToken, scopes }),

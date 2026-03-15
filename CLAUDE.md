@@ -103,63 +103,64 @@ sales/                   # Sales leads and company contacts (not software docs)
 
 ## Task-to-Documentation Mapping
 
-| Task Type                | Read First                                                                                                                                            |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Statistics/Cpk changes   | docs/03-features/analysis/capability.md, packages/core/src/stats.ts                                                                                   |
-| Chart modifications      | docs/06-design-system/charts/, .claude/rules/charts.md                                                                                                |
-| Azure app changes        | docs/08-products/azure/, packages/hooks/src/useDataState.ts                                                                                           |
-| Adding new feature       | docs/07-decisions/ (check ADRs), docs/05-technical/                                                                                                   |
-| Parser/data input        | docs/03-features/data/data-input.md, packages/core/src/parser.ts                                                                                      |
-| Design system            | docs/06-design-system/foundations/, packages/ui/src/colors.ts                                                                                         |
-| User personas            | docs/02-journeys/personas/, docs/01-vision/philosophy.md                                                                                              |
-| Use cases / SEO          | docs/02-journeys/use-cases/                                                                                                                           |
-| Performance Mode         | docs/03-features/analysis/performance-mode.md                                                                                                         |
-| Testing (E2E/Chrome)     | docs/05-technical/implementation/testing.md Feature Verification Protocols                                                                            |
-| Testing (Unit/Component) | docs/05-technical/implementation/testing.md, .claude/rules/testing.md                                                                                 |
-| Licensing/Tiers          | docs/07-decisions/adr-007-azure-marketplace-distribution.md                                                                                           |
-| Deployment               | docs/05-technical/implementation/deployment.md                                                                                                        |
-| Website changes          | docs/08-products/website/, apps/website/README.md, .claude/rules/charts.md                                                                            |
-| Website design           | docs/08-products/website/design-philosophy.md                                                                                                         |
-| Website content arch     | docs/08-products/website/content-architecture.md, adr-008                                                                                             |
-| Use case pages           | docs/08-products/website/content-architecture.md, apps/website/src/data/useCaseData.ts                                                                |
-| Nelson Rules/Runs        | docs/03-features/analysis/nelson-rules.md                                                                                                             |
-| Staged Analysis          | docs/03-features/analysis/staged-analysis.md                                                                                                          |
-| Probability Plots        | docs/03-features/analysis/probability-plot.md                                                                                                         |
-| Data Flow/Architecture   | docs/05-technical/architecture/data-flow.md                                                                                                           |
-| Hook Integration         | docs/05-technical/architecture/component-patterns.md                                                                                                  |
-| Platform Comparison      | docs/08-products/feature-parity.md                                                                                                                    |
-| Analysis Workflows       | docs/03-features/workflows/ (four-lenses, drill-down, decision-trees)                                                                                 |
-| Quick Analysis           | docs/03-features/workflows/quick-check.md, deep-dive.md                                                                                               |
-| Drill-down workflow      | docs/03-features/workflows/drill-down-workflow.md                                                                                                     |
-| Four Lenses workflow     | docs/03-features/workflows/four-lenses-workflow.md                                                                                                    |
-| Decision trees           | docs/03-features/workflows/decision-trees.md                                                                                                          |
-| Glossary/terminology     | packages/core/src/glossary/terms.ts, docs/03-features/learning/glossary.md                                                                            |
-| Azure deployment/ARM     | docs/08-products/azure/marketplace.md, docs/08-products/azure/arm-template.md                                                                         |
-| Azure auth (EasyAuth)    | docs/08-products/azure/authentication.md                                                                                                              |
-| OneDrive sync            | docs/08-products/azure/onedrive-sync.md                                                                                                               |
-| UI components (modals)   | docs/06-design-system/components/                                                                                                                     |
-| Color/typography         | docs/06-design-system/foundations/                                                                                                                    |
-| Case studies             | docs/04-cases/index.md                                                                                                                                |
-| Product specs/tagline    | docs/03-features/specifications.md                                                                                                                    |
-| Ruflo / AI tooling       | docs/07-decisions/adr-011-ai-development-tooling.md, docs/05-technical/implementation/ruflo.md                                                        |
-| Statistics reference     | docs/05-technical/statistics-reference.md                                                                                                             |
-| Investigation workflow   | docs/03-features/workflows/investigation-to-action.md                                                                                                 |
-| Investigation tracking   | docs/07-decisions/adr-015-investigation-board.md, docs/03-features/workflows/investigation-to-action.md                                               |
-| Characteristic types     | docs/03-features/analysis/characteristic-types.md, packages/core/src/types.ts                                                                         |
-| Variation metrics/SS     | docs/03-features/analysis/variation-decomposition.md, packages/core/src/variation/contributions.ts                                                    |
-| What-If/simulation       | docs/06-design-system/components/what-if-simulator.md, packages/core/src/variation/simulation.ts                                                      |
-| Azure CI/CD pipeline     | `.github/workflows/deploy-azure-staging.yml`, `docs/05-technical/implementation/deployment.md`                                                        |
-| Teams integration        | docs/07-decisions/adr-016-teams-integration.md, docs/08-products/azure/authentication.md                                                              |
-| Teams SSO / OBO auth     | apps/azure/src/auth/graphToken.ts, docs/08-products/azure/authentication.md                                                                           |
-| EXIF / photo security    | packages/core/src/utils/exifStrip.ts, docs/07-decisions/adr-021-security-evaluation.md                                                                |
-| AI integration           | docs/07-decisions/adr-019-ai-integration.md, docs/05-technical/architecture/ai-architecture.md, docs/05-technical/architecture/ai-readiness-review.md |
-| Knowledge model/glossary | docs/05-technical/architecture/knowledge-model.md, packages/core/src/glossary/, docs/03-features/learning/glossary.md                                 |
-| AI context engineering   | docs/05-technical/architecture/ai-context-engineering.md, packages/core/src/ai/promptTemplates.ts                                                     |
-| VariScout methodology    | docs/01-vision/methodology.md, docs/01-vision/philosophy.md, docs/01-vision/four-lenses/                                                              |
-| AI components            | docs/06-design-system/components/ai-components.md, docs/03-features/workflows/ai-assisted-analysis.md                                                 |
-| Findings UI              | docs/06-design-system/components/findings.md, docs/03-features/workflows/investigation-to-action.md                                                   |
-| Investigation actions    | docs/07-decisions/adr-015-investigation-board.md, docs/03-features/workflows/investigation-to-action.md                                               |
-| Hypothesis investigation | docs/03-features/workflows/hypothesis-investigation.md, docs/07-decisions/adr-020-investigation-workflow.md                                           |
+| Task Type                | Read First                                                                                                                                                                              |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Statistics/Cpk changes   | docs/03-features/analysis/capability.md, packages/core/src/stats.ts                                                                                                                     |
+| Chart modifications      | docs/06-design-system/charts/, .claude/rules/charts.md                                                                                                                                  |
+| Azure app changes        | docs/08-products/azure/, packages/hooks/src/useDataState.ts                                                                                                                             |
+| Adding new feature       | docs/07-decisions/ (check ADRs), docs/05-technical/                                                                                                                                     |
+| Parser/data input        | docs/03-features/data/data-input.md, packages/core/src/parser.ts                                                                                                                        |
+| Design system            | docs/06-design-system/foundations/, packages/ui/src/colors.ts                                                                                                                           |
+| User personas            | docs/02-journeys/personas/, docs/01-vision/philosophy.md                                                                                                                                |
+| Use cases / SEO          | docs/02-journeys/use-cases/                                                                                                                                                             |
+| Performance Mode         | docs/03-features/analysis/performance-mode.md                                                                                                                                           |
+| Testing (E2E/Chrome)     | docs/05-technical/implementation/testing.md Feature Verification Protocols                                                                                                              |
+| Testing (Unit/Component) | docs/05-technical/implementation/testing.md, .claude/rules/testing.md                                                                                                                   |
+| Licensing/Tiers          | docs/07-decisions/adr-007-azure-marketplace-distribution.md                                                                                                                             |
+| Deployment               | docs/05-technical/implementation/deployment.md                                                                                                                                          |
+| Website changes          | docs/08-products/website/, apps/website/README.md, .claude/rules/charts.md                                                                                                              |
+| Website design           | docs/08-products/website/design-philosophy.md                                                                                                                                           |
+| Website content arch     | docs/08-products/website/content-architecture.md, adr-008                                                                                                                               |
+| Use case pages           | docs/08-products/website/content-architecture.md, apps/website/src/data/useCaseData.ts                                                                                                  |
+| Nelson Rules/Runs        | docs/03-features/analysis/nelson-rules.md                                                                                                                                               |
+| Staged Analysis          | docs/03-features/analysis/staged-analysis.md                                                                                                                                            |
+| Probability Plots        | docs/03-features/analysis/probability-plot.md                                                                                                                                           |
+| Data Flow/Architecture   | docs/05-technical/architecture/data-flow.md                                                                                                                                             |
+| Hook Integration         | docs/05-technical/architecture/component-patterns.md                                                                                                                                    |
+| Platform Comparison      | docs/08-products/feature-parity.md                                                                                                                                                      |
+| Analysis Workflows       | docs/03-features/workflows/ (four-lenses, drill-down, decision-trees)                                                                                                                   |
+| Quick Analysis           | docs/03-features/workflows/quick-check.md, deep-dive.md                                                                                                                                 |
+| Drill-down workflow      | docs/03-features/workflows/drill-down-workflow.md                                                                                                                                       |
+| Four Lenses workflow     | docs/03-features/workflows/four-lenses-workflow.md                                                                                                                                      |
+| Decision trees           | docs/03-features/workflows/decision-trees.md                                                                                                                                            |
+| Glossary/terminology     | packages/core/src/glossary/terms.ts, docs/03-features/learning/glossary.md                                                                                                              |
+| Azure deployment/ARM     | docs/08-products/azure/marketplace.md, docs/08-products/azure/arm-template.md                                                                                                           |
+| Azure auth (EasyAuth)    | docs/08-products/azure/authentication.md                                                                                                                                                |
+| OneDrive sync            | docs/08-products/azure/onedrive-sync.md                                                                                                                                                 |
+| UI components (modals)   | docs/06-design-system/components/                                                                                                                                                       |
+| Color/typography         | docs/06-design-system/foundations/                                                                                                                                                      |
+| Case studies             | docs/04-cases/index.md                                                                                                                                                                  |
+| Product specs/tagline    | docs/03-features/specifications.md                                                                                                                                                      |
+| Ruflo / AI tooling       | docs/07-decisions/adr-011-ai-development-tooling.md, docs/05-technical/implementation/ruflo.md                                                                                          |
+| Statistics reference     | docs/05-technical/statistics-reference.md                                                                                                                                               |
+| Investigation workflow   | docs/03-features/workflows/investigation-to-action.md                                                                                                                                   |
+| Investigation tracking   | docs/07-decisions/adr-015-investigation-board.md, docs/03-features/workflows/investigation-to-action.md                                                                                 |
+| Characteristic types     | docs/03-features/analysis/characteristic-types.md, packages/core/src/types.ts                                                                                                           |
+| Variation metrics/SS     | docs/03-features/analysis/variation-decomposition.md, packages/core/src/variation/contributions.ts                                                                                      |
+| What-If/simulation       | docs/06-design-system/components/what-if-simulator.md, packages/core/src/variation/simulation.ts                                                                                        |
+| Azure CI/CD pipeline     | `.github/workflows/deploy-azure-staging.yml`, `docs/05-technical/implementation/deployment.md`                                                                                          |
+| Teams integration        | docs/07-decisions/adr-016-teams-integration.md, docs/08-products/azure/authentication.md                                                                                                |
+| Teams SSO / OBO auth     | apps/azure/src/auth/graphToken.ts, docs/08-products/azure/authentication.md                                                                                                             |
+| EXIF / photo security    | packages/core/src/utils/exifStrip.ts, docs/07-decisions/adr-021-security-evaluation.md                                                                                                  |
+| AI integration           | docs/07-decisions/adr-019-ai-integration.md, docs/05-technical/architecture/ai-architecture.md, docs/05-technical/architecture/ai-readiness-review.md (Phases 1–3 delivered March 2026) |
+| Runtime config           | `apps/azure/src/lib/runtimeConfig.ts`, `apps/azure/server.js`                                                                                                                           |
+| Knowledge model/glossary | docs/05-technical/architecture/knowledge-model.md, packages/core/src/glossary/, docs/03-features/learning/glossary.md                                                                   |
+| AI context engineering   | docs/05-technical/architecture/ai-context-engineering.md, packages/core/src/ai/promptTemplates.ts                                                                                       |
+| VariScout methodology    | docs/01-vision/methodology.md, docs/01-vision/philosophy.md, docs/01-vision/four-lenses/                                                                                                |
+| AI components            | docs/06-design-system/components/ai-components.md, docs/03-features/workflows/ai-assisted-analysis.md                                                                                   |
+| Findings UI              | docs/06-design-system/components/findings.md, docs/03-features/workflows/investigation-to-action.md                                                                                     |
+| Investigation actions    | docs/07-decisions/adr-015-investigation-board.md, docs/03-features/workflows/investigation-to-action.md                                                                                 |
+| Hypothesis investigation | docs/03-features/workflows/hypothesis-investigation.md, docs/07-decisions/adr-020-investigation-workflow.md                                                                             |
 
 ## Repository Structure
 
@@ -305,8 +306,13 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/core/src/glossary/knowledge.ts`                            | Unified knowledge lookup (getEntry, getRelated, getReferencedBy) across terms + concepts                                      |
 | `apps/azure/src/services/aiService.ts`                               | AI Foundry integration: fetchNarration, fetchChartInsight, fetchCoScoutResponse/Streaming, localStorage cache                 |
 | `apps/azure/src/services/searchService.ts`                           | AI Search client: searchRelatedFindings(), isKnowledgeBaseAvailable()                                                         |
+| `apps/azure/src/lib/runtimeConfig.ts`                                | Runtime config loader (fetches /config for Marketplace deployments)                                                           |
+| `apps/azure/src/services/indexService.ts`                            | Client-side trigger for indexing findings to Azure AI Search                                                                  |
+| `infra/functions/index-findings/index.js`                            | Azure Function: indexes findings to AI Search with tenant isolation                                                           |
+| `infra/search-index-schema.json`                                     | Azure AI Search index definition for findings                                                                                 |
 | `packages/hooks/src/useNarration.ts`                                 | NarrativeBar state (loading, cached, error, refresh). Wraps fetchNarration                                                    |
 | `packages/hooks/src/useChartInsights.ts`                             | Per-chart deterministic + AI-enhanced insight orchestration with debounced AI fallback                                        |
-| `packages/hooks/src/useAICoScout.ts`                                 | CoScout conversation state, streaming, abort control                                                                          |
+| `packages/hooks/src/useAICoScout.ts`                                 | CoScout conversation state, streaming, abort control, onBeforeSend hook                                                       |
+| `packages/hooks/src/useKnowledgeSearch.ts`                           | Knowledge Base search wrapper (state, searchFn injection, enabled flag)                                                       |
 
 > Use `Read` tool to examine these files when needed.

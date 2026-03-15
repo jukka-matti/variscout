@@ -1,10 +1,16 @@
 /**
  * AI Service for Azure AI Foundry integration.
  * Handles narration requests with caching, retry, and auth.
+ *
+ * Provider auto-detection: The model provider (OpenAI or Anthropic/Claude) is
+ * inferred from the AI endpoint URL at runtime — no extra configuration needed.
+ *   - *.openai.azure.com  → OpenAI Chat Completions API
+ *   - *.services.ai.azure.com or paths containing /anthropic → Anthropic Messages API
  */
 
 import type { AIContext, AIErrorType } from '@variscout/core';
 import { buildNarrationSystemPrompt, buildSummaryPrompt, isTeamAIPlan } from '@variscout/core';
+import { getRuntimeConfig } from '../lib/runtimeConfig';
 
 const CACHE_KEY_PREFIX = 'variscout-ai-cache-';
 const CHIP_CACHE_KEY_PREFIX = 'variscout-ai-chip-';
@@ -14,6 +20,107 @@ interface CacheEntry {
   text: string;
   timestamp: number;
 }
+
+// ---------------------------------------------------------------------------
+// Provider detection and request/response formatting
+// ---------------------------------------------------------------------------
+
+type ModelProvider = 'openai' | 'anthropic';
+
+/**
+ * Auto-detect model provider from endpoint URL.
+ */
+function detectProvider(endpoint: string): ModelProvider {
+  if (endpoint.includes('.openai.azure.com')) return 'openai';
+  if (endpoint.includes('/anthropic') || endpoint.includes('.services.ai.azure.com'))
+    return 'anthropic';
+  return 'openai'; // default fallback
+}
+
+/**
+ * Format request body for the detected provider.
+ * Returns the resolved fetch URL and serialised request body.
+ */
+function formatRequest(
+  provider: ModelProvider,
+  messages: Array<{ role: string; content: string }>,
+  options: { max_tokens: number; temperature: number; stream?: boolean }
+): { url: string; body: string } {
+  const endpoint = getAIEndpoint()!;
+
+  if (provider === 'anthropic') {
+    // Anthropic Messages API: system prompt goes in a separate top-level field
+    const systemMessages = messages.filter(m => m.role === 'system');
+    const nonSystemMessages = messages.filter(m => m.role !== 'system');
+    const systemText = systemMessages.map(m => m.content).join('\n\n');
+
+    return {
+      url: `${endpoint}/anthropic/v1/messages`,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        ...(systemText ? { system: systemText } : {}),
+        messages: nonSystemMessages.map(m => ({ role: m.role, content: m.content })),
+        max_tokens: options.max_tokens,
+        temperature: options.temperature,
+        stream: options.stream || false,
+      }),
+    };
+  }
+
+  // OpenAI Chat Completions API (default) — endpoint already includes the deployment path
+  return {
+    url: endpoint,
+    body: JSON.stringify({
+      messages,
+      max_tokens: options.max_tokens,
+      temperature: options.temperature,
+      stream: options.stream || false,
+    }),
+  };
+}
+
+/**
+ * Parse a non-streaming response from the provider.
+ */
+function parseResponseText(provider: ModelProvider, data: Record<string, unknown>): string | null {
+  if (provider === 'anthropic') {
+    // Anthropic: { content: [{ type: "text", text: "..." }] }
+    const content = data?.content as Array<{ type: string; text: string }> | undefined;
+    return content?.[0]?.text?.trim() || null;
+  }
+  // OpenAI: { choices: [{ message: { content: "..." } }] }
+  const choices = data?.choices as Array<{ message: { content: string } }> | undefined;
+  return choices?.[0]?.message?.content?.trim() || null;
+}
+
+/**
+ * Parse a streaming SSE data chunk for the detected provider.
+ * Returns the text delta, or null if this chunk carries no content.
+ */
+function parseStreamDelta(provider: ModelProvider, data: string): string | null {
+  if (provider === 'anthropic') {
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed.type === 'content_block_delta') {
+        return (parsed.delta?.text as string) || null;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+  // OpenAI
+  try {
+    const parsed = JSON.parse(data);
+    return (parsed?.choices?.[0]?.delta?.content as string) || null;
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cache helpers
+// ---------------------------------------------------------------------------
 
 /**
  * DJB2 hash for cache keys.
@@ -31,7 +138,7 @@ function hashString(str: string): string {
  * Returns null if not configured (AI features hidden).
  */
 export function getAIEndpoint(): string | null {
-  return import.meta.env.VITE_AI_ENDPOINT || null;
+  return getRuntimeConfig()?.aiEndpoint || import.meta.env.VITE_AI_ENDPOINT || null;
 }
 
 /**
@@ -108,6 +215,10 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   return headers;
 }
 
+// ---------------------------------------------------------------------------
+// Public API (unchanged surface)
+// ---------------------------------------------------------------------------
+
 /**
  * Fetch a narration from Azure AI Foundry.
  * Used as the `fetchNarration` callback for useNarration hook.
@@ -127,7 +238,12 @@ export async function fetchNarration(context: AIContext): Promise<string> {
   const cached = getCached(CACHE_KEY_PREFIX, cacheKeyStr);
   if (cached) return cached;
 
+  const provider = detectProvider(endpoint);
   const headers = await getAuthHeaders();
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ];
 
   // Retry with exponential backoff (max 3 attempts)
   let lastError: Error | null = null;
@@ -137,18 +253,11 @@ export async function fetchNarration(context: AIContext): Promise<string> {
     }
 
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          max_tokens: 200,
-          temperature: 0.3,
-        }),
+      const { url, body } = formatRequest(provider, messages, {
+        max_tokens: 200,
+        temperature: 0.3,
       });
+      const response = await fetch(url, { method: 'POST', headers, body });
 
       if (!response.ok) {
         const errorType = classifyError(response.status);
@@ -157,7 +266,7 @@ export async function fetchNarration(context: AIContext): Promise<string> {
       }
 
       const data = await response.json();
-      const text = data?.choices?.[0]?.message?.content?.trim();
+      const text = parseResponseText(provider, data);
       if (!text) throw new Error('Empty response from AI');
 
       // Cache successful response
@@ -188,6 +297,7 @@ export async function fetchChartInsight(userPrompt: string): Promise<string> {
   const cached = getCached(CHIP_CACHE_KEY_PREFIX, cacheKeyStr);
   if (cached) return cached;
 
+  const provider = detectProvider(endpoint);
   const headers = await getAuthHeaders();
 
   // Single attempt — no retry (fall back to deterministic instead)
@@ -196,25 +306,20 @@ Enhance the provided deterministic insight with process context.
 Respond in exactly one sentence, under 120 characters.
 Be specific and actionable. Never invent data.`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      max_tokens: 80,
-      temperature: 0.2,
-    }),
-  });
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ];
+
+  const { url, body } = formatRequest(provider, messages, { max_tokens: 80, temperature: 0.2 });
+  const response = await fetch(url, { method: 'POST', headers, body });
 
   if (!response.ok) {
     throw new Error(`AI chip request failed: ${response.status}`);
   }
 
   const data = await response.json();
-  const text = data?.choices?.[0]?.message?.content?.trim();
+  const text = parseResponseText(provider, data);
   if (!text) throw new Error('Empty response from AI');
 
   // Cache successful response
@@ -233,6 +338,7 @@ export async function fetchCoScoutResponse(
   const endpoint = getAIEndpoint();
   if (!endpoint) throw new Error('AI endpoint not configured');
 
+  const provider = detectProvider(endpoint);
   const headers = await getAuthHeaders();
 
   // Single retry on 429
@@ -243,15 +349,11 @@ export async function fetchCoScoutResponse(
     }
 
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          messages,
-          max_tokens: 800,
-          temperature: 0.4,
-        }),
+      const { url, body } = formatRequest(provider, messages, {
+        max_tokens: 800,
+        temperature: 0.4,
       });
+      const response = await fetch(url, { method: 'POST', headers, body });
 
       if (!response.ok) {
         const errorType = classifyError(response.status);
@@ -260,7 +362,7 @@ export async function fetchCoScoutResponse(
       }
 
       const data = await response.json();
-      const text = data?.choices?.[0]?.message?.content?.trim();
+      const text = parseResponseText(provider, data);
       if (!text) throw new Error('Empty response from AI');
 
       return text;
@@ -285,6 +387,7 @@ export async function fetchCoScoutStreamingResponse(
   const endpoint = getAIEndpoint();
   if (!endpoint) throw new Error('AI endpoint not configured');
 
+  const provider = detectProvider(endpoint);
   const headers = await getAuthHeaders();
 
   // Single retry on 429
@@ -296,17 +399,13 @@ export async function fetchCoScoutStreamingResponse(
     if (signal.aborted) return;
 
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers,
-        signal,
-        body: JSON.stringify({
-          messages,
-          max_tokens: 800,
-          temperature: 0.4,
-          stream: true,
-        }),
+      const { url, body } = formatRequest(provider, messages, {
+        max_tokens: 800,
+        temperature: 0.4,
+        stream: true,
       });
+
+      const response = await fetch(url, { method: 'POST', headers, signal, body });
 
       if (!response.ok) {
         const errorType = classifyError(response.status);
@@ -337,14 +436,9 @@ export async function fetchCoScoutStreamingResponse(
           const data = trimmed.slice(6);
           if (data === '[DONE]') return;
 
-          try {
-            const parsed = JSON.parse(data);
-            const delta = parsed?.choices?.[0]?.delta?.content;
-            if (delta) {
-              onChunk(delta);
-            }
-          } catch {
-            // Skip unparseable SSE lines
+          const delta = parseStreamDelta(provider, data);
+          if (delta) {
+            onChunk(delta);
           }
         }
       }
@@ -358,4 +452,35 @@ export async function fetchCoScoutStreamingResponse(
   }
 
   throw lastError || new Error('AI streaming request failed');
+}
+
+/**
+ * Fetch an AI-generated findings report.
+ * Uses the same AI Foundry endpoint with a higher token limit.
+ */
+export async function fetchFindingsReport(
+  messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>
+): Promise<string> {
+  const endpoint = getAIEndpoint();
+  if (!endpoint) throw new Error('AI endpoint not configured');
+
+  const provider = detectProvider(endpoint);
+  const headers = await getAuthHeaders();
+  const { url, body } = formatRequest(provider, messages, {
+    max_tokens: 2000,
+    temperature: 0.3,
+  });
+
+  const response = await fetch(url, { method: 'POST', headers, body });
+
+  if (!response.ok) {
+    const errorType = classifyError(response.status);
+    throw new Error(`AI report request failed (${errorType}): ${response.status}`);
+  }
+
+  const data = await response.json();
+  const text = parseResponseText(provider, data);
+  if (!text) throw new Error('Empty response from AI');
+
+  return text;
 }

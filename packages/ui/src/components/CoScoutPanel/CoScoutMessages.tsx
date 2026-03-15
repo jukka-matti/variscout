@@ -17,6 +17,7 @@ export interface CoScoutMessagesProps {
   isLoading: boolean;
   isStreaming?: boolean;
   onRetry?: () => void;
+  knowledgeResultCount?: number;
 }
 
 const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
@@ -24,6 +25,7 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   isLoading,
   isStreaming,
   onRetry,
+  knowledgeResultCount,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -73,6 +75,16 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
           )}
         </div>
       ))}
+
+      {/* Knowledge Base search indicator */}
+      {knowledgeResultCount != null && knowledgeResultCount > 0 && isLoading && (
+        <div className="flex justify-start" data-testid="coscout-knowledge-indicator">
+          <div className="text-[10px] text-violet-400 flex items-center gap-1 px-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
+            Searching {knowledgeResultCount} related findings...
+          </div>
+        </div>
+      )}
 
       {/* Loading indicator — show when loading and not yet streaming content */}
       {showLoadingDots && (

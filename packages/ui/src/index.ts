@@ -205,6 +205,7 @@ export {
   FindingStatusBadge,
   FindingComments,
   FindingBoardView,
+  FindingsExportMenu,
   HypothesisTreeView,
   HypothesisNode,
   copyFindingsToClipboard,
@@ -215,6 +216,7 @@ export {
   type FindingStatusBadgeProps,
   type FindingCommentsProps,
   type FindingBoardViewProps,
+  type FindingsExportMenuProps,
   type HypothesisTreeViewProps,
   type HypothesisNodeProps,
 } from './components/FindingsLog';

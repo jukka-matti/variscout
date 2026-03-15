@@ -96,7 +96,15 @@ export type { PreviewFeature } from './preview';
 export { isPreviewEnabled, setPreviewEnabled } from './preview';
 
 // Export utilities
-export { getSpecStatus, generateCSV, downloadCSV } from './export';
+export {
+  getSpecStatus,
+  generateCSV,
+  downloadCSV,
+  generateFindingsCSV,
+  generateFindingsJSON,
+  downloadFindingsCSV,
+  downloadFindingsJSON,
+} from './export';
 export type { ExportOptions } from './export';
 
 // Parser types
@@ -280,6 +288,9 @@ export {
   buildSummaryPrompt,
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,
+  formatKnowledgeContext,
+  buildReportSystemPrompt,
+  buildReportPrompt,
 } from './ai';
 
 // AI (Phase 2 — Chart Insights)

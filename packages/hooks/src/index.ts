@@ -211,3 +211,12 @@ export {
 
 // AI CoScout
 export { useAICoScout, type UseAICoScoutOptions, type UseAICoScoutReturn } from './useAICoScout';
+
+// Knowledge Search
+export {
+  useKnowledgeSearch,
+  type KnowledgeResult,
+  type DocumentResult,
+  type UseKnowledgeSearchOptions,
+  type UseKnowledgeSearchReturn,
+} from './useKnowledgeSearch';

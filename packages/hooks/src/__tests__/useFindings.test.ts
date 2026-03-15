@@ -901,13 +901,18 @@ describe('useFindings', () => {
       );
 
       act(() => {
-        result.current.addAction('f-1', 'Replace gasket', 'Bob', '2026-04-01');
+        result.current.addAction(
+          'f-1',
+          'Replace gasket',
+          { upn: 'bob@co.com', displayName: 'Bob' },
+          '2026-04-01'
+        );
       });
 
       const actions = result.current.findings[0].actions;
       expect(actions).toHaveLength(1);
       expect(actions![0].text).toBe('Replace gasket');
-      expect(actions![0].assignee).toBe('Bob');
+      expect(actions![0].assignee).toEqual({ upn: 'bob@co.com', displayName: 'Bob' });
       expect(actions![0].dueDate).toBe('2026-04-01');
       expect(actions![0].id).toBeTruthy();
       expect(onChange).toHaveBeenCalled();
@@ -969,18 +974,28 @@ describe('useFindings', () => {
           id: 'f-1',
           text: 'Test',
           context: makeContext(),
-          actions: [{ id: 'a-1', text: 'Old text', assignee: 'Alice', createdAt: 1000 }],
+          actions: [
+            {
+              id: 'a-1',
+              text: 'Old text',
+              assignee: { upn: 'alice@co.com', displayName: 'Alice' },
+              createdAt: 1000,
+            },
+          ],
         }),
       ];
       const { result } = renderHook(() => useFindings({ initialFindings: initial }));
 
       act(() => {
-        result.current.updateAction('f-1', 'a-1', { text: 'New text', assignee: 'Bob' });
+        result.current.updateAction('f-1', 'a-1', {
+          text: 'New text',
+          assignee: { upn: 'bob@co.com', displayName: 'Bob' },
+        });
       });
 
       const action = result.current.findings[0].actions![0];
       expect(action.text).toBe('New text');
-      expect(action.assignee).toBe('Bob');
+      expect(action.assignee).toEqual({ upn: 'bob@co.com', displayName: 'Bob' });
     });
   });
 
@@ -1123,6 +1138,72 @@ describe('useFindings', () => {
       });
 
       expect(result.current.findings[0].status).toBe('analyzed');
+    });
+  });
+
+  // --- onStatusChange callback ---
+
+  describe('onStatusChange callback', () => {
+    it('fires when setFindingStatus is called', () => {
+      const initial = [makeFinding({ id: 'f-1', text: 'Test', context: makeContext() })];
+      const onStatusChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onStatusChange })
+      );
+
+      act(() => {
+        result.current.setFindingStatus('f-1', 'analyzed');
+      });
+
+      expect(onStatusChange).toHaveBeenCalledTimes(1);
+      expect(onStatusChange).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'f-1', status: 'analyzed' }),
+        'analyzed'
+      );
+    });
+
+    it('fires when setOutcome auto-transitions to resolved', () => {
+      const initial = [
+        makeFinding({
+          id: 'f-1',
+          text: 'Test',
+          status: 'improving',
+          context: makeContext(),
+          actions: [{ id: 'a-1', text: 'Done', createdAt: 1000, completedAt: 2000 }],
+        }),
+      ];
+      const onStatusChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onStatusChange })
+      );
+
+      act(() => {
+        result.current.setOutcome('f-1', { effective: 'yes', verifiedAt: Date.now() });
+      });
+
+      expect(onStatusChange).toHaveBeenCalledTimes(1);
+      expect(onStatusChange).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'f-1', status: 'resolved' }),
+        'resolved'
+      );
+    });
+
+    it('does NOT fire for addAction auto-transition to improving', () => {
+      const initial = [
+        makeFinding({ id: 'f-1', text: 'Test', status: 'analyzed', context: makeContext() }),
+      ];
+      const onStatusChange = vi.fn();
+      const { result } = renderHook(() =>
+        useFindings({ initialFindings: initial, onStatusChange })
+      );
+
+      act(() => {
+        result.current.addAction('f-1', 'Fix it');
+      });
+
+      // Status changed to improving but onStatusChange should NOT fire
+      expect(result.current.findings[0].status).toBe('improving');
+      expect(onStatusChange).not.toHaveBeenCalled();
     });
   });
 });

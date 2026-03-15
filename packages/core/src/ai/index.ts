@@ -28,6 +28,9 @@ export {
   buildChartInsightPrompt,
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,
+  formatKnowledgeContext,
+  buildReportSystemPrompt,
+  buildReportPrompt,
 } from './promptTemplates';
 
 export type { InsightChartType, ChipType, DeterministicInsight } from './chartInsights';

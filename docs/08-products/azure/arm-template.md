@@ -14,7 +14,7 @@ The ARM template deploys VariScout to a customer's Azure subscription as a Manag
 
 The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users and access OneDrive via Graph API (Team plan).
 
-**No backend resources** - the app runs entirely in the browser. The App Service serves the static build as a zip package.
+**Minimal backend resources** — Standard and Team plans run entirely in the browser. The Team AI plan adds Azure AI Services (model hosting) and Azure AI Search (findings index) for the Knowledge Base feature. An Azure Function handles OBO token exchange (Team/Team AI) and findings indexing (Team AI).
 
 ### Managed Application Package
 
@@ -188,6 +188,28 @@ Key configuration:
 - **Token store enabled**: tokens available at `/.auth/me` for Graph API calls
 - **Login parameters**: conditional by plan — Standard requests `User.Read` only; Team requests `User.Read` + `Files.ReadWrite` for OneDrive access
 - **Redirect to login**: unauthenticated users are automatically redirected to Azure AD sign-in
+
+### 4. AI Services (Team AI only)
+
+| Resource          | SKU   | Purpose                         | Monthly Cost |
+| ----------------- | ----- | ------------------------------- | ------------ |
+| Azure AI Services | S0    | Model hosting (gpt-4o-mini)     | ~€15-25      |
+| Azure AI Search   | Basic | Findings index + Knowledge Base | ~€50-60      |
+
+These resources are provisioned only when `variscoutPlan` is set to `team-ai`. Standard and Team plans do not include AI resources.
+
+### 5. Runtime Configuration
+
+The Node.js server (`server.js`) serves a `/config` endpoint that returns runtime settings from environment variables. This allows Marketplace deployments to configure AI endpoints without rebuilding.
+
+| Variable             | Description                             | Plan           |
+| -------------------- | --------------------------------------- | -------------- |
+| `AI_ENDPOINT`        | Azure AI Foundry endpoint               | Team AI        |
+| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint                | Team AI        |
+| `AI_SEARCH_INDEX`    | Search index name (default: `findings`) | Team AI        |
+| `FUNCTION_URL`       | Function App URL for OBO + indexer      | Team / Team AI |
+
+The client fetches `/config` on startup via `runtimeConfig.ts` and uses the returned values to configure AI service clients. Environment variables without the `VITE_` prefix are invisible to the Vite build — the `/config` endpoint is the only way they reach the client.
 
 ---
 
@@ -367,15 +389,16 @@ The template requests only necessary permissions:
 
 ## Template Versioning
 
-| Version | Date       | Changes                                                                                        |
-| ------- | ---------- | ---------------------------------------------------------------------------------------------- |
-| 1.0.0   | 2026-02-01 | Initial release (Solution Template)                                                            |
-| 2.0.0   | 2026-02-13 | Managed Application format, single plan                                                        |
-| 3.0.0   | 2026-02-16 | App Service + EasyAuth (replaces Static Web App + MSAL)                                        |
-| 4.0.0   | 2026-02-16 | Customer-provided App Registration (removes deployment script)                                 |
-| 5.0.0   | 2026-02-25 | API version → 2024-04-01, /health excluded from EasyAuth                                       |
-| 5.1.0   | 2026-02-26 | Fix OpenID issuer (sts.windows.net → login.microsoftonline.com), document ID token requirement |
-| 6.0.0   | 2026-03-14 | Plan selector (Standard/Team), resource tags, conditional Function App + Storage for Team plan |
+| Version | Date       | Changes                                                                                         |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-02-01 | Initial release (Solution Template)                                                             |
+| 2.0.0   | 2026-02-13 | Managed Application format, single plan                                                         |
+| 3.0.0   | 2026-02-16 | App Service + EasyAuth (replaces Static Web App + MSAL)                                         |
+| 4.0.0   | 2026-02-16 | Customer-provided App Registration (removes deployment script)                                  |
+| 5.0.0   | 2026-02-25 | API version → 2024-04-01, /health excluded from EasyAuth                                        |
+| 5.1.0   | 2026-02-26 | Fix OpenID issuer (sts.windows.net → login.microsoftonline.com), document ID token requirement  |
+| 6.0.0   | 2026-03-14 | Plan selector (Standard/Team), resource tags, conditional Function App + Storage for Team plan  |
+| 7.0.0   | 2026-03-16 | AI resources (Azure AI Services, AI Search), runtime config endpoint, findings indexer Function |
 
 ---
 

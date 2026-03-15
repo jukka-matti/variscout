@@ -12,6 +12,7 @@ import {
   buildFindingContext,
   buildFindingSource,
 } from '@variscout/hooks';
+import { useStatusUpdateCards } from './useStatusUpdateCards';
 import type { UseFilterNavigationReturn } from './useFilterNavigation';
 import type { FindingsCallbacks } from '../types/findingsCallbacks';
 import type {
@@ -71,6 +72,10 @@ export interface UseFindingsOrchestrationOptions {
   factorRoles?: Record<string, string>;
   /** Whether AI features are available */
   aiAvailable?: boolean;
+  /** Notification callback for status update card feedback */
+  addNotification?: (message: string, type: 'success' | 'error') => void;
+  /** Current project name for deep link construction */
+  projectName?: string;
 }
 
 export interface UseFindingsOrchestrationReturn {
@@ -127,11 +132,21 @@ export function useFindingsOrchestration({
   projectedValue,
   factorRoles,
   aiAvailable,
+  addNotification,
+  projectName,
 }: UseFindingsOrchestrationOptions): UseFindingsOrchestrationReturn {
+  // Status update cards (Teams channel integration)
+  const { onStatusChanged } = useStatusUpdateCards({
+    hypotheses,
+    addNotification,
+    projectName,
+  });
+
   // Core findings state
   const findingsState = useFindings({
     initialFindings: persistedFindings,
     onFindingsChange: setPersistedFindings,
+    onStatusChange: onStatusChanged,
   });
 
   // Drill path for context building

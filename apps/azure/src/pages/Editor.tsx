@@ -25,6 +25,7 @@ import {
   useNarration,
   useAICoScout,
   useHypotheses,
+  useKnowledgeSearch,
 } from '@variscout/hooks';
 import {
   hasTeamFeatures,
@@ -41,6 +42,11 @@ import {
   fetchCoScoutStreamingResponse,
   isAIAvailable,
 } from '../services/aiService';
+import {
+  searchRelatedFindings,
+  searchDocuments,
+  isKnowledgeBaseAvailable,
+} from '../services/searchService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
@@ -551,6 +557,13 @@ export const Editor: React.FC<EditorProps> = ({
     fetchNarration: aiEnabled && isAIAvailable() ? fetchNarrationFromAI : undefined,
   });
 
+  // Knowledge Base search (Team AI preview) — dual-path: findings + documents
+  const knowledgeSearch = useKnowledgeSearch({
+    searchFn: searchRelatedFindings,
+    searchDocumentsFn: searchDocuments,
+    enabled: isKnowledgeBaseAvailable(),
+  });
+
   // AI CoScout conversation
   const coscout = useAICoScout({
     context: aiContext.context,
@@ -558,6 +571,31 @@ export const Editor: React.FC<EditorProps> = ({
     fetchStreamingResponse:
       aiEnabled && isAIAvailable() ? fetchCoScoutStreamingResponse : undefined,
     initialNarrative: narration.narrative,
+    onBeforeSend: isKnowledgeBaseAvailable()
+      ? async (text, ctx) => {
+          const results = await knowledgeSearch.search(text);
+          ctx.knowledgeResults = results.map(r => ({
+            projectName: r.projectName,
+            factor: r.factor,
+            status: r.status,
+            etaSquared: r.etaSquared,
+            cpkBefore: r.cpkBefore,
+            cpkAfter: r.cpkAfter,
+            suspectedCause: r.suspectedCause,
+            actionsText: r.actionsText,
+            outcomeEffective: r.outcomeEffective,
+          }));
+          // Map document results for agentic retrieval context
+          if (knowledgeSearch.documents.length > 0) {
+            ctx.knowledgeDocuments = knowledgeSearch.documents.map(d => ({
+              title: d.title,
+              snippet: d.snippet,
+              source: d.source,
+              url: d.url,
+            }));
+          }
+        }
+      : undefined,
   });
 
   const suggestedQuestions = useMemo(

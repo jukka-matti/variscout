@@ -5,6 +5,15 @@
 
 import { isTeamAIPlan, isPreviewEnabled } from '@variscout/core';
 import { getAccessToken } from '../auth/easyAuth';
+import { getRuntimeConfig } from '../lib/runtimeConfig';
+
+export interface DocumentResult {
+  title: string;
+  snippet: string;
+  source: string;
+  url?: string;
+  relevanceScore: number;
+}
 
 export interface SearchResult {
   findingId: string;
@@ -21,11 +30,11 @@ export interface SearchResult {
 }
 
 function getSearchEndpoint(): string | null {
-  return import.meta.env.VITE_AI_SEARCH_ENDPOINT || null;
+  return getRuntimeConfig()?.aiSearchEndpoint || import.meta.env.VITE_AI_SEARCH_ENDPOINT || null;
 }
 
 function getSearchIndex(): string {
-  return import.meta.env.VITE_AI_SEARCH_INDEX || 'findings';
+  return getRuntimeConfig()?.aiSearchIndex || import.meta.env.VITE_AI_SEARCH_INDEX || 'findings';
 }
 
 /**
@@ -92,4 +101,89 @@ export async function searchRelatedFindings(
     outcomeEffective: doc.outcome_effective ?? null,
     score: doc['@search.score'] ?? 0,
   }));
+}
+
+/**
+ * Search documents via Foundry IQ agentic retrieval (Knowledge Base).
+ * Uses the 2025-11-01-preview API with ExtractedData output mode.
+ * Returns empty array on error (soft failure).
+ */
+export async function searchDocuments(
+  query: string,
+  options?: { top?: number }
+): Promise<DocumentResult[]> {
+  if (!isTeamAIPlan() || !isPreviewEnabled('knowledge-base')) return [];
+
+  const endpoint = getSearchEndpoint();
+  if (!endpoint) return [];
+
+  const token = await getAccessToken();
+
+  const body = {
+    messages: [{ role: 'user', content: [{ type: 'text', text: query }] }],
+    outputMode: 'ExtractedData',
+    retrievalReasoningEffort: { kind: 'low' },
+    ...(options?.top ? { top: options.top } : {}),
+  };
+
+  try {
+    const res = await fetch(
+      `${endpoint}/knowledgebases/variscout-kb/retrieve?api-version=2025-11-01-preview`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!res.ok) {
+      if (res.status !== 404) {
+        console.warn('[SearchService] Document search failed:', res.status);
+      }
+      return [];
+    }
+
+    const data = await res.json();
+
+    // Parse ExtractedData response: response[].content[].text contains JSON chunks
+    const results: DocumentResult[] = [];
+    const responseItems = data.response ?? [];
+    for (const item of responseItems) {
+      const contentBlocks = item.content ?? [];
+      for (const block of contentBlocks) {
+        if (block.type === 'text' && block.text) {
+          try {
+            const chunks = JSON.parse(block.text);
+            if (Array.isArray(chunks)) {
+              for (const chunk of chunks) {
+                results.push({
+                  title: chunk.title ?? 'Untitled',
+                  snippet: chunk.content ?? '',
+                  source: chunk.source ?? 'Knowledge Base',
+                  url: chunk.url,
+                  relevanceScore: chunk.relevance_score ?? 0,
+                });
+              }
+            }
+          } catch {
+            // Raw text (not JSON array) — treat as single document
+            results.push({
+              title: 'Knowledge Base result',
+              snippet: block.text,
+              source: 'Knowledge Base',
+              relevanceScore: 0,
+            });
+          }
+        }
+      }
+    }
+
+    return results;
+  } catch (err) {
+    console.warn('[SearchService] Document search error:', err);
+    return [];
+  }
 }

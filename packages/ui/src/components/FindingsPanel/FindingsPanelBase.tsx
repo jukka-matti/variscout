@@ -61,7 +61,15 @@ export interface FindingsPanelBaseProps {
   onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
   onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
   hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
-  onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  onAddAction?: (
+    id: string,
+    text: string,
+    assignee?: import('@variscout/core').FindingAssignee,
+    dueDate?: string
+  ) => void;
+  renderActionAssigneePicker?: (
+    onSelect: (a: import('@variscout/core').FindingAssignee) => void
+  ) => React.ReactNode;
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
   onSetOutcome?: (
@@ -167,6 +175,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onCompleteAction,
   onDeleteAction,
   onSetOutcome,
+  renderActionAssigneePicker,
   viewMode: externalViewMode,
   onViewModeChange,
   hypotheses,
@@ -375,6 +384,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
           onSetOutcome={onSetOutcome}
+          renderActionAssigneePicker={renderActionAssigneePicker}
           ideaImpacts={ideaImpacts}
           onAddIdea={onAddIdea}
           onUpdateIdea={onUpdateIdea}

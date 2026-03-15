@@ -56,7 +56,10 @@
     "functionStorageName": "[concat('vsf', uniqueString(resourceGroup().id))]",
     "functionPlanName": "[concat(parameters('appName'), '-func-plan')]",
     "hasTeamFeatures": "[or(equals(parameters('variscoutPlan'), 'team'), equals(parameters('variscoutPlan'), 'team-ai'))]",
-    "isTeamAI": "[equals(parameters('variscoutPlan'), 'team-ai')]"
+    "isTeamAI": "[equals(parameters('variscoutPlan'), 'team-ai')]",
+    "aiServicesName": "[concat(parameters('appName'), '-ai')]",
+    "searchServiceName": "[concat(parameters('appName'), '-search')]",
+    "aiSearchIndex": "findings"
   },
   "resources": [
     {
@@ -88,7 +91,11 @@
         "plan": "[parameters('variscoutPlan')]",
         "managedBy": "AzureMarketplace"
       },
-      "dependsOn": ["[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"],
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName'))]",
+        "[resourceId('Microsoft.Search/searchServices', variables('searchServiceName'))]"
+      ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
         "httpsOnly": true,
@@ -114,6 +121,22 @@
             {
               "name": "VITE_FUNCTION_URL",
               "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
+            },
+            {
+              "name": "AI_ENDPOINT",
+              "value": "[if(variables('isTeamAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
+            },
+            {
+              "name": "AI_SEARCH_ENDPOINT",
+              "value": "[if(variables('isTeamAI'), concat('https://', variables('searchServiceName'), '.search.windows.net'), '')]"
+            },
+            {
+              "name": "AI_SEARCH_INDEX",
+              "value": "[variables('aiSearchIndex')]"
+            },
+            {
+              "name": "FUNCTION_URL",
+              "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
             }
           ],
           "minTlsVersion": "1.2",
@@ -134,7 +157,7 @@
           "requireAuthentication": true,
           "unauthenticatedClientAction": "RedirectToLoginPage",
           "redirectToProvider": "azureactivedirectory",
-          "excludedPaths": ["/health"]
+          "excludedPaths": ["/health", "/config"]
         },
         "identityProviders": {
           "azureActiveDirectory": {
@@ -210,7 +233,9 @@
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('functionPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('functionStorageName'))]",
-        "[resourceId('Microsoft.Web/sites', variables('webAppName'))]"
+        "[resourceId('Microsoft.Web/sites', variables('webAppName'))]",
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName'))]",
+        "[resourceId('Microsoft.Search/searchServices', variables('searchServiceName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionPlanName'))]",
@@ -244,6 +269,26 @@
             {
               "name": "TENANT_ID",
               "value": "[subscription().tenantId]"
+            },
+            {
+              "name": "AI_ENDPOINT",
+              "value": "[if(variables('isTeamAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
+            },
+            {
+              "name": "AI_SERVICES_API_KEY",
+              "value": "[if(variables('isTeamAI'), listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').key1, '')]"
+            },
+            {
+              "name": "SEARCH_ENDPOINT",
+              "value": "[if(variables('isTeamAI'), concat('https://', variables('searchServiceName'), '.search.windows.net'), '')]"
+            },
+            {
+              "name": "SEARCH_API_KEY",
+              "value": "[if(variables('isTeamAI'), listAdminKeys(resourceId('Microsoft.Search/searchServices', variables('searchServiceName')), '2025-05-01').primaryKey, '')]"
+            },
+            {
+              "name": "SEARCH_INDEX",
+              "value": "[variables('aiSearchIndex')]"
             }
           ],
           "cors": {
@@ -253,6 +298,89 @@
           },
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled"
+        }
+      }
+    },
+    {
+      "condition": "[variables('isTeamAI')]",
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2025-09-01",
+      "name": "[variables('aiServicesName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "product": "VariScout",
+        "plan": "[parameters('variscoutPlan')]"
+      },
+      "identity": { "type": "SystemAssigned" },
+      "kind": "OpenAI",
+      "sku": { "name": "S0" },
+      "properties": {
+        "customSubDomainName": "[variables('aiServicesName')]",
+        "publicNetworkAccess": "Enabled",
+        "networkAcls": { "defaultAction": "Allow" }
+      }
+    },
+    {
+      "condition": "[variables('isTeamAI')]",
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2025-09-01",
+      "name": "[concat(variables('aiServicesName'), '/fast')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName'))]"
+      ],
+      "sku": { "name": "Standard", "capacity": 30 },
+      "properties": {
+        "model": {
+          "format": "OpenAI",
+          "name": "gpt-4o-mini",
+          "version": "2024-07-18"
+        },
+        "versionUpgradeOption": "OnceCurrentVersionExpired"
+      }
+    },
+    {
+      "condition": "[variables('isTeamAI')]",
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2025-09-01",
+      "name": "[concat(variables('aiServicesName'), '/reasoning')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.CognitiveServices/accounts/deployments', variables('aiServicesName'), 'fast')]"
+      ],
+      "sku": { "name": "Standard", "capacity": 60 },
+      "properties": {
+        "model": {
+          "format": "OpenAI",
+          "name": "gpt-4o",
+          "version": "2024-08-06"
+        },
+        "versionUpgradeOption": "OnceCurrentVersionExpired"
+      }
+    },
+    {
+      "condition": "[variables('isTeamAI')]",
+      "type": "Microsoft.Search/searchServices",
+      "apiVersion": "2025-05-01",
+      "name": "[variables('searchServiceName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "product": "VariScout",
+        "plan": "[parameters('variscoutPlan')]"
+      },
+      "identity": { "type": "SystemAssigned" },
+      "sku": { "name": "basic" },
+      "properties": {
+        "replicaCount": 1,
+        "partitionCount": 1,
+        "hostingMode": "default",
+        "semanticSearch": "standard",
+        "publicNetworkAccess": "Enabled",
+        "authOptions": {
+          "aadOrApiKey": {
+            "aadAuthFailureMode": "http401WithBearerChallenge"
+          }
+        },
+        "networkRuleSet": {
+          "bypass": "AzureServices"
         }
       }
     }
@@ -266,6 +394,16 @@
       "condition": "[variables('hasTeamFeatures')]",
       "type": "string",
       "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
+    },
+    "aiEndpoint": {
+      "condition": "[variables('isTeamAI')]",
+      "type": "string",
+      "value": "[if(variables('isTeamAI'), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName')), '2025-09-01').endpoint, '')]"
+    },
+    "searchEndpoint": {
+      "condition": "[variables('isTeamAI')]",
+      "type": "string",
+      "value": "[if(variables('isTeamAI'), concat('https://', variables('searchServiceName'), '.search.windows.net'), '')]"
     }
   }
 }

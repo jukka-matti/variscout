@@ -72,6 +72,35 @@ pnpm --filter @variscout/azure-app test
 
 > **Note**: MSAL-era variables (`VITE_AZURE_CLIENT_ID`, `VITE_AZURE_TENANT_ID`, `VITE_AZURE_REDIRECT_URI`, `VITE_MAX_USERS`, `VITE_MAX_CHANNELS`) are no longer used. Authentication is handled by EasyAuth (App Service Authentication), not MSAL.
 
+### AI Resources (Team AI only)
+
+| Variable             | Description                   | Required | Set By                                |
+| -------------------- | ----------------------------- | -------- | ------------------------------------- |
+| `AI_ENDPOINT`        | Azure AI Foundry endpoint URL | Team AI  | ARM template                          |
+| `AI_SEARCH_ENDPOINT` | Azure AI Search endpoint URL  | Team AI  | ARM template                          |
+| `AI_SEARCH_INDEX`    | Search index name             | Team AI  | ARM template (default: `findings`)    |
+| `AI_DEPLOYMENT`      | Model deployment name         | Team AI  | ARM template (default: `gpt-4o-mini`) |
+| `FUNCTION_URL`       | Function App URL              | Team/AI  | ARM template                          |
+
+> **Note**: These variables are NOT prefixed with `VITE_` because they are served at runtime via the `/config` endpoint (see `apps/azure/src/lib/runtimeConfig.ts`), not baked into the Vite build.
+
+#### Knowledge Base Setup
+
+The Knowledge Base requires a one-time setup to create the search index and configure knowledge sources:
+
+1. Run `infra/scripts/setup-knowledge-base.sh` to create the Azure AI Search index, connect knowledge sources, and initialize the Knowledge Base
+2. The script creates the findings index (schema defined in `infra/search-index-schema.json`) and optionally connects SharePoint document libraries as knowledge sources
+3. In the app, navigate to **Admin > Knowledge Base** (the `AdminKnowledgeSetup` component) to verify the setup and toggle the preview feature on/off
+
+#### Azure Functions
+
+| Function         | Purpose                                                | Plan           |
+| ---------------- | ------------------------------------------------------ | -------------- |
+| `token-exchange` | OBO token exchange for Teams SSO                       | Team + Team AI |
+| `index-findings` | Indexes findings to Azure AI Search for Knowledge Base | Team AI only   |
+
+Both functions are deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME` is configured as a GitHub Actions variable. The pipeline uses `azure/functions-action@v2` to deploy the `infra/functions/` directory.
+
 ### PWA Environment Variables
 
 | Variable           | Description             | Default      |

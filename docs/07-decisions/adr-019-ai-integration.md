@@ -182,7 +182,17 @@ Phase 1-3 client-side AI delivered across 5 commits (86f3ccb → 4e5382c, March 
 - **Phase 2.5:** Factor role auto-inference from column names, `ProcessContext` persistence
 - **Phase 3:** `CoScoutPanelBase` with streaming, suggested questions, conversation history, overflow menu
 
-**Phase 3 knowledge layer deferred:** Azure AI Search, Foundry IQ agentic retrieval, SharePoint connector, findings indexer Azure Function, and ARM template AI resources are documented but not yet implemented. Pending Foundry IQ GA and SharePoint connector stability.
+### Phase 3: Knowledge Layer (March 2026)
+
+Delivered: Azure AI Search for findings indexing, runtime config endpoint for Marketplace deployments, model-agnostic AI service (OpenAI + Claude), findings export (CSV/JSON/AI report), FindingsExportMenu component.
+
+Key design decisions:
+
+- HTTP trigger over webhook — simpler, no event subscription needed
+- API keys in Function App only — client routes through Function proxy
+- Batch-replace over incremental indexing — consistent state, simpler deletion of stale documents
+- Auto-detect model provider from endpoint URL — no user configuration needed
+- Preview-gated knowledge features — customers opt in via Settings
 
 **Teams AI SDK not applicable:** `@microsoft/teams-ai` is for bot-based apps. VariScout's tab app pattern uses direct Azure AI Foundry calls via EasyAuth, which is the correct architecture for embedded tab applications.
 

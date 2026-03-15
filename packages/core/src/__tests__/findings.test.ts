@@ -16,13 +16,14 @@ import {
   groupFindingsByStatus,
   migrateFindingStatus,
   migrateFindings,
+  migrateActionAssignee,
   FINDING_STATUSES,
   FINDING_STATUS_LABELS,
   FINDING_TAGS,
   FINDING_TAG_LABELS,
   PWA_STATUSES,
 } from '../findings';
-import type { Finding, FindingStatus, FindingSource } from '../findings';
+import type { Finding, FindingAssignee, FindingStatus, FindingSource } from '../findings';
 
 describe('filtersEqual', () => {
   it('returns true for identical filters', () => {
@@ -396,8 +397,12 @@ describe('createActionItem', () => {
   });
 
   it('accepts optional assignee and dueDate', () => {
-    const action = createActionItem('Calibrate sensor', 'Jane', '2026-04-01');
-    expect(action.assignee).toBe('Jane');
+    const action = createActionItem(
+      'Calibrate sensor',
+      { upn: 'jane@co.com', displayName: 'Jane' },
+      '2026-04-01'
+    );
+    expect(action.assignee).toEqual({ upn: 'jane@co.com', displayName: 'Jane' });
     expect(action.dueDate).toBe('2026-04-01');
   });
 
@@ -442,7 +447,11 @@ describe('createFindingOutcome', () => {
 describe('Finding 5-status extensions', () => {
   it('Finding can have actions array', () => {
     const f = createFinding('Drift detected', {}, null);
-    const action = createActionItem('Replace part', 'Bob', '2026-04-15');
+    const action = createActionItem(
+      'Replace part',
+      { upn: 'bob@co.com', displayName: 'Bob' },
+      '2026-04-15'
+    );
     f.actions = [action];
     expect(f.actions).toHaveLength(1);
     expect(f.actions[0].text).toBe('Replace part');
@@ -555,5 +564,73 @@ describe('createImprovementIdea', () => {
     const a = createImprovementIdea('Idea A');
     const b = createImprovementIdea('Idea B');
     expect(a.id).not.toBe(b.id);
+  });
+});
+
+// ============================================================================
+// migrateActionAssignee Tests
+// ============================================================================
+
+describe('migrateActionAssignee', () => {
+  it('returns undefined for undefined input', () => {
+    expect(migrateActionAssignee(undefined)).toBeUndefined();
+  });
+
+  it('converts a string assignee to FindingAssignee', () => {
+    const result = migrateActionAssignee('Jane');
+    expect(result).toEqual({ upn: 'Jane', displayName: 'Jane' });
+  });
+
+  it('passes through a FindingAssignee object unchanged', () => {
+    const assignee: FindingAssignee = { upn: 'jane@co.com', displayName: 'Jane', userId: 'u-1' };
+    const result = migrateActionAssignee(assignee);
+    expect(result).toBe(assignee); // same reference
+  });
+});
+
+// ============================================================================
+// migrateFindings — action assignee migration
+// ============================================================================
+
+describe('migrateFindings action assignee migration', () => {
+  it('migrates string assignees on actions to FindingAssignee', () => {
+    const findings: Finding[] = [
+      {
+        id: 'f-1',
+        text: 'Test',
+        createdAt: 1000,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'improving',
+        comments: [],
+        statusChangedAt: 1000,
+        actions: [
+          {
+            id: 'a-1',
+            text: 'Fix',
+            assignee: 'Bob' as unknown as FindingAssignee,
+            createdAt: 1000,
+          },
+        ],
+      },
+    ];
+    const migrated = migrateFindings(findings);
+    expect(migrated[0].actions![0].assignee).toEqual({ upn: 'Bob', displayName: 'Bob' });
+  });
+
+  it('does not alter actions without assignees', () => {
+    const findings: Finding[] = [
+      {
+        id: 'f-1',
+        text: 'Test',
+        createdAt: 1000,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'improving',
+        comments: [],
+        statusChangedAt: 1000,
+        actions: [{ id: 'a-1', text: 'Fix', createdAt: 1000 }],
+      },
+    ];
+    const migrated = migrateFindings(findings);
+    expect(migrated[0].actions![0].assignee).toBeUndefined();
   });
 });

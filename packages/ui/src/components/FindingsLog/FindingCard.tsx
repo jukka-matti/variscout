@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type {
   Finding,
+  FindingAssignee,
   FindingProjection,
   FindingSource,
   FindingStatus,
@@ -69,7 +70,9 @@ export interface FindingCardProps {
   /** Map of hypothesis IDs to hypothesis objects for display */
   hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   /** Callback to add an action item */
-  onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  onAddAction?: (id: string, text: string, assignee?: FindingAssignee, dueDate?: string) => void;
+  /** Optional slot to render an assignee picker for action items (e.g., PeoplePicker in Azure) */
+  renderActionAssigneePicker?: (onSelect: (a: FindingAssignee) => void) => React.ReactNode;
   /** Callback to complete an action item */
   onCompleteAction?: (id: string, actionId: string) => void;
   /** Callback to delete an action item */
@@ -195,15 +198,16 @@ interface ActionItemsSectionProps {
   actions: Array<{
     id: string;
     text: string;
-    assignee?: string;
+    assignee?: FindingAssignee;
     dueDate?: string;
     completedAt?: number;
     createdAt: number;
   }>;
-  onAddAction: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  onAddAction: (id: string, text: string, assignee?: FindingAssignee, dueDate?: string) => void;
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
   readOnly?: boolean;
+  renderActionAssigneePicker?: (onSelect: (a: FindingAssignee) => void) => React.ReactNode;
 }
 
 const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
@@ -213,9 +217,11 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
   onCompleteAction,
   onDeleteAction,
   readOnly,
+  renderActionAssigneePicker,
 }) => {
   const [isOpen, setIsOpen] = useState(actions.length > 0);
   const [newActionText, setNewActionText] = useState('');
+  const [pendingAssignee, setPendingAssignee] = useState<FindingAssignee | undefined>(undefined);
 
   const overdue = actions.filter(
     a => a.dueDate && !a.completedAt && new Date(a.dueDate) < new Date()
@@ -272,7 +278,7 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
                 </span>
                 {(action.assignee || action.dueDate) && (
                   <div className="flex items-center gap-2 text-[9px] text-content-muted mt-0.5">
-                    {action.assignee && <span>{action.assignee}</span>}
+                    {action.assignee && <span>{action.assignee.displayName}</span>}
                     {action.dueDate && (
                       <span
                         className={`flex items-center gap-0.5 ${
@@ -303,20 +309,39 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
             </div>
           ))}
           {!readOnly && (
-            <div className="flex gap-1 mt-1" onClick={e => e.stopPropagation()}>
-              <input
-                type="text"
-                value={newActionText}
-                onChange={e => setNewActionText(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && newActionText.trim()) {
-                    onAddAction(findingId, newActionText.trim());
-                    setNewActionText('');
-                  }
-                }}
-                placeholder="Add action..."
-                className="flex-1 text-[11px] bg-surface-tertiary/50 border border-edge/50 rounded px-2 py-1 text-content placeholder:text-content-muted focus:outline-none focus:border-blue-500/50"
-              />
+            <div className="mt-1 space-y-1" onClick={e => e.stopPropagation()}>
+              <div className="flex gap-1">
+                <input
+                  type="text"
+                  value={newActionText}
+                  onChange={e => setNewActionText(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && newActionText.trim()) {
+                      onAddAction(findingId, newActionText.trim(), pendingAssignee);
+                      setNewActionText('');
+                      setPendingAssignee(undefined);
+                    }
+                  }}
+                  placeholder="Add action..."
+                  className="flex-1 text-[11px] bg-surface-tertiary/50 border border-edge/50 rounded px-2 py-1 text-content placeholder:text-content-muted focus:outline-none focus:border-blue-500/50"
+                />
+              </div>
+              {pendingAssignee && (
+                <div className="flex items-center gap-1 text-[10px] text-purple-400">
+                  <UserPlus size={9} />
+                  <span>{pendingAssignee.displayName}</span>
+                  <button
+                    onClick={() => setPendingAssignee(undefined)}
+                    className="text-content-muted hover:text-red-400"
+                    title="Remove assignee"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              {renderActionAssigneePicker &&
+                !pendingAssignee &&
+                renderActionAssigneePicker(setPendingAssignee)}
             </div>
           )}
         </div>
@@ -499,6 +524,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onProjectImprovement,
   hasSpecs = false,
   onAskCoScout,
+  renderActionAssigneePicker,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
@@ -754,6 +780,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             onCompleteAction={onCompleteAction}
             onDeleteAction={onDeleteAction}
             readOnly={status === 'resolved'}
+            renderActionAssigneePicker={renderActionAssigneePicker}
           />
         )}
 

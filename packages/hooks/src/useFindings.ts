@@ -24,6 +24,8 @@ export interface UseFindingsOptions {
   initialFindings?: Finding[];
   /** Callback when findings change (for external persistence) */
   onFindingsChange?: (findings: Finding[]) => void;
+  /** Callback when a finding's status changes (for external integrations like Teams cards) */
+  onStatusChange?: (finding: Finding, newStatus: FindingStatus) => void;
 }
 
 export interface UseFindingsReturn {
@@ -78,7 +80,7 @@ export interface UseFindingsReturn {
   /** Clear a finding's projection */
   clearProjection: (id: string) => void;
   /** Add an action item to a finding */
-  addAction: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  addAction: (id: string, text: string, assignee?: FindingAssignee, dueDate?: string) => void;
   /** Update an existing action item */
   updateAction: (
     id: string,
@@ -101,7 +103,7 @@ export interface UseFindingsReturn {
  * doesn't depend on DataContext directly.
  */
 export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn {
-  const { initialFindings, onFindingsChange } = options;
+  const { initialFindings, onFindingsChange, onStatusChange } = options;
 
   const [findings, setFindings] = useState<Finding[]>(() =>
     initialFindings ? migrateFindings(initialFindings) : []
@@ -184,10 +186,12 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
           f.id === id ? { ...f, status, statusChangedAt: Date.now() } : f
         );
         onFindingsChange?.(next);
+        const updated = next.find(f => f.id === id);
+        if (updated) onStatusChange?.(updated, status);
         return next;
       });
     },
-    [onFindingsChange]
+    [onFindingsChange, onStatusChange]
   );
 
   const setFindingTag = useCallback(
@@ -371,7 +375,7 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
   );
 
   const addAction = useCallback(
-    (id: string, text: string, assignee?: string, dueDate?: string) => {
+    (id: string, text: string, assignee?: FindingAssignee, dueDate?: string) => {
       const action = createActionItem(text, assignee, dueDate);
       setFindings(prev => {
         const next = prev.map(f => {
@@ -458,10 +462,15 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
           return updated;
         });
         onFindingsChange?.(next);
+        // Fire onStatusChange if auto-transitioned to resolved
+        const updated = next.find(f => f.id === id);
+        if (updated && updated.status === 'resolved') {
+          onStatusChange?.(updated, 'resolved');
+        }
         return next;
       });
     },
-    [onFindingsChange]
+    [onFindingsChange, onStatusChange]
   );
 
   return {

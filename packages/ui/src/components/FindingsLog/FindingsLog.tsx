@@ -7,10 +7,12 @@ import type {
   Hypothesis,
   ImprovementIdea,
   IdeaImpact,
+  ProcessContext,
 } from '@variscout/core';
 import FindingCard from './FindingCard';
 import FindingBoardView from './FindingBoardView';
 import HypothesisTreeView from './HypothesisTreeView';
+import FindingsExportMenu from './FindingsExportMenu';
 
 export interface FindingsLogProps {
   /** Optional className for the root wrapper */
@@ -76,7 +78,16 @@ export interface FindingsLogProps {
   /** Map of hypothesis IDs to hypothesis objects for display */
   hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
   /** Add an action item */
-  onAddAction?: (id: string, text: string, assignee?: string, dueDate?: string) => void;
+  onAddAction?: (
+    id: string,
+    text: string,
+    assignee?: import('@variscout/core').FindingAssignee,
+    dueDate?: string
+  ) => void;
+  /** Optional slot to render an assignee picker for action items */
+  renderActionAssigneePicker?: (
+    onSelect: (a: import('@variscout/core').FindingAssignee) => void
+  ) => React.ReactNode;
   /** Complete an action item */
   onCompleteAction?: (id: string, actionId: string) => void;
   /** Delete an action item */
@@ -119,6 +130,10 @@ export interface FindingsLogProps {
   onAskCoScoutAboutFinding?: (focusContext: {
     finding: { text: string; status: string; hypothesis?: string };
   }) => void;
+  /** Process context for JSON export */
+  processContext?: ProcessContext;
+  /** Callback for AI report generation (Team AI only) */
+  onGenerateAIReport?: () => Promise<string>;
 }
 
 /**
@@ -161,6 +176,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onSetOutcome,
   onProjectImprovement,
   hasSpecs,
+  renderActionAssigneePicker,
   onSetValidationTask,
   onCompleteTask,
   onSetManualStatus,
@@ -172,6 +188,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onProjectIdea,
   onAskCoScout,
   onAskCoScoutAboutFinding,
+  processContext,
+  onGenerateAIReport,
 }) => {
   if (findings.length === 0) {
     return (
@@ -248,6 +266,15 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
 
   return (
     <div className={`flex-1 min-h-0 flex flex-col ${className ?? ''}`}>
+      <div className="flex items-center justify-end px-3 pt-2 pb-0">
+        <FindingsExportMenu
+          findings={findings}
+          hypotheses={hypotheses}
+          processContext={processContext}
+          onGenerateAIReport={onGenerateAIReport}
+          columnAliases={columnAliases}
+        />
+      </div>
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2" data-testid="findings-list">
         {findings.map(finding => (
           <FindingCard
@@ -280,6 +307,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
             onSetOutcome={onSetOutcome}
             onProjectImprovement={onProjectImprovement}
             hasSpecs={hasSpecs}
+            renderActionAssigneePicker={renderActionAssigneePicker}
             onAskCoScout={onAskCoScoutAboutFinding}
           />
         ))}

@@ -121,6 +121,25 @@ export interface AIContext {
   };
   /** Glossary terms for grounding */
   glossaryFragment?: string;
+  /** Related findings from Knowledge Base (AI Search) */
+  knowledgeResults?: Array<{
+    projectName: string;
+    factor: string;
+    status: string;
+    etaSquared: number | null;
+    cpkBefore: number | null;
+    cpkAfter: number | null;
+    suspectedCause: string;
+    actionsText: string;
+    outcomeEffective: boolean | null;
+  }>;
+  /** Documents from Knowledge Base agentic retrieval (SharePoint, SOPs) */
+  knowledgeDocuments?: Array<{
+    title: string;
+    snippet: string;
+    source: string;
+    url?: string;
+  }>;
 }
 
 /** Request to generate a narration */

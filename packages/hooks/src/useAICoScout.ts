@@ -22,6 +22,8 @@ export interface UseAICoScoutOptions {
   ) => Promise<void>;
   /** Seed the conversation with the current narration */
   initialNarrative?: string | null;
+  /** Called before building API messages — allows enriching context (e.g., Knowledge Base) */
+  onBeforeSend?: (text: string, context: AIContext) => Promise<void>;
 }
 
 export interface UseAICoScoutReturn {
@@ -56,7 +58,8 @@ function classifyErrorToCoScoutError(err: unknown): CoScoutError {
 }
 
 export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
-  const { context, fetchResponse, fetchStreamingResponse, initialNarrative } = options;
+  const { context, fetchResponse, fetchStreamingResponse, initialNarrative, onBeforeSend } =
+    options;
 
   const [messages, setMessages] = useState<CoScoutMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -108,6 +111,11 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
       setError(null);
 
       try {
+        // Allow enriching context before building messages (e.g., Knowledge Base search)
+        if (onBeforeSend && context) {
+          await onBeforeSend(text.trim(), context);
+        }
+
         // Use ref for current history; buildCoScoutMessages appends the user message
         const apiMessages = buildCoScoutMessages(context, messagesRef.current, text.trim());
 
@@ -190,7 +198,7 @@ export function useAICoScout(options: UseAICoScoutOptions): UseAICoScoutReturn {
         }
       }
     },
-    [context, fetchResponse, fetchStreamingResponse]
+    [context, fetchResponse, fetchStreamingResponse, onBeforeSend]
   );
 
   const stopStreaming = useCallback(() => {
