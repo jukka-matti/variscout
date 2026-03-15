@@ -52,6 +52,13 @@ vi.mock('@variscout/core', () => ({
   getNelsonRule2ViolationPoints: vi.fn(() => []),
   calculateStats: vi.fn(() => ({ mean: 10, ucl: 12, lcl: 8 })),
   hasTeamFeatures: vi.fn(() => false),
+  isTeamAIPlan: vi.fn(() => false),
+  isPreviewEnabled: vi.fn(() => false),
+  buildSuggestedQuestions: vi.fn(() => []),
+  computeIdeaImpact: vi.fn(() => null),
+  calculateFactorVariations: vi.fn(() => []),
+  getNelsonRule2Sequences: vi.fn(() => []),
+  getNelsonRule3Sequences: vi.fn(() => []),
 }));
 
 vi.mock('../../hooks/usePhotoComments', () => ({
