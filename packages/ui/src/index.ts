@@ -328,6 +328,9 @@ export {
   type InvestigationPhaseBadgeProps,
 } from './components/InvestigationPhaseBadge';
 
+// Preview Badge
+export { PreviewBadge } from './components/PreviewBadge';
+
 // AI Onboarding Tooltip
 export {
   AIOnboardingTooltip,

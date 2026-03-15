@@ -91,6 +91,10 @@ export {
   isTeamPlan,
 } from './tier';
 
+// Preview feature registry
+export type { PreviewFeature } from './preview';
+export { isPreviewEnabled, setPreviewEnabled } from './preview';
+
 // Export utilities
 export { getSpecStatus, generateCSV, downloadCSV } from './export';
 export type { ExportOptions } from './export';

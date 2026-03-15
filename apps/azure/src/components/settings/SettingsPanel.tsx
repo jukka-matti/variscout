@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Palette } from 'lucide-react';
-import { SettingsPanelBase, ProcessDescriptionField } from '@variscout/ui';
+import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge } from '@variscout/ui';
+import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
 import ThemeToggle from './ThemeToggle';
@@ -22,6 +23,7 @@ interface SettingsPanelProps {
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
+  const [, setForceUpdate] = useState(0);
   const { theme, setTheme } = useTheme();
   const {
     displayOptions,
@@ -173,6 +175,35 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                   />
                 </div>
               )}
+            </div>
+          )}
+          {isTeamAIPlan() && (
+            <div className="space-y-3 pt-3 border-t border-edge">
+              <h3 className="text-xs font-semibold text-content-secondary uppercase tracking-wider">
+                Preview Features
+              </h3>
+              <label
+                htmlFor="az-setting-preview-kb"
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  id="az-setting-preview-kb"
+                  name="az-setting-preview-kb"
+                  type="checkbox"
+                  checked={isPreviewEnabled('knowledge-base')}
+                  onChange={e => {
+                    setPreviewEnabled('knowledge-base', e.target.checked);
+                    setForceUpdate(prev => prev + 1);
+                  }}
+                  className="rounded border-edge"
+                />
+                <span className="text-sm text-content">Knowledge Base</span>
+                <PreviewBadge />
+              </label>
+              <p className="text-xs text-content-muted">
+                Search past findings across your organization when using CoScout. Requires Azure AI
+                Search (configured by your admin).
+              </p>
             </div>
           )}
         </>

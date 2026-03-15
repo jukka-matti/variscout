@@ -299,10 +299,12 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `infra/functions/token-exchange/index.js`                            | Azure Function for OBO token exchange (Teams SSO backend)                                                                     |
 | `packages/core/src/utils/exifStrip.ts`                               | Byte-level EXIF/GPS metadata stripping for photo evidence                                                                     |
 | `apps/azure/src/teams/teamsMedia.ts`                                 | Teams SDK camera wrapper (media.selectMedia)                                                                                  |
+| `packages/core/src/preview.ts`                                       | Preview feature registry (localStorage toggle)                                                                                |
 | `packages/core/src/ai/`                                              | AI module: buildAIContext, prompt templates, chart insight builders, suggested questions                                      |
 | `packages/core/src/glossary/concepts.ts`                             | ~15 methodology concepts (Four Lenses, phases, principles) with typed relations                                               |
 | `packages/core/src/glossary/knowledge.ts`                            | Unified knowledge lookup (getEntry, getRelated, getReferencedBy) across terms + concepts                                      |
 | `apps/azure/src/services/aiService.ts`                               | AI Foundry integration: fetchNarration, fetchChartInsight, fetchCoScoutResponse/Streaming, localStorage cache                 |
+| `apps/azure/src/services/searchService.ts`                           | AI Search client: searchRelatedFindings(), isKnowledgeBaseAvailable()                                                         |
 | `packages/hooks/src/useNarration.ts`                                 | NarrativeBar state (loading, cached, error, refresh). Wraps fetchNarration                                                    |
 | `packages/hooks/src/useChartInsights.ts`                             | Per-chart deterministic + AI-enhanced insight orchestration with debounced AI fallback                                        |
 | `packages/hooks/src/useAICoScout.ts`                                 | CoScout conversation state, streaming, abort control                                                                          |
