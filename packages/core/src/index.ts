@@ -286,6 +286,7 @@ export {
   buildChartInsightPrompt,
   buildChartInsightSystemPrompt,
   buildSuggestedQuestions,
+  formatForMobile,
 } from './ai';
 
 // Category keyword matching and inference

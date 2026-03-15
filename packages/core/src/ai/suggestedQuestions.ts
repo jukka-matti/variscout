@@ -184,3 +184,14 @@ function buildInvestigationQuestions(context: AIContext): string[] {
 
   return capped.slice(0, 5);
 }
+
+/**
+ * Truncate a suggested question for mobile horizontal scroll chips.
+ * Keeps text readable by cutting at the last word boundary before maxLength.
+ */
+export function formatForMobile(question: string, maxLength: number = 60): string {
+  if (question.length <= maxLength) return question;
+  const trimmed = question.slice(0, maxLength);
+  const lastSpace = trimmed.lastIndexOf(' ');
+  return (lastSpace > maxLength * 0.4 ? trimmed.slice(0, lastSpace) : trimmed) + '\u2026';
+}

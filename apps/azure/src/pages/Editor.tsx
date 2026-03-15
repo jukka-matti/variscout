@@ -30,6 +30,7 @@ import {
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
   computeIdeaImpact,
+  calculateFactorVariations,
 } from '@variscout/core';
 import {
   fetchNarration as fetchNarrationFromAI,
@@ -421,6 +422,57 @@ export const Editor: React.FC<EditorProps> = ({
     };
   }, [filteredData, outcome, stats, specs]);
 
+  // Variation contributions for AI context (factor-level η²)
+  const aiVariationContributions = useMemo(() => {
+    if (!outcome || filteredData.length < 2 || factors.length === 0) return undefined;
+    const fv = calculateFactorVariations(filteredData, factors, outcome, []);
+    return Array.from(fv.entries()).map(([factor, etaSquared]) => ({ factor, etaSquared }));
+  }, [filteredData, factors, outcome]);
+
+  // Selected finding for AI context (when highlighted in FindingsPanel)
+  const aiSelectedFinding = useMemo(() => {
+    if (!highlightedFindingId || !persistedFindings) return undefined;
+    const f = persistedFindings.find(fi => fi.id === highlightedFindingId);
+    if (!f) return undefined;
+    const hypothesis = f.hypothesisId
+      ? hypothesesState.hypotheses.find(h => h.id === f.hypothesisId)
+      : undefined;
+    return {
+      text: f.text,
+      hypothesis: hypothesis?.text,
+      projection: f.projection
+        ? {
+            meanDelta: f.projection.projectedMean - f.projection.baselineMean,
+            sigmaDelta: f.projection.projectedSigma - f.projection.baselineSigma,
+          }
+        : undefined,
+      actions: f.actions?.map(a => ({ text: a.text, status: a.completedAt ? 'done' : 'pending' })),
+    };
+  }, [highlightedFindingId, persistedFindings, hypothesesState.hypotheses]);
+
+  // Team contributors for AI context (Teams plan only)
+  const aiTeamContributors = useMemo(() => {
+    if (!isTeamPlan() || !persistedFindings) return undefined;
+    const authors = new Set<string>();
+    const areas = new Set<string>();
+    for (const f of persistedFindings) {
+      if (f.assignee?.displayName) authors.add(f.assignee.displayName);
+      for (const c of f.comments ?? []) {
+        if (c.author) authors.add(c.author);
+      }
+      if (f.hypothesisId) {
+        const h = hypothesesState.hypotheses.find(hy => hy.id === f.hypothesisId);
+        if (h?.factor) areas.add(h.factor);
+      }
+    }
+    if (authors.size === 0) return undefined;
+    return { count: authors.size, hypothesisAreas: Array.from(areas) };
+  }, [persistedFindings, hypothesesState.hypotheses]);
+
+  // Focus context state for "Ask CoScout about this" actions
+  const [focusContext, setFocusContext] =
+    useState<import('@variscout/core').AIContext['focusContext']>(undefined);
+
   // AI narration
   const aiContext = useAIContext({
     enabled: aiEnabled && isAIAvailable(),
@@ -433,6 +485,14 @@ export const Editor: React.FC<EditorProps> = ({
     violations: violationCounts,
     findings: persistedFindings,
     hypotheses: hypothesesState.hypotheses,
+    activeChart: viewState?.focusedChart as import('@variscout/core').InsightChartType | undefined,
+    variationContributions: aiVariationContributions,
+    drillPath: filterNav.filterStack
+      .filter(a => a.type === 'filter' && a.factor)
+      .map(a => a.factor!),
+    selectedFinding: aiSelectedFinding,
+    focusContext,
+    teamContributors: aiTeamContributors,
   });
   const narration = useNarration({
     context: aiContext.context,
@@ -465,6 +525,36 @@ export const Editor: React.FC<EditorProps> = ({
       setTimeout(() => {
         coscout.send(question);
       }, 100);
+    },
+    [panels, coscout]
+  );
+
+  // Ask CoScout about a specific finding (from FindingCard)
+  const handleAskCoScoutFromFinding = useCallback(
+    (ctx: import('@variscout/core').AIContext['focusContext']) => {
+      setFocusContext(ctx);
+      panels.setIsCoScoutOpen(true);
+      const findingText = ctx?.finding?.text;
+      if (findingText) {
+        setTimeout(() => {
+          coscout.send(`What should I investigate about this finding: "${findingText}"?`);
+        }, 100);
+      }
+    },
+    [panels, coscout]
+  );
+
+  // Ask CoScout about a category (from MobileCategorySheet)
+  const handleAskCoScoutFromCategory = useCallback(
+    (ctx: import('@variscout/core').AIContext['focusContext']) => {
+      setFocusContext(ctx);
+      panels.setIsCoScoutOpen(true);
+      const catName = ctx?.category?.name;
+      if (catName) {
+        setTimeout(() => {
+          coscout.send(`What can you tell me about "${catName}"?`);
+        }, 100);
+      }
     },
     [panels, coscout]
   );
@@ -797,6 +887,7 @@ export const Editor: React.FC<EditorProps> = ({
               narrativeError={narration.error}
               onNarrativeRetry={narration.refresh}
               onNarrativeAsk={handleNarrativeAsk}
+              onAskCoScoutFromCategory={handleAskCoScoutFromCategory}
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isFindingsOpen ? (
@@ -859,6 +950,7 @@ export const Editor: React.FC<EditorProps> = ({
                   onSelectIdea={hypothesesState.selectIdea}
                   onProjectIdea={handleProjectIdea}
                   onAskCoScout={handleAskCoScoutFromIdeas}
+                  onAskCoScoutAboutFinding={handleAskCoScoutFromFinding}
                   showAuthors={true}
                   columnAliases={columnAliases}
                   drillPath={drillPath}

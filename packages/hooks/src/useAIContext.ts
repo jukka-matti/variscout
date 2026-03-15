@@ -10,6 +10,7 @@ import type {
   ProcessContext,
   BuildAIContextOptions,
   InvestigationCategory,
+  InsightChartType,
 } from '@variscout/core';
 import type { StatsResult, SpecLimits, Finding, Hypothesis } from '@variscout/core';
 
@@ -40,6 +41,18 @@ export interface UseAIContextOptions {
   findings?: Finding[];
   /** Current hypotheses for investigation context */
   hypotheses?: Hypothesis[];
+  /** Currently active/focused chart */
+  activeChart?: InsightChartType;
+  /** Variation contributions per factor (η²) */
+  variationContributions?: Array<{ factor: string; etaSquared: number }>;
+  /** Drill path: ordered factor names from filter stack */
+  drillPath?: string[];
+  /** Selected finding for context-aware suggestions */
+  selectedFinding?: BuildAIContextOptions['selectedFinding'];
+  /** Focus context from "Ask CoScout about this" actions */
+  focusContext?: AIContext['focusContext'];
+  /** Team contributor awareness (Teams plan only) */
+  teamContributors?: AIContext['teamContributors'];
 }
 
 export interface UseAIContextReturn {
@@ -62,6 +75,12 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     violations,
     findings,
     hypotheses,
+    activeChart,
+    variationContributions,
+    drillPath,
+    selectedFinding,
+    focusContext,
+    teamContributors,
   } = options;
 
   const context = useMemo<AIContext | null>(() => {
@@ -74,6 +93,12 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       violations,
       findings,
       hypotheses,
+      activeChart,
+      variationContributions,
+      drillPath,
+      selectedFinding,
+      focusContext,
+      teamContributors,
     };
 
     // Map StatsResult to AIStatsInput
@@ -89,7 +114,23 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     }
 
     return buildAIContext(buildOptions);
-  }, [enabled, process, stats, sampleCount, filters, categories, violations, findings, hypotheses]);
+  }, [
+    enabled,
+    process,
+    stats,
+    sampleCount,
+    filters,
+    categories,
+    violations,
+    findings,
+    hypotheses,
+    activeChart,
+    variationContributions,
+    drillPath,
+    selectedFinding,
+    focusContext,
+    teamContributors,
+  ]);
 
   return { context };
 }

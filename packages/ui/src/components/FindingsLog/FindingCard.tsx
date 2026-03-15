@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Clock,
   Layers,
+  MessageCircle,
   Pencil,
   Share2,
   Target,
@@ -87,6 +88,10 @@ export interface FindingCardProps {
   onProjectImprovement?: (findingId: string) => void;
   /** Whether the finding has spec limits (affects projection display) */
   hasSpecs?: boolean;
+  /** Callback to ask CoScout about this finding. When provided, shows "Ask CoScout" button. */
+  onAskCoScout?: (focusContext: {
+    finding: { text: string; status: string; hypothesis?: string };
+  }) => void;
 }
 
 // ============================================================================
@@ -493,6 +498,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onSetOutcome,
   onProjectImprovement,
   hasSpecs = false,
+  onAskCoScout,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
@@ -638,6 +644,29 @@ const FindingCard: React.FC<FindingCardProps> = ({
                   aria-label="Share finding"
                 >
                   <Share2 size={12} />
+                </button>
+              )}
+              {onAskCoScout && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    const hypothesis = finding.hypothesisId
+                      ? hypothesesMap?.[finding.hypothesisId]?.text
+                      : undefined;
+                    onAskCoScout({
+                      finding: {
+                        text: finding.text || 'Untitled finding',
+                        status,
+                        hypothesis,
+                      },
+                    });
+                  }}
+                  className="p-1 rounded text-content-muted hover:text-cyan-400 hover:bg-cyan-400/10 transition-colors"
+                  title="Ask CoScout about this finding"
+                  aria-label="Ask CoScout about this finding"
+                  data-testid="ask-coscout-finding"
+                >
+                  <MessageCircle size={12} />
                 </button>
               )}
               <button

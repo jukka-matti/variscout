@@ -141,7 +141,19 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
         </h2>
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
-        {/* Sync Status — Team plan only, hidden on phone to save space */}
+        {/* Compact sync icon on phone — Team plan only */}
+        {isPhone && isTeamPlan() && (
+          <div
+            className={`flex-shrink-0 ${syncColor}`}
+            title={syncStatus.message || syncStatus.status}
+          >
+            <SyncIcon
+              size={18}
+              className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
+            />
+          </div>
+        )}
+        {/* Sync Status — Team plan only, full label on desktop */}
         {!isPhone &&
           isTeamPlan() &&
           (syncStatus.status === 'error' ? (

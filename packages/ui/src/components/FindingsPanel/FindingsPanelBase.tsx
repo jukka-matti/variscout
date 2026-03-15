@@ -104,6 +104,10 @@ export interface FindingsPanelBaseProps {
   onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
   onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
   onAskCoScout?: (question: string) => void;
+  /** Ask CoScout about a specific finding (from FindingCard action button) */
+  onAskCoScoutAboutFinding?: (focusContext: {
+    finding: { text: string; status: string; hypothesis?: string };
+  }) => void;
 
   // Resize config
   resizeConfig: FindingsPanelResizeConfig;
@@ -153,6 +157,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onSelectIdea,
   onProjectIdea,
   onAskCoScout,
+  onAskCoScoutAboutFinding,
   resizeConfig,
 }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -338,6 +343,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onSelectIdea={onSelectIdea}
           onProjectIdea={onProjectIdea}
           onAskCoScout={onAskCoScout}
+          onAskCoScoutAboutFinding={onAskCoScoutAboutFinding}
         />
 
         {/* Drill path footer */}

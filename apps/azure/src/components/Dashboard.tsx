@@ -92,6 +92,11 @@ interface DashboardProps {
   narrativeError?: string | null;
   onNarrativeAsk?: () => void;
   onNarrativeRetry?: () => void;
+  /** Ask CoScout about a category (from MobileCategorySheet) */
+  onAskCoScoutFromCategory?: (focusContext: {
+    chartType: 'boxplot' | 'pareto';
+    category: { name: string; mean?: number; contributionPct?: number };
+  }) => void;
 }
 
 const Dashboard = ({
@@ -118,6 +123,7 @@ const Dashboard = ({
   narrativeError,
   onNarrativeAsk,
   onNarrativeRetry,
+  onAskCoScoutFromCategory,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
     findingsCallbacks ?? {};
@@ -559,6 +565,7 @@ const Dashboard = ({
               onPinFinding={onPinFinding}
               boxplotData={boxplotData}
               findingsCallbacks={findingsCallbacks}
+              onAskCoScout={onAskCoScoutFromCategory}
             />
           ) : !focusedChart ? (
             <DashboardGrid

@@ -38,4 +38,4 @@ export {
   buildStatsInsight,
 } from './chartInsights';
 
-export { buildSuggestedQuestions } from './suggestedQuestions';
+export { buildSuggestedQuestions, formatForMobile } from './suggestedQuestions';

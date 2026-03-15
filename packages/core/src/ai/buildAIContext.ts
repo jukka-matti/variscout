@@ -170,7 +170,12 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
   }
 
   // Add investigation context if problem statement or hypotheses exist
-  if (process.problemStatement || (hypotheses && hypotheses.length > 0) || investigationProgress) {
+  if (
+    process.problemStatement ||
+    (hypotheses && hypotheses.length > 0) ||
+    investigationProgress ||
+    selectedFinding
+  ) {
     context.investigation = {};
 
     if (process.problemStatement) {

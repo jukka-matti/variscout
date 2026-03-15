@@ -105,6 +105,10 @@ export interface FindingsLogProps {
   onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
   onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
   onAskCoScout?: (question: string) => void;
+  /** Ask CoScout about a specific finding (from FindingCard action button) */
+  onAskCoScoutAboutFinding?: (focusContext: {
+    finding: { text: string; status: string; hypothesis?: string };
+  }) => void;
 }
 
 /**
@@ -153,6 +157,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onSelectIdea,
   onProjectIdea,
   onAskCoScout,
+  onAskCoScoutAboutFinding,
 }) => {
   if (findings.length === 0) {
     return (
@@ -253,6 +258,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onSetOutcome={onSetOutcome}
           onProjectImprovement={onProjectImprovement}
           hasSpecs={hasSpecs}
+          onAskCoScout={onAskCoScoutAboutFinding}
         />
       ))}
     </div>

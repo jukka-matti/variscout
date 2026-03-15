@@ -115,4 +115,46 @@ describe('useAIContext', () => {
     rerender();
     expect(result.current.context).toBe(first);
   });
+
+  it('passes activeChart to context', () => {
+    const { result } = renderHook(() => useAIContext({ enabled: true, activeChart: 'boxplot' }));
+    expect(result.current.context!.activeChart).toBe('boxplot');
+  });
+
+  it('passes variationContributions to context', () => {
+    const contributions = [{ factor: 'Machine', etaSquared: 0.45 }];
+    const { result } = renderHook(() =>
+      useAIContext({ enabled: true, variationContributions: contributions })
+    );
+    expect(result.current.context!.variationContributions).toEqual(contributions);
+  });
+
+  it('passes drillPath to context', () => {
+    const { result } = renderHook(() =>
+      useAIContext({ enabled: true, drillPath: ['Machine', 'Shift'] })
+    );
+    expect(result.current.context!.drillPath).toEqual(['Machine', 'Shift']);
+  });
+
+  it('passes focusContext to context', () => {
+    const focus = { finding: { text: 'High variation on Line 3', status: 'investigating' } };
+    const { result } = renderHook(() => useAIContext({ enabled: true, focusContext: focus }));
+    expect(result.current.context!.focusContext).toEqual(focus);
+  });
+
+  it('passes teamContributors to context', () => {
+    const team = { count: 3, hypothesisAreas: ['Machine', 'Operator'] };
+    const { result } = renderHook(() => useAIContext({ enabled: true, teamContributors: team }));
+    expect(result.current.context!.teamContributors).toEqual(team);
+  });
+
+  it('passes selectedFinding to investigation context', () => {
+    const { result } = renderHook(() =>
+      useAIContext({
+        enabled: true,
+        selectedFinding: { text: 'Machine A is worst', hypothesis: 'Worn bearings' },
+      })
+    );
+    expect(result.current.context!.investigation?.selectedFinding?.text).toBe('Machine A is worst');
+  });
 });
