@@ -15,6 +15,7 @@ import {
   ColumnMapping,
   InvestigationPrompt,
   CoScoutPanelBase,
+  updateFindingsPopout,
   type AnalysisBrief,
 } from '@variscout/ui';
 import {
@@ -276,6 +277,9 @@ export const Editor: React.FC<EditorProps> = ({
     shareFinding,
     canMentionInChannel,
     onViewStateChange: handleViewStateChange,
+    hypotheses: persistedHypotheses,
+    processContext,
+    currentValue: stats?.cpk ?? stats?.mean,
   });
 
   // Deep link: auto-open findings panel and highlight target finding (one-shot)
@@ -512,6 +516,28 @@ export const Editor: React.FC<EditorProps> = ({
     () => (aiContext.context ? buildSuggestedQuestions(aiContext.context) : []),
     [aiContext.context]
   );
+
+  // Sync AI-derived fields to popout (phase + suggested questions arrive after orchestration hook)
+  useEffect(() => {
+    const phase = aiContext.context?.investigation?.phase;
+    if (!phase && suggestedQuestions.length === 0) return;
+    updateFindingsPopout(findingsState.findings, columnAliases, drillPath, {
+      hypotheses: persistedHypotheses,
+      processContext,
+      currentValue: stats?.cpk ?? stats?.mean,
+      investigationPhase: phase,
+      suggestedQuestions,
+    });
+  }, [
+    aiContext.context?.investigation?.phase,
+    suggestedQuestions,
+    findingsState.findings,
+    columnAliases,
+    drillPath,
+    persistedHypotheses,
+    processContext,
+    stats,
+  ]);
 
   const handleNarrativeAsk = useCallback(() => {
     panels.setIsCoScoutOpen(true);

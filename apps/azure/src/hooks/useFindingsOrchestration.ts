@@ -14,7 +14,14 @@ import {
 } from '@variscout/hooks';
 import type { UseFilterNavigationReturn } from './useFilterNavigation';
 import type { FindingsCallbacks } from '../types/findingsCallbacks';
-import type { Finding, FindingSource, SpecLimits, DataRow } from '@variscout/core';
+import type {
+  Finding,
+  FindingSource,
+  SpecLimits,
+  DataRow,
+  Hypothesis,
+  ProcessContext,
+} from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import {
   openFindingsPopout,
@@ -52,6 +59,12 @@ export interface UseFindingsOrchestrationOptions {
   canMentionInChannel: boolean;
   /** View state change handler (for navigate-to-chart) */
   onViewStateChange: (partial: Partial<ViewState>) => void;
+  /** Hypotheses for popout sync */
+  hypotheses?: Hypothesis[];
+  /** Process context for popout sync */
+  processContext?: ProcessContext;
+  /** Current Cpk or mean value for popout sync */
+  currentValue?: number;
 }
 
 export interface UseFindingsOrchestrationReturn {
@@ -102,6 +115,9 @@ export function useFindingsOrchestration({
   shareFinding,
   canMentionInChannel,
   onViewStateChange,
+  hypotheses,
+  processContext,
+  currentValue,
 }: UseFindingsOrchestrationOptions): UseFindingsOrchestrationReturn {
   // Core findings state
   const findingsState = useFindings({
@@ -219,15 +235,25 @@ export function useFindingsOrchestration({
   // Popout window management
   const popupRef = useRef<Window | null>(null);
 
+  const popoutOptions = useMemo(
+    () => ({ hypotheses, processContext, currentValue }),
+    [hypotheses, processContext, currentValue]
+  );
+
   const handleOpenFindingsPopout = useCallback(() => {
-    popupRef.current = openFindingsPopout(findingsState.findings, columnAliases, drillPath);
-  }, [findingsState.findings, columnAliases, drillPath]);
+    popupRef.current = openFindingsPopout(
+      findingsState.findings,
+      columnAliases,
+      drillPath,
+      popoutOptions
+    );
+  }, [findingsState.findings, columnAliases, drillPath, popoutOptions]);
 
   // Sync popout when findings/drillPath change
   useEffect(() => {
     if (!popupRef.current || popupRef.current.closed) return;
-    updateFindingsPopout(findingsState.findings, columnAliases, drillPath);
-  }, [findingsState.findings, columnAliases, drillPath]);
+    updateFindingsPopout(findingsState.findings, columnAliases, drillPath, popoutOptions);
+  }, [findingsState.findings, columnAliases, drillPath, popoutOptions]);
 
   // Listen for actions from popout window
   useEffect(() => {
