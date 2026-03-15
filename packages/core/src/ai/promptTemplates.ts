@@ -212,12 +212,18 @@ export function buildCoScoutSystemPrompt(
   investigation?: AIContext['investigation']
 ): string {
   const parts = [
-    `You are a quality engineering assistant called CoScout for VariScout, a variation analysis tool.
-You help quality professionals understand their analysis results by answering questions clearly and concisely.
+    `You are CoScout, the quality engineering assistant for VariScout — a variation analysis tool built on the Four Lenses methodology.
+
+VariScout uses Four Lenses (Change, Flow, Failure, Value) as parallel views on process data, and Two Voices (Voice of the Process = control limits, Voice of the Customer = specification limits) to distinguish stability from capability. Progressive stratification drills through factors one at a time, guided by contribution %, to isolate where variation concentrates.
+
+Key principles:
+- Stability before capability — assess the Change Lens before interpreting the Value Lens.
+- Contribution, not causation — VariScout shows WHERE variation concentrates; the analyst investigates WHY.
+- Four Lenses are parallel, not sequential — the same data looks different through each lens.
+
 Use the provided context (statistics, filters, violations, findings) to ground every answer.
 Keep responses focused and practical — 2-4 sentences unless the user asks for more detail.
-Never invent data or statistics. If the context does not contain enough information to answer, say so.
-Use standard SPC/quality terminology (Cpk, control limits, variation, etc.) when appropriate.`,
+Never invent data or statistics. If the context does not contain enough information to answer, say so.`,
   ];
 
   if (glossaryFragment) {
@@ -258,19 +264,45 @@ Use standard SPC/quality terminology (Cpk, control limits, variation, etc.) when
 
       const phaseInstructions: Record<string, string> = {
         initial:
-          'The investigation is just starting — help identify possible causes and suggest factors to explore.',
+          'The investigation is in the Initial Phase — help identify which Lens to examine first and suggest factors to explore.',
         diverging:
-          'The investigation is diverging — encourage exploring multiple hypotheses across different factor categories.',
+          'The investigation is in the Diverging Phase — encourage exploring hypotheses across different factor categories. Cast a wide net.',
         validating:
-          'Hypotheses are being validated — help prioritize untested hypotheses and suggest validation approaches.',
+          'The investigation is in the Validating Phase — help interpret η² (contribution, not causation) and prioritize untested hypotheses.',
         converging: hasSupportedHypotheses
-          ? 'The investigation is converging on root cause(s). Help brainstorm improvement options. For each suggestion, consider what process change is needed and expected impact on variation. Compare options by effort vs impact when possible.'
-          : 'The investigation is converging — help synthesize findings into a coherent root cause story.',
+          ? 'The investigation is in the Converging Phase — supported causes found. Help brainstorm improvement ideas. Compare effort vs impact. Suggest alternatives or evaluate existing ideas.'
+          : 'The investigation is in the Converging Phase — help synthesize findings into a coherent root cause story.',
         acting:
-          'Corrective actions are underway — help verify effectiveness and suggest monitoring approaches.',
+          'The investigation is in the Acting Phase — verify with the Value Lens. Is Cpk improving? Help monitor effectiveness.',
       };
       if (phaseInstructions[investigation.phase]) {
         invParts.push(phaseInstructions[investigation.phase]);
+      }
+
+      // Include improvement ideas when converging with supported hypotheses
+      if (
+        investigation.phase === 'converging' &&
+        hasSupportedHypotheses &&
+        investigation.allHypotheses
+      ) {
+        const ideasParts: string[] = [];
+        for (const h of investigation.allHypotheses) {
+          if (h.status === 'supported' && h.ideas && h.ideas.length > 0) {
+            const ideaLines = h.ideas.map(idea => {
+              let line = `  - "${idea.text}"`;
+              if (idea.selected) line += ' [selected]';
+              if (idea.projection) line += ' (projected)';
+              return line;
+            });
+            ideasParts.push(`Existing improvement ideas for "${h.text}":\n${ideaLines.join('\n')}`);
+          }
+        }
+        if (ideasParts.length > 0) {
+          invParts.push(
+            ideasParts.join('\n') +
+              '\nBuild on these — suggest alternatives or evaluate existing ones.'
+          );
+        }
       }
     }
 

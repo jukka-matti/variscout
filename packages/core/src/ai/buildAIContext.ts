@@ -82,7 +82,9 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
         category: cat?.name,
       };
     }),
-    glossaryFragment: buildGlossaryPrompt(glossaryCategories, maxGlossaryTerms),
+    glossaryFragment: buildGlossaryPrompt(glossaryCategories, maxGlossaryTerms, {
+      includeConcepts: true,
+    }),
   };
 
   if (stats) {
@@ -142,6 +144,16 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       context.investigation.allHypotheses = hypotheses.map(h => ({
         text: h.text,
         status: h.status,
+        ideas:
+          h.ideas && h.ideas.length > 0
+            ? h.ideas.map(idea => ({
+                text: idea.text,
+                selected: idea.selected,
+                projection: idea.projection
+                  ? { meanDelta: idea.projection.meanDelta, sigmaDelta: idea.projection.sigmaDelta }
+                  : undefined,
+              }))
+            : undefined,
       }));
 
       // Build hypothesis tree for root hypotheses with children

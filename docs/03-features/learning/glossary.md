@@ -1,12 +1,22 @@
-# Glossary Feature
+# Glossary & Knowledge Model
 
-Contextual term definitions throughout the application.
+Contextual term definitions and methodology concepts throughout the application.
 
 ---
 
 ## Purpose
 
-Help users understand statistical terms without leaving their analysis.
+Help users understand statistical terms and VariScout methodology without leaving their analysis. The knowledge model also grounds AI (CoScout) responses in VariScout's own framework.
+
+---
+
+## Architecture
+
+The knowledge model is a unified registry of **terms** (vocabulary) and **concepts** (methodology). See [Knowledge Model Architecture](../../05-technical/architecture/knowledge-model.md) for the full technical spec.
+
+```
+KnowledgeEntry = GlossaryTerm | Concept
+```
 
 ---
 
@@ -23,6 +33,18 @@ const cpkTerm = getTerm('cpk');
 // { id: 'cpk', label: 'Cpk', definition: '...', description: '...' }
 ```
 
+Methodology concepts are defined in `packages/core/src/glossary/concepts.ts` and accessed via the unified knowledge API:
+
+```typescript
+import { getEntry, getRelated, getConcept } from '@variscout/core';
+
+const fourLenses = getConcept('fourLenses');
+// { id: 'fourLenses', label: 'Four Lenses', conceptCategory: 'framework', ... }
+
+const related = getRelated('changeLens');
+// Returns: [specialCause, nelsonRule2, nelsonRule3]
+```
+
 ---
 
 ## Term Structure
@@ -37,19 +59,38 @@ interface GlossaryTerm {
   learnMorePath?: string; // Link to deeper content
   relatedTerms?: string[]; // Related term IDs
 }
+
+interface Concept {
+  id: string; // Unique identifier
+  label: string; // Display label
+  definition: string; // Short definition
+  description?: string; // Extended explanation
+  conceptCategory: 'framework' | 'phase' | 'principle';
+  learnMorePath?: string;
+  relations: KnowledgeRelation[];
+}
 ```
 
 ---
 
-## Categories
+## Term Categories
 
-| Category       | Terms                                                                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| control-limits | UCL, LCL, USL, LSL, Target                                                                                                            |
-| capability     | Cp, Cpk, Pass Rate, Rejected                                                                                                          |
-| statistics     | Mean, Std Dev, F-Statistic, p-value, η², Sum of Squares, Between/Within Variation                                                     |
-| methodology    | Special Cause, Common Cause, Nelson Rule 2, In-Control, Staged Analysis, Total SS Contribution, Characteristic Type, Probability Plot |
-| charts         | Violin Plot                                                                                                                           |
+| Category       | Terms                                                                                                                                                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| control-limits | UCL, LCL, USL, LSL, Target                                                                                                                                                                                                                           |
+| capability     | Cp, Cpk, Pass Rate, Rejected                                                                                                                                                                                                                         |
+| statistics     | Mean, Std Dev, F-Statistic, p-value, η², Sum of Squares, Between/Within Variation                                                                                                                                                                    |
+| methodology    | Special Cause, Common Cause, Nelson Rule 2/3, In-Control, Staged Analysis, Total SS Contribution, Characteristic Type, Probability Plot, Control vs Spec, Natural Variation, Process Stability, Out of Control, Rational Subgrouping, Stratification |
+| investigation  | Root Cause Analysis, Corrective Action, Preventive Action, Finding, Investigation Status, Key Driver, Action Item, Finding Outcome, Process Context                                                                                                  |
+| charts         | Violin Plot                                                                                                                                                                                                                                          |
+
+## Concept Categories
+
+| Category  | Concepts                                                                            |
+| --------- | ----------------------------------------------------------------------------------- |
+| framework | Four Lenses, Change Lens, Flow Lens, Failure Lens, Value Lens, Two Voices           |
+| principle | Stability Before Capability, Progressive Stratification, Contribution Not Causation |
+| phase     | Initial, Diverging, Validating, Converging, Acting                                  |
 
 ---
 
@@ -141,6 +182,8 @@ Terms are organized by priority for AI Phase 1 launch. Each term will follow the
 ## See Also
 
 - [Help Tooltips](help-tooltips.md)
-- [Full Glossary](../../glossary.md)
+- [Knowledge Model Architecture](../../05-technical/architecture/knowledge-model.md) — How the system works
+- [VariScout Methodology](../../01-vision/methodology.md) — Human-readable methodology reference
+- [AI Context Engineering](../../05-technical/architecture/ai-context-engineering.md) — How knowledge feeds AI
 - [AI Architecture — Glossary Grounding](../../05-technical/architecture/ai-architecture.md#layer-3--glossary-grounding)
 - [AI Readiness Review](../../05-technical/architecture/ai-readiness-review.md)

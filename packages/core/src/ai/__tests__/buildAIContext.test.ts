@@ -122,9 +122,11 @@ describe('buildAIContext', () => {
     expect(ctx.glossaryFragment).toBeTruthy();
   });
 
-  it('respects maxGlossaryTerms', () => {
+  it('respects maxGlossaryTerms for terminology section', () => {
     const ctx = buildAIContext({ maxGlossaryTerms: 5 });
-    const termCount = (ctx.glossaryFragment?.match(/^- \*\*/gm) || []).length;
+    // Extract only the Terminology section (before Methodology Concepts)
+    const terminologySection = ctx.glossaryFragment?.split('## Methodology Concepts')[0] ?? '';
+    const termCount = (terminologySection.match(/^- \*\*/gm) || []).length;
     expect(termCount).toBeLessThanOrEqual(5);
   });
 
@@ -149,6 +151,35 @@ describe('buildAIContext', () => {
     expect(ctx.investigation?.hypothesisTree).toHaveLength(1);
     expect(ctx.investigation?.hypothesisTree?.[0].children).toHaveLength(1);
     expect(ctx.investigation?.hypothesisTree?.[0].children?.[0].validationType).toBe('gemba');
+  });
+
+  it('populates ideas from hypotheses', () => {
+    const root = createHypothesis('Root cause', 'Machine');
+    root.status = 'supported';
+    root.ideas = [
+      {
+        id: 'idea-1',
+        text: 'Simplify setup',
+        effort: 'low',
+        selected: true,
+        projection: { meanDelta: -0.5, sigmaDelta: -0.1 },
+        createdAt: '2026-03-15T00:00:00Z',
+      },
+    ];
+    const ctx = buildAIContext({
+      process: { problemStatement: 'Test' },
+      hypotheses: [root],
+    });
+    expect(ctx.investigation?.allHypotheses?.[0].ideas).toHaveLength(1);
+    expect(ctx.investigation?.allHypotheses?.[0].ideas?.[0].text).toBe('Simplify setup');
+    expect(ctx.investigation?.allHypotheses?.[0].ideas?.[0].selected).toBe(true);
+    expect(ctx.investigation?.allHypotheses?.[0].ideas?.[0].projection).toBeDefined();
+  });
+
+  it('includes methodology concepts in glossary fragment', () => {
+    const ctx = buildAIContext({});
+    expect(ctx.glossaryFragment).toContain('Methodology Concepts');
+    expect(ctx.glossaryFragment).toContain('Four Lenses');
   });
 
   it('detects investigation phase', () => {

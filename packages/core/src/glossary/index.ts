@@ -2,8 +2,28 @@
  * Glossary module exports
  */
 
-export type { GlossaryTerm, GlossaryCategory, GlossaryLocale } from './types';
+// Types
+export type {
+  GlossaryTerm,
+  GlossaryCategory,
+  GlossaryLocale,
+  ConceptCategory,
+  KnowledgeRelation,
+  Concept,
+  KnowledgeEntry,
+} from './types';
+export { isConcept, isGlossaryTerm } from './types';
+
+// Terms (vocabulary)
 export { glossaryTerms, glossaryMap, getTerm, getTermsByCategory, hasTerm } from './terms';
+
+// Concepts (methodology)
+export { concepts, conceptMap, getConcept } from './concepts';
+
+// Unified knowledge lookup
+export { allKnowledge, getEntry, hasEntry, getRelated, getReferencedBy } from './knowledge';
+
+// Prompt builder
 export { buildGlossaryPrompt } from './buildGlossaryPrompt';
 
 // Locale exports

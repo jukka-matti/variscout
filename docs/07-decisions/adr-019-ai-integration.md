@@ -60,6 +60,10 @@ The toggle persists per-user in AnalysisState/localStorage. Default: ON when end
 
 Deterministic suggestions remain the primary UI. AI adds natural language explanation rather than competing suggestions. If deterministic and AI disagree, the deterministic answer wins.
 
+### Methodology Grounding (added 2026-03-15)
+
+CoScout prompts are grounded in VariScout's own methodology (Four Lenses, Two Voices, Progressive Stratification) rather than generic SPC terminology. The knowledge model (`@variscout/core/glossary`) provides both vocabulary terms and methodology concepts to the AI system prompt, ensuring consistent use of VariScout's analytical framework. See [Knowledge Model Architecture](../05-technical/architecture/knowledge-model.md) and [AI Context Engineering](../05-technical/architecture/ai-context-engineering.md).
+
 ### Model-Agnostic via Azure AI Foundry
 
 Azure AI Foundry hosts both OpenAI and Anthropic models with a unified API. Customer chooses model during ARM deployment.

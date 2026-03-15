@@ -204,7 +204,7 @@ export {
   isEmbedMode,
 } from './urlParams';
 
-// Glossary
+// Glossary (vocabulary)
 export type { GlossaryTerm, GlossaryCategory, GlossaryLocale } from './glossary';
 export {
   glossaryTerms,
@@ -214,6 +214,12 @@ export {
   hasTerm,
   buildGlossaryPrompt,
 } from './glossary';
+
+// Knowledge Model (vocabulary + methodology concepts)
+export type { ConceptCategory, KnowledgeRelation, Concept, KnowledgeEntry } from './glossary';
+export { isConcept, isGlossaryTerm } from './glossary';
+export { concepts, conceptMap, getConcept } from './glossary';
+export { allKnowledge, getEntry, hasEntry, getRelated, getReferencedBy } from './glossary';
 
 // Formatting utilities
 export { formatPValue, getStars } from './format';

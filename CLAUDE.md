@@ -36,6 +36,7 @@ docs/
 ├── 01-vision/           # Product philosophy, Four Lenses, Two Voices methodology
 │   ├── index.md
 │   ├── philosophy.md
+│   ├── methodology.md   # VariScout Method single-page reference (Four Lenses, Two Voices, phases)
 │   ├── product-overview.md
 │   ├── progressive-stratification.md
 │   ├── market-analysis.md
@@ -71,7 +72,7 @@ docs/
 ├── 05-technical/        # Technical architecture
 │   ├── index.md
 │   ├── architecture.md
-│   ├── architecture/    # offline-first, monorepo, shared-packages, data-flow, component-patterns, ai-architecture, ai-readiness-review
+│   ├── architecture/    # offline-first, monorepo, shared-packages, data-flow, component-patterns, ai-architecture, ai-readiness-review, knowledge-model, ai-context-engineering
 │   ├── implementation/  # data-input, deployment, testing, system-limits, security-scanning, ruflo
 │   └── integrations/    # shared-ui, embed-messaging
 ├── 06-design-system/    # Design tokens and components
@@ -152,6 +153,9 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Teams SSO / OBO auth     | apps/azure/src/auth/graphToken.ts, docs/08-products/azure/authentication.md                                                                           |
 | EXIF / photo security    | packages/core/src/utils/exifStrip.ts, docs/07-decisions/adr-016-security-evaluation.md                                                                |
 | AI integration           | docs/07-decisions/adr-019-ai-integration.md, docs/05-technical/architecture/ai-architecture.md, docs/05-technical/architecture/ai-readiness-review.md |
+| Knowledge model/glossary | docs/05-technical/architecture/knowledge-model.md, packages/core/src/glossary/, docs/03-features/learning/glossary.md                                 |
+| AI context engineering   | docs/05-technical/architecture/ai-context-engineering.md, packages/core/src/ai/promptTemplates.ts                                                     |
+| VariScout methodology    | docs/01-vision/methodology.md, docs/01-vision/philosophy.md, docs/01-vision/four-lenses/                                                              |
 | AI components            | docs/06-design-system/components/ai-components.md, docs/03-features/workflows/ai-assisted-analysis.md                                                 |
 | Findings UI              | docs/06-design-system/components/findings.md, docs/03-features/workflows/investigation-to-action.md                                                   |
 | Investigation actions    | docs/07-decisions/adr-015-investigation-board.md, docs/03-features/workflows/investigation-to-action.md                                               |
@@ -290,6 +294,8 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/core/src/utils/exifStrip.ts`                           | Byte-level EXIF/GPS metadata stripping for photo evidence                                                     |
 | `apps/azure/src/teams/teamsMedia.ts`                             | Teams SDK camera wrapper (media.selectMedia)                                                                  |
 | `packages/core/src/ai/`                                          | AI module: buildAIContext, prompt templates, chart insight builders, suggested questions                      |
+| `packages/core/src/glossary/concepts.ts`                         | ~15 methodology concepts (Four Lenses, phases, principles) with typed relations                               |
+| `packages/core/src/glossary/knowledge.ts`                        | Unified knowledge lookup (getEntry, getRelated, getReferencedBy) across terms + concepts                      |
 | `apps/azure/src/services/aiService.ts`                           | AI Foundry integration: fetchNarration, fetchChartInsight, fetchCoScoutResponse/Streaming, localStorage cache |
 | `packages/hooks/src/useNarration.ts`                             | NarrativeBar state (loading, cached, error, refresh). Wraps fetchNarration                                    |
 | `packages/hooks/src/useChartInsights.ts`                         | Per-chart deterministic + AI-enhanced insight orchestration with debounced AI fallback                        |

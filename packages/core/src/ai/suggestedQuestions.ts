@@ -7,8 +7,8 @@ import type { AIContext } from './types';
 
 const FALLBACK_QUESTIONS = [
   'What does this analysis tell me?',
-  'What should I look at next?',
-  'How do I interpret the control chart?',
+  'Which lens should I look at next?',
+  'How do I interpret the Change Lens (I-Chart)?',
 ];
 
 const INVESTIGATION_FALLBACK_QUESTIONS = [
@@ -20,7 +20,7 @@ const INVESTIGATION_FALLBACK_QUESTIONS = [
 /** Phase-specific questions for hypothesis investigation */
 const PHASE_QUESTIONS: Record<string, string[]> = {
   initial: [
-    'What factors should I investigate first?',
+    'Which lens should I examine first?',
     'What does the data suggest about possible causes?',
   ],
   diverging: [
@@ -39,7 +39,7 @@ const PHASE_QUESTIONS: Record<string, string[]> = {
   ],
   acting: [
     'Are the corrective actions addressing the root cause?',
-    'What should we monitor to verify the fix?',
+    'What does the Value Lens show — is Cpk improving?',
   ],
 };
 
@@ -120,11 +120,24 @@ function buildInvestigationQuestions(context: AIContext): string[] {
 
     if (supported.length > 0 && inv.phase === 'converging') {
       // IDEOI-specific: improvement ideation for supported hypotheses
-      if (questions.length < 4) {
-        questions.push(`What improvement options could address "${supported[0].text}"?`);
-      }
-      if (supported[0].contribution !== undefined && questions.length < 5) {
-        questions.push(`How might we reduce variation from this factor?`);
+      const ideasOnSupported = supported[0].ideas;
+      if (ideasOnSupported && ideasOnSupported.length > 0) {
+        // Idea-aware questions when ideas exist
+        const firstIdea = ideasOnSupported[0];
+        if (questions.length < 4) {
+          questions.push(`Is the projected improvement from "${firstIdea.text}" realistic?`);
+        }
+        if (questions.length < 5) {
+          questions.push('Which idea has the best effort-to-impact ratio?');
+        }
+      } else {
+        // No ideas yet — prompt for ideation
+        if (questions.length < 4) {
+          questions.push(`What improvement options could address "${supported[0].text}"?`);
+        }
+        if (supported[0].contribution !== undefined && questions.length < 5) {
+          questions.push('How might we reduce variation from this factor?');
+        }
       }
     } else if (supported.length > 0 && questions.length < 4) {
       questions.push(`What actions would address "${supported[0].text}"?`);

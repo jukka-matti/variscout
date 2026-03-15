@@ -108,11 +108,16 @@ interface ProcessContext {
 - Phase 1: Auto-inferred factor roles + `description` text field in Settings
 - Phase 2: Optional "About your process" wizard (3-5 fields, dismissable, once per project)
 
-### Layer 3 — Glossary Grounding
+### Layer 3 — Knowledge Grounding (Glossary + Methodology Concepts)
 
-The glossary system (`packages/core/src/glossary/terms.ts`) provides domain term definitions injected into AI prompts via `buildGlossaryPrompt()`. This is the top validated strategy for reducing AI hallucination in specialized domains.
+The knowledge model (`packages/core/src/glossary/`) provides both domain term definitions and methodology concepts injected into AI prompts via `buildGlossaryPrompt({ includeConcepts: true })`. This is the top validated strategy for reducing AI hallucination in specialized domains.
 
-Current: 25 terms. Target: ~40-50 terms covering all SPC concepts referenced in AI output.
+The system includes:
+
+- **~41 vocabulary terms** across 6 categories (control-limits, capability, statistics, methodology, investigation, charts)
+- **~15 methodology concepts** across 3 categories (framework, phase, principle) — Four Lenses, Two Voices, Progressive Stratification, investigation phases
+
+CoScout prompts are grounded in VariScout's methodology rather than generic SPC terminology. See [Knowledge Model Architecture](knowledge-model.md) and [AI Context Engineering](ai-context-engineering.md) for details.
 
 ### Layer 4 — Team Documents (Azure AI Search, Phase 3)
 
@@ -312,6 +317,9 @@ The `buildAIContext()` function in `@variscout/core` is the structured bridge be
 
 ## See Also
 
+- [Knowledge Model Architecture](knowledge-model.md) — Unified term + concept registry
+- [AI Context Engineering](ai-context-engineering.md) — Three-tier prompt architecture
+- [VariScout Methodology](../../01-vision/methodology.md) — Human-readable methodology reference
 - [AI Readiness Review](ai-readiness-review.md) — Strategic architecture assessment
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Architectural decision
 - [AI-Assisted Analysis Workflow](../../03-features/workflows/ai-assisted-analysis.md) — User-facing workflow

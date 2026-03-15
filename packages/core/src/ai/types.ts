@@ -77,6 +77,11 @@ export interface AIContext {
       text: string;
       status: string;
       contribution?: number;
+      ideas?: Array<{
+        text: string;
+        selected?: boolean;
+        projection?: { meanDelta: number; sigmaDelta: number };
+      }>;
     }>;
     /** Hypothesis tree structure for investigation phase detection */
     hypothesisTree?: Array<{

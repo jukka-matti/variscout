@@ -168,9 +168,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     id: 'specialCause',
     label: 'Special Cause',
     definition:
-      'Variation due to unusual events or circumstances. Detected by points outside control limits or specific patterns (Nelson rules). Requires investigation.',
+      'Variation from unusual events — detected by points outside control limits or Nelson rule patterns. Signals something changed that requires investigation.',
     description:
-      'Special cause variation indicates something unusual happened in the process - a machine malfunction, operator error, material change, or other assignable cause. Unlike common cause variation (random, inherent), special causes are detectable, identifiable, and correctable. Red dots on control charts signal special cause - investigate and take action.',
+      'Special cause variation means something unusual happened in the process — a machine malfunction, operator error, material change, or other assignable cause. Unlike common cause variation (random, inherent), special causes are detectable, identifiable, and correctable. Red dots on the I-Chart (Change Lens) signal special cause — investigate and take action.',
     category: 'methodology',
     learnMorePath: '/learn/two-voices',
     relatedTerms: ['commonCause', 'ucl', 'lcl', 'nelsonRule2', 'nelsonRule3', 'inControl'],
@@ -179,9 +179,9 @@ export const glossaryTerms: GlossaryTerm[] = [
     id: 'commonCause',
     label: 'Common Cause',
     definition:
-      'Random variation inherent to a stable process. Points within control limits showing no special patterns. No action required.',
+      'Random variation inherent to a stable process. Points within control limits showing no special patterns — the process is predictable.',
     description:
-      'Common cause variation is the natural, random variation present in all stable processes. It results from many small, uncontrollable factors acting together. Points within control limits (blue dots) represent common cause - the process is predictable. Attempting to "fix" common cause leads to tampering and increased variation. Only special causes require action.',
+      'Common cause variation is the natural, random variation present in all stable processes. It results from many small, uncontrollable factors acting together. Blue dots on the I-Chart (Change Lens) represent common cause — the process is predictable. Attempting to "fix" common cause leads to tampering and increased variation. Only special causes require action.',
     category: 'methodology',
     learnMorePath: '/learn/two-voices',
     relatedTerms: ['specialCause', 'ucl', 'lcl', 'inControl'],
@@ -214,7 +214,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'A stable process where all points fall within control limits and show random variation. Only common cause variation present.',
     description:
-      'An in-control process is stable and predictable - all points within control limits (UCL/LCL), no special patterns detected. This means only common cause (random, inherent) variation is present. Important: In-control does NOT mean capable. A process can be in-control (stable) but still produce defects if control limits are wider than spec limits.',
+      'An in-control process is stable and predictable — all points within control limits (UCL/LCL), no special patterns detected. This means only common cause (random, inherent) variation is present. Important: in-control does NOT mean capable (stability before capability principle). A process can be in-control but still produce defects if control limits are wider than spec limits.',
     category: 'methodology',
     learnMorePath: '/learn/two-voices',
     relatedTerms: ['specialCause', 'commonCause', 'ucl', 'lcl'],
@@ -326,7 +326,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Whether a process is in statistical control — all points within control limits with no special patterns detected.',
     description:
-      'A stable process is predictable: future output will fall within the control limits. Stability is a prerequisite for meaningful capability analysis. An unstable process may produce good parts today but fail tomorrow.',
+      'A stable process is predictable: future output will fall within the control limits. Stability is a prerequisite for meaningful capability analysis (stability before capability). Assess stability through the Change Lens (I-Chart) before drawing conclusions from the Value Lens (Capability).',
     category: 'methodology',
     relatedTerms: ['inControl', 'specialCause', 'commonCause'],
   },
@@ -336,7 +336,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'A data point beyond control limits or exhibiting a Nelson rule pattern, signaling special cause variation.',
     description:
-      'Out-of-control signals (red points on the I-Chart) mean something unusual happened. This requires investigation — identify the assignable cause and take corrective action to restore stability.',
+      'Out-of-control signals (red points on the Change Lens) mean something unusual happened. This requires investigation — identify the assignable cause and take corrective action to restore stability.',
     category: 'methodology',
     relatedTerms: ['specialCause', 'nelsonRule2', 'inControl'],
   },
@@ -356,7 +356,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Separating data by factors (machine, shift, operator) to reveal hidden sources of variation.',
     description:
-      'Stratification is the core analytical technique in VariScout. By drilling down through factors, you decompose total variation into contributions from each source. The variation bar shows cumulative progress toward explaining total variation.',
+      "Stratification is the core analytical technique in VariScout. The Flow Lens (Boxplot) shows each factor's contribution to total variation. By drilling down through factors via progressive stratification, you decompose total variation step by step. The variation bar shows cumulative progress toward explaining total variation.",
     category: 'methodology',
     relatedTerms: ['rationalSubgrouping', 'etaSquared', 'totalSSContribution'],
   },
@@ -366,7 +366,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Systematic method to identify the fundamental reason a defect or variation occurred, not just its symptoms.',
     description:
-      'Root cause analysis goes beyond the immediate trigger to find the underlying system failure. In VariScout, the drill-down workflow and findings log support this process by capturing observations, suspected causes, and corrective actions.',
+      'Root cause analysis goes beyond the immediate trigger to find the underlying system failure. VariScout identifies WHERE variation concentrates (contribution, not causation) — root cause analysis answers WHY. The investigation workflow supports this through hypothesis validation, Gemba checks, and findings tracking.',
     category: 'investigation',
     relatedTerms: ['specialCause', 'finding', 'correctiveAction'],
   },

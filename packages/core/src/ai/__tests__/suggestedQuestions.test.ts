@@ -83,7 +83,7 @@ describe('buildSuggestedQuestions', () => {
   it('pads with fallbacks when few contextual questions', () => {
     const result = buildSuggestedQuestions(baseContext);
     expect(result).toContain('What does this analysis tell me?');
-    expect(result).toContain('What should I look at next?');
+    expect(result).toContain('Which lens should I look at next?');
   });
 
   it('does not duplicate fallback questions', () => {
@@ -147,7 +147,7 @@ describe('buildSuggestedQuestions', () => {
         },
       };
       const result = buildSuggestedQuestions(context);
-      expect(result).toContain('What factors should I investigate first?');
+      expect(result).toContain('Which lens should I examine first?');
     });
 
     it('returns acting questions when actions exist', () => {
@@ -160,6 +160,48 @@ describe('buildSuggestedQuestions', () => {
       };
       const result = buildSuggestedQuestions(context);
       expect(result).toContain('Are the corrective actions addressing the root cause?');
+      // Also check for Value Lens question
+      expect(result.some(q => q.includes('Value Lens') || q.includes('corrective actions'))).toBe(
+        true
+      );
+    });
+
+    it('returns idea-aware questions when converging with ideas', () => {
+      const context: AIContext = {
+        ...baseContext,
+        investigation: {
+          phase: 'converging',
+          allHypotheses: [
+            {
+              text: 'Night shift training gap',
+              status: 'supported',
+              ideas: [
+                { text: 'Simplify setup (visual guides)', selected: true },
+                { text: 'Train night shift operators' },
+              ],
+            },
+          ],
+        },
+      };
+      const result = buildSuggestedQuestions(context);
+      // Should include idea-specific questions instead of generic ideation
+      expect(result.some(q => q.includes('Simplify setup') || q.includes('effort-to-impact'))).toBe(
+        true
+      );
+    });
+
+    it('returns ideation questions when converging without ideas', () => {
+      const context: AIContext = {
+        ...baseContext,
+        investigation: {
+          phase: 'converging',
+          allHypotheses: [{ text: 'Root cause confirmed', status: 'supported' }],
+        },
+      };
+      const result = buildSuggestedQuestions(context);
+      expect(
+        result.some(q => q.includes('improvement options') || q.includes('reduce variation'))
+      ).toBe(true);
     });
   });
 });

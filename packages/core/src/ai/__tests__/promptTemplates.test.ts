@@ -258,13 +258,54 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt(undefined, {
       phase: 'diverging',
     });
-    expect(prompt).toContain('diverging');
-    expect(prompt).toContain('multiple hypotheses');
+    expect(prompt).toContain('Diverging Phase');
+    expect(prompt).toContain('exploring hypotheses');
   });
 
   it('does not add investigation section when no investigation context', () => {
     const prompt = buildCoScoutSystemPrompt();
     expect(prompt).not.toContain('Investigation context');
+  });
+
+  it('uses VariScout methodology, not SPC terminology for identity', () => {
+    const prompt = buildCoScoutSystemPrompt();
+    expect(prompt).not.toContain('Use standard SPC');
+    expect(prompt).toContain('Four Lenses');
+    expect(prompt).toContain('Two Voices');
+    expect(prompt).toContain('Progressive stratification');
+  });
+
+  it('includes improvement ideas when converging with supported hypotheses', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, {
+      phase: 'converging',
+      allHypotheses: [
+        {
+          text: 'Night shift training gap',
+          status: 'supported',
+          ideas: [
+            {
+              text: 'Simplify setup (visual guides)',
+              selected: true,
+              projection: { meanDelta: -0.5, sigmaDelta: -0.1 },
+            },
+            { text: 'Train night shift operators' },
+          ],
+        },
+      ],
+    });
+    expect(prompt).toContain('Simplify setup (visual guides)');
+    expect(prompt).toContain('[selected]');
+    expect(prompt).toContain('(projected)');
+    expect(prompt).toContain('Train night shift operators');
+    expect(prompt).toContain('Build on these');
+  });
+
+  it('does not include ideas section when no ideas exist', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, {
+      phase: 'converging',
+      allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+    });
+    expect(prompt).not.toContain('Existing improvement ideas');
   });
 });
 
