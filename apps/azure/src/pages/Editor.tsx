@@ -12,7 +12,13 @@ import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
 import { ColumnMapping, InvestigationPrompt, CoScoutPanelBase } from '@variscout/ui';
-import { useControlViolations, useAIContext, useNarration, useAICoScout } from '@variscout/hooks';
+import {
+  useControlViolations,
+  useAIContext,
+  useNarration,
+  useAICoScout,
+  useHypotheses,
+} from '@variscout/hooks';
 import {
   isTeamPlan,
   buildSuggestedQuestions,
@@ -106,6 +112,8 @@ export const Editor: React.FC<EditorProps> = ({
     setViewState,
     findings: persistedFindings,
     setFindings: setPersistedFindings,
+    hypotheses: persistedHypotheses,
+    setHypotheses: setPersistedHypotheses,
     currentProjectLocation,
     saveProject,
     loadProject,
@@ -314,14 +322,31 @@ export const Editor: React.FC<EditorProps> = ({
       location: currentProjectLocation,
     });
 
+  // Hypothesis CRUD (causal theories linked to findings)
+  const hypothesesState = useHypotheses({
+    initialHypotheses: persistedHypotheses,
+    onHypothesesChange: setPersistedHypotheses,
+    findings: findingsState.findings,
+  });
+
+  // Build hypothesesMap for FindingCard display
+  const hypothesesMap = useMemo(() => {
+    const map: Record<string, { text: string; status: string; factor?: string; level?: string }> =
+      {};
+    for (const h of hypothesesState.hypotheses) {
+      map[h.id] = { text: h.text, status: h.status, factor: h.factor, level: h.level };
+    }
+    return map;
+  }, [hypothesesState.hypotheses]);
+
   // Hypothesis creation from finding cards (creates hypothesis + links to finding)
   const handleCreateHypothesis = useCallback(
-    (findingId: string, text: string, _factor?: string, _level?: string) => {
-      // For now, store hypothesis text as a comment on the finding
-      // Full hypothesis CRUD will be wired when DataContext exposes hypotheses state
-      findingsState.addFindingComment(findingId, `Hypothesis: ${text}`);
+    (findingId: string, text: string, factor?: string, level?: string) => {
+      const hypothesis = hypothesesState.addHypothesis(text, factor, level);
+      hypothesesState.linkFinding(hypothesis.id, findingId);
+      findingsState.linkHypothesis(findingId, hypothesis.id);
     },
-    [findingsState]
+    [hypothesesState, findingsState]
   );
 
   // Control violations for DataPanel annotations
@@ -734,6 +759,19 @@ export const Editor: React.FC<EditorProps> = ({
                     isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
                   }
                   onCreateHypothesis={handleCreateHypothesis}
+                  hypothesesMap={hypothesesMap}
+                  hypotheses={hypothesesState.hypotheses}
+                  onSelectHypothesis={h => {
+                    if (h.factor && h.level) {
+                      setFilters({ [h.factor]: [h.level] });
+                    }
+                  }}
+                  onAddSubHypothesis={parentId => {
+                    // Stub: will be wired to a modal in a future increment
+                    const text = prompt('Sub-hypothesis:');
+                    if (text) hypothesesState.addSubHypothesis(parentId, text);
+                  }}
+                  getChildrenSummary={hypothesesState.getChildrenSummary}
                   onAddAction={findingsState.addAction}
                   onCompleteAction={findingsState.completeAction}
                   onDeleteAction={findingsState.deleteAction}

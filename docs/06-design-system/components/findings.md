@@ -369,6 +369,139 @@ Components use the standard `colorScheme` pattern with `defaultColorScheme` (sem
 
 ---
 
+## HypothesisTreeView
+
+Renders a finding's hypothesis tree with indented nodes, status indicators, and validation type icons. Replaces the flat hypothesis display when sub-hypotheses exist.
+
+**Source:** `packages/ui/src/components/FindingsLog/HypothesisTreeView.tsx`
+
+### Props
+
+```typescript
+interface HypothesisTreeViewProps {
+  hypotheses: Hypothesis[];
+  findingId: string;
+  onCreateChild: (parentId: string) => void;
+  onUpdateStatus: (id: string, status: HypothesisStatus) => void;
+  onSetValidationType: (id: string, type: 'data' | 'gemba' | 'expert') => void;
+  onSetTask: (id: string, task: string) => void;
+  onCompleteTask: (id: string) => void;
+  onSetNote: (id: string, note: string) => void;
+  onDelete: (id: string) => void;
+  maxDepth?: number; // default: 3
+  maxChildren?: number; // default: 8
+  maxTotal?: number; // default: 30
+  colorScheme?: HypothesisTreeColorScheme;
+}
+```
+
+### Layout
+
+```
+┌──────────────────────────────────────────────┐
+│  Hypotheses                          [+ Add] │
+│                                              │
+│  ● Machine 5 is causing drift        [data]  │
+│    ├── ● Worn nozzle tip           [gemba]   │
+│    │     Task: Check nozzle wear   [Done]    │
+│    │     "Worn 0.3mm beyond spec"            │
+│    ├── ● Temperature instability     [data]  │
+│    │     Factor: Temperature  eta=23%        │
+│    │     > 2 children (1 supported)          │
+│    └── x Operator technique variance [data]  │
+│          Factor: Operator  eta=3%            │
+│                                              │
+│  Progress: 2/3 tested, 1 contradicted        │
+└──────────────────────────────────────────────┘
+```
+
+### Tree View Mode
+
+FindingsLog gains a third view mode alongside List and Board:
+
+| Mode  | Icon      | Layout                                       |
+| ----- | --------- | -------------------------------------------- |
+| List  | List      | Scrollable cards (existing)                  |
+| Board | Columns   | Status columns with drag-and-drop (existing) |
+| Tree  | GitBranch | Hypothesis tree per finding (new)            |
+
+Tree view shows one finding at a time with its full hypothesis tree. Navigate between findings with prev/next arrows above the tree.
+
+### Tree Constraints
+
+| Constraint   | Limit | Error Message When Exceeded                 |
+| ------------ | ----- | ------------------------------------------- |
+| Max depth    | 3     | "Maximum hypothesis depth reached"          |
+| Max children | 8     | "Maximum sub-hypotheses per parent reached" |
+| Max total    | 30    | "Maximum hypotheses per finding reached"    |
+
+---
+
+## HypothesisNode
+
+Individual tree node component rendering a single hypothesis with its status, metadata, and interaction controls.
+
+**Source:** `packages/ui/src/components/FindingsLog/HypothesisNode.tsx`
+
+### Props
+
+```typescript
+interface HypothesisNodeProps {
+  hypothesis: Hypothesis;
+  depth: number;
+  childCount: number;
+  supportedChildCount: number;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+  onCreateChild: () => void;
+  onUpdateStatus: (status: HypothesisStatus) => void;
+  onSetValidationType: (type: 'data' | 'gemba' | 'expert') => void;
+  onSetTask: (task: string) => void;
+  onCompleteTask: () => void;
+  onSetNote: (note: string) => void;
+  onDelete: () => void;
+  canAddChild: boolean;
+  colorScheme?: HypothesisNodeColorScheme;
+}
+```
+
+### Rendering Spec
+
+| Element              | Spec                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------- |
+| Indentation          | `depth * 24px` left padding. Tree lines via `border-l` with connectors                      |
+| Status dot           | 8px circle. Colors: amber (untested), blue (partial), green (supported), red (contradicted) |
+| Hypothesis text      | Editable inline. Bold for root (`depth === 0`), normal for children                         |
+| Factor badge         | Blue pill: factor name + eta-squared %. Only shown for data-type hypotheses                 |
+| Validation type icon | 16px icon after text. Chart (data), Factory (gemba), User (expert)                          |
+| Task row             | Below node, indented. Task description + checkbox. Gemba/expert only                        |
+| Manual note          | Below task. Italic, `text-content-secondary`. Gemba/expert only                             |
+| Children summary     | "N children (M supported)" when collapsed and node has children                             |
+| Contradicted styling | `opacity-50` + `line-through` on hypothesis text                                            |
+| Add child button     | Small "+" icon (16px) at end of node row. Hidden when `canAddChild` false                   |
+| Delete button        | Trash icon on hover. Confirms before deleting nodes with children                           |
+
+### Validation Type Icons
+
+| Type   | Icon    | Color             |
+| ------ | ------- | ----------------- |
+| Data   | Chart   | `text-blue-500`   |
+| Gemba  | Factory | `text-amber-500`  |
+| Expert | User    | `text-purple-500` |
+
+### Status Colors
+
+Uses the same palette as HypothesisStatus (distinct from FindingStatus):
+
+| Status       | Color | Hex       |
+| ------------ | ----- | --------- |
+| Untested     | Amber | `#f59e0b` |
+| Partial      | Blue  | `#3b82f6` |
+| Supported    | Green | `#22c55e` |
+| Contradicted | Red   | `#ef4444` |
+
+---
+
 ## See Also
 
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — Workflow documentation

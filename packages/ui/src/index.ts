@@ -199,6 +199,8 @@ export {
   FindingStatusBadge,
   FindingComments,
   FindingBoardView,
+  HypothesisTreeView,
+  HypothesisNode,
   copyFindingsToClipboard,
   formatFindingsText,
   type FindingsLogProps,
@@ -207,6 +209,8 @@ export {
   type FindingStatusBadgeProps,
   type FindingCommentsProps,
   type FindingBoardViewProps,
+  type HypothesisTreeViewProps,
+  type HypothesisNodeProps,
 } from './components/FindingsLog';
 
 export {

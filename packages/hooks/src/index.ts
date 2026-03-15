@@ -139,6 +139,10 @@ export { useFindings, type UseFindingsOptions, type UseFindingsReturn } from './
 // Hypotheses (causal theories linked to findings)
 export {
   useHypotheses,
+  MAX_HYPOTHESIS_DEPTH,
+  MAX_CHILDREN_PER_PARENT,
+  MAX_TOTAL_HYPOTHESES,
+  type ChildrenSummary,
   type UseHypothesesOptions,
   type UseHypothesesReturn,
 } from './useHypotheses';

@@ -198,6 +198,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Findings
       findings: state.findings,
 
+      // Hypotheses
+      hypotheses: state.hypotheses,
+
       // Azure-specific state
       currentProjectLocation,
       syncStatus,
@@ -248,10 +251,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearSelection: actions.clearSelection,
       togglePointSelection: actions.togglePointSelection,
 
-      // Filter stack / view state / findings setters
+      // Filter stack / view state / findings / hypotheses setters
       setFilterStack: actions.setFilterStack,
       setViewState: actions.setViewState,
       setFindings: actions.setFindings,
+      setHypotheses: actions.setHypotheses,
 
       // AI
       setProcessContext,

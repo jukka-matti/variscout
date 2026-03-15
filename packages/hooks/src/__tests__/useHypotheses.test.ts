@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useHypotheses } from '../useHypotheses';
+import { useHypotheses, MAX_CHILDREN_PER_PARENT, MAX_TOTAL_HYPOTHESES } from '../useHypotheses';
 import { createHypothesis } from '@variscout/core';
 import type { AnovaResult } from '@variscout/core';
 
@@ -193,6 +193,218 @@ describe('useHypotheses', () => {
         useHypotheses({ initialHypotheses: [h], anovaByFactor: anova })
       );
       expect(result.current.hypotheses[0].status).toBe('untested');
+    });
+
+    it('skips auto-validation for gemba hypotheses', () => {
+      const h = createHypothesis('Gemba check', 'Machine', undefined, undefined, 'gemba');
+      const anova = { Machine: makeAnova(0.3) };
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [h], anovaByFactor: anova })
+      );
+      expect(result.current.hypotheses[0].status).toBe('untested');
+    });
+
+    it('skips auto-validation for expert hypotheses', () => {
+      const h = createHypothesis('Expert opinion', 'Machine', undefined, undefined, 'expert');
+      h.status = 'supported'; // manually set
+      const anova = { Machine: makeAnova(0.02) }; // would be contradicted if data-type
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [h], anovaByFactor: anova })
+      );
+      expect(result.current.hypotheses[0].status).toBe('supported');
+    });
+  });
+
+  describe('sub-hypotheses', () => {
+    it('adds a sub-hypothesis under a parent', () => {
+      const parent = createHypothesis('Root cause');
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: [parent] }));
+      act(() => {
+        result.current.addSubHypothesis(parent.id, 'Sub cause', 'Machine', 'A', 'data');
+      });
+      expect(result.current.hypotheses).toHaveLength(2);
+      expect(result.current.hypotheses[1].parentId).toBe(parent.id);
+      expect(result.current.hypotheses[1].validationType).toBe('data');
+    });
+
+    it('returns null for non-existent parent', () => {
+      const { result } = renderHook(() => useHypotheses());
+      let sub: ReturnType<typeof result.current.addSubHypothesis> = null;
+      act(() => {
+        sub = result.current.addSubHypothesis('nonexistent', 'Sub');
+      });
+      expect(sub).toBeNull();
+      expect(result.current.hypotheses).toHaveLength(0);
+    });
+
+    it('enforces max depth constraint', () => {
+      // Build a chain of max depth
+      const root = createHypothesis('L0');
+      const l1 = createHypothesis('L1', undefined, undefined, root.id);
+      const l2 = createHypothesis('L2', undefined, undefined, l1.id);
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: [root, l1, l2] }));
+      // L2 is at depth 2, adding child would be depth 3 which is >= MAX_HYPOTHESIS_DEPTH - 1
+      let sub: ReturnType<typeof result.current.addSubHypothesis> = null;
+      act(() => {
+        sub = result.current.addSubHypothesis(l2.id, 'Too deep');
+      });
+      expect(sub).toBeNull();
+    });
+
+    it('enforces max children constraint', () => {
+      const parent = createHypothesis('Root');
+      const children = Array.from({ length: MAX_CHILDREN_PER_PARENT }, (_, i) =>
+        createHypothesis(`Child ${i}`, undefined, undefined, parent.id)
+      );
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [parent, ...children] })
+      );
+      let sub: ReturnType<typeof result.current.addSubHypothesis> = null;
+      act(() => {
+        sub = result.current.addSubHypothesis(parent.id, 'One too many');
+      });
+      expect(sub).toBeNull();
+    });
+  });
+
+  describe('tree navigation', () => {
+    const root = createHypothesis('Root');
+    const child1 = createHypothesis('Child 1', undefined, undefined, root.id);
+    const child2 = createHypothesis('Child 2', undefined, undefined, root.id);
+    const grandchild = createHypothesis('Grandchild', undefined, undefined, child1.id);
+    const allHypotheses = [root, child1, child2, grandchild];
+
+    it('getChildren returns direct children', () => {
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: allHypotheses }));
+      expect(result.current.getChildren(root.id)).toHaveLength(2);
+      expect(result.current.getChildren(child1.id)).toHaveLength(1);
+      expect(result.current.getChildren(child2.id)).toHaveLength(0);
+    });
+
+    it('getRoots returns only root hypotheses', () => {
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: allHypotheses }));
+      const roots = result.current.getRoots();
+      expect(roots).toHaveLength(1);
+      expect(roots[0].text).toBe('Root');
+    });
+
+    it('getAncestors returns chain from root to parent', () => {
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: allHypotheses }));
+      const ancestors = result.current.getAncestors(grandchild.id);
+      expect(ancestors).toHaveLength(2);
+      expect(ancestors[0].text).toBe('Root');
+      expect(ancestors[1].text).toBe('Child 1');
+    });
+
+    it('getDepth returns correct depth', () => {
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: allHypotheses }));
+      expect(result.current.getDepth(root.id)).toBe(0);
+      expect(result.current.getDepth(child1.id)).toBe(1);
+      expect(result.current.getDepth(grandchild.id)).toBe(2);
+    });
+  });
+
+  describe('cascade delete', () => {
+    it('deletes hypothesis and all descendants', () => {
+      const root = createHypothesis('Root');
+      root.linkedFindingIds = ['f-root'];
+      const child = createHypothesis('Child', undefined, undefined, root.id);
+      child.linkedFindingIds = ['f-child'];
+      const grandchild = createHypothesis('GC', undefined, undefined, child.id);
+      grandchild.linkedFindingIds = ['f-gc'];
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [root, child, grandchild] })
+      );
+
+      let unlinked: string[] = [];
+      act(() => {
+        unlinked = result.current.deleteHypothesis(root.id);
+      });
+      expect(result.current.hypotheses).toHaveLength(0);
+      expect(unlinked).toEqual(expect.arrayContaining(['f-root', 'f-child', 'f-gc']));
+    });
+
+    it('deletes only subtree, leaves siblings', () => {
+      const root = createHypothesis('Root');
+      const child1 = createHypothesis('Keep', undefined, undefined, root.id);
+      const child2 = createHypothesis('Delete', undefined, undefined, root.id);
+      const gc = createHypothesis('GC of Delete', undefined, undefined, child2.id);
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [root, child1, child2, gc] })
+      );
+
+      act(() => {
+        result.current.deleteHypothesis(child2.id);
+      });
+      expect(result.current.hypotheses).toHaveLength(2); // root + child1
+      expect(result.current.hypotheses.map(h => h.text)).toEqual(['Root', 'Keep']);
+    });
+  });
+
+  describe('gemba/expert validation', () => {
+    it('setValidationTask updates task text', () => {
+      const h = createHypothesis('Gemba check', 'Machine', undefined, undefined, 'gemba');
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: [h] }));
+      act(() => {
+        result.current.setValidationTask(h.id, 'Go check Machine 5 nozzle');
+      });
+      expect(result.current.hypotheses[0].validationTask).toBe('Go check Machine 5 nozzle');
+    });
+
+    it('completeTask marks task as completed', () => {
+      const h = createHypothesis('Gemba check', 'Machine', undefined, undefined, 'gemba');
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: [h] }));
+      act(() => {
+        result.current.completeTask(h.id);
+      });
+      expect(result.current.hypotheses[0].taskCompleted).toBe(true);
+    });
+
+    it('setManualStatus updates status and note', () => {
+      const h = createHypothesis('Expert opinion', undefined, undefined, undefined, 'expert');
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: [h] }));
+      act(() => {
+        result.current.setManualStatus(h.id, 'supported', 'Expert confirmed nozzle wear pattern');
+      });
+      expect(result.current.hypotheses[0].status).toBe('supported');
+      expect(result.current.hypotheses[0].manualNote).toBe('Expert confirmed nozzle wear pattern');
+    });
+  });
+
+  describe('getChildrenSummary', () => {
+    it('returns correct counts', () => {
+      const parent = createHypothesis('Root');
+      const c1 = createHypothesis('Supported', 'Machine', undefined, parent.id);
+      const c2 = createHypothesis('Contradicted', 'Shift', undefined, parent.id);
+      const c3 = createHypothesis('Untested', undefined, undefined, parent.id);
+      const anova = {
+        Machine: makeAnova(0.2), // supported
+        Shift: makeAnova(0.03), // contradicted
+      };
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [parent, c1, c2, c3], anovaByFactor: anova })
+      );
+      const summary = result.current.getChildrenSummary(parent.id);
+      expect(summary.supported).toBe(1);
+      expect(summary.contradicted).toBe(1);
+      expect(summary.untested).toBe(1);
+      expect(summary.partial).toBe(0);
+      expect(summary.total).toBe(3);
+    });
+  });
+
+  describe('isAtCapacity', () => {
+    it('returns false when under limit', () => {
+      const { result } = renderHook(() => useHypotheses());
+      expect(result.current.isAtCapacity).toBe(false);
+    });
+
+    it('returns true at capacity', () => {
+      const many = Array.from({ length: MAX_TOTAL_HYPOTHESES }, (_, i) =>
+        createHypothesis(`H${i}`)
+      );
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: many }));
+      expect(result.current.isAtCapacity).toBe(true);
     });
   });
 });

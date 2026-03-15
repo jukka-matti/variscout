@@ -156,7 +156,7 @@ export interface ViewState {
   focusedChart?: 'ichart' | 'boxplot' | 'pareto' | null;
   boxplotFactor?: string;
   paretoFactor?: string;
-  findingsViewMode?: 'list' | 'board';
+  findingsViewMode?: 'list' | 'board' | 'tree';
 }
 
 /**

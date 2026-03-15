@@ -33,6 +33,16 @@ Implement a complete Problem -> Hypothesis -> Evidence -> Projection -> Action -
 
 7. **Everything works without AI** — The entire flow is deterministic math + manual input. AI enhances each step (hypothesis text parsing, suggested questions, investigation narration) but is never required.
 
+8. **parentId and sub-hypothesis tree** — Hypotheses gain a `parentId` field (nullable) enabling tree structures. Root hypotheses have `parentId: null`; sub-hypotheses reference their parent. Tree constraints prevent runaway complexity: max depth 3, max children per parent 8, max total per finding 30. Status propagation flows upward — when all children are tested, the parent status is derived from children's states (all contradicted = contradicted, any supported = supported, mix = partial).
+
+9. **validationType: data/gemba/expert** — Not all hypotheses can be validated with data. The `validationType` field distinguishes between automatic data validation (ANOVA eta-squared, existing behavior), gemba validation (physical inspection task), and expert validation (domain knowledge assessment). Data validation is automatic; gemba and expert validation require manual status setting after task completion.
+
+10. **Gemba task completion flow** — Gemba and expert hypotheses carry optional `validationTask` (what to check), `taskCompleted` (boolean), and `manualNote` (what was found) fields. The flow is: define task, perform inspection/consultation, mark complete, record findings, set status. No due dates on tasks — keeping it simple. Tasks are binary (done/not done).
+
+11. **HypothesisTreeView UI** — When a finding has sub-hypotheses, the flat hypothesis display is replaced by `HypothesisTreeView` — an indented tree with status dots, factor badges, validation type icons, and collapsible children. Contradicted nodes are rendered at 50% opacity with strikethrough text. FindingsLog gains a third view mode (Tree) alongside List and Board. Tree view shows one finding at a time with full hypothesis tree.
+
+12. **CoScout investigation phase detection** — The investigation phase (initial, diverging, validating, converging, acting) is automatically detected from hypothesis tree state and included in `buildAIContext`. CoScout adapts suggested questions to the phase and highlights uncovered factor role categories (equipment, temporal, operator, material, location) to nudge broader investigation. The popout FindingsWindow gains a collapsible CoScout sidebar showing phase and suggestions.
+
 ### Platform Scope
 
 - **Azure App:** Full implementation (brief, hypotheses, projections, progress tracking, investigation page)
@@ -67,11 +77,15 @@ Implement a complete Problem -> Hypothesis -> Evidence -> Projection -> Action -
 
 ### Modified Files
 
-- `packages/core/src/findings.ts` — Hypothesis type, FindingProjection, createHypothesis()
-- `packages/core/src/ai/types.ts` — ProcessContext extension, TargetMetric, AIContext.investigation
-- `packages/core/src/ai/buildAIContext.ts` — Investigation context assembly
-- `packages/core/src/ai/suggestedQuestions.ts` — Investigation-scoped questions
+- `packages/core/src/findings.ts` — Hypothesis type (parentId, validationType, validationTask, taskCompleted, manualNote), FindingProjection, createHypothesis()
+- `packages/core/src/ai/types.ts` — ProcessContext extension, TargetMetric, InvestigationPhase, AIContext.investigation
+- `packages/core/src/ai/buildAIContext.ts` — Investigation context assembly, phase detection, uncovered factor suggestions
+- `packages/core/src/ai/suggestedQuestions.ts` — Investigation-scoped and phase-aware questions
 - `packages/hooks/src/types.ts` — AnalysisState.hypotheses
 - `packages/hooks/src/useFindings.ts` — linkHypothesis, setProjection (replaces setSuspectedCause)
-- `packages/ui/src/components/FindingsLog/` — Hypothesis display/link UI
+- `packages/hooks/src/useHypotheses.ts` — Tree operations (addChild, setValidationType, setTask, completeTask, setNote), constraints, status propagation
+- `packages/ui/src/components/FindingsLog/` — Hypothesis display/link UI, tree view mode
+- `packages/ui/src/components/FindingsLog/HypothesisTreeView.tsx` — New: hypothesis tree view with collapsible nodes
+- `packages/ui/src/components/FindingsLog/HypothesisNode.tsx` — New: individual tree node with status, badges, validation type
+- `packages/ui/src/components/FindingsLog/FindingsWindow.tsx` — Problem brief header, CoScout sidebar
 - `packages/ui/src/components/FindingsPanel/` — Updated props

@@ -24,6 +24,7 @@ import type {
   ChannelPerformanceData,
   FilterAction,
   Finding,
+  Hypothesis,
 } from '@variscout/core';
 import type {
   DisplayOptions,
@@ -119,6 +120,9 @@ export interface DataState {
 
   // Findings (analyst's scouting report — bookmarked filter states with notes)
   findings: Finding[];
+
+  // Hypotheses (causal theories linked to findings)
+  hypotheses: Hypothesis[];
 }
 
 export interface DataActions {
@@ -175,6 +179,9 @@ export interface DataActions {
 
   // Findings
   setFindings: (findings: Finding[]) => void;
+
+  // Hypotheses
+  setHypotheses: (hypotheses: Hypothesis[]) => void;
 
   // Persistence methods
   saveProject: (name: string) => Promise<SavedProject>;
@@ -257,6 +264,9 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
 
   // Findings (scouting report — persisted with project)
   const [findings, setFindings] = useState<Finding[]>([]);
+
+  // Hypotheses (causal theories — persisted with project)
+  const [hypotheses, setHypotheses] = useState<Hypothesis[]>([]);
 
   // Multi-point selection (Minitab-style brushing)
   const [selectedPoints, setSelectedPoints] = useState<Set<number>>(new Set());
@@ -409,6 +419,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     filterStack,
     viewState,
     findings,
+    hypotheses,
     setRawData,
     setOutcome,
     setFactors,
@@ -440,6 +451,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
     setFilterStack,
     setViewState,
     setFindings,
+    setHypotheses,
   });
 
   // ---------------------------------------------------------------------------
@@ -489,6 +501,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       filterStack,
       viewState,
       findings,
+      hypotheses,
     }),
     [
       rawData,
@@ -532,6 +545,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       filterStack,
       viewState,
       findings,
+      hypotheses,
     ]
   );
 
@@ -567,6 +581,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setFilterStack,
       setViewState,
       setFindings,
+      setHypotheses,
       setSelectedPoints,
       addToSelection,
       removeFromSelection,
@@ -612,6 +627,7 @@ export function useDataState(options: UseDataStateOptions): [DataState, DataActi
       setFilterStack,
       setViewState,
       setFindings,
+      setHypotheses,
       setSelectedPoints,
       addToSelection,
       removeFromSelection,

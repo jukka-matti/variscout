@@ -1,8 +1,9 @@
 import React from 'react';
 import { Pin } from 'lucide-react';
-import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
+import type { Finding, FindingStatus, FindingTag, Hypothesis } from '@variscout/core';
 import FindingCard from './FindingCard';
 import FindingBoardView from './FindingBoardView';
+import HypothesisTreeView from './HypothesisTreeView';
 
 export interface FindingsLogProps {
   /** List of findings to display */
@@ -17,8 +18,22 @@ export interface FindingsLogProps {
   columnAliases?: Record<string, string>;
   /** ID of the finding that matches current active filters (if any) */
   activeFindingId?: string | null;
-  /** View mode: 'list' (flat) or 'board' (grouped by status) */
-  viewMode?: 'list' | 'board';
+  /** View mode: 'list' (flat), 'board' (grouped by status), or 'tree' (hypothesis tree) */
+  viewMode?: 'list' | 'board' | 'tree';
+  /** All hypotheses for tree view */
+  hypotheses?: Hypothesis[];
+  /** Callback when a hypothesis node is selected in tree view */
+  onSelectHypothesis?: (hypothesis: Hypothesis) => void;
+  /** Add a sub-hypothesis under a parent */
+  onAddSubHypothesis?: (parentId: string) => void;
+  /** Get children summary for tree display */
+  getChildrenSummary?: (parentId: string) => {
+    supported: number;
+    contradicted: number;
+    untested: number;
+    partial: number;
+    total: number;
+  };
   /** Change finding investigation status */
   onSetFindingStatus?: (id: string, status: FindingStatus) => void;
   /** Set a finding's classification tag */
@@ -82,6 +97,10 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   columnAliases,
   activeFindingId,
   viewMode = 'list',
+  hypotheses,
+  onSelectHypothesis,
+  onAddSubHypothesis,
+  getChildrenSummary,
   onSetFindingStatus,
   onSetFindingTag,
   onAddComment,
@@ -115,6 +134,18 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           bar to save your current view.
         </p>
       </div>
+    );
+  }
+
+  if (viewMode === 'tree' && hypotheses) {
+    return (
+      <HypothesisTreeView
+        hypotheses={hypotheses}
+        findings={findings}
+        onSelectHypothesis={onSelectHypothesis}
+        onAddSubHypothesis={onAddSubHypothesis}
+        getChildrenSummary={getChildrenSummary}
+      />
     );
   }
 

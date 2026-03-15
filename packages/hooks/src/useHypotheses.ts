@@ -5,7 +5,33 @@ import {
   type Finding,
   type Hypothesis,
   type HypothesisStatus,
+  type HypothesisValidationType,
 } from '@variscout/core';
+
+// ============================================================================
+// Tree constraints
+// ============================================================================
+
+/** Maximum depth of hypothesis sub-tree (0 = root, 1 = child, 2 = grandchild) */
+export const MAX_HYPOTHESIS_DEPTH = 3;
+
+/** Maximum children per parent hypothesis */
+export const MAX_CHILDREN_PER_PARENT = 8;
+
+/** Soft warning threshold for total hypotheses per investigation */
+export const MAX_TOTAL_HYPOTHESES = 30;
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export interface ChildrenSummary {
+  supported: number;
+  contradicted: number;
+  untested: number;
+  partial: number;
+  total: number;
+}
 
 export interface UseHypothesesOptions {
   /** Initial hypotheses (for restoring persisted state) */
@@ -21,15 +47,23 @@ export interface UseHypothesesOptions {
 export interface UseHypothesesReturn {
   /** Current hypotheses list */
   hypotheses: Hypothesis[];
-  /** Add a new hypothesis */
+  /** Add a new root hypothesis */
   addHypothesis: (text: string, factor?: string, level?: string) => Hypothesis;
+  /** Add a sub-hypothesis under a parent */
+  addSubHypothesis: (
+    parentId: string,
+    text: string,
+    factor?: string,
+    level?: string,
+    validationType?: HypothesisValidationType
+  ) => Hypothesis | null;
   /** Edit a hypothesis */
   editHypothesis: (
     id: string,
     updates: Partial<Pick<Hypothesis, 'text' | 'factor' | 'level'>>
   ) => void;
-  /** Delete a hypothesis and clear links from findings */
-  deleteHypothesis: (id: string) => string[]; // Returns finding IDs that were unlinked
+  /** Delete a hypothesis and all descendants, clear links from findings */
+  deleteHypothesis: (id: string) => string[];
   /** Link a finding to a hypothesis */
   linkFinding: (hypothesisId: string, findingId: string) => void;
   /** Unlink a finding from a hypothesis */
@@ -38,6 +72,24 @@ export interface UseHypothesesReturn {
   getHypothesis: (id: string) => Hypothesis | undefined;
   /** Get hypotheses linked to a specific factor */
   getByFactor: (factor: string) => Hypothesis[];
+  /** Get direct children of a hypothesis */
+  getChildren: (parentId: string) => Hypothesis[];
+  /** Get root-level hypotheses (no parent) */
+  getRoots: () => Hypothesis[];
+  /** Get ancestor chain from root to the given hypothesis (excluding self) */
+  getAncestors: (id: string) => Hypothesis[];
+  /** Get depth of a hypothesis in the tree (root = 0) */
+  getDepth: (id: string) => number;
+  /** Set validation task description */
+  setValidationTask: (id: string, task: string) => void;
+  /** Mark a gemba/expert task as completed */
+  completeTask: (id: string) => void;
+  /** Manually set hypothesis status with a note (for gemba/expert validation) */
+  setManualStatus: (id: string, status: HypothesisStatus, note?: string) => void;
+  /** Get children summary counts for a parent hypothesis */
+  getChildrenSummary: (parentId: string) => ChildrenSummary;
+  /** Whether the max total hypothesis count has been reached */
+  isAtCapacity: boolean;
 }
 
 /** Eta-squared thresholds for auto-validation */
@@ -46,11 +98,17 @@ const ETA_CONTRADICTED = 0.05;
 
 /**
  * Compute hypothesis status from ANOVA eta-squared for the linked factor.
+ * Only applies to data-validated hypotheses (validationType undefined or 'data').
  */
 function computeStatus(
   hypothesis: Hypothesis,
   anovaByFactor?: Record<string, AnovaResult>
 ): HypothesisStatus {
+  // Non-data validation types keep their manually set status
+  if (hypothesis.validationType && hypothesis.validationType !== 'data') {
+    return hypothesis.status;
+  }
+
   if (!hypothesis.factor || !anovaByFactor) return 'untested';
   const anova = anovaByFactor[hypothesis.factor];
   if (!anova) return 'untested';
@@ -62,20 +120,37 @@ function computeStatus(
 }
 
 /**
+ * Get the depth of a hypothesis in the tree.
+ */
+function getHypothesisDepth(id: string, hypotheses: Hypothesis[]): number {
+  let depth = 0;
+  let current = hypotheses.find(h => h.id === id);
+  while (current?.parentId) {
+    depth++;
+    current = hypotheses.find(h => h.id === current!.parentId);
+    if (depth > MAX_HYPOTHESIS_DEPTH + 1) break; // safety
+  }
+  return depth;
+}
+
+/**
  * Manages causal hypotheses — shared theories that findings can reference.
  *
+ * Supports tree structure via parentId for sub-hypothesis investigation.
  * Hypotheses are auto-validated when linked to a factor with ANOVA results:
  * - eta² >= 15% → supported
  * - eta² < 5% → contradicted
  * - 5-15% → partial
  * - No factor linked → untested
+ *
+ * Non-data validation types (gemba/expert) keep their manually set status.
  */
 export function useHypotheses(options: UseHypothesesOptions = {}): UseHypothesesReturn {
   const { initialHypotheses, onHypothesesChange, anovaByFactor } = options;
 
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>(initialHypotheses ?? []);
 
-  // Auto-validate statuses when ANOVA changes
+  // Auto-validate statuses when ANOVA changes (data-validated only)
   const validatedHypotheses = useMemo(() => {
     return hypotheses.map(h => {
       const computed = computeStatus(h, anovaByFactor);
@@ -85,17 +160,7 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     });
   }, [hypotheses, anovaByFactor]);
 
-  // Sync validated statuses back if changed
-  useMemo(() => {
-    if (validatedHypotheses !== hypotheses) {
-      const changed = validatedHypotheses.some((vh, i) => vh.status !== hypotheses[i]?.status);
-      if (changed) {
-        // Note: we don't call setHypotheses here to avoid loops.
-        // The validated hypotheses are returned directly.
-        // Status auto-updates are reflected in the returned value.
-      }
-    }
-  }, [validatedHypotheses, hypotheses]);
+  const isAtCapacity = validatedHypotheses.length >= MAX_TOTAL_HYPOTHESES;
 
   const update = useCallback(
     (updater: (prev: Hypothesis[]) => Hypothesis[]) => {
@@ -117,6 +182,33 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     [update]
   );
 
+  const addSubHypothesis = useCallback(
+    (
+      parentId: string,
+      text: string,
+      factor?: string,
+      level?: string,
+      validationType?: HypothesisValidationType
+    ): Hypothesis | null => {
+      // Validate parent exists
+      const parent = validatedHypotheses.find(h => h.id === parentId);
+      if (!parent) return null;
+
+      // Check depth constraint
+      const parentDepth = getHypothesisDepth(parentId, validatedHypotheses);
+      if (parentDepth >= MAX_HYPOTHESIS_DEPTH - 1) return null;
+
+      // Check children count constraint
+      const childCount = validatedHypotheses.filter(h => h.parentId === parentId).length;
+      if (childCount >= MAX_CHILDREN_PER_PARENT) return null;
+
+      const hypothesis = createHypothesis(text, factor, level, parentId, validationType);
+      update(prev => [...prev, hypothesis]);
+      return hypothesis;
+    },
+    [validatedHypotheses, update]
+  );
+
   const editHypothesis = useCallback(
     (id: string, updates: Partial<Pick<Hypothesis, 'text' | 'factor' | 'level'>>) => {
       update(prev =>
@@ -128,9 +220,30 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
 
   const deleteHypothesis = useCallback(
     (id: string): string[] => {
-      const hypothesis = hypotheses.find(h => h.id === id);
-      const unlinkedFindingIds = hypothesis?.linkedFindingIds ?? [];
-      update(prev => prev.filter(h => h.id !== id));
+      const unlinkedFindingIds: string[] = [];
+
+      // Collect all descendant IDs for cascade delete
+      const idsToDelete = new Set<string>([id]);
+      const allHypotheses = hypotheses;
+      let changed = true;
+      while (changed) {
+        changed = false;
+        for (const h of allHypotheses) {
+          if (h.parentId && idsToDelete.has(h.parentId) && !idsToDelete.has(h.id)) {
+            idsToDelete.add(h.id);
+            changed = true;
+          }
+        }
+      }
+
+      // Collect all finding IDs that need unlinking
+      for (const h of allHypotheses) {
+        if (idsToDelete.has(h.id)) {
+          unlinkedFindingIds.push(...h.linkedFindingIds);
+        }
+      }
+
+      update(prev => prev.filter(h => !idsToDelete.has(h.id)));
       return unlinkedFindingIds;
     },
     [hypotheses, update]
@@ -160,7 +273,7 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
           h.id === hypothesisId
             ? {
                 ...h,
-                linkedFindingIds: h.linkedFindingIds.filter(id => id !== findingId),
+                linkedFindingIds: h.linkedFindingIds.filter(fid => fid !== findingId),
                 updatedAt: new Date().toISOString(),
               }
             : h
@@ -184,14 +297,111 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     [validatedHypotheses]
   );
 
+  const getChildren = useCallback(
+    (parentId: string): Hypothesis[] => {
+      return validatedHypotheses.filter(h => h.parentId === parentId);
+    },
+    [validatedHypotheses]
+  );
+
+  const getRoots = useCallback((): Hypothesis[] => {
+    return validatedHypotheses.filter(h => !h.parentId);
+  }, [validatedHypotheses]);
+
+  const getAncestors = useCallback(
+    (id: string): Hypothesis[] => {
+      const ancestors: Hypothesis[] = [];
+      let current = validatedHypotheses.find(h => h.id === id);
+      while (current?.parentId) {
+        const parent = validatedHypotheses.find(h => h.id === current!.parentId);
+        if (!parent) break;
+        ancestors.unshift(parent);
+        current = parent;
+      }
+      return ancestors;
+    },
+    [validatedHypotheses]
+  );
+
+  const getDepth = useCallback(
+    (id: string): number => {
+      return getHypothesisDepth(id, validatedHypotheses);
+    },
+    [validatedHypotheses]
+  );
+
+  const setValidationTask = useCallback(
+    (id: string, task: string) => {
+      update(prev =>
+        prev.map(h =>
+          h.id === id ? { ...h, validationTask: task, updatedAt: new Date().toISOString() } : h
+        )
+      );
+    },
+    [update]
+  );
+
+  const completeTask = useCallback(
+    (id: string) => {
+      update(prev =>
+        prev.map(h =>
+          h.id === id ? { ...h, taskCompleted: true, updatedAt: new Date().toISOString() } : h
+        )
+      );
+    },
+    [update]
+  );
+
+  const setManualStatus = useCallback(
+    (id: string, status: HypothesisStatus, note?: string) => {
+      update(prev =>
+        prev.map(h =>
+          h.id === id
+            ? {
+                ...h,
+                status,
+                manualNote: note,
+                updatedAt: new Date().toISOString(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
+  const getChildrenSummary = useCallback(
+    (parentId: string): ChildrenSummary => {
+      const children = validatedHypotheses.filter(h => h.parentId === parentId);
+      return {
+        supported: children.filter(h => h.status === 'supported').length,
+        contradicted: children.filter(h => h.status === 'contradicted').length,
+        untested: children.filter(h => h.status === 'untested').length,
+        partial: children.filter(h => h.status === 'partial').length,
+        total: children.length,
+      };
+    },
+    [validatedHypotheses]
+  );
+
   return {
     hypotheses: validatedHypotheses,
     addHypothesis,
+    addSubHypothesis,
     editHypothesis,
     deleteHypothesis,
     linkFinding,
     unlinkFinding,
     getHypothesis,
     getByFactor,
+    getChildren,
+    getRoots,
+    getAncestors,
+    getDepth,
+    setValidationTask,
+    completeTask,
+    setManualStatus,
+    getChildrenSummary,
+    isAtCapacity,
   };
 }

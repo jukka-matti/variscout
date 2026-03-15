@@ -7,6 +7,7 @@ import {
   ExternalLink,
   List,
   LayoutGrid,
+  GitBranch,
 } from 'lucide-react';
 import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
@@ -69,8 +70,20 @@ export interface FindingsPanelBaseProps {
   onPopout?: () => void;
 
   // View mode (uncontrolled by default, controlled when both provided)
-  viewMode?: 'list' | 'board';
-  onViewModeChange?: (mode: 'list' | 'board') => void;
+  viewMode?: 'list' | 'board' | 'tree';
+  onViewModeChange?: (mode: 'list' | 'board' | 'tree') => void;
+
+  // Tree view props (passed through to FindingsLog → HypothesisTreeView)
+  hypotheses?: import('@variscout/core').Hypothesis[];
+  onSelectHypothesis?: (hypothesis: import('@variscout/core').Hypothesis) => void;
+  onAddSubHypothesis?: (parentId: string) => void;
+  getChildrenSummary?: (parentId: string) => {
+    supported: number;
+    contradicted: number;
+    untested: number;
+    partial: number;
+    total: number;
+  };
 
   // Resize config
   resizeConfig: FindingsPanelResizeConfig;
@@ -109,13 +122,17 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onSetOutcome,
   viewMode: externalViewMode,
   onViewModeChange,
+  hypotheses,
+  onSelectHypothesis,
+  onAddSubHypothesis,
+  getChildrenSummary,
   resizeConfig,
 }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
-  const [localViewMode, setLocalViewMode] = useState<'list' | 'board'>('list');
+  const [localViewMode, setLocalViewMode] = useState<'list' | 'board' | 'tree'>('list');
   const viewMode = externalViewMode ?? localViewMode;
 
-  const handleViewModeChange = (mode: 'list' | 'board') => {
+  const handleViewModeChange = (mode: 'list' | 'board' | 'tree') => {
     setLocalViewMode(mode);
     onViewModeChange?.(mode);
   };
@@ -203,6 +220,20 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
                 >
                   <LayoutGrid size={12} />
                 </button>
+                {hypotheses && hypotheses.length > 0 && (
+                  <button
+                    onClick={() => handleViewModeChange('tree')}
+                    className={`p-1.5 transition-colors ${
+                      viewMode === 'tree'
+                        ? 'bg-surface-tertiary text-content'
+                        : 'text-content-muted hover:text-content-secondary'
+                    }`}
+                    title="Tree view"
+                    aria-label="Tree view"
+                  >
+                    <GitBranch size={12} />
+                  </button>
+                )}
               </div>
             )}
             {findings.length > 0 && (
@@ -261,6 +292,10 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           renderAssignSlot={renderAssignSlot}
           onNavigateToChart={onNavigateToChart}
           viewMode={viewMode}
+          hypotheses={hypotheses}
+          onSelectHypothesis={onSelectHypothesis}
+          onAddSubHypothesis={onAddSubHypothesis}
+          getChildrenSummary={getChildrenSummary}
           maxStatuses={maxStatuses}
           onLinkHypothesis={onLinkHypothesis}
           onCreateHypothesis={onCreateHypothesis}

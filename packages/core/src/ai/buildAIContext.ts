@@ -2,7 +2,13 @@
  * Assembles the structured AI context from current analysis state.
  */
 
-import type { AIContext, ProcessContext, FactorRole, TargetMetric } from './types';
+import type {
+  AIContext,
+  ProcessContext,
+  FactorRole,
+  TargetMetric,
+  InvestigationPhase,
+} from './types';
 import type { Finding, Hypothesis } from '../findings';
 import { groupFindingsByStatus } from '../findings';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
@@ -139,8 +145,57 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
         text: h.text,
         status: h.status,
       }));
+
+      // Build hypothesis tree for root hypotheses with children
+      const roots = hypotheses.filter(h => !h.parentId);
+      if (roots.length > 0) {
+        context.investigation.hypothesisTree = roots.map(root => {
+          const children = hypotheses.filter(h => h.parentId === root.id);
+          return {
+            text: root.text,
+            status: root.status,
+            factor: root.factor,
+            role: root.factor && factorRoles[root.factor] ? factorRoles[root.factor] : undefined,
+            validationType: root.validationType,
+            children:
+              children.length > 0
+                ? children.map(c => ({
+                    text: c.text,
+                    status: c.status,
+                    validationType: c.validationType,
+                  }))
+                : undefined,
+          };
+        });
+      }
+
+      // Detect investigation phase
+      context.investigation.phase = detectInvestigationPhase(hypotheses, findings);
     }
   }
 
   return context;
+}
+
+/**
+ * Deterministic investigation phase detection based on hypothesis tree state.
+ */
+export function detectInvestigationPhase(
+  hypotheses: Hypothesis[],
+  findings?: Finding[]
+): InvestigationPhase {
+  if (hypotheses.length === 0) return 'initial';
+
+  const hasChildren = hypotheses.some(h => h.parentId);
+  const tested = hypotheses.filter(h => h.status !== 'untested');
+  const untested = hypotheses.filter(h => h.status === 'untested');
+  const hasActions = findings?.some(f => f.actions && f.actions.length > 0) ?? false;
+
+  if (hasActions) return 'acting';
+  if (tested.length > untested.length) return 'converging';
+  if (hasChildren && untested.length >= tested.length) return 'diverging';
+  if (tested.length > 0 && untested.length > 0) return 'validating';
+
+  // Roots only, mostly untested
+  return hasChildren ? 'diverging' : 'initial';
 }

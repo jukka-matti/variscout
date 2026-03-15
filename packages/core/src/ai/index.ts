@@ -6,6 +6,7 @@ export type {
   FactorRole,
   ProcessContext,
   TargetMetric,
+  InvestigationPhase,
   AIContext,
   NarrationRequest,
   NarrationResponse,
@@ -15,7 +16,12 @@ export type {
 } from './types';
 export { isFactorRole } from './types';
 
-export { buildAIContext, type BuildAIContextOptions, type AIStatsInput } from './buildAIContext';
+export {
+  buildAIContext,
+  detectInvestigationPhase,
+  type BuildAIContextOptions,
+  type AIStatsInput,
+} from './buildAIContext';
 export type { ChartInsightData } from './promptTemplates';
 export {
   buildNarrationSystemPrompt,

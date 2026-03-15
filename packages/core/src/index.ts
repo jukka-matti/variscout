@@ -252,6 +252,7 @@ export type {
   FactorRole,
   ProcessContext,
   TargetMetric,
+  InvestigationPhase,
   AIContext,
   NarrationRequest,
   NarrationResponse,
@@ -263,6 +264,7 @@ export type {
 } from './ai';
 export {
   buildAIContext,
+  detectInvestigationPhase,
   buildNarrationSystemPrompt,
   buildSummaryPrompt,
   buildCoScoutSystemPrompt,
@@ -300,6 +302,7 @@ export type {
   FindingOutcome,
   Hypothesis,
   HypothesisStatus,
+  HypothesisValidationType,
 } from './findings';
 export {
   FINDING_STATUSES,

@@ -197,17 +197,20 @@ Tags reflect _contribution magnitude_, not causal certainty. VariScout quantifie
 contribution, not causation — we measure how much variation a factor accounts for,
 not whether it's the "root cause."
 
-### Suspected Cause (Azure only)
+### Suspected Cause / Hypothesis (Azure only)
 
-When a finding reaches "Analyzed" status, document the suspected cause — a free text
-description of what you believe is driving the variation. The `suspectedCause` field
-appears on the FindingCard as a collapsible section.
+When a finding reaches "Analyzed" status, document why the variation is happening. VariScout uses **hypotheses** — testable theories linked to factors — instead of free-text suspected cause descriptions.
 
-**"Suspected cause" vs "root cause":** VariScout finds _where_ variation is hiding
+A hypothesis links to a specific factor and is automatically validated via ANOVA eta-squared thresholds. For causes that cannot be validated with data (physical inspection, domain expertise), gemba and expert validation types are available.
+
+For structured investigation with multiple competing theories, use the **Hypothesis Investigation Flow** — a diamond pattern of diverge (generate sub-hypotheses), validate (test each), and converge (eliminate contradicted, confirm supported). See [Hypothesis Investigation](hypothesis-investigation.md) for the full workflow.
+
+**"Hypothesis" vs "root cause":** VariScout finds _where_ variation is hiding
 (the key factors), but identifying a factor (Machine A explains 47%) is not proving
 root cause. True root cause is only confirmed when the corrective action proves
-effective (outcome = effective at "Resolved" status). VariScout uses "suspected cause"
-throughout to maintain this distinction.
+effective (outcome = effective at "Resolved" status). VariScout uses "hypothesis"
+and "root cause hypothesis" throughout to maintain this distinction. A hypothesis
+becomes a "confirmed root cause" only when the outcome assessment shows the fix was effective.
 
 ### Corrective Actions (Azure only)
 
@@ -425,5 +428,7 @@ Filter to Store C + Weekend, then use What-If:
 - [Four Lenses Workflow](four-lenses-workflow.md) — Foundational methodology
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
 - [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
+- [Hypothesis Investigation](hypothesis-investigation.md) — Diamond pattern root cause investigation
 - [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Architectural decisions
+- [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Hypothesis model decisions
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Knowledge base dependency

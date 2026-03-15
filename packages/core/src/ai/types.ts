@@ -14,6 +14,9 @@ export type FactorRole =
 /** Target metric type for improvement tracking */
 export type TargetMetric = 'mean' | 'sigma' | 'cpk' | 'yield' | 'passRate';
 
+/** Investigation phase for CoScout context (deterministic detection) */
+export type InvestigationPhase = 'initial' | 'diverging' | 'validating' | 'converging' | 'acting';
+
 /** Process context provided by the user for AI grounding */
 export interface ProcessContext {
   /** Free-text description of the process (max 500 chars) */
@@ -100,6 +103,17 @@ export interface AIContext {
       status: string;
       contribution?: number;
     }>;
+    /** Hypothesis tree structure for investigation phase detection */
+    hypothesisTree?: Array<{
+      text: string;
+      status: string;
+      factor?: string;
+      role?: string;
+      validationType?: string;
+      children?: Array<{ text: string; status: string; validationType?: string }>;
+    }>;
+    /** Current investigation phase (deterministic) */
+    phase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'acting';
   };
   /** Glossary terms for grounding */
   glossaryFragment?: string;

@@ -17,6 +17,32 @@ const INVESTIGATION_FALLBACK_QUESTIONS = [
   'Are any hypotheses contradicted by the data?',
 ];
 
+/** Phase-specific questions for hypothesis investigation */
+const PHASE_QUESTIONS: Record<string, string[]> = {
+  initial: [
+    'What factors should I investigate first?',
+    'What does the data suggest about possible causes?',
+  ],
+  diverging: [
+    'What other causes should we consider?',
+    "Are there factors we haven't explored yet?",
+    'What gemba checks would help narrow things down?',
+  ],
+  validating: [
+    'Which untested hypotheses are highest priority?',
+    'How can we validate the remaining hypotheses?',
+  ],
+  converging: [
+    'Do the supported hypotheses form a coherent story?',
+    'Is there a root cause pattern connecting these findings?',
+    'Are we ready to define corrective actions?',
+  ],
+  acting: [
+    'Are the corrective actions addressing the root cause?',
+    'What should we monitor to verify the fix?',
+  ],
+};
+
 export function buildSuggestedQuestions(context: AIContext): string[] {
   // Investigation mode — different question set when on investigation page
   if (context.investigation) {
@@ -73,6 +99,15 @@ function buildInvestigationQuestions(context: AIContext): string[] {
   const inv = context.investigation!;
   const questions: string[] = [];
 
+  // Phase-aware questions (highest priority)
+  if (inv.phase && PHASE_QUESTIONS[inv.phase]) {
+    const phaseQs = PHASE_QUESTIONS[inv.phase];
+    questions.push(phaseQs[0]);
+    if (phaseQs.length > 1 && questions.length < 3) {
+      questions.push(phaseQs[1]);
+    }
+  }
+
   // Progress-aware
   if (inv.progressPercent !== undefined && inv.progressPercent < 100) {
     questions.push(`We're at ${Math.round(inv.progressPercent)}% of the target — what's missing?`);
@@ -82,18 +117,31 @@ function buildInvestigationQuestions(context: AIContext): string[] {
   if (inv.allHypotheses && inv.allHypotheses.length > 0) {
     const supported = inv.allHypotheses.filter(h => h.status === 'supported');
     const untested = inv.allHypotheses.filter(h => h.status === 'untested');
-    if (supported.length > 0) {
+    if (supported.length > 0 && questions.length < 4) {
       questions.push(`What actions would address "${supported[0].text}"?`);
     }
-    if (untested.length > 0) {
+    if (untested.length > 0 && questions.length < 4) {
       questions.push(`How can we test the hypothesis: "${untested[0].text}"?`);
+    }
+  }
+
+  // Uncovered factor roles (diverge assistant)
+  if (inv.phase === 'diverging' && inv.hypothesisTree) {
+    const coveredRoles = new Set(inv.hypothesisTree.filter(h => h.role).map(h => h.role!));
+    const allRoles = ['equipment', 'temporal', 'operator', 'material', 'location'];
+    const uncovered = allRoles.filter(r => !coveredRoles.has(r));
+    if (uncovered.length > 0 && questions.length < 5) {
+      const roleLabel = uncovered[0];
+      questions.push(`Have you considered ${roleLabel} factors?`);
     }
   }
 
   // Selected finding
   if (inv.selectedFinding) {
-    questions.push(`What do SOPs say about this type of issue?`);
-    if (inv.selectedFinding.projection) {
+    if (questions.length < 4) {
+      questions.push(`What do SOPs say about this type of issue?`);
+    }
+    if (inv.selectedFinding.projection && questions.length < 5) {
       questions.push(`Is this projection realistic?`);
     }
   }

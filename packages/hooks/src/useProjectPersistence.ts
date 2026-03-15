@@ -9,7 +9,14 @@
  */
 
 import { useCallback } from 'react';
-import type { DataRow, SpecLimits, StageOrderMode, FilterAction, Finding } from '@variscout/core';
+import type {
+  DataRow,
+  SpecLimits,
+  StageOrderMode,
+  FilterAction,
+  Finding,
+  Hypothesis,
+} from '@variscout/core';
 import type {
   AnalysisState,
   DisplayOptions,
@@ -70,6 +77,9 @@ export interface ProjectPersistenceInputs {
   // Findings getter
   findings: Finding[];
 
+  // Hypotheses getter
+  hypotheses: Hypothesis[];
+
   // All setters for load/import/new
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
@@ -108,6 +118,9 @@ export interface ProjectPersistenceInputs {
 
   // Findings setter
   setFindings: (findings: Finding[]) => void;
+
+  // Hypotheses setter
+  setHypotheses: (hypotheses: Hypothesis[]) => void;
 }
 
 export interface ProjectPersistenceResult {
@@ -196,6 +209,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setViewState,
     findings,
     setFindings,
+    hypotheses,
+    setHypotheses,
   } = inputs;
 
   // ---------------------------------------------------------------------------
@@ -243,6 +258,9 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     // Findings — only include if non-empty
     if (findings.length > 0) state.findings = findings;
 
+    // Hypotheses — only include if non-empty
+    if (hypotheses.length > 0) state.hypotheses = hypotheses;
+
     return state;
   }, [
     rawData,
@@ -270,6 +288,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     filterStack,
     viewState,
     findings,
+    hypotheses,
   ]);
 
   // ---------------------------------------------------------------------------
@@ -350,6 +369,9 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         // Findings
         setFindings(state.findings ?? []);
 
+        // Hypotheses
+        setHypotheses(state.hypotheses ?? []);
+
         setCurrentProjectId(project.id);
         setCurrentProjectName(project.name);
         setHasUnsavedChanges(false);
@@ -385,6 +407,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setFilterStack,
       setViewState,
       setFindings,
+      setHypotheses,
     ]
   );
 
@@ -479,6 +502,9 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       // Findings
       setFindings(state.findings ?? []);
 
+      // Hypotheses
+      setHypotheses(state.hypotheses ?? []);
+
       setCurrentProjectId(null);
       setCurrentProjectName(file.name.replace('.vrs', ''));
       setHasUnsavedChanges(true);
@@ -513,6 +539,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setFilterStack,
       setViewState,
       setFindings,
+      setHypotheses,
     ]
   );
 
@@ -548,10 +575,11 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureLabel('Measure');
     setSelectedMeasure(null);
     setCpkTarget(1.33);
-    // Reset filter stack, view state, and findings
+    // Reset filter stack, view state, findings, and hypotheses
     setFilterStack([]);
     setViewState(null);
     setFindings([]);
+    setHypotheses([]);
   }, [
     setRawData,
     setOutcome,
@@ -584,6 +612,7 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setFilterStack,
     setViewState,
     setFindings,
+    setHypotheses,
   ]);
 
   return {

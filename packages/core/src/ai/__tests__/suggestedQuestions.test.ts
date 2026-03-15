@@ -91,4 +91,74 @@ describe('buildSuggestedQuestions', () => {
     const unique = new Set(result);
     expect(unique.size).toBe(result.length);
   });
+
+  describe('investigation phase-aware questions', () => {
+    it('returns diverging questions when phase is diverging', () => {
+      const context: AIContext = {
+        ...baseContext,
+        investigation: {
+          phase: 'diverging',
+          allHypotheses: [{ text: 'Root cause', status: 'untested' }],
+        },
+      };
+      const result = buildSuggestedQuestions(context);
+      expect(result).toContain('What other causes should we consider?');
+    });
+
+    it('returns converging questions when phase is converging', () => {
+      const context: AIContext = {
+        ...baseContext,
+        investigation: {
+          phase: 'converging',
+          allHypotheses: [
+            { text: 'Supported', status: 'supported' },
+            { text: 'Contradicted', status: 'contradicted' },
+          ],
+        },
+      };
+      const result = buildSuggestedQuestions(context);
+      expect(result).toContain('Do the supported hypotheses form a coherent story?');
+    });
+
+    it('suggests uncovered factor roles during diverging', () => {
+      const context: AIContext = {
+        ...baseContext,
+        investigation: {
+          phase: 'diverging',
+          hypothesisTree: [
+            { text: 'Machine issue', status: 'untested', factor: 'Machine', role: 'equipment' },
+          ],
+          allHypotheses: [{ text: 'Machine issue', status: 'untested' }],
+        },
+      };
+      const result = buildSuggestedQuestions(context);
+      expect(
+        result.some(q => q.includes('temporal') || q.includes('operator') || q.includes('material'))
+      ).toBe(true);
+    });
+
+    it('returns initial questions when no hypotheses', () => {
+      const context: AIContext = {
+        ...baseContext,
+        investigation: {
+          phase: 'initial',
+          problemStatement: 'Cpk is below target',
+        },
+      };
+      const result = buildSuggestedQuestions(context);
+      expect(result).toContain('What factors should I investigate first?');
+    });
+
+    it('returns acting questions when actions exist', () => {
+      const context: AIContext = {
+        ...baseContext,
+        investigation: {
+          phase: 'acting',
+          allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+        },
+      };
+      const result = buildSuggestedQuestions(context);
+      expect(result).toContain('Are the corrective actions addressing the root cause?');
+    });
+  });
 });

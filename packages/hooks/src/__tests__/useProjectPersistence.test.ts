@@ -95,6 +95,7 @@ function createMockSetters() {
     setFilterStack: vi.fn(),
     setViewState: vi.fn(),
     setFindings: vi.fn(),
+    setHypotheses: vi.fn(),
   };
 }
 
@@ -130,6 +131,7 @@ function createDefaultInputs(
     filterStack: [],
     viewState: null,
     findings: [],
+    hypotheses: [],
     ...setters,
     ...overrides,
   };

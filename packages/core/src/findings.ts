@@ -143,8 +143,12 @@ export const HYPOTHESIS_STATUS_LABELS: Record<HypothesisStatus, string> = {
   partial: 'Partial',
 };
 
+/** Validation type for hypothesis evidence gathering */
+export type HypothesisValidationType = 'data' | 'gemba' | 'expert';
+
 /**
  * A causal hypothesis — a shared theory that multiple findings can reference.
+ * Supports tree structure via parentId for sub-hypothesis investigation.
  */
 export interface Hypothesis {
   /** Unique identifier */
@@ -163,6 +167,18 @@ export interface Hypothesis {
   createdAt: string;
   /** Timestamp of last update */
   updatedAt: string;
+
+  // --- Tree structure (sub-hypotheses) ---
+  /** Parent hypothesis ID — enables tree (sub-hypotheses). Undefined for root hypotheses. */
+  parentId?: string;
+  /** How this hypothesis is validated: data (auto η²), gemba (go-and-see), or expert opinion */
+  validationType?: HypothesisValidationType;
+  /** Task description for gemba/expert validation */
+  validationTask?: string;
+  /** Whether the gemba/expert task has been completed */
+  taskCompleted?: boolean;
+  /** Analyst's note when manually setting status (gemba/expert validation) */
+  manualNote?: string;
 }
 
 // ============================================================================
@@ -290,17 +306,25 @@ export function generateId(): string {
 /**
  * Create a new Hypothesis with a unique ID
  */
-export function createHypothesis(text: string, factor?: string, level?: string): Hypothesis {
+export function createHypothesis(
+  text: string,
+  factor?: string,
+  level?: string,
+  parentId?: string,
+  validationType?: HypothesisValidationType
+): Hypothesis {
   const now = new Date().toISOString();
   return {
     id: generateId(),
     text,
     factor,
     level,
-    status: factor ? 'untested' : 'untested',
+    status: 'untested',
     linkedFindingIds: [],
     createdAt: now,
     updatedAt: now,
+    parentId,
+    validationType,
   };
 }
 

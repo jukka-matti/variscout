@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { buildAIContext } from '../buildAIContext';
+import { buildAIContext, detectInvestigationPhase } from '../buildAIContext';
 import type { AIStatsInput } from '../buildAIContext';
-import type { Finding } from '../../findings';
+import { createHypothesis, type Finding } from '../../findings';
 import type { ProcessContext } from '../types';
 
 const mockStats: AIStatsInput = {
@@ -134,5 +134,73 @@ describe('buildAIContext', () => {
     };
     const ctx = buildAIContext({ stats });
     expect(ctx.stats!.passRate).toBe(95);
+  });
+
+  it('populates hypothesisTree with root hypotheses and children', () => {
+    const root = createHypothesis('Root cause', 'Machine');
+    const child = createHypothesis('Sub cause', 'Shift', undefined, root.id, 'gemba');
+    const ctx = buildAIContext({
+      process: { problemStatement: 'Cpk below target' },
+      hypotheses: [root, child],
+    });
+    expect(ctx.investigation?.hypothesisTree).toHaveLength(1);
+    expect(ctx.investigation?.hypothesisTree?.[0].children).toHaveLength(1);
+    expect(ctx.investigation?.hypothesisTree?.[0].children?.[0].validationType).toBe('gemba');
+  });
+
+  it('detects investigation phase', () => {
+    const root = createHypothesis('Root');
+    root.status = 'supported';
+    const child = createHypothesis('Child', undefined, undefined, root.id);
+    child.status = 'supported';
+    const ctx = buildAIContext({
+      process: { problemStatement: 'Test' },
+      hypotheses: [root, child],
+    });
+    expect(ctx.investigation?.phase).toBe('converging');
+  });
+});
+
+describe('detectInvestigationPhase', () => {
+  it('returns initial when no hypotheses', () => {
+    expect(detectInvestigationPhase([])).toBe('initial');
+  });
+
+  it('returns initial for root-only untested hypotheses', () => {
+    const h = createHypothesis('Test');
+    expect(detectInvestigationPhase([h])).toBe('initial');
+  });
+
+  it('returns diverging when children exist and mostly untested', () => {
+    const root = createHypothesis('Root');
+    const c1 = createHypothesis('C1', undefined, undefined, root.id);
+    const c2 = createHypothesis('C2', undefined, undefined, root.id);
+    expect(detectInvestigationPhase([root, c1, c2])).toBe('diverging');
+  });
+
+  it('returns converging when most are tested', () => {
+    const root = createHypothesis('Root');
+    root.status = 'supported';
+    const child = createHypothesis('Child', undefined, undefined, root.id);
+    child.status = 'contradicted';
+    expect(detectInvestigationPhase([root, child])).toBe('converging');
+  });
+
+  it('returns acting when findings have actions', () => {
+    const h = createHypothesis('Test');
+    h.status = 'supported';
+    const findings = [
+      {
+        id: 'f1',
+        text: 'finding',
+        createdAt: 0,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'improving' as const,
+        comments: [],
+        statusChangedAt: 0,
+        actions: [{ id: 'a1', text: 'Fix it', createdAt: 0 }],
+      },
+    ];
+    expect(detectInvestigationPhase([h], findings)).toBe('acting');
   });
 });

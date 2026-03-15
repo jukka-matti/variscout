@@ -155,6 +155,7 @@ sales/                   # Sales leads and company contacts (not software docs)
 | AI components            | docs/06-design-system/components/ai-components.md, docs/03-features/workflows/ai-assisted-analysis.md                                                 |
 | Findings UI              | docs/06-design-system/components/findings.md, docs/03-features/workflows/investigation-to-action.md                                                   |
 | Investigation actions    | docs/07-decisions/adr-015-investigation-board.md, docs/03-features/workflows/investigation-to-action.md                                               |
+| Hypothesis investigation | docs/03-features/workflows/hypothesis-investigation.md, docs/07-decisions/adr-020-investigation-workflow.md                                           |
 
 ## Repository Structure
 
@@ -278,6 +279,8 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `docs/03-features/workflows/investigation-to-action.md`          | 2-phase workflow: Findings → What-If                                                                          |
 | `packages/ui/src/components/FindingsLog/`                        | FindingsLog, FindingCard, FindingStatusBadge, FindingBoardView, FindingComments                               |
 | `packages/ui/src/components/FindingsLog/FindingBoardColumns.tsx` | Horizontal drag-and-drop board for popout window                                                              |
+| `packages/ui/src/components/FindingsLog/HypothesisTreeView.tsx`  | Hypothesis tree view with collapsible nodes                                                                   |
+| `packages/ui/src/components/FindingsLog/HypothesisNode.tsx`      | Individual tree node component (status, badges, validation type)                                              |
 | `docs/04-cases/`                                                 | Case studies with demo data and teaching briefs                                                               |
 | `apps/azure/server.js`                                           | Zero-dep Node.js static server for App Service (SPA fallback, cache, /health)                                 |
 | `.github/workflows/deploy-azure-staging.yml`                     | CI/CD pipeline: build + OIDC deploy to staging App Service                                                    |

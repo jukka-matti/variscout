@@ -472,6 +472,82 @@ interface ProcessContext {
 
 ---
 
+## CoScout Investigation Sidebar
+
+Collapsible sidebar in the FindingsWindow popout that provides investigation-aware AI assistance during hypothesis investigation.
+
+### Availability
+
+Azure App only (Standard and Team plans). Requires AI endpoint configured and "Show AI assistance" toggle ON. Hidden when AI is unavailable — no empty space or placeholder.
+
+### Layout
+
+```
+┌──────────────────────────────┬────────────────┐
+│                              │  CoScout       │
+│  Findings / Board / Tree     │                │
+│                              │  Phase:        │
+│                              │  Diverging     │
+│                              │                │
+│                              │  Uncovered:    │
+│                              │  - Material    │
+│                              │  - Location    │
+│                              │                │
+│                              │  Suggestions:  │
+│                              │  [chip] [chip] │
+│                              │                │
+│                              │  [Ask CoScout] │
+│                              │                │
+└──────────────────────────────┴────────────────┘
+```
+
+| Property        | Spec                                                          |
+| --------------- | ------------------------------------------------------------- |
+| Width           | 280px fixed                                                   |
+| Collapse        | Toggle button on left edge. Collapsed width: 0 (fully hidden) |
+| Position        | Right edge of FindingsWindow popout                           |
+| Background      | `bg-surface-secondary`                                        |
+| Border          | `border-l border-edge`                                        |
+| State persisted | ViewState (collapsed/expanded remembered per project)         |
+
+### Investigation Phase Display
+
+Shows the auto-detected investigation phase with a brief description:
+
+| Phase      | Label        | Description                                   |
+| ---------- | ------------ | --------------------------------------------- |
+| Initial    | "Starting"   | No sub-hypotheses yet                         |
+| Diverging  | "Diverging"  | Generating sub-hypotheses, most untested      |
+| Validating | "Validating" | Testing sub-hypotheses, some still untested   |
+| Converging | "Converging" | All tested, identifying root cause candidates |
+| Acting     | "Acting"     | Root cause identified, defining actions       |
+
+Phase label uses `text-content-primary` with the description in `text-content-secondary text-sm`.
+
+### Uncovered Factor Roles
+
+Lists factor role categories (equipment, temporal, operator, material, location) that have no hypothesis linked to them. Uses the `FactorRole` badges from ColumnMapping with the same color scheme.
+
+Only shown when `processContext.factorRoles` has entries that are not covered by any hypothesis's `factorName`.
+
+### Suggested Question Chips
+
+Phase-aware suggestion chips (same style as CoScoutPanel suggested questions). Clicking a chip opens the full CoScoutPanel with the question pre-filled and investigation context loaded.
+
+| Phase      | Example Chip Text                                           |
+| ---------- | ----------------------------------------------------------- |
+| Initial    | "What causes [problem] in [process]?"                       |
+| Diverging  | "What other factors could cause [root hypothesis]?"         |
+| Validating | "How do I validate [untested hypothesis]?"                  |
+| Converging | "Which supported hypothesis is most likely root cause?"     |
+| Acting     | "What corrective actions work for [root cause hypothesis]?" |
+
+### "Ask CoScout" Button
+
+Full-width button at the bottom of the sidebar. Opens CoScoutPanel (slide-out or full-screen on phone) with investigation context pre-loaded in the system prompt — including problem statement, hypothesis tree state, phase, and uncovered factors.
+
+---
+
 ## Graceful Degradation
 
 All three components share a common visibility check:
