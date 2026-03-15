@@ -25,7 +25,6 @@ import type {
   StagedStatsResult,
   StageOrderMode,
   ProcessContext,
-  FactorRole,
 } from '@variscout/core';
 import { isTeamPlan } from '@variscout/core';
 import { getTeamsContext } from '../teams/teamsContext';
@@ -40,7 +39,6 @@ interface AzureDataState extends Omit<DataState, 'saveProject' | 'loadProject'> 
   currentProjectLocation: StorageLocation;
   syncStatus: SyncStatus;
   processContext: ProcessContext;
-  factorRoles: Record<string, FactorRole>;
   aiEnabled: boolean;
 }
 
@@ -56,7 +54,6 @@ interface AzureDataActions extends Omit<
   deleteProject: (name: string) => Promise<void>;
   renameProject: (oldName: string, newName: string) => Promise<void>;
   setProcessContext: (ctx: ProcessContext) => void;
-  setFactorRoles: (roles: Record<string, FactorRole>) => void;
   setAIEnabled: (enabled: boolean) => void;
 }
 
@@ -77,7 +74,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // AI process context
   const [processContext, setProcessContext] = useState<ProcessContext>({});
-  const [factorRoles, setFactorRoles] = useState<Record<string, FactorRole>>({});
   const [aiEnabled, setAIEnabled] = useState(false);
 
   // Azure-specific state — default location based on Teams context
@@ -201,14 +197,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Hypotheses
       hypotheses: state.hypotheses,
 
+      // Investigation categories
+      categories: state.categories,
+
       // Azure-specific state
       currentProjectLocation,
       syncStatus,
       processContext,
-      factorRoles,
       aiEnabled,
     }),
-    [state, currentProjectLocation, syncStatus, processContext, factorRoles, aiEnabled]
+    [state, currentProjectLocation, syncStatus, processContext, aiEnabled]
   );
 
   // Memoize actions context
@@ -251,15 +249,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearSelection: actions.clearSelection,
       togglePointSelection: actions.togglePointSelection,
 
-      // Filter stack / view state / findings / hypotheses setters
+      // Filter stack / view state / findings / hypotheses / categories setters
       setFilterStack: actions.setFilterStack,
       setViewState: actions.setViewState,
       setFindings: actions.setFindings,
       setHypotheses: actions.setHypotheses,
+      setCategories: actions.setCategories,
 
       // AI
       setProcessContext,
-      setFactorRoles,
       setAIEnabled,
 
       // Azure-enhanced persistence methods
@@ -279,7 +277,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       deleteProject,
       renameProject,
       setProcessContext,
-      setFactorRoles,
       setAIEnabled,
     ]
   );

@@ -7,8 +7,8 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { Pencil, AlertTriangle, CheckSquare } from 'lucide-react';
-import type { ColumnAnalysis, FactorRole } from '@variscout/core';
-import { RoleBadge } from './RoleBadge';
+import type { ColumnAnalysis } from '@variscout/core';
+import { CategoryBadge } from './CategoryBadge';
 
 export interface ColumnCardProps {
   column: ColumnAnalysis;
@@ -19,8 +19,13 @@ export interface ColumnCardProps {
   alias?: string;
   onSelect: () => void;
   onRename?: (originalName: string, alias: string) => void;
-  /** Inferred role badge for factor columns */
-  roleBadge?: { role: FactorRole; matchedKeyword: string; onDismiss: () => void };
+  /** Inferred category badge for factor columns */
+  roleBadge?: {
+    categoryName: string;
+    categoryColor?: string;
+    matchedKeyword: string;
+    onDismiss: () => void;
+  };
 }
 
 const TYPE_BADGE: Record<ColumnAnalysis['type'], { label: string; bg: string; text: string }> = {
@@ -227,8 +232,9 @@ export const ColumnCard: React.FC<ColumnCardProps> = ({
           {sampleDisplay}
         </span>
         {role === 'factor' && roleBadge && (
-          <RoleBadge
-            role={roleBadge.role}
+          <CategoryBadge
+            categoryName={roleBadge.categoryName}
+            categoryColor={roleBadge.categoryColor}
             matchedKeyword={roleBadge.matchedKeyword}
             onDismiss={roleBadge.onDismiss}
           />

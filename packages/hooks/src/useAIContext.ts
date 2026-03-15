@@ -5,8 +5,13 @@
 
 import { useMemo } from 'react';
 import { buildAIContext } from '@variscout/core';
-import type { AIContext, ProcessContext, FactorRole, BuildAIContextOptions } from '@variscout/core';
-import type { StatsResult, SpecLimits, Finding } from '@variscout/core';
+import type {
+  AIContext,
+  ProcessContext,
+  BuildAIContextOptions,
+  InvestigationCategory,
+} from '@variscout/core';
+import type { StatsResult, SpecLimits, Finding, Hypothesis } from '@variscout/core';
 
 export interface UseAIContextOptions {
   /** Whether AI is enabled */
@@ -21,8 +26,8 @@ export interface UseAIContextOptions {
   specs?: SpecLimits;
   /** Active filters */
   filters?: Record<string, (string | number)[]>;
-  /** Inferred factor roles */
-  factorRoles?: Record<string, FactorRole>;
+  /** Dynamic investigation categories */
+  categories?: InvestigationCategory[];
   /** Control/spec violations */
   violations?: {
     outOfControl: number;
@@ -33,6 +38,8 @@ export interface UseAIContextOptions {
   };
   /** Current findings */
   findings?: Finding[];
+  /** Current hypotheses for investigation context */
+  hypotheses?: Hypothesis[];
 }
 
 export interface UseAIContextReturn {
@@ -45,8 +52,17 @@ export interface UseAIContextReturn {
  * Returns null when AI is disabled.
  */
 export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
-  const { enabled, process, stats, sampleCount, filters, factorRoles, violations, findings } =
-    options;
+  const {
+    enabled,
+    process,
+    stats,
+    sampleCount,
+    filters,
+    categories,
+    violations,
+    findings,
+    hypotheses,
+  } = options;
 
   const context = useMemo<AIContext | null>(() => {
     if (!enabled) return null;
@@ -54,9 +70,10 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     const buildOptions: BuildAIContextOptions = {
       process,
       filters,
-      factorRoles,
+      categories,
       violations,
       findings,
+      hypotheses,
     };
 
     // Map StatsResult to AIStatsInput
@@ -72,7 +89,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     }
 
     return buildAIContext(buildOptions);
-  }, [enabled, process, stats, sampleCount, filters, factorRoles, violations, findings]);
+  }, [enabled, process, stats, sampleCount, filters, categories, violations, findings, hypotheses]);
 
   return { context };
 }

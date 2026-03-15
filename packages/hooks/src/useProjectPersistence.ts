@@ -18,7 +18,6 @@ import type {
   Hypothesis,
   InvestigationCategory,
 } from '@variscout/core';
-import { migrateFactorRolesToCategories } from '@variscout/core';
 import type {
   AnalysisState,
   DisplayOptions,
@@ -386,17 +385,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         // Hypotheses
         setHypotheses(state.hypotheses ?? []);
 
-        // Categories — migrate from old factorRoles if needed
-        if (state.categories && state.categories.length > 0) {
-          setCategories(state.categories);
-        } else if (
-          state.processContext?.factorRoles &&
-          Object.keys(state.processContext.factorRoles).length > 0
-        ) {
-          setCategories(migrateFactorRolesToCategories(state.processContext.factorRoles));
-        } else {
-          setCategories([]);
-        }
+        // Categories
+        setCategories(state.categories ?? []);
 
         setCurrentProjectId(project.id);
         setCurrentProjectName(project.name);
@@ -532,17 +522,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       // Hypotheses
       setHypotheses(state.hypotheses ?? []);
 
-      // Categories — migrate from old factorRoles if needed
-      if (state.categories && state.categories.length > 0) {
-        setCategories(state.categories);
-      } else if (
-        state.processContext?.factorRoles &&
-        Object.keys(state.processContext.factorRoles).length > 0
-      ) {
-        setCategories(migrateFactorRolesToCategories(state.processContext.factorRoles));
-      } else {
-        setCategories([]);
-      }
+      // Categories
+      setCategories(state.categories ?? []);
 
       setCurrentProjectId(null);
       setCurrentProjectName(file.name.replace('.vrs', ''));

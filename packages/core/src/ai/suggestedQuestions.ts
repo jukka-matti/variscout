@@ -125,14 +125,18 @@ function buildInvestigationQuestions(context: AIContext): string[] {
     }
   }
 
-  // Uncovered factor roles (diverge assistant)
+  // Uncovered investigation categories (diverge assistant)
   if (inv.phase === 'diverging' && inv.hypothesisTree) {
-    const coveredRoles = new Set(inv.hypothesisTree.filter(h => h.role).map(h => h.role!));
-    const allRoles = ['equipment', 'temporal', 'operator', 'material', 'location'];
-    const uncovered = allRoles.filter(r => !coveredRoles.has(r));
+    // Prefer dynamic categories from investigation context
+    const coveredCategories = new Set(
+      inv.hypothesisTree.filter(h => h.category).map(h => h.category!)
+    );
+    const allCategories = inv.categories
+      ? inv.categories.map(c => c.name)
+      : ['Equipment', 'Temporal', 'People', 'Material', 'Location'];
+    const uncovered = allCategories.filter(c => !coveredCategories.has(c));
     if (uncovered.length > 0 && questions.length < 5) {
-      const roleLabel = uncovered[0];
-      questions.push(`Have you considered ${roleLabel} factors?`);
+      questions.push(`Have you considered ${uncovered[0]} factors?`);
     }
   }
 

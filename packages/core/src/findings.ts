@@ -298,7 +298,6 @@ export interface Finding {
 
 /**
  * A user-defined investigation category that groups factor columns.
- * Replaces the fixed FactorRole enum with dynamic, domain-agnostic categories.
  *
  * Three-level investigation tree: Category → Factor → Hypothesis
  */
@@ -346,45 +345,6 @@ export function createInvestigationCategory(
   };
   if (inferredFrom) category.inferredFrom = inferredFrom;
   return category;
-}
-
-/**
- * Migrate legacy factorRoles (Record<string, FactorRole>) to InvestigationCategory[].
- * Each unique FactorRole value becomes a category, factors mapped accordingly.
- *
- * @param factorRoles - Old-style factor role map (column name → role enum value)
- * @returns Array of InvestigationCategory objects
- */
-export function migrateFactorRolesToCategories(
-  factorRoles: Record<string, string>
-): InvestigationCategory[] {
-  // Group factors by their role
-  const roleGroups = new Map<string, string[]>();
-  for (const [factor, role] of Object.entries(factorRoles)) {
-    if (role === 'unknown') continue; // Skip unknown — these go to "Other" implicitly
-    const existing = roleGroups.get(role) || [];
-    existing.push(factor);
-    roleGroups.set(role, existing);
-  }
-
-  // Convert each role group to a category
-  const categories: InvestigationCategory[] = [];
-  const ROLE_DISPLAY_NAMES: Record<string, string> = {
-    equipment: 'Equipment',
-    temporal: 'Temporal',
-    operator: 'People',
-    material: 'Material',
-    location: 'Location',
-  };
-
-  let index = 0;
-  for (const [role, factors] of roleGroups) {
-    const name = ROLE_DISPLAY_NAMES[role] || role.charAt(0).toUpperCase() + role.slice(1);
-    categories.push(createInvestigationCategory(name, factors, index));
-    index++;
-  }
-
-  return categories;
 }
 
 /**

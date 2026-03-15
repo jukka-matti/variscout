@@ -2,14 +2,9 @@
  * Tests for InvestigationCategory types, factory, migration, and inference
  */
 import { describe, it, expect } from 'vitest';
-import {
-  createInvestigationCategory,
-  migrateFactorRolesToCategories,
-  getCategoryForFactor,
-  CATEGORY_COLORS,
-} from '../findings';
+import { createInvestigationCategory, getCategoryForFactor, CATEGORY_COLORS } from '../findings';
 import type { InvestigationCategory } from '../findings';
-import { inferCategoryName, CATEGORY_DISPLAY_NAMES, inferFactorRole } from '../parser/keywords';
+import { inferCategoryName, CATEGORY_DISPLAY_NAMES } from '../parser/keywords';
 
 // ============================================================================
 // createInvestigationCategory
@@ -52,81 +47,6 @@ describe('createInvestigationCategory', () => {
     const cat1 = createInvestigationCategory('A', []);
     const cat2 = createInvestigationCategory('B', []);
     expect(cat1.id).not.toBe(cat2.id);
-  });
-});
-
-// ============================================================================
-// migrateFactorRolesToCategories
-// ============================================================================
-
-describe('migrateFactorRolesToCategories', () => {
-  it('converts factorRoles to categories, grouping by role', () => {
-    const factorRoles = {
-      Machine: 'equipment',
-      'Fill Head': 'equipment',
-      Shift: 'temporal',
-      Operator: 'operator',
-    };
-    const categories = migrateFactorRolesToCategories(factorRoles);
-
-    expect(categories).toHaveLength(3);
-
-    const equipment = categories.find(c => c.name === 'Equipment');
-    expect(equipment).toBeDefined();
-    expect(equipment!.factorNames).toContain('Machine');
-    expect(equipment!.factorNames).toContain('Fill Head');
-
-    const temporal = categories.find(c => c.name === 'Temporal');
-    expect(temporal).toBeDefined();
-    expect(temporal!.factorNames).toEqual(['Shift']);
-
-    const people = categories.find(c => c.name === 'People');
-    expect(people).toBeDefined();
-    expect(people!.factorNames).toEqual(['Operator']);
-  });
-
-  it('skips unknown roles', () => {
-    const factorRoles = {
-      Machine: 'equipment',
-      Misc: 'unknown',
-    };
-    const categories = migrateFactorRolesToCategories(factorRoles);
-    expect(categories).toHaveLength(1);
-    expect(categories[0].name).toBe('Equipment');
-  });
-
-  it('returns empty array for empty input', () => {
-    expect(migrateFactorRolesToCategories({})).toEqual([]);
-  });
-
-  it('returns empty array when all roles are unknown', () => {
-    const categories = migrateFactorRolesToCategories({ X: 'unknown', Y: 'unknown' });
-    expect(categories).toEqual([]);
-  });
-
-  it('assigns distinct colors to each category', () => {
-    const factorRoles = {
-      Machine: 'equipment',
-      Shift: 'temporal',
-      Operator: 'operator',
-      Batch: 'material',
-      Plant: 'location',
-    };
-    const categories = migrateFactorRolesToCategories(factorRoles);
-    const colors = categories.map(c => c.color);
-    // All colors should be different
-    expect(new Set(colors).size).toBe(colors.length);
-  });
-
-  it('uses display names (People for operator)', () => {
-    const categories = migrateFactorRolesToCategories({ Worker: 'operator' });
-    expect(categories[0].name).toBe('People');
-  });
-
-  it('capitalizes unknown role keys as fallback display name', () => {
-    // Simulate a non-standard role value
-    const categories = migrateFactorRolesToCategories({ X: 'custom' as string });
-    expect(categories[0].name).toBe('Custom');
   });
 });
 
@@ -212,27 +132,12 @@ describe('inferCategoryName', () => {
 // ============================================================================
 
 describe('CATEGORY_DISPLAY_NAMES', () => {
-  it('has display names for all 5 role keys', () => {
+  it('has display names for all 5 category keys', () => {
     expect(CATEGORY_DISPLAY_NAMES).toHaveProperty('equipment', 'Equipment');
     expect(CATEGORY_DISPLAY_NAMES).toHaveProperty('temporal', 'Temporal');
     expect(CATEGORY_DISPLAY_NAMES).toHaveProperty('operator', 'People');
     expect(CATEGORY_DISPLAY_NAMES).toHaveProperty('material', 'Material');
     expect(CATEGORY_DISPLAY_NAMES).toHaveProperty('location', 'Location');
-  });
-});
-
-// ============================================================================
-// Backward compatibility: inferFactorRole still works
-// ============================================================================
-
-describe('inferFactorRole backward compatibility', () => {
-  it('still returns FactorRole enum values', () => {
-    expect(inferFactorRole('Machine')).toBe('equipment');
-    expect(inferFactorRole('Shift')).toBe('temporal');
-    expect(inferFactorRole('Operator')).toBe('operator');
-    expect(inferFactorRole('Batch')).toBe('material');
-    expect(inferFactorRole('Plant')).toBe('location');
-    expect(inferFactorRole('xyz')).toBeNull();
   });
 });
 

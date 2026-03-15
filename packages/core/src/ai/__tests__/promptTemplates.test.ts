@@ -51,11 +51,11 @@ describe('buildSummaryPrompt', () => {
   it('includes filters', () => {
     const ctx: AIContext = {
       process: {},
-      filters: [{ factor: 'Machine', values: ['A', 'B'], role: 'equipment' }],
+      filters: [{ factor: 'Machine', values: ['A', 'B'], category: 'Equipment' }],
     };
     const prompt = buildSummaryPrompt(ctx);
     expect(prompt).toContain('Machine=A,B');
-    expect(prompt).toContain('equipment');
+    expect(prompt).toContain('Equipment');
   });
 
   it('includes violations', () => {
@@ -119,6 +119,15 @@ describe('buildSummaryPrompt', () => {
     const prompt = buildSummaryPrompt(ctx);
     expect(prompt).toContain('Summarize');
   });
+
+  it('includes problem statement when present', () => {
+    const ctx: AIContext = {
+      process: { problemStatement: 'Yield dropping in Q1' },
+      filters: [],
+    };
+    const prompt = buildSummaryPrompt(ctx);
+    expect(prompt).toContain('Yield dropping in Q1');
+  });
 });
 
 describe('buildChartInsightSystemPrompt', () => {
@@ -153,20 +162,20 @@ describe('buildChartInsightPrompt', () => {
     expect(prompt).toContain('Cpk');
   });
 
-  it('includes boxplot data with factor role', () => {
+  it('includes boxplot data with category', () => {
     const ctx: AIContext = { process: {}, filters: [] };
     const prompt = buildChartInsightPrompt(ctx, {
       chartType: 'boxplot',
       deterministicInsight: 'Drill Machine A',
       boxplot: {
         currentFactor: 'Machine',
-        factorRole: 'equipment',
+        category: 'Equipment',
         topCategories: [{ name: 'A', variationPct: 47 }],
         nextDrillFactor: 'Shift',
       },
     });
     expect(prompt).toContain('Machine');
-    expect(prompt).toContain('equipment');
+    expect(prompt).toContain('Equipment');
     expect(prompt).toContain('Shift');
   });
 
@@ -211,6 +220,51 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt('## Terminology\n\n- **Cp**: Process potential');
     expect(prompt).toContain('## Terminology');
     expect(prompt).toContain('Cp');
+  });
+
+  it('includes problem statement when investigation context provided', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, {
+      problemStatement: 'Customer complaints up 30%',
+    });
+    expect(prompt).toContain('Customer complaints up 30%');
+    expect(prompt).toContain('investigating');
+  });
+
+  it('includes hypotheses when investigation context has them', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, {
+      allHypotheses: [
+        { text: 'Night shift training gap', status: 'supported' },
+        { text: 'Material batch variation', status: 'untested' },
+      ],
+    });
+    expect(prompt).toContain('Night shift training gap');
+    expect(prompt).toContain('supported');
+    expect(prompt).toContain('Material batch variation');
+  });
+
+  it('includes target and progress when investigation has them', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, {
+      targetMetric: 'cpk',
+      targetValue: 1.33,
+      currentValue: 0.95,
+      progressPercent: 42,
+    });
+    expect(prompt).toContain('cpk');
+    expect(prompt).toContain('1.33');
+    expect(prompt).toContain('42%');
+  });
+
+  it('includes phase-specific instructions', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, {
+      phase: 'diverging',
+    });
+    expect(prompt).toContain('diverging');
+    expect(prompt).toContain('multiple hypotheses');
+  });
+
+  it('does not add investigation section when no investigation context', () => {
+    const prompt = buildCoScoutSystemPrompt();
+    expect(prompt).not.toContain('Investigation context');
   });
 });
 

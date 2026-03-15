@@ -134,8 +134,7 @@ export interface UsePasteImportFlowReturn {
   handleMappingConfirm: (
     newOutcome: string,
     newFactors: string[],
-    newSpecs?: { target?: number; lsl?: number; usl?: number },
-    factorRoles?: Record<string, import('@variscout/core').FactorRole>
+    newSpecs?: { target?: number; lsl?: number; usl?: number }
   ) => void;
   handleMappingCancel: () => void;
   handleDismissWideFormat: () => void;
@@ -312,10 +311,8 @@ export function usePasteImportFlow(options: UsePasteImportFlowOptions): UsePaste
     (
       newOutcome: string,
       newFactors: string[],
-      newSpecs?: { target?: number; lsl?: number; usl?: number },
-      _factorRoles?: Record<string, import('@variscout/core').FactorRole>
+      newSpecs?: { target?: number; lsl?: number; usl?: number }
     ) => {
-      // PWA is session-only — factorRoles are accepted but not persisted
       setOutcome(newOutcome);
       setFactors(newFactors);
       if (newSpecs) {

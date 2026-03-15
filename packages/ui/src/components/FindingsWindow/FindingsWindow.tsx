@@ -1,10 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ClipboardCopy, Check, List, LayoutGrid } from 'lucide-react';
-import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
+import type {
+  Finding,
+  FindingStatus,
+  FindingTag,
+  Hypothesis,
+  ProcessContext,
+} from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import FindingsLog from '../FindingsLog/FindingsLog';
 import FindingBoardColumns from '../FindingsLog/FindingBoardColumns';
 import { copyFindingsToClipboard } from '../FindingsLog/export';
+import BriefHeader from '../FindingsPanel/BriefHeader';
+import FindingDetailPanel from '../FindingsPanel/FindingDetailPanel';
 
 /**
  * Storage keys for cross-window data sync
@@ -17,6 +25,12 @@ export interface FindingsSyncData {
   columnAliases?: Record<string, string>;
   drillPath: DrillStep[];
   timestamp: number;
+  /** Hypotheses for investigation page */
+  hypotheses?: Hypothesis[];
+  /** Process context for brief header */
+  processContext?: ProcessContext;
+  /** Current metric value for progress bar */
+  currentValue?: number;
 }
 
 export interface FindingsAction {
@@ -51,7 +65,8 @@ const FindingsWindow: React.FC = () => {
   const [syncData, setSyncData] = useState<FindingsSyncData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'board'>('board');
+  const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
 
   // Load initial data from localStorage
   useEffect(() => {
@@ -240,6 +255,11 @@ const FindingsWindow: React.FC = () => {
     }
   }, [syncData]);
 
+  // Handle finding card click in board → open detail
+  const handleFindingClick = useCallback((id: string) => {
+    setSelectedFindingId(prev => (prev === id ? null : id));
+  }, []);
+
   // Error state
   if (error) {
     return (
@@ -262,14 +282,27 @@ const FindingsWindow: React.FC = () => {
     );
   }
 
-  const { findings, columnAliases, drillPath } = syncData;
+  const { findings, columnAliases, drillPath, hypotheses, processContext, currentValue } = syncData;
+  const selectedFinding = selectedFindingId
+    ? (findings.find(f => f.id === selectedFindingId) ?? null)
+    : null;
+
+  // Determine layout based on window width
+  const isWide = typeof window !== 'undefined' && window.innerWidth > 1200;
 
   return (
-    <div className="h-screen w-screen bg-surface p-4 flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2 flex-shrink-0">
+    <div className="h-screen w-screen bg-surface flex flex-col">
+      {/* Zone 1: Brief Header */}
+      <BriefHeader
+        processContext={processContext}
+        hypotheses={hypotheses}
+        currentValue={currentValue}
+      />
+
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-4 py-2 flex-shrink-0 border-b border-edge">
         <h1 className="text-sm font-semibold text-content">
-          Findings
+          Investigation
           {findings.length > 0 && (
             <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
               {findings.length}
@@ -324,35 +357,62 @@ const FindingsWindow: React.FC = () => {
         </div>
       </div>
 
-      {/* Findings list or board */}
-      {viewMode === 'board' && findings.length > 0 ? (
-        <FindingBoardColumns
-          findings={findings}
-          onEditFinding={handleEditFinding}
-          onDeleteFinding={handleDeleteFinding}
-          onRestoreFinding={handleRestoreFinding}
-          onSetFindingStatus={handleSetStatus}
-          onSetFindingTag={handleSetTag}
-          onAddComment={handleAddComment}
-          onEditComment={handleEditComment}
-          onDeleteComment={handleDeleteComment}
-          columnAliases={columnAliases}
-        />
-      ) : (
-        <FindingsLog
-          findings={findings}
-          onEditFinding={handleEditFinding}
-          onDeleteFinding={handleDeleteFinding}
-          onRestoreFinding={handleRestoreFinding}
-          onSetFindingStatus={handleSetStatus}
-          onSetFindingTag={handleSetTag}
-          onAddComment={handleAddComment}
-          onEditComment={handleEditComment}
-          onDeleteComment={handleDeleteComment}
-          columnAliases={columnAliases}
-          viewMode="list"
-        />
-      )}
+      {/* Zone 2 + Zone 3: Board + Detail Panel */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Zone 2: Board or list */}
+        <div className={`flex-1 overflow-hidden ${isWide && selectedFinding ? 'w-[60%]' : ''}`}>
+          {viewMode === 'board' && findings.length > 0 ? (
+            <FindingBoardColumns
+              findings={findings}
+              onEditFinding={handleEditFinding}
+              onDeleteFinding={handleDeleteFinding}
+              onRestoreFinding={handleFindingClick}
+              onSetFindingStatus={handleSetStatus}
+              onSetFindingTag={handleSetTag}
+              onAddComment={handleAddComment}
+              onEditComment={handleEditComment}
+              onDeleteComment={handleDeleteComment}
+              columnAliases={columnAliases}
+              activeFindingId={selectedFindingId}
+            />
+          ) : (
+            <FindingsLog
+              findings={findings}
+              onEditFinding={handleEditFinding}
+              onDeleteFinding={handleDeleteFinding}
+              onRestoreFinding={handleFindingClick}
+              onSetFindingStatus={handleSetStatus}
+              onSetFindingTag={handleSetTag}
+              onAddComment={handleAddComment}
+              onEditComment={handleEditComment}
+              onDeleteComment={handleDeleteComment}
+              columnAliases={columnAliases}
+              activeFindingId={selectedFindingId}
+              viewMode="list"
+            />
+          )}
+        </div>
+
+        {/* Zone 3: Detail Panel */}
+        {selectedFinding && (
+          <div className={isWide ? 'w-[40%]' : 'absolute inset-0'}>
+            <FindingDetailPanel
+              finding={selectedFinding}
+              onClose={() => setSelectedFindingId(null)}
+              columnAliases={columnAliases}
+              compact={!isWide}
+              onEditFinding={handleEditFinding}
+              onDeleteFinding={handleDeleteFinding}
+              onRestoreFinding={handleRestoreFinding}
+              onSetFindingStatus={handleSetStatus}
+              onSetFindingTag={handleSetTag}
+              onAddComment={handleAddComment}
+              onEditComment={handleEditComment}
+              onDeleteComment={handleDeleteComment}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Drill path footer */}
       {drillPath.length > 0 && (
@@ -386,16 +446,29 @@ export default FindingsWindow;
  * Open the findings in a popout window.
  * Writes sync data to localStorage, then opens a new window with ?view=findings.
  */
+export interface PopoutSyncOptions {
+  findings: Finding[];
+  columnAliases?: Record<string, string>;
+  drillPath?: DrillStep[];
+  hypotheses?: Hypothesis[];
+  processContext?: ProcessContext;
+  currentValue?: number;
+}
+
 export function openFindingsPopout(
   findings: Finding[],
   columnAliases?: Record<string, string>,
-  drillPath?: DrillStep[]
+  drillPath?: DrillStep[],
+  options?: Omit<PopoutSyncOptions, 'findings' | 'columnAliases' | 'drillPath'>
 ): Window | null {
   const syncData: FindingsSyncData = {
     findings,
     columnAliases,
     drillPath: drillPath ?? [],
     timestamp: Date.now(),
+    hypotheses: options?.hypotheses,
+    processContext: options?.processContext,
+    currentValue: options?.currentValue,
   };
   localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
 
@@ -403,7 +476,7 @@ export function openFindingsPopout(
   const popup = window.open(
     url,
     'variscout-findings',
-    'width=480,height=700,resizable=yes,menubar=no,toolbar=no,location=no,status=no'
+    'width=960,height=700,resizable=yes,menubar=no,toolbar=no,location=no,status=no'
   );
 
   return popup;
@@ -415,13 +488,17 @@ export function openFindingsPopout(
 export function updateFindingsPopout(
   findings: Finding[],
   columnAliases?: Record<string, string>,
-  drillPath?: DrillStep[]
+  drillPath?: DrillStep[],
+  options?: Omit<PopoutSyncOptions, 'findings' | 'columnAliases' | 'drillPath'>
 ): void {
   const syncData: FindingsSyncData = {
     findings,
     columnAliases,
     drillPath: drillPath ?? [],
     timestamp: Date.now(),
+    hypotheses: options?.hypotheses,
+    processContext: options?.processContext,
+    currentValue: options?.currentValue,
   };
   localStorage.setItem(FINDINGS_SYNC_KEY, JSON.stringify(syncData));
 }

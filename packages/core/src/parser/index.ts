@@ -42,8 +42,10 @@ export { validateData } from './validation';
 // Pareto file parsing
 export { parseParetoFile } from './pareto';
 
-// Factor role inference (AI context)
-export { FACTOR_ROLE_KEYWORDS, inferFactorRole, findMatchedFactorKeyword } from './keywords';
-
-// Category inference (dynamic investigation categories)
-export { CATEGORY_DISPLAY_NAMES, inferCategoryName } from './keywords';
+// Category keyword matching and inference
+export {
+  CATEGORY_KEYWORDS,
+  findMatchedCategoryKeyword,
+  CATEGORY_DISPLAY_NAMES,
+  inferCategoryName,
+} from './keywords';

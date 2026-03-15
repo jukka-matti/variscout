@@ -47,19 +47,19 @@ describe('useAIContext', () => {
     });
   });
 
-  it('maps filters with factor roles', () => {
+  it('maps filters with categories', () => {
     const { result } = renderHook(() =>
       useAIContext({
         enabled: true,
         filters: { Machine: ['A', 'B'] },
-        factorRoles: { Machine: 'equipment' },
+        categories: [{ id: 'c1', name: 'Equipment', factorNames: ['Machine'] }],
       })
     );
     expect(result.current.context!.filters).toHaveLength(1);
     expect(result.current.context!.filters[0]).toEqual({
       factor: 'Machine',
       values: ['A', 'B'],
-      role: 'equipment',
+      category: 'Equipment',
     });
   });
 

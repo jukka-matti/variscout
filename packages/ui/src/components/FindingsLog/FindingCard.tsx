@@ -10,10 +10,17 @@ import {
   Pencil,
   Share2,
   Target,
+  TrendingDown,
   Trash2,
   UserPlus,
 } from 'lucide-react';
-import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
+import type {
+  Finding,
+  FindingProjection,
+  FindingSource,
+  FindingStatus,
+  FindingTag,
+} from '@variscout/core';
 import { getFindingStatus } from '@variscout/core';
 import FindingEditor from './FindingEditor';
 import FindingStatusBadge from './FindingStatusBadge';
@@ -76,6 +83,10 @@ export interface FindingCardProps {
       verifiedAt: number;
     }
   ) => void;
+  /** Callback to open What-If simulator pre-loaded for this finding */
+  onProjectImprovement?: (findingId: string) => void;
+  /** Whether the finding has spec limits (affects projection display) */
+  hasSpecs?: boolean;
 }
 
 // ============================================================================
@@ -396,6 +407,59 @@ const OutcomeSection: React.FC<OutcomeSectionProps> = ({
   );
 };
 
+// ============================================================================
+// Projection Section (What-If improvement projection)
+// ============================================================================
+
+interface ProjectionSectionProps {
+  projection: FindingProjection;
+  hasSpecs: boolean;
+}
+
+/** Format a numeric delta with arrow and sign */
+function formatDelta(from: number, to: number, decimals: number = 1): string {
+  return `${from.toFixed(decimals)}\u2192${to.toFixed(decimals)}`;
+}
+
+const ProjectionSection: React.FC<ProjectionSectionProps> = ({ projection, hasSpecs }) => {
+  const age = Math.round((Date.now() - new Date(projection.createdAt).getTime()) / 86400000);
+  const ageText = age === 0 ? 'today' : age === 1 ? '1 day ago' : `${age} days ago`;
+
+  return (
+    <div className="mt-2 border-t border-edge/50 pt-2" data-testid="projection-section">
+      <div className="flex items-center gap-1 text-[10px] text-content-muted mb-1">
+        <TrendingDown size={10} />
+        <span>Projected improvement</span>
+        <span className="ml-auto text-[9px]">{ageText}</span>
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
+        <span className="text-content-secondary">
+          Mean:{' '}
+          <span className="text-green-400">
+            {formatDelta(projection.baselineMean, projection.projectedMean)}
+          </span>
+        </span>
+        <span className="text-content-secondary">
+          \u03C3:{' '}
+          <span className="text-green-400">
+            {formatDelta(projection.baselineSigma, projection.projectedSigma, 2)}
+          </span>
+        </span>
+        {hasSpecs &&
+          projection.projectedCpk !== undefined &&
+          projection.baselineCpk !== undefined && (
+            <span className="text-content-secondary">
+              Cpk:{' '}
+              <span className="text-green-400">
+                {formatDelta(projection.baselineCpk, projection.projectedCpk, 2)}
+              </span>
+            </span>
+          )}
+      </div>
+    </div>
+  );
+};
+
 /**
  * Individual finding card showing filter chips, stats, and analyst note.
  * Click the card body to restore its filter state.
@@ -427,6 +491,8 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onCompleteAction,
   onDeleteAction,
   onSetOutcome,
+  onProjectImprovement,
+  hasSpecs = false,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
@@ -623,6 +689,31 @@ const FindingCard: React.FC<FindingCardProps> = ({
               onCreateHypothesis={onCreateHypothesis}
               readOnly={status === 'resolved'}
             />
+          )}
+
+        {/* Projection display (visible when projection exists) */}
+        {finding.projection && (
+          <ProjectionSection projection={finding.projection} hasSpecs={hasSpecs} />
+        )}
+
+        {/* "Project improvement" button (key-driver findings without projection) */}
+        {onProjectImprovement &&
+          finding.tag === 'key-driver' &&
+          !finding.projection &&
+          ['analyzed', 'improving'].includes(status) && (
+            <div className="mt-2 border-t border-edge/50 pt-2">
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  onProjectImprovement(finding.id);
+                }}
+                className="flex items-center gap-1.5 text-[10px] text-blue-400 hover:text-blue-300 transition-colors"
+                data-testid="project-improvement-btn"
+              >
+                <TrendingDown size={10} />
+                <span>Project improvement</span>
+              </button>
+            </div>
           )}
 
         {/* Action Items (visible from 'analyzed' onward) */}

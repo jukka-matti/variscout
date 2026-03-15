@@ -29,14 +29,17 @@ describe('buildAIContext', () => {
     expect(ctx.stats!.samples).toBe(100);
   });
 
-  it('includes filters with roles', () => {
+  it('includes filters with categories', () => {
     const ctx = buildAIContext({
       filters: { Machine: ['A', 'B'], Shift: ['Night'] },
-      factorRoles: { Machine: 'equipment', Shift: 'temporal' },
+      categories: [
+        { id: 'c1', name: 'Equipment', factorNames: ['Machine'] },
+        { id: 'c2', name: 'Temporal', factorNames: ['Shift'] },
+      ],
     });
     expect(ctx.filters).toHaveLength(2);
-    expect(ctx.filters[0].role).toBe('equipment');
-    expect(ctx.filters[1].role).toBe('temporal');
+    expect(ctx.filters[0].category).toBe('Equipment');
+    expect(ctx.filters[1].category).toBe('Temporal');
   });
 
   it('includes violations when provided', () => {

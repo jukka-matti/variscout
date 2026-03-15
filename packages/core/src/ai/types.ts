@@ -2,19 +2,6 @@
  * AI integration types for VariScout
  */
 
-/**
- * Factor role for AI context grounding.
- * @deprecated Use dynamic `InvestigationCategory` from `@variscout/core/findings` instead.
- * Kept for backward compatibility with old .vrs files and migration.
- */
-export type FactorRole =
-  | 'equipment'
-  | 'temporal'
-  | 'operator'
-  | 'material'
-  | 'location'
-  | 'unknown';
-
 /** Target metric type for improvement tracking */
 export type TargetMetric = 'mean' | 'sigma' | 'cpk' | 'yield' | 'passRate';
 
@@ -29,12 +16,6 @@ export interface ProcessContext {
   product?: string;
   /** Measurement being analyzed */
   measurement?: string;
-  /**
-   * Inferred or confirmed factor roles (factor column name → role).
-   * @deprecated Use `InvestigationCategory[]` in `AnalysisState.categories` instead.
-   * Kept for backward compatibility — migrated on project load.
-   */
-  factorRoles?: Record<string, FactorRole>;
   /** Problem statement: why this analysis is being done (max 500 chars) */
   problemStatement?: string;
   /** Target metric for improvement tracking */
@@ -43,21 +24,6 @@ export interface ProcessContext {
   targetValue?: number;
   /** Direction of improvement relative to target */
   targetDirection?: 'minimize' | 'maximize' | 'target';
-}
-
-/** Known FactorRole values */
-const FACTOR_ROLES: readonly string[] = [
-  'equipment',
-  'temporal',
-  'operator',
-  'material',
-  'location',
-  'unknown',
-] as const;
-
-/** Type guard: checks if a string is a valid FactorRole */
-export function isFactorRole(value: string): value is FactorRole {
-  return FACTOR_ROLES.includes(value);
 }
 
 /** Structured AI context assembled from current analysis state */
@@ -73,11 +39,12 @@ export interface AIContext {
     cp?: number;
     passRate?: number;
   };
-  /** Active filters and their roles */
+  /** Active filters and their categories */
   filters: Array<{
     factor: string;
     values: (string | number)[];
-    role?: FactorRole;
+    /** Dynamic category name (from InvestigationCategory) */
+    category?: string;
   }>;
   /** Control/spec violations */
   violations?: {
@@ -116,12 +83,15 @@ export interface AIContext {
       text: string;
       status: string;
       factor?: string;
-      role?: string;
+      /** Dynamic category name (from InvestigationCategory) */
+      category?: string;
       validationType?: string;
       children?: Array<{ text: string; status: string; validationType?: string }>;
     }>;
     /** Current investigation phase (deterministic) */
     phase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'acting';
+    /** Investigation categories for completeness prompting */
+    categories?: Array<{ name: string; factorNames: string[] }>;
   };
   /** Glossary terms for grounding */
   glossaryFragment?: string;

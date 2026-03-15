@@ -82,6 +82,10 @@ export interface FindingsLogProps {
       verifiedAt: number;
     }
   ) => void;
+  /** Open What-If simulator for a key-driver finding */
+  onProjectImprovement?: (findingId: string) => void;
+  /** Whether spec limits exist (affects projection display metrics) */
+  hasSpecs?: boolean;
 }
 
 /**
@@ -121,6 +125,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onCompleteAction,
   onDeleteAction,
   onSetOutcome,
+  onProjectImprovement,
+  hasSpecs,
 }) => {
   if (findings.length === 0) {
     return (
@@ -212,6 +218,8 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
           onSetOutcome={onSetOutcome}
+          onProjectImprovement={onProjectImprovement}
+          hasSpecs={hasSpecs}
         />
       ))}
     </div>

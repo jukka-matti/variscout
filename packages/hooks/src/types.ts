@@ -224,11 +224,11 @@ export interface AnalysisState {
   hypotheses?: Hypothesis[];
 
   // --- Investigation categories (dynamic factor grouping) ---
-  /** User-defined categories grouping factor columns (replaces factorRoles) */
+  /** User-defined categories grouping factor columns */
   categories?: InvestigationCategory[];
 
   // --- AI process context ---
-  /** Process description and factor roles for AI grounding */
+  /** Process description for AI grounding */
   processContext?: ProcessContext;
 }
 

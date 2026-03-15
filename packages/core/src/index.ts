@@ -249,7 +249,6 @@ export { hasExifData, stripExifSegments, stripExifFromBlob } from './utils/exifS
 
 // AI (Phase 1)
 export type {
-  FactorRole,
   ProcessContext,
   TargetMetric,
   InvestigationPhase,
@@ -283,11 +282,13 @@ export {
   buildSuggestedQuestions,
 } from './ai';
 
-// Factor role inference
-export { FACTOR_ROLE_KEYWORDS, inferFactorRole, findMatchedFactorKeyword } from './parser';
-
-// Category inference (dynamic investigation categories)
-export { CATEGORY_DISPLAY_NAMES, inferCategoryName } from './parser';
+// Category keyword matching and inference
+export {
+  CATEGORY_KEYWORDS,
+  findMatchedCategoryKeyword,
+  CATEGORY_DISPLAY_NAMES,
+  inferCategoryName,
+} from './parser';
 
 // Findings (scouting report)
 export type {
@@ -325,7 +326,6 @@ export {
   createFindingOutcome,
   createHypothesis,
   createInvestigationCategory,
-  migrateFactorRolesToCategories,
   getCategoryForFactor,
   getFindingStatus,
   groupFindingsByStatus,

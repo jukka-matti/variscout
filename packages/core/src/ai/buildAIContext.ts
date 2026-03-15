@@ -2,15 +2,9 @@
  * Assembles the structured AI context from current analysis state.
  */
 
-import type {
-  AIContext,
-  ProcessContext,
-  FactorRole,
-  TargetMetric,
-  InvestigationPhase,
-} from './types';
-import type { Finding, Hypothesis } from '../findings';
-import { groupFindingsByStatus } from '../findings';
+import type { AIContext, ProcessContext, TargetMetric, InvestigationPhase } from './types';
+import type { Finding, Hypothesis, InvestigationCategory } from '../findings';
+import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
 import type { GlossaryCategory } from '../glossary/types';
 
@@ -32,7 +26,8 @@ export interface BuildAIContextOptions {
   process?: ProcessContext;
   stats?: AIStatsInput;
   filters?: Record<string, (string | number)[]>;
-  factorRoles?: Record<string, FactorRole>;
+  /** Dynamic investigation categories */
+  categories?: InvestigationCategory[];
   violations?: {
     outOfControl: number;
     aboveUSL: number;
@@ -63,7 +58,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     process = {},
     stats,
     filters = {},
-    factorRoles = {},
+    categories: categoriesOpt,
     violations,
     findings,
     hypotheses,
@@ -72,19 +67,22 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
   } = options;
 
   // Determine relevant glossary categories based on state
-  const categories: GlossaryCategory[] = ['methodology'];
-  if (stats?.cp !== undefined || stats?.cpk !== undefined) categories.push('capability');
-  if (Object.keys(filters).length > 0) categories.push('statistics');
-  if (findings && findings.length > 0) categories.push('investigation');
+  const glossaryCategories: GlossaryCategory[] = ['methodology'];
+  if (stats?.cp !== undefined || stats?.cpk !== undefined) glossaryCategories.push('capability');
+  if (Object.keys(filters).length > 0) glossaryCategories.push('statistics');
+  if (findings && findings.length > 0) glossaryCategories.push('investigation');
 
   const context: AIContext = {
     process,
-    filters: Object.entries(filters).map(([factor, values]) => ({
-      factor,
-      values,
-      role: factorRoles[factor],
-    })),
-    glossaryFragment: buildGlossaryPrompt(categories, maxGlossaryTerms),
+    filters: Object.entries(filters).map(([factor, values]) => {
+      const cat = categoriesOpt ? getCategoryForFactor(categoriesOpt, factor) : undefined;
+      return {
+        factor,
+        values,
+        category: cat?.name,
+      };
+    }),
+    glossaryFragment: buildGlossaryPrompt(glossaryCategories, maxGlossaryTerms),
   };
 
   if (stats) {
@@ -151,11 +149,15 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       if (roots.length > 0) {
         context.investigation.hypothesisTree = roots.map(root => {
           const children = hypotheses.filter(h => h.parentId === root.id);
+          const cat =
+            root.factor && categoriesOpt
+              ? getCategoryForFactor(categoriesOpt, root.factor)
+              : undefined;
           return {
             text: root.text,
             status: root.status,
             factor: root.factor,
-            role: root.factor && factorRoles[root.factor] ? factorRoles[root.factor] : undefined,
+            category: cat?.name,
             validationType: root.validationType,
             children:
               children.length > 0
@@ -167,6 +169,14 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
                 : undefined,
           };
         });
+      }
+
+      // Add categories for completeness prompting
+      if (categoriesOpt && categoriesOpt.length > 0) {
+        context.investigation.categories = categoriesOpt.map(c => ({
+          name: c.name,
+          factorNames: c.factorNames,
+        }));
       }
 
       // Detect investigation phase

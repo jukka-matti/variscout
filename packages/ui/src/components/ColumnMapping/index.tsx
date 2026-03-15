@@ -10,8 +10,8 @@
  * - Shows data quality validation results
  */
 
-import React, { useState, useMemo } from 'react';
-import { ArrowLeft, ArrowRight, Settings2, Eye } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { ArrowLeft, ArrowRight, Settings2, Eye, Search } from 'lucide-react';
 import { DataQualityBanner } from '../DataQualityBanner';
 import { ColumnCard } from './ColumnCard';
 import { DataPreviewTable } from './DataPreviewTable';
@@ -24,9 +24,29 @@ import type {
   DataQualityReport,
   DataRow,
   TimeExtractionConfig,
-  FactorRole,
+  InvestigationCategory,
+  TargetMetric,
 } from '@variscout/core';
-import { inferFactorRole, findMatchedFactorKeyword } from '@variscout/core';
+import {
+  inferCategoryName,
+  findMatchedCategoryKeyword,
+  createInvestigationCategory,
+  CATEGORY_COLORS,
+} from '@variscout/core';
+
+/** Analysis brief data for investigation context (optional) */
+export interface AnalysisBrief {
+  /** What is being investigated (max 500 chars) */
+  problemStatement?: string;
+  /** Upfront hypothesis entries */
+  hypotheses?: Array<{ text: string; factor?: string; level?: string }>;
+  /** Improvement target */
+  target?: {
+    metric: TargetMetric;
+    direction: 'minimize' | 'maximize' | 'target';
+    value: number;
+  };
+}
 
 export interface ColumnMappingProps {
   /** Rich column metadata from detectColumns(). Preferred over availableColumns. */
@@ -53,12 +73,13 @@ export interface ColumnMappingProps {
       usl?: number;
       characteristicType?: CharacteristicType;
     },
-    factorRoles?: Record<string, FactorRole>
+    categories?: InvestigationCategory[],
+    brief?: AnalysisBrief
   ) => void;
   onCancel: () => void;
   onBack?: () => void;
-  /** Pre-existing factor roles (from project load / previous mapping) */
-  initialFactorRoles?: Record<string, FactorRole>;
+  /** Pre-existing investigation categories (from project load / previous mapping) */
+  initialCategories?: InvestigationCategory[];
   // Validation integration
   dataQualityReport?: DataQualityReport | null;
   onViewExcludedRows?: () => void;
@@ -76,6 +97,10 @@ export interface ColumnMappingProps {
   maxFactors?: number;
   /** Mode: 'setup' for first-time mapping, 'edit' for mid-analysis re-edit */
   mode?: 'setup' | 'edit';
+  /** Show analysis brief fields (problem statement, hypothesis, target). Default: false (PWA). */
+  showBrief?: boolean;
+  /** Initial problem statement (from persisted ProcessContext) */
+  initialProblemStatement?: string;
 }
 
 /**
@@ -117,7 +142,9 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   onTimeExtractionChange,
   maxFactors = 3,
   mode = 'setup',
-  initialFactorRoles,
+  initialCategories: initialCategoriesProp,
+  showBrief = false,
+  initialProblemStatement,
 }) => {
   const [outcome, setOutcome] = useState<string>(initialOutcome || '');
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
@@ -125,24 +152,84 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   const [showAllFactors, setShowAllFactors] = useState(false);
   const [dismissedRoles, setDismissedRoles] = useState<Set<string>>(new Set());
 
-  // Infer roles for selected factors
-  const inferredRoles = useMemo(() => {
-    const roles: Record<string, { role: FactorRole; keyword: string }> = {};
+  // Brief fields state
+  const [problemStatement, setProblemStatement] = useState(initialProblemStatement || '');
+  const [briefHypotheses, setBriefHypotheses] = useState<
+    Array<{ text: string; factor: string; level: string }>
+  >([]);
+  const [briefExpanded, setBriefExpanded] = useState(!!initialProblemStatement);
+  const [targetMetric, setTargetMetric] = useState<TargetMetric | ''>('');
+  const [targetDirection, setTargetDirection] = useState<'minimize' | 'maximize' | 'target'>(
+    'minimize'
+  );
+  const [targetValue, setTargetValue] = useState('');
+
+  const initialCategories = useMemo(() => {
+    if (initialCategoriesProp && initialCategoriesProp.length > 0) return initialCategoriesProp;
+    return [];
+  }, [initialCategoriesProp]);
+
+  // Infer category names for selected factors
+  const inferredCategories = useMemo(() => {
+    const result: Record<string, { categoryName: string; keyword: string }> = {};
     for (const factor of factors) {
       if (dismissedRoles.has(factor)) continue;
-      // Check initialFactorRoles first (persisted from previous session)
-      if (initialFactorRoles?.[factor]) {
-        roles[factor] = { role: initialFactorRoles[factor], keyword: '' };
+      // Check initialCategories first (persisted from previous session)
+      const existingCat = initialCategories.find(c => c.factorNames.includes(factor));
+      if (existingCat) {
+        result[factor] = {
+          categoryName: existingCat.name,
+          keyword: existingCat.inferredFrom || '',
+        };
         continue;
       }
-      const role = inferFactorRole(factor);
-      if (role) {
-        const keyword = findMatchedFactorKeyword(factor) || '';
-        roles[factor] = { role, keyword };
+      const catName = inferCategoryName(factor);
+      if (catName) {
+        const keyword = findMatchedCategoryKeyword(factor) || '';
+        result[factor] = { categoryName: catName, keyword };
       }
     }
-    return roles;
-  }, [factors, dismissedRoles, initialFactorRoles]);
+    return result;
+  }, [factors, dismissedRoles, initialCategories]);
+
+  // Compute color map for unique category names
+  const categoryColorMap = useMemo(() => {
+    const uniqueNames = [...new Set(Object.values(inferredCategories).map(c => c.categoryName))];
+    const colorMap: Record<string, string> = {};
+    // Preserve colors from initialCategories first
+    for (const cat of initialCategories) {
+      if (cat.color) colorMap[cat.name] = cat.color;
+    }
+    // Assign colors to remaining unique names
+    let colorIndex = initialCategories.length;
+    for (const name of uniqueNames) {
+      if (!colorMap[name]) {
+        colorMap[name] = CATEGORY_COLORS[colorIndex % CATEGORY_COLORS.length];
+        colorIndex++;
+      }
+    }
+    return colorMap;
+  }, [inferredCategories, initialCategories]);
+
+  // Brief hypothesis helpers
+  const addBriefHypothesis = useCallback(() => {
+    setBriefHypotheses(prev => [...prev, { text: '', factor: '', level: '' }]);
+  }, []);
+
+  const updateBriefHypothesis = useCallback(
+    (index: number, field: 'text' | 'factor' | 'level', value: string) => {
+      setBriefHypotheses(prev => {
+        const next = [...prev];
+        next[index] = { ...next[index], [field]: value };
+        return next;
+      });
+    },
+    []
+  );
+
+  const removeBriefHypothesis = useCallback((index: number) => {
+    setBriefHypotheses(prev => prev.filter((_, i) => i !== index));
+  }, []);
 
   // Optional specs state
   const [specsExpanded, setSpecsExpanded] = useState(false);
@@ -160,6 +247,16 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
 
   // Has rich metadata?
   const hasRichData = !!(columnAnalysisProp && columnAnalysisProp.length > 0);
+
+  // Get unique levels for a factor column from columnAnalysis
+  const getFactorLevels = useCallback(
+    (factorName: string): string[] => {
+      const col = columns.find(c => c.name === factorName);
+      if (!col || col.type === 'numeric') return [];
+      return col.sampleValues;
+    },
+    [columns]
+  );
 
   // Type-separated columns
   const numericColumns = useMemo(() => columns.filter(c => c.type === 'numeric'), [columns]);
@@ -224,6 +321,169 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
           {/* Data Preview Table (hidden in edit mode) */}
           {mode === 'setup' && previewRows && previewRows.length > 0 && hasRichData && (
             <DataPreviewTable rows={previewRows} columnAnalysis={columns} totalRows={totalRows} />
+          )}
+
+          {/* Analysis Brief (optional, Azure only by default) */}
+          {showBrief && mode === 'setup' && (
+            <div data-testid="analysis-brief">
+              <button
+                onClick={() => setBriefExpanded(!briefExpanded)}
+                className="flex items-center gap-2 w-full text-left mb-2"
+                type="button"
+                data-testid="brief-toggle"
+              >
+                <div className="p-1.5 bg-amber-600/20 text-amber-400 rounded-lg">
+                  <Search size={16} />
+                </div>
+                <h3 className="text-sm font-semibold text-slate-200">Analysis Brief</h3>
+                <span className="text-[10px] text-slate-500 ml-1">(optional)</span>
+                <span className="ml-auto text-slate-500 text-xs">{briefExpanded ? '−' : '+'}</span>
+              </button>
+
+              {briefExpanded && (
+                <div className="space-y-3 pl-1" data-testid="brief-fields">
+                  {/* Problem statement */}
+                  <div>
+                    <textarea
+                      value={problemStatement}
+                      onChange={e => setProblemStatement(e.target.value.slice(0, 500))}
+                      placeholder="What are you investigating? (optional)"
+                      className="w-full text-sm bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder:text-slate-500 resize-none focus:outline-none focus:border-blue-500/50"
+                      rows={2}
+                      maxLength={500}
+                      data-testid="brief-problem-statement"
+                    />
+                    <span className="text-[10px] text-slate-600 float-right">
+                      {problemStatement.length}/500
+                    </span>
+                  </div>
+
+                  {/* Hypotheses */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-slate-400">Hypotheses</span>
+                    </div>
+                    {briefHypotheses.map((hyp, idx) => (
+                      <div
+                        key={idx}
+                        className="flex flex-col gap-1.5 mb-2 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50"
+                        data-testid={`brief-hypothesis-${idx}`}
+                      >
+                        <input
+                          type="text"
+                          value={hyp.text}
+                          onChange={e => updateBriefHypothesis(idx, 'text', e.target.value)}
+                          placeholder="e.g., Night shift has higher variation"
+                          className="w-full text-sm bg-slate-900/50 border border-slate-700 rounded px-2 py-1.5 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
+                        />
+                        <div className="flex gap-2">
+                          <select
+                            value={hyp.factor}
+                            onChange={e => updateBriefHypothesis(idx, 'factor', e.target.value)}
+                            className="flex-1 text-xs bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-blue-500/50"
+                          >
+                            <option value="">Factor (optional)</option>
+                            {columns
+                              .filter(c => c.type !== 'numeric')
+                              .map(c => (
+                                <option key={c.name} value={c.name}>
+                                  {c.name}
+                                </option>
+                              ))}
+                          </select>
+                          <select
+                            value={hyp.level}
+                            onChange={e => updateBriefHypothesis(idx, 'level', e.target.value)}
+                            className="flex-1 text-xs bg-slate-900/50 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-blue-500/50"
+                            disabled={!hyp.factor}
+                          >
+                            <option value="">Level (optional)</option>
+                            {hyp.factor &&
+                              getFactorLevels(hyp.factor).map(lv => (
+                                <option key={lv} value={lv}>
+                                  {lv}
+                                </option>
+                              ))}
+                          </select>
+                          <button
+                            onClick={() => removeBriefHypothesis(idx)}
+                            className="text-slate-500 hover:text-red-400 text-xs px-1"
+                            type="button"
+                            aria-label="Remove hypothesis"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      onClick={addBriefHypothesis}
+                      className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                      type="button"
+                      data-testid="brief-add-hypothesis"
+                    >
+                      + Add hypothesis
+                    </button>
+                  </div>
+
+                  {/* Target */}
+                  <div>
+                    <span className="text-xs text-slate-400 mb-1 block">Improvement Target</span>
+                    <div className="flex gap-2 items-center">
+                      <select
+                        value={targetMetric}
+                        onChange={e => setTargetMetric(e.target.value as TargetMetric | '')}
+                        className="text-xs bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500/50"
+                        data-testid="brief-target-metric"
+                      >
+                        <option value="">Metric</option>
+                        <option value="mean">Mean</option>
+                        <option value="sigma">Sigma</option>
+                        <option value="cpk">Cpk</option>
+                        <option value="yield">Yield</option>
+                        <option value="passRate">Pass Rate</option>
+                      </select>
+                      <select
+                        value={targetDirection}
+                        onChange={e =>
+                          setTargetDirection(e.target.value as 'minimize' | 'maximize' | 'target')
+                        }
+                        className="text-xs bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500/50"
+                        disabled={!targetMetric}
+                      >
+                        <option value="minimize">≤</option>
+                        <option value="maximize">≥</option>
+                        <option value="target">=</option>
+                      </select>
+                      <input
+                        type="number"
+                        value={targetValue}
+                        onChange={e => setTargetValue(e.target.value)}
+                        placeholder="Value"
+                        className="w-20 text-xs bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
+                        disabled={!targetMetric}
+                        data-testid="brief-target-value"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Problem statement only (PWA mode — showBrief=false but problemStatement always available in setup) */}
+          {!showBrief && mode === 'setup' && (
+            <div data-testid="problem-statement-simple">
+              <textarea
+                value={problemStatement}
+                onChange={e => setProblemStatement(e.target.value.slice(0, 500))}
+                placeholder="What are you investigating? (optional)"
+                className="w-full text-sm bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder:text-slate-500 resize-none focus:outline-none focus:border-blue-500/50"
+                rows={1}
+                maxLength={500}
+                data-testid="brief-problem-statement"
+              />
+            </div>
           )}
 
           {/* Outcome Selection */}
@@ -292,7 +552,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
               {factorColumns.map(col => {
                 const isOutcomeCol = outcome === col.name;
-                const inferred = inferredRoles[col.name];
+                const inferred = inferredCategories[col.name];
                 return (
                   <ColumnCard
                     key={`factor-${col.name}`}
@@ -307,7 +567,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                     roleBadge={
                       inferred
                         ? {
-                            role: inferred.role,
+                            categoryName: inferred.categoryName,
+                            categoryColor: categoryColorMap[inferred.categoryName],
                             matchedKeyword: inferred.keyword,
                             onDismiss: () =>
                               setDismissedRoles(prev => new Set([...prev, col.name])),
@@ -398,13 +659,52 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                     ...(specCharType ? { characteristicType: specCharType } : {}),
                   }
                 : undefined;
-              // Build factor roles map from inferred (non-dismissed) roles
-              const roleMap: Record<string, FactorRole> = {};
-              for (const [name, { role }] of Object.entries(inferredRoles)) {
-                roleMap[name] = role;
+              // Build InvestigationCategory[] from inferred categories
+              // Group factors by category name
+              const catGroups = new Map<string, string[]>();
+              for (const [factorName, { categoryName }] of Object.entries(inferredCategories)) {
+                const group = catGroups.get(categoryName) || [];
+                group.push(factorName);
+                catGroups.set(categoryName, group);
               }
-              const roles = Object.keys(roleMap).length > 0 ? roleMap : undefined;
-              onConfirm(outcome, factors, specs, roles);
+              let categories: InvestigationCategory[] | undefined;
+              if (catGroups.size > 0) {
+                categories = [];
+                let idx = 0;
+                for (const [name, factorNames] of catGroups) {
+                  // Reuse existing category if available (preserves ID and color)
+                  const existing = initialCategories.find(c => c.name === name);
+                  if (existing) {
+                    categories.push({ ...existing, factorNames });
+                  } else {
+                    categories.push(createInvestigationCategory(name, factorNames, idx));
+                  }
+                  idx++;
+                }
+              }
+              // Build analysis brief from state
+              const brief: AnalysisBrief = {};
+              if (problemStatement.trim()) {
+                brief.problemStatement = problemStatement.trim();
+              }
+              const validHypotheses = briefHypotheses.filter(h => h.text.trim());
+              if (validHypotheses.length > 0) {
+                brief.hypotheses = validHypotheses.map(h => ({
+                  text: h.text.trim(),
+                  ...(h.factor ? { factor: h.factor } : {}),
+                  ...(h.level ? { level: h.level } : {}),
+                }));
+              }
+              const tv = parseFloat(targetValue);
+              if (targetMetric && !isNaN(tv)) {
+                brief.target = {
+                  metric: targetMetric as TargetMetric,
+                  direction: targetDirection,
+                  value: tv,
+                };
+              }
+              const hasBrief = brief.problemStatement || brief.hypotheses || brief.target;
+              onConfirm(outcome, factors, specs, categories, hasBrief ? brief : undefined);
             }}
             disabled={!isValid}
             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"

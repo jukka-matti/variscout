@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import HypothesisTreeView from '../HypothesisTreeView';
-import { createHypothesis } from '@variscout/core';
+import { createHypothesis, createInvestigationCategory } from '@variscout/core';
 
-const makeHypothesis = (text: string, parentId?: string) => {
-  return createHypothesis(text, undefined, undefined, parentId);
+const makeHypothesis = (text: string, parentId?: string, factor?: string) => {
+  return createHypothesis(text, factor, undefined, parentId);
 };
 
 describe('HypothesisTreeView', () => {
@@ -107,5 +107,99 @@ describe('HypothesisTreeView', () => {
     const h = makeHypothesis('Test');
     render(<HypothesisTreeView hypotheses={[h]} findings={[]} />);
     expect(screen.getByRole('tree')).toBeTruthy();
+  });
+
+  describe('category grouping', () => {
+    const equipmentCat = createInvestigationCategory('Equipment', ['Machine'], 0);
+    const temporalCat = createInvestigationCategory('Temporal', ['Shift'], 1);
+    const emptyCat = createInvestigationCategory('Material', [], 2);
+
+    it('renders category headers when categories provided', () => {
+      const h = makeHypothesis('Machine worn out', undefined, 'Machine');
+      render(
+        <HypothesisTreeView
+          hypotheses={[h]}
+          findings={[]}
+          categories={[equipmentCat, temporalCat]}
+        />
+      );
+      expect(screen.getByText('Equipment')).toBeTruthy();
+      expect(screen.getByText('Temporal')).toBeTruthy();
+    });
+
+    it('groups hypotheses under their category', () => {
+      const h1 = makeHypothesis('Machine worn out', undefined, 'Machine');
+      const h2 = makeHypothesis('Night shift drift', undefined, 'Shift');
+      render(
+        <HypothesisTreeView
+          hypotheses={[h1, h2]}
+          findings={[]}
+          categories={[equipmentCat, temporalCat]}
+        />
+      );
+      // Categories start expanded — factor headers should be visible
+      expect(screen.getByTestId(`factor-header-Machine`)).toBeTruthy();
+      expect(screen.getByTestId(`factor-header-Shift`)).toBeTruthy();
+    });
+
+    it('renders empty category as exploration prompt', () => {
+      render(<HypothesisTreeView hypotheses={[]} findings={[]} categories={[emptyCat]} />);
+      expect(screen.getByText('no factors assigned')).toBeTruthy();
+    });
+
+    it('shows uncategorized hypotheses under "Other"', () => {
+      const h = makeHypothesis('Unknown cause', undefined, 'UnknownFactor');
+      render(<HypothesisTreeView hypotheses={[h]} findings={[]} categories={[equipmentCat]} />);
+      expect(screen.getByTestId('category-group-other')).toBeTruthy();
+      expect(screen.getByText('Other')).toBeTruthy();
+    });
+
+    it('shows aggregated eta squared on category headers', () => {
+      const h = makeHypothesis('Machine issue', undefined, 'Machine');
+      render(
+        <HypothesisTreeView
+          hypotheses={[h]}
+          findings={[]}
+          categories={[equipmentCat]}
+          factorVariations={{ Machine: 42.5 }}
+        />
+      );
+      // Both category and factor show the eta — at least one should be present
+      expect(screen.getAllByText('42.5%').length).toBeGreaterThanOrEqual(1);
+      // The category header specifically
+      const catHeader = screen.getByTestId(`category-header-${equipmentCat.id}`);
+      expect(catHeader.textContent).toContain('42.5%');
+    });
+
+    it('shows factor-level eta squared', () => {
+      const h = makeHypothesis('Machine issue', undefined, 'Machine');
+      render(
+        <HypothesisTreeView
+          hypotheses={[h]}
+          findings={[]}
+          categories={[equipmentCat]}
+          factorVariations={{ Machine: 15.3 }}
+        />
+      );
+      // Factor header shows eta
+      expect(screen.getAllByText('15.3%').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('falls back to flat rendering when categories not provided', () => {
+      const h = makeHypothesis('Test');
+      render(<HypothesisTreeView hypotheses={[h]} findings={[]} />);
+      expect(screen.getByText('Test')).toBeTruthy();
+      expect(screen.queryByTestId(/category-group/)).toBeNull();
+    });
+
+    it('expands factor to show hypothesis nodes', () => {
+      const h = makeHypothesis('Machine worn out', undefined, 'Machine');
+      render(<HypothesisTreeView hypotheses={[h]} findings={[]} categories={[equipmentCat]} />);
+      // Category is expanded by default, but factor is collapsed
+      expect(screen.queryByText('Machine worn out')).toBeNull();
+      // Click factor header to expand
+      fireEvent.click(screen.getByTestId('factor-header-Machine'));
+      expect(screen.getByText('Machine worn out')).toBeTruthy();
+    });
   });
 });

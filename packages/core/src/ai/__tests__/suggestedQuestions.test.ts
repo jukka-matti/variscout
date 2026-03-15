@@ -120,20 +120,21 @@ describe('buildSuggestedQuestions', () => {
       expect(result).toContain('Do the supported hypotheses form a coherent story?');
     });
 
-    it('suggests uncovered factor roles during diverging', () => {
+    it('suggests uncovered categories during diverging', () => {
       const context: AIContext = {
         ...baseContext,
         investigation: {
           phase: 'diverging',
           hypothesisTree: [
-            { text: 'Machine issue', status: 'untested', factor: 'Machine', role: 'equipment' },
+            { text: 'Machine issue', status: 'untested', factor: 'Machine', category: 'Equipment' },
           ],
           allHypotheses: [{ text: 'Machine issue', status: 'untested' }],
         },
       };
       const result = buildSuggestedQuestions(context);
+      // Default category names are capitalized: Temporal, People, Material, Location
       expect(
-        result.some(q => q.includes('temporal') || q.includes('operator') || q.includes('material'))
+        result.some(q => q.includes('Temporal') || q.includes('People') || q.includes('Material'))
       ).toBe(true);
     });
 

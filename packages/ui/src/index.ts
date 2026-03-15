@@ -10,7 +10,11 @@ export {
   type PerformanceDetectedModalProps,
 } from './components/PerformanceDetectedModal';
 export { DataQualityBanner, type DataQualityBannerProps } from './components/DataQualityBanner';
-export { ColumnMapping, type ColumnMappingProps } from './components/ColumnMapping';
+export {
+  ColumnMapping,
+  type ColumnMappingProps,
+  type AnalysisBrief,
+} from './components/ColumnMapping';
 export { SelectionPanel, type SelectionPanelProps } from './components/SelectionPanel';
 export { CreateFactorModal, type CreateFactorModalProps } from './components/CreateFactorModal';
 export { UpgradePrompt, type UpgradePromptProps } from './components/UpgradePrompt';
@@ -240,6 +244,10 @@ export {
   FindingsPanelBase,
   type FindingsPanelBaseProps,
   type FindingsPanelResizeConfig,
+  BriefHeader,
+  type BriefHeaderProps,
+  FindingDetailPanel,
+  type FindingDetailPanelProps,
 } from './components/FindingsPanel';
 
 // Editable Chart Title

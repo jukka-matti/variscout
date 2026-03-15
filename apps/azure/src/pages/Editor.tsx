@@ -11,7 +11,12 @@ import FindingsPanel from '../components/FindingsPanel';
 import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
-import { ColumnMapping, InvestigationPrompt, CoScoutPanelBase } from '@variscout/ui';
+import {
+  ColumnMapping,
+  InvestigationPrompt,
+  CoScoutPanelBase,
+  type AnalysisBrief,
+} from '@variscout/ui';
 import {
   useControlViolations,
   useAIContext,
@@ -119,9 +124,10 @@ export const Editor: React.FC<EditorProps> = ({
     loadProject,
     stats,
     processContext,
-    factorRoles,
+    setProcessContext,
     aiEnabled,
-    setFactorRoles,
+    categories,
+    setCategories,
   } = useData();
 
   const ingestion = useDataIngestion({
@@ -388,9 +394,10 @@ export const Editor: React.FC<EditorProps> = ({
     sampleCount: filteredData.length,
     specs: specs ?? undefined,
     filters,
-    factorRoles,
+    categories,
     violations: violationCounts,
     findings: persistedFindings,
+    hypotheses: hypothesesState.hypotheses,
   });
   const narration = useNarration({
     context: aiContext.context,
@@ -415,20 +422,40 @@ export const Editor: React.FC<EditorProps> = ({
     panels.setIsCoScoutOpen(true);
   }, [panels]);
 
-  // Pass factorRoles from ColumnMapping into DataContext
-  const handleMappingConfirmWithRoles = useCallback(
+  // Pass categories and brief from ColumnMapping into DataContext
+  const handleMappingConfirmWithCategories = useCallback(
     (
       newOutcome: string,
       newFactors: string[],
       newSpecs?: { target?: number; lsl?: number; usl?: number },
-      newFactorRoles?: Record<string, import('@variscout/core').FactorRole>
+      newCategories?: import('@variscout/core').InvestigationCategory[],
+      brief?: AnalysisBrief
     ) => {
-      if (newFactorRoles) {
-        setFactorRoles(newFactorRoles);
+      if (newCategories) {
+        setCategories(newCategories);
+      }
+      // Apply brief data to ProcessContext and create hypotheses
+      if (brief) {
+        const updatedContext = { ...processContext };
+        if (brief.problemStatement) {
+          updatedContext.problemStatement = brief.problemStatement;
+        }
+        if (brief.target) {
+          updatedContext.targetMetric = brief.target.metric;
+          updatedContext.targetValue = brief.target.value;
+          updatedContext.targetDirection = brief.target.direction;
+        }
+        setProcessContext(updatedContext);
+        // Create hypotheses from brief
+        if (brief.hypotheses) {
+          for (const h of brief.hypotheses) {
+            hypothesesState.addHypothesis(h.text, h.factor, h.level);
+          }
+        }
       }
       dataFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
     },
-    [dataFlow, setFactorRoles]
+    [dataFlow, setCategories, processContext, setProcessContext, hypothesesState]
   );
 
   // Compute excluded row data for DataTableModal
@@ -512,15 +539,17 @@ export const Editor: React.FC<EditorProps> = ({
         initialOutcome={outcome}
         initialFactors={factors}
         datasetName={dataFilename || 'Pasted Data'}
-        onConfirm={handleMappingConfirmWithRoles}
+        onConfirm={handleMappingConfirmWithCategories}
         onCancel={dataFlow.handleMappingCancel}
         dataQualityReport={dataQualityReport}
         maxFactors={6}
         mode={dataFlow.isMappingReEdit ? 'edit' : 'setup'}
-        initialFactorRoles={factorRoles}
+        initialCategories={categories}
         timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
         hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
         onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
+        showBrief={true}
+        initialProblemStatement={processContext?.problemStatement}
       />
     );
   }
@@ -897,14 +926,16 @@ export const Editor: React.FC<EditorProps> = ({
             initialOutcome={outcome}
             initialFactors={factors}
             datasetName={dataFilename || 'Data'}
-            onConfirm={handleMappingConfirmWithRoles}
+            onConfirm={handleMappingConfirmWithCategories}
             onCancel={dataFlow.handleMappingCancel}
             dataQualityReport={dataQualityReport}
             maxFactors={6}
-            initialFactorRoles={factorRoles}
+            initialCategories={categories}
             timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
             hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
             onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
+            showBrief={true}
+            initialProblemStatement={processContext?.problemStatement}
           />
         )}
       </div>

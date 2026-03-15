@@ -3,7 +3,6 @@
  */
 
 export type {
-  FactorRole,
   ProcessContext,
   TargetMetric,
   InvestigationPhase,
@@ -14,7 +13,6 @@ export type {
   CoScoutMessage,
   CoScoutError,
 } from './types';
-export { isFactorRole } from './types';
 
 export {
   buildAIContext,

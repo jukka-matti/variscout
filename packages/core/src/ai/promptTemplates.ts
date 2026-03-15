@@ -6,7 +6,7 @@
  * with variable context (stats, filters, findings) in subsequent messages.
  */
 
-import type { AIContext, CoScoutMessage, FactorRole } from './types';
+import type { AIContext, CoScoutMessage } from './types';
 import type { InsightChartType } from './chartInsights';
 
 /**
@@ -54,7 +54,7 @@ export function buildSummaryPrompt(context: AIContext): string {
   // Filters
   if (context.filters.length > 0) {
     const filterStr = context.filters
-      .map(f => `${f.factor}=${f.values.join(',')}${f.role ? ` (${f.role})` : ''}`)
+      .map(f => `${f.factor}=${f.values.join(',')}${f.category ? ` (${f.category})` : ''}`)
       .join('; ');
     parts.push(`Active filters: ${filterStr}`);
   }
@@ -83,6 +83,11 @@ export function buildSummaryPrompt(context: AIContext): string {
     }
   }
 
+  // Problem statement
+  if (context.process?.problemStatement) {
+    parts.push(`Problem statement: ${context.process.problemStatement}`);
+  }
+
   parts.push('Summarize this analysis state in 1-2 sentences for a quality professional.');
 
   return parts.join('\n\n');
@@ -103,7 +108,8 @@ export interface ChartInsightData {
   /** Boxplot specifics */
   boxplot?: {
     currentFactor: string;
-    factorRole?: FactorRole;
+    /** Dynamic category name (from InvestigationCategory) */
+    category?: string;
     topCategories: Array<{ name: string; variationPct: number }>;
     nextDrillFactor?: string;
   };
@@ -157,7 +163,7 @@ export function buildChartInsightPrompt(context: AIContext, data: ChartInsightDa
   if (data.boxplot) {
     const d = data.boxplot;
     let line = `Boxplot factor: ${d.currentFactor}`;
-    if (d.factorRole) line += ` (${d.factorRole})`;
+    if (d.category) line += ` (${d.category})`;
     if (d.topCategories.length > 0) {
       line += `. Top: ${d.topCategories
         .slice(0, 3)
@@ -199,8 +205,12 @@ export function buildChartInsightPrompt(context: AIContext, data: ChartInsightDa
 /**
  * Build the system prompt for conversational CoScout assistant.
  * Includes glossary grounding as static prefix for prompt caching.
+ * When investigation context is provided, adds problem statement and hypothesis awareness.
  */
-export function buildCoScoutSystemPrompt(glossaryFragment?: string): string {
+export function buildCoScoutSystemPrompt(
+  glossaryFragment?: string,
+  investigation?: AIContext['investigation']
+): string {
   const parts = [
     `You are a quality engineering assistant called CoScout for VariScout, a variation analysis tool.
 You help quality professionals understand their analysis results by answering questions clearly and concisely.
@@ -212,6 +222,56 @@ Use standard SPC/quality terminology (Cpk, control limits, variation, etc.) when
 
   if (glossaryFragment) {
     parts.push(glossaryFragment);
+  }
+
+  // Investigation-aware instructions
+  if (investigation) {
+    const invParts: string[] = [];
+
+    if (investigation.problemStatement) {
+      invParts.push(`The analyst is investigating: "${investigation.problemStatement}".`);
+    }
+
+    if (investigation.allHypotheses && investigation.allHypotheses.length > 0) {
+      const hypothesisList = investigation.allHypotheses
+        .map(h => `- "${h.text}" (${h.status})`)
+        .join('\n');
+      invParts.push(`Known hypotheses:\n${hypothesisList}`);
+    }
+
+    if (investigation.targetMetric && investigation.targetValue !== undefined) {
+      invParts.push(
+        `Target: ${investigation.targetMetric} = ${investigation.targetValue}` +
+          (investigation.currentValue !== undefined
+            ? `, current = ${investigation.currentValue}`
+            : '') +
+          (investigation.progressPercent !== undefined
+            ? ` (${Math.round(investigation.progressPercent)}% progress)`
+            : '')
+      );
+    }
+
+    if (investigation.phase) {
+      const phaseInstructions: Record<string, string> = {
+        initial:
+          'The investigation is just starting — help identify possible causes and suggest factors to explore.',
+        diverging:
+          'The investigation is diverging — encourage exploring multiple hypotheses across different factor categories.',
+        validating:
+          'Hypotheses are being validated — help prioritize untested hypotheses and suggest validation approaches.',
+        converging:
+          'The investigation is converging — help synthesize findings into a coherent root cause story.',
+        acting:
+          'Corrective actions are underway — help verify effectiveness and suggest monitoring approaches.',
+      };
+      if (phaseInstructions[investigation.phase]) {
+        invParts.push(phaseInstructions[investigation.phase]);
+      }
+    }
+
+    if (invParts.length > 0) {
+      parts.push('Investigation context:\n' + invParts.join('\n'));
+    }
   }
 
   return parts.join('\n\n');
@@ -234,10 +294,10 @@ export function buildCoScoutMessages(
 ): Array<{ role: 'user' | 'assistant' | 'system'; content: string }> {
   const messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
 
-  // System prompt with glossary (static cacheable prefix)
+  // System prompt with glossary (static cacheable prefix) + investigation context
   messages.push({
     role: 'system',
-    content: buildCoScoutSystemPrompt(context.glossaryFragment),
+    content: buildCoScoutSystemPrompt(context.glossaryFragment, context.investigation),
   });
 
   // Context summary — variable per analysis state

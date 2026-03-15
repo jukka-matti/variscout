@@ -196,8 +196,7 @@ export interface UseEditorDataFlowReturn {
   handleMappingConfirm: (
     newOutcome: string,
     newFactors: string[],
-    newSpecs?: { target?: number; lsl?: number; usl?: number },
-    factorRoles?: Record<string, import('@variscout/core').FactorRole>
+    newSpecs?: { target?: number; lsl?: number; usl?: number }
   ) => void;
   handleMappingCancel: () => void;
   handleManualEntryCancel: () => void;

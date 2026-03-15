@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import type { Hypothesis, Finding } from '@variscout/core';
+import type { Hypothesis, Finding, InvestigationCategory } from '@variscout/core';
+import { ChevronRight, ChevronDown } from 'lucide-react';
 import HypothesisNode from './HypothesisNode';
 
 export interface HypothesisTreeViewProps {
@@ -27,12 +28,23 @@ export interface HypothesisTreeViewProps {
   };
   /** Search filter text */
   searchFilter?: string;
+  /** Investigation categories for three-level grouping (Category → Factor → Hypothesis) */
+  categories?: InvestigationCategory[];
+  /** Factor name → η² percentage (for variation display on factor/category headers) */
+  factorVariations?: Record<string, number>;
+}
+
+/** Category group for tree rendering */
+interface CategoryGroup {
+  category: InvestigationCategory;
+  factorGroups: Map<string, Hypothesis[]>;
 }
 
 /**
  * Tree view for hypothesis investigation.
- * Shows hypotheses as an indented tree with collapsible nodes.
- * Contradicted nodes are dimmed by default; toggle to show.
+ * When `categories` are provided, renders a three-level tree:
+ *   Category (structural header) → Factor (sub-header) → Hypothesis nodes
+ * Without categories, renders a flat hypothesis tree (PWA compatibility).
  */
 const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   hypotheses,
@@ -44,9 +56,16 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   maxChildrenPerParent = 8,
   getChildrenSummary,
   searchFilter,
+  categories,
+  factorVariations,
 }) => {
   // Track which nodes are expanded
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  // Track expanded categories and factors
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    () => new Set(categories?.map(c => c.id) ?? [])
+  );
+  const [expandedFactors, setExpandedFactors] = useState<Set<string>>(new Set());
 
   const toggleNode = useCallback((id: string) => {
     setExpandedIds(prev => {
@@ -56,6 +75,24 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
       } else {
         next.add(id);
       }
+      return next;
+    });
+  }, []);
+
+  const toggleCategory = useCallback((id: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleFactor = useCallback((factor: string) => {
+    setExpandedFactors(prev => {
+      const next = new Set(prev);
+      if (next.has(factor)) next.delete(factor);
+      else next.add(factor);
       return next;
     });
   }, []);
@@ -108,8 +145,8 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
 
   // Render a hypothesis and its children recursively
   const renderNode = useCallback(
-    (hypothesis: Hypothesis): React.ReactNode => {
-      const depth = getDepth(hypothesis.id);
+    (hypothesis: Hypothesis, extraDepth: number = 0): React.ReactNode => {
+      const depth = getDepth(hypothesis.id) + extraDepth;
       const children = childrenByParent.get(hypothesis.id) || [];
       const visibleChildren = showContradicted
         ? children
@@ -136,7 +173,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
             canAddChild={canAddChild}
             showContradicted={showContradicted}
           />
-          {isExpanded && visibleChildren.map(child => renderNode(child))}
+          {isExpanded && visibleChildren.map(child => renderNode(child, extraDepth))}
         </React.Fragment>
       );
     },
@@ -155,7 +192,30 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
     ]
   );
 
-  if (hypotheses.length === 0) {
+  // Build category groups when categories are provided
+  const categoryGroups = useMemo((): CategoryGroup[] | null => {
+    if (!categories || categories.length === 0) return null;
+
+    return categories.map(cat => {
+      const factorGroups = new Map<string, Hypothesis[]>();
+      for (const factorName of cat.factorNames) {
+        const matching = roots.filter(h => h.factor === factorName);
+        if (matching.length > 0) {
+          factorGroups.set(factorName, matching);
+        }
+      }
+      return { category: cat, factorGroups };
+    });
+  }, [categories, roots]);
+
+  // Uncategorized roots (factor doesn't match any category)
+  const uncategorizedRoots = useMemo(() => {
+    if (!categories || categories.length === 0) return [];
+    const allCategorizedFactors = new Set(categories.flatMap(c => c.factorNames));
+    return roots.filter(h => !h.factor || !allCategorizedFactors.has(h.factor));
+  }, [categories, roots]);
+
+  if (hypotheses.length === 0 && (!categories || categories.length === 0)) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
         <p className="text-sm text-content-secondary mb-1">No hypotheses yet</p>
@@ -166,6 +226,129 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
     );
   }
 
+  // Three-level rendering when categories are provided
+  if (categoryGroups) {
+    const computeCategoryEta = (cat: InvestigationCategory): number | null => {
+      if (!factorVariations) return null;
+      let total = 0;
+      let hasAny = false;
+      for (const f of cat.factorNames) {
+        if (factorVariations[f] !== undefined) {
+          total += factorVariations[f];
+          hasAny = true;
+        }
+      }
+      return hasAny ? total : null;
+    };
+
+    return (
+      <div className="flex-1 overflow-y-auto px-2 py-2" role="tree" data-testid="hypothesis-tree">
+        {categoryGroups.map(({ category, factorGroups }) => {
+          const isCatExpanded = expandedCategories.has(category.id);
+          const hasContent = factorGroups.size > 0;
+          const catEta = computeCategoryEta(category);
+
+          return (
+            <div key={category.id} data-testid={`category-group-${category.id}`}>
+              {/* Category header */}
+              <button
+                onClick={() => toggleCategory(category.id)}
+                className={`w-full flex items-center gap-2 py-2 px-1 text-left rounded-md transition-colors ${
+                  hasContent
+                    ? 'hover:bg-surface-secondary cursor-pointer'
+                    : 'opacity-50 cursor-default'
+                }`}
+                data-testid={`category-header-${category.id}`}
+              >
+                {hasContent ? (
+                  isCatExpanded ? (
+                    <ChevronDown size={14} className="text-content-secondary shrink-0" />
+                  ) : (
+                    <ChevronRight size={14} className="text-content-secondary shrink-0" />
+                  )
+                ) : (
+                  <span className="w-3.5" />
+                )}
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: category.color || '#64748b' }}
+                />
+                <span className="text-sm font-semibold text-content truncate">{category.name}</span>
+                {catEta !== null && (
+                  <span className="text-[10px] text-content-muted ml-auto shrink-0">
+                    {catEta.toFixed(1)}%
+                  </span>
+                )}
+                {!hasContent && (
+                  <span className="text-[10px] text-content-muted italic ml-auto shrink-0">
+                    no factors assigned
+                  </span>
+                )}
+              </button>
+
+              {/* Factor sub-headers and hypotheses */}
+              {isCatExpanded &&
+                hasContent &&
+                [...factorGroups.entries()].map(([factorName, factorHypotheses]) => {
+                  const isFactorExpanded = expandedFactors.has(factorName);
+                  const factorEta = factorVariations?.[factorName];
+
+                  return (
+                    <div
+                      key={factorName}
+                      className="ml-4"
+                      data-testid={`factor-group-${factorName}`}
+                    >
+                      {/* Factor sub-header */}
+                      <button
+                        onClick={() => toggleFactor(factorName)}
+                        className="w-full flex items-center gap-2 py-1.5 px-1 text-left rounded-md hover:bg-surface-secondary transition-colors"
+                        data-testid={`factor-header-${factorName}`}
+                      >
+                        {isFactorExpanded ? (
+                          <ChevronDown size={12} className="text-content-muted shrink-0" />
+                        ) : (
+                          <ChevronRight size={12} className="text-content-muted shrink-0" />
+                        )}
+                        <span className="text-xs font-medium text-content-secondary truncate">
+                          {factorName}
+                        </span>
+                        {factorEta !== undefined && (
+                          <span className="text-[10px] text-content-muted ml-auto shrink-0">
+                            {factorEta.toFixed(1)}%
+                          </span>
+                        )}
+                        <span className="text-[10px] text-content-muted shrink-0">
+                          ({factorHypotheses.length})
+                        </span>
+                      </button>
+
+                      {/* Hypothesis nodes under this factor */}
+                      {isFactorExpanded && (
+                        <div className="ml-4">{factorHypotheses.map(h => renderNode(h, 2))}</div>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          );
+        })}
+
+        {/* Uncategorized hypotheses under "Other" group */}
+        {uncategorizedRoots.length > 0 && (
+          <div data-testid="category-group-other">
+            <div className="flex items-center gap-2 py-2 px-1">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-slate-500" />
+              <span className="text-sm font-semibold text-content-secondary">Other</span>
+            </div>
+            <div className="ml-4">{uncategorizedRoots.map(h => renderNode(h, 1))}</div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Flat rendering (no categories — PWA compatibility)
   return (
     <div className="flex-1 overflow-y-auto px-2 py-2" role="tree" data-testid="hypothesis-tree">
       {roots.map(root => renderNode(root))}
