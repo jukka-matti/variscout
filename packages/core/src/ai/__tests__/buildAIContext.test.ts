@@ -192,6 +192,30 @@ describe('buildAIContext', () => {
     expect(ctx.activeChart).toBeUndefined();
   });
 
+  it('derives factorRoles from categories', () => {
+    const ctx = buildAIContext({
+      categories: [
+        { id: 'c1', name: 'Equipment', factorNames: ['Machine'] },
+        { id: 'c2', name: 'Temporal', factorNames: ['Shift', 'Day'] },
+      ],
+    });
+    expect(ctx.process.factorRoles).toEqual({
+      Machine: 'Equipment',
+      Shift: 'Temporal',
+      Day: 'Temporal',
+    });
+  });
+
+  it('does not add factorRoles without categories', () => {
+    const ctx = buildAIContext({});
+    expect(ctx.process.factorRoles).toBeUndefined();
+  });
+
+  it('does not add factorRoles with empty categories', () => {
+    const ctx = buildAIContext({ categories: [] });
+    expect(ctx.process.factorRoles).toBeUndefined();
+  });
+
   it('includes variationContributions when provided', () => {
     const contributions = [
       { factor: 'Machine', etaSquared: 0.45 },
@@ -201,6 +225,23 @@ describe('buildAIContext', () => {
     expect(ctx.variationContributions).toHaveLength(2);
     expect(ctx.variationContributions![0].factor).toBe('Machine');
     expect(ctx.variationContributions![0].etaSquared).toBe(0.45);
+  });
+
+  it('annotates variationContributions with category from categories', () => {
+    const ctx = buildAIContext({
+      variationContributions: [
+        { factor: 'Machine', etaSquared: 0.45 },
+        { factor: 'Shift', etaSquared: 0.12 },
+        { factor: 'Batch', etaSquared: 0.05 },
+      ],
+      categories: [
+        { id: 'c1', name: 'Equipment', factorNames: ['Machine'] },
+        { id: 'c2', name: 'Temporal', factorNames: ['Shift'] },
+      ],
+    });
+    expect(ctx.variationContributions![0].category).toBe('Equipment');
+    expect(ctx.variationContributions![1].category).toBe('Temporal');
+    expect(ctx.variationContributions![2].category).toBeUndefined();
   });
 
   it('does not include empty variationContributions', () => {

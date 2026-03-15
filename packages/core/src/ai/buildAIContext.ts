@@ -111,12 +111,28 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     }),
   };
 
+  // Derive factorRoles from investigation categories
+  if (categoriesOpt && categoriesOpt.length > 0) {
+    const roles: Record<string, string> = {};
+    for (const cat of categoriesOpt) {
+      for (const factor of cat.factorNames) {
+        roles[factor] = cat.name;
+      }
+    }
+    if (Object.keys(roles).length > 0) {
+      context.process = { ...context.process, factorRoles: roles };
+    }
+  }
+
   if (activeChart) {
     context.activeChart = activeChart;
   }
 
   if (variationContributions && variationContributions.length > 0) {
-    context.variationContributions = variationContributions;
+    context.variationContributions = variationContributions.map(vc => {
+      const cat = categoriesOpt ? getCategoryForFactor(categoriesOpt, vc.factor) : undefined;
+      return cat ? { ...vc, category: cat.name } : vc;
+    });
   }
 
   if (drillPath && drillPath.length > 0) {

@@ -26,6 +26,8 @@ export interface ProcessContext {
   targetValue?: number;
   /** Direction of improvement relative to target */
   targetDirection?: 'minimize' | 'maximize' | 'target';
+  /** Factor role classifications derived from investigation categories */
+  factorRoles?: Record<string, string>;
 }
 
 /** Structured AI context assembled from current analysis state */
@@ -59,7 +61,7 @@ export interface AIContext {
     nelsonRule3Count?: number;
   };
   /** Variation contributions per factor (η²) */
-  variationContributions?: Array<{ factor: string; etaSquared: number }>;
+  variationContributions?: Array<{ factor: string; etaSquared: number; category?: string }>;
   /** Drill path: ordered factor names from filter stack */
   drillPath?: string[];
   /** Summary of findings */

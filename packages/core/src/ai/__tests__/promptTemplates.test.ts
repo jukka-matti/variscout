@@ -114,6 +114,32 @@ describe('buildSummaryPrompt', () => {
     expect(prompt).toContain('Head 3');
   });
 
+  it('includes factor roles when present', () => {
+    const ctx: AIContext = {
+      process: { factorRoles: { Machine: 'Equipment', Shift: 'Temporal' } },
+      filters: [],
+    };
+    const prompt = buildSummaryPrompt(ctx);
+    expect(prompt).toContain('Factor roles:');
+    expect(prompt).toContain('Machine (Equipment)');
+    expect(prompt).toContain('Shift (Temporal)');
+  });
+
+  it('includes variation contributions with category annotations', () => {
+    const ctx: AIContext = {
+      process: {},
+      filters: [],
+      variationContributions: [
+        { factor: 'Machine', etaSquared: 0.45, category: 'Equipment' },
+        { factor: 'Batch', etaSquared: 0.12 },
+      ],
+    };
+    const prompt = buildSummaryPrompt(ctx);
+    expect(prompt).toContain('Variation contributions:');
+    expect(prompt).toContain('Machine (Equipment): η²=45.0%');
+    expect(prompt).toContain('Batch: η²=12.0%');
+  });
+
   it('handles minimal context', () => {
     const ctx: AIContext = { process: {}, filters: [] };
     const prompt = buildSummaryPrompt(ctx);

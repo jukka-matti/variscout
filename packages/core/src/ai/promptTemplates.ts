@@ -41,6 +41,14 @@ export function buildSummaryPrompt(context: AIContext): string {
     parts.push(`Process: ${context.process.description}`);
   }
 
+  // Factor roles
+  if (context.process?.factorRoles) {
+    const entries = Object.entries(context.process.factorRoles);
+    if (entries.length > 0) {
+      parts.push(`Factor roles: ${entries.map(([f, r]) => `${f} (${r})`).join(', ')}`);
+    }
+  }
+
   // Stats
   if (context.stats) {
     const s = context.stats;
@@ -73,6 +81,17 @@ export function buildSummaryPrompt(context: AIContext): string {
     if (violationParts.length > 0) {
       parts.push(`Violations: ${violationParts.join(', ')}`);
     }
+  }
+
+  // Variation contributions
+  if (context.variationContributions && context.variationContributions.length > 0) {
+    const vcStr = context.variationContributions
+      .map(
+        vc =>
+          `${vc.factor}${vc.category ? ` (${vc.category})` : ''}: η²=${(vc.etaSquared * 100).toFixed(1)}%`
+      )
+      .join(', ');
+    parts.push(`Variation contributions: ${vcStr}`);
   }
 
   // Findings
