@@ -4,6 +4,10 @@
  * Concepts define HOW VariScout approaches variation analysis — frameworks,
  * investigation phases, and guiding principles. They complement glossary terms
  * (which define WHAT — vocabulary/statistics).
+ *
+ * Grounded in Watson's EDA methodology (Turtiainen, 2019) with three
+ * VariScout-original contributions: parallel views, progressive stratification,
+ * and hypothesis investigation.
  */
 
 import type { Concept } from './types';
@@ -15,71 +19,17 @@ export const concepts: readonly Concept[] = [
     id: 'fourLenses',
     label: 'Four Lenses',
     definition:
-      'Four parallel views of the same data — Change, Flow, Failure, Value — each revealing a different aspect of process variation.',
+      'Teaching shorthand for "four tools, four questions" — I-Chart, Boxplot, Pareto, Capability. A communication aid, not a methodology.',
     description:
-      "VariScout's core analytical framework. Each chart maps to one lens: I-Chart (Change), Boxplot (Flow), Pareto (Failure), Capability (Value). The lenses are not sequential steps — apply them in any order. Linked filtering means drilling in one lens simultaneously updates all four.",
+      'The Four Lenses label maps Watson\'s four analytical tools to memorable question types: I-Chart ("What changed?"), Boxplot ("Where does variation come from?"), Pareto ("Where do problems concentrate?"), Capability ("Does it meet specs?"). The tools are standard quality instruments — the "lens" metaphor is a pedagogical layer.',
     conceptCategory: 'framework',
     learnMorePath: '/learn/four-lenses',
     relations: [
-      { targetId: 'changeLens', type: 'contains' },
-      { targetId: 'flowLens', type: 'contains' },
-      { targetId: 'failureLens', type: 'contains' },
-      { targetId: 'valueLens', type: 'contains' },
+      { targetId: 'iChart', type: 'uses' },
+      { targetId: 'boxplot', type: 'uses' },
+      { targetId: 'paretoChart', type: 'uses' },
+      { targetId: 'capabilityAnalysis', type: 'uses' },
       { targetId: 'twoVoices', type: 'contrasts' },
-    ],
-  },
-  {
-    id: 'changeLens',
-    label: 'Change Lens',
-    definition: 'I-Chart view — reveals time-based shifts and trends. "What changed over time?"',
-    description:
-      'The Change Lens uses the Individuals Chart to detect process instability. Red points signal special cause variation — something unusual happened. Nelson Rule 2 (persistent shift) and Rule 3 (trend) add pattern sensitivity beyond simple limit violations.',
-    conceptCategory: 'framework',
-    learnMorePath: '/learn/four-lenses',
-    relations: [
-      { targetId: 'specialCause', type: 'uses' },
-      { targetId: 'nelsonRule2', type: 'uses' },
-      { targetId: 'nelsonRule3', type: 'uses' },
-    ],
-  },
-  {
-    id: 'flowLens',
-    label: 'Flow Lens',
-    definition:
-      'Boxplot view — traces variation upstream through factors. "Where does variation come from?"',
-    description:
-      "The Flow Lens uses the Boxplot to stratify data by factor (machine, shift, operator) and quantify each factor's contribution to total variation via η². The natural entry point for progressive stratification — click a bar to drill down.",
-    conceptCategory: 'framework',
-    learnMorePath: '/learn/four-lenses',
-    relations: [
-      { targetId: 'stratification', type: 'uses' },
-      { targetId: 'etaSquared', type: 'uses' },
-    ],
-  },
-  {
-    id: 'failureLens',
-    label: 'Failure Lens',
-    definition:
-      'Pareto view — ranks categories by their contribution to variation. "Where do problems concentrate?"',
-    description:
-      'The Failure Lens uses the Pareto chart to show which categories within a factor contribute most to total variation. Applies the 80/20 principle — focus improvement on the vital few categories that drive the majority of variation.',
-    conceptCategory: 'framework',
-    learnMorePath: '/learn/four-lenses',
-    relations: [{ targetId: 'totalSSContribution', type: 'uses' }],
-  },
-  {
-    id: 'valueLens',
-    label: 'Value Lens',
-    definition:
-      'Capability view — compares process behavior to customer specifications. "Does this variation matter to the customer?"',
-    description:
-      'The Value Lens brings in an external reference — customer specification limits — to assess whether process variation actually impacts product quality. A factor may explain 40% of variation but Cpk may still be 1.5 — meaning specs are met despite the variation. Conversely, small variation with Cpk below 1.0 is the real priority.',
-    conceptCategory: 'framework',
-    learnMorePath: '/learn/four-lenses',
-    relations: [
-      { targetId: 'cp', type: 'uses' },
-      { targetId: 'cpk', type: 'uses' },
-      { targetId: 'passRate', type: 'uses' },
     ],
   },
   {
@@ -97,35 +47,36 @@ export const concepts: readonly Concept[] = [
       { targetId: 'fourLenses', type: 'contrasts' },
     ],
   },
+  {
+    id: 'parallelViews',
+    label: 'Parallel Views',
+    definition:
+      'All analytical tools visible simultaneously with linked filtering — drill in one chart, all charts update.',
+    description:
+      "VariScout's distinguishing design: the I-Chart, Boxplot, Pareto, and Capability are shown together on a single dashboard. Clicking a category in the Boxplot simultaneously updates all other charts. This is how VariScout differs from sequential tool usage — the analyst sees every perspective at once and the charts form a coordinated investigation team.",
+    conceptCategory: 'framework',
+    learnMorePath: '/learn/four-lenses',
+    relations: [
+      { targetId: 'fourLenses', type: 'uses' },
+      { targetId: 'iChart', type: 'uses' },
+      { targetId: 'boxplot', type: 'uses' },
+    ],
+  },
 
   // ── Principles ──────────────────────────────────────────────────────────
 
-  {
-    id: 'stabilityBeforeCapability',
-    label: 'Stability Before Capability',
-    definition:
-      'Always assess process stability (Change Lens) before measuring capability (Value Lens). An unstable process produces meaningless Cpk.',
-    description:
-      'A cornerstone of variation analysis. Capability metrics (Cp, Cpk) assume a stable process — if special causes are present, the calculated capability is unreliable. The investigation sequence: first use the Change Lens to confirm stability, then the Value Lens to assess capability.',
-    conceptCategory: 'principle',
-    learnMorePath: '/learn/two-voices',
-    relations: [
-      { targetId: 'changeLens', type: 'uses' },
-      { targetId: 'valueLens', type: 'uses' },
-    ],
-  },
   {
     id: 'progressiveStratification',
     label: 'Progressive Stratification',
     definition:
       'Sequential one-factor-at-a-time drill-down, guided by contribution %, that narrows the search for variation sources.',
     description:
-      'The core investigation mechanism. At each step: (1) identify the highest-impact factor via the Boxplot, (2) filter to its most impactful level, (3) see how remaining factors redistribute. The cumulative variation bar shows progress toward explaining total variation. Analogous to binary search applied to a factor space.',
+      "VariScout's core drill-down mechanism. At each step: (1) identify the highest-impact factor via the Boxplot and Pareto, (2) filter to its most impactful level, (3) see how remaining factors redistribute. The cumulative variation bar shows progress toward explaining total variation. Analogous to binary search applied to a factor space.",
     conceptCategory: 'principle',
     learnMorePath: '/learn/progressive-stratification',
     relations: [
       { targetId: 'stratification', type: 'uses' },
-      { targetId: 'flowLens', type: 'uses' },
+      { targetId: 'totalSSContribution', type: 'uses' },
     ],
   },
   {
@@ -141,6 +92,19 @@ export const concepts: readonly Concept[] = [
       { targetId: 'totalSSContribution', type: 'uses' },
     ],
   },
+  {
+    id: 'iterativeExploration',
+    label: 'Iterative Exploration',
+    definition:
+      'Each analysis cycle reveals new questions. A finding triggers a sub-hypothesis, which may need new data or a Gemba visit.',
+    description:
+      "EDA is inherently iterative. VariScout's investigation workflow formalizes this: findings spawn hypotheses, hypotheses require validation (data, Gemba, expert), validation results spawn new questions. The loop continues until the solution space is bounded and actionable improvements are identified.",
+    conceptCategory: 'principle',
+    relations: [
+      { targetId: 'hypothesis', type: 'uses' },
+      { targetId: 'finding', type: 'uses' },
+    ],
+  },
 
   // ── Investigation Phases ────────────────────────────────────────────────
 
@@ -148,7 +112,7 @@ export const concepts: readonly Concept[] = [
     id: 'phaseInitial',
     label: 'Initial Phase',
     definition:
-      'Starting point — no hypotheses yet. Examine the Four Lenses to identify patterns and potential causes.',
+      'Starting point — no hypotheses yet. Examine the charts to identify patterns and potential causes.',
     conceptCategory: 'phase',
     relations: [
       { targetId: 'fourLenses', type: 'uses' },
@@ -188,11 +152,11 @@ export const concepts: readonly Concept[] = [
   {
     id: 'phaseActing',
     label: 'Acting Phase',
-    definition: 'Corrective actions underway. Monitor with the Value Lens — is Cpk improving?',
+    definition: 'Corrective actions underway. Monitor capability — is Cpk improving?',
     conceptCategory: 'phase',
     relations: [
       { targetId: 'correctiveAction', type: 'uses' },
-      { targetId: 'valueLens', type: 'uses' },
+      { targetId: 'cpk', type: 'uses' },
     ],
   },
 ];

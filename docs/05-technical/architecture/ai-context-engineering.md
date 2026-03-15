@@ -12,13 +12,13 @@ VariScout structures AI prompts in three tiers, ordered from most static to most
 
 Placed first in the system prompt for maximum cache hit rate.
 
-| Content                               | Source                                         | Tokens (~) |
-| ------------------------------------- | ---------------------------------------------- | ---------- |
-| CoScout role definition               | `buildCoScoutSystemPrompt()`                   | ~150       |
-| Four Lenses + Two Voices + principles | Hardcoded in prompt template                   | ~200       |
-| Glossary terms                        | `buildGlossaryPrompt(categories, maxTerms)`    | ~400       |
-| Methodology concepts                  | `buildGlossaryPrompt({includeConcepts: true})` | ~200       |
-| **Total static prefix**               |                                                | **~950**   |
+| Content                        | Source                                         | Tokens (~) |
+| ------------------------------ | ---------------------------------------------- | ---------- |
+| CoScout role definition        | `buildCoScoutSystemPrompt()`                   | ~150       |
+| Tools + questions + principles | Hardcoded in prompt template                   | ~200       |
+| Glossary terms                 | `buildGlossaryPrompt(categories, maxTerms)`    | ~400       |
+| Methodology concepts           | `buildGlossaryPrompt({includeConcepts: true})` | ~200       |
+| **Total static prefix**        |                                                | **~950**   |
 
 The static prefix exceeds 1,024 tokens when glossary + concepts are both included, enabling Azure AI Foundry prompt caching.
 
@@ -54,11 +54,11 @@ The CoScout system prompt includes phase-specific instructions based on determin
 
 | Phase      | Instruction Focus                                                            |
 | ---------- | ---------------------------------------------------------------------------- |
-| Initial    | Help identify which Lens to examine first                                    |
-| Diverging  | Encourage exploring factors across categories                                |
+| Initial    | Help identify which chart to examine first and what patterns to look for     |
+| Diverging  | Encourage exploring hypotheses across different factor categories            |
 | Validating | Help interpret η² — contribution, not causation                              |
 | Converging | Brainstorm improvements. Compare effort vs impact. Reference existing ideas. |
-| Acting     | Verify with the Value Lens — is Cpk improving?                               |
+| Acting     | Check the Capability chart — is Cpk improving?                               |
 
 When converging with supported hypotheses that have improvement ideas, the prompt includes the existing ideas and instructs CoScout to build on them or suggest alternatives.
 

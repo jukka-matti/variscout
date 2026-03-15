@@ -267,12 +267,21 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).not.toContain('Investigation context');
   });
 
-  it('uses VariScout methodology, not SPC terminology for identity', () => {
+  it('uses tool names and VariScout principles, not lens names', () => {
     const prompt = buildCoScoutSystemPrompt();
     expect(prompt).not.toContain('Use standard SPC');
-    expect(prompt).toContain('Four Lenses');
+    expect(prompt).toContain('I-Chart');
+    expect(prompt).toContain('Boxplot');
+    expect(prompt).toContain('Pareto');
+    expect(prompt).toContain('Capability');
     expect(prompt).toContain('Two Voices');
     expect(prompt).toContain('Progressive stratification');
+    expect(prompt).toContain('Iterative exploration');
+    expect(prompt).not.toContain('Change Lens');
+    expect(prompt).not.toContain('Flow Lens');
+    expect(prompt).not.toContain('Failure Lens');
+    expect(prompt).not.toContain('Value Lens');
+    expect(prompt).not.toContain('Stability before capability');
   });
 
   it('includes improvement ideas when converging with supported hypotheses', () => {

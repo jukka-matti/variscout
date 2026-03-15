@@ -114,8 +114,8 @@ The knowledge model (`packages/core/src/glossary/`) provides both domain term de
 
 The system includes:
 
-- **~41 vocabulary terms** across 6 categories (control-limits, capability, statistics, methodology, investigation, charts)
-- **~15 methodology concepts** across 3 categories (framework, phase, principle) — Four Lenses, Two Voices, Progressive Stratification, investigation phases
+- **~47 vocabulary terms** across 6 categories (control-limits, capability, statistics, methodology, investigation, charts) — including standard tool terms (I-Chart, Boxplot, Pareto, Capability)
+- **11 methodology concepts** across 3 categories (framework, phase, principle) — Parallel Views, Two Voices, Progressive Stratification, Iterative Exploration, investigation phases
 
 CoScout prompts are grounded in VariScout's methodology rather than generic SPC terminology. See [Knowledge Model Architecture](knowledge-model.md) and [AI Context Engineering](ai-context-engineering.md) for details.
 

@@ -23,8 +23,8 @@ Type guards: `isConcept(entry)` and `isGlossaryTerm(entry)` disambiguate the uni
 ```
 packages/core/src/glossary/
 ├── types.ts              — Type definitions (GlossaryTerm, Concept, KnowledgeEntry)
-├── terms.ts              — ~41 vocabulary terms (6 categories)
-├── concepts.ts           — ~15 methodology concepts (3 categories)
+├── terms.ts              — ~47 vocabulary terms (6 categories)
+├── concepts.ts           — 11 methodology concepts (3 categories)
 ├── knowledge.ts          — Unified lookup (getEntry, getRelated, getReferencedBy)
 ├── buildGlossaryPrompt.ts — AI prompt builder (terms + optional concepts)
 ├── index.ts              — Public API
@@ -57,9 +57,9 @@ packages/core/src/glossary/
 
 | Type        | Meaning                        | Example                                          |
 | ----------- | ------------------------------ | ------------------------------------------------ |
-| `uses`      | Concept references a tool/term | `changeLens` → uses → `nelsonRule2`              |
+| `uses`      | Concept references a tool/term | `fourLenses` → uses → `iChart`                   |
 | `leads-to`  | Sequential phase flow          | `phaseValidating` → leads-to → `phaseConverging` |
-| `contains`  | Parent-child grouping          | `fourLenses` → contains → `changeLens`           |
+| `contains`  | Parent-child grouping          | (reserved for future use)                        |
 | `contrasts` | Complementary frameworks       | `fourLenses` → contrasts → `twoVoices`           |
 
 ## Localization

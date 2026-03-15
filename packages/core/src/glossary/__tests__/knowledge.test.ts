@@ -33,6 +33,15 @@ describe('getEntry', () => {
   it('returns undefined for unknown ID', () => {
     expect(getEntry('nonexistent')).toBeUndefined();
   });
+
+  it('returns new chart terms', () => {
+    expect(getEntry('iChart')).toBeDefined();
+    expect(getEntry('boxplot')).toBeDefined();
+    expect(getEntry('paretoChart')).toBeDefined();
+    expect(getEntry('capabilityAnalysis')).toBeDefined();
+    expect(getEntry('hypothesis')).toBeDefined();
+    expect(getEntry('median')).toBeDefined();
+  });
 });
 
 describe('hasEntry', () => {
@@ -41,7 +50,14 @@ describe('hasEntry', () => {
   });
 
   it('returns true for existing concepts', () => {
-    expect(hasEntry('changeLens')).toBe(true);
+    expect(hasEntry('parallelViews')).toBe(true);
+  });
+
+  it('returns false for removed lens concepts', () => {
+    expect(hasEntry('changeLens')).toBe(false);
+    expect(hasEntry('flowLens')).toBe(false);
+    expect(hasEntry('failureLens')).toBe(false);
+    expect(hasEntry('valueLens')).toBe(false);
   });
 
   it('returns false for unknown IDs', () => {
@@ -51,12 +67,12 @@ describe('hasEntry', () => {
 
 describe('getRelated', () => {
   it('returns related entries for a concept', () => {
-    const related = getRelated('changeLens');
+    const related = getRelated('fourLenses');
     expect(related.length).toBeGreaterThan(0);
-    // changeLens uses specialCause, nelsonRule2, nelsonRule3
+    // fourLenses uses iChart, boxplot, paretoChart, capabilityAnalysis
     const ids = related.map(e => e.id);
-    expect(ids).toContain('specialCause');
-    expect(ids).toContain('nelsonRule2');
+    expect(ids).toContain('iChart');
+    expect(ids).toContain('boxplot');
   });
 
   it('returns related entries for a glossary term', () => {
@@ -71,12 +87,11 @@ describe('getRelated', () => {
     expect(getRelated('nonexistent')).toEqual([]);
   });
 
-  it('returns empty array for entry with no relations', () => {
-    // violinPlot has relatedTerms but they should resolve
+  it('resolves violinPlot relatedTerms now that boxplot is a term', () => {
     const related = getRelated('violinPlot');
-    // It has relatedTerms: ['boxplot', 'stdDev'] but 'boxplot' is not a term ID
-    // stdDev exists, so at least one should resolve
-    expect(related.length).toBeGreaterThanOrEqual(0);
+    const ids = related.map(e => e.id);
+    expect(ids).toContain('boxplot');
+    expect(ids).toContain('stdDev');
   });
 });
 
@@ -84,9 +99,6 @@ describe('getReferencedBy', () => {
   it('returns concepts that reference a term', () => {
     const refs = getReferencedBy('specialCause');
     expect(refs.length).toBeGreaterThan(0);
-    const ids = refs.map(e => e.id);
-    // changeLens uses specialCause
-    expect(ids).toContain('changeLens');
   });
 
   it('returns terms that reference another term', () => {
@@ -97,12 +109,12 @@ describe('getReferencedBy', () => {
     expect(ids).toContain('lcl');
   });
 
-  it('returns concepts that reference other concepts', () => {
-    const refs = getReferencedBy('changeLens');
+  it('returns concepts that reference fourLenses', () => {
+    const refs = getReferencedBy('fourLenses');
     expect(refs.length).toBeGreaterThan(0);
-    // fourLenses contains changeLens
     const ids = refs.map(e => e.id);
-    expect(ids).toContain('fourLenses');
+    // parallelViews uses fourLenses
+    expect(ids).toContain('parallelViews');
   });
 
   it('returns empty array for unknown ID', () => {

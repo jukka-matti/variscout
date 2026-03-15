@@ -5,8 +5,8 @@ import { hasEntry } from '../knowledge';
 import { isConcept, isGlossaryTerm } from '../types';
 
 describe('concepts', () => {
-  it('has at least 10 concepts', () => {
-    expect(concepts.length).toBeGreaterThanOrEqual(10);
+  it('has exactly 11 concepts (3 frameworks + 3 principles + 5 phases)', () => {
+    expect(concepts.length).toBe(11);
   });
 
   it('all concepts have unique IDs', () => {
@@ -65,6 +65,35 @@ describe('concepts', () => {
         false
       );
     }
+  });
+
+  it('does not contain individual lens concepts', () => {
+    expect(getConcept('changeLens')).toBeUndefined();
+    expect(getConcept('flowLens')).toBeUndefined();
+    expect(getConcept('failureLens')).toBeUndefined();
+    expect(getConcept('valueLens')).toBeUndefined();
+  });
+
+  it('does not contain stabilityBeforeCapability', () => {
+    expect(getConcept('stabilityBeforeCapability')).toBeUndefined();
+  });
+
+  it('contains parallelViews and iterativeExploration', () => {
+    expect(getConcept('parallelViews')).toBeDefined();
+    expect(getConcept('parallelViews')!.conceptCategory).toBe('framework');
+    expect(getConcept('iterativeExploration')).toBeDefined();
+    expect(getConcept('iterativeExploration')!.conceptCategory).toBe('principle');
+  });
+
+  it('fourLenses relates to chart terms, not lens concepts', () => {
+    const fl = getConcept('fourLenses')!;
+    const targetIds = fl.relations.map(r => r.targetId);
+    expect(targetIds).toContain('iChart');
+    expect(targetIds).toContain('boxplot');
+    expect(targetIds).toContain('paretoChart');
+    expect(targetIds).toContain('capabilityAnalysis');
+    expect(targetIds).not.toContain('changeLens');
+    expect(targetIds).not.toContain('flowLens');
   });
 });
 

@@ -83,7 +83,7 @@ describe('buildSuggestedQuestions', () => {
   it('pads with fallbacks when few contextual questions', () => {
     const result = buildSuggestedQuestions(baseContext);
     expect(result).toContain('What does this analysis tell me?');
-    expect(result).toContain('Which lens should I look at next?');
+    expect(result).toContain('What should I look at next?');
   });
 
   it('does not duplicate fallback questions', () => {
@@ -147,7 +147,7 @@ describe('buildSuggestedQuestions', () => {
         },
       };
       const result = buildSuggestedQuestions(context);
-      expect(result).toContain('Which lens should I examine first?');
+      expect(result).toContain('Which chart should I examine first?');
     });
 
     it('returns acting questions when actions exist', () => {
@@ -160,10 +160,10 @@ describe('buildSuggestedQuestions', () => {
       };
       const result = buildSuggestedQuestions(context);
       expect(result).toContain('Are the corrective actions addressing the root cause?');
-      // Also check for Value Lens question
-      expect(result.some(q => q.includes('Value Lens') || q.includes('corrective actions'))).toBe(
-        true
-      );
+      // Also check for Capability chart question
+      expect(
+        result.some(q => q.includes('Capability chart') || q.includes('corrective actions'))
+      ).toBe(true);
     });
 
     it('returns idea-aware questions when converging with ideas', () => {

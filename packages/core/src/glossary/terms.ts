@@ -170,7 +170,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Variation from unusual events — detected by points outside control limits or Nelson rule patterns. Signals something changed that requires investigation.',
     description:
-      'Special cause variation means something unusual happened in the process — a machine malfunction, operator error, material change, or other assignable cause. Unlike common cause variation (random, inherent), special causes are detectable, identifiable, and correctable. Red dots on the I-Chart (Change Lens) signal special cause — investigate and take action.',
+      'Special cause variation means something unusual happened in the process — a machine malfunction, operator error, material change, or other assignable cause. Unlike common cause variation (random, inherent), special causes are detectable, identifiable, and correctable. Red dots on the I-Chart signal special cause — investigate and take action.',
     category: 'methodology',
     learnMorePath: '/learn/two-voices',
     relatedTerms: ['commonCause', 'ucl', 'lcl', 'nelsonRule2', 'nelsonRule3', 'inControl'],
@@ -181,7 +181,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Random variation inherent to a stable process. Points within control limits showing no special patterns — the process is predictable.',
     description:
-      'Common cause variation is the natural, random variation present in all stable processes. It results from many small, uncontrollable factors acting together. Blue dots on the I-Chart (Change Lens) represent common cause — the process is predictable. Attempting to "fix" common cause leads to tampering and increased variation. Only special causes require action.',
+      'Common cause variation is the natural, random variation present in all stable processes. It results from many small, uncontrollable factors acting together. Blue dots on the I-Chart represent common cause — the process is predictable. Attempting to "fix" common cause leads to tampering and increased variation. Only special causes require action.',
     category: 'methodology',
     learnMorePath: '/learn/two-voices',
     relatedTerms: ['specialCause', 'ucl', 'lcl', 'inControl'],
@@ -214,7 +214,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'A stable process where all points fall within control limits and show random variation. Only common cause variation present.',
     description:
-      'An in-control process is stable and predictable — all points within control limits (UCL/LCL), no special patterns detected. This means only common cause (random, inherent) variation is present. Important: in-control does NOT mean capable (stability before capability principle). A process can be in-control but still produce defects if control limits are wider than spec limits.',
+      'An in-control process is stable and predictable — all points within control limits (UCL/LCL), no special patterns detected. This means only common cause (random, inherent) variation is present. Important: in-control does NOT mean capable — a stable process can still produce defects if control limits are wider than spec limits.',
     category: 'methodology',
     learnMorePath: '/learn/two-voices',
     relatedTerms: ['specialCause', 'commonCause', 'ucl', 'lcl'],
@@ -326,7 +326,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Whether a process is in statistical control — all points within control limits with no special patterns detected.',
     description:
-      'A stable process is predictable: future output will fall within the control limits. Stability is a prerequisite for meaningful capability analysis (stability before capability). Assess stability through the Change Lens (I-Chart) before drawing conclusions from the Value Lens (Capability).',
+      'A stable process is predictable: future output will fall within the control limits. In EDA, the I-Chart is often a natural starting point — it reveals whether the process behaves consistently before assessing capability.',
     category: 'methodology',
     relatedTerms: ['inControl', 'specialCause', 'commonCause'],
   },
@@ -336,7 +336,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'A data point beyond control limits or exhibiting a Nelson rule pattern, signaling special cause variation.',
     description:
-      'Out-of-control signals (red points on the Change Lens) mean something unusual happened. This requires investigation — identify the assignable cause and take corrective action to restore stability.',
+      'Out-of-control signals (red points on the I-Chart) mean something unusual happened. This requires investigation — identify the assignable cause and take corrective action to restore stability.',
     category: 'methodology',
     relatedTerms: ['specialCause', 'nelsonRule2', 'inControl'],
   },
@@ -356,7 +356,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Separating data by factors (machine, shift, operator) to reveal hidden sources of variation.',
     description:
-      "Stratification is the core analytical technique in VariScout. The Flow Lens (Boxplot) shows each factor's contribution to total variation. By drilling down through factors via progressive stratification, you decompose total variation step by step. The variation bar shows cumulative progress toward explaining total variation.",
+      "Stratification is the core analytical technique in VariScout. The Boxplot shows each factor's contribution to total variation. By drilling down through factors via progressive stratification, you decompose total variation step by step. The variation bar shows cumulative progress toward explaining total variation.",
     category: 'methodology',
     relatedTerms: ['rationalSubgrouping', 'etaSquared', 'totalSSContribution'],
   },
@@ -449,6 +449,77 @@ export const glossaryTerms: GlossaryTerm[] = [
       'Process context grounds AI assistance in domain knowledge. Describing what you are measuring, what equipment produces it, and what factors matter helps the AI narrator explain statistical findings in terms meaningful to your specific process.',
     category: 'investigation',
     relatedTerms: ['finding', 'stratification'],
+  },
+
+  // Basic Statistics (additions)
+  {
+    id: 'median',
+    label: 'Median',
+    definition: 'Middle value of a sorted dataset. Less sensitive to outliers than mean.',
+    description:
+      'The median splits the data in half — 50% of values fall above, 50% below. Unlike the mean, a single extreme value does not pull the median. When mean and median diverge significantly, the distribution is skewed.',
+    category: 'statistics',
+    learnMorePath: '/tools/i-chart',
+    relatedTerms: ['mean', 'stdDev'],
+  },
+
+  // Charts (additions — Watson's analytical tools)
+  {
+    id: 'iChart',
+    label: 'I-Chart',
+    definition:
+      'Individuals Control Chart. Plots measurements in time-series order with control limits to reveal patterns and special causes.',
+    description:
+      "The I-Chart is Watson's first analytical tool. Each measurement is plotted in sequence with UCL/LCL calculated from the moving range (MR̄/d2). Points outside limits or matching Nelson Rule patterns signal special cause variation — something changed that requires investigation.",
+    category: 'charts',
+    learnMorePath: '/tools/i-chart',
+    relatedTerms: ['ucl', 'lcl', 'specialCause', 'nelsonRule2', 'nelsonRule3'],
+  },
+  {
+    id: 'boxplot',
+    label: 'Boxplot',
+    definition:
+      'Group comparison chart showing distribution summary — median, quartiles, range, and outliers per category.',
+    description:
+      "The Boxplot stratifies data by a factor (machine, shift, operator) to compare variation across groups. Combined with ANOVA η², it quantifies each group's contribution to total variation. The natural entry point for progressive stratification — click a category to drill down.",
+    category: 'charts',
+    learnMorePath: '/tools/boxplot',
+    relatedTerms: ['stratification', 'etaSquared', 'violinPlot'],
+  },
+  {
+    id: 'paretoChart',
+    label: 'Pareto Chart',
+    definition:
+      'Categories ranked by contribution with cumulative %. Reveals the vital few factors that drive most variation.',
+    description:
+      'The Pareto chart applies the 80/20 principle to variation analysis — a few categories typically account for most of the total variation. Categories are ranked by Total SS contribution with a cumulative percentage line. Focus improvement effort on the vital few at the top.',
+    category: 'charts',
+    learnMorePath: '/tools/pareto',
+    relatedTerms: ['totalSSContribution', 'stratification'],
+  },
+  {
+    id: 'capabilityAnalysis',
+    label: 'Capability Analysis',
+    definition:
+      'Compares process distribution to customer specification limits. Shows whether the process can meet requirements.',
+    description:
+      'Capability analysis brings in the Voice of the Customer (specification limits) to assess whether process variation actually matters. A histogram overlaid with spec limits shows the process distribution relative to requirements. Cp and Cpk quantify the relationship — the goal is control limits fitting comfortably inside spec limits.',
+    category: 'charts',
+    learnMorePath: '/tools/capability',
+    relatedTerms: ['cp', 'cpk', 'usl', 'lsl', 'passRate'],
+  },
+
+  // Investigation (additions)
+  {
+    id: 'hypothesis',
+    label: 'Hypothesis',
+    definition:
+      'A proposed explanation for observed variation, linked to a specific factor. Validated through data, Gemba observation, or expert input.',
+    description:
+      'Hypotheses are the building blocks of investigation in VariScout. Each hypothesis proposes why a particular factor drives variation. Validation can be automatic (η² thresholds: ≥15% supported, <5% contradicted, 5-15% partial), manual via Gemba inspection, or by expert assessment. Multiple hypotheses form a tree structure for systematic root cause exploration.',
+    category: 'investigation',
+    learnMorePath: '/learn/investigation',
+    relatedTerms: ['finding', 'etaSquared', 'rootCauseAnalysis'],
   },
 ];
 

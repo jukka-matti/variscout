@@ -23,52 +23,45 @@ VariScout identifies **factors driving variation**, not root causes. EDA shows _
 
 ---
 
-## Four Lenses
+## Foundation: Watson's EDA
 
-The four core charts are **parallel lenses** on the same data. They are not sequential steps — apply them in any order. Each asks a fundamentally different question:
+VariScout's analytical approach is grounded in Watson's Exploratory Data Analysis methodology (Turtiainen, 2019). Watson's EDA uses four standard quality tools, each asking a different analytical question:
 
-| Lens        | Chart                | Core Question                     |
-| ----------- | -------------------- | --------------------------------- |
-| **CHANGE**  | I-Chart              | "What's shifting over time?"      |
-| **FLOW**    | Boxplot              | "Where does variation come from?" |
-| **FAILURE** | Pareto               | "Where do problems cluster?"      |
-| **VALUE**   | Capability Histogram | "Does it meet customer specs?"    |
+| Tool                | Analytical Question             | Origin                      |
+| ------------------- | ------------------------------- | --------------------------- |
+| I-Chart             | What patterns exist over time?  | Shewhart (1924)             |
+| Boxplot             | Where does variation come from? | Tukey (1977)                |
+| Pareto Chart        | Where do problems concentrate?  | Juran (1950s)               |
+| Capability Analysis | Does it meet customer specs?    | Motorola / Six Sigma (1986) |
 
-The first three lenses (CHANGE, FLOW, FAILURE) analyze **internal process behavior**. VALUE is a different type of question — it brings in an external reference (customer specifications) to ask "does it actually matter?"
+The thesis places the I-Chart first in the sequence for practical reasons — time-series data often reveals the most immediate patterns. But this is not a rigid rule; Watson's EDA is iterative, not sequential. The analyst moves between tools as the data suggests.
 
-**Linked filtering connects all four.** Clicking "Machine B" in the Boxplot simultaneously updates the I-Chart (Machine B's timeline), Pareto (Machine B's failure modes), and Capability (Machine B's Cpk). The lenses become a coordinated investigation team, not four independent displays.
+### Supporting Tools
 
----
-
-## Two Voices
-
-Every process has two voices speaking simultaneously:
-
-| Voice                     | Expressed As             | Source                  | VariScout Lens |
-| ------------------------- | ------------------------ | ----------------------- | -------------- |
-| **Voice of the Process**  | Control Limits (UCL/LCL) | Calculated from data    | CHANGE         |
-| **Voice of the Customer** | Spec Limits (USL/LSL)    | Defined by requirements | VALUE          |
-
-These voices are **independent**. The process does not know what the customer wants. The customer does not know what the process can do.
-
-**The goal:** control limits fit inside specification limits — then the process naturally produces what the customer needs, without inspection.
-
-**The critical sequence:**
-
-1. **Stability first** — check the I-Chart for control violations. If the process is unstable, capability numbers are meaningless.
-2. **Capability second** — once stable, compare the process voice to the customer voice. Cpk < 1.0 means fundamental process change is needed.
-
-Reversing this order means chasing numbers without understanding the process.
+| Tool         | Origin         | How VariScout Uses It                                              |
+| ------------ | -------------- | ------------------------------------------------------------------ |
+| ANOVA        | Fisher (1920s) | Quantifies factor contribution (η²) for drill-down ranking         |
+| Nelson Rules | Nelson (1984)  | 8 pattern rules for I-Chart; catches non-random signals beyond ±3σ |
 
 ---
 
-## Progressive Stratification
+## VariScout's Three Contributions
+
+VariScout adds three original concepts on top of Watson's foundation:
+
+### 1. Parallel Views
+
+All four analytical tools are visible simultaneously on a single dashboard with **linked filtering**. Clicking "Machine B" in the Boxplot simultaneously updates the I-Chart (Machine B's timeline), Pareto (Machine B's failure modes), and Capability (Machine B's Cpk). The tools become a coordinated investigation team, not four independent displays.
+
+This is how VariScout differs from sequential tool usage — the analyst sees every perspective at once.
+
+### 2. Progressive Stratification
 
 Progressive stratification converts a multidimensional variation problem into a sequential, one-factor-at-a-time investigation. This is analogous to **binary search in factor space**.
 
 **The drill-down sequence:**
 
-1. Look at which factor explains the most variation (Boxplot eta-squared display)
+1. Look at which factor explains the most variation (Boxplot η² display)
 2. Filter to the highest-impact level of that factor (click a box or bar)
 3. See how the remaining factors redistribute in the filtered data
 4. Repeat until an actionable condition is isolated
@@ -78,13 +71,11 @@ Progressive stratification converts a multidimensional variation problem into a 
 - Reduces the problem space — fewer factors left to investigate
 - Quantifies progress — the cumulative variation bar shows how much of total variation is now in scope
 
-**Why contribution to total (not local eta-squared).** If Night Shift accounts for 67% of total variation and Machine explains 36% of the Night Shift subset, the local eta-squared is 36%. But the answer to "how much of my total problem does Machine explain?" is 24%. Contribution to total keeps the analyst anchored to the original question at every step.
+**Why contribution to total (not local η²).** If Night Shift accounts for 67% of total variation and Machine explains 36% of the Night Shift subset, the local η² is 36%. But the answer to "how much of my total problem does Machine explain?" is 24%. Contribution to total keeps the analyst anchored to the original question at every step.
 
 **The endpoint** is specific and actionable: "Operator Kim on Machine C during Night Shift accounts for 46% of all variation" — not a vague recommendation.
 
----
-
-## Investigation Workflow
+### 3. Hypothesis Investigation
 
 Once variation drivers are identified through drill-down, the investigation moves into structured root cause exploration. VariScout uses a **diamond pattern**:
 
@@ -99,34 +90,51 @@ Once variation drivers are identified through drill-down, the investigation move
 
 **Three validation types** reflect that not every hypothesis can be tested with data:
 
-| Validation | When to Use                                    | How It Works                                                                          |
-| ---------- | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Data       | Hypothesis links to a factor in the dataset    | ANOVA eta-squared auto-sets status (>=15% supported, <5% contradicted, 5–15% partial) |
-| Gemba      | Requires physical inspection on the shop floor | Define task, inspect, record findings, set status manually                            |
-| Expert     | Requires domain knowledge beyond the data      | Consult expert, record assessment, set status manually                                |
+| Validation | When to Use                                    | How It Works                                                                |
+| ---------- | ---------------------------------------------- | --------------------------------------------------------------------------- |
+| Data       | Hypothesis links to a factor in the dataset    | ANOVA η² auto-sets status (≥15% supported, <5% contradicted, 5–15% partial) |
+| Gemba      | Requires physical inspection on the shop floor | Define task, inspect, record findings, set status manually                  |
+| Expert     | Requires domain knowledge beyond the data      | Consult expert, record assessment, set status manually                      |
+
+---
+
+## Two Voices
+
+Every process has two voices speaking simultaneously:
+
+| Voice                     | Expressed As             | Source                  |
+| ------------------------- | ------------------------ | ----------------------- |
+| **Voice of the Process**  | Control Limits (UCL/LCL) | Calculated from data    |
+| **Voice of the Customer** | Spec Limits (USL/LSL)    | Defined by requirements |
+
+These voices are **independent**. The process does not know what the customer wants. The customer does not know what the process can do.
+
+**The goal:** control limits fit inside specification limits — then the process naturally produces what the customer needs, without inspection.
+
+---
+
+## Four Lenses (Teaching Shorthand)
+
+The "Four Lenses" label is a pedagogical device — a memorable way to communicate that the same data looks different through each analytical tool. It maps directly to the four tools above:
+
+| Lens        | Tool                 | Core Question                     |
+| ----------- | -------------------- | --------------------------------- |
+| **CHANGE**  | I-Chart              | "What's shifting over time?"      |
+| **FLOW**    | Boxplot              | "Where does variation come from?" |
+| **FAILURE** | Pareto               | "Where do problems cluster?"      |
+| **VALUE**   | Capability Histogram | "Does it meet customer specs?"    |
+
+The lens metaphor is useful for marketing and teaching, but the methodology works with standard tool names. VariScout's CoScout AI assistant uses tool names, not lens names.
 
 ---
 
 ## Key Principles
 
-**Stability Before Capability.** Capability indices (Cp, Cpk) computed on an unstable process are not meaningful. The I-Chart check is always first.
+**Contribution, Not Causation.** ANOVA η² quantifies how much of the total variation a factor explains. It does not prove that factor causes the variation. Causation requires domain knowledge and further investigation.
 
-**Contribution, Not Causation.** ANOVA eta-squared quantifies how much of the total variation a factor explains. It does not prove that factor causes the variation. Causation requires domain knowledge and further investigation.
+**Iterative Exploration.** Each analysis cycle reveals new questions. A finding triggers a sub-hypothesis, which may need new data or a Gemba visit. The loop continues until the solution space is bounded.
 
 **AI Augments, Never Replaces (Azure App only).** VariScout's statistical engine computes the conclusion. AI translates it into language and adds context — it does not generate competing statistics. The conclusion is reproducible and auditable. The PWA stays AI-free by design; the "guided frustration" pedagogy requires the analyst to do the thinking.
-
----
-
-## Quality Tools Used
-
-| Tool               | Origin                      | How VariScout Uses It                                                    |
-| ------------------ | --------------------------- | ------------------------------------------------------------------------ |
-| I-Chart            | Shewhart (1924)             | Time-series stability check; UCL/LCL from 3σ; CHANGE lens                |
-| Boxplot            | Tukey (1977)                | Factor-by-factor variation comparison; eta-squared from ANOVA; FLOW lens |
-| Pareto Chart       | Juran (1950s)               | Category failure concentration; 80/20 focus; FAILURE lens                |
-| Capability Indices | Motorola / Six Sigma (1986) | Cp/Cpk vs USL/LSL; VALUE lens; requires stability first                  |
-| ANOVA              | Fisher (1920s)              | Quantifies factor contribution (eta-squared) for drill-down ranking      |
-| Nelson Rules       | Nelson (1984)               | 8 pattern rules for I-Chart; catches non-random signals beyond ±3σ       |
 
 ---
 

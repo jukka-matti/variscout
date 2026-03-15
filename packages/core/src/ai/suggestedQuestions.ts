@@ -7,8 +7,8 @@ import type { AIContext } from './types';
 
 const FALLBACK_QUESTIONS = [
   'What does this analysis tell me?',
-  'Which lens should I look at next?',
-  'How do I interpret the Change Lens (I-Chart)?',
+  'What should I look at next?',
+  'How do I interpret the I-Chart?',
 ];
 
 const INVESTIGATION_FALLBACK_QUESTIONS = [
@@ -20,7 +20,7 @@ const INVESTIGATION_FALLBACK_QUESTIONS = [
 /** Phase-specific questions for hypothesis investigation */
 const PHASE_QUESTIONS: Record<string, string[]> = {
   initial: [
-    'Which lens should I examine first?',
+    'Which chart should I examine first?',
     'What does the data suggest about possible causes?',
   ],
   diverging: [
@@ -39,7 +39,7 @@ const PHASE_QUESTIONS: Record<string, string[]> = {
   ],
   acting: [
     'Are the corrective actions addressing the root cause?',
-    'What does the Value Lens show — is Cpk improving?',
+    'What does the Capability chart show — is Cpk improving?',
   ],
 };
 

@@ -41,8 +41,8 @@ import { getEntry, getRelated, getConcept } from '@variscout/core';
 const fourLenses = getConcept('fourLenses');
 // { id: 'fourLenses', label: 'Four Lenses', conceptCategory: 'framework', ... }
 
-const related = getRelated('changeLens');
-// Returns: [specialCause, nelsonRule2, nelsonRule3]
+const related = getRelated('fourLenses');
+// Returns: [iChart, boxplot, paretoChart, capabilityAnalysis, twoVoices]
 ```
 
 ---
@@ -79,18 +79,18 @@ interface Concept {
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | control-limits | UCL, LCL, USL, LSL, Target                                                                                                                                                                                                                           |
 | capability     | Cp, Cpk, Pass Rate, Rejected                                                                                                                                                                                                                         |
-| statistics     | Mean, Std Dev, F-Statistic, p-value, η², Sum of Squares, Between/Within Variation                                                                                                                                                                    |
+| statistics     | Mean, Median, Std Dev, F-Statistic, p-value, η², Sum of Squares, Between/Within Variation                                                                                                                                                            |
 | methodology    | Special Cause, Common Cause, Nelson Rule 2/3, In-Control, Staged Analysis, Total SS Contribution, Characteristic Type, Probability Plot, Control vs Spec, Natural Variation, Process Stability, Out of Control, Rational Subgrouping, Stratification |
-| investigation  | Root Cause Analysis, Corrective Action, Preventive Action, Finding, Investigation Status, Key Driver, Action Item, Finding Outcome, Process Context                                                                                                  |
-| charts         | Violin Plot                                                                                                                                                                                                                                          |
+| investigation  | Root Cause Analysis, Corrective Action, Preventive Action, Finding, Investigation Status, Key Driver, Action Item, Finding Outcome, Process Context, Hypothesis                                                                                      |
+| charts         | I-Chart, Boxplot, Pareto Chart, Capability Analysis, Violin Plot                                                                                                                                                                                     |
 
 ## Concept Categories
 
-| Category  | Concepts                                                                            |
-| --------- | ----------------------------------------------------------------------------------- |
-| framework | Four Lenses, Change Lens, Flow Lens, Failure Lens, Value Lens, Two Voices           |
-| principle | Stability Before Capability, Progressive Stratification, Contribution Not Causation |
-| phase     | Initial, Diverging, Validating, Converging, Acting                                  |
+| Category  | Concepts                                                                      |
+| --------- | ----------------------------------------------------------------------------- |
+| framework | Four Lenses (teaching shorthand), Two Voices, Parallel Views                  |
+| principle | Progressive Stratification, Contribution Not Causation, Iterative Exploration |
+| phase     | Initial, Diverging, Validating, Converging, Acting                            |
 
 ---
 
