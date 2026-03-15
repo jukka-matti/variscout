@@ -43,9 +43,9 @@
     "variscoutPlan": {
       "type": "string",
       "defaultValue": "standard",
-      "allowedValues": ["standard", "team"],
+      "allowedValues": ["standard", "team", "team-ai"],
       "metadata": {
-        "description": "VariScout plan: 'standard' (local files, no Teams features) or 'team' (OneDrive + SharePoint channel storage, Teams integration, photos)"
+        "description": "VariScout plan: 'standard' (local files), 'team' (OneDrive + Teams collaboration), or 'team-ai' (Team features + AI assistance + Knowledge Base)"
       }
     }
   },
@@ -55,7 +55,8 @@
     "functionAppName": "[concat(parameters('appName'), '-func')]",
     "functionStorageName": "[concat('vsf', uniqueString(resourceGroup().id))]",
     "functionPlanName": "[concat(parameters('appName'), '-func-plan')]",
-    "isTeamPlan": "[equals(parameters('variscoutPlan'), 'team')]"
+    "hasTeamFeatures": "[or(equals(parameters('variscoutPlan'), 'team'), equals(parameters('variscoutPlan'), 'team-ai'))]",
+    "isTeamAI": "[equals(parameters('variscoutPlan'), 'team-ai')]"
   },
   "resources": [
     {
@@ -112,7 +113,7 @@
             },
             {
               "name": "VITE_FUNCTION_URL",
-              "value": "[if(variables('isTeamPlan'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
+              "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
             }
           ],
           "minTlsVersion": "1.2",
@@ -145,7 +146,7 @@
             },
             "login": {
               "loginParameters": [
-                "[if(variables('isTeamPlan'), 'scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All People.Read ChannelMessage.Send', 'scope=openid profile email User.Read')]"
+                "[if(variables('hasTeamFeatures'), 'scope=openid profile email User.Read Files.ReadWrite Files.ReadWrite.All Channel.ReadBasic.All People.Read ChannelMessage.Send', 'scope=openid profile email User.Read')]"
               ]
             }
           }
@@ -158,7 +159,7 @@
       }
     },
     {
-      "condition": "[variables('isTeamPlan')]",
+      "condition": "[variables('hasTeamFeatures')]",
       "type": "Microsoft.Storage/storageAccounts",
       "apiVersion": "2023-05-01",
       "name": "[variables('functionStorageName')]",
@@ -178,7 +179,7 @@
       }
     },
     {
-      "condition": "[variables('isTeamPlan')]",
+      "condition": "[variables('hasTeamFeatures')]",
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2024-04-01",
       "name": "[variables('functionPlanName')]",
@@ -195,7 +196,7 @@
       "properties": {}
     },
     {
-      "condition": "[variables('isTeamPlan')]",
+      "condition": "[variables('hasTeamFeatures')]",
       "type": "Microsoft.Web/sites",
       "apiVersion": "2024-04-01",
       "name": "[variables('functionAppName')]",
@@ -262,9 +263,9 @@
       "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
     },
     "functionUrl": {
-      "condition": "[variables('isTeamPlan')]",
+      "condition": "[variables('hasTeamFeatures')]",
       "type": "string",
-      "value": "[if(variables('isTeamPlan'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
+      "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
     }
   }
 }

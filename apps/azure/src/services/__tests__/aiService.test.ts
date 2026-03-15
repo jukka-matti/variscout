@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { configurePlan } from '@variscout/core';
 import { classifyError, isAIAvailable, fetchChartInsight } from '../aiService';
 
 describe('classifyError', () => {
@@ -32,8 +33,28 @@ describe('classifyError', () => {
 });
 
 describe('isAIAvailable', () => {
+  beforeEach(() => {
+    configurePlan(null);
+  });
+
   it('returns false when VITE_AI_ENDPOINT is not set', () => {
     // In test env, VITE_AI_ENDPOINT is not set
+    expect(isAIAvailable()).toBe(false);
+  });
+
+  it('returns false for standard plan even if endpoint were set', () => {
+    configurePlan('standard');
+    expect(isAIAvailable()).toBe(false);
+  });
+
+  it('returns false for team plan (AI requires team-ai)', () => {
+    configurePlan('team');
+    expect(isAIAvailable()).toBe(false);
+  });
+
+  it('returns false for team-ai plan when endpoint not set', () => {
+    configurePlan('team-ai');
+    // Still false because VITE_AI_ENDPOINT is not set in test env
     expect(isAIAvailable()).toBe(false);
   });
 });

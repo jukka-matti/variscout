@@ -36,8 +36,12 @@
                   "value": "standard"
                 },
                 {
-                  "label": "Team (€299/month) - Teams, OneDrive, SharePoint, mobile, photos",
+                  "label": "Team (€199/month) - Teams, OneDrive, SharePoint, mobile, photos",
                   "value": "team"
+                },
+                {
+                  "label": "Team AI (€279/month) - Team features + AI assistance + Knowledge Base",
+                  "value": "team-ai"
                 }
               ]
             }

@@ -27,7 +27,7 @@ import {
   useHypotheses,
 } from '@variscout/hooks';
 import {
-  isTeamPlan,
+  hasTeamFeatures,
   buildSuggestedQuestions,
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
@@ -504,7 +504,7 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Team contributors for AI context (Teams plan only)
   const aiTeamContributors = useMemo(() => {
-    if (!isTeamPlan() || !persistedFindings) return undefined;
+    if (!hasTeamFeatures() || !persistedFindings) return undefined;
     const authors = new Set<string>();
     const areas = new Set<string>();
     for (const f of persistedFindings) {
@@ -1004,9 +1004,9 @@ export const Editor: React.FC<EditorProps> = ({
                   onAddComment={handleAddCommentWithAuthor}
                   onEditComment={findingsState.editFindingComment}
                   onDeleteComment={findingsState.deleteFindingComment}
-                  onAddPhoto={isTeamPlan() ? handleAddPhoto : undefined}
+                  onAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
                   onCaptureFromTeams={
-                    isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
+                    hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
                   }
                   onCreateHypothesis={handleCreateHypothesis}
                   hypothesesMap={hypothesesMap}
@@ -1073,9 +1073,9 @@ export const Editor: React.FC<EditorProps> = ({
                 onAddComment={handleAddCommentWithAuthor}
                 onEditComment={findingsState.editFindingComment}
                 onDeleteComment={findingsState.deleteFindingComment}
-                onAddPhoto={isTeamPlan() ? handleAddPhoto : undefined}
+                onAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
                 onCaptureFromTeams={
-                  isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
+                  hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
                 }
                 onCreateHypothesis={handleCreateHypothesis}
                 onSetValidationTask={hypothesesState.setValidationTask}

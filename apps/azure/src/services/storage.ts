@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { isLocalDev, AuthError } from '../auth/easyAuth';
 import { getGraphToken } from '../auth/graphToken';
 import { errorService } from '@variscout/ui';
-import { isTeamPlan } from '@variscout/core';
+import { hasTeamFeatures } from '@variscout/core';
 import {
   addToSyncQueue,
   getPendingSyncItems,
@@ -583,7 +583,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       await saveToIndexedDB(project, name, location);
 
       // Standard plan: local-only storage, no cloud sync
-      if (!isTeamPlan()) {
+      if (!hasTeamFeatures()) {
         setSyncStatus({ status: 'saved', message: 'Saved locally' });
         return;
       }
@@ -694,7 +694,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const loadProject = useCallback(
     async (name: string, location: StorageLocation): Promise<Project | null> => {
       // Standard plan: local-only storage
-      if (!isTeamPlan()) {
+      if (!hasTeamFeatures()) {
         return loadFromIndexedDB(name);
       }
 
@@ -760,7 +760,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const localProjects = await listFromIndexedDB();
 
     // Standard plan: local-only storage, no cloud merge
-    if (!isTeamPlan()) {
+    if (!hasTeamFeatures()) {
       return localProjects;
     }
 
@@ -775,8 +775,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // In a channel tab with team plan, also list channel projects
       let teamProjects: CloudProject[] = [];
       const { isChannelTab } = await import('../teams/teamsContext');
-      const { isTeamPlan } = await import('@variscout/core');
-      if (isChannelTab() && isTeamPlan()) {
+      const { hasTeamFeatures } = await import('@variscout/core');
+      if (isChannelTab() && hasTeamFeatures()) {
         teamProjects = await listFromCloud(token, 'team').catch(() => []);
       }
 
@@ -809,7 +809,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const handleOnline = async () => {
       // Standard plan: no background cloud sync
-      if (!isTeamPlan()) return;
+      if (!hasTeamFeatures()) return;
 
       const pending = await getPendingSyncItems();
 

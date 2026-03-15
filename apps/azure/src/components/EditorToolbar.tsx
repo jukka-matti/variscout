@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { isTeamPlan, downloadCSV } from '@variscout/core';
+import { hasTeamFeatures, downloadCSV } from '@variscout/core';
 import type { DataRow, SpecLimits } from '@variscout/core';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import {
@@ -142,7 +142,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
         {/* Compact sync icon on phone — Team plan only */}
-        {isPhone && isTeamPlan() && (
+        {isPhone && hasTeamFeatures() && (
           <div
             className={`flex-shrink-0 ${syncColor}`}
             title={syncStatus.message || syncStatus.status}
@@ -155,7 +155,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
         )}
         {/* Sync Status — Team plan only, full label on desktop */}
         {!isPhone &&
-          isTeamPlan() &&
+          hasTeamFeatures() &&
           (syncStatus.status === 'error' ? (
             <button
               onClick={() => {

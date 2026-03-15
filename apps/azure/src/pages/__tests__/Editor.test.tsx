@@ -51,7 +51,7 @@ vi.mock('@variscout/core', () => ({
   downloadCSV: vi.fn(),
   getNelsonRule2ViolationPoints: vi.fn(() => []),
   calculateStats: vi.fn(() => ({ mean: 10, ucl: 12, lcl: 8 })),
-  isTeamPlan: vi.fn(() => false),
+  hasTeamFeatures: vi.fn(() => false),
 }));
 
 vi.mock('../../hooks/usePhotoComments', () => ({

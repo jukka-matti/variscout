@@ -655,7 +655,7 @@ export type LicenseTier = 'free' | 'enterprise';
  * Orthogonal to LicenseTier: both plans are 'enterprise' tier (same analysis features).
  * Plan controls collaboration features; tier controls analysis features.
  */
-export type MarketplacePlan = 'standard' | 'team';
+export type MarketplacePlan = 'standard' | 'team' | 'team-ai';
 
 /**
  * Tier-specific limits for feature gating

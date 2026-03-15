@@ -86,6 +86,8 @@ export {
   DEFAULT_PLAN,
   configurePlan,
   getPlan,
+  hasTeamFeatures,
+  isTeamAIPlan,
   isTeamPlan,
 } from './tier';
 
@@ -346,4 +348,5 @@ export {
   findDuplicateBySource,
   migrateFindingStatus,
   migrateFindings,
+  migrateActionAssignee,
 } from './findings';

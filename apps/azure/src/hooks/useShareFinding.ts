@@ -2,7 +2,7 @@
  * useShareFinding — compose channel @mention with fallback chain.
  *
  * Fallback chain:
- * 1. isChannelTab() && isTeamPlan() → POST @mention to channel
+ * 1. isChannelTab() && hasTeamFeatures() → POST @mention to channel
  * 2. isInTeams() → shareWebContent() (Teams share dialog)
  * 3. Otherwise → copy deep link to clipboard
  */
@@ -10,7 +10,7 @@
 import { useCallback, useMemo } from 'react';
 import type { Finding, FindingAssignee } from '@variscout/core';
 import { isChannelTab, getTeamsContext } from '../teams';
-import { isTeamPlan } from '@variscout/core';
+import { hasTeamFeatures } from '@variscout/core';
 import { postChannelMention } from '../services/graphChannelMessage';
 import { buildFindingSharePayload } from '../services/shareContent';
 import { useTeamsShare } from './useTeamsShare';
@@ -23,7 +23,7 @@ interface UseShareFindingOptions {
 export function useShareFinding({ projectName, baseUrl }: UseShareFindingOptions) {
   const { share } = useTeamsShare();
 
-  const canMentionInChannel = useMemo(() => isChannelTab() && isTeamPlan(), []);
+  const canMentionInChannel = useMemo(() => isChannelTab() && hasTeamFeatures(), []);
 
   /**
    * Share a finding, optionally @mentioning an assignee in the channel.

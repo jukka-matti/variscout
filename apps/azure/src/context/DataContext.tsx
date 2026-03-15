@@ -26,7 +26,7 @@ import type {
   StageOrderMode,
   ProcessContext,
 } from '@variscout/core';
-import { isTeamPlan } from '@variscout/core';
+import { hasTeamFeatures } from '@variscout/core';
 import { getTeamsContext } from '../teams/teamsContext';
 
 // Re-export types for backwards compatibility
@@ -79,7 +79,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Azure-specific state — default location based on Teams context
   const defaultLocation = useMemo<StorageLocation>(() => {
     const ctx = getTeamsContext();
-    return ctx.tabType === 'channel' && isTeamPlan() ? 'team' : 'personal';
+    return ctx.tabType === 'channel' && hasTeamFeatures() ? 'team' : 'personal';
   }, []);
   const [currentProjectLocation, setCurrentProjectLocation] =
     useState<StorageLocation>(defaultLocation);

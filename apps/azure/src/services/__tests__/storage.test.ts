@@ -47,10 +47,10 @@ vi.mock('../../db/schema', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Mock: @variscout/core — isTeamPlan defaults to true (cloud sync tests)
+// Mock: @variscout/core — hasTeamFeatures defaults to true (cloud sync tests)
 // ---------------------------------------------------------------------------
 vi.mock('@variscout/core', () => ({
-  isTeamPlan: () => true,
+  hasTeamFeatures: () => true,
 }));
 
 // ---------------------------------------------------------------------------

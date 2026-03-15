@@ -4,7 +4,7 @@
  */
 
 import type { AIContext, AIErrorType } from '@variscout/core';
-import { buildNarrationSystemPrompt, buildSummaryPrompt } from '@variscout/core';
+import { buildNarrationSystemPrompt, buildSummaryPrompt, isTeamAIPlan } from '@variscout/core';
 
 const CACHE_KEY_PREFIX = 'variscout-ai-cache-';
 const CHIP_CACHE_KEY_PREFIX = 'variscout-ai-chip-';
@@ -35,10 +35,11 @@ export function getAIEndpoint(): string | null {
 }
 
 /**
- * Check if AI features are available (endpoint configured).
+ * Check if AI features are available.
+ * Requires Team AI plan and a configured AI endpoint.
  */
 export function isAIAvailable(): boolean {
-  return getAIEndpoint() !== null;
+  return isTeamAIPlan() && getAIEndpoint() !== null;
 }
 
 /**
