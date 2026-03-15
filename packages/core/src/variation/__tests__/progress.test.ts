@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { computeImprovementProgress } from '../progress';
+import { computeImprovementProgress, computeIdeaImpact } from '../progress';
 import { createFinding } from '../../findings';
-import type { Finding, FindingProjection } from '../../findings';
+import type { Finding, FindingProjection, ImprovementIdea } from '../../findings';
 
 function makeFinding(overrides: Partial<Finding> = {}): Finding {
   const base = createFinding('Test finding', {}, null);
@@ -120,5 +120,112 @@ describe('computeImprovementProgress', () => {
     const result = computeImprovementProgress([small, large], target, currentStats);
     expect(result.projectedImprovement.byFinding[0].findingId).toBe('large');
     expect(result.projectedImprovement.byFinding[1].findingId).toBe('small');
+  });
+});
+
+// ============================================================================
+// computeIdeaImpact Tests
+// ============================================================================
+
+describe('computeIdeaImpact', () => {
+  function makeIdea(overrides: Partial<ImprovementIdea> = {}): ImprovementIdea {
+    return {
+      id: 'idea-1',
+      text: 'Test idea',
+      createdAt: new Date().toISOString(),
+      ...overrides,
+    };
+  }
+
+  it('returns undefined when no projection and no impactOverride', () => {
+    const idea = makeIdea();
+    expect(computeIdeaImpact(idea)).toBeUndefined();
+  });
+
+  it('returns impactOverride when no projection but impactOverride set', () => {
+    const idea = makeIdea({ impactOverride: 'medium' });
+    expect(computeIdeaImpact(idea)).toBe('medium');
+  });
+
+  // --- With projection + target: gap closure ---
+
+  it('returns high when gap closure >= 60%', () => {
+    // Current mean=20, target=10, gap=10. Projected mean=12 → closed 8/10=80%
+    const idea = makeIdea({
+      projection: makeProjection({
+        baselineMean: 20,
+        projectedMean: 12,
+        meanDelta: -8,
+      }),
+    });
+    const target = { metric: 'mean' as const, value: 10, direction: 'minimize' };
+    const stats = { mean: 20, sigma: 4 };
+    expect(computeIdeaImpact(idea, target, stats)).toBe('high');
+  });
+
+  it('returns medium when gap closure 30-60%', () => {
+    // Current mean=20, target=10, gap=10. Projected mean=16 → closed 4/10=40%
+    const idea = makeIdea({
+      projection: makeProjection({
+        baselineMean: 20,
+        projectedMean: 16,
+        meanDelta: -4,
+      }),
+    });
+    const target = { metric: 'mean' as const, value: 10, direction: 'minimize' };
+    const stats = { mean: 20, sigma: 4 };
+    expect(computeIdeaImpact(idea, target, stats)).toBe('medium');
+  });
+
+  it('returns low when gap closure < 30%', () => {
+    // Current mean=20, target=10, gap=10. Projected mean=19 → closed 1/10=10%
+    const idea = makeIdea({
+      projection: makeProjection({
+        baselineMean: 20,
+        projectedMean: 19,
+        meanDelta: -1,
+      }),
+    });
+    const target = { metric: 'mean' as const, value: 10, direction: 'minimize' };
+    const stats = { mean: 20, sigma: 4 };
+    expect(computeIdeaImpact(idea, target, stats)).toBe('low');
+  });
+
+  // --- With projection, no target: sigma reduction ---
+
+  it('returns high when sigma reduction >= 50%', () => {
+    // baselineSigma=4.0, sigmaDelta=-2.5 → 62.5% reduction
+    const idea = makeIdea({
+      projection: makeProjection({
+        baselineSigma: 4.0,
+        projectedSigma: 1.5,
+        sigmaDelta: -2.5,
+      }),
+    });
+    expect(computeIdeaImpact(idea)).toBe('high');
+  });
+
+  it('returns medium when sigma reduction 20-50%', () => {
+    // baselineSigma=4.0, sigmaDelta=-1.2 → 30% reduction
+    const idea = makeIdea({
+      projection: makeProjection({
+        baselineSigma: 4.0,
+        projectedSigma: 2.8,
+        sigmaDelta: -1.2,
+      }),
+    });
+    expect(computeIdeaImpact(idea)).toBe('medium');
+  });
+
+  it('returns low when sigma reduction < 20%', () => {
+    // baselineSigma=4.0, sigmaDelta=-0.4 → 10% reduction
+    const idea = makeIdea({
+      projection: makeProjection({
+        baselineSigma: 4.0,
+        projectedSigma: 3.6,
+        sigmaDelta: -0.4,
+      }),
+    });
+    expect(computeIdeaImpact(idea)).toBe('low');
   });
 });

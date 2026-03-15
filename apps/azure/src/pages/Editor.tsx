@@ -29,6 +29,7 @@ import {
   buildSuggestedQuestions,
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
+  computeIdeaImpact,
 } from '@variscout/core';
 import {
   fetchNarration as fetchNarrationFromAI,
@@ -355,6 +356,40 @@ export const Editor: React.FC<EditorProps> = ({
     [hypothesesState, findingsState]
   );
 
+  // Compute idea impacts for all hypotheses (memoized)
+  const ideaImpacts = useMemo(() => {
+    const impacts: Record<string, ReturnType<typeof computeIdeaImpact>> = {};
+    const target =
+      processContext?.targetMetric && processContext?.targetValue !== undefined
+        ? {
+            metric: processContext.targetMetric,
+            value: processContext.targetValue,
+            direction: processContext.targetDirection ?? 'minimize',
+          }
+        : undefined;
+    const currentStats = stats
+      ? { mean: stats.mean, sigma: stats.stdDev, cpk: stats.cpk }
+      : undefined;
+
+    for (const h of hypothesesState.hypotheses) {
+      if (h.ideas) {
+        for (const idea of h.ideas) {
+          impacts[idea.id] = computeIdeaImpact(idea, target, currentStats);
+        }
+      }
+    }
+    return impacts;
+  }, [hypothesesState.hypotheses, processContext, stats]);
+
+  // Open What-If pre-loaded for a specific improvement idea
+  const handleProjectIdea = useCallback(
+    (_hypothesisId: string, _ideaId: string) => {
+      // Open What-If page — the idea context will be available via hypothesis state
+      panels.setIsWhatIfOpen(true);
+    },
+    [panels]
+  );
+
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
 
@@ -421,6 +456,18 @@ export const Editor: React.FC<EditorProps> = ({
   const handleNarrativeAsk = useCallback(() => {
     panels.setIsCoScoutOpen(true);
   }, [panels]);
+
+  // Ask CoScout from improvement ideas section
+  const handleAskCoScoutFromIdeas = useCallback(
+    (question: string) => {
+      panels.setIsCoScoutOpen(true);
+      // Send the question after a tick to let the panel open
+      setTimeout(() => {
+        coscout.send(question);
+      }, 100);
+    },
+    [panels, coscout]
+  );
 
   // Pass categories and brief from ColumnMapping into DataContext
   const handleMappingConfirmWithCategories = useCallback(
@@ -805,6 +852,13 @@ export const Editor: React.FC<EditorProps> = ({
                   onCompleteAction={findingsState.completeAction}
                   onDeleteAction={findingsState.deleteAction}
                   onSetOutcome={findingsState.setOutcome}
+                  ideaImpacts={ideaImpacts}
+                  onAddIdea={hypothesesState.addIdea}
+                  onUpdateIdea={hypothesesState.updateIdea}
+                  onRemoveIdea={hypothesesState.removeIdea}
+                  onSelectIdea={hypothesesState.selectIdea}
+                  onProjectIdea={handleProjectIdea}
+                  onAskCoScout={handleAskCoScoutFromIdeas}
                   showAuthors={true}
                   columnAliases={columnAliases}
                   drillPath={drillPath}
@@ -841,6 +895,13 @@ export const Editor: React.FC<EditorProps> = ({
                 onCompleteAction={findingsState.completeAction}
                 onDeleteAction={findingsState.deleteAction}
                 onSetOutcome={findingsState.setOutcome}
+                ideaImpacts={ideaImpacts}
+                onAddIdea={hypothesesState.addIdea}
+                onUpdateIdea={hypothesesState.updateIdea}
+                onRemoveIdea={hypothesesState.removeIdea}
+                onSelectIdea={hypothesesState.selectIdea}
+                onProjectIdea={handleProjectIdea}
+                onAskCoScout={handleAskCoScoutFromIdeas}
                 showAuthors={true}
                 columnAliases={columnAliases}
                 drillPath={drillPath}

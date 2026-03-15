@@ -9,7 +9,14 @@ import {
   LayoutGrid,
   GitBranch,
 } from 'lucide-react';
-import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
+import type {
+  Finding,
+  FindingSource,
+  FindingStatus,
+  FindingTag,
+  ImprovementIdea,
+  IdeaImpact,
+} from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import { useResizablePanel } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
@@ -85,6 +92,19 @@ export interface FindingsPanelBaseProps {
     total: number;
   };
 
+  // --- Improvement Ideas (passed through to FindingsLog → HypothesisTreeView) ---
+  ideaImpacts?: Record<string, IdeaImpact | undefined>;
+  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onUpdateIdea?: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+  ) => void;
+  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
+  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  onAskCoScout?: (question: string) => void;
+
   // Resize config
   resizeConfig: FindingsPanelResizeConfig;
 }
@@ -126,6 +146,13 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onSelectHypothesis,
   onAddSubHypothesis,
   getChildrenSummary,
+  ideaImpacts,
+  onAddIdea,
+  onUpdateIdea,
+  onRemoveIdea,
+  onSelectIdea,
+  onProjectIdea,
+  onAskCoScout,
   resizeConfig,
 }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -304,6 +331,13 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onCompleteAction={onCompleteAction}
           onDeleteAction={onDeleteAction}
           onSetOutcome={onSetOutcome}
+          ideaImpacts={ideaImpacts}
+          onAddIdea={onAddIdea}
+          onUpdateIdea={onUpdateIdea}
+          onRemoveIdea={onRemoveIdea}
+          onSelectIdea={onSelectIdea}
+          onProjectIdea={onProjectIdea}
+          onAskCoScout={onAskCoScout}
         />
 
         {/* Drill path footer */}

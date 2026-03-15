@@ -11,6 +11,7 @@ import {
   createActionItem,
   createFindingOutcome,
   createHypothesis,
+  createImprovementIdea,
   getFindingStatus,
   groupFindingsByStatus,
   migrateFindingStatus,
@@ -520,5 +521,39 @@ describe('FindingAssignee', () => {
     f.assignee = assignee;
     expect(f.assignee).toBeDefined();
     expect(f.assignee!.userId).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// ImprovementIdea Tests
+// ============================================================================
+
+describe('createImprovementIdea', () => {
+  it('creates idea with text and unique ID', () => {
+    const idea = createImprovementIdea('Simplify setup with visual guides');
+    expect(idea.id).toBeTruthy();
+    expect(idea.text).toBe('Simplify setup with visual guides');
+  });
+
+  it('sets createdAt as ISO string', () => {
+    const idea = createImprovementIdea('Reduce changeover time');
+    expect(idea.createdAt).toBeTruthy();
+    // ISO string format check
+    expect(new Date(idea.createdAt).toISOString()).toBe(idea.createdAt);
+  });
+
+  it('no effort/projection/selected/notes by default', () => {
+    const idea = createImprovementIdea('Add poka-yoke fixture');
+    expect(idea.effort).toBeUndefined();
+    expect(idea.projection).toBeUndefined();
+    expect(idea.selected).toBeUndefined();
+    expect(idea.notes).toBeUndefined();
+    expect(idea.impactOverride).toBeUndefined();
+  });
+
+  it('generates unique ids', () => {
+    const a = createImprovementIdea('Idea A');
+    const b = createImprovementIdea('Idea B');
+    expect(a.id).not.toBe(b.id);
   });
 });

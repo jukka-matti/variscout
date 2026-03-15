@@ -252,6 +252,10 @@ Use standard SPC/quality terminology (Cpk, control limits, variation, etc.) when
     }
 
     if (investigation.phase) {
+      // Check if there are supported hypotheses for IDEOI-specific instructions
+      const hasSupportedHypotheses =
+        investigation.allHypotheses?.some(h => h.status === 'supported') ?? false;
+
       const phaseInstructions: Record<string, string> = {
         initial:
           'The investigation is just starting — help identify possible causes and suggest factors to explore.',
@@ -259,8 +263,9 @@ Use standard SPC/quality terminology (Cpk, control limits, variation, etc.) when
           'The investigation is diverging — encourage exploring multiple hypotheses across different factor categories.',
         validating:
           'Hypotheses are being validated — help prioritize untested hypotheses and suggest validation approaches.',
-        converging:
-          'The investigation is converging — help synthesize findings into a coherent root cause story.',
+        converging: hasSupportedHypotheses
+          ? 'The investigation is converging on root cause(s). Help brainstorm improvement options. For each suggestion, consider what process change is needed and expected impact on variation. Compare options by effort vs impact when possible.'
+          : 'The investigation is converging — help synthesize findings into a coherent root cause story.',
         acting:
           'Corrective actions are underway — help verify effectiveness and suggest monitoring approaches.',
       };

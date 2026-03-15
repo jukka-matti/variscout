@@ -12,7 +12,8 @@ The investigation follows a **diamond pattern**:
 2. **Diverge** — generate sub-hypotheses (break the broad cause into testable theories)
 3. **Validate** — test each sub-hypothesis using data, gemba inspection, or expert review
 4. **Converge** — eliminate contradicted theories, confirm supported ones
-5. **Act** — define corrective actions for the confirmed root cause
+5. **Ideate** — brainstorm improvement ideas, attach What-If projections, compare impact vs effort
+6. **Act** — select the best idea(s) and define corrective actions
 
 This mirrors how experienced quality engineers think: cast a wide net, then narrow down. VariScout structures this natural process so nothing is lost and the reasoning trail is documented.
 
@@ -139,7 +140,17 @@ Fill weight variation on a packaging line exceeds the +/-2g specification. I-Cha
 
 Two hypotheses supported (worn nozzle + temperature drift), two contradicted. The worn nozzle is the primary root cause hypothesis — it directly explains the mechanical drift and the temperature instability (worn nozzle affects heat transfer).
 
-**5. Act:**
+**5. Ideate improvements:**
+
+With the supported hypotheses identified, brainstorm improvement ideas before committing to actions. Each idea can carry an effort estimate (low/medium/high) and a What-If projection that computes its expected Cpk impact. For example:
+
+- "Replace nozzle tip weekly" (effort: low, projected Cpk: 1.25)
+- "Install automated nozzle wear sensor" (effort: high, projected Cpk: 1.40)
+- "Tighten temperature controller PID loop" (effort: medium, projected Cpk: 1.15)
+
+Comparing projected impact against effort helps the team select the best option(s) before defining formal actions. Selected ideas flow into the corrective actions list.
+
+**6. Act:**
 
 Mark "Worn nozzle tip" as the root cause hypothesis. Define corrective actions:
 

@@ -1,11 +1,14 @@
 import { useState, useCallback, useMemo } from 'react';
 import {
   createHypothesis,
+  createImprovementIdea,
   type AnovaResult,
   type Finding,
+  type FindingProjection,
   type Hypothesis,
   type HypothesisStatus,
   type HypothesisValidationType,
+  type ImprovementIdea,
 } from '@variscout/core';
 
 // ============================================================================
@@ -90,6 +93,21 @@ export interface UseHypothesesReturn {
   getChildrenSummary: (parentId: string) => ChildrenSummary;
   /** Whether the max total hypothesis count has been reached */
   isAtCapacity: boolean;
+  // --- Improvement Ideas (IDEOI) ---
+  /** Add an improvement idea to a hypothesis */
+  addIdea: (hypothesisId: string, text: string) => ImprovementIdea | null;
+  /** Update an improvement idea */
+  updateIdea: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+  ) => void;
+  /** Remove an improvement idea */
+  removeIdea: (hypothesisId: string, ideaId: string) => void;
+  /** Attach a What-If projection to an idea */
+  setIdeaProjection: (hypothesisId: string, ideaId: string, projection: FindingProjection) => void;
+  /** Toggle the selected flag on an idea */
+  selectIdea: (hypothesisId: string, ideaId: string, selected: boolean) => void;
 }
 
 /** Eta-squared thresholds for auto-validation */
@@ -384,6 +402,97 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     [validatedHypotheses]
   );
 
+  // --- Improvement Ideas (IDEOI) ---
+
+  const addIdea = useCallback(
+    (hypothesisId: string, text: string): ImprovementIdea | null => {
+      const hypothesis = validatedHypotheses.find(h => h.id === hypothesisId);
+      if (!hypothesis) return null;
+      const idea = createImprovementIdea(text);
+      update(prev =>
+        prev.map(h =>
+          h.id === hypothesisId
+            ? { ...h, ideas: [...(h.ideas ?? []), idea], updatedAt: new Date().toISOString() }
+            : h
+        )
+      );
+      return idea;
+    },
+    [validatedHypotheses, update]
+  );
+
+  const updateIdea = useCallback(
+    (
+      hypothesisId: string,
+      ideaId: string,
+      updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+    ) => {
+      update(prev =>
+        prev.map(h =>
+          h.id === hypothesisId && h.ideas
+            ? {
+                ...h,
+                ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, ...updates } : i)),
+                updatedAt: new Date().toISOString(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
+  const removeIdea = useCallback(
+    (hypothesisId: string, ideaId: string) => {
+      update(prev =>
+        prev.map(h =>
+          h.id === hypothesisId && h.ideas
+            ? {
+                ...h,
+                ideas: h.ideas.filter(i => i.id !== ideaId),
+                updatedAt: new Date().toISOString(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
+  const setIdeaProjection = useCallback(
+    (hypothesisId: string, ideaId: string, projection: FindingProjection) => {
+      update(prev =>
+        prev.map(h =>
+          h.id === hypothesisId && h.ideas
+            ? {
+                ...h,
+                ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, projection } : i)),
+                updatedAt: new Date().toISOString(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
+  const selectIdea = useCallback(
+    (hypothesisId: string, ideaId: string, selected: boolean) => {
+      update(prev =>
+        prev.map(h =>
+          h.id === hypothesisId && h.ideas
+            ? {
+                ...h,
+                ideas: h.ideas.map(i => (i.id === ideaId ? { ...i, selected } : i)),
+                updatedAt: new Date().toISOString(),
+              }
+            : h
+        )
+      );
+    },
+    [update]
+  );
+
   return {
     hypotheses: validatedHypotheses,
     addHypothesis,
@@ -403,5 +512,10 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     setManualStatus,
     getChildrenSummary,
     isAtCapacity,
+    addIdea,
+    updateIdea,
+    removeIdea,
+    setIdeaProjection,
+    selectIdea,
   };
 }

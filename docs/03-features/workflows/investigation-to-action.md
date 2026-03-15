@@ -212,6 +212,21 @@ effective (outcome = effective at "Resolved" status). VariScout uses "hypothesis
 and "root cause hypothesis" throughout to maintain this distinction. A hypothesis
 becomes a "confirmed root cause" only when the outcome assessment shows the fix was effective.
 
+### Improvement Ideation (Azure only)
+
+When a hypothesis is validated and supported, the next step is not jumping straight to actions — it is brainstorming _how_ to fix the problem. The Improvement Ideas section on a finding unlocks once at least one hypothesis is supported. Analysts can generate multiple improvement ideas, estimate effort (low/medium/high), and attach a What-If projection to each idea to quantify its expected impact on Cpk and yield.
+
+| Field                  | Purpose                                                           |
+| ---------------------- | ----------------------------------------------------------------- |
+| **Idea text**          | What the improvement involves (e.g., "Replace nozzle tip weekly") |
+| **Effort estimate**    | Low / Medium / High — rough implementation cost                   |
+| **What-If projection** | Attach a What-If simulation result to compute projected Cpk/yield |
+| **Impact**             | Computed from projection (auto) or manually overridden            |
+| **Selected**           | Mark the best idea(s) to convert into corrective actions          |
+| **Notes**              | Additional context or reasoning                                   |
+
+This is the creative bridge between "we know what causes the problem" and "here is our action plan." By comparing projected impact across ideas, analysts can prioritize the most effective fix before committing resources. Selected ideas flow naturally into the corrective actions list below.
+
 ### Corrective Actions (Azure only)
 
 When a suspected cause is identified, define corrective actions. Each action item is typed as:

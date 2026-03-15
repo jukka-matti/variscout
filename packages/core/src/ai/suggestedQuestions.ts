@@ -34,8 +34,8 @@ const PHASE_QUESTIONS: Record<string, string[]> = {
   ],
   converging: [
     'Do the supported hypotheses form a coherent story?',
-    'Is there a root cause pattern connecting these findings?',
-    'Are we ready to define corrective actions?',
+    'What improvement options could reduce this variation?',
+    "What's the simplest change to improve process capability?",
   ],
   acting: [
     'Are the corrective actions addressing the root cause?',
@@ -113,13 +113,23 @@ function buildInvestigationQuestions(context: AIContext): string[] {
     questions.push(`We're at ${Math.round(inv.progressPercent)}% of the target — what's missing?`);
   }
 
-  // Hypothesis-aware
+  // Hypothesis-aware — converging with supported hypotheses gets IDEOI questions
   if (inv.allHypotheses && inv.allHypotheses.length > 0) {
     const supported = inv.allHypotheses.filter(h => h.status === 'supported');
     const untested = inv.allHypotheses.filter(h => h.status === 'untested');
-    if (supported.length > 0 && questions.length < 4) {
+
+    if (supported.length > 0 && inv.phase === 'converging') {
+      // IDEOI-specific: improvement ideation for supported hypotheses
+      if (questions.length < 4) {
+        questions.push(`What improvement options could address "${supported[0].text}"?`);
+      }
+      if (supported[0].contribution !== undefined && questions.length < 5) {
+        questions.push(`How might we reduce variation from this factor?`);
+      }
+    } else if (supported.length > 0 && questions.length < 4) {
       questions.push(`What actions would address "${supported[0].text}"?`);
     }
+
     if (untested.length > 0 && questions.length < 4) {
       questions.push(`How can we test the hypothesis: "${untested[0].text}"?`);
     }

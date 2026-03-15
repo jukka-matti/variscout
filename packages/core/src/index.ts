@@ -194,7 +194,7 @@ export {
 
 // Improvement Progress Tracking
 export type { ImprovementProgress, FindingContribution } from './variation/progress';
-export { computeImprovementProgress } from './variation/progress';
+export { computeImprovementProgress, computeIdeaImpact } from './variation/progress';
 
 // URL parameter utilities
 export {
@@ -308,6 +308,9 @@ export type {
   HypothesisStatus,
   HypothesisValidationType,
   InvestigationCategory,
+  ImprovementIdea,
+  IdeaEffort,
+  IdeaImpact,
 } from './findings';
 export {
   FINDING_STATUSES,
@@ -325,6 +328,7 @@ export {
   createActionItem,
   createFindingOutcome,
   createHypothesis,
+  createImprovementIdea,
   createInvestigationCategory,
   getCategoryForFactor,
   getFindingStatus,

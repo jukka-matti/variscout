@@ -1,5 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import type { Hypothesis, Finding, InvestigationCategory } from '@variscout/core';
+import type {
+  Hypothesis,
+  Finding,
+  InvestigationCategory,
+  ImprovementIdea,
+  IdeaImpact,
+} from '@variscout/core';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import HypothesisNode from './HypothesisNode';
 
@@ -32,6 +38,25 @@ export interface HypothesisTreeViewProps {
   categories?: InvestigationCategory[];
   /** Factor name → η² percentage (for variation display on factor/category headers) */
   factorVariations?: Record<string, number>;
+  // --- Improvement Ideas (passed through to HypothesisNode) ---
+  /** Computed impact for each idea (keyed by idea.id) */
+  ideaImpacts?: Record<string, IdeaImpact | undefined>;
+  /** Add an improvement idea */
+  onAddIdea?: (hypothesisId: string, text: string) => void;
+  /** Update an improvement idea */
+  onUpdateIdea?: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+  ) => void;
+  /** Remove an improvement idea */
+  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
+  /** Toggle idea selected state */
+  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  /** Open What-If simulator pre-loaded for this idea */
+  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  /** Ask CoScout about improvement options */
+  onAskCoScout?: (question: string) => void;
 }
 
 /** Category group for tree rendering */
@@ -58,6 +83,13 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   searchFilter,
   categories,
   factorVariations,
+  ideaImpacts,
+  onAddIdea,
+  onUpdateIdea,
+  onRemoveIdea,
+  onSelectIdea,
+  onProjectIdea,
+  onAskCoScout,
 }) => {
   // Track which nodes are expanded
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -172,6 +204,13 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
             childrenSummary={getChildrenSummary?.(hypothesis.id)}
             canAddChild={canAddChild}
             showContradicted={showContradicted}
+            ideaImpacts={ideaImpacts}
+            onAddIdea={onAddIdea}
+            onUpdateIdea={onUpdateIdea}
+            onRemoveIdea={onRemoveIdea}
+            onSelectIdea={onSelectIdea}
+            onProjectIdea={onProjectIdea}
+            onAskCoScout={onAskCoScout}
           />
           {isExpanded && visibleChildren.map(child => renderNode(child, extraDepth))}
         </React.Fragment>
@@ -189,6 +228,13 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
       showContradicted,
       maxDepth,
       maxChildrenPerParent,
+      ideaImpacts,
+      onAddIdea,
+      onUpdateIdea,
+      onRemoveIdea,
+      onSelectIdea,
+      onProjectIdea,
+      onAskCoScout,
     ]
   );
 

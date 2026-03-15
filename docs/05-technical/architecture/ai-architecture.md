@@ -284,6 +284,21 @@ All errors logged to `errorService` (existing in `@variscout/ui`). No user-facin
 
 ---
 
+## Converging-Phase Ideation Coaching
+
+When the investigation reaches a converging state — one or more hypotheses are supported — the CoScout system prompt is augmented with ideation-specific instructions. This encourages the analyst to move from root cause confirmation into improvement brainstorming.
+
+**Trigger:** `getCoScoutPhase()` returns `'converging'` (at least one supported hypothesis exists on the active finding).
+
+**Prompt changes:**
+
+- System prompt adds coaching instructions: guide the analyst toward actionable improvement ideas, ask about constraints (budget, timeline, authority), suggest structured approaches (eliminate, reduce, control)
+- Suggested questions include improvement-focused options (e.g., "What improvements could address this?", "How could we prevent this from recurring?")
+
+**No new AI endpoints.** The converging-phase coaching reuses the existing `fetchCoScoutResponse()` / `fetchCoScoutStreamingResponse()` calls — only the system prompt content changes based on investigation phase.
+
+---
+
 ### buildAIContext() Design
 
 The `buildAIContext()` function in `@variscout/core` is the structured bridge between the data layer and AI. Design principles:

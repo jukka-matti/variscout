@@ -5,7 +5,7 @@
  * aggregating projections from key-driver findings.
  */
 
-import type { Finding, FindingProjection } from '../findings';
+import type { Finding, FindingProjection, ImprovementIdea, IdeaImpact } from '../findings';
 import type { TargetMetric } from '../ai/types';
 
 // ============================================================================
@@ -293,5 +293,83 @@ function applyImprovementToValue(
     case 'target':
       // For bidirectional, improvement reduces the gap
       return current; // Simplified — actual projection uses per-finding computation
+  }
+}
+
+// ============================================================================
+// Idea Impact Computation
+// ============================================================================
+
+/** Gap closure thresholds for auto-computing impact from projection */
+const GAP_CLOSURE_HIGH = 0.6;
+const GAP_CLOSURE_MEDIUM = 0.3;
+
+/** Sigma delta magnitude thresholds when no target is set */
+const SIGMA_DELTA_HIGH = 0.5; // ≥50% sigma reduction
+const SIGMA_DELTA_MEDIUM = 0.2; // ≥20% sigma reduction
+
+/**
+ * Compute the impact level of an improvement idea.
+ *
+ * Priority:
+ * 1. With projection + target: gap closure % → HIGH ≥60%, MEDIUM 30-60%, LOW <30%
+ * 2. With projection, no target: sigma delta magnitude → heuristic thresholds
+ * 3. Without projection: return impactOverride (manual)
+ * 4. No data at all: return undefined
+ */
+export function computeIdeaImpact(
+  idea: ImprovementIdea,
+  target?: { metric: TargetMetric; value: number; direction: string },
+  currentStats?: { mean: number; sigma: number; cpk?: number }
+): IdeaImpact | undefined {
+  if (!idea.projection) {
+    return idea.impactOverride;
+  }
+
+  // With projection + target: compute gap closure
+  if (target && currentStats) {
+    const currentValue = getMetricFromStats(currentStats, target.metric);
+    const projectedValue = getMetricValue(idea.projection, target.metric, 'projected');
+
+    if (currentValue !== undefined && projectedValue !== undefined) {
+      const gap = Math.abs(currentValue - target.value);
+      if (gap > 0) {
+        const closedGap =
+          Math.abs(currentValue - target.value) - Math.abs(projectedValue - target.value);
+        const closurePct = closedGap / gap;
+        if (closurePct >= GAP_CLOSURE_HIGH) return 'high';
+        if (closurePct >= GAP_CLOSURE_MEDIUM) return 'medium';
+        return 'low';
+      }
+    }
+  }
+
+  // With projection, no target (or gap=0): use sigma delta magnitude
+  if (idea.projection.baselineSigma > 0) {
+    const sigmaReduction = Math.abs(idea.projection.sigmaDelta) / idea.projection.baselineSigma;
+    if (sigmaReduction >= SIGMA_DELTA_HIGH) return 'high';
+    if (sigmaReduction >= SIGMA_DELTA_MEDIUM) return 'medium';
+    return 'low';
+  }
+
+  return idea.impactOverride;
+}
+
+/**
+ * Extract a metric value from currentStats for gap closure computation.
+ */
+function getMetricFromStats(
+  stats: { mean: number; sigma: number; cpk?: number },
+  metric: TargetMetric
+): number | undefined {
+  switch (metric) {
+    case 'mean':
+      return stats.mean;
+    case 'sigma':
+      return stats.sigma;
+    case 'cpk':
+      return stats.cpk;
+    default:
+      return undefined;
   }
 }

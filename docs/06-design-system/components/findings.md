@@ -489,6 +489,51 @@ interface HypothesisNodeProps {
 | Gemba  | Factory | `text-amber-500`  |
 | Expert | User    | `text-purple-500` |
 
+### ImprovementIdeasSection
+
+Collapsible section within HypothesisNode, visible when the hypothesis status is `supported` or `partial`. Allows the analyst to brainstorm and evaluate improvement ideas tied to a confirmed root cause.
+
+**Source:** `packages/ui/src/components/FindingsLog/HypothesisNode.tsx` (inline section)
+
+#### Layout
+
+```
+┌──────────────────────────────────────────────────┐
+│  ▼ Improvement Ideas (2)                         │
+│                                                  │
+│  ★ Replace nozzle tip weekly                     │
+│    Impact: High   Effort: Low   Cpk 0.85 → 1.42 │
+│                                                  │
+│  ○ Add temperature PID controller                │
+│    Impact: Medium  Effort: High                  │
+│                                                  │
+│  [+ Add idea...]                                 │
+│  [Ask CoScout]  [▼ Effort]  [Project →]          │
+└──────────────────────────────────────────────────┘
+```
+
+#### Elements
+
+| Element              | Spec                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Section header       | Collapsible. "Improvement Ideas (N)" with chevron toggle. Hidden when hypothesis is untested or contradicted |
+| Idea row             | Text description (editable inline), impact badge, effort badge, optional projection summary                  |
+| Impact badge         | Computed from What-If projection: High (green), Medium (amber), Low (gray). "—" if no projection             |
+| Effort badge         | Manual cycle: Low → Medium → High → Low. Pill with color: Low (green), Medium (amber), High (red)            |
+| Projection summary   | Inline text: "Cpk 0.85 → 1.42" when a What-If projection exists for this idea                                |
+| Selected indicator   | Star (★) for selected idea, circle (○) for unselected. Click to toggle. Max one selected per hypothesis      |
+| "Add idea" input     | Text input at bottom of list. Enter to add. Placeholder: "Add improvement idea..."                           |
+| "Ask CoScout" button | Opens CoScout panel with ideation context pre-loaded. Only shown when AI is configured                       |
+| Effort cycle button  | Cycles the selected idea's effort level (Low → Medium → High)                                                |
+| "Project" button     | Opens What-If Simulator pre-populated with the selected idea's parameters. Disabled when no idea selected    |
+
+#### Interaction
+
+- Adding an idea creates an `ImprovementIdea` entry on the hypothesis
+- "Ask CoScout" triggers converging-phase CoScout with the hypothesis context (see [AI Architecture](../../05-technical/architecture/ai-architecture.md#converging-phase-ideation-coaching))
+- "Project" navigates to What-If Simulator; on return, the projection result (Cpk delta) is stored on the idea and displayed as the impact badge and projection summary
+- Selected idea (starred) is the one carried forward into corrective actions when the finding progresses to "improving" status
+
 ### Status Colors
 
 Uses the same palette as HypothesisStatus (distinct from FindingStatus):

@@ -43,6 +43,27 @@ Implement a complete Problem -> Hypothesis -> Evidence -> Projection -> Action -
 
 12. **CoScout investigation phase detection** — The investigation phase (initial, diverging, validating, converging, acting) is automatically detected from hypothesis tree state and included in `buildAIContext`. CoScout adapts suggested questions to the phase and highlights uncovered factor role categories (equipment, temporal, operator, material, location) to nudge broader investigation. The popout FindingsWindow gains a collapsible CoScout sidebar showing phase and suggestions.
 
+13. **Improvement Ideation** — Supported hypotheses unlock an "Improvement Ideas" section on the finding. Ideas are stored as `ImprovementIdea[]` on the Hypothesis entity:
+
+    ```typescript
+    interface ImprovementIdea {
+      id: string;
+      text: string; // What the improvement involves
+      effort: 'low' | 'medium' | 'high'; // Rough implementation cost
+      impactOverride?: number; // Manual Cpk impact (overrides computed)
+      projection?: FindingProjection; // What-If simulation result
+      selected: boolean; // Marked for conversion to actions
+      notes?: string; // Additional context
+      createdAt: number;
+    }
+    ```
+
+    Relationship: `Hypothesis.ideas?: ImprovementIdea[]`. Ideas belong to the hypothesis that identified the root cause.
+
+    Impact computation via `computeIdeaImpact(idea)`: if a What-If projection is attached, impact is derived from `projection.projected.cpk - projection.baseline.cpk`. If `impactOverride` is set, it takes precedence (for cases where the analyst has domain knowledge beyond the simulation). Ideas without projection or override show "–" for impact.
+
+    What-If integration: the analyst opens What-If Simulator, configures mean shift / variation reduction, then attaches the resulting projection to an idea. This reuses the existing `FindingProjection` type — no new simulation engine. Multiple ideas can have different projections, enabling side-by-side comparison of improvement strategies before committing to actions. Selected ideas (`selected: true`) flow into the corrective actions list when the finding transitions to "improving" status.
+
 ### Platform Scope
 
 - **Azure App:** Full implementation (brief, hypotheses, projections, progress tracking, investigation page)
@@ -75,6 +96,10 @@ Implement a complete Problem -> Hypothesis -> Evidence -> Projection -> Action -
 - `packages/core/src/variation/progress.ts` — Progress computation
 - `packages/hooks/src/useHypotheses.ts` — Hypothesis CRUD + auto-validation
 
+### New Files (Improvement Ideation)
+
+- `packages/core/src/variation/ideation.ts` — `computeIdeaImpact()`, idea validation helpers
+
 ### Modified Files
 
 - `packages/core/src/findings.ts` — Hypothesis type (parentId, validationType, validationTask, taskCompleted, manualNote), FindingProjection, createHypothesis()
@@ -89,3 +114,5 @@ Implement a complete Problem -> Hypothesis -> Evidence -> Projection -> Action -
 - `packages/ui/src/components/FindingsLog/HypothesisNode.tsx` — New: individual tree node with status, badges, validation type
 - `packages/ui/src/components/FindingsLog/FindingsWindow.tsx` — Problem brief header, CoScout sidebar
 - `packages/ui/src/components/FindingsPanel/` — Updated props
+- `packages/core/src/findings.ts` — ImprovementIdea type, Hypothesis.ideas field
+- `packages/hooks/src/useHypotheses.ts` — addIdea, updateIdea, removeIdea, selectIdea, attachProjection operations

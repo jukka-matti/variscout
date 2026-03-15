@@ -121,6 +121,39 @@ export interface FindingOutcome {
 }
 
 // ============================================================================
+// Improvement Idea Types (IDEOI — creative bridge between root cause and actions)
+// ============================================================================
+
+/** Effort level for an improvement idea (manual human judgment) */
+export type IdeaEffort = 'low' | 'medium' | 'high';
+
+/** Impact level for an improvement idea (computed or manual) */
+export type IdeaImpact = 'low' | 'medium' | 'high';
+
+/**
+ * An improvement idea attached to a supported/partial hypothesis.
+ * Bridges validated root cause (ANALYSOI) and corrective actions (KOKEILE).
+ */
+export interface ImprovementIdea {
+  /** Unique identifier */
+  id: string;
+  /** Idea description (e.g., "Simplify setup with visual guides") */
+  text: string;
+  /** Manual effort estimate — human judgment */
+  effort?: IdeaEffort;
+  /** Manual impact fallback when no projection is available */
+  impactOverride?: IdeaImpact;
+  /** Optional What-If projection — when present, impact is auto-computed */
+  projection?: FindingProjection;
+  /** Whether this idea is selected as "the one(s) to try" */
+  selected?: boolean;
+  /** Analyst's rationale for selection or notes */
+  notes?: string;
+  /** Timestamp of creation */
+  createdAt: string;
+}
+
+// ============================================================================
 // Hypothesis Types
 // ============================================================================
 
@@ -179,6 +212,8 @@ export interface Hypothesis {
   taskCompleted?: boolean;
   /** Analyst's note when manually setting status (gemba/expert validation) */
   manualNote?: string;
+  /** Improvement ideas — IDEOI output for supported/partial hypotheses */
+  ideas?: ImprovementIdea[];
 }
 
 // ============================================================================
@@ -472,6 +507,17 @@ export function createFindingOutcome(
     notes,
     cpkAfter,
     verifiedAt: Date.now(),
+  };
+}
+
+/**
+ * Create a new ImprovementIdea with a unique ID
+ */
+export function createImprovementIdea(text: string): ImprovementIdea {
+  return {
+    id: generateId(),
+    text,
+    createdAt: new Date().toISOString(),
   };
 }
 

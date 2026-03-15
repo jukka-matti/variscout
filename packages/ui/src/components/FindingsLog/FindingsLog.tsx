@@ -1,6 +1,13 @@
 import React from 'react';
 import { Pin } from 'lucide-react';
-import type { Finding, FindingStatus, FindingTag, Hypothesis } from '@variscout/core';
+import type {
+  Finding,
+  FindingStatus,
+  FindingTag,
+  Hypothesis,
+  ImprovementIdea,
+  IdeaImpact,
+} from '@variscout/core';
 import FindingCard from './FindingCard';
 import FindingBoardView from './FindingBoardView';
 import HypothesisTreeView from './HypothesisTreeView';
@@ -86,6 +93,18 @@ export interface FindingsLogProps {
   onProjectImprovement?: (findingId: string) => void;
   /** Whether spec limits exist (affects projection display metrics) */
   hasSpecs?: boolean;
+  // --- Improvement Ideas (passed through to HypothesisTreeView) ---
+  ideaImpacts?: Record<string, IdeaImpact | undefined>;
+  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onUpdateIdea?: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+  ) => void;
+  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
+  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  onAskCoScout?: (question: string) => void;
 }
 
 /**
@@ -127,6 +146,13 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onSetOutcome,
   onProjectImprovement,
   hasSpecs,
+  ideaImpacts,
+  onAddIdea,
+  onUpdateIdea,
+  onRemoveIdea,
+  onSelectIdea,
+  onProjectIdea,
+  onAskCoScout,
 }) => {
   if (findings.length === 0) {
     return (
@@ -151,6 +177,13 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
         onSelectHypothesis={onSelectHypothesis}
         onAddSubHypothesis={onAddSubHypothesis}
         getChildrenSummary={getChildrenSummary}
+        ideaImpacts={ideaImpacts}
+        onAddIdea={onAddIdea}
+        onUpdateIdea={onUpdateIdea}
+        onRemoveIdea={onRemoveIdea}
+        onSelectIdea={onSelectIdea}
+        onProjectIdea={onProjectIdea}
+        onAskCoScout={onAskCoScout}
       />
     );
   }

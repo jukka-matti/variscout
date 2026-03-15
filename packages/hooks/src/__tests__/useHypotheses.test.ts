@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHypotheses, MAX_CHILDREN_PER_PARENT, MAX_TOTAL_HYPOTHESES } from '../useHypotheses';
 import { createHypothesis } from '@variscout/core';
-import type { AnovaResult } from '@variscout/core';
+import type { AnovaResult, FindingProjection } from '@variscout/core';
 
 const makeAnova = (etaSquared: number): AnovaResult => ({
   groups: [],
@@ -405,6 +405,170 @@ describe('useHypotheses', () => {
       );
       const { result } = renderHook(() => useHypotheses({ initialHypotheses: many }));
       expect(result.current.isAtCapacity).toBe(true);
+    });
+  });
+
+  describe('improvement ideas', () => {
+    const makeProjection = (): FindingProjection => ({
+      baselineMean: 18.3,
+      baselineSigma: 4.2,
+      projectedMean: 15.1,
+      projectedSigma: 1.7,
+      meanDelta: -3.2,
+      sigmaDelta: -2.5,
+      simulationParams: { meanAdjustment: -3.2, variationReduction: 60 },
+      createdAt: new Date().toISOString(),
+    });
+
+    it('addIdea adds idea to hypothesis and returns it', () => {
+      const h = createHypothesis('Root cause');
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: [h] }));
+
+      let idea: ReturnType<typeof result.current.addIdea> = null;
+      act(() => {
+        idea = result.current.addIdea(h.id, 'Simplify setup with visual guides');
+      });
+
+      expect(idea).not.toBeNull();
+      expect(idea!.id).toBeDefined();
+      expect(idea!.text).toBe('Simplify setup with visual guides');
+      expect(result.current.hypotheses[0].ideas).toHaveLength(1);
+      expect(result.current.hypotheses[0].ideas![0].text).toBe('Simplify setup with visual guides');
+    });
+
+    it('addIdea returns null for non-existent hypothesis', () => {
+      const { result } = renderHook(() => useHypotheses());
+
+      let idea: ReturnType<typeof result.current.addIdea> = null;
+      act(() => {
+        idea = result.current.addIdea('nonexistent', 'Some idea');
+      });
+
+      expect(idea).toBeNull();
+    });
+
+    it('updateIdea updates idea text, effort, and notes', () => {
+      const h = createHypothesis('Root cause');
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: [h] }));
+
+      let ideaId: string;
+      act(() => {
+        const idea = result.current.addIdea(h.id, 'Original text');
+        ideaId = idea!.id;
+      });
+
+      act(() => {
+        result.current.updateIdea(h.id, ideaId!, {
+          text: 'Updated text',
+          effort: 'medium',
+          notes: 'Worth trying first',
+        });
+      });
+
+      const updated = result.current.hypotheses[0].ideas![0];
+      expect(updated.text).toBe('Updated text');
+      expect(updated.effort).toBe('medium');
+      expect(updated.notes).toBe('Worth trying first');
+    });
+
+    it('removeIdea removes idea from hypothesis', () => {
+      const h = createHypothesis('Root cause');
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: [h] }));
+
+      let ideaId: string;
+      act(() => {
+        const idea = result.current.addIdea(h.id, 'Idea to remove');
+        ideaId = idea!.id;
+      });
+
+      expect(result.current.hypotheses[0].ideas).toHaveLength(1);
+
+      act(() => {
+        result.current.removeIdea(h.id, ideaId!);
+      });
+
+      expect(result.current.hypotheses[0].ideas).toHaveLength(0);
+    });
+
+    it('setIdeaProjection attaches projection to idea', () => {
+      const h = createHypothesis('Root cause');
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: [h] }));
+
+      let ideaId: string;
+      act(() => {
+        const idea = result.current.addIdea(h.id, 'Reduce variation');
+        ideaId = idea!.id;
+      });
+
+      const projection = makeProjection();
+      act(() => {
+        result.current.setIdeaProjection(h.id, ideaId!, projection);
+      });
+
+      const idea = result.current.hypotheses[0].ideas![0];
+      expect(idea.projection).toBeDefined();
+      expect(idea.projection!.baselineMean).toBe(18.3);
+      expect(idea.projection!.projectedSigma).toBe(1.7);
+      expect(idea.projection!.simulationParams.variationReduction).toBe(60);
+    });
+
+    it('selectIdea toggles selected flag', () => {
+      const h = createHypothesis('Root cause');
+      const { result } = renderHook(() => useHypotheses({ initialHypotheses: [h] }));
+
+      let ideaId: string;
+      act(() => {
+        const idea = result.current.addIdea(h.id, 'Best idea');
+        ideaId = idea!.id;
+      });
+
+      act(() => {
+        result.current.selectIdea(h.id, ideaId!, true);
+      });
+      expect(result.current.hypotheses[0].ideas![0].selected).toBe(true);
+
+      act(() => {
+        result.current.selectIdea(h.id, ideaId!, false);
+      });
+      expect(result.current.hypotheses[0].ideas![0].selected).toBe(false);
+    });
+
+    it('onHypothesesChange callback fires on idea operations', () => {
+      const onChange = vi.fn();
+      const h = createHypothesis('Root cause');
+      const { result } = renderHook(() =>
+        useHypotheses({ initialHypotheses: [h], onHypothesesChange: onChange })
+      );
+
+      onChange.mockClear();
+
+      act(() => {
+        result.current.addIdea(h.id, 'New idea');
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(expect.any(Array));
+
+      const ideaId = result.current.hypotheses[0].ideas![0].id;
+      onChange.mockClear();
+
+      act(() => {
+        result.current.updateIdea(h.id, ideaId, { text: 'Changed' });
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+
+      onChange.mockClear();
+
+      act(() => {
+        result.current.selectIdea(h.id, ideaId, true);
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+
+      onChange.mockClear();
+
+      act(() => {
+        result.current.removeIdea(h.id, ideaId);
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
     });
   });
 });
