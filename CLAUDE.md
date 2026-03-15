@@ -151,7 +151,7 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Azure CI/CD pipeline     | `.github/workflows/deploy-azure-staging.yml`, `docs/05-technical/implementation/deployment.md`                                                        |
 | Teams integration        | docs/07-decisions/adr-016-teams-integration.md, docs/08-products/azure/authentication.md                                                              |
 | Teams SSO / OBO auth     | apps/azure/src/auth/graphToken.ts, docs/08-products/azure/authentication.md                                                                           |
-| EXIF / photo security    | packages/core/src/utils/exifStrip.ts, docs/07-decisions/adr-016-security-evaluation.md                                                                |
+| EXIF / photo security    | packages/core/src/utils/exifStrip.ts, docs/07-decisions/adr-021-security-evaluation.md                                                                |
 | AI integration           | docs/07-decisions/adr-019-ai-integration.md, docs/05-technical/architecture/ai-architecture.md, docs/05-technical/architecture/ai-readiness-review.md |
 | Knowledge model/glossary | docs/05-technical/architecture/knowledge-model.md, packages/core/src/glossary/, docs/03-features/learning/glossary.md                                 |
 | AI context engineering   | docs/05-technical/architecture/ai-context-engineering.md, packages/core/src/ai/promptTemplates.ts                                                     |

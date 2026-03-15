@@ -23,10 +23,12 @@ This section captures key architectural decisions made during VariScout developm
 | [013](adr-013-architecture-evaluation-ddd-swarms.md) | Architecture Evaluation (DDD/Swarms) | Accepted   | 2026-02-18 |
 | [014](adr-014-regression-deferral.md)                | Defer Regression to Phase 2          | Accepted   | 2026-02-25 |
 | [015](adr-015-investigation-board.md)                | Investigation Board                  | Accepted   | 2026-02-26 |
-| [016](adr-016-teams-integration.md)                  | Teams Integration                    | Proposed   | 2026-02-27 |
+| [016](adr-016-teams-integration.md)                  | Teams Integration                    | Accepted   | 2026-02-27 |
 | [017](adr-017-fluent-design-alignment.md)            | Fluent 2 Design Principle Alignment  | Accepted   | 2026-03-02 |
 | [018](adr-018-channel-mention-workflow.md)           | Channel @Mention Workflow            | Accepted   | 2026-03-05 |
-| [019](adr-019-ai-integration.md)                     | AI Integration (Azure App)           | Proposed   | 2026-03-14 |
+| [019](adr-019-ai-integration.md)                     | AI Integration (Azure App)           | Accepted   | 2026-03-14 |
+| [020](adr-020-investigation-workflow.md)             | Investigation Workflow               | Accepted   | 2026-03-15 |
+| [021](adr-021-security-evaluation.md)                | Security Evaluation (Teams)          | Accepted   | 2026-02-27 |
 
 ---
 

@@ -1,6 +1,6 @@
 # ADR-018: Channel @Mention Workflow — Mobile Finding to Team Action
 
-**Status**: Proposed
+**Status**: Accepted
 
 **Date**: 2026-03-02
 

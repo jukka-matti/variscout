@@ -1,6 +1,6 @@
-# ADR-016 Security Evaluation: Teams Integration
+# ADR-021 Security Evaluation: Teams Integration
 
-**Status**: Draft
+**Status**: Accepted
 
 **Date**: 2026-02-27
 
