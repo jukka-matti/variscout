@@ -130,17 +130,17 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Teams Integration
 
-| Feature                               | Azure Standard | Azure Team | PWA (Free) | Notes                                                             |
-| ------------------------------------- | :------------: | :--------: | :--------: | ----------------------------------------------------------------- |
-| **Teams channel tab**                 |       -        |     ✓      |     -      | Shared analysis in team channels                                  |
-| **Teams personal tab**                |       -        |     ✓      |     -      | Personal analysis within Teams                                    |
-| **Teams SSO**                         |       -        |     ✓      |     -      | On-Behalf-Of token exchange                                       |
-| **Channel file storage (SharePoint)** |       -        |     ✓      |     -      | .vrs files in channel document library                            |
-| **Photo evidence in findings**        |       -        |     ✓      |     -      | Teams SDK `media.selectMedia()` + HTML5 fallback; channel storage |
-| **Deep links to charts**              |       -        |     ✓      |     -      | Share chart URLs via Teams chat                                   |
-| **Adaptive Cards sharing**            |       -        |  Planned   |     -      | Share findings/charts as interactive cards                        |
-| **Teams mobile access**               |       -        |     ✓      |     -      | Full analysis via Teams mobile app                                |
-| **Phone-responsive carousel**         |       -        |     ✓      |     -      | Responsive mobile layout within Editor                            |
+| Feature                               | Azure Standard | Azure Team | PWA (Free) | Notes                                                               |
+| ------------------------------------- | :------------: | :--------: | :--------: | ------------------------------------------------------------------- |
+| **Teams channel tab**                 |       -        |     ✓      |     -      | Shared analysis in team channels                                    |
+| **Teams personal tab**                |       -        |     ✓      |     -      | Personal analysis within Teams                                      |
+| **Teams SSO**                         |       -        |     ✓      |     -      | On-Behalf-Of token exchange                                         |
+| **Channel file storage (SharePoint)** |       -        |     ✓      |     -      | .vrs files in channel document library                              |
+| **Photo evidence in findings**        |       -        |     ✓      |     -      | Teams SDK `media.selectMedia()` + HTML5 fallback; channel storage   |
+| **Deep links to charts**              |       -        |     ✓      |     -      | Share chart URLs via Teams chat                                     |
+| **Adaptive Cards sharing**            |       -        |     ✓      |     -      | Auto-post on analyzed/resolved status with @mentions and deep links |
+| **Teams mobile access**               |       -        |     ✓      |     -      | Full analysis via Teams mobile app                                  |
+| **Phone-responsive carousel**         |       -        |     ✓      |     -      | Responsive mobile layout within Editor                              |
 
 > See [ADR-016](../07-decisions/adr-016-teams-integration.md) for full Teams integration technical design.
 
@@ -238,7 +238,7 @@ Features that behave differently on phone (<640px) versus desktop.
 - Teams SSO (On-Behalf-Of token exchange)
 - Phone-responsive carousel for gemba investigations (responsive layout within Editor)
 - Photo evidence capture in findings (camera + channel storage)
-- Adaptive Cards sharing (Planned)
+- Adaptive Cards for status updates (analyzed/resolved findings)
 - Teams mobile access
 - Sync notifications (toast feedback for cloud operations)
 - Team assignment on corrective actions (people picker for team members)
@@ -257,7 +257,6 @@ Features that behave differently on phone (<640px) versus desktop.
 
 | Feature                     | Target Platform       | Status                      |
 | --------------------------- | --------------------- | --------------------------- |
-| Adaptive Cards              | Azure Team            | Planned                     |
 | AI Integration (Phase 1)    | Azure Standard + Team | Proposed                    |
 | AI Knowledge Base (Phase 3) | Azure Team            | Proposed                    |
 | Closed-loop investigations  | Azure Standard + Team | Designed (ADR-015 accepted) |
