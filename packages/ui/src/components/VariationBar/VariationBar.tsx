@@ -29,7 +29,7 @@ export const defaultColorScheme: VariationBarColorScheme = {
 };
 
 export interface VariationBarProps {
-  /** Current isolated variation percentage (0-100) */
+  /** Current variation percentage in focus (0-100) */
   isolatedPct: number;
   /** Whether to show labels below the bar (hidden on mobile) */
   showLabels?: boolean;
@@ -43,7 +43,7 @@ export interface VariationBarProps {
 
 /**
  * Get color for variation bar based on impact level
- * - Green (>= 50%): High impact - more than half the problem isolated
+ * - Green (>= 50%): High impact - more than half the problem in focus
  * - Amber (30-50%): Moderate impact - significant chunk
  * - Blue (< 30%): Low impact - one of several factors
  */

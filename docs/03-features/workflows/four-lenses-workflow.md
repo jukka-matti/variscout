@@ -101,7 +101,7 @@ Enable **Show distribution shape** in Settings to overlay density curves (violin
 Shift explains 45% → Filter to "Night Shift"
   └─ Operator explains 32% → Filter to "Operator B"
       └─ Machine explains 18% → Filter to "Machine 3"
-          └─ 95% of variation now isolated
+          └─ 95% of variation now in focus
 ```
 
 ## Lens 3: FAILURE (Pareto)

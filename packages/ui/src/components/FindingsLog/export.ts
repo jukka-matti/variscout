@@ -43,7 +43,7 @@ export function formatFindingsText(
       statsParts.push(`n=${finding.context.stats.samples}`);
     }
     if (finding.context.cumulativeScope !== null && finding.context.cumulativeScope !== undefined) {
-      statsParts.push(`${Math.round(finding.context.cumulativeScope)}% isolated`);
+      statsParts.push(`${Math.round(finding.context.cumulativeScope)}% in focus`);
     }
 
     const statsStr = statsParts.length > 0 ? ` | ${statsParts.join(' \u00b7 ')}` : '';

@@ -156,7 +156,7 @@ Filter: Machine = 3 (η² = 28%)
 Filter: Operator = New (η² = 12%)
 └─ Cpk: 0.38
 
-Total variation isolated: 82%
+Total variation in focus: 82%
 ```
 
 ### Interpretation

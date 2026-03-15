@@ -71,7 +71,7 @@ flowchart TD
     C --> D[Filter applied]
     D --> E["Filter chip shows: Factor: Value ▼ XX%"]
     E --> F[All charts update to subset]
-    F --> G{Enough variation isolated?}
+    F --> G{Enough variation in focus?}
     G -->|">50%"| H[Actionable insight found]
     G -->|"<50%"| I[Continue drilling]
     I --> B
@@ -184,7 +184,7 @@ After filtering:
 
 **Stop drilling when:**
 
-- Variation sufficiently isolated (> 50-70%)
+- Variation sufficiently in focus (> 50-70%)
 - Remaining variation is common cause
 - Data too sparse for reliable statistics
 - Actionable insight found
@@ -244,7 +244,7 @@ Remaining factors:
 | ------ | --- |
 | Time   | 15% |
 
-Cumulative: 77% isolated
+Cumulative: 77% in focus
 
 **Result**
 

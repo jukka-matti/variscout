@@ -285,7 +285,7 @@ export type FindingSource =
 export interface FindingContext {
   /** Active filters at time of capture: factor → selected values */
   activeFilters: Record<string, (string | number)[]>;
-  /** Cumulative variation % isolated (0–100), or null if no filters */
+  /** Cumulative variation % in focus (0–100), or null if no filters */
   cumulativeScope: number | null;
   /** Key statistics at time of capture */
   stats?: { mean: number; median?: number; cpk?: number; samples: number };

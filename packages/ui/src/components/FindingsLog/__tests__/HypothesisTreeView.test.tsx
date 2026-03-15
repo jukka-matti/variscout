@@ -154,7 +154,7 @@ describe('HypothesisTreeView', () => {
       expect(screen.getByText('Other')).toBeTruthy();
     });
 
-    it('shows aggregated eta squared on category headers', () => {
+    it('does not show aggregated eta squared on category headers (avoids misleading sums)', () => {
       const h = makeHypothesis('Machine issue', undefined, 'Machine');
       render(
         <HypothesisTreeView
@@ -164,11 +164,9 @@ describe('HypothesisTreeView', () => {
           factorVariations={{ Machine: 42.5 }}
         />
       );
-      // Both category and factor show the eta — at least one should be present
-      expect(screen.getAllByText('42.5%').length).toBeGreaterThanOrEqual(1);
-      // The category header specifically
+      // Factor sub-header shows eta, but category header does NOT
       const catHeader = screen.getByTestId(`category-header-${equipmentCat.id}`);
-      expect(catHeader.textContent).toContain('42.5%');
+      expect(catHeader.textContent).not.toContain('42.5%');
     });
 
     it('shows factor-level eta squared', () => {

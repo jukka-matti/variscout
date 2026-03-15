@@ -281,19 +281,6 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
 
   // Three-level rendering when categories are provided
   if (categoryGroups) {
-    const computeCategoryEta = (cat: InvestigationCategory): number | null => {
-      if (!factorVariations) return null;
-      let total = 0;
-      let hasAny = false;
-      for (const f of cat.factorNames) {
-        if (factorVariations[f] !== undefined) {
-          total += factorVariations[f];
-          hasAny = true;
-        }
-      }
-      return hasAny ? total : null;
-    };
-
     return (
       <div className="flex-1 overflow-y-auto px-2 py-2" role="tree" data-testid="hypothesis-tree">
         <div className="flex items-center gap-1 px-1 pb-1 mb-1 border-b border-edge/30">
@@ -305,7 +292,6 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
         {categoryGroups.map(({ category, factorGroups }) => {
           const isCatExpanded = expandedCategories.has(category.id);
           const hasContent = factorGroups.size > 0;
-          const catEta = computeCategoryEta(category);
 
           return (
             <div key={category.id} data-testid={`category-group-${category.id}`}>
@@ -333,11 +319,6 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
                   style={{ backgroundColor: category.color || '#64748b' }}
                 />
                 <span className="text-sm font-semibold text-content truncate">{category.name}</span>
-                {catEta !== null && (
-                  <span className="text-[10px] text-content-muted ml-auto shrink-0">
-                    {catEta.toFixed(1)}%
-                  </span>
-                )}
                 {!hasContent && (
                   <span className="text-[10px] text-content-muted italic ml-auto shrink-0">
                     no factors assigned

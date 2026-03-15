@@ -589,7 +589,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
           )}
           {context.stats?.samples !== undefined && <span>n={context.stats.samples}</span>}
           {context.cumulativeScope !== null && context.cumulativeScope !== undefined && (
-            <span>{Math.round(context.cumulativeScope)}% isolated</span>
+            <span>{Math.round(context.cumulativeScope)}% in focus</span>
           )}
         </div>
       </button>

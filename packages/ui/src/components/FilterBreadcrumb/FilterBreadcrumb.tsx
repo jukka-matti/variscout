@@ -100,13 +100,13 @@ function formatChipValues(values: (string | number)[]): string {
  * - Multi-select dropdown for each chip
  * - Remove button per chip
  * - Clear all button
- * - Variation bar showing total isolated variation
+ * - Variation bar showing total variation in focus
  *
  * Design:
  * ```
  * [Shift: Night v 45%] [Machine: A, C v 32%]      [x Clear]
  *
- * [||||||||||||||||------------------] 60% of variation isolated
+ * [||||||||||||||||------------------] 60% of variation in focus
  * ```
  *
  * @example

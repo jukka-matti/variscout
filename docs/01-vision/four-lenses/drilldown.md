@@ -50,7 +50,7 @@ Action: Primary driver identified — investigate Machine C conditions
 │ │ Shift: Night ▼ 67% │  │ Machine: C ▼ 24%   │  │ Operator: Kim ▼ 9% │ │
 │ └────────────────────┘  └────────────────────┘  └────────────────────┘ │
 │                                                                         │
-│ CUMULATIVE: 46% of total variation isolated                            │
+│ CUMULATIVE: 46% of total variation in focus                            │
 │ "Fix this combination to address nearly half your quality problems"    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -259,7 +259,7 @@ The filter chips should always show:
 │ │ Shift: Night ▼ 67% │  │ Machine: C ▼ 24%   │  │ Operator: Kim ▼ 9% │ │
 │ └────────────────────┘  └────────────────────┘  └────────────────────┘ │
 │                                                                         │
-│ CUMULATIVE: 46% of total variation isolated                            │
+│ CUMULATIVE: 46% of total variation in focus                            │
 │ "Fix this combination to address nearly half your quality problems"    │
 │                                                                         │
 │ [Clear All Filters]                                                     │

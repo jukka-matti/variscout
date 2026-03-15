@@ -129,6 +129,12 @@ When the analyst filters (e.g. clicks Step 2), the contribution percentage on th
 
 The cumulative percentage represents the fraction of the original total variation captured by your current filter combination. "45% in focus" means your current drill path accounts for 45% of all the variation in the dataset — the remaining 55% comes from data outside your filter selection.
 
+### Hypothesis tree (investigation panel)
+
+Each factor sub-header shows the individual **η²** for that factor. Category headers (e.g. "Equipment", "People") do **not** show an aggregated variation percentage — η² values from separate one-way ANOVAs are not additive when factors are correlated, so summing them could exceed 100% and mislead.
+
+**Design principle:** Only show variation numbers that are individually defensible. Never aggregate across factors unless using a multi-factor model that accounts for correlation.
+
 ### A note on controllability
 
 Identifying a variation source is necessary but not sufficient for improvement. Before committing resources, assess whether the source is controllable (can be changed with training, procedure, settings) or structural (requires equipment, material, or design changes). The What-If Simulator helps quantify the potential impact of changes; domain expertise determines feasibility.
