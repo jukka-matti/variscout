@@ -44,7 +44,7 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 
 - **Cp/Cpk Metrics**: Configurable process capability indices (toggle in Stats Panel)
 - **Capability Histogram**: Visual distribution analysis with spec limits overlay (tab in Stats Panel)
-- **Spec Editor**: Contextual editing of USL/LSL and Multi-Tier Grades directly in the analysis view
+- **Spec Editor**: Contextual editing of USL/LSL/Target directly in the analysis view
 
 ### Data Table
 

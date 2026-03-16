@@ -31,6 +31,7 @@ The core statistical charts based on Watson's Four Lenses:
 | [Boxplot](analysis/boxplot.md)                   | FLOW    | Factor comparison (includes Violin Mode) |
 | [Pareto](analysis/pareto.md)                     | FAILURE | Problem concentration                    |
 | [Capability](analysis/capability.md)             | VALUE   | Specification compliance                 |
+| [Stats Panel](analysis/stats-panel.md)           | -       | Conformance/Capability metrics, Cp/Cpk   |
 | [Performance Mode](analysis/performance-mode.md) | -       | Multi-channel analysis                   |
 
 ### Advanced Analysis
