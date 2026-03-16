@@ -1,3 +1,11 @@
+---
+title: I-Chart (Individuals Chart)
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [control-limits, nelson-rules, stability, time-series]
+---
+
 # I-Chart (Individuals Chart)
 
 The I-Chart is VariScout's tool for the **CHANGE** lens - analyzing time-based stability.

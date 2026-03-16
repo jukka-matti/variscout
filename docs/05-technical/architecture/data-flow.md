@@ -1,3 +1,11 @@
+---
+title: Data Flow Architecture
+audience: [developer]
+category: architecture
+status: stable
+related: [context-api, filter-stack, stats-pipeline]
+---
+
 # Data Flow Architecture
 
 How data moves through VariScout from upload to persistence.

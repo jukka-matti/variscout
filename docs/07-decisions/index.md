@@ -29,6 +29,7 @@ This section captures key architectural decisions made during VariScout developm
 | [019](adr-019-ai-integration.md)                     | AI Integration (Azure App)           | Accepted   | 2026-03-14 |
 | [020](adr-020-investigation-workflow.md)             | Investigation Workflow               | Accepted   | 2026-03-15 |
 | [021](adr-021-security-evaluation.md)                | Security Evaluation (Teams)          | Accepted   | 2026-02-27 |
+| [022](adr-022-knowledge-layer-architecture.md)       | Knowledge Layer Architecture         | Accepted   | 2026-03-16 |
 
 ---
 

@@ -1,3 +1,11 @@
+---
+title: 'VariScout: Architecture Overview'
+audience: [developer]
+category: architecture
+status: stable
+related: [monorepo, offline-first, pwa, azure]
+---
+
 # VariScout: Architecture Overview
 
 VariScout Lite is designed as a **browser-first**, **offline-capable** Progressive Web App (PWA) for manufacturing variation analysis. It prioritizes data privacy (no cloud) and works on any device.

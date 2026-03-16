@@ -1,3 +1,11 @@
+---
+title: Variation Decomposition
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [total-ss, eta-squared, scope-fraction, anova]
+---
+
 # Variation Decomposition
 
 Why VariScout uses different metrics for different questions, and how they relate to one-way ANOVA.
@@ -209,5 +217,5 @@ The chart copy and export features (clipboard, PNG, SVG) produce presentation-re
 | Investigation workflow (Mindmap, Regression, What-If) | [Investigation to Action](../workflows/investigation-to-action.md)          |
 | Boxplot ANOVA display                                 | [Boxplot](boxplot.md)                                                       |
 | Category contribution labels                          | [Boxplot](boxplot.md)                                                       |
-| Regression and interaction analysis                   | [Regression](regression.md)                                                 |
+| Regression and interaction analysis                   | [Regression (Phase 2, deferred)](../../archive/regression.md)               |
 | Glossary: η², Total SS Contribution                   | `packages/core/src/glossary/terms.ts`                                       |

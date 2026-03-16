@@ -1,3 +1,11 @@
+---
+title: Boxplot
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [anova, eta-squared, violin-mode, factor-comparison]
+---
+
 # Boxplot
 
 The Boxplot is VariScout's tool for the **FLOW** lens - comparing variation across factors.
@@ -139,7 +147,7 @@ const etaSq = getEtaSquared(data, 'Machine', 'Weight');
 - [Drill-Down](../navigation/drill-down.md) - Multi-level factor exploration
 - [I-Chart](i-chart.md) - Previous step: detect instability over time
 - [Pareto](pareto.md) - Next step: rank contribution of factors
-- [Regression](regression.md) - When to check for interactions
+- [Regression (Phase 2, deferred)](../../archive/regression.md) - When to check for interactions
 - [Chart Design](../../06-design-system/charts/boxplot.md)
 - [Glossary: η² (Eta-squared)](../../glossary.md#2-eta-squared)
 - [Glossary: F-statistic](../../glossary.md#f-statistic)

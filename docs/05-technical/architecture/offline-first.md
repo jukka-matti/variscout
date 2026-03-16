@@ -1,3 +1,11 @@
+---
+title: Offline-First Architecture
+audience: [developer]
+category: architecture
+status: stable
+related: [service-worker, indexeddb, cache-api]
+---
+
 # Offline-First Architecture
 
 VariScout is designed to work without internet access after the initial load.

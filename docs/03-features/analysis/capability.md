@@ -1,3 +1,11 @@
+---
+title: Capability Analysis
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [cpk, cp, normal-distribution, sigma-estimation, specification-limits]
+---
+
 # Capability Analysis
 
 Capability Analysis is VariScout's tool for the **VALUE** lens - comparing process output to customer specifications.

@@ -1,3 +1,11 @@
+---
+title: Nelson Rules
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [control-chart, i-chart, special-cause, runs]
+---
+
 # Nelson Rules
 
 Nelson Rules detect special cause variation patterns in control charts. VariScout implements Nelson Rule 2 (sustained shift) and Nelson Rule 3 (trend/drift) with distinct visual shapes for each violation type.

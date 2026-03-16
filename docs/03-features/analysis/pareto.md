@@ -1,3 +1,11 @@
+---
+title: Pareto Chart
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [vital-few, contribution-percentage, drill-down]
+---
+
 # Pareto Chart
 
 The Pareto Chart is VariScout's tool for the **FAILURE** lens - finding where problems concentrate.

@@ -1,3 +1,11 @@
+---
+title: AI Architecture
+audience: [developer]
+category: architecture
+status: stable
+related: [ai-foundry, coscout, narrative-bar, knowledge-base]
+---
+
 # AI Architecture
 
 Technical architecture for optional AI integration in the Azure App.

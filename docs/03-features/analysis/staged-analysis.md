@@ -1,3 +1,11 @@
+---
+title: Staged Analysis
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [before-after, stage-column, intervention]
+---
+
 # Staged Analysis
 
 Staged analysis calculates independent control limits for different time periods, revealing improvements that combined analysis would hide.

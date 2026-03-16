@@ -1,3 +1,11 @@
+---
+title: Performance Mode
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [multi-channel, cpk-comparison, wide-format]
+---
+
 # Performance Mode
 
 Performance Mode enables multi-channel analysis for comparing multiple measurement points simultaneously.

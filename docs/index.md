@@ -115,3 +115,5 @@ This is a private repository. For contribution guidelines, contact the maintaine
 ---
 
 _Documentation built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)_
+
+> **For AI-assisted development**: See the [CLAUDE.md](../CLAUDE.md) task-to-documentation mapping for quick doc routing.

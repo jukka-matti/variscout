@@ -1,3 +1,11 @@
+---
+title: Component Patterns
+audience: [developer]
+category: architecture
+status: stable
+related: [hooks, context-injection, color-scheme]
+---
+
 # Component Patterns
 
 How VariScout's shared hooks work together to enable drill-down, filtering, and analysis.

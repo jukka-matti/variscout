@@ -1,3 +1,11 @@
+---
+title: Probability Plot
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [normal-distribution, anderson-darling, qq-plot]
+---
+
 # Probability Plot
 
 The probability plot assesses whether data follows a normal distribution, which underpins capability analysis and control chart assumptions.
