@@ -23,3 +23,11 @@ export {
   type ReportViewBaseProps,
   type ReportViewBaseColorScheme,
 } from './ReportViewBase';
+export {
+  VerificationEvidenceBase,
+  verificationEvidenceDefaultColorScheme,
+  type VerificationEvidenceBaseProps,
+  type VerificationEvidenceColorScheme,
+  type VerificationChartId as VerificationChartIdUI,
+  type VerificationChartOption as VerificationChartOptionUI,
+} from './VerificationEvidenceBase';

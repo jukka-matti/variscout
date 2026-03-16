@@ -259,3 +259,12 @@ export {
   type UseCreateFactorModalOptions,
   type UseCreateFactorModalReturn,
 } from './useCreateFactorModal';
+
+// Verification Charts (Report Step 5 staged evidence)
+export {
+  useVerificationCharts,
+  type VerificationChartId,
+  type VerificationChartOption,
+  type UseVerificationChartsOptions,
+  type UseVerificationChartsReturn,
+} from './useVerificationCharts';

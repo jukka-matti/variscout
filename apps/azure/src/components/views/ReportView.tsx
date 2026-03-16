@@ -10,17 +10,25 @@ import {
   ReportKPIGrid,
   ReportChartSnapshot,
   ErrorBoundary,
+  StagedComparisonCard,
+  CapabilityHistogram,
+  VerificationEvidenceBase,
 } from '@variscout/ui';
 import {
   useReportSections,
   useScrollSpy,
   useSnapshotData,
   useChartCopy,
+  useVerificationCharts,
+  useBoxplotData,
+  useBoxplotWrapperData,
+  useIChartData,
   copySectionAsHTML,
 } from '@variscout/hooks';
-import type { ReportSectionDescriptor } from '@variscout/hooks';
-import type { Finding } from '@variscout/core';
-import { formatFindingFilters } from '@variscout/core';
+import type { ReportSectionDescriptor, VerificationChartId } from '@variscout/hooks';
+import type { Finding, SpecLimits } from '@variscout/core';
+import { formatFindingFilters, calculateStagedComparison } from '@variscout/core';
+import { IChartBase, BoxplotBase, ParetoChartBase } from '@variscout/charts';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
@@ -32,7 +40,6 @@ interface ReportViewProps {
   // AI enhancement (Phase 5)
   aiEnabled?: boolean;
   narrative?: string | null;
-  stagedComparison?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -43,7 +50,7 @@ const FindingChartSnapshot: React.FC<{
   finding: Finding;
   rawData: import('@variscout/core').DataRow[];
   outcome: string;
-  specs: import('@variscout/core').SpecLimits;
+  specs: SpecLimits;
   columnAliases?: Record<string, string>;
 }> = ({ finding, rawData, outcome, specs, columnAliases }) => {
   const { stats, values } = useSnapshotData({
@@ -69,6 +76,14 @@ const FindingChartSnapshot: React.FC<{
 };
 
 // ---------------------------------------------------------------------------
+// Chart size constants for report snapshots
+// ---------------------------------------------------------------------------
+
+const REPORT_CHART_WIDTH = 720;
+const REPORT_CHART_HEIGHT = 320;
+const REPORT_HISTOGRAM_HEIGHT = 280;
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -78,7 +93,6 @@ const ReportView: React.FC<ReportViewProps> = ({
   canShareViaTeams,
   aiEnabled,
   narrative,
-  stagedComparison,
 }) => {
   const {
     rawData,
@@ -91,16 +105,139 @@ const ReportView: React.FC<ReportViewProps> = ({
     hypotheses: persistedHypotheses,
     columnAliases,
     processContext,
+    stageColumn,
+    stagedStats,
+    cpkTarget,
+    displayOptions,
   } = useData();
 
   const findings = persistedFindings ?? [];
   const hypotheses = persistedHypotheses ?? [];
 
+  // ---------------------------------------------------------------------------
+  // Staged comparison (computed locally, not from DataContext)
+  // ---------------------------------------------------------------------------
+  const stagedComparison = useMemo(
+    () => (stagedStats ? calculateStagedComparison(stagedStats) : null),
+    [stagedStats]
+  );
+
+  const hasStagedComparison = stagedComparison !== null;
+
+  // ---------------------------------------------------------------------------
+  // Staged data preparation for verification charts
+  // ---------------------------------------------------------------------------
+  const firstFactor = factors.length > 0 ? factors[0] : null;
+  const stageOrder = useMemo(() => stagedStats?.stageOrder ?? [], [stagedStats]);
+
+  // I-Chart data for staged view
+  const ichartData = useIChartData(filteredData, outcome, stageColumn, null);
+
+  // Boxplot data for staged view
+  const { data: boxplotData, stageInfo } = useBoxplotData(
+    filteredData,
+    firstFactor ?? '',
+    outcome,
+    false,
+    stageColumn ?? undefined,
+    stageOrder
+  );
+
+  const { fillOverrides, xTickFormat } = useBoxplotWrapperData({
+    data: boxplotData,
+    specs,
+    displayOptions: displayOptions ?? { showSpecs: true },
+    parentWidth: REPORT_CHART_WIDTH,
+    stageInfo,
+  });
+
+  // Histogram data: last stage rows
+  const { histogramValues, histogramMean } = useMemo(() => {
+    if (!stagedStats || !outcome || !stageColumn || stageOrder.length === 0) {
+      return { histogramValues: [], histogramMean: 0 };
+    }
+    const lastStageKey = stageOrder[stageOrder.length - 1];
+    const lastStageRows = filteredData.filter(r => String(r[stageColumn]) === lastStageKey);
+    const values = lastStageRows.map(r => Number(r[outcome])).filter(v => !isNaN(v));
+    const lastStageStats = stagedStats.stages.get(lastStageKey);
+    return {
+      histogramValues: values,
+      histogramMean: lastStageStats?.mean ?? 0,
+    };
+  }, [stagedStats, outcome, stageColumn, stageOrder, filteredData]);
+
+  // Cpk before/after from staged comparison
+  const cpkBefore = stagedComparison?.stages?.[0]?.stats?.cpk;
+  const cpkAfter =
+    stagedComparison && stagedComparison.stages.length > 1
+      ? stagedComparison.stages[stagedComparison.stages.length - 1].stats.cpk
+      : undefined;
+
+  // Pareto comparison data: group before-stage rows by first factor
+  const paretoComparisonData = useMemo<Map<string, number> | null>(() => {
+    if (!firstFactor || !stageColumn || stageOrder.length < 2) return null;
+    const firstStageKey = stageOrder[0];
+    const beforeRows = rawData.filter(r => String(r[stageColumn]) === firstStageKey);
+    if (beforeRows.length === 0) return null;
+    const counts = new Map<string, number>();
+    for (const row of beforeRows) {
+      const cat = String(row[firstFactor]);
+      counts.set(cat, (counts.get(cat) ?? 0) + 1);
+    }
+    return counts;
+  }, [rawData, firstFactor, stageColumn, stageOrder]);
+
+  // Pareto data for after-stage
+  const { paretoData, paretoTotalCount } = useMemo(() => {
+    if (!firstFactor || !stageColumn || stageOrder.length < 2 || !outcome) {
+      return { paretoData: [], paretoTotalCount: 0 };
+    }
+    const lastStageKey = stageOrder[stageOrder.length - 1];
+    const afterRows = filteredData.filter(r => String(r[stageColumn]) === lastStageKey);
+    const counts = new Map<string, number>();
+    for (const row of afterRows) {
+      const cat = String(row[firstFactor]);
+      counts.set(cat, (counts.get(cat) ?? 0) + 1);
+    }
+    // Sort descending by count
+    const sorted = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+    const total = sorted.reduce((sum, [, c]) => sum + c, 0);
+    let cumulative = 0;
+    const data = sorted.map(([key, count]) => {
+      cumulative += count;
+      return {
+        key,
+        value: count,
+        count,
+        cumulative,
+        cumulativePercentage: total > 0 ? (cumulative / total) * 100 : 0,
+      };
+    });
+    return { paretoData: data, paretoTotalCount: total };
+  }, [filteredData, firstFactor, stageColumn, stageOrder, outcome]);
+
+  // ---------------------------------------------------------------------------
+  // Verification chart toggle state
+  // ---------------------------------------------------------------------------
+  const {
+    charts: verificationCharts,
+    activeCharts: activeVerificationCharts,
+    toggleChart: toggleVerificationChart,
+    hasAnyAvailable,
+  } = useVerificationCharts({
+    stagedComparison,
+    stagedStats,
+    factors,
+    specs,
+    stageColumn,
+    comparisonData: paretoComparisonData,
+  });
+
   // Derive report sections from analysis state
   const { reportType, sections } = useReportSections({
     findings,
     hypotheses,
-    stagedComparison: stagedComparison ?? false,
+    stagedComparison: hasStagedComparison,
     aiEnabled: aiEnabled ?? false,
   });
 
@@ -136,9 +273,6 @@ const ReportView: React.FC<ReportViewProps> = ({
     [sectionRefs]
   );
 
-  // First factor for driver charts
-  const firstFactor = factors.length > 0 ? factors[0] : null;
-
   // Process name for the report header
   const processName = processContext?.problemStatement || outcome || 'Analysis';
 
@@ -148,6 +282,104 @@ const ReportView: React.FC<ReportViewProps> = ({
     for (const s of sections) map.set(s.id, s);
     return map;
   }, [sections]);
+
+  // Render a staged verification chart by ID
+  const renderVerificationChart = useCallback(
+    (id: VerificationChartId): React.ReactNode | null => {
+      switch (id) {
+        case 'stats':
+          return stagedComparison ? (
+            <div className="p-4">
+              <StagedComparisonCard comparison={stagedComparison} cpkTarget={cpkTarget} />
+            </div>
+          ) : null;
+
+        case 'ichart':
+          return stagedStats && stats && outcome ? (
+            <div style={{ pointerEvents: 'none' }}>
+              <IChartBase
+                data={ichartData}
+                stats={stats}
+                stagedStats={stagedStats}
+                specs={specs}
+                parentWidth={REPORT_CHART_WIDTH}
+                parentHeight={REPORT_CHART_HEIGHT}
+                showBranding={false}
+              />
+            </div>
+          ) : null;
+
+        case 'boxplot':
+          return boxplotData.length > 0 ? (
+            <div style={{ pointerEvents: 'none' }}>
+              <BoxplotBase
+                data={boxplotData}
+                specs={specs}
+                parentWidth={REPORT_CHART_WIDTH}
+                parentHeight={REPORT_CHART_HEIGHT}
+                showBranding={false}
+                fillOverrides={fillOverrides}
+                groupSize={stageInfo?.groupSize}
+                xTickFormat={xTickFormat}
+              />
+            </div>
+          ) : null;
+
+        case 'histogram':
+          return histogramValues.length > 0 ? (
+            <div style={{ pointerEvents: 'none' }}>
+              <CapabilityHistogram
+                parentWidth={REPORT_CHART_WIDTH}
+                parentHeight={REPORT_HISTOGRAM_HEIGHT}
+                data={histogramValues}
+                specs={specs}
+                mean={histogramMean}
+                cpkBefore={cpkBefore}
+                cpkAfter={cpkAfter}
+              />
+            </div>
+          ) : null;
+
+        case 'pareto':
+          return paretoData.length > 0 ? (
+            <div style={{ pointerEvents: 'none' }}>
+              <ParetoChartBase
+                data={paretoData}
+                totalCount={paretoTotalCount}
+                parentWidth={REPORT_CHART_WIDTH}
+                parentHeight={REPORT_CHART_HEIGHT}
+                showBranding={false}
+                comparisonData={paretoComparisonData ?? undefined}
+                showRankChange
+              />
+            </div>
+          ) : null;
+
+        default:
+          return null;
+      }
+    },
+    [
+      stagedComparison,
+      cpkTarget,
+      stagedStats,
+      stats,
+      outcome,
+      ichartData,
+      specs,
+      boxplotData,
+      fillOverrides,
+      stageInfo,
+      xTickFormat,
+      histogramValues,
+      histogramMean,
+      cpkBefore,
+      cpkAfter,
+      paretoData,
+      paretoTotalCount,
+      paretoComparisonData,
+    ]
+  );
 
   // Render a single section based on its descriptor
   const renderSection = useCallback(
@@ -283,7 +515,8 @@ const ReportView: React.FC<ReportViewProps> = ({
 
           {section.id === 'verification' && (
             <div className="space-y-3">
-              {(extendedSection?.findings ?? []).length > 0 ? (
+              {/* Finding outcomes list (always shown) */}
+              {(extendedSection?.findings ?? []).length > 0 &&
                 (extendedSection?.findings ?? []).map(finding => (
                   <div
                     key={finding.id}
@@ -299,22 +532,23 @@ const ReportView: React.FC<ReportViewProps> = ({
                       </p>
                     )}
                   </div>
-                ))
-              ) : (
+                ))}
+
+              {/* Staged verification evidence (replaces old placeholder callout) */}
+              {hasStagedComparison && hasAnyAvailable && (
+                <VerificationEvidenceBase
+                  charts={verificationCharts}
+                  activeCharts={activeVerificationCharts}
+                  onToggleChart={toggleVerificationChart}
+                  renderChart={renderVerificationChart}
+                />
+              )}
+
+              {/* Empty state when no findings and no staged data */}
+              {(extendedSection?.findings ?? []).length === 0 && !hasStagedComparison && (
                 <p className="text-sm text-slate-500 dark:text-slate-400 italic">
                   Verification data will appear once actions are evaluated.
                 </p>
-              )}
-              {stagedComparison && (
-                <div className="rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Staged Comparison
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Before/after comparison data is available. View the full staged analysis in the
-                    dashboard.
-                  </p>
-                </div>
               )}
             </div>
           )}
@@ -337,7 +571,12 @@ const ReportView: React.FC<ReportViewProps> = ({
       handleCopyChart,
       aiEnabled,
       narrative,
-      stagedComparison,
+      hasStagedComparison,
+      hasAnyAvailable,
+      verificationCharts,
+      activeVerificationCharts,
+      toggleVerificationChart,
+      renderVerificationChart,
     ]
   );
 

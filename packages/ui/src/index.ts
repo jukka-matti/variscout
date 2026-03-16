@@ -314,6 +314,8 @@ export {
   reportKPIGridDefaultColorScheme,
   ReportChartSnapshot,
   reportChartSnapshotDefaultColorScheme,
+  VerificationEvidenceBase,
+  verificationEvidenceDefaultColorScheme,
   type ReportViewBaseProps,
   type ReportViewBaseColorScheme,
   type ReportSectionProps,
@@ -323,6 +325,8 @@ export {
   type ReportKPIGridColorScheme,
   type ReportChartSnapshotProps,
   type ReportChartSnapshotColorScheme,
+  type VerificationEvidenceBaseProps,
+  type VerificationEvidenceColorScheme,
 } from './components/ReportView';
 
 // Services

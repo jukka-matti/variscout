@@ -365,14 +365,7 @@ const Dashboard = ({
   if (!outcome) return null;
 
   if (isReportOpen && onCloseReport) {
-    return (
-      <ReportView
-        onClose={onCloseReport}
-        aiEnabled={aiEnabled}
-        narrative={narrative}
-        stagedComparison={Boolean(stagedStats)}
-      />
-    );
+    return <ReportView onClose={onCloseReport} aiEnabled={aiEnabled} narrative={narrative} />;
   }
 
   if (isPresentationMode && onExitPresentation) {
