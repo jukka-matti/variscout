@@ -1,3 +1,11 @@
+---
+title: Investigation to Action Workflow
+audience: [analyst, engineer]
+category: workflow
+status: stable
+related: [findings, what-if, hypothesis, improvement-actions]
+---
+
 # Investigation to Action Workflow
 
 From variation discovery to projected improvement — the analyst workflow.

@@ -1,3 +1,11 @@
+---
+title: Filter Chips Navigation
+audience: [analyst, engineer]
+category: navigation
+status: stable
+related: [filter-chips, breadcrumbs, variation-contribution]
+---
+
 # Filter Chips Navigation
 
 Filter chips provide an intuitive way to see and manage active filters with their contribution to total variation.

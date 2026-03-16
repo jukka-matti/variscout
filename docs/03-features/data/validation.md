@@ -1,3 +1,11 @@
+---
+title: Data Validation
+audience: [analyst, engineer]
+category: data
+status: stable
+related: [parser, quality-checks, data-input]
+---
+
 # Data Validation
 
 Quality checks applied to uploaded data.

@@ -1,3 +1,11 @@
+---
+title: Four Lenses Analysis Workflow
+audience: [analyst]
+category: workflow
+status: stable
+related: [four-lenses, change, failure, flow, value]
+---
+
 # Four Lenses Analysis Workflow
 
 The core VariScout methodology: **CHANGE → FLOW → FAILURE → VALUE**

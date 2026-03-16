@@ -1,6 +1,6 @@
-# Statistics & Mindmap Technical Reference
+# Statistics & Investigation Technical Reference
 
-Exact formulas, algorithm choices, and implementation notes for the VariScout statistical engine and the Investigation Mindmap.
+Exact formulas, algorithm choices, and implementation notes for the VariScout statistical engine and the Investigation & Findings system.
 
 ---
 
@@ -536,7 +536,7 @@ The codebase uses two different metrics for variation attribution:
 | Metric              | Formula                        | Where used                                                        |
 | ------------------- | ------------------------------ | ----------------------------------------------------------------- |
 | Category Total SS % | `SS_category / SS_total × 100` | Drill scope tracking, breadcrumbs, progress bar, category popover |
-| η² (eta-squared)    | `SS_between / SS_total`        | Mindmap node sizing, node percentage label                        |
+| η² (eta-squared)    | `SS_between / SS_total`        | Hypothesis auto-validation, investigation factor ranking          |
 
 Total SS partitioning captures within-group spread. Eta-squared captures only between-group mean differences. The distinction is intentional: scope tracking uses Total SS (comprehensive), while node visual prominence uses η² (highlighting factors where category means differ most).
 
@@ -634,133 +634,110 @@ The `simulateFromModel()` function and `getFactorBaselines()` exist in the codeb
 
 ---
 
-## Part 14 — Investigation Mindmap
+## Part 14 — Investigation & Findings System
 
-> Sources: `packages/charts/src/mindmap/`, `packages/hooks/src/useMindmapState.ts`
-> User docs: [Investigation to Action](../03-features/workflows/investigation-to-action.md)
+> Sources: `packages/hooks/src/useFindings.ts`, `packages/hooks/src/useHypotheses.ts`, `packages/ui/src/components/FindingsWindow/`, `packages/ui/src/components/FindingsLog/`
+> User docs: [Investigation to Action](../03-features/workflows/investigation-to-action.md), [Hypothesis Investigation](../03-features/workflows/hypothesis-investigation.md)
 
 ### Architecture
 
-The Investigation Mindmap is a Visx SVG radial chart with two modes:
+The Investigation & Findings system replaced the earlier Mindmap visualization (Feb 2026). It provides a structured workflow for tracking observations, hypotheses, and improvement actions.
 
-| Mode          | Layout                 | Purpose                        |
-| ------------- | ---------------------- | ------------------------------ |
-| `'drilldown'` | Radial (hub and spoke) | Interactive factor exploration |
-| `'narrative'` | Horizontal timeline    | Story of investigation steps   |
+| Component              | Purpose                                                   |
+| ---------------------- | --------------------------------------------------------- |
+| `FindingsWindow`       | Popout window for findings (board view, hypothesis tree)  |
+| `FindingsLog`          | Inline findings list with cards and status management     |
+| `FindingCard`          | Individual finding with status badge, comments, actions   |
+| `FindingBoardView`     | Horizontal drag-and-drop board (5 status columns)         |
+| `HypothesisTreeView`   | Collapsible tree with validation status and η² thresholds |
+| `InvestigationSidebar` | Phase tracking, uncovered factors, suggested questions    |
 
-### Node Data Model
+### Finding Data Model
 
 ```typescript
-interface MindmapNode {
-  factor: string;
-  displayName?: string;
-  etaSquared: number; // 0–1; 0 for drilled nodes
-  state: 'active' | 'available' | 'exhausted';
-  filteredValue?: string; // displayed below label when active
-  isSuggested: boolean; // green pulse animation
-  categoryData?: CategoryData[];
+interface Finding {
+  id: string;
+  title: string;
+  description: string;
+  status: FindingStatus; // 'observed' | 'investigating' | 'analyzed' | 'improving' | 'resolved'
+  tags: FindingTag[]; // 'key-driver' | 'low-impact'
+  source?: FindingSource; // chart type, category, anchor position
+  hypothesisId?: string;
+  validationStatus?: 'supported' | 'refuted' | 'inconclusive';
+  projection?: ProjectionResult;
+  actions?: ActionItem[];
+  outcome?: FindingOutcome;
+  createdAt: string;
+  updatedAt: string;
 }
 ```
 
-**State transitions**:
+**Status transitions** (PWA supports first 3 only):
 
-- `'available'` → `'active'`: user drills into the factor (selects a category)
-- `'available'` → `'exhausted'`: insufficient data (< 3 rows in filtered scope) or η² < 0.01
-- `'active'` → stays active (drilled factors persist)
+- `'observed'` → `'investigating'`: analyst begins root cause analysis
+- `'investigating'` → `'analyzed'`: hypothesis validated or refuted
+- `'analyzed'` → `'improving'`: improvement action defined
+- `'improving'` → `'resolved'`: action completed with measured outcome
 
-**Suggestion logic** (in `useMindmapState`): the non-drilled factor with the highest η² above 0.05 is marked as `isSuggested`. Only one factor is suggested at a time.
+### Hypothesis Tree
 
-### Node Sizing — Area-Proportional Encoding
+> Source: `packages/hooks/src/useHypotheses.ts`
 
-> Source: `packages/charts/src/mindmap/helpers.ts` — `getNodeRadius()`
+Hypotheses are organized as a tree structure for structured root cause investigation:
 
-Node **area** (not radius) scales linearly with η². This follows Stevens' Power Law for perceptually accurate magnitude encoding:
+- **CRUD operations**: create, update, delete hypotheses at any tree level
+- **Auto-validation**: η² thresholds determine whether a hypothesis is supported by the data
+- **Ideas**: each hypothesis can have child ideas (`addIdea`, `updateIdea`, `removeIdea`, `setIdeaProjection`, `selectIdea`)
+- **Investigation phases**: initial → diverging → validating → converging → acting (IDEOI pattern)
 
-```
-clamped = clamp(etaSquared, 0, 1)
-minArea = π × 20²                              // MIN_NODE_RADIUS = 20px
-maxArea = π × 40²                              // MAX_NODE_RADIUS = 40px
-area = minArea + clamped × (maxArea - minArea)
-radius = √(area / π)
-```
+### η² Suggestion Logic
 
-### Visual Encoding
+The system uses η² (eta-squared) from ANOVA to suggest which factors to investigate:
 
-| Property  | Active (drilled)             | Available        | Exhausted   | Suggested        |
-| --------- | ---------------------------- | ---------------- | ----------- | ---------------- |
-| Fill      | Blue (#3b82f6)               | Slate            | Dim slate   | —                |
-| Stroke    | Blue                         | Slate            | Slate       | Green (#22c55e)  |
-| Animation | —                            | —                | —           | Green pulse      |
-| Label     | Factor name + filtered value | Factor name + η% | Factor name | Factor name + η% |
+- Factors with η² ≥ 0.14 (large effect) are highlighted as key drivers
+- The `InvestigationSidebar` shows uncovered factors ranked by η², with suggested questions
+- Auto-validation thresholds: η² ≥ 0.14 → supported, η² < 0.01 → refuted, otherwise inconclusive
 
-Colors adapt to light/dark theme via `getNodeFill(state, isDark)` and `getNodeStroke(node, isDark)`.
+### Board View
 
-### Radial Layout (Drilldown Mode)
+> Source: `packages/ui/src/components/FindingsLog/FindingBoardColumns.tsx`
 
-> Source: `packages/charts/src/mindmap/layout.ts` — `computeLayout()`
+5-column horizontal board with native HTML5 drag-and-drop (no external library):
 
-Center hub ("Start") at the origin. Factor nodes arranged in concentric rings:
+| Column        | Status          | Color  |
+| ------------- | --------------- | ------ |
+| Observed      | `observed`      | Amber  |
+| Investigating | `investigating` | Blue   |
+| Analyzed      | `analyzed`      | Purple |
+| Improving     | `improving`     | Indigo |
+| Resolved      | `resolved`      | Green  |
 
-| Node count | Rings       | Radius                                             |
-| ---------- | ----------- | -------------------------------------------------- |
-| ≤ 7        | Single ring | 65% of available radius                            |
-| 8+         | Two rings   | Outer: 70% (first 6 nodes), Inner: 38% (remaining) |
+### Chart Integration
 
-Angle formula: `angle = -π/2 + (2π × i) / count` — starting at 12 o'clock, evenly spaced.
+Findings connect to charts via `FindingSource` metadata:
 
-### Timeline Layout (Narrative Mode)
+| Chart   | Anchor Type       | Finding carries                          |
+| ------- | ----------------- | ---------------------------------------- |
+| Boxplot | Category-based    | `source.chartType`, `source.category`    |
+| Pareto  | Category-based    | `source.chartType`, `source.category`    |
+| I-Chart | Free-floating (%) | `source.anchorX`, `source.anchorY` (0–1) |
 
-> Source: `packages/charts/src/mindmap/layout.ts` — `computeTimelineLayout()`
+`ChartAnnotationLayer` renders findings as positioned text boxes with status dots (amber/blue/purple matching investigation phase).
 
-Horizontal left-to-right arrangement:
+### State Hooks
 
-- Single step: centered at t = 0.5
-- Multiple steps: `t = i / (count - 1)`, linearly interpolated
-- Padding: `min(60, usableWidth / (count + 2))`
+**`useFindings`** — CRUD for findings plus:
 
-### Drill Trail
+- `linkHypothesis`, `unlinkHypothesis` — connect findings to hypothesis tree
+- `setProjection` — attach What-If projection result
+- `addAction`, `updateAction`, `completeAction`, `deleteAction` — improvement actions
+- `setOutcome` — record measured result
 
-Blue line segments connecting center → drilled nodes in the order they were drilled. Rendered from the `drillTrail` array (ordered factor names from drill path).
+**`useHypotheses`** — tree management plus:
 
-### Category Popover
-
-> Source: `packages/charts/src/mindmap/CategoryPopover.tsx`
-
-Click on an available node → popover showing categories sorted by Total SS contribution %. Full keyboard navigation (ArrowDown/Up, Enter to select, Escape to close). Accessible with `role="listbox"` and `aria-selected`.
-
-Positioning: prefers right side of node, flips left if insufficient space. Prefers top-aligned, flips upward near bottom edge.
-
-### Progress Bar
-
-> Source: `packages/charts/src/mindmap/ProgressFooter.tsx`
-
-Horizontal bar at the bottom of the SVG showing cumulative variation scope:
-
-```
-fill width = (cumulativeVariationPct / 100) × barWidth
-color = green (#22c55e) if pct ≥ targetPct, else blue (#3b82f6)
-```
-
-Default target: 70%. Dashed vertical marker at the target position.
-
-### Conclusion Panel
-
-> Source: `packages/charts/src/mindmap/ConclusionPanel.tsx`
-
-Rendered at the end of the narrative timeline. Shows whether the investigation target was reached. If `onNavigateToWhatIf` is provided, renders a "Model improvements →" button — the bridge from Investigation Phase to What-If Phase (the 2-phase workflow described in ADR-014).
-
-### State Hook (useMindmapState)
-
-> Source: `packages/hooks/src/useMindmapState.ts`
-
-Responsibilities:
-
-1. Calls `useDrillPath()` for drill statistics
-2. Converts filterStack to flat filters, computes filtered data
-3. Computes `MindmapNode[]` from factors: η² per factor, state classification, suggestion
-4. Manages mode state (`'drilldown'` | `'narrative'`)
-5. Manages annotations (step index → text, session-only)
-6. Maps DrillSteps to NarrativeSteps with merged annotations
+- Auto-validation against η² thresholds
+- Idea management (`addIdea`, `updateIdea`, `removeIdea`)
+- `setIdeaProjection`, `selectIdea` for What-If integration
 
 ---
 
@@ -794,6 +771,5 @@ These will enable model-driven simulation in a future release: regression coeffi
 | Normal quantile                      | Acklam's rational approximation (~1e-9 accuracy)                            |
 | Error function                       | Abramowitz & Stegun, _Handbook of Mathematical Functions_, formula 7.1.26   |
 | Incomplete beta / continued fraction | Lentz's algorithm (max 200 iterations, ε = 1e-10)                           |
-| Node area encoding                   | Stevens' Power Law — area ∝ magnitude for perceptual accuracy               |
 | Nelson Rule 2                        | Nelson, _Journal of Quality Technology_ (1984) — 9-point runs               |
 | Nelson Rule 3                        | Nelson, _Journal of Quality Technology_ (1984) — 6-point trends             |

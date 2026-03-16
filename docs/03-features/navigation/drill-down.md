@@ -1,3 +1,11 @@
+---
+title: Drill-Down Navigation
+audience: [analyst, engineer]
+category: navigation
+status: stable
+related: [filter-chips, progressive-stratification, variation-tracking]
+---
+
 # Drill-Down Navigation
 
 Drill-down is VariScout's core methodology for isolating variation sources through progressive stratification.

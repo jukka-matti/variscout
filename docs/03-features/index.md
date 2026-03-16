@@ -1,3 +1,11 @@
+---
+title: Features
+audience: [analyst, engineer]
+category: reference
+status: stable
+related: [analysis, workflows, data, navigation, learning]
+---
+
 # Features
 
 Centralized feature specifications for VariScout.

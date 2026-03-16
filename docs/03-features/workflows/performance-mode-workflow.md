@@ -1,3 +1,11 @@
+---
+title: Performance Mode Workflow
+audience: [analyst]
+category: workflow
+status: stable
+related: [performance-mode, multi-channel, cpk]
+---
+
 # Performance Mode Workflow
 
 Multi-channel analysis for production equipment with multiple measurement points.

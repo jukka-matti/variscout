@@ -1,3 +1,11 @@
+---
+title: Drill-Down Analysis Workflow
+audience: [analyst]
+category: workflow
+status: stable
+related: [drill-down, filter-chips, variation-tracking, eta-squared]
+---
+
 # Drill-Down Analysis Workflow
 
 VariScout's signature interaction pattern—progressive stratification using filter chips to isolate variation sources.

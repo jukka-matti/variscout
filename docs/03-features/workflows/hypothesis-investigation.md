@@ -1,3 +1,11 @@
+---
+title: Hypothesis Investigation Flow
+audience: [analyst, engineer]
+category: workflow
+status: stable
+related: [hypothesis, root-cause, investigation-phases, IDEOI]
+---
+
 # Hypothesis Investigation Flow
 
 Structured root cause investigation using the diamond pattern — diverge, validate, converge.

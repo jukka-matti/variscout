@@ -88,16 +88,16 @@ pnpm --filter @variscout/azure-app test:e2e
 
 ## Test Ownership by Package
 
-| Package                | Test Type          | What to Test                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| :--------------------- | :----------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@variscout/core`      | **Unit**           | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities                                                                                                                                                                                                                                                                                                                                                          |
-| `@variscout/charts`    | **Unit**           | Color constants, accessibility utilities, multi-selection hook                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `@variscout/hooks`     | **Unit**           | Hooks (useTier, useChartScale, useColumnClassification, useDrillPath, useMindmapState, useVariationTracking, useDataTablePagination, useHighlightFade, useResizablePanel, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState), pipeline integration, filter state transitions, stress tests |
-| `@variscout/ui`        | **Unit**           | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase                                                                                                                                                                                                                                                                                                                                                                       |
-| `@variscout/pwa`       | **Component**      | UI components (StatsPanel, Dashboard, DataTableModal, AnovaResults, MindmapPanel, WhatIfPage, WhatIfSimulator), hooks (useFilterNavigation), export utilities                                                                                                                                                                                                                                                                                                           |
-| `@variscout/pwa`       | **Playwright E2E** | Critical workflow, drill-down, samples, analysis views, stats/ANOVA                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `@variscout/azure-app` | **Component**      | UI components (Dashboard, StatsPanel, AnovaResults, MindmapWindow, WhatIfPage, FilterBreadcrumb, Editor, SettingsPanel), auth (easyAuth), storage                                                                                                                                                                                                                                                                                                                       |
-| `@variscout/azure-app` | **Playwright E2E** | Editor workflow, samples, analysis views, stats/ANOVA                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Package                | Test Type          | What to Test                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| :--------------------- | :----------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@variscout/core`      | **Unit**           | Statistics (calculateStats, calculateAnova, calculateRegression), parser, license validation, export utilities                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `@variscout/charts`    | **Unit**           | Color constants, accessibility utilities, multi-selection hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `@variscout/hooks`     | **Unit**           | Hooks (useTier, useChartScale, useColumnClassification, useDrillPath, useFindings, useHypotheses, useVariationTracking, useDataTablePagination, useHighlightFade, useResizablePanel, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState, useNarration, useChartInsights, useAICoScout, useKnowledgeSearch), pipeline integration, filter state transitions, stress tests |
+| `@variscout/ui`        | **Unit**           | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `@variscout/pwa`       | **Component**      | UI components (StatsPanel, Dashboard, DataTableModal, AnovaResults, FindingsPanel, WhatIfPage, WhatIfSimulator), hooks (useFilterNavigation), export utilities                                                                                                                                                                                                                                                                                                                                                                                       |
+| `@variscout/pwa`       | **Playwright E2E** | Critical workflow, drill-down, samples, analysis views, stats/ANOVA                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `@variscout/azure-app` | **Component**      | UI components (Dashboard, StatsPanel, AnovaResults, FindingsWindow, FindingEditor, InvestigationSidebar, WhatIfPage, FilterBreadcrumb, Editor, SettingsPanel), auth (easyAuth), storage                                                                                                                                                                                                                                                                                                                                                              |
+| `@variscout/azure-app` | **Playwright E2E** | Editor workflow, samples, analysis views, stats/ANOVA                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 ---
 
@@ -238,7 +238,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `Dashboard`           | ✅     | View switching, chart rendering, ANOVA integration |
 | `DataTableModal`      | ✅     | Cell editing, row operations, paste handling       |
 | `AnovaResults`        | ✅     | Null state, F-stat display, p-value format         |
-| `MindmapPanel`        | ✅     | Panel open/close, backdrop, slide-in animation     |
+| `FindingsPanel`       | ✅     | Panel open/close, backdrop, slide-in animation     |
 | `WhatIfPage`          | ✅     | Simulator rendering, navigation, spec limits       |
 | `WhatIfSimulator`     | ✅     | Slider interaction, predicted values, reset        |
 | `PasteScreen`         | ✅     | Paste input, parseText integration, column mapping |
@@ -252,7 +252,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `AnovaResults`          | ✅     | Null state, F-stat display, p-value format                                     |
 | `Dashboard`             | ✅     | Tab switching (Analysis/Performance), stats                                    |
 | `StatsPanel`            | ✅     | Conditional display, Cp/Cpk, sigma within                                      |
-| `MindmapWindow`         | ✅     | Window rendering, popout behavior, localStorage sync                           |
+| `FindingsWindow`        | ✅     | Window rendering, popout behavior, localStorage sync                           |
 | `WhatIfPage`            | ✅     | Simulator integration, navigation, predictions                                 |
 | `FilterBreadcrumb`      | ✅     | Chip rendering, remove button, contribution %                                  |
 | `Editor`                | ✅     | Empty state, sample loading, navigation                                        |
@@ -281,7 +281,7 @@ CSV reference data files are available in `packages/core/reference-data/` for in
 | `edge-cases.spec.ts`                  | Boundary conditions, empty states, error handling, edge scenarios |
 | `bottleneck-investigation.spec.ts`    | Bottleneck case study drill-down investigation                    |
 | `hospital-ward-investigation.spec.ts` | Hospital ward case study investigation                            |
-| `mindmap-evaluation.spec.ts`          | Mindmap panel rendering and interaction                           |
+| `findings-evaluation.spec.ts`         | Findings panel rendering and interaction                          |
 
 ```bash
 # Run PWA E2E tests
@@ -543,7 +543,7 @@ apps/pwa/
 │   │   ├── StatsPanel.test.tsx
 │   │   ├── Dashboard.test.tsx
 │   │   ├── AnovaResults.test.tsx
-│   │   ├── MindmapPanel.test.tsx
+│   │   ├── FindingsPanel.test.tsx
 │   │   ├── WhatIfPage.test.tsx
 │   │   ├── WhatIfSimulator.test.tsx
 │   │   ├── DataTableModal.test.tsx
@@ -572,7 +572,7 @@ apps/azure/
 │   │   ├── AnovaResults.test.tsx
 │   │   ├── Dashboard.test.tsx
 │   │   ├── StatsPanel.test.tsx
-│   │   ├── MindmapWindow.test.tsx
+│   │   ├── FindingsWindow.test.tsx
 │   │   ├── WhatIfPage.test.tsx
 │   │   ├── FilterBreadcrumb.test.tsx
 │   │   ├── (removed: FactorManagerPopover — replaced by ColumnMapping re-edit)

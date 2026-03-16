@@ -1,7 +1,15 @@
+---
+title: VariScout Product Spec
+audience: [analyst, engineer]
+category: reference
+status: stable
+related: [product-overview, features, pricing]
+---
+
 # VariScout — Product Spec
 
-**Version:** 1.0  
-**Date:** December 2024  
+**Version:** 1.0
+**Date:** December 2024
 **Status:** Draft
 
 ---

@@ -1,3 +1,11 @@
+---
+title: Data Input
+audience: [analyst, engineer]
+category: data
+status: stable
+related: [parser, csv, excel, paste, file-upload]
+---
+
 # Data Input
 
 How VariScout handles data input — paste (PWA and Azure App) and file upload (Azure App).

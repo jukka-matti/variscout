@@ -1,3 +1,11 @@
+---
+title: Quick Check Workflow
+audience: [analyst]
+category: workflow
+status: stable
+related: [monitoring, shift-check, i-chart]
+---
+
 # Quick Check Workflow
 
 A 5-minute analysis pattern for daily/shift-level monitoring.

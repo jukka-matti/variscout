@@ -1,3 +1,11 @@
+---
+title: Help Tooltips
+audience: [analyst, engineer]
+category: learning
+status: stable
+related: [glossary, contextual-help, onboarding]
+---
+
 # Help Tooltips
 
 Contextual help throughout the VariScout interface.

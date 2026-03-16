@@ -1,3 +1,11 @@
+---
+title: Deep Dive Workflow
+audience: [analyst]
+category: workflow
+status: stable
+related: [investigation, drill-down, variation-decomposition]
+---
+
 # Deep Dive Workflow
 
 A 30-minute systematic investigation pattern for problem-solving.

@@ -1,3 +1,11 @@
+---
+title: 'VariScout Lite: User Guide'
+audience: [analyst]
+category: reference
+status: stable
+related: [chart-customization, specifications, axis-editing]
+---
+
 # VariScout Lite: User Guide
 
 This guide covers advanced features and workflows in VariScout Lite, focusing on interactive customization and specification management.

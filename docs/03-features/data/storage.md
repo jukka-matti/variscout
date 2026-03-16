@@ -1,3 +1,11 @@
+---
+title: Project Persistence
+audience: [analyst, engineer]
+category: data
+status: stable
+related: [indexeddb, onedrive, offline-first, analysis-state]
+---
+
 # Project Persistence
 
 How VariScout saves and restores analyst workflow state.

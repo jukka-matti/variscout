@@ -1,3 +1,11 @@
+---
+title: Analyst Workflows
+audience: [analyst]
+category: workflow
+status: stable
+related: [four-lenses, drill-down, investigation]
+---
+
 # Analyst Workflows
 
 How analysts use VariScout to solve real problems.

@@ -1,3 +1,11 @@
+---
+title: Glossary & Knowledge Model
+audience: [analyst, engineer]
+category: learning
+status: stable
+related: [glossary, terminology, help-tooltips, knowledge-model]
+---
+
 # Glossary & Knowledge Model
 
 Contextual term definitions and methodology concepts throughout the application.

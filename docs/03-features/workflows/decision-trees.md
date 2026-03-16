@@ -1,3 +1,11 @@
+---
+title: Decision Trees
+audience: [analyst]
+category: workflow
+status: stable
+related: [chart-selection, workflow-guidance]
+---
+
 # Decision Trees
 
 Flowcharts to answer common analyst questions: "Which chart should I use?" and "What do I do next?"

@@ -1,3 +1,11 @@
+---
+title: Linked Filtering
+audience: [analyst, engineer]
+category: navigation
+status: stable
+related: [filter-chips, drill-down, chart-interaction]
+---
+
 # Linked Filtering
 
 Linked filtering connects all charts so clicking one filters all others.
