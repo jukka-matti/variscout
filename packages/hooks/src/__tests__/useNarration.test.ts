@@ -115,6 +115,47 @@ describe('useNarration', () => {
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
+  it('treats staged comparison change as new context (different cache key)', async () => {
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce('Without staging')
+      .mockResolvedValueOnce('With staging');
+
+    const ctxNoStage = makeContext(10);
+    const ctxWithStage: AIContext = {
+      ...makeContext(10),
+      stagedComparison: {
+        stageNames: ['Before', 'After'],
+        deltas: {
+          meanShift: 0.2,
+          variationRatio: 0.8,
+          cpkDelta: 0.3,
+          passRateDelta: null,
+          outOfSpecReduction: 0,
+        },
+        colorCoding: {},
+      },
+    };
+
+    const { result, rerender } = renderHook(
+      ({ ctx }) =>
+        useNarration({
+          context: ctx,
+          fetchNarration: mockFetch,
+          debounceMs: 50,
+          minIntervalMs: 0,
+        }),
+      { initialProps: { ctx: ctxNoStage } }
+    );
+
+    await waitFor(() => expect(result.current.narrative).toBe('Without staging'));
+
+    rerender({ ctx: ctxWithStage });
+
+    await waitFor(() => expect(result.current.narrative).toBe('With staging'));
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
   it('fetches new narration when context changes', async () => {
     const mockFetch = vi.fn().mockResolvedValueOnce('First').mockResolvedValueOnce('Different');
 

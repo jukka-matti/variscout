@@ -192,6 +192,15 @@ Five investigation phases with distinct AI behavior:
 
 Phase detection is deterministic (`detectInvestigationPhase()` in `buildAIContext.ts`). AI coaching instructions are injected per phase in `buildCoScoutSystemPrompt()`.
 
+#### Verification Sub-pattern (Acting Phase with Staged Data)
+
+When the analyst is in the Acting phase **and** staged comparison data is present (`stagedComparison` in `AIContext`), AI components switch to verification-specific behavior:
+
+- **NarrativeBar** summarizes improvement quantitatively: mean shift, Cpk delta, variation change, violation count reduction
+- **CoScout** system prompt includes staged comparison metrics (per-stage stats, deltas, trend indicators) and instructs the model to ground answers in before/after evidence
+- **Suggested questions** shift from generic acting-phase prompts to verification-specific: "Did the targeted factor improve?", "Are there new violations in the After stage?", "Is the Cpk improvement sufficient?"
+- All responses are grounded in computed `StagedComparisonResult` data — AI interprets, never invents numbers (Principle 1)
+
 Improvement ideas injected during converging phase when supported hypotheses exist. See `promptTemplates.ts` for implementation.
 
 ---
@@ -202,6 +211,7 @@ Improvement ideas injected during converging phase when supported hypotheses exi
 
 - **Patterns:** Confidence Communication (§2.1), Error & Degradation (§2.4), Passive Engagement (§2.5)
 - **Prompt:** Fast tier, 200 tokens, temp 0.3. "1-2 sentences for quality professionals."
+- **Stage-aware:** When `stagedComparison` is present in AIContext, the narration prompt instructs the model to summarize verification results quantitatively (mean shift, Cpk delta, variation change) rather than describing the current state generically. See Verification Sub-pattern (§2.7).
 - **Accessibility:** `aria-live="polite"` on container. Mobile: tap-to-expand with `aria-expanded`.
 - **Mobile:** 1 line → 3 lines on tap, animated transition.
 - **Visual:** Amber dot when `dataQualityHint` indicates limited data (n < 30).
@@ -272,20 +282,21 @@ Improvement ideas injected during converging phase when supported hypotheses exi
 
 Known gaps from the March 2026 evaluation:
 
-| ID  | Gap                              | Priority | Status                       |
-| --- | -------------------------------- | -------- | ---------------------------- |
-| T1  | Context disclosure card          | P1       | **Implemented** (Mar 2026)   |
-| T2  | Source attribution in CoScout UI | P1       | **Implemented** (Mar 2026)   |
-| T3  | Provider label in CoScout        | P2       | **Implemented** (Mar 2026)   |
-| T7  | Per-component AI toggles         | P2       | **Implemented** (Mar 2026)   |
-| T9  | Conversation export              | P2       | **Implemented** (Mar 2026)   |
-| T12 | CoScout empty state              | P2       | **Implemented** (Mar 2026)   |
-| T18 | Quiet mode                       | P2       | Subsumed by T7               |
-| T19 | Low-priority AI skip             | P2       | **Implemented** (Mar 2026)   |
-| T22 | Terminology enforcement          | P1       | **Implemented** (Mar 2026)   |
-|     | Feedback mechanism               | P2       | Deferred (awaiting use case) |
-|     | Conversation persistence         | P2       | Deferred (tied to feedback)  |
-|     | Adaptive learning                | P3       | Deferred (Phase 5+)          |
+| ID  | Gap                                | Priority | Status                       |
+| --- | ---------------------------------- | -------- | ---------------------------- |
+| T1  | Context disclosure card            | P1       | **Implemented** (Mar 2026)   |
+| T2  | Source attribution in CoScout UI   | P1       | **Implemented** (Mar 2026)   |
+| T3  | Provider label in CoScout          | P2       | **Implemented** (Mar 2026)   |
+| T7  | Per-component AI toggles           | P2       | **Implemented** (Mar 2026)   |
+| T9  | Conversation export                | P2       | **Implemented** (Mar 2026)   |
+| T12 | CoScout empty state                | P2       | **Implemented** (Mar 2026)   |
+| T18 | Quiet mode                         | P2       | Subsumed by T7               |
+| T19 | Low-priority AI skip               | P2       | **Implemented** (Mar 2026)   |
+| T22 | Terminology enforcement            | P1       | **Implemented** (Mar 2026)   |
+| T23 | Stage-aware verification narrative | P1       | **Implemented** (Mar 2026)   |
+|     | Feedback mechanism                 | P2       | Deferred (awaiting use case) |
+|     | Conversation persistence           | P2       | Deferred (tied to feedback)  |
+|     | Adaptive learning                  | P3       | Deferred (Phase 5+)          |
 
 ### 4.4 Competitive Watch
 

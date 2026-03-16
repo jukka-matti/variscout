@@ -17,6 +17,19 @@ const INVESTIGATION_FALLBACK_QUESTIONS = [
   'Are any hypotheses contradicted by the data?',
 ];
 
+/** Verification-grounded question templates (metric-aware) */
+const VERIFICATION_QUESTIONS = {
+  cpkImproved: (before: number, after: number) =>
+    `Cpk improved from ${before.toFixed(2)} to ${after.toFixed(2)} — is this improvement sustained across categories?`,
+  variationReduced: (ratio: number) =>
+    `Variation reduced ${((1 - ratio) * 100).toFixed(0)}% — what sustaining controls are needed?`,
+  newPatterns: 'Are there any new patterns or risks in the After stage?',
+  cpkRegressed: (before: number, after: number) =>
+    `Cpk dropped from ${before.toFixed(2)} to ${after.toFixed(2)} — what went wrong?`,
+  outOfSpecReduced: (reduction: number) =>
+    `${reduction.toFixed(0)}% fewer out-of-spec — is this enough to meet requirements?`,
+};
+
 /** Phase-specific questions for hypothesis investigation */
 const PHASE_QUESTIONS: Record<string, string[]> = {
   initial: [
@@ -98,6 +111,40 @@ export function buildSuggestedQuestions(context: AIContext): string[] {
 function buildInvestigationQuestions(context: AIContext): string[] {
   const inv = context.investigation!;
   const questions: string[] = [];
+
+  // Verification-grounded questions (highest priority when acting + staged data)
+  if (inv.phase === 'acting' && context.stagedComparison) {
+    const sc = context.stagedComparison;
+    const d = sc.deltas;
+
+    if (sc.cpkBefore !== undefined && sc.cpkAfter !== undefined) {
+      if (d.cpkDelta !== null && d.cpkDelta > 0) {
+        questions.push(VERIFICATION_QUESTIONS.cpkImproved(sc.cpkBefore, sc.cpkAfter));
+      } else if (d.cpkDelta !== null && d.cpkDelta < 0) {
+        questions.push(VERIFICATION_QUESTIONS.cpkRegressed(sc.cpkBefore, sc.cpkAfter));
+      }
+    }
+
+    if (d.variationRatio < 0.95) {
+      questions.push(VERIFICATION_QUESTIONS.variationReduced(d.variationRatio));
+    }
+
+    if (d.outOfSpecReduction > 1) {
+      questions.push(VERIFICATION_QUESTIONS.outOfSpecReduced(d.outOfSpecReduction));
+    }
+
+    questions.push(VERIFICATION_QUESTIONS.newPatterns);
+
+    // Cap at 5, pad with investigation fallbacks
+    const capped = questions.slice(0, 5);
+    let idx = 0;
+    while (capped.length < 3 && idx < INVESTIGATION_FALLBACK_QUESTIONS.length) {
+      const fb = INVESTIGATION_FALLBACK_QUESTIONS[idx];
+      if (!capped.includes(fb)) capped.push(fb);
+      idx++;
+    }
+    return capped.slice(0, 5);
+  }
 
   // Phase-aware questions (highest priority)
   if (inv.phase && PHASE_QUESTIONS[inv.phase]) {

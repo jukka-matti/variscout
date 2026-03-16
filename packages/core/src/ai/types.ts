@@ -135,6 +135,20 @@ export interface AIContext {
   };
   /** Glossary terms for grounding */
   glossaryFragment?: string;
+  /** Staged comparison metrics (when staged data detected) */
+  stagedComparison?: {
+    stageNames: string[];
+    deltas: {
+      meanShift: number;
+      variationRatio: number;
+      cpkDelta: number | null;
+      passRateDelta: number | null;
+      outOfSpecReduction: number;
+    };
+    colorCoding: Record<string, 'green' | 'red' | 'amber'>;
+    cpkBefore?: number;
+    cpkAfter?: number;
+  };
   /** Related findings from Knowledge Base (AI Search) */
   knowledgeResults?: Array<{
     projectName: string;

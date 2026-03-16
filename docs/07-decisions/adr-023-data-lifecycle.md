@@ -238,12 +238,14 @@ The architecture already supports N stages — `calculateStatsByStage()` returns
 - `buildStagedComparisonInsight()` for ChartInsightChip — stage-aware deterministic insights
 - Verification checklist in InvestigationSidebar — phase-aware guidance when staged data is present
 
-**Tier 3 — AI-enhanced verification (requires AI context changes):**
+**Tier 3 — AI-enhanced verification (requires AI context changes):** ✅ Implemented (Mar 2026)
 
-- Stage-aware NarrativeBar — detect staged data, summarize improvement quantitatively
-- Staged comparison data in `buildAIContext()` — currently no staged data is included
-- Verification-specific suggested questions in `buildSuggestedQuestions()`
-- CoScout verification prompts grounded in staged comparison metrics
+Delivered:
+
+- Stage-aware NarrativeBar prompt — `buildSummaryPrompt()` detects staged comparison data and instructs the model to summarize improvement quantitatively (mean shift, Cpk delta, variation change)
+- Verification-aware CoScout system prompt — `buildCoScoutSystemPrompt()` injects staged comparison metrics and verification coaching when staged data is present
+- Metric-grounded suggested questions — `buildSuggestedQuestions()` generates verification-specific prompts ("Did the targeted factor improve?", "Are there new violations?", "Is Cpk above target?") when staged comparison data exists
+- `stagedComparison` field in `AIContext` — `buildAIContext()` now includes staged comparison summary (per-stage stats, deltas, trend indicators) so all AI components can reason about verification state
 
 **Tier 4 — Advanced visualization (higher effort):**
 

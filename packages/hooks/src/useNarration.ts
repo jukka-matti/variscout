@@ -41,6 +41,9 @@ function hashContext(ctx: AIContext): string {
     s: ctx.stats ? { m: ctx.stats.mean, sd: ctx.stats.stdDev, n: ctx.stats.samples } : null,
     f: ctx.filters.map(f => `${f.factor}:${f.values.join(',')}`).sort(),
     v: ctx.violations,
+    sc: ctx.stagedComparison
+      ? { d: ctx.stagedComparison.deltas, sn: ctx.stagedComparison.stageNames }
+      : null,
   });
   let hash = 0;
   for (let i = 0; i < key.length; i++) {

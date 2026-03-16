@@ -5,6 +5,7 @@
 import type { AIContext, ProcessContext, TargetMetric, InvestigationPhase } from './types';
 import type { InsightChartType } from './chartInsights';
 import type { Finding, Hypothesis, InvestigationCategory } from '../findings';
+import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
 import type { GlossaryCategory } from '../glossary/types';
@@ -63,6 +64,8 @@ export interface BuildAIContextOptions {
   focusContext?: AIContext['focusContext'];
   /** Team contributor awareness (Teams plan only) */
   teamContributors?: AIContext['teamContributors'];
+  /** Staged comparison result (when Before/After stages detected) */
+  stagedComparison?: StagedComparison | null;
   /** Maximum token budget for glossary (default 40 terms) */
   maxGlossaryTerms?: number;
 }
@@ -87,6 +90,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     selectedFinding,
     focusContext,
     teamContributors,
+    stagedComparison,
     maxGlossaryTerms = 40,
   } = options;
 
@@ -271,6 +275,17 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
       // Detect investigation phase
       context.investigation.phase = detectInvestigationPhase(hypotheses, findings);
     }
+  }
+
+  // Add staged comparison when available
+  if (stagedComparison) {
+    context.stagedComparison = {
+      stageNames: stagedComparison.stages.map(s => s.name),
+      deltas: stagedComparison.deltas,
+      colorCoding: stagedComparison.colorCoding,
+      cpkBefore: stagedComparison.stages[0]?.stats.cpk,
+      cpkAfter: stagedComparison.stages[stagedComparison.stages.length - 1]?.stats.cpk,
+    };
   }
 
   return context;

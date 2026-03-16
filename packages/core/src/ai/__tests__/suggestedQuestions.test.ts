@@ -166,6 +166,87 @@ describe('buildSuggestedQuestions', () => {
       ).toBe(true);
     });
 
+    it('returns verification-grounded questions when acting + staged with Cpk improvement', () => {
+      const context: AIContext = {
+        ...baseContext,
+        investigation: {
+          phase: 'acting',
+          allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+        },
+        stagedComparison: {
+          stageNames: ['Before', 'After'],
+          deltas: {
+            meanShift: 0.1,
+            variationRatio: 0.7,
+            cpkDelta: 0.43,
+            passRateDelta: null,
+            outOfSpecReduction: 5.2,
+          },
+          colorCoding: {},
+          cpkBefore: 0.89,
+          cpkAfter: 1.32,
+        },
+      };
+      const result = buildSuggestedQuestions(context);
+      expect(result.some(q => q.includes('0.89') && q.includes('1.32'))).toBe(true);
+      expect(result.some(q => q.includes('sustaining controls'))).toBe(true);
+      expect(result.some(q => q.includes('new patterns'))).toBe(true);
+    });
+
+    it('returns Cpk regression question when staged shows decline', () => {
+      const context: AIContext = {
+        ...baseContext,
+        investigation: {
+          phase: 'acting',
+          allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+        },
+        stagedComparison: {
+          stageNames: ['Before', 'After'],
+          deltas: {
+            meanShift: 0.5,
+            variationRatio: 1.3,
+            cpkDelta: -0.2,
+            passRateDelta: null,
+            outOfSpecReduction: -1.0,
+          },
+          colorCoding: {},
+          cpkBefore: 1.1,
+          cpkAfter: 0.9,
+        },
+      };
+      const result = buildSuggestedQuestions(context);
+      expect(
+        result.some(q => q.includes('dropped') && q.includes('1.10') && q.includes('0.90'))
+      ).toBe(true);
+    });
+
+    it('returns generic acting questions when staged but not in acting phase', () => {
+      const context: AIContext = {
+        ...baseContext,
+        investigation: {
+          phase: 'converging',
+          allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+        },
+        stagedComparison: {
+          stageNames: ['Before', 'After'],
+          deltas: {
+            meanShift: 0.1,
+            variationRatio: 0.8,
+            cpkDelta: 0.3,
+            passRateDelta: null,
+            outOfSpecReduction: 0,
+          },
+          colorCoding: {},
+          cpkBefore: 1.0,
+          cpkAfter: 1.3,
+        },
+      };
+      const result = buildSuggestedQuestions(context);
+      // Should not contain verification questions (those are only for acting phase)
+      expect(result.some(q => q.includes('sustained across categories'))).toBe(false);
+      expect(result).toContain('Do the supported hypotheses form a coherent story?');
+    });
+
     it('returns idea-aware questions when converging with ideas', () => {
       const context: AIContext = {
         ...baseContext,

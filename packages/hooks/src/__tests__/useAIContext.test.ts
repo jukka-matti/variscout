@@ -148,6 +148,52 @@ describe('useAIContext', () => {
     expect(result.current.context!.teamContributors).toEqual(team);
   });
 
+  it('passes stagedComparison to context', () => {
+    const makeStageStats = (overrides: Record<string, number>) =>
+      ({
+        mean: 0,
+        median: 0,
+        stdDev: 0,
+        sigmaWithin: 0,
+        mrBar: 0,
+        ucl: 0,
+        lcl: 0,
+        outOfSpecPercentage: 0,
+        ...overrides,
+      }) as import('@variscout/core').StatsResult;
+
+    const staged = {
+      stages: [
+        { name: 'Before', stats: makeStageStats({ mean: 10, stdDev: 0.5, cpk: 0.89 }), index: 0 },
+        { name: 'After', stats: makeStageStats({ mean: 10.2, stdDev: 0.3, cpk: 1.32 }), index: 1 },
+      ],
+      deltas: {
+        meanShift: 0.2,
+        variationRatio: 0.6,
+        cpkDelta: 0.43,
+        passRateDelta: 5.0,
+        outOfSpecReduction: 3.2,
+      },
+      colorCoding: {
+        meanShift: 'amber' as const,
+        variationRatio: 'green' as const,
+        cpkDelta: 'green' as const,
+        passRateDelta: 'green' as const,
+        outOfSpecReduction: 'green' as const,
+      },
+    };
+    const { result } = renderHook(() => useAIContext({ enabled: true, stagedComparison: staged }));
+    expect(result.current.context!.stagedComparison).toBeDefined();
+    expect(result.current.context!.stagedComparison!.stageNames).toEqual(['Before', 'After']);
+    expect(result.current.context!.stagedComparison!.cpkBefore).toBe(0.89);
+    expect(result.current.context!.stagedComparison!.cpkAfter).toBe(1.32);
+  });
+
+  it('omits stagedComparison when null', () => {
+    const { result } = renderHook(() => useAIContext({ enabled: true, stagedComparison: null }));
+    expect(result.current.context!.stagedComparison).toBeUndefined();
+  });
+
   it('passes selectedFinding to investigation context', () => {
     const { result } = renderHook(() =>
       useAIContext({

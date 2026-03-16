@@ -24,6 +24,7 @@ import {
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
   calculateFactorVariations,
+  calculateStagedComparison,
   type StatsResult,
   type SpecLimits,
   type DataRow,
@@ -32,6 +33,7 @@ import {
   type AIContext,
   type ProcessContext,
   type InsightChartType,
+  type StagedStatsResult,
 } from '@variscout/core';
 import {
   fetchNarration as fetchNarrationFromAI,
@@ -66,6 +68,7 @@ export interface UseEditorAIOptions {
   viewState?: ViewState | null;
   columnAliases: Record<string, string>;
   categories?: import('@variscout/core').InvestigationCategory[];
+  stagedStats?: StagedStatsResult | null;
   drillPath: DrillStep[];
   persistedHypotheses?: Hypothesis[];
   onOpenCoScout: () => void;
@@ -112,6 +115,7 @@ export function useEditorAI({
   viewState,
   columnAliases,
   categories,
+  stagedStats,
   drillPath,
   persistedHypotheses,
   onOpenCoScout,
@@ -195,6 +199,12 @@ export function useEditorAI({
     return { count: authors.size, hypothesisAreas: Array.from(areas) };
   }, [findings, hypotheses]);
 
+  // Staged comparison for AI verification narrative
+  const stagedComparison = useMemo(
+    () => (stagedStats ? calculateStagedComparison(stagedStats) : null),
+    [stagedStats]
+  );
+
   // Focus context state for "Ask CoScout about this" actions
   const [focusContext, setFocusContext] = useState<AIContext['focusContext']>(undefined);
 
@@ -216,6 +226,7 @@ export function useEditorAI({
     selectedFinding: aiSelectedFinding,
     focusContext,
     teamContributors: aiTeamContributors,
+    stagedComparison,
   });
 
   // AI narration (disabled when per-component toggle is off)

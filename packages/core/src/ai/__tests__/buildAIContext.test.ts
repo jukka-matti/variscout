@@ -312,6 +312,61 @@ describe('buildAIContext', () => {
   });
 });
 
+describe('buildAIContext stagedComparison', () => {
+  const makeStageStats = (overrides: Record<string, number>) =>
+    ({
+      mean: 0,
+      median: 0,
+      stdDev: 0,
+      sigmaWithin: 0,
+      mrBar: 0,
+      ucl: 0,
+      lcl: 0,
+      outOfSpecPercentage: 0,
+      ...overrides,
+    }) as import('../../types').StatsResult;
+
+  const mockStagedComparison = {
+    stages: [
+      { name: 'Before', stats: makeStageStats({ mean: 10, stdDev: 0.5, cpk: 0.89 }), index: 0 },
+      { name: 'After', stats: makeStageStats({ mean: 10.2, stdDev: 0.3, cpk: 1.32 }), index: 1 },
+    ],
+    deltas: {
+      meanShift: 0.2,
+      variationRatio: 0.6,
+      cpkDelta: 0.43,
+      passRateDelta: 5.0,
+      outOfSpecReduction: 3.2,
+    },
+    colorCoding: {
+      meanShift: 'amber' as const,
+      variationRatio: 'green' as const,
+      cpkDelta: 'green' as const,
+      passRateDelta: 'green' as const,
+      outOfSpecReduction: 'green' as const,
+    },
+  };
+
+  it('includes stagedComparison when provided', () => {
+    const ctx = buildAIContext({ stagedComparison: mockStagedComparison });
+    expect(ctx.stagedComparison).toBeDefined();
+    expect(ctx.stagedComparison!.stageNames).toEqual(['Before', 'After']);
+    expect(ctx.stagedComparison!.deltas.cpkDelta).toBe(0.43);
+    expect(ctx.stagedComparison!.cpkBefore).toBe(0.89);
+    expect(ctx.stagedComparison!.cpkAfter).toBe(1.32);
+  });
+
+  it('omits stagedComparison when null', () => {
+    const ctx = buildAIContext({ stagedComparison: null });
+    expect(ctx.stagedComparison).toBeUndefined();
+  });
+
+  it('omits stagedComparison when not provided', () => {
+    const ctx = buildAIContext({});
+    expect(ctx.stagedComparison).toBeUndefined();
+  });
+});
+
 describe('detectInvestigationPhase', () => {
   it('returns initial when no hypotheses', () => {
     expect(detectInvestigationPhase([])).toBe('initial');

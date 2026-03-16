@@ -172,6 +172,42 @@ describe('buildSummaryPrompt', () => {
     expect(prompt).toContain('Summarize');
   });
 
+  it('includes staged comparison section when present', () => {
+    const ctx: AIContext = {
+      process: {},
+      filters: [],
+      stagedComparison: {
+        stageNames: ['Before', 'After'],
+        deltas: {
+          meanShift: 0.2,
+          variationRatio: 0.6,
+          cpkDelta: 0.43,
+          passRateDelta: 5.0,
+          outOfSpecReduction: 3.2,
+        },
+        colorCoding: {},
+        cpkBefore: 0.89,
+        cpkAfter: 1.32,
+      },
+    };
+    const prompt = buildSummaryPrompt(ctx);
+    expect(prompt).toContain('Staged comparison (Before → After)');
+    expect(prompt).toContain('Mean shift +0.20');
+    expect(prompt).toContain('Variation ratio 0.60');
+    expect(prompt).toContain('Cpk delta +0.43');
+    expect(prompt).toContain('(0.89 → 1.32)');
+    expect(prompt).toContain('Out-of-spec reduction +3.2%');
+    expect(prompt).toContain('verification analysis');
+    expect(prompt).not.toContain('Summarize this analysis state');
+  });
+
+  it('uses default instruction when no staged comparison', () => {
+    const ctx: AIContext = { process: {}, filters: [] };
+    const prompt = buildSummaryPrompt(ctx);
+    expect(prompt).toContain('Summarize this analysis state');
+    expect(prompt).not.toContain('verification analysis');
+  });
+
   it('includes problem statement when present', () => {
     const ctx: AIContext = {
       process: { problemStatement: 'Yield dropping in Q1' },
@@ -408,6 +444,32 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).toContain('Team collaboration: 3 investigators');
     expect(prompt).toContain('Areas being investigated: Machine, Shift');
     expect(prompt).toContain('Avoid suggesting investigation steps already covered');
+  });
+
+  it('includes verification instructions when acting + staged data', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, { phase: 'acting' }, undefined, undefined, {
+      stageNames: ['Before', 'After'],
+      deltas: {
+        meanShift: -0.3,
+        variationRatio: 0.7,
+        cpkDelta: 0.5,
+        passRateDelta: null,
+        outOfSpecReduction: 0,
+      },
+      colorCoding: {},
+      cpkBefore: 0.85,
+      cpkAfter: 1.35,
+    });
+    expect(prompt).toContain('Acting Phase with verification data');
+    expect(prompt).toContain('mean shift -0.30');
+    expect(prompt).toContain('Cpk delta +0.50');
+    expect(prompt).toContain('Is the improvement real and sustained');
+  });
+
+  it('uses generic acting instructions when no staged data', () => {
+    const prompt = buildCoScoutSystemPrompt(undefined, { phase: 'acting' });
+    expect(prompt).toContain('Acting Phase');
+    expect(prompt).not.toContain('verification data');
   });
 
   it('does not include team collaboration when count is 1', () => {

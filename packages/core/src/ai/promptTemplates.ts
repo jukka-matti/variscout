@@ -133,6 +133,24 @@ export function buildSummaryPrompt(context: AIContext): string {
     parts.push(`Problem statement: ${context.process.problemStatement}`);
   }
 
+  // Staged comparison (Before/After verification)
+  if (context.stagedComparison) {
+    const sc = context.stagedComparison;
+    const d = sc.deltas;
+    let stageLine = `Staged comparison (${sc.stageNames.join(' → ')}):`;
+    stageLine += ` Mean shift ${d.meanShift > 0 ? '+' : ''}${d.meanShift.toFixed(2)}`;
+    stageLine += `, Variation ratio ${d.variationRatio.toFixed(2)}`;
+    if (d.cpkDelta !== null)
+      stageLine += `, Cpk delta ${d.cpkDelta > 0 ? '+' : ''}${d.cpkDelta.toFixed(2)}`;
+    if (sc.cpkBefore !== undefined && sc.cpkAfter !== undefined) {
+      stageLine += ` (${sc.cpkBefore.toFixed(2)} → ${sc.cpkAfter.toFixed(2)})`;
+    }
+    if (d.outOfSpecReduction !== 0) {
+      stageLine += `, Out-of-spec reduction ${d.outOfSpecReduction > 0 ? '+' : ''}${d.outOfSpecReduction.toFixed(1)}%`;
+    }
+    parts.push(stageLine);
+  }
+
   // Confidence calibration — hedging instructions based on sample size
   if (context.stats) {
     const n = context.stats.samples;
@@ -149,7 +167,13 @@ export function buildSummaryPrompt(context: AIContext): string {
     }
   }
 
-  parts.push('Summarize this analysis state in 1-2 sentences for a quality professional.');
+  if (context.stagedComparison) {
+    parts.push(
+      'This is a verification analysis with Before/After stages. Lead with whether the improvement worked — quantify the change. Then note any remaining concerns.'
+    );
+  } else {
+    parts.push('Summarize this analysis state in 1-2 sentences for a quality professional.');
+  }
 
   return parts.join('\n\n');
 }
@@ -274,7 +298,8 @@ export function buildCoScoutSystemPrompt(
   glossaryFragment?: string,
   investigation?: AIContext['investigation'],
   teamContributors?: AIContext['teamContributors'],
-  sampleCount?: number
+  sampleCount?: number,
+  stagedComparison?: AIContext['stagedComparison']
 ): string {
   const parts = [
     `You are CoScout, the quality engineering assistant for VariScout — an Exploratory Data Analysis tool for process improvement.
@@ -346,6 +371,20 @@ Never invent data or statistics. If the context does not contain enough informat
         acting:
           'The investigation is in the Acting Phase — check the Capability chart. Is Cpk improving? Help monitor effectiveness.',
       };
+
+      // Override acting phase with verification-specific instructions when staged data available
+      if (investigation.phase === 'acting' && stagedComparison) {
+        const sd = stagedComparison.deltas;
+        let verificationContext =
+          'Verification data available — the analyst has collected After data.';
+        verificationContext += ` Staged comparison: mean shift ${sd.meanShift.toFixed(2)}`;
+        verificationContext += `, variation ratio ${sd.variationRatio.toFixed(2)}`;
+        if (sd.cpkDelta !== null)
+          verificationContext += `, Cpk delta ${sd.cpkDelta > 0 ? '+' : ''}${sd.cpkDelta.toFixed(2)}`;
+        verificationContext += '.';
+        phaseInstructions.acting = `The investigation is in the Acting Phase with verification data. ${verificationContext} Help assess: Is the improvement real and sustained? Are there new patterns or risks in the After stage? What sustaining controls are needed?`;
+      }
+
       if (phaseInstructions[investigation.phase]) {
         invParts.push(phaseInstructions[investigation.phase]);
       }
@@ -509,7 +548,8 @@ export function buildCoScoutMessages(
       context.glossaryFragment,
       context.investigation,
       context.teamContributors,
-      context.stats?.samples
+      context.stats?.samples,
+      context.stagedComparison
     ),
   });
 

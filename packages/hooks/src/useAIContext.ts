@@ -11,6 +11,7 @@ import type {
   BuildAIContextOptions,
   InvestigationCategory,
   InsightChartType,
+  StagedComparison,
 } from '@variscout/core';
 import type { StatsResult, SpecLimits, Finding, Hypothesis } from '@variscout/core';
 
@@ -53,6 +54,8 @@ export interface UseAIContextOptions {
   focusContext?: AIContext['focusContext'];
   /** Team contributor awareness (Teams plan only) */
   teamContributors?: AIContext['teamContributors'];
+  /** Staged comparison result (when Before/After stages detected) */
+  stagedComparison?: StagedComparison | null;
 }
 
 export interface UseAIContextReturn {
@@ -81,6 +84,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     selectedFinding,
     focusContext,
     teamContributors,
+    stagedComparison,
   } = options;
 
   const context = useMemo<AIContext | null>(() => {
@@ -99,6 +103,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       selectedFinding,
       focusContext,
       teamContributors,
+      stagedComparison,
     };
 
     // Map StatsResult to AIStatsInput
@@ -130,6 +135,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     selectedFinding,
     focusContext,
     teamContributors,
+    stagedComparison,
   ]);
 
   return { context };
