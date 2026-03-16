@@ -70,7 +70,8 @@ export async function searchRelatedFindings(
   };
 
   if (options?.factor) {
-    body.filter = `factor eq '${options.factor}'`;
+    const escaped = options.factor.replace(/'/g, "''");
+    body.filter = `factor eq '${escaped}'`;
   }
 
   const res = await fetch(`${endpoint}/indexes/${index}/docs/search?api-version=2024-07-01`, {

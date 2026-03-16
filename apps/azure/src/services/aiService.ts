@@ -257,7 +257,12 @@ export async function fetchNarration(context: AIContext): Promise<string> {
         max_tokens: 200,
         temperature: 0.3,
       });
-      const response = await fetch(url, { method: 'POST', headers, body });
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body,
+        signal: AbortSignal.timeout(30_000),
+      });
 
       if (!response.ok) {
         const errorType = classifyError(response.status);
@@ -312,7 +317,12 @@ Be specific and actionable. Never invent data.`;
   ];
 
   const { url, body } = formatRequest(provider, messages, { max_tokens: 80, temperature: 0.2 });
-  const response = await fetch(url, { method: 'POST', headers, body });
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body,
+    signal: AbortSignal.timeout(30_000),
+  });
 
   if (!response.ok) {
     throw new Error(`AI chip request failed: ${response.status}`);
@@ -353,7 +363,12 @@ export async function fetchCoScoutResponse(
         max_tokens: 800,
         temperature: 0.4,
       });
-      const response = await fetch(url, { method: 'POST', headers, body });
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body,
+        signal: AbortSignal.timeout(30_000),
+      });
 
       if (!response.ok) {
         const errorType = classifyError(response.status);
@@ -418,29 +433,33 @@ export async function fetchCoScoutStreamingResponse(
       }
 
       const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
+      try {
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-      while (true) {
-        if (signal.aborted) return;
-        const { done, value } = await reader.read();
-        if (done) break;
+        while (true) {
+          if (signal.aborted) return;
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
 
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed || !trimmed.startsWith('data: ')) continue;
-          const data = trimmed.slice(6);
-          if (data === '[DONE]') return;
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith('data: ')) continue;
+            const data = trimmed.slice(6);
+            if (data === '[DONE]') return;
 
-          const delta = parseStreamDelta(provider, data);
-          if (delta) {
-            onChunk(delta);
+            const delta = parseStreamDelta(provider, data);
+            if (delta) {
+              onChunk(delta);
+            }
           }
         }
+      } finally {
+        reader.releaseLock();
       }
 
       return;
@@ -471,7 +490,12 @@ export async function fetchFindingsReport(
     temperature: 0.3,
   });
 
-  const response = await fetch(url, { method: 'POST', headers, body });
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body,
+    signal: AbortSignal.timeout(30_000),
+  });
 
   if (!response.ok) {
     const errorType = classifyError(response.status);

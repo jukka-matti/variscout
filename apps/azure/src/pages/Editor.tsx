@@ -728,7 +728,7 @@ export const Editor: React.FC<EditorProps> = ({
 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     const name = currentProjectName || 'New Analysis';
     setSaveStatus('saving');
     try {
@@ -739,7 +739,7 @@ export const Editor: React.FC<EditorProps> = ({
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
-  };
+  }, [currentProjectName, saveProject]);
 
   // Register Teams beforeUnload handler for data loss prevention.
   // When the user navigates away from the tab, auto-save if there are unsaved changes.

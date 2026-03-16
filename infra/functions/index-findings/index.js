@@ -16,7 +16,8 @@
  * CORS headers applied to every response.
  */
 function getCorsHeaders() {
-  const origin = process.env.ALLOWED_ORIGIN || '*';
+  const origin = process.env.ALLOWED_ORIGIN;
+  if (!origin) throw new Error('ALLOWED_ORIGIN environment variable is required');
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -177,7 +178,7 @@ module.exports = async function (context, req) {
         'api-key': searchApiKey,
       },
       body: JSON.stringify({
-        filter: `project_id eq '${projectId}' and owner_tenant_id eq '${tenantId}'`,
+        filter: `project_id eq '${projectId.replace(/'/g, "''")}' and owner_tenant_id eq '${tenantId.replace(/'/g, "''")}'`,
         select: 'id',
         top: 1000,
       }),

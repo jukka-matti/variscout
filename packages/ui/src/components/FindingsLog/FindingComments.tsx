@@ -141,7 +141,10 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                             key={photo.id}
                             className="relative w-16 h-16 rounded overflow-hidden bg-surface-tertiary flex-shrink-0"
                           >
-                            {photo.thumbnailDataUrl ? (
+                            {photo.thumbnailDataUrl &&
+                            /^data:image\/(jpeg|png|webp|gif);base64,/.test(
+                              photo.thumbnailDataUrl
+                            ) ? (
                               <img
                                 src={photo.thumbnailDataUrl}
                                 alt={photo.filename}

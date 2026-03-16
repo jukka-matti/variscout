@@ -42,7 +42,12 @@ function escapeCSVValue(value: unknown): string {
     return '';
   }
 
-  const str = String(value);
+  let str = String(value);
+
+  // Neutralize formula injection for spreadsheet applications (strings only, not numbers)
+  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(str)) {
+    str = "'" + str;
+  }
 
   // If contains comma, quote, or newline, wrap in quotes and escape internal quotes
   if (str.includes(',') || str.includes('"') || str.includes('\n')) {

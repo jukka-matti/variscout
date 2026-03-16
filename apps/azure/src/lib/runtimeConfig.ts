@@ -27,8 +27,26 @@ export async function loadRuntimeConfig(): Promise<RuntimeConfig> {
   try {
     const res = await fetch('/config');
     if (res.ok) {
-      cached = await res.json();
-      return cached!;
+      const data = await res.json();
+      // Validate that URLs use HTTPS to prevent injection
+      const isValidUrl = (s: string | undefined): boolean => {
+        if (!s) return true; // undefined/empty is OK (falls back to env vars)
+        try {
+          return new URL(s).protocol === 'https:';
+        } catch {
+          return false;
+        }
+      };
+      if (
+        !isValidUrl(data.functionUrl) ||
+        !isValidUrl(data.aiEndpoint) ||
+        !isValidUrl(data.aiSearchEndpoint)
+      ) {
+        console.error('Runtime config contains invalid URLs');
+      } else {
+        cached = data;
+        return cached!;
+      }
     }
   } catch {
     // Dev mode or tests — /config not available

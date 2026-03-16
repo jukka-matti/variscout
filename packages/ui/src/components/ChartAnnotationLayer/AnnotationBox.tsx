@@ -202,6 +202,11 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
         contentEditable={isActive}
         suppressContentEditableWarning
         onBlur={handleTextBlur}
+        onPaste={e => {
+          e.preventDefault();
+          const plain = e.clipboardData.getData('text/plain');
+          document.execCommand('insertText', false, plain);
+        }}
         onMouseDown={e => e.stopPropagation()} // Don't start drag when clicking text
         style={{
           color: textColor,

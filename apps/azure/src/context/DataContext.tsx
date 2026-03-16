@@ -7,7 +7,7 @@
  * Split into DataStateContext and DataActionsContext following Kent C. Dodds pattern
  * for optimal re-render behavior: action-only consumers don't re-render on state changes.
  */
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useRef } from 'react';
 import {
   useDataState,
   type DataState,
@@ -88,6 +88,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Cloud sync hook
   const { saveProject: saveToCloud, syncStatus } = useStorage();
 
+  // Ref to track current state — avoids stale closure in saveProject
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
   /**
    * Save project with cloud sync
    * Saves locally first (instant feedback), then triggers cloud sync
@@ -101,15 +105,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Save locally via the shared hook's persistence adapter
       const project = await actions.saveProject(name);
 
+      // Read current state at call time, not captured snapshot
+      const currentState = stateRef.current;
+
       // Trigger cloud sync
-      await saveToCloud(state, name, location);
+      await saveToCloud(currentState, name, location);
 
       // Index findings to AI Search (fire-and-forget, debounced, self-guarding)
-      indexFindingsToSearch(name, state.currentProjectId || name, state.findings, state.hypotheses);
+      indexFindingsToSearch(
+        name,
+        currentState.currentProjectId || name,
+        currentState.findings,
+        currentState.hypotheses
+      );
 
       return project;
     },
-    [actions, state, saveToCloud, defaultLocation]
+    [actions, saveToCloud, defaultLocation]
   );
 
   /**

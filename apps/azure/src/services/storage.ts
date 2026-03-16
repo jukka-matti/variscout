@@ -499,6 +499,18 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
+  // Wire errorService to surface user-facing notifications via the storage toast system
+  useEffect(() => {
+    errorService.setNotificationHandler((message, severity) => {
+      addNotification({
+        type: severity === 'critical' ? 'error' : severity,
+        message,
+        dismissAfter: severity === 'error' || severity === 'critical' ? 5000 : 3000,
+      });
+    });
+    return () => errorService.setNotificationHandler(() => {});
+  }, [addNotification]);
+
   // ── Retry queue ─────────────────────────────────────────────────────
 
   const retryQueue = useRef<
@@ -510,9 +522,13 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }>
   >([]);
 
+  const isSyncingRef = useRef(false);
+
   const processRetryQueue = useCallback(async () => {
     if (retryQueue.current.length === 0) return;
     if (!navigator.onLine) return;
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
 
     const item = retryQueue.current[0];
     try {
@@ -563,6 +579,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const delay = Math.min(serverDelay ?? RETRY_DELAYS[delayIdx], MAX_RETRY_DELAY);
         retryTimerRef.current = setTimeout(processRetryQueue, delay);
       }
+    } finally {
+      isSyncingRef.current = false;
     }
   }, [addNotification]);
 
@@ -580,7 +598,17 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const saveProject = useCallback(
     async (project: Project, name: string, location: StorageLocation) => {
       // Always save to IndexedDB first (instant feedback)
-      await saveToIndexedDB(project, name, location);
+      try {
+        await saveToIndexedDB(project, name, location);
+      } catch (dbError) {
+        const isQuota = dbError instanceof DOMException && dbError.name === 'QuotaExceededError';
+        const message = isQuota
+          ? 'Storage quota exceeded. Delete old projects to free space.'
+          : 'Local save failed. Your data may not be persisted.';
+        setSyncStatus({ status: 'error', message });
+        addNotification({ type: 'error', message, dismissAfter: isQuota ? 10000 : 5000 });
+        return; // Do not attempt cloud sync if local save failed
+      }
 
       // Standard plan: local-only storage, no cloud sync
       if (!hasTeamFeatures()) {
@@ -810,79 +838,88 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const handleOnline = async () => {
       // Standard plan: no background cloud sync
       if (!hasTeamFeatures()) return;
+      if (isSyncingRef.current) return;
+      isSyncingRef.current = true;
 
       const pending = await getPendingSyncItems();
 
-      if (pending.length === 0) return;
-
-      setSyncStatus({
-        status: 'syncing',
-        message: `Syncing ${pending.length} items...`,
-        pendingChanges: pending.length,
-      });
-      addNotification({
-        type: 'info',
-        message: `Back online, syncing ${pending.length} items...`,
-        dismissAfter: 3000,
-      });
-
-      try {
-        const token = await getGraphToken();
-        for (const item of pending) {
-          try {
-            const { id, etag } = await saveToCloud(token, item.project, item.name, item.location);
-            await markAsSynced(item.name, id, etag);
-            await removeFromSyncQueue(item.name);
-          } catch (error) {
-            const classified = classifySyncError(error);
-            if (classified.category === 'auth') {
-              addNotification({
-                type: 'error',
-                message: 'Session expired during sync. Please sign in again.',
-                action: {
-                  label: 'Sign in',
-                  onClick: () => {
-                    window.location.href = '/.auth/login/aad';
-                  },
-                },
-              });
-              break; // Stop syncing on auth failure
-            }
-            console.error('Sync failed for:', item.name, error);
-          }
-        }
-      } catch (e) {
-        const classified = classifySyncError(e);
-        if (classified.category === 'auth') {
-          addNotification({
-            type: 'error',
-            message: 'Session expired. Please sign in again.',
-            action: {
-              label: 'Sign in',
-              onClick: () => {
-                window.location.href = '/.auth/login/aad';
-              },
-            },
-          });
-        } else {
-          console.error('Auth failed during sync', e);
-        }
+      if (pending.length === 0) {
+        isSyncingRef.current = false;
+        return;
       }
 
-      const remaining = await getPendingSyncItems();
-      if (remaining.length === 0) {
+      try {
         setSyncStatus({
-          status: 'synced',
-          message: 'All changes synced',
-          lastSynced: new Date(),
+          status: 'syncing',
+          message: `Syncing ${pending.length} items...`,
+          pendingChanges: pending.length,
         });
-        addNotification({ type: 'success', message: 'All changes synced', dismissAfter: 3000 });
-      } else {
-        setSyncStatus({
-          status: 'offline',
-          message: `${remaining.length} items pending sync`,
-          pendingChanges: remaining.length,
+        addNotification({
+          type: 'info',
+          message: `Back online, syncing ${pending.length} items...`,
+          dismissAfter: 3000,
         });
+
+        try {
+          const token = await getGraphToken();
+          for (const item of pending) {
+            try {
+              const { id, etag } = await saveToCloud(token, item.project, item.name, item.location);
+              await markAsSynced(item.name, id, etag);
+              await removeFromSyncQueue(item.name);
+            } catch (error) {
+              const classified = classifySyncError(error);
+              if (classified.category === 'auth') {
+                addNotification({
+                  type: 'error',
+                  message: 'Session expired during sync. Please sign in again.',
+                  action: {
+                    label: 'Sign in',
+                    onClick: () => {
+                      window.location.href = '/.auth/login/aad';
+                    },
+                  },
+                });
+                break; // Stop syncing on auth failure
+              }
+              console.error('Sync failed for:', item.name, error);
+            }
+          }
+        } catch (e) {
+          const classified = classifySyncError(e);
+          if (classified.category === 'auth') {
+            addNotification({
+              type: 'error',
+              message: 'Session expired. Please sign in again.',
+              action: {
+                label: 'Sign in',
+                onClick: () => {
+                  window.location.href = '/.auth/login/aad';
+                },
+              },
+            });
+          } else {
+            console.error('Auth failed during sync', e);
+          }
+        }
+
+        const remaining = await getPendingSyncItems();
+        if (remaining.length === 0) {
+          setSyncStatus({
+            status: 'synced',
+            message: 'All changes synced',
+            lastSynced: new Date(),
+          });
+          addNotification({ type: 'success', message: 'All changes synced', dismissAfter: 3000 });
+        } else {
+          setSyncStatus({
+            status: 'offline',
+            message: `${remaining.length} items pending sync`,
+            pendingChanges: remaining.length,
+          });
+        }
+      } finally {
+        isSyncingRef.current = false;
       }
     };
 
