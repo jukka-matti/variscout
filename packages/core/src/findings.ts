@@ -115,6 +115,7 @@ export interface ActionItem {
 /** Outcome assessment after corrective actions are complete */
 export interface FindingOutcome {
   effective: 'yes' | 'no' | 'partial';
+  cpkBefore?: number;
   cpkAfter?: number;
   notes?: string;
   verifiedAt: number;

@@ -21,6 +21,18 @@ export type {
   StagedStatsResult,
   StageBoundary,
   NelsonRule2Sequence,
+} from './types';
+
+// Types - Staged Comparison
+export type {
+  StagedComparison,
+  StagedComparisonStage,
+  StagedComparisonDeltas,
+  DeltaColor,
+} from './stats';
+
+// (continued types)
+export type {
   NelsonRule3Sequence,
   // Boxplot Types
   BoxplotGroupInput,
@@ -51,6 +63,7 @@ export {
   sortDataByStage,
   calculateStatsByStage,
   getStageBoundaries,
+  calculateStagedComparison,
   // Nelson rules
   getNelsonRule2ViolationPoints,
   getNelsonRule2Sequences,
@@ -306,6 +319,7 @@ export {
   buildBoxplotInsight,
   buildParetoInsight,
   buildStatsInsight,
+  buildStagedComparisonInsight,
   buildChartInsightPrompt,
   buildChartInsightSystemPrompt,
   buildSuggestedQuestions,

@@ -114,8 +114,12 @@ export {
 export {
   StatsPanelBase,
   statsPanelDefaultColorScheme,
+  StagedComparisonCard,
+  defaultStagedComparisonColorScheme,
   type StatsPanelBaseProps,
   type StatsPanelColorScheme,
+  type StagedComparisonCardProps,
+  type StagedComparisonColorScheme,
 } from './components/StatsPanel';
 
 export {

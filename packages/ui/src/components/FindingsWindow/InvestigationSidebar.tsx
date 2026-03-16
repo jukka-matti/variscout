@@ -10,6 +10,8 @@ export interface InvestigationSidebarProps {
   suggestedQuestions?: string[];
   collapsed: boolean;
   onToggle: () => void;
+  /** When true and phase is 'acting', shows a verification checklist */
+  hasStagedData?: boolean;
 }
 
 const phaseDescriptions: Record<string, string> = {
@@ -24,6 +26,14 @@ const phaseDescriptions: Record<string, string> = {
  * Read-only investigation sidebar for the FindingsWindow popout.
  * No API calls — "Ask CoScout" copies question to clipboard.
  */
+const VERIFICATION_CHECKLIST = [
+  'I-Chart: are violations reduced?',
+  'Stats: did Cpk improve toward target?',
+  'Boxplot: did the problem factor improve?',
+  'Side effects: nothing else degraded?',
+  'Outcome: recorded in finding',
+];
+
 const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   phase,
   hypotheses,
@@ -31,6 +41,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   suggestedQuestions,
   collapsed,
   onToggle,
+  hasStagedData,
 }) => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
@@ -71,7 +82,10 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   }
 
   const hasContent =
-    phase || uncoveredRoles.length > 0 || (suggestedQuestions && suggestedQuestions.length > 0);
+    phase ||
+    uncoveredRoles.length > 0 ||
+    (suggestedQuestions && suggestedQuestions.length > 0) ||
+    (phase === 'acting' && hasStagedData);
 
   return (
     <div
@@ -93,6 +107,26 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
             <p className="text-[11px] text-content-secondary leading-relaxed">
               {phaseDescriptions[phase]}
             </p>
+          </div>
+        )}
+
+        {/* Verification checklist — shown when acting phase + staged data */}
+        {phase === 'acting' && hasStagedData && (
+          <div data-testid="verification-checklist">
+            <div className="text-[10px] uppercase tracking-wider text-content-muted font-medium mb-1.5">
+              Verification Checklist
+            </div>
+            <ul className="space-y-1">
+              {VERIFICATION_CHECKLIST.map((item, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-1.5 text-[11px] text-content-secondary leading-relaxed"
+                >
+                  <span className="text-content-muted mt-0.5">&#9744;</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

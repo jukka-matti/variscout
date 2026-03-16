@@ -3,6 +3,7 @@ import { Pencil } from 'lucide-react';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
 import type { StatsPanelBaseProps, StatsPanelColorScheme } from './types';
+import { StagedComparisonCard } from './StagedComparisonCard';
 
 // MetricCard component for the summary grid
 interface MetricCardProps {
@@ -63,6 +64,8 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   colorScheme = statsPanelDefaultColorScheme,
   onEditSpecs,
   showCpk = true,
+  stagedComparison,
+  cpkTarget,
   renderHistogram,
   renderProbabilityPlot,
   renderSummaryFooter,
@@ -171,6 +174,13 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     );
   };
 
+  const renderSummaryContent = () => {
+    if (stagedComparison) {
+      return <StagedComparisonCard comparison={stagedComparison} cpkTarget={cpkTarget} />;
+    }
+    return renderMetricGrid();
+  };
+
   const renderHistogramContent = () => {
     if (histogramData.length > 0 && stats && renderHistogram) {
       return renderHistogram(histogramData, specs, stats.mean);
@@ -218,7 +228,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
         </div>
 
         <div className="flex-1 min-h-0">
-          {activeTab === 'summary' && <div className="space-y-3">{renderMetricGrid()}</div>}
+          {activeTab === 'summary' && <div className="space-y-3">{renderSummaryContent()}</div>}
           {activeTab === 'histogram' && (
             <div className="h-full min-h-[200px]">{renderHistogramContent()}</div>
           )}
@@ -244,7 +254,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
 
       {activeTab === 'summary' ? (
         <>
-          <div className="flex-1">{renderMetricGrid()}</div>
+          <div className="flex-1">{renderSummaryContent()}</div>
           {stats && renderSummaryFooter?.(stats, specs)}
         </>
       ) : activeTab === 'histogram' ? (

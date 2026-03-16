@@ -44,6 +44,7 @@ export {
   buildBoxplotInsight,
   buildParetoInsight,
   buildStatsInsight,
+  buildStagedComparisonInsight,
 } from './chartInsights';
 
 export { buildSuggestedQuestions, formatForMobile } from './suggestedQuestions';

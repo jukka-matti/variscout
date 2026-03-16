@@ -5,6 +5,7 @@
  */
 
 import type { NelsonRule2Sequence, NelsonRule3Sequence } from '../types';
+import type { StagedComparison } from '../stats/staged';
 
 export type InsightChartType = 'ichart' | 'boxplot' | 'pareto' | 'capability' | 'stats';
 export type ChipType = 'suggestion' | 'warning' | 'info';
@@ -208,4 +209,60 @@ export function buildStatsInsight(
   }
 
   return null;
+}
+
+/**
+ * Build insight chip for staged comparison data on I-Chart.
+ * Shows improvement/regression summary when stages are active.
+ */
+export function buildStagedComparisonInsight(
+  comparison: StagedComparison
+): DeterministicInsight | null {
+  const { deltas } = comparison;
+  const parts: string[] = [];
+
+  // Cpk change
+  if (deltas.cpkDelta !== null) {
+    const sign = deltas.cpkDelta > 0 ? '+' : '';
+    parts.push(`Cpk ${sign}${deltas.cpkDelta.toFixed(2)}`);
+  }
+
+  // Out-of-spec reduction
+  if (deltas.outOfSpecReduction > 0.5) {
+    parts.push(`${deltas.outOfSpecReduction.toFixed(1)}% fewer out-of-spec`);
+  } else if (deltas.outOfSpecReduction < -0.5) {
+    parts.push(`${Math.abs(deltas.outOfSpecReduction).toFixed(1)}% more out-of-spec`);
+  }
+
+  // Variation change
+  const variationPct = Math.round((deltas.variationRatio - 1) * 100);
+  if (Math.abs(variationPct) >= 5) {
+    parts.push(`variation ${variationPct > 0 ? '+' : ''}${variationPct}%`);
+  }
+
+  if (parts.length === 0) return null;
+
+  // Determine if improvement or regression
+  const isImproved =
+    (deltas.cpkDelta !== null && deltas.cpkDelta > 0.05) ||
+    deltas.variationRatio < 0.95 ||
+    deltas.outOfSpecReduction > 1;
+
+  const isRegressed =
+    (deltas.cpkDelta !== null && deltas.cpkDelta < -0.05) ||
+    deltas.variationRatio > 1.05 ||
+    deltas.outOfSpecReduction < -1;
+
+  const prefix = isImproved ? 'Improvement' : isRegressed ? 'Regression' : 'Change';
+
+  // Priority: 3 if Cpk improved > 0.2, 2 if marginal, 1 if regression
+  let priority = 2;
+  if (deltas.cpkDelta !== null && deltas.cpkDelta > 0.2) priority = 3;
+  else if (isRegressed) priority = 1;
+
+  return {
+    text: `${prefix}: ${parts.join(', ')}`,
+    chipType: isImproved ? 'info' : isRegressed ? 'warning' : 'info',
+    priority,
+  };
 }

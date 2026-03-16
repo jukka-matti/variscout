@@ -17,12 +17,14 @@ import type {
   ChartInsightData,
   NelsonRule2Sequence,
   NelsonRule3Sequence,
+  StagedComparison,
 } from '@variscout/core';
 import {
   buildIChartInsight,
   buildBoxplotInsight,
   buildParetoInsight,
   buildStatsInsight,
+  buildStagedComparisonInsight,
   buildChartInsightPrompt,
 } from '@variscout/core';
 
@@ -51,6 +53,8 @@ export interface DeterministicData {
   cpkTarget?: number;
   passRate?: number;
   hasSpecs?: boolean;
+  // Staged comparison (for I-Chart insight when stages are active)
+  stagedComparison?: StagedComparison;
 }
 
 export interface UseChartInsightsOptions {
@@ -109,13 +113,19 @@ export function useChartInsights({
   // -------------------------------------------------------------------------
   const deterministicInsight = useMemo((): DeterministicInsight | null => {
     switch (chartType) {
-      case 'ichart':
+      case 'ichart': {
+        // Staged comparison insight takes priority when stages are active
+        if (deterministicData.stagedComparison) {
+          const stagedInsight = buildStagedComparisonInsight(deterministicData.stagedComparison);
+          if (stagedInsight) return stagedInsight;
+        }
         return buildIChartInsight(
           deterministicData.nelsonSequences ?? [],
           deterministicData.outOfControlCount ?? 0,
           deterministicData.totalPoints ?? 0,
           deterministicData.nelsonRule3Sequences
         );
+      }
       case 'boxplot':
         return buildBoxplotInsight(
           deterministicData.factorVariations ?? new Map(),

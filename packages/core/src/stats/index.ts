@@ -52,6 +52,14 @@ export {
   sortDataByStage,
   calculateStatsByStage,
   getStageBoundaries,
+  calculateStagedComparison,
+} from './staged';
+
+export type {
+  StagedComparison,
+  StagedComparisonStage,
+  StagedComparisonDeltas,
+  DeltaColor,
 } from './staged';
 
 // Nelson rules

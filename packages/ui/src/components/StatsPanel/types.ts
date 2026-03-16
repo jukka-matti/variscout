@@ -1,5 +1,11 @@
 import type React from 'react';
-import type { StatsResult, SpecLimits, GlossaryTerm, DataRow } from '@variscout/core';
+import type {
+  StatsResult,
+  SpecLimits,
+  GlossaryTerm,
+  DataRow,
+  StagedComparison,
+} from '@variscout/core';
 
 export interface StatsPanelColorScheme {
   // Container
@@ -38,6 +44,10 @@ export interface StatsPanelBaseProps {
   renderProbabilityPlot?: (data: number[], mean: number, stdDev: number) => React.ReactNode;
   /** When false, hides Cp, Cpk, and Pass Rate cards from the summary grid */
   showCpk?: boolean;
+  /** When present and staged data is active, replaces default metric grid with comparison card */
+  stagedComparison?: StagedComparison;
+  /** Cpk target for staged comparison display */
+  cpkTarget?: number;
   /** Render extra content after summary (e.g., What-If Simulator, Spec Editor button) */
   renderSummaryFooter?: (stats: StatsResult, specs: SpecLimits) => React.ReactNode;
   /** Glossary term lookup function */
