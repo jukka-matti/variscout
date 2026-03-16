@@ -17,6 +17,7 @@ import {
   Beaker,
   Download,
   ChevronDown,
+  FileText,
   Maximize2,
   EllipsisVertical,
 } from 'lucide-react';
@@ -49,6 +50,7 @@ export interface ToolbarDataActions {
   onAddManualData: () => void;
   onOpenDataTable: () => void;
   onOpenWhatIf: () => void;
+  onOpenReport: () => void;
   onOpenPresentation: () => void;
 }
 
@@ -81,6 +83,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     onAddManualData,
     onOpenDataTable,
     onOpenWhatIf,
+    onOpenReport,
     onOpenPresentation,
   },
 }) => {
@@ -277,6 +280,19 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               </button>
             )}
 
+            {/* Scouting Report */}
+            {hasActiveData && (
+              <button
+                onClick={onOpenReport}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
+                title="Scouting Report"
+                data-testid="btn-report"
+              >
+                <FileText size={16} />
+                <span>Report</span>
+              </button>
+            )}
+
             {/* Presentation Mode */}
             {hasActiveData && (
               <button
@@ -406,6 +422,16 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 >
                   <Beaker size={16} />
                   What-If
+                </button>
+                <button
+                  onClick={() => {
+                    setOverflowOpen(false);
+                    onOpenReport();
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                >
+                  <FileText size={16} />
+                  Scouting Report
                 </button>
                 <button
                   onClick={() => {

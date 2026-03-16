@@ -639,6 +639,7 @@ export const Editor: React.FC<EditorProps> = ({
           onAddManualData: dataFlow.handleAddMoreData,
           onOpenDataTable: () => panels.setIsDataTableOpen(true),
           onOpenWhatIf: () => panels.setIsWhatIfOpen(true),
+          onOpenReport: () => panels.setIsReportOpen(true),
           onOpenPresentation: () => panels.setIsPresentationMode(true),
         }}
       />
@@ -775,6 +776,8 @@ export const Editor: React.FC<EditorProps> = ({
               filterNav={filterNav}
               initialViewState={viewState ?? undefined}
               onViewStateChange={handleViewStateChange}
+              isReportOpen={panels.isReportOpen}
+              onCloseReport={() => panels.setIsReportOpen(false)}
               isPresentationMode={panels.isPresentationMode}
               onExitPresentation={() => panels.setIsPresentationMode(false)}
               onManageFactors={dataFlow.openFactorManager}

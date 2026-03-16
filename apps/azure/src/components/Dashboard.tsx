@@ -8,6 +8,7 @@ import PerformanceDashboard from './PerformanceDashboard';
 import SpecEditor from './settings/SpecEditor';
 import FocusedChartView from './views/FocusedChartView';
 import PresentationView from './views/PresentationView';
+import ReportView from './views/ReportView';
 import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
@@ -65,6 +66,10 @@ interface DashboardProps {
   isPresentationMode?: boolean;
   /** Callback to exit presentation mode */
   onExitPresentation?: () => void;
+  /** Whether report view is active */
+  isReportOpen?: boolean;
+  /** Callback to close report view */
+  onCloseReport?: () => void;
   /** Callback to open ColumnMapping in re-edit mode for factor management */
   onManageFactors?: () => void;
   /** Callback to pin current filter state as a finding (optional note text) */
@@ -104,6 +109,8 @@ const Dashboard = ({
   onViewStateChange,
   isPresentationMode,
   onExitPresentation,
+  isReportOpen,
+  onCloseReport,
   onManageFactors,
   onPinFinding,
   onShareChart,
@@ -356,6 +363,17 @@ const Dashboard = ({
   });
 
   if (!outcome) return null;
+
+  if (isReportOpen && onCloseReport) {
+    return (
+      <ReportView
+        onClose={onCloseReport}
+        aiEnabled={aiEnabled}
+        narrative={narrative}
+        stagedComparison={Boolean(stagedStats)}
+      />
+    );
+  }
 
   if (isPresentationMode && onExitPresentation) {
     return (

@@ -303,6 +303,28 @@ export {
   type FocusedChartType,
 } from './components/FocusedChartViewBase';
 
+// Report View
+export {
+  ReportViewBase,
+  reportViewBaseDefaultColorScheme,
+  ReportSection,
+  reportSectionDefaultColorScheme,
+  ReportStepMarker,
+  ReportKPIGrid,
+  reportKPIGridDefaultColorScheme,
+  ReportChartSnapshot,
+  reportChartSnapshotDefaultColorScheme,
+  type ReportViewBaseProps,
+  type ReportViewBaseColorScheme,
+  type ReportSectionProps,
+  type ReportSectionColorScheme,
+  type ReportStepMarkerProps,
+  type ReportKPIGridProps,
+  type ReportKPIGridColorScheme,
+  type ReportChartSnapshotProps,
+  type ReportChartSnapshotColorScheme,
+} from './components/ReportView';
+
 // Services
 export {
   errorService,

@@ -63,7 +63,7 @@ function AppMain() {
     const fromUrl = parseDeepLink(window.location.search);
     if (fromUrl.project) return fromUrl;
     if (teams.subPageId) return parseSubPageId(teams.subPageId);
-    return { project: null, findingId: null, chart: null };
+    return { project: null, findingId: null, chart: null, mode: null };
   }, [teams.subPageId]);
 
   // Auto-navigate to editor when a deep link specifies a project

@@ -222,6 +222,30 @@ export {
   type UseKnowledgeSearchReturn,
 } from './useKnowledgeSearch';
 
+// Report Sections
+export {
+  useReportSections,
+  type ReportSectionDescriptor,
+  type ReportType,
+  type ReportSectionId,
+  type SectionStatus,
+  type UseReportSectionsOptions,
+  type UseReportSectionsReturn,
+} from './useReportSections';
+
+// Scroll Spy
+export { useScrollSpy, type UseScrollSpyOptions, type UseScrollSpyReturn } from './useScrollSpy';
+
+// Snapshot Data
+export {
+  useSnapshotData,
+  type UseSnapshotDataOptions,
+  type UseSnapshotDataReturn,
+} from './useSnapshotData';
+
+// Copy Utilities
+export { copySectionAsHTML } from './copyUtils';
+
 // Filter Handlers (Dashboard shared callbacks)
 export {
   useFilterHandlers,

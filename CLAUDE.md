@@ -167,7 +167,7 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Hypothesis investigation | docs/03-features/workflows/hypothesis-investigation.md, docs/07-decisions/adr-020-investigation-workflow.md                                                                                                                             |
 | Data lifecycle/append    | docs/07-decisions/adr-023-data-lifecycle.md, apps/azure/src/hooks/useEditorDataFlow.ts                                                                                                                                                  |
 | Verification experience  | docs/07-decisions/adr-023-data-lifecycle.md, docs/03-features/analysis/staged-analysis.md                                                                                                                                               |
-| Report View / sharing    | docs/07-decisions/adr-024-scouting-report.md, docs/superpowers/specs/2026-03-16-scouting-report-design.md, docs/02-journeys/flows/azure-daily-use.md                                                                                    |
+| Report View / sharing    | docs/07-decisions/adr-024-scouting-report.md, docs/superpowers/specs/2026-03-16-scouting-report-design.md, packages/hooks/src/useReportSections.ts, apps/azure/src/components/views/ReportView.tsx                                      |
 
 ## Repository Structure
 
@@ -322,5 +322,12 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/ui/src/components/NarrativeBar/`                           | AI narrative summary bar (NarrativeBar)                                                                                                                                              |
 | `packages/ui/src/components/ChartInsightChip/`                       | Per-chart AI insight chip                                                                                                                                                            |
 | `packages/ui/src/components/FindingsPanel/`                          | FindingsPanelBase, BriefHeader, FindingDetailPanel                                                                                                                                   |
+| `packages/ui/src/components/ReportView/`                             | ReportViewBase, ReportSection, ReportStepMarker, ReportKPIGrid, ReportChartSnapshot                                                                                                  |
+| `packages/hooks/src/useReportSections.ts`                            | Dynamic report section composition (quick-check/deep-dive/full-cycle)                                                                                                                |
+| `packages/hooks/src/useScrollSpy.ts`                                 | IntersectionObserver-based TOC section tracking                                                                                                                                      |
+| `packages/hooks/src/useSnapshotData.ts`                              | Per-finding filtered data + stats computation for chart snapshots                                                                                                                    |
+| `packages/hooks/src/copyUtils.ts`                                    | copySectionAsHTML rich clipboard copy (text/html + text/plain)                                                                                                                       |
+| `apps/azure/src/components/views/ReportView.tsx`                     | Azure Report View wrapper (connects DataContext to ReportViewBase)                                                                                                                   |
+| `apps/azure/src/hooks/useShareReport.ts`                             | Teams report sharing (composes buildReportSharePayload + useTeamsShare)                                                                                                              |
 
 > Use `Read` tool to examine these files when needed.

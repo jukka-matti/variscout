@@ -21,6 +21,7 @@ describe('editorPanelReducer', () => {
         isCoScoutOpen: false,
         isWhatIfOpen: false,
         isPresentationMode: false,
+        isReportOpen: false,
         highlightRowIndex: null,
         highlightedChartPoint: null,
       });

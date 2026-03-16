@@ -12,6 +12,7 @@ export interface EditorPanelState {
   isCoScoutOpen: boolean;
   isWhatIfOpen: boolean;
   isPresentationMode: boolean;
+  isReportOpen: boolean;
   highlightRowIndex: number | null;
   highlightedChartPoint: number | null;
 }
@@ -29,6 +30,8 @@ export type EditorPanelAction =
   | { type: 'SET_WHAT_IF_OPEN'; value: boolean }
   | { type: 'OPEN_PRESENTATION' }
   | { type: 'CLOSE_PRESENTATION' }
+  | { type: 'OPEN_REPORT' }
+  | { type: 'CLOSE_REPORT' }
   | { type: 'SET_HIGHLIGHT_ROW'; index: number | null }
   | { type: 'SET_HIGHLIGHT_POINT'; index: number | null }
   | { type: 'POINT_CLICK'; index: number }
@@ -63,9 +66,13 @@ export function editorPanelReducer(
     case 'SET_WHAT_IF_OPEN':
       return state.isWhatIfOpen === action.value ? state : { ...state, isWhatIfOpen: action.value };
     case 'OPEN_PRESENTATION':
-      return { ...state, isPresentationMode: true };
+      return { ...state, isPresentationMode: true, isReportOpen: false };
     case 'CLOSE_PRESENTATION':
       return { ...state, isPresentationMode: false };
+    case 'OPEN_REPORT':
+      return { ...state, isReportOpen: true, isPresentationMode: false };
+    case 'CLOSE_REPORT':
+      return { ...state, isReportOpen: false };
     case 'SET_HIGHLIGHT_ROW':
       return { ...state, highlightRowIndex: action.index };
     case 'SET_HIGHLIGHT_POINT':
@@ -90,6 +97,7 @@ export const initialPanelState: EditorPanelState = {
   isCoScoutOpen: false,
   isWhatIfOpen: false,
   isPresentationMode: false,
+  isReportOpen: false,
   highlightRowIndex: null,
   highlightedChartPoint: null,
 };
@@ -118,6 +126,8 @@ export interface UseEditorPanelsReturn {
   setIsWhatIfOpen: BoolSetter;
   isPresentationMode: boolean;
   setIsPresentationMode: BoolSetter;
+  isReportOpen: boolean;
+  setIsReportOpen: BoolSetter;
   highlightRowIndex: number | null;
   setHighlightRowIndex: (v: number | null) => void;
   highlightedChartPoint: number | null;
@@ -218,6 +228,14 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     }
   }, []);
 
+  const setIsReportOpen: BoolSetter = useCallback(value => {
+    if (typeof value === 'function') {
+      dispatch({ type: 'OPEN_REPORT' });
+    } else {
+      dispatch(value ? { type: 'OPEN_REPORT' } : { type: 'CLOSE_REPORT' });
+    }
+  }, []);
+
   const setHighlightRowIndex = useCallback((index: number | null) => {
     dispatch({ type: 'SET_HIGHLIGHT_ROW', index });
   }, []);
@@ -247,6 +265,8 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     setIsWhatIfOpen,
     isPresentationMode: state.isPresentationMode,
     setIsPresentationMode,
+    isReportOpen: state.isReportOpen,
+    setIsReportOpen,
     highlightRowIndex: state.highlightRowIndex,
     setHighlightRowIndex,
     highlightedChartPoint: state.highlightedChartPoint,

@@ -4,7 +4,7 @@
  */
 
 import type { Finding } from '@variscout/core';
-import { buildFindingLink, buildChartLink } from './deepLinks';
+import { buildFindingLink, buildChartLink, buildReportLink } from './deepLinks';
 
 export interface SharePayload {
   title: string;
@@ -65,6 +65,25 @@ export function buildChartSharePayload(
   }
   if (context?.filters) {
     parts.push(context.filters);
+  }
+  const previewText = parts.join(' \u2014 ');
+
+  return { title, url, previewText };
+}
+
+/** Build share payload for a report view */
+export function buildReportSharePayload(
+  processName: string,
+  projectName: string,
+  baseUrl: string,
+  keyCpk?: number
+): SharePayload {
+  const title = `Scouting Report: ${processName}`;
+  const url = buildReportLink(baseUrl, projectName);
+
+  const parts: string[] = [processName];
+  if (keyCpk !== undefined) {
+    parts.push(`Cpk ${keyCpk.toFixed(1)}`);
   }
   const previewText = parts.join(' \u2014 ');
 
