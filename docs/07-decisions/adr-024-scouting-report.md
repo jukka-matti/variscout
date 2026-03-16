@@ -169,6 +169,21 @@ When AI is available (Team AI plan, €279/month):
 
 Report View is Azure Standard and Team only. PWA does not include it (no findings persistence, no investigation workflow beyond 3 statuses). This aligns with the tier strategy: PWA is educational, Azure is operational.
 
+### Staged verification evidence (Step 5)
+
+Step 5 (Verification — "Did the actions work?") renders actual before/after staged evidence when staged data is available, replacing the earlier placeholder callout.
+
+**New components:**
+
+| Component                  | Package            | Purpose                                                                  |
+| -------------------------- | ------------------ | ------------------------------------------------------------------------ |
+| `VerificationEvidenceBase` | `@variscout/ui`    | Chip bar + vertical chart stack (shared `*Base` + `colorScheme` pattern) |
+| `useVerificationCharts`    | `@variscout/hooks` | Toggle state + availability detection for 5 chart types                  |
+
+**Chart types** (canonical order): `stats`, `ichart`, `boxplot`, `histogram`, `pareto`. Each has availability conditions (e.g., `boxplot` requires factors + stageColumn). Smart defaults: all available charts ON. All chips independently toggleable; unavailable chips are struck-through and non-interactive.
+
+**Reused ADR-023 Tier 4 components:** `StagedComparisonCard`, staged I-Chart (`IChartBase` with `stagedStats`), dual-stage Boxplot (`BoxplotBase` with `fillOverrides`/`groupSize`), `CapabilityHistogram` with `cpkBefore`/`cpkAfter` badge, `ParetoChartBase` with `comparisonData`/`showRankChange`.
+
 ---
 
 ## Related

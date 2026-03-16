@@ -166,7 +166,7 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Investigation actions    | docs/07-decisions/adr-015-investigation-board.md, docs/03-features/workflows/investigation-to-action.md                                                                                                                                 |
 | Hypothesis investigation | docs/03-features/workflows/hypothesis-investigation.md, docs/07-decisions/adr-020-investigation-workflow.md                                                                                                                             |
 | Data lifecycle/append    | docs/07-decisions/adr-023-data-lifecycle.md, apps/azure/src/hooks/useEditorDataFlow.ts                                                                                                                                                  |
-| Verification experience  | docs/07-decisions/adr-023-data-lifecycle.md, docs/03-features/analysis/staged-analysis.md                                                                                                                                               |
+| Verification experience  | docs/07-decisions/adr-023-data-lifecycle.md, docs/03-features/analysis/staged-analysis.md, packages/hooks/src/useVerificationCharts.ts, packages/ui/src/components/ReportView/VerificationEvidenceBase.tsx                              |
 | Report View / sharing    | docs/07-decisions/adr-024-scouting-report.md, docs/superpowers/specs/2026-03-16-scouting-report-design.md, packages/hooks/src/useReportSections.ts, apps/azure/src/components/views/ReportView.tsx                                      |
 
 ## Repository Structure
@@ -329,5 +329,7 @@ See [ADR-007](docs/07-decisions/adr-007-azure-marketplace-distribution.md) for t
 | `packages/hooks/src/copyUtils.ts`                                    | copySectionAsHTML rich clipboard copy (text/html + text/plain)                                                                                                                       |
 | `apps/azure/src/components/views/ReportView.tsx`                     | Azure Report View wrapper (connects DataContext to ReportViewBase)                                                                                                                   |
 | `apps/azure/src/hooks/useShareReport.ts`                             | Teams report sharing (composes buildReportSharePayload + useTeamsShare)                                                                                                              |
+| `packages/hooks/src/useVerificationCharts.ts`                        | Verification chart toggle state + availability detection for Report Step 5                                                                                                           |
+| `packages/ui/src/components/ReportView/VerificationEvidenceBase.tsx` | Verification chip bar + chart stack (shared UI component)                                                                                                                            |
 
 > Use `Read` tool to examine these files when needed.

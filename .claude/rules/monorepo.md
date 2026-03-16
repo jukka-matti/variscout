@@ -36,6 +36,7 @@ packages/
 │              #   useKnowledgeSearch - Knowledge Base search wrapper
 │              #   useFilterHandlers - Dashboard filter handler callbacks
 │              #   useCreateFactorModal - Dashboard create-factor modal state
+│              #   useVerificationCharts - Verification chart toggle state + availability
 │              #   useReportSections - Report type detection + section composition
 │              #   useScrollSpy - IntersectionObserver TOC tracking
 │              #   useSnapshotData - Per-finding filtered data + stats
@@ -60,7 +61,7 @@ packages/
                #   CoScoutInline, CoScoutMessages, InvestigationPhaseBadge,
                #   AIOnboardingTooltip, InvestigationSidebar, StagedComparisonCard,
                #   ReportViewBase, ReportSection, ReportStepMarker, ReportKPIGrid,
-               #   ReportChartSnapshot,
+               #   ReportChartSnapshot, VerificationEvidenceBase,
                #   useGlossary, useIsMobile, errorService
 
 apps/

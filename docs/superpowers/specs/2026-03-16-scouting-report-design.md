@@ -125,6 +125,29 @@ Example title: "What causes Fill Head 3 to drift?"
 - Outcome banner: "Effective / Partial / Not Effective"
 - Projection vs actual comparison (collapsible): "We predicted Cpk 1.35, achieved 1.32"
 
+##### Verification Evidence
+
+When staged data is available, Step 5 renders a `VerificationEvidenceBase` component with:
+
+1. **Toggle chip bar** — one chip per chart type, 3 visual states:
+   - **Active (ON)**: Blue filled chip (`bg-blue-500 text-white`)
+   - **Available (OFF)**: Outline chip, clickable to enable
+   - **Unavailable**: Struck-through, `opacity: 0.5`, `pointer-events: none`
+
+2. **Chart stack** — active charts render vertically in canonical order:
+
+| Chart ID    | Label     | Available when...          | Component used                       |
+| ----------- | --------- | -------------------------- | ------------------------------------ |
+| `stats`     | Stats     | `stagedComparison` exists  | `StagedComparisonCard`               |
+| `ichart`    | I-Chart   | `stagedStats` exists       | `IChartBase` with per-stage limits   |
+| `boxplot`   | Boxplot   | factors + stageColumn set  | `BoxplotBase` with `fillOverrides`   |
+| `histogram` | Histogram | specs (USL or LSL) defined | `CapabilityHistogram` with Cpk badge |
+| `pareto`    | Pareto    | `comparisonData` exists    | `ParetoChartBase` with rank change   |
+
+Smart defaults: all available charts ON on mount. All chips independently toggleable. Toggle state is ephemeral (resets each time report opens).
+
+Data flow: `stagedComparison` computed locally via `calculateStagedComparison(stagedStats)`, not stored in DataContext. Boxplot uses `useBoxplotData` + `useBoxplotWrapperData` for staged fill overrides. Histogram filters to last-stage rows. Pareto comparison groups before-stage rows by first factor.
+
 ---
 
 ### Design Principles
