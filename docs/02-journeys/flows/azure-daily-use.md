@@ -135,6 +135,81 @@ For processes with many measurement points (filling heads, cavities, test statio
 
 ---
 
+## Investigation Workflow
+
+When a deep dive reveals a significant pattern, Gary captures it as a finding and works through a structured investigation. The workflow has four phases, progressing from discovery to verified resolution.
+
+### Phase 1 — Discovery: Observations become Findings
+
+1. During a deep dive, Gary spots a pattern — e.g., a Boxplot category with unusually wide spread
+2. **Right-click the category → "Add observation"** — a Finding is created with source metadata (chart type, category, filter context)
+3. The Finding appears in the **Findings panel** sidebar with status **Observed**
+4. _(If AI enabled)_ **NarrativeBar** summarizes the current state; **ChartInsightChip** may suggest a next drill direction
+
+Gary can pin multiple findings in one session. Each captures a distinct observation with its drill-down context preserved.
+
+### Phase 2 — Investigation: Hypotheses and Validation
+
+5. Open a Finding → change status to **Investigating** → click **"Add hypothesis"**
+6. Type the suspected cause (e.g., "Operator B lacks training on Product Variant C")
+7. The hypothesis **auto-validates via η²** — if the factor's contribution exceeds the threshold, it shows as "Supported"; otherwise "Not supported"
+8. Create **sub-hypotheses** to explore branches: diverge (cast wide), validate each (data, gemba walk, or expert input), converge on the supported ones
+9. _(If AI enabled)_ **CoScout** suggests validation approaches when asked; the **Investigation Sidebar** shows phase-aware questions (e.g., "Have you explored [uncovered category]?")
+
+The investigation phase badge updates automatically: Initial → Diverging → Validating → Converging, based on hypothesis count and validation status.
+
+### Phase 3 — Ideation: Improvement Ideas and Actions
+
+10. For each supported hypothesis, add **improvement ideas** — describe potential fixes with optional What-If projections
+11. **Compare ideas** using the What-If Simulator: adjust contribution percentages to see projected Cpk impact
+12. Select the best idea → create **corrective actions** with description, assignee, and due date
+13. Change Finding status to **Improving** — the action plan is now active
+14. _(Team plan)_ Teams auto-posts the finding with its action plan to the configured channel
+
+### Phase 4 — Verification: Proving the Improvement Worked
+
+The goal is to demonstrate measurable improvement after corrective actions are complete.
+
+**Recommended approach — Staged Analysis:**
+
+The most reliable verification method is to combine before and after data in a single analysis using a **Stage column**:
+
+1. Add a `Stage` column to the data (e.g., "Before", "After") identifying which period each row belongs to
+2. Upload the combined dataset — VariScout calculates **independent control limits per stage**
+3. Compare Cpk, mean shift, and variation reduction between stages in the same dashboard
+4. All findings, hypotheses, and actions are preserved throughout — no data is lost
+
+This approach provides clear visual and statistical before/after comparison in one view. See [Staged Analysis](../../03-features/analysis/staged-analysis.md) for details.
+
+**Alternative — Manual outcome recording:**
+
+If the verification data lives in a separate file or system:
+
+1. Run a new analysis with the post-improvement data — note the Cpk value
+2. Return to the saved project containing the investigation
+3. Open the Finding → **Outcome** section → enter the `cpkAfter` value and select effectiveness
+
+> **Important:** Loading a new file as a new project clears findings from the current session. Always **save the investigation project first** before opening a separate analysis. The recommended Staged Analysis approach avoids this issue entirely.
+
+**Recording the outcome:**
+
+15. Set outcome: **Effective** / **Partial** / **Not Effective** — with Cpk before and after recorded
+16. Change Finding status to **Resolved**
+17. _(If AI enabled)_ NarrativeBar reflects the improvement in current stats when using Staged Analysis
+18. _(Team plan)_ Teams auto-posts the outcome with Cpk before/after comparison
+19. _(Team AI plan)_ The resolved finding is **indexed to the Knowledge Base** — future investigations can reference this resolution
+
+### Tier Availability
+
+| Phase            | PWA (Free)                 | Azure Standard                         | Azure Team                 |
+| ---------------- | -------------------------- | -------------------------------------- | -------------------------- |
+| 1. Discovery     | Observed status only       | Full                                   | Full                       |
+| 2. Investigation | 3 statuses, no persistence | Full, IndexedDB persistence            | + Teams posting            |
+| 3. Ideation      | Not available              | Full (actions, What-If)                | + Assignees, Teams posting |
+| 4. Verification  | Not available              | Full (Staged Analysis, manual outcome) | + Knowledge Base indexing  |
+
+---
+
 ## Export and Sharing
 
 | Action           | How                                               | Output                       |

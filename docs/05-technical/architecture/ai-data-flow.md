@@ -79,6 +79,11 @@ flowchart LR
 3. Each hook consumes the context and calls the appropriate AI service function
 4. Service responses flow into UI components via hook return values
 
+**Additional service flows** not shown in the diagram above:
+
+- **Streaming:** `fetchCoScoutStreamingResponse()` follows the same data path as `fetchCoScoutResponse()` but delivers tokens incrementally via a chunk callback. `useAICoScout` manages abort control and progressive message assembly.
+- **AI Report:** `fetchFindingsReport()` + `buildReportPrompt()` (from `packages/core/src/ai/promptTemplates.ts`) — a distinct flow for generating a structured findings export. Consumes the full `AIContext` plus all findings, producing a formatted report rather than a conversational response.
+
 ---
 
 ## 2. Three-Mode Comparison
@@ -122,13 +127,15 @@ flowchart TB
 
 ### Hook responsibilities
 
-| Hook                 | Consumes                                                                                 | Produces                                         | UI Consumer                              |
-| -------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------ | ---------------------------------------- |
-| `useAIContext`       | stats, filters, findings, hypotheses, processContext, violations, variationContributions | `AIContext` object                               | All other AI hooks                       |
-| `useNarration`       | `AIContext`, `fetchNarration` service fn                                                 | `narrative`, `isLoading`, `error`, `refresh()`   | `NarrativeBar`                           |
-| `useChartInsights`   | `AIContext`, `fetchChartInsight` service fn, chart-specific data                         | `insight`, `isAIEnhanced`, `isLoading`           | `ChartInsightChip`                       |
-| `useAICoScout`       | `AIContext`, `fetchCoScoutResponse`, `onBeforeSend` (KB injection)                       | `messages[]`, `send()`, `isStreaming`, `abort()` | `CoScoutPanel`, `CoScoutInline`          |
-| `useKnowledgeSearch` | `searchFn`, `searchDocumentsFn`, `enabled` flag                                          | `results[]`, `documents[]`, `search()`           | Injected into CoScout via `onBeforeSend` |
+| Hook               | Consumes                                                                                 | Produces                                       | UI Consumer        |
+| ------------------ | ---------------------------------------------------------------------------------------- | ---------------------------------------------- | ------------------ |
+| `useAIContext`     | stats, filters, findings, hypotheses, processContext, violations, variationContributions | `AIContext` object                             | All other AI hooks |
+| `useNarration`     | `AIContext`, `fetchNarration` service fn                                                 | `narrative`, `isLoading`, `error`, `refresh()` | `NarrativeBar`     |
+| `useChartInsights` | `AIContext`, `fetchChartInsight` service fn, chart-specific data                         | `insight`, `isAIEnhanced`, `isLoading`         | `ChartInsightChip` |
+
+> **Deterministic-first pipeline:** `useChartInsights` always runs a **deterministic insight first** — `buildIChartInsight()`, `buildBoxplotInsight()`, `buildParetoInsight()`, or `buildCapabilityInsight()` from `packages/core/src/ai/chartInsights.ts`. These pure functions produce a meaningful text insight from stats alone (violations, contribution %, capability status). If AI is available and the user has insights enabled, the hook then fires a debounced `fetchChartInsight()` call to enhance the deterministic text with process context. The deterministic insight is displayed immediately; the AI enhancement replaces it when ready. This means **chart insights work in all modes**, including PWA (no AI) and offline.
+> | `useAICoScout` | `AIContext`, `fetchCoScoutResponse`, `onBeforeSend` (KB injection) | `messages[]`, `send()`, `isStreaming`, `abort()` | `CoScoutPanel`, `CoScoutInline` |
+> | `useKnowledgeSearch` | `searchFn`, `searchDocumentsFn`, `enabled` flag | `results[]`, `documents[]`, `search()` | Injected into CoScout via `onBeforeSend` |
 
 ---
 
@@ -185,10 +192,16 @@ User journey through the three modes:
 ### Mode 3: AI + Knowledge Base
 
 - `isKnowledgeBaseAvailable()` returns true — AI Search index exists
-- `onBeforeSend` hook in `useAICoScout` triggers KB search before each message
-- `knowledgeResults` and `knowledgeDocuments` injected into CoScout system prompt
+- `onBeforeSend` hook in `useAICoScout` triggers **two parallel KB searches** before each message:
+  - `searchRelatedFindings()` — queries the findings index in AI Search for past resolved findings with similar context
+  - `searchDocuments()` — Foundry IQ agentic retrieval for SharePoint documents, SOPs, and work instructions
+  - Results are merged and injected as `knowledgeResults[]` + `knowledgeDocuments[]` in the CoScout system prompt
 - Source badges (`[Source: findings]`, `[Source: SharePoint]`) appear in responses
 - Investigation Sidebar may surface KB-aware suggested questions
+
+#### Knowledge Accumulation
+
+The Knowledge Base is populated by a feedback loop from resolved findings. `indexFindingsToSearch()` (from `apps/azure/src/services/indexService.ts`) performs debounced (5-second) fire-and-forget indexing of findings to the AI Search index whenever findings are updated. Only findings with sufficient context (status, hypothesis, outcome) are indexed. This is the write path that populates Mode 3 — resolved investigations from one user become searchable knowledge for the next.
 
 ---
 
@@ -217,6 +230,8 @@ How AI context changes across IDEOI investigation phases:
 | **Validating** | η² contributions, validation status, validation tasks                     | "What does this η² mean for [factor]?", "Should I drill deeper?"       | Help interpret contribution %, prioritize untested hypotheses       |
 | **Converging** | Supported hypotheses with improvement ideas (text, selected, projections) | "What improvement ideas for [hypothesis]?", "Compare effort vs impact" | Help brainstorm ideas, evaluate existing ones, compare alternatives |
 | **Acting**     | Action items (full text + status), projections, outcomes                  | "How should I approach [action]?", "Is Cpk improving?"                 | Check Capability chart, monitor effectiveness                       |
+
+> **Note:** `buildSuggestedQuestions()` (from `packages/core/src/ai/suggestedQuestions.ts`) is a **pure function** — no AI call is involved. It selects phase-appropriate questions based on the current `AIContext` state (investigation phase, uncovered categories, hypothesis count, action status). These questions appear in the Investigation Sidebar and work in all modes, including when AI is not configured.
 
 ---
 

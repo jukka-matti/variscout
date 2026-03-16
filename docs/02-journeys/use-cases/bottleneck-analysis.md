@@ -85,6 +85,20 @@ The data exists in the MES or a cycle time spreadsheet, but it's displayed as av
 - LinkedIn: "We spent 3 months optimizing the wrong station. Here's how 30 seconds of data analysis would have found the real bottleneck." (narrative)
 - YouTube: "The Aggregation Trap" — 3-minute explainer with VariScout demo
 
+## From Root Cause to Resolution
+
+Once Station 2's setup procedure is identified as the root cause, the investigation continues in VariScout:
+
+1. **Finding pinned:** "Station 2 dominates cycle time spread (28% contribution)" — captured via right-click on the Boxplot category with full filter context
+2. **Hypothesis created:** "Station 2 changeover procedure causes inconsistency" — auto-validated via η² (Station explains 28%, supported)
+3. **Improvement idea added:** "Standardize Station 2 setup with new checklist" — What-If projection shows Cpk improving from 0.85 to 1.3 if Station 2 variation is halved
+4. **Corrective action assigned:** "Recalibrate Station 2 motor and retrain Operator B on setup procedure" — with assignee and due date
+5. **Verification via Staged Analysis:** After implementing the fix, the engineer combines before and after cycle time data with a `Stage` column. VariScout calculates independent control limits per stage — Station 2 spread drops by 60%, overall Cpk rises from 0.85 to 1.35
+6. **Outcome: Effective** — Finding resolved, Cpk before/after recorded (0.85 → 1.35)
+7. _(Azure Team)_ The resolved finding is indexed to the Knowledge Base — next time a similar station variability pattern appears, CoScout can reference this investigation
+
+> See [Investigation Workflow](../flows/azure-daily-use.md#investigation-workflow) for the full 4-phase process.
+
 ## Platform Fit
 
 | Stage              | Product                 | Why                                                                             |

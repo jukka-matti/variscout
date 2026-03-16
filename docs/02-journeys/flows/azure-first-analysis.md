@@ -221,6 +221,29 @@ The analysis workflow (drill-down, ANOVA, mindmap) is identical — skills trans
 
 ---
 
+## First Investigation
+
+After the first drill-down, Gary has identified a factor that explains significant variation. This is a natural moment to create the first finding — capturing the observation while the context is fresh.
+
+### Pinning an Observation
+
+1. **Right-click a Boxplot category** (e.g., "Machine A") → select **"Add observation"** from the context menu
+2. A **Finding** is created automatically with the filter context, chart type, and category name as source metadata
+3. The Finding appears in the **Findings panel** sidebar (slide-in on the right edge)
+4. Status starts at **Observed** — the pattern has been noticed but not yet investigated
+
+### Starting an Investigation
+
+5. Click the Finding to open it → change status to **Investigating**
+6. **Create a hypothesis:** type the suspected cause (e.g., "Machine A has worn bearings") — the hypothesis auto-links to the current factor
+7. _(If AI enabled)_ The **NarrativeBar** updates to reflect the investigation state; clicking **"Ask →"** opens CoScout with the finding's context pre-loaded
+
+For a first-time user, this brief interaction introduces the investigation workflow without overwhelming. The finding persists in IndexedDB (and syncs to OneDrive on Team plan), so Gary can return to it later.
+
+> **Full investigation lifecycle:** Once comfortable with findings, see [Azure Daily Use — Investigation Workflow](azure-daily-use.md#investigation-workflow) for the complete 4-phase journey from discovery through verification.
+
+---
+
 ## See Also
 
 - [Azure App Overview](../../08-products/azure/index.md)

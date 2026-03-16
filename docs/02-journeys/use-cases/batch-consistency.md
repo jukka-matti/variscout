@@ -85,6 +85,20 @@ The variables are numerous: raw material lot, reactor vessel, operator, ambient 
 - LinkedIn: "Same recipe, 100 batches, 15% failure rate. In 30 seconds we found the specific vessel + material combination that explained it all. Here's the analysis." (discovery story)
 - YouTube: "Batch Process Variation Analysis" — 5-minute demo
 
+## From Root Cause to Resolution
+
+Once the Vessel 2 + Supplier B interaction is identified, the process chemist drives the improvement to completion:
+
+1. **Finding pinned:** "Vessel 2 × Supplier B material combination produces worst batches — interaction explains yield failures" — captured from the two-level drill-down Boxplot
+2. **Hypothesis created:** "Vessel 2 reactor lining reacts with Supplier B's higher moisture content" — auto-validated via η² (Vessel × Material Lot interaction confirmed)
+3. **Improvement idea added:** "Pre-dry Supplier B material before loading into Vessel 2" — What-If projection shows Cpk improving from 0.9 to 1.4 if the interaction effect is eliminated
+4. **Corrective action assigned:** "Add pre-drying step to SOP for Vessel 2 when using Supplier B material" — with process engineering owner and validation timeline
+5. **Verification via Staged Analysis:** After 20 batches with the new SOP, the chemist combines before and after batch data with a `Stage` column. VariScout shows Vessel 2 + Supplier B batches now within the same range as other combinations — overall Cpk rises from 0.9 to 1.38
+6. **Outcome: Effective** — Finding resolved, Cpk before/after recorded (0.9 → 1.38), rework rate drops from 15% to under 2%
+7. _(Azure Team)_ The resolved finding is indexed to the Knowledge Base — future batch consistency investigations can reference this vessel-material interaction pattern
+
+> See [Investigation Workflow](../flows/azure-daily-use.md#investigation-workflow) for the full 4-phase process.
+
 ## Platform Fit
 
 | Stage                    | Product                 | Why                                                                             |
