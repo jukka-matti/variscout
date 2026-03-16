@@ -246,6 +246,14 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
                     text: c.text,
                     status: c.status,
                     validationType: c.validationType,
+                    factor: c.factor,
+                    level: c.level,
+                    ideas:
+                      c.ideas && c.ideas.length > 0
+                        ? c.ideas.map(idea => ({ text: idea.text, selected: idea.selected }))
+                        : undefined,
+                    validationTask: c.validationTask,
+                    taskCompleted: c.validationTask ? c.status !== 'untested' : undefined,
                   }))
                 : undefined,
           };

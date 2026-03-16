@@ -316,8 +316,17 @@ export function useEditorAI({
       onOpenFindings();
       const findingText = ctx?.finding?.text;
       if (findingText) {
+        let question = `What should I investigate about this finding: "${findingText}"?`;
+        const ideas = ctx?.finding?.ideas;
+        if (ideas && ideas.length > 0) {
+          const ideaTexts = ideas
+            .slice(0, 5)
+            .map(i => i.text)
+            .join(', ');
+          question += ` Existing ideas: ${ideaTexts}`;
+        }
         setTimeout(() => {
-          coscout.send(`What should I investigate about this finding: "${findingText}"?`);
+          coscout.send(question);
         }, 100);
       }
     },

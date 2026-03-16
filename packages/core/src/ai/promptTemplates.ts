@@ -387,7 +387,14 @@ Never invent data or statistics. If the context does not contain enough informat
       }
       if (sf.actions && sf.actions.length > 0) {
         const done = sf.actions.filter(a => a.status === 'done').length;
-        findingLine += `. Actions: ${done}/${sf.actions.length} complete`;
+        findingLine += `\nActions (${done}/${sf.actions.length} complete):`;
+        const capped = sf.actions.slice(0, 5);
+        for (const a of capped) {
+          findingLine += `\n  - [${a.status}] ${a.text}`;
+        }
+        if (sf.actions.length > 5) {
+          findingLine += `\n  ... and ${sf.actions.length - 5} more`;
+        }
       }
       invParts.push(findingLine);
     }

@@ -68,7 +68,16 @@ export interface FindingCardProps {
   /** Callback to create a new hypothesis and link to a finding */
   onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
   /** Map of hypothesis IDs to hypothesis objects for display */
-  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  hypothesesMap?: Record<
+    string,
+    {
+      text: string;
+      status: string;
+      factor?: string;
+      level?: string;
+      ideas?: Array<{ text: string; selected?: boolean }>;
+    }
+  >;
   /** Callback to add an action item */
   onAddAction?: (id: string, text: string, assignee?: FindingAssignee, dueDate?: string) => void;
   /** Optional slot to render an assignee picker for action items (e.g., PeoplePicker in Azure) */
@@ -93,8 +102,15 @@ export interface FindingCardProps {
   hasSpecs?: boolean;
   /** Callback to ask CoScout about this finding. When provided, shows "Ask CoScout" button. */
   onAskCoScout?: (focusContext: {
-    finding: { text: string; status: string; hypothesis?: string };
+    finding: {
+      text: string;
+      status: string;
+      hypothesis?: string;
+      ideas?: Array<{ text: string; selected?: boolean }>;
+    };
   }) => void;
+  /** Callback to send a direct question to CoScout (used by per-action "Ask" buttons) */
+  onAskCoScoutQuestion?: (question: string) => void;
 }
 
 // ============================================================================
@@ -104,7 +120,16 @@ export interface FindingCardProps {
 interface HypothesisSectionProps {
   findingId: string;
   hypothesisId?: string;
-  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  hypothesesMap?: Record<
+    string,
+    {
+      text: string;
+      status: string;
+      factor?: string;
+      level?: string;
+      ideas?: Array<{ text: string; selected?: boolean }>;
+    }
+  >;
   onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
   readOnly?: boolean;
 }
@@ -206,6 +231,7 @@ interface ActionItemsSectionProps {
   onAddAction: (id: string, text: string, assignee?: FindingAssignee, dueDate?: string) => void;
   onCompleteAction?: (id: string, actionId: string) => void;
   onDeleteAction?: (id: string, actionId: string) => void;
+  onAskCoScout?: (question: string) => void;
   readOnly?: boolean;
   renderActionAssigneePicker?: (onSelect: (a: FindingAssignee) => void) => React.ReactNode;
 }
@@ -216,6 +242,7 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
   onAddAction,
   onCompleteAction,
   onDeleteAction,
+  onAskCoScout,
   readOnly,
   renderActionAssigneePicker,
 }) => {
@@ -294,6 +321,18 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
                   </div>
                 )}
               </div>
+              {!action.completedAt && onAskCoScout && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onAskCoScout(`How should I approach this action: "${action.text}"?`);
+                  }}
+                  className="p-0.5 rounded text-content-muted hover:text-cyan-400 opacity-0 group-hover/action:opacity-100 transition-opacity"
+                  title="Ask CoScout about this action"
+                >
+                  <MessageCircle size={10} />
+                </button>
+              )}
               {!readOnly && onDeleteAction && (
                 <button
                   onClick={e => {
@@ -524,6 +563,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onProjectImprovement,
   hasSpecs = false,
   onAskCoScout,
+  onAskCoScoutQuestion,
   renderActionAssigneePicker,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -676,14 +716,17 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 <button
                   onClick={e => {
                     e.stopPropagation();
-                    const hypothesis = finding.hypothesisId
-                      ? hypothesesMap?.[finding.hypothesisId]?.text
+                    const hyp = finding.hypothesisId
+                      ? hypothesesMap?.[finding.hypothesisId]
                       : undefined;
                     onAskCoScout({
                       finding: {
                         text: finding.text || 'Untitled finding',
                         status,
-                        hypothesis,
+                        hypothesis: hyp?.text,
+                        ideas: (
+                          hyp as { ideas?: Array<{ text: string; selected?: boolean }> } | undefined
+                        )?.ideas,
                       },
                     });
                   }}
@@ -779,6 +822,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             onAddAction={onAddAction}
             onCompleteAction={onCompleteAction}
             onDeleteAction={onDeleteAction}
+            onAskCoScout={onAskCoScoutQuestion}
             readOnly={status === 'resolved'}
             renderActionAssigneePicker={renderActionAssigneePicker}
           />

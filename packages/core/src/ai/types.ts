@@ -101,7 +101,16 @@ export interface AIContext {
       /** Dynamic category name (from InvestigationCategory) */
       category?: string;
       validationType?: string;
-      children?: Array<{ text: string; status: string; validationType?: string }>;
+      children?: Array<{
+        text: string;
+        status: string;
+        validationType?: string;
+        factor?: string;
+        level?: string;
+        ideas?: Array<{ text: string; selected?: boolean }>;
+        validationTask?: string;
+        taskCompleted?: boolean;
+      }>;
     }>;
     /** Current investigation phase (deterministic) */
     phase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'acting';
@@ -112,7 +121,12 @@ export interface AIContext {
   focusContext?: {
     chartType?: InsightChartType;
     category?: { name: string; mean?: number; contributionPct?: number };
-    finding?: { text: string; status: string; hypothesis?: string };
+    finding?: {
+      text: string;
+      status: string;
+      hypothesis?: string;
+      ideas?: Array<{ text: string; selected?: boolean }>;
+    };
   };
   /** Team contributor awareness (Teams plan only) */
   teamContributors?: {

@@ -385,7 +385,9 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).toContain('hypothesis: "Nozzle wear"');
     expect(prompt).toContain('mean -0.50');
     expect(prompt).toContain('sigma -0.12');
-    expect(prompt).toContain('Actions: 1/2 complete');
+    expect(prompt).toContain('Actions (1/2 complete):');
+    expect(prompt).toContain('[done] Replace nozzle');
+    expect(prompt).toContain('[pending] Verify Cpk');
   });
 
   it('includes selected finding without optional fields', () => {
