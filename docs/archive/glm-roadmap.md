@@ -1,10 +1,12 @@
+> **HISTORICAL ONLY** — This document describes deferred math enhancements. Regression UI was removed in Feb 2026 per [ADR-014](../07-decisions/adr-014-regression-deferral.md). Kept for reference only.
+
 # GLM Engine Roadmap
 
-> **Note:** Regression UI has been deferred per [ADR-014](../../07-decisions/adr-014-regression-deferral.md). Core math files (regression.ts, multiRegression.ts, interaction.ts, modelReduction.ts, matrix.ts) are preserved in the repository but unexported from `@variscout/core`. This roadmap applies to Phase 2 re-enablement.
+> **Note:** Regression UI has been deferred per [ADR-014](../07-decisions/adr-014-regression-deferral.md). Core math files (regression.ts, multiRegression.ts, interaction.ts, modelReduction.ts, matrix.ts) are preserved in the repository but unexported from `@variscout/core`. This roadmap applies to Phase 2 re-enablement.
 
 Post-MVP enhancements for VariScout's regression engine. Current implementation uses OLS via the Normal Equations `(X'X)⁻¹X'Y` with categorical dummy coding — the General Linear Model (not Generalized). It works well for typical SPC data (3–6 factors, 100–10K rows, roughly normal distributions).
 
-**Status**: Deferred (Phase 2). See [ADR-014](../../07-decisions/adr-014-regression-deferral.md) for re-enablement criteria.
+**Status**: Deferred (Phase 2). See [ADR-014](../07-decisions/adr-014-regression-deferral.md) for re-enablement criteria.
 
 ## Summary
 

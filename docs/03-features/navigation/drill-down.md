@@ -43,23 +43,9 @@ The drill-down methodology captures **main effects** — how much variation each
 
 > "Machine C is only problematic on Night shift"
 
-### The Guidance Prompt
-
-When 2+ factors are in your drill stack, the Investigation Mindmap's Interaction mode shows factor relationships visually as edges between nodes. The Mindmap also surfaces a guidance prompt:
-
-```
-┌────────────────────────────────────────────────┐
-│ Analyzing multiple factors?                    │
-│                                                │
-│ Your drill-down shows main effects. To check  │
-│ if factors interact, use the Regression Panel │
-│ with "Include interactions".                  │
-│                                                │
-│ [Check Interactions →]                        │
-└────────────────────────────────────────────────┘
-```
-
 ### When Interactions Matter
+
+**Note:** Interaction detection is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)). Currently, the drill-down captures main effects only.
 
 | Scenario                     | Recommendation                                                    |
 | ---------------------------- | ----------------------------------------------------------------- |

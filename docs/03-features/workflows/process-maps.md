@@ -244,7 +244,7 @@ _"What's causing variation?"_
       <div class="process-step">
         <div class="process-step__box process-step__box--analyze">
           <div class="process-step__title">Filter Top Factor</div>
-          <div class="process-step__detail">Click bar or mindmap node</div>
+          <div class="process-step__detail">Click Boxplot bar</div>
         </div>
         <div class="process-step__clicks">1 click</div>
       </div>
@@ -270,7 +270,7 @@ _"What's causing variation?"_
       </div>
     </div>
 
-    Azure's mindmap provides an alternative drill-down path alongside the Boxplot.
+    Azure provides drill-down through the Boxplot and filter chips.
 
 ---
 

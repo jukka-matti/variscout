@@ -1,7 +1,9 @@
+> **HISTORICAL ONLY** — This document describes a deferred roadmap. Regression UI was removed in Feb 2026 per [ADR-014](../07-decisions/adr-014-regression-deferral.md). Kept for reference only.
+
 # Phase 2: Regression Re-enablement Roadmap
 
-> **Status:** Planned — not started
-> **Prerequisite:** [ADR-014](../../07-decisions/adr-014-regression-deferral.md) re-enablement criteria must be met
+> **Status:** Deferred — not started
+> **Prerequisite:** [ADR-014](../07-decisions/adr-014-regression-deferral.md) re-enablement criteria must be met
 > **Related:** [GLM Roadmap](glm-roadmap.md) (core math enhancements)
 
 ---
@@ -160,10 +162,10 @@ git show 35339a3^:packages/ui/src/components/__tests__/RegressionPanel.test.tsx
 
 ## Cross-references
 
-| Topic                                       | Document                                                                          |
-| ------------------------------------------- | --------------------------------------------------------------------------------- |
-| Deferral decision and criteria              | [ADR-014](../../07-decisions/adr-014-regression-deferral.md)                      |
-| Core math enhancement details               | [GLM Roadmap](glm-roadmap.md)                                                     |
-| Variation decomposition (ANOVA, drill-down) | [Variation Decomposition](../../03-features/analysis/variation-decomposition.md)  |
-| Investigation workflow                      | [Investigation to Action](../../03-features/workflows/investigation-to-action.md) |
-| What-If simulation (direct mode)            | [What-If Simulator](../../06-design-system/components/what-if-simulator.md)       |
+| Topic                                       | Document                                                                       |
+| ------------------------------------------- | ------------------------------------------------------------------------------ |
+| Deferral decision and criteria              | [ADR-014](../../07-decisions/adr-014-regression-deferral.md)                   |
+| Core math enhancement details               | [GLM Roadmap](glm-roadmap.md)                                                  |
+| Variation decomposition (ANOVA, drill-down) | [Variation Decomposition](../03-features/analysis/variation-decomposition.md)  |
+| Investigation workflow                      | [Investigation to Action](../03-features/workflows/investigation-to-action.md) |
+| What-If simulation (direct mode)            | [What-If Simulator](../06-design-system/components/what-if-simulator.md)       |

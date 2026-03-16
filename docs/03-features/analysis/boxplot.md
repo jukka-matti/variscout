@@ -46,7 +46,7 @@ When comparing factors, VariScout calculates:
 | p-value          | Probability of chance difference |
 | η² (eta-squared) | Proportion of variance explained |
 
-See [Variation Decomposition](variation-decomposition.md) for how η² relates to the category-level Total SS metrics shown in the Mindmap and contribution labels.
+See [Variation Decomposition](variation-decomposition.md) for how η² relates to the category-level Total SS metrics shown in contribution labels and filter chips.
 
 ---
 

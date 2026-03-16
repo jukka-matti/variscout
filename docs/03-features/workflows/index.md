@@ -43,7 +43,7 @@ Use this progression for systematic root cause analysis.
 VariScout's signature interaction pattern—progressive stratification using filter chips to isolate variation sources.
 
 - Filter chips show contribution percentage
-- Cumulative tracking via VariationBar and Investigation Mindmap
+- Cumulative tracking via VariationBar and filter chips
 - Multi-select for combined effects
 
 ### [Performance Mode](performance-mode-workflow.md)

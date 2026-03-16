@@ -25,14 +25,13 @@ Centralized feature specifications for VariScout.
 
 The core statistical charts based on Watson's Four Lenses:
 
-| Chart                                                      | Lens    | Purpose                                      |
-| ---------------------------------------------------------- | ------- | -------------------------------------------- |
-| [I-Chart](analysis/i-chart.md)                             | CHANGE  | Time-based stability analysis                |
-| [Boxplot](analysis/boxplot.md)                             | FLOW    | Factor comparison (includes Violin Mode)     |
-| [Pareto](analysis/pareto.md)                               | FAILURE | Problem concentration                        |
-| [Capability](analysis/capability.md)                       | VALUE   | Specification compliance                     |
-| [Regression (Phase 2, deferred)](../archive/regression.md) | -       | Correlation analysis (deferred, see ADR-014) |
-| [Performance Mode](analysis/performance-mode.md)           | -       | Multi-channel analysis                       |
+| Chart                                            | Lens    | Purpose                                  |
+| ------------------------------------------------ | ------- | ---------------------------------------- |
+| [I-Chart](analysis/i-chart.md)                   | CHANGE  | Time-based stability analysis            |
+| [Boxplot](analysis/boxplot.md)                   | FLOW    | Factor comparison (includes Violin Mode) |
+| [Pareto](analysis/pareto.md)                     | FAILURE | Problem concentration                    |
+| [Capability](analysis/capability.md)             | VALUE   | Specification compliance                 |
+| [Performance Mode](analysis/performance-mode.md) | -       | Multi-channel analysis                   |
 
 ### Advanced Analysis
 

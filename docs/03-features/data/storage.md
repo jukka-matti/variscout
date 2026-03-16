@@ -53,7 +53,7 @@ When `filterStack` is present, flat `filters` are derived from it on load. When 
 | ---------------- | ---------------- | ----------- | -------------------------------- |
 | `displayOptions` | `DisplayOptions` | (see below) | Toggles, annotations, highlights |
 
-`DisplayOptions` includes: `lockYAxisToFullData` (true), `showControlLimits` (true), `showViolin` (false), `showFilterContext` (true), `showSpecs` (true), `showCpk` (true), boxplot sort/highlights, pareto highlights, chart annotations (boxplot, pareto, I-Chart), and mindmap step annotations.
+`DisplayOptions` includes: `lockYAxisToFullData` (true), `showControlLimits` (true), `showViolin` (false), `showFilterContext` (true), `showSpecs` (true), `showCpk` (true), boxplot sort/highlights, pareto highlights, and chart annotations (boxplot, pareto, I-Chart).
 
 ### Settings
 
@@ -86,14 +86,6 @@ Factor roles are auto-inferred during `detectColumns()` using the parser keyword
 | `selectedMeasure`   | `string \| null` | `null`      | Active channel drill           |
 | `measureLabel`      | `string`         | `'Measure'` | Measure axis label             |
 
-### Regression State
-
-| Field             | Type                         | Default     | Notes                                 |
-| ----------------- | ---------------------------- | ----------- | ------------------------------------- |
-| `regressionState` | `RegressionPersistenceState` | `undefined` | Regression panel selections + history |
-
-`RegressionPersistenceState` includes: `mode` ('simple' | 'advanced'), `selectedXColumns`, `advSelectedPredictors`, `categoricalColumns` (Set serialized as array), `includeInteractions`, `reductionHistory` (guided model reduction trail), and `dataRowCount` (row count at time of model fitting — used to detect data staleness). The regression model itself recomputes from data + predictors — only selections are persisted.
-
 ### View State
 
 | Field       | Type        | Default     | Notes                         |
@@ -111,7 +103,7 @@ These are ephemeral UI states that reset on each session:
 - What-If simulator slider positions
 - Point selections (Minitab-style brushing)
 - Data quality report (recomputed from raw data)
-- Investigation mindmap computation (recomputes from drill path + data)
+- Investigation state (recomputes findings display from data)
 
 ---
 
@@ -146,7 +138,6 @@ Old `.vrs` files load without error. Every new field is optional with a safe def
 
 - Missing `processContext` → empty object, no process metadata
 - Missing `filterStack` → breadcrumbs empty, flat `filters` still work
-- Missing `regressionState` → fresh regression panel
 - Missing `viewState` → Analysis tab, all panels closed
 - Missing `cpkTarget` → defaults to 1.33
 - Missing Performance Mode fields → Performance Mode off
@@ -157,19 +148,19 @@ Old `.vrs` files load without error. Every new field is optional with a safe def
 
 What happens to persisted state when data changes mid-analysis:
 
-| Change        | filterStack | regressionState                | viewState         | specs |
-| ------------- | ----------- | ------------------------------ | ----------------- | ----- |
-| Edit cells    | valid       | stale (indicator shown)        | valid             | valid |
-| Append rows   | valid       | stale (indicator shown)        | valid             | valid |
-| Add columns   | valid       | valid                          | valid             | valid |
-| Add factor    | valid       | valid                          | valid             | valid |
-| Remove factor | cleaned     | valid (predictors auto-remove) | factor refs reset | valid |
+| Change        | filterStack | viewState         | specs |
+| ------------- | ----------- | ----------------- | ----- |
+| Edit cells    | valid       | valid             | valid |
+| Append rows   | valid       | valid             | valid |
+| Add columns   | valid       | valid             | valid |
+| Add factor    | valid       | valid             | valid |
+| Remove factor | cleaned     | factor refs reset | valid |
 
 **Staleness strategy:**
 
 - **Additive changes** (add rows, add columns, add factors): no invalidation. New data is available, old analysis stays valid.
 - **Subtractive changes** (remove factor): clean dependent state (filterStack, viewState factor refs).
-- **Mutation changes** (edit cells, add rows): regression model becomes stale. Amber indicator shown, model not auto-cleared.
+- **Mutation changes** (edit cells, add rows): Findings retain their observations but should be reviewed against updated data.
 
 ---
 

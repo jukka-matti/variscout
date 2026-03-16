@@ -509,12 +509,12 @@ Comprehensive hover tooltips explain statistical terms throughout the app. Hover
 
 **Coverage:**
 
-| Component        | Terms Explained                        |
-| ---------------- | -------------------------------------- |
-| Stats Panel      | Pass Rate, Rejected %, Cp, Cpk         |
-| ANOVA Results    | p-value, F-statistic, η² (eta-squared) |
-| Dashboard        | UCL, LCL, Mean (control limits)        |
-| Regression Panel | R², p-value, slope                     |
+| Component     | Terms Explained                        |
+| ------------- | -------------------------------------- |
+| Stats Panel   | Pass Rate, Rejected %, Cp, Cpk         |
+| ANOVA Results | p-value, F-statistic, η² (eta-squared) |
+| Dashboard     | UCL, LCL, Mean (control limits)        |
+| Scatter Plot  | R², p-value, slope                     |
 
 **Example Tooltips:**
 
@@ -661,7 +661,7 @@ The dashboard uses a scrollable layout with minimum chart heights for comfortabl
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  🏠 All Data > Machine: A  [Clear All]    (sticky header)   │
-│  [Analysis] [Regression]                                     │
+│  [Analysis]                                                    │
 ├─────────────────────────────────────────────────────────────┤
 │  I-Chart                                    [Outcome ▼]     │
 │                                                             │
@@ -836,7 +836,7 @@ NO backend. NO API calls. Works offline after first visit.
 
 ### Free (PWA)
 
-- All core chart types (I-Chart, Boxplot, Pareto, Capability, Regression, ANOVA)
+- All core chart types (I-Chart, Boxplot, Pareto, Capability, ANOVA)
 - Copy-paste data input + sample datasets
 - VariScout branding on charts
 - Session-only storage (no save)
@@ -919,15 +919,6 @@ Add ANOVA calculations below the existing boxplot visualization:
 - F-ratio and p-value
 - Plain-language interpretation: "Different? YES (p = 0.003)"
 - No separate t-test needed (2-group ANOVA is mathematically equivalent)
-
-### Regression Tab
-
-A new tab with 2×2 grid of scatter plots:
-
-- Each plot shows one X-Y relationship with regression line
-- R² value with star rating (★★★★★ for > 0.9)
-- Auto-fit intelligence (recommends quadratic when appropriate)
-- Summary ranking: "Temperature → Speed → Pressure" by R² strength
 
 ---
 
