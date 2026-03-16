@@ -114,6 +114,7 @@ export { useResizablePanel, type UseResizablePanelReturn } from './useResizableP
 
 // Chart Data Hooks (shared computation for app wrappers)
 export { useBoxplotData } from './useBoxplotData';
+export type { ViolinDataMap, UseBoxplotDataResult } from './useBoxplotData';
 export { useIChartData } from './useIChartData';
 
 // Focused Chart Navigation

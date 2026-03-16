@@ -83,3 +83,9 @@ pnpm -r build           # Build recursively
 - Root devDependencies: Shared tooling (TypeScript, ESLint)
 - Package dependencies: Package-specific needs
 - Use `workspace:*` for internal package references
+
+## Naming Conventions
+
+- **`*Base`** — Shared primitive component in `@variscout/ui` (e.g., `StatsPanelBase`, `DashboardGrid`). Accepts data/callbacks via props, no app-specific logic.
+- **`*WrapperBase`** — App-level chart wrapper in `@variscout/ui` (e.g., `IChartWrapperBase`, `BoxplotWrapperBase`). Composes shared hooks + Base chart + app UI (display toggles, context menu). Each app imports WrapperBase and adds ~50 lines of app-specific wiring.
+- App wrappers (in `apps/*/`) import `*WrapperBase` or `*Base` and add app-specific context, persistence, and keyboard navigation.

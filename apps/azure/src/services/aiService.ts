@@ -485,26 +485,43 @@ export async function fetchFindingsReport(
 
   const provider = detectProvider(endpoint);
   const headers = await getAuthHeaders();
-  const { url, body } = formatRequest(provider, messages, {
-    max_tokens: 2000,
-    temperature: 0.3,
-  });
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body,
-    signal: AbortSignal.timeout(30_000),
-  });
+  // Retry with exponential backoff (max 3 attempts)
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+    }
 
-  if (!response.ok) {
-    const errorType = classifyError(response.status);
-    throw new Error(`AI report request failed (${errorType}): ${response.status}`);
+    try {
+      const { url, body } = formatRequest(provider, messages, {
+        max_tokens: 2000,
+        temperature: 0.3,
+      });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body,
+        signal: AbortSignal.timeout(30_000),
+      });
+
+      if (!response.ok) {
+        const errorType = classifyError(response.status);
+        if (errorType === 'rate-limit' && attempt < 2) continue;
+        throw new Error(`AI report request failed (${errorType}): ${response.status}`);
+      }
+
+      const data = await response.json();
+      const text = parseResponseText(provider, data);
+      if (!text) throw new Error('Empty response from AI');
+
+      return text;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (attempt === 2) throw lastError;
+    }
   }
 
-  const data = await response.json();
-  const text = parseResponseText(provider, data);
-  if (!text) throw new Error('Empty response from AI');
-
-  return text;
+  throw lastError || new Error('AI report request failed');
 }

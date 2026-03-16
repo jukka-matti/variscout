@@ -365,7 +365,12 @@ async function loadFromCloud(
     throw new Error(`Failed to load: ${response.status}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  if (!data || typeof data !== 'object') {
+    console.warn('[Storage] Invalid .vrs data from cloud');
+    return null;
+  }
+  return data;
 }
 
 async function listFromCloud(token: string, location: StorageLocation): Promise<CloudProject[]> {

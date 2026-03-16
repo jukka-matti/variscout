@@ -2,6 +2,8 @@ export {
   FindingsPanelBase,
   type FindingsPanelBaseProps,
   type FindingsPanelResizeConfig,
+  type FindingsPanelColorScheme,
+  defaultFindingsPanelColorScheme,
 } from './FindingsPanelBase';
 
 export { default as BriefHeader, type BriefHeaderProps } from './BriefHeader';

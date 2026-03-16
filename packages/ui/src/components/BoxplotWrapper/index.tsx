@@ -99,7 +99,12 @@ export const BoxplotWrapperBase = ({
   onDeleteFinding,
 }: BoxplotWrapperBaseProps) => {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
-  const rawData = useBoxplotData(filteredData, factor, outcome);
+  const { data: rawData, violinData } = useBoxplotData(
+    filteredData,
+    factor,
+    outcome,
+    displayOptions.showViolin
+  );
   const data = sortBoxplotData(
     rawData,
     displayOptions.boxplotSortBy,
@@ -156,6 +161,7 @@ export const BoxplotWrapperBase = ({
         categoryContributions={categoryContributions}
         showContributionLabels={displayOptions.showContributionLabels}
         showViolin={displayOptions.showViolin}
+        violinData={violinData}
         parentWidth={parentWidth}
         parentHeight={parentHeight}
         showBranding={showBranding}

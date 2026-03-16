@@ -51,6 +51,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
   onXAxisClick,
   xTickFormat,
   showViolin = false,
+  violinData: violinDataProp,
   highlightedCategories,
   onBoxContextMenu,
 }) => {
@@ -126,9 +127,10 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     [height, yDomain]
   );
 
-  // Pre-compute KDE data for all groups when violin mode is enabled
+  // Use pre-computed KDE data from prop, or compute internally as fallback
   const violinData = useMemo(() => {
     if (!showViolin) return new Map<string, Array<{ value: number; count: number }>>();
+    if (violinDataProp && violinDataProp.size > 0) return violinDataProp;
     const map = new Map<string, Array<{ value: number; count: number }>>();
     for (const d of data) {
       if (d.values.length >= 2) {
@@ -136,7 +138,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
       }
     }
     return map;
-  }, [data, showViolin]);
+  }, [data, showViolin, violinDataProp]);
 
   if (data.length === 0) return null;
 

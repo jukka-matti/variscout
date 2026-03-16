@@ -37,7 +37,8 @@ function getClient() {
 
 /**
  * Validate that the JWT's audience matches our app's CLIENT_ID.
- * Prevents the function from exchanging tokens issued for other apps.
+ * Pre-check only — MSAL performs full cryptographic token validation during
+ * OBO exchange. This prevents unnecessary OBO calls for tokens issued to other apps.
  */
 function validateAudience(token) {
   try {

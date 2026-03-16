@@ -160,6 +160,7 @@ describe('useChartInsights', () => {
   });
 
   it('replaces deterministic with AI text on success', async () => {
+    vi.useFakeTimers();
     const fetchInsight = vi.fn().mockResolvedValue('AI: Check fill head alignment');
     const stableContext = { process: {}, filters: [] } as UseChartInsightsOptions['aiContext'];
     const stableData = baseOptions.deterministicData;
@@ -175,18 +176,20 @@ describe('useChartInsights', () => {
       })
     );
 
-    // Wait for debounce + async fetch to complete
+    // Advance past debounce + let async fetch settle
     await act(async () => {
-      await new Promise(r => setTimeout(r, 50));
+      await vi.advanceTimersByTimeAsync(50);
     });
 
     expect(fetchInsight).toHaveBeenCalled();
     expect(result.current.chipText).toBe('AI: Check fill head alignment');
     expect(result.current.isAI).toBe(true);
     expect(result.current.isLoading).toBe(false);
+    vi.useRealTimers();
   });
 
   it('falls back to deterministic on AI error', async () => {
+    vi.useFakeTimers();
     const fetchInsight = vi.fn().mockRejectedValue(new Error('API error'));
     const stableContext = { process: {}, filters: [] } as UseChartInsightsOptions['aiContext'];
     const stableData = baseOptions.deterministicData;
@@ -203,16 +206,18 @@ describe('useChartInsights', () => {
     );
 
     await act(async () => {
-      await new Promise(r => setTimeout(r, 50));
+      await vi.advanceTimersByTimeAsync(50);
     });
 
     expect(fetchInsight).toHaveBeenCalled();
     expect(result.current.chipText).toBe('Process shift detected');
     expect(result.current.isAI).toBe(false);
     expect(result.current.isLoading).toBe(false);
+    vi.useRealTimers();
   });
 
   it('does not call fetchInsight when deterministic insight is null', async () => {
+    vi.useFakeTimers();
     const fetchInsight = vi.fn().mockResolvedValue('Should not be called');
 
     renderHook(() =>
@@ -227,13 +232,15 @@ describe('useChartInsights', () => {
       })
     );
 
-    // Wait longer than the debounce to confirm fetch is never called
-    await new Promise(r => setTimeout(r, 50));
+    // Advance past debounce to confirm fetch is never called
+    await vi.advanceTimersByTimeAsync(50);
 
     expect(fetchInsight).not.toHaveBeenCalled();
+    vi.useRealTimers();
   });
 
   it('does not call fetchInsight when aiContext is null', async () => {
+    vi.useFakeTimers();
     const fetchInsight = vi.fn().mockResolvedValue('Should not be called');
 
     renderHook(() =>
@@ -246,9 +253,10 @@ describe('useChartInsights', () => {
       })
     );
 
-    await new Promise(r => setTimeout(r, 50));
+    await vi.advanceTimersByTimeAsync(50);
 
     expect(fetchInsight).not.toHaveBeenCalled();
+    vi.useRealTimers();
   });
 
   // -----------------------------------------------------------------------

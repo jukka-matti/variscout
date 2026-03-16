@@ -151,6 +151,8 @@ export interface BoxplotProps extends BaseChartProps {
   xTickFormat?: (value: string) => string;
   /** Show violin (density) overlay behind box elements (default: false) */
   showViolin?: boolean;
+  /** Pre-computed KDE violin data (category key → density points). When provided, skips internal KDE computation. */
+  violinData?: Map<string, Array<{ value: number; count: number }>>;
   /** Highlighted categories with annotation colors (category key → color) */
   highlightedCategories?: Record<string, HighlightColor>;
   /** Callback when a box is right-clicked (for annotation context menu) */

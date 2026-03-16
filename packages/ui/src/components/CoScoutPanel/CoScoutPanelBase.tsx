@@ -11,6 +11,17 @@ export interface CoScoutPanelResizeConfig {
   defaultWidth?: number;
 }
 
+/** Customizable classes for app-specific styling of the CoScout panel. */
+export interface CoScoutPanelColorScheme {
+  container: string;
+  headerBg: string;
+}
+
+export const defaultCoScoutPanelColorScheme: CoScoutPanelColorScheme = {
+  container: 'bg-surface-secondary border-l border-edge',
+  headerBg: 'border-b border-edge',
+};
+
 export interface CoScoutPanelBaseProps {
   isOpen: boolean;
   onClose: () => void;
@@ -26,6 +37,8 @@ export interface CoScoutPanelBaseProps {
   onSuggestedQuestionClick?: (question: string) => void;
   isStreaming?: boolean;
   onStopStreaming?: () => void;
+  /** Customizable color scheme (defaults to defaultCoScoutPanelColorScheme) */
+  colorScheme?: Partial<CoScoutPanelColorScheme>;
 }
 
 const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
@@ -43,7 +56,9 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   onSuggestedQuestionClick,
   isStreaming,
   onStopStreaming,
+  colorScheme: csOverride,
 }) => {
+  const cs = { ...defaultCoScoutPanelColorScheme, ...csOverride };
   const [input, setInput] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
@@ -177,12 +192,12 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
 
       {/* Panel */}
       <div
-        className="flex-shrink-0 bg-surface-secondary border-l border-edge flex flex-col overflow-hidden"
+        className={`flex-shrink-0 ${cs.container} flex flex-col overflow-hidden`}
         style={{ width }}
         data-testid="coscout-panel"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
+        <div className={`flex items-center justify-between px-4 py-3 ${cs.headerBg}`}>
           <h2 className="text-sm font-semibold text-content">CoScout</h2>
           <div className="flex items-center gap-1">
             {/* Overflow menu */}

@@ -30,6 +30,8 @@ export interface UseDashboardComputedDataOptions {
   boxplotSortBy?: BoxplotSortBy;
   /** Boxplot sort direction */
   boxplotSortDirection?: BoxplotSortDirection;
+  /** Pre-computed boxplot data from useBoxplotData — skips redundant calculation when provided */
+  precomputedBoxplotData?: BoxplotGroupData[];
 }
 
 export interface UseDashboardComputedDataResult {
@@ -50,6 +52,7 @@ export function useDashboardComputedData({
   boxplotFactor,
   boxplotSortBy,
   boxplotSortDirection,
+  precomputedBoxplotData,
 }: UseDashboardComputedDataOptions): UseDashboardComputedDataResult {
   // Computed: available outcome columns (numeric)
   const availableOutcomes = useMemo(() => {
@@ -90,8 +93,11 @@ export function useDashboardComputedData({
     return calculateAnova(filteredData, outcome, boxplotFactor);
   }, [filteredData, outcome, boxplotFactor]);
 
-  // Computed: boxplot data
+  // Computed: boxplot data (skip when pre-computed data is provided)
   const boxplotData: BoxplotGroupData[] = useMemo(() => {
+    if (precomputedBoxplotData) {
+      return sortBoxplotData(precomputedBoxplotData, boxplotSortBy, boxplotSortDirection);
+    }
     if (!outcome || !boxplotFactor || filteredData.length === 0) return [];
 
     const groups = new Map<string, number[]>();
@@ -108,7 +114,14 @@ export function useDashboardComputedData({
       calculateBoxplotStats({ group, values })
     );
     return sortBoxplotData(unsorted, boxplotSortBy, boxplotSortDirection);
-  }, [filteredData, outcome, boxplotFactor, boxplotSortBy, boxplotSortDirection]);
+  }, [
+    filteredData,
+    outcome,
+    boxplotFactor,
+    boxplotSortBy,
+    boxplotSortDirection,
+    precomputedBoxplotData,
+  ]);
 
   return {
     availableOutcomes,

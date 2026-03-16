@@ -1,17 +1,30 @@
 import { useMemo } from 'react';
 import { group, quantile, ascending, mean } from 'd3-array';
+import { calculateKDE } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
+
+/** Pre-computed KDE density data keyed by category */
+export type ViolinDataMap = Map<string, Array<{ value: number; count: number }>>;
+
+export interface UseBoxplotDataResult {
+  data: BoxplotGroupData[];
+  violinData: ViolinDataMap;
+}
 
 /**
  * Shared hook to compute BoxplotGroupData[] from filtered data.
  * Used by both PWA and Azure Boxplot wrappers.
+ *
+ * When showViolin is true, also pre-computes KDE density data
+ * so the chart component doesn't need to recompute on every render.
  */
 export function useBoxplotData(
   filteredData: Record<string, unknown>[],
   factor: string,
-  outcome: string | null
-): BoxplotGroupData[] {
-  return useMemo(() => {
+  outcome: string | null,
+  showViolin: boolean = false
+): UseBoxplotDataResult {
+  const data = useMemo(() => {
     if (!outcome) return [];
     const groups = group(filteredData, (d: Record<string, unknown>) => d[factor]);
     return Array.from(groups, ([key, groupValues]) => {
@@ -40,4 +53,19 @@ export function useBoxplotData(
       };
     }).filter((d): d is BoxplotGroupData => d !== null);
   }, [filteredData, factor, outcome]);
+
+  const violinData = useMemo(() => {
+    if (!showViolin || data.length === 0) {
+      return new Map<string, Array<{ value: number; count: number }>>();
+    }
+    const map = new Map<string, Array<{ value: number; count: number }>>();
+    for (const d of data) {
+      if (d.values.length >= 2) {
+        map.set(d.key, calculateKDE(d.values));
+      }
+    }
+    return map;
+  }, [data, showViolin]);
+
+  return { data, violinData };
 }

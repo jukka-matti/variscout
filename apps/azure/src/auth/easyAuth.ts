@@ -38,7 +38,10 @@ interface EasyAuthProvider {
 }
 
 export function isLocalDev(): boolean {
-  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  return (
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+    import.meta.env.DEV
+  );
 }
 
 const LOCAL_USER: EasyAuthUser = {
@@ -178,11 +181,13 @@ export function stopPeriodicRefresh(): void {
   }
 }
 
-/** Redirect to EasyAuth logout. */
+/** Redirect to EasyAuth logout. Clears graph token cache before redirect. */
 export function logout(): void {
   if (isLocalDev()) {
     window.location.reload();
     return;
   }
+  // Dynamic import to avoid circular dependency (graphToken imports from easyAuth)
+  import('./graphToken').then(m => m.clearGraphTokenCache()).catch(() => {});
   window.location.href = '/.auth/logout';
 }

@@ -248,6 +248,8 @@ export {
   FindingsPanelBase,
   type FindingsPanelBaseProps,
   type FindingsPanelResizeConfig,
+  type FindingsPanelColorScheme,
+  defaultFindingsPanelColorScheme,
   BriefHeader,
   type BriefHeaderProps,
   FindingDetailPanel,
@@ -317,6 +319,8 @@ export {
   CoScoutPanelBase,
   type CoScoutPanelBaseProps,
   type CoScoutPanelResizeConfig,
+  type CoScoutPanelColorScheme,
+  defaultCoScoutPanelColorScheme,
   CoScoutMessages,
   type CoScoutMessagesProps,
 } from './components/CoScoutPanel';

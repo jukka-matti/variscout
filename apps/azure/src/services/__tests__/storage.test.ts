@@ -638,11 +638,12 @@ describe('storage service', () => {
         .mockResolvedValueOnce({ name: 'queued-1', synced: false })
         .mockResolvedValueOnce({ name: 'queued-2', synced: false });
 
+      vi.useFakeTimers();
       renderHook(() => useStorage(), { wrapper });
 
       // Wait for mount sync to settle
       await act(async () => {
-        await new Promise(r => setTimeout(r, 50));
+        await vi.advanceTimersByTimeAsync(50);
       });
 
       // Clear call counts from mount sync so we only assert on the online event
@@ -651,8 +652,9 @@ describe('storage service', () => {
       // Fire online event (simulating reconnection)
       await act(async () => {
         window.dispatchEvent(new Event('online'));
-        await new Promise(r => setTimeout(r, 100));
+        await vi.advanceTimersByTimeAsync(100);
       });
+      vi.useRealTimers();
 
       expect(mockRemoveFromQueue).toHaveBeenCalledWith('queued-1');
       expect(mockRemoveFromQueue).toHaveBeenCalledWith('queued-2');
@@ -693,18 +695,20 @@ describe('storage service', () => {
 
       mockProjects.get.mockResolvedValueOnce({ name: 'ok-item', synced: false });
 
+      vi.useFakeTimers();
       const { result } = renderHook(() => useStorage(), { wrapper });
 
       // Wait for mount sync to settle
       await act(async () => {
-        await new Promise(r => setTimeout(r, 50));
+        await vi.advanceTimersByTimeAsync(50);
       });
 
       // Fire online event to trigger partial sync
       await act(async () => {
         window.dispatchEvent(new Event('online'));
-        await new Promise(r => setTimeout(r, 100));
+        await vi.advanceTimersByTimeAsync(100);
       });
+      vi.useRealTimers();
 
       expect(result.current.syncStatus.status).toBe('offline');
       expect(result.current.syncStatus.pendingChanges).toBe(1);
