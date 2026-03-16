@@ -76,6 +76,12 @@ export const operatorColors = [
   '#84cc16', // lime-500
 ] as const;
 
+// Stage colors for dual-stage boxplot (before/after comparison)
+export const stageColors = [
+  '#94a3b8', // slate-400 — "before" stage
+  '#3b82f6', // blue-500 — "after" stage
+] as const;
+
 // Executive palette - Consulting grade (clean, minimal, authoritative)
 export const executiveColors = {
   // Status colors - Muted, professional tones

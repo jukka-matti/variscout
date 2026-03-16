@@ -10,11 +10,13 @@
  * then renders BoxplotBase + ChartAnnotationLayer + AxisEditor with the results.
  */
 import { useMemo } from 'react';
-import { getResponsiveMargins } from '@variscout/charts';
+import { getResponsiveMargins, stageColors } from '@variscout/charts';
 import { computeCategoryDirectionColors } from '@variscout/core';
 import type { BoxplotGroupData } from '@variscout/charts';
 import type { SpecLimits } from '@variscout/core';
 import type { HighlightColor, DisplayOptions } from './types';
+import type { StageInfo } from './useBoxplotData';
+import { STAGE_SEPARATOR } from './useBoxplotData';
 
 export interface UseBoxplotWrapperDataOptions {
   /** Sorted boxplot group data */
@@ -27,6 +29,8 @@ export interface UseBoxplotWrapperDataOptions {
   parentWidth: number;
   /** Manual annotation highlights from useAnnotations */
   highlightedCategories?: Record<string, HighlightColor>;
+  /** Stage info from useBoxplotData (when staged) */
+  stageInfo?: StageInfo;
 }
 
 export interface UseBoxplotWrapperDataResult {
@@ -34,6 +38,10 @@ export interface UseBoxplotWrapperDataResult {
   categoryPositions: Map<string, { x: number; y: number }>;
   /** Merged highlight colors (auto-direction + manual annotations) */
   effectiveHighlights: Record<string, HighlightColor> | undefined;
+  /** Per-key fill color overrides for staged boxplot */
+  fillOverrides?: Record<string, string>;
+  /** X-axis tick formatter that strips stage suffix from composite keys */
+  xTickFormat?: (value: string) => string;
 }
 
 export function useBoxplotWrapperData({
@@ -42,6 +50,7 @@ export function useBoxplotWrapperData({
   displayOptions,
   parentWidth,
   highlightedCategories,
+  stageInfo,
 }: UseBoxplotWrapperDataOptions): UseBoxplotWrapperDataResult {
   // Compute category positions for annotation layer
   const categoryPositions = useMemo(() => {
@@ -77,8 +86,35 @@ export function useBoxplotWrapperData({
     return { ...autoColors, ...highlightedCategories };
   }, [autoColors, highlightedCategories]);
 
+  // Stage fill color overrides (maps composite keys to stage colors)
+  const fillOverrides = useMemo(() => {
+    if (!stageInfo) return undefined;
+    const overrides: Record<string, string> = {};
+    for (const d of data) {
+      const sepIdx = d.key.lastIndexOf(STAGE_SEPARATOR);
+      if (sepIdx === -1) continue;
+      const stage = d.key.slice(sepIdx + STAGE_SEPARATOR.length);
+      const stageIdx = stageInfo.stageKeys.indexOf(stage);
+      if (stageIdx >= 0) {
+        overrides[d.key] = stageColors[stageIdx % stageColors.length];
+      }
+    }
+    return Object.keys(overrides).length > 0 ? overrides : undefined;
+  }, [data, stageInfo]);
+
+  // X-axis tick formatter: strip stage suffix from composite keys
+  const xTickFormat = useMemo(() => {
+    if (!stageInfo) return undefined;
+    return (value: string): string => {
+      const sepIdx = value.lastIndexOf(STAGE_SEPARATOR);
+      return sepIdx === -1 ? value : value.slice(0, sepIdx);
+    };
+  }, [stageInfo]);
+
   return {
     categoryPositions,
     effectiveHighlights,
+    fillOverrides,
+    xTickFormat,
   };
 }

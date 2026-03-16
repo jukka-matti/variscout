@@ -157,6 +157,10 @@ export interface BoxplotProps extends BaseChartProps {
   highlightedCategories?: Record<string, HighlightColor>;
   /** Callback when a box is right-clicked (for annotation context menu) */
   onBoxContextMenu?: (key: string, event: React.MouseEvent) => void;
+  /** Per-key fill color overrides (key → hex). Priority: highlightedCategories > fillOverrides > selection > default */
+  fillOverrides?: Record<string, string>;
+  /** Draw thin dashed vertical separator lines between every N boxes (for staged grouping) */
+  groupSize?: number;
 }
 
 /**
@@ -197,6 +201,8 @@ export interface ParetoChartProps extends BaseChartProps {
   highlightedCategories?: Record<string, HighlightColor>;
   /** Callback when a bar is right-clicked (for annotation context menu) */
   onBarContextMenu?: (key: string, event: React.MouseEvent) => void;
+  /** Show rank change indicators when comparisonData is present */
+  showRankChange?: boolean;
 }
 
 /**

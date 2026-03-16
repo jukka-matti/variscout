@@ -39,6 +39,7 @@ export {
   chartColors,
   chromeColors,
   operatorColors,
+  stageColors,
   getChromeColors,
   type ChartColor,
   type ChromeColor,
@@ -99,7 +100,7 @@ export { default as ChartSignature, type ChartSignatureProps } from './ChartSign
 export { default as IChart, IChartBase } from './IChart';
 export { default as Boxplot, BoxplotBase } from './Boxplot';
 export { default as BoxplotStatsTable, type BoxplotStatsTableProps } from './BoxplotStatsTable';
-export { default as ParetoChart, ParetoChartBase } from './ParetoChart';
+export { default as ParetoChart, ParetoChartBase, computeRankDeltas } from './ParetoChart';
 export { default as CapabilityHistogram, CapabilityHistogramBase } from './CapabilityHistogram';
 export { default as ProbabilityPlot, ProbabilityPlotBase } from './ProbabilityPlot';
 export { default as ChartSourceBar, getSourceBarHeight } from './ChartSourceBar';

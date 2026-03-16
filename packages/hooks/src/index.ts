@@ -113,8 +113,8 @@ export { useHighlightFade, type UseHighlightFadeReturn } from './useHighlightFad
 export { useResizablePanel, type UseResizablePanelReturn } from './useResizablePanel';
 
 // Chart Data Hooks (shared computation for app wrappers)
-export { useBoxplotData } from './useBoxplotData';
-export type { ViolinDataMap, UseBoxplotDataResult } from './useBoxplotData';
+export { useBoxplotData, STAGE_SEPARATOR } from './useBoxplotData';
+export type { ViolinDataMap, UseBoxplotDataResult, StageInfo } from './useBoxplotData';
 export { useIChartData } from './useIChartData';
 
 // Focused Chart Navigation

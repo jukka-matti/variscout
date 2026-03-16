@@ -54,6 +54,8 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
   violinData: violinDataProp,
   highlightedCategories,
   onBoxContextMenu,
+  fillOverrides,
+  groupSize,
 }) => {
   // Show contribution bars by default when categoryContributions is provided
   const shouldShowBars = showContributionBars ?? categoryContributions !== undefined;
@@ -322,9 +324,11 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
                       fill={
                         highlightedCategories?.[d.key]
                           ? highlightFillColors[highlightedCategories[d.key]]
-                          : isSelected(d.key)
-                            ? colors.selected
-                            : chrome.boxDefault
+                          : fillOverrides?.[d.key]
+                            ? fillOverrides[d.key]
+                            : isSelected(d.key)
+                              ? colors.selected
+                              : chrome.boxDefault
                       }
                       fillOpacity={highlightedCategories?.[d.key] ? 0.7 : 1}
                       stroke={
@@ -374,6 +378,32 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
               </Group>
             );
           })}
+
+          {/* Group separator lines (for staged boxplot) */}
+          {groupSize &&
+            groupSize > 1 &&
+            data.map((_, i) => {
+              // Draw separator after every groupSize boxes (between groups)
+              if ((i + 1) % groupSize !== 0 || i === data.length - 1) return null;
+              const nextKey = data[i + 1]?.key;
+              if (!nextKey) return null;
+              const x1Pos = (xScale(data[i].key) || 0) + xScale.bandwidth();
+              const x2Pos = xScale(nextKey) || 0;
+              const lineX = (x1Pos + x2Pos) / 2;
+              return (
+                <line
+                  key={`sep-${i}`}
+                  x1={lineX}
+                  x2={lineX}
+                  y1={0}
+                  y2={height}
+                  stroke={chrome.stageDivider}
+                  strokeWidth={1}
+                  strokeDasharray="4,4"
+                  data-testid={`group-separator-${i}`}
+                />
+              );
+            })}
 
           {/* Y-Axis */}
           <AxisLeft

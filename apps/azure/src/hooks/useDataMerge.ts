@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { validateData } from '@variscout/core';
+import { validateData, augmentWithTimeColumns } from '@variscout/core';
 import type { DataRow, DataQualityReport } from '@variscout/core';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
 
@@ -69,6 +69,32 @@ export function mergeColumns(
   return { data: merged, addedColumns };
 }
 
+/** Time-derived column suffixes used by augmentWithTimeColumns */
+const TIME_SUFFIXES = ['_Year', '_Month', '_Week', '_DayOfWeek', '_Hour'] as const;
+
+/**
+ * Re-apply time column extraction on merged data.
+ * Detects existing time-derived factors and re-derives them for all rows.
+ */
+function reapplyTimeColumns(data: DataRow[], factors: string[]): void {
+  for (const factor of factors) {
+    for (const suffix of TIME_SUFFIXES) {
+      if (factor.endsWith(suffix)) {
+        const sourceColumn = factor.slice(0, -suffix.length);
+        if (data.length > 0 && sourceColumn in data[0]) {
+          augmentWithTimeColumns(data, sourceColumn, {
+            extractYear: suffix === '_Year',
+            extractMonth: suffix === '_Month',
+            extractWeek: suffix === '_Week',
+            extractDayOfWeek: suffix === '_DayOfWeek',
+            extractHour: suffix === '_Hour',
+          });
+        }
+      }
+    }
+  }
+}
+
 interface UseDataMergeOptions {
   appendMode: boolean;
   existingConfig: ManualEntryConfig | undefined;
@@ -134,6 +160,7 @@ export function useDataMerge({
 
       if (appendMode && existingConfig && rawData.length > 0) {
         finalData = mergeData(rawData, data);
+        reapplyTimeColumns(finalData, existingConfig.factors);
         finalConfig = mergeConfig(existingConfig, config);
         setDataFilename('Manual Entry (combined)');
       } else {
