@@ -234,10 +234,14 @@ export {
   FocusedChartCard,
   DashboardChartCard,
   DashboardGrid,
+  DashboardLayoutBase,
   type FocusedViewOverlayProps,
   type FocusedChartCardProps,
   type DashboardChartCardProps,
   type DashboardGridProps,
+  type DashboardLayoutBaseProps,
+  type DashboardAnnotations,
+  type DashboardChartFindings,
 } from './components/DashboardBase';
 
 // Settings Panel

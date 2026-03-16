@@ -12,28 +12,19 @@ import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks';
 import type { UseFilterNavigationReturn } from '../hooks';
 import {
-  EditableChartTitle,
   ErrorBoundary,
-  FactorSelector,
   FilterBreadcrumb,
   NarrativeBar,
-} from '@variscout/ui';
-import {
   SelectionPanel,
   CreateFactorModal,
-  FilterContextBar,
-  BoxplotDisplayToggle,
-  AnnotationContextMenu,
-  DashboardChartCard,
-  DashboardGrid,
+  DashboardLayoutBase,
   useIsMobile,
+  useGlossary,
+  BREAKPOINTS,
 } from '@variscout/ui';
-import { BREAKPOINTS } from '@variscout/ui';
 import { getColumnNames, createFactorFromSelection } from '@variscout/core';
 import type { FindingsCallbacks } from '../types/findingsCallbacks';
-import { HelpTooltip, useGlossary } from '@variscout/ui';
 import { useAnnotations, useChartInsights } from '@variscout/hooks';
-import { ChartInsightChip } from '@variscout/ui';
 import {
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
@@ -44,10 +35,8 @@ import type { ViewState } from '@variscout/hooks';
 import {
   Activity,
   BarChart3,
-  Layers,
   Gauge,
   ArrowLeft,
-  X,
   Copy,
   Check,
   Download,
@@ -567,506 +556,246 @@ const Dashboard = ({
               findingsCallbacks={findingsCallbacks}
               onAskCoScout={onAskCoScoutFromCategory}
             />
-          ) : !focusedChart ? (
-            <DashboardGrid
-              ichartCard={
-                <DashboardChartCard
-                  id="ichart-card"
-                  testId="chart-ichart"
-                  chartName="ichart"
-                  minHeight="400px"
-                  title={
-                    <h2 className="text-xl font-bold flex items-center gap-2 text-content">
-                      <Activity className="text-blue-400" />
-                      <EditableChartTitle
-                        defaultTitle={`I-Chart: ${outcome}`}
-                        value={chartTitles.ichart || ''}
-                        onChange={title => handleChartTitleChange('ichart', title)}
-                      />
-                    </h2>
-                  }
-                  controls={
-                    <>
-                      <div className="flex items-center gap-4" data-export-hide>
-                        <select
-                          value={outcome}
-                          onChange={e => setOutcome(e.target.value)}
-                          aria-label="Select outcome variable"
-                          className="bg-surface border border-edge text-sm font-medium text-content rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
-                        >
-                          {availableOutcomes.map(o => (
-                            <option key={o} value={o}>
-                              {o}
-                            </option>
-                          ))}
-                        </select>
-                        {/* Stage Column Selector */}
-                        {availableStageColumns.length > 0 && (
-                          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-edge">
-                            <Layers
-                              size={16}
-                              className={
-                                availableStageColumns.length > 0
-                                  ? 'text-blue-400'
-                                  : 'text-content-muted'
-                              }
-                            />
-                            <select
-                              value={stageColumn || ''}
-                              onChange={e => setStageColumn(e.target.value || null)}
-                              className="bg-surface border border-edge text-sm text-content rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
-                              title="Select a column to divide the chart into stages"
-                            >
-                              <option value="">No stages</option>
-                              {availableStageColumns.map(col => (
-                                <option key={col} value={col}>
-                                  {columnAliases[col] || col}
-                                </option>
-                              ))}
-                            </select>
-                            {stageColumn && (
-                              <select
-                                value={stageOrderMode}
-                                onChange={e =>
-                                  setStageOrderMode(e.target.value as typeof stageOrderMode)
-                                }
-                                className="bg-surface border border-edge text-xs text-content-secondary rounded px-2 py-1 outline-none focus:border-blue-500 cursor-pointer hover:bg-surface-secondary transition-colors"
-                                title="Stage ordering method"
-                              >
-                                <option value="auto">Auto order</option>
-                                <option value="data-order">As in data</option>
-                              </select>
-                            )}
-                          </div>
-                        )}
-                        {onManageFactors && (
-                          <button
-                            onClick={onManageFactors}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-content-secondary hover:text-content bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
-                            title="Manage analysis factors"
-                            aria-label="Manage factors"
-                            data-testid="btn-manage-factors"
-                          >
-                            <Settings2 size={14} />
-                            <span>Factors ({factors.length})</span>
-                          </button>
-                        )}
-                      </div>
-                      {/* Stats display */}
-                      {stageColumn && stagedStats ? (
-                        <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
-                          <span className="text-blue-400 font-medium">
-                            {stagedStats.stageOrder.length} stages
-                          </span>
-                          <span className="text-content-secondary">
-                            Overall Mean:{' '}
-                            <span className="text-content font-mono">
-                              {stagedStats.overallStats.mean.toFixed(2)}
-                            </span>
-                          </span>
-                        </div>
-                      ) : (
-                        stats && (
-                          <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
-                            <span className="text-content-secondary flex items-center gap-1">
-                              UCL:{' '}
-                              <span className="text-content font-mono">{stats.ucl.toFixed(2)}</span>
-                              <HelpTooltip term={getTerm('ucl')} iconSize={12} />
-                            </span>
-                            <span className="text-content-secondary flex items-center gap-1">
-                              Mean:{' '}
-                              <span className="text-content font-mono">
-                                {stats.mean.toFixed(2)}
-                              </span>
-                              <HelpTooltip term={getTerm('mean')} iconSize={12} />
-                            </span>
-                            <span className="text-content-secondary flex items-center gap-1">
-                              LCL:{' '}
-                              <span className="text-content font-mono">{stats.lcl.toFixed(2)}</span>
-                              <HelpTooltip term={getTerm('lcl')} iconSize={12} />
-                            </span>
-                          </div>
-                        )
-                      )}
-                    </>
-                  }
-                  filterBar={
-                    <FilterContextBar
-                      filterChipData={filterChipData}
-                      columnAliases={columnAliases}
-                      cumulativeVariationPct={cumulativeVariationPct}
-                      show={displayOptions.showFilterContext !== false}
-                    />
-                  }
-                  copyFeedback={copyFeedback}
-                  onCopyChart={handleCopyChart}
-                  onDownloadPng={handleDownloadPng}
-                  onDownloadSvg={handleDownloadSvg}
-                  onMaximize={() => setFocusedChart('ichart')}
-                  onShareChart={onShareChart}
-                  footer={
-                    ichartInsight.chipText ? (
-                      <ChartInsightChip
-                        text={ichartInsight.chipText}
-                        chipType={ichartInsight.chipType}
-                        isAI={ichartInsight.isAI}
-                        isLoading={ichartInsight.isLoading}
-                        onDismiss={ichartInsight.dismiss}
-                        chartType="ichart"
-                      />
-                    ) : undefined
-                  }
-                >
-                  <ErrorBoundary componentName="I-Chart">
-                    <IChart
-                      onPointClick={onPointClick}
-                      highlightedPointIndex={highlightedPointIndex}
-                      onSpecClick={() => setShowSpecEditor(true)}
-                      ichartFindings={chartFindings?.ichart}
-                      onCreateObservation={(anchorX, anchorY) =>
-                        onAddChartObservation?.('ichart', undefined, undefined, anchorX, anchorY)
-                      }
-                      onEditFinding={onEditFinding}
-                      onDeleteFinding={onDeleteFinding}
-                    />
-                  </ErrorBoundary>
-                </DashboardChartCard>
-              }
-              boxplotCard={
-                <DashboardChartCard
-                  id="boxplot-card"
-                  testId="chart-boxplot"
-                  chartName="boxplot"
-                  className="flex-1 min-w-[300px]"
-                  title={
-                    <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                      <EditableChartTitle
-                        defaultTitle={`Boxplot: ${boxplotFactor}`}
-                        value={chartTitles.boxplot || ''}
-                        onChange={title => handleChartTitleChange('boxplot', title)}
-                      />
-                    </h3>
-                  }
-                  controls={
-                    <>
-                      <div
-                        className={`rounded-lg transition-all duration-300 ${
-                          lastAdvancedFactor && lastAdvancedFactor === boxplotFactor
-                            ? 'ring-2 ring-blue-400'
-                            : ''
-                        }`}
-                      >
-                        <FactorSelector
-                          factors={factors}
-                          selected={boxplotFactor}
-                          onChange={setBoxplotFactor}
-                          hasActiveFilter={!!filters?.[boxplotFactor]?.length}
-                          columnAliases={columnAliases}
-                        />
-                      </div>
-                      <BoxplotDisplayToggle
-                        showViolin={displayOptions.showViolin ?? false}
-                        showContributionLabels={displayOptions.showContributionLabels ?? false}
-                        onToggleViolin={value =>
-                          setDisplayOptions({ ...displayOptions, showViolin: value })
-                        }
-                        onToggleContributionLabels={value =>
-                          setDisplayOptions({ ...displayOptions, showContributionLabels: value })
-                        }
-                        sortBy={displayOptions.boxplotSortBy ?? 'name'}
-                        sortDirection={displayOptions.boxplotSortDirection ?? 'asc'}
-                        onSortChange={(sortBy, direction) =>
-                          setDisplayOptions({
-                            ...displayOptions,
-                            boxplotSortBy: sortBy,
-                            boxplotSortDirection: direction,
-                          })
-                        }
-                      />
-                      {hasAnnotations && (
-                        <button
-                          onClick={() => clearAnnotations('boxplot')}
-                          className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-                          title="Clear boxplot highlights"
-                          aria-label="Clear boxplot highlights"
-                        >
-                          <X size={12} />
-                        </button>
-                      )}
-                    </>
-                  }
-                  filterBar={
-                    <FilterContextBar
-                      filterChipData={filterChipData}
-                      columnAliases={columnAliases}
-                      cumulativeVariationPct={cumulativeVariationPct}
-                      show={displayOptions.showFilterContext !== false}
-                    />
-                  }
-                  copyFeedback={copyFeedback}
-                  onCopyChart={handleCopyChart}
-                  onDownloadPng={handleDownloadPng}
-                  onDownloadSvg={handleDownloadSvg}
-                  onMaximize={() => setFocusedChart('boxplot')}
-                  onShareChart={onShareChart}
-                  footer={
-                    boxplotInsight.chipText ? (
-                      <ChartInsightChip
-                        text={boxplotInsight.chipText}
-                        chipType={boxplotInsight.chipType}
-                        isAI={boxplotInsight.isAI}
-                        isLoading={boxplotInsight.isLoading}
-                        onDismiss={boxplotInsight.dismiss}
-                        chartType="boxplot"
-                      />
-                    ) : undefined
-                  }
-                >
-                  <ErrorBoundary componentName="Boxplot">
-                    {boxplotFactor && (
-                      <Boxplot
-                        factor={boxplotFactor}
-                        onDrillDown={handleDrillDown}
-                        variationPct={factorVariations.get(boxplotFactor)}
-                        categoryContributions={categoryContributions?.get(boxplotFactor)}
-                        highlightedCategories={boxplotHighlights}
-                        onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
-                        findings={chartFindings?.boxplot}
-                        onEditFinding={onEditFinding}
-                        onDeleteFinding={onDeleteFinding}
-                      />
-                    )}
-                  </ErrorBoundary>
-                </DashboardChartCard>
-              }
-              paretoCard={
-                showParetoPanel ? (
-                  <DashboardChartCard
-                    id="pareto-card"
-                    testId="chart-pareto"
-                    chartName="pareto"
-                    className="flex-1 min-w-[300px]"
-                    title={
-                      <h3 className="text-sm font-semibold text-content-secondary uppercase tracking-wider">
-                        <EditableChartTitle
-                          defaultTitle={`Pareto: ${paretoFactor}`}
-                          value={chartTitles.pareto || ''}
-                          onChange={title => handleChartTitleChange('pareto', title)}
-                        />
-                      </h3>
-                    }
-                    controls={
-                      <>
-                        <FactorSelector
-                          factors={factors}
-                          selected={paretoFactor}
-                          onChange={setParetoFactor}
-                          hasActiveFilter={!!filters?.[paretoFactor]?.length}
-                          columnAliases={columnAliases}
-                        />
-                        {paretoHighlights && Object.keys(paretoHighlights).length > 0 && (
-                          <button
-                            onClick={() => clearAnnotations('pareto')}
-                            className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-surface-tertiary transition-colors"
-                            title="Clear pareto highlights"
-                            aria-label="Clear pareto highlights"
-                          >
-                            <X size={12} />
-                          </button>
-                        )}
-                      </>
-                    }
-                    filterBar={
-                      <FilterContextBar
-                        filterChipData={filterChipData}
-                        columnAliases={columnAliases}
-                        cumulativeVariationPct={cumulativeVariationPct}
-                        show={displayOptions.showFilterContext !== false}
-                      />
-                    }
-                    copyFeedback={copyFeedback}
-                    onCopyChart={handleCopyChart}
-                    onDownloadPng={handleDownloadPng}
-                    onDownloadSvg={handleDownloadSvg}
-                    onMaximize={() => setFocusedChart('pareto')}
-                    onShareChart={onShareChart}
-                    footer={
-                      paretoInsight.chipText ? (
-                        <ChartInsightChip
-                          text={paretoInsight.chipText}
-                          chipType={paretoInsight.chipType}
-                          isAI={paretoInsight.isAI}
-                          isLoading={paretoInsight.isLoading}
-                          onDismiss={paretoInsight.dismiss}
-                          chartType="pareto"
-                        />
-                      ) : undefined
-                    }
-                  >
-                    <ErrorBoundary componentName="Pareto Chart">
-                      {paretoFactor && (
-                        <ParetoChart
-                          factor={paretoFactor}
-                          onDrillDown={handleDrillDown}
-                          showComparison={showParetoComparison}
-                          onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
-                          onHide={() => setShowParetoPanel(false)}
-                          onUploadPareto={onManageFactors}
-                          availableFactors={factors}
-                          aggregation={paretoAggregation}
-                          onToggleAggregation={() =>
-                            setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
-                          }
-                          highlightedCategories={paretoHighlights}
-                          onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
-                          findings={chartFindings?.pareto}
-                          onEditFinding={onEditFinding}
-                          onDeleteFinding={onDeleteFinding}
-                        />
-                      )}
-                    </ErrorBoundary>
-                  </DashboardChartCard>
-                ) : undefined
-              }
-              statsPanel={
-                <div data-testid="chart-stats">
-                  <StatsPanel
-                    stats={stats}
-                    specs={specs}
-                    filteredData={filteredData}
-                    outcome={outcome}
-                    onSaveSpecs={setSpecs}
-                    showCpk={displayOptions.showCpk !== false}
-                  />
-                  {statsInsight.chipText && (
-                    <ChartInsightChip
-                      text={statsInsight.chipText}
-                      chipType={statsInsight.chipType}
-                      isAI={statsInsight.isAI}
-                      isLoading={statsInsight.isLoading}
-                      onDismiss={statsInsight.dismiss}
-                      chartType="stats"
-                    />
-                  )}
-                </div>
-              }
-            />
           ) : (
-            <FocusedChartView
-              focusedChart={focusedChart}
-              onPrev={handlePrevChart}
-              onNext={handleNextChart}
-              onExit={() => setFocusedChart(null)}
-              // Shared props
-              displayOptions={displayOptions}
+            <DashboardLayoutBase
+              outcome={outcome}
+              factors={factors}
               columnAliases={columnAliases}
-              cumulativeVariationPct={cumulativeVariationPct}
+              filters={filters}
+              showFilterContext={displayOptions.showFilterContext !== false}
+              showViolin={displayOptions.showViolin ?? false}
+              showContributionLabels={displayOptions.showContributionLabels ?? false}
+              boxplotSortBy={displayOptions.boxplotSortBy ?? 'name'}
+              boxplotSortDirection={displayOptions.boxplotSortDirection ?? 'asc'}
+              onDisplayOptionChange={(key, value) =>
+                setDisplayOptions({ ...displayOptions, [key]: value })
+              }
+              availableOutcomes={availableOutcomes}
+              setOutcome={setOutcome}
+              availableStageColumns={availableStageColumns}
+              stageColumn={stageColumn}
+              setStageColumn={setStageColumn}
+              stageOrderMode={stageOrderMode}
+              setStageOrderMode={setStageOrderMode}
+              stagedStats={stagedStats}
+              controlStats={stats}
+              getTermUcl={getTerm('ucl')}
+              getTermMean={getTerm('mean')}
+              getTermLcl={getTerm('lcl')}
+              chartTitles={chartTitles}
+              onChartTitleChange={handleChartTitleChange}
+              boxplotFactor={boxplotFactor}
+              setBoxplotFactor={setBoxplotFactor}
+              paretoFactor={paretoFactor}
+              setParetoFactor={setParetoFactor}
+              showParetoPanel={showParetoPanel}
+              focusedChart={focusedChart}
+              setFocusedChart={setFocusedChart}
               filterChipData={filterChipData}
+              cumulativeVariationPct={cumulativeVariationPct}
+              annotations={{
+                contextMenu: isPhone
+                  ? {
+                      isOpen: false,
+                      position: { x: 0, y: 0 },
+                      categoryKey: '',
+                      chartType: 'boxplot',
+                    }
+                  : contextMenu,
+                handleContextMenu,
+                closeContextMenu,
+                boxplotHighlights,
+                paretoHighlights,
+                setHighlight,
+                hasAnnotations,
+                clearAnnotations,
+              }}
+              chartFindings={chartFindings}
+              onAddChartObservation={onAddChartObservation}
               copyFeedback={copyFeedback}
               onCopyChart={handleCopyChart}
               onDownloadPng={handleDownloadPng}
               onDownloadSvg={handleDownloadSvg}
-              // I-Chart props
-              outcome={outcome}
-              availableOutcomes={availableOutcomes}
-              stageColumn={stageColumn}
-              availableStageColumns={availableStageColumns}
-              stageOrderMode={stageOrderMode}
-              stagedStats={stagedStats}
-              stats={stats}
-              ichartChartTitle={chartTitles.ichart || ''}
-              onSetOutcome={setOutcome}
-              onSetStageColumn={setStageColumn}
-              onSetStageOrderMode={setStageOrderMode}
-              onSpecClick={() => setShowSpecEditor(true)}
-              onIChartTitleChange={title => handleChartTitleChange('ichart', title)}
-              onPointClick={onPointClick}
-              highlightedPointIndex={highlightedPointIndex}
-              ichartFindings={chartFindings?.ichart}
-              onCreateIChartObservation={(anchorX: number, anchorY: number) =>
-                onAddChartObservation?.('ichart', undefined, undefined, anchorX, anchorY)
+              onShareChart={onShareChart}
+              ichartInsight={ichartInsight}
+              boxplotInsight={boxplotInsight}
+              paretoInsight={paretoInsight}
+              statsInsight={statsInsight}
+              // Azure-specific: Manage Factors button in I-Chart header
+              ichartHeaderExtra={
+                onManageFactors ? (
+                  <button
+                    onClick={onManageFactors}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-content-secondary hover:text-content bg-surface-secondary hover:bg-surface-tertiary border border-edge rounded-lg transition-colors"
+                    title="Manage analysis factors"
+                    aria-label="Manage factors"
+                    data-testid="btn-manage-factors"
+                  >
+                    <Settings2 size={14} />
+                    <span>Factors ({factors.length})</span>
+                  </button>
+                ) : undefined
               }
-              onEditFinding={onEditFinding}
-              onDeleteFinding={onDeleteFinding}
-              // Boxplot props
-              boxplotFactor={boxplotFactor}
-              factors={factors}
-              filters={filters}
-              factorVariations={factorVariations}
-              anovaResult={anovaResult}
-              boxplotData={boxplotData}
-              boxplotChartTitle={chartTitles.boxplot || ''}
-              onSetBoxplotFactor={setBoxplotFactor}
-              onDrillDown={handleDrillDown}
-              onBoxplotTitleChange={title => handleChartTitleChange('boxplot', title)}
-              boxplotHighlightedCategories={boxplotHighlights}
-              onBoxplotContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
-              boxplotFindings={chartFindings?.boxplot}
-              categoryContributions={categoryContributions?.get(boxplotFactor)}
-              // Pareto props
-              paretoFactor={paretoFactor}
-              showParetoComparison={showParetoComparison}
-              paretoAggregation={paretoAggregation}
-              paretoChartTitle={chartTitles.pareto || ''}
-              onSetParetoFactor={setParetoFactor}
-              onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
-              onToggleAggregation={() =>
-                setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
+              // Azure-specific: lastAdvancedFactor ring on boxplot factor selector
+              boxplotFactorWrapper={selector => (
+                <div
+                  className={`rounded-lg transition-all duration-300 ${
+                    lastAdvancedFactor && lastAdvancedFactor === boxplotFactor
+                      ? 'ring-2 ring-blue-400'
+                      : ''
+                  }`}
+                >
+                  {selector}
+                </div>
+              )}
+              // Render slots
+              renderIChartContent={
+                <ErrorBoundary componentName="I-Chart">
+                  <IChart
+                    onPointClick={onPointClick}
+                    highlightedPointIndex={highlightedPointIndex}
+                    onSpecClick={() => setShowSpecEditor(true)}
+                    ichartFindings={chartFindings?.ichart}
+                    onCreateObservation={(anchorX, anchorY) =>
+                      onAddChartObservation?.('ichart', undefined, undefined, anchorX, anchorY)
+                    }
+                    onEditFinding={onEditFinding}
+                    onDeleteFinding={onDeleteFinding}
+                  />
+                </ErrorBoundary>
               }
-              onParetoTitleChange={title => handleChartTitleChange('pareto', title)}
-              onHidePareto={() => setShowParetoPanel(false)}
-              onUploadPareto={onManageFactors}
-              paretoHighlightedCategories={paretoHighlights}
-              onParetoContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
-              paretoFindings={chartFindings?.pareto}
+              renderBoxplotContent={
+                <ErrorBoundary componentName="Boxplot">
+                  {boxplotFactor && (
+                    <Boxplot
+                      factor={boxplotFactor}
+                      onDrillDown={handleDrillDown}
+                      variationPct={factorVariations.get(boxplotFactor)}
+                      categoryContributions={categoryContributions?.get(boxplotFactor)}
+                      highlightedCategories={boxplotHighlights}
+                      onContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
+                      findings={chartFindings?.boxplot}
+                      onEditFinding={onEditFinding}
+                      onDeleteFinding={onDeleteFinding}
+                    />
+                  )}
+                </ErrorBoundary>
+              }
+              renderParetoContent={
+                <ErrorBoundary componentName="Pareto Chart">
+                  {paretoFactor && (
+                    <ParetoChart
+                      factor={paretoFactor}
+                      onDrillDown={handleDrillDown}
+                      showComparison={showParetoComparison}
+                      onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
+                      onHide={() => setShowParetoPanel(false)}
+                      onUploadPareto={onManageFactors}
+                      availableFactors={factors}
+                      aggregation={paretoAggregation}
+                      onToggleAggregation={() =>
+                        setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
+                      }
+                      highlightedCategories={paretoHighlights}
+                      onContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+                      findings={chartFindings?.pareto}
+                      onEditFinding={onEditFinding}
+                      onDeleteFinding={onDeleteFinding}
+                    />
+                  )}
+                </ErrorBoundary>
+              }
+              renderStatsPanel={
+                <StatsPanel
+                  stats={stats}
+                  specs={specs}
+                  filteredData={filteredData}
+                  outcome={outcome}
+                  onSaveSpecs={setSpecs}
+                  showCpk={displayOptions.showCpk !== false}
+                />
+              }
+              renderFocusedView={
+                focusedChart ? (
+                  <FocusedChartView
+                    focusedChart={focusedChart}
+                    onPrev={handlePrevChart}
+                    onNext={handleNextChart}
+                    onExit={() => setFocusedChart(null)}
+                    displayOptions={displayOptions}
+                    columnAliases={columnAliases}
+                    cumulativeVariationPct={cumulativeVariationPct}
+                    filterChipData={filterChipData}
+                    copyFeedback={copyFeedback}
+                    onCopyChart={handleCopyChart}
+                    onDownloadPng={handleDownloadPng}
+                    onDownloadSvg={handleDownloadSvg}
+                    outcome={outcome}
+                    availableOutcomes={availableOutcomes}
+                    stageColumn={stageColumn}
+                    availableStageColumns={availableStageColumns}
+                    stageOrderMode={stageOrderMode}
+                    stagedStats={stagedStats}
+                    stats={stats}
+                    ichartChartTitle={chartTitles.ichart || ''}
+                    onSetOutcome={setOutcome}
+                    onSetStageColumn={setStageColumn}
+                    onSetStageOrderMode={setStageOrderMode}
+                    onSpecClick={() => setShowSpecEditor(true)}
+                    onIChartTitleChange={title => handleChartTitleChange('ichart', title)}
+                    onPointClick={onPointClick}
+                    highlightedPointIndex={highlightedPointIndex}
+                    ichartFindings={chartFindings?.ichart}
+                    onCreateIChartObservation={(anchorX: number, anchorY: number) =>
+                      onAddChartObservation?.('ichart', undefined, undefined, anchorX, anchorY)
+                    }
+                    onEditFinding={onEditFinding}
+                    onDeleteFinding={onDeleteFinding}
+                    boxplotFactor={boxplotFactor}
+                    factors={factors}
+                    filters={filters}
+                    factorVariations={factorVariations}
+                    anovaResult={anovaResult}
+                    boxplotData={boxplotData}
+                    boxplotChartTitle={chartTitles.boxplot || ''}
+                    onSetBoxplotFactor={setBoxplotFactor}
+                    onDrillDown={handleDrillDown}
+                    onBoxplotTitleChange={title => handleChartTitleChange('boxplot', title)}
+                    boxplotHighlightedCategories={boxplotHighlights}
+                    onBoxplotContextMenu={(key, event) => handleContextMenu('boxplot', key, event)}
+                    boxplotFindings={chartFindings?.boxplot}
+                    categoryContributions={categoryContributions?.get(boxplotFactor)}
+                    paretoFactor={paretoFactor}
+                    showParetoComparison={showParetoComparison}
+                    paretoAggregation={paretoAggregation}
+                    paretoChartTitle={chartTitles.pareto || ''}
+                    onSetParetoFactor={setParetoFactor}
+                    onToggleComparison={() => setShowParetoComparison(!showParetoComparison)}
+                    onToggleAggregation={() =>
+                      setParetoAggregation(paretoAggregation === 'count' ? 'value' : 'count')
+                    }
+                    onParetoTitleChange={title => handleChartTitleChange('pareto', title)}
+                    onHidePareto={() => setShowParetoPanel(false)}
+                    onUploadPareto={onManageFactors}
+                    paretoHighlightedCategories={paretoHighlights}
+                    onParetoContextMenu={(key, event) => handleContextMenu('pareto', key, event)}
+                    paretoFindings={chartFindings?.pareto}
+                  />
+                ) : undefined
+              }
+              renderSpecEditor={
+                showSpecEditor ? (
+                  <SpecEditor
+                    specs={specs}
+                    onSave={setSpecs}
+                    onClose={() => setShowSpecEditor(false)}
+                    style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}
+                  />
+                ) : undefined
+              }
             />
           )}
         </div>
-      )}
-
-      {/* Annotation Context Menu (right-click on boxplot/pareto elements — desktop only) */}
-      {!isPhone && contextMenu.isOpen && (
-        <AnnotationContextMenu
-          categoryKey={contextMenu.categoryKey}
-          currentHighlight={
-            contextMenu.chartType === 'boxplot'
-              ? boxplotHighlights[contextMenu.categoryKey]
-              : paretoHighlights[contextMenu.categoryKey]
-          }
-          hasFinding={
-            contextMenu.chartType === 'boxplot'
-              ? (chartFindings?.boxplot ?? []).some(
-                  f =>
-                    f.source &&
-                    f.source.chart !== 'ichart' &&
-                    f.source.category === contextMenu.categoryKey
-                )
-              : (chartFindings?.pareto ?? []).some(
-                  f =>
-                    f.source &&
-                    f.source.chart !== 'ichart' &&
-                    f.source.category === contextMenu.categoryKey
-                )
-          }
-          position={contextMenu.position}
-          onSetHighlight={color =>
-            setHighlight(contextMenu.chartType, contextMenu.categoryKey, color)
-          }
-          onAddObservation={() =>
-            onAddChartObservation?.(contextMenu.chartType, contextMenu.categoryKey)
-          }
-          onClose={closeContextMenu}
-        />
-      )}
-
-      {/* Spec Editor (opened by clicking spec labels on I-Chart) */}
-      {showSpecEditor && (
-        <SpecEditor
-          specs={specs}
-          onSave={setSpecs}
-          onClose={() => setShowSpecEditor(false)}
-          style={{ top: '120px', left: '50%', transform: 'translateX(-50%)' }}
-        />
       )}
 
       {/* AI Narrative Bar */}
