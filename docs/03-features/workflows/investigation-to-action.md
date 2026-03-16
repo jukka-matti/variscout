@@ -285,6 +285,8 @@ transitions to "resolved."
 If the outcome is "No" or "Partial," consider starting a new PDCA cycle — pin a new
 finding from the current state to investigate further.
 
+> **Verification with Staged Analysis**: The most effective way to verify an improvement is to combine before+after data with a Stage column and use [Staged Analysis](../../03-features/analysis/staged-analysis.md). Today this provides visual comparison (I-Chart stages); [ADR-023](../../07-decisions/adr-023-data-lifecycle.md) designs quantified comparison (Staged Comparison Card, auto-filled cpkBefore/cpkAfter, verification checklist). See [Azure Daily Use — Phase 4](../../02-journeys/flows/azure-daily-use.md#phase-4--verification-proving-the-improvement-worked) for the chart-by-chart verification workflow.
+
 ### Knowledge Base Contribution (Azure Team, Phase 2)
 
 Resolved findings with outcome data contribute to a team knowledge base. When a finding
@@ -455,3 +457,4 @@ Filter to Store C + Weekend, then use What-If:
 - [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Architectural decisions
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Hypothesis model decisions
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Knowledge base dependency
+- [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) — Data lifecycle, staged comparison, verification vision

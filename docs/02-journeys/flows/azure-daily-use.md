@@ -181,6 +181,18 @@ The most reliable verification method is to combine before and after data in a s
 
 This approach provides clear visual and statistical before/after comparison in one view. See [Staged Analysis](../../03-features/analysis/staged-analysis.md) for details.
 
+**Chart-by-chart verification (current state):**
+
+| Step | Chart            | What Gary checks                                    | How (today)                                                                                        |
+| ---- | ---------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 1    | **I-Chart**      | Are violations reduced? Are control limits tighter? | Visual comparison of per-stage limits ✓                                                            |
+| 2    | **Stats Panel**  | How much did mean, σ, Cpk change?                   | **Overall stats only** — no per-stage breakdown. Gary must mentally compare with remembered values |
+| 3    | **Boxplot**      | Did the specific factor (e.g., Station 2) improve?  | Manual: drill into Stage "After", note distribution, then swap to "Before" and compare             |
+| 4    | **Capability**   | Is Cpk above target now?                            | Filter to "After" stage, check histogram and Cpk value                                             |
+| 5    | **NarrativeBar** | Summary: did the improvement work?                  | Shows current state, but not stage-aware — doesn't compare before/after                            |
+
+> **Future enhancement**: [ADR-023](../../07-decisions/adr-023-data-lifecycle.md) designs a **Staged Comparison Card** (per-stage metrics with deltas), **auto-filled outcomes** (cpkBefore/cpkAfter from staged data), **stage-aware NarrativeBar**, and a **verification checklist** in the InvestigationSidebar. This reduces the 7-step manual process to a guided 3-step flow.
+
 **Alternative — Manual outcome recording:**
 
 If the verification data lives in a separate file or system:

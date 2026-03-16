@@ -360,3 +360,4 @@ flowchart LR
 - [Shared Packages](shared-packages.md) - Package responsibilities
 - [PWA Storage](../../08-products/pwa/storage.md) - IndexedDB details
 - [OneDrive Sync](../../08-products/azure/onedrive-sync.md) - Cloud sync details
+- [ADR-023: Verification Experience & Data Lifecycle](../../07-decisions/adr-023-data-lifecycle.md) - Data entry paths, append architecture, staged verification

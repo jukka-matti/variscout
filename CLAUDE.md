@@ -164,6 +164,8 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Findings UI              | docs/06-design-system/components/findings.md, docs/03-features/workflows/investigation-to-action.md                                                                                                                                     |
 | Investigation actions    | docs/07-decisions/adr-015-investigation-board.md, docs/03-features/workflows/investigation-to-action.md                                                                                                                                 |
 | Hypothesis investigation | docs/03-features/workflows/hypothesis-investigation.md, docs/07-decisions/adr-020-investigation-workflow.md                                                                                                                             |
+| Data lifecycle/append    | docs/07-decisions/adr-023-data-lifecycle.md, apps/azure/src/hooks/useEditorDataFlow.ts                                                                                                                                                  |
+| Verification experience  | docs/07-decisions/adr-023-data-lifecycle.md, docs/03-features/analysis/staged-analysis.md                                                                                                                                               |
 
 ## Repository Structure
 

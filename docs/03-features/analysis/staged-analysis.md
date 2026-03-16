@@ -202,6 +202,25 @@ const boundaries = getStageBoundaries(sortedData, stagedStats);
 
 ---
 
+---
+
+## Staged Verification Vision
+
+> **Future enhancement** — see [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) for the full design.
+
+Today, staged analysis provides **visual** comparison — the I-Chart shows per-stage control limits and Nelson violations, but no quantified deltas. The analyst must mentally compare stages.
+
+The verification vision adds:
+
+- **Staged Comparison Card** — replaces Stats panel in staged mode with per-stage mean, σ, Cpk, pass %, and violations with trend indicators (↑↓→)
+- **Auto-filled outcomes** — `cpkBefore` (first stage) and `cpkAfter` (last stage) populate FindingOutcome automatically
+- **Stage-aware AI** — NarrativeBar summarizes improvement quantitatively; ChartInsightChip shows violation reduction and mean shift
+- **Verification checklist** — InvestigationSidebar shows a checklist when in acting phase with staged data
+
+The architecture already supports N stages (`calculateStatsByStage()` returns a `Map<string, StatsResult>`). The enhancement is surfacing the comparison in the UI.
+
+---
+
 ## See Also
 
 - [I-Chart](i-chart.md) - Where staged analysis is displayed
@@ -209,3 +228,4 @@ const boundaries = getStageBoundaries(sortedData, stagedStats);
 - [Capability](capability.md) - Comparing Cpk between stages
 - [Glossary: Staged Analysis](../../glossary.md#staged-analysis)
 - [Case: Hospital Ward](../../04-cases/hospital-ward/index.md) - Aggregation trap example
+- [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) - Full verification design
