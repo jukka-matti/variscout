@@ -350,6 +350,21 @@ vi.mock('@variscout/hooks', () => ({
     isLoading: false,
     isAI: false,
   }),
+  useFilterHandlers: ({
+    clearFilters,
+    removeFilter,
+    updateFilterValues,
+  }: Record<string, unknown>) => ({
+    handleClearAllFilters: clearFilters,
+    handleRemoveFilter: removeFilter,
+    handleUpdateFilterValues: updateFilterValues,
+  }),
+  useCreateFactorModal: () => ({
+    showCreateFactorModal: false,
+    handleOpenCreateFactorModal: vi.fn(),
+    handleCloseCreateFactorModal: vi.fn(),
+    handleCreateFactor: vi.fn(),
+  }),
 }));
 
 // Mock core functions

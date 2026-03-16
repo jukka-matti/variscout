@@ -92,7 +92,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-surface text-content p-8">
       <div className="w-full max-w-lg bg-surface-secondary rounded-xl border border-edge p-8 shadow-2xl">
-        <h2 className="text-2xl font-bold text-white mb-6">Step 1: What are you measuring?</h2>
+        <h2 className="text-2xl font-bold text-content mb-6">Step 1: What are you measuring?</h2>
 
         {/* Mode Toggle — only shown when enablePerformanceMode is true */}
         {enablePerformanceMode && (
@@ -105,7 +105,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
                 onClick={() => handleModeChange('standard')}
                 className={`p-3 rounded-lg border text-left transition-all ${
                   mode === 'standard'
-                    ? 'border-blue-500 bg-blue-900/20 text-white'
+                    ? 'border-blue-500 bg-blue-900/20 text-content'
                     : 'border-edge bg-surface hover:bg-surface-tertiary text-content-secondary'
                 }`}
               >
@@ -125,7 +125,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
                 onClick={() => handleModeChange('performance')}
                 className={`p-3 rounded-lg border text-left transition-all ${
                   mode === 'performance'
-                    ? 'border-blue-500 bg-blue-900/20 text-white'
+                    ? 'border-blue-500 bg-blue-900/20 text-content'
                     : 'border-edge bg-surface hover:bg-surface-tertiary text-content-secondary'
                 }`}
               >
@@ -154,7 +154,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
               </label>
               <input
                 type="text"
-                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
                 value={outcomeName}
                 onChange={e => onOutcomeChange(e.target.value)}
                 placeholder="e.g. Weight, Diameter, pH"
@@ -178,7 +178,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
                   <div key={i} className="flex gap-2">
                     <input
                       type="text"
-                      className="flex-1 bg-surface border border-edge rounded-lg px-4 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="flex-1 bg-surface border border-edge rounded-lg px-4 py-2 text-content text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                       value={f}
                       onChange={e => updateFactor(i, e.target.value)}
                       placeholder={`Factor ${i + 1}`}
@@ -207,7 +207,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
               </label>
               <input
                 type="text"
-                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
                 value={measureLabel}
                 onChange={e => onMeasureLabelChange?.(e.target.value)}
                 placeholder="e.g. Head, Nozzle, Cavity"
@@ -225,7 +225,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
                 type="number"
                 min={3}
                 max={20}
-                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
                 value={channelCount}
                 onChange={e => onChannelCountChange?.(parseInt(e.target.value) || 3)}
               />
@@ -258,7 +258,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
               <label className="block text-xs text-content-muted mb-1">Lower (LSL)</label>
               <input
                 type="number"
-                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 value={lsl}
                 onChange={e => onLslChange(e.target.value)}
                 placeholder="Min"
@@ -268,7 +268,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
               <label className="block text-xs text-content-muted mb-1">Upper (USL)</label>
               <input
                 type="number"
-                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 value={usl}
                 onChange={e => onUslChange(e.target.value)}
                 placeholder="Max"

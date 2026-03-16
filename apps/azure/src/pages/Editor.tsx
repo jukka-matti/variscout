@@ -16,37 +16,11 @@ import {
   InvestigationPrompt,
   CoScoutPanelBase,
   AIOnboardingTooltip,
-  updateFindingsPopout,
   type AnalysisBrief,
 } from '@variscout/ui';
-import {
-  useControlViolations,
-  useAIContext,
-  useNarration,
-  useAICoScout,
-  useHypotheses,
-  useKnowledgeSearch,
-} from '@variscout/hooks';
-import {
-  hasTeamFeatures,
-  buildSuggestedQuestions,
-  getNelsonRule2Sequences,
-  getNelsonRule3Sequences,
-  computeIdeaImpact,
-  calculateFactorVariations,
-} from '@variscout/core';
-import {
-  fetchNarration as fetchNarrationFromAI,
-  fetchChartInsight as fetchChartInsightFromAI,
-  fetchCoScoutResponse,
-  fetchCoScoutStreamingResponse,
-  isAIAvailable,
-} from '../services/aiService';
-import {
-  searchRelatedFindings,
-  searchDocuments,
-  isKnowledgeBaseAvailable,
-} from '../services/searchService';
+import { useControlViolations, useHypotheses } from '@variscout/hooks';
+import { hasTeamFeatures, computeIdeaImpact } from '@variscout/core';
+import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
@@ -63,6 +37,7 @@ import {
   X,
 } from 'lucide-react';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
+import { useEditorAI } from '../hooks/useEditorAI';
 import { useEditorPanels } from '../hooks/useEditorPanels';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 import { useTeamsShare } from '../hooks/useTeamsShare';
@@ -452,228 +427,38 @@ export const Editor: React.FC<EditorProps> = ({
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
 
-  // Aggregate violation counts for AI narration context
-  const violationCounts = useMemo(() => {
-    if (!outcome || !stats || filteredData.length === 0) return undefined;
-
-    const values = filteredData
-      .map(r => {
-        const v = r[outcome];
-        return typeof v === 'number' ? v : parseFloat(String(v));
-      })
-      .filter(v => !isNaN(v));
-    if (values.length === 0) return undefined;
-
-    const outOfControl = values.filter(v => v > stats.ucl || v < stats.lcl).length;
-    const aboveUSL = specs.usl !== undefined ? values.filter(v => v > specs.usl!).length : 0;
-    const belowLSL = specs.lsl !== undefined ? values.filter(v => v < specs.lsl!).length : 0;
-
-    const rule2Sequences = getNelsonRule2Sequences(values, stats.mean);
-    const rule3Sequences = getNelsonRule3Sequences(values);
-
-    return {
-      outOfControl,
-      aboveUSL,
-      belowLSL,
-      nelsonRule2Count: rule2Sequences.length,
-      nelsonRule3Count: rule3Sequences.length,
-    };
-  }, [filteredData, outcome, stats, specs]);
-
-  // Variation contributions for AI context (factor-level η²)
-  const aiVariationContributions = useMemo(() => {
-    if (!outcome || filteredData.length < 2 || factors.length === 0) return undefined;
-    const fv = calculateFactorVariations(filteredData, factors, outcome, []);
-    return Array.from(fv.entries()).map(([factor, etaSquared]) => ({ factor, etaSquared }));
-  }, [filteredData, factors, outcome]);
-
-  // Selected finding for AI context (when highlighted in FindingsPanel)
-  const aiSelectedFinding = useMemo(() => {
-    if (!highlightedFindingId || !persistedFindings) return undefined;
-    const f = persistedFindings.find(fi => fi.id === highlightedFindingId);
-    if (!f) return undefined;
-    const hypothesis = f.hypothesisId
-      ? hypothesesState.hypotheses.find(h => h.id === f.hypothesisId)
-      : undefined;
-    return {
-      text: f.text,
-      hypothesis: hypothesis?.text,
-      projection: f.projection
-        ? {
-            meanDelta: f.projection.projectedMean - f.projection.baselineMean,
-            sigmaDelta: f.projection.projectedSigma - f.projection.baselineSigma,
-          }
-        : undefined,
-      actions: f.actions?.map(a => ({ text: a.text, status: a.completedAt ? 'done' : 'pending' })),
-    };
-  }, [highlightedFindingId, persistedFindings, hypothesesState.hypotheses]);
-
-  // Team contributors for AI context (Teams plan only)
-  const aiTeamContributors = useMemo(() => {
-    if (!hasTeamFeatures() || !persistedFindings) return undefined;
-    const authors = new Set<string>();
-    const areas = new Set<string>();
-    for (const f of persistedFindings) {
-      if (f.assignee?.displayName) authors.add(f.assignee.displayName);
-      for (const c of f.comments ?? []) {
-        if (c.author) authors.add(c.author);
-      }
-      if (f.hypothesisId) {
-        const h = hypothesesState.hypotheses.find(hy => hy.id === f.hypothesisId);
-        if (h?.factor) areas.add(h.factor);
-      }
-    }
-    if (authors.size === 0) return undefined;
-    return { count: authors.size, hypothesisAreas: Array.from(areas) };
-  }, [persistedFindings, hypothesesState.hypotheses]);
-
-  // Focus context state for "Ask CoScout about this" actions
-  const [focusContext, setFocusContext] =
-    useState<import('@variscout/core').AIContext['focusContext']>(undefined);
-
-  // AI narration
-  const aiContext = useAIContext({
-    enabled: aiEnabled && isAIAvailable(),
-    process: processContext,
-    stats: stats ?? undefined,
-    sampleCount: filteredData.length,
-    specs: specs ?? undefined,
-    filters,
-    categories,
-    violations: violationCounts,
-    findings: persistedFindings,
-    hypotheses: hypothesesState.hypotheses,
-    activeChart: viewState?.focusedChart as import('@variscout/core').InsightChartType | undefined,
-    variationContributions: aiVariationContributions,
-    drillPath: filterNav.filterStack
-      .filter(a => a.type === 'filter' && a.factor)
-      .map(a => a.factor!),
-    selectedFinding: aiSelectedFinding,
-    focusContext,
-    teamContributors: aiTeamContributors,
-  });
-  const narration = useNarration({
-    context: aiContext.context,
-    fetchNarration: aiEnabled && isAIAvailable() ? fetchNarrationFromAI : undefined,
-  });
-
-  // Knowledge Base search (Team AI preview) — dual-path: findings + documents
-  const knowledgeSearch = useKnowledgeSearch({
-    searchFn: searchRelatedFindings,
-    searchDocumentsFn: searchDocuments,
-    enabled: isKnowledgeBaseAvailable(),
-  });
-
-  // AI CoScout conversation
-  const coscout = useAICoScout({
-    context: aiContext.context,
-    fetchResponse: aiEnabled && isAIAvailable() ? fetchCoScoutResponse : undefined,
-    fetchStreamingResponse:
-      aiEnabled && isAIAvailable() ? fetchCoScoutStreamingResponse : undefined,
-    initialNarrative: narration.narrative,
-    onBeforeSend: isKnowledgeBaseAvailable()
-      ? async (text, ctx) => {
-          const results = await knowledgeSearch.search(text);
-          ctx.knowledgeResults = results.map(r => ({
-            projectName: r.projectName,
-            factor: r.factor,
-            status: r.status,
-            etaSquared: r.etaSquared,
-            cpkBefore: r.cpkBefore,
-            cpkAfter: r.cpkAfter,
-            suspectedCause: r.suspectedCause,
-            actionsText: r.actionsText,
-            outcomeEffective: r.outcomeEffective,
-          }));
-          // Map document results for agentic retrieval context
-          if (knowledgeSearch.documents.length > 0) {
-            ctx.knowledgeDocuments = knowledgeSearch.documents.map(d => ({
-              title: d.title,
-              snippet: d.snippet,
-              source: d.source,
-              url: d.url,
-            }));
-          }
-        }
-      : undefined,
-  });
-
-  const suggestedQuestions = useMemo(
-    () => (aiContext.context ? buildSuggestedQuestions(aiContext.context) : []),
-    [aiContext.context]
-  );
-
-  // Sync AI-derived fields to popout (phase + suggested questions arrive after orchestration hook)
-  useEffect(() => {
-    const phase = aiContext.context?.investigation?.phase;
-    if (!phase && suggestedQuestions.length === 0) return;
-    updateFindingsPopout(findingsState.findings, columnAliases, drillPath, {
-      hypotheses: persistedHypotheses,
-      processContext,
-      currentValue: stats?.cpk ?? stats?.mean,
-      investigationPhase: phase,
-      suggestedQuestions,
-      factorRoles: processContext?.factorRoles,
-      aiAvailable: aiEnabled && isAIAvailable(),
-    });
-  }, [
-    aiContext.context?.investigation?.phase,
+  // AI orchestration (context, narration, CoScout, knowledge search)
+  const {
+    aiContext,
+    narration,
+    coscout,
     suggestedQuestions,
-    findingsState.findings,
+    fetchChartInsight: fetchChartInsightFromAI,
+    handleNarrativeAsk,
+    handleAskCoScoutFromIdeas,
+    handleAskCoScoutFromFinding,
+    handleAskCoScoutFromCategory,
+  } = useEditorAI({
+    enabled: aiEnabled,
+    stats: stats ?? undefined,
+    filteredData,
+    outcome,
+    specs,
+    findings: findingsState.findings,
+    hypotheses: hypothesesState.hypotheses,
+    factors,
+    filters,
+    filterStack: filterNav.filterStack,
+    processContext,
+    highlightedFindingId,
+    viewState,
     columnAliases,
+    categories,
     drillPath,
     persistedHypotheses,
-    processContext,
-    stats,
-    aiEnabled,
-  ]);
-
-  const handleNarrativeAsk = useCallback(() => {
-    panels.setIsCoScoutOpen(true);
-  }, [panels]);
-
-  // Ask CoScout from improvement ideas section
-  const handleAskCoScoutFromIdeas = useCallback(
-    (question: string) => {
-      panels.setIsCoScoutOpen(true);
-      // Send the question after a tick to let the panel open
-      setTimeout(() => {
-        coscout.send(question);
-      }, 100);
-    },
-    [panels, coscout]
-  );
-
-  // Ask CoScout about a specific finding (from FindingCard)
-  const handleAskCoScoutFromFinding = useCallback(
-    (ctx: import('@variscout/core').AIContext['focusContext']) => {
-      setFocusContext(ctx);
-      // Open findings panel (CoScout inline lives there now)
-      panels.setIsFindingsOpen(true);
-      const findingText = ctx?.finding?.text;
-      if (findingText) {
-        setTimeout(() => {
-          coscout.send(`What should I investigate about this finding: "${findingText}"?`);
-        }, 100);
-      }
-    },
-    [panels, coscout]
-  );
-
-  // Ask CoScout about a category (from MobileCategorySheet)
-  const handleAskCoScoutFromCategory = useCallback(
-    (ctx: import('@variscout/core').AIContext['focusContext']) => {
-      setFocusContext(ctx);
-      panels.setIsCoScoutOpen(true);
-      const catName = ctx?.category?.name;
-      if (catName) {
-        setTimeout(() => {
-          coscout.send(`What can you tell me about "${catName}"?`);
-        }, 100);
-      }
-    },
-    [panels, coscout]
-  );
+    onOpenCoScout: () => panels.setIsCoScoutOpen(true),
+    onOpenFindings: () => panels.setIsFindingsOpen(true),
+  });
 
   // Pass categories and brief from ColumnMapping into DataContext
   const handleMappingConfirmWithCategories = useCallback(
@@ -994,7 +779,7 @@ export const Editor: React.FC<EditorProps> = ({
               onPinFinding={handlePinFinding}
               onShareChart={handleShareChart}
               findingsCallbacks={findingsCallbacks}
-              fetchChartInsight={aiEnabled && isAIAvailable() ? fetchChartInsightFromAI : undefined}
+              fetchChartInsight={fetchChartInsightFromAI}
               aiContext={aiContext.context}
               aiEnabled={aiEnabled && isAIAvailable()}
               narrative={narration.narrative}

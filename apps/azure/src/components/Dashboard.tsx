@@ -22,9 +22,14 @@ import {
   useGlossary,
   BREAKPOINTS,
 } from '@variscout/ui';
-import { getColumnNames, createFactorFromSelection } from '@variscout/core';
+import { getColumnNames } from '@variscout/core';
 import type { FindingsCallbacks } from '../types/findingsCallbacks';
-import { useAnnotations, useChartInsights } from '@variscout/hooks';
+import {
+  useAnnotations,
+  useChartInsights,
+  useFilterHandlers,
+  useCreateFactorModal,
+} from '@variscout/hooks';
 import {
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
@@ -150,7 +155,6 @@ const Dashboard = ({
   const [activeTab, setActiveTabRaw] = useState<DashboardTab>(
     initialViewState?.activeTab ?? 'analysis'
   );
-  const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
   const [showSpecEditor, setShowSpecEditor] = useState(false);
 
   // Wrap setActiveTab to report changes for persistence
@@ -251,28 +255,29 @@ const Dashboard = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPoints, clearSelection]);
 
-  const handleClearAllFilters = useCallback(() => clearFilters(), [clearFilters]);
-  const handleRemoveFilter = useCallback((factor: string) => removeFilter(factor), [removeFilter]);
-  const handleUpdateFilterValues = useCallback(
-    (factor: string, newValues: (string | number)[]) => updateFilterValues(factor, newValues),
-    [updateFilterValues]
+  // Shared filter handler callbacks
+  const { handleClearAllFilters, handleRemoveFilter, handleUpdateFilterValues } = useFilterHandlers(
+    {
+      clearFilters,
+      removeFilter,
+      updateFilterValues,
+    }
   );
 
-  // Create Factor handlers
-  const handleOpenCreateFactorModal = useCallback(() => {
-    setShowCreateFactorModal(true);
-  }, []);
-
-  const handleCreateFactor = useCallback(
-    (factorName: string) => {
-      const updatedData = createFactorFromSelection(rawData, selectedPoints, factorName);
-      setRawData(updatedData);
-      setFilters({ ...filters, [factorName]: [factorName] });
-      clearSelection();
-      setShowCreateFactorModal(false);
-    },
-    [rawData, selectedPoints, filters, setRawData, setFilters, clearSelection]
-  );
+  // Create Factor modal state and handlers
+  const {
+    showCreateFactorModal,
+    handleOpenCreateFactorModal,
+    handleCloseCreateFactorModal,
+    handleCreateFactor,
+  } = useCreateFactorModal({
+    rawData,
+    selectedPoints,
+    filters,
+    setRawData,
+    setFilters,
+    clearSelection,
+  });
 
   // --- Chart Insight Chips (AI-enhanced when available) ---
   const ichartInsight = useChartInsights({
@@ -471,7 +476,7 @@ const Dashboard = ({
       {/* Create Factor Modal */}
       <CreateFactorModal
         isOpen={showCreateFactorModal}
-        onClose={() => setShowCreateFactorModal(false)}
+        onClose={handleCloseCreateFactorModal}
         selectedCount={selectedPoints.size}
         existingFactors={getColumnNames(rawData)}
         onCreateFactor={handleCreateFactor}

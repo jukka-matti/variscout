@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
@@ -19,7 +19,13 @@ import {
   BREAKPOINTS,
   type ChartId,
 } from '@variscout/ui';
-import { useKeyboardNavigation, useAnnotations, useChartInsights } from '@variscout/hooks';
+import {
+  useKeyboardNavigation,
+  useAnnotations,
+  useChartInsights,
+  useFilterHandlers,
+  useCreateFactorModal,
+} from '@variscout/hooks';
 import {
   getNelsonRule2Sequences,
   getNelsonRule3Sequences,
@@ -29,12 +35,7 @@ import { useData } from '../context/DataContext';
 import { useDashboardCharts } from '../hooks/useDashboardCharts';
 import type { UseFilterNavigationReturn } from '../hooks/useFilterNavigation';
 import { Activity, Copy, Check, Download, Settings2 } from 'lucide-react';
-import {
-  createFactorFromSelection,
-  getColumnNames,
-  type SpecLimits,
-  type Finding,
-} from '@variscout/core';
+import { getColumnNames, type SpecLimits, type Finding } from '@variscout/core';
 
 import type { HighlightIntensity } from '../hooks/useEmbedMessaging';
 
@@ -122,9 +123,6 @@ const Dashboard = ({
   } = useData();
 
   const { getTerm } = useGlossary();
-
-  // Modal state for Create Factor
-  const [showCreateFactorModal, setShowCreateFactorModal] = useState(false);
 
   // Annotations (right-click context menu for highlights)
   const {
@@ -227,51 +225,29 @@ const Dashboard = ({
     onEscape: clearSelection,
   });
 
-  // Clear all filters (delegates to hook)
-  const handleClearAllFilters = useCallback(() => clearFilters(), [clearFilters]);
-
-  // Remove a specific filter
-  const handleRemoveFilter = useCallback(
-    (factor: string) => {
-      removeFilter(factor);
-    },
-    [removeFilter]
+  // Shared filter handler callbacks
+  const { handleClearAllFilters, handleRemoveFilter, handleUpdateFilterValues } = useFilterHandlers(
+    {
+      clearFilters,
+      removeFilter,
+      updateFilterValues,
+    }
   );
 
-  // Update filter values (for multi-select in filter chips)
-  const handleUpdateFilterValues = useCallback(
-    (factor: string, newValues: (string | number)[]) => {
-      updateFilterValues(factor, newValues);
-    },
-    [updateFilterValues]
-  );
-
-  // Handle Create Factor button click in SelectionPanel
-  const handleOpenCreateFactorModal = useCallback(() => {
-    setShowCreateFactorModal(true);
-  }, []);
-
-  // Handle factor creation from modal
-  const handleCreateFactor = useCallback(
-    (factorName: string) => {
-      // Create new column with factor values
-      const updatedData = createFactorFromSelection(rawData, selectedPoints, factorName);
-      setRawData(updatedData);
-
-      // Auto-apply filter to show only selected points
-      setFilters({
-        ...filters,
-        [factorName]: [factorName],
-      });
-
-      // Clear selection (now using filter instead)
-      clearSelection();
-
-      // Close modal
-      setShowCreateFactorModal(false);
-    },
-    [rawData, selectedPoints, filters, setRawData, setFilters, clearSelection]
-  );
+  // Create Factor modal state and handlers
+  const {
+    showCreateFactorModal,
+    handleOpenCreateFactorModal,
+    handleCloseCreateFactorModal,
+    handleCreateFactor,
+  } = useCreateFactorModal({
+    rawData,
+    selectedPoints,
+    filters,
+    setRawData,
+    setFilters,
+    clearSelection,
+  });
 
   // Helper to update chart titles (must be before early returns — rules-of-hooks)
   const handleChartTitleChange = useCallback(
@@ -544,7 +520,7 @@ const Dashboard = ({
       {/* Create Factor Modal */}
       <CreateFactorModal
         isOpen={showCreateFactorModal}
-        onClose={() => setShowCreateFactorModal(false)}
+        onClose={handleCloseCreateFactorModal}
         selectedCount={selectedPoints.size}
         existingFactors={getColumnNames(rawData)}
         onCreateFactor={handleCreateFactor}

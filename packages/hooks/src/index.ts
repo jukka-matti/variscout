@@ -221,3 +221,17 @@ export {
   type UseKnowledgeSearchOptions,
   type UseKnowledgeSearchReturn,
 } from './useKnowledgeSearch';
+
+// Filter Handlers (Dashboard shared callbacks)
+export {
+  useFilterHandlers,
+  type UseFilterHandlersOptions,
+  type UseFilterHandlersReturn,
+} from './useFilterHandlers';
+
+// Create Factor Modal (Dashboard shared modal state)
+export {
+  useCreateFactorModal,
+  type UseCreateFactorModalOptions,
+  type UseCreateFactorModalReturn,
+} from './useCreateFactorModal';

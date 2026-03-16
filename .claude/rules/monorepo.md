@@ -34,6 +34,8 @@ packages/
 │              #   useChartInsights - Per-chart insight orchestration
 │              #   useAICoScout - CoScout conversation state
 │              #   useKnowledgeSearch - Knowledge Base search wrapper
+│              #   useFilterHandlers - Dashboard filter handler callbacks
+│              #   useCreateFactorModal - Dashboard create-factor modal state
 └── ui/        # @variscout/ui - Shared UI components:
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
                #   PerformanceSetupPanelBase, VariationBar,
