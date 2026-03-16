@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lightbulb, AlertTriangle, Info, Sparkles, X } from 'lucide-react';
+import { Lightbulb, AlertTriangle, Info, Sparkles, X, ArrowRight } from 'lucide-react';
 
 export interface ChartInsightChipProps {
   /** Insight text to display */
@@ -14,6 +14,8 @@ export interface ChartInsightChipProps {
   onDismiss: () => void;
   /** Chart type for data-testid */
   chartType: string;
+  /** Action callback — when provided, chip text is clickable */
+  onAction?: () => void;
 }
 
 const chipStyles = {
@@ -45,6 +47,7 @@ const ChartInsightChip: React.FC<ChartInsightChipProps> = ({
   isLoading = false,
   onDismiss,
   chartType,
+  onAction,
 }) => {
   // Loading shimmer
   if (isLoading) {
@@ -75,10 +78,32 @@ const ChartInsightChip: React.FC<ChartInsightChipProps> = ({
         </>
       )}
       <span
-        className={`flex-1 text-xs sm:text-xs text-[11px] ${style.text} truncate leading-tight`}
+        className={`flex-1 text-xs sm:text-xs text-[11px] ${style.text} truncate leading-tight ${onAction ? 'cursor-pointer hover:underline' : ''}`}
+        title={text}
+        onClick={
+          onAction
+            ? e => {
+                e.stopPropagation();
+                onAction();
+              }
+            : undefined
+        }
+        role={onAction ? 'button' : undefined}
+        tabIndex={onAction ? 0 : undefined}
+        onKeyDown={
+          onAction
+            ? e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onAction();
+                }
+              }
+            : undefined
+        }
       >
         {text}
       </span>
+      {onAction && <ArrowRight size={12} className={`${style.text} flex-shrink-0`} />}
       <button
         onClick={e => {
           e.stopPropagation();

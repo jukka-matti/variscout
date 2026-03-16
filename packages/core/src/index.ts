@@ -294,7 +294,13 @@ export {
 } from './ai';
 
 // AI (Phase 2 — Chart Insights)
-export type { InsightChartType, ChipType, DeterministicInsight, ChartInsightData } from './ai';
+export type {
+  InsightChartType,
+  ChipType,
+  DeterministicInsight,
+  InsightAction,
+  ChartInsightData,
+} from './ai';
 export {
   buildIChartInsight,
   buildBoxplotInsight,

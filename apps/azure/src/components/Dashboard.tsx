@@ -333,6 +333,7 @@ const Dashboard = ({
       return {
         categoryContributions: converted,
         categoryCount: innerMap?.size ?? 0,
+        paretoFactor,
       };
     }, [categoryContributions, paretoFactor]),
   });
@@ -626,6 +627,15 @@ const Dashboard = ({
               boxplotInsight={boxplotInsight}
               paretoInsight={paretoInsight}
               statsInsight={statsInsight}
+              onInsightAction={(factor, value) => {
+                if (value) {
+                  handleDrillDown(factor, value);
+                } else {
+                  // Switch factor view (e.g., boxplot drill suggestion)
+                  setBoxplotFactor(factor);
+                  setParetoFactor(factor);
+                }
+              }}
               // Azure-specific: Manage Factors button in I-Chart header
               ichartHeaderExtra={
                 onManageFactors ? (

@@ -41,7 +41,12 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
       (isStreaming && messages.length > 0 && messages[messages.length - 1]?.content === ''));
 
   return (
-    <div className="flex-1 overflow-y-auto p-3 space-y-3" data-testid="coscout-messages">
+    <div
+      className="flex-1 overflow-y-auto p-3 space-y-3"
+      data-testid="coscout-messages"
+      role="log"
+      aria-live="polite"
+    >
       {messages.map((msg, index) => (
         <div
           key={msg.id}

@@ -9,6 +9,13 @@ import type { NelsonRule2Sequence, NelsonRule3Sequence } from '../types';
 export type InsightChartType = 'ichart' | 'boxplot' | 'pareto' | 'capability' | 'stats';
 export type ChipType = 'suggestion' | 'warning' | 'info';
 
+/** Action metadata for clickable insight chips */
+export interface InsightAction {
+  type: 'drill';
+  factor: string;
+  value?: string;
+}
+
 export interface DeterministicInsight {
   /** Display text, max ~100 chars */
   text: string;
@@ -16,6 +23,8 @@ export interface DeterministicInsight {
   chipType: ChipType;
   /** Higher = show this one (only 1 chip per chart) */
   priority: number;
+  /** Optional action triggered when user clicks the chip */
+  action?: InsightAction;
 }
 
 /**
@@ -87,6 +96,7 @@ export function buildBoxplotInsight(
         text: `→ Drill ${nextDrillFactor} (${Math.round(nextVariation)}% of variation)`,
         chipType: 'suggestion',
         priority: 3,
+        action: { type: 'drill', factor: nextDrillFactor },
       };
     }
   }
@@ -109,7 +119,8 @@ export function buildBoxplotInsight(
  */
 export function buildParetoInsight(
   categoryContributions: Map<string, number>,
-  categoryCount: number
+  categoryCount: number,
+  factor?: string
 ): DeterministicInsight | null {
   if (categoryCount < 3) {
     return null;
@@ -118,13 +129,14 @@ export function buildParetoInsight(
   // Sort contributions descending
   const sorted = [...categoryContributions.entries()].sort((a, b) => b[1] - a[1]);
 
-  // Single dominant category
+  // Single dominant category — actionable: drill into it
   if (sorted.length > 0 && sorted[0][1] > 50) {
     const [name, pct] = sorted[0];
     return {
       text: `"${name}" accounts for ${Math.round(pct)}% of variation`,
       chipType: 'info',
       priority: 2,
+      action: factor ? { type: 'drill', factor, value: name } : undefined,
     };
   }
 

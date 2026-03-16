@@ -20,6 +20,7 @@ const mockInsight = {
   dismiss: noop,
   isLoading: false,
   isAI: false,
+  action: null,
 };
 
 const mockAnnotations: DashboardLayoutBaseProps['annotations'] = {

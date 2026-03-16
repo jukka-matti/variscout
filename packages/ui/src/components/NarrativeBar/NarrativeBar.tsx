@@ -16,6 +16,8 @@ export interface NarrativeBarProps {
   onRetry?: () => void;
   /** Enable tap-to-expand on mobile */
   isMobile?: boolean;
+  /** Data quality hint — 'limited' shows amber dot indicating small sample size */
+  dataQualityHint?: 'limited' | null;
 }
 
 /**
@@ -30,6 +32,7 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
   onAsk,
   onRetry,
   isMobile = false,
+  dataQualityHint,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -44,6 +47,7 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
       <div
         className="flex items-center gap-3 px-4 py-3 bg-surface-secondary border-t border-edge"
         data-testid="narrative-bar"
+        aria-live="polite"
       >
         <div className="flex-1 space-y-1.5" data-testid="narrative-shimmer">
           <div className="h-3 bg-surface-tertiary rounded animate-pulse w-3/4" />
@@ -59,6 +63,7 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
       <div
         className="flex items-center gap-3 px-4 py-3 bg-surface-secondary border-t border-edge"
         data-testid="narrative-bar"
+        aria-live="polite"
       >
         <AlertCircle size={14} className="text-red-400 flex-shrink-0" />
         <span className="flex-1 text-xs text-red-400 truncate">{error}</span>
@@ -84,7 +89,15 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
     <div
       className="flex items-center gap-3 px-4 py-3 bg-surface-secondary border-t border-edge"
       data-testid="narrative-bar"
+      aria-live="polite"
     >
+      {dataQualityHint === 'limited' && (
+        <span
+          className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"
+          title="Limited sample size — interpret with caution"
+          aria-label="Limited data quality indicator"
+        />
+      )}
       <p
         className={`flex-1 text-xs text-content-secondary leading-relaxed ${
           isMobile ? (isExpanded ? 'line-clamp-3' : 'truncate') : 'truncate'

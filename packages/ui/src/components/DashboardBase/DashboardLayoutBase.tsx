@@ -135,6 +135,8 @@ export interface DashboardLayoutBaseProps {
   boxplotInsight: UseChartInsightsReturn;
   paretoInsight: UseChartInsightsReturn;
   statsInsight: UseChartInsightsReturn;
+  /** Called when user clicks an actionable insight chip (e.g., drill suggestion) */
+  onInsightAction?: (factor: string, value?: string) => void;
 
   // ---- Render slots (app-specific chart content) ----
   renderIChartContent: React.ReactNode;
@@ -233,6 +235,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   boxplotInsight,
   paretoInsight,
   statsInsight,
+  onInsightAction,
   renderIChartContent,
   renderBoxplotContent,
   renderParetoContent,
@@ -452,6 +455,11 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
         isLoading={insight.isLoading}
         onDismiss={insight.dismiss}
         chartType={chartType}
+        onAction={
+          insight.action && onInsightAction
+            ? () => onInsightAction(insight.action!.factor, insight.action!.value)
+            : undefined
+        }
       />
     ) : undefined;
 

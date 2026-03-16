@@ -12,6 +12,7 @@ import type {
   InsightChartType,
   ChipType,
   DeterministicInsight,
+  InsightAction,
   AIContext,
   ChartInsightData,
   NelsonRule2Sequence,
@@ -43,6 +44,7 @@ export interface DeterministicData {
   // Pareto
   categoryContributions?: Map<string, number>;
   categoryCount?: number;
+  paretoFactor?: string;
   // Stats
   cpk?: number;
   cp?: number;
@@ -79,6 +81,8 @@ export interface UseChartInsightsReturn {
   isLoading: boolean;
   /** Whether the displayed text is AI-enhanced */
   isAI: boolean;
+  /** Optional action for clickable insight chips */
+  action: InsightAction | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -121,7 +125,8 @@ export function useChartInsights({
       case 'pareto':
         return buildParetoInsight(
           deterministicData.categoryContributions ?? new Map(),
-          deterministicData.categoryCount ?? 0
+          deterministicData.categoryCount ?? 0,
+          deterministicData.paretoFactor
         );
       case 'stats':
         return buildStatsInsight(
@@ -263,5 +268,6 @@ export function useChartInsights({
     dismiss,
     isLoading: isLoading && !isDismissed,
     isAI: aiText !== null && !isDismissed,
+    action: isDismissed ? null : (deterministicInsight?.action ?? null),
   };
 }

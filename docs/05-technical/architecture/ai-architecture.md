@@ -10,6 +10,8 @@ related: [ai-foundry, coscout, narrative-bar, knowledge-base]
 
 Technical architecture for optional AI integration in the Azure App.
 
+> **See also:** [AIX Design System](aix-design-system.md) — governance, tone, trust calibration, and interaction patterns for all AI behavior.
+
 ---
 
 ## Architecture Overview

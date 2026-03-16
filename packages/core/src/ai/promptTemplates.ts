@@ -1,6 +1,9 @@
 /**
  * Prompt templates for AI narration.
  *
+ * Governance: docs/05-technical/architecture/aix-design-system.md
+ * Read the AIX Design System before modifying any prompt template.
+ *
  * Structure optimized for Azure AI Foundry automatic prompt caching:
  * System prompts place static content (role + glossary) first as a cacheable prefix (≥1,024 tokens),
  * with variable context (stats, filters, findings) in subsequent messages.
@@ -115,6 +118,22 @@ export function buildSummaryPrompt(context: AIContext): string {
   // Problem statement
   if (context.process?.problemStatement) {
     parts.push(`Problem statement: ${context.process.problemStatement}`);
+  }
+
+  // Confidence calibration — hedging instructions based on sample size
+  if (context.stats) {
+    const n = context.stats.samples;
+    if (n < 10) {
+      parts.push(
+        `Data quality note: Only ${n} observations. Use cautious language: "With only ${n} observations, this is not yet reliable. Consider collecting more data."`
+      );
+    } else if (n < 30) {
+      parts.push(
+        'Data quality note: Limited sample size. Use hedged language: "Based on limited data...", "Preliminary analysis indicates..."'
+      );
+    } else if (n < 100) {
+      parts.push('Use standard language: "The analysis suggests...", "Current data indicates..."');
+    }
   }
 
   parts.push('Summarize this analysis state in 1-2 sentences for a quality professional.');
@@ -239,7 +258,8 @@ export function buildChartInsightPrompt(context: AIContext, data: ChartInsightDa
 export function buildCoScoutSystemPrompt(
   glossaryFragment?: string,
   investigation?: AIContext['investigation'],
-  teamContributors?: AIContext['teamContributors']
+  teamContributors?: AIContext['teamContributors'],
+  sampleCount?: number
 ): string {
   const parts = [
     `You are CoScout, the quality engineering assistant for VariScout — an Exploratory Data Analysis tool for process improvement.
@@ -362,6 +382,24 @@ Never invent data or statistics. If the context does not contain enough informat
     }
   }
 
+  // Confidence calibration — adjust tone based on sample size
+  // See docs/05-technical/architecture/aix-design-system.md §1.2
+  if (sampleCount !== undefined) {
+    if (sampleCount < 10) {
+      parts.push(
+        `Confidence calibration: Only ${sampleCount} observations available. Use cautious language — qualify all conclusions with "With only ${sampleCount} observations, this is not yet reliable." Recommend collecting more data before drawing conclusions.`
+      );
+    } else if (sampleCount < 30) {
+      parts.push(
+        'Confidence calibration: Limited sample size (< 30). Use hedged language — "Based on limited data...", "Preliminary analysis indicates..." Do not make strong claims about process stability or capability.'
+      );
+    } else if (sampleCount < 100) {
+      parts.push(
+        'Confidence calibration: Moderate sample size. Use standard language — "The analysis suggests...", "Current data indicates..."'
+      );
+    }
+  }
+
   // Team collaboration awareness
   if (teamContributors && teamContributors.count > 1) {
     parts.push(
@@ -441,7 +479,8 @@ export function buildCoScoutMessages(
     content: buildCoScoutSystemPrompt(
       context.glossaryFragment,
       context.investigation,
-      context.teamContributors
+      context.teamContributors,
+      context.stats?.samples
     ),
   });
 

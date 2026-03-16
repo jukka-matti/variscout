@@ -33,7 +33,12 @@ export {
   buildReportPrompt,
 } from './promptTemplates';
 
-export type { InsightChartType, ChipType, DeterministicInsight } from './chartInsights';
+export type {
+  InsightChartType,
+  ChipType,
+  DeterministicInsight,
+  InsightAction,
+} from './chartInsights';
 export {
   buildIChartInsight,
   buildBoxplotInsight,
