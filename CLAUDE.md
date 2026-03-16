@@ -166,6 +166,7 @@ sales/                   # Sales leads and company contacts (not software docs)
 | Hypothesis investigation | docs/03-features/workflows/hypothesis-investigation.md, docs/07-decisions/adr-020-investigation-workflow.md                                                                                                                             |
 | Data lifecycle/append    | docs/07-decisions/adr-023-data-lifecycle.md, apps/azure/src/hooks/useEditorDataFlow.ts                                                                                                                                                  |
 | Verification experience  | docs/07-decisions/adr-023-data-lifecycle.md, docs/03-features/analysis/staged-analysis.md                                                                                                                                               |
+| Report View / sharing    | docs/07-decisions/adr-024-scouting-report.md, docs/superpowers/specs/2026-03-16-scouting-report-design.md, docs/02-journeys/flows/azure-daily-use.md                                                                                    |
 
 ## Repository Structure
 

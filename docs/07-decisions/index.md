@@ -31,6 +31,7 @@ This section captures key architectural decisions made during VariScout developm
 | [021](adr-021-security-evaluation.md)                | Security Evaluation (Teams)              | Accepted   | 2026-02-27 |
 | [022](adr-022-knowledge-layer-architecture.md)       | Knowledge Layer Architecture             | Accepted   | 2026-03-16 |
 | [023](adr-023-data-lifecycle.md)                     | Verification Experience & Data Lifecycle | Accepted   | 2026-03-16 |
+| [024](adr-024-scouting-report.md)                    | Scouting Report — Dynamic Report View    | Accepted   | 2026-03-16 |
 
 ---
 

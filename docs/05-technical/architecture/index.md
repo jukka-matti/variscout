@@ -29,3 +29,4 @@ Detailed architecture documents for VariScout's technical design.
 - [Architecture Overview](../architecture.md) — high-level stack, package diagram, directory structure
 - [Implementation](../implementation/) — testing, deployment, security scanning
 - [ADR-023: Verification Experience & Data Lifecycle](../../07-decisions/adr-023-data-lifecycle.md) — data entry paths, append, staged verification vision
+- [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) — dynamic Report View, copy-as-slide, Teams deep links

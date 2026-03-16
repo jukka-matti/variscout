@@ -156,16 +156,17 @@ const plan = import.meta.env.VARISCOUT_PLAN; // 'standard', 'team', or 'team-ai'
 
 ## Features
 
-| Feature          | Plan | Description                                                  |
-| ---------------- | ---- | ------------------------------------------------------------ |
-| SSO              | Both | Microsoft Entra ID via EasyAuth                              |
-| Cloud Sync       | Team | Analyses saved to OneDrive                                   |
-| Sharing          | Team | Share analyses with team members via OneDrive/SharePoint     |
-| Offline          | Both | Cached locally; Team plan syncs when online                  |
-| All Chart Types  | Both | I-Chart, Boxplot, Pareto, Capability, etc.                   |
-| Performance Mode | Both | Multi-channel Cpk analysis                                   |
-| Presentation     | Both | Full-screen chart overview + focused single-chart navigation |
-| Drill-Down       | Both | Interactive filter navigation                                |
+| Feature          | Plan | Description                                                      |
+| ---------------- | ---- | ---------------------------------------------------------------- |
+| SSO              | Both | Microsoft Entra ID via EasyAuth                                  |
+| Cloud Sync       | Team | Analyses saved to OneDrive                                       |
+| Sharing          | Team | Share analyses with team members via OneDrive/SharePoint         |
+| Offline          | Both | Cached locally; Team plan syncs when online                      |
+| All Chart Types  | Both | I-Chart, Boxplot, Pareto, Capability, etc.                       |
+| Performance Mode | Both | Multi-channel Cpk analysis                                       |
+| Presentation     | Both | Full-screen chart overview + focused single-chart navigation     |
+| Report View      | Both | Dynamic story-driven report with copy-as-slide and Teams sharing |
+| Drill-Down       | Both | Interactive filter navigation                                    |
 
 ---
 

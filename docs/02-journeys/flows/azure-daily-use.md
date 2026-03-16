@@ -62,6 +62,8 @@ flowchart TD
     P -->|Export CSV| Q[Download filtered data]
     P -->|Copy chart| R[Clipboard: chart as image]
     P -->|Edit title| S[Custom chart title for report]
+    P -->|Report| U[Open Report View — story-driven report]
+    U --> U2[Copy sections as slides or share via Teams]
     P -->|Done| T[Click Save — local + OneDrive sync on Team plan]
 ```
 
@@ -89,6 +91,9 @@ journey
     section Export
       Copy chart to clipboard: 5: User
       Download CSV export: 5: User
+      Open Report View: 5: User
+      Copy section as slide: 5: User
+      Share report via Teams: 5: User
       Save analysis: 5: User
 ```
 
@@ -224,13 +229,41 @@ If the verification data lives in a separate file or system:
 
 ## Export and Sharing
 
-| Action           | How                                               | Output                       |
-| ---------------- | ------------------------------------------------- | ---------------------------- |
-| CSV export       | Editor header button                              | Filtered data as CSV         |
-| Copy chart       | Chart card menu → "Copy to clipboard"             | PNG image on clipboard       |
-| Edit chart title | Click chart title → type custom text              | Appears in copied image      |
-| Download chart   | Chart card menu → "Download"                      | PNG file                     |
-| Share analysis   | Share the `.vrs` file from OneDrive _(Team plan)_ | Colleague opens in their app |
+| Action           | How                                               | Output                          |
+| ---------------- | ------------------------------------------------- | ------------------------------- |
+| CSV export       | Editor header button                              | Filtered data as CSV            |
+| Copy chart       | Chart card menu → "Copy to clipboard"             | PNG image on clipboard          |
+| Edit chart title | Click chart title → type custom text              | Appears in copied image         |
+| Download chart   | Chart card menu → "Download"                      | PNG file                        |
+| Share analysis   | Share the `.vrs` file from OneDrive _(Team plan)_ | Colleague opens in their app    |
+| Report View      | Toolbar button → scrollable story report          | Copy sections as slides         |
+| Share report     | Report View → "Share Report" _(Team plan)_        | Teams Adaptive Card + deep link |
+
+### Report View — Share the Full Story
+
+Instead of downloading individual charts and assembling them in PowerPoint, Gary opens the **Report View** — a scrollable, story-driven document that composes the entire analysis into a shareable format. The report adapts to the analysis type:
+
+| Analysis Type              | What Gary Did                       | Report Shows                                                                         |
+| -------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
+| **Quick Check**            | Checked stability, no issues        | 2 steps: Current Condition → Verdict (I-Chart + key stats)                           |
+| **Deep Dive**              | Found patterns, created hypotheses  | 3 active steps + 2 future: Current → Drivers → Hypotheses → _(actions)_ → _(verify)_ |
+| **Full Improvement Cycle** | Completed actions, verified outcome | 5 complete steps: Current → Drivers → Hypotheses → Actions → Verification            |
+
+**Copy workflow (3 levels):**
+
+1. **Copy element** — Hover over any chart or stats block → copy button → paste into PowerPoint as individual image
+2. **Copy section as slide** — Each story step has a "Copy as slide" button → captures at 16:9 (1920×1080) → paste = one PowerPoint slide done
+3. **Copy all charts** — TOC footer → bundles every chart as individual PNGs for custom layout
+
+**Teams sharing (Team plan):**
+
+- Click "Share Report" in the TOC footer
+- Posts an Adaptive Card to the Teams channel with process name, key metric (Cpk), and status
+- Deep link (`?project=X&mode=report`) opens the Report View directly for colleagues
+
+**Time savings:** Weekly review drops from 5–10 minutes of manual assembly to 1–2 minutes of copy-paste. Improvement reports drop from 15–20 minutes to 3–5 minutes.
+
+See [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) for the full design.
 
 ---
 
@@ -302,3 +335,4 @@ The "Show AI assistance" toggle only appears when an AI endpoint is configured. 
 - [Four Lenses Workflow](../../03-features/workflows/four-lenses-workflow.md) — analysis framework
 - [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — architectural decision
+- [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) — dynamic Report View
