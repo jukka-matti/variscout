@@ -32,6 +32,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
     setProcessContext,
     aiEnabled,
     setAIEnabled,
+    aiPreferences,
+    setAIPreferences,
   } = useData();
 
   return (
@@ -165,15 +167,69 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                 Show AI narration
               </label>
               {aiEnabled && (
-                <div>
-                  <label className="text-[11px] text-content-muted mb-1 block">
-                    Process Description
-                  </label>
-                  <ProcessDescriptionField
-                    value={processContext.description || ''}
-                    onChange={value => setProcessContext({ ...processContext, description: value })}
-                  />
-                </div>
+                <>
+                  <div className="ml-6 space-y-2">
+                    <label
+                      htmlFor="az-setting-ai-narration-toggle"
+                      className="flex items-center gap-2 text-xs text-content-secondary cursor-pointer"
+                    >
+                      <input
+                        id="az-setting-ai-narration-toggle"
+                        name="az-setting-ai-narration-toggle"
+                        type="checkbox"
+                        checked={aiPreferences.narration}
+                        onChange={e =>
+                          setAIPreferences({ ...aiPreferences, narration: e.target.checked })
+                        }
+                        className="rounded border-edge"
+                      />
+                      Narrative summary
+                    </label>
+                    <label
+                      htmlFor="az-setting-ai-insights-toggle"
+                      className="flex items-center gap-2 text-xs text-content-secondary cursor-pointer"
+                    >
+                      <input
+                        id="az-setting-ai-insights-toggle"
+                        name="az-setting-ai-insights-toggle"
+                        type="checkbox"
+                        checked={aiPreferences.insights}
+                        onChange={e =>
+                          setAIPreferences({ ...aiPreferences, insights: e.target.checked })
+                        }
+                        className="rounded border-edge"
+                      />
+                      Chart insights
+                    </label>
+                    <label
+                      htmlFor="az-setting-ai-coscout-toggle"
+                      className="flex items-center gap-2 text-xs text-content-secondary cursor-pointer"
+                    >
+                      <input
+                        id="az-setting-ai-coscout-toggle"
+                        name="az-setting-ai-coscout-toggle"
+                        type="checkbox"
+                        checked={aiPreferences.coscout}
+                        onChange={e =>
+                          setAIPreferences({ ...aiPreferences, coscout: e.target.checked })
+                        }
+                        className="rounded border-edge"
+                      />
+                      CoScout assistant
+                    </label>
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-content-muted mb-1 block">
+                      Process Description
+                    </label>
+                    <ProcessDescriptionField
+                      value={processContext.description || ''}
+                      onChange={value =>
+                        setProcessContext({ ...processContext, description: value })
+                      }
+                    />
+                  </div>
+                </>
               )}
             </div>
           )}

@@ -34,6 +34,22 @@ import { indexFindingsToSearch } from '../services/indexService';
 export type { DisplayOptions, ParetoMode, DataQualityReport, ParetoRow, StorageLocation };
 
 /**
+ * Per-component AI toggle preferences.
+ * All default to true — disabling a component hides it without turning off AI globally.
+ */
+export interface AIPreferences {
+  narration: boolean;
+  insights: boolean;
+  coscout: boolean;
+}
+
+const DEFAULT_AI_PREFERENCES: AIPreferences = {
+  narration: true,
+  insights: true,
+  coscout: true,
+};
+
+/**
  * Azure-specific state beyond base DataState
  */
 interface AzureDataState extends Omit<DataState, 'saveProject' | 'loadProject'> {
@@ -41,6 +57,7 @@ interface AzureDataState extends Omit<DataState, 'saveProject' | 'loadProject'> 
   syncStatus: SyncStatus;
   processContext: ProcessContext;
   aiEnabled: boolean;
+  aiPreferences: AIPreferences;
 }
 
 /**
@@ -56,6 +73,7 @@ interface AzureDataActions extends Omit<
   renameProject: (oldName: string, newName: string) => Promise<void>;
   setProcessContext: (ctx: ProcessContext) => void;
   setAIEnabled: (enabled: boolean) => void;
+  setAIPreferences: (prefs: AIPreferences) => void;
 }
 
 /**
@@ -76,6 +94,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // AI process context
   const [processContext, setProcessContext] = useState<ProcessContext>({});
   const [aiEnabled, setAIEnabled] = useState(false);
+  const [aiPreferences, setAIPreferences] = useState<AIPreferences>(DEFAULT_AI_PREFERENCES);
 
   // Azure-specific state — default location based on Teams context
   const defaultLocation = useMemo<StorageLocation>(() => {
@@ -221,8 +240,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       syncStatus,
       processContext,
       aiEnabled,
+      aiPreferences,
     }),
-    [state, currentProjectLocation, syncStatus, processContext, aiEnabled]
+    [state, currentProjectLocation, syncStatus, processContext, aiEnabled, aiPreferences]
   );
 
   // Memoize actions context
@@ -275,6 +295,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // AI
       setProcessContext,
       setAIEnabled,
+      setAIPreferences,
 
       // Azure-enhanced persistence methods
       saveProject,
@@ -294,6 +315,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       renameProject,
       setProcessContext,
       setAIEnabled,
+      setAIPreferences,
     ]
   );
 

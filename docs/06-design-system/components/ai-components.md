@@ -46,6 +46,10 @@ interface NarrativeBarProps {
 }
 ```
 
+### Per-Component Toggle
+
+NarrativeBar can be independently disabled via the AI preferences section in SettingsPanel, separate from the global "Show AI assistance" toggle. When disabled, the bar is hidden but other AI components (ChartInsightChip, CoScoutPanel) remain active if the global toggle is ON. Preference stored in localStorage.
+
 ### States
 
 | State               | Visual                                  |
@@ -111,6 +115,10 @@ interface ChartInsightChipProps {
 - Dismissable — dismissed state persists for current analysis session
 - Re-appears when analysis data changes significantly
 
+### Low-Priority AI Skip
+
+When the deterministic insight has `priority <= 1` (e.g., process is healthy and in control), the AI enhancement fetch is skipped entirely. This saves an API call when there is nothing noteworthy to enhance. The deterministic insight is displayed as-is with `isAI={false}`.
+
 ---
 
 ## CoScoutPanel
@@ -130,17 +138,46 @@ interface CoScoutPanelBaseProps {
   onClear?: () => void;
   onStopStreaming?: () => void;
   onCopyLastResponse?: () => Promise<boolean>;
+  onCopyConversation?: () => void;
+  providerLabel?: string;
+  aiContextSummary?: AIContextSummary;
   suggestedQuestions?: string[];
   onAskSuggested?: (question: string) => void;
 }
+
+interface AIContextSummary {
+  stats: string;
+  filterCount: number;
+  findingCount: number;
+  phase?: string;
+}
 ```
+
+### Additional Props
+
+- **`providerLabel`** — AI model provider label displayed below the "CoScout" title in the header (e.g., "Claude", "Azure OpenAI"). Rendered in `text-content-secondary text-xs`. Hidden when not provided.
+- **`onCopyConversation`** — Copies the entire conversation history to clipboard. Available via the overflow menu (⋮) alongside "Clear conversation" and "Copy last response".
+- **`aiContextSummary`** — When provided, renders a collapsible "AI context" card below the header showing the current context sent to the AI: stats summary, active filter count, finding count, and investigation phase. Collapsed by default; toggle via chevron. Helps users understand what context the AI is working with.
+
+### Empty State
+
+When `messages.length === 0 && !isLoading`, the panel shows a capability overview instead of an empty message area:
+
+> **I can help you:**
+>
+> - Understand patterns in your data
+> - Investigate root causes of variation
+> - Interpret capability metrics
+> - Suggest next steps for improvement
+
+The overview is replaced by the first message as soon as the user sends a question or clicks a suggested question chip.
 
 ### Layout
 
 - Resizable width: 320px–600px (same as FindingsPanel)
 - Slides in from the right edge
-- Header: "CoScout" title + close button
-- Body: scrollable message history
+- Header: "CoScout" title + provider label (if set) + close button
+- Body: scrollable message history (or empty state)
 - Footer: text input + send button
 
 ### Message Types
@@ -313,6 +350,7 @@ Full-screen overlay following the same pattern as FindingsPanel on phone (`fixed
 
 - "Clear conversation" — clears message history with confirmation
 - "Copy last response" — copies most recent AI response to clipboard
+- "Copy conversation" — copies entire conversation history to clipboard (calls `onCopyConversation`)
 
 ### AI Onboarding (First-Time Experience)
 
@@ -578,6 +616,10 @@ Compact CoScout conversation embedded within the FindingsPanel. Azure-only (PWA 
 - `CoScoutInline` — Collapsible conversation area within FindingsPanel
 - `CoScoutMessages` — Shared message rendering (user/assistant bubbles, loading dots)
 - `InvestigationPhaseBadge` — Colored pill badge showing investigation phase
+
+### CoScoutMessages Source Attribution
+
+`[Source: name]` markers in assistant messages are rendered as styled inline badges rather than plain text. Badge styling: `bg-violet-500/15 text-violet-400 text-[9px]` with rounded corners and slight padding. This visually distinguishes source references (e.g., knowledge base entries, methodology concepts) from the surrounding response text.
 
 **Behavior:**
 

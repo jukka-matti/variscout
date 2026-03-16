@@ -54,6 +54,9 @@ Seven non-negotiable rules governing all AI behavior in VariScout:
 - "Contribution %" not "effect size" or "eta squared" in user-facing text
 - "Progressive stratification" not "drill-down" when explaining methodology
 - "Voice of the Process / Voice of the Customer" when explaining control vs spec limits
+- "characteristic" not "measurement" or "variable" when referring to what is being measured
+
+Terminology rules are codified in the `TERMINOLOGY_INSTRUCTION` constant in `packages/core/src/ai/promptTemplates.ts`, which is injected into all AI prompts (narration, chart insights, CoScout).
 
 #### What AI Must Never Do
 
@@ -123,9 +126,9 @@ Customer configures model during ARM deployment. Provider auto-detected from end
 
 **What AI sees:** `buildAIContext()` assembles stats, filters, findings, violations, hypotheses. See `ai-context-engineering.md` for token budgets.
 
-**What user sees:** Currently nothing (known gap). Future: expandable "AI context" card in CoScout.
+**What user sees:** Collapsible "AI context" card in CoScout panel shows stats summary, active filters, findings count, and investigation phase (`aiContextSummary` prop on `CoScoutPanelBase`).
 
-**Source attribution:** Knowledge Base sources formatted in `formatKnowledgeContext()` with `[From: source]` markers. Currently in prompts only, not surfaced in UI (known gap).
+**Source attribution:** Knowledge Base sources formatted in `formatKnowledgeContext()` with `[Source: name]` markers. In the CoScout UI, these markers are rendered as violet inline badges in assistant messages.
 
 ### 2.4 Error & Degradation Pattern
 
@@ -152,7 +155,7 @@ Three tiers of AI interaction — user controls depth:
 | Prompted       | ChartInsightChip | Contextual per-chart suggestion | Dismiss or act |
 | Conversational | CoScout          | Full dialogue, phase-aware      | User initiates |
 
-Each tier is independently dismissable. Global toggle in Settings disables all AI. No per-component toggles currently (future consideration).
+Each tier is independently dismissable. Global toggle in Settings disables all AI. Per-component toggles in Settings allow users to independently enable/disable NarrativeBar, ChartInsightChip, and CoScout — so an analyst can keep narration on but turn off chart insights, for example.
 
 ### 2.6 Knowledge Base Pattern
 
@@ -202,6 +205,7 @@ Improvement ideas injected during converging phase when supported hypotheses exi
 - **Accessibility:** `aria-live="polite"` on container. Mobile: tap-to-expand with `aria-expanded`.
 - **Mobile:** 1 line → 3 lines on tap, animated transition.
 - **Visual:** Amber dot when `dataQualityHint` indicates limited data (n < 30).
+- **Toggle:** Can be independently disabled via per-component AI toggle in Settings.
 - **Files:** `packages/ui/src/components/NarrativeBar/`, `packages/hooks/src/useNarration.ts`
 
 ### 3.2 ChartInsightChip
@@ -209,7 +213,7 @@ Improvement ideas injected during converging phase when supported hypotheses exi
 - **Patterns:** Action Suggestion (§2.2), Confidence Communication (§2.1), Prompted Engagement (§2.5)
 - **Prompt:** Fast tier, 80 tokens, temp 0.2. "One sentence, <120 chars, specific and actionable."
 - **Deterministic builders:** I-Chart (Nelson rules), Boxplot (drill suggestions), Pareto (top categories), Stats (Cpk vs target)
-- **AI enhancement:** 3s debounce, silent fallback to deterministic on error
+- **AI enhancement:** 3s debounce, silent fallback to deterministic on error. When `deterministicInsight.priority <= 1`, AI fetch is skipped entirely to save API calls (low-priority insights are sufficiently served by deterministic logic).
 - **Accessibility:** Dismiss button `aria-label="Dismiss insight"`. Text span has `title` attribute for overflow.
 - **Mobile:** 44px touch targets for dismiss button (already implemented)
 - **Action:** Actionable chips show arrow icon; clicking triggers `onAction` → drill-down
@@ -223,7 +227,12 @@ Improvement ideas injected during converging phase when supported hypotheses exi
 - **Suggested questions:** Phase-aware, dynamically generated from investigation state
 - **Accessibility:** `role="log"` + `aria-live="polite"` on message container
 - **Knowledge Base:** Search indicator during loading ("Searching N related findings...")
-- **Known gaps:** No source attribution in responses, no context disclosure card, no feedback mechanism
+- **Provider label:** `providerLabel` prop displays the AI provider name (e.g., "Claude", "Azure OpenAI") below the panel title.
+- **Empty state:** When no messages, shows a capability overview: "I can help you: understand patterns, investigate root causes, interpret capability metrics, suggest next steps."
+- **Conversation export:** "Copy conversation" action in overflow menu via `onCopyConversation` prop.
+- **Context disclosure:** Collapsible "AI context" card shows the stats, filters, findings, and investigation phase sent to the model, via `aiContextSummary` prop.
+- **Source attribution:** `[Source: name]` markers in assistant responses are rendered as violet inline badges in the message UI.
+- **Known gaps:** No feedback mechanism
 - **Files:** `packages/ui/src/components/CoScoutPanel/`, `packages/hooks/src/useAICoScout.ts`
 
 ### 3.4 InvestigationSidebar
@@ -263,14 +272,20 @@ Improvement ideas injected during converging phase when supported hypotheses exi
 
 Known gaps from the March 2026 evaluation:
 
-| Gap                              | Priority | Status                       |
-| -------------------------------- | -------- | ---------------------------- |
-| Source attribution in CoScout UI | P1       | Deferred                     |
-| Context disclosure card          | P1       | Deferred                     |
-| Per-component AI toggles         | P2       | Deferred                     |
-| Feedback mechanism               | P2       | Deferred (awaiting use case) |
-| Conversation persistence         | P2       | Deferred (tied to feedback)  |
-| Adaptive learning                | P3       | Deferred (Phase 5+)          |
+| ID  | Gap                              | Priority | Status                       |
+| --- | -------------------------------- | -------- | ---------------------------- |
+| T1  | Context disclosure card          | P1       | **Implemented** (Mar 2026)   |
+| T2  | Source attribution in CoScout UI | P1       | **Implemented** (Mar 2026)   |
+| T3  | Provider label in CoScout        | P2       | **Implemented** (Mar 2026)   |
+| T7  | Per-component AI toggles         | P2       | **Implemented** (Mar 2026)   |
+| T9  | Conversation export              | P2       | **Implemented** (Mar 2026)   |
+| T12 | CoScout empty state              | P2       | **Implemented** (Mar 2026)   |
+| T18 | Quiet mode                       | P2       | Subsumed by T7               |
+| T19 | Low-priority AI skip             | P2       | **Implemented** (Mar 2026)   |
+| T22 | Terminology enforcement          | P1       | **Implemented** (Mar 2026)   |
+|     | Feedback mechanism               | P2       | Deferred (awaiting use case) |
+|     | Conversation persistence         | P2       | Deferred (tied to feedback)  |
+|     | Adaptive learning                | P3       | Deferred (Phase 5+)          |
 
 ### 4.4 Competitive Watch
 

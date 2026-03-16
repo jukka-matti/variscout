@@ -39,7 +39,9 @@ import {
   fetchCoScoutResponse,
   fetchCoScoutStreamingResponse,
   isAIAvailable,
+  getAIProviderLabel,
 } from '../services/aiService';
+import type { AIPreferences } from '../context/DataContext';
 import {
   searchRelatedFindings,
   searchDocuments,
@@ -49,6 +51,7 @@ import { updateFindingsPopout } from '@variscout/ui';
 
 export interface UseEditorAIOptions {
   enabled: boolean;
+  aiPreferences?: AIPreferences;
   stats?: StatsResult;
   filteredData: DataRow[];
   outcome?: string | null;
@@ -69,6 +72,14 @@ export interface UseEditorAIOptions {
   onOpenFindings: () => void;
 }
 
+/** Summary of AI context for transparency disclosure in CoScout */
+export interface AIContextSummary {
+  stats: string;
+  filterCount: number;
+  findingCount: number;
+  phase?: string;
+}
+
 export interface UseEditorAIReturn {
   aiContext: UseAIContextReturn;
   narration: UseNarrationReturn;
@@ -80,10 +91,13 @@ export interface UseEditorAIReturn {
   handleAskCoScoutFromIdeas: (question: string) => void;
   handleAskCoScoutFromFinding: (ctx: AIContext['focusContext']) => void;
   handleAskCoScoutFromCategory: (ctx: AIContext['focusContext']) => void;
+  providerLabel: string | null;
+  aiContextSummary: AIContextSummary | null;
 }
 
 export function useEditorAI({
   enabled,
+  aiPreferences,
   stats,
   filteredData,
   outcome,
@@ -104,6 +118,9 @@ export function useEditorAI({
   onOpenFindings,
 }: UseEditorAIOptions): UseEditorAIReturn {
   const aiAvailable = enabled && isAIAvailable();
+
+  // Per-component preferences (default all on)
+  const prefs = aiPreferences ?? { narration: true, insights: true, coscout: true };
 
   // Aggregate violation counts for AI narration context
   const violationCounts = useMemo(() => {
@@ -201,10 +218,10 @@ export function useEditorAI({
     teamContributors: aiTeamContributors,
   });
 
-  // AI narration
+  // AI narration (disabled when per-component toggle is off)
   const narration = useNarration({
     context: aiContext.context,
-    fetchNarration: aiAvailable ? fetchNarrationFromAI : undefined,
+    fetchNarration: aiAvailable && prefs.narration ? fetchNarrationFromAI : undefined,
   });
 
   // Knowledge Base search (Team AI preview)
@@ -214,11 +231,12 @@ export function useEditorAI({
     enabled: isKnowledgeBaseAvailable(),
   });
 
-  // AI CoScout conversation
+  // AI CoScout conversation (disabled when per-component toggle is off)
   const coscout = useAICoScout({
     context: aiContext.context,
-    fetchResponse: aiAvailable ? fetchCoScoutResponse : undefined,
-    fetchStreamingResponse: aiAvailable ? fetchCoScoutStreamingResponse : undefined,
+    fetchResponse: aiAvailable && prefs.coscout ? fetchCoScoutResponse : undefined,
+    fetchStreamingResponse:
+      aiAvailable && prefs.coscout ? fetchCoScoutStreamingResponse : undefined,
     initialNarrative: narration.narrative,
     onBeforeSend: isKnowledgeBaseAvailable()
       ? async (text, ctx) => {
@@ -321,16 +339,36 @@ export function useEditorAI({
     [onOpenCoScout, coscout]
   );
 
+  // Provider label for CoScout header (T3)
+  const providerLabel = useMemo(() => (aiAvailable ? getAIProviderLabel() : null), [aiAvailable]);
+
+  // AI context summary for transparency disclosure (T1)
+  const aiContextSummary = useMemo((): AIContextSummary | null => {
+    const ctx = aiContext.context;
+    if (!ctx) return null;
+    const statsStr = ctx.stats
+      ? `n=${ctx.stats.samples}${ctx.stats.cpk !== undefined ? `, Cpk=${ctx.stats.cpk.toFixed(2)}` : ''}`
+      : 'No data';
+    return {
+      stats: statsStr,
+      filterCount: ctx.filters.length,
+      findingCount: ctx.findings?.total ?? 0,
+      phase: ctx.investigation?.phase,
+    };
+  }, [aiContext.context]);
+
   return {
     aiContext,
     narration,
     coscout,
     knowledgeSearch,
     suggestedQuestions,
-    fetchChartInsight: aiAvailable ? fetchChartInsightFromAI : undefined,
+    fetchChartInsight: aiAvailable && prefs.insights ? fetchChartInsightFromAI : undefined,
     handleNarrativeAsk,
     handleAskCoScoutFromIdeas,
     handleAskCoScoutFromFinding,
     handleAskCoScoutFromCategory,
+    providerLabel,
+    aiContextSummary,
   };
 }

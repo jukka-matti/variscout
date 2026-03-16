@@ -1,6 +1,38 @@
 import React, { useEffect, useRef } from 'react';
 import type { CoScoutMessage, CoScoutError } from '@variscout/core';
 
+/**
+ * Parse [Source: name] markers in assistant text and render as styled inline badges.
+ * Only applied to assistant messages. User messages pass through unchanged.
+ */
+function renderWithSourceBadges(text: string): React.ReactNode {
+  const SOURCE_REGEX = /\[Source:\s*([^\]]+)\]/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = SOURCE_REGEX.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(
+      <span
+        key={`source-${match.index}`}
+        className="inline-flex items-center px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-400 text-[9px] font-medium mx-0.5"
+      >
+        {match[1].trim()}
+      </span>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : text;
+}
+
 function getErrorText(error: CoScoutError): string {
   switch (error.type) {
     case 'rate-limit':
@@ -74,7 +106,7 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
           ) : (
             <div className="max-w-[90%] border border-edge rounded-lg p-3">
               <p className="text-xs text-content-secondary leading-relaxed whitespace-pre-wrap">
-                {msg.content}
+                {renderWithSourceBadges(msg.content)}
               </p>
             </div>
           )}

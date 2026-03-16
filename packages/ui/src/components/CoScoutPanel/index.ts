@@ -3,6 +3,7 @@ export {
   type CoScoutPanelBaseProps,
   type CoScoutPanelResizeConfig,
   type CoScoutPanelColorScheme,
+  type AIContextSummary,
   defaultCoScoutPanelColorScheme,
 } from './CoScoutPanelBase';
 

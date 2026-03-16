@@ -118,6 +118,17 @@ function parseStreamDelta(provider: ModelProvider, data: string): string | null 
   }
 }
 
+/**
+ * Get a human-readable label for the AI model provider.
+ * Returns null if no AI endpoint is configured.
+ */
+export function getAIProviderLabel(): string | null {
+  const endpoint = getAIEndpoint();
+  if (!endpoint) return null;
+  const provider = detectProvider(endpoint);
+  return provider === 'anthropic' ? 'Claude' : 'Azure OpenAI';
+}
+
 // ---------------------------------------------------------------------------
 // Cache helpers
 // ---------------------------------------------------------------------------

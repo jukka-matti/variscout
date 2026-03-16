@@ -46,6 +46,7 @@ vi.mock('../../services/aiService', () => ({
   fetchCoScoutResponse: vi.fn(),
   fetchCoScoutStreamingResponse: vi.fn(),
   isAIAvailable: mockIsAIAvailable,
+  getAIProviderLabel: vi.fn(() => null),
 }));
 
 vi.mock('../../services/searchService', () => ({

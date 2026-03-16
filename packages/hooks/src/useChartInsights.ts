@@ -179,6 +179,14 @@ export function useChartInsights({
 
     // Reset AI text when deterministic insight changes
     setAiText(null);
+
+    // Skip AI for low-priority insights (e.g. "Cpk meets target" — priority 1)
+    // Saves an API call when the process is healthy and the insight is informational.
+    if (deterministicInsight.priority <= 1) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
 
     const timer = setTimeout(async () => {

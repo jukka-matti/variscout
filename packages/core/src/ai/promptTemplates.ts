@@ -14,6 +14,17 @@ import type { InsightChartType } from './chartInsights';
 import type { Finding, Hypothesis } from '../findings';
 
 /**
+ * Terminology enforcement instruction appended to all AI system prompts.
+ * Ensures consistent domain language across narration, CoScout, and chart insights.
+ * See docs/05-technical/architecture/aix-design-system.md §1.2
+ */
+export const TERMINOLOGY_INSTRUCTION = `Terminology rules — always use VariScout terms:
+- Say "Contribution %" not "eta squared" or "effect size".
+- Say "Progressive stratification" not "drill-down".
+- Say "Voice of the Process" not "control limits" and "Voice of the Customer" not "spec limits" or "specification limits".
+- Say "characteristic" not "measurement" or "variable".`;
+
+/**
  * Build the system prompt for narration.
  * Includes glossary grounding as static prefix for prompt caching.
  */
@@ -28,6 +39,8 @@ Never invent data — only describe what is provided in the context.`,
   if (glossaryFragment) {
     parts.push(glossaryFragment);
   }
+
+  parts.push(TERMINOLOGY_INSTRUCTION);
 
   return parts.join('\n\n');
 }
@@ -181,7 +194,9 @@ export function buildChartInsightSystemPrompt(): string {
   return `You are a quality engineering assistant for VariScout.
 Enhance the provided deterministic insight with process context.
 Respond in exactly one sentence, under 120 characters.
-Be specific and actionable. Never invent data.`;
+Be specific and actionable. Never invent data.
+
+${TERMINOLOGY_INSTRUCTION}`;
 }
 
 /**
@@ -399,6 +414,13 @@ Never invent data or statistics. If the context does not contain enough informat
       );
     }
   }
+
+  parts.push(TERMINOLOGY_INSTRUCTION);
+
+  // Source attribution for Knowledge Base
+  parts.push(
+    'When referencing Knowledge Base information, cite the source using [Source: name] notation.'
+  );
 
   // Team collaboration awareness
   if (teamContributors && teamContributors.count > 1) {

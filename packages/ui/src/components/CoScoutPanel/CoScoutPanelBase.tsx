@@ -1,5 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GripVertical, X, Send, MoreVertical, Square, Copy, RotateCw, Check } from 'lucide-react';
+import {
+  GripVertical,
+  X,
+  Send,
+  MoreVertical,
+  Square,
+  Copy,
+  RotateCw,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  ClipboardCopy,
+} from 'lucide-react';
 import type { CoScoutMessage, CoScoutError } from '@variscout/core';
 import { useResizablePanel } from '@variscout/hooks';
 import { CoScoutMessages } from './CoScoutMessages';
@@ -22,6 +34,14 @@ export const defaultCoScoutPanelColorScheme: CoScoutPanelColorScheme = {
   headerBg: 'border-b border-edge',
 };
 
+/** Summary of AI context for transparency disclosure */
+export interface AIContextSummary {
+  stats: string;
+  filterCount: number;
+  findingCount: number;
+  phase?: string;
+}
+
 export interface CoScoutPanelBaseProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,11 +52,17 @@ export interface CoScoutPanelBaseProps {
   onRetry?: () => void;
   onClear?: () => void;
   onCopyLastResponse?: () => void;
+  /** Copy entire conversation to clipboard */
+  onCopyConversation?: () => void;
   resizeConfig: CoScoutPanelResizeConfig;
   suggestedQuestions?: string[];
   onSuggestedQuestionClick?: (question: string) => void;
   isStreaming?: boolean;
   onStopStreaming?: () => void;
+  /** AI model provider label (e.g. "Claude", "Azure OpenAI") */
+  providerLabel?: string;
+  /** AI context summary for transparency disclosure card */
+  aiContextSummary?: AIContextSummary | null;
   /** Customizable color scheme (defaults to defaultCoScoutPanelColorScheme) */
   colorScheme?: Partial<CoScoutPanelColorScheme>;
 }
@@ -51,11 +77,14 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   onRetry,
   onClear,
   onCopyLastResponse,
+  onCopyConversation,
   resizeConfig,
   suggestedQuestions,
   onSuggestedQuestionClick,
   isStreaming,
   onStopStreaming,
+  providerLabel,
+  aiContextSummary,
   colorScheme: csOverride,
 }) => {
   const cs = { ...defaultCoScoutPanelColorScheme, ...csOverride };
@@ -63,6 +92,8 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   const [inputFocused, setInputFocused] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [copyConvFeedback, setCopyConvFeedback] = useState(false);
+  const [contextExpanded, setContextExpanded] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const overflowRef = useRef<HTMLDivElement>(null);
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -169,6 +200,13 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
     setTimeout(() => setCopyFeedback(false), 1500);
   }, [onCopyLastResponse]);
 
+  const handleCopyConversation = useCallback(() => {
+    setOverflowOpen(false);
+    onCopyConversation?.();
+    setCopyConvFeedback(true);
+    setTimeout(() => setCopyConvFeedback(false), 1500);
+  }, [onCopyConversation]);
+
   if (!isOpen) return null;
 
   const showSuggestions =
@@ -198,10 +236,15 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
       >
         {/* Header */}
         <div className={`flex items-center justify-between px-4 py-3 ${cs.headerBg}`}>
-          <h2 className="text-sm font-semibold text-content">CoScout</h2>
+          <div>
+            <h2 className="text-sm font-semibold text-content">CoScout</h2>
+            {providerLabel && (
+              <span className="text-[10px] text-content-muted">{providerLabel}</span>
+            )}
+          </div>
           <div className="flex items-center gap-1">
             {/* Overflow menu */}
-            {(onClear || onCopyLastResponse) && messages.length > 0 && (
+            {(onClear || onCopyLastResponse || onCopyConversation) && messages.length > 0 && (
               <div className="relative" ref={overflowRef}>
                 <button
                   onClick={() => setOverflowOpen(prev => !prev)}
@@ -222,6 +265,16 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
                       >
                         <RotateCw size={12} />
                         Clear conversation
+                      </button>
+                    )}
+                    {onCopyConversation && (
+                      <button
+                        onClick={handleCopyConversation}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+                        data-testid="coscout-menu-copy-conversation"
+                      >
+                        {copyConvFeedback ? <Check size={12} /> : <ClipboardCopy size={12} />}
+                        {copyConvFeedback ? 'Copied!' : 'Copy conversation'}
                       </button>
                     )}
                     {onCopyLastResponse && (
@@ -248,6 +301,45 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Context disclosure card (T1) */}
+        {aiContextSummary && (
+          <div className="px-3 pt-2">
+            <button
+              onClick={() => setContextExpanded(prev => !prev)}
+              className="flex items-center gap-1 text-[10px] text-content-muted hover:text-content-secondary transition-colors"
+              aria-expanded={contextExpanded}
+              data-testid="coscout-context-toggle"
+            >
+              {contextExpanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+              AI context
+            </button>
+            {contextExpanded && (
+              <div
+                className="mt-1 px-2 py-1.5 bg-surface-tertiary/50 rounded text-[10px] text-content-muted space-y-0.5"
+                data-testid="coscout-context-details"
+              >
+                <div>Stats: {aiContextSummary.stats}</div>
+                <div>Filters: {aiContextSummary.filterCount}</div>
+                <div>Findings: {aiContextSummary.findingCount}</div>
+                {aiContextSummary.phase && <div>Phase: {aiContextSummary.phase}</div>}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Empty state with capabilities (T12) */}
+        {messages.length === 0 && !isLoading && (
+          <div className="px-4 py-6 text-center" data-testid="coscout-empty-state">
+            <p className="text-xs font-medium text-content-secondary mb-3">I can help you:</p>
+            <ul className="text-[11px] text-content-muted space-y-1.5 text-left max-w-[240px] mx-auto">
+              <li>Understand patterns in your process data</li>
+              <li>Investigate root causes using progressive stratification</li>
+              <li>Interpret capability metrics and Contribution %</li>
+              <li>Suggest next steps in your investigation</li>
+            </ul>
+          </div>
+        )}
 
         {/* Messages */}
         <CoScoutMessages
