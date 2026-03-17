@@ -57,6 +57,7 @@ function validateAudience(token) {
  */
 const ALLOWED_SCOPES = new Set([
   'https://graph.microsoft.com/Files.ReadWrite.All',
+  'https://graph.microsoft.com/Sites.Read.All',
   'https://graph.microsoft.com/ChannelMessage.Send',
   'https://graph.microsoft.com/People.Read',
 ]);
