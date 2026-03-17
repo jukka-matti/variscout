@@ -1,5 +1,9 @@
 ---
-title: 'Drill-Down Navigation'
+title: Drill-Down Navigation
+audience: [analyst, engineer]
+category: navigation
+status: stable
+related: [filter-chips, progressive-stratification, variation-tracking]
 ---
 
 # Drill-Down Navigation
@@ -39,23 +43,9 @@ The drill-down methodology captures **main effects** — how much variation each
 
 > "Machine C is only problematic on Night shift"
 
-### The Guidance Prompt
-
-When 2+ factors are in your drill stack, the Investigation Mindmap's Interaction mode shows factor relationships visually as edges between nodes. The Mindmap also surfaces a guidance prompt:
-
-```
-┌────────────────────────────────────────────────┐
-│ Analyzing multiple factors?                    │
-│                                                │
-│ Your drill-down shows main effects. To check  │
-│ if factors interact, use the Regression Panel │
-│ with "Include interactions".                  │
-│                                                │
-│ [Check Interactions →]                        │
-└────────────────────────────────────────────────┘
-```
-
 ### When Interactions Matter
+
+**Note:** Interaction detection is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)). Currently, the drill-down captures main effects only.
 
 | Scenario                     | Recommendation                                                    |
 | ---------------------------- | ----------------------------------------------------------------- |
@@ -70,7 +60,7 @@ When 2+ factors are in your drill stack, the Investigation Mindmap's Interaction
 | Sequential ANOVA (drill-down) | Main effects only (η² per factor)   |
 | GLM with interactions         | Main effects + two-way interactions |
 
-See [Regression Analysis: Interaction Effects](../analysis/regression.md#interaction-effects) for details.
+See [Regression Analysis: Interaction Effects](../../archive/regression.md#interaction-effects) for details (Phase 2, deferred per ADR-014).
 
 ---
 

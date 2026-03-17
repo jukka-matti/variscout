@@ -1,5 +1,9 @@
 ---
-title: 'Variation Decomposition'
+title: Variation Decomposition
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [total-ss, eta-squared, scope-fraction, anova]
 ---
 
 # Variation Decomposition
@@ -45,10 +49,10 @@ With unbalanced data (unequal category sizes), larger categories contribute prop
 
 VariScout uses three different variation metrics, each answering a distinct question:
 
-| Metric              | Formula                  | Question it answers                                | Where used in VariScout                                             |
-| ------------------- | ------------------------ | -------------------------------------------------- | ------------------------------------------------------------------- |
-| η² (eta-squared)    | SS_Between / SS_Total    | "How much variation does this **factor** explain?" | ANOVA panel, Mindmap node circles, suggestion ranking (green pulse) |
-| Category Total SS % | Category_SS_j / SS_Total | "How much does each **category** contribute?"      | Mindmap popover rows, contribution labels on Boxplot, filter chips  |
+| Metric              | Formula                  | Question it answers                                | Where used in VariScout                                                  |
+| ------------------- | ------------------------ | -------------------------------------------------- | ------------------------------------------------------------------------ |
+| η² (eta-squared)    | SS_Between / SS_Total    | "How much variation does this **factor** explain?" | ANOVA panel, investigation factor ranking, Boxplot suggestion indicators |
+| Category Total SS % | Category_SS_j / SS_Total | "How much does each **category** contribute?"      | Contribution labels on Boxplot, filter chips, category popover           |
 
 ### Why η² for factor ranking
 
@@ -58,7 +62,7 @@ A 5-category factor with diverse means (e.g. Step 1-5 with different cycle times
 
 > **Note on bias:** η² is a positively biased estimator — it tends to overstate the true population effect size, especially with small samples or many groups. VariScout uses η² (not the unbiased ω²) because it is the standard metric taught in Six Sigma training and because the drill-down use case involves relative ranking, not absolute estimation.
 
-Max-category Total SS is biased by category count: with 2 categories, each gets roughly 50% of variation; with 5 categories, each gets roughly 20%. A 2-category factor always looks "bigger" by this metric even when its η² is lower. That is why VariScout uses η² for the Mindmap suggestion ranking (the green pulse that highlights which factor to drill next).
+Max-category Total SS is biased by category count: with 2 categories, each gets roughly 50% of variation; with 5 categories, each gets roughly 20%. A 2-category factor always looks "bigger" by this metric even when its η² is lower. That is why VariScout uses η² for suggestion ranking (highlighting which factor to drill next).
 
 ### Why Total SS (not between-group) for category contribution
 
@@ -115,13 +119,13 @@ Shows F-statistic, p-value, and η². These are factor-level metrics that answer
 
 F-test and p-value assume approximately normal data with similar spread across groups. η² and Total SS % are descriptive and do not require these assumptions.
 
-### Mindmap suggestion ranking
+### Investigation factor ranking
 
-The green pulse highlights the factor with the highest η² among unexplored factors. This guides the analyst to drill the most impactful factor next.
+The investigation sidebar highlights the factor with the highest η² among unexplored factors, guiding the analyst to drill the most impactful factor next.
 
-### Mindmap node circles
+### Hypothesis auto-validation
 
-Each available node displays **η²** for that factor — the same metric shown in the ANOVA panel. This answers "how much variation does this factor explain?" at a glance. The node number matches the ANOVA panel number, ensuring cross-view consistency. Drilled (active) nodes show no percentage — they display the filtered value label instead. The category-level detail (Total SS %) is available in the popover.
+Each hypothesis in the investigation panel displays **η²** for that factor — the same metric shown in the ANOVA panel. This answers "how much variation does this factor explain?" at a glance. Hypotheses are automatically validated against η² thresholds (see `useHypotheses` in `@variscout/hooks`).
 
 ### Category popover and contribution labels
 
@@ -133,6 +137,12 @@ When the analyst filters (e.g. clicks Step 2), the contribution percentage on th
 
 The cumulative percentage represents the fraction of the original total variation captured by your current filter combination. "45% in focus" means your current drill path accounts for 45% of all the variation in the dataset — the remaining 55% comes from data outside your filter selection.
 
+### Hypothesis tree (investigation panel)
+
+Each factor sub-header shows the individual **η²** for that factor. Category headers (e.g. "Equipment", "People") do **not** show an aggregated variation percentage — η² values from separate one-way ANOVAs are not additive when factors are correlated, so summing them could exceed 100% and mislead.
+
+**Design principle:** Only show variation numbers that are individually defensible. Never aggregate across factors unless using a multi-factor model that accounts for correlation.
+
 ### A note on controllability
 
 Identifying a variation source is necessary but not sufficient for improvement. Before committing resources, assess whether the source is controllable (can be changed with training, procedure, settings) or structural (requires equipment, material, or design changes). The What-If Simulator helps quantify the potential impact of changes; domain expertise determines feasibility.
@@ -143,17 +153,17 @@ Identifying a variation source is necessary but not sufficient for improvement. 
 
 If you've completed Six Sigma Green Belt training, you've seen one-way ANOVA in the Analyze phase. VariScout uses the same F-test, p-value, and η² — plus one extension at the category level. Here is how VariScout's metrics map to standard terminology:
 
-| Standard ANOVA term     | VariScout equivalent           | Notes                                                                                                                                         |
-| ----------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| SS_Between / SS_Total   | η² in ANOVA panel              | Identical to standard η²                                                                                                                      |
-| MS_Between / MS_Within  | F-statistic in ANOVA panel     | Standard F-test                                                                                                                               |
-| SS for a specific group | Category Total SS %            | VariScout adds within-group SS to give full picture                                                                                           |
-| Effect size (η²)        | Suggestion ranking             | Used to guide drill-down order                                                                                                                |
-| Multi-Vari study        | Mindmap progressive drill-down | VariScout automates the Multi-Vari decomposition: the analyst drills factors one at a time, and the tool quantifies each level's contribution |
+| Standard ANOVA term     | VariScout equivalent                     | Notes                                                                                                                                         |
+| ----------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| SS_Between / SS_Total   | η² in ANOVA panel                        | Identical to standard η²                                                                                                                      |
+| MS_Between / MS_Within  | F-statistic in ANOVA panel               | Standard F-test                                                                                                                               |
+| SS for a specific group | Category Total SS %                      | VariScout adds within-group SS to give full picture                                                                                           |
+| Effect size (η²)        | Suggestion ranking                       | Used to guide drill-down order                                                                                                                |
+| Multi-Vari study        | Progressive drill-down with filter chips | VariScout automates the Multi-Vari decomposition: the analyst drills factors one at a time, and the tool quantifies each level's contribution |
 
 VariScout extends textbook ANOVA at the **category level**. Textbook ANOVA focuses on the F-test and η² (both factor-level metrics). VariScout extends the decomposition to individual categories by including within-group variation, because the drill-down workflow needs to answer "which category should I investigate?" — a question that between-group SS alone cannot answer reliably.
 
-**Confounding:** One-factor-at-a-time analysis does not account for confounding between factors. If Operator and Shift are correlated (certain operators only work nights), drilling by Shift may capture variation actually caused by Operator. Phase 2 will re-introduce the Mindmap interaction mode and Advanced Regression model to detect and untangle these effects (see [Phase 2 Regression Roadmap](../../05-technical/implementation/phase2-regression-roadmap.md)).
+**Confounding:** One-factor-at-a-time analysis does not account for confounding between factors. If Operator and Shift are correlated (certain operators only work nights), drilling by Shift may capture variation actually caused by Operator. For statistically rigorous joint analysis, Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
 
 ---
 
@@ -163,11 +173,11 @@ The variation decomposition system is a practical tool for process investigation
 
 ### Path dependency
 
-The drill-down examines one factor at a time. Different drill orders can produce different intermediate percentages — for example, drilling Shift → Operator may show different local scope fractions than Operator → Shift — but they converge on similar cumulative scope. For statistically rigorous joint analysis, the Regression panel planned for Phase 2 will provide correct multi-factor estimates (see [Phase 2 Regression Roadmap](../../05-technical/implementation/phase2-regression-roadmap.md)). See [Progressive Stratification](../../01-vision/progressive-stratification.md) Part 2 for a detailed treatment of this tension.
+The drill-down examines one factor at a time. Different drill orders can produce different intermediate percentages — for example, drilling Shift → Operator may show different local scope fractions than Operator → Shift — but they converge on similar cumulative scope. For statistically rigorous joint analysis, Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)). See [Progressive Stratification](../../01-vision/progressive-stratification.md) Part 2 for a detailed treatment of this tension.
 
 ### Confounding and correlated factors
 
-Real process data is rarely orthogonal. When factors are correlated (operator × shift, material × supplier), one-factor ANOVA misattributes variation. The drill-down can lead to incorrect factor prioritization. Phase 2 will re-introduce the Mindmap interaction mode as an early signal and the Advanced Regression model for the correct joint estimate (see [Phase 2 Regression Roadmap](../../05-technical/implementation/phase2-regression-roadmap.md)).
+Real process data is rarely orthogonal. When factors are correlated (operator × shift, material × supplier), one-factor ANOVA misattributes variation. The drill-down can lead to incorrect factor prioritization. For statistically rigorous joint analysis, Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
 
 ### Cumulative scope approximation
 
@@ -175,7 +185,7 @@ The cumulative scope percentage (the "in focus" number on drill-down chips) is t
 
 ### When to transition beyond drill-down
 
-Use the drill-down for initial investigation (3–5 minutes). If you suspect interactions, have confounded factors, or need a formal model for projection, use the What-If Simulator to test scenarios with direct adjustments. Advanced Regression (planned for Phase 2) will provide formal multi-factor modelling and an automated handoff from the Mindmap — see [Phase 2 Regression Roadmap](../../05-technical/implementation/phase2-regression-roadmap.md).
+Use the drill-down for initial investigation (3–5 minutes). If you suspect interactions, have confounded factors, or need a formal model for projection, use the What-If Simulator to test scenarios with direct adjustments. Advanced Regression is planned for a future phase (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)).
 
 ---
 
@@ -201,11 +211,11 @@ The chart copy and export features (clipboard, PNG, SVG) produce presentation-re
 
 ## Cross-references
 
-| Topic                                                 | Document                                                                    |
-| ----------------------------------------------------- | --------------------------------------------------------------------------- |
-| UX rationale for drill-down                           | [Progressive Stratification](../../01-vision/progressive-stratification.md) |
-| Investigation workflow (Mindmap, Regression, What-If) | [Investigation to Action](../workflows/investigation-to-action.md)          |
-| Boxplot ANOVA display                                 | [Boxplot](boxplot.md)                                                       |
-| Category contribution labels                          | [Boxplot](boxplot.md)                                                       |
-| Regression and interaction analysis                   | [Regression](regression.md)                                                 |
-| Glossary: η², Total SS Contribution                   | `packages/core/src/glossary/terms.ts`                                       |
+| Topic                                      | Document                                                                    |
+| ------------------------------------------ | --------------------------------------------------------------------------- |
+| UX rationale for drill-down                | [Progressive Stratification](../../01-vision/progressive-stratification.md) |
+| Investigation workflow (Findings, What-If) | [Investigation to Action](../workflows/investigation-to-action.md)          |
+| Boxplot ANOVA display                      | [Boxplot](boxplot.md)                                                       |
+| Category contribution labels               | [Boxplot](boxplot.md)                                                       |
+| Regression and interaction analysis        | [Regression (Phase 2, deferred)](../../archive/regression.md)               |
+| Glossary: η², Total SS Contribution        | `packages/core/src/glossary/terms.ts`                                       |

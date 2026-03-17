@@ -1,5 +1,9 @@
 ---
-title: 'Project Persistence'
+title: Project Persistence
+audience: [analyst, engineer]
+category: data
+status: stable
+related: [indexeddb, onedrive, offline-first, analysis-state]
 ---
 
 # Project Persistence
@@ -49,7 +53,7 @@ When `filterStack` is present, flat `filters` are derived from it on load. When 
 | ---------------- | ---------------- | ----------- | -------------------------------- |
 | `displayOptions` | `DisplayOptions` | (see below) | Toggles, annotations, highlights |
 
-`DisplayOptions` includes: `lockYAxisToFullData` (true), `showControlLimits` (true), `showViolin` (false), `showFilterContext` (true), `showSpecs` (true), `showCpk` (true), boxplot sort/highlights, pareto highlights, chart annotations (boxplot, pareto, I-Chart), and mindmap step annotations.
+`DisplayOptions` includes: `lockYAxisToFullData` (true), `showControlLimits` (true), `showViolin` (false), `showFilterContext` (true), `showSpecs` (true), `showCpk` (true), boxplot sort/highlights, pareto highlights, and chart annotations (boxplot, pareto, I-Chart).
 
 ### Settings
 
@@ -59,6 +63,16 @@ When `filterStack` is present, flat `filters` are derived from it on load. When 
 | `columnAliases` | `Record<string, string>`                 | `{}`    | Renamed column display names                  |
 | `valueLabels`   | `Record<string, Record<string, string>>` | `{}`    | Custom value labels                           |
 | `chartTitles`   | `ChartTitles`                            | `{}`    | Custom chart names (I-Chart, Boxplot, Pareto) |
+
+### Process Context
+
+| Field            | Type             | Default | Notes                                        |
+| ---------------- | ---------------- | ------- | -------------------------------------------- |
+| `processContext` | `ProcessContext` | `{}`    | Structured process metadata for AI grounding |
+
+`ProcessContext` includes: `description` (free text), `processType` ('manufacturing' | 'service' | 'laboratory' | 'logistics' | 'other'), `industry` (string), `measurementUnit` (string), `factorRoles` (Record<string, FactorRole> — keyed by column name, auto-inferred from column names), `processSteps` (string[]). All fields are optional — backward compatible with older .vrs files.
+
+Factor roles are auto-inferred during `detectColumns()` using the parser keyword infrastructure. Users can confirm or correct inferred roles in ColumnMapping. The `description` field is editable in Settings.
 
 ### Workflow State
 
@@ -71,14 +85,6 @@ When `filterStack` is present, flat `filters` are derived from it on load. When 
 | `measureColumns`    | `string[]`       | `[]`        | Selected measurement channels  |
 | `selectedMeasure`   | `string \| null` | `null`      | Active channel drill           |
 | `measureLabel`      | `string`         | `'Measure'` | Measure axis label             |
-
-### Regression State
-
-| Field             | Type                         | Default     | Notes                                 |
-| ----------------- | ---------------------------- | ----------- | ------------------------------------- |
-| `regressionState` | `RegressionPersistenceState` | `undefined` | Regression panel selections + history |
-
-`RegressionPersistenceState` includes: `mode` ('simple' | 'advanced'), `selectedXColumns`, `advSelectedPredictors`, `categoricalColumns` (Set serialized as array), `includeInteractions`, `reductionHistory` (guided model reduction trail), and `dataRowCount` (row count at time of model fitting — used to detect data staleness). The regression model itself recomputes from data + predictors — only selections are persisted.
 
 ### View State
 
@@ -97,7 +103,7 @@ These are ephemeral UI states that reset on each session:
 - What-If simulator slider positions
 - Point selections (Minitab-style brushing)
 - Data quality report (recomputed from raw data)
-- Investigation mindmap computation (recomputes from drill path + data)
+- Investigation state (recomputes findings display from data)
 
 ---
 
@@ -130,8 +136,8 @@ Load:
 
 Old `.vrs` files load without error. Every new field is optional with a safe default:
 
+- Missing `processContext` → empty object, no process metadata
 - Missing `filterStack` → breadcrumbs empty, flat `filters` still work
-- Missing `regressionState` → fresh regression panel
 - Missing `viewState` → Analysis tab, all panels closed
 - Missing `cpkTarget` → defaults to 1.33
 - Missing Performance Mode fields → Performance Mode off
@@ -142,19 +148,19 @@ Old `.vrs` files load without error. Every new field is optional with a safe def
 
 What happens to persisted state when data changes mid-analysis:
 
-| Change        | filterStack | regressionState                | viewState         | specs |
-| ------------- | ----------- | ------------------------------ | ----------------- | ----- |
-| Edit cells    | valid       | stale (indicator shown)        | valid             | valid |
-| Append rows   | valid       | stale (indicator shown)        | valid             | valid |
-| Add columns   | valid       | valid                          | valid             | valid |
-| Add factor    | valid       | valid                          | valid             | valid |
-| Remove factor | cleaned     | valid (predictors auto-remove) | factor refs reset | valid |
+| Change        | filterStack | viewState         | specs |
+| ------------- | ----------- | ----------------- | ----- |
+| Edit cells    | valid       | valid             | valid |
+| Append rows   | valid       | valid             | valid |
+| Add columns   | valid       | valid             | valid |
+| Add factor    | valid       | valid             | valid |
+| Remove factor | cleaned     | factor refs reset | valid |
 
 **Staleness strategy:**
 
 - **Additive changes** (add rows, add columns, add factors): no invalidation. New data is available, old analysis stays valid.
 - **Subtractive changes** (remove factor): clean dependent state (filterStack, viewState factor refs).
-- **Mutation changes** (edit cells, add rows): regression model becomes stale. Amber indicator shown, model not auto-cleared.
+- **Mutation changes** (edit cells, add rows): Findings retain their observations but should be reviewed against updated data.
 
 ---
 
@@ -171,4 +177,4 @@ What happens to persisted state when data changes mid-analysis:
 
 - [OneDrive Sync](../../08-products/azure/onedrive-sync.md) — Azure-specific sync mechanism
 - [Offline-First Architecture](../../05-technical/architecture/offline-first.md) — Technical approach
-- [PWA Session Model](../../08-products/pwa/storage.md) — Why the PWA doesn't persist
+- [PWA Session Model](../../08-products/pwa/index.md#session-model) — Why the PWA doesn't persist

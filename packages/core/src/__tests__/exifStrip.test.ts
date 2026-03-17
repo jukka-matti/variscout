@@ -227,7 +227,7 @@ describe('stripExifSegments', () => {
 describe('stripExifFromBlob', () => {
   it('strips EXIF from Blob', async () => {
     const input = buildExifJpeg();
-    const blob = new Blob([input], { type: 'image/jpeg' });
+    const blob = new Blob([input.buffer as ArrayBuffer], { type: 'image/jpeg' });
     const result = await stripExifFromBlob(blob);
     const resultData = new Uint8Array(await result.arrayBuffer());
     expect(hasExifData(resultData)).toBe(false);
@@ -235,7 +235,7 @@ describe('stripExifFromBlob', () => {
 
   it('returns original Blob when no EXIF present', async () => {
     const clean = buildCleanJpeg();
-    const blob = new Blob([clean], { type: 'image/jpeg' });
+    const blob = new Blob([clean.buffer as ArrayBuffer], { type: 'image/jpeg' });
     const result = await stripExifFromBlob(blob);
     // Should be the exact same Blob reference (no copy)
     expect(result).toBe(blob);
@@ -243,7 +243,7 @@ describe('stripExifFromBlob', () => {
 
   it('preserves MIME type', async () => {
     const input = buildExifJpeg();
-    const blob = new Blob([input], { type: 'image/jpeg' });
+    const blob = new Blob([input.buffer as ArrayBuffer], { type: 'image/jpeg' });
     const result = await stripExifFromBlob(blob);
     expect(result.type).toBe('image/jpeg');
   });

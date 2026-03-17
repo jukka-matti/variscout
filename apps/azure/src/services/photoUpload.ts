@@ -5,7 +5,7 @@
  * OneDrive path: /VariScout/Photos/{analysisId}/{findingId}/{filename}
  */
 
-import { isTeamPlan } from '@variscout/core';
+import { hasTeamFeatures } from '@variscout/core';
 import { isLocalDev } from '../auth/easyAuth';
 import { getGraphToken } from '../auth/graphToken';
 import { classifySyncError, type StorageLocation } from './storage';
@@ -133,7 +133,7 @@ export async function uploadPhoto(
   findingId: string,
   location: StorageLocation = 'personal'
 ): Promise<PhotoUploadResult> {
-  if (!isTeamPlan()) {
+  if (!hasTeamFeatures()) {
     throw new Error('Photo upload requires Team plan');
   }
 

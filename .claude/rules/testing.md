@@ -21,7 +21,7 @@
 | ---------------------- | -------------------- | ------------------------------------------------------------------- |
 | `@variscout/core`      | Unit                 | stats, parser, tier, export, performance                            |
 | `@variscout/charts`    | Unit                 | colors, accessibility, multi-selection hook                         |
-| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useVariationTracking, useAnnotationMode, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState, useBoxplotWrapperData, useIChartWrapperData, useParetoChartData, useDashboardComputedData |
+| `@variscout/hooks`     | Unit                 | useTier, useChartScale, useColumnClassification, useDrillPath, useVariationTracking, useAnnotations, useBoxplotData, useChartCopy, useControlViolations, useDataIngestion, useDataState, useFilterNavigation, useFocusedChartNav, useIChartData, useKeyboardNavigation, useResponsiveChartMargins, useThemeState, useBoxplotWrapperData, useIChartWrapperData, useParetoChartData, useDashboardComputedData, useHypotheses, useFindings, useAIContext, useChartInsights, useAICoScout, useKnowledgeSearch, useNarration, useProjectPersistence, useVerificationCharts, useFilterHandlers, useCreateFactorModal, useLocaleState, useTranslation, useReportSections, useScrollSpy, useSnapshotData, copySectionAsHTML |
 | `@variscout/ui`        | Unit                 | UpgradePrompt, HelpTooltip, DataQualityBanner, ColumnMapping, BoxplotDisplayToggle, DataTableBase |
 | `@variscout/pwa`       | Component + E2E      | UI components, context, full user flows                             |
 | `@variscout/azure-app` | Component + E2E      | UI components, auth, storage, editor flows                          |
@@ -70,6 +70,13 @@ Key `data-testid` attributes used in Playwright E2E tests:
 | ANOVA eta²       | `[data-testid="anova-eta-squared"]`         |
 | Filter chip      | `[data-testid^="filter-chip-"]`             |
 | Sample button    | `[data-testid^="sample-"]`                  |
+| NarrativeBar     | `[data-testid="narrative-bar"]`             |
+| Narrative shimmer| `[data-testid="narrative-shimmer"]`         |
+| Ask button       | `[data-testid="narrative-ask-button"]`      |
+| CoScoutPanel     | `[data-testid="coscout-panel"]`             |
+| CoScout input    | `[data-testid="coscout-input"]`             |
+| CoScout message  | `[data-testid^="coscout-message-"]`         |
+| ChartInsightChip | `[data-testid^="insight-chip-"]`            |
 
 ## Feature Verification Protocols
 
@@ -84,3 +91,6 @@ Executable via Antigravity agents or `claude --chrome`. Full protocol details in
 7. Manual Data Entry Verification
 8. What-If Simulation Verification
 9. Theme Switching (Azure) Verification
+10. AI Graceful Degradation Verification
+11. NarrativeBar Lifecycle Verification
+12. CoScoutPanel Conversation Verification

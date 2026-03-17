@@ -1,8 +1,10 @@
 ---
-title: 'Boxplot'
+title: Boxplot
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [anova, eta-squared, violin-mode, factor-comparison]
 ---
-
-<!-- journey-phase: scout -->
 
 # Boxplot
 
@@ -44,7 +46,7 @@ When comparing factors, VariScout calculates:
 | p-value          | Probability of chance difference |
 | η² (eta-squared) | Proportion of variance explained |
 
-See [Variation Decomposition](variation-decomposition.md) for how η² relates to the category-level Total SS metrics shown in the Mindmap and contribution labels.
+See [Variation Decomposition](variation-decomposition.md) for how η² relates to the category-level Total SS metrics shown in contribution labels and filter chips.
 
 ---
 
@@ -145,7 +147,7 @@ const etaSq = getEtaSquared(data, 'Machine', 'Weight');
 - [Drill-Down](../navigation/drill-down.md) - Multi-level factor exploration
 - [I-Chart](i-chart.md) - Previous step: detect instability over time
 - [Pareto](pareto.md) - Next step: rank contribution of factors
-- [Regression](regression.md) - When to check for interactions
+- [Regression (Phase 2, deferred)](../../archive/regression.md) - When to check for interactions
 - [Chart Design](../../06-design-system/charts/boxplot.md)
 - [Glossary: η² (Eta-squared)](../../glossary.md#2-eta-squared)
 - [Glossary: F-statistic](../../glossary.md#f-statistic)

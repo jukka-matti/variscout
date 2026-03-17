@@ -10,7 +10,11 @@ export {
   type PerformanceDetectedModalProps,
 } from './components/PerformanceDetectedModal';
 export { DataQualityBanner, type DataQualityBannerProps } from './components/DataQualityBanner';
-export { ColumnMapping, type ColumnMappingProps } from './components/ColumnMapping';
+export {
+  ColumnMapping,
+  type ColumnMappingProps,
+  type AnalysisBrief,
+} from './components/ColumnMapping';
 export { SelectionPanel, type SelectionPanelProps } from './components/SelectionPanel';
 export { CreateFactorModal, type CreateFactorModalProps } from './components/CreateFactorModal';
 export { UpgradePrompt, type UpgradePromptProps } from './components/UpgradePrompt';
@@ -103,13 +107,19 @@ export {
   FINDINGS_ACTION_KEY,
   type FindingsSyncData,
   type FindingsAction,
+  InvestigationSidebar,
+  type InvestigationSidebarProps,
 } from './components/FindingsWindow';
 
 export {
   StatsPanelBase,
   statsPanelDefaultColorScheme,
+  StagedComparisonCard,
+  defaultStagedComparisonColorScheme,
   type StatsPanelBaseProps,
   type StatsPanelColorScheme,
+  type StagedComparisonCardProps,
+  type StagedComparisonColorScheme,
 } from './components/StatsPanel';
 
 export {
@@ -199,6 +209,9 @@ export {
   FindingStatusBadge,
   FindingComments,
   FindingBoardView,
+  FindingsExportMenu,
+  HypothesisTreeView,
+  HypothesisNode,
   copyFindingsToClipboard,
   formatFindingsText,
   type FindingsLogProps,
@@ -207,6 +220,9 @@ export {
   type FindingStatusBadgeProps,
   type FindingCommentsProps,
   type FindingBoardViewProps,
+  type FindingsExportMenuProps,
+  type HypothesisTreeViewProps,
+  type HypothesisNodeProps,
 } from './components/FindingsLog';
 
 export {
@@ -222,10 +238,14 @@ export {
   FocusedChartCard,
   DashboardChartCard,
   DashboardGrid,
+  DashboardLayoutBase,
   type FocusedViewOverlayProps,
   type FocusedChartCardProps,
   type DashboardChartCardProps,
   type DashboardGridProps,
+  type DashboardLayoutBaseProps,
+  type DashboardAnnotations,
+  type DashboardChartFindings,
 } from './components/DashboardBase';
 
 // Settings Panel
@@ -236,6 +256,12 @@ export {
   FindingsPanelBase,
   type FindingsPanelBaseProps,
   type FindingsPanelResizeConfig,
+  type FindingsPanelColorScheme,
+  defaultFindingsPanelColorScheme,
+  BriefHeader,
+  type BriefHeaderProps,
+  FindingDetailPanel,
+  type FindingDetailPanelProps,
 } from './components/FindingsPanel';
 
 // Editable Chart Title
@@ -277,6 +303,32 @@ export {
   type FocusedChartType,
 } from './components/FocusedChartViewBase';
 
+// Report View
+export {
+  ReportViewBase,
+  reportViewBaseDefaultColorScheme,
+  ReportSection,
+  reportSectionDefaultColorScheme,
+  ReportStepMarker,
+  ReportKPIGrid,
+  reportKPIGridDefaultColorScheme,
+  ReportChartSnapshot,
+  reportChartSnapshotDefaultColorScheme,
+  VerificationEvidenceBase,
+  verificationEvidenceDefaultColorScheme,
+  type ReportViewBaseProps,
+  type ReportViewBaseColorScheme,
+  type ReportSectionProps,
+  type ReportSectionColorScheme,
+  type ReportStepMarkerProps,
+  type ReportKPIGridProps,
+  type ReportKPIGridColorScheme,
+  type ReportChartSnapshotProps,
+  type ReportChartSnapshotColorScheme,
+  type VerificationEvidenceBaseProps,
+  type VerificationEvidenceColorScheme,
+} from './components/ReportView';
+
 // Services
 export {
   errorService,
@@ -285,6 +337,46 @@ export {
   type ErrorLogEntry,
   type ErrorNotificationHandler,
 } from './services';
+
+// AI Components
+export { NarrativeBar, type NarrativeBarProps } from './components/NarrativeBar';
+export {
+  ProcessDescriptionField,
+  type ProcessDescriptionFieldProps,
+} from './components/ProcessDescriptionField';
+
+// Chart Insight Chip
+export { ChartInsightChip, type ChartInsightChipProps } from './components/ChartInsightChip';
+
+// CoScout Panel
+export {
+  CoScoutPanelBase,
+  type CoScoutPanelBaseProps,
+  type CoScoutPanelResizeConfig,
+  type CoScoutPanelColorScheme,
+  type AIContextSummary,
+  defaultCoScoutPanelColorScheme,
+  CoScoutMessages,
+  type CoScoutMessagesProps,
+} from './components/CoScoutPanel';
+
+// CoScout Inline
+export { CoScoutInline, type CoScoutInlineProps } from './components/CoScoutInline';
+
+// Investigation Phase Badge
+export {
+  InvestigationPhaseBadge,
+  type InvestigationPhaseBadgeProps,
+} from './components/InvestigationPhaseBadge';
+
+// Preview Badge
+export { PreviewBadge } from './components/PreviewBadge';
+
+// AI Onboarding Tooltip
+export {
+  AIOnboardingTooltip,
+  type AIOnboardingTooltipProps,
+} from './components/AIOnboardingTooltip';
 
 // Hooks
 export {

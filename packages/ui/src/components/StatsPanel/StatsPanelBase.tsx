@@ -3,6 +3,7 @@ import { Pencil } from 'lucide-react';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
 import type { StatsPanelBaseProps, StatsPanelColorScheme } from './types';
+import { StagedComparisonCard } from './StagedComparisonCard';
 
 // MetricCard component for the summary grid
 interface MetricCardProps {
@@ -63,6 +64,8 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   colorScheme = statsPanelDefaultColorScheme,
   onEditSpecs,
   showCpk = true,
+  stagedComparison,
+  cpkTarget,
   renderHistogram,
   renderProbabilityPlot,
   renderSummaryFooter,
@@ -171,6 +174,13 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     );
   };
 
+  const renderSummaryContent = () => {
+    if (stagedComparison) {
+      return <StagedComparisonCard comparison={stagedComparison} cpkTarget={cpkTarget} />;
+    }
+    return renderMetricGrid();
+  };
+
   const renderHistogramContent = () => {
     if (histogramData.length > 0 && stats && renderHistogram) {
       return renderHistogram(histogramData, specs, stats.mean);
@@ -189,18 +199,21 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   const TabButton = ({
     tab,
     label,
+    helpTerm,
   }: {
     tab: 'summary' | 'histogram' | 'normality';
     label: string;
+    helpTerm?: GlossaryTerm;
   }) => (
     <button
       onClick={() => setActiveTab(tab)}
-      className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
+      className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${
         activeTab === tab ? cs.tabActive : cs.tabInactive
       } ${compact ? 'flex-1 px-2 py-2' : ''}`}
       style={compact ? { minHeight: 44 } : undefined}
     >
       {label}
+      {helpTerm && <HelpTooltip term={helpTerm} iconSize={10} />}
     </button>
   );
 
@@ -210,12 +223,12 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
       <div className={cs.containerCompact}>
         <div className={`${cs.tabBar} mb-4`}>
           <TabButton tab="summary" label="Summary" />
-          <TabButton tab="histogram" label="Histogram" />
+          <TabButton tab="histogram" label="Histogram" helpTerm={getTerm('capabilityAnalysis')} />
           <TabButton tab="normality" label="Prob Plot" />
         </div>
 
         <div className="flex-1 min-h-0">
-          {activeTab === 'summary' && <div className="space-y-3">{renderMetricGrid()}</div>}
+          {activeTab === 'summary' && <div className="space-y-3">{renderSummaryContent()}</div>}
           {activeTab === 'histogram' && (
             <div className="h-full min-h-[200px]">{renderHistogramContent()}</div>
           )}
@@ -234,14 +247,14 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
       <div className="flex justify-between items-center border-b border-inherit pb-4">
         <div className={cs.tabBar}>
           <TabButton tab="summary" label="Summary" />
-          <TabButton tab="histogram" label="Histogram" />
+          <TabButton tab="histogram" label="Histogram" helpTerm={getTerm('capabilityAnalysis')} />
           <TabButton tab="normality" label="Prob Plot" />
         </div>
       </div>
 
       {activeTab === 'summary' ? (
         <>
-          <div className="flex-1">{renderMetricGrid()}</div>
+          <div className="flex-1">{renderSummaryContent()}</div>
           {stats && renderSummaryFooter?.(stats, specs)}
         </>
       ) : activeTab === 'histogram' ? (

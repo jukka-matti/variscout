@@ -21,6 +21,19 @@ export type {
   StagedStatsResult,
   StageBoundary,
   NelsonRule2Sequence,
+} from './types';
+
+// Types - Staged Comparison
+export type {
+  StagedComparison,
+  StagedComparisonStage,
+  StagedComparisonDeltas,
+  DeltaColor,
+} from './stats';
+
+// (continued types)
+export type {
+  NelsonRule3Sequence,
   // Boxplot Types
   BoxplotGroupInput,
   BoxplotGroupData,
@@ -50,9 +63,12 @@ export {
   sortDataByStage,
   calculateStatsByStage,
   getStageBoundaries,
+  calculateStagedComparison,
   // Nelson rules
   getNelsonRule2ViolationPoints,
   getNelsonRule2Sequences,
+  getNelsonRule3ViolationPoints,
+  getNelsonRule3Sequences,
   // Boxplot statistics
   calculateBoxplotStats,
   sortBoxplotData,
@@ -83,11 +99,25 @@ export {
   DEFAULT_PLAN,
   configurePlan,
   getPlan,
+  hasTeamFeatures,
+  isTeamAIPlan,
   isTeamPlan,
 } from './tier';
 
+// Preview feature registry
+export type { PreviewFeature } from './preview';
+export { isPreviewEnabled, setPreviewEnabled } from './preview';
+
 // Export utilities
-export { getSpecStatus, generateCSV, downloadCSV } from './export';
+export {
+  getSpecStatus,
+  generateCSV,
+  downloadCSV,
+  generateFindingsCSV,
+  generateFindingsJSON,
+  downloadFindingsCSV,
+  downloadFindingsJSON,
+} from './export';
 export type { ExportOptions } from './export';
 
 // Parser types
@@ -189,6 +219,10 @@ export {
   DRILL_SWITCH_THRESHOLD,
 } from './variation';
 
+// Improvement Progress Tracking
+export type { ImprovementProgress, FindingContribution } from './variation/progress';
+export { computeImprovementProgress, computeIdeaImpact } from './variation/progress';
+
 // URL parameter utilities
 export {
   filtersToSearchParams,
@@ -197,12 +231,39 @@ export {
   isEmbedMode,
 } from './urlParams';
 
-// Glossary
+// Glossary (vocabulary)
 export type { GlossaryTerm, GlossaryCategory, GlossaryLocale } from './glossary';
-export { glossaryTerms, glossaryMap, getTerm, getTermsByCategory, hasTerm } from './glossary';
+export {
+  glossaryTerms,
+  glossaryMap,
+  getTerm,
+  getTermsByCategory,
+  hasTerm,
+  buildGlossaryPrompt,
+} from './glossary';
+
+// Knowledge Model (vocabulary + methodology concepts)
+export type { ConceptCategory, KnowledgeRelation, Concept, KnowledgeEntry } from './glossary';
+export { isConcept, isGlossaryTerm } from './glossary';
+export { concepts, conceptMap, getConcept } from './glossary';
+export { allKnowledge, getEntry, hasEntry, getRelated, getReferencedBy } from './glossary';
 
 // Formatting utilities
 export { formatPValue, getStars } from './format';
+
+// Internationalization
+export type { Locale, MessageCatalog } from './i18n';
+export {
+  LOCALES,
+  LOCALE_NAMES,
+  formatStatistic,
+  formatPercent,
+  formatDate,
+  formatInteger,
+  getMessages,
+  getMessage,
+  detectLocale,
+} from './i18n';
 
 // Responsive utilities (chart layout calculations)
 export type { ChartMargins, ChartFonts, ChartType, Breakpoints } from './responsive';
@@ -233,6 +294,61 @@ export { safeMin, safeMax } from './utils/minmax';
 // EXIF/GPS metadata stripping (defense-in-depth for photo uploads)
 export { hasExifData, stripExifSegments, stripExifFromBlob } from './utils/exifStrip';
 
+// AI (Phase 1)
+export type {
+  ProcessContext,
+  TargetMetric,
+  InvestigationPhase,
+  AIContext,
+  NarrationRequest,
+  NarrationResponse,
+  AIErrorType,
+  CoScoutMessage,
+  CoScoutError,
+  BuildAIContextOptions,
+  AIStatsInput,
+} from './ai';
+export {
+  buildAIContext,
+  detectInvestigationPhase,
+  buildNarrationSystemPrompt,
+  buildSummaryPrompt,
+  buildCoScoutSystemPrompt,
+  buildCoScoutMessages,
+  formatKnowledgeContext,
+  buildReportSystemPrompt,
+  buildReportPrompt,
+  buildLocaleHint,
+} from './ai';
+
+// AI (Phase 2 — Chart Insights)
+export type {
+  InsightChartType,
+  ChipType,
+  DeterministicInsight,
+  InsightAction,
+  ChartInsightData,
+} from './ai';
+export {
+  buildIChartInsight,
+  buildBoxplotInsight,
+  buildParetoInsight,
+  buildStatsInsight,
+  buildStagedComparisonInsight,
+  buildChartInsightPrompt,
+  buildChartInsightSystemPrompt,
+  buildSuggestedQuestions,
+  formatForMobile,
+} from './ai';
+
+// Category keyword matching and inference
+export {
+  CATEGORY_KEYWORDS,
+  findMatchedCategoryKeyword,
+  CATEGORY_DISPLAY_NAMES,
+  inferCategoryName,
+} from './parser';
+
 // Findings (scouting report)
 export type {
   Finding,
@@ -242,17 +358,38 @@ export type {
   FindingComment,
   FindingTag,
   FindingSource,
+  FindingProjection,
   PhotoAttachment,
   PhotoUploadStatus,
+  ActionItem,
+  FindingOutcome,
+  Hypothesis,
+  HypothesisStatus,
+  HypothesisValidationType,
+  InvestigationCategory,
+  ImprovementIdea,
+  IdeaEffort,
+  IdeaImpact,
 } from './findings';
 export {
   FINDING_STATUSES,
   FINDING_STATUS_LABELS,
   FINDING_TAGS,
   FINDING_TAG_LABELS,
+  HYPOTHESIS_STATUSES,
+  HYPOTHESIS_STATUS_LABELS,
+  PWA_STATUSES,
+  CATEGORY_COLORS,
+  generateId,
   createFinding,
   createFindingComment,
   createPhotoAttachment,
+  createActionItem,
+  createFindingOutcome,
+  createHypothesis,
+  createImprovementIdea,
+  createInvestigationCategory,
+  getCategoryForFactor,
   getFindingStatus,
   groupFindingsByStatus,
   formatFindingFilters,
@@ -261,4 +398,5 @@ export {
   findDuplicateBySource,
   migrateFindingStatus,
   migrateFindings,
+  migrateActionAssignee,
 } from './findings';

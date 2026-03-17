@@ -65,16 +65,15 @@ interface EmbedResponse {
 ## Chart IDs
 
 ```typescript
-type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats' | 'regression';
+type ChartId = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 ```
 
-| ID           | Chart                               |
-| ------------ | ----------------------------------- |
-| `ichart`     | I-Chart (Individuals Control Chart) |
-| `boxplot`    | Box Plot                            |
-| `pareto`     | Pareto Chart                        |
-| `stats`      | Statistics Panel                    |
-| `regression` | Regression Panel                    |
+| ID        | Chart                               |
+| --------- | ----------------------------------- |
+| `ichart`  | I-Chart (Individuals Control Chart) |
+| `boxplot` | Box Plot                            |
+| `pareto`  | Pareto Chart                        |
+| `stats`   | Statistics Panel                    |
 
 ## Highlight Intensities
 

@@ -8,7 +8,7 @@
  * Dismiss: tap backdrop, swipe sheet down >60px, or X button.
  */
 import React, { useState, useCallback, useRef } from 'react';
-import { X, ChevronRight } from 'lucide-react';
+import { X, ChevronRight, MessageCircle } from 'lucide-react';
 import type { HighlightColor } from '../ChartAnnotationLayer/types';
 
 export interface MobileCategorySheetData {
@@ -38,6 +38,11 @@ export interface MobileCategorySheetProps {
   onClose: () => void;
   /** Render extra content after the pin-as-finding section (e.g. post-pin assign flow) */
   renderExtra?: () => React.ReactNode;
+  /** Callback to ask CoScout about this category. When provided, shows "Ask CoScout" action row. */
+  onAskCoScout?: (focusContext: {
+    chartType: 'boxplot' | 'pareto';
+    category: { name: string; mean?: number; contributionPct?: number };
+  }) => void;
 }
 
 const highlightOptions: { color: HighlightColor; label: string; hex: string }[] = [
@@ -60,6 +65,7 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
   onPinFinding,
   onClose,
   renderExtra,
+  onAskCoScout,
 }) => {
   const [noteText, setNoteText] = useState('');
   const touchStartY = useRef<number | null>(null);
@@ -296,6 +302,34 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
                 data-testid="category-sheet-pin-finding"
               >
                 Pin as Finding
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Ask CoScout action */}
+        {onAskCoScout && (
+          <>
+            <div className="mx-4 border-t border-edge" />
+            <div className="px-4 py-3">
+              <button
+                onClick={() => {
+                  onAskCoScout({
+                    chartType: data.chartType,
+                    category: {
+                      name: data.categoryKey,
+                      mean: data.mean,
+                      contributionPct: data.contributionPct,
+                    },
+                  });
+                  onClose();
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-xl transition-colors touch-feedback"
+                style={{ minHeight: 44 }}
+                data-testid="category-sheet-ask-coscout"
+              >
+                <MessageCircle size={16} />
+                Ask CoScout about this
               </button>
             </div>
           </>

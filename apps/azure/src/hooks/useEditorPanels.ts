@@ -9,8 +9,10 @@ export interface EditorPanelState {
   isDataPanelOpen: boolean;
   isDataTableOpen: boolean;
   isFindingsOpen: boolean;
+  isCoScoutOpen: boolean;
   isWhatIfOpen: boolean;
   isPresentationMode: boolean;
+  isReportOpen: boolean;
   highlightRowIndex: number | null;
   highlightedChartPoint: number | null;
 }
@@ -23,9 +25,13 @@ export type EditorPanelAction =
   | { type: 'CLOSE_DATA_TABLE' }
   | { type: 'SET_FINDINGS_OPEN'; value: boolean }
   | { type: 'TOGGLE_FINDINGS' }
+  | { type: 'SET_COSCOUT_OPEN'; value: boolean }
+  | { type: 'TOGGLE_COSCOUT' }
   | { type: 'SET_WHAT_IF_OPEN'; value: boolean }
   | { type: 'OPEN_PRESENTATION' }
   | { type: 'CLOSE_PRESENTATION' }
+  | { type: 'OPEN_REPORT' }
+  | { type: 'CLOSE_REPORT' }
   | { type: 'SET_HIGHLIGHT_ROW'; index: number | null }
   | { type: 'SET_HIGHLIGHT_POINT'; index: number | null }
   | { type: 'POINT_CLICK'; index: number }
@@ -48,17 +54,25 @@ export function editorPanelReducer(
     case 'CLOSE_DATA_TABLE':
       return { ...state, isDataTableOpen: false };
     case 'SET_FINDINGS_OPEN':
-      return state.isFindingsOpen === action.value
-        ? state
-        : { ...state, isFindingsOpen: action.value };
+      if (state.isFindingsOpen === action.value) return state;
+      return { ...state, isFindingsOpen: action.value };
     case 'TOGGLE_FINDINGS':
       return { ...state, isFindingsOpen: !state.isFindingsOpen };
+    case 'SET_COSCOUT_OPEN':
+      if (state.isCoScoutOpen === action.value) return state;
+      return { ...state, isCoScoutOpen: action.value };
+    case 'TOGGLE_COSCOUT':
+      return { ...state, isCoScoutOpen: !state.isCoScoutOpen };
     case 'SET_WHAT_IF_OPEN':
       return state.isWhatIfOpen === action.value ? state : { ...state, isWhatIfOpen: action.value };
     case 'OPEN_PRESENTATION':
-      return { ...state, isPresentationMode: true };
+      return { ...state, isPresentationMode: true, isReportOpen: false };
     case 'CLOSE_PRESENTATION':
       return { ...state, isPresentationMode: false };
+    case 'OPEN_REPORT':
+      return { ...state, isReportOpen: true, isPresentationMode: false };
+    case 'CLOSE_REPORT':
+      return { ...state, isReportOpen: false };
     case 'SET_HIGHLIGHT_ROW':
       return { ...state, highlightRowIndex: action.index };
     case 'SET_HIGHLIGHT_POINT':
@@ -80,8 +94,10 @@ export const initialPanelState: EditorPanelState = {
   isDataPanelOpen: false,
   isDataTableOpen: false,
   isFindingsOpen: false,
+  isCoScoutOpen: false,
   isWhatIfOpen: false,
   isPresentationMode: false,
+  isReportOpen: false,
   highlightRowIndex: null,
   highlightedChartPoint: null,
 };
@@ -104,10 +120,14 @@ export interface UseEditorPanelsReturn {
   setIsDataTableOpen: BoolSetter;
   isFindingsOpen: boolean;
   setIsFindingsOpen: BoolSetter;
+  isCoScoutOpen: boolean;
+  setIsCoScoutOpen: BoolSetter;
   isWhatIfOpen: boolean;
   setIsWhatIfOpen: BoolSetter;
   isPresentationMode: boolean;
   setIsPresentationMode: BoolSetter;
+  isReportOpen: boolean;
+  setIsReportOpen: BoolSetter;
   highlightRowIndex: number | null;
   setHighlightRowIndex: (v: number | null) => void;
   highlightedChartPoint: number | null;
@@ -182,6 +202,14 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     }
   }, []);
 
+  const setIsCoScoutOpen: BoolSetter = useCallback(value => {
+    if (typeof value === 'function') {
+      dispatch({ type: 'TOGGLE_COSCOUT' });
+    } else {
+      dispatch({ type: 'SET_COSCOUT_OPEN', value });
+    }
+  }, []);
+
   const setIsWhatIfOpen: BoolSetter = useCallback(value => {
     if (typeof value === 'function') {
       // No toggle usage in Editor.tsx, but handle as toggle for safety
@@ -197,6 +225,14 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
       dispatch({ type: 'OPEN_PRESENTATION' });
     } else {
       dispatch(value ? { type: 'OPEN_PRESENTATION' } : { type: 'CLOSE_PRESENTATION' });
+    }
+  }, []);
+
+  const setIsReportOpen: BoolSetter = useCallback(value => {
+    if (typeof value === 'function') {
+      dispatch({ type: 'OPEN_REPORT' });
+    } else {
+      dispatch(value ? { type: 'OPEN_REPORT' } : { type: 'CLOSE_REPORT' });
     }
   }, []);
 
@@ -223,10 +259,14 @@ export function useEditorPanels(options: UseEditorPanelsOptions): UseEditorPanel
     setIsDataTableOpen,
     isFindingsOpen: state.isFindingsOpen,
     setIsFindingsOpen,
+    isCoScoutOpen: state.isCoScoutOpen,
+    setIsCoScoutOpen,
     isWhatIfOpen: state.isWhatIfOpen,
     setIsWhatIfOpen,
     isPresentationMode: state.isPresentationMode,
     setIsPresentationMode,
+    isReportOpen: state.isReportOpen,
+    setIsReportOpen,
     highlightRowIndex: state.highlightRowIndex,
     setHighlightRowIndex,
     highlightedChartPoint: state.highlightedChartPoint,

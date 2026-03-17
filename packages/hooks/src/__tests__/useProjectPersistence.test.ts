@@ -24,7 +24,15 @@ function createMockPersistence(): PersistenceAdapter {
     saveProject: vi.fn().mockResolvedValue({
       id: 'proj-1',
       name: 'Test Project',
-      state: {},
+      state: {
+        version: '1',
+        rawData: [],
+        outcome: null,
+        factors: [],
+        specs: {},
+        filters: {},
+        axisSettings: {},
+      },
       savedAt: '2026-03-01T00:00:00Z',
       rowCount: 4,
     } satisfies SavedProject),
@@ -95,6 +103,8 @@ function createMockSetters() {
     setFilterStack: vi.fn(),
     setViewState: vi.fn(),
     setFindings: vi.fn(),
+    setHypotheses: vi.fn(),
+    setCategories: vi.fn(),
   };
 }
 
@@ -107,7 +117,7 @@ function createDefaultInputs(
     rawData: sampleData,
     outcome: 'Weight',
     factors: ['Machine'],
-    specs: { LSL: 5, USL: 45 },
+    specs: { lsl: 5, usl: 45 },
     measureSpecs: {},
     filters: {},
     axisSettings: {},
@@ -130,6 +140,8 @@ function createDefaultInputs(
     filterStack: [],
     viewState: null,
     findings: [],
+    hypotheses: [],
+    categories: [],
     ...setters,
     ...overrides,
   };
@@ -165,7 +177,7 @@ describe('useProjectPersistence', () => {
           rawData: sampleData,
           outcome: 'Weight',
           factors: ['Machine'],
-          specs: { LSL: 5, USL: 45 },
+          specs: { lsl: 5, usl: 45 },
         })
       );
     });
@@ -225,7 +237,7 @@ describe('useProjectPersistence', () => {
       const { inputs, result } = renderPersistence({
         cpkTarget: 2.0,
         stageColumn: 'Stage',
-        stageOrderMode: 'manual',
+        stageOrderMode: 'data-order',
         isPerformanceMode: true,
         measureColumns: ['Fill1', 'Fill2'],
         selectedMeasure: 'Fill1',
@@ -233,10 +245,18 @@ describe('useProjectPersistence', () => {
         chartTitles: { ichart: 'Control Chart' },
         paretoMode: 'separate',
         paretoAggregation: 'value',
-        separateParetoData: [{ category: 'X', count: 5, pct: 100, cumPct: 100 }],
+        separateParetoData: [{ category: 'X', count: 5 }],
         timeColumn: 'Date',
         filterStack: [
-          { id: 'f1', type: 'filter', source: 'boxplot', factor: 'Machine', values: ['A'] },
+          {
+            id: 'f1',
+            type: 'filter',
+            source: 'boxplot',
+            factor: 'Machine',
+            values: ['A'],
+            timestamp: 1000,
+            label: 'Machine=A',
+          },
         ] as FilterAction[],
         viewState: { activeTab: 'performance', isFindingsOpen: true },
         findings: [makeFinding('f-1', 'Test finding')],
@@ -250,7 +270,7 @@ describe('useProjectPersistence', () => {
         .calls[0][1];
       expect(savedState.cpkTarget).toBe(2.0);
       expect(savedState.stageColumn).toBe('Stage');
-      expect(savedState.stageOrderMode).toBe('manual');
+      expect(savedState.stageOrderMode).toBe('data-order');
       expect(savedState.isPerformanceMode).toBe(true);
       expect(savedState.measureColumns).toEqual(['Fill1', 'Fill2']);
       expect(savedState.selectedMeasure).toBe('Fill1');
@@ -267,7 +287,7 @@ describe('useProjectPersistence', () => {
 
     it('includes measureSpecs only when non-empty', async () => {
       const { inputs, result } = renderPersistence({
-        measureSpecs: { Fill1: { LSL: 10, USL: 20 } },
+        measureSpecs: { Fill1: { lsl: 10, usl: 20 } },
       });
 
       await act(async () => {
@@ -276,7 +296,7 @@ describe('useProjectPersistence', () => {
 
       const savedState = (inputs.persistence.saveProject as ReturnType<typeof vi.fn>).mock
         .calls[0][1];
-      expect(savedState.measureSpecs).toEqual({ Fill1: { LSL: 10, USL: 20 } });
+      expect(savedState.measureSpecs).toEqual({ Fill1: { lsl: 10, usl: 20 } });
     });
   });
 
@@ -290,8 +310,8 @@ describe('useProjectPersistence', () => {
       rawData: sampleData,
       outcome: 'Weight',
       factors: ['Machine'],
-      specs: { LSL: 5, USL: 45 },
-      measureSpecs: { Fill1: { LSL: 10, USL: 20 } },
+      specs: { lsl: 5, usl: 45 },
+      measureSpecs: { Fill1: { lsl: 10, usl: 20 } },
       filters: { Machine: ['A'] },
       axisSettings: { min: 0, max: 50 },
       columnAliases: { Machine: 'Equipment' },
@@ -299,7 +319,7 @@ describe('useProjectPersistence', () => {
       displayOptions: { lockYAxisToFullData: false, showViolin: true },
       cpkTarget: 2.0,
       stageColumn: 'Stage',
-      stageOrderMode: 'manual',
+      stageOrderMode: 'data-order',
       isPerformanceMode: true,
       measureColumns: ['Fill1', 'Fill2'],
       selectedMeasure: 'Fill1',
@@ -307,7 +327,7 @@ describe('useProjectPersistence', () => {
       chartTitles: { boxplot: 'Variation by Machine' },
       paretoMode: 'separate',
       paretoAggregation: 'value',
-      separateParetoData: [{ category: 'X', count: 5, pct: 100, cumPct: 100 }],
+      separateParetoData: [{ category: 'X', count: 5 }],
       timeColumn: 'Date',
       viewState: { activeTab: 'performance', isFindingsOpen: true },
       findings: [makeFinding('f-1', 'Test finding')],
@@ -333,8 +353,8 @@ describe('useProjectPersistence', () => {
       expect(setters.setRawData).toHaveBeenCalledWith(sampleData);
       expect(setters.setOutcome).toHaveBeenCalledWith('Weight');
       expect(setters.setFactors).toHaveBeenCalledWith(['Machine']);
-      expect(setters.setSpecs).toHaveBeenCalledWith({ LSL: 5, USL: 45 });
-      expect(setters.setMeasureSpecs).toHaveBeenCalledWith({ Fill1: { LSL: 10, USL: 20 } });
+      expect(setters.setSpecs).toHaveBeenCalledWith({ lsl: 5, usl: 45 });
+      expect(setters.setMeasureSpecs).toHaveBeenCalledWith({ Fill1: { lsl: 10, usl: 20 } });
       expect(setters.setAxisSettings).toHaveBeenCalledWith({ min: 0, max: 50 });
       expect(setters.setColumnAliases).toHaveBeenCalledWith({ Machine: 'Equipment' });
       expect(setters.setValueLabels).toHaveBeenCalledWith({ Machine: { A: 'Machine Alpha' } });
@@ -344,7 +364,7 @@ describe('useProjectPersistence', () => {
       });
       expect(setters.setCpkTarget).toHaveBeenCalledWith(2.0);
       expect(setters.setStageColumn).toHaveBeenCalledWith('Stage');
-      expect(setters.setStageOrderMode).toHaveBeenCalledWith('manual');
+      expect(setters.setStageOrderMode).toHaveBeenCalledWith('data-order');
       expect(setters.setPerformanceMode).toHaveBeenCalledWith(true);
       expect(setters.setMeasureColumns).toHaveBeenCalledWith(['Fill1', 'Fill2']);
       expect(setters.setSelectedMeasure).toHaveBeenCalledWith('Fill1');
@@ -393,7 +413,7 @@ describe('useProjectPersistence', () => {
         rawData: sampleData,
         outcome: 'Weight',
         factors: ['Machine'],
-        specs: { LSL: 5, USL: 45 },
+        specs: { lsl: 5, usl: 45 },
         filters: { Machine: ['A'] },
         axisSettings: {},
       };
@@ -467,8 +487,24 @@ describe('useProjectPersistence', () => {
       const setters = createMockSetters();
       const persistence = createMockPersistence();
       const filterStack: FilterAction[] = [
-        { id: 'f1', type: 'filter', source: 'boxplot', factor: 'Machine', values: ['A'] },
-        { id: 'f2', type: 'filter', source: 'pareto', factor: 'Shift', values: ['Day', 'Night'] },
+        {
+          id: 'f1',
+          type: 'filter',
+          source: 'boxplot',
+          factor: 'Machine',
+          values: ['A'],
+          timestamp: 1000,
+          label: 'Machine=A',
+        },
+        {
+          id: 'f2',
+          type: 'filter',
+          source: 'pareto',
+          factor: 'Shift',
+          values: ['Day', 'Night'],
+          timestamp: 2000,
+          label: 'Shift=Day, Night',
+        },
       ];
       const stateWithStack: AnalysisState = {
         version: '1',
@@ -538,8 +574,24 @@ describe('useProjectPersistence', () => {
       const setters = createMockSetters();
       const persistence = createMockPersistence();
       const filterStack: FilterAction[] = [
-        { id: 'h1', type: 'highlight', source: 'boxplot', factor: 'Machine', values: ['A'] },
-        { id: 'f1', type: 'filter', source: 'boxplot', factor: 'Machine', values: ['A'] },
+        {
+          id: 'h1',
+          type: 'highlight',
+          source: 'boxplot',
+          factor: 'Machine',
+          values: ['A'],
+          timestamp: 1000,
+          label: 'Machine=A',
+        },
+        {
+          id: 'f1',
+          type: 'filter',
+          source: 'boxplot',
+          factor: 'Machine',
+          values: ['A'],
+          timestamp: 2000,
+          label: 'Machine=A',
+        },
       ];
       const state: AnalysisState = {
         version: '1',
@@ -815,7 +867,7 @@ describe('useProjectPersistence', () => {
       rawData: [{ Temp: 25, Pressure: 100 }],
       outcome: 'Temp',
       factors: ['Pressure'],
-      specs: { LSL: 20, USL: 30 },
+      specs: { lsl: 20, usl: 30 },
       filters: { Pressure: [100] },
       axisSettings: { min: 15, max: 35 },
       columnAliases: { Temp: 'Temperature' },
@@ -823,19 +875,27 @@ describe('useProjectPersistence', () => {
       displayOptions: { showViolin: true },
       cpkTarget: 1.67,
       stageColumn: 'Stage',
-      stageOrderMode: 'manual',
+      stageOrderMode: 'data-order',
       isPerformanceMode: true,
       measureColumns: ['Temp'],
       selectedMeasure: 'Temp',
       measureLabel: 'Temperature',
       chartTitles: { ichart: 'Temperature Trend' },
-      measureSpecs: { Temp: { LSL: 20, USL: 30 } },
+      measureSpecs: { Temp: { lsl: 20, usl: 30 } },
       paretoMode: 'separate',
       paretoAggregation: 'value',
-      separateParetoData: [{ category: 'High', count: 3, pct: 60, cumPct: 60 }],
+      separateParetoData: [{ category: 'High', count: 3 }],
       timeColumn: 'Date',
       filterStack: [
-        { id: 'f1', type: 'filter', source: 'boxplot', factor: 'Pressure', values: [100] },
+        {
+          id: 'f1',
+          type: 'filter',
+          source: 'boxplot',
+          factor: 'Pressure',
+          values: [100],
+          timestamp: 1000,
+          label: 'Pressure=100',
+        },
       ],
       viewState: { focusedChart: 'ichart' },
       findings: [makeFinding('imp-1', 'Imported finding')],
@@ -856,14 +916,14 @@ describe('useProjectPersistence', () => {
       expect(setters.setRawData).toHaveBeenCalledWith([{ Temp: 25, Pressure: 100 }]);
       expect(setters.setOutcome).toHaveBeenCalledWith('Temp');
       expect(setters.setFactors).toHaveBeenCalledWith(['Pressure']);
-      expect(setters.setSpecs).toHaveBeenCalledWith({ LSL: 20, USL: 30 });
-      expect(setters.setMeasureSpecs).toHaveBeenCalledWith({ Temp: { LSL: 20, USL: 30 } });
+      expect(setters.setSpecs).toHaveBeenCalledWith({ lsl: 20, usl: 30 });
+      expect(setters.setMeasureSpecs).toHaveBeenCalledWith({ Temp: { lsl: 20, usl: 30 } });
       expect(setters.setAxisSettings).toHaveBeenCalledWith({ min: 15, max: 35 });
       expect(setters.setColumnAliases).toHaveBeenCalledWith({ Temp: 'Temperature' });
       expect(setters.setDisplayOptions).toHaveBeenCalledWith({ showViolin: true });
       expect(setters.setCpkTarget).toHaveBeenCalledWith(1.67);
       expect(setters.setStageColumn).toHaveBeenCalledWith('Stage');
-      expect(setters.setStageOrderMode).toHaveBeenCalledWith('manual');
+      expect(setters.setStageOrderMode).toHaveBeenCalledWith('data-order');
       expect(setters.setPerformanceMode).toHaveBeenCalledWith(true);
       expect(setters.setMeasureColumns).toHaveBeenCalledWith(['Temp']);
       expect(setters.setSelectedMeasure).toHaveBeenCalledWith('Temp');
@@ -1008,7 +1068,15 @@ describe('useProjectPersistence', () => {
         filters: {},
         axisSettings: {},
         filterStack: [
-          { id: 'f1', type: 'filter', source: 'boxplot', factor: 'Machine', values: ['A'] },
+          {
+            id: 'f1',
+            type: 'filter',
+            source: 'boxplot',
+            factor: 'Machine',
+            values: ['A'],
+            timestamp: 1000,
+            label: 'Machine=A',
+          },
         ],
       };
       (persistence.importFromFile as ReturnType<typeof vi.fn>).mockResolvedValue(stateWithStack);

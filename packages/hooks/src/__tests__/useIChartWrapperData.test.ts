@@ -10,17 +10,13 @@ import type { StatsResult, Finding } from '@variscout/core';
 
 const MOCK_STATS: StatsResult = {
   mean: 50,
+  median: 50,
   stdDev: 5,
+  sigmaWithin: 5.56,
+  mrBar: 6,
   ucl: 65,
   lcl: 35,
-  samples: 30,
-  movingRange: 6,
-  expectedRange: 6.26,
-  sigma: 5.56,
-  cp: null,
-  cpk: null,
-  passRate: null,
-  median: 50,
+  outOfSpecPercentage: 0,
 };
 
 const ICHART_FINDING: Finding = {
@@ -28,8 +24,9 @@ const ICHART_FINDING: Finding = {
   text: 'Test note',
   status: 'observed',
   context: { activeFilters: {}, cumulativeScope: null },
-  createdAt: new Date().toISOString(),
+  createdAt: Date.now(),
   comments: [],
+  statusChangedAt: Date.now(),
   source: { chart: 'ichart', anchorX: 0.5, anchorY: 0.3 },
 };
 

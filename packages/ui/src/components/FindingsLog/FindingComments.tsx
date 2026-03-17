@@ -141,7 +141,10 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                             key={photo.id}
                             className="relative w-16 h-16 rounded overflow-hidden bg-surface-tertiary flex-shrink-0"
                           >
-                            {photo.thumbnailDataUrl ? (
+                            {photo.thumbnailDataUrl &&
+                            /^data:image\/(jpeg|png|webp|gif);base64,/.test(
+                              photo.thumbnailDataUrl
+                            ) ? (
                               <img
                                 src={photo.thumbnailDataUrl}
                                 alt={photo.filename}
@@ -175,7 +178,7 @@ const FindingComments: React.FC<FindingCommentsProps> = ({
                       )}
                       {relativeTime(comment.createdAt)}
                     </span>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover/comment:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover/comment:opacity-100 touch-show transition-opacity">
                       {onAddPhoto && (
                         <button
                           onClick={e => handlePhotoClick(e, comment.id)}

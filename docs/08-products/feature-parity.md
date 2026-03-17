@@ -10,13 +10,14 @@ Complete feature availability across VariScout platforms.
 
 ## Platform Overview
 
-| Platform           | Primary Use                       | Status      | Distribution      | Price      |
-| ------------------ | --------------------------------- | ----------- | ----------------- | ---------- |
-| **Azure Standard** | Full analysis, local file storage | **PRIMARY** | Azure Marketplace | €99/month  |
-| **Azure Team**     | + Teams, cloud storage, mobile    | **PRIMARY** | Azure Marketplace | €299/month |
-| **PWA**            | Training & education              | Production  | Direct URL        | FREE       |
+| Platform           | Primary Use                           | Status      | Distribution      | Price      |
+| ------------------ | ------------------------------------- | ----------- | ----------------- | ---------- |
+| **Azure Standard** | Full analysis, local file storage     | **PRIMARY** | Azure Marketplace | €99/month  |
+| **Azure Team**     | + Teams, cloud storage, mobile        | **PRIMARY** | Azure Marketplace | €199/month |
+| **Azure Team AI**  | + AI Knowledge Base, enhanced CoScout | **PRIMARY** | Azure Marketplace | €279/month |
+| **PWA**            | Training & education                  | Production  | Direct URL        | FREE       |
 
-> Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md), Azure App is the only paid product with a two-plan model: Standard (€99/month) and Team (€299/month). Both are Azure Marketplace Managed Applications. PWA is free forever. See [ADR-016](../07-decisions/adr-016-teams-integration.md) for Teams integration design.
+> Per [ADR-007](../07-decisions/adr-007-azure-marketplace-distribution.md), Azure App is the only paid product with a three-plan model: Standard (€99/month), Team (€199/month), and Team AI (€279/month). All are Azure Marketplace Managed Applications. PWA is free forever. See [ADR-016](../07-decisions/adr-016-teams-integration.md) for Teams integration design and [ADR-019](../07-decisions/adr-019-ai-integration.md) for AI integration design.
 
 ---
 
@@ -54,25 +55,28 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## Navigation & Interaction
 
-| Feature                           | Azure Standard | Azure Team | PWA (Free) | Notes                                                                                                                                     |
-| --------------------------------- | :------------: | :--------: | :--------: | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Drill-down**                    |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Linked filtering**              |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Breadcrumb navigation**         |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Multi-select filters**          |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Observations & Findings**       |       ✓        |     ✓      |     ✓      | Pin filter states + chart observations as findings; status tracking, comments, board view; Azure adds: persistence, popout window         |
-| **What-If Simulator**             |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Keyboard navigation**           |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Copy chart to clipboard**       |       ✓        |     ✓      |     ✓      | Includes filter context bar when active                                                                                                   |
-| **Filter context on charts**      |       ✓        |     ✓      |     ✓      | Shows active filters inside chart cards; toggle in Settings                                                                               |
-| **Editable chart titles**         |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Selection panel**               |       ✓        |     ✓      |     ✓      | Minitab-style point brushing                                                                                                              |
-| **Create Factor**                 |       ✓        |     ✓      |     ✓      | From point selection                                                                                                                      |
-| **Focus mode (fullscreen chart)** |       ✓        |     ✓      |     ✓      |                                                                                                                                           |
-| **Presentation Mode**             |       ✓        |     ✓      |     -      | Full-screen grid overview + focused chart view                                                                                            |
-| **Median in Stats Panel**         |       ✓        |     ✓      |     ✓      | Always shown alongside Mean                                                                                                               |
-| **Spec editing (Stats)**          |       ✓        |     ✓      |     ✓      | `onEditSpecs` callback; pencil link opens SpecEditor popover                                                                              |
-| **Chart color highlights**        |       ✓        |     ✓      |     ✓      | Desktop: right-click context menu. Mobile: tap → action sheet. Red/amber/green category markers (Boxplot, Pareto). I-Chart: desktop only. |
+| Feature                           | Azure Standard | Azure Team | PWA (Free) | Notes                                                                                                                                                                                                                                                                        |
+| --------------------------------- | :------------: | :--------: | :--------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Drill-down**                    |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
+| **Linked filtering**              |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
+| **Breadcrumb navigation**         |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
+| **Multi-select filters**          |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
+| **Observations & Findings**       |       ✓        |     ✓      |     ✓      | PWA: 3-status findings (observe, investigate, analyze) + tags + 3-column board. Azure Standard: 5-status closed-loop investigation with hypothesis tree, corrective actions, outcome assessment, 5-column board. Azure Team: + team assignment + knowledge base contribution |
+| **Hypothesis Investigation**      |       ✓        |     ✓      |   Basic    | PWA: single hypothesis per finding, auto-validation, max 5. Azure Standard: + hypothesis tree (depth 3, max 30), gemba/expert tasks, progress tracking, tree view, CoScout investigation sidebar. Azure Team: + Teams auto-post on convergence, task assignment              |
+| **Improvement Ideas**             |       ✓        |     ✓      |     -      | Brainstorm and evaluate ideas on supported hypotheses. Impact badge from What-If projection, effort rating, CoScout ideation coaching. Requires hypothesis tree (no PWA)                                                                                                     |
+| **What-If Simulator**             |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
+| **Keyboard navigation**           |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
+| **Copy chart to clipboard**       |       ✓        |     ✓      |     ✓      | Includes filter context bar when active                                                                                                                                                                                                                                      |
+| **Filter context on charts**      |       ✓        |     ✓      |     ✓      | Shows active filters inside chart cards; toggle in Settings                                                                                                                                                                                                                  |
+| **Editable chart titles**         |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
+| **Selection panel**               |       ✓        |     ✓      |     ✓      | Minitab-style point brushing                                                                                                                                                                                                                                                 |
+| **Create Factor**                 |       ✓        |     ✓      |     ✓      | From point selection                                                                                                                                                                                                                                                         |
+| **Focus mode (fullscreen chart)** |       ✓        |     ✓      |     ✓      |                                                                                                                                                                                                                                                                              |
+| **Presentation Mode**             |       ✓        |     ✓      |     -      | Full-screen grid overview + focused chart view                                                                                                                                                                                                                               |
+| **Scouting Report (Report View)** |       ✓        |     ✓      |     -      | Story-driven report with 5 steps, chart snapshots per finding, copy-as-slide, Teams deep link sharing. Staged verification evidence in Step 5 (Team/Team AI). AI prose blocks in Team AI plan.                                                                               |
+| **Median in Stats Panel**         |       ✓        |     ✓      |     ✓      | Always shown alongside Mean                                                                                                                                                                                                                                                  |
+| **Spec editing (Stats)**          |       ✓        |     ✓      |     ✓      | `onEditSpecs` callback; pencil link opens SpecEditor popover                                                                                                                                                                                                                 |
+| **Chart color highlights**        |       ✓        |     ✓      |     ✓      | Desktop: right-click context menu. Mobile: tap → action sheet. Red/amber/green category markers (Boxplot, Pareto). I-Chart: desktop only.                                                                                                                                    |
 
 ---
 
@@ -115,19 +119,38 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ---
 
+## AI Features
+
+| Feature                         | Azure Standard | Azure Team | Azure Team AI | PWA (Free) | Notes                                                                  |
+| ------------------------------- | :------------: | :--------: | :-----------: | :--------: | ---------------------------------------------------------------------- |
+| **NarrativeBar**                |    Optional    |  Optional  |   Optional    |     -      | Plain-language analysis summary at dashboard bottom                    |
+| **ChartInsightChip**            |    Optional    |  Optional  |   Optional    |     -      | Per-chart contextual suggestions                                       |
+| **CoScoutPanel**                |    Optional    |  Optional  |   Enhanced    |     -      | Team AI: methodology-grounded, knowledge-base-aware                    |
+| **AI Knowledge Base**           |       -        |     -      |       ✓       |     -      | Azure AI Search index from resolved findings (Team AI only)            |
+| **Organizational learning**     |       -        |     -      |       ✓       |     -      | Resolved findings feed back into knowledge base (Team AI only)         |
+| **Process description field**   |    Optional    |  Optional  |   Optional    |     -      | Free-text process context for AI grounding                             |
+| **AI visibility toggle**        |    Optional    |  Optional  |   Optional    |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists |
+| **Knowledge Base Search**       |       -        |     -      | Yes (preview) |     -      | Azure AI Search index from resolved findings (Team AI only)            |
+| **Findings Export (CSV/JSON)**  |       -        |     ✓      |       ✓       |     -      | Download findings as CSV (Excel-compatible) or structured JSON         |
+| **Findings Export (AI Report)** |       -        |     -      |       ✓       |     -      | AI-generated quality engineering report from findings data             |
+
+> AI features require customer-deployed Azure AI Foundry resources (optional ARM deployment checkbox). See [ADR-019](../07-decisions/adr-019-ai-integration.md). PWA never has AI.
+
+---
+
 ## Teams Integration
 
-| Feature                               | Azure Standard | Azure Team | PWA (Free) | Notes                                                             |
-| ------------------------------------- | :------------: | :--------: | :--------: | ----------------------------------------------------------------- |
-| **Teams channel tab**                 |       -        |     ✓      |     -      | Shared analysis in team channels                                  |
-| **Teams personal tab**                |       -        |     ✓      |     -      | Personal analysis within Teams                                    |
-| **Teams SSO**                         |       -        |     ✓      |     -      | On-Behalf-Of token exchange                                       |
-| **Channel file storage (SharePoint)** |       -        |     ✓      |     -      | .vrs files in channel document library                            |
-| **Photo evidence in findings**        |       -        |     ✓      |     -      | Teams SDK `media.selectMedia()` + HTML5 fallback; channel storage |
-| **Deep links to charts**              |       -        |     ✓      |     -      | Share chart URLs via Teams chat                                   |
-| **Adaptive Cards sharing**            |       -        |  Planned   |     -      | Share findings/charts as interactive cards                        |
-| **Teams mobile access**               |       -        |     ✓      |     -      | Full analysis via Teams mobile app                                |
-| **Phone-responsive carousel**         |       -        |     ✓      |     -      | Responsive mobile layout within Editor                            |
+| Feature                               | Azure Standard | Azure Team | PWA (Free) | Notes                                                               |
+| ------------------------------------- | :------------: | :--------: | :--------: | ------------------------------------------------------------------- |
+| **Teams channel tab**                 |       -        |     ✓      |     -      | Shared analysis in team channels                                    |
+| **Teams personal tab**                |       -        |     ✓      |     -      | Personal analysis within Teams                                      |
+| **Teams SSO**                         |       -        |     ✓      |     -      | On-Behalf-Of token exchange                                         |
+| **Channel file storage (SharePoint)** |       -        |     ✓      |     -      | .vrs files in channel document library                              |
+| **Photo evidence in findings**        |       -        |     ✓      |     -      | Teams SDK `media.selectMedia()` + HTML5 fallback; channel storage   |
+| **Deep links to charts**              |       -        |     ✓      |     -      | Share chart URLs via Teams chat                                     |
+| **Adaptive Cards sharing**            |       -        |     ✓      |     -      | Auto-post on analyzed/resolved status with @mentions and deep links |
+| **Teams mobile access**               |       -        |     ✓      |     -      | Full analysis via Teams mobile app                                  |
+| **Phone-responsive carousel**         |       -        |     ✓      |     -      | Responsive mobile layout within Editor                              |
 
 > See [ADR-016](../07-decisions/adr-016-teams-integration.md) for full Teams integration technical design.
 
@@ -170,18 +193,43 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ---
 
+## Mobile-Specific Behavior
+
+Features that behave differently on phone (<640px) versus desktop.
+
+| Feature                          | PWA Desktop  |     PWA Mobile      |  Azure Desktop   |      Azure Mobile      |
+| -------------------------------- | :----------: | :-----------------: | :--------------: | :--------------------: |
+| HelpTooltip                      |    Hover     |   Tap toggle (P0)   |      Hover       |    Tap toggle (P0)     |
+| NarrativeBar                     |  Full text   | Tap-to-expand (P0)  |    Full text     |   Tap-to-expand (P0)   |
+| MobileCategorySheet              |     N/A      |          ✓          |       N/A        |           ✓            |
+| Findings from charts             | Context menu | MobileCategorySheet |   Context menu   |  MobileCategorySheet   |
+| CoScout focus context            |     N/A      |         N/A         |        ✓         |           ✓            |
+| Offline sync indicator           |     N/A      |         N/A         |     Toolbar      |      Planned (P2)      |
+| ColumnMapping phone optimization |      -       |    Planned (P2)     |        -         |      Planned (P2)      |
+| Report View navigation           | Sidebar TOC  |         N/A         |   Sidebar TOC    |      Dropdown TOC      |
+| Report chart snapshots           |    720px     |         N/A         |      720px       |       Responsive       |
+| Staged comparison card           |    Inline    |         N/A         |      Inline      |   `overflow-x-auto`    |
+| Assigned to me filter            |     N/A      |         N/A         | Toggle in header |    Toggle in header    |
+| Board view (columns)             |    Popout    |         N/A         |      Popout      |  Accordion (in-panel)  |
+| Finding action buttons           | Hover reveal |         N/A         |   Hover reveal   | Always visible (touch) |
+| Improvement ideas buttons        | Hover reveal |         N/A         |   Hover reveal   | Always visible (touch) |
+
+> P0 = Critical, P1 = High Impact, P2 = Polish. See ai-components.md and findings.md for detailed specs.
+
+---
+
 ## Licensing & Pricing
 
-| Aspect            | Azure Standard                       | Azure Team                                    | PWA (Free)                                                |
-| ----------------- | ------------------------------------ | --------------------------------------------- | --------------------------------------------------------- |
-| **Distribution**  | Azure Marketplace                    | Azure Marketplace                             | Direct URL                                                |
-| **Pricing**       | €99/month                            | €299/month                                    | FREE (forever)                                            |
-| **Billing**       | Monthly (Managed Application)        | Monthly (Managed Application)                 | N/A                                                       |
-| **Users**         | Unlimited (per-deployment)           | Unlimited (per-deployment)                    | N/A                                                       |
-| **Features**      | All analysis features                | All analysis + Teams + cloud storage + mobile | Core analysis + Green Belt (no Performance Mode, no save) |
-| **Auth**          | EasyAuth / Entra (User.Read)         | EasyAuth + Teams SSO (+ Files, Channels)      | None                                                      |
-| **Storage**       | Local files (File System Access API) | + OneDrive + SharePoint channels              | Session-only                                              |
-| **Admin consent** | None                                 | Required (one-time)                           | N/A                                                       |
+| Aspect            | Azure Standard                       | Azure Team                                    | Azure Team AI                                            | PWA (Free)                                                |
+| ----------------- | ------------------------------------ | --------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------- |
+| **Distribution**  | Azure Marketplace                    | Azure Marketplace                             | Azure Marketplace                                        | Direct URL                                                |
+| **Pricing**       | €99/month                            | €199/month                                    | €279/month                                               | FREE (forever)                                            |
+| **Billing**       | Monthly (Managed Application)        | Monthly (Managed Application)                 | Monthly (Managed Application)                            | N/A                                                       |
+| **Users**         | Unlimited (per-deployment)           | Unlimited (per-deployment)                    | Unlimited (per-deployment)                               | N/A                                                       |
+| **Features**      | All analysis features                | All analysis + Teams + cloud storage + mobile | All Team features + AI Knowledge Base + enhanced CoScout | Core analysis + Green Belt (no Performance Mode, no save) |
+| **Auth**          | EasyAuth / Entra (User.Read)         | EasyAuth + Teams SSO (+ Files, Channels)      | EasyAuth + Teams SSO (+ Files, Channels)                 | None                                                      |
+| **Storage**       | Local files (File System Access API) | + OneDrive + SharePoint channels              | + OneDrive + SharePoint channels + AI Search index       | Session-only                                              |
+| **Admin consent** | None                                 | Required (one-time)                           | Required (one-time)                                      | N/A                                                       |
 
 ---
 
@@ -197,6 +245,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - ARM template deployment (Managed Application)
 - Add data during analysis (paste/upload append with row/column auto-detection)
 - Presentation mode (full-screen chart overview with focused navigation)
+- Closed-loop investigations: 5-status model (observed → resolved), suspected cause, corrective actions with due dates, outcome assessment with Cpk before/after
 
 ### Azure Team Only (vs Standard)
 
@@ -206,9 +255,17 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - Teams SSO (On-Behalf-Of token exchange)
 - Phone-responsive carousel for gemba investigations (responsive layout within Editor)
 - Photo evidence capture in findings (camera + channel storage)
-- Adaptive Cards sharing (Planned)
+- Adaptive Cards for status updates (analyzed/resolved findings)
 - Teams mobile access
 - Sync notifications (toast feedback for cloud operations)
+- Team assignment on corrective actions (people picker for team members)
+- Teams auto-posting on finding analyzed + resolved status changes
+
+### Azure Team AI Only (vs Team)
+
+- AI Knowledge Base via Azure AI Search (organizational findings index)
+- AI-enhanced CoScout with methodology-grounded assistant
+- Organizational learning from resolved findings
 
 ### PWA Only
 
@@ -218,11 +275,14 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ---
 
-## Planned Features (Roadmap)
+## Delivered Features (Recently Shipped)
 
-| Feature        | Target Platform | Status  |
-| -------------- | --------------- | ------- |
-| Adaptive Cards | Azure Team      | Planned |
+| Feature                              | Target Platform       | Status                          |
+| ------------------------------------ | --------------------- | ------------------------------- |
+| AI Integration (Phases 1–3)          | Azure Standard + Team | Delivered (March 2026)          |
+| AI Knowledge Base (Phase 3)          | Azure Team AI         | Delivered (March 2026, preview) |
+| Closed-loop investigations           | Azure Standard + Team | Delivered (ADR-015)             |
+| Findings Export (CSV/JSON/AI Report) | Azure Standard+       | Delivered (March 2026)          |
 
 ---
 
@@ -232,4 +292,7 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 - [Azure App](azure/index.md)
 - [PWA (Free Training Tool)](pwa/index.md)
 - [ADR-007: Distribution Strategy](../07-decisions/adr-007-azure-marketplace-distribution.md)
+- [ADR-015: Investigation Board](../07-decisions/adr-015-investigation-board.md)
 - [ADR-016: Teams Integration](../07-decisions/adr-016-teams-integration.md)
+- [ADR-019: AI Integration](../07-decisions/adr-019-ai-integration.md)
+- [AI Components](../06-design-system/components/ai-components.md)

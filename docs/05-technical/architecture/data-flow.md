@@ -1,5 +1,9 @@
 ---
-title: 'Data Flow Architecture'
+title: Data Flow Architecture
+audience: [developer]
+category: architecture
+status: stable
+related: [context-api, filter-stack, stats-pipeline]
 ---
 
 # Data Flow Architecture
@@ -290,6 +294,46 @@ flowchart TD
 
 ---
 
+## AI Context Layer (Azure App, Optional)
+
+When AI features are enabled, a context assembly layer sits between the analysis engine and the AI service:
+
+```mermaid
+flowchart LR
+    subgraph Analysis["Analysis Engine"]
+        S[Statistics]
+        A[ANOVA]
+        F[Findings]
+    end
+
+    subgraph Context["AI Context Assembly"]
+        BC[buildAIContext]
+        PC[ProcessContext]
+        GL[Glossary]
+    end
+
+    subgraph AI["AI Service (Azure)"]
+        NB[NarrativeBar]
+        CC[ChartChips]
+        CP[CoScoutPanel]
+    end
+
+    S --> BC
+    A --> BC
+    F --> BC
+    PC --> BC
+    GL --> BC
+    BC --> NB
+    BC --> CC
+    BC --> CP
+```
+
+`buildAIContext()` is a pure function in `@variscout/core` — no React dependency. It assembles computed stats, process context, glossary terms, and findings into a structured payload (typically <500 tokens). AI never receives raw measurement data.
+
+See [AI Architecture](ai-architecture.md) for the full context collection design.
+
+---
+
 ## Data Export
 
 ### Export Formats
@@ -311,10 +355,9 @@ flowchart LR
 
 ## See Also
 
-- [Data Pipeline Map](data-pipeline-map.md) — End-to-end pipeline with TypeScript interfaces at every boundary
-- [System Map](system-map.md) — Package topology and external integrations
-- [Component Patterns](component-patterns.md) — Hook integration details
-- [Offline-First](offline-first.md) — Persistence strategy
-- [Shared Packages](shared-packages.md) — Package responsibilities
-- [PWA Storage](../../08-products/pwa/storage.md) — IndexedDB details
-- [OneDrive Sync](../../08-products/azure/onedrive-sync.md) — Cloud sync details
+- [Component Patterns](component-patterns.md) - Hook integration details
+- [Offline-First](offline-first.md) - Persistence strategy
+- [Shared Packages](shared-packages.md) - Package responsibilities
+- [PWA Session Model](../../08-products/pwa/index.md#session-model) - PWA has no persistence
+- [OneDrive Sync](../../08-products/azure/onedrive-sync.md) - Cloud sync details
+- [ADR-023: Verification Experience & Data Lifecycle](../../07-decisions/adr-023-data-lifecycle.md) - Data entry paths, append architecture, staged verification

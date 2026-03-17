@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ColumnMapping } from '../index';
-import type { ColumnAnalysis } from '@variscout/core';
+import type { ColumnAnalysis, InvestigationCategory } from '@variscout/core';
 
 // --- Helpers ---
 
@@ -62,6 +62,22 @@ function clickFactor(name: string) {
   fireEvent.click(card.closest('[role="button"]')!);
 }
 
+/** Assert the 4th arg of onConfirm is categories with expected shape */
+function expectCategories(
+  onConfirm: ReturnType<typeof vi.fn>,
+  expected: Array<{ name: string; factorNames: string[] }>
+) {
+  const categories = onConfirm.mock.calls[0][3] as InvestigationCategory[];
+  expect(categories).toBeDefined();
+  expect(categories.length).toBe(expected.length);
+  for (let i = 0; i < expected.length; i++) {
+    expect(categories[i].name).toBe(expected[i].name);
+    expect(categories[i].factorNames).toEqual(expected[i].factorNames);
+    expect(categories[i].id).toBeTruthy();
+    expect(categories[i].color).toBeTruthy();
+  }
+}
+
 describe('ColumnMapping', () => {
   describe('backwards compatibility (availableColumns)', () => {
     it('renders all columns in both sections with stub analysis', () => {
@@ -79,7 +95,7 @@ describe('ColumnMapping', () => {
       expect(screen.getByText(/Choose up to 3/)).toBeTruthy();
     });
 
-    it('passes specs to onConfirm when values are entered', () => {
+    it('passes categories to onConfirm when values are entered', () => {
       const onConfirm = vi.fn();
       render(<ColumnMapping {...legacyProps} onConfirm={onConfirm} />);
 
@@ -89,7 +105,14 @@ describe('ColumnMapping', () => {
       fireEvent.change(screen.getByLabelText('USL specification'), { target: { value: '12' } });
       fireEvent.click(screen.getByText('Start Analysis'));
 
-      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], { target: 10, lsl: 8, usl: 12 });
+      expect(onConfirm).toHaveBeenCalledWith(
+        'Value',
+        ['Machine'],
+        { target: 10, lsl: 8, usl: 12 },
+        expect.any(Array),
+        undefined
+      );
+      expectCategories(onConfirm, [{ name: 'Equipment', factorNames: ['Machine'] }]);
     });
   });
 
@@ -233,7 +256,7 @@ describe('ColumnMapping', () => {
       expect(screen.getByLabelText('USL specification')).toBeTruthy();
     });
 
-    it('passes specs to onConfirm when values are entered', () => {
+    it('passes categories to onConfirm when specs are entered', () => {
       const onConfirm = vi.fn();
       render(<ColumnMapping {...richProps} onConfirm={onConfirm} />);
 
@@ -243,16 +266,30 @@ describe('ColumnMapping', () => {
       fireEvent.change(screen.getByLabelText('USL specification'), { target: { value: '12' } });
       fireEvent.click(screen.getByText('Start Analysis'));
 
-      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], { target: 10, lsl: 8, usl: 12 });
+      expect(onConfirm).toHaveBeenCalledWith(
+        'Value',
+        ['Machine'],
+        { target: 10, lsl: 8, usl: 12 },
+        expect.any(Array),
+        undefined
+      );
+      expectCategories(onConfirm, [{ name: 'Equipment', factorNames: ['Machine'] }]);
     });
 
-    it('passes undefined specs when no values entered', () => {
+    it('passes categories when no specs entered', () => {
       const onConfirm = vi.fn();
       render(<ColumnMapping {...richProps} onConfirm={onConfirm} />);
 
       fireEvent.click(screen.getByText('Start Analysis'));
 
-      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], undefined);
+      expect(onConfirm).toHaveBeenCalledWith(
+        'Value',
+        ['Machine'],
+        undefined,
+        expect.any(Array),
+        undefined
+      );
+      expectCategories(onConfirm, [{ name: 'Equipment', factorNames: ['Machine'] }]);
     });
 
     it('passes partial specs when only some values entered', () => {
@@ -265,7 +302,99 @@ describe('ColumnMapping', () => {
       });
       fireEvent.click(screen.getByText('Start Analysis'));
 
-      expect(onConfirm).toHaveBeenCalledWith('Value', ['Machine'], { target: 10.5 });
+      expect(onConfirm).toHaveBeenCalledWith(
+        'Value',
+        ['Machine'],
+        { target: 10.5 },
+        expect.any(Array),
+        undefined
+      );
+      expectCategories(onConfirm, [{ name: 'Equipment', factorNames: ['Machine'] }]);
+    });
+  });
+
+  describe('investigation categories', () => {
+    it('renders CategoryBadge with dynamic category name', () => {
+      render(<ColumnMapping {...richProps} />);
+
+      // Machine should infer "Equipment" category
+      const badge = screen.getByTestId('category-badge');
+      expect(badge.textContent).toContain('Equipment');
+    });
+
+    it('groups multiple factors under same inferred category', () => {
+      const onConfirm = vi.fn();
+      // Machine and Line both match "equipment" keywords
+      render(
+        <ColumnMapping {...richProps} initialFactors={['Machine', 'Line']} onConfirm={onConfirm} />
+      );
+
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      // Both should be grouped under "Equipment" category
+      expectCategories(onConfirm, [{ name: 'Equipment', factorNames: ['Machine', 'Line'] }]);
+    });
+
+    it('creates separate categories for different inferred roles', () => {
+      const onConfirm = vi.fn();
+      // Machine → Equipment, Shift → Temporal, Operator → People
+      render(
+        <ColumnMapping
+          {...richProps}
+          initialFactors={['Machine', 'Shift', 'Operator']}
+          onConfirm={onConfirm}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      const categories = onConfirm.mock.calls[0][3] as InvestigationCategory[];
+      expect(categories.length).toBe(3);
+      const names = categories.map(c => c.name).sort();
+      expect(names).toEqual(['Equipment', 'People', 'Temporal']);
+    });
+
+    it('preserves initialCategories when passed', () => {
+      const onConfirm = vi.fn();
+      const existingCategories: InvestigationCategory[] = [
+        { id: 'cat-1', name: 'Machinery', factorNames: ['Machine'], color: '#ff0000' },
+      ];
+      render(
+        <ColumnMapping
+          {...richProps}
+          initialCategories={existingCategories}
+          onConfirm={onConfirm}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      const categories = onConfirm.mock.calls[0][3] as InvestigationCategory[];
+      expect(categories.length).toBe(1);
+      expect(categories[0].name).toBe('Machinery');
+      expect(categories[0].id).toBe('cat-1'); // preserved
+      expect(categories[0].color).toBe('#ff0000'); // preserved
+    });
+
+    it('passes undefined categories when no factors have inferred categories', () => {
+      const onConfirm = vi.fn();
+      // "Product" doesn't match any keyword group
+      render(<ColumnMapping {...richProps} initialFactors={['Product']} onConfirm={onConfirm} />);
+
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      expect(onConfirm.mock.calls[0][3]).toBeUndefined();
+    });
+
+    it('dismisses category badge on X click', () => {
+      render(<ColumnMapping {...richProps} />);
+
+      expect(screen.getByTestId('category-badge')).toBeTruthy();
+
+      // Dismiss the badge
+      fireEvent.click(screen.getByLabelText('Dismiss Equipment category'));
+
+      expect(screen.queryByTestId('category-badge')).toBeNull();
     });
   });
 
@@ -294,6 +423,73 @@ describe('ColumnMapping', () => {
 
       expect(screen.getAllByText('Equipment').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('(Machine)').length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('analysis brief', () => {
+    it('shows problem statement field in non-brief mode (PWA)', () => {
+      render(<ColumnMapping {...richProps} />);
+
+      expect(screen.getByTestId('problem-statement-simple')).toBeTruthy();
+      expect(screen.getByPlaceholderText(/What are you investigating/)).toBeTruthy();
+    });
+
+    it('shows full brief section when showBrief=true', () => {
+      render(<ColumnMapping {...richProps} showBrief={true} />);
+
+      expect(screen.getByTestId('analysis-brief')).toBeTruthy();
+      expect(screen.queryByTestId('problem-statement-simple')).toBeNull();
+    });
+
+    it('expands brief and shows hypothesis/target fields', () => {
+      render(<ColumnMapping {...richProps} showBrief={true} />);
+
+      fireEvent.click(screen.getByTestId('brief-toggle'));
+
+      expect(screen.getByTestId('brief-fields')).toBeTruthy();
+      expect(screen.getByTestId('brief-problem-statement')).toBeTruthy();
+      expect(screen.getByTestId('brief-add-hypothesis')).toBeTruthy();
+      expect(screen.getByTestId('brief-target-metric')).toBeTruthy();
+    });
+
+    it('passes brief data through onConfirm', () => {
+      const onConfirm = vi.fn();
+      render(<ColumnMapping {...richProps} showBrief={true} onConfirm={onConfirm} />);
+
+      fireEvent.click(screen.getByTestId('brief-toggle'));
+      fireEvent.change(screen.getByTestId('brief-problem-statement'), {
+        target: { value: 'Cpk is below target' },
+      });
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      const brief = onConfirm.mock.calls[0][4];
+      expect(brief).toBeDefined();
+      expect(brief.problemStatement).toBe('Cpk is below target');
+    });
+
+    it('passes undefined brief when no fields filled', () => {
+      const onConfirm = vi.fn();
+      render(<ColumnMapping {...richProps} showBrief={true} onConfirm={onConfirm} />);
+
+      fireEvent.click(screen.getByText('Start Analysis'));
+
+      const brief = onConfirm.mock.calls[0][4];
+      expect(brief).toBeUndefined();
+    });
+
+    it('pre-fills problem statement from initialProblemStatement', () => {
+      render(
+        <ColumnMapping
+          {...richProps}
+          showBrief={true}
+          initialProblemStatement="Customer complaints up"
+        />
+      );
+
+      // Brief should auto-expand when initial problem statement provided
+      expect(screen.getByTestId('brief-fields')).toBeTruthy();
+      const textarea = screen.getByTestId('brief-problem-statement') as HTMLTextAreaElement;
+      expect(textarea.value).toBe('Customer complaints up');
     });
   });
 

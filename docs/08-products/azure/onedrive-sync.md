@@ -6,7 +6,7 @@ title: 'OneDrive & SharePoint Sync'
 
 Analysis synchronization with Microsoft OneDrive and SharePoint.
 
-> **Team plan only.** OneDrive and SharePoint sync requires the Azure Team plan (€299/month). The Azure Standard plan (€99/month) uses local files via File System Access API — no cloud sync.
+> **Team plan only.** OneDrive and SharePoint sync requires the Azure Team plan (€199/month) or Team AI plan (€279/month). The Azure Standard plan (€99/month) uses local files via File System Access API — no cloud sync.
 
 ---
 

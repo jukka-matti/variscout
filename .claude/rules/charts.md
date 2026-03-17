@@ -118,7 +118,6 @@ Performance charts analyze multiple measurement channels (fill heads, cavities, 
 **Cross-app usage:**
 
 - PWA/Azure: Use responsive wrapper (auto-sizing)
-- Excel: Use Base variant (explicit sizing with darkTheme tokens)
 
 ## Violin Mode
 

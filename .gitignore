@@ -122,6 +122,9 @@ dist
 *.swp
 *.swo
 
+# Git worktrees
+.worktrees/
+
 # AI/LLM
 .gemini_brain
 .claude/
@@ -131,6 +134,7 @@ dist
 .mcp.json
 .venv/
 agents/
+.superpowers/brainstorm/
 
 # Playwright
 playwright-report/

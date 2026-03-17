@@ -81,6 +81,51 @@ describe('HelpTooltip', () => {
     expect(screen.queryByText('Learn more →')).toBeNull();
   });
 
+  it('toggles tooltip on click (touch support)', () => {
+    const { container } = render(<HelpTooltip term={mockTerm} />);
+    const wrapper = screen.getByRole('button');
+
+    // Click to show
+    fireEvent.click(wrapper);
+    expect(screen.getByRole('tooltip').className).toContain('help-tooltip--visible');
+
+    // Click again to hide
+    fireEvent.click(wrapper);
+    const tooltip = container.querySelector('[role="tooltip"]');
+    expect(tooltip!.className).not.toContain('help-tooltip--visible');
+  });
+
+  it('dismisses on click outside when touch-toggled', () => {
+    const { container } = render(
+      <div>
+        <HelpTooltip term={mockTerm} />
+        <button data-testid="outside">Outside</button>
+      </div>
+    );
+    const wrapper = screen.getByRole('button', { name: /Help: Cpk/ });
+
+    // Click to show
+    fireEvent.click(wrapper);
+    expect(screen.getByRole('tooltip').className).toContain('help-tooltip--visible');
+
+    // Click outside to dismiss
+    fireEvent.click(screen.getByTestId('outside'));
+    const tooltip = container.querySelector('[role="tooltip"]');
+    expect(tooltip!.className).not.toContain('help-tooltip--visible');
+  });
+
+  it('dismisses touch-toggled tooltip on Escape', () => {
+    const { container } = render(<HelpTooltip term={mockTerm} />);
+    const wrapper = screen.getByRole('button');
+
+    fireEvent.click(wrapper);
+    expect(screen.getByRole('tooltip').className).toContain('help-tooltip--visible');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    const tooltip = container.querySelector('[role="tooltip"]');
+    expect(tooltip!.className).not.toContain('help-tooltip--visible');
+  });
+
   it('has correct ARIA attributes', () => {
     render(<HelpTooltip term={mockTerm} termId="cpk" />);
     const wrapper = screen.getByRole('button');

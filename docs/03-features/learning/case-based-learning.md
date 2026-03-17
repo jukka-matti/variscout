@@ -1,5 +1,9 @@
 ---
-title: 'Case-Based Learning'
+title: Case-Based Learning
+audience: [analyst]
+category: learning
+status: stable
+related: [case-studies, teaching, three-act-structure]
 ---
 
 # Case-Based Learning

@@ -17,6 +17,12 @@ vi.mock('../../FindingsLog', () => ({
   copyFindingsToClipboard: vi.fn(() => Promise.resolve(true)),
 }));
 
+vi.mock('../../CoScoutInline', () => ({
+  CoScoutInline: (props: Record<string, unknown>) => (
+    <div data-testid="coscout-inline" data-expanded={String(props.isExpanded)} />
+  ),
+}));
+
 vi.mock('lucide-react', () => ({
   GripVertical: ({ size }: { size?: number }) => <span data-testid="grip" data-size={size} />,
   X: ({ size }: { size?: number }) => <span data-testid="icon-x" data-size={size} />,
@@ -27,6 +33,7 @@ vi.mock('lucide-react', () => ({
   ),
   List: ({ size }: { size?: number }) => <span data-testid="icon-list" data-size={size} />,
   LayoutGrid: ({ size }: { size?: number }) => <span data-testid="icon-grid" data-size={size} />,
+  GitBranch: ({ size }: { size?: number }) => <span data-testid="icon-branch" data-size={size} />,
 }));
 
 import { FindingsPanelBase, type FindingsPanelBaseProps } from '../FindingsPanelBase';
@@ -244,5 +251,29 @@ describe('FindingsPanelBase', () => {
 
     // FindingsLog renders with the findings count
     expect(screen.getByTestId('findings-log').getAttribute('data-count')).toBe('1');
+  });
+
+  describe('CoScout inline', () => {
+    it('renders CoScoutInline when coScoutMessages and coScoutOnSend are provided', () => {
+      render(
+        <FindingsPanelBase
+          {...defaultProps}
+          coScoutMessages={[]}
+          coScoutOnSend={vi.fn()}
+          coScoutIsLoading={false}
+        />
+      );
+      expect(screen.getByTestId('coscout-inline')).toBeTruthy();
+    });
+
+    it('does not render CoScoutInline when coScoutMessages is absent (PWA)', () => {
+      render(<FindingsPanelBase {...defaultProps} />);
+      expect(screen.queryByTestId('coscout-inline')).toBeNull();
+    });
+
+    it('does not render CoScoutInline when coScoutOnSend is absent', () => {
+      render(<FindingsPanelBase {...defaultProps} coScoutMessages={[]} />);
+      expect(screen.queryByTestId('coscout-inline')).toBeNull();
+    });
   });
 });

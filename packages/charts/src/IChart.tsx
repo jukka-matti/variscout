@@ -20,6 +20,8 @@ import { getDataPointA11yProps, getInteractiveA11yProps } from './utils/accessib
 import { computeIChartYDomain } from './ichart/computeYDomain';
 import { useNelsonViolations } from './ichart/useNelsonViolations';
 import NelsonSequenceOverlay from './ichart/NelsonSequenceOverlay';
+import ViolationPoint from './ichart/ViolationShapes';
+import type { ViolationShape } from './ichart/ViolationShapes';
 
 /**
  * I-Chart (Individual Control Chart) - Props-based version
@@ -135,8 +137,13 @@ const IChartBase: React.FC<IChartProps> = ({
     return stagedStats?.stages.get(stage) ?? null;
   };
 
-  // Compute Nelson Rule 2 violations (9+ consecutive points on same side of mean)
-  const { nelsonRule2Violations, nelsonRule2Sequences } = useNelsonViolations({
+  // Compute Nelson Rule 2 & 3 violations
+  const {
+    nelsonRule2Violations,
+    nelsonRule2Sequences,
+    nelsonRule3Violations,
+    nelsonRule3Sequences,
+  } = useNelsonViolations({
     data,
     stats,
     isStaged,
@@ -190,6 +197,18 @@ const IChartBase: React.FC<IChartProps> = ({
       return 'Special Cause: Nelson Rule 2 (9 consecutive points on same side of mean)';
     }
 
+    // Priority 4: Check Nelson Rule 3 violations
+    if (nelsonRule3Violations.has(index)) {
+      const sequence = nelsonRule3Sequences.find(
+        seq => index >= seq.startIndex && index <= seq.endIndex
+      );
+      if (sequence) {
+        const count = sequence.endIndex - sequence.startIndex + 1;
+        return `Special Cause: Nelson Rule 3 (Points #${sequence.startIndex + 1}-${sequence.endIndex + 1}, ${count} consecutive ${sequence.direction})`;
+      }
+      return 'Special Cause: Nelson Rule 3 (6+ consecutive increasing or decreasing)';
+    }
+
     return null; // In-control
   };
 
@@ -217,8 +236,38 @@ const IChartBase: React.FC<IChartProps> = ({
     // Priority 3: Check Nelson Rule 2 violations -> Red (pattern always worth investigating)
     if (nelsonRule2Violations.has(index)) return chartColors.fail;
 
-    // Priority 4: In-control default -> Blue (healthy process)
+    // Priority 4: Check Nelson Rule 3 violations -> Red (trend worth investigating)
+    if (nelsonRule3Violations.has(index)) return chartColors.fail;
+
+    // Priority 5: In-control default -> Blue (healthy process)
     return chartColors.mean;
+  };
+
+  // Determine point shape using violation priority (mirrors getPointColor)
+  const getPointShape = (value: number, index: number, stage?: string): ViolationShape => {
+    // Priority 1: Spec violation → diamond
+    if (specs.usl !== undefined && value > specs.usl) return 'diamond';
+    if (specs.lsl !== undefined && value < specs.lsl) return 'diamond';
+
+    // Priority 2: Control limit violation → diamond
+    const stageStats = getStageStatsForPoint(stage);
+    if (stageStats) {
+      if (value > stageStats.ucl || value < stageStats.lcl) return 'diamond';
+    }
+
+    // Priority 3: Nelson Rule 2 → square
+    if (nelsonRule2Violations.has(index)) return 'square';
+
+    // Priority 4: Nelson Rule 3 → directional triangle
+    if (nelsonRule3Violations.has(index)) {
+      const sequence = nelsonRule3Sequences.find(
+        seq => index >= seq.startIndex && index <= seq.endIndex
+      );
+      return sequence?.direction === 'decreasing' ? 'triangle-down' : 'triangle-up';
+    }
+
+    // Priority 5: In-control → circle
+    return 'circle';
   };
 
   if (data.length === 0) return null;
@@ -473,10 +522,11 @@ const IChartBase: React.FC<IChartProps> = ({
             </>
           )}
 
-          {/* Nelson Rule 2 sequence highlighting */}
+          {/* Nelson Rule 2 & 3 sequence highlighting */}
           <NelsonSequenceOverlay
             data={data}
-            sequences={nelsonRule2Sequences}
+            rule2Sequences={nelsonRule2Sequences}
+            rule3Sequences={nelsonRule3Sequences}
             xScale={xScale}
             yScale={yScale}
           />
@@ -541,10 +591,11 @@ const IChartBase: React.FC<IChartProps> = ({
                     className="animate-pulse"
                   />
                 )}
-                <Circle
+                <ViolationPoint
                   cx={xScale(d.x)}
                   cy={yScale(d.y)}
                   r={pointSize}
+                  shape={getPointShape(d.y, i, d.stage)}
                   fill={getPointColor(d.y, i, d.stage)}
                   stroke={
                     isSelected ? '#ffffff' : isHighlighted ? chartColors.mean : chrome.pointStroke

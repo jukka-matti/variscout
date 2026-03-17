@@ -8,13 +8,17 @@
 
 export type DeepLinkChart = 'ichart' | 'boxplot' | 'pareto' | 'stats';
 
+export type DeepLinkMode = 'dashboard' | 'report';
+
 export interface DeepLinkParams {
   project: string | null;
   findingId: string | null;
   chart: DeepLinkChart | null;
+  mode: DeepLinkMode | null;
 }
 
 const VALID_CHARTS = new Set<string>(['ichart', 'boxplot', 'pareto', 'stats']);
+const VALID_MODES = new Set<string>(['dashboard', 'report']);
 
 /** Parse deep link params from a URL search string (e.g. "?project=foo&finding=abc") */
 export function parseDeepLink(search: string): DeepLinkParams {
@@ -23,8 +27,10 @@ export function parseDeepLink(search: string): DeepLinkParams {
   const findingId = params.get('finding');
   const chartRaw = params.get('chart');
   const chart = chartRaw && VALID_CHARTS.has(chartRaw) ? (chartRaw as DeepLinkChart) : null;
+  const modeRaw = params.get('mode');
+  const mode = modeRaw && VALID_MODES.has(modeRaw) ? (modeRaw as DeepLinkMode) : null;
 
-  return { project, findingId, chart };
+  return { project, findingId, chart, mode };
 }
 
 /** Build a deep link URL for a finding */
@@ -43,15 +49,24 @@ export function buildChartLink(baseUrl: string, project: string, chart: string):
   return url.toString();
 }
 
+/** Build a deep link URL that opens directly into Report View */
+export function buildReportLink(baseUrl: string, project: string): string {
+  const url = new URL(baseUrl);
+  url.searchParams.set('project', project);
+  url.searchParams.set('mode', 'report');
+  return url.toString();
+}
+
 /** Build a Teams subPageId string (reuses query param format) */
 export function buildSubPageId(
   project: string,
-  target: { findingId?: string; chart?: string }
+  target: { findingId?: string; chart?: string; mode?: DeepLinkMode }
 ): string {
   const params = new URLSearchParams();
   params.set('project', project);
   if (target.findingId) params.set('finding', target.findingId);
   if (target.chart) params.set('chart', target.chart);
+  if (target.mode) params.set('mode', target.mode);
   return params.toString();
 }
 

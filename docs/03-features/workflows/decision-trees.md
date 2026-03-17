@@ -1,5 +1,9 @@
 ---
-title: 'Decision Trees'
+title: Decision Trees
+audience: [analyst]
+category: workflow
+status: stable
+related: [chart-selection, workflow-guidance]
 ---
 
 # Decision Trees

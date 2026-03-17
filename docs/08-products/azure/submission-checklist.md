@@ -7,7 +7,7 @@ title: 'Azure Marketplace Submission Checklist'
 Living tracker for Azure Marketplace Managed Application submission. Single source of truth for what's done, what's pending, and what's blocking.
 
 **Target offer type:** Azure Application → Managed Application
-**Pricing:** Two plans: Standard €99/month, Team €299/month
+**Pricing:** Three plans: Standard €99/month, Team €199/month, Team AI €279/month
 
 ---
 

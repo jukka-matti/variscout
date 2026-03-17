@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useDashboardComputedData } from '../useDashboardComputedData';
+import type { DataRow } from '@variscout/core';
 
 const RAW_DATA = [
   { Machine: 'A', Shift: 'Day', Weight: 10 },
@@ -15,7 +16,7 @@ const RAW_DATA = [
   { Machine: 'B', Shift: 'Night', Weight: 60 },
 ];
 
-const EMPTY_DATA: Record<string, unknown>[] = [];
+const EMPTY_DATA: DataRow[] = [];
 
 describe('useDashboardComputedData', () => {
   describe('availableOutcomes', () => {

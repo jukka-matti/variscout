@@ -2,3 +2,9 @@ export { default as FocusedViewOverlay, type FocusedViewOverlayProps } from './F
 export { default as FocusedChartCard, type FocusedChartCardProps } from './FocusedChartCard';
 export { default as DashboardChartCard, type DashboardChartCardProps } from './DashboardChartCard';
 export { default as DashboardGrid, type DashboardGridProps } from './DashboardGrid';
+export {
+  default as DashboardLayoutBase,
+  type DashboardLayoutBaseProps,
+  type DashboardAnnotations,
+  type DashboardChartFindings,
+} from './DashboardLayoutBase';

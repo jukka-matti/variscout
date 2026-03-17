@@ -38,115 +38,113 @@ The summary strip at the end shows **total actions** and **approximate time**.
 
 _"Is my process stable?"_
 
-### PWA
+=== "PWA"
 
-<div class="process-map">
-  <div class="process-step">
-    <div class="process-step__box process-step__box--input">
-      <div class="process-step__title">Paste Data</div>
-      <div class="process-step__detail">Click "Paste from Excel", Ctrl+V</div>
+    <div class="process-map">
+      <div class="process-step">
+        <div class="process-step__box process-step__box--input">
+          <div class="process-step__title">Paste Data</div>
+          <div class="process-step__detail">Click "Paste from Excel", Ctrl+V</div>
+        </div>
+        <div class="process-step__clicks">2 actions</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Analyze</div>
+          <div class="process-step__detail">Click "Analyze Data"</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Map Columns</div>
+          <div class="process-step__detail">Outcome + factor + "Start"</div>
+        </div>
+        <div class="process-step__clicks">3 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Read I-Chart</div>
+          <div class="process-step__detail">Red dots = unstable</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Check Stats</div>
+          <div class="process-step__detail">Mean, sigma, UCL, LCL</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-summary">
+        <div class="process-summary__total">6 actions</div>
+        <div class="process-summary__time">~2 min</div>
+      </div>
     </div>
-    <div class="process-step__clicks">2 actions</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Analyze</div>
-      <div class="process-step__detail">Click "Analyze Data"</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Map Columns</div>
-      <div class="process-step__detail">Outcome + factor + "Start"</div>
-    </div>
-    <div class="process-step__clicks">3 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read I-Chart</div>
-      <div class="process-step__detail">Red dots = unstable</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Check Stats</div>
-      <div class="process-step__detail">Mean, sigma, UCL, LCL</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-summary">
-    <div class="process-summary__total">6 actions</div>
-    <div class="process-summary__time">~2 min</div>
-  </div>
-</div>
 
-**Decision:** All blue dots → stable. Any red dots → investigate with [Root Cause Analysis](#flow-2-root-cause-analysis).
+    **Decision:** All blue dots → stable. Any red dots → investigate with [Root Cause Analysis](#flow-2-root-cause-analysis).
 
-### PWA
+=== "Azure"
 
-### Azure
+    <div class="process-map">
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">New Analysis</div>
+          <div class="process-step__detail">Click in project list</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--input">
+          <div class="process-step__title">Paste or Upload</div>
+          <div class="process-step__detail">Ctrl+V or select file</div>
+        </div>
+        <div class="process-step__clicks">2 actions</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Analyze</div>
+          <div class="process-step__detail">Auto-detects columns</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Read I-Chart</div>
+          <div class="process-step__detail">Red dots = unstable</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Check Stats</div>
+          <div class="process-step__detail">Mean, sigma, UCL, LCL</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Save</div>
+          <div class="process-step__detail">Persists to OneDrive</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-summary">
+        <div class="process-summary__total">5 actions</div>
+        <div class="process-summary__time">~2 min</div>
+      </div>
+    </div>
 
-<div class="process-map">
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">New Analysis</div>
-      <div class="process-step__detail">Click in project list</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--input">
-      <div class="process-step__title">Paste or Upload</div>
-      <div class="process-step__detail">Ctrl+V or select file</div>
-    </div>
-    <div class="process-step__clicks">2 actions</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Analyze</div>
-      <div class="process-step__detail">Auto-detects columns</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read I-Chart</div>
-      <div class="process-step__detail">Red dots = unstable</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Check Stats</div>
-      <div class="process-step__detail">Mean, sigma, UCL, LCL</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Save</div>
-      <div class="process-step__detail">Persists to OneDrive</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-summary">
-    <div class="process-summary__total">5 actions</div>
-    <div class="process-summary__time">~2 min</div>
-  </div>
-</div>
-
-Azure skips column mapping when auto-detection succeeds, saving 1 action. The Save step persists to OneDrive.
+    Azure skips column mapping when auto-detection succeeds, saving 1 action. The Save step persists to OneDrive.
 
 ---
 
@@ -154,131 +152,129 @@ Azure skips column mapping when auto-detection succeeds, saving 1 action. The Sa
 
 _"What's causing variation?"_
 
-### PWA
+=== "PWA"
 
-<div class="process-map">
-  <div class="process-step">
-    <div class="process-step__box process-step__box--input">
-      <div class="process-step__title">Paste Data</div>
-      <div class="process-step__detail">Click "Paste from Excel", Ctrl+V</div>
+    <div class="process-map">
+      <div class="process-step">
+        <div class="process-step__box process-step__box--input">
+          <div class="process-step__title">Paste Data</div>
+          <div class="process-step__detail">Click "Paste from Excel", Ctrl+V</div>
+        </div>
+        <div class="process-step__clicks">2 actions</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Analyze</div>
+          <div class="process-step__detail">Click "Analyze Data"</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Map Columns</div>
+          <div class="process-step__detail">Outcome + 2 factors + "Start"</div>
+        </div>
+        <div class="process-step__clicks">4 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Read ANOVA</div>
+          <div class="process-step__detail">Check eta-squared under Boxplot</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--analyze">
+          <div class="process-step__title">Filter Top Factor</div>
+          <div class="process-step__detail">Click highest-eta bar</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Read Filtered</div>
+          <div class="process-step__detail">Variation explained? Cpk improved?</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-summary">
+        <div class="process-summary__total">8 actions</div>
+        <div class="process-summary__time">~5 min</div>
+      </div>
     </div>
-    <div class="process-step__clicks">2 actions</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Analyze</div>
-      <div class="process-step__detail">Click "Analyze Data"</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Map Columns</div>
-      <div class="process-step__detail">Outcome + 2 factors + "Start"</div>
-    </div>
-    <div class="process-step__clicks">4 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read ANOVA</div>
-      <div class="process-step__detail">Check eta-squared under Boxplot</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--analyze">
-      <div class="process-step__title">Filter Top Factor</div>
-      <div class="process-step__detail">Click highest-eta bar</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read Filtered</div>
-      <div class="process-step__detail">Variation explained? Cpk improved?</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-summary">
-    <div class="process-summary__total">8 actions</div>
-    <div class="process-summary__time">~5 min</div>
-  </div>
-</div>
 
-**Decision:** eta-squared > 50% → primary driver found. Filter isolates the cause.
+    **Decision:** eta-squared > 50% → primary driver found. Filter isolates the cause.
 
-### PWA
+=== "Azure"
 
-### Azure
+    <div class="process-map">
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">New Analysis</div>
+          <div class="process-step__detail">Click in project list</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--input">
+          <div class="process-step__title">Upload File</div>
+          <div class="process-step__detail">Select CSV from dialog</div>
+        </div>
+        <div class="process-step__clicks">2 actions</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Analyze</div>
+          <div class="process-step__detail">Auto-detects columns</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Read ANOVA</div>
+          <div class="process-step__detail">Check eta-squared under Boxplot</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--analyze">
+          <div class="process-step__title">Filter Top Factor</div>
+          <div class="process-step__detail">Click Boxplot bar</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Read Filtered</div>
+          <div class="process-step__detail">Variation explained? Cpk improved?</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Save</div>
+          <div class="process-step__detail">Persists to OneDrive</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-summary">
+        <div class="process-summary__total">6 actions</div>
+        <div class="process-summary__time">~5 min</div>
+      </div>
+    </div>
 
-<div class="process-map">
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">New Analysis</div>
-      <div class="process-step__detail">Click in project list</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--input">
-      <div class="process-step__title">Upload File</div>
-      <div class="process-step__detail">Select CSV from dialog</div>
-    </div>
-    <div class="process-step__clicks">2 actions</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Analyze</div>
-      <div class="process-step__detail">Auto-detects columns</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read ANOVA</div>
-      <div class="process-step__detail">Check eta-squared under Boxplot</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--analyze">
-      <div class="process-step__title">Filter Top Factor</div>
-      <div class="process-step__detail">Click bar or mindmap node</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read Filtered</div>
-      <div class="process-step__detail">Variation explained? Cpk improved?</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Save</div>
-      <div class="process-step__detail">Persists to OneDrive</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-summary">
-    <div class="process-summary__total">6 actions</div>
-    <div class="process-summary__time">~5 min</div>
-  </div>
-</div>
-
-Azure's mindmap provides an alternative drill-down path alongside the Boxplot.
+    Azure provides drill-down through the Boxplot and filter chips.
 
 ---
 
@@ -286,147 +282,145 @@ Azure's mindmap provides an alternative drill-down path alongside the Boxplot.
 
 _"Do we meet specs?"_
 
-### PWA
+=== "PWA"
 
-<div class="process-map">
-  <div class="process-step">
-    <div class="process-step__box process-step__box--input">
-      <div class="process-step__title">Paste Data</div>
-      <div class="process-step__detail">Click "Paste from Excel", Ctrl+V</div>
+    <div class="process-map">
+      <div class="process-step">
+        <div class="process-step__box process-step__box--input">
+          <div class="process-step__title">Paste Data</div>
+          <div class="process-step__detail">Click "Paste from Excel", Ctrl+V</div>
+        </div>
+        <div class="process-step__clicks">2 actions</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Analyze</div>
+          <div class="process-step__detail">Click "Analyze Data"</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Map Columns</div>
+          <div class="process-step__detail">Outcome + factor + "Start"</div>
+        </div>
+        <div class="process-step__clicks">3 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Enter Specs</div>
+          <div class="process-step__detail">+ Specs, USL, LSL, Apply</div>
+        </div>
+        <div class="process-step__clicks">6 actions</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Read Cp/Cpk</div>
+          <div class="process-step__detail">Capability indices in stats panel</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">View Histogram</div>
+          <div class="process-step__detail">Click "Histogram" tab</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Read Distribution</div>
+          <div class="process-step__detail">Shape vs spec lines</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-summary">
+        <div class="process-summary__total">13 actions</div>
+        <div class="process-summary__time">~3 min</div>
+      </div>
     </div>
-    <div class="process-step__clicks">2 actions</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Analyze</div>
-      <div class="process-step__detail">Click "Analyze Data"</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Map Columns</div>
-      <div class="process-step__detail">Outcome + factor + "Start"</div>
-    </div>
-    <div class="process-step__clicks">3 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Enter Specs</div>
-      <div class="process-step__detail">+ Specs, USL, LSL, Apply</div>
-    </div>
-    <div class="process-step__clicks">6 actions</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read Cp/Cpk</div>
-      <div class="process-step__detail">Capability indices in stats panel</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">View Histogram</div>
-      <div class="process-step__detail">Click "Histogram" tab</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read Distribution</div>
-      <div class="process-step__detail">Shape vs spec lines</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-summary">
-    <div class="process-summary__total">13 actions</div>
-    <div class="process-summary__time">~3 min</div>
-  </div>
-</div>
 
-**Decision:** Cpk > 1.33 → capable. Cpk < 1.0 → improvement needed.
+    **Decision:** Cpk > 1.33 → capable. Cpk < 1.0 → improvement needed.
 
-### PWA
+=== "Azure"
 
-### Azure
+    <div class="process-map">
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">New Analysis</div>
+          <div class="process-step__detail">Click in project list</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--input">
+          <div class="process-step__title">Upload File</div>
+          <div class="process-step__detail">Select CSV from dialog</div>
+        </div>
+        <div class="process-step__clicks">2 actions</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Analyze</div>
+          <div class="process-step__detail">Auto-detects columns</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Enter Specs</div>
+          <div class="process-step__detail">+ Specs, USL, LSL, Apply</div>
+        </div>
+        <div class="process-step__clicks">6 actions</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Read Cp/Cpk</div>
+          <div class="process-step__detail">Capability indices in stats panel</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">View Histogram</div>
+          <div class="process-step__detail">Click "Histogram" tab</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--read">
+          <div class="process-step__title">Read Distribution</div>
+          <div class="process-step__detail">Shape vs spec lines</div>
+        </div>
+        <div class="process-step__clicks">0 clicks</div>
+      </div>
+      <div class="process-arrow"></div>
+      <div class="process-step">
+        <div class="process-step__box process-step__box--navigate">
+          <div class="process-step__title">Save</div>
+          <div class="process-step__detail">Persists to OneDrive</div>
+        </div>
+        <div class="process-step__clicks">1 click</div>
+      </div>
+      <div class="process-summary">
+        <div class="process-summary__total">12 actions</div>
+        <div class="process-summary__time">~3 min</div>
+      </div>
+    </div>
 
-<div class="process-map">
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">New Analysis</div>
-      <div class="process-step__detail">Click in project list</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--input">
-      <div class="process-step__title">Upload File</div>
-      <div class="process-step__detail">Select CSV from dialog</div>
-    </div>
-    <div class="process-step__clicks">2 actions</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Analyze</div>
-      <div class="process-step__detail">Auto-detects columns</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Enter Specs</div>
-      <div class="process-step__detail">+ Specs, USL, LSL, Apply</div>
-    </div>
-    <div class="process-step__clicks">6 actions</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read Cp/Cpk</div>
-      <div class="process-step__detail">Capability indices in stats panel</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">View Histogram</div>
-      <div class="process-step__detail">Click "Histogram" tab</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--read">
-      <div class="process-step__title">Read Distribution</div>
-      <div class="process-step__detail">Shape vs spec lines</div>
-    </div>
-    <div class="process-step__clicks">0 clicks</div>
-  </div>
-  <div class="process-arrow"></div>
-  <div class="process-step">
-    <div class="process-step__box process-step__box--navigate">
-      <div class="process-step__title">Save</div>
-      <div class="process-step__detail">Persists to OneDrive</div>
-    </div>
-    <div class="process-step__clicks">1 click</div>
-  </div>
-  <div class="process-summary">
-    <div class="process-summary__total">12 actions</div>
-    <div class="process-summary__time">~3 min</div>
-  </div>
-</div>
-
-Azure saves 1 action via auto-detection, but adds 1 for the Save step.
+    Azure saves 1 action via auto-detection, but adds 1 for the Save step.
 
 ---
 

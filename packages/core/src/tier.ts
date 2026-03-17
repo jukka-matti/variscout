@@ -258,8 +258,32 @@ export function getPlan(): MarketplacePlan {
 }
 
 /**
+ * Check if a plan has Team features (Teams, OneDrive, cloud collaboration).
+ * True for both 'team' and 'team-ai' plans.
+ *
+ * @param plan - The plan to check (uses current plan if not specified)
+ * @returns true if the plan includes Team features
+ */
+export function hasTeamFeatures(plan?: MarketplacePlan): boolean {
+  const p = plan ?? getPlan();
+  return p === 'team' || p === 'team-ai';
+}
+
+/**
+ * Check if a plan is the Team AI plan (AI + Knowledge Base).
+ *
+ * @param plan - The plan to check (uses current plan if not specified)
+ * @returns true if the plan is 'team-ai'
+ */
+export function isTeamAIPlan(plan?: MarketplacePlan): boolean {
+  const p = plan ?? getPlan();
+  return p === 'team-ai';
+}
+
+/**
  * Check if a plan is the Team plan
  *
+ * @deprecated Use hasTeamFeatures() instead — covers both 'team' and 'team-ai' plans
  * @param plan - The plan to check (uses current plan if not specified)
  * @returns true if the plan is 'team'
  */

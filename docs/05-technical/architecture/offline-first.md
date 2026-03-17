@@ -1,5 +1,9 @@
 ---
-title: 'Offline-First Architecture'
+title: Offline-First Architecture
+audience: [developer]
+category: architecture
+status: stable
+related: [service-worker, indexeddb, cache-api]
 ---
 
 # Offline-First Architecture
@@ -128,7 +132,7 @@ Both Azure plans store data locally in IndexedDB. The Team plan additionally syn
 └─────────────────────────────────────────────────────┘
 ```
 
-**Team plan (€299/month)** — IndexedDB + OneDrive sync:
+**Team plan (€199/month) / Team AI plan (€279/month)** — IndexedDB + OneDrive sync:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -177,4 +181,4 @@ Both Azure plans store data locally in IndexedDB. The Team plan additionally syn
 ## See Also
 
 - [ADR-004: Offline-First Decision](../../07-decisions/adr-004-offline-first.md)
-- [PWA Storage](../../08-products/pwa/storage.md)
+- [PWA Session Model](../../08-products/pwa/index.md#session-model)

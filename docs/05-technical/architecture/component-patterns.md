@@ -1,5 +1,9 @@
 ---
-title: 'Component Patterns'
+title: Component Patterns
+audience: [developer]
+category: architecture
+status: stable
+related: [hooks, context-injection, color-scheme]
 ---
 
 # Component Patterns
@@ -565,9 +569,52 @@ Attached directly to individual chart cards. These are chart-specific display op
 
 ---
 
+## AI Hook Layer
+
+**`useEditorAI` composes all AI hooks into a single orchestration point for the Azure Editor.**
+
+```mermaid
+flowchart TB
+    subgraph Orchestrator["useEditorAI"]
+        AC[useAIContext]
+        NR[useNarration]
+        CS[useAICoScout]
+        KS[useKnowledgeSearch]
+    end
+
+    DC[DataContext] --> AC
+    F[Findings] --> AC
+    H[Hypotheses] --> AC
+    PC[ProcessContext] --> AC
+
+    AC -->|context| NR
+    AC -->|context| CS
+    KS -->|KB results| CS
+
+    NR --> NB["NarrativeBar"]
+    CS --> CSP["CoScoutPanel"]
+```
+
+The AI hook layer sits between the State Layer and the UI, consuming analysis state and producing AI-enhanced content:
+
+| Hook                 | Input                                | Output             | UI                    |
+| -------------------- | ------------------------------------ | ------------------ | --------------------- |
+| `useAIContext`       | stats, filters, findings, hypotheses | `AIContext`        | All AI hooks          |
+| `useNarration`       | context, `fetchNarration`            | narrative string   | `NarrativeBar`        |
+| `useChartInsights`   | context, chart data                  | enhanced insight   | `ChartInsightChip`    |
+| `useAICoScout`       | context, history                     | messages, `send()` | `CoScoutPanel`        |
+| `useKnowledgeSearch` | search fn, enabled                   | results, documents | Injected into CoScout |
+
+`useChartInsights` is composed per-chart in wrapper components; the others are composed in `useEditorAI`.
+
+For detailed data flow, context shape, and three-mode comparison, see [AI Data Flow](ai-data-flow.md).
+
+---
+
 ## See Also
 
 - [Data Flow](data-flow.md) - How data moves through the system
+- [AI Data Flow](ai-data-flow.md) - AI hook composition and interaction modes
 - [Shared Packages](shared-packages.md) - Package exports
 - [Colors > Color Schemes](../../06-design-system/foundations/colors.md#shared-component-color-schemes) - ColorScheme prop pattern
 - [Charts Overview](../../06-design-system/charts/overview.md) - Chart components

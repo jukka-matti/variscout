@@ -113,7 +113,8 @@ export { useHighlightFade, type UseHighlightFadeReturn } from './useHighlightFad
 export { useResizablePanel, type UseResizablePanelReturn } from './useResizablePanel';
 
 // Chart Data Hooks (shared computation for app wrappers)
-export { useBoxplotData } from './useBoxplotData';
+export { useBoxplotData, STAGE_SEPARATOR } from './useBoxplotData';
+export type { ViolinDataMap, UseBoxplotDataResult, StageInfo } from './useBoxplotData';
 export { useIChartData } from './useIChartData';
 
 // Focused Chart Navigation
@@ -135,6 +136,17 @@ export {
 
 // Findings (scouting report)
 export { useFindings, type UseFindingsOptions, type UseFindingsReturn } from './useFindings';
+
+// Hypotheses (causal theories linked to findings)
+export {
+  useHypotheses,
+  MAX_HYPOTHESIS_DEPTH,
+  MAX_CHILDREN_PER_PARENT,
+  MAX_TOTAL_HYPOTHESES,
+  type ChildrenSummary,
+  type UseHypothesesOptions,
+  type UseHypothesesReturn,
+} from './useHypotheses';
 
 // Chart Wrapper Data Hooks (shared computation for app chart wrappers)
 export {
@@ -168,6 +180,16 @@ export {
   type UseDashboardChartsBaseResult,
 } from './useDashboardChartsBase';
 
+// Locale State
+export {
+  useLocaleState,
+  type UseLocaleStateOptions,
+  type UseLocaleStateReturn,
+} from './useLocaleState';
+
+// Translation
+export { useTranslation, type UseTranslationReturn } from './useTranslation';
+
 // Theme State
 export {
   useThemeState,
@@ -178,3 +200,81 @@ export {
   type UseThemeStateOptions,
   type UseThemeStateReturn,
 } from './useThemeState';
+
+// AI Context
+export { useAIContext, type UseAIContextOptions, type UseAIContextReturn } from './useAIContext';
+
+// Narration
+export {
+  useNarration,
+  type UseNarrationOptions,
+  type UseNarrationReturn,
+  type NarrationStatus,
+} from './useNarration';
+
+// Chart Insights
+export {
+  useChartInsights,
+  type UseChartInsightsOptions,
+  type UseChartInsightsReturn,
+  type DeterministicData,
+} from './useChartInsights';
+
+// AI CoScout
+export { useAICoScout, type UseAICoScoutOptions, type UseAICoScoutReturn } from './useAICoScout';
+
+// Knowledge Search
+export {
+  useKnowledgeSearch,
+  type KnowledgeResult,
+  type DocumentResult,
+  type UseKnowledgeSearchOptions,
+  type UseKnowledgeSearchReturn,
+} from './useKnowledgeSearch';
+
+// Report Sections
+export {
+  useReportSections,
+  type ReportSectionDescriptor,
+  type ReportType,
+  type ReportSectionId,
+  type SectionStatus,
+  type UseReportSectionsOptions,
+  type UseReportSectionsReturn,
+} from './useReportSections';
+
+// Scroll Spy
+export { useScrollSpy, type UseScrollSpyOptions, type UseScrollSpyReturn } from './useScrollSpy';
+
+// Snapshot Data
+export {
+  useSnapshotData,
+  type UseSnapshotDataOptions,
+  type UseSnapshotDataReturn,
+} from './useSnapshotData';
+
+// Copy Utilities
+export { copySectionAsHTML } from './copyUtils';
+
+// Filter Handlers (Dashboard shared callbacks)
+export {
+  useFilterHandlers,
+  type UseFilterHandlersOptions,
+  type UseFilterHandlersReturn,
+} from './useFilterHandlers';
+
+// Create Factor Modal (Dashboard shared modal state)
+export {
+  useCreateFactorModal,
+  type UseCreateFactorModalOptions,
+  type UseCreateFactorModalReturn,
+} from './useCreateFactorModal';
+
+// Verification Charts (Report Step 5 staged evidence)
+export {
+  useVerificationCharts,
+  type VerificationChartId,
+  type VerificationChartOption,
+  type UseVerificationChartsOptions,
+  type UseVerificationChartsReturn,
+} from './useVerificationCharts';

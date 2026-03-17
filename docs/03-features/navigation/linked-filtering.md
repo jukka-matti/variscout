@@ -1,5 +1,9 @@
 ---
-title: 'Linked Filtering'
+title: Linked Filtering
+audience: [analyst, engineer]
+category: navigation
+status: stable
+related: [filter-chips, drill-down, chart-interaction]
 ---
 
 # Linked Filtering

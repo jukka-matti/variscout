@@ -47,4 +47,4 @@ Implement offline-first architecture:
 ## See Also
 
 - [Offline-First Architecture](../05-technical/architecture/offline-first.md)
-- [PWA Storage](../08-products/pwa/storage.md)
+- [PWA Session Model](../08-products/pwa/index.md#session-model)

@@ -1,5 +1,9 @@
 ---
 title: 'VariScout: Architecture Overview'
+audience: [developer]
+category: architecture
+status: stable
+related: [monorepo, offline-first, pwa, azure]
 ---
 
 # VariScout: Architecture Overview
@@ -84,8 +88,8 @@ variscout-lite/
 ├─────────────────────────────────────┼───────────────────────────────────────┤
 │          @variscout/ui                                                      │
 │         (packages/ui/)                                                      │
-│  AnovaResults │ FilterBreadcrumb │ FilterChipDropdown │ RegressionPanel    │
-│  PerformanceSetupPanel │ VariationBar │ YAxisPopover │ TierBadge          │
+│  AnovaResults │ FilterBreadcrumb │ FilterChipDropdown │ FindingsLog        │
+│  PerformanceSetupPanel │ VariationBar │ YAxisPopover │ FindingCard        │
 │  UpgradePrompt │ ChartCard │ ColumnMapping │ HelpTooltip │ colors         │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -155,7 +159,7 @@ Shared UI component library for PWA and Azure apps.
 
 - **Stack**: React + Tailwind CSS + Radix UI + Lucide React.
 - **Goal**: Ensure consistent design system implementation across web properties.
-- **Components**: `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `PerformanceSetupPanelBase`, `RegressionPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `TierBadge`, `UpgradePrompt`.
+- **Components** (major groups): `AnovaResults`, `FilterBreadcrumb`, `FilterChipDropdown`, `PerformanceSetupPanelBase`, `VariationBar`, `YAxisPopover`, `ChartCard`, `ColumnMapping`, `MeasureColumnSelector`, `PerformanceDetectedModal`, `DataQualityBanner`, `HelpTooltip`, `SelectionPanel`, `CreateFactorModal`, `UpgradePrompt`, `WhatIfSimulator`, `WhatIfPageBase`, `StatsPanelBase`, `ErrorBoundary`, `AxisEditor`, `FactorSelector`, `SpecsPopover`, `SpecEditor`, `CapabilityHistogram`, `ProbabilityPlot`, `BoxplotDisplayToggle`, `ChartAnnotationLayer`, `AnnotationContextMenu`, `MobileCategorySheet`, `DataTableBase`, `ChartDownloadMenu`, `EditableChartTitle`, `SettingsPanelBase`, `FocusedChartViewBase`, `DashboardBase` (FocusedViewOverlay, FocusedChartCard, DashboardChartCard, DashboardGrid), `FindingsWindow`, `FindingsLog`, `FindingCard`, `FindingEditor`, `InvestigationPrompt`, `InvestigationSidebar`, `CoScoutInline`, `CoScoutMessages`, `AIOnboardingTooltip`, `InvestigationPhaseBadge`, `PasteScreenBase`, `ManualEntryBase`, `ManualEntrySetupBase`, `CharacteristicTypeSelector`, `Slider`.
 - **Hooks**: `useIsMobile`, `useGlossary`.
 - **Services**: `errorService`.
 
@@ -173,12 +177,20 @@ Shared React hooks for cross-platform functionality:
 | `useDataState`              | Shared DataContext state management                           |
 | `useDataIngestion`          | File upload and data parsing                                  |
 | `useTier`                   | License tier state and limits (Azure Marketplace)             |
-| `useAvailableOutcomes`      | Available outcome columns for analysis                        |
-| `useAvailableStageColumns`  | Available stage columns for staged analysis                   |
-| `useChartNavigation`        | Chart tab navigation and ordering                             |
-| `useClipboardCopy`          | Clipboard copy with feedback                                  |
-| `useColumnClassification`   | Column type classification for regression                     |
-| `useRegressionState`        | Regression analysis mode and state management                 |
+| `useColumnClassification`   | Column type classification                                    |
+| `useDrillPath`              | Drill path state and before/after statistics                  |
+| `useFindings`               | Findings CRUD, status transitions, hypothesis linking         |
+| `useHypotheses`             | Hypothesis tree CRUD, auto-validation, ideas                  |
+| `useBoxplotData`            | Shared d3 boxplot computation                                 |
+| `useIChartData`             | Shared I-Chart data transform                                 |
+| `useAnnotations`            | Chart annotation state (highlights, text notes)               |
+| `useThemeState`             | Theme state (light/dark/system)                               |
+| `useControlViolations`      | Control/spec violation computation                            |
+| `useFocusedChartNav`        | Keyboard chart focus navigation                               |
+| `useNarration`              | NarrativeBar state (loading, cached, error, refresh)          |
+| `useChartInsights`          | Per-chart deterministic + AI-enhanced insight orchestration   |
+| `useAICoScout`              | CoScout conversation state, streaming, abort control          |
+| `useKnowledgeSearch`        | Knowledge Base search wrapper                                 |
 
 **Key types:**
 
@@ -356,7 +368,8 @@ variscout-lite/
 │   │   │   ├── useTier.ts       # Tier state and limits
 │   │   │   ├── useColumnClassification.ts # Column type classification
 │   │   │   ├── useDrillPath.ts  # Drill path state
-│   │   │   ├── useMindmapState.ts # Mindmap state management
+│   │   │   ├── useFindings.ts  # Findings state management
+│   │   │   ├── useHypotheses.ts # Hypothesis tree state
 │   │   │   ├── useBoxplotData.ts # Shared d3 boxplot computation
 │   │   │   ├── useIChartData.ts # Shared I-Chart data transform
 │   │   │   ├── useAnnotations.ts # Chart annotation state
@@ -391,8 +404,10 @@ variscout-lite/
 │       │   │   ├── DashboardBase/  # FocusedViewOverlay, FocusedChartCard,
 │       │   │   │                   # DashboardChartCard, DashboardGrid
 │       │   │   ├── StatsPanelBase/
-│       │   │   ├── MindmapWindow/
-│       │   │   ├── MindmapPanel/
+│       │   │   ├── FindingsWindow/
+│       │   │   ├── FindingsLog/
+│       │   │   ├── CoScoutInline/
+│       │   │   ├── InvestigationSidebar/
 │       │   │   ├── WhatIfSimulator/
 │       │   │   ├── WhatIfPage/
 │       │   │   ├── ErrorBoundary/

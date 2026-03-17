@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { isTeamPlan, downloadCSV } from '@variscout/core';
+import { hasTeamFeatures, downloadCSV } from '@variscout/core';
 import type { DataRow, SpecLimits } from '@variscout/core';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import {
@@ -17,6 +17,7 @@ import {
   Beaker,
   Download,
   ChevronDown,
+  FileText,
   Maximize2,
   EllipsisVertical,
 } from 'lucide-react';
@@ -49,6 +50,7 @@ export interface ToolbarDataActions {
   onAddManualData: () => void;
   onOpenDataTable: () => void;
   onOpenWhatIf: () => void;
+  onOpenReport: () => void;
   onOpenPresentation: () => void;
 }
 
@@ -81,6 +83,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     onAddManualData,
     onOpenDataTable,
     onOpenWhatIf,
+    onOpenReport,
     onOpenPresentation,
   },
 }) => {
@@ -141,9 +144,21 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
         </h2>
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
-        {/* Sync Status — Team plan only, hidden on phone to save space */}
+        {/* Compact sync icon on phone — Team plan only */}
+        {isPhone && hasTeamFeatures() && (
+          <div
+            className={`flex-shrink-0 ${syncColor}`}
+            title={syncStatus.message || syncStatus.status}
+          >
+            <SyncIcon
+              size={18}
+              className={syncStatus.status === 'syncing' ? 'animate-pulse' : ''}
+            />
+          </div>
+        )}
+        {/* Sync Status — Team plan only, full label on desktop */}
         {!isPhone &&
-          isTeamPlan() &&
+          hasTeamFeatures() &&
           (syncStatus.status === 'error' ? (
             <button
               onClick={() => {
@@ -262,6 +277,19 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               >
                 <Beaker size={16} />
                 <span>What-If</span>
+              </button>
+            )}
+
+            {/* Scouting Report */}
+            {hasActiveData && (
+              <button
+                onClick={onOpenReport}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-content-secondary hover:text-content hover:bg-surface-tertiary"
+                title="Scouting Report"
+                data-testid="btn-report"
+              >
+                <FileText size={16} />
+                <span>Report</span>
               </button>
             )}
 
@@ -394,6 +422,16 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
                 >
                   <Beaker size={16} />
                   What-If
+                </button>
+                <button
+                  onClick={() => {
+                    setOverflowOpen(false);
+                    onOpenReport();
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-content hover:bg-surface-tertiary transition-colors"
+                >
+                  <FileText size={16} />
+                  Scouting Report
                 </button>
                 <button
                   onClick={() => {

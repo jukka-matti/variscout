@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { buildMentionMessageBody, postChannelMention } from '../graphChannelMessage';
+import {
+  buildMentionMessageBody,
+  postChannelMention,
+  postStatusUpdateCard,
+} from '../graphChannelMessage';
 import type { Finding, FindingAssignee } from '@variscout/core';
+import type { CardMentionEntity } from '../graphChannelMessage';
 
 // Mock auth
 vi.mock('../../auth/graphToken', () => ({
@@ -128,5 +133,61 @@ describe('postChannelMention', () => {
         'TestProject'
       )
     ).rejects.toThrow('Channel message failed: 403');
+  });
+});
+
+describe('postStatusUpdateCard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('posts an adaptive card to the correct channel endpoint', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    globalThis.fetch = mockFetch;
+
+    const card = { type: 'AdaptiveCard', body: [] };
+    const mentions: CardMentionEntity[] = [];
+
+    await postStatusUpdateCard('team-1', 'chan-1', card, mentions, 'Finding analyzed');
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/teams/team-1/channels/chan-1/messages');
+    expect(options.method).toBe('POST');
+
+    const body = JSON.parse(options.body);
+    expect(body.body.contentType).toBe('html');
+    expect(body.body.content).toBe('Finding analyzed');
+    expect(body.attachments).toHaveLength(1);
+    expect(body.attachments[0].contentType).toBe('application/vnd.microsoft.card.adaptive');
+  });
+
+  it('includes card mention entities mapped to Graph format', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    globalThis.fetch = mockFetch;
+
+    const mentions: CardMentionEntity[] = [
+      { type: 'mention', text: '<at>Jane</at>', mentioned: { id: 'u-1', name: 'Jane' } },
+    ];
+
+    await postStatusUpdateCard('team-1', 'chan-1', {}, mentions, 'test');
+
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(body.mentions).toHaveLength(1);
+    expect(body.mentions[0].mentionText).toBe('Jane');
+    expect(body.mentions[0].mentioned.user.id).toBe('u-1');
+    expect(body.mentions[0].mentioned.user.userIdentityType).toBe('aadUser');
+  });
+
+  it('throws on API error', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: () => Promise.resolve('Internal error'),
+    });
+
+    await expect(postStatusUpdateCard('team-1', 'chan-1', {}, [], 'test')).rejects.toThrow(
+      'Status update card failed: 500'
+    );
   });
 });

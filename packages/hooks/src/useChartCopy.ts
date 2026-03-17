@@ -13,6 +13,7 @@ export const EXPORT_SIZES: Record<string, { width: number; height: number }> = {
   stats: { width: 1200, height: 400 },
   scatter: { width: 1200, height: 800 },
   dashboard: { width: 1600, height: 0 }, // height=0 → auto (capture full scrollHeight)
+  slide: { width: 1920, height: 1080 },
 };
 
 const DEFAULT_EXPORT_SIZE = { width: 1200, height: 675 };

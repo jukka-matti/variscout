@@ -9,7 +9,15 @@
  */
 
 import { useCallback } from 'react';
-import type { DataRow, SpecLimits, StageOrderMode, FilterAction, Finding } from '@variscout/core';
+import type {
+  DataRow,
+  SpecLimits,
+  StageOrderMode,
+  FilterAction,
+  Finding,
+  Hypothesis,
+  InvestigationCategory,
+} from '@variscout/core';
 import type {
   AnalysisState,
   DisplayOptions,
@@ -70,6 +78,12 @@ export interface ProjectPersistenceInputs {
   // Findings getter
   findings: Finding[];
 
+  // Hypotheses getter
+  hypotheses: Hypothesis[];
+
+  // Categories getter
+  categories: InvestigationCategory[];
+
   // All setters for load/import/new
   setRawData: (data: DataRow[]) => void;
   setOutcome: (col: string | null) => void;
@@ -108,6 +122,12 @@ export interface ProjectPersistenceInputs {
 
   // Findings setter
   setFindings: (findings: Finding[]) => void;
+
+  // Hypotheses setter
+  setHypotheses: (hypotheses: Hypothesis[]) => void;
+
+  // Categories setter
+  setCategories: (categories: InvestigationCategory[]) => void;
 }
 
 export interface ProjectPersistenceResult {
@@ -196,6 +216,10 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setViewState,
     findings,
     setFindings,
+    hypotheses,
+    setHypotheses,
+    categories,
+    setCategories,
   } = inputs;
 
   // ---------------------------------------------------------------------------
@@ -243,6 +267,12 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     // Findings — only include if non-empty
     if (findings.length > 0) state.findings = findings;
 
+    // Hypotheses — only include if non-empty
+    if (hypotheses.length > 0) state.hypotheses = hypotheses;
+
+    // Categories — only include if non-empty
+    if (categories.length > 0) state.categories = categories;
+
     return state;
   }, [
     rawData,
@@ -270,6 +300,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     filterStack,
     viewState,
     findings,
+    hypotheses,
+    categories,
   ]);
 
   // ---------------------------------------------------------------------------
@@ -350,6 +382,12 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
         // Findings
         setFindings(state.findings ?? []);
 
+        // Hypotheses
+        setHypotheses(state.hypotheses ?? []);
+
+        // Categories
+        setCategories(state.categories ?? []);
+
         setCurrentProjectId(project.id);
         setCurrentProjectName(project.name);
         setHasUnsavedChanges(false);
@@ -385,6 +423,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setFilterStack,
       setViewState,
       setFindings,
+      setHypotheses,
+      setCategories,
     ]
   );
 
@@ -479,6 +519,12 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       // Findings
       setFindings(state.findings ?? []);
 
+      // Hypotheses
+      setHypotheses(state.hypotheses ?? []);
+
+      // Categories
+      setCategories(state.categories ?? []);
+
       setCurrentProjectId(null);
       setCurrentProjectName(file.name.replace('.vrs', ''));
       setHasUnsavedChanges(true);
@@ -513,6 +559,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
       setFilterStack,
       setViewState,
       setFindings,
+      setHypotheses,
+      setCategories,
     ]
   );
 
@@ -548,10 +596,12 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setMeasureLabel('Measure');
     setSelectedMeasure(null);
     setCpkTarget(1.33);
-    // Reset filter stack, view state, and findings
+    // Reset filter stack, view state, findings, hypotheses, and categories
     setFilterStack([]);
     setViewState(null);
     setFindings([]);
+    setHypotheses([]);
+    setCategories([]);
   }, [
     setRawData,
     setOutcome,
@@ -584,6 +634,8 @@ export function useProjectPersistence(inputs: ProjectPersistenceInputs): Project
     setFilterStack,
     setViewState,
     setFindings,
+    setHypotheses,
+    setCategories,
   ]);
 
   return {

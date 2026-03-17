@@ -1,10 +1,22 @@
 import React from 'react';
 import { Pin } from 'lucide-react';
-import type { Finding, FindingStatus, FindingTag } from '@variscout/core';
+import type {
+  Finding,
+  FindingStatus,
+  FindingTag,
+  Hypothesis,
+  ImprovementIdea,
+  IdeaImpact,
+  ProcessContext,
+} from '@variscout/core';
 import FindingCard from './FindingCard';
 import FindingBoardView from './FindingBoardView';
+import HypothesisTreeView from './HypothesisTreeView';
+import FindingsExportMenu from './FindingsExportMenu';
 
 export interface FindingsLogProps {
+  /** Optional className for the root wrapper */
+  className?: string;
   /** List of findings to display */
   findings: Finding[];
   /** Edit a finding's note */
@@ -17,8 +29,22 @@ export interface FindingsLogProps {
   columnAliases?: Record<string, string>;
   /** ID of the finding that matches current active filters (if any) */
   activeFindingId?: string | null;
-  /** View mode: 'list' (flat) or 'board' (grouped by status) */
-  viewMode?: 'list' | 'board';
+  /** View mode: 'list' (flat), 'board' (grouped by status), or 'tree' (hypothesis tree) */
+  viewMode?: 'list' | 'board' | 'tree';
+  /** All hypotheses for tree view */
+  hypotheses?: Hypothesis[];
+  /** Callback when a hypothesis node is selected in tree view */
+  onSelectHypothesis?: (hypothesis: Hypothesis) => void;
+  /** Add a sub-hypothesis under a parent */
+  onAddSubHypothesis?: (parentId: string) => void;
+  /** Get children summary for tree display */
+  getChildrenSummary?: (parentId: string) => {
+    supported: number;
+    contradicted: number;
+    untested: number;
+    partial: number;
+    total: number;
+  };
   /** Change finding investigation status */
   onSetFindingStatus?: (id: string, status: FindingStatus) => void;
   /** Set a finding's classification tag */
@@ -43,6 +69,71 @@ export interface FindingsLogProps {
   renderAssignSlot?: (findingId: string) => React.ReactNode;
   /** Navigate to the chart that sourced a finding */
   onNavigateToChart?: (source: import('@variscout/core').FindingSource) => void;
+  /** Maximum statuses to show in status badge dropdown (3=PWA, 5=Azure). Default: all. */
+  maxStatuses?: number;
+  /** Link a hypothesis to a finding */
+  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
+  /** Create a new hypothesis and link to a finding */
+  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  /** Map of hypothesis IDs to hypothesis objects for display */
+  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  /** Add an action item */
+  onAddAction?: (
+    id: string,
+    text: string,
+    assignee?: import('@variscout/core').FindingAssignee,
+    dueDate?: string
+  ) => void;
+  /** Optional slot to render an assignee picker for action items */
+  renderActionAssigneePicker?: (
+    onSelect: (a: import('@variscout/core').FindingAssignee) => void
+  ) => React.ReactNode;
+  /** Complete an action item */
+  onCompleteAction?: (id: string, actionId: string) => void;
+  /** Delete an action item */
+  onDeleteAction?: (id: string, actionId: string) => void;
+  /** Set outcome assessment */
+  onSetOutcome?: (
+    id: string,
+    outcome: {
+      effective: 'yes' | 'no' | 'partial';
+      cpkAfter?: number;
+      notes?: string;
+      verifiedAt: number;
+    }
+  ) => void;
+  /** Open What-If simulator for a key-driver finding */
+  onProjectImprovement?: (findingId: string) => void;
+  /** Whether spec limits exist (affects projection display metrics) */
+  hasSpecs?: boolean;
+  // --- Validation Task (passed through to HypothesisTreeView) ---
+  onSetValidationTask?: (id: string, task: string) => void;
+  onCompleteTask?: (id: string) => void;
+  onSetManualStatus?: (
+    id: string,
+    status: import('@variscout/core').HypothesisStatus,
+    note?: string
+  ) => void;
+  // --- Improvement Ideas (passed through to HypothesisTreeView) ---
+  ideaImpacts?: Record<string, IdeaImpact | undefined>;
+  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onUpdateIdea?: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+  ) => void;
+  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
+  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  onAskCoScout?: (question: string) => void;
+  /** Ask CoScout about a specific finding (from FindingCard action button) */
+  onAskCoScoutAboutFinding?: (focusContext: {
+    finding: { text: string; status: string; hypothesis?: string };
+  }) => void;
+  /** Process context for JSON export */
+  processContext?: ProcessContext;
+  /** Callback for AI report generation (Team AI only) */
+  onGenerateAIReport?: () => Promise<string>;
 }
 
 /**
@@ -51,6 +142,7 @@ export interface FindingsLogProps {
  * Shows empty state with guidance when no findings exist.
  */
 const FindingsLog: React.FC<FindingsLogProps> = ({
+  className,
   findings,
   onEditFinding,
   onDeleteFinding,
@@ -58,6 +150,10 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   columnAliases,
   activeFindingId,
   viewMode = 'list',
+  hypotheses,
+  onSelectHypothesis,
+  onAddSubHypothesis,
+  getChildrenSummary,
   onSetFindingStatus,
   onSetFindingTag,
   onAddComment,
@@ -70,6 +166,30 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onAssignFinding,
   renderAssignSlot,
   onNavigateToChart,
+  maxStatuses,
+  onLinkHypothesis,
+  onCreateHypothesis,
+  hypothesesMap,
+  onAddAction,
+  onCompleteAction,
+  onDeleteAction,
+  onSetOutcome,
+  onProjectImprovement,
+  hasSpecs,
+  renderActionAssigneePicker,
+  onSetValidationTask,
+  onCompleteTask,
+  onSetManualStatus,
+  ideaImpacts,
+  onAddIdea,
+  onUpdateIdea,
+  onRemoveIdea,
+  onSelectIdea,
+  onProjectIdea,
+  onAskCoScout,
+  onAskCoScoutAboutFinding,
+  processContext,
+  onGenerateAIReport,
 }) => {
   if (findings.length === 0) {
     return (
@@ -86,55 +206,112 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
     );
   }
 
-  if (viewMode === 'board' && onSetFindingStatus) {
+  if (viewMode === 'tree' && hypotheses) {
     return (
-      <FindingBoardView
-        findings={findings}
-        onEditFinding={onEditFinding}
-        onDeleteFinding={onDeleteFinding}
-        onRestoreFinding={onRestoreFinding}
-        onSetFindingStatus={onSetFindingStatus}
-        onSetFindingTag={onSetFindingTag}
-        onAddComment={onAddComment ?? (() => {})}
-        onEditComment={onEditComment ?? (() => {})}
-        onDeleteComment={onDeleteComment ?? (() => {})}
-        onAddPhoto={onAddPhoto}
-        onCaptureFromTeams={onCaptureFromTeams}
-        showAuthors={showAuthors}
-        columnAliases={columnAliases}
-        activeFindingId={activeFindingId}
-        onAssignFinding={onAssignFinding}
-        renderAssignSlot={renderAssignSlot}
-        onNavigateToChart={onNavigateToChart}
-      />
+      <div className={`flex-1 min-h-0 flex flex-col ${className ?? ''}`}>
+        <HypothesisTreeView
+          hypotheses={hypotheses}
+          findings={findings}
+          onSelectHypothesis={onSelectHypothesis}
+          onAddSubHypothesis={onAddSubHypothesis}
+          getChildrenSummary={getChildrenSummary}
+          onSetValidationTask={onSetValidationTask}
+          onCompleteTask={onCompleteTask}
+          onSetManualStatus={onSetManualStatus}
+          ideaImpacts={ideaImpacts}
+          onAddIdea={onAddIdea}
+          onUpdateIdea={onUpdateIdea}
+          onRemoveIdea={onRemoveIdea}
+          onSelectIdea={onSelectIdea}
+          onProjectIdea={onProjectIdea}
+          onAskCoScout={onAskCoScout}
+        />
+      </div>
     );
   }
 
-  return (
-    <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2" data-testid="findings-list">
-      {findings.map(finding => (
-        <FindingCard
-          key={finding.id}
-          finding={finding}
-          onEdit={onEditFinding}
-          onDelete={onDeleteFinding}
-          onRestore={onRestoreFinding}
-          onSetStatus={onSetFindingStatus}
-          onSetTag={onSetFindingTag}
-          onAddComment={onAddComment}
-          onEditComment={onEditComment}
-          onDeleteComment={onDeleteComment}
+  if (viewMode === 'board' && onSetFindingStatus) {
+    return (
+      <div className={`flex-1 min-h-0 flex flex-col ${className ?? ''}`}>
+        <FindingBoardView
+          findings={findings}
+          onEditFinding={onEditFinding}
+          onDeleteFinding={onDeleteFinding}
+          onRestoreFinding={onRestoreFinding}
+          onSetFindingStatus={onSetFindingStatus}
+          onSetFindingTag={onSetFindingTag}
+          onAddComment={onAddComment ?? (() => {})}
+          onEditComment={onEditComment ?? (() => {})}
+          onDeleteComment={onDeleteComment ?? (() => {})}
           onAddPhoto={onAddPhoto}
           onCaptureFromTeams={onCaptureFromTeams}
           showAuthors={showAuthors}
           columnAliases={columnAliases}
-          isActive={finding.id === activeFindingId}
-          onShare={onShareFinding}
-          onAssign={onAssignFinding}
-          renderAssignSlot={renderAssignSlot?.(finding.id)}
+          activeFindingId={activeFindingId}
+          onAssignFinding={onAssignFinding}
+          renderAssignSlot={renderAssignSlot}
           onNavigateToChart={onNavigateToChart}
+          maxStatuses={maxStatuses}
+          onLinkHypothesis={onLinkHypothesis}
+          onCreateHypothesis={onCreateHypothesis}
+          hypothesesMap={hypothesesMap}
+          onAddAction={onAddAction}
+          onCompleteAction={onCompleteAction}
+          onDeleteAction={onDeleteAction}
+          onSetOutcome={onSetOutcome}
         />
-      ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`flex-1 min-h-0 flex flex-col ${className ?? ''}`}>
+      <div className="flex items-center justify-end px-3 pt-2 pb-0">
+        <FindingsExportMenu
+          findings={findings}
+          hypotheses={hypotheses}
+          processContext={processContext}
+          onGenerateAIReport={onGenerateAIReport}
+          columnAliases={columnAliases}
+        />
+      </div>
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2" data-testid="findings-list">
+        {findings.map(finding => (
+          <FindingCard
+            key={finding.id}
+            finding={finding}
+            onEdit={onEditFinding}
+            onDelete={onDeleteFinding}
+            onRestore={onRestoreFinding}
+            onSetStatus={onSetFindingStatus}
+            onSetTag={onSetFindingTag}
+            onAddComment={onAddComment}
+            onEditComment={onEditComment}
+            onDeleteComment={onDeleteComment}
+            onAddPhoto={onAddPhoto}
+            onCaptureFromTeams={onCaptureFromTeams}
+            showAuthors={showAuthors}
+            columnAliases={columnAliases}
+            isActive={finding.id === activeFindingId}
+            onShare={onShareFinding}
+            onAssign={onAssignFinding}
+            renderAssignSlot={renderAssignSlot?.(finding.id)}
+            onNavigateToChart={onNavigateToChart}
+            maxStatuses={maxStatuses}
+            onLinkHypothesis={onLinkHypothesis}
+            onCreateHypothesis={onCreateHypothesis}
+            hypothesesMap={hypothesesMap}
+            onAddAction={onAddAction}
+            onCompleteAction={onCompleteAction}
+            onDeleteAction={onDeleteAction}
+            onSetOutcome={onSetOutcome}
+            onProjectImprovement={onProjectImprovement}
+            hasSpecs={hasSpecs}
+            renderActionAssigneePicker={renderActionAssigneePicker}
+            onAskCoScout={onAskCoScoutAboutFinding}
+          />
+        ))}
+      </div>
     </div>
   );
 };

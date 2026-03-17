@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Group } from '@visx/group';
 import { Bar, LinePath, Circle } from '@visx/shape';
 import { scaleBand, scaleLinear } from '@visx/scale';
@@ -8,6 +8,7 @@ import { withParentSize } from '@visx/responsive';
 import { TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import type { ParetoChartProps, ParetoDataPoint } from './types';
 import ChartSourceBar from './ChartSourceBar';
+import { chartColors } from './colors';
 import { useChartTheme } from './useChartTheme';
 import { useChartLayout, useChartTooltip, useSelectionState } from './hooks';
 import { interactionStyles } from './styles/interactionStyles';
@@ -19,6 +20,32 @@ const getHighlightFillColors = (colors: Record<string, string>) => ({
   amber: colors.warning,
   green: colors.pass,
 });
+
+/**
+ * Compute rank deltas between current and comparison data.
+ * Positive delta means category improved (moved up in ranking).
+ * Current data is already sorted descending (Pareto convention) — rank = index + 1.
+ */
+export function computeRankDeltas(
+  currentKeys: string[],
+  comparisonData: Map<string, number>
+): Map<string, number> {
+  // Comparison rank: sort comparison entries by value descending
+  const compEntries = Array.from(comparisonData.entries()).sort((a, b) => b[1] - a[1]);
+  const compRank = new Map<string, number>();
+  compEntries.forEach(([key], i) => compRank.set(key, i + 1));
+
+  const deltas = new Map<string, number>();
+  currentKeys.forEach((key, i) => {
+    const currentRank = i + 1;
+    const prevRank = compRank.get(key);
+    if (prevRank !== undefined) {
+      // Positive = moved up (was rank 5, now rank 2 → delta = +3)
+      deltas.set(key, prevRank - currentRank);
+    }
+  });
+  return deltas;
+}
 
 /**
  * Pareto Chart - Props-based version
@@ -41,6 +68,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
   tooltipContent,
   highlightedCategories,
   onBarContextMenu,
+  showRankChange = false,
 }) => {
   const { fonts, margin, width, height, sourceBarHeight } = useChartLayout({
     parentWidth,
@@ -59,6 +87,14 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
   const { isSelected, getOpacity } = useSelectionState({
     selectedKeys: selectedBars,
   });
+
+  const rankDeltas = useMemo(() => {
+    if (!showRankChange || !comparisonData) return null;
+    return computeRankDeltas(
+      data.map(d => d.key),
+      comparisonData
+    );
+  }, [showRankChange, comparisonData, data]);
 
   const xScale = scaleBand({
     range: [0, width],
@@ -269,10 +305,34 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
             })}
           />
 
+          {/* Rank Change Indicators */}
+          {rankDeltas &&
+            data.map(d => {
+              const delta = rankDeltas.get(d.key);
+              if (delta === undefined || delta === 0) return null;
+              const x = (xScale(d.key) || 0) + xScale.bandwidth() / 2;
+              const y = height + (parentWidth < 400 ? 22 : 26);
+              const isImproved = delta > 0;
+              return (
+                <text
+                  key={`rank-${d.key}`}
+                  x={x}
+                  y={y}
+                  textAnchor="middle"
+                  fill={isImproved ? chartColors.pass : chartColors.fail}
+                  fontSize={fonts.tickLabel - 1}
+                  fontWeight={500}
+                  data-testid={`rank-delta-${d.key}`}
+                >
+                  {isImproved ? `↑${delta}` : `↓${Math.abs(delta)}`}
+                </text>
+              );
+            })}
+
           {/* X-Axis Label */}
           <text
             x={width / 2}
-            y={height + (parentWidth < 400 ? 30 : 40)}
+            y={height + (parentWidth < 400 ? 30 : 40) + (rankDeltas ? 14 : 0)}
             textAnchor="middle"
             fill={chrome.labelPrimary}
             fontSize={fonts.axisLabel}

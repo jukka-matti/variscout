@@ -249,4 +249,58 @@ describe('FindingsLog', () => {
     // No assignee chip should be visible
     expect(screen.queryByText(/Jane|John|assignee/i)).toBeNull();
   });
+
+  // --- Projection display tests ---
+
+  it('renders projection section when finding has a projection', () => {
+    const findings = [
+      makeFinding({
+        id: 'f-proj',
+        status: 'analyzed',
+        tag: 'key-driver',
+        projection: {
+          baselineMean: 18.3,
+          baselineSigma: 4.2,
+          projectedMean: 15.1,
+          projectedSigma: 3.1,
+          meanDelta: -3.2,
+          sigmaDelta: -1.1,
+          simulationParams: { meanAdjustment: -3.2, variationReduction: 26 },
+          createdAt: new Date().toISOString(),
+        },
+      }),
+    ];
+
+    render(<FindingsLog {...defaultProps} findings={findings} />);
+    expect(screen.getByTestId('projection-section')).toBeDefined();
+    expect(screen.getByText(/Projected improvement/)).toBeDefined();
+  });
+
+  it('shows "Project improvement" button for key-driver findings without projection', () => {
+    const onProject = vi.fn();
+    const findings = [
+      makeFinding({
+        id: 'f-kd',
+        status: 'analyzed',
+        tag: 'key-driver',
+      }),
+    ];
+
+    render(<FindingsLog {...defaultProps} findings={findings} onProjectImprovement={onProject} />);
+    expect(screen.getByTestId('project-improvement-btn')).toBeDefined();
+  });
+
+  it('does not show "Project improvement" for non-key-driver findings', () => {
+    const onProject = vi.fn();
+    const findings = [
+      makeFinding({
+        id: 'f-li',
+        status: 'analyzed',
+        tag: 'low-impact',
+      }),
+    ];
+
+    render(<FindingsLog {...defaultProps} findings={findings} onProjectImprovement={onProject} />);
+    expect(screen.queryByTestId('project-improvement-btn')).toBeNull();
+  });
 });

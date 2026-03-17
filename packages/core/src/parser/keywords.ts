@@ -120,3 +120,65 @@ export function matchesChannelPattern(colName: string): boolean {
 export function matchesMetadataPattern(colName: string): boolean {
   return METADATA_PATTERNS.some(pattern => pattern.test(colName.trim()));
 }
+
+/** Keyword groups for inferring investigation categories from column names */
+export const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  equipment: [
+    'machine',
+    'head',
+    'nozzle',
+    'cavity',
+    'spindle',
+    'station',
+    'line',
+    'cell',
+    'tool',
+    'die',
+    'valve',
+    'sensor',
+    'equipment',
+  ],
+  temporal: ['shift', 'day', 'week', 'month', 'hour', 'date', 'time', 'period', 'quarter', 'year'],
+  operator: ['operator', 'technician', 'inspector', 'worker', 'crew', 'team', 'person'],
+  material: ['batch', 'lot', 'supplier', 'vendor', 'material', 'raw', 'resin', 'grade', 'compound'],
+  location: ['plant', 'site', 'zone', 'area', 'department', 'building', 'room', 'floor'],
+};
+
+/**
+ * Display names for category inference from keyword groups.
+ * Maps internal category keys to user-facing category names.
+ */
+export const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
+  equipment: 'Equipment',
+  temporal: 'Temporal',
+  operator: 'People',
+  material: 'Material',
+  location: 'Location',
+};
+
+/**
+ * Infer a category name from a column name using keyword matching.
+ * Returns a user-facing display name (e.g., "Equipment", "People") or null.
+ */
+export function inferCategoryName(columnName: string): string | null {
+  const lower = columnName.toLowerCase().trim();
+  for (const [key, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some(kw => lower.includes(kw))) {
+      return CATEGORY_DISPLAY_NAMES[key] || key;
+    }
+  }
+  return null;
+}
+
+/**
+ * Find the keyword that matched a column name for tooltip display.
+ * Returns null if no keyword matches.
+ */
+export function findMatchedCategoryKeyword(columnName: string): string | null {
+  const lower = columnName.toLowerCase().trim();
+  for (const keywords of Object.values(CATEGORY_KEYWORDS)) {
+    const match = keywords.find(kw => lower.includes(kw));
+    if (match) return match;
+  }
+  return null;
+}

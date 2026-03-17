@@ -4,7 +4,7 @@ title: 'ADR-018: Channel @Mention Workflow — Mobile Finding to Team Action'
 
 # ADR-018: Channel @Mention Workflow — Mobile Finding to Team Action
 
-**Status**: Proposed
+**Status**: Accepted
 
 **Date**: 2026-03-02
 
@@ -16,7 +16,10 @@ title: 'ADR-018: Channel @Mention Workflow — Mobile Finding to Team Action'
 
 ADR-015 established findings as a lightweight investigation tool: "NOT project management — no
 assignees, no due dates, no priority levels." ADR-016 added Teams integration with URL sharing
-(`shareWebContent`) and deep links, with Adaptive Cards noted as planned.
+(`shareWebContent`) and deep links. Adaptive Cards were subsequently implemented alongside this
+@mention workflow, sharing the same Graph endpoint and `ChannelMessage.Send` permission scope —
+findings reaching `analyzed` or `resolved` status auto-post Adaptive Cards to the channel with
+@mentions, Cpk deltas, and deep links.
 
 Field supervisors on their phones now have a gap: they can observe a pattern in a chart and pin
 it as a finding, but there's no way to assign it to a specific person and notify them to

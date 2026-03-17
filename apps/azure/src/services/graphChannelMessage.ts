@@ -79,6 +79,15 @@ interface MentionEntity {
   };
 }
 
+export interface CardMentionEntity {
+  type: 'mention';
+  text: string;
+  mentioned: {
+    id: string;
+    name: string;
+  };
+}
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -130,5 +139,61 @@ export async function postChannelMention(
   if (!res.ok) {
     const errorBody = await res.text().catch(() => '');
     throw new Error(`Channel message failed: ${res.status} ${errorBody}`);
+  }
+}
+
+/**
+ * Post an Adaptive Card status update to a Teams channel.
+ *
+ * Used when findings reach 'analyzed' or 'resolved' status.
+ * Reuses the same Graph endpoint and permission scope as postChannelMention.
+ */
+export async function postStatusUpdateCard(
+  teamId: string,
+  channelId: string,
+  cardPayload: Record<string, unknown>,
+  mentions: CardMentionEntity[],
+  summaryText: string
+): Promise<void> {
+  const token = await getGraphTokenWithScopes(CHANNEL_MESSAGE_SCOPES);
+
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/teams/${teamId}/channels/${channelId}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        body: {
+          contentType: 'html',
+          content: summaryText,
+        },
+        attachments: [
+          {
+            id: 'statusCard',
+            contentType: 'application/vnd.microsoft.card.adaptive',
+            content: JSON.stringify(cardPayload),
+          },
+        ],
+        mentions: mentions.map((m, i) => ({
+          id: i,
+          mentionText: m.mentioned.name,
+          mentioned: {
+            user: {
+              id: m.mentioned.id,
+              displayName: m.mentioned.name,
+              userIdentityType: 'aadUser',
+            },
+          },
+        })),
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => '');
+    throw new Error(`Status update card failed: ${res.status} ${errorBody}`);
   }
 }

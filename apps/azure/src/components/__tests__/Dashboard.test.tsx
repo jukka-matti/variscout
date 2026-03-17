@@ -138,6 +138,156 @@ vi.mock('@variscout/ui', () => ({
       {statsPanel}
     </div>
   ),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  DashboardLayoutBase: (props: any) => {
+    const {
+      renderIChartContent,
+      renderBoxplotContent,
+      renderParetoContent,
+      renderStatsPanel,
+      renderFocusedView,
+      renderSpecEditor,
+      focusedChart,
+      ichartTitleSlot,
+      ichartExtraControls,
+      ichartHeaderExtra,
+      controlStats,
+      stagedStats,
+      stageColumn,
+      availableOutcomes,
+      outcome,
+      setOutcome,
+      boxplotFactor,
+      paretoFactor,
+      copyFeedback,
+      onCopyChart,
+      onDownloadPng,
+      onDownloadSvg,
+      setFocusedChart,
+      showParetoPanel,
+    } = props;
+    return (
+      <div data-testid="dashboard-layout-base">
+        {focusedChart && renderFocusedView ? (
+          renderFocusedView
+        ) : (
+          <div data-testid="dashboard-grid">
+            <div data-testid="chart-ichart">
+              {ichartTitleSlot}
+              {/* Controls: outcome selector */}
+              <select
+                data-testid="outcome-selector"
+                value={String(outcome)}
+                onChange={e => (setOutcome as (v: string) => void)?.(e.target.value)}
+              >
+                {(availableOutcomes as string[])?.map((o: string) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+              {ichartExtraControls}
+              {ichartHeaderExtra}
+              {/* Stats */}
+              {stageColumn && stagedStats ? (
+                <div>{(stagedStats as { stageOrder: string[] }).stageOrder.length} stages</div>
+              ) : controlStats ? (
+                <div>
+                  <span>
+                    <span>UCL:</span>{' '}
+                    <span>{(controlStats as { ucl: number }).ucl.toFixed(2)}</span>
+                  </span>
+                  <span>
+                    <span>Mean:</span>{' '}
+                    <span>{(controlStats as { mean: number }).mean.toFixed(2)}</span>
+                  </span>
+                  <span>
+                    <span>LCL:</span>{' '}
+                    <span>{(controlStats as { lcl: number }).lcl.toFixed(2)}</span>
+                  </span>
+                </div>
+              ) : null}
+              {/* Chart title */}
+              <span data-testid="editable-title">I-Chart: {String(outcome)}</span>
+              {/* Export */}
+              {onCopyChart && onDownloadPng && onDownloadSvg && (
+                <>
+                  <button
+                    onClick={() =>
+                      (onCopyChart as (id: string, name: string) => void)('ichart-card', 'ichart')
+                    }
+                    aria-label="Copy ichart to clipboard"
+                  >
+                    {copyFeedback === 'ichart' ? 'Copied' : 'Copy'}
+                  </button>
+                  <div data-testid="chart-download-menu">Download</div>
+                </>
+              )}
+              <button
+                onClick={() => (setFocusedChart as (c: string) => void)('ichart')}
+                aria-label="Maximize chart"
+              >
+                Maximize
+              </button>
+              {renderIChartContent}
+            </div>
+            <div data-testid="chart-boxplot">
+              <span data-testid="editable-title">Boxplot: {String(boxplotFactor)}</span>
+              {onCopyChart && onDownloadPng && onDownloadSvg && (
+                <>
+                  <button
+                    onClick={() =>
+                      (onCopyChart as (id: string, name: string) => void)('boxplot-card', 'boxplot')
+                    }
+                    aria-label="Copy boxplot to clipboard"
+                  >
+                    {copyFeedback === 'boxplot' ? 'Copied' : 'Copy'}
+                  </button>
+                  <div data-testid="chart-download-menu">Download</div>
+                </>
+              )}
+              <button
+                onClick={() => (setFocusedChart as (c: string) => void)('boxplot')}
+                aria-label="Maximize chart"
+              >
+                Maximize
+              </button>
+              {renderBoxplotContent}
+            </div>
+            {showParetoPanel && (
+              <div data-testid="chart-pareto">
+                <span data-testid="editable-title">Pareto: {String(paretoFactor)}</span>
+                {onCopyChart && onDownloadPng && onDownloadSvg && (
+                  <>
+                    <button
+                      onClick={() =>
+                        (onCopyChart as (id: string, name: string) => void)('pareto-card', 'pareto')
+                      }
+                      aria-label="Copy pareto to clipboard"
+                    >
+                      {copyFeedback === 'pareto' ? 'Copied' : 'Copy'}
+                    </button>
+                    <div data-testid="chart-download-menu">Download</div>
+                  </>
+                )}
+                <button
+                  onClick={() => (setFocusedChart as (c: string) => void)('pareto')}
+                  aria-label="Maximize chart"
+                >
+                  Maximize
+                </button>
+                {renderParetoContent}
+              </div>
+            )}
+            <div data-testid="chart-stats">{renderStatsPanel}</div>
+          </div>
+        )}
+        {renderSpecEditor}
+      </div>
+    );
+  },
+  ChartInsightChip: () => null,
+  NarrativeBar: () => null,
   useIsMobile: () => false,
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));
@@ -191,6 +341,29 @@ vi.mock('@variscout/hooks', () => ({
     handleContextMenu: vi.fn(),
     closeContextMenu: vi.fn(),
     clearAnnotations: vi.fn(),
+  }),
+  useChartInsights: () => ({
+    chipText: null,
+    chipType: 'info',
+    isDismissed: false,
+    dismiss: vi.fn(),
+    isLoading: false,
+    isAI: false,
+  }),
+  useFilterHandlers: ({
+    clearFilters,
+    removeFilter,
+    updateFilterValues,
+  }: Record<string, unknown>) => ({
+    handleClearAllFilters: clearFilters,
+    handleRemoveFilter: removeFilter,
+    handleUpdateFilterValues: updateFilterValues,
+  }),
+  useCreateFactorModal: () => ({
+    showCreateFactorModal: false,
+    handleOpenCreateFactorModal: vi.fn(),
+    handleCloseCreateFactorModal: vi.fn(),
+    handleCreateFactor: vi.fn(),
   }),
 }));
 

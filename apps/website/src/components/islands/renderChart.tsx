@@ -67,8 +67,8 @@ export function renderChartContent({
     case 'capability':
       return (
         <CapabilityHistogramBase
-          data={computed.ichartData.map(d => d.value)}
-          stats={computed.stats}
+          data={computed.ichartData.map(d => d.y)}
+          mean={computed.stats.mean}
           specs={computed.specs}
           parentWidth={width}
           parentHeight={height}

@@ -131,15 +131,15 @@ The Azure app uses a responsive phone layout (< 640px) within the existing Edito
 
 Reuses PWA responsive patterns adapted for Teams mobile WebView. Desktop layout is completely unchanged (all gated by `useIsMobile(640)`).
 
-### Sharing (Implemented) and Adaptive Cards (Planned)
+### Sharing and Adaptive Cards (Implemented)
 
-**Implemented**: URL sharing via Teams native dialog (`sharing.shareWebContent`) and deep links (`pages.shareDeepLink`). Share payloads built by `shareContent.ts` for findings and charts.
+**URL sharing**: URL sharing via Teams native dialog (`sharing.shareWebContent`) and deep links (`pages.shareDeepLink`). Share payloads built by `shareContent.ts` for findings and charts.
 
-**Planned (Adaptive Cards)**: Rich sharing into Teams conversations:
+**Adaptive Cards (Implemented)**: When a finding reaches `analyzed` or `resolved` status in a channel tab, an Adaptive Card is automatically posted to the channel via Graph API (`POST /teams/{teamId}/channels/{channelId}/messages`):
 
-- Finding summary card: status badge, Cpk value, filter context, photo thumbnail
-- Deep link buttons: "View Chart", "Open Finding" → navigate directly into the app
-- Compose extension in Teams manifest for sharing from the message compose box
+- Finding summary card: status badge, Cpk delta, suspected cause or outcome, @mention assignees
+- Deep link "View" button: navigates directly into the app to the specific finding
+- Uses the same `ChannelMessage.Send` permission and OBO token infrastructure as the @mention workflow (ADR-018)
 
 **Channel @mention**: See [ADR-018](adr-018-channel-mention-workflow.md) for the channel
 mention workflow that extends URL sharing with true @mention notifications in channel tabs.
@@ -228,7 +228,7 @@ Phases 2 and 3 can proceed in parallel after Phase 1. Phase 6 can be done at any
 
 ## Related Decisions
 
-- [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) — Two-plan model (Standard + Team)
+- [ADR-007: Azure Marketplace Distribution](adr-007-azure-marketplace-distribution.md) — Three-plan model (Standard / Team / Team AI)
 - [ADR-015: Investigation Board](adr-015-investigation-board.md) — Finding statuses, tags, and comments (extended here with author + photos)
 - [ADR-004: Offline-First](adr-004-offline-first.md) — Offline capability preserved; photo upload queued when offline
 
@@ -256,4 +256,4 @@ All 6 increments implemented in February 2026:
 | 5         | Deep links + URL sharing — Teams native dialog      | Implemented |
 | 6         | OBO silent SSO — Azure Function token exchange      | Implemented |
 
-Adaptive Cards remain planned for a future release.
+Adaptive Cards implemented alongside ADR-018 @mention workflow, using the same Graph endpoint and `ChannelMessage.Send` permission scope. Cards are auto-posted when findings reach `analyzed` or `resolved` status in channel tabs.

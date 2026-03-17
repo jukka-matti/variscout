@@ -41,3 +41,11 @@ export { validateData } from './validation';
 
 // Pareto file parsing
 export { parseParetoFile } from './pareto';
+
+// Category keyword matching and inference
+export {
+  CATEGORY_KEYWORDS,
+  findMatchedCategoryKeyword,
+  CATEGORY_DISPLAY_NAMES,
+  inferCategoryName,
+} from './keywords';

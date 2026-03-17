@@ -8,16 +8,22 @@ import {
   findDuplicateBySource,
   createFinding,
   createFindingComment,
+  createActionItem,
+  createFindingOutcome,
+  createHypothesis,
+  createImprovementIdea,
   getFindingStatus,
   groupFindingsByStatus,
   migrateFindingStatus,
   migrateFindings,
+  migrateActionAssignee,
   FINDING_STATUSES,
   FINDING_STATUS_LABELS,
   FINDING_TAGS,
   FINDING_TAG_LABELS,
+  PWA_STATUSES,
 } from '../findings';
-import type { Finding, FindingStatus, FindingSource } from '../findings';
+import type { Finding, FindingAssignee, FindingStatus, FindingSource } from '../findings';
 
 describe('filtersEqual', () => {
   it('returns true for identical filters', () => {
@@ -160,18 +166,21 @@ describe('groupFindingsByStatus', () => {
     statusChangedAt: Date.now(),
   });
 
-  it('groups findings correctly', () => {
+  it('groups findings correctly across 5 statuses', () => {
     const findings = [
       makeFinding('f-1', 'observed'),
       makeFinding('f-2', 'investigating'),
       makeFinding('f-3', 'analyzed'),
-      makeFinding('f-4', 'analyzed'),
-      makeFinding('f-5', 'observed'),
+      makeFinding('f-4', 'improving'),
+      makeFinding('f-5', 'resolved'),
+      makeFinding('f-6', 'observed'),
     ];
     const groups = groupFindingsByStatus(findings);
     expect(groups.observed).toHaveLength(2);
     expect(groups.investigating).toHaveLength(1);
-    expect(groups.analyzed).toHaveLength(2);
+    expect(groups.analyzed).toHaveLength(1);
+    expect(groups.improving).toHaveLength(1);
+    expect(groups.resolved).toHaveLength(1);
   });
 
   it('returns empty arrays for empty input', () => {
@@ -179,18 +188,28 @@ describe('groupFindingsByStatus', () => {
     expect(groups.observed).toEqual([]);
     expect(groups.investigating).toEqual([]);
     expect(groups.analyzed).toEqual([]);
+    expect(groups.improving).toEqual([]);
+    expect(groups.resolved).toEqual([]);
   });
 });
 
 describe('status constants', () => {
-  it('FINDING_STATUSES has 3 statuses', () => {
-    expect(FINDING_STATUSES).toEqual(['observed', 'investigating', 'analyzed']);
+  it('FINDING_STATUSES has 5 statuses', () => {
+    expect(FINDING_STATUSES).toEqual([
+      'observed',
+      'investigating',
+      'analyzed',
+      'improving',
+      'resolved',
+    ]);
   });
 
   it('FINDING_STATUS_LABELS matches statuses', () => {
     expect(FINDING_STATUS_LABELS.observed).toBe('Observed');
     expect(FINDING_STATUS_LABELS.investigating).toBe('Investigating');
     expect(FINDING_STATUS_LABELS.analyzed).toBe('Analyzed');
+    expect(FINDING_STATUS_LABELS.improving).toBe('Improving');
+    expect(FINDING_STATUS_LABELS.resolved).toBe('Resolved');
   });
 
   it('FINDING_TAGS has 2 tags', () => {
@@ -200,6 +219,13 @@ describe('status constants', () => {
   it('FINDING_TAG_LABELS matches tags', () => {
     expect(FINDING_TAG_LABELS['key-driver']).toBe('Key Driver');
     expect(FINDING_TAG_LABELS['low-impact']).toBe('Low Impact');
+  });
+
+  it('PWA_STATUSES is a subset of FINDING_STATUSES (first 3)', () => {
+    expect(PWA_STATUSES).toEqual(['observed', 'investigating', 'analyzed']);
+    for (const s of PWA_STATUSES) {
+      expect(FINDING_STATUSES).toContain(s);
+    }
   });
 });
 
@@ -312,7 +338,7 @@ describe('createFinding with source', () => {
     );
     expect(f.source).toBeDefined();
     expect(f.source!.chart).toBe('boxplot');
-    expect(f.source!.category).toBe('Machine A');
+    expect((f.source as { chart: 'boxplot'; category: string }).category).toBe('Machine A');
     expect(f.text).toBe('High spread on Machine A');
     expect(f.status).toBe('observed');
   });
@@ -356,6 +382,129 @@ describe('findDuplicateBySource', () => {
 });
 
 // ============================================================================
+// ActionItem Tests
+// ============================================================================
+
+describe('createActionItem', () => {
+  it('creates an action item with text and timestamp', () => {
+    const action = createActionItem('Replace gasket');
+    expect(action.id).toBeTruthy();
+    expect(action.text).toBe('Replace gasket');
+    expect(action.createdAt).toBeGreaterThan(0);
+    expect(action.assignee).toBeUndefined();
+    expect(action.dueDate).toBeUndefined();
+    expect(action.completedAt).toBeUndefined();
+  });
+
+  it('accepts optional assignee and dueDate', () => {
+    const action = createActionItem(
+      'Calibrate sensor',
+      { upn: 'jane@co.com', displayName: 'Jane' },
+      '2026-04-01'
+    );
+    expect(action.assignee).toEqual({ upn: 'jane@co.com', displayName: 'Jane' });
+    expect(action.dueDate).toBe('2026-04-01');
+  });
+
+  it('generates unique ids', () => {
+    const a1 = createActionItem('a');
+    const a2 = createActionItem('b');
+    expect(a1.id).not.toBe(a2.id);
+  });
+});
+
+// ============================================================================
+// FindingOutcome Tests
+// ============================================================================
+
+describe('createFindingOutcome', () => {
+  it('creates an outcome with effectiveness and timestamp', () => {
+    const outcome = createFindingOutcome('yes');
+    expect(outcome.effective).toBe('yes');
+    expect(outcome.verifiedAt).toBeGreaterThan(0);
+    expect(outcome.notes).toBeUndefined();
+    expect(outcome.cpkAfter).toBeUndefined();
+  });
+
+  it('accepts optional notes and cpkAfter', () => {
+    const outcome = createFindingOutcome('partial', 'Improved but not fixed', 1.45);
+    expect(outcome.effective).toBe('partial');
+    expect(outcome.notes).toBe('Improved but not fixed');
+    expect(outcome.cpkAfter).toBe(1.45);
+  });
+
+  it('accepts no effectiveness', () => {
+    const outcome = createFindingOutcome('no', 'No change observed');
+    expect(outcome.effective).toBe('no');
+    expect(outcome.notes).toBe('No change observed');
+  });
+});
+
+// ============================================================================
+// Finding with 5-status fields
+// ============================================================================
+
+describe('Finding 5-status extensions', () => {
+  it('Finding can have actions array', () => {
+    const f = createFinding('Drift detected', {}, null);
+    const action = createActionItem(
+      'Replace part',
+      { upn: 'bob@co.com', displayName: 'Bob' },
+      '2026-04-15'
+    );
+    f.actions = [action];
+    expect(f.actions).toHaveLength(1);
+    expect(f.actions[0].text).toBe('Replace part');
+  });
+
+  it('Finding can have outcome', () => {
+    const f = createFinding('OOS condition', {}, null);
+    f.outcome = createFindingOutcome('yes', 'Cpk improved', 1.8);
+    expect(f.outcome!.effective).toBe('yes');
+    expect(f.outcome!.cpkAfter).toBe(1.8);
+  });
+
+  it('new fields default to undefined (backward compat)', () => {
+    const f = createFinding('test', {}, null);
+    expect(f.hypothesisId).toBeUndefined();
+    expect(f.actions).toBeUndefined();
+    expect(f.outcome).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// createHypothesis Tests
+// ============================================================================
+
+describe('createHypothesis', () => {
+  it('creates a hypothesis with required fields', () => {
+    const h = createHypothesis('Worn bearing on head 3');
+    expect(h.id).toBeTruthy();
+    expect(h.text).toBe('Worn bearing on head 3');
+    expect(h.createdAt).toBeTruthy();
+    expect(h.updatedAt).toBeTruthy();
+    expect(h.linkedFindingIds).toEqual([]);
+  });
+
+  it('generates unique ids for each hypothesis', () => {
+    const h1 = createHypothesis('Cause A');
+    const h2 = createHypothesis('Cause B');
+    expect(h1.id).not.toBe(h2.id);
+  });
+
+  it('accepts optional factor and level', () => {
+    const h = createHypothesis('Tool wear', 'Machine', 'A');
+    expect(h.factor).toBe('Machine');
+    expect(h.level).toBe('A');
+  });
+
+  it('defaults status to untested', () => {
+    const h = createHypothesis('Vibration');
+    expect(h.status).toBe('untested');
+  });
+});
+
+// ============================================================================
 // FindingAssignee Tests
 // ============================================================================
 
@@ -381,5 +530,107 @@ describe('FindingAssignee', () => {
     f.assignee = assignee;
     expect(f.assignee).toBeDefined();
     expect(f.assignee!.userId).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// ImprovementIdea Tests
+// ============================================================================
+
+describe('createImprovementIdea', () => {
+  it('creates idea with text and unique ID', () => {
+    const idea = createImprovementIdea('Simplify setup with visual guides');
+    expect(idea.id).toBeTruthy();
+    expect(idea.text).toBe('Simplify setup with visual guides');
+  });
+
+  it('sets createdAt as ISO string', () => {
+    const idea = createImprovementIdea('Reduce changeover time');
+    expect(idea.createdAt).toBeTruthy();
+    // ISO string format check
+    expect(new Date(idea.createdAt).toISOString()).toBe(idea.createdAt);
+  });
+
+  it('no effort/projection/selected/notes by default', () => {
+    const idea = createImprovementIdea('Add poka-yoke fixture');
+    expect(idea.effort).toBeUndefined();
+    expect(idea.projection).toBeUndefined();
+    expect(idea.selected).toBeUndefined();
+    expect(idea.notes).toBeUndefined();
+    expect(idea.impactOverride).toBeUndefined();
+  });
+
+  it('generates unique ids', () => {
+    const a = createImprovementIdea('Idea A');
+    const b = createImprovementIdea('Idea B');
+    expect(a.id).not.toBe(b.id);
+  });
+});
+
+// ============================================================================
+// migrateActionAssignee Tests
+// ============================================================================
+
+describe('migrateActionAssignee', () => {
+  it('returns undefined for undefined input', () => {
+    expect(migrateActionAssignee(undefined)).toBeUndefined();
+  });
+
+  it('converts a string assignee to FindingAssignee', () => {
+    const result = migrateActionAssignee('Jane');
+    expect(result).toEqual({ upn: 'Jane', displayName: 'Jane' });
+  });
+
+  it('passes through a FindingAssignee object unchanged', () => {
+    const assignee: FindingAssignee = { upn: 'jane@co.com', displayName: 'Jane', userId: 'u-1' };
+    const result = migrateActionAssignee(assignee);
+    expect(result).toBe(assignee); // same reference
+  });
+});
+
+// ============================================================================
+// migrateFindings — action assignee migration
+// ============================================================================
+
+describe('migrateFindings action assignee migration', () => {
+  it('migrates string assignees on actions to FindingAssignee', () => {
+    const findings: Finding[] = [
+      {
+        id: 'f-1',
+        text: 'Test',
+        createdAt: 1000,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'improving',
+        comments: [],
+        statusChangedAt: 1000,
+        actions: [
+          {
+            id: 'a-1',
+            text: 'Fix',
+            assignee: 'Bob' as unknown as FindingAssignee,
+            createdAt: 1000,
+          },
+        ],
+      },
+    ];
+    const migrated = migrateFindings(findings);
+    expect(migrated[0].actions![0].assignee).toEqual({ upn: 'Bob', displayName: 'Bob' });
+  });
+
+  it('does not alter actions without assignees', () => {
+    const findings: Finding[] = [
+      {
+        id: 'f-1',
+        text: 'Test',
+        createdAt: 1000,
+        context: { activeFilters: {}, cumulativeScope: null },
+        status: 'improving',
+        comments: [],
+        statusChangedAt: 1000,
+        actions: [{ id: 'a-1', text: 'Fix', createdAt: 1000 }],
+      },
+    ];
+    const migrated = migrateFindings(findings);
+    expect(migrated[0].actions![0].assignee).toBeUndefined();
   });
 });

@@ -7,8 +7,7 @@ export interface ProjectRecord {
   location: 'team' | 'personal';
   modified: Date;
   synced: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
+  data: unknown;
 }
 
 export interface SyncStateRecord {
@@ -31,8 +30,7 @@ export interface SyncItem {
   id?: number;
   name: string;
   location: 'team' | 'personal';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  project: any;
+  project: unknown;
   queuedAt: string;
 }
 

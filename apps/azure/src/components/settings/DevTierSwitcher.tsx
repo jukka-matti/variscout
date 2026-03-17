@@ -60,6 +60,12 @@ const PLAN_OPTIONS: PlanOption[] = [
     icon: <Users size={14} />,
     color: 'bg-violet-600 hover:bg-violet-500',
   },
+  {
+    plan: 'team-ai',
+    label: 'Team AI',
+    icon: <Sparkles size={14} />,
+    color: 'bg-emerald-600 hover:bg-emerald-500',
+  },
 ];
 
 /**

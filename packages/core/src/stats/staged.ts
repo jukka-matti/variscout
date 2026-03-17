@@ -8,6 +8,137 @@ import type {
 import { calculateStats } from './basic';
 import { safeMin, safeMax } from '../utils/minmax';
 
+// ============================================================================
+// Staged Comparison Types
+// ============================================================================
+
+/** A single stage in a comparison, with its stats and position */
+export interface StagedComparisonStage {
+  name: string;
+  stats: StatsResult;
+  index: number; // 0 = baseline, n-1 = current
+}
+
+/** Quantified deltas between first and last stage */
+export interface StagedComparisonDeltas {
+  /** last.mean - first.mean */
+  meanShift: number;
+  /** last.stdDev / first.stdDev (< 1 = improved) */
+  variationRatio: number;
+  /** last.cpk - first.cpk (null if no specs) */
+  cpkDelta: number | null;
+  /** last passRate - first passRate (null if no specs) */
+  passRateDelta: number | null;
+  /** first.outOfSpecPercentage - last.outOfSpecPercentage (positive = improved) */
+  outOfSpecReduction: number;
+}
+
+/** Color coding direction for each delta */
+export type DeltaColor = 'green' | 'red' | 'amber';
+
+/** Full comparison result between stages */
+export interface StagedComparison {
+  stages: StagedComparisonStage[];
+  deltas: StagedComparisonDeltas;
+  colorCoding: Record<keyof StagedComparisonDeltas, DeltaColor>;
+}
+
+// ============================================================================
+// Staged Comparison Logic
+// ============================================================================
+
+/** Threshold below which changes are considered negligible (amber) */
+const AMBER_THRESHOLD = 0.05;
+
+/**
+ * Compute color coding for a delta metric.
+ * Green = improved, red = degraded, amber = change within threshold.
+ */
+function colorForDelta(
+  value: number | null,
+  higherIsBetter: boolean,
+  threshold: number = AMBER_THRESHOLD
+): DeltaColor {
+  if (value === null) return 'amber';
+  const abs = Math.abs(value);
+  if (abs < threshold) return 'amber';
+  if (higherIsBetter) return value > 0 ? 'green' : 'red';
+  return value < 0 ? 'green' : 'red';
+}
+
+/**
+ * Calculate comparison metrics between the first and last stage.
+ *
+ * @param stagedStats - Result from calculateStatsByStage()
+ * @returns StagedComparison with per-stage data and deltas, or null if < 2 stages
+ *
+ * @example
+ * const comparison = calculateStagedComparison(stagedStats);
+ * if (comparison) {
+ *   console.log(comparison.deltas.cpkDelta); // +0.43
+ *   console.log(comparison.colorCoding.cpkDelta); // 'green'
+ * }
+ */
+export function calculateStagedComparison(stagedStats: StagedStatsResult): StagedComparison | null {
+  const { stages: stageMap, stageOrder } = stagedStats;
+
+  if (stageOrder.length < 2) return null;
+
+  // Build ordered stage array
+  const stages: StagedComparisonStage[] = stageOrder
+    .map((name, index) => {
+      const stats = stageMap.get(name);
+      if (!stats) return null;
+      return { name, stats, index };
+    })
+    .filter((s): s is StagedComparisonStage => s !== null);
+
+  if (stages.length < 2) return null;
+
+  const first = stages[0].stats;
+  const last = stages[stages.length - 1].stats;
+
+  // Compute deltas
+  const meanShift = last.mean - first.mean;
+  const variationRatio = first.stdDev !== 0 ? last.stdDev / first.stdDev : 1;
+
+  const hasCpk = first.cpk !== undefined && last.cpk !== undefined;
+  const cpkDelta = hasCpk ? last.cpk! - first.cpk! : null;
+
+  const firstPassRate = 100 - first.outOfSpecPercentage;
+  const lastPassRate = 100 - last.outOfSpecPercentage;
+  const hasSpecs =
+    first.outOfSpecPercentage !== 0 ||
+    last.outOfSpecPercentage !== 0 ||
+    first.cpk !== undefined ||
+    last.cpk !== undefined;
+  const passRateDelta = hasSpecs ? lastPassRate - firstPassRate : null;
+  const outOfSpecReduction = first.outOfSpecPercentage - last.outOfSpecPercentage;
+
+  const deltas: StagedComparisonDeltas = {
+    meanShift,
+    variationRatio,
+    cpkDelta,
+    passRateDelta,
+    outOfSpecReduction,
+  };
+
+  // Color coding
+  const colorCoding: StagedComparison['colorCoding'] = {
+    meanShift: colorForDelta(
+      meanShift,
+      false,
+      Math.abs(first.mean) * AMBER_THRESHOLD || AMBER_THRESHOLD
+    ),
+    variationRatio: colorForDelta(variationRatio - 1, false, AMBER_THRESHOLD),
+    cpkDelta: colorForDelta(cpkDelta, true, AMBER_THRESHOLD),
+    passRateDelta: colorForDelta(passRateDelta, true, AMBER_THRESHOLD * 100),
+    outOfSpecReduction: colorForDelta(outOfSpecReduction, true, AMBER_THRESHOLD * 100),
+  };
+
+  return { stages, deltas, colorCoding };
+}
+
 /**
  * Determine the order of stages based on the data
  *

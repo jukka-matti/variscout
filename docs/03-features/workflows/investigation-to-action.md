@@ -1,5 +1,9 @@
 ---
-title: 'Investigation to Action Workflow'
+title: Investigation to Action Workflow
+audience: [analyst, engineer]
+category: workflow
+status: stable
+related: [findings, what-if, hypothesis, improvement-actions]
 ---
 
 # Investigation to Action Workflow
@@ -135,16 +139,59 @@ Stop investigating when:
 
 ### Investigation Status Tracking
 
-As findings accumulate, track their investigation progress:
+As findings accumulate, track their investigation progress. The available statuses depend on the product tier:
+
+#### 5-Status Model (Azure Standard and Team)
+
+| Status            | Badge  | Meaning                                     | PDCA Phase |
+| ----------------- | ------ | ------------------------------------------- | ---------- |
+| **Observed**      | Amber  | Pattern spotted, not yet investigated       | Plan       |
+| **Investigating** | Blue   | Actively drilling into this finding         | Plan       |
+| **Analyzed**      | Purple | Suspected cause identified                  | Plan       |
+| **Improving**     | Cyan   | Corrective actions assigned and in progress | Do         |
+| **Resolved**      | Green  | Actions completed, outcome verified         | Check/Act  |
+
+#### 3-Status Model (PWA)
 
 | Status            | Badge  | Meaning                               |
 | ----------------- | ------ | ------------------------------------- |
 | **Observed**      | Amber  | Pattern spotted, not yet investigated |
 | **Investigating** | Blue   | Actively drilling into this finding   |
-| **Analyzed**      | Purple | Analysis completed                    |
+| **Analyzed**      | Purple | Analysis completed, ready to classify |
+
+The PWA is an educational tool — its 3-status model covers the investigation workflow (Plan phase) without the operational complexity of corrective actions and outcome tracking. Users who need closed-loop tracking upgrade to the Azure App.
+
+#### Progressive Disclosure by Tier
+
+| Capability                  | PWA (Free)              | Azure Standard          | Azure Team                          |
+| --------------------------- | ----------------------- | ----------------------- | ----------------------------------- |
+| Finding statuses            | 3 (observe → analyze)   | 5 (observe → resolve)   | 5 (observe → resolve)               |
+| Classification tags         | Key Driver / Low Impact | Key Driver / Low Impact | Key Driver / Low Impact             |
+| Suspected cause             | -                       | Free text field         | Free text field                     |
+| Corrective actions          | -                       | Action items list       | Action items + team assignment      |
+| Outcome assessment          | -                       | Effective / Cpk after   | Effective / Cpk after               |
+| Board columns               | 3                       | 5                       | 5                                   |
+| Board time filter           | -                       | This week / month / all | This week / month / all             |
+| Teams auto-posting          | -                       | -                       | On analyzed + resolved              |
+| Knowledge base contribution | -                       | -                       | Resolved outcomes feed AI (Phase 2) |
 
 Click a finding's status badge to change its status. Add timestamped comments
 to record what you checked and what you learned.
+
+#### Status Transitions
+
+```
+observed → investigating → analyzed → improving → resolved
+                                                      ↓
+                                         (reopen) → investigating
+```
+
+- **observed → investigating**: User starts working on the finding
+- **investigating → analyzed**: Suspected cause identified, tags assigned
+- **analyzed → improving**: First corrective action item added (auto-transition)
+- **improving → resolved**: All actions completed AND outcome assessed (auto-transition)
+- **Any status → previous**: Can step back one status
+- **Resolved → investigating**: Reopen if the problem recurs
 
 ### Classification Tags
 
@@ -160,15 +207,138 @@ Tags reflect _contribution magnitude_, not causal certainty. VariScout quantifie
 contribution, not causation — we measure how much variation a factor accounts for,
 not whether it's the "root cause."
 
+### Suspected Cause / Hypothesis (Azure only)
+
+When a finding reaches "Analyzed" status, document why the variation is happening. VariScout uses **hypotheses** — testable theories linked to factors — instead of free-text suspected cause descriptions.
+
+A hypothesis links to a specific factor and is automatically validated via ANOVA eta-squared thresholds. For causes that cannot be validated with data (physical inspection, domain expertise), gemba and expert validation types are available.
+
+For structured investigation with multiple competing theories, use the **Hypothesis Investigation Flow** — a diamond pattern of diverge (generate sub-hypotheses), validate (test each), and converge (eliminate contradicted, confirm supported). See [Hypothesis Investigation](hypothesis-investigation.md) for the full workflow.
+
+**"Hypothesis" vs "root cause":** VariScout finds _where_ variation is hiding
+(the key factors), but identifying a factor (Machine A explains 47%) is not proving
+root cause. True root cause is only confirmed when the corrective action proves
+effective (outcome = effective at "Resolved" status). VariScout uses "hypothesis"
+and "root cause hypothesis" throughout to maintain this distinction. A hypothesis
+becomes a "confirmed root cause" only when the outcome assessment shows the fix was effective.
+
+### Improvement Ideation (Azure only)
+
+When a hypothesis is validated and supported, the next step is not jumping straight to actions — it is brainstorming _how_ to fix the problem. The Improvement Ideas section on a finding unlocks once at least one hypothesis is supported. Analysts can generate multiple improvement ideas, estimate effort (low/medium/high), and attach a What-If projection to each idea to quantify its expected impact on Cpk and yield.
+
+| Field                  | Purpose                                                           |
+| ---------------------- | ----------------------------------------------------------------- |
+| **Idea text**          | What the improvement involves (e.g., "Replace nozzle tip weekly") |
+| **Effort estimate**    | Low / Medium / High — rough implementation cost                   |
+| **What-If projection** | Attach a What-If simulation result to compute projected Cpk/yield |
+| **Impact**             | Computed from projection (auto) or manually overridden            |
+| **Selected**           | Mark the best idea(s) to convert into corrective actions          |
+| **Notes**              | Additional context or reasoning                                   |
+
+This is the creative bridge between "we know what causes the problem" and "here is our action plan." By comparing projected impact across ideas, analysts can prioritize the most effective fix before committing resources. Selected ideas flow naturally into the corrective actions list below.
+
+### Corrective Actions (Azure only)
+
+When a suspected cause is identified, define corrective actions. Each action item is typed as:
+
+```typescript
+interface ActionItem {
+  id: string;
+  text: string; // What needs to be done (required)
+  assignee?: FindingAssignee; // Person responsible (optional)
+  dueDate?: number; // When the action should be completed (optional)
+  completedAt?: number; // When the action was completed (timestamp)
+  createdAt: number; // When the action was created
+}
+```
+
+- **Action text** — What needs to be done (required)
+- **Assignee** — Person responsible (people picker, optional; Team plan enables team-wide picker)
+- **Due date** — When the action should be completed (optional)
+- **Completion** — Checkbox to mark done (sets `completedAt` timestamp)
+
+When the first action is added to an "analyzed" finding, the status automatically
+transitions to "improving."
+
+**Overdue indicators:** When a due date has passed and the action is not completed,
+the action row shows a red border and "Overdue" label. No notifications are sent —
+this is a visual indicator on the card and in Teams postings.
+
+### Outcome Assessment (Azure only)
+
+When all corrective actions are completed, assess the outcome. The outcome is typed as:
+
+```typescript
+interface FindingOutcome {
+  effective: 'yes' | 'no' | 'partial';
+  cpkBefore?: number; // Baseline Cpk (auto-filled from first stage)
+  cpkAfter?: number; // Measured Cpk after corrective action
+  notes?: string; // Free-text outcome description
+  verifiedAt: number; // When the outcome was verified
+}
+```
+
+- **Effective** — "Yes" / "No" / "Partial" selector
+- **Cpk before** — Baseline capability before the corrective action. Auto-filled from the first stage when using staged analysis, or from `finding.context.stats.cpk` as fallback
+- **Cpk after** — Measured capability after the corrective action. Auto-filled from the last stage when using staged analysis
+- **Notes** — Free-text description of the outcome
+
+When all actions are completed AND the outcome is set, the status automatically
+transitions to "resolved."
+
+If the outcome is "No" or "Partial," consider starting a new PDCA cycle — pin a new
+finding from the current state to investigate further.
+
+> **Verification with Staged Analysis**: The most effective way to verify an improvement is to combine before+after data with a Stage column and use [Staged Analysis](../../03-features/analysis/staged-analysis.md). The StagedComparisonCard shows quantified deltas (mean shift, σ change, Cpk delta) between stages. VerificationEvidenceBase in Report Step 5 offers a chart toggle stack for visual verification. `cpkBefore` and `cpkAfter` are auto-filled from staged comparison data. AI components (NarrativeBar, CoScout, ChartInsightChip) are stage-aware and summarize improvement quantitatively. See [ADR-023](../../07-decisions/adr-023-data-lifecycle.md) for the full verification experience design and [Azure Daily Use — Phase 4](../../02-journeys/flows/azure-daily-use.md#phase-4--verification-proving-the-improvement-worked) for the chart-by-chart verification workflow.
+
+### Knowledge Base Contribution (Azure Team, Phase 2)
+
+Resolved findings with outcome data contribute to a team knowledge base. When a finding
+reaches "resolved" status with a verified outcome, the structured data (suspected cause,
+actions taken, effectiveness, Cpk improvement) is available for the AI knowledge base
+(see [ADR-019](../../07-decisions/adr-019-ai-integration.md)). This enables:
+
+- Pattern matching: "This type of drift was caused by nozzle wear 60% of the time"
+- Action suggestions: "For similar findings, nozzle replacement has a 90% success rate"
+- Improvement tracking: "Average Cpk improvement for resolved findings: +0.45"
+
+Knowledge base features are Team plan only and require Phase 2 AI deployment.
+
 ### Board View
 
 Toggle the Findings panel to Board view for a grouped layout:
 
-- **Panel**: Collapsible accordion sections per status (3 columns)
+- **Panel**: Collapsible accordion sections per status
 - **Popout window**: Horizontal columns with native drag-and-drop
+
+**Azure App (5 columns):**
+
+| Observed | Investigating | Analyzed | Improving | Resolved |
+| -------- | ------------- | -------- | --------- | -------- |
+
+**PWA (3 columns):**
+
+| Observed | Investigating | Analyzed |
+| -------- | ------------- | -------- |
+
+- **Analyzed** cards: show suspected cause badge if populated
+- **Improving** cards: show action progress (e.g., "2/3 done") and overdue indicators
+- **Resolved** cards: show outcome badge (green check = effective, red = not, amber = partial)
 
 The Board view helps organize findings during complex investigations with
 many observations. Key Driver findings become a natural shortlist for action.
+
+#### Board Time Filter
+
+The board includes a time filter for managing finding accumulation in daily monitoring:
+
+- **This week** — Shows findings created this week (or resolved this week)
+- **This month** — Shows findings created this month (or resolved this month)
+- **All time** (default) — Shows everything
+
+A team leader doing daily monitoring sets filter to "This week" to focus on current
+findings. Resolved findings from previous weeks are hidden but remain in the data.
+Persisted in ViewState per project.
 
 ### Why keep Low Impact findings?
 
@@ -181,8 +351,38 @@ Low Impact findings document what was ruled out. This is valuable for:
 ### Output
 
 A list of pinned findings, each with filter context, variation %, tags, and analyst notes.
+Findings at "Improving" or "Resolved" status additionally carry corrective actions,
+outcomes, and Cpk improvement data.
 
 See [Drill-Down Workflow](drill-down-workflow.md) for detailed drill-down mechanics.
+
+### Teams Auto-Posting
+
+When a finding reaches key statuses, VariScout auto-posts to the Teams channel (Team plan only):
+
+**On Analyzed** (with suspected cause + actions):
+
+```
+📌 Finding Analyzed: Fill Head 3 drift — morning shift
+
+Suspected cause: Nozzle tip worn beyond tolerance
+
+Actions:
+☐ Replace nozzle tip on Fill Head 3 — @Kim Larsson — Due: Mar 15
+☐ Add nozzle inspection to daily checklist — @Jan Virtanen — Due: Mar 25
+```
+
+**On Resolved** (with outcome):
+
+```
+✅ Finding Resolved: Fill Head 3 drift — morning shift
+
+Outcome: Effective ✓
+Cpk: 0.85 → 1.35
+Notes: Nozzle replacement resolved drift. Monitoring for 2 weeks.
+```
+
+Uses [ADR-018](../../07-decisions/adr-018-channel-mention-workflow.md) @mention workflow infrastructure.
 
 ## What-If Simulator — Project Improvement
 
@@ -220,12 +420,14 @@ These are estimates, not guarantees. Use them for:
 
 ## Workflow Combinations
 
-| Your situation                          | Use                           |
-| --------------------------------------- | ----------------------------- |
-| "I don't know what's causing variation" | Findings (investigate)        |
-| "I want to set a Cpk target"            | What-If (project)             |
-| "I have findings, want to project"      | Findings then What-If         |
-| "Full investigation from scratch"       | Findings → classify → What-If |
+| Your situation                          | Use                                                         | Tier Required |
+| --------------------------------------- | ----------------------------------------------------------- | ------------- |
+| "I don't know what's causing variation" | Findings (investigate)                                      | All           |
+| "I want to set a Cpk target"            | What-If (project)                                           | All           |
+| "I have findings, want to project"      | Findings then What-If                                       | All           |
+| "Full investigation from scratch"       | Findings → classify → What-If                               | All           |
+| "Full closed-loop improvement"          | Findings → actions → resolve → verify Cpk change            | Azure         |
+| "Team improvement with verification"    | Findings → assign actions → resolve → Teams post → AI learn | Azure Team    |
 
 ## Example: Pizza Delivery Dataset
 
@@ -253,3 +455,11 @@ Filter to Store C + Weekend, then use What-If:
 - [Deep Dive](deep-dive.md) — 30-minute investigation pattern
 - [Decision Trees](decision-trees.md) — Which analysis to use when
 - [Four Lenses Workflow](four-lenses-workflow.md) — Foundational methodology
+- [Findings Components](../../06-design-system/components/findings.md) — Design system specs
+- [AI Components](../../06-design-system/components/ai-components.md) — NarrativeBar, ChartInsightChip, CoScoutPanel specs
+- [Hypothesis Investigation](hypothesis-investigation.md) — Diamond pattern root cause investigation
+- [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Architectural decisions
+- [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Hypothesis model decisions
+- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Knowledge base dependency
+- [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) — Data lifecycle, staged comparison, verification vision
+- [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) — Dynamic Report View for sharing investigation stories

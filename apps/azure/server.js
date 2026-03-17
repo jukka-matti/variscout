@@ -21,6 +21,14 @@ if (functionUrl) {
     // Invalid FUNCTION_URL — ignore, CSP stays without it
   }
 }
+const aiEndpoint = process.env.AI_ENDPOINT || '';
+const searchEndpoint = process.env.AI_SEARCH_ENDPOINT || '';
+if (aiEndpoint) {
+  try { connectSrc += ` ${new URL(aiEndpoint).origin}`; } catch { /* ignore */ }
+}
+if (searchEndpoint) {
+  try { connectSrc += ` ${new URL(searchEndpoint).origin}`; } catch { /* ignore */ }
+}
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
@@ -77,6 +85,24 @@ const server = createServer(async (req, res) => {
   if (pathname === '/health') {
     writeResponse(res, 200, { 'Content-Type': 'text/plain' });
     res.end('ok');
+    return;
+  }
+
+  // Runtime configuration endpoint — serves env vars as JSON.
+  // Required for Marketplace deployments where Vite env vars are baked at build time.
+  if (pathname === '/config') {
+    const config = {
+      plan: process.env.VITE_VARISCOUT_PLAN || 'standard',
+      functionUrl: process.env.FUNCTION_URL || '',
+      aiEndpoint: process.env.AI_ENDPOINT || '',
+      aiSearchEndpoint: process.env.AI_SEARCH_ENDPOINT || '',
+      aiSearchIndex: process.env.AI_SEARCH_INDEX || 'findings',
+    };
+    writeResponse(res, 200, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+    });
+    res.end(JSON.stringify(config));
     return;
   }
 

@@ -32,6 +32,10 @@ export default defineConfig({
                   slug: '01-vision/product-overview',
                 },
                 {
+                  label: 'Methodology',
+                  slug: '01-vision/methodology',
+                },
+                {
                   label: 'Market Analysis',
                   slug: '01-vision/market-analysis',
                 },
@@ -92,10 +96,6 @@ export default defineConfig({
                       slug: '01-vision/evaluations/design-brief-guided-investigation',
                     },
                     {
-                      label: 'Mindmap Spec',
-                      slug: '01-vision/evaluations/design-spec-investigation-mindmap',
-                    },
-                    {
                       label: 'Competitive',
                       collapsed: true,
                       items: [
@@ -129,14 +129,6 @@ export default defineConfig({
                       label: 'Patterns',
                       collapsed: true,
                       items: [
-                        {
-                          label: 'Investigation Mindmap',
-                          slug: '01-vision/evaluations/patterns/investigation-mindmap',
-                        },
-                        {
-                          label: 'Investigation Narrative',
-                          slug: '01-vision/evaluations/patterns/investigation-narrative',
-                        },
                         {
                           label: 'Factor Suggestion',
                           slug: '01-vision/evaluations/patterns/factor-suggestion',
@@ -333,6 +325,14 @@ export default defineConfig({
                       label: 'Azure Team Collaboration',
                       slug: '02-journeys/flows/azure-team-collaboration',
                     },
+                    {
+                      label: 'Azure Teams Mobile',
+                      slug: '02-journeys/flows/azure-teams-mobile',
+                    },
+                    {
+                      label: 'Azure AI Setup',
+                      slug: '02-journeys/flows/azure-ai-setup',
+                    },
                   ],
                 },
               ],
@@ -390,6 +390,18 @@ export default defineConfig({
                   label: 'Staged Analysis',
                   slug: '03-features/analysis/staged-analysis',
                 },
+                {
+                  label: 'Stats Panel',
+                  slug: '03-features/analysis/stats-panel',
+                },
+                {
+                  label: 'Characteristic Types',
+                  slug: '03-features/analysis/characteristic-types',
+                },
+                {
+                  label: 'Variation Decomposition',
+                  slug: '03-features/analysis/variation-decomposition',
+                },
               ],
             },
             {
@@ -427,6 +439,18 @@ export default defineConfig({
                 {
                   label: 'Investigation to Action',
                   slug: '03-features/workflows/investigation-to-action',
+                },
+                {
+                  label: 'Hypothesis Investigation',
+                  slug: '03-features/workflows/hypothesis-investigation',
+                },
+                {
+                  label: 'AI-Assisted Analysis',
+                  slug: '03-features/workflows/ai-assisted-analysis',
+                },
+                {
+                  label: 'Knowledge Base Search',
+                  slug: '03-features/workflows/knowledge-base-search',
                 },
               ],
             },
@@ -513,6 +537,36 @@ export default defineConfig({
               ],
             },
             {
+              label: 'AI Architecture',
+              collapsed: true,
+              items: [
+                {
+                  label: 'AI Integration',
+                  slug: '05-technical/architecture/ai-architecture',
+                },
+                {
+                  label: 'AI Data Flow',
+                  slug: '05-technical/architecture/ai-data-flow',
+                },
+                {
+                  label: 'AI Context Engineering',
+                  slug: '05-technical/architecture/ai-context-engineering',
+                },
+                {
+                  label: 'AIX Design System',
+                  slug: '05-technical/architecture/aix-design-system',
+                },
+                {
+                  label: 'AI Readiness Review',
+                  slug: '05-technical/architecture/ai-readiness-review',
+                },
+                {
+                  label: 'Knowledge Model',
+                  slug: '05-technical/architecture/knowledge-model',
+                },
+              ],
+            },
+            {
               label: 'Implementation',
               items: [
                 {
@@ -538,6 +592,10 @@ export default defineConfig({
                 {
                   label: 'AI Tooling',
                   slug: '05-technical/implementation/ruflo',
+                },
+                {
+                  label: 'Statistics Reference',
+                  slug: '05-technical/statistics-reference',
                 },
               ],
             },
@@ -662,6 +720,14 @@ export default defineConfig({
                       label: 'What-If Simulator',
                       slug: '06-design-system/components/what-if-simulator',
                     },
+                    {
+                      label: 'AI Components',
+                      slug: '06-design-system/components/ai-components',
+                    },
+                    {
+                      label: 'Findings',
+                      slug: '06-design-system/components/findings',
+                    },
                   ],
                 },
                 {
@@ -680,6 +746,10 @@ export default defineConfig({
                       label: 'Navigation',
                       slug: '06-design-system/patterns/navigation',
                     },
+                    {
+                      label: 'Dashboard Design',
+                      slug: '06-design-system/patterns/dashboard-design',
+                    },
                   ],
                 },
               ],
@@ -697,7 +767,6 @@ export default defineConfig({
                   collapsed: true,
                   items: [
                     { label: 'Overview', slug: '08-products/pwa' },
-                    { label: 'Storage', slug: '08-products/pwa/storage' },
                   ],
                 },
                 {
@@ -733,12 +802,11 @@ export default defineConfig({
                       label: 'Submission Checklist',
                       slug: '08-products/azure/submission-checklist',
                     },
+                    {
+                      label: 'Storage',
+                      slug: '08-products/azure/storage',
+                    },
                   ],
-                },
-                {
-                  label: 'Power BI',
-                  collapsed: true,
-                  items: [{ label: 'Overview', slug: '08-products/powerbi' }],
                 },
                 {
                   label: 'Website',
@@ -815,9 +883,65 @@ export default defineConfig({
               slug: '07-decisions/adr-013-architecture-evaluation-ddd-swarms',
             },
             {
+              label: 'ADR-014 Regression Deferral',
+              slug: '07-decisions/adr-014-regression-deferral',
+            },
+            {
+              label: 'ADR-015 Investigation Board',
+              slug: '07-decisions/adr-015-investigation-board',
+            },
+            {
+              label: 'ADR-016 Teams Integration',
+              slug: '07-decisions/adr-016-teams-integration',
+            },
+            {
+              label: 'ADR-017 Fluent Design',
+              slug: '07-decisions/adr-017-fluent-design-alignment',
+            },
+            {
+              label: 'ADR-018 Channel @Mention',
+              slug: '07-decisions/adr-018-channel-mention-workflow',
+            },
+            {
+              label: 'ADR-019 AI Integration',
+              slug: '07-decisions/adr-019-ai-integration',
+            },
+            {
+              label: 'ADR-020 Investigation Workflow',
+              slug: '07-decisions/adr-020-investigation-workflow',
+            },
+            {
+              label: 'ADR-021 Security Evaluation',
+              slug: '07-decisions/adr-021-security-evaluation',
+            },
+            {
+              label: 'ADR-022 Knowledge Layer',
+              slug: '07-decisions/adr-022-knowledge-layer-architecture',
+            },
+            {
+              label: 'ADR-023 Data Lifecycle',
+              slug: '07-decisions/adr-023-data-lifecycle',
+            },
+            {
+              label: 'ADR-024 Scouting Report',
+              slug: '07-decisions/adr-024-scouting-report',
+            },
+            {
+              label: 'ADR-025 Internationalization',
+              slug: '07-decisions/adr-025-internationalization',
+            },
+            {
               label: 'Product Audit Feb 2026',
               slug: '07-decisions/audit-2026-02-state-of-product',
             },
+          ],
+        },
+
+        // ── Tutorials ──
+        {
+          label: 'Tutorials',
+          items: [
+            { label: 'Overview', slug: '09-tutorials' },
           ],
         },
 

@@ -234,7 +234,7 @@ export function findOptimalFactors(
     if (selected.length >= maxFactors) break;
 
     // Calculate cumulative as product of remaining variation
-    // E.g., if factor explains 67%, remaining is 33%, cumulative isolated is 67%
+    // E.g., if factor explains 67%, remaining is 33%, cumulative in focus is 67%
     const contribution = (cumulativeRemaining * stat.variationPct) / 100;
     cumulativeRemaining = cumulativeRemaining - contribution;
     const cumulativeIsolated = 100 - cumulativeRemaining;

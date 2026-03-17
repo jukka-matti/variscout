@@ -14,7 +14,7 @@
  *   probability.ts    — calculateProbabilityPlotData, normalQuantile
  *   conformance.ts    — calculateConformance
  *   staged.ts         — determineStageOrder, sortDataByStage, calculateStatsByStage, getStageBoundaries
- *   nelson.ts         — getNelsonRule2ViolationPoints, getNelsonRule2Sequences
+ *   nelson.ts         — getNelsonRule2ViolationPoints, getNelsonRule2Sequences, getNelsonRule3ViolationPoints, getNelsonRule3Sequences
  *   boxplot.ts        — calculateBoxplotStats, sortBoxplotData
  *   kde.ts            — calculateKDE
  *   distributions.ts  — (internal) fDistributionPValue, tDistributionPValue, etc.
@@ -52,10 +52,23 @@ export {
   sortDataByStage,
   calculateStatsByStage,
   getStageBoundaries,
+  calculateStagedComparison,
+} from './staged';
+
+export type {
+  StagedComparison,
+  StagedComparisonStage,
+  StagedComparisonDeltas,
+  DeltaColor,
 } from './staged';
 
 // Nelson rules
-export { getNelsonRule2ViolationPoints, getNelsonRule2Sequences } from './nelson';
+export {
+  getNelsonRule2ViolationPoints,
+  getNelsonRule2Sequences,
+  getNelsonRule3ViolationPoints,
+  getNelsonRule3Sequences,
+} from './nelson';
 
 // Boxplot statistics
 export { calculateBoxplotStats, sortBoxplotData } from './boxplot';

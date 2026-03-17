@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Activity, BarChart3, PieChart, TrendingUp } from 'lucide-react';
 import IChart from './charts/IChart';
 import Boxplot from './charts/Boxplot';
 import ParetoChart from './charts/ParetoChart';
 import StatsPanel from './StatsPanel';
-import { AnovaResults, ErrorBoundary, FactorSelector, FilterBreadcrumb } from '@variscout/ui';
-import type { StatsResult, AnovaResult, DataRow } from '@variscout/core';
+import {
+  AnovaResults,
+  ErrorBoundary,
+  FactorSelector,
+  FilterBreadcrumb,
+  MobileCategorySheet,
+} from '@variscout/ui';
+import type { StatsResult, AnovaResult, DataRow, Finding } from '@variscout/core';
 import type { FilterChipData } from '@variscout/hooks';
 
 type ChartView = 'ichart' | 'boxplot' | 'pareto' | 'stats';
@@ -39,6 +45,11 @@ interface MobileDashboardProps {
   // Pareto aggregation
   paretoAggregation?: 'count' | 'value';
   onToggleParetoAggregation?: () => void;
+  // Findings integration
+  onPinFinding?: (text: string, chartType?: string, category?: string) => void;
+  findings?: Finding[];
+  onEditFinding?: (id: string, text: string) => void;
+  onDeleteFinding?: (id: string) => void;
 }
 
 const MobileDashboard: React.FC<MobileDashboardProps> = ({
@@ -66,8 +77,62 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
   factorVariations,
   paretoAggregation = 'count',
   onToggleParetoAggregation,
+  onPinFinding,
+  findings,
+  onEditFinding,
+  onDeleteFinding,
 }) => {
   const [activeView, setActiveView] = useState<ChartView>('ichart');
+
+  // MobileCategorySheet state
+  const [sheetData, setSheetData] = useState<{
+    categoryKey: string;
+    chartType: 'boxplot' | 'pareto';
+    contributionPct?: number;
+  } | null>(null);
+  const [sheetFactor, setSheetFactor] = useState('');
+
+  const handleBoxplotDrillIntercept = useCallback(
+    (factor: string, value: string) => {
+      const variationPct = factorVariations?.get(factor);
+      setSheetFactor(factor);
+      setSheetData({
+        categoryKey: value,
+        chartType: 'boxplot',
+        contributionPct: variationPct ? variationPct * 100 : undefined,
+      });
+    },
+    [factorVariations]
+  );
+
+  const handleParetoDrillIntercept = useCallback((factor: string, value: string) => {
+    setSheetFactor(factor);
+    setSheetData({
+      categoryKey: value,
+      chartType: 'pareto',
+    });
+  }, []);
+
+  const handleSheetDrillDown = useCallback(() => {
+    if (onDrillDown && sheetData) {
+      onDrillDown(sheetFactor, sheetData.categoryKey);
+    }
+    setSheetData(null);
+  }, [onDrillDown, sheetData, sheetFactor]);
+
+  const handleSheetPinFinding = useCallback(
+    (noteText: string) => {
+      if (onPinFinding && sheetData) {
+        onPinFinding(
+          noteText || `${sheetData.categoryKey} (${sheetData.chartType})`,
+          sheetData.chartType,
+          sheetData.categoryKey
+        );
+      }
+      setSheetData(null);
+    },
+    [onPinFinding, sheetData]
+  );
 
   const views: { key: ChartView; label: string; icon: React.ReactNode }[] = [
     { key: 'ichart', label: 'I-Chart', icon: <Activity size={18} /> },
@@ -204,19 +269,25 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
             {activeView === 'boxplot' && boxplotFactor && (
               <Boxplot
                 factor={boxplotFactor}
-                onDrillDown={onDrillDown}
+                onDrillDown={handleBoxplotDrillIntercept}
                 variationPct={factorVariations?.get(boxplotFactor)}
+                findings={findings?.filter(f => f.source?.chart === 'boxplot')}
+                onEditFinding={onEditFinding}
+                onDeleteFinding={onDeleteFinding}
               />
             )}
             {activeView === 'pareto' && paretoFactor && (
               <ParetoChart
                 factor={paretoFactor}
-                onDrillDown={onDrillDown}
+                onDrillDown={handleParetoDrillIntercept}
                 onHide={onHideParetoPanel}
                 onUploadPareto={onUploadPareto}
                 availableFactors={factors}
                 aggregation={paretoAggregation}
                 onToggleAggregation={onToggleParetoAggregation}
+                findings={findings?.filter(f => f.source?.chart === 'pareto')}
+                onEditFinding={onEditFinding}
+                onDeleteFinding={onDeleteFinding}
               />
             )}
             {activeView === 'stats' && (
@@ -249,6 +320,16 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({
           />
         ))}
       </div>
+
+      {/* Mobile Category Sheet */}
+      <MobileCategorySheet
+        data={sheetData}
+        factor={sheetFactor}
+        onDrillDown={handleSheetDrillDown}
+        onSetHighlight={() => {}} // PWA: highlights not persisted
+        onPinFinding={handleSheetPinFinding}
+        onClose={() => setSheetData(null)}
+      />
     </div>
   );
 };

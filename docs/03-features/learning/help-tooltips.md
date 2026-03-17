@@ -1,5 +1,9 @@
 ---
-title: 'Help Tooltips'
+title: Help Tooltips
+audience: [analyst, engineer]
+category: learning
+status: stable
+related: [glossary, contextual-help, onboarding]
 ---
 
 # Help Tooltips

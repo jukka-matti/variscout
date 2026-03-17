@@ -23,6 +23,27 @@ export interface FindingBoardViewProps {
   onAssignFinding?: (findingId: string) => void;
   renderAssignSlot?: (findingId: string) => React.ReactNode;
   onNavigateToChart?: (source: FindingSource) => void;
+  maxStatuses?: number;
+  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
+  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  onAddAction?: (
+    id: string,
+    text: string,
+    assignee?: import('@variscout/core').FindingAssignee,
+    dueDate?: string
+  ) => void;
+  onCompleteAction?: (id: string, actionId: string) => void;
+  onDeleteAction?: (id: string, actionId: string) => void;
+  onSetOutcome?: (
+    id: string,
+    outcome: {
+      effective: 'yes' | 'no' | 'partial';
+      cpkAfter?: number;
+      notes?: string;
+      verifiedAt: number;
+    }
+  ) => void;
 }
 
 /**
@@ -47,6 +68,14 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
   onAssignFinding,
   renderAssignSlot,
   onNavigateToChart,
+  maxStatuses,
+  onLinkHypothesis,
+  onCreateHypothesis,
+  hypothesesMap,
+  onAddAction,
+  onCompleteAction,
+  onDeleteAction,
+  onSetOutcome,
 }) => {
   const groups = groupFindingsByStatus(findings);
 
@@ -117,6 +146,14 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                     onAssign={onAssignFinding}
                     renderAssignSlot={renderAssignSlot?.(finding.id)}
                     onNavigateToChart={onNavigateToChart}
+                    maxStatuses={maxStatuses}
+                    onLinkHypothesis={onLinkHypothesis}
+                    onCreateHypothesis={onCreateHypothesis}
+                    hypothesesMap={hypothesesMap}
+                    onAddAction={onAddAction}
+                    onCompleteAction={onCompleteAction}
+                    onDeleteAction={onDeleteAction}
+                    onSetOutcome={onSetOutcome}
                   />
                 ))}
               </div>

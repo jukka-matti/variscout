@@ -4,9 +4,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-// Mock @variscout/core — isTeamPlan defaults to true (photo comments are Team-only)
+// Mock @variscout/core — hasTeamFeatures defaults to true (photo comments are Team-only)
 vi.mock('@variscout/core', () => ({
-  isTeamPlan: () => true,
+  hasTeamFeatures: () => true,
   createPhotoAttachment: vi.fn((filename: string) => ({
     id: `photo-${Date.now()}`,
     filename,
@@ -68,6 +68,15 @@ function createMockFindingsState(): UseFindingsReturn {
     setFindingAssignee: vi.fn(),
     addPhotoToComment: vi.fn(),
     updatePhotoStatus: vi.fn(),
+    linkHypothesis: vi.fn(),
+    unlinkHypothesis: vi.fn(),
+    setProjection: vi.fn(),
+    clearProjection: vi.fn(),
+    addAction: vi.fn(),
+    updateAction: vi.fn(),
+    completeAction: vi.fn(),
+    deleteAction: vi.fn(),
+    setOutcome: vi.fn(),
   };
 }
 

@@ -10,16 +10,24 @@
 // ============================================================================
 
 /** Investigation lifecycle status */
-export type FindingStatus = 'observed' | 'investigating' | 'analyzed';
+export type FindingStatus = 'observed' | 'investigating' | 'analyzed' | 'improving' | 'resolved';
 
 /** Ordered list of all finding statuses */
-export const FINDING_STATUSES: FindingStatus[] = ['observed', 'investigating', 'analyzed'];
+export const FINDING_STATUSES: FindingStatus[] = [
+  'observed',
+  'investigating',
+  'analyzed',
+  'improving',
+  'resolved',
+];
 
 /** Human-readable labels for finding statuses */
 export const FINDING_STATUS_LABELS: Record<FindingStatus, string> = {
   observed: 'Observed',
   investigating: 'Investigating',
   analyzed: 'Analyzed',
+  improving: 'Improving',
+  resolved: 'Resolved',
 };
 
 // ============================================================================
@@ -37,6 +45,9 @@ export const FINDING_TAG_LABELS: Record<FindingTag, string> = {
   'key-driver': 'Key Driver',
   'low-impact': 'Low Impact',
 };
+
+/** Statuses available in PWA (free tier) — hides improving/resolved */
+export const PWA_STATUSES: FindingStatus[] = ['observed', 'investigating', 'analyzed'];
 
 // ============================================================================
 // Photo Attachment Types
@@ -84,6 +95,179 @@ export interface FindingAssignee {
 }
 
 // ============================================================================
+// Action Items (investigation tasks)
+// ============================================================================
+
+/** A corrective/preventive action task within a finding */
+export interface ActionItem {
+  id: string;
+  text: string;
+  assignee?: FindingAssignee;
+  dueDate?: string; // ISO date string (YYYY-MM-DD)
+  completedAt?: number; // Date.now() timestamp
+  createdAt: number;
+}
+
+// ============================================================================
+// Finding Outcome (effectiveness verification)
+// ============================================================================
+
+/** Outcome assessment after corrective actions are complete */
+export interface FindingOutcome {
+  effective: 'yes' | 'no' | 'partial';
+  cpkBefore?: number;
+  cpkAfter?: number;
+  notes?: string;
+  verifiedAt: number;
+}
+
+// ============================================================================
+// Improvement Idea Types (IDEOI — creative bridge between root cause and actions)
+// ============================================================================
+
+/** Effort level for an improvement idea (manual human judgment) */
+export type IdeaEffort = 'low' | 'medium' | 'high';
+
+/** Impact level for an improvement idea (computed or manual) */
+export type IdeaImpact = 'low' | 'medium' | 'high';
+
+/**
+ * An improvement idea attached to a supported/partial hypothesis.
+ * Bridges validated root cause (ANALYSOI) and corrective actions (KOKEILE).
+ */
+export interface ImprovementIdea {
+  /** Unique identifier */
+  id: string;
+  /** Idea description (e.g., "Simplify setup with visual guides") */
+  text: string;
+  /** Manual effort estimate — human judgment */
+  effort?: IdeaEffort;
+  /** Manual impact fallback when no projection is available */
+  impactOverride?: IdeaImpact;
+  /** Optional What-If projection — when present, impact is auto-computed */
+  projection?: FindingProjection;
+  /** Whether this idea is selected as "the one(s) to try" */
+  selected?: boolean;
+  /** Analyst's rationale for selection or notes */
+  notes?: string;
+  /** Timestamp of creation */
+  createdAt: string;
+}
+
+// ============================================================================
+// Hypothesis Types
+// ============================================================================
+
+/** Status of a hypothesis based on evidence */
+export type HypothesisStatus = 'untested' | 'supported' | 'contradicted' | 'partial';
+
+/** Ordered list of hypothesis statuses */
+export const HYPOTHESIS_STATUSES: HypothesisStatus[] = [
+  'untested',
+  'supported',
+  'contradicted',
+  'partial',
+];
+
+/** Human-readable labels for hypothesis statuses */
+export const HYPOTHESIS_STATUS_LABELS: Record<HypothesisStatus, string> = {
+  untested: 'Untested',
+  supported: 'Supported',
+  contradicted: 'Contradicted',
+  partial: 'Partial',
+};
+
+/** Validation type for hypothesis evidence gathering */
+export type HypothesisValidationType = 'data' | 'gemba' | 'expert';
+
+/**
+ * A causal hypothesis — a shared theory that multiple findings can reference.
+ * Supports tree structure via parentId for sub-hypothesis investigation.
+ */
+export interface Hypothesis {
+  /** Unique identifier */
+  id: string;
+  /** Hypothesis text (e.g., "New operators lack system training") */
+  text: string;
+  /** Linked factor column name */
+  factor?: string;
+  /** Specific factor level (e.g., "Night") */
+  level?: string;
+  /** Validation status based on evidence */
+  status: HypothesisStatus;
+  /** IDs of findings that link to this hypothesis */
+  linkedFindingIds: string[];
+  /** Timestamp of creation */
+  createdAt: string;
+  /** Timestamp of last update */
+  updatedAt: string;
+
+  // --- Tree structure (sub-hypotheses) ---
+  /** Parent hypothesis ID — enables tree (sub-hypotheses). Undefined for root hypotheses. */
+  parentId?: string;
+  /** How this hypothesis is validated: data (auto η²), gemba (go-and-see), or expert opinion */
+  validationType?: HypothesisValidationType;
+  /** Task description for gemba/expert validation */
+  validationTask?: string;
+  /** Whether the gemba/expert task has been completed */
+  taskCompleted?: boolean;
+  /** Analyst's note when manually setting status (gemba/expert validation) */
+  manualNote?: string;
+  /** Improvement ideas — IDEOI output for supported/partial hypotheses */
+  ideas?: ImprovementIdea[];
+}
+
+// ============================================================================
+// Finding Projection Types
+// ============================================================================
+
+/**
+ * A What-If projection attached to a finding.
+ * Captures baseline and projected stats for improvement tracking.
+ */
+export interface FindingProjection {
+  /** Baseline mean at projection time */
+  baselineMean: number;
+  /** Baseline sigma at projection time */
+  baselineSigma: number;
+  /** Baseline Cpk (only if specs exist) */
+  baselineCpk?: number;
+  /** Baseline yield percentage */
+  baselineYield?: number;
+  /** Baseline pass rate percentage */
+  baselinePassRate?: number;
+
+  /** Projected mean after improvement */
+  projectedMean: number;
+  /** Projected sigma after improvement */
+  projectedSigma: number;
+  /** Projected Cpk */
+  projectedCpk?: number;
+  /** Projected yield percentage */
+  projectedYield?: number;
+  /** Projected pass rate percentage */
+  projectedPassRate?: number;
+
+  /** Mean delta (projected - baseline) */
+  meanDelta: number;
+  /** Sigma delta (projected - baseline) */
+  sigmaDelta: number;
+
+  /** Contribution to improvement target (0.0-1.0) */
+  targetContribution?: number;
+
+  /** What-If simulation parameters used */
+  simulationParams: {
+    meanAdjustment: number;
+    variationReduction: number; // 0-100%
+    presetUsed?: string; // e.g., "match-best", "reach-target"
+  };
+
+  /** Timestamp of projection creation */
+  createdAt: string;
+}
+
+// ============================================================================
 // Finding Source (chart observation origin)
 // ============================================================================
 
@@ -102,7 +286,7 @@ export type FindingSource =
 export interface FindingContext {
   /** Active filters at time of capture: factor → selected values */
   activeFilters: Record<string, (string | number)[]>;
-  /** Cumulative variation % isolated (0–100), or null if no filters */
+  /** Cumulative variation % in focus (0–100), or null if no filters */
   cumulativeScope: number | null;
   /** Key statistics at time of capture */
   stats?: { mean: number; median?: number; cpk?: number; samples: number };
@@ -132,6 +316,81 @@ export interface Finding {
   source?: FindingSource;
   /** Optional assignee for Team plan @mention workflow */
   assignee?: FindingAssignee;
+  /** Link to a hypothesis (replaces deprecated suspectedCause) */
+  hypothesisId?: string;
+  /** How this finding relates to its linked hypothesis */
+  validationStatus?: 'supports' | 'contradicts' | 'inconclusive';
+  /** What-If projection attached to this finding */
+  projection?: FindingProjection;
+  /** Corrective/preventive action items */
+  actions?: ActionItem[];
+  /** Outcome assessment after actions complete */
+  outcome?: FindingOutcome;
+}
+
+// ============================================================================
+// Investigation Categories (dynamic, user-defined factor grouping)
+// ============================================================================
+
+/**
+ * A user-defined investigation category that groups factor columns.
+ *
+ * Three-level investigation tree: Category → Factor → Hypothesis
+ */
+export interface InvestigationCategory {
+  id: string;
+  /** User-defined name: "Equipment", "Drying Method", "Staff", etc. */
+  name: string;
+  /** Which factor columns belong to this category */
+  factorNames: string[];
+  /** Badge color — auto-assigned from palette or user-picked */
+  color?: string;
+  /** Keyword that triggered inference, if any (for tooltip display) */
+  inferredFrom?: string;
+}
+
+/**
+ * Color palette for auto-assigning category badge colors.
+ * Cycles through 8 distinct colors for visual differentiation.
+ */
+export const CATEGORY_COLORS = [
+  '#3b82f6', // blue
+  '#a855f7', // purple
+  '#22c55e', // green
+  '#f59e0b', // amber
+  '#06b6d4', // cyan
+  '#ef4444', // red
+  '#ec4899', // pink
+  '#64748b', // slate
+] as const;
+
+/**
+ * Create a new InvestigationCategory with a unique ID and auto-assigned color.
+ */
+export function createInvestigationCategory(
+  name: string,
+  factorNames: string[],
+  existingCount: number = 0,
+  inferredFrom?: string
+): InvestigationCategory {
+  const category: InvestigationCategory = {
+    id: generateId(),
+    name,
+    factorNames,
+    color: CATEGORY_COLORS[existingCount % CATEGORY_COLORS.length],
+  };
+  if (inferredFrom) category.inferredFrom = inferredFrom;
+  return category;
+}
+
+/**
+ * Get the category that a factor belongs to, or undefined if uncategorized.
+ */
+export function getCategoryForFactor(
+  categories: InvestigationCategory[],
+  factorName: string
+): InvestigationCategory | undefined {
+  return categories.find(c => c.factorNames.includes(factorName));
 }
 
 // ============================================================================
@@ -139,10 +398,35 @@ export interface Finding {
 // ============================================================================
 
 /** Generate a unique ID */
-function generateId(): string {
+export function generateId(): string {
   return typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
     : `f-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+/**
+ * Create a new Hypothesis with a unique ID
+ */
+export function createHypothesis(
+  text: string,
+  factor?: string,
+  level?: string,
+  parentId?: string,
+  validationType?: HypothesisValidationType
+): Hypothesis {
+  const now = new Date().toISOString();
+  return {
+    id: generateId(),
+    text,
+    factor,
+    level,
+    status: 'untested',
+    linkedFindingIds: [],
+    createdAt: now,
+    updatedAt: now,
+    parentId,
+    validationType,
+  };
 }
 
 /**
@@ -198,6 +482,50 @@ export function createFindingComment(text: string, author?: string): FindingComm
   return comment;
 }
 
+/**
+ * Create a new ActionItem with a unique ID
+ */
+export function createActionItem(
+  text: string,
+  assignee?: FindingAssignee,
+  dueDate?: string
+): ActionItem {
+  return {
+    id: generateId(),
+    text,
+    assignee,
+    dueDate,
+    createdAt: Date.now(),
+  };
+}
+
+/**
+ * Create a FindingOutcome
+ */
+export function createFindingOutcome(
+  effective: 'yes' | 'no' | 'partial',
+  notes?: string,
+  cpkAfter?: number
+): FindingOutcome {
+  return {
+    effective,
+    notes,
+    cpkAfter,
+    verifiedAt: Date.now(),
+  };
+}
+
+/**
+ * Create a new ImprovementIdea with a unique ID
+ */
+export function createImprovementIdea(text: string): ImprovementIdea {
+  return {
+    id: generateId(),
+    text,
+    createdAt: new Date().toISOString(),
+  };
+}
+
 // ============================================================================
 // Status Helpers
 // ============================================================================
@@ -217,6 +545,8 @@ export function groupFindingsByStatus(findings: Finding[]): Record<FindingStatus
     observed: [],
     investigating: [],
     analyzed: [],
+    improving: [],
+    resolved: [],
   };
 
   for (const finding of findings) {
@@ -327,15 +657,47 @@ function migrateSource(source: FindingSource | undefined): FindingSource | undef
 }
 
 /**
+ * Migrate a legacy string assignee on an ActionItem to FindingAssignee.
+ * - undefined → undefined
+ * - string → { upn: string, displayName: string } (uses string for both)
+ * - FindingAssignee → pass through
+ */
+export function migrateActionAssignee(
+  assignee: string | FindingAssignee | undefined
+): FindingAssignee | undefined {
+  if (assignee === undefined) return undefined;
+  if (typeof assignee === 'string') {
+    return { upn: assignee, displayName: assignee };
+  }
+  return assignee;
+}
+
+/**
  * Migrate an array of findings from old status model to new.
- * Also normalizes FindingSource to discriminated union shape.
+ * Also normalizes FindingSource to discriminated union shape
+ * and migrates ActionItem assignees from string to FindingAssignee.
  * Safe to call on already-migrated data.
  */
 export function migrateFindings(findings: Finding[]): Finding[] {
   return findings.map(f => {
-    const migrated = migrateFindingStatus(f);
+    let migrated = migrateFindingStatus(f);
     const source = migrateSource(migrated.source);
-    return source !== migrated.source ? { ...migrated, source } : migrated;
+    if (source !== migrated.source) {
+      migrated = { ...migrated, source };
+    }
+    // Migrate action assignees from string to FindingAssignee
+    if (migrated.actions?.length) {
+      const migratedActions = migrated.actions.map(a => {
+        const newAssignee = migrateActionAssignee(
+          a.assignee as string | FindingAssignee | undefined
+        );
+        return newAssignee !== a.assignee ? { ...a, assignee: newAssignee } : a;
+      });
+      if (migratedActions.some((a, i) => a !== migrated.actions![i])) {
+        migrated = { ...migrated, actions: migratedActions };
+      }
+    }
+    return migrated;
   });
 }
 

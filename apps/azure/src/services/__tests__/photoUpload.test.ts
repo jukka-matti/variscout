@@ -3,9 +3,9 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock @variscout/core — isTeamPlan defaults to true (photo upload is Team-only)
+// Mock @variscout/core — hasTeamFeatures defaults to true (photo upload is Team-only)
 vi.mock('@variscout/core', () => ({
-  isTeamPlan: vi.fn(() => true),
+  hasTeamFeatures: vi.fn(() => true),
 }));
 
 // Mock easyAuth before importing

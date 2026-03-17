@@ -1,5 +1,9 @@
 ---
-title: 'Data Input'
+title: Data Input
+audience: [analyst, engineer]
+category: data
+status: stable
+related: [parser, csv, excel, paste, file-upload]
 ---
 
 # Data Input
@@ -85,6 +89,21 @@ LOAD INTO ANALYSIS
 The paste flow uses the same `parseText()` → `detectColumns()` → `ColumnMapping` pipeline as file upload. Tab and comma delimiters are auto-detected. The only difference is `maxFactors`: PWA allows 3 factors, Azure allows 6. The PWA HomeScreen also offers sample datasets as an alternative entry point.
 
 `PasteScreenBase` accepts optional `title` and `submitLabel` props, allowing the Azure "Add Data" flow to reuse the same component with contextual labels (e.g., "Paste Data to Add" / "Add Data").
+
+### Factor Role Inference
+
+During column detection, VariScout matches column names against keyword groups to auto-infer factor roles for AI context enrichment:
+
+| Column Name Contains                   | Inferred Role | Example                                                     |
+| -------------------------------------- | ------------- | ----------------------------------------------------------- |
+| machine, line, head, nozzle, equipment | Equipment     | "Fill Head" → factorRoles["Fill Head"] = 'equipment'        |
+| shift, day, week, hour, period         | Temporal      | "Shift" → factorRoles["Shift"] = 'temporal'                 |
+| operator, technician, inspector        | Operator      | "Operator Name" → factorRoles["Operator Name"] = 'operator' |
+| batch, lot, supplier, vendor           | Material      | "Batch ID" → factorRoles["Batch ID"] = 'material'           |
+
+Measurement unit is inferred from outcome column name suffixes ("Weight_g" → grams, "Temp_C" → °C). Inferred roles are stored in `ProcessContext` on `AnalysisState` and shown as dismissable confirmation chips in ColumnMapping. This extends the existing keyword infrastructure in `packages/core/src/parser/keywords.ts`.
+
+**Value without AI:** Factor roles improve chart labels and drill suggestions even without AI configured.
 
 ### ColumnMapping Features
 

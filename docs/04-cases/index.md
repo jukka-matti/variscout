@@ -12,13 +12,13 @@ Case studies mapped to the marketing content calendar. Each case provides data, 
 
 ## Case Portfolio
 
-| Week | Case              | Location             | Primary Analysis                      | Campaign Phase  |
-| ---- | ----------------- | -------------------- | ------------------------------------- | --------------- |
-| 1-4  | **Bottleneck**    | ESTIEM training      | Process flow, I-Chart, Boxplot        | Phase 1: Launch |
-| 5-8  | **Hospital Ward** | Healthcare           | Aggregation trap, time patterns       | Phase 2: Deepen |
-| 9-12 | **Coffee**        | East Africa          | Factor comparison                     | Phase 3: Apply  |
-| 9-12 | **Packaging**     | Africa manufacturing | Pareto, capability, process diagnosis | Phase 3: Apply  |
-| 12   | **Avocado**       | Post-harvest         | Regression                            | Phase 3: Apply  |
+| Week | Case              | Location             | Primary Analysis                          | Campaign Phase  |
+| ---- | ----------------- | -------------------- | ----------------------------------------- | --------------- |
+| 1-4  | **Bottleneck**    | ESTIEM training      | Process flow, I-Chart, Boxplot            | Phase 1: Launch |
+| 5-8  | **Hospital Ward** | Healthcare           | Aggregation trap, time patterns           | Phase 2: Deepen |
+| 9-12 | **Coffee**        | East Africa          | Factor comparison                         | Phase 3: Apply  |
+| 9-12 | **Packaging**     | Africa manufacturing | Pareto, capability, process diagnosis     | Phase 3: Apply  |
+| 12   | **Avocado**       | Post-harvest         | Regression (requires regression — future) | Phase 3: Apply  |
 
 ---
 
@@ -188,6 +188,8 @@ docs/cases/
 ---
 
 ## AI Comparison Videos (Week 4, 8, 12)
+
+> **Note:** The Week 12 Avocado comparison depends on the regression module, which is deferred to Phase 2 (see [ADR-014](../07-decisions/adr-014-regression-deferral.md)).
 
 Every 4th week features a 3-way comparison:
 

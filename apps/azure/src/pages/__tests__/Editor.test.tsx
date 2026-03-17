@@ -51,7 +51,14 @@ vi.mock('@variscout/core', () => ({
   downloadCSV: vi.fn(),
   getNelsonRule2ViolationPoints: vi.fn(() => []),
   calculateStats: vi.fn(() => ({ mean: 10, ucl: 12, lcl: 8 })),
-  isTeamPlan: vi.fn(() => false),
+  hasTeamFeatures: vi.fn(() => false),
+  isTeamAIPlan: vi.fn(() => false),
+  isPreviewEnabled: vi.fn(() => false),
+  buildSuggestedQuestions: vi.fn(() => []),
+  computeIdeaImpact: vi.fn(() => null),
+  calculateFactorVariations: vi.fn(() => []),
+  getNelsonRule2Sequences: vi.fn(() => []),
+  getNelsonRule3Sequences: vi.fn(() => []),
 }));
 
 vi.mock('../../hooks/usePhotoComments', () => ({
@@ -63,6 +70,10 @@ vi.mock('../../hooks/usePhotoComments', () => ({
 
 vi.mock('../../auth/getCurrentUser', () => ({
   getCurrentUser: vi.fn(() => Promise.resolve({ name: 'Test User', email: 'test@test.com' })),
+}));
+
+vi.mock('../../context/LocaleContext', () => ({
+  useLocale: () => ({ locale: 'en', isLocaleEnabled: true, setLocale: vi.fn() }),
 }));
 
 // ── Mock @variscout/ui ──
@@ -82,6 +93,8 @@ vi.mock('@variscout/ui', () => ({
   ),
   DataTableModalBase: () => null,
   InvestigationPrompt: () => null,
+  CoScoutPanelBase: () => null,
+  AIOnboardingTooltip: () => null,
   useIsMobile: () => false,
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));

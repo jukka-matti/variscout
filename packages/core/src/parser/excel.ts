@@ -12,6 +12,13 @@ import type { DataRow, DataCellValue } from '../types';
  * @returns Promise resolving to array of DataRow objects
  */
 export async function parseExcel(file: File): Promise<DataRow[]> {
+  const MAX_EXCEL_BYTES = 25 * 1024 * 1024; // 25 MB
+  if (file.size > MAX_EXCEL_BYTES) {
+    throw new Error(
+      `File too large (${Math.round(file.size / 1024 / 1024)} MB). Maximum file size is 25 MB.`
+    );
+  }
+
   const arrayBuffer = await file.arrayBuffer();
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(arrayBuffer);

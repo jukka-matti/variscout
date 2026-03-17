@@ -58,17 +58,19 @@ VARISCOUT ARCHITECTURE (Browser-Only)
 
 High-level architecture overview and detailed design documents:
 
-| Document                                                  | Description                                       |
-| --------------------------------------------------------- | ------------------------------------------------- |
-| [Architecture Overview](architecture.md)                  | High-level system architecture                    |
-| [Monorepo Structure](architecture/monorepo.md)            | pnpm workspaces, package boundaries               |
-| [Offline-First](architecture/offline-first.md)            | PWA, service worker, IndexedDB                    |
-| [Shared Packages](architecture/shared-packages.md)        | Package extraction and reuse strategy             |
-| [Data Flow](architecture/data-flow.md)                    | Data pipeline from input to visualization         |
-| [Component Patterns](architecture/component-patterns.md)  | Hook integration, colorScheme, base patterns      |
-| [Component Map](architecture/component-map.md)            | L3 component views per package (internal modules) |
-| [LikeC4 Model](../architecture/likec4/)                   | C4 architecture model (L1-L3) in LikeC4           |
-| [Documentation Methodology](documentation-methodology.md) | Diataxis, C4, Docs-as-Code, journey spine         |
+| Document                                                   | Description                                                 |
+| ---------------------------------------------------------- | ----------------------------------------------------------- |
+| [Architecture Overview](architecture.md)                   | High-level system architecture                              |
+| [Monorepo Structure](architecture/monorepo.md)             | pnpm workspaces, package boundaries                         |
+| [Offline-First](architecture/offline-first.md)             | PWA, service worker, IndexedDB                              |
+| [Shared Packages](architecture/shared-packages.md)         | Package extraction and reuse strategy                       |
+| [Data Flow](architecture/data-flow.md)                     | Data pipeline from input to visualization                   |
+| [Component Patterns](architecture/component-patterns.md)   | Hook integration, colorScheme, base patterns                |
+| [AI Architecture](architecture/ai-architecture.md)         | AI integration, Azure AI Foundry, context pipeline          |
+| [AIX Design System](architecture/aix-design-system.md)     | AI experience governance: tone, trust, interaction patterns |
+| [AI Readiness Review](architecture/ai-readiness-review.md) | Strategic architecture assessment for AI integration        |
+| [LikeC4 Model](../architecture/likec4/)                    | C4 architecture model (L1-L3) in LikeC4                     |
+| [Documentation Methodology](documentation-methodology.md)  | Diataxis, C4, Docs-as-Code, journey spine                   |
 
 ### Implementation
 

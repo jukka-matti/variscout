@@ -4,6 +4,8 @@ title: 'Avocado Coating Case'
 
 # Avocado Coating Case
 
+> **Status: Future** — This case requires regression analysis, which is deferred to Phase 2 (see [ADR-014](../../07-decisions/adr-014-regression-deferral.md)). The data and teaching brief are ready for when regression is implemented.
+
 **Location:** Post-harvest processing facility
 **Context:** Process parameter optimization, agricultural quality
 **Campaign Week:** 12 (Phase 3 - AI Comparison)

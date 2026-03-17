@@ -7,3 +7,5 @@ export {
   type FindingsSyncData,
   type FindingsAction,
 } from './FindingsWindow';
+
+export { InvestigationSidebar, type InvestigationSidebarProps } from './InvestigationSidebar';

@@ -1,5 +1,9 @@
 ---
-title: 'Characteristic Type Awareness'
+title: Characteristic Type Awareness
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [continuous, attribute, measurement-type]
 ---
 
 # Characteristic Type Awareness
@@ -70,6 +74,8 @@ The I-Chart uses characteristic type to distinguish between harmful and favorabl
 | Nelson Rule 2       | Red (pattern)   | Red (pattern)     | Red (pattern)     |
 
 **Spec violations** are always orange regardless of direction -- any out-of-spec point is a defect.
+
+**Nelson Rule violations** (Rule 2 diamonds ◆ and Rule 3 squares ■) are always rendered with a consistent shape regardless of the characteristic type or favorable/unfavorable direction. The shape identifies the rule; the color still reflects directionality (red = harmful, green = favorable) when a characteristic type is set.
 
 **Control violations** gain directional awareness:
 

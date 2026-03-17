@@ -7,11 +7,24 @@ import {
   ExternalLink,
   List,
   LayoutGrid,
+  GitBranch,
+  User,
 } from 'lucide-react';
-import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
+import type {
+  Finding,
+  FindingSource,
+  FindingStatus,
+  FindingTag,
+  ImprovementIdea,
+  IdeaImpact,
+  CoScoutMessage,
+  CoScoutError,
+  InvestigationPhase,
+} from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
 import { useResizablePanel } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
+import { CoScoutInline } from '../CoScoutInline';
 
 export interface FindingsPanelResizeConfig {
   storageKey: string;
@@ -19,6 +32,19 @@ export interface FindingsPanelResizeConfig {
   max?: number;
   defaultWidth?: number;
 }
+
+/** Customizable classes for app-specific styling of the findings panel. */
+export interface FindingsPanelColorScheme {
+  container: string;
+  headerBg: string;
+  badge: string;
+}
+
+export const defaultFindingsPanelColorScheme: FindingsPanelColorScheme = {
+  container: 'bg-surface-secondary border-l border-edge',
+  headerBg: 'border-b border-edge',
+  badge: 'bg-blue-500/20 text-blue-400',
+};
 
 export interface FindingsPanelBaseProps {
   isOpen: boolean;
@@ -44,6 +70,32 @@ export interface FindingsPanelBaseProps {
   renderAssignSlot?: (findingId: string) => React.ReactNode;
   onNavigateToChart?: (source: FindingSource) => void;
 
+  // 5-status investigation (Azure only)
+  maxStatuses?: number;
+  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
+  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  onAddAction?: (
+    id: string,
+    text: string,
+    assignee?: import('@variscout/core').FindingAssignee,
+    dueDate?: string
+  ) => void;
+  renderActionAssigneePicker?: (
+    onSelect: (a: import('@variscout/core').FindingAssignee) => void
+  ) => React.ReactNode;
+  onCompleteAction?: (id: string, actionId: string) => void;
+  onDeleteAction?: (id: string, actionId: string) => void;
+  onSetOutcome?: (
+    id: string,
+    outcome: {
+      effective: 'yes' | 'no' | 'partial';
+      cpkAfter?: number;
+      notes?: string;
+      verifiedAt: number;
+    }
+  ) => void;
+
   // Panel chrome
   columnAliases?: Record<string, string>;
   drillPath: DrillStep[];
@@ -51,11 +103,65 @@ export interface FindingsPanelBaseProps {
   onPopout?: () => void;
 
   // View mode (uncontrolled by default, controlled when both provided)
-  viewMode?: 'list' | 'board';
-  onViewModeChange?: (mode: 'list' | 'board') => void;
+  viewMode?: 'list' | 'board' | 'tree';
+  onViewModeChange?: (mode: 'list' | 'board' | 'tree') => void;
+
+  // Tree view props (passed through to FindingsLog → HypothesisTreeView)
+  hypotheses?: import('@variscout/core').Hypothesis[];
+  onSelectHypothesis?: (hypothesis: import('@variscout/core').Hypothesis) => void;
+  onAddSubHypothesis?: (parentId: string) => void;
+  getChildrenSummary?: (parentId: string) => {
+    supported: number;
+    contradicted: number;
+    untested: number;
+    partial: number;
+    total: number;
+  };
+
+  // --- Validation Task (passed through to FindingsLog → HypothesisTreeView) ---
+  onSetValidationTask?: (id: string, task: string) => void;
+  onCompleteTask?: (id: string) => void;
+  onSetManualStatus?: (
+    id: string,
+    status: import('@variscout/core').HypothesisStatus,
+    note?: string
+  ) => void;
+  // --- Improvement Ideas (passed through to FindingsLog → HypothesisTreeView) ---
+  ideaImpacts?: Record<string, IdeaImpact | undefined>;
+  onAddIdea?: (hypothesisId: string, text: string) => void;
+  onUpdateIdea?: (
+    hypothesisId: string,
+    ideaId: string,
+    updates: Partial<Pick<ImprovementIdea, 'text' | 'effort' | 'impactOverride' | 'notes'>>
+  ) => void;
+  onRemoveIdea?: (hypothesisId: string, ideaId: string) => void;
+  onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
+  onAskCoScout?: (question: string) => void;
+  /** Ask CoScout about a specific finding (from FindingCard action button) */
+  onAskCoScoutAboutFinding?: (focusContext: {
+    finding: { text: string; status: string; hypothesis?: string };
+  }) => void;
 
   // Resize config
   resizeConfig: FindingsPanelResizeConfig;
+
+  /** Customizable color scheme (defaults to defaultFindingsPanelColorScheme) */
+  colorScheme?: Partial<FindingsPanelColorScheme>;
+
+  // CoScout inline (Azure only — omit in PWA)
+  coScoutMessages?: CoScoutMessage[];
+  coScoutOnSend?: (text: string) => void;
+  coScoutIsLoading?: boolean;
+  coScoutIsStreaming?: boolean;
+  coScoutOnStopStreaming?: () => void;
+  coScoutError?: CoScoutError | null;
+  coScoutOnRetry?: () => void;
+  investigationPhase?: InvestigationPhase;
+  coScoutSuggestedQuestions?: string[];
+
+  /** Current user's UPN for "assigned to me" filtering (Azure Team only) */
+  currentUserUpn?: string;
 }
 
 const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
@@ -81,15 +187,62 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onAssignFinding,
   renderAssignSlot,
   onNavigateToChart,
+  maxStatuses,
+  onLinkHypothesis,
+  onCreateHypothesis,
+  hypothesesMap,
+  onAddAction,
+  onCompleteAction,
+  onDeleteAction,
+  onSetOutcome,
+  renderActionAssigneePicker,
   viewMode: externalViewMode,
   onViewModeChange,
+  hypotheses,
+  onSelectHypothesis,
+  onAddSubHypothesis,
+  getChildrenSummary,
+  onSetValidationTask,
+  onCompleteTask,
+  onSetManualStatus,
+  ideaImpacts,
+  onAddIdea,
+  onUpdateIdea,
+  onRemoveIdea,
+  onSelectIdea,
+  onProjectIdea,
+  onAskCoScout,
+  onAskCoScoutAboutFinding,
   resizeConfig,
+  coScoutMessages,
+  coScoutOnSend,
+  coScoutIsLoading,
+  coScoutIsStreaming,
+  coScoutOnStopStreaming,
+  coScoutError,
+  coScoutOnRetry,
+  investigationPhase,
+  coScoutSuggestedQuestions,
+  currentUserUpn,
+  colorScheme: csOverride,
 }) => {
+  const cs = { ...defaultFindingsPanelColorScheme, ...csOverride };
   const [copyFeedback, setCopyFeedback] = useState(false);
-  const [localViewMode, setLocalViewMode] = useState<'list' | 'board'>('list');
+  const [coScoutExpanded, setCoScoutExpanded] = useState(false);
+  const [localViewMode, setLocalViewMode] = useState<'list' | 'board' | 'tree'>('list');
   const viewMode = externalViewMode ?? localViewMode;
+  const [showAssignedToMe, setShowAssignedToMe] = useState(false);
 
-  const handleViewModeChange = (mode: 'list' | 'board') => {
+  const displayFindings =
+    showAssignedToMe && currentUserUpn
+      ? findings.filter(
+          f =>
+            f.assignee?.upn === currentUserUpn ||
+            f.actions?.some(a => a.assignee?.upn === currentUserUpn)
+        )
+      : findings;
+
+  const handleViewModeChange = (mode: 'list' | 'board' | 'tree') => {
     setLocalViewMode(mode);
     onViewModeChange?.(mode);
   };
@@ -112,12 +265,12 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   }, [isOpen, onClose]);
 
   const handleCopyAll = useCallback(async () => {
-    const ok = await copyFindingsToClipboard(findings, columnAliases);
+    const ok = await copyFindingsToClipboard(displayFindings, columnAliases);
     if (ok) {
       setCopyFeedback(true);
       setTimeout(() => setCopyFeedback(false), 2000);
     }
-  }, [findings, columnAliases]);
+  }, [displayFindings, columnAliases]);
 
   if (!isOpen) return null;
 
@@ -135,17 +288,32 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
 
       {/* Panel */}
       <div
-        className="flex-shrink-0 bg-surface-secondary border-l border-edge flex flex-col overflow-hidden"
+        className={`flex-shrink-0 ${cs.container} flex flex-col overflow-hidden`}
         style={{ width }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-edge">
-          <h2 className="text-sm font-semibold text-content">
+        <div className={`flex items-center justify-between px-4 py-3 ${cs.headerBg}`}>
+          <h2 className="text-sm font-semibold text-content flex items-center">
             Findings
             {findings.length > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
-                {findings.length}
+              <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] ${cs.badge} rounded`}>
+                {showAssignedToMe ? displayFindings.length : findings.length}
               </span>
+            )}
+            {currentUserUpn && findings.length > 0 && (
+              <button
+                onClick={() => setShowAssignedToMe(prev => !prev)}
+                className={`ml-2 p-1 rounded transition-colors ${
+                  showAssignedToMe
+                    ? 'bg-blue-500/20 text-blue-400'
+                    : 'text-content-muted hover:text-content-secondary hover:bg-surface-tertiary'
+                }`}
+                title="Assigned to me"
+                aria-label="Assigned to me"
+                aria-pressed={showAssignedToMe}
+              >
+                <User size={12} />
+              </button>
             )}
           </h2>
 
@@ -177,6 +345,20 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
                 >
                   <LayoutGrid size={12} />
                 </button>
+                {hypotheses && hypotheses.length > 0 && (
+                  <button
+                    onClick={() => handleViewModeChange('tree')}
+                    className={`p-1.5 transition-colors ${
+                      viewMode === 'tree'
+                        ? 'bg-surface-tertiary text-content'
+                        : 'text-content-muted hover:text-content-secondary'
+                    }`}
+                    title="Tree view"
+                    aria-label="Tree view"
+                  >
+                    <GitBranch size={12} />
+                  </button>
+                )}
               </div>
             )}
             {findings.length > 0 && (
@@ -216,7 +398,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
 
         {/* Findings list/board */}
         <FindingsLog
-          findings={findings}
+          findings={displayFindings}
           onEditFinding={onEditFinding}
           onDeleteFinding={onDeleteFinding}
           onRestoreFinding={onRestoreFinding}
@@ -235,7 +417,48 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           renderAssignSlot={renderAssignSlot}
           onNavigateToChart={onNavigateToChart}
           viewMode={viewMode}
+          hypotheses={hypotheses}
+          onSelectHypothesis={onSelectHypothesis}
+          onAddSubHypothesis={onAddSubHypothesis}
+          getChildrenSummary={getChildrenSummary}
+          onSetValidationTask={onSetValidationTask}
+          onCompleteTask={onCompleteTask}
+          onSetManualStatus={onSetManualStatus}
+          maxStatuses={maxStatuses}
+          onLinkHypothesis={onLinkHypothesis}
+          onCreateHypothesis={onCreateHypothesis}
+          hypothesesMap={hypothesesMap}
+          onAddAction={onAddAction}
+          onCompleteAction={onCompleteAction}
+          onDeleteAction={onDeleteAction}
+          onSetOutcome={onSetOutcome}
+          renderActionAssigneePicker={renderActionAssigneePicker}
+          ideaImpacts={ideaImpacts}
+          onAddIdea={onAddIdea}
+          onUpdateIdea={onUpdateIdea}
+          onRemoveIdea={onRemoveIdea}
+          onSelectIdea={onSelectIdea}
+          onProjectIdea={onProjectIdea}
+          onAskCoScout={onAskCoScout}
+          onAskCoScoutAboutFinding={onAskCoScoutAboutFinding}
         />
+
+        {/* CoScout inline (Azure only) */}
+        {coScoutMessages && coScoutOnSend && (
+          <CoScoutInline
+            messages={coScoutMessages}
+            onSend={coScoutOnSend}
+            isLoading={coScoutIsLoading ?? false}
+            isStreaming={coScoutIsStreaming}
+            onStopStreaming={coScoutOnStopStreaming}
+            error={coScoutError}
+            onRetry={coScoutOnRetry}
+            phase={investigationPhase}
+            suggestedQuestions={coScoutSuggestedQuestions}
+            isExpanded={coScoutExpanded}
+            onToggleExpand={() => setCoScoutExpanded(prev => !prev)}
+          />
+        )}
 
         {/* Drill path footer */}
         {drillPath.length > 0 && (

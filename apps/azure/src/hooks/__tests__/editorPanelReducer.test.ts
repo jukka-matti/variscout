@@ -18,8 +18,10 @@ describe('editorPanelReducer', () => {
         isDataPanelOpen: false,
         isDataTableOpen: false,
         isFindingsOpen: false,
+        isCoScoutOpen: false,
         isWhatIfOpen: false,
         isPresentationMode: false,
+        isReportOpen: false,
         highlightRowIndex: null,
         highlightedChartPoint: null,
       });
@@ -188,6 +190,85 @@ describe('editorPanelReducer', () => {
     it('sets highlighted chart point', () => {
       const state = editorPanelReducer(initialPanelState, { type: 'ROW_CLICK', index: 22 });
       expect(state.highlightedChartPoint).toBe(22);
+    });
+  });
+
+  describe('CoScout panel', () => {
+    it('SET_COSCOUT_OPEN opens CoScout', () => {
+      const state = editorPanelReducer(initialPanelState, {
+        type: 'SET_COSCOUT_OPEN',
+        value: true,
+      });
+      expect(state.isCoScoutOpen).toBe(true);
+    });
+
+    it('SET_COSCOUT_OPEN closes CoScout', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isCoScoutOpen: true },
+        { type: 'SET_COSCOUT_OPEN', value: false }
+      );
+      expect(state.isCoScoutOpen).toBe(false);
+    });
+
+    it('SET_COSCOUT_OPEN returns same reference when value unchanged', () => {
+      const before = { ...initialPanelState, isCoScoutOpen: true };
+      const after = editorPanelReducer(before, { type: 'SET_COSCOUT_OPEN', value: true });
+      expect(after).toBe(before);
+    });
+
+    it('TOGGLE_COSCOUT toggles CoScout panel', () => {
+      const opened = editorPanelReducer(initialPanelState, { type: 'TOGGLE_COSCOUT' });
+      expect(opened.isCoScoutOpen).toBe(true);
+
+      const closed = editorPanelReducer(opened, { type: 'TOGGLE_COSCOUT' });
+      expect(closed.isCoScoutOpen).toBe(false);
+    });
+  });
+
+  describe('CoScout/findings coexistence', () => {
+    it('opening CoScout keeps findings open', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isFindingsOpen: true },
+        { type: 'SET_COSCOUT_OPEN', value: true }
+      );
+      expect(state.isCoScoutOpen).toBe(true);
+      expect(state.isFindingsOpen).toBe(true);
+    });
+
+    it('opening findings keeps CoScout open', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isCoScoutOpen: true },
+        { type: 'SET_FINDINGS_OPEN', value: true }
+      );
+      expect(state.isFindingsOpen).toBe(true);
+      expect(state.isCoScoutOpen).toBe(true);
+    });
+
+    it('toggling CoScout open keeps findings open', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isFindingsOpen: true },
+        { type: 'TOGGLE_COSCOUT' }
+      );
+      expect(state.isCoScoutOpen).toBe(true);
+      expect(state.isFindingsOpen).toBe(true);
+    });
+
+    it('toggling findings open keeps CoScout open', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isCoScoutOpen: true },
+        { type: 'TOGGLE_FINDINGS' }
+      );
+      expect(state.isFindingsOpen).toBe(true);
+      expect(state.isCoScoutOpen).toBe(true);
+    });
+
+    it('closing CoScout does not affect findings', () => {
+      const state = editorPanelReducer(
+        { ...initialPanelState, isCoScoutOpen: true, isFindingsOpen: true },
+        { type: 'SET_COSCOUT_OPEN', value: false }
+      );
+      expect(state.isCoScoutOpen).toBe(false);
+      expect(state.isFindingsOpen).toBe(true);
     });
   });
 

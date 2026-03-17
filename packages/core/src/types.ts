@@ -145,6 +145,19 @@ export interface NelsonRule2Sequence {
 }
 
 /**
+ * Nelson Rule 3 sequence detection result
+ * Represents a consecutive run of 6+ strictly increasing or decreasing points
+ */
+export interface NelsonRule3Sequence {
+  /** Starting index of the sequence (inclusive) */
+  startIndex: number;
+  /** Ending index of the sequence (inclusive) */
+  endIndex: number;
+  /** Direction of the trend */
+  direction: 'increasing' | 'decreasing';
+}
+
+/**
  * Infer quality characteristic type from specification limits
  *
  * @param specs - Specification limits
@@ -642,7 +655,7 @@ export type LicenseTier = 'free' | 'enterprise';
  * Orthogonal to LicenseTier: both plans are 'enterprise' tier (same analysis features).
  * Plan controls collaboration features; tier controls analysis features.
  */
-export type MarketplacePlan = 'standard' | 'team';
+export type MarketplacePlan = 'standard' | 'team' | 'team-ai';
 
 /**
  * Tier-specific limits for feature gating

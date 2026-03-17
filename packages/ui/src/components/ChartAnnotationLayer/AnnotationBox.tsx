@@ -10,6 +10,8 @@ const STATUS_DOT_COLORS: Record<FindingStatus, string> = {
   observed: '#f59e0b', // amber
   investigating: '#3b82f6', // blue
   analyzed: '#a855f7', // purple
+  improving: '#06b6d4', // cyan
+  resolved: '#22c55e', // green
 };
 
 interface AnnotationBoxProps {
@@ -200,6 +202,11 @@ export const AnnotationBox: React.FC<AnnotationBoxProps> = ({
         contentEditable={isActive}
         suppressContentEditableWarning
         onBlur={handleTextBlur}
+        onPaste={e => {
+          e.preventDefault();
+          const plain = e.clipboardData.getData('text/plain');
+          document.execCommand('insertText', false, plain);
+        }}
         onMouseDown={e => e.stopPropagation()} // Don't start drag when clicking text
         style={{
           color: textColor,

@@ -550,6 +550,7 @@ function AppMain() {
             drillPath={drillPath}
             activeFindingId={highlightedFindingId}
             onPopout={handleOpenFindingsPopout}
+            maxStatuses={3}
           />
         )}
 

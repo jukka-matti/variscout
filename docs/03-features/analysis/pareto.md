@@ -1,8 +1,10 @@
 ---
-title: 'Pareto Chart'
+title: Pareto Chart
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [vital-few, contribution-percentage, drill-down]
 ---
-
-<!-- journey-phase: scout -->
 
 # Pareto Chart
 

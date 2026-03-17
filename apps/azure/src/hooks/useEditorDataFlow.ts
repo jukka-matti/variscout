@@ -1,9 +1,41 @@
 import React, { useRef, useReducer, useState, useCallback, useMemo } from 'react';
-import { parseText, detectColumns, validateData, detectWideFormat } from '@variscout/core';
+import {
+  parseText,
+  detectColumns,
+  validateData,
+  detectWideFormat,
+  augmentWithTimeColumns,
+} from '@variscout/core';
 import type { DataRow, DataQualityReport, TimeExtractionConfig } from '@variscout/core';
 import type { SampleDataset } from '@variscout/data';
 import type { ManualEntryConfig } from '../components/data/ManualEntry';
 import { detectMergeStrategy, mergeColumns, mergeRows } from './useDataMerge';
+
+/** Time-derived column suffixes used by augmentWithTimeColumns */
+const TIME_SUFFIXES = ['_Year', '_Month', '_Week', '_DayOfWeek', '_Hour'] as const;
+
+/**
+ * Re-apply time column extraction on merged data.
+ * Detects existing time-derived factors and re-derives them for all rows.
+ */
+function reapplyTimeColumns(data: DataRow[], factors: string[]): void {
+  for (const factor of factors) {
+    for (const suffix of TIME_SUFFIXES) {
+      if (factor.endsWith(suffix)) {
+        const sourceColumn = factor.slice(0, -suffix.length);
+        if (data.length > 0 && sourceColumn in data[0]) {
+          augmentWithTimeColumns(data, sourceColumn, {
+            extractYear: suffix === '_Year',
+            extractMonth: suffix === '_Month',
+            extractWeek: suffix === '_Week',
+            extractDayOfWeek: suffix === '_DayOfWeek',
+            extractHour: suffix === '_Hour',
+          });
+        }
+      }
+    }
+  }
+}
 
 // ── Reducer types ──────────────────────────────────────────────────────────
 
@@ -404,6 +436,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
 
         if (strategy === 'rows') {
           const merged = mergeRows(rawData, incoming);
+          reapplyTimeColumns(merged, factors);
           setRawData(merged);
           const report = validateData(merged, outcome!);
           setDataQualityReport(report);
@@ -426,7 +459,7 @@ export function useEditorDataFlow(options: UseEditorDataFlowOptions): UseEditorD
         });
       }
     },
-    [rawData, outcome, setRawData, setDataQualityReport, showFeedback]
+    [rawData, outcome, factors, setRawData, setDataQualityReport, showFeedback]
   );
 
   // Handle file upload in append context

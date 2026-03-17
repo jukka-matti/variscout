@@ -267,6 +267,14 @@ flowchart LR
 
   [:octicons-arrow-right-24: Flow details](flows/azure-teams-mobile.md)
 
+- :material-brain:{ .lg .middle } **Azure AI Setup**
+
+  ***
+
+  Admin enables AI-powered analysis, model selection, cost monitoring
+
+  [:octicons-arrow-right-24: Flow details](flows/azure-ai-setup.md)
+
 </div>
 
 ---

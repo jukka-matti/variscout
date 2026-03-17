@@ -57,9 +57,10 @@ describe('EXPORT_SIZES', () => {
         'stats',
         'scatter',
         'dashboard',
+        'slide',
       ])
     );
-    expect(Object.keys(EXPORT_SIZES)).toHaveLength(8);
+    expect(Object.keys(EXPORT_SIZES)).toHaveLength(9);
   });
 
   it('has correct dimensions for wide charts', () => {
@@ -99,8 +100,8 @@ describe('useChartCopy', () => {
     });
 
     // Mock URL.createObjectURL / revokeObjectURL
-    global.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url');
-    global.URL.revokeObjectURL = vi.fn();
+    globalThis.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url');
+    globalThis.URL.revokeObjectURL = vi.fn();
   });
 
   afterEach(() => {

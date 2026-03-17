@@ -106,3 +106,106 @@ export function getNelsonRule2Sequences(
 
   return sequences;
 }
+
+/**
+ * Detect Nelson Rule 3 violations: 6+ consecutive strictly increasing or decreasing points
+ *
+ * Returns the indices of all points that are part of a trend of 6 or more
+ * consecutive strictly monotone values. Equal values break the trend.
+ *
+ * @param values - Array of numeric measurement values
+ * @returns Set of indices that are part of a Nelson Rule 3 violation
+ *
+ * @example
+ * const violations = getNelsonRule3ViolationPoints([1, 2, 3, 4, 5, 6]);
+ * // Returns Set containing indices 0-5 (6 consecutive increasing)
+ */
+export function getNelsonRule3ViolationPoints(values: number[]): Set<number> {
+  const violations = new Set<number>();
+
+  if (values.length < 6) return violations;
+
+  let runStart = 0;
+  let runDirection: 'increasing' | 'decreasing' | null = null;
+
+  for (let i = 1; i < values.length; i++) {
+    const currentDirection: 'increasing' | 'decreasing' | null =
+      values[i] > values[i - 1] ? 'increasing' : values[i] < values[i - 1] ? 'decreasing' : null;
+
+    if (currentDirection === null || currentDirection !== runDirection) {
+      // Check if previous run was long enough (6+ points = 5+ transitions)
+      if (runDirection !== null && i - runStart >= 6) {
+        for (let j = runStart; j < i; j++) {
+          violations.add(j);
+        }
+      }
+      // Start new run from previous point (the transition starts at i-1)
+      runStart = i - 1;
+      runDirection = currentDirection;
+    }
+  }
+
+  // Check final run
+  if (runDirection !== null && values.length - runStart >= 6) {
+    for (let j = runStart; j < values.length; j++) {
+      violations.add(j);
+    }
+  }
+
+  return violations;
+}
+
+/**
+ * Get Nelson Rule 3 sequences (6+ consecutive strictly increasing or decreasing points)
+ * Returns array of sequences with start/end indices and direction information
+ *
+ * @param values - Array of numeric values
+ * @returns Array of NelsonRule3Sequence objects representing violation sequences
+ *
+ * @example
+ * const sequences = getNelsonRule3Sequences([1, 2, 3, 4, 5, 6, 7]);
+ * // Returns: [{ startIndex: 0, endIndex: 6, direction: 'increasing' }]
+ */
+export function getNelsonRule3Sequences(
+  values: number[]
+): Array<{ startIndex: number; endIndex: number; direction: 'increasing' | 'decreasing' }> {
+  const sequences: Array<{
+    startIndex: number;
+    endIndex: number;
+    direction: 'increasing' | 'decreasing';
+  }> = [];
+
+  if (values.length < 6) return sequences;
+
+  let runStart = 0;
+  let runDirection: 'increasing' | 'decreasing' | null = null;
+
+  for (let i = 1; i < values.length; i++) {
+    const currentDirection: 'increasing' | 'decreasing' | null =
+      values[i] > values[i - 1] ? 'increasing' : values[i] < values[i - 1] ? 'decreasing' : null;
+
+    if (currentDirection === null || currentDirection !== runDirection) {
+      // Check if previous run was long enough
+      if (runDirection !== null && i - runStart >= 6) {
+        sequences.push({
+          startIndex: runStart,
+          endIndex: i - 1,
+          direction: runDirection,
+        });
+      }
+      runStart = i - 1;
+      runDirection = currentDirection;
+    }
+  }
+
+  // Check final run
+  if (runDirection !== null && values.length - runStart >= 6) {
+    sequences.push({
+      startIndex: runStart,
+      endIndex: values.length - 1,
+      direction: runDirection,
+    });
+  }
+
+  return sequences;
+}

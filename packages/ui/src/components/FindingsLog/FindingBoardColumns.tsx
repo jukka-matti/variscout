@@ -19,6 +19,27 @@ export interface FindingBoardColumnsProps {
   showAuthors?: boolean;
   columnAliases?: Record<string, string>;
   activeFindingId?: string | null;
+  maxStatuses?: number;
+  onLinkHypothesis?: (findingId: string, hypothesisId: string) => void;
+  onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
+  hypothesesMap?: Record<string, { text: string; status: string; factor?: string; level?: string }>;
+  onAddAction?: (
+    id: string,
+    text: string,
+    assignee?: import('@variscout/core').FindingAssignee,
+    dueDate?: string
+  ) => void;
+  onCompleteAction?: (id: string, actionId: string) => void;
+  onDeleteAction?: (id: string, actionId: string) => void;
+  onSetOutcome?: (
+    id: string,
+    outcome: {
+      effective: 'yes' | 'no' | 'partial';
+      cpkAfter?: number;
+      notes?: string;
+      verifiedAt: number;
+    }
+  ) => void;
 }
 
 /**
@@ -41,6 +62,14 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
   showAuthors,
   columnAliases,
   activeFindingId,
+  maxStatuses,
+  onLinkHypothesis,
+  onCreateHypothesis,
+  hypothesesMap,
+  onAddAction,
+  onCompleteAction,
+  onDeleteAction,
+  onSetOutcome,
 }) => {
   const groups = groupFindingsByStatus(findings);
 
@@ -111,6 +140,14 @@ const FindingBoardColumns: React.FC<FindingBoardColumnsProps> = ({
                     showAuthors={showAuthors}
                     columnAliases={columnAliases}
                     isActive={finding.id === activeFindingId}
+                    maxStatuses={maxStatuses}
+                    onLinkHypothesis={onLinkHypothesis}
+                    onCreateHypothesis={onCreateHypothesis}
+                    hypothesesMap={hypothesesMap}
+                    onAddAction={onAddAction}
+                    onCompleteAction={onCompleteAction}
+                    onDeleteAction={onDeleteAction}
+                    onSetOutcome={onSetOutcome}
                   />
                 </div>
               ))}

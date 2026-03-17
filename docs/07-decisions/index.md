@@ -10,84 +10,33 @@ This section captures key architectural decisions made during VariScout developm
 
 ## Decision Log
 
-| ID                                                   | Title                                | Status     | Date       |
-| ---------------------------------------------------- | ------------------------------------ | ---------- | ---------- |
-| [001](adr-001-monorepo.md)                           | Monorepo with pnpm                   | Accepted   | 2024-01-15 |
-| [002](adr-002-visx-charts.md)                        | Visx for Charts                      | Accepted   | 2024-01-20 |
-| [003](adr-003-indexeddb.md)                          | IndexedDB for Storage                | Accepted   | 2024-02-01 |
-| [004](adr-004-offline-first.md)                      | Offline-First                        | Accepted   | 2024-02-05 |
-| [005](adr-005-props-based-charts.md)                 | Props-Based Charts                   | Accepted   | 2024-02-15 |
-| [006](adr-006-edition-system.md)                     | Edition System                       | Superseded | 2024-03-01 |
-| [007](adr-007-azure-marketplace-distribution.md)     | Azure Marketplace Distribution       | Accepted   | 2026-02-05 |
-| [008](adr-008-website-content-architecture.md)       | Website Content Architecture         | Accepted   | 2026-02-13 |
-| [009](adr-009-boxplot-violin-mode.md)                | Boxplot Violin Mode                  | Accepted   | 2026-02-16 |
-| [010](adr-010-gagerr-deferral.md)                    | Gage R&R Deferral                    | Superseded | 2026-02-16 |
-| [011](adr-011-ai-development-tooling.md)             | AI Development Tooling               | Accepted   | 2026-02-18 |
-| [012](adr-012-pwa-browser-only.md)                   | PWA Browser-Only, Zero Data          | Accepted   | 2026-02-18 |
-| [013](adr-013-architecture-evaluation-ddd-swarms.md) | Architecture Evaluation (DDD/Swarms) | Accepted   | 2026-02-18 |
-| [014](adr-014-regression-deferral.md)                | Defer Regression to Phase 2          | Accepted   | 2026-02-25 |
-| [015](adr-015-investigation-board.md)                | Investigation Board                  | Accepted   | 2026-02-26 |
-| [016](adr-016-teams-integration.md)                  | Teams Integration                    | Proposed   | 2026-02-27 |
-| [017](adr-017-fluent-design-alignment.md)            | Fluent 2 Design Principle Alignment  | Accepted   | 2026-03-02 |
-| [018](adr-018-channel-mention-workflow.md)           | Channel @Mention Workflow            | Proposed   | 2026-03-02 |
-
----
-
-## ADR Dependency Map
-
-```mermaid
-flowchart TB
-    subgraph Architecture["Architecture"]
-        ADR001["001 Monorepo"]
-        ADR004["004 Offline-First"]
-        ADR011["011 AI Tooling"]
-        ADR013["013 DDD/Swarms"]
-        ADR001 --> ADR013
-    end
-
-    subgraph Charts["Charts & UI"]
-        ADR002["002 Visx Charts"]
-        ADR005["005 Props-Based"]
-        ADR009["009 Violin Mode"]
-        ADR017["017 Fluent 2"]
-        ADR002 --> ADR005
-        ADR005 --> ADR009
-    end
-
-    subgraph Storage["Storage"]
-        ADR003["003 IndexedDB"]
-        ADR012["012 PWA Browser-Only"]
-        ADR003 --> ADR004
-        ADR004 --> ADR012
-    end
-
-    subgraph Distribution["Distribution"]
-        ADR006["006 Edition System"]
-        ADR007["007 Azure Marketplace"]
-        ADR008["008 Website Architecture"]
-        ADR006 -.->|superseded| ADR007
-    end
-
-    subgraph Features["Features"]
-        ADR010["010 Gage R&R"]
-        ADR014["014 Regression Deferral"]
-        ADR015["015 Investigation Board"]
-    end
-
-    subgraph Teams["Teams Platform"]
-        ADR016["016 Teams Integration"]
-        ADR018["018 Channel @Mention"]
-        ADR007 --> ADR016
-        ADR015 --> ADR016
-        ADR016 --> ADR018
-        ADR015 --> ADR018
-    end
-
-    style ADR006 fill:#94a3b8,color:#fff
-    style ADR010 fill:#94a3b8,color:#fff
-```
-
-See also: [Documentation Methodology — ADR Dependency Map](../05-technical/documentation-methodology.md#adr-dependency-map) for the full methodology context.
+| ID                                                   | Title                                    | Status     | Date       |
+| ---------------------------------------------------- | ---------------------------------------- | ---------- | ---------- |
+| [001](adr-001-monorepo.md)                           | Monorepo with pnpm                       | Accepted   | 2024-01-15 |
+| [002](adr-002-visx-charts.md)                        | Visx for Charts                          | Accepted   | 2024-01-20 |
+| [003](adr-003-indexeddb.md)                          | IndexedDB for Storage                    | Accepted   | 2024-02-01 |
+| [004](adr-004-offline-first.md)                      | Offline-First                            | Accepted   | 2024-02-05 |
+| [005](adr-005-props-based-charts.md)                 | Props-Based Charts                       | Accepted   | 2024-02-15 |
+| [006](adr-006-edition-system.md)                     | Edition System                           | Superseded | 2024-03-01 |
+| [007](adr-007-azure-marketplace-distribution.md)     | Azure Marketplace Distribution           | Accepted   | 2026-02-05 |
+| [008](adr-008-website-content-architecture.md)       | Website Content Architecture             | Accepted   | 2026-02-13 |
+| [009](adr-009-boxplot-violin-mode.md)                | Boxplot Violin Mode                      | Accepted   | 2026-02-16 |
+| [010](adr-010-gagerr-deferral.md)                    | Gage R&R Deferral                        | Superseded | 2026-02-16 |
+| [011](adr-011-ai-development-tooling.md)             | AI Development Tooling                   | Accepted   | 2026-02-18 |
+| [012](adr-012-pwa-browser-only.md)                   | PWA Browser-Only, Zero Data              | Accepted   | 2026-02-18 |
+| [013](adr-013-architecture-evaluation-ddd-swarms.md) | Architecture Evaluation (DDD/Swarms)     | Accepted   | 2026-02-18 |
+| [014](adr-014-regression-deferral.md)                | Defer Regression to Phase 2              | Accepted   | 2026-02-25 |
+| [015](adr-015-investigation-board.md)                | Investigation Board                      | Accepted   | 2026-02-26 |
+| [016](adr-016-teams-integration.md)                  | Teams Integration                        | Accepted   | 2026-02-27 |
+| [017](adr-017-fluent-design-alignment.md)            | Fluent 2 Design Principle Alignment      | Accepted   | 2026-03-02 |
+| [018](adr-018-channel-mention-workflow.md)           | Channel @Mention Workflow                | Accepted   | 2026-03-05 |
+| [019](adr-019-ai-integration.md)                     | AI Integration (Azure App)               | Accepted   | 2026-03-14 |
+| [020](adr-020-investigation-workflow.md)             | Investigation Workflow                   | Accepted   | 2026-03-15 |
+| [021](adr-021-security-evaluation.md)                | Security Evaluation (Teams)              | Accepted   | 2026-02-27 |
+| [022](adr-022-knowledge-layer-architecture.md)       | Knowledge Layer Architecture             | Accepted   | 2026-03-16 |
+| [023](adr-023-data-lifecycle.md)                     | Verification Experience & Data Lifecycle | Accepted   | 2026-03-16 |
+| [024](adr-024-scouting-report.md)                    | Scouting Report — Dynamic Report View    | Accepted   | 2026-03-16 |
+| [025](adr-025-internationalization.md)               | Internationalization Architecture        | Accepted   | 2026-03-17 |
 
 ---
 

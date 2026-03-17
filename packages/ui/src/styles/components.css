@@ -46,6 +46,11 @@
     transform: scale(0.97);
     background-color: rgba(59, 130, 246, 0.15);
   }
+
+  /* Show hover-dependent action buttons on touch devices */
+  .touch-show {
+    opacity: 1 !important;
+  }
 }
 
 /* Focus-visible states for accessibility */

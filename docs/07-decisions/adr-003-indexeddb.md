@@ -53,4 +53,4 @@ Use localStorage only for:
 
 ## See Also
 
-- [PWA Storage](../08-products/pwa/storage.md)
+- [PWA Session Model](../08-products/pwa/index.md#session-model)

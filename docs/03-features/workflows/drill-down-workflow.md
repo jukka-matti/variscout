@@ -1,5 +1,9 @@
 ---
-title: 'Drill-Down Analysis Workflow'
+title: Drill-Down Analysis Workflow
+audience: [analyst]
+category: workflow
+status: stable
+related: [drill-down, filter-chips, variation-tracking, eta-squared]
 ---
 
 # Drill-Down Analysis Workflow
@@ -77,7 +81,7 @@ flowchart TD
     C --> D[Filter applied]
     D --> E["Filter chip shows: Factor: Value ▼ XX%"]
     E --> F[All charts update to subset]
-    F --> G{Enough variation isolated?}
+    F --> G{Enough variation in focus?}
     G -->|">50%"| H[Actionable insight found]
     G -->|"<50%"| I[Continue drilling]
     I --> B
@@ -118,11 +122,7 @@ Each chip shows its individual contribution. The VariationBar and Investigation 
 
 Two mechanisms track your cumulative progress as you drill down:
 
-**VariationBar** — A horizontal progress bar visible above the charts showing the cumulative percentage of total variation currently in focus. As you apply filters, the bar fills to reflect how much of the overall variation your current filter path accounts for.
-
-**Investigation Mindmap footer** — The Mindmap's progress footer displays the same cumulative percentage alongside the drill trail, giving you a spatial view of your investigation path and how much variation each step captured.
-
-Together, these tell you whether your drill-down has isolated enough variation to act on or whether further filtering is needed.
+**VariationBar** — A horizontal progress bar visible above the charts showing the cumulative percentage of total variation currently in focus. As you apply filters, the bar fills to reflect how much of the overall variation your current filter path accounts for. This tells you whether your drill-down has isolated enough variation to act on or whether further filtering is needed.
 
 ### Interpreting Cumulative Progress
 
@@ -191,7 +191,7 @@ After filtering:
 
 **Stop drilling when:**
 
-- Variation sufficiently isolated (> 50-70%)
+- Variation sufficiently in focus (> 50-70%)
 - Remaining variation is common cause
 - Data too sparse for reliable statistics
 - Actionable insight found
@@ -251,7 +251,7 @@ Remaining factors:
 | ------ | --- |
 | Time   | 15% |
 
-Cumulative: 77% isolated
+Cumulative: 77% in focus
 
 **Result**
 

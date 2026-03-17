@@ -1,5 +1,9 @@
 ---
-title: 'Performance Mode'
+title: Performance Mode
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [multi-channel, cpk-comparison, wide-format]
 ---
 
 # Performance Mode

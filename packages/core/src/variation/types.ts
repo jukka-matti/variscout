@@ -56,7 +56,7 @@ export interface OptimalFactorResult {
   variationPct: number;
   /** Best value for this factor (highest variation category) */
   bestValue?: string | number;
-  /** Cumulative variation isolated after applying this and all previous factors */
+  /** Cumulative variation in focus after applying this and all previous factors */
   cumulativePct: number;
 }
 

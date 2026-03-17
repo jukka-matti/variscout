@@ -20,6 +20,8 @@ import {
   getUpgradeUrl as coreGetUpgradeUrl,
   configurePlan,
   getPlan as getCorePlan,
+  hasTeamFeatures as coreHasTeamFeatures,
+  isTeamAIPlan as coreIsTeamAIPlan,
   isTeamPlan as coreIsTeamPlan,
   type LicenseTier,
   type ChannelLimitResult,
@@ -97,7 +99,7 @@ function getDevPlanOverride(): MarketplacePlan | null {
 
   try {
     const override = localStorage.getItem(DEV_PLAN_OVERRIDE_KEY);
-    if (override && ['standard', 'team'].includes(override)) {
+    if (override && ['standard', 'team', 'team-ai'].includes(override)) {
       return override as MarketplacePlan;
     }
   } catch {
@@ -148,7 +150,7 @@ function determinePlan(): MarketplacePlan {
 
   // 2. Check environment variable
   const envPlan = import.meta.env.VITE_VARISCOUT_PLAN as string | undefined;
-  if (envPlan && ['standard', 'team'].includes(envPlan)) {
+  if (envPlan && ['standard', 'team', 'team-ai'].includes(envPlan)) {
     return envPlan as MarketplacePlan;
   }
 
@@ -204,5 +206,7 @@ export const validateChannelCount = coreValidateChannelCount;
 export const getTierDescription = coreGetTierDescription;
 export const getUpgradeUrl = coreGetUpgradeUrl;
 export const getPlan = getCorePlan;
+export const hasTeamFeatures = coreHasTeamFeatures;
+export const isTeamAIPlan = coreIsTeamAIPlan;
 export const isTeamPlan = coreIsTeamPlan;
 export { isDevelopmentMode };

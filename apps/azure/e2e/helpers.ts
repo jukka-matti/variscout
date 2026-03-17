@@ -1,4 +1,6 @@
 import { expect, type Page } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Complete the ColumnMapping step after loading data.
@@ -42,4 +44,54 @@ export async function loadPerformanceSample(page: Page) {
 
   await confirmColumnMapping(page);
   await expect(page.locator('[data-testid="chart-ichart"]')).toBeVisible({ timeout: 15000 });
+}
+
+/**
+ * Mock the AI endpoint with a fixture response.
+ * Intercepts requests to the AI endpoint and returns fixture data.
+ *
+ * @param fixtureName - Name of fixture file (without extension) in e2e/fixtures/ai/coscout/
+ * @param options - Optional: status code override, streaming mode
+ */
+export async function mockAIEndpoint(
+  page: Page,
+  fixtureName: string,
+  options?: { status?: number; streaming?: boolean }
+): Promise<void> {
+  const fixturesDir = path.join(__dirname, 'fixtures', 'ai', 'coscout');
+
+  await page.route('**/openai/**', async route => {
+    const status = options?.status ?? 200;
+
+    if (options?.streaming || fixtureName === 'streaming') {
+      const body = fs.readFileSync(
+        path.join(fixturesDir, fixtureName.endsWith('.txt') ? fixtureName : `${fixtureName}.txt`),
+        'utf-8'
+      );
+      await route.fulfill({
+        status,
+        headers: { 'Content-Type': 'text/event-stream' },
+        body,
+      });
+    } else {
+      const body = fs.readFileSync(
+        path.join(fixturesDir, fixtureName.endsWith('.json') ? fixtureName : `${fixtureName}.json`),
+        'utf-8'
+      );
+      await route.fulfill({
+        status,
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      });
+    }
+  });
+
+  // Also mock /.auth/me for dev mode (no auth)
+  await page.route('**/.auth/me', async route => {
+    await route.fulfill({
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify([{ access_token: 'mock-token' }]),
+    });
+  });
 }

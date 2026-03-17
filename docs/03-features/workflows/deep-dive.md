@@ -1,5 +1,9 @@
 ---
-title: 'Deep Dive Workflow'
+title: Deep Dive Workflow
+audience: [analyst]
+category: workflow
+status: stable
+related: [investigation, drill-down, variation-decomposition]
 ---
 
 # Deep Dive Workflow
@@ -162,7 +166,7 @@ Filter: Machine = 3 (η² = 28%)
 Filter: Operator = New (η² = 12%)
 └─ Cpk: 0.38
 
-Total variation isolated: 82%
+Total variation in focus: 82%
 ```
 
 ### Interpretation

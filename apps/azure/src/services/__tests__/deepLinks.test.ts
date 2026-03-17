@@ -15,6 +15,7 @@ describe('deepLinks', () => {
         project: 'MyAnalysis',
         findingId: 'abc123',
         chart: null,
+        mode: null,
       });
     });
 
@@ -24,17 +25,18 @@ describe('deepLinks', () => {
         project: 'Test',
         findingId: null,
         chart: 'boxplot',
+        mode: null,
       });
     });
 
     it('returns nulls for empty search string', () => {
       const result = parseDeepLink('');
-      expect(result).toEqual({ project: null, findingId: null, chart: null });
+      expect(result).toEqual({ project: null, findingId: null, chart: null, mode: null });
     });
 
     it('returns null chart for invalid chart type', () => {
       const result = parseDeepLink('?project=X&chart=pie');
-      expect(result).toEqual({ project: 'X', findingId: null, chart: null });
+      expect(result).toEqual({ project: 'X', findingId: null, chart: null, mode: null });
     });
 
     it('validates all chart types', () => {
@@ -99,6 +101,7 @@ describe('deepLinks', () => {
         project: 'MyProject',
         findingId: 'abc',
         chart: null,
+        mode: null,
       });
     });
 
@@ -109,6 +112,7 @@ describe('deepLinks', () => {
         project: 'P',
         findingId: null,
         chart: 'pareto',
+        mode: null,
       });
     });
 

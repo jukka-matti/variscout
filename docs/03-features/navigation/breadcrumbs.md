@@ -1,5 +1,9 @@
 ---
-title: 'Filter Chips Navigation'
+title: Filter Chips Navigation
+audience: [analyst, engineer]
+category: navigation
+status: stable
+related: [filter-chips, breadcrumbs, variation-contribution]
 ---
 
 # Filter Chips Navigation
@@ -20,7 +24,7 @@ Filter chips replace the traditional breadcrumb trail with a chips-based interfa
 │ │ Shift: Night ▼ 45% │  │ Machine: A, C ▼ 32%│  │ Operator: Kim ▼  │   │
 │ └────────────────────┘  └────────────────────┘  └──────────────────┘   │
 │                                                                         │
-│ CUMULATIVE: 77% of total variation isolated                            │
+│ CUMULATIVE: 77% of total variation in focus                            │
 │ "Focus on this combination to address most of your quality problems"   │
 └─────────────────────────────────────────────────────────────────────────┘
 ```

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { getSpecStatus, generateCSV } from '../export';
+import { getSpecStatus, generateCSV, generateFindingsCSV, generateFindingsJSON } from '../export';
+import type { Finding, Hypothesis } from '../findings';
 
 describe('export module', () => {
   describe('getSpecStatus', () => {
@@ -218,6 +219,86 @@ describe('export module', () => {
       const csv = generateCSV(data, 'value', {});
       const lines = csv.split('\n');
       expect(lines.length).toBe(1001); // 1 header + 1000 data rows
+    });
+  });
+});
+
+describe('findings export', () => {
+  const mockFinding: Finding = {
+    id: 'f1',
+    text: 'High variation in Machine B',
+    createdAt: Date.now(),
+    context: {
+      activeFilters: { Machine: ['B'] },
+      cumulativeScope: 45.2,
+      stats: { mean: 10.5, cpk: 0.85, samples: 100 },
+    },
+    status: 'analyzed',
+    tag: 'key-driver',
+    comments: [],
+    statusChangedAt: Date.now(),
+    hypothesisId: 'h1',
+  };
+
+  const mockHypothesis: Hypothesis = {
+    id: 'h1',
+    text: 'Machine B calibration drift',
+    factor: 'Machine',
+    status: 'supported',
+    linkedFindingIds: ['f1'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  describe('generateFindingsCSV', () => {
+    it('returns empty string for empty findings', () => {
+      expect(generateFindingsCSV([])).toBe('');
+    });
+
+    it('generates CSV with headers and finding data', () => {
+      const csv = generateFindingsCSV([mockFinding], [mockHypothesis]);
+      const lines = csv.split('\n');
+      expect(lines[0]).toContain('id,text,status,tag');
+      expect(lines[1]).toContain('f1');
+      expect(lines[1]).toContain('Analyzed');
+      expect(lines[1]).toContain('Key Driver');
+    });
+
+    it('resolves hypothesis text from hypothesisId', () => {
+      const csv = generateFindingsCSV([mockFinding], [mockHypothesis]);
+      expect(csv).toContain('Machine B calibration drift');
+    });
+
+    it('handles findings without hypothesis', () => {
+      const noHypothesis = { ...mockFinding, hypothesisId: undefined };
+      const csv = generateFindingsCSV([noHypothesis]);
+      const lines = csv.split('\n');
+      expect(lines.length).toBe(2); // header + 1 row
+    });
+  });
+
+  describe('generateFindingsJSON', () => {
+    it('generates valid JSON with findings and summary', () => {
+      const json = generateFindingsJSON([mockFinding], [mockHypothesis]);
+      const parsed = JSON.parse(json);
+      expect(parsed.version).toBe('1.0');
+      expect(parsed.findings).toHaveLength(1);
+      expect(parsed.summary.total).toBe(1);
+      expect(parsed.summary.keyDrivers).toBe(1);
+    });
+
+    it('includes process context when provided', () => {
+      const json = generateFindingsJSON([mockFinding], [], {
+        description: 'Coffee brewing test',
+      });
+      const parsed = JSON.parse(json);
+      expect(parsed.process.description).toBe('Coffee brewing test');
+    });
+
+    it('handles empty findings', () => {
+      const json = generateFindingsJSON([]);
+      const parsed = JSON.parse(json);
+      expect(parsed.summary.total).toBe(0);
     });
   });
 });

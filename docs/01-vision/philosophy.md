@@ -84,6 +84,20 @@ VariScout enables this same journey with real data:
 
 ---
 
+## AI Philosophy: Two Products, Two Approaches
+
+### PWA — "The Struggle Is the Point"
+
+The free PWA is a training tool. No AI, no shortcuts — ever. Learners build statistical intuition by wrestling with data themselves. The "guided frustration" pedagogy (see above) requires the analyst to do the thinking.
+
+### Azure App — AI Augments, Never Replaces
+
+The Azure App offers optional AI-assisted analysis. The key principle: **AI explains deterministic conclusions, it doesn't generate competing ones.**
+
+VariScout's statistical engine computes that Machine A accounts for 47% of variation. AI translates this into "Fill Head B accounts for 47% of weight variation — your process description mentions nozzle clogging as a concern." The conclusion is reproducible and auditable. The AI adds context and language, not statistics.
+
+This maps to ISO/IEC 42001 human oversight requirements: the statistical engine is the authority, AI is the narrator.
+
 ## Not What VariScout Does
 
 VariScout is intentionally **not**:

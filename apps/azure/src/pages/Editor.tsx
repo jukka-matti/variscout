@@ -11,13 +11,20 @@ import FindingsPanel from '../components/FindingsPanel';
 import ManualEntry from '../components/data/ManualEntry';
 import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
-import { ColumnMapping, InvestigationPrompt } from '@variscout/ui';
-import { useControlViolations } from '@variscout/hooks';
-import { isTeamPlan } from '@variscout/core';
+import {
+  ColumnMapping,
+  InvestigationPrompt,
+  CoScoutPanelBase,
+  AIOnboardingTooltip,
+  type AnalysisBrief,
+} from '@variscout/ui';
+import { useControlViolations, useHypotheses } from '@variscout/hooks';
+import { hasTeamFeatures, computeIdeaImpact } from '@variscout/core';
+import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
 import { getCurrentUser, type CurrentUser } from '../auth/getCurrentUser';
 import { useDataMerge } from '../hooks/useDataMerge';
-import type { ExclusionReason } from '@variscout/core';
+import type { ExclusionReason, FindingStatus } from '@variscout/core';
 import { SAMPLES } from '@variscout/data';
 import {
   Upload,
@@ -30,6 +37,8 @@ import {
   X,
 } from 'lucide-react';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
+import { useEditorAI } from '../hooks/useEditorAI';
+import { useLocale } from '../context/LocaleContext';
 import { useEditorPanels } from '../hooks/useEditorPanels';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 import { useTeamsShare } from '../hooks/useTeamsShare';
@@ -38,6 +47,13 @@ import { useFindingsOrchestration } from '../hooks/useFindingsOrchestration';
 import { buildChartSharePayload } from '../services/shareContent';
 import { buildSubPageId } from '../services/deepLinks';
 import { setBeforeUnloadHandler } from '../teams';
+
+const COSCOUT_RESIZE_CONFIG = {
+  storageKey: 'variscout-azure-coscout-panel-width',
+  min: 320,
+  max: 600,
+  defaultWidth: 384,
+};
 
 interface EditorProps {
   projectId: string | null;
@@ -55,6 +71,7 @@ export const Editor: React.FC<EditorProps> = ({
   initialChart,
 }) => {
   const { syncStatus } = useStorage();
+  const { locale } = useLocale();
   const {
     rawData,
     filteredData,
@@ -87,9 +104,18 @@ export const Editor: React.FC<EditorProps> = ({
     setViewState,
     findings: persistedFindings,
     setFindings: setPersistedFindings,
+    hypotheses: persistedHypotheses,
+    setHypotheses: setPersistedHypotheses,
     currentProjectLocation,
     saveProject,
     loadProject,
+    stats,
+    stagedStats,
+    processContext,
+    setProcessContext,
+    aiEnabled,
+    categories,
+    setCategories,
   } = useData();
 
   const ingestion = useDataIngestion({
@@ -209,6 +235,28 @@ export const Editor: React.FC<EditorProps> = ({
   // Share handlers
   const { shareFinding, canMentionInChannel } = useShareFinding({ projectName, baseUrl });
 
+  // Compute projected metric value from selected improvement ideas (for BriefHeader progress bar)
+  const projectedFromIdeas = useMemo(() => {
+    if (!processContext?.targetMetric || processContext?.targetValue === undefined)
+      return undefined;
+    if (!stats) return undefined;
+    let totalMeanShift = 0;
+    let totalSigmaReduction = 0;
+    for (const h of persistedHypotheses ?? []) {
+      for (const idea of h.ideas ?? []) {
+        if (idea.selected && idea.projection) {
+          totalMeanShift += idea.projection.meanDelta;
+          totalSigmaReduction += idea.projection.sigmaDelta;
+        }
+      }
+    }
+    if (totalMeanShift === 0 && totalSigmaReduction === 0) return undefined;
+    const metric = processContext.targetMetric;
+    if (metric === 'mean') return stats.mean + totalMeanShift;
+    if (metric === 'sigma') return stats.stdDev + totalSigmaReduction;
+    return undefined; // cpk would need recalculation
+  }, [persistedHypotheses, processContext, stats]);
+
   // Findings orchestration (extracted from Editor — pin, restore, chart observation, popout, etc.)
   const {
     findingsState,
@@ -236,6 +284,12 @@ export const Editor: React.FC<EditorProps> = ({
     shareFinding,
     canMentionInChannel,
     onViewStateChange: handleViewStateChange,
+    hypotheses: persistedHypotheses,
+    processContext,
+    currentValue: stats?.cpk ?? stats?.mean,
+    projectedValue: projectedFromIdeas,
+    factorRoles: processContext?.factorRoles,
+    aiAvailable: aiEnabled && isAIAvailable(),
   });
 
   // Deep link: auto-open findings panel and highlight target finding (one-shot)
@@ -290,8 +344,162 @@ export const Editor: React.FC<EditorProps> = ({
       location: currentProjectLocation,
     });
 
+  // Hypothesis CRUD (causal theories linked to findings)
+  const hypothesesState = useHypotheses({
+    initialHypotheses: persistedHypotheses,
+    onHypothesesChange: setPersistedHypotheses,
+    findings: findingsState.findings,
+  });
+
+  // Build hypothesesMap for FindingCard display
+  const hypothesesMap = useMemo(() => {
+    const map: Record<string, { text: string; status: string; factor?: string; level?: string }> =
+      {};
+    for (const h of hypothesesState.hypotheses) {
+      map[h.id] = { text: h.text, status: h.status, factor: h.factor, level: h.level };
+    }
+    return map;
+  }, [hypothesesState.hypotheses]);
+
+  // Hypothesis creation from finding cards (creates hypothesis + links to finding)
+  const handleCreateHypothesis = useCallback(
+    (findingId: string, text: string, factor?: string, level?: string) => {
+      const hypothesis = hypothesesState.addHypothesis(text, factor, level);
+      hypothesesState.linkFinding(hypothesis.id, findingId);
+      findingsState.linkHypothesis(findingId, hypothesis.id);
+    },
+    [hypothesesState, findingsState]
+  );
+
+  // Compute idea impacts for all hypotheses (memoized)
+  const ideaImpacts = useMemo(() => {
+    const impacts: Record<string, ReturnType<typeof computeIdeaImpact>> = {};
+    const target =
+      processContext?.targetMetric && processContext?.targetValue !== undefined
+        ? {
+            metric: processContext.targetMetric,
+            value: processContext.targetValue,
+            direction: processContext.targetDirection ?? 'minimize',
+          }
+        : undefined;
+    const currentStats = stats
+      ? { mean: stats.mean, sigma: stats.stdDev, cpk: stats.cpk }
+      : undefined;
+
+    for (const h of hypothesesState.hypotheses) {
+      if (h.ideas) {
+        for (const idea of h.ideas) {
+          impacts[idea.id] = computeIdeaImpact(idea, target, currentStats);
+        }
+      }
+    }
+    return impacts;
+  }, [hypothesesState.hypotheses, processContext, stats]);
+
+  // Open What-If pre-loaded for a specific improvement idea
+  const handleProjectIdea = useCallback(
+    (_hypothesisId: string, _ideaId: string) => {
+      // Open What-If page — the idea context will be available via hypothesis state
+      panels.setIsWhatIfOpen(true);
+    },
+    [panels]
+  );
+
+  // Idea → Action conversion: when a finding moves to 'improving', convert selected ideas to actions
+  const handleSetFindingStatus = useCallback(
+    (id: string, status: FindingStatus) => {
+      if (status === 'improving') {
+        const finding = findingsState.findings.find(f => f.id === id);
+        if (finding?.hypothesisId) {
+          const hypothesis = hypothesesState.getHypothesis(finding.hypothesisId);
+          const selectedIdeas = hypothesis?.ideas?.filter(i => i.selected) ?? [];
+          if (selectedIdeas.length > 0) {
+            findingsState.setFindingStatus(id, status);
+            for (const idea of selectedIdeas) {
+              findingsState.addAction(id, idea.text);
+            }
+            return;
+          }
+        }
+      }
+      findingsState.setFindingStatus(id, status);
+    },
+    [findingsState, hypothesesState]
+  );
+
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
+
+  // AI orchestration (context, narration, CoScout, knowledge search)
+  const {
+    aiContext,
+    narration,
+    coscout,
+    suggestedQuestions,
+    fetchChartInsight: fetchChartInsightFromAI,
+    handleNarrativeAsk,
+    handleAskCoScoutFromIdeas,
+    handleAskCoScoutFromFinding,
+    handleAskCoScoutFromCategory,
+  } = useEditorAI({
+    enabled: aiEnabled,
+    stats: stats ?? undefined,
+    filteredData,
+    outcome,
+    specs,
+    findings: findingsState.findings,
+    hypotheses: hypothesesState.hypotheses,
+    factors,
+    filters,
+    filterStack: filterNav.filterStack,
+    processContext,
+    highlightedFindingId,
+    viewState,
+    columnAliases,
+    categories,
+    stagedStats,
+    drillPath,
+    persistedHypotheses,
+    locale,
+    onOpenCoScout: () => panels.setIsCoScoutOpen(true),
+    onOpenFindings: () => panels.setIsFindingsOpen(true),
+  });
+
+  // Pass categories and brief from ColumnMapping into DataContext
+  const handleMappingConfirmWithCategories = useCallback(
+    (
+      newOutcome: string,
+      newFactors: string[],
+      newSpecs?: { target?: number; lsl?: number; usl?: number },
+      newCategories?: import('@variscout/core').InvestigationCategory[],
+      brief?: AnalysisBrief
+    ) => {
+      if (newCategories) {
+        setCategories(newCategories);
+      }
+      // Apply brief data to ProcessContext and create hypotheses
+      if (brief) {
+        const updatedContext = { ...processContext };
+        if (brief.problemStatement) {
+          updatedContext.problemStatement = brief.problemStatement;
+        }
+        if (brief.target) {
+          updatedContext.targetMetric = brief.target.metric;
+          updatedContext.targetValue = brief.target.value;
+          updatedContext.targetDirection = brief.target.direction;
+        }
+        setProcessContext(updatedContext);
+        // Create hypotheses from brief
+        if (brief.hypotheses) {
+          for (const h of brief.hypotheses) {
+            hypothesesState.addHypothesis(h.text, h.factor, h.level);
+          }
+        }
+      }
+      dataFlow.handleMappingConfirm(newOutcome, newFactors, newSpecs);
+    },
+    [dataFlow, setCategories, processContext, setProcessContext, hypothesesState]
+  );
 
   // Compute excluded row data for DataTableModal
   const excludedRowIndices = useMemo(() => {
@@ -310,7 +518,7 @@ export const Editor: React.FC<EditorProps> = ({
 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     const name = currentProjectName || 'New Analysis';
     setSaveStatus('saving');
     try {
@@ -321,7 +529,7 @@ export const Editor: React.FC<EditorProps> = ({
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
-  };
+  }, [currentProjectName, saveProject]);
 
   // Register Teams beforeUnload handler for data loss prevention.
   // When the user navigates away from the tab, auto-save if there are unsaved changes.
@@ -374,14 +582,17 @@ export const Editor: React.FC<EditorProps> = ({
         initialOutcome={outcome}
         initialFactors={factors}
         datasetName={dataFilename || 'Pasted Data'}
-        onConfirm={dataFlow.handleMappingConfirm}
+        onConfirm={handleMappingConfirmWithCategories}
         onCancel={dataFlow.handleMappingCancel}
         dataQualityReport={dataQualityReport}
         maxFactors={6}
         mode={dataFlow.isMappingReEdit ? 'edit' : 'setup'}
+        initialCategories={categories}
         timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
         hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
         onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
+        showBrief={true}
+        initialProblemStatement={processContext?.problemStatement}
       />
     );
   }
@@ -431,6 +642,7 @@ export const Editor: React.FC<EditorProps> = ({
           onAddManualData: dataFlow.handleAddMoreData,
           onOpenDataTable: () => panels.setIsDataTableOpen(true),
           onOpenWhatIf: () => panels.setIsWhatIfOpen(true),
+          onOpenReport: () => panels.setIsReportOpen(true),
           onOpenPresentation: () => panels.setIsPresentationMode(true),
         }}
       />
@@ -567,12 +779,29 @@ export const Editor: React.FC<EditorProps> = ({
               filterNav={filterNav}
               initialViewState={viewState ?? undefined}
               onViewStateChange={handleViewStateChange}
+              isReportOpen={panels.isReportOpen}
+              onCloseReport={() => panels.setIsReportOpen(false)}
               isPresentationMode={panels.isPresentationMode}
               onExitPresentation={() => panels.setIsPresentationMode(false)}
               onManageFactors={dataFlow.openFactorManager}
               onPinFinding={handlePinFinding}
               onShareChart={handleShareChart}
               findingsCallbacks={findingsCallbacks}
+              fetchChartInsight={fetchChartInsightFromAI}
+              aiContext={aiContext.context}
+              aiEnabled={aiEnabled && isAIAvailable()}
+              narrative={narration.narrative}
+              narrativeLoading={narration.isLoading}
+              narrativeCached={narration.isCached}
+              narrativeError={narration.error}
+              onNarrativeRetry={narration.refresh}
+              onNarrativeAsk={handleNarrativeAsk}
+              onAskCoScoutFromCategory={handleAskCoScoutFromCategory}
+            />
+            {/* AI onboarding tooltip — first-time hint for NarrativeBar Ask button */}
+            <AIOnboardingTooltip
+              isAIAvailable={aiEnabled && isAIAvailable()}
+              anchorSelector='[data-testid="narrative-ask-button"]'
             />
             {/* FindingsPanel: full-screen overlay on phone, inline sidebar on desktop */}
             {isPhone && panels.isFindingsOpen ? (
@@ -601,15 +830,44 @@ export const Editor: React.FC<EditorProps> = ({
                   onEditFinding={findingsState.editFinding}
                   onDeleteFinding={findingsState.deleteFinding}
                   onRestoreFinding={handleRestoreFinding}
-                  onSetFindingStatus={findingsState.setFindingStatus}
+                  onSetFindingStatus={handleSetFindingStatus}
                   onSetFindingTag={findingsState.setFindingTag}
                   onAddComment={handleAddCommentWithAuthor}
                   onEditComment={findingsState.editFindingComment}
                   onDeleteComment={findingsState.deleteFindingComment}
-                  onAddPhoto={isTeamPlan() ? handleAddPhoto : undefined}
+                  onAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
                   onCaptureFromTeams={
-                    isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
+                    hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
                   }
+                  onCreateHypothesis={handleCreateHypothesis}
+                  hypothesesMap={hypothesesMap}
+                  hypotheses={hypothesesState.hypotheses}
+                  onSelectHypothesis={h => {
+                    if (h.factor && h.level) {
+                      setFilters({ [h.factor]: [h.level] });
+                    }
+                  }}
+                  onAddSubHypothesis={parentId => {
+                    // Stub: will be wired to a modal in a future increment
+                    const text = prompt('Sub-hypothesis:');
+                    if (text) hypothesesState.addSubHypothesis(parentId, text);
+                  }}
+                  getChildrenSummary={hypothesesState.getChildrenSummary}
+                  onSetValidationTask={hypothesesState.setValidationTask}
+                  onCompleteTask={hypothesesState.completeTask}
+                  onSetManualStatus={hypothesesState.setManualStatus}
+                  onAddAction={findingsState.addAction}
+                  onCompleteAction={findingsState.completeAction}
+                  onDeleteAction={findingsState.deleteAction}
+                  onSetOutcome={findingsState.setOutcome}
+                  ideaImpacts={ideaImpacts}
+                  onAddIdea={hypothesesState.addIdea}
+                  onUpdateIdea={hypothesesState.updateIdea}
+                  onRemoveIdea={hypothesesState.removeIdea}
+                  onSelectIdea={hypothesesState.selectIdea}
+                  onProjectIdea={handleProjectIdea}
+                  onAskCoScout={handleAskCoScoutFromIdeas}
+                  onAskCoScoutAboutFinding={handleAskCoScoutFromFinding}
                   showAuthors={true}
                   columnAliases={columnAliases}
                   drillPath={drillPath}
@@ -619,6 +877,15 @@ export const Editor: React.FC<EditorProps> = ({
                   onNavigateToChart={handleNavigateToChart}
                   viewMode={viewState?.findingsViewMode}
                   onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
+                  coScoutMessages={coscout.messages}
+                  coScoutOnSend={coscout.send}
+                  coScoutIsLoading={coscout.isLoading}
+                  coScoutIsStreaming={coscout.isStreaming}
+                  coScoutOnStopStreaming={coscout.stopStreaming}
+                  coScoutError={coscout.error}
+                  coScoutOnRetry={coscout.retry}
+                  investigationPhase={aiContext.context?.investigation?.phase}
+                  coScoutSuggestedQuestions={suggestedQuestions}
                 />
               </div>
             ) : (
@@ -632,15 +899,31 @@ export const Editor: React.FC<EditorProps> = ({
                 onEditFinding={findingsState.editFinding}
                 onDeleteFinding={findingsState.deleteFinding}
                 onRestoreFinding={handleRestoreFinding}
-                onSetFindingStatus={findingsState.setFindingStatus}
+                onSetFindingStatus={handleSetFindingStatus}
                 onSetFindingTag={findingsState.setFindingTag}
                 onAddComment={handleAddCommentWithAuthor}
                 onEditComment={findingsState.editFindingComment}
                 onDeleteComment={findingsState.deleteFindingComment}
-                onAddPhoto={isTeamPlan() ? handleAddPhoto : undefined}
+                onAddPhoto={hasTeamFeatures() ? handleAddPhoto : undefined}
                 onCaptureFromTeams={
-                  isTeamPlan() && isTeamsCamera ? handleCaptureFromTeams : undefined
+                  hasTeamFeatures() && isTeamsCamera ? handleCaptureFromTeams : undefined
                 }
+                onCreateHypothesis={handleCreateHypothesis}
+                onSetValidationTask={hypothesesState.setValidationTask}
+                onCompleteTask={hypothesesState.completeTask}
+                onSetManualStatus={hypothesesState.setManualStatus}
+                onAddAction={findingsState.addAction}
+                onCompleteAction={findingsState.completeAction}
+                onDeleteAction={findingsState.deleteAction}
+                onSetOutcome={findingsState.setOutcome}
+                ideaImpacts={ideaImpacts}
+                onAddIdea={hypothesesState.addIdea}
+                onUpdateIdea={hypothesesState.updateIdea}
+                onRemoveIdea={hypothesesState.removeIdea}
+                onSelectIdea={hypothesesState.selectIdea}
+                onProjectIdea={handleProjectIdea}
+                onAskCoScout={handleAskCoScoutFromIdeas}
+                onAskCoScoutAboutFinding={handleAskCoScoutFromFinding}
                 showAuthors={true}
                 columnAliases={columnAliases}
                 drillPath={drillPath}
@@ -651,6 +934,64 @@ export const Editor: React.FC<EditorProps> = ({
                 onNavigateToChart={handleNavigateToChart}
                 viewMode={viewState?.findingsViewMode}
                 onViewModeChange={mode => handleViewStateChange({ findingsViewMode: mode })}
+                coScoutMessages={coscout.messages}
+                coScoutOnSend={coscout.send}
+                coScoutIsLoading={coscout.isLoading}
+                coScoutIsStreaming={coscout.isStreaming}
+                coScoutOnStopStreaming={coscout.stopStreaming}
+                coScoutError={coscout.error}
+                coScoutOnRetry={coscout.retry}
+                investigationPhase={aiContext.context?.investigation?.phase}
+                coScoutSuggestedQuestions={suggestedQuestions}
+              />
+            )}
+            {/* CoScoutPanel: full-screen overlay on phone, inline sidebar on desktop */}
+            {isPhone && panels.isCoScoutOpen ? (
+              <div className="fixed inset-0 z-40 bg-surface flex flex-col animate-slide-up safe-area-bottom">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-edge bg-surface-secondary">
+                  <h2 className="text-sm font-semibold text-content">CoScout</h2>
+                  <button
+                    onClick={() => panels.setIsCoScoutOpen(false)}
+                    className="p-2 rounded-lg text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
+                    style={{ minWidth: 44, minHeight: 44 }}
+                    aria-label="Close CoScout"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <CoScoutPanelBase
+                  isOpen={true}
+                  onClose={() => panels.setIsCoScoutOpen(false)}
+                  messages={coscout.messages}
+                  onSend={coscout.send}
+                  isLoading={coscout.isLoading}
+                  isStreaming={coscout.isStreaming}
+                  onStopStreaming={coscout.stopStreaming}
+                  error={coscout.error}
+                  onRetry={coscout.retry}
+                  onClear={coscout.clear}
+                  onCopyLastResponse={coscout.copyLastResponse}
+                  resizeConfig={COSCOUT_RESIZE_CONFIG}
+                  suggestedQuestions={suggestedQuestions}
+                  onSuggestedQuestionClick={coscout.send}
+                />
+              </div>
+            ) : (
+              <CoScoutPanelBase
+                isOpen={panels.isCoScoutOpen}
+                onClose={() => panels.setIsCoScoutOpen(false)}
+                messages={coscout.messages}
+                onSend={coscout.send}
+                isLoading={coscout.isLoading}
+                isStreaming={coscout.isStreaming}
+                onStopStreaming={coscout.stopStreaming}
+                error={coscout.error}
+                onRetry={coscout.retry}
+                onClear={coscout.clear}
+                onCopyLastResponse={coscout.copyLastResponse}
+                resizeConfig={COSCOUT_RESIZE_CONFIG}
+                suggestedQuestions={suggestedQuestions}
+                onSuggestedQuestionClick={coscout.send}
               />
             )}
             {/* DataPanel: hidden on phone (use DataTableModal instead) */}
@@ -677,13 +1018,16 @@ export const Editor: React.FC<EditorProps> = ({
             initialOutcome={outcome}
             initialFactors={factors}
             datasetName={dataFilename || 'Data'}
-            onConfirm={dataFlow.handleMappingConfirm}
+            onConfirm={handleMappingConfirmWithCategories}
             onCancel={dataFlow.handleMappingCancel}
             dataQualityReport={dataQualityReport}
             maxFactors={6}
+            initialCategories={categories}
             timeColumn={dataFlow.timeExtractionPrompt?.timeColumn}
             hasTimeComponent={dataFlow.timeExtractionPrompt?.hasTimeComponent}
             onTimeExtractionChange={dataFlow.setTimeExtractionConfig}
+            showBrief={true}
+            initialProblemStatement={processContext?.problemStatement}
           />
         )}
       </div>

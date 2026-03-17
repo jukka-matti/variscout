@@ -11,14 +11,14 @@ function fireKey(key: string) {
 }
 
 describe('useKeyboardNavigation', () => {
-  let onNext: ReturnType<typeof vi.fn>;
-  let onPrev: ReturnType<typeof vi.fn>;
-  let onEscape: ReturnType<typeof vi.fn>;
+  let onNext: () => void;
+  let onPrev: () => void;
+  let onEscape: () => void;
 
   beforeEach(() => {
-    onNext = vi.fn();
-    onPrev = vi.fn();
-    onEscape = vi.fn();
+    onNext = vi.fn() as unknown as () => void;
+    onPrev = vi.fn() as unknown as () => void;
+    onEscape = vi.fn() as unknown as () => void;
   });
 
   it('does not fire callbacks when focusedItem is null', () => {

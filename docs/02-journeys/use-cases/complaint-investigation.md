@@ -89,6 +89,20 @@ The production data exists, but it's in a quality system or spreadsheet with tho
 - LinkedIn: "Customer complaint investigation used to take 2 weeks and a fishbone diagram. Now it takes 20 minutes and actual data. Here's the approach." (methodology story)
 - YouTube: "Customer Complaint Investigation with VariScout" — 5-minute walkthrough
 
+## From Root Cause to Resolution
+
+Once Material Lot 4872 is identified as the complaint driver, the QM completes the investigation within the 48-hour deadline:
+
+1. **Finding pinned:** "Material Lot 4872 explains 52% of variation during complaint period" — captured from the drill-down Boxplot with complaint-period filter active
+2. **Hypothesis created:** "Supplier B material lot 4872 has out-of-spec particle size" — auto-validated via η² (Material Lot explains 52%, strongly supported)
+3. **Improvement idea added:** "Quarantine remaining lot 4872 stock and request replacement" — What-If projection shows Cpk recovering from 0.78 to 1.42 (baseline) after removal
+4. **Corrective actions assigned:** "Quarantine lot 4872" (immediate) + "Add incoming inspection for particle size on Supplier B lots" (preventive) — with owners and due dates for the 8D report
+5. **Verification via Staged Analysis:** The QM combines the complaint-period data and post-correction data with a `Stage` column ("During complaint" / "After correction"). Cpk comparison in one view: 0.78 → 1.45. This staged comparison becomes a visual attachment in the 8D response to the customer
+6. **Outcome: Effective** — Finding resolved, Cpk before/after recorded (0.78 → 1.45), included in 8D report
+7. _(Azure Team)_ The investigation is indexed to the Knowledge Base — if another complaint traces to supplier material, CoScout surfaces this precedent
+
+> See [Investigation Workflow](../flows/azure-daily-use.md#investigation-workflow) for the full 4-phase process.
+
 ## Platform Fit
 
 | Stage                 | Product                 | Why                                                                     |

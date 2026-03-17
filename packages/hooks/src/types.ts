@@ -16,6 +16,9 @@ import type {
   FilterAction,
   StageOrderMode,
   Finding,
+  Hypothesis,
+  ProcessContext,
+  InvestigationCategory,
 } from '@variscout/core';
 
 // Re-export for convenience
@@ -154,7 +157,7 @@ export interface ViewState {
   focusedChart?: 'ichart' | 'boxplot' | 'pareto' | null;
   boxplotFactor?: string;
   paretoFactor?: string;
-  findingsViewMode?: 'list' | 'board';
+  findingsViewMode?: 'list' | 'board' | 'tree';
 }
 
 /**
@@ -215,6 +218,18 @@ export interface AnalysisState {
   // --- Findings (scouting report) ---
   /** Analyst findings — bookmarked filter states with notes */
   findings?: Finding[];
+
+  // --- Hypotheses (causal theories linked to findings) ---
+  /** Causal hypotheses for investigation workflow */
+  hypotheses?: Hypothesis[];
+
+  // --- Investigation categories (dynamic factor grouping) ---
+  /** User-defined categories grouping factor columns */
+  categories?: InvestigationCategory[];
+
+  // --- AI process context ---
+  /** Process description for AI grounding */
+  processContext?: ProcessContext;
 }
 
 /**

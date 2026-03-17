@@ -1,8 +1,10 @@
 ---
-title: 'Capability Analysis'
+title: Capability Analysis
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [cpk, cp, normal-distribution, sigma-estimation, specification-limits]
 ---
-
-<!-- journey-phase: scout -->
 
 # Capability Analysis
 

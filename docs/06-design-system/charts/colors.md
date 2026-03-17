@@ -34,18 +34,23 @@ fill={chromeColors.labelSecondary} // #94a3b8
 
 ### I-Chart Color Scheme (Minitab-style)
 
-The I-Chart uses a simplified 2-color scheme following Minitab conventions:
+The I-Chart uses a simplified 2-color scheme following Minitab conventions. Color encodes severity; shape additionally encodes the rule type (dual encoding):
 
-| Status         | Color | Hex       | Conditions                                            |
-| -------------- | ----- | --------- | ----------------------------------------------------- |
-| In-control     | Blue  | `#3b82f6` | All checks pass                                       |
-| Out-of-control | Red   | `#ef4444` | Any violation (spec, control limits, or Nelson rules) |
+| Status         | Color | Shape     | Hex       | Conditions                                              |
+| -------------- | ----- | --------- | --------- | ------------------------------------------------------- |
+| In-control     | Blue  | ● Circle  | `#3b82f6` | All checks pass                                         |
+| Out-of-control | Red   | ● Circle  | `#ef4444` | Spec or control limit violation                         |
+| Nelson Rule 2  | Red   | ◆ Diamond | `#ef4444` | 9+ consecutive points on same side of center line       |
+| Nelson Rule 3  | Red   | ■ Square  | `#ef4444` | 6+ strictly increasing or decreasing consecutive values |
+
+Shape encodes rule type so patterns remain distinguishable at a glance (and in grayscale). When multiple rules fire on the same point, the highest-priority shape is rendered: spec/control violation (●) > Rule 2 (◆) > Rule 3 (■).
 
 **Violation checks (in order):**
 
 1. Spec limit violations: `value > USL` or `value < LSL`
 2. Control limit violations: `value > UCL` or `value < LCL`
 3. Nelson Rule 2: 9+ consecutive points on same side of center line
+4. Nelson Rule 3: 6+ strictly increasing or decreasing consecutive values
 
 ```tsx
 const getPointColor = (value: number, index: number): string => {
@@ -59,8 +64,27 @@ const getPointColor = (value: number, index: number): string => {
   // Nelson Rule 2 violations -> Red
   if (nelsonRule2Violations.has(index)) return chartColors.fail;
 
+  // Nelson Rule 3 violations -> Red
+  if (nelsonRule3Violations.has(index)) return chartColors.fail;
+
   // In-control -> Blue
   return chartColors.mean;
+};
+
+const getPointShape = (value: number, index: number): ViolationShape => {
+  // Spec or control limit violation -> Circle (highest priority)
+  const isSpecViolation = (usl !== undefined && value > usl) || (lsl !== undefined && value < lsl);
+  const isControlViolation = value > ucl || value < lcl;
+  if (isSpecViolation || isControlViolation) return 'circle';
+
+  // Nelson Rule 2 -> Diamond
+  if (nelsonRule2Violations.has(index)) return 'diamond';
+
+  // Nelson Rule 3 -> Square
+  if (nelsonRule3Violations.has(index)) return 'square';
+
+  // In-control -> Circle
+  return 'circle';
 };
 ```
 

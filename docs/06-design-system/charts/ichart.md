@@ -109,14 +109,14 @@ Features in staged mode:
 
 Staged mode renders many reference lines (control limits per stage + spec limits + grid rows), which can create visual clutter. The chart applies a layered visual hierarchy so each element has a distinct weight:
 
-| Priority | Element        | Style                                   | Weight    |
-| -------- | -------------- | --------------------------------------- | --------- |
-| 1        | Data points    | Filled circles (r=4)                    | Dominant  |
-| 2        | Stage means    | Solid blue, 2px                         | Bold      |
-| 3        | Stage UCL/LCL  | Dashed (6,4), 0.8px, 60% opacity        | Secondary |
-| 4        | Stage dividers | Dashed (4,4), 1px                       | Clear     |
-| 5        | Spec limits    | Dash-dot (8,3,2,3), 1.5px, 70% opacity  | Reference |
-| 6        | Grid rows      | 15% opacity (staged) / 40% (non-staged) | Minimal   |
+| Priority | Element        | Style                                                | Weight    |
+| -------- | -------------- | ---------------------------------------------------- | --------- |
+| 1        | Data points    | Shaped markers (circle/diamond/square/triangle, r=4) | Dominant  |
+| 2        | Stage means    | Solid blue, 2px                                      | Bold      |
+| 3        | Stage UCL/LCL  | Dashed (6,4), 0.8px, 60% opacity                     | Secondary |
+| 4        | Stage dividers | Dashed (4,4), 1px                                    | Clear     |
+| 5        | Spec limits    | Dash-dot (8,3,2,3), 1.5px, 70% opacity               | Reference |
+| 6        | Grid rows      | 15% opacity (staged) / 40% (non-staged)              | Minimal   |
 
 The dash-dot pattern on spec limits visually distinguishes the Voice of the Customer (spec limits) from the Voice of the Process (control limits), reinforcing the Two Voices model.
 
@@ -244,16 +244,38 @@ import PerformanceIChart from '@variscout/charts/PerformanceIChart';
 
 ## Point Coloring (Minitab 2-Color Scheme)
 
-Standard IChart uses a simple two-color scheme following Minitab conventions:
+Standard IChart uses a simple two-color scheme following Minitab conventions. Shape additionally encodes the rule type (see [Violation Shapes](#violation-shapes) below):
 
-| Condition               | Color | Meaning          |
-| ----------------------- | ----- | ---------------- |
-| Above USL or below LSL  | Red   | Out of spec      |
-| Above UCL or below LCL  | Red   | Out of control   |
-| Nelson Rule 2 violation | Red   | Pattern detected |
-| All checks pass         | Blue  | In control       |
+| Condition               | Color | Shape     | Meaning          |
+| ----------------------- | ----- | --------- | ---------------- |
+| Above USL or below LSL  | Red   | ● Circle  | Out of spec      |
+| Above UCL or below LCL  | Red   | ● Circle  | Out of control   |
+| Nelson Rule 2 violation | Red   | ◆ Diamond | Pattern detected |
+| Nelson Rule 3 violation | Red   | ■ Square  | Trend detected   |
+| All checks pass         | Blue  | ● Circle  | In control       |
+
+Shape encodes the rule type; color encodes severity (always red for violations in the 2-color scheme, or directionally aware when a characteristic type is set).
 
 **Nelson Rule 2:** 9 or more consecutive points on the same side of the mean line.
+
+**Nelson Rule 3:** 6 or more consecutive strictly increasing or decreasing values.
+
+---
+
+## Violation Shapes
+
+The `ViolationShape` type and the `ViolationPoint` component map each rule to a distinct SVG shape so that pattern types remain distinguishable at a glance.
+
+```typescript
+type ViolationShape = 'circle' | 'diamond' | 'square' | 'triangle';
+
+// Shape assignment by rule priority (highest wins when multiple rules fire)
+// spec / control violation → 'circle'
+// Nelson Rule 2            → 'diamond'
+// Nelson Rule 3            → 'square'
+```
+
+Shape sizing: all shapes are sized so that their visual area is approximately equal to a circle with `r=4` (16px²). Diamonds and squares are rotated 45° and upright respectively. The `ViolationPoint` component from `IChartBase` accepts a `shape` prop and renders the appropriate SVG path.
 
 ---
 
@@ -271,6 +293,7 @@ IChart (responsive wrapper)
 IChartBase (renders SVG)
     | getStageBoundaries() if staged
     | getNelsonRule2ViolationPoints()
+    | getNelsonRule3ViolationPoints()
 ```
 
 ### PerformanceIChart

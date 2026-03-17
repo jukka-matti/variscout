@@ -171,6 +171,14 @@
   border-right-color: rgb(var(--surface-secondary, 30 41 59));
 }
 
+/* ===== Touch Device: disable hover activation ===== */
+@media (hover: none) {
+  .help-tooltip-wrapper:hover .help-tooltip:not(.help-tooltip--visible) {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 /* ===== Content ===== */
 .help-tooltip__content {
   display: flex;

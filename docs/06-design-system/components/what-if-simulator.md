@@ -120,5 +120,5 @@ The `WhatIfSimulatorColorScheme` includes `improvementPositive` and `improvement
 
 ## See Also
 
-- [Variation Bar](variation-funnel.md) - Visual progress of isolated variation
+- [Variation Bar](variation-funnel.md) - Visual progress of variation in focus
 - [Drill-Down Feature](../../03-features/navigation/drill-down.md)

@@ -1,5 +1,9 @@
 ---
-title: 'Staged Analysis'
+title: Staged Analysis
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [before-after, stage-column, intervention]
 ---
 
 # Staged Analysis
@@ -196,6 +200,27 @@ const boundaries = getStageBoundaries(sortedData, stagedStats);
 
 **Test coverage:** See `packages/core/src/__tests__/stats.test.ts` for stage boundary tests.
 
+**Note on Nelson rules in staged mode:** Both Nelson Rule 2 (9+ same-side runs) and Nelson Rule 3 (6+ consecutive trend) are computed per-stage, using each stage's own data slice. This ensures that a trend or run that spans a stage boundary is not reported as a violation unless it occurs entirely within a single stage.
+
+---
+
+---
+
+## Staged Verification Vision
+
+> **Future enhancement** — see [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) for the full design.
+
+Today, staged analysis provides **visual** comparison — the I-Chart shows per-stage control limits and Nelson violations, but no quantified deltas. The analyst must mentally compare stages.
+
+The verification vision adds:
+
+- **Staged Comparison Card** — replaces Stats panel in staged mode with per-stage mean, σ, Cpk, pass %, and violations with trend indicators (↑↓→)
+- **Auto-filled outcomes** — `cpkBefore` (first stage) and `cpkAfter` (last stage) populate FindingOutcome automatically
+- **Stage-aware AI** — NarrativeBar summarizes improvement quantitatively; ChartInsightChip shows violation reduction and mean shift
+- **Verification checklist** — InvestigationSidebar shows a checklist when in acting phase with staged data
+
+The architecture already supports N stages (`calculateStatsByStage()` returns a `Map<string, StatsResult>`). The enhancement is surfacing the comparison in the UI.
+
 ---
 
 ## See Also
@@ -205,3 +230,4 @@ const boundaries = getStageBoundaries(sortedData, stagedStats);
 - [Capability](capability.md) - Comparing Cpk between stages
 - [Glossary: Staged Analysis](../../glossary.md#staged-analysis)
 - [Case: Hospital Ward](../../04-cases/hospital-ward/index.md) - Aggregation trap example
+- [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) - Full verification design

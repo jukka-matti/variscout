@@ -199,9 +199,9 @@ The /product/enterprise page must answer:
 
 ### 3. Pricing
 
-- From €99/month (Standard) or €299/month (Team) — unlimited users in your tenant
+- From €99/month (Standard), €199/month (Team), or €279/month (Team AI) — unlimited users in your tenant
 - No per-user fees, no hidden costs
-- Two plans: Standard (local analysis) or Team (+ Teams, OneDrive, mobile)
+- Three plans: Standard (local analysis), Team (+ Teams, OneDrive, mobile), or Team AI (+ AI-enhanced CoScout, knowledge base)
 
 ### 4. Support
 
@@ -215,14 +215,14 @@ The /product/enterprise page must answer:
 
 Key principle: **No sales calls required**
 
-| Step           | How It Works                                        |
-| -------------- | --------------------------------------------------- |
-| Discover       | Website, referral, content                          |
-| Evaluate       | PWA (free), documentation, case studies             |
-| Purchase       | Azure Marketplace (from €99/month, unlimited users) |
-| Deploy         | Managed Application (automatic)                     |
-| Support        | Documentation + email (support@rdmaic.com)          |
-| Implementation | Your existing consultants can help                  |
+| Step           | How It Works                                                 |
+| -------------- | ------------------------------------------------------------ |
+| Discover       | Website, referral, content                                   |
+| Evaluate       | PWA (free), documentation, case studies                      |
+| Purchase       | Azure Marketplace (from €99/month, 3 plans, unlimited users) |
+| Deploy         | Managed Application (automatic)                              |
+| Support        | Documentation + email (support@rdmaic.com)                   |
+| Implementation | Your existing consultants can help                           |
 
 ---
 

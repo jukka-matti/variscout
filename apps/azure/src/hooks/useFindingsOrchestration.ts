@@ -12,9 +12,17 @@ import {
   buildFindingContext,
   buildFindingSource,
 } from '@variscout/hooks';
+import { useStatusUpdateCards } from './useStatusUpdateCards';
 import type { UseFilterNavigationReturn } from './useFilterNavigation';
 import type { FindingsCallbacks } from '../types/findingsCallbacks';
-import type { Finding, FindingSource, SpecLimits, DataRow } from '@variscout/core';
+import type {
+  Finding,
+  FindingSource,
+  SpecLimits,
+  DataRow,
+  Hypothesis,
+  ProcessContext,
+} from '@variscout/core';
 import type { ViewState } from '@variscout/hooks';
 import {
   openFindingsPopout,
@@ -52,6 +60,22 @@ export interface UseFindingsOrchestrationOptions {
   canMentionInChannel: boolean;
   /** View state change handler (for navigate-to-chart) */
   onViewStateChange: (partial: Partial<ViewState>) => void;
+  /** Hypotheses for popout sync */
+  hypotheses?: Hypothesis[];
+  /** Process context for popout sync */
+  processContext?: ProcessContext;
+  /** Current Cpk or mean value for popout sync */
+  currentValue?: number;
+  /** Projected metric value from selected improvement ideas */
+  projectedValue?: number;
+  /** Factor role classifications for sidebar */
+  factorRoles?: Record<string, string>;
+  /** Whether AI features are available */
+  aiAvailable?: boolean;
+  /** Notification callback for status update card feedback */
+  addNotification?: (message: string, type: 'success' | 'error') => void;
+  /** Current project name for deep link construction */
+  projectName?: string;
 }
 
 export interface UseFindingsOrchestrationReturn {
@@ -102,11 +126,27 @@ export function useFindingsOrchestration({
   shareFinding,
   canMentionInChannel,
   onViewStateChange,
+  hypotheses,
+  processContext,
+  currentValue,
+  projectedValue,
+  factorRoles,
+  aiAvailable,
+  addNotification,
+  projectName,
 }: UseFindingsOrchestrationOptions): UseFindingsOrchestrationReturn {
+  // Status update cards (Teams channel integration)
+  const { onStatusChanged } = useStatusUpdateCards({
+    hypotheses,
+    addNotification,
+    projectName,
+  });
+
   // Core findings state
   const findingsState = useFindings({
     initialFindings: persistedFindings,
     onFindingsChange: setPersistedFindings,
+    onStatusChange: onStatusChanged,
   });
 
   // Drill path for context building
@@ -219,15 +259,25 @@ export function useFindingsOrchestration({
   // Popout window management
   const popupRef = useRef<Window | null>(null);
 
+  const popoutOptions = useMemo(
+    () => ({ hypotheses, processContext, currentValue, projectedValue, factorRoles, aiAvailable }),
+    [hypotheses, processContext, currentValue, projectedValue, factorRoles, aiAvailable]
+  );
+
   const handleOpenFindingsPopout = useCallback(() => {
-    popupRef.current = openFindingsPopout(findingsState.findings, columnAliases, drillPath);
-  }, [findingsState.findings, columnAliases, drillPath]);
+    popupRef.current = openFindingsPopout(
+      findingsState.findings,
+      columnAliases,
+      drillPath,
+      popoutOptions
+    );
+  }, [findingsState.findings, columnAliases, drillPath, popoutOptions]);
 
   // Sync popout when findings/drillPath change
   useEffect(() => {
     if (!popupRef.current || popupRef.current.closed) return;
-    updateFindingsPopout(findingsState.findings, columnAliases, drillPath);
-  }, [findingsState.findings, columnAliases, drillPath]);
+    updateFindingsPopout(findingsState.findings, columnAliases, drillPath, popoutOptions);
+  }, [findingsState.findings, columnAliases, drillPath, popoutOptions]);
 
   // Listen for actions from popout window
   useEffect(() => {

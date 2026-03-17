@@ -7,7 +7,7 @@
  * Split into DataStateContext and DataActionsContext following Kent C. Dodds pattern
  * for optimal re-render behavior: action-only consumers don't re-render on state changes.
  */
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useRef } from 'react';
 import {
   useDataState,
   type DataState,
@@ -20,12 +20,34 @@ import {
 } from '@variscout/hooks';
 import { azurePersistenceAdapter, setDefaultLocation } from '../lib/persistenceAdapter';
 import { useStorage, type StorageLocation, type SyncStatus } from '../services/storage';
-import type { StatsResult, StagedStatsResult, StageOrderMode } from '@variscout/core';
-import { isTeamPlan } from '@variscout/core';
+import type {
+  StatsResult,
+  StagedStatsResult,
+  StageOrderMode,
+  ProcessContext,
+} from '@variscout/core';
+import { hasTeamFeatures } from '@variscout/core';
 import { getTeamsContext } from '../teams/teamsContext';
+import { indexFindingsToSearch } from '../services/indexService';
 
 // Re-export types for backwards compatibility
 export type { DisplayOptions, ParetoMode, DataQualityReport, ParetoRow, StorageLocation };
+
+/**
+ * Per-component AI toggle preferences.
+ * All default to true — disabling a component hides it without turning off AI globally.
+ */
+export interface AIPreferences {
+  narration: boolean;
+  insights: boolean;
+  coscout: boolean;
+}
+
+const DEFAULT_AI_PREFERENCES: AIPreferences = {
+  narration: true,
+  insights: true,
+  coscout: true,
+};
 
 /**
  * Azure-specific state beyond base DataState
@@ -33,6 +55,9 @@ export type { DisplayOptions, ParetoMode, DataQualityReport, ParetoRow, StorageL
 interface AzureDataState extends Omit<DataState, 'saveProject' | 'loadProject'> {
   currentProjectLocation: StorageLocation;
   syncStatus: SyncStatus;
+  processContext: ProcessContext;
+  aiEnabled: boolean;
+  aiPreferences: AIPreferences;
 }
 
 /**
@@ -46,6 +71,9 @@ interface AzureDataActions extends Omit<
   loadProject: (name: string) => Promise<void>;
   deleteProject: (name: string) => Promise<void>;
   renameProject: (oldName: string, newName: string) => Promise<void>;
+  setProcessContext: (ctx: ProcessContext) => void;
+  setAIEnabled: (enabled: boolean) => void;
+  setAIPreferences: (prefs: AIPreferences) => void;
 }
 
 /**
@@ -63,16 +91,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     persistence: azurePersistenceAdapter,
   });
 
+  // AI process context
+  const [processContext, setProcessContext] = useState<ProcessContext>({});
+  const [aiEnabled, setAIEnabled] = useState(false);
+  const [aiPreferences, setAIPreferences] = useState<AIPreferences>(DEFAULT_AI_PREFERENCES);
+
   // Azure-specific state — default location based on Teams context
   const defaultLocation = useMemo<StorageLocation>(() => {
     const ctx = getTeamsContext();
-    return ctx.tabType === 'channel' && isTeamPlan() ? 'team' : 'personal';
+    return ctx.tabType === 'channel' && hasTeamFeatures() ? 'team' : 'personal';
   }, []);
   const [currentProjectLocation, setCurrentProjectLocation] =
     useState<StorageLocation>(defaultLocation);
 
   // Cloud sync hook
   const { saveProject: saveToCloud, syncStatus } = useStorage();
+
+  // Ref to track current state — avoids stale closure in saveProject
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   /**
    * Save project with cloud sync
@@ -87,12 +124,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Save locally via the shared hook's persistence adapter
       const project = await actions.saveProject(name);
 
+      // Read current state at call time, not captured snapshot
+      const currentState = stateRef.current;
+
       // Trigger cloud sync
-      await saveToCloud(state, name, location);
+      await saveToCloud(currentState, name, location);
+
+      // Index findings to AI Search (fire-and-forget, debounced, self-guarding)
+      indexFindingsToSearch(
+        name,
+        currentState.currentProjectId || name,
+        currentState.findings,
+        currentState.hypotheses
+      );
 
       return project;
     },
-    [actions, state, saveToCloud, defaultLocation]
+    [actions, saveToCloud, defaultLocation]
   );
 
   /**
@@ -181,11 +229,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Findings
       findings: state.findings,
 
+      // Hypotheses
+      hypotheses: state.hypotheses,
+
+      // Investigation categories
+      categories: state.categories,
+
       // Azure-specific state
       currentProjectLocation,
       syncStatus,
+      processContext,
+      aiEnabled,
+      aiPreferences,
     }),
-    [state, currentProjectLocation, syncStatus]
+    [state, currentProjectLocation, syncStatus, processContext, aiEnabled, aiPreferences]
   );
 
   // Memoize actions context
@@ -228,10 +285,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearSelection: actions.clearSelection,
       togglePointSelection: actions.togglePointSelection,
 
-      // Filter stack / view state / findings setters
+      // Filter stack / view state / findings / hypotheses / categories setters
       setFilterStack: actions.setFilterStack,
       setViewState: actions.setViewState,
       setFindings: actions.setFindings,
+      setHypotheses: actions.setHypotheses,
+      setCategories: actions.setCategories,
+
+      // AI
+      setProcessContext,
+      setAIEnabled,
+      setAIPreferences,
 
       // Azure-enhanced persistence methods
       saveProject,
@@ -243,7 +307,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       importProject: actions.importProject,
       newProject: actions.newProject,
     }),
-    [actions, saveProject, loadProject, deleteProject, renameProject]
+    [
+      actions,
+      saveProject,
+      loadProject,
+      deleteProject,
+      renameProject,
+      setProcessContext,
+      setAIEnabled,
+      setAIPreferences,
+    ]
   );
 
   return (

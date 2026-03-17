@@ -1,0 +1,27 @@
+{
+  "description": "VariScout Foundry IQ Knowledge Base reference config",
+  "apiVersion": "2025-11-01-preview",
+  "knowledgeBase": {
+    "name": "variscout-kb",
+    "knowledgeSources": [
+      {
+        "name": "findings-ks",
+        "kind": "searchIndex",
+        "description": "Indexed findings from VariScout projects"
+      },
+      {
+        "name": "sharepoint-sops-ks",
+        "kind": "indexedSharePoint",
+        "description": "SOPs and procedures from SharePoint"
+      }
+    ],
+    "retrievalReasoningEffort": { "kind": "low" },
+    "outputMode": "ExtractedData",
+    "description": "VariScout Knowledge Base — findings + optional SharePoint documents"
+  },
+  "notes": {
+    "findingsKnowledgeSource": "Created automatically from search-index-schema.json",
+    "sharePointKnowledgeSource": "Requires customer SharePoint connection string. Uses indexedSharePoint kind with embedding model.",
+    "llmRequirement": "Knowledge base requires an OpenAI model connection (gpt-4o-mini recommended for cost efficiency)"
+  }
+}

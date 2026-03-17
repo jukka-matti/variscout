@@ -5,7 +5,7 @@
  * document attribute application, and chart font scale values.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useThemeState, CHART_FONT_SCALES } from '../useThemeState';
 

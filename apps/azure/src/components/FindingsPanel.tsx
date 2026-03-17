@@ -1,7 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { FindingsPanelBase, type FindingsPanelBaseProps } from '@variscout/ui';
 import type { FindingAssignee, FindingSource } from '@variscout/core';
+import { hasTeamFeatures } from '@variscout/core';
 import PeoplePicker from './PeoplePicker';
+import { getEasyAuthUser } from '../auth/easyAuth';
 
 const RESIZE_CONFIG = {
   storageKey: 'variscout-azure-findings-panel-width',
@@ -23,6 +25,13 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
   ...props
 }) => {
   const [assigningFindingId, setAssigningFindingId] = useState<string | null>(null);
+  const [currentUserUpn, setCurrentUserUpn] = useState<string | undefined>();
+
+  useEffect(() => {
+    getEasyAuthUser().then(user => {
+      if (user?.email) setCurrentUserUpn(user.email);
+    });
+  }, []);
 
   const handleAssignFinding = useCallback((findingId: string) => {
     setAssigningFindingId(prev => (prev === findingId ? null : findingId));
@@ -59,6 +68,20 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
     [assigningFindingId, handlePersonSelect]
   );
 
+  const renderActionAssigneePicker = useCallback(
+    (onSelect: (a: FindingAssignee) => void) => (
+      <div className="mt-0.5">
+        <PeoplePicker
+          selected={null}
+          onSelect={onSelect}
+          onClear={() => {}}
+          placeholder="Assign action to..."
+        />
+      </div>
+    ),
+    []
+  );
+
   return (
     <FindingsPanelBase
       {...props}
@@ -66,6 +89,8 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
       onAssignFinding={onSetFindingAssignee ? handleAssignFinding : undefined}
       renderAssignSlot={onSetFindingAssignee ? renderAssignSlot : undefined}
       onNavigateToChart={onNavigateToChart}
+      renderActionAssigneePicker={hasTeamFeatures() ? renderActionAssigneePicker : undefined}
+      currentUserUpn={currentUserUpn}
     />
   );
 };

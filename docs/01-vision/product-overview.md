@@ -48,7 +48,7 @@ We deliberately chose simplicity over feature richness. Instead of building a co
 
 - **Cp/Cpk Metrics**: Configurable process capability indices (toggle in Stats Panel)
 - **Capability Histogram**: Visual distribution analysis with spec limits overlay (tab in Stats Panel)
-- **Spec Editor**: Contextual editing of USL/LSL and Multi-Tier Grades directly in the analysis view
+- **Spec Editor**: Contextual editing of USL/LSL/Target directly in the analysis view
 
 ### Data Table
 
@@ -162,16 +162,12 @@ VaRiScout Lite is positioned as a lightweight alternative to Minitab for Lean Si
 | Output requires interpretation training | Plain-language insights       |
 | Installation headaches                  | Browser-based, works anywhere |
 
-### Planned Features
+### Feature Status
 
-Two features required for complete Green Belt training coverage:
-
-| Feature             | Purpose                                       |
-| ------------------- | --------------------------------------------- |
-| ANOVA integration   | Statistical confirmation of group differences |
-| Regression analysis | Multi-factor comparison with auto-fit         |
-
-These features are planned for future releases.
+| Feature             | Status                                                                          | Purpose                                       |
+| ------------------- | ------------------------------------------------------------------------------- | --------------------------------------------- |
+| ANOVA integration   | **Delivered**                                                                   | Statistical confirmation of group differences |
+| Regression analysis | Deferred to Phase 2 ([ADR-014](../07-decisions/adr-014-regression-analysis.md)) | Multi-factor comparison with auto-fit         |
 
 ---
 
@@ -181,4 +177,4 @@ _See also:_
 - [Architecture](../05-technical/architecture.md) - Technical architecture details
 - [UX Research](../02-journeys/ux-research.md) - User research, personas, JTBD
 - [Specifications](../03-features/specifications.md) - Detailed functional specifications
-- [Product Specs](../08-products/) - Product specs (PWA, Website, Excel, Power BI, Azure)
+- [Product Specs](../08-products/) - Product specs (PWA, Website, Azure)

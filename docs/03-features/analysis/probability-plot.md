@@ -1,5 +1,9 @@
 ---
-title: 'Probability Plot'
+title: Probability Plot
+audience: [analyst, engineer]
+category: analysis
+status: stable
+related: [normal-distribution, anderson-darling, qq-plot]
 ---
 
 # Probability Plot

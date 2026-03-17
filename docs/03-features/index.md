@@ -1,5 +1,9 @@
 ---
-title: 'Features'
+title: Features
+audience: [analyst, engineer]
+category: reference
+status: stable
+related: [analysis, workflows, data, navigation, learning]
 ---
 
 # Features
@@ -27,7 +31,7 @@ The core statistical charts based on Watson's Four Lenses:
 | [Boxplot](analysis/boxplot.md)                   | FLOW    | Factor comparison (includes Violin Mode) |
 | [Pareto](analysis/pareto.md)                     | FAILURE | Problem concentration                    |
 | [Capability](analysis/capability.md)             | VALUE   | Specification compliance                 |
-| [Regression](analysis/regression.md)             | -       | Correlation analysis                     |
+| [Stats Panel](analysis/stats-panel.md)           | -       | Conformance/Capability metrics, Cp/Cpk   |
 | [Performance Mode](analysis/performance-mode.md) | -       | Multi-channel analysis                   |
 
 ### Advanced Analysis
@@ -60,6 +64,7 @@ How analysts combine VariScout tools to solve real problems. See the [Workflows 
 | [Deep Dive](workflows/deep-dive.md)                             | 30-minute systematic investigation     |
 | [Decision Trees](workflows/decision-trees.md)                   | Chart selection flowcharts             |
 | [Investigation to Action](workflows/investigation-to-action.md) | Investigate, refine, project           |
+| [AI-Assisted Analysis](workflows/ai-assisted-analysis.md)       | AI-enhanced investigation (Azure only) |
 | [Process Maps](workflows/process-maps.md)                       | Step-by-step visual action maps        |
 
 ---

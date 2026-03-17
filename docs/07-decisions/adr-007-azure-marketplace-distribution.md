@@ -25,9 +25,13 @@ This approach had several limitations:
 3. **No enterprise support** - Single-user licensing only
 4. **Limited distribution** - Manual installation via URL
 
+### Revision Context (2026-03-15)
+
+AI integration creates a natural third tier. Organizations investing in AI-enhanced quality workflows need persistent knowledge bases, enhanced CoScout capabilities, and organizational learning from resolved findings. This justifies a three-plan Marketplace model: Standard (personal analysis), Team (collaborative, Teams-integrated), and Team AI (AI-enhanced collaboration). See [ADR-019](adr-019-ai-integration.md) for AI integration design.
+
 ### Revision Context (2026-02-27)
 
-Teams integration creates a natural product tier split. Quality teams need mobile gemba access (photo evidence, chart sharing, commenting on findings) and shared channel file storage. This justifies a two-plan Marketplace model: Standard (personal, browser) and Team (collaborative, Teams-integrated). See [ADR-016](adr-016-teams-integration.md) for full technical design.
+Teams integration creates a natural product tier split. Quality teams need mobile gemba access (photo evidence, chart sharing, commenting on findings) and shared channel file storage. This justifies a three-plan Marketplace model: Standard (personal, browser), Team (collaborative, Teams-integrated), and Team AI (AI-enhanced collaboration). See [ADR-016](adr-016-teams-integration.md) for full technical design.
 
 ### Revision Context (2026-02-13)
 
@@ -57,12 +61,18 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 │    computer). EasyAuth sign-in (User.Read only),           │
 │    browser-based access                                     │
 │                                                             │
-│  Plan: "VariScout Team"        €299/month (TBD)            │
+│  Plan: "VariScout Team"        €199/month                  │
 │    Everything in Standard, plus:                            │
 │    - OneDrive + SharePoint channel file storage            │
 │    - Teams integration (SSO, sidebar, Adaptive Cards)      │
 │    - Mobile gemba companion (Field View + photo comments)  │
 │    - Requires: admin consent for Files.ReadWrite.All        │
+│                                                             │
+│  Plan: "VariScout Team AI"     €279/month                  │
+│    Everything in Team, plus:                                │
+│    - AI Knowledge Base (Azure AI Search)                   │
+│    - AI-enhanced CoScout (methodology-grounded assistant)  │
+│    - Organizational learning from resolved findings        │
 │                                                             │
 │  Offer type: Managed Application                           │
 │  Billing: Microsoft (3% fee, monthly)                      │
@@ -73,19 +83,20 @@ These findings led to a simplified model: one paid product (Azure App as Managed
 
 ### Product Hierarchy
 
-| Product                  | Role                                 | Distribution      | Price                                                                     |
-| ------------------------ | ------------------------------------ | ----------------- | ------------------------------------------------------------------------- |
-| **Azure App (Standard)** | Full analysis, local files           | Azure Marketplace | €99/month (Managed Application)                                           |
-| **Azure App (Team)**     | + Teams, cloud collaboration, mobile | Azure Marketplace | €299/month (TBD — price under evaluation)                                 |
-| **PWA**                  | FREE (training & education)          | Public website    | Free forever (core analysis + Green Belt, copy-paste input, session-only) |
+| Product                  | Role                                  | Distribution      | Price                                                                     |
+| ------------------------ | ------------------------------------- | ----------------- | ------------------------------------------------------------------------- |
+| **Azure App (Standard)** | Full analysis, local files            | Azure Marketplace | €99/month (Managed Application)                                           |
+| **Azure App (Team)**     | + Teams, cloud collaboration, mobile  | Azure Marketplace | €199/month (Managed Application)                                          |
+| **Azure App (Team AI)**  | + AI Knowledge Base, enhanced CoScout | Azure Marketplace | €279/month (Managed Application)                                          |
+| **PWA**                  | FREE (training & education)           | Public website    | Free forever (core analysis + Green Belt, copy-paste input, session-only) |
 
 > **Note (Feb 2026):** Excel Add-in shelved — cost with no revenue, unproven funnel. The PWA serves the same funnel role (free, no friction, shows the methodology) at zero marginal cost. See original 3-product strategy below for historical context.
 
-### Two-Plan Technical Differentiation
+### Three-Plan Technical Differentiation
 
-The ARM template passes a `VARISCOUT_PLAN` environment variable (`standard` or `team`). The existing `getTier()` infrastructure resolves plan-appropriate feature sets — both plans deploy as `enterprise` tier, but the Team plan unlocks Teams-specific capabilities.
+The ARM template passes a `VARISCOUT_PLAN` environment variable (`standard`, `team`, or `team-ai`). The existing `getTier()` infrastructure resolves plan-appropriate feature sets — all plans deploy as `enterprise` tier, but Team and Team AI plans unlock progressively more capabilities.
 
-Same ARM template is reused across both plans (Azure Marketplace supports up to 100 plans per offer). The plan variable controls:
+Same ARM template is reused across all three plans (Azure Marketplace supports up to 100 plans per offer). The plan variable controls:
 
 - Storage mode: Standard = File System Access API (local `.vrs` files, fallback to IndexedDB); Team = + OneDrive personal + SharePoint channel storage
 - Teams SDK initialization (Team plan only)
@@ -93,19 +104,23 @@ Same ARM template is reused across both plans (Azure Marketplace supports up to 
 - Mobile Field View route (Team plan only)
 - Photo capture in findings (Team plan only)
 - Admin consent guidance in settings (Team plan only)
+- AI Knowledge Base via Azure AI Search (Team AI plan only)
+- AI-enhanced CoScout with methodology grounding (Team AI plan only)
+- Organizational learning from resolved findings (Team AI plan only)
 
-See [ADR-016](adr-016-teams-integration.md) for full Teams integration technical design.
+See [ADR-016](adr-016-teams-integration.md) for full Teams integration technical design. See [ADR-019](adr-019-ai-integration.md) for AI integration design.
 
 ### Pricing Rationale
 
-| Aspect         | Standard                             | Team                    |
-| -------------- | ------------------------------------ | ----------------------- |
-| Price          | €99/month                            | €299/month (TBD)        |
-| Net (after 3%) | €96.03/month                         | €290.03/month           |
-| Annual net     | €1,152/year                          | €3,480/year             |
-| Storage        | Local files (File System Access API) | + OneDrive + SharePoint |
-| Auth scopes    | `User.Read` only                     | + `Files.ReadWrite.All` |
-| Admin consent  | None                                 | Required (one-time)     |
+| Aspect         | Standard                             | Team                    | Team AI                                           |
+| -------------- | ------------------------------------ | ----------------------- | ------------------------------------------------- |
+| Price          | €99/month                            | €199/month              | €279/month                                        |
+| Net (after 3%) | €96.03/month                         | €193.03/month           | €270.63/month                                     |
+| Annual net     | €1,152.36/year                       | €2,316.36/year          | €3,247.56/year                                    |
+| Storage        | Local files (File System Access API) | + OneDrive + SharePoint | + OneDrive + SharePoint                           |
+| Auth scopes    | `User.Read` only                     | + `Files.ReadWrite.All` | + `Files.ReadWrite.All`                           |
+| Admin consent  | None                                 | Required (one-time)     | Required (one-time)                               |
+| AI             | Optional (customer-deployed)         | Optional                | AI Knowledge Base, enhanced CoScout, org learning |
 
 | Aspect  | Value                                              |
 | ------- | -------------------------------------------------- |
@@ -114,7 +129,7 @@ See [ADR-016](adr-016-teams-integration.md) for full Teams integration technical
 
 > Customer pays their own Azure infrastructure costs (App Service Plan, etc.) separately. Microsoft handles VAT/GST — prices are set excluding tax, Microsoft adds tax at checkout based on customer's billing country (e.g., 24% ALV in Finland).
 
-**Why per-deployment pricing**: Managed Applications are per-deployment, not per-user. There is no mechanism to enforce user-count tiers within a tenant. Plans differentiate by capability (Standard vs Team), not by user count. Both plans include unlimited users in the tenant.
+**Why per-deployment pricing**: Managed Applications are per-deployment, not per-user. There is no mechanism to enforce user-count tiers within a tenant. Plans differentiate by capability (Standard vs Team vs Team AI), not by user count. All plans include unlimited users in the tenant.
 
 ---
 
@@ -170,7 +185,7 @@ variscout-managed-app.zip
    - Monthly billing with automatic renewal
 
 3. **Simplified product model**
-   - Two paid plans (Standard + Team), one free product (PWA)
+   - Three paid plans (Standard + Team + Team AI), one free product (PWA)
    - No per-user tier confusion — plans differentiate by capability
    - No license detection complexity
    - GTM: "Try it free at variscout.com. When you're ready for your team, get it on Azure Marketplace."
@@ -290,7 +305,7 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 
 ### Phase 5: Team Plan & Teams Integration (TBD)
 
-- Add second Marketplace plan ("VariScout Team" at €299/month, price TBD)
+- Add second Marketplace plan ("VariScout Team" at €199/month)
 - `VARISCOUT_PLAN` environment variable in ARM template
 - Teams SDK integration (SSO, channel tabs, Adaptive Cards)
 - Shared channel file storage (SharePoint) with optimistic merge
@@ -298,6 +313,14 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 - Photo comments on findings (camera capture + channel storage)
 - Azure Function for On-Behalf-Of token exchange
 - See [ADR-016](adr-016-teams-integration.md) for phased delivery breakdown
+
+### Phase 6: Team AI Plan (TBD)
+
+- Add third Marketplace plan ("VariScout Team AI" at €279/month)
+- AI Knowledge Base via Azure AI Search (organizational findings index)
+- AI-enhanced CoScout with methodology-grounded assistant
+- Organizational learning from resolved findings
+- See [ADR-019](adr-019-ai-integration.md) for AI integration design
 
 ---
 

@@ -121,6 +121,11 @@ interface MobileChartCarouselProps {
   boxplotData: BoxplotGroupData[];
   // Grouped findings callbacks
   findingsCallbacks?: FindingsCallbacks;
+  // Ask CoScout about a category
+  onAskCoScout?: (focusContext: {
+    chartType: 'boxplot' | 'pareto';
+    category: { name: string; mean?: number; contributionPct?: number };
+  }) => void;
 }
 
 const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
@@ -154,6 +159,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
   onPinFinding,
   boxplotData,
   findingsCallbacks,
+  onAskCoScout,
 }) => {
   const {
     onAddChartObservation,
@@ -576,6 +582,7 @@ const MobileChartCarousel: React.FC<MobileChartCarouselProps> = ({
         onPinFinding={onPinFinding ? handleSheetPinFinding : undefined}
         onClose={handleSheetClose}
         renderExtra={canMentionInChannel ? renderPostPinFlow : undefined}
+        onAskCoScout={onAskCoScout}
       />
     </div>
   );

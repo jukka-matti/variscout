@@ -1,13 +1,13 @@
 /**
- * Nelson Rule 2 sequence highlighting overlay for I-Chart
+ * Nelson Rule 2 & 3 sequence highlighting overlay for I-Chart
  *
- * Renders subtle connector lines and bracket markers behind data points
- * to visually indicate Nelson Rule 2 sequences (9+ consecutive points on same side of mean).
+ * Rule 2: dashed red connector lines + bracket markers (9+ consecutive same side)
+ * Rule 3: dotted red connector lines + directional arrow (6+ consecutive increasing/decreasing)
  */
 
 import React from 'react';
 import { LinePath, Line } from '@visx/shape';
-import type { NelsonRule2Sequence } from '@variscout/core';
+import type { NelsonRule2Sequence, NelsonRule3Sequence } from '@variscout/core';
 import { chartColors } from '../colors';
 
 interface IChartDataPoint {
@@ -17,24 +17,27 @@ interface IChartDataPoint {
 
 interface NelsonSequenceOverlayProps {
   data: IChartDataPoint[];
-  sequences: NelsonRule2Sequence[];
+  rule2Sequences: NelsonRule2Sequence[];
+  rule3Sequences: NelsonRule3Sequence[];
   xScale: (value: number) => number;
   yScale: (value: number) => number;
 }
 
 const NelsonSequenceOverlay: React.FC<NelsonSequenceOverlayProps> = ({
   data,
-  sequences,
+  rule2Sequences,
+  rule3Sequences,
   xScale,
   yScale,
 }) => (
   <>
-    {sequences.map((seq, idx) => {
+    {/* Rule 2: dashed connector + bracket markers */}
+    {rule2Sequences.map((seq, idx) => {
       const sequencePoints = data.slice(seq.startIndex, seq.endIndex + 1);
       if (sequencePoints.length < 2) return null;
 
       return (
-        <g key={`nelson-seq-${idx}`}>
+        <g key={`nelson-r2-${idx}`}>
           {/* Highlight path connecting the sequence */}
           <LinePath
             data={sequencePoints}
@@ -66,6 +69,51 @@ const NelsonSequenceOverlay: React.FC<NelsonSequenceOverlayProps> = ({
               }}
               stroke={chartColors.fail}
               strokeWidth={2}
+            />
+          </g>
+        </g>
+      );
+    })}
+
+    {/* Rule 3: dotted connector + directional arrow */}
+    {rule3Sequences.map((seq, idx) => {
+      const sequencePoints = data.slice(seq.startIndex, seq.endIndex + 1);
+      if (sequencePoints.length < 2) return null;
+
+      const lastPoint = sequencePoints[sequencePoints.length - 1];
+      const lastX = xScale(lastPoint.x);
+      const lastY = yScale(lastPoint.y);
+      // Arrow direction: up for increasing, down for decreasing
+      const arrowDy = seq.direction === 'increasing' ? -10 : 10;
+
+      return (
+        <g key={`nelson-r3-${idx}`}>
+          {/* Dotted highlight path */}
+          <LinePath
+            data={sequencePoints}
+            x={d => xScale(d.x)}
+            y={d => yScale(d.y)}
+            stroke={chartColors.fail}
+            strokeWidth={2.5}
+            strokeOpacity={0.2}
+            strokeDasharray="2,2"
+          />
+          {/* Small directional arrow at sequence end */}
+          <g opacity={0.5}>
+            <Line
+              from={{ x: lastX, y: lastY }}
+              to={{ x: lastX, y: lastY + arrowDy }}
+              stroke={chartColors.fail}
+              strokeWidth={2}
+            />
+            {/* Arrow head */}
+            <polygon
+              points={
+                seq.direction === 'increasing'
+                  ? `${lastX},${lastY - 14} ${lastX - 4},${lastY - 8} ${lastX + 4},${lastY - 8}`
+                  : `${lastX},${lastY + 14} ${lastX - 4},${lastY + 8} ${lastX + 4},${lastY + 8}`
+              }
+              fill={chartColors.fail}
             />
           </g>
         </g>

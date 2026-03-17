@@ -1,5 +1,9 @@
 ---
-title: 'Performance Mode Workflow'
+title: Performance Mode Workflow
+audience: [analyst]
+category: workflow
+status: stable
+related: [performance-mode, multi-channel, cpk]
 ---
 
 # Performance Mode Workflow

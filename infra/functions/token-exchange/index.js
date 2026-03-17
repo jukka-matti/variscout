@@ -37,7 +37,8 @@ function getClient() {
 
 /**
  * Validate that the JWT's audience matches our app's CLIENT_ID.
- * Prevents the function from exchanging tokens issued for other apps.
+ * Pre-check only — MSAL performs full cryptographic token validation during
+ * OBO exchange. This prevents unnecessary OBO calls for tokens issued to other apps.
  */
 function validateAudience(token) {
   try {
@@ -66,7 +67,8 @@ const DEFAULT_SCOPES = ['https://graph.microsoft.com/Files.ReadWrite.All'];
  * CORS headers applied to every response.
  */
 function getCorsHeaders() {
-  const origin = process.env.ALLOWED_ORIGIN || '*';
+  const origin = process.env.ALLOWED_ORIGIN;
+  if (!origin) throw new Error('ALLOWED_ORIGIN environment variable is required');
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -105,9 +107,10 @@ module.exports = async function (context, req) {
     return;
   }
 
-  // Function-level auth check (skip if FUNCTION_KEY is not configured)
+  // Function-level auth check
   const functionKey = process.env.FUNCTION_KEY;
-  if (functionKey && req.headers['x-functions-key'] !== functionKey) {
+  if (!functionKey) throw new Error('FUNCTION_KEY environment variable is required');
+  if (req.headers['x-functions-key'] !== functionKey) {
     context.res = {
       status: 401,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
