@@ -300,13 +300,12 @@ export type {
   TargetMetric,
   InvestigationPhase,
   AIContext,
-  NarrationRequest,
-  NarrationResponse,
   AIErrorType,
   CoScoutMessage,
   CoScoutError,
   BuildAIContextOptions,
   AIStatsInput,
+  BuildCoScoutSystemPromptOptions,
 } from './ai';
 export {
   buildAIContext,
@@ -319,6 +318,7 @@ export {
   buildReportSystemPrompt,
   buildReportPrompt,
   buildLocaleHint,
+  djb2Hash,
 } from './ai';
 
 // AI (Phase 2 — Chart Insights)

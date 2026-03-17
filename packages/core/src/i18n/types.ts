@@ -3,16 +3,17 @@
  */
 
 /** Supported locales */
-export type Locale = 'en' | 'de' | 'es' | 'fr' | 'pt';
+export type Locale = 'en' | 'de' | 'es' | 'fi' | 'fr' | 'pt';
 
 /** All supported locale values */
-export const LOCALES: Locale[] = ['en', 'de', 'es', 'fr', 'pt'];
+export const LOCALES: Locale[] = ['en', 'de', 'es', 'fi', 'fr', 'pt'];
 
 /** Human-readable locale names (in their own language) */
 export const LOCALE_NAMES: Record<Locale, string> = {
   en: 'English',
   de: 'Deutsch',
   es: 'Español',
+  fi: 'Suomi',
   fr: 'Français',
   pt: 'Português',
 };

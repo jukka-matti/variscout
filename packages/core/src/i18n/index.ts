@@ -14,11 +14,12 @@ import type { Locale, MessageCatalog } from './types';
 import { en } from './messages/en';
 import { de } from './messages/de';
 import { es } from './messages/es';
+import { fi } from './messages/fi';
 import { fr } from './messages/fr';
 import { pt } from './messages/pt';
 
 /** All message catalogs keyed by locale */
-const catalogs: Record<Locale, MessageCatalog> = { en, de, es, fr, pt };
+const catalogs: Record<Locale, MessageCatalog> = { en, de, es, fi, fr, pt };
 
 /**
  * Get the full message catalog for a locale.
