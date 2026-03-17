@@ -218,7 +218,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex items-center gap-1 opacity-0 group-hover/idea:opacity-100 transition-opacity flex-shrink-0">
+                <div className="flex items-center gap-1 opacity-0 group-hover/idea:opacity-100 touch-show transition-opacity flex-shrink-0">
                   {/* Effort cycle button */}
                   <button
                     className="text-[10px] text-content-muted hover:text-content"
@@ -538,7 +538,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
         {/* Add child button */}
         {canAddChild && onAddChild && (
           <button
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-content-muted hover:text-content mt-0.5"
+            className="opacity-0 group-hover:opacity-100 touch-show transition-opacity text-xs text-content-muted hover:text-content mt-0.5"
             onClick={e => {
               e.stopPropagation();
               onAddChild(hypothesis.id);

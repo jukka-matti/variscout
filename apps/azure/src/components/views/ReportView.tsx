@@ -2,7 +2,7 @@
  * Azure ReportView - Thin wrapper connecting DataContext to ReportViewBase.
  * Composes the scouting report from current analysis state, findings, and hypotheses.
  */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext';
 import {
   ReportViewBase,
@@ -79,7 +79,7 @@ const FindingChartSnapshot: React.FC<{
 // Chart size constants for report snapshots
 // ---------------------------------------------------------------------------
 
-const REPORT_CHART_WIDTH = 720;
+const REPORT_CHART_MAX_WIDTH = 720;
 const REPORT_CHART_HEIGHT = 320;
 const REPORT_HISTOGRAM_HEIGHT = 280;
 
@@ -113,6 +113,29 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   const findings = persistedFindings ?? [];
   const hypotheses = persistedHypotheses ?? [];
+
+  // ---------------------------------------------------------------------------
+  // Responsive chart width — clamp to container width on small screens
+  // ---------------------------------------------------------------------------
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(REPORT_CHART_MAX_WIDTH);
+
+  React.useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      const entry = entries[0];
+      if (entry) {
+        // Subtract padding (px-6 = 24px each side = 48px total)
+        const w = Math.floor(entry.contentRect.width) - 48;
+        setContainerWidth(Math.max(280, Math.min(w, REPORT_CHART_MAX_WIDTH)));
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const REPORT_CHART_WIDTH = containerWidth;
 
   // ---------------------------------------------------------------------------
   // Staged comparison (computed locally, not from DataContext)
@@ -585,6 +608,7 @@ const ReportView: React.FC<ReportViewProps> = ({
   return (
     <ErrorBoundary componentName="Report View">
       <ReportViewBase
+        contentRef={contentRef}
         processName={processName}
         reportType={reportType}
         sections={sections}

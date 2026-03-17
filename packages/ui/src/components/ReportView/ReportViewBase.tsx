@@ -49,6 +49,8 @@ export interface ReportViewBaseProps {
   onClose: () => void;
   canShareViaTeams?: boolean;
   colorScheme?: Partial<ReportViewBaseColorScheme>;
+  /** Ref to attach to the scrollable content area (for measuring width) */
+  contentRef?: React.RefObject<HTMLDivElement>;
 }
 
 const BADGE_COLORS: Record<ReportType, string> = {
@@ -76,6 +78,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   onClose,
   canShareViaTeams,
   colorScheme,
+  contentRef,
 }) => {
   const scheme: ReportViewBaseColorScheme = {
     ...reportViewBaseDefaultColorScheme,
@@ -164,6 +167,25 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
             {BADGE_LABELS[reportType]}
           </span>
 
+          {/* Mobile TOC dropdown (visible below lg breakpoint) */}
+          <select
+            className="lg:hidden text-sm bg-transparent border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500"
+            value={activeSectionId ?? ''}
+            onChange={e => onScrollToSection(e.target.value)}
+            aria-label="Navigate to section"
+          >
+            {sections.map(section => (
+              <option key={section.id} value={section.id}>
+                {section.status === 'done'
+                  ? '\u2713'
+                  : section.status === 'active'
+                    ? '\u25CF'
+                    : '\u25CB'}{' '}
+                {section.title}
+              </option>
+            ))}
+          </select>
+
           {analystName && (
             <span className="text-sm text-slate-500 dark:text-slate-400 hidden sm:block">
               {analystName}
@@ -172,7 +194,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
         </header>
 
         {/* Scrollable content */}
-        <div className={scheme.content}>
+        <div className={scheme.content} ref={contentRef}>
           <div className="max-w-4xl mx-auto px-6 py-6">
             {sections.map(section => renderSection(section))}
           </div>

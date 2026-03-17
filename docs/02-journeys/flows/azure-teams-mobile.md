@@ -175,6 +175,39 @@ The sticky "Start Analysis" button uses `position: sticky; bottom: env(safe-area
 
 ---
 
+## Report View on Phone
+
+When the user opens the Scouting Report on a phone viewport:
+
+- **Navigation**: The sidebar TOC is hidden (`hidden lg:flex`). A `<select>` dropdown appears in the header bar after the report type badge, listing all sections with status indicators (checkmark = done, dot = active, circle = future). Tapping a section scrolls to it.
+- **Charts**: Report chart snapshots use responsive width (`Math.min(containerWidth - 48, 720)`) measured via `ResizeObserver`. Charts scale down to fit the viewport without horizontal scroll.
+- **Layout**: Sections stack vertically in a single column. Each section is collapsible (`defaultOpen` for done/active, collapsed for future).
+- **Copy/Share**: The sidebar copy/share buttons are hidden. Users can still copy individual sections via the section header button.
+
+---
+
+## Verification (Staged Comparison) on Phone
+
+- **StagedComparisonCard**: The comparison table may overflow on narrow screens. The card container should use `overflow-x-auto` to allow horizontal scrolling for 3+ stages.
+- **Verification charts**: Rendered at responsive width (same as report charts). Interactive elements are disabled (`pointerEvents: 'none'`) — these are read-only snapshots.
+- **Chart toggles**: The verification evidence toggle chips wrap naturally via `flex-wrap`.
+
+---
+
+## Investigation Workflow on Phone
+
+The full 5-status investigation workflow (observed → investigating → analyzed → improving → resolved) works on phone:
+
+- **Status transitions**: FindingStatusBadge dropdown works via tap (no hover dependency).
+- **Action buttons**: All hover-dependent buttons (edit, delete, ask CoScout, share, assign) are always visible on touch devices via the `touch-show` CSS class.
+- **Hypothesis section**: Collapsible within FindingCard, works normally on touch.
+- **Improvement ideas**: Idea action buttons (effort, project, remove) always visible on touch. Add-idea input works normally.
+- **Action items**: Action buttons (ask CoScout, delete) always visible on touch. Checkbox completion works normally.
+- **Outcome recording**: Three outcome buttons (Effective / Not Effective / Partially Effective) are full tap targets.
+- **CoScout integration**: "Ask CoScout" buttons open CoScoutPanel as full-screen overlay (same pattern as FindingsPanel on phone).
+
+---
+
 ## Key Design Principles
 
 1. **One thing at a time**: Phone shows a single chart, not a miniaturized dashboard

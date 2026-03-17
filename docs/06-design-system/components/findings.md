@@ -350,12 +350,15 @@ Components use the standard `colorScheme` pattern with `defaultColorScheme` (sem
 
 ## Responsive Behavior
 
-| Context                   | Behavior                                                                                                                                              |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Desktop                   | Inline resizable panel (Azure) or slide-in overlay (PWA)                                                                                              |
-| Desktop (popout)          | Separate window with horizontal board columns                                                                                                         |
-| Phone (<640px)            | Full-screen overlay (fixed inset-0 z-40)                                                                                                              |
-| Phone (chart annotations) | MobileCategorySheet bottom action sheet replaces right-click. "Pin as Finding" includes source metadata. Draggable text annotations are desktop-only. |
+| Context                   | Behavior                                                                                                                                                                |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Desktop                   | Inline resizable panel (Azure) or slide-in overlay (PWA)                                                                                                                |
+| Desktop (popout)          | Separate window with horizontal board columns                                                                                                                           |
+| Phone (<640px)            | Full-screen overlay (fixed inset-0 z-40)                                                                                                                                |
+| Phone (chart annotations) | MobileCategorySheet bottom action sheet replaces right-click. "Pin as Finding" includes source metadata. Draggable text annotations are desktop-only.                   |
+| Phone (action buttons)    | All hover-dependent action buttons (edit, delete, ask CoScout, effort, remove) are always visible on touch devices via `touch-show` CSS class (`@media (hover: none)`). |
+| Phone (board view)        | Board columns layout is popout-only (popout button hidden on phone). In-panel view uses accordion layout on all screens including phone.                                |
+| Phone (ideas/actions)     | Improvement idea buttons (effort, project, remove) and action item buttons (ask, delete) always visible on touch — no hover required.                                   |
 
 ---
 

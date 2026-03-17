@@ -327,7 +327,7 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
                     e.stopPropagation();
                     onAskCoScout(`How should I approach this action: "${action.text}"?`);
                   }}
-                  className="p-0.5 rounded text-content-muted hover:text-cyan-400 opacity-0 group-hover/action:opacity-100 transition-opacity"
+                  className="p-0.5 rounded text-content-muted hover:text-cyan-400 opacity-0 group-hover/action:opacity-100 touch-show transition-opacity"
                   title="Ask CoScout about this action"
                 >
                   <MessageCircle size={10} />
@@ -339,7 +339,7 @@ const ActionItemsSection: React.FC<ActionItemsSectionProps> = ({
                     e.stopPropagation();
                     onDeleteAction(findingId, action.id);
                   }}
-                  className="p-0.5 rounded text-content-muted hover:text-red-400 opacity-0 group-hover/action:opacity-100 transition-opacity"
+                  className="p-0.5 rounded text-content-muted hover:text-red-400 opacity-0 group-hover/action:opacity-100 touch-show transition-opacity"
                   title="Delete action"
                 >
                   <Trash2 size={10} />
@@ -685,7 +685,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
                 No note
               </p>
             )}
-            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 touch-show transition-opacity flex-shrink-0">
               {onAssign && (
                 <button
                   onClick={e => {
