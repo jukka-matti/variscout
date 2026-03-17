@@ -153,6 +153,20 @@ type AITier = 'fast' | 'reasoning';
 
 The service accepts a `tier` parameter and routes to the appropriate model deployment. Model names are configured in the ARM template (customer chooses during deployment).
 
+### Provider Auto-Detection
+
+The AI service supports multiple backend providers through automatic endpoint detection. No manual provider configuration is required — the service inspects the endpoint URL and adapts its request/response handling accordingly.
+
+- **`detectProvider(endpoint)`** — URL pattern matching determines the provider:
+  - `*.openai.azure.com` → OpenAI
+  - `*/anthropic` or `*.services.ai.azure.com` → Anthropic
+  - Default fallback → OpenAI
+- **`formatRequest()`** — Routes to the appropriate API format: OpenAI Chat Completions API or Anthropic Messages API. Handles differences in message structure, system prompt placement, and parameter naming.
+- **`parseResponseText()` / `parseStreamDelta()`** — Provider-specific response parsing. Extracts assistant content from OpenAI's `choices[0].message.content` or Anthropic's `content[0].text` structure. Stream parsing handles SSE delta formats for each provider.
+- **`getAIProviderLabel()`** — Returns a human-readable label ("Azure OpenAI" or "Claude") for UI transparency. Used by the NarrativeBar and CoScoutPanel to show which model generated a response.
+
+This approach keeps provider logic centralized in `aiService.ts` — hooks, UI components, and prompt templates remain provider-agnostic.
+
 ### Response Caching
 
 - **Cache key:** Hash of context payload (stats + filters + finding count + process description hash)
@@ -375,3 +389,4 @@ When running in a Teams channel tab (Azure Team plan), the AI context includes t
 - [AI Components](../../06-design-system/components/ai-components.md) — Component UX specs
 - [Component Patterns](component-patterns.md) — Hook integration, colorScheme, base patterns
 - [Data Flow](data-flow.md) — Existing data pipeline
+- [AI Context Pipeline Reference](ai-context-reference.md) — Module map, function signatures, caching strategy

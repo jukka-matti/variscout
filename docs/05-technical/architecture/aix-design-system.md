@@ -77,6 +77,22 @@ Terminology rules are codified in the `TERMINOLOGY_INSTRUCTION` constant in `pac
 
 Customer configures model during ARM deployment. Provider auto-detected from endpoint URL pattern.
 
+#### Provider Detection
+
+`detectProvider()` in `packages/core/src/ai/` inspects the configured endpoint URL and returns the provider enum:
+
+| URL Pattern               | Detected Provider | Example                                    |
+| ------------------------- | ----------------- | ------------------------------------------ |
+| `*.openai.azure.com`      | OpenAI            | `https://myorg.openai.azure.com/...`       |
+| `*/anthropic`             | Anthropic         | `https://gateway.example.com/v1/anthropic` |
+| `*.services.ai.azure.com` | Anthropic         | `https://myorg.services.ai.azure.com/...`  |
+| _(fallback)_              | OpenAI            | Any other URL defaults to OpenAI           |
+
+`getAIProviderLabel()` maps the detected provider to a user-facing string for CoScout header transparency (via the `providerLabel` prop on `CoScoutPanelBase`):
+
+- OpenAI provider returns **"Azure OpenAI"**
+- Anthropic provider returns **"Claude"**
+
 #### Prompt Change Process
 
 1. Read this AIX Design System doc for applicable principles
