@@ -1,3 +1,7 @@
+---
+title: 'Phase 2 Implementation Summary: Create Factor from Selection'
+---
+
 > **ARCHIVED**: This document describes historical implementation details. Do not reference for current work.
 
 # Phase 2 Implementation Summary: Create Factor from Selection

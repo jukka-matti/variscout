@@ -1,3 +1,7 @@
+---
+title: 'Marketing Website'
+---
+
 # Marketing Website
 
 The variscout.com website serves three strategic purposes: **lead generation** through SEO-optimized educational content, **product education** through interactive chart demos, and **conversion** by funneling visitors toward the PWA (free) and Azure App (paid).

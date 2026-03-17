@@ -1,3 +1,7 @@
+---
+title: 'Knowledge Base Search'
+---
+
 # Knowledge Base Search
 
 Search past findings and SharePoint documents across your organization to accelerate investigations with institutional knowledge.

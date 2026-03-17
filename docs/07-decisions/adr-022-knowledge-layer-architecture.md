@@ -1,3 +1,7 @@
+---
+title: 'ADR-022: Knowledge Layer Architecture'
+---
+
 # ADR-022: Knowledge Layer Architecture
 
 **Status**: Accepted

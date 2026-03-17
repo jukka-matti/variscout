@@ -1,3 +1,7 @@
+---
+title: 'Cards'
+---
+
 # Cards
 
 Card components for grouping related content.

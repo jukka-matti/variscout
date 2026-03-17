@@ -1,3 +1,7 @@
+---
+title: 'Shared UI Library Strategy'
+---
+
 # Shared UI Library Strategy
 
 > [!NOTE]

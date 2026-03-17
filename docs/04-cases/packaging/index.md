@@ -1,3 +1,7 @@
+---
+title: 'Packaging Line Case'
+---
+
 # Packaging Line Case
 
 **Location:** Food packaging facility, Africa

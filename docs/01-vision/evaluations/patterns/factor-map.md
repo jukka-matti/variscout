@@ -1,3 +1,7 @@
+---
+title: 'Factor Map'
+---
+
 # Factor Map
 
 > A network visualization of the factor landscape showing factors as nodes, values as branches, and interactions as connections.

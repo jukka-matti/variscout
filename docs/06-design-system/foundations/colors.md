@@ -1,3 +1,7 @@
+---
+title: 'Color System'
+---
+
 # Color System
 
 VariScout uses CSS variables with Tailwind semantic classes for theme-aware styling.

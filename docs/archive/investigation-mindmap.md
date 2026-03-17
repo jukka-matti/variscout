@@ -1,3 +1,7 @@
+---
+title: 'Investigation Mindmap'
+---
+
 # HISTORICAL ONLY — Mindmap replaced by Findings system (Feb 2026)
 
 # Investigation Mindmap

@@ -1,3 +1,7 @@
+---
+title: 'Chart Styling Overview'
+---
+
 # Chart Styling Overview
 
 VariScout charts are built with [Visx](https://airbnb.io/visx/) and follow consistent styling patterns.

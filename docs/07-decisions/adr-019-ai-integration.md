@@ -1,3 +1,7 @@
+---
+title: 'ADR-019: AI Integration (Azure App)'
+---
+
 # ADR-019: AI Integration (Azure App)
 
 **Status:** Accepted

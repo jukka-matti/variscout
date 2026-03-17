@@ -1,3 +1,7 @@
+---
+title: 'Architecture Decision Records'
+---
+
 # Architecture Decision Records
 
 This section captures key architectural decisions made during VariScout development. Each decision includes context, the decision made, and consequences.

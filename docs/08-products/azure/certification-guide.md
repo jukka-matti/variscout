@@ -1,3 +1,7 @@
+---
+title: 'Azure Marketplace Certification Guide'
+---
+
 # Azure Marketplace Certification Guide
 
 Permanent reference for what Microsoft evaluates during Managed Application certification review, mapped to VariScout's architecture.

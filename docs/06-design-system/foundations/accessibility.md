@@ -1,3 +1,7 @@
+---
+title: 'Accessibility Guidelines'
+---
+
 # Accessibility Guidelines
 
 VariScout Lite targets WCAG 2.1 AA compliance to ensure quality professionals with disabilities can effectively analyze variation data.

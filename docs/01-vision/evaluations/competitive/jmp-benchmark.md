@@ -1,3 +1,7 @@
+---
+title: 'JMP Competitive Benchmark'
+---
+
 # JMP Competitive Benchmark
 
 > Based on public documentation, published feature sets, and market positioning knowledge. Unlike the [EDAScout Benchmark](edascout-benchmark.md), this assessment does not include direct codebase analysis.

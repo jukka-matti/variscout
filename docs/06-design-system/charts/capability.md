@@ -1,3 +1,7 @@
+---
+title: 'Capability Histograms'
+---
+
 # Capability Histograms
 
 Distribution histograms with specification limit overlays for capability analysis.

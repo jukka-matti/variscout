@@ -8,6 +8,8 @@ related: [findings, what-if, hypothesis, improvement-actions]
 
 # Investigation to Action Workflow
 
+<!-- journey-phase: investigate, improve -->
+
 From variation discovery to projected improvement — the analyst workflow.
 
 <div class="process-map">

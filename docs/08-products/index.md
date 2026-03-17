@@ -1,3 +1,7 @@
+---
+title: 'Products'
+---
+
 # Products
 
 VariScout is a 2-product model: **free PWA** for learning and training, **paid Azure App** for teams.
@@ -38,8 +42,9 @@ flowchart LR
 | Power BI (archived)                  | Shelved     | —                 | Dashboard integration (not in development) | —              |
 | [Website](website/index.md)          | Production  | Public            | Marketing & docs                           | N/A            |
 
-!!! tip "Getting Started"
+:::tip[Getting Started]
 **Free**: Start with the [PWA](pwa/index.md) — free training tool with copy-paste input and 16 sample datasets. Upgrade to the [Azure App](azure/index.md) for file upload, save/persistence, Performance Mode, and team features.
+:::
 
 ---
 

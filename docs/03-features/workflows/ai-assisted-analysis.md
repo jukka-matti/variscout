@@ -1,3 +1,7 @@
+---
+title: 'AI-Assisted Analysis'
+---
+
 # AI-Assisted Analysis
 
 Optional AI enhancement for the Azure App investigation workflow.

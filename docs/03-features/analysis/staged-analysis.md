@@ -8,6 +8,8 @@ related: [before-after, stage-column, intervention]
 
 # Staged Analysis
 
+<!-- journey-phase: improve -->
+
 Staged analysis calculates independent control limits for different time periods, revealing improvements that combined analysis would hide.
 
 ---

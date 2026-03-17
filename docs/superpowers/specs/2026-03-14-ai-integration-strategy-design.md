@@ -1,3 +1,7 @@
+---
+title: 'VariScout AI Integration Strategy'
+---
+
 # VariScout AI Integration Strategy
 
 **Date:** 2026-03-14

@@ -1,3 +1,7 @@
+---
+title: 'ARM Template Documentation'
+---
+
 # ARM Template Documentation
 
 Azure Resource Manager (ARM) template for VariScout Managed Application deployment.

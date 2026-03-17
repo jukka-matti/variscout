@@ -1,3 +1,7 @@
+---
+title: 'Path Dependency'
+---
+
 # Path Dependency
 
 > The order you drill matters for intermediate contribution percentages, even though final results converge.

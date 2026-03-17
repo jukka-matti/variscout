@@ -1,3 +1,7 @@
+---
+title: 'ADR-014: Defer Regression to Phase 2'
+---
+
 # ADR-014: Defer Regression to Phase 2
 
 **Status:** Accepted

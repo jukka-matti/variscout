@@ -1,3 +1,7 @@
+---
+title: 'Findings'
+---
+
 # Findings
 
 Investigation findings, board view, and corrective actions.

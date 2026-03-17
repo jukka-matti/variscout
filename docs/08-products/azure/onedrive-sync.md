@@ -1,3 +1,7 @@
+---
+title: 'OneDrive & SharePoint Sync'
+---
+
 # OneDrive & SharePoint Sync
 
 Analysis synchronization with Microsoft OneDrive and SharePoint.

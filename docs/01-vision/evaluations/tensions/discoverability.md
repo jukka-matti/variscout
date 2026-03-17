@@ -1,3 +1,7 @@
+---
+title: 'Discoverability'
+---
+
 # Discoverability
 
 > The entire progressive stratification system starts with clicking a boxplot bar --- if the analyst doesn't know to click, the most powerful feature is invisible.

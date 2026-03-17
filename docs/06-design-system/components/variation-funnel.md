@@ -1,3 +1,7 @@
+---
+title: 'Variation Bar'
+---
+
 # Variation Bar
 
 A visual progress bar showing variation scope in the drill-down breadcrumb.

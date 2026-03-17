@@ -1,3 +1,7 @@
+---
+title: 'Hierarchy Assumption'
+---
+
 # Hierarchy Assumption
 
 > The sequential one-factor-at-a-time drill-down captures main effects but may miss interaction effects between factors.

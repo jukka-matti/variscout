@@ -1,3 +1,7 @@
+---
+title: 'Azure App Testing Plan — rdmaic Organization'
+---
+
 # Azure App Testing Plan — rdmaic Organization
 
 Internal testing plan for VariScout Azure App before Azure Marketplace submission. Covers browser-based App Service testing and Microsoft Teams tab integration.

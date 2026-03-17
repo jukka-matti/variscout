@@ -1,3 +1,7 @@
+---
+title: 'Security Scanning'
+---
+
 # Security Scanning
 
 ## Overview

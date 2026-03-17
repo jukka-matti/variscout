@@ -1,3 +1,7 @@
+---
+title: 'When to Stop'
+---
+
 # When to Stop
 
 > Statistical explanation and actionability aren't the same thing --- isolating variation doesn't mean you can fix it.

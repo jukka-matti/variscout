@@ -1,3 +1,7 @@
+---
+title: 'Design Specs (superpowers)'
+---
+
 # Design Specs (superpowers)
 
 Implementation design specs created during brainstorming sessions.

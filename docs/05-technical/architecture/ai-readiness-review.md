@@ -1,3 +1,7 @@
+---
+title: 'AI Architecture Readiness Review'
+---
+
 # AI Architecture Readiness Review
 
 Strategic review of VariScout's architecture fitness for AI integration, conducted before implementation begins.

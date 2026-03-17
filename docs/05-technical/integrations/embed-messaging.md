@@ -1,3 +1,7 @@
+---
+title: 'PWA Embed Messaging Protocol'
+---
+
 # PWA Embed Messaging Protocol
 
 Communication protocol for iframe-embedded PWA (when used externally).

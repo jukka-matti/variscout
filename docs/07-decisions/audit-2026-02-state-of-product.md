@@ -1,3 +1,7 @@
+---
+title: 'State-of-the-Product Audit — February 2026'
+---
+
 # State-of-the-Product Audit — February 2026
 
 **Date**: 2026-02-13

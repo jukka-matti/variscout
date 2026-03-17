@@ -1,3 +1,7 @@
+---
+title: 'ADR-004: Offline-First Architecture'
+---
+
 # ADR-004: Offline-First Architecture
 
 **Status**: Accepted

@@ -1,3 +1,7 @@
+---
+title: 'Data Input System'
+---
+
 # Data Input System
 
 Technical documentation for data parsing, validation, and auto-mapping in VariScout Lite.

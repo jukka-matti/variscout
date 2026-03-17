@@ -1,3 +1,7 @@
+---
+title: 'ADR-001: Monorepo with pnpm Workspaces'
+---
+
 # ADR-001: Monorepo with pnpm Workspaces
 
 **Status**: Accepted

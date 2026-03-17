@@ -1,3 +1,7 @@
+---
+title: 'Two Types of Variation, Two Types of Action'
+---
+
 # Two Types of Variation, Two Types of Action
 
 The I-Chart reveals patterns — but what you DO about them depends on what TYPE of variation you're seeing.
@@ -75,8 +79,9 @@ Traditional SPC treats all special causes as "investigate and remove." Direction
 | **Special cause present**  | Points outside limits, patterns                    | Find and remove the cause (local action)      |
 | **Stable but not capable** | All points within limits, BUT limits outside specs | Reduce common cause variation (system action) |
 
-!!! warning "The Trap"
+:::caution[The Trap]
 When a process is stable but not capable, local actions won't help. "Trying harder" or adjusting individual points just adds variation. The **system itself** must change.
+:::
 
 ---
 

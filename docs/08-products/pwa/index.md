@@ -1,3 +1,7 @@
+---
+title: 'PWA (Free Training Tool)'
+---
+
 # PWA (Free Training Tool)
 
 > **Role**: Free variation analysis training and education tool for quality professionals, students, and developing countries.

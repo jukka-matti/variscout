@@ -1,3 +1,7 @@
+---
+title: 'Mobile Screen Budget'
+---
+
 # Mobile Screen Budget
 
 > Filter chips, the variation bar, and four charts all compete for screen space on mobile.

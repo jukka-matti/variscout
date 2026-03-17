@@ -1,3 +1,7 @@
+---
+title: 'Hypothesis Investigation Flow: Diamond Pattern for Root Cause Analysis'
+---
+
 # Hypothesis Investigation Flow: Diamond Pattern for Root Cause Analysis
 
 **Date:** 2026-03-15

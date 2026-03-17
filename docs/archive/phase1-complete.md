@@ -1,3 +1,7 @@
+---
+title: 'Phase 1 Complete: Minitab-Style Brushing Implementation'
+---
+
 > **ARCHIVED**: This document describes historical implementation details. Do not reference for current work.
 
 # Phase 1 Complete: Minitab-Style Brushing Implementation

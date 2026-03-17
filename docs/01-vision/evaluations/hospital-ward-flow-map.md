@@ -1,3 +1,7 @@
+---
+title: 'Investigation Flow Map: Hospital Ward (Aggregation Trap)'
+---
+
 # Investigation Flow Map: Hospital Ward (Aggregation Trap)
 
 > A step-by-step walkthrough of a complete variation investigation using the Hospital Ward dataset, documenting what exists at each step, what guidance the analyst receives, and where gaps remain. Follows the [Pizza Delivery flow map](investigation-flow-map.md) format.

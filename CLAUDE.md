@@ -16,6 +16,14 @@ pnpm --filter @variscout/azure-app test # Azure app tests only
 
 claude --chrome              # Enable Chrome browser for E2E testing
 
+pnpm storybook       # Component catalog (localhost:6006)
+pnpm build-storybook # Build static Storybook
+
+pnpm docs:dev        # Starlight doc site (localhost:4321)
+pnpm docs:build      # Build static doc site
+pnpm docs:c4         # Export LikeC4 → Mermaid
+pnpm docs:c4:serve   # Interactive C4 browser
+
 npx ruflo@latest security scan --depth full  # OWASP security scan
 npx ruflo@latest security cve --check        # CVE check
 
@@ -43,6 +51,7 @@ npx ruflo@latest security cve --check        # CVE check
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
+| docs/architecture/      | LikeC4 model (C4 L1-L3 source of truth)                               |
 | docs/archive/           | HISTORICAL ONLY — removed features, do not reference for current work |
 
 ## Task → Documentation
@@ -74,6 +83,8 @@ npx ruflo@latest security cve --check        # CVE check
 | Teams integration          | adr-016, docs/08-products/azure/authentication.md                                                      |
 | Platform comparison        | docs/08-products/feature-parity.md                                                                     |
 | Knowledge model / Glossary | docs/05-technical/architecture/knowledge-model.md, packages/core/src/glossary/                         |
+| C4 architecture model      | docs/architecture/likec4/                                                                              |
+| Documentation site         | apps/docs/ (Astro + Starlight)                                                                         |
 
 ## Repository Structure
 
@@ -91,7 +102,8 @@ variscout-lite/
 ├── apps/
 │   ├── pwa/           # PWA website (React + Vite)
 │   ├── azure/         # Azure Team App (EasyAuth + OneDrive sync)
-│   └── website/       # Marketing website (Astro + React Islands)
+│   ├── website/       # Marketing website (Astro + React Islands)
+│   └── docs/          # Documentation site (Astro + Starlight)
 ├── infra/             # ARM template + Azure Functions
 └── docs/              # Documentation (see table above)
 ```

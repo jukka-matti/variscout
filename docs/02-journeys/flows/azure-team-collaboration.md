@@ -1,3 +1,7 @@
+---
+title: 'Flow 8: Azure App — Team Collaboration'
+---
+
 # Flow 8: Azure App — Team Collaboration
 
 > OpEx Olivia deploys VariScout for her team and sets up sharing

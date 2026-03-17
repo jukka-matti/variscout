@@ -1,3 +1,7 @@
+---
+title: 'Investigation Flow Map: Pizza Delivery'
+---
+
 # Investigation Flow Map: Pizza Delivery
 
 > **Historical document** — describes the pre-Mindmap investigation flow using FunnelPanel.

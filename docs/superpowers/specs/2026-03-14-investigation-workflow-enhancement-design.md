@@ -1,3 +1,7 @@
+---
+title: 'Investigation Workflow Enhancement: Root Cause, Actions, Outcome'
+---
+
 # Investigation Workflow Enhancement: Root Cause, Actions, Outcome
 
 **Date:** 2026-03-14

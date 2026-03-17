@@ -8,6 +8,8 @@ related: [four-lenses, change, failure, flow, value]
 
 # Four Lenses Analysis Workflow
 
+<!-- journey-phase: scout -->
+
 The core VariScout methodology: **CHANGE → FLOW → FAILURE → VALUE**
 
 ## Overview
@@ -74,8 +76,9 @@ flowchart TD
 - **Stable:** Process variation is common cause only. Proceed to understand what factors explain that variation.
 - **Unstable:** Special causes present. These must be investigated—they often point directly to assignable causes.
 
-!!! tip "Start Here"
+:::tip[Start Here]
 Always check stability first. Analyzing an unstable process as if it were stable leads to wrong conclusions.
+:::
 
 ## Lens 2: FLOW (Boxplot)
 

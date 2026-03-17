@@ -1,3 +1,7 @@
+---
+title: 'Power BI Custom Visuals'
+---
+
 # HISTORICAL ONLY — Power BI shelved, not in development
 
 # Power BI Custom Visuals

@@ -1,3 +1,7 @@
+---
+title: 'LSS Consultant Client Delivery'
+---
+
 # LSS Consultant Client Delivery
 
 ## The Problem

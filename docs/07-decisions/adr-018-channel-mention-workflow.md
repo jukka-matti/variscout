@@ -1,3 +1,7 @@
+---
+title: 'ADR-018: Channel @Mention Workflow — Mobile Finding to Team Action'
+---
+
 # ADR-018: Channel @Mention Workflow — Mobile Finding to Team Action
 
 **Status**: Accepted

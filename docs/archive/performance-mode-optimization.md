@@ -1,3 +1,7 @@
+---
+title: 'Performance Mode Optimization - Implementation Summary'
+---
+
 > **ARCHIVED**: This document describes historical implementation details. Do not reference for current work.
 
 # Performance Mode Optimization - Implementation Summary

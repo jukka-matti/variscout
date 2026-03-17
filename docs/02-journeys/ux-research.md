@@ -1,3 +1,7 @@
+---
+title: 'UX Research: VariScout Lite'
+---
+
 # UX Research: VariScout Lite
 
 ## Design Thinking & JTBD Framework for Quality Professionals in Developing Countries

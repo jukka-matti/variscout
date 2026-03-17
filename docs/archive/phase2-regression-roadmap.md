@@ -1,3 +1,7 @@
+---
+title: 'Phase 2: Regression Re-enablement Roadmap'
+---
+
 > **HISTORICAL ONLY** — This document describes a deferred roadmap. Regression UI was removed in Feb 2026 per [ADR-014](../07-decisions/adr-014-regression-deferral.md). Kept for reference only.
 
 # Phase 2: Regression Re-enablement Roadmap

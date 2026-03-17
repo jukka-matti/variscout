@@ -1,3 +1,7 @@
+---
+title: 'Special Cause Education System - Phase 2 Implementation'
+---
+
 > **ARCHIVED**: This document describes historical implementation details. Do not reference for current work.
 
 # Special Cause Education System - Phase 2 Implementation

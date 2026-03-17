@@ -1,3 +1,7 @@
+---
+title: 'Two Voices: Control Limits vs Specification Limits'
+---
+
 # Two Voices: Control Limits vs Specification Limits
 
 > A VariScout educational resource based on ITC Quality Control principles

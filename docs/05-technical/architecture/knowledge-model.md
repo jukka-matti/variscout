@@ -1,3 +1,7 @@
+---
+title: 'Knowledge Model Architecture'
+---
+
 # Knowledge Model Architecture
 
 ## Overview

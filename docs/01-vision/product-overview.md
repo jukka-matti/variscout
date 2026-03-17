@@ -1,3 +1,7 @@
+---
+title: 'VariScout: Product Overview'
+---
+
 # VariScout: Product Overview
 
 ## Philosophy

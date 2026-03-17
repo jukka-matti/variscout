@@ -1,0 +1,34 @@
+---
+title: "core Components (C4 L3)"
+---
+graph TB
+  VariscoutCharts@{ shape: rectangle, label: "@variscout/charts" }
+  VariscoutHooks@{ shape: rectangle, label: "@variscout/hooks" }
+  subgraph VariscoutCore["`@variscout/core`"]
+    VariscoutCore.Tier@{ shape: rectangle, label: "Tier System" }
+    VariscoutCore.Parser@{ shape: rectangle, label: "CSV/Excel Parser" }
+    VariscoutCore.Navigation@{ shape: rectangle, label: "Navigation" }
+    VariscoutCore.Variation@{ shape: rectangle, label: "Variation Analysis" }
+    VariscoutCore.Glossary@{ shape: rectangle, label: "Glossary" }
+    VariscoutCore.Export@{ shape: rectangle, label: "Export" }
+    VariscoutCore.Stats@{ shape: rectangle, label: "Statistics Engine" }
+    VariscoutCore.Types@{ shape: rectangle, label: "Types" }
+    VariscoutCore.Utils@{ shape: rectangle, label: "Utilities" }
+  end
+  VariscoutCharts -. "`[...]`" .-> VariscoutCore.Stats
+  VariscoutCharts -. "`checks isPaidTier`" .-> VariscoutCore.Tier
+  VariscoutCharts -. "`[...]`" .-> VariscoutCore.Types
+  VariscoutHooks -. "`[...]`" .-> VariscoutCore.Stats
+  VariscoutHooks -. "`invokes parseCSV`" .-> VariscoutCore.Parser
+  VariscoutHooks -. "`uses getTier`" .-> VariscoutCore.Tier
+  VariscoutHooks -. "`uses filter types`" .-> VariscoutCore.Navigation
+  VariscoutHooks -. "`[...]`" .-> VariscoutCore.Types
+  VariscoutHooks -. "`uses contributions`" .-> VariscoutCore.Variation
+  VariscoutCore.Stats -. "`uses`" .-> VariscoutCore.Types
+  VariscoutCore.Variation -. "`uses`" .-> VariscoutCore.Stats
+  VariscoutCore.Parser -. "`uses`" .-> VariscoutCore.Types
+  VariscoutCore.Tier -. "`uses`" .-> VariscoutCore.Types
+  VariscoutCore.Navigation -. "`uses`" .-> VariscoutCore.Types
+  VariscoutCore.Variation -. "`uses`" .-> VariscoutCore.Types
+  VariscoutCore.Glossary -. "`uses`" .-> VariscoutCore.Types
+  VariscoutCore.Export -. "`uses`" .-> VariscoutCore.Types

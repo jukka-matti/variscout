@@ -1,3 +1,7 @@
+---
+title: 'ADR-020: Investigation Workflow Enhancement'
+---
+
 # ADR-020: Investigation Workflow Enhancement
 
 **Status:** Accepted

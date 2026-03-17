@@ -1,3 +1,7 @@
+---
+title: 'ADR-002: Visx for Chart Components'
+---
+
 # ADR-002: Visx for Chart Components
 
 **Status**: Accepted

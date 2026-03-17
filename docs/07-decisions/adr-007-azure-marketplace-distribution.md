@@ -1,3 +1,7 @@
+---
+title: 'ADR-007: Azure Marketplace Distribution Strategy'
+---
+
 # ADR-007: Azure Marketplace Distribution Strategy
 
 **Status**: Accepted (Revised 2026-02-27)

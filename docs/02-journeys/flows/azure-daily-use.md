@@ -1,3 +1,7 @@
+---
+title: 'Flow 7: Azure App — Daily Use'
+---
+
 # Flow 7: Azure App — Daily Use
 
 > Green Belt Gary's daily workflow: repeat analysis, Performance Mode, exports

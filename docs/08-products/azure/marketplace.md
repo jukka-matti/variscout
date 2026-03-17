@@ -1,3 +1,7 @@
+---
+title: 'Azure Marketplace Guide'
+---
+
 # Azure Marketplace Guide
 
 How to publish and manage VariScout on Azure Marketplace.

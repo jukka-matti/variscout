@@ -1,3 +1,7 @@
+---
+title: 'Use Cases'
+---
+
 # Use Cases
 
 Strategic use cases grounded in VariScout's actual capabilities. Each describes a specific problem that brings searchers to VariScout, the analysis journey they take, and website content opportunities.

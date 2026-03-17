@@ -1,3 +1,7 @@
+---
+title: 'Visual Process Maps'
+---
+
 # Visual Process Maps
 
 Scannable, step-by-step maps showing exactly how many user actions each analysis workflow requires.

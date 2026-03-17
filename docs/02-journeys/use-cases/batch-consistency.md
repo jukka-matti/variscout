@@ -1,3 +1,7 @@
+---
+title: 'Batch Process Consistency'
+---
+
 # Batch Process Consistency
 
 ## The Problem

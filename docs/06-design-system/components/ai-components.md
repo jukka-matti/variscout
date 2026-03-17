@@ -1,3 +1,7 @@
+---
+title: 'AI Components'
+---
+
 # AI Components
 
 NarrativeBar, ChartInsightChip, and CoScoutPanel for AI-assisted analysis.

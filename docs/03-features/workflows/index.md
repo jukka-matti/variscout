@@ -26,6 +26,18 @@ Workflows describe **what analysts actually DO** inside VariScout—the sequence
 | Process Investigation | ~15     | ~10 min | Why is quality dropping? |
 | Predict Improvement   | ~12     | ~8 min  | Can we fix it?           |
 
+## Analysis Journey
+
+### [Analysis Journey Map](analysis-journey-map.md)
+
+The unified 4-phase model: **FRAME → SCOUT → INVESTIGATE → IMPROVE** with CoScout companion across all phases and PDCA loop for re-entry. Start here for the big picture.
+
+### [Investigation Lifecycle Map](investigation-lifecycle-map.md)
+
+IDEOI state diagram for the Investigate phase — hypothesis diamond, finding status lifecycle, and CoScout behavior at each state.
+
+---
+
 ## Core Workflows
 
 ### [Four Lenses Analysis](four-lenses-workflow.md)
@@ -113,6 +125,8 @@ Systematic investigation for problem-solving:
 
 ## Related Documentation
 
-- [Feature Documentation](../index.md) - What each chart does
-- [Case Studies](../../04-cases/index.md) - Teaching examples
-- [Four Lenses Philosophy](../../01-vision/four-lenses/index.md) - Why this methodology
+- [Feature Documentation](../index.md) — What each chart does
+- [Case Studies](../../04-cases/index.md) — Teaching examples
+- [Four Lenses Philosophy](../../01-vision/four-lenses/index.md) — Why this methodology
+- [System Map](../../05-technical/architecture/system-map.md) — Package topology
+- [Data Pipeline Map](../../05-technical/architecture/data-pipeline-map.md) — End-to-end data flow

@@ -1,3 +1,7 @@
+---
+title: 'Flow 9: Azure App — AI Setup'
+---
+
 # Flow 9: Azure App — AI Setup
 
 > OpEx Olivia enables AI-powered analysis for her team during deployment

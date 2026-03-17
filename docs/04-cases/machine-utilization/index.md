@@ -1,3 +1,7 @@
+---
+title: 'Case Study: "Do We Really Need a New Machine?"'
+---
+
 # Case Study: "Do We Really Need a New Machine?"
 
 ## Background

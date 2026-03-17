@@ -1,3 +1,7 @@
+---
+title: 'Azure App (Primary Product)'
+---
+
 # Azure App (Primary Product)
 
 VariScout for Microsoft 365 enterprises - the only paid product, distributed via Azure Marketplace as a Managed Application.

@@ -1,3 +1,7 @@
+---
+title: 'FAILURE Lens: Pareto'
+---
+
 # FAILURE Lens: Pareto
 
 > The Integrity Lens — look at where problems concentrate

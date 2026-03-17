@@ -1,3 +1,7 @@
+---
+title: 'Voice of the Process: Control Limits'
+---
+
 # Voice of the Process: Control Limits
 
 ---

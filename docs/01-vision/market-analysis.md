@@ -1,3 +1,7 @@
+---
+title: 'Market Analysis & TAM Estimate'
+---
+
 # Market Analysis & TAM Estimate
 
 _Last updated: February 2026_
@@ -43,8 +47,9 @@ VariScout doesn't compete with the full Minitab suite (DOE, hypothesis testing, 
 | Convert to paid after training  | ~10–20%          | Most use the free PWA             |
 | **TAM (Layer 2)**               | **~€5–15M/year** | Corporate upgrades to Azure App   |
 
-!!! note
+:::note
 Most training revenue comes from the **free PWA** driving awareness, not direct sales. The TAM here flows from corporate training departments that upgrade to Azure App for internal use after discovering VariScout through training.
+:::
 
 ### Layer 3 — Excel-Native Quality Analytics (Tertiary)
 

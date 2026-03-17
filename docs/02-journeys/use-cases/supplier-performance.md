@@ -1,3 +1,7 @@
+---
+title: 'Supplier Performance Comparison'
+---
+
 # Supplier Performance Comparison
 
 ## The Problem

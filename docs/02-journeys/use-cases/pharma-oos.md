@@ -1,3 +1,7 @@
+---
+title: 'Pharma OOS Investigation'
+---
+
 # Pharma OOS Investigation
 
 ## The Problem

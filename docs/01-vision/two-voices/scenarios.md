@@ -1,3 +1,7 @@
+---
+title: "Four Scenarios: When the Voices Align (or Don't)"
+---
+
 # Four Scenarios: When the Voices Align (or Don't)
 
 ---
@@ -98,8 +102,9 @@ LSL ━━━━━━━━━━━━━━━━━━━━━━━━━�
 
 ✅ "Is that point within our control limits? If yes, it's normal variation — don't adjust. If no, find out why."
 
-!!! warning
+:::caution
 **Tampering with a stable process increases variation.**
+:::
 
 ---
 

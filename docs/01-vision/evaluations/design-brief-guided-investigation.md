@@ -1,3 +1,7 @@
+---
+title: 'Design Brief: Guided Investigation'
+---
+
 # Design Brief: Guided Investigation
 
 > **Historical document** — this design brief led to the Investigation Mindmap (Phases A-D).

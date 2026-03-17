@@ -1,3 +1,7 @@
+---
+title: 'ADR-025: Internationalization Architecture'
+---
+
 # ADR-025: Internationalization Architecture
 
 **Status**: Accepted

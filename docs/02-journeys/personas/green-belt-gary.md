@@ -1,3 +1,7 @@
+---
+title: 'Green Belt Gary'
+---
+
 # Green Belt Gary
 
 | Attribute         | Detail                                        |

@@ -1,3 +1,7 @@
+---
+title: 'ADR-021 Security Evaluation: Teams Integration'
+---
+
 # ADR-021 Security Evaluation: Teams Integration
 
 **Status**: Accepted

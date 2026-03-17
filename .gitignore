@@ -148,4 +148,5 @@ vite.config.ts.timestamp*
 
 # Build output
 site/
+storybook-static/
 

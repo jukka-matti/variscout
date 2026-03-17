@@ -1,3 +1,7 @@
+---
+title: 'Panels and Drawers'
+---
+
 # Panels and Drawers
 
 Panel patterns for VariScout, aligned with [Fluent 2 design principles](../../07-decisions/adr-017-fluent-design-alignment.md). Covers when to use each type, CSS patterns, responsive behavior, and dismiss conventions.

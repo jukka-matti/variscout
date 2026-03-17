@@ -1,3 +1,7 @@
+---
+title: 'GLM Engine Roadmap'
+---
+
 > **HISTORICAL ONLY** — This document describes deferred math enhancements. Regression UI was removed in Feb 2026 per [ADR-014](../07-decisions/adr-014-regression-deferral.md). Kept for reference only.
 
 # GLM Engine Roadmap

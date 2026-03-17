@@ -1,3 +1,7 @@
+---
+title: 'Evaluations: Progressive Stratification Tensions & Patterns'
+---
+
 # Evaluations: Progressive Stratification Tensions & Patterns
 
 Product strategy evaluations for the design tensions and alternative patterns identified in [Progressive Stratification](../progressive-stratification.md) Part 2. Each evaluation assesses fit against VariScout's philosophy, personas, and competitive positioning.

@@ -1,3 +1,7 @@
+---
+title: 'Deployment Guide'
+---
+
 # Deployment Guide
 
 This document covers build commands, deployment workflows, and environment configurations for VariScout applications.

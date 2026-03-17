@@ -1,3 +1,7 @@
+---
+title: 'Curious Carlos'
+---
+
 # Curious Carlos
 
 | Attribute         | Detail                                        |

@@ -1,3 +1,7 @@
+---
+title: 'Statistics & Investigation Technical Reference'
+---
+
 # Statistics & Investigation Technical Reference
 
 Exact formulas, algorithm choices, and implementation notes for the VariScout statistical engine and the Investigation & Findings system.

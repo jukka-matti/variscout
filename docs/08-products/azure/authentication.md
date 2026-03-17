@@ -1,3 +1,7 @@
+---
+title: 'Authentication (EasyAuth)'
+---
+
 # Authentication (EasyAuth)
 
 App Service Authentication (EasyAuth) integration for Azure AD SSO.

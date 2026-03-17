@@ -1,3 +1,7 @@
+---
+title: 'Chrome Evaluation: Mindmap with Bottleneck & Hospital Ward'
+---
+
 # HISTORICAL ONLY — Mindmap replaced by Findings system (Feb 2026)
 
 # Chrome Evaluation: Mindmap with Bottleneck & Hospital Ward

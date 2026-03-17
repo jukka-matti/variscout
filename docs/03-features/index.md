@@ -44,6 +44,13 @@ The core statistical charts based on Watson's Four Lenses:
 
 ---
 
+## Analysis Journey
+
+| Map                                                                     | Description                                          |
+| ----------------------------------------------------------------------- | ---------------------------------------------------- |
+| [Analysis Journey Map](workflows/analysis-journey-map.md)               | 4-phase model: Frame → Scout → Investigate → Improve |
+| [Investigation Lifecycle Map](workflows/investigation-lifecycle-map.md) | IDEOI state diagram for the Investigate phase        |
+
 ## Analyst Workflows
 
 How analysts combine VariScout tools to solve real problems. See the [Workflows index](workflows/index.md) for the full guide.

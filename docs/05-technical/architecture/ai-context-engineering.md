@@ -1,3 +1,7 @@
+---
+title: 'AI Context Engineering'
+---
+
 # AI Context Engineering
 
 How VariScout constructs AI prompts to ground CoScout in the VariScout methodology and current analysis state.

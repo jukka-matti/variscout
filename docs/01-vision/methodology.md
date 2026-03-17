@@ -1,3 +1,7 @@
+---
+title: 'VariScout Methodology'
+---
+
 # VariScout Methodology
 
 Single-page consolidation of VariScout's analytical approach — how the product is designed to think, and why.

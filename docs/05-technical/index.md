@@ -1,3 +1,7 @@
+---
+title: 'Technical Documentation'
+---
+
 # Technical Documentation
 
 Technical specifications for VariScout implementation. These documents are designed to be used by developers (human or AI) building the product.
@@ -65,6 +69,8 @@ High-level architecture overview and detailed design documents:
 | [AI Architecture](architecture/ai-architecture.md)         | AI integration, Azure AI Foundry, context pipeline          |
 | [AIX Design System](architecture/aix-design-system.md)     | AI experience governance: tone, trust, interaction patterns |
 | [AI Readiness Review](architecture/ai-readiness-review.md) | Strategic architecture assessment for AI integration        |
+| [LikeC4 Model](../architecture/likec4/)                    | C4 architecture model (L1-L3) in LikeC4                     |
+| [Documentation Methodology](documentation-methodology.md)  | Diataxis, C4, Docs-as-Code, journey spine                   |
 
 ### Implementation
 

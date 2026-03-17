@@ -1,3 +1,7 @@
+---
+title: 'Auto-Combination Finder'
+---
+
 # Auto-Combination Finder
 
 > Use the regression engine to identify the highest-impact 2--3 filter combination automatically.

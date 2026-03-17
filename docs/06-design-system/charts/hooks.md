@@ -1,3 +1,7 @@
+---
+title: 'Chart Hooks'
+---
+
 # Chart Hooks
 
 React hooks for chart layout, tooltips, and selection state in `@variscout/charts`.

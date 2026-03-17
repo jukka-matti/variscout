@@ -1,3 +1,7 @@
+---
+title: 'Design Spec: Investigation Mindmap'
+---
+
 # HISTORICAL ONLY — Mindmap replaced by Findings system (Feb 2026)
 
 # Design Spec: Investigation Mindmap

@@ -1,3 +1,7 @@
+---
+title: 'Drill-Down: Progressive Variation Analysis'
+---
+
 # Drill-Down: Progressive Variation Analysis
 
 The drill-down methodology is the heart of VariScout's approach to finding where variation hides.
@@ -61,11 +65,13 @@ Each chip shows contribution % to TOTAL variation (not local η²).
 
 ## Cumulative Variation Tracking
 
-!!! methodology "The Power of Filter Chips"
+:::note[The Power of Filter Chips]
 This is the killer insight of the entire methodology. Filter chips aren't just navigation — they show **contribution to TOTAL variation** that tells you exactly how much of your total problem you've isolated.
+:::
 
-!!! warning "Important Terminology"
+:::caution[Important Terminology]
 VariScout identifies **factors driving variation**, not "root causes." EDA shows _which_ factors explain variation — the _why_ requires further investigation (5 Whys, experimentation, Gemba walks). This distinction matters: we quantify contribution, not causation.
+:::
 
 ### The Math Behind Contribution %
 

@@ -1,3 +1,7 @@
+---
+title: 'Assembly Line Bottleneck Analysis'
+---
+
 # Assembly Line Bottleneck Analysis
 
 ## The Problem

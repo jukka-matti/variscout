@@ -1,3 +1,7 @@
+---
+title: 'Navigation Patterns'
+---
+
 # Navigation Patterns
 
 Navigation patterns used across VariScout applications.

@@ -1,0 +1,11 @@
+---
+title: "data Components (C4 L3)"
+---
+graph TB
+  VariscoutPwa@{ shape: rectangle, label: "apps/pwa" }
+  VariscoutAzure@{ shape: rectangle, label: "apps/azure" }
+  VariscoutWebsite@{ shape: rectangle, label: "apps/website" }
+  VariscoutData@{ shape: rectangle, label: "@variscout/data" }
+  VariscoutPwa -. "`loads samples`" .-> VariscoutData
+  VariscoutAzure -. "`loads samples`" .-> VariscoutData
+  VariscoutWebsite -. "`loads samples`" .-> VariscoutData

@@ -1,3 +1,7 @@
+---
+title: 'VaRiScout Lite Case Studies'
+---
+
 # VaRiScout Lite Case Studies
 
 ## 12-Week Content Calendar

@@ -1,3 +1,7 @@
+---
+title: 'Feedback Patterns'
+---
+
 # Feedback Patterns
 
 Status, loading, and error state patterns.

@@ -1,3 +1,7 @@
+---
+title: 'Individual Control Charts (I-Chart)'
+---
+
 # Individual Control Charts (I-Chart)
 
 Time-series control charts for individual measurements with control limits and specification limits.

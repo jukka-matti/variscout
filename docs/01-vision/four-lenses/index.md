@@ -1,3 +1,7 @@
+---
+title: "Watson's Four Lenses of Process Knowledge"
+---
+
 # Watson's Four Lenses of Process Knowledge
 
 > "VariScout doesn't just display charts — it gives you four lenses to see what averages hide."
@@ -29,8 +33,9 @@ VariScout's four core charts aren't random statistical outputs. Each chart direc
 | -------------- | ----------------- | ----------------------------------------------- |
 | **Regression** | Correlation Check | "Is there even a relationship between X and Y?" |
 
-!!! note
+:::note
 Regression in VariScout serves as a **first step** to visually check if correlation exists between two continuous variables. It answers "is there a relationship?" before investing in deeper predictive modeling. For most variation analysis, the Four Lenses are sufficient.
+:::
 
 ---
 
