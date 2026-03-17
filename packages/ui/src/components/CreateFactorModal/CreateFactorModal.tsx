@@ -72,15 +72,27 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
     }
   }, [isOpen]);
 
-  // Document-level Escape to close (ADR-017)
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  // Open/close dialog based on isOpen prop
   useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (isOpen && !dialog.open) {
+      dialog.showModal();
+    } else if (!isOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [isOpen]);
+
+  // Handle native dialog close (Escape key handled by browser)
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const handleClose = () => onClose();
+    dialog.addEventListener('close', handleClose);
+    return () => dialog.removeEventListener('close', handleClose);
+  }, [onClose]);
 
   // Validate factor name
   const validateName = (name: string): string | null => {
@@ -121,15 +133,16 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   const isValid = factorName.trim() && !error;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
+    <dialog
+      ref={dialogRef}
+      className="fixed inset-0 z-50 bg-transparent backdrop:bg-black/60 max-w-none max-h-none w-full h-full m-0 p-0 flex items-center justify-center"
+      onClick={e => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       {/* Modal */}
       <div className="relative bg-surface-tertiary border border-edge rounded-lg shadow-xl w-full max-w-md mx-4">
         {/* Header */}
@@ -233,6 +246,6 @@ export const CreateFactorModal: React.FC<CreateFactorModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 };

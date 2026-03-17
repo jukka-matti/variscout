@@ -8,7 +8,7 @@
  * - "Enable Performance Mode" / "Not Now" buttons
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Activity, X, Check, Sparkles } from 'lucide-react';
 import { MeasureColumnSelector } from '../MeasureColumnSelector';
 import type { WideFormatDetection, ChannelInfo } from '@variscout/core';
@@ -47,13 +47,23 @@ export const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> =
     }
   }, [detection.confidence]);
 
-  // Close on Escape (ADR-017)
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  // Show modal on mount
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onDecline();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  }, []);
+
+  // Handle native dialog close (Escape key handled by browser)
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const handleClose = () => onDecline();
+    dialog.addEventListener('close', handleClose);
+    return () => dialog.removeEventListener('close', handleClose);
   }, [onDecline]);
 
   const handleEnable = () => {
@@ -63,13 +73,13 @@ export const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop (click to close, ADR-017) */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
-        onClick={onDecline}
-      />
-
+    <dialog
+      ref={dialogRef}
+      className="fixed inset-0 z-50 bg-transparent backdrop:bg-black/60 backdrop:backdrop-blur-sm max-w-none max-h-none w-full h-full m-0 p-0 flex items-center justify-center"
+      onClick={e => {
+        if (e.target === e.currentTarget) onDecline();
+      }}
+    >
       {/* Modal */}
       <div className="relative w-full max-w-lg bg-surface-secondary border border-edge rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-fade-in">
         {/* Header */}
@@ -169,7 +179,7 @@ export const PerformanceDetectedModal: React.FC<PerformanceDetectedModalProps> =
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 };
 

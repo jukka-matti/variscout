@@ -9,7 +9,7 @@
  * SSO without redirect, channel tab support).
  */
 
-import { app, authentication, teamsCore } from '@microsoft/teams-js';
+import { app, authentication, pages, teamsCore } from '@microsoft/teams-js';
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -87,6 +87,19 @@ export function setBeforeUnloadHandler(cb: () => Promise<void>): void {
   beforeUnloadCallback = cb;
 }
 
+// ── Back navigation callback ─────────────────────────────────────────────
+
+let backNavigationCallback: (() => boolean) | null = null;
+
+/**
+ * Register a callback for Teams mobile back button.
+ * Return true from the callback if you handled the navigation (e.g. popped an internal view),
+ * return false to let Teams handle it (navigate away from tab).
+ */
+export function setBackNavigationHandler(cb: () => boolean): void {
+  backNavigationCallback = cb;
+}
+
 // ── Initialization ───────────────────────────────────────────────────────
 
 /**
@@ -145,6 +158,19 @@ async function doInit(): Promise<TeamsContext> {
       });
     } catch {
       // teamsCore API may not be available in older Teams clients
+    }
+
+    // Register back button handler for Teams mobile navigation.
+    // Allows the app to intercept the back button and handle internal navigation.
+    try {
+      pages.backStack.registerBackButtonHandler(() => {
+        if (backNavigationCallback) {
+          return backNavigationCallback();
+        }
+        return false; // let Teams handle it
+      });
+    } catch {
+      // pages.backStack may not be available in all contexts
     }
 
     initialized = true;

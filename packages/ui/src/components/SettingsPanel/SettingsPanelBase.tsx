@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
@@ -57,25 +57,38 @@ function SettingsPanelBase<
     }
   }, [local, isOpen, setDisplayOptions, displayOptions]);
 
-  // Close on escape
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  if (!isOpen) return null;
+  // Open/close dialog based on isOpen prop
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (isOpen && !dialog.open) {
+      dialog.showModal();
+    } else if (!isOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [isOpen]);
+
+  // Handle native dialog close (Escape key handled by browser)
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const handleClose = () => onClose();
+    dialog.addEventListener('close', handleClose);
+    return () => dialog.removeEventListener('close', handleClose);
+  }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-end">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-
-      {/* Panel */}
-      <div className="relative w-80 h-full bg-surface border-l border-edge shadow-2xl overflow-y-auto animate-slide-in-right">
+    <dialog
+      ref={dialogRef}
+      className="fixed inset-0 z-[60] bg-transparent backdrop:bg-black/40 max-w-none max-h-none w-full h-full m-0 p-0"
+      onClick={e => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      {/* Panel — positioned right */}
+      <div className="absolute right-0 top-0 w-80 h-full bg-surface border-l border-edge shadow-2xl overflow-y-auto animate-slide-in-right">
         <div className="p-5 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
@@ -170,7 +183,7 @@ function SettingsPanelBase<
           </section>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Save } from 'lucide-react';
 import { inferCharacteristicType, type CharacteristicType } from '@variscout/core';
 import { useIsMobile } from '../../hooks';
@@ -140,13 +140,41 @@ const SpecEditor = ({
     </>
   );
 
-  // Mobile: Bottom sheet with backdrop
+  // Mobile: Bottom sheet as native dialog
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  // Show/hide dialog for mobile
+  useEffect(() => {
+    if (!isMobile) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) {
+      dialog.showModal();
+    }
+    return () => {
+      if (dialog.open) dialog.close();
+    };
+  }, [isMobile]);
+
+  // Handle native dialog close on mobile
+  useEffect(() => {
+    if (!isMobile) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const handleClose = () => onClose();
+    dialog.addEventListener('close', handleClose);
+    return () => dialog.removeEventListener('close', handleClose);
+  }, [isMobile, onClose]);
+
   if (isMobile) {
     return (
-      <>
-        {/* Backdrop */}
-        <div className="fixed inset-0 bg-black/60 z-40" onClick={onClose} />
-
+      <dialog
+        ref={dialogRef}
+        className="fixed inset-0 z-50 bg-transparent backdrop:bg-black/60 max-w-none max-h-none w-full h-full m-0 p-0"
+        onClick={e => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
         {/* Bottom Sheet */}
         <div
           className={cs.mobileSheet}
@@ -173,7 +201,7 @@ const SpecEditor = ({
           {/* Content */}
           <div className="p-4 flex flex-col gap-4">{formContent}</div>
         </div>
-      </>
+      </dialog>
     );
   }
 

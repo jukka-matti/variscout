@@ -15,8 +15,8 @@ function generateManifestId(origin: string): string {
 function buildManifest(origin: string, clientId?: string): object {
   const manifest: Record<string, unknown> = {
     $schema:
-      'https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json',
-    manifestVersion: '1.16',
+      'https://developer.microsoft.com/en-us/json-schemas/teams/v1.23/MicrosoftTeams.schema.json',
+    manifestVersion: '1.23',
     version: '1.1.0',
     id: generateManifestId(origin),
     developer: {
