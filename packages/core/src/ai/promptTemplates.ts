@@ -22,6 +22,7 @@ export {
   // CoScout
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,
+  buildCoScoutTools,
   formatKnowledgeContext,
   // Reports
   buildReportSystemPrompt,

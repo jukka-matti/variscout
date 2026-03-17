@@ -20,7 +20,12 @@ export { buildChartInsightSystemPrompt, buildChartInsightPrompt } from './chartI
 
 // CoScout conversational prompts
 export type { BuildCoScoutSystemPromptOptions } from './coScout';
-export { buildCoScoutSystemPrompt, buildCoScoutMessages, formatKnowledgeContext } from './coScout';
+export {
+  buildCoScoutSystemPrompt,
+  buildCoScoutMessages,
+  buildCoScoutTools,
+  formatKnowledgeContext,
+} from './coScout';
 
 // Report generation prompts
 export { buildReportSystemPrompt, buildReportPrompt } from './reports';

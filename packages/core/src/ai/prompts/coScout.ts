@@ -8,9 +8,50 @@
  */
 
 import type { AIContext, CoScoutMessage } from '../types';
+import type { ToolDefinition } from '../responsesApi';
 import type { Locale } from '../../i18n/types';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from './shared';
 import { buildSummaryPrompt } from './narration';
+
+/**
+ * Build tool definitions for CoScout Responses API integration.
+ * These enable the AI to read chart data and statistics via function calling.
+ */
+export function buildCoScoutTools(): ToolDefinition[] {
+  return [
+    {
+      type: 'function',
+      function: {
+        name: 'get_chart_data',
+        description:
+          'Read current chart data from VariScout. Returns data points, categories, or distribution data for the specified chart type.',
+        parameters: {
+          type: 'object',
+          properties: {
+            chart: {
+              type: 'string',
+              enum: ['ichart', 'boxplot', 'pareto', 'capability'],
+              description: 'Which chart to read data from',
+            },
+          },
+          required: ['chart'],
+        },
+      },
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'get_statistical_summary',
+        description:
+          'Get current statistical summary: mean, standard deviation, Cpk, Cp, pass rate, sample count, and violation counts.',
+        parameters: {
+          type: 'object',
+          properties: {},
+        },
+      },
+    },
+  ];
+}
 
 /** Options for building the CoScout system prompt */
 export interface BuildCoScoutSystemPromptOptions {

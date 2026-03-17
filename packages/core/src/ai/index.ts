@@ -26,11 +26,21 @@ export {
   buildChartInsightPrompt,
   buildCoScoutSystemPrompt,
   buildCoScoutMessages,
+  buildCoScoutTools,
   formatKnowledgeContext,
   buildReportSystemPrompt,
   buildReportPrompt,
   buildLocaleHint,
 } from './promptTemplates';
+
+export type {
+  ResponsesApiConfig,
+  ToolDefinition,
+  ResponsesApiRequest,
+  ResponsesApiResponse,
+  ResponseOutput,
+} from './responsesApi';
+export { sendResponsesTurn, streamResponsesTurn, extractResponseText } from './responsesApi';
 
 export type {
   InsightChartType,
