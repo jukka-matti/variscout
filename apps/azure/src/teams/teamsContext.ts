@@ -18,6 +18,8 @@ export interface TeamsContext {
   isTeams: boolean;
   /** 'personal' | 'channel' | null */
   tabType: 'personal' | 'channel' | null;
+  /** Channel membership type: standard, private, or shared (Q4 support) */
+  channelType: 'standard' | 'private' | 'shared' | null;
   /** Channel name (only set for channel tabs) */
   channelName: string | null;
   /** Channel ID (only set for channel tabs) */
@@ -37,6 +39,7 @@ export interface TeamsContext {
 const EMPTY_CONTEXT: TeamsContext = {
   isTeams: false,
   tabType: null,
+  channelType: null,
   channelName: null,
   channelId: null,
   teamName: null,
@@ -125,9 +128,23 @@ async function doInit(): Promise<TeamsContext> {
     const isChannel = ctx.page?.frameContext === 'content' && !!ctx.channel?.id;
     const isPersonal = ctx.page?.frameContext === 'content' && !ctx.channel?.id;
 
+    // Detect channel membership type for private/shared channel support (Q4)
+    // membershipType is available since Teams JS v2.x but not in older ChannelInfo type
+    const membershipType = (ctx.channel as unknown as Record<string, unknown> | undefined)
+      ?.membershipType as string | undefined;
+    const channelType =
+      membershipType === 'private'
+        ? 'private'
+        : membershipType === 'shared'
+          ? 'shared'
+          : isChannel
+            ? 'standard'
+            : null;
+
     teamsContext = {
       isTeams: true,
       tabType: isChannel ? 'channel' : isPersonal ? 'personal' : null,
+      channelType,
       channelName: ctx.channel?.displayName ?? null,
       channelId: ctx.channel?.id ?? null,
       teamName: ctx.team?.displayName ?? null,

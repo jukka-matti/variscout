@@ -16,6 +16,7 @@ vi.mock('../../teams/teamsContext', () => ({
   getTeamsContext: vi.fn(() => ({
     isTeams: false,
     tabType: null,
+    channelType: null,
     channelName: null,
     channelId: null,
     teamName: null,
@@ -47,6 +48,7 @@ describe('getCurrentUser', () => {
     vi.mocked(getTeamsContext).mockReturnValue({
       isTeams: false,
       tabType: null,
+      channelType: null,
       channelName: null,
       channelId: null,
       teamName: null,
@@ -81,6 +83,7 @@ describe('getCurrentUser', () => {
     vi.mocked(getTeamsContext).mockReturnValue({
       isTeams: true,
       tabType: 'personal',
+      channelType: null,
       channelName: null,
       channelId: null,
       teamName: null,
@@ -120,6 +123,7 @@ describe('getCurrentUser', () => {
     vi.mocked(getTeamsContext).mockReturnValue({
       isTeams: true,
       tabType: 'personal',
+      channelType: null,
       channelName: null,
       channelId: null,
       teamName: null,

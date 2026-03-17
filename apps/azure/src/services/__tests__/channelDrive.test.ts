@@ -130,6 +130,7 @@ describe('getChannelDriveInfo', () => {
     vi.mocked(getTeamsContext).mockReturnValueOnce({
       isTeams: false,
       tabType: null,
+      channelType: null,
       channelName: null,
       channelId: null,
       teamName: null,
