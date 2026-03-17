@@ -39,7 +39,7 @@ npx ruflo@latest security cve --check        # CVE check
 | docs/04-cases/          | 7 case studies with demo data                                         |
 | docs/05-technical/      | Architecture, implementation, integrations                            |
 | docs/06-design-system/  | Colors, typography, components, charts, patterns                      |
-| docs/07-decisions/      | ADR-001 through ADR-024                                               |
+| docs/07-decisions/      | ADR-001 through ADR-025                                               |
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
@@ -61,6 +61,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Architecture / ADRs        | docs/07-decisions/, docs/05-technical/                                                                 |
 | Website                    | docs/08-products/website/, apps/website/                                                               |
 | Methodology / Personas     | docs/01-vision/, docs/02-journeys/                                                                     |
+| Internationalization       | adr-025, packages/core/src/i18n/, packages/hooks/src/useLocaleState.ts, useTranslation.ts              |
 | Testing                    | .claude/rules/testing.md, docs/05-technical/implementation/testing.md                                  |
 | Report View / Sharing      | adr-024, docs/superpowers/specs/2026-03-16-scouting-report-design.md                                   |
 | Verification / Staged      | adr-023, docs/03-features/analysis/staged-analysis.md                                                  |

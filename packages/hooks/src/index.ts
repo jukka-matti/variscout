@@ -180,6 +180,16 @@ export {
   type UseDashboardChartsBaseResult,
 } from './useDashboardChartsBase';
 
+// Locale State
+export {
+  useLocaleState,
+  type UseLocaleStateOptions,
+  type UseLocaleStateReturn,
+} from './useLocaleState';
+
+// Translation
+export { useTranslation, type UseTranslationReturn } from './useTranslation';
+
 // Theme State
 export {
   useThemeState,

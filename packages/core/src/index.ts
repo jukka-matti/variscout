@@ -251,6 +251,20 @@ export { allKnowledge, getEntry, hasEntry, getRelated, getReferencedBy } from '.
 // Formatting utilities
 export { formatPValue, getStars } from './format';
 
+// Internationalization
+export type { Locale, MessageCatalog } from './i18n';
+export {
+  LOCALES,
+  LOCALE_NAMES,
+  formatStatistic,
+  formatPercent,
+  formatDate,
+  formatInteger,
+  getMessages,
+  getMessage,
+  detectLocale,
+} from './i18n';
+
 // Responsive utilities (chart layout calculations)
 export type { ChartMargins, ChartFonts, ChartType, Breakpoints } from './responsive';
 export {

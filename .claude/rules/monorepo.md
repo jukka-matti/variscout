@@ -4,7 +4,7 @@
 
 ```
 packages/
-├── core/      # @variscout/core - Pure logic, glossary, tier system (no React)
+├── core/      # @variscout/core - Pure logic, glossary, tier system, i18n (no React)
 ├── charts/    # @variscout/charts - React + Visx (standard + Performance charts), useChartTheme
 ├── data/      # @variscout/data - Sample datasets with pre-computed chart data
 ├── hooks/     # @variscout/hooks - Shared React hooks:
@@ -41,6 +41,8 @@ packages/
 │              #   useScrollSpy - IntersectionObserver TOC tracking
 │              #   useSnapshotData - Per-finding filtered data + stats
 │              #   copySectionAsHTML - Rich clipboard copy utility
+│              #   useLocaleState - Locale state (localStorage + data-locale attribute)
+│              #   useTranslation - Component-level translation hook (MutationObserver)
 └── ui/        # @variscout/ui - Shared UI components:
                #   AnovaResults, FilterBreadcrumb, FilterChipDropdown, FilterContextBar,
                #   PerformanceSetupPanelBase, VariationBar,

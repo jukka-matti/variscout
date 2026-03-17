@@ -6,6 +6,7 @@ import {
   type ChromeColorValues,
   type ChartColor,
 } from './colors';
+import type { Locale } from '@variscout/core';
 
 export interface ChartThemeColors {
   /** Whether dark theme is active */
@@ -18,6 +19,8 @@ export interface ChartThemeColors {
   colors: Record<ChartColor, string>;
   /** Font scale multiplier (from data-chart-scale attribute) */
   fontScale: number;
+  /** Current locale for number formatting in charts */
+  locale: Locale;
 }
 
 /**
@@ -29,6 +32,18 @@ function getDocumentFontScale(): number {
   if (!scale) return 1;
   const parsed = parseFloat(scale);
   return isNaN(parsed) ? 1 : parsed;
+}
+
+/**
+ * Get current locale from document attribute
+ */
+function getDocumentLocale(): Locale {
+  if (typeof document === 'undefined') return 'en';
+  const locale = document.documentElement.getAttribute('data-locale');
+  if (locale === 'de' || locale === 'es' || locale === 'fr' || locale === 'pt') {
+    return locale;
+  }
+  return 'en';
 }
 
 /**
@@ -48,23 +63,26 @@ export function useChartTheme(): ChartThemeColors {
   const [theme, setTheme] = useState<'light' | 'dark'>(getDocumentTheme);
   const [mode, setMode] = useState<'technical' | 'executive'>(getDocumentChartMode);
   const [fontScale, setFontScale] = useState<number>(getDocumentFontScale);
+  const [locale, setLocale] = useState<Locale>(getDocumentLocale);
 
   useEffect(() => {
     // Check initial values
     setTheme(getDocumentTheme());
     setMode(getDocumentChartMode());
     setFontScale(getDocumentFontScale());
+    setLocale(getDocumentLocale());
 
-    // Watch for theme and font scale changes
+    // Watch for theme, font scale, and locale changes
     const observer = new MutationObserver(() => {
       setTheme(getDocumentTheme());
       setMode(getDocumentChartMode());
       setFontScale(getDocumentFontScale());
+      setLocale(getDocumentLocale());
     });
 
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme', 'data-chart-scale', 'data-chart-mode'],
+      attributeFilter: ['data-theme', 'data-chart-scale', 'data-chart-mode', 'data-locale'],
     });
 
     return () => observer.disconnect();
@@ -77,7 +95,8 @@ export function useChartTheme(): ChartThemeColors {
       chrome: getChromeColors(theme === 'dark', mode),
       colors: getChartColors(mode),
       fontScale,
+      locale,
     }),
-    [theme, mode, fontScale]
+    [theme, mode, fontScale, locale]
   );
 }

@@ -11,7 +11,8 @@
     "./tier": "./src/tier.ts",
     "./navigation": "./src/navigation.ts",
     "./glossary": "./src/glossary/index.ts",
-    "./responsive": "./src/responsive.ts"
+    "./responsive": "./src/responsive.ts",
+    "./i18n": "./src/i18n/index.ts"
   },
   "scripts": {
     "test": "vitest"
