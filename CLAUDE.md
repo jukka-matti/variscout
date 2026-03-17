@@ -61,6 +61,10 @@ npx ruflo@latest security cve --check        # CVE check
 | Architecture / ADRs        | docs/07-decisions/, docs/05-technical/                                                                 |
 | Website                    | docs/08-products/website/, apps/website/                                                               |
 | Methodology / Personas     | docs/01-vision/, docs/02-journeys/                                                                     |
+| Business strategy          | docs/01-vision/business-bible.md                                                                       |
+| Tier philosophy / Pricing  | docs/08-products/tier-philosophy.md, docs/08-products/feature-parity.md                                |
+| AI user experience         | docs/03-features/workflows/ai-experience-narrative.md                                                  |
+| Journey traceability       | docs/02-journeys/traceability.md                                                                       |
 | Internationalization       | adr-025, packages/core/src/i18n/, packages/hooks/src/useLocaleState.ts, useTranslation.ts              |
 | Testing                    | .claude/rules/testing.md, docs/05-technical/implementation/testing.md                                  |
 | Report View / Sharing      | adr-024, docs/superpowers/specs/2026-03-16-scouting-report-design.md                                   |

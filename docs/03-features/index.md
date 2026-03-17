@@ -48,17 +48,18 @@ The core statistical charts based on Watson's Four Lenses:
 
 How analysts combine VariScout tools to solve real problems. See the [Workflows index](workflows/index.md) for the full guide.
 
-| Workflow                                                        | Description                            |
-| --------------------------------------------------------------- | -------------------------------------- |
-| [Four Lenses](workflows/four-lenses-workflow.md)                | Foundational CHANGE-FLOW-FAILURE-VALUE |
-| [Drill-Down](workflows/drill-down-workflow.md)                  | Progressive stratification             |
-| [Performance Mode](workflows/performance-mode-workflow.md)      | Multi-channel analysis workflow        |
-| [Quick Check](workflows/quick-check.md)                         | 5-minute shift monitoring              |
-| [Deep Dive](workflows/deep-dive.md)                             | 30-minute systematic investigation     |
-| [Decision Trees](workflows/decision-trees.md)                   | Chart selection flowcharts             |
-| [Investigation to Action](workflows/investigation-to-action.md) | Investigate, refine, project           |
-| [AI-Assisted Analysis](workflows/ai-assisted-analysis.md)       | AI-enhanced investigation (Azure only) |
-| [Process Maps](workflows/process-maps.md)                       | Step-by-step visual action maps        |
+| Workflow                                                        | Description                                |
+| --------------------------------------------------------------- | ------------------------------------------ |
+| [Four Lenses](workflows/four-lenses-workflow.md)                | Foundational CHANGE-FLOW-FAILURE-VALUE     |
+| [Drill-Down](workflows/drill-down-workflow.md)                  | Progressive stratification                 |
+| [Performance Mode](workflows/performance-mode-workflow.md)      | Multi-channel analysis workflow            |
+| [Quick Check](workflows/quick-check.md)                         | 5-minute shift monitoring                  |
+| [Deep Dive](workflows/deep-dive.md)                             | 30-minute systematic investigation         |
+| [Decision Trees](workflows/decision-trees.md)                   | Chart selection flowcharts                 |
+| [Investigation to Action](workflows/investigation-to-action.md) | Investigate, refine, project               |
+| [AI-Assisted Analysis](workflows/ai-assisted-analysis.md)       | AI-enhanced investigation (Azure only)     |
+| [AI Experience Narrative](workflows/ai-experience-narrative.md) | How the experience changes with/without AI |
+| [Process Maps](workflows/process-maps.md)                       | Step-by-step visual action maps            |
 
 ---
 

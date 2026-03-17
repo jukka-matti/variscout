@@ -74,6 +74,12 @@ The conceptual bridge between VariScout's UI design and its statistical methodol
 
 [:octicons-arrow-right-24: Progressive Stratification](progressive-stratification.md)
 
+### Business Bible
+
+Strategic hypotheses, value levers, growth flywheel, and competitive landscape — the formalized business logic behind VariScout.
+
+[:octicons-arrow-right-24: Business Bible](business-bible.md)
+
 ### Market Analysis & TAM
 
 Total Addressable Market estimate across three segments: lightweight quality analytics, LSS training funnel, and Excel-native variation analysis.

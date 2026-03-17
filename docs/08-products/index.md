@@ -139,7 +139,16 @@ This ensures:
 
 ---
 
+## Tier Philosophy
+
+Why features are gated where they are — the reasoning behind VariScout's product tiers, upgrade triggers, and capability maturity model.
+
+[:octicons-arrow-right-24: Tier Philosophy](tier-philosophy.md)
+
+---
+
 ## See Also
 
 - [ADR-007: Azure Marketplace Distribution](../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [Azure Marketplace Guide](azure/marketplace.md)
+- [Tier Philosophy](tier-philosophy.md)

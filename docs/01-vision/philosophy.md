@@ -109,6 +109,7 @@ VariScout is **the first step** — finding where to focus before investing in d
 
 ## See Also
 
+- [Business Bible](business-bible.md) — Strategic hypotheses, value levers, and growth flywheel
 - [Four Lenses](four-lenses/index.md) — The methodology framework
 - [Two Voices](two-voices/index.md) — Control limits vs specification limits
 - [Drill-Down](four-lenses/drilldown.md) — Progressive analysis methodology
