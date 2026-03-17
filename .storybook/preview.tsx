@@ -1,4 +1,4 @@
-import type { Preview } from '@storybook/react';
+import type { Preview } from 'storybook/preview-api';
 import '../packages/ui/src/styles/theme.css';
 import '../packages/ui/src/styles/components.css';
 
