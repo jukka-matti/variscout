@@ -179,8 +179,8 @@ Azure AI Search + Foundry IQ integration for organizational learning:
 
 **Indexing:**
 
-- Findings indexed to AI Search via Azure Function (HTTP trigger, debounced 5s after project save)
-- Team documents indexed from SharePoint via Foundry IQ managed connector
+- Published scouting reports accessible via Remote SharePoint knowledge source (ADR-026)
+- Team documents accessed on demand from SharePoint with per-user permissions
 - Tenant-isolated queries (JWT `tid` filtering)
 
 **Search types:**

@@ -18,7 +18,7 @@ The ARM template deploys VariScout to a customer's Azure subscription as a Manag
 
 The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users and access OneDrive via Graph API (Team plan).
 
-**Minimal backend resources** — Standard and Team plans run entirely in the browser. The Team AI plan adds Azure AI Services (model hosting), Azure AI Search (findings index), and Azure Key Vault (secure secret storage) for the Knowledge Base feature. An Azure Function handles OBO token exchange (Team/Team AI) and findings indexing (Team AI). The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault.
+**Minimal backend resources** -- Standard and Team plans run entirely in the browser. The Team AI plan adds Azure AI Services (model hosting), Azure AI Search (knowledge base orchestration), and Azure Key Vault (secure secret storage) for the Knowledge Base feature. An Azure Function handles OBO token exchange (Team/Team AI). The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault.
 
 ### Managed Application Package
 
@@ -195,10 +195,10 @@ Key configuration:
 
 ### 4. AI Services (Team AI only)
 
-| Resource          | SKU   | Purpose                         | Monthly Cost |
-| ----------------- | ----- | ------------------------------- | ------------ |
-| Azure AI Services | S0    | Model hosting (gpt-4o-mini)     | ~€15-25      |
-| Azure AI Search   | Basic | Findings index + Knowledge Base | ~€50-60      |
+| Resource          | SKU   | Purpose                      | Monthly Cost |
+| ----------------- | ----- | ---------------------------- | ------------ |
+| Azure AI Services | S0    | Model hosting (gpt-4o-mini)  | ~€15-25      |
+| Azure AI Search   | Basic | Knowledge base orchestration | ~EUR50-60    |
 
 These resources are provisioned only when `variscoutPlan` is set to `team-ai`. Standard and Team plans do not include AI resources.
 
@@ -395,17 +395,17 @@ The template requests only necessary permissions:
 
 ## Template Versioning
 
-| Version | Date       | Changes                                                                                         |
-| ------- | ---------- | ----------------------------------------------------------------------------------------------- |
-| 1.0.0   | 2026-02-01 | Initial release (Solution Template)                                                             |
-| 2.0.0   | 2026-02-13 | Managed Application format, single plan                                                         |
-| 3.0.0   | 2026-02-16 | App Service + EasyAuth (replaces Static Web App + MSAL)                                         |
-| 4.0.0   | 2026-02-16 | Customer-provided App Registration (removes deployment script)                                  |
-| 5.0.0   | 2026-02-25 | API version → 2024-04-01, /health excluded from EasyAuth                                        |
-| 5.1.0   | 2026-02-26 | Fix OpenID issuer (sts.windows.net → login.microsoftonline.com), document ID token requirement  |
-| 6.0.0   | 2026-03-14 | Plan selector (Standard/Team), resource tags, conditional Function App + Storage for Team plan  |
-| 7.0.0   | 2026-03-16 | AI resources (Azure AI Services, AI Search), runtime config endpoint, findings indexer Function |
-| 8.0.0   | 2026-03-17 | Key Vault + RBAC, App Service managed identity, AI tracing module, Responses API client         |
+| Version | Date       | Changes                                                                                           |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-02-01 | Initial release (Solution Template)                                                               |
+| 2.0.0   | 2026-02-13 | Managed Application format, single plan                                                           |
+| 3.0.0   | 2026-02-16 | App Service + EasyAuth (replaces Static Web App + MSAL)                                           |
+| 4.0.0   | 2026-02-16 | Customer-provided App Registration (removes deployment script)                                    |
+| 5.0.0   | 2026-02-25 | API version → 2024-04-01, /health excluded from EasyAuth                                          |
+| 5.1.0   | 2026-02-26 | Fix OpenID issuer (sts.windows.net → login.microsoftonline.com), document ID token requirement    |
+| 6.0.0   | 2026-03-14 | Plan selector (Standard/Team), resource tags, conditional Function App + Storage for Team plan    |
+| 7.0.0   | 2026-03-16 | AI resources (Azure AI Services, AI Search), runtime config endpoint, OBO token exchange Function |
+| 8.0.0   | 2026-03-17 | Key Vault + RBAC, App Service managed identity, AI tracing module, Responses API client           |
 
 ---
 

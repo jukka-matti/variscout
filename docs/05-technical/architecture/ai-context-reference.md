@@ -145,7 +145,7 @@ The `useNarration` hook aborts in-flight requests when context changes. The `act
 User message
   |
   v
-onBeforeSend (if KB enabled) -- searchRelatedFindings() + searchDocuments()
+User clicks "Search Knowledge Base?" -- searchDocuments() (on-demand)
   |                              results injected into context.knowledgeResults / knowledgeDocuments
   v
 buildCoScoutMessages()       -- system + context summary + KB context + history (last 10) + user msg

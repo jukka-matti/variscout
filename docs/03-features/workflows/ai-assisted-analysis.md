@@ -129,8 +129,8 @@ A resizable slide-out panel (same pattern as FindingsPanel) for conversational a
 
 Azure AI Search is a managed service (not a custom RAG pipeline) that indexes two document types:
 
-1. **VariScout findings** — Auto-indexed via Azure Function triggered on OneDrive save. Structured documents with project, title, factor, contribution %, Cpk, corrective action, outcome.
-2. **Team quality documents** — Indexed via SharePoint connector (preview). Fault trees (FMEA), process maps, SOPs, control plans from Teams channel document libraries.
+1. **Published scouting reports** -- Published as Markdown to the team's SharePoint folder. Contains KPIs, findings, corrective actions, outcomes.
+2. **Team quality documents** -- Accessed via Remote SharePoint knowledge source (ADR-026). Fault trees, SOPs, process maps, control plans from the team's SharePoint folder.
 
 Azure AI Search provides built-in hybrid search (keyword + semantic ranking) and optional agentic retrieval for complex queries that need decomposition.
 

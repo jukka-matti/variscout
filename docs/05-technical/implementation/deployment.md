@@ -90,18 +90,17 @@ pnpm --filter @variscout/azure-app test
 
 #### Knowledge Base Setup
 
-The Knowledge Base requires a one-time setup to create the search index and configure knowledge sources:
+The Knowledge Base uses a Remote SharePoint knowledge source (ADR-026). Setup steps:
 
-1. Run `infra/scripts/setup-knowledge-base.sh` to create the Azure AI Search index, connect knowledge sources, and initialize the Knowledge Base
-2. The script creates the findings index (schema defined in `infra/search-index-schema.json`) and optionally connects SharePoint document libraries as knowledge sources
-3. In the app, navigate to **Admin > Knowledge Base** (the `AdminKnowledgeSetup` component) to verify the setup and toggle the preview feature on/off
+1. Create a Remote SharePoint knowledge source in the Azure AI Search service (requires at least 1 M365 Copilot license in tenant). See [Microsoft documentation](https://learn.microsoft.com/en-us/azure/search/agentic-knowledge-source-how-to-sharepoint-remote).
+2. In the app, navigate to **Admin > Knowledge Base** (`AdminKnowledgeSetup`) to verify connectivity and toggle the preview feature on/off
+3. Click **Test Search Connectivity** to verify the knowledge source is accessible
 
 #### Azure Functions
 
-| Function         | Purpose                                                | Plan           |
-| ---------------- | ------------------------------------------------------ | -------------- |
-| `token-exchange` | OBO token exchange for Teams SSO                       | Team + Team AI |
-| `index-findings` | Indexes findings to Azure AI Search for Knowledge Base | Team AI only   |
+| Function         | Purpose                                              | Plan           |
+| ---------------- | ---------------------------------------------------- | -------------- |
+| `token-exchange` | OBO token exchange for Teams SSO + SharePoint access | Team + Team AI |
 
 Both functions are deployed via the CI/CD pipeline when `AZURE_FUNCTION_APP_NAME` is configured as a GitHub Actions variable. The pipeline uses `azure/functions-action@v2` to deploy the `infra/functions/` directory.
 
