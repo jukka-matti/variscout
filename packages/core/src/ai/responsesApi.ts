@@ -15,21 +15,20 @@
 export interface ResponsesApiConfig {
   /** Azure AI Foundry / OpenAI endpoint (e.g., https://myresource.openai.azure.com) */
   endpoint: string;
-  /** Model deployment name */
+  /** Model deployment name (passed as 'model' in the request body) */
   deployment: string;
-  /** API key for authentication */
+  /** API key or Entra ID bearer token for authentication */
   apiKey: string;
-  /** API version (default: 2025-04-01-preview) */
-  apiVersion?: string;
 }
 
 export interface ToolDefinition {
   type: 'function';
-  function: {
-    name: string;
-    description: string;
-    parameters: Record<string, unknown>;
-  };
+  /** Function name — v1 API uses flat format (not nested under function) */
+  name: string;
+  /** Human-readable description of what the tool does */
+  description: string;
+  /** JSON Schema describing the function parameters */
+  parameters: Record<string, unknown>;
 }
 
 export interface ResponsesApiRequest {
@@ -68,15 +67,27 @@ export interface ResponsesApiResponse {
   };
 }
 
-// ── Constants ────────────────────────────────────────────────────────────
-
-const DEFAULT_API_VERSION = '2025-04-01-preview';
-
 // ── API Client ───────────────────────────────────────────────────────────
 
+/**
+ * Build the v1 API URL. The v1 format uses /openai/v1/responses (not deployment-based).
+ * The deployment name is passed as 'model' in the request body instead.
+ * Ref: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/responses
+ */
 function buildUrl(config: ResponsesApiConfig): string {
-  const version = config.apiVersion ?? DEFAULT_API_VERSION;
-  return `${config.endpoint}/openai/deployments/${config.deployment}/responses?api-version=${version}`;
+  return `${config.endpoint}/openai/v1/responses`;
+}
+
+/** Build auth headers — supports both API key and Entra ID bearer token */
+function buildHeaders(config: ResponsesApiConfig): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  // Entra ID tokens are JWTs (start with 'ey'), API keys are shorter hex strings
+  if (config.apiKey.startsWith('ey')) {
+    headers['Authorization'] = `Bearer ${config.apiKey}`;
+  } else {
+    headers['api-key'] = config.apiKey;
+  }
+  return headers;
 }
 
 /**
@@ -97,10 +108,7 @@ export async function sendResponsesTurn(
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': config.apiKey,
-    },
+    headers: buildHeaders(config),
     body: JSON.stringify(body),
   });
 
@@ -132,10 +140,7 @@ export async function streamResponsesTurn(
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': config.apiKey,
-    },
+    headers: buildHeaders(config),
     body: JSON.stringify(body),
     signal,
   });

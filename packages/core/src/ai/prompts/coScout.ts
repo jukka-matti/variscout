@@ -21,33 +21,29 @@ export function buildCoScoutTools(): ToolDefinition[] {
   return [
     {
       type: 'function',
-      function: {
-        name: 'get_chart_data',
-        description:
-          'Read current chart data from VariScout. Returns data points, categories, or distribution data for the specified chart type.',
-        parameters: {
-          type: 'object',
-          properties: {
-            chart: {
-              type: 'string',
-              enum: ['ichart', 'boxplot', 'pareto', 'capability'],
-              description: 'Which chart to read data from',
-            },
+      name: 'get_chart_data',
+      description:
+        'Read current chart data from VariScout. Returns data points, categories, or distribution data for the specified chart type.',
+      parameters: {
+        type: 'object',
+        properties: {
+          chart: {
+            type: 'string',
+            enum: ['ichart', 'boxplot', 'pareto', 'capability'],
+            description: 'Which chart to read data from',
           },
-          required: ['chart'],
         },
+        required: ['chart'],
       },
     },
     {
       type: 'function',
-      function: {
-        name: 'get_statistical_summary',
-        description:
-          'Get current statistical summary: mean, standard deviation, Cpk, Cp, pass rate, sample count, and violation counts.',
-        parameters: {
-          type: 'object',
-          properties: {},
-        },
+      name: 'get_statistical_summary',
+      description:
+        'Get current statistical summary: mean, standard deviation, Cpk, Cp, pass rate, sample count, and violation counts.',
+      parameters: {
+        type: 'object',
+        properties: {},
       },
     },
   ];

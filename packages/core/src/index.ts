@@ -341,6 +341,30 @@ export {
   formatForMobile,
 } from './ai';
 
+// AI (Phase 3 — Tracing & Responses API)
+export type {
+  AIFeature,
+  TraceMetadata,
+  TokenUsage,
+  TraceRecord,
+  TraceStats,
+  ResponsesApiConfig,
+  ResponsesApiRequest,
+  ResponsesApiResponse,
+  ResponseOutput,
+  ToolDefinition,
+} from './ai';
+export {
+  traceAICall,
+  getRecentTraces,
+  clearTraces,
+  getTraceStats,
+  sendResponsesTurn,
+  streamResponsesTurn,
+  extractResponseText,
+  buildCoScoutTools,
+} from './ai';
+
 // Category keyword matching and inference
 export {
   CATEGORY_KEYWORDS,
