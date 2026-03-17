@@ -205,6 +205,7 @@ The full 5-status investigation workflow (observed → investigating → analyze
 - **Action items**: Action buttons (ask CoScout, delete) always visible on touch. Checkbox completion works normally.
 - **Outcome recording**: Three outcome buttons (Effective / Not Effective / Partially Effective) are full tap targets.
 - **CoScout integration**: "Ask CoScout" buttons open CoScoutPanel as full-screen overlay (same pattern as FindingsPanel on phone).
+- **Assigned to me**: Toggle button (person icon) in FindingsPanel header filters to only show findings and action items assigned to the current user. Badge count updates to reflect filtered results.
 
 ---
 

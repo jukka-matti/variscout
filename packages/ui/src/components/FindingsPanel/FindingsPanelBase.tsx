@@ -8,6 +8,7 @@ import {
   List,
   LayoutGrid,
   GitBranch,
+  User,
 } from 'lucide-react';
 import type {
   Finding,
@@ -158,6 +159,9 @@ export interface FindingsPanelBaseProps {
   coScoutOnRetry?: () => void;
   investigationPhase?: InvestigationPhase;
   coScoutSuggestedQuestions?: string[];
+
+  /** Current user's UPN for "assigned to me" filtering (Azure Team only) */
+  currentUserUpn?: string;
 }
 
 const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
@@ -219,6 +223,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   coScoutOnRetry,
   investigationPhase,
   coScoutSuggestedQuestions,
+  currentUserUpn,
   colorScheme: csOverride,
 }) => {
   const cs = { ...defaultFindingsPanelColorScheme, ...csOverride };
@@ -226,6 +231,16 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   const [coScoutExpanded, setCoScoutExpanded] = useState(false);
   const [localViewMode, setLocalViewMode] = useState<'list' | 'board' | 'tree'>('list');
   const viewMode = externalViewMode ?? localViewMode;
+  const [showAssignedToMe, setShowAssignedToMe] = useState(false);
+
+  const displayFindings =
+    showAssignedToMe && currentUserUpn
+      ? findings.filter(
+          f =>
+            f.assignee?.upn === currentUserUpn ||
+            f.actions?.some(a => a.assignee?.upn === currentUserUpn)
+        )
+      : findings;
 
   const handleViewModeChange = (mode: 'list' | 'board' | 'tree') => {
     setLocalViewMode(mode);
@@ -250,12 +265,12 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   }, [isOpen, onClose]);
 
   const handleCopyAll = useCallback(async () => {
-    const ok = await copyFindingsToClipboard(findings, columnAliases);
+    const ok = await copyFindingsToClipboard(displayFindings, columnAliases);
     if (ok) {
       setCopyFeedback(true);
       setTimeout(() => setCopyFeedback(false), 2000);
     }
-  }, [findings, columnAliases]);
+  }, [displayFindings, columnAliases]);
 
   if (!isOpen) return null;
 
@@ -278,12 +293,27 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
       >
         {/* Header */}
         <div className={`flex items-center justify-between px-4 py-3 ${cs.headerBg}`}>
-          <h2 className="text-sm font-semibold text-content">
+          <h2 className="text-sm font-semibold text-content flex items-center">
             Findings
             {findings.length > 0 && (
               <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] ${cs.badge} rounded`}>
-                {findings.length}
+                {showAssignedToMe ? displayFindings.length : findings.length}
               </span>
+            )}
+            {currentUserUpn && findings.length > 0 && (
+              <button
+                onClick={() => setShowAssignedToMe(prev => !prev)}
+                className={`ml-2 p-1 rounded transition-colors ${
+                  showAssignedToMe
+                    ? 'bg-blue-500/20 text-blue-400'
+                    : 'text-content-muted hover:text-content-secondary hover:bg-surface-tertiary'
+                }`}
+                title="Assigned to me"
+                aria-label="Assigned to me"
+                aria-pressed={showAssignedToMe}
+              >
+                <User size={12} />
+              </button>
             )}
           </h2>
 
@@ -368,7 +398,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
 
         {/* Findings list/board */}
         <FindingsLog
-          findings={findings}
+          findings={displayFindings}
           onEditFinding={onEditFinding}
           onDeleteFinding={onDeleteFinding}
           onRestoreFinding={onRestoreFinding}

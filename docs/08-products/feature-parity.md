@@ -193,21 +193,22 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 Features that behave differently on phone (<640px) versus desktop.
 
-| Feature                          | PWA Desktop  |     PWA Mobile     | Azure Desktop |      Azure Mobile      |
-| -------------------------------- | :----------: | :----------------: | :-----------: | :--------------------: |
-| HelpTooltip                      |    Hover     |  Tap toggle (P0)   |     Hover     |    Tap toggle (P0)     |
-| NarrativeBar                     |  Full text   | Tap-to-expand (P0) |   Full text   |   Tap-to-expand (P0)   |
-| MobileCategorySheet              |     N/A      |    Planned (P1)    |      N/A      |           ✓            |
-| Findings from charts             | Context menu |    Planned (P1)    | Context menu  |  MobileCategorySheet   |
-| CoScout focus context            |   Planned    |      Planned       |    Planned    |        Planned         |
-| Offline sync indicator           |     N/A      |        N/A         |    Toolbar    |      Planned (P2)      |
-| ColumnMapping phone optimization |      -       |    Planned (P2)    |       -       |      Planned (P2)      |
-| Report View navigation           | Sidebar TOC  |        N/A         |  Sidebar TOC  |      Dropdown TOC      |
-| Report chart snapshots           |    720px     |        N/A         |     720px     |       Responsive       |
-| Staged comparison card           |    Inline    |        N/A         |    Inline     |   `overflow-x-auto`    |
-| Board view (columns)             |    Popout    |        N/A         |    Popout     |  Accordion (in-panel)  |
-| Finding action buttons           | Hover reveal |        N/A         | Hover reveal  | Always visible (touch) |
-| Improvement ideas buttons        | Hover reveal |        N/A         | Hover reveal  | Always visible (touch) |
+| Feature                          | PWA Desktop  |     PWA Mobile     |  Azure Desktop   |      Azure Mobile      |
+| -------------------------------- | :----------: | :----------------: | :--------------: | :--------------------: |
+| HelpTooltip                      |    Hover     |  Tap toggle (P0)   |      Hover       |    Tap toggle (P0)     |
+| NarrativeBar                     |  Full text   | Tap-to-expand (P0) |    Full text     |   Tap-to-expand (P0)   |
+| MobileCategorySheet              |     N/A      |    Planned (P1)    |       N/A        |           ✓            |
+| Findings from charts             | Context menu |    Planned (P1)    |   Context menu   |  MobileCategorySheet   |
+| CoScout focus context            |   Planned    |      Planned       |     Planned      |        Planned         |
+| Offline sync indicator           |     N/A      |        N/A         |     Toolbar      |      Planned (P2)      |
+| ColumnMapping phone optimization |      -       |    Planned (P2)    |        -         |      Planned (P2)      |
+| Report View navigation           | Sidebar TOC  |        N/A         |   Sidebar TOC    |      Dropdown TOC      |
+| Report chart snapshots           |    720px     |        N/A         |      720px       |       Responsive       |
+| Staged comparison card           |    Inline    |        N/A         |      Inline      |   `overflow-x-auto`    |
+| Assigned to me filter            |     N/A      |        N/A         | Toggle in header |    Toggle in header    |
+| Board view (columns)             |    Popout    |        N/A         |      Popout      |  Accordion (in-panel)  |
+| Finding action buttons           | Hover reveal |        N/A         |   Hover reveal   | Always visible (touch) |
+| Improvement ideas buttons        | Hover reveal |        N/A         |   Hover reveal   | Always visible (touch) |
 
 > P0 = Critical, P1 = High Impact, P2 = Polish. See ai-components.md and findings.md for detailed specs.
 

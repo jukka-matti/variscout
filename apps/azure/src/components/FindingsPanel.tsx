@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { FindingsPanelBase, type FindingsPanelBaseProps } from '@variscout/ui';
 import type { FindingAssignee, FindingSource } from '@variscout/core';
 import { hasTeamFeatures } from '@variscout/core';
 import PeoplePicker from './PeoplePicker';
+import { getEasyAuthUser } from '../auth/easyAuth';
 
 const RESIZE_CONFIG = {
   storageKey: 'variscout-azure-findings-panel-width',
@@ -24,6 +25,13 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
   ...props
 }) => {
   const [assigningFindingId, setAssigningFindingId] = useState<string | null>(null);
+  const [currentUserUpn, setCurrentUserUpn] = useState<string | undefined>();
+
+  useEffect(() => {
+    getEasyAuthUser().then(user => {
+      if (user?.email) setCurrentUserUpn(user.email);
+    });
+  }, []);
 
   const handleAssignFinding = useCallback((findingId: string) => {
     setAssigningFindingId(prev => (prev === findingId ? null : findingId));
@@ -82,6 +90,7 @@ const FindingsPanel: React.FC<FindingsPanelProps> = ({
       renderAssignSlot={onSetFindingAssignee ? renderAssignSlot : undefined}
       onNavigateToChart={onNavigateToChart}
       renderActionAssigneePicker={hasTeamFeatures() ? renderActionAssigneePicker : undefined}
+      currentUserUpn={currentUserUpn}
     />
   );
 };
