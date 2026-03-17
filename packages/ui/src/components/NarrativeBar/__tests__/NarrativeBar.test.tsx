@@ -39,7 +39,7 @@ describe('NarrativeBar', () => {
     render(
       <NarrativeBar narrative="Cached result" isLoading={false} isCached={true} error={null} />
     );
-    expect(screen.getByText('(cached)')).toBeTruthy();
+    expect(screen.getByText('(Cached)')).toBeTruthy();
   });
 
   it('renders Ask button when onAsk provided', () => {

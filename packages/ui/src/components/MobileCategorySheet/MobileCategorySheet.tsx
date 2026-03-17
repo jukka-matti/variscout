@@ -9,6 +9,7 @@
  */
 import React, { useState, useCallback, useRef } from 'react';
 import { X, ChevronRight, MessageCircle } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import type { HighlightColor } from '../ChartAnnotationLayer/types';
 
 export interface MobileCategorySheetData {
@@ -51,10 +52,7 @@ const highlightOptions: { color: HighlightColor; label: string; hex: string }[] 
   { color: 'green', label: 'Green', hex: '#22c55e' },
 ];
 
-const formatNum = (v: number | undefined): string => {
-  if (v === undefined || v === null) return '-';
-  return Number.isInteger(v) ? String(v) : v.toFixed(2);
-};
+// formatNum is now locale-aware inside the component via useTranslation()
 
 export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
   data,
@@ -67,6 +65,11 @@ export const MobileCategorySheet: React.FC<MobileCategorySheetProps> = ({
   renderExtra,
   onAskCoScout,
 }) => {
+  const { formatStat } = useTranslation();
+  const formatNum = (v: number | undefined): string => {
+    if (v === undefined || v === null) return '-';
+    return Number.isInteger(v) ? String(v) : formatStat(v);
+  };
   const [noteText, setNoteText] = useState('');
   const touchStartY = useRef<number | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);

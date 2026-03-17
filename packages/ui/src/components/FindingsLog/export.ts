@@ -1,10 +1,19 @@
-import type { Finding } from '@variscout/core';
+import type { Finding, Locale } from '@variscout/core';
 import {
   formatFindingFilters,
   getFindingStatus,
   FINDING_STATUS_LABELS,
   FINDING_TAG_LABELS,
 } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
+
+/** Get locale from document attribute for non-React contexts */
+function getDocLocale(): Locale {
+  if (typeof document === 'undefined') return 'en';
+  const locale = document.documentElement.getAttribute('data-locale');
+  if (locale === 'de' || locale === 'es' || locale === 'fr' || locale === 'pt') return locale;
+  return 'en';
+}
 
 /** Format relative time for comments */
 function relativeTimeExport(timestamp: number): string {
@@ -37,7 +46,7 @@ export function formatFindingsText(
     const tagLabel = finding.tag ? ` \u00b7 ${FINDING_TAG_LABELS[finding.tag].toUpperCase()}` : '';
 
     if (finding.context.stats?.cpk !== undefined) {
-      statsParts.push(`Cpk ${finding.context.stats.cpk.toFixed(2)}`);
+      statsParts.push(`Cpk ${formatStatistic(finding.context.stats.cpk, getDocLocale())}`);
     }
     if (finding.context.stats?.samples !== undefined) {
       statsParts.push(`n=${finding.context.stats.samples}`);

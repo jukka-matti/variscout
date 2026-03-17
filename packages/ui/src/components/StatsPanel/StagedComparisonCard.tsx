@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { StagedComparison, StagedComparisonDeltas, DeltaColor } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 
 // ============================================================================
 // Color Scheme
@@ -49,16 +50,22 @@ const arrowChar: Record<DeltaColor, string> = {
   amber: '→',
 };
 
-function formatDelta(value: number | null, decimals: number = 2): string {
+function formatDeltaValue(
+  value: number | null,
+  decimals: number = 2,
+  fmt?: (v: number, d?: number) => string
+): string {
   if (value === null) return '—';
   const sign = value > 0 ? '+' : '';
-  return `${sign}${value.toFixed(decimals)}`;
+  const formatted = fmt ? fmt(value, decimals) : value.toFixed(decimals);
+  return `${sign}${formatted}`;
 }
 
-function formatRatio(value: number): string {
+function formatRatio(value: number, fmt?: (v: number, d?: number) => string): string {
   const pct = (value - 1) * 100;
   const sign = pct > 0 ? '+' : '';
-  return `${sign}${pct.toFixed(0)}%`;
+  const formatted = fmt ? fmt(pct, 0) : pct.toFixed(0);
+  return `${sign}${formatted}%`;
 }
 
 /** Get directionally-correct arrow: green could be up or down depending on metric */
@@ -96,38 +103,41 @@ interface MetricDef {
     outOfSpecPercentage: number;
   }) => string;
   deltaKey: keyof StagedComparisonDeltas;
-  formatDeltaValue: (deltas: StagedComparisonDeltas) => string;
+  formatDelta: (deltas: StagedComparisonDeltas) => string;
   requiresSpecs?: boolean;
 }
 
-const METRICS: MetricDef[] = [
-  {
-    label: 'Mean',
-    getValue: s => s.mean.toFixed(2),
-    deltaKey: 'meanShift',
-    formatDeltaValue: d => formatDelta(d.meanShift),
-  },
-  {
-    label: 'Std Dev',
-    getValue: s => s.stdDev.toFixed(2),
-    deltaKey: 'variationRatio',
-    formatDeltaValue: d => formatRatio(d.variationRatio),
-  },
-  {
-    label: 'Cpk',
-    getValue: s => s.cpk?.toFixed(2) ?? '—',
-    deltaKey: 'cpkDelta',
-    formatDeltaValue: d => formatDelta(d.cpkDelta),
-    requiresSpecs: true,
-  },
-  {
-    label: 'In Spec %',
-    getValue: s => `${(100 - s.outOfSpecPercentage).toFixed(1)}%`,
-    deltaKey: 'passRateDelta',
-    formatDeltaValue: d => (d.passRateDelta !== null ? `${formatDelta(d.passRateDelta, 1)}%` : '—'),
-    requiresSpecs: true,
-  },
-];
+function buildMetrics(fmt: (v: number, d?: number) => string): MetricDef[] {
+  return [
+    {
+      label: 'Mean',
+      getValue: s => fmt(s.mean),
+      deltaKey: 'meanShift',
+      formatDelta: d => formatDeltaValue(d.meanShift, 2, fmt),
+    },
+    {
+      label: 'Std Dev',
+      getValue: s => fmt(s.stdDev),
+      deltaKey: 'variationRatio',
+      formatDelta: d => formatRatio(d.variationRatio, fmt),
+    },
+    {
+      label: 'Cpk',
+      getValue: s => (s.cpk !== undefined ? fmt(s.cpk) : '—'),
+      deltaKey: 'cpkDelta',
+      formatDelta: d => formatDeltaValue(d.cpkDelta, 2, fmt),
+      requiresSpecs: true,
+    },
+    {
+      label: 'In Spec %',
+      getValue: s => `${fmt(100 - s.outOfSpecPercentage, 1)}%`,
+      deltaKey: 'passRateDelta',
+      formatDelta: d =>
+        d.passRateDelta !== null ? `${formatDeltaValue(d.passRateDelta, 1, fmt)}%` : '—',
+      requiresSpecs: true,
+    },
+  ];
+}
 
 // ============================================================================
 // Component
@@ -138,10 +148,12 @@ const StagedComparisonCard: React.FC<StagedComparisonCardProps> = ({
   cpkTarget,
   colorScheme: csOverride,
 }) => {
+  const { formatStat } = useTranslation();
   const cs = { ...defaultStagedComparisonColorScheme, ...csOverride };
   const { stages, deltas, colorCoding } = comparison;
   const hasSpecs = deltas.cpkDelta !== null || deltas.passRateDelta !== null;
-  const activeMetrics = METRICS.filter(m => !m.requiresSpecs || hasSpecs);
+  const metrics = useMemo(() => buildMetrics(formatStat), [formatStat]);
+  const activeMetrics = metrics.filter(m => !m.requiresSpecs || hasSpecs);
 
   const isTwoStage = stages.length === 2;
 
@@ -186,7 +198,7 @@ const StagedComparisonCard: React.FC<StagedComparisonCardProps> = ({
                   className={`${cs.deltaRow} text-center ${colorClasses[color]}`}
                   data-testid={`delta-${metric.deltaKey}`}
                 >
-                  {arrow} {metric.formatDeltaValue(deltas)}
+                  {arrow} {metric.formatDelta(deltas)}
                 </div>
               </div>
             );
@@ -194,7 +206,7 @@ const StagedComparisonCard: React.FC<StagedComparisonCardProps> = ({
         </div>
 
         {cpkTarget !== undefined && deltas.cpkDelta !== null && (
-          <div className="text-[10px] text-content-muted">Target Cpk: {cpkTarget.toFixed(2)}</div>
+          <div className="text-[10px] text-content-muted">Target Cpk: {formatStat(cpkTarget)}</div>
         )}
       </div>
     );
@@ -240,7 +252,7 @@ const StagedComparisonCard: React.FC<StagedComparisonCardProps> = ({
                     className={`${cs.deltaRow} text-center px-2 py-1.5 ${colorClasses[color]}`}
                     data-testid={`delta-${metric.deltaKey}`}
                   >
-                    {arrow} {metric.formatDeltaValue(deltas)}
+                    {arrow} {metric.formatDelta(deltas)}
                   </td>
                 </tr>
               );
@@ -250,7 +262,7 @@ const StagedComparisonCard: React.FC<StagedComparisonCardProps> = ({
       </div>
 
       {cpkTarget !== undefined && deltas.cpkDelta !== null && (
-        <div className="text-[10px] text-content-muted">Target Cpk: {cpkTarget.toFixed(2)}</div>
+        <div className="text-[10px] text-content-muted">Target Cpk: {formatStat(cpkTarget)}</div>
       )}
     </div>
   );

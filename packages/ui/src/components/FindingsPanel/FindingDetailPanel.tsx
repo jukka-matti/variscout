@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { X, ArrowLeft, ExternalLink } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
 import FindingCard from '../FindingsLog/FindingCard';
 
@@ -78,13 +79,15 @@ const FindingDetailPanel: React.FC<FindingDetailPanelProps> = ({
   hasSpecs,
   onNavigateToChart,
 }) => {
+  const { t } = useTranslation();
+
   if (!finding) {
     return (
       <div
         className="flex-1 flex items-center justify-center text-content-muted text-sm"
         data-testid="detail-empty"
       >
-        Select a finding to see details
+        {t('empty.noFindings')}
       </div>
     );
   }

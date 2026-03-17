@@ -3,8 +3,20 @@
  * No side effects — easily testable.
  */
 
-import type { Finding } from '@variscout/core';
+import type { Finding, Locale } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
 import { buildFindingLink, buildChartLink, buildReportLink } from './deepLinks';
+
+function getDocLocale(): Locale {
+  if (typeof document === 'undefined') return 'en';
+  const locale = document.documentElement.getAttribute('data-locale');
+  if (locale === 'de' || locale === 'es' || locale === 'fr' || locale === 'pt') return locale;
+  return 'en';
+}
+
+function fmtStat(v: number, d: number = 2): string {
+  return formatStatistic(v, getDocLocale(), d);
+}
 
 export interface SharePayload {
   title: string;
@@ -31,7 +43,7 @@ export function buildFindingSharePayload(
 
   const parts: string[] = [`[${finding.status}]`, `in ${projectName}`];
   if (finding.context.stats?.cpk !== undefined) {
-    parts.push(`Cpk ${finding.context.stats.cpk.toFixed(1)}`);
+    parts.push(`Cpk ${fmtStat(finding.context.stats.cpk, 1)}`);
   }
   const previewText = parts.join(' \u2014 ');
 
@@ -61,7 +73,7 @@ export function buildChartSharePayload(
 
   const parts: string[] = [chartLabel, `in ${projectName}`];
   if (context?.cpk !== undefined) {
-    parts.push(`Cpk ${context.cpk.toFixed(1)}`);
+    parts.push(`Cpk ${fmtStat(context.cpk, 1)}`);
   }
   if (context?.filters) {
     parts.push(context.filters);
@@ -83,7 +95,7 @@ export function buildReportSharePayload(
 
   const parts: string[] = [processName];
   if (keyCpk !== undefined) {
-    parts.push(`Cpk ${keyCpk.toFixed(1)}`);
+    parts.push(`Cpk ${fmtStat(keyCpk, 1)}`);
   }
   const previewText = parts.join(' \u2014 ');
 

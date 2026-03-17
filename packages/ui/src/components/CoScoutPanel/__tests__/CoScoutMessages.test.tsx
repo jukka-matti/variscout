@@ -40,7 +40,7 @@ describe('CoScoutMessages', () => {
     ];
     render(<CoScoutMessages messages={messages} isLoading={false} onRetry={onRetry} />);
 
-    expect(screen.getByText('Something went wrong.')).toBeDefined();
+    expect(screen.getByText('An error occurred. Please try again.')).toBeDefined();
     const retryBtn = screen.getByText('Retry');
     fireEvent.click(retryBtn);
     expect(onRetry).toHaveBeenCalled();
@@ -58,7 +58,7 @@ describe('CoScoutMessages', () => {
     ];
     render(<CoScoutMessages messages={messages} isLoading={false} onRetry={vi.fn()} />);
 
-    expect(screen.getByText('Please wait a moment before asking again.')).toBeDefined();
+    expect(screen.getByText('Rate limit reached. Please wait.')).toBeDefined();
     expect(screen.queryByText('Retry')).toBeNull();
   });
 
@@ -73,7 +73,7 @@ describe('CoScoutMessages', () => {
       },
     ];
     render(<CoScoutMessages messages={messages} isLoading={false} />);
-    expect(screen.getByText("I can't answer that question. Try rephrasing.")).toBeDefined();
+    expect(screen.getByText('Content filtered by safety policy.')).toBeDefined();
   });
 
   it('shows loading dots when isLoading is true and not streaming', () => {

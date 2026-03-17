@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from '@variscout/hooks';
 import { ArrowLeft, Beaker } from 'lucide-react';
 import {
   calculateStats,
@@ -78,7 +79,8 @@ function computePresets(
   specs: SpecLimits,
   filteredData: DataRow[],
   outcome: string,
-  activeFactor?: string | null
+  activeFactor?: string | null,
+  fmt: (v: number, d?: number) => string = (v, d = 2) => v.toFixed(d)
 ): SimulatorPreset[] {
   const presets: SimulatorPreset[] = [];
   const type = inferCharacteristicType(specs);
@@ -95,7 +97,7 @@ function computePresets(
     if (Math.abs(shift) > currentStats.stdDev * 0.05) {
       presets.push({
         label: 'Shift to target',
-        description: `Move mean to ${target.toFixed(1)} (shift ${shift >= 0 ? '+' : ''}${shift.toFixed(1)})`,
+        description: `Move mean to ${fmt(target, 1)} (shift ${shift >= 0 ? '+' : ''}${fmt(shift, 1)})`,
         meanShift: shift,
         variationReduction: 0,
         icon: 'target',
@@ -108,7 +110,7 @@ function computePresets(
     const shift = currentStats.median - currentStats.mean;
     presets.push({
       label: 'Shift to median',
-      description: `Move mean to median ${currentStats.median.toFixed(1)} (corrects skew)`,
+      description: `Move mean to median ${fmt(currentStats.median, 1)} (corrects skew)`,
       meanShift: shift,
       variationReduction: 0,
     });
@@ -211,7 +213,7 @@ function computePresets(
       if (Math.abs(matchBestShift) > currentStats.stdDev * 0.05) {
         presets.push({
           label: 'Match best',
-          description: `Shift mean to match "${bestCategory.value}" (mean ${bestCategory.mean.toFixed(1)})`,
+          description: `Shift mean to match "${bestCategory.value}" (mean ${fmt(bestCategory.mean, 1)})`,
           meanShift: matchBestShift,
           variationReduction: 0,
         });
@@ -226,7 +228,7 @@ function computePresets(
         if (reduction > 0.02) {
           presets.push({
             label: 'Tighten spread',
-            description: `Reduce variation to match "${tightestCategory.value}" (sigma ${tightestCategory.stdDev.toFixed(2)})`,
+            description: `Reduce variation to match "${tightestCategory.value}" (sigma ${fmt(tightestCategory.stdDev)})`,
             meanShift: 0,
             variationReduction: reduction,
           });
@@ -269,6 +271,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
   cpkTarget,
   activeFactor,
 }) => {
+  const { formatStat } = useTranslation();
   const c = colorScheme;
 
   const currentStats = useMemo(() => {
@@ -304,9 +307,16 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
   // Compute smart presets
   const presets = useMemo(() => {
     if (!currentStats || !outcome) return undefined;
-    const result = computePresets(currentStats, specs, filteredData, outcome, activeFactor);
+    const result = computePresets(
+      currentStats,
+      specs,
+      filteredData,
+      outcome,
+      activeFactor,
+      formatStat
+    );
     return result.length > 0 ? result : undefined;
-  }, [currentStats, specs, filteredData, outcome, activeFactor]);
+  }, [currentStats, specs, filteredData, outcome, activeFactor, formatStat]);
 
   // Guard: no data or no outcome
   if (!outcome || rawData.length === 0) {

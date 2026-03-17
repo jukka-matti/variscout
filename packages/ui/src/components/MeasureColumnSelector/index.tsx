@@ -11,6 +11,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { Check, Sparkles } from 'lucide-react';
 import type { ChannelInfo } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 
 export interface MeasureColumnSelectorProps {
   /** Available columns from detectChannelColumns() */
@@ -29,6 +30,7 @@ export const MeasureColumnSelector: React.FC<MeasureColumnSelectorProps> = ({
   onSelectionChange,
   minColumns = 3,
 }) => {
+  const { formatStat } = useTranslation();
   // Group columns: matched pattern first, then others
   const sortedColumns = useMemo(() => {
     const matched = availableColumns.filter(c => c.matchedPattern);
@@ -151,9 +153,9 @@ export const MeasureColumnSelector: React.FC<MeasureColumnSelectorProps> = ({
                 <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 font-mono">
                   <span>n={column.n}</span>
                   <span>
-                    {column.preview.min.toFixed(1)}–{column.preview.max.toFixed(1)}
+                    {formatStat(column.preview.min, 1)}–{formatStat(column.preview.max, 1)}
                   </span>
-                  <span>μ={column.preview.mean.toFixed(2)}</span>
+                  <span>μ={formatStat(column.preview.mean)}</span>
                 </div>
               </div>
             </button>

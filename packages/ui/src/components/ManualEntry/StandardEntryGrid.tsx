@@ -1,5 +1,6 @@
 import React from 'react';
 import { Play, Plus, Trash2, RotateCcw, Clipboard } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 interface RunningStats {
   count: number;
@@ -50,6 +51,7 @@ const StandardEntryGrid: React.FC<StandardEntryGridProps> = ({
   onCancel,
   onBackToSetup,
 }) => {
+  const { formatStat } = useTranslation();
   const columns = [...factors, outcomeName];
 
   return (
@@ -117,13 +119,13 @@ const StandardEntryGrid: React.FC<StandardEntryGridProps> = ({
             <div className="flex items-center gap-2">
               <span className="text-content-muted">Mean:</span>
               <span className="font-mono font-bold text-blue-400">
-                {runningStats.mean.toFixed(2)}
+                {formatStat(runningStats.mean)}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-content-muted">Range:</span>
               <span className="font-mono text-content">
-                {runningStats.min.toFixed(1)} – {runningStats.max.toFixed(1)}
+                {formatStat(runningStats.min, 1)} – {formatStat(runningStats.max, 1)}
               </span>
             </div>
             {(lsl || usl) && (

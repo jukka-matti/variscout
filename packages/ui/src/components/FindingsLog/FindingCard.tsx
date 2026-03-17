@@ -24,6 +24,7 @@ import type {
   FindingTag,
 } from '@variscout/core';
 import { getFindingStatus } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import FindingEditor from './FindingEditor';
 import FindingStatusBadge from './FindingStatusBadge';
 import FindingTagBadge from './FindingTagBadge';
@@ -148,6 +149,7 @@ const HypothesisSection: React.FC<HypothesisSectionProps> = ({
   onCreateHypothesis,
   readOnly,
 }) => {
+  const { t } = useTranslation();
   const hypothesis = hypothesisId ? hypothesesMap?.[hypothesisId] : undefined;
   const [isOpen, setIsOpen] = useState(!!hypothesis);
   const [draft, setDraft] = useState('');
@@ -163,7 +165,7 @@ const HypothesisSection: React.FC<HypothesisSectionProps> = ({
       >
         {isOpen ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
         <Target size={10} />
-        <span>Hypothesis</span>
+        <span>{t('investigation.hypothesis')}</span>
         {hypothesis && !isOpen && (
           <span
             className={`ml-1 truncate flex-1 ${HYPOTHESIS_STATUS_COLORS[hypothesis.status] ?? 'text-content-secondary'}`}
@@ -416,6 +418,7 @@ const OutcomeSection: React.FC<OutcomeSectionProps> = ({
   readOnly,
 }) => {
   const [isOpen, setIsOpen] = useState(!!outcome);
+  const { formatStat } = useTranslation();
 
   const effectiveLabels = { yes: 'Effective', no: 'Not Effective', partial: 'Partially Effective' };
   const effectiveColors = { yes: 'text-green-400', no: 'text-red-400', partial: 'text-amber-400' };
@@ -462,7 +465,7 @@ const OutcomeSection: React.FC<OutcomeSectionProps> = ({
               </span>
               {outcome.cpkAfter !== undefined && (
                 <span className="ml-2 text-content-muted">
-                  Cpk after: {outcome.cpkAfter.toFixed(2)}
+                  Cpk after: {formatStat(outcome.cpkAfter)}
                 </span>
               )}
               {outcome.notes && (
@@ -486,11 +489,18 @@ interface ProjectionSectionProps {
 }
 
 /** Format a numeric delta with arrow and sign */
-function formatDelta(from: number, to: number, decimals: number = 1): string {
-  return `${from.toFixed(decimals)}\u2192${to.toFixed(decimals)}`;
+function formatDelta(
+  from: number,
+  to: number,
+  decimals: number = 1,
+  fmt?: (v: number, d?: number) => string
+): string {
+  const f = fmt ? (v: number) => fmt(v, decimals) : (v: number) => v.toFixed(decimals);
+  return `${f(from)}\u2192${f(to)}`;
 }
 
 const ProjectionSection: React.FC<ProjectionSectionProps> = ({ projection, hasSpecs }) => {
+  const { formatStat } = useTranslation();
   const age = Math.round((Date.now() - new Date(projection.createdAt).getTime()) / 86400000);
   const ageText = age === 0 ? 'today' : age === 1 ? '1 day ago' : `${age} days ago`;
 
@@ -505,13 +515,13 @@ const ProjectionSection: React.FC<ProjectionSectionProps> = ({ projection, hasSp
         <span className="text-content-secondary">
           Mean:{' '}
           <span className="text-green-400">
-            {formatDelta(projection.baselineMean, projection.projectedMean)}
+            {formatDelta(projection.baselineMean, projection.projectedMean, 1, formatStat)}
           </span>
         </span>
         <span className="text-content-secondary">
           \u03C3:{' '}
           <span className="text-green-400">
-            {formatDelta(projection.baselineSigma, projection.projectedSigma, 2)}
+            {formatDelta(projection.baselineSigma, projection.projectedSigma, 2, formatStat)}
           </span>
         </span>
         {hasSpecs &&
@@ -520,7 +530,7 @@ const ProjectionSection: React.FC<ProjectionSectionProps> = ({ projection, hasSp
             <span className="text-content-secondary">
               Cpk:{' '}
               <span className="text-green-400">
-                {formatDelta(projection.baselineCpk, projection.projectedCpk, 2)}
+                {formatDelta(projection.baselineCpk, projection.projectedCpk, 2, formatStat)}
               </span>
             </span>
           )}
@@ -566,6 +576,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAskCoScoutQuestion,
   renderActionAssigneePicker,
 }) => {
+  const { t, formatStat } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const { context } = finding;
   const status = getFindingStatus(finding);
@@ -655,7 +666,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             <span>
               Cpk{' '}
               <span className={context.stats.cpk < 1 ? 'text-red-400' : 'text-green-400'}>
-                {context.stats.cpk.toFixed(1)}
+                {formatStat(context.stats.cpk, 1)}
               </span>
             </span>
           )}
@@ -755,8 +766,8 @@ const FindingCard: React.FC<FindingCardProps> = ({
                   onDelete(finding.id);
                 }}
                 className="p-1 rounded text-content-muted hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                title="Delete finding"
-                aria-label="Delete finding"
+                title={t('action.delete')}
+                aria-label={t('action.delete')}
               >
                 <Trash2 size={12} />
               </button>

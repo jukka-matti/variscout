@@ -5,8 +5,16 @@
  * Requires ChannelMessage.Send delegated permission (Team plan only).
  */
 
-import type { Finding, FindingAssignee } from '@variscout/core';
+import type { Finding, FindingAssignee, Locale } from '@variscout/core';
 import { formatFindingFilters } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
+
+function getDocLocale(): Locale {
+  if (typeof document === 'undefined') return 'en';
+  const locale = document.documentElement.getAttribute('data-locale');
+  if (locale === 'de' || locale === 'es' || locale === 'fr' || locale === 'pt') return locale;
+  return 'en';
+}
 import { getGraphTokenWithScopes } from '../auth/graphToken';
 import { buildFindingLink } from './deepLinks';
 
@@ -34,7 +42,7 @@ export function buildMentionMessageBody(
   // Stats context
   const statsContext: string[] = [];
   if (finding.context.stats?.cpk !== undefined) {
-    statsContext.push(`Cpk ${finding.context.stats.cpk.toFixed(1)}`);
+    statsContext.push(`Cpk ${formatStatistic(finding.context.stats.cpk, getDocLocale(), 1)}`);
   }
   if (finding.context.stats?.samples !== undefined) {
     statsContext.push(`n=${finding.context.stats.samples}`);

@@ -24,6 +24,12 @@ export const en: MessageCatalog = {
   'chart.value': 'Value',
   'chart.category': 'Category',
   'chart.cumulative': 'Cumulative %',
+  'chart.clickToEdit': 'Click to edit',
+  'chart.median': 'Median',
+  'chart.q1': 'Q1',
+  'chart.q3': 'Q3',
+  'chart.noChannelData': 'No channel data',
+  'chart.selectChannel': 'Select channel',
 
   // Limit labels
   'limits.usl': 'USL',
@@ -32,6 +38,28 @@ export const en: MessageCatalog = {
   'limits.lcl': 'LCL',
   'limits.mean': 'Mean',
   'limits.target': 'Target',
+
+  // Navigation
+  'nav.newAnalysis': 'New Analysis',
+  'nav.backToDashboard': 'Back to Dashboard',
+  'nav.settings': 'Settings',
+  'nav.export': 'Export',
+  'nav.presentation': 'Presentation',
+  'nav.menu': 'Menu',
+  'nav.moreActions': 'More actions',
+
+  // Panel titles
+  'panel.findings': 'Findings',
+  'panel.dataTable': 'Data Table',
+  'panel.whatIf': 'What If',
+  'panel.investigation': 'Investigation',
+  'panel.coScout': 'CoScout',
+  'panel.drillPath': 'Drill Path',
+
+  // View modes
+  'view.list': 'List',
+  'view.board': 'Board',
+  'view.tree': 'Tree',
 
   // Action buttons
   'action.save': 'Save',
@@ -44,6 +72,38 @@ export const en: MessageCatalog = {
   'action.download': 'Download',
   'action.apply': 'Apply',
   'action.reset': 'Reset',
+  'action.retry': 'Retry',
+  'action.send': 'Send',
+  'action.ask': 'Ask',
+  'action.clear': 'Clear',
+  'action.copyAll': 'Copy all',
+  'action.selectAll': 'Select all',
+
+  // CoScout
+  'coscout.send': 'Send',
+  'coscout.clear': 'Clear conversation',
+  'coscout.stop': 'Stop',
+  'coscout.rateLimit': 'Rate limit reached. Please wait.',
+  'coscout.contentFilter': 'Content filtered by safety policy.',
+  'coscout.error': 'An error occurred. Please try again.',
+
+  // Display/settings
+  'display.preferences': 'Preferences',
+  'display.chartTextSize': 'Chart text size',
+  'display.compact': 'Compact',
+  'display.normal': 'Normal',
+  'display.large': 'Large',
+  'display.lockYAxis': 'Lock Y-axis',
+  'display.filterContext': 'Filter context',
+  'display.showSpecs': 'Show specifications',
+
+  // Investigation
+  'investigation.brief': 'Investigation Brief',
+  'investigation.assignedToMe': 'Assigned to me',
+  'investigation.hypothesis': 'Hypothesis',
+  'investigation.hypotheses': 'Hypotheses',
+  'investigation.pinAsFinding': 'Pin as finding',
+  'investigation.addObservation': 'Add observation',
 
   // Empty states
   'empty.noData': 'No data available',
@@ -79,4 +139,13 @@ export const en: MessageCatalog = {
   'data.columnMapping': 'Column Mapping',
   'data.measureColumn': 'Measure Column',
   'data.factorColumn': 'Factor Column',
+  'data.addData': 'Add data',
+  'data.editData': 'Edit data',
+  'data.showDataTable': 'Show data table',
+  'data.hideDataTable': 'Hide data table',
+
+  // Status
+  'status.cached': 'Cached',
+  'status.loading': 'Loading',
+  'status.ai': 'AI',
 };

@@ -13,7 +13,7 @@
  */
 import React, { useState } from 'react';
 import { ParetoChartBase, getScaledFonts } from '@variscout/charts';
-import { useParetoChartData } from '@variscout/hooks';
+import { useParetoChartData, useTranslation } from '@variscout/hooks';
 import { shouldShowBranding, getBrandingText } from '@variscout/core';
 import { ChartAnnotationLayer } from '../ChartAnnotationLayer';
 import { AxisEditor } from '../AxisEditor';
@@ -115,6 +115,7 @@ export const ParetoChartWrapperBase = ({
   onUploadPareto,
   availableFactors = [],
 }: ParetoChartWrapperBaseProps) => {
+  const { formatStat } = useTranslation();
   const [editingAxis, setEditingAxis] = useState<string | null>(null);
 
   const {
@@ -299,13 +300,13 @@ export const ParetoChartWrapperBase = ({
             <>
               <div className="font-semibold">{d.key}</div>
               <div>
-                {yAxisLabel}: {aggregation === 'value' ? d.value.toFixed(1) : d.value}
+                {yAxisLabel}: {aggregation === 'value' ? formatStat(d.value, 1) : d.value}
               </div>
-              <div>Cumulative: {d.cumulativePercentage.toFixed(1)}%</div>
+              <div>Cumulative: {formatStat(d.cumulativePercentage, 1)}%</div>
               {showCompare && (
                 <div className="mt-1 pt-1 border-t border-edge-secondary">
-                  <div>Filtered: {filteredPct.toFixed(1)}%</div>
-                  <div>Overall: {fullPct.toFixed(1)}%</div>
+                  <div>Filtered: {formatStat(filteredPct, 1)}%</div>
+                  <div>Overall: {formatStat(fullPct, 1)}%</div>
                   <div
                     className={
                       pctDiff > 0
@@ -316,7 +317,7 @@ export const ParetoChartWrapperBase = ({
                     }
                   >
                     {pctDiff > 0 ? '\u2191' : pctDiff < 0 ? '\u2193' : '\u2192'}{' '}
-                    {Math.abs(pctDiff).toFixed(1)}% vs overall
+                    {formatStat(Math.abs(pctDiff), 1)}% vs overall
                   </div>
                 </div>
               )}

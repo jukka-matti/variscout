@@ -9,6 +9,7 @@ import React from 'react';
 import { Line } from '@visx/shape';
 import type { ChartFonts } from '../types';
 import { chartColors } from '../colors';
+import { useChartTheme } from '../useChartTheme';
 
 // Using a generic numeric scale type that works with visx scales
 type NumericScale = {
@@ -83,8 +84,15 @@ function getLineStyle(type: LimitType): { strokeWidth: number; strokeDasharray?:
 /**
  * Get default label text for limit type
  */
-function getDefaultLabel(type: LimitType, value: number, decimalPlaces: number): string {
-  const formattedValue = value.toFixed(decimalPlaces);
+function getDefaultLabel(
+  type: LimitType,
+  value: number,
+  decimalPlaces: number,
+  formatStat?: (v: number, d?: number) => string
+): string {
+  const formattedValue = formatStat
+    ? formatStat(value, decimalPlaces)
+    : value.toFixed(decimalPlaces);
   switch (type) {
     case 'usl':
       return `USL: ${formattedValue}`;
@@ -130,10 +138,11 @@ export const SpecLimitLine: React.FC<SpecLimitLineProps> = ({
   onLabelClick,
   decimalPlaces = 1,
 }) => {
+  const { formatStat } = useChartTheme();
   const y = yScale(value);
   const color = getLineColor(type);
   const lineStyle = getLineStyle(type);
-  const label = labelText ?? getDefaultLabel(type, value, decimalPlaces);
+  const label = labelText ?? getDefaultLabel(type, value, decimalPlaces, formatStat);
 
   return (
     <>

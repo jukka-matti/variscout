@@ -77,7 +77,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
     showBranding,
   });
 
-  const { chrome, colors, mode } = useChartTheme();
+  const { chrome, colors, mode, formatStat } = useChartTheme();
   const isExecutive = mode === 'executive';
   const highlightFillColors = getHighlightFillColors(colors);
 
@@ -381,7 +381,7 @@ const ParetoChartBase: React.FC<ParetoChartProps> = ({
                 <strong>{tooltipData.key}</strong>
               </div>
               <div>Count: {tooltipData.value}</div>
-              <div>Cumulative: {tooltipData.cumulativePercentage.toFixed(1)}%</div>
+              <div>Cumulative: {formatStat(tooltipData.cumulativePercentage, 1)}%</div>
             </>
           )}
         </TooltipWithBounds>

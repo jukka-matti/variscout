@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '@variscout/hooks';
 import { FocusedViewOverlay, FocusedChartCard } from '../DashboardBase';
 import { AnovaResults } from '../AnovaResults';
 import { FactorSelector } from '../FactorSelector';
@@ -18,6 +19,7 @@ const IChartFocusedSection: React.FC<{
 }> = ({ props }) => {
   const { ichart, navigation, chartExport, filterContext } = props;
   const { getTerm } = useGlossary();
+  const { formatStat } = useTranslation();
 
   const header = (
     <>
@@ -60,22 +62,22 @@ const IChartFocusedSection: React.FC<{
         <span className="text-content-secondary">
           Overall Mean:{' '}
           <span className="text-content font-mono">
-            {ichart.stagedStats.overallStats.mean.toFixed(2)}
+            {formatStat(ichart.stagedStats.overallStats.mean)}
           </span>
         </span>
       </div>
     ) : ichart.stats ? (
       <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
         <span className="text-content-secondary flex items-center gap-1">
-          UCL: <span className="text-content font-mono">{ichart.stats.ucl.toFixed(2)}</span>
+          UCL: <span className="text-content font-mono">{formatStat(ichart.stats.ucl)}</span>
           <HelpTooltip term={getTerm('ucl')} iconSize={12} />
         </span>
         <span className="text-content-secondary flex items-center gap-1">
-          Mean: <span className="text-content font-mono">{ichart.stats.mean.toFixed(2)}</span>
+          Mean: <span className="text-content font-mono">{formatStat(ichart.stats.mean)}</span>
           <HelpTooltip term={getTerm('mean')} iconSize={12} />
         </span>
         <span className="text-content-secondary flex items-center gap-1">
-          LCL: <span className="text-content font-mono">{ichart.stats.lcl.toFixed(2)}</span>
+          LCL: <span className="text-content font-mono">{formatStat(ichart.stats.lcl)}</span>
           <HelpTooltip term={getTerm('lcl')} iconSize={12} />
         </span>
       </div>

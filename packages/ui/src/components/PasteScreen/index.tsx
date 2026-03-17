@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { ArrowLeft, ArrowRight, ClipboardPaste } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 export interface PasteScreenColorScheme {
   container: string;
@@ -60,6 +61,7 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
   submitLabel,
   title,
 }) => {
+  const { t } = useTranslation();
   const [text, setText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -105,7 +107,7 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
             </div>
             <div>
               <h2 className={`text-lg sm:text-xl font-bold ${c.title}`}>
-                {title || 'Paste Your Data'}
+                {title || t('data.pasteData')}
               </h2>
               <p className={`text-xs ${c.subtitle}`}>
                 Columns are detected automatically from headers

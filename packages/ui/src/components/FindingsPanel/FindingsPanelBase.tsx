@@ -22,7 +22,7 @@ import type {
   InvestigationPhase,
 } from '@variscout/core';
 import type { DrillStep } from '@variscout/hooks';
-import { useResizablePanel } from '@variscout/hooks';
+import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { FindingsLog, copyFindingsToClipboard } from '../FindingsLog';
 import { CoScoutInline } from '../CoScoutInline';
 
@@ -226,6 +226,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   currentUserUpn,
   colorScheme: csOverride,
 }) => {
+  const { t, formatStat } = useTranslation();
   const cs = { ...defaultFindingsPanelColorScheme, ...csOverride };
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [coScoutExpanded, setCoScoutExpanded] = useState(false);
@@ -294,7 +295,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
         {/* Header */}
         <div className={`flex items-center justify-between px-4 py-3 ${cs.headerBg}`}>
           <h2 className="text-sm font-semibold text-content flex items-center">
-            Findings
+            {t('panel.findings')}
             {findings.length > 0 && (
               <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] ${cs.badge} rounded`}>
                 {showAssignedToMe ? displayFindings.length : findings.length}
@@ -328,8 +329,8 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
                       ? 'bg-surface-tertiary text-content'
                       : 'text-content-muted hover:text-content-secondary'
                   }`}
-                  title="List view"
-                  aria-label="List view"
+                  title={t('view.list')}
+                  aria-label={t('view.list')}
                 >
                   <List size={12} />
                 </button>
@@ -340,8 +341,8 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
                       ? 'bg-surface-tertiary text-content'
                       : 'text-content-muted hover:text-content-secondary'
                   }`}
-                  title="Board view"
-                  aria-label="Board view"
+                  title={t('view.board')}
+                  aria-label={t('view.board')}
                 >
                   <LayoutGrid size={12} />
                 </button>
@@ -353,8 +354,8 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
                         ? 'bg-surface-tertiary text-content'
                         : 'text-content-muted hover:text-content-secondary'
                     }`}
-                    title="Tree view"
-                    aria-label="Tree view"
+                    title={t('view.tree')}
+                    aria-label={t('view.tree')}
                   >
                     <GitBranch size={12} />
                   </button>
@@ -464,7 +465,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
         {drillPath.length > 0 && (
           <div className="px-4 py-3 border-t border-edge">
             <div className="text-[10px] text-content-muted uppercase tracking-wider mb-1.5">
-              Drill Path
+              {t('panel.drillPath')}
             </div>
             <div className="flex flex-wrap gap-1">
               {drillPath.map((step, i) => (
@@ -473,7 +474,9 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
                   className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[11px] rounded-full"
                 >
                   {columnAliases?.[step.factor] || step.factor}
-                  <span className="text-blue-300/60">{(step.scopeFraction * 100).toFixed(0)}%</span>
+                  <span className="text-blue-300/60">
+                    {formatStat(step.scopeFraction * 100, 0)}%
+                  </span>
                   {i < drillPath.length - 1 && (
                     <span className="text-content-muted ml-0.5">&rarr;</span>
                   )}

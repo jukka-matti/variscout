@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect, forwardRef, useImperativeHan
 import { ChevronRight, ChevronDown, RotateCcw, Beaker, Target, XCircle, Star } from 'lucide-react';
 import { simulateDirectAdjustment, simulateOverallImpact } from '@variscout/core';
 import type { OverallImpactResult, SpecLimits } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import Slider from '../Slider/Slider';
 import type { SliderColorScheme } from '../Slider/Slider';
 import DistributionPreview from './DistributionPreview';
@@ -118,9 +119,7 @@ export interface WhatIfSimulatorProps {
   subsetCount?: number;
 }
 
-function formatNumber(value: number, decimals: number = 2): string {
-  return value.toFixed(decimals);
-}
+// formatNumber is now provided by useTranslation().formatStat inside the component
 
 function PresetIcon({ icon }: { icon?: SimulatorPreset['icon'] }) {
   switch (icon) {
@@ -152,6 +151,7 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
     },
     ref
   ) => {
+    const { formatStat: formatNumber } = useTranslation();
     const c = colorScheme;
 
     // Derive slider color scheme from simulator scheme

@@ -40,7 +40,7 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
   showBranding = true,
   cpkThresholds = CPK_THRESHOLDS,
 }) => {
-  const { chrome, fontScale } = useChartTheme();
+  const { chrome, fontScale, formatStat } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'pareto', sourceBarHeight);
   const fonts = getScaledFonts(parentWidth, fontScale);
@@ -166,7 +166,7 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
             textAnchor="end"
             style={{ pointerEvents: 'none', userSelect: 'none' }}
           >
-            {cpkThresholds.critical.toFixed(2)}
+            {formatStat(cpkThresholds.critical)}
           </text>
 
           {/* Warning threshold line */}
@@ -188,7 +188,7 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
             textAnchor="end"
             style={{ pointerEvents: 'none', userSelect: 'none' }}
           >
-            {cpkThresholds.warning.toFixed(2)}
+            {formatStat(cpkThresholds.warning)}
           </text>
 
           {/* Bars */}
@@ -336,7 +336,9 @@ export const PerformanceParetoBase: React.FC<PerformanceParetoProps> = ({
             <div>
               Cpk:{' '}
               <span style={{ fontFamily: 'monospace' }}>
-                {tooltipData.channel.cpk?.toFixed(2) ?? 'N/A'}
+                {tooltipData.channel.cpk !== undefined && tooltipData.channel.cpk !== null
+                  ? formatStat(tooltipData.channel.cpk)
+                  : 'N/A'}
               </span>
             </div>
             <div>

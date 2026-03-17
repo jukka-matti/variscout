@@ -8,6 +8,7 @@ import type {
   IdeaEffort,
 } from '@variscout/core';
 import { HYPOTHESIS_STATUS_LABELS } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 
 /** Status dot colors matching hypothesis statuses */
 const STATUS_COLORS: Record<HypothesisStatus, string> = {
@@ -122,6 +123,7 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
   onAskCoScout,
   hypothesisText,
 }) => {
+  const { formatStat } = useTranslation();
   const [isOpen, setIsOpen] = useState(ideas.length > 0);
   const [newIdeaText, setNewIdeaText] = useState('');
 
@@ -203,10 +205,10 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                     {/* Projection summary */}
                     {idea.projection && (
                       <span className="text-[10px] text-content-muted">
-                        Mean: {idea.projection.baselineMean.toFixed(1)}&rarr;
-                        {idea.projection.projectedMean.toFixed(1)} &sigma;:{' '}
-                        {idea.projection.baselineSigma.toFixed(1)}&rarr;
-                        {idea.projection.projectedSigma.toFixed(1)}
+                        Mean: {formatStat(idea.projection.baselineMean, 1)}&rarr;
+                        {formatStat(idea.projection.projectedMean, 1)} &sigma;:{' '}
+                        {formatStat(idea.projection.baselineSigma, 1)}&rarr;
+                        {formatStat(idea.projection.projectedSigma, 1)}
                       </span>
                     )}
                   </div>

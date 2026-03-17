@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getMessage, getMessages, detectLocale } from '../index';
+import { LOCALES } from '../types';
 
 describe('getMessage', () => {
   it('returns English message for English locale', () => {
@@ -33,6 +34,13 @@ describe('getMessage', () => {
     expect(getMessage('de', 'findings.observed')).toBe('Beobachtet');
     expect(getMessage('de', 'findings.resolved')).toBe('Gelöst');
   });
+
+  it('returns messages for new locales', () => {
+    expect(getMessage('ja', 'stats.mean')).toBe('平均');
+    expect(getMessage('fi', 'stats.mean')).toBe('Keskiarvo');
+    expect(getMessage('ko', 'stats.mean')).toBe('평균');
+    expect(getMessage('ru', 'stats.mean')).toBe('Среднее');
+  });
 });
 
 describe('getMessages', () => {
@@ -43,9 +51,9 @@ describe('getMessages', () => {
     expect(messages['empty.noData']).toBe('No data available');
   });
 
-  it('returns a complete catalog for each locale', () => {
+  it('returns a complete catalog for every supported locale', () => {
     const enKeys = Object.keys(getMessages('en'));
-    for (const locale of ['de', 'es', 'fr', 'pt'] as const) {
+    for (const locale of LOCALES) {
       const localeKeys = Object.keys(getMessages(locale));
       expect(localeKeys.length).toBe(enKeys.length);
       // Every key in English must exist in each locale
@@ -65,6 +73,16 @@ describe('detectLocale', () => {
     expect(detectLocale('pt')).toBe('pt');
   });
 
+  it('detects all 33 supported locales', () => {
+    expect(detectLocale('ja')).toBe('ja');
+    expect(detectLocale('ko')).toBe('ko');
+    expect(detectLocale('fi')).toBe('fi');
+    expect(detectLocale('it')).toBe('it');
+    expect(detectLocale('ru')).toBe('ru');
+    expect(detectLocale('ar')).toBe('ar');
+    expect(detectLocale('th')).toBe('th');
+  });
+
   it('detects regional variants by prefix', () => {
     expect(detectLocale('de-AT')).toBe('de');
     expect(detectLocale('de-CH')).toBe('de');
@@ -72,12 +90,28 @@ describe('detectLocale', () => {
     expect(detectLocale('es-MX')).toBe('es');
     expect(detectLocale('pt-BR')).toBe('pt');
     expect(detectLocale('en-GB')).toBe('en');
+    expect(detectLocale('ja-JP')).toBe('ja');
+    expect(detectLocale('ko-KR')).toBe('ko');
+  });
+
+  it('detects Chinese script variants', () => {
+    expect(detectLocale('zh-CN')).toBe('zh-Hans');
+    expect(detectLocale('zh-TW')).toBe('zh-Hant');
+    expect(detectLocale('zh-Hans-CN')).toBe('zh-Hans');
+    expect(detectLocale('zh-Hant-TW')).toBe('zh-Hant');
+    expect(detectLocale('zh')).toBe('zh-Hans');
+  });
+
+  it('detects Norwegian variants', () => {
+    expect(detectLocale('nb')).toBe('nb');
+    expect(detectLocale('no')).toBe('nb');
+    expect(detectLocale('no-NO')).toBe('nb');
   });
 
   it('falls back to English for unsupported locales', () => {
-    expect(detectLocale('ja')).toBe('en');
-    expect(detectLocale('zh-CN')).toBe('en');
-    expect(detectLocale('ko')).toBe('en');
+    expect(detectLocale('sw')).toBe('en');
+    expect(detectLocale('am')).toBe('en');
+    expect(detectLocale('xx-YY')).toBe('en');
   });
 
   it('handles case-insensitive input', () => {
