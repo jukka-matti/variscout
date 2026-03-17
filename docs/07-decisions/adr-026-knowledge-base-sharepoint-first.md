@@ -20,6 +20,16 @@ ADR-022 established a dual-path Knowledge Base architecture:
 
 After analyzing cost, security, user value, and the latest Foundry IQ capabilities (including **Remote SharePoint knowledge sources**), we identified a simpler, cheaper, and more secure architecture.
 
+### Resolved Design Questions
+
+| #   | Question            | Decision                              | Rationale                                                               |
+| --- | ------------------- | ------------------------------------- | ----------------------------------------------------------------------- |
+| 1   | Document format     | Both `.docx` and `.pdf`               | Word for Copilot searchability, PDF for sharing/printing. User chooses. |
+| 2   | Folder location     | Same folder as `.vrs` file            | Channel's SharePoint folder already holds the project. No new config.   |
+| 3   | Intent detection    | CoScout suggests → user confirms      | Layered UX: analytical answer first, then "💡 Search Knowledge Base?"   |
+| 4   | Report versioning   | Ask user on re-publish                | Dialog: "Create new version or replace?"                                |
+| 5   | Auth for SharePoint | Reuse `getGraphTokenWithScopes()` OBO | Already built in `graphToken.ts`. Just add SP scope to allowlist.       |
+
 ### Problems with the Original Design
 
 - **€65/month** AI Search Basic tier cost — regardless of usage
