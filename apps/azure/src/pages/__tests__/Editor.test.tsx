@@ -72,6 +72,10 @@ vi.mock('../../auth/getCurrentUser', () => ({
   getCurrentUser: vi.fn(() => Promise.resolve({ name: 'Test User', email: 'test@test.com' })),
 }));
 
+vi.mock('../../context/LocaleContext', () => ({
+  useLocale: () => ({ locale: 'en', isLocaleEnabled: true, setLocale: vi.fn() }),
+}));
+
 // ── Mock @variscout/ui ──
 
 vi.mock('@variscout/ui', () => ({

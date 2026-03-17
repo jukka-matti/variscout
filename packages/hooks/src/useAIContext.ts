@@ -12,6 +12,7 @@ import type {
   InvestigationCategory,
   InsightChartType,
   StagedComparison,
+  Locale,
 } from '@variscout/core';
 import type { StatsResult, SpecLimits, Finding, Hypothesis } from '@variscout/core';
 
@@ -56,6 +57,8 @@ export interface UseAIContextOptions {
   teamContributors?: AIContext['teamContributors'];
   /** Staged comparison result (when Before/After stages detected) */
   stagedComparison?: StagedComparison | null;
+  /** Active locale for AI response language */
+  locale?: Locale;
 }
 
 export interface UseAIContextReturn {
@@ -85,6 +88,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     focusContext,
     teamContributors,
     stagedComparison,
+    locale,
   } = options;
 
   const context = useMemo<AIContext | null>(() => {
@@ -104,6 +108,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
       focusContext,
       teamContributors,
       stagedComparison,
+      locale,
     };
 
     // Map StatsResult to AIStatsInput
@@ -136,6 +141,7 @@ export function useAIContext(options: UseAIContextOptions): UseAIContextReturn {
     focusContext,
     teamContributors,
     stagedComparison,
+    locale,
   ]);
 
   return { context };

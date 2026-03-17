@@ -318,6 +318,7 @@ export {
   formatKnowledgeContext,
   buildReportSystemPrompt,
   buildReportPrompt,
+  buildLocaleHint,
 } from './ai';
 
 // AI (Phase 2 — Chart Insights)

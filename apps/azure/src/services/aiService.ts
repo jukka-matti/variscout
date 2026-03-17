@@ -8,8 +8,13 @@
  *   - *.services.ai.azure.com or paths containing /anthropic → Anthropic Messages API
  */
 
-import type { AIContext, AIErrorType } from '@variscout/core';
-import { buildNarrationSystemPrompt, buildSummaryPrompt, isTeamAIPlan } from '@variscout/core';
+import type { AIContext, AIErrorType, Locale } from '@variscout/core';
+import {
+  buildNarrationSystemPrompt,
+  buildSummaryPrompt,
+  buildChartInsightSystemPrompt,
+  isTeamAIPlan,
+} from '@variscout/core';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
 const CACHE_KEY_PREFIX = 'variscout-ai-cache-';
@@ -239,11 +244,11 @@ export async function fetchNarration(context: AIContext): Promise<string> {
   if (!endpoint) throw new Error('AI endpoint not configured');
 
   // Build the prompt — glossary in system prompt for prompt caching
-  const systemPrompt = buildNarrationSystemPrompt(context.glossaryFragment);
+  const systemPrompt = buildNarrationSystemPrompt(context.glossaryFragment, context.locale);
   const userPrompt = buildSummaryPrompt(context);
 
-  // Simple cache key from user prompt hash
-  const cacheKeyStr = hashString(userPrompt);
+  // Simple cache key from user prompt hash (includes locale for cache isolation)
+  const cacheKeyStr = hashString(`${context.locale || 'en'}:${userPrompt}`);
 
   // Check cache
   const cached = getCached(CACHE_KEY_PREFIX, cacheKeyStr);
@@ -302,12 +307,12 @@ export async function fetchNarration(context: AIContext): Promise<string> {
  * Lighter than fetchNarration: shorter output, lower temperature, no retry on rate-limit.
  * Falls back to deterministic insight (caller handles this) on any error.
  */
-export async function fetchChartInsight(userPrompt: string): Promise<string> {
+export async function fetchChartInsight(userPrompt: string, locale?: Locale): Promise<string> {
   const endpoint = getAIEndpoint();
   if (!endpoint) throw new Error('AI endpoint not configured');
 
-  // Cache key from user prompt hash
-  const cacheKeyStr = `chip-${hashString(userPrompt)}`;
+  // Cache key from user prompt hash (includes locale for cache isolation)
+  const cacheKeyStr = `chip-${hashString(`${locale || 'en'}:${userPrompt}`)}`;
 
   // Check cache
   const cached = getCached(CHIP_CACHE_KEY_PREFIX, cacheKeyStr);
@@ -317,10 +322,7 @@ export async function fetchChartInsight(userPrompt: string): Promise<string> {
   const headers = await getAuthHeaders();
 
   // Single attempt — no retry (fall back to deterministic instead)
-  const systemPrompt = `You are a quality engineering assistant for VariScout.
-Enhance the provided deterministic insight with process context.
-Respond in exactly one sentence, under 120 characters.
-Be specific and actionable. Never invent data.`;
+  const systemPrompt = buildChartInsightSystemPrompt(locale);
 
   const messages = [
     { role: 'system', content: systemPrompt },

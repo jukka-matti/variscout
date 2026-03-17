@@ -38,6 +38,7 @@ export interface UseNarrationReturn {
 function hashContext(ctx: AIContext): string {
   // Use a stable subset of context for cache key
   const key = JSON.stringify({
+    l: ctx.locale || 'en',
     s: ctx.stats ? { m: ctx.stats.mean, sd: ctx.stats.stdDev, n: ctx.stats.samples } : null,
     f: ctx.filters.map(f => `${f.factor}:${f.values.join(',')}`).sort(),
     v: ctx.violations,

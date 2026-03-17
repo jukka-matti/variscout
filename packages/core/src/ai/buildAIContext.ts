@@ -9,6 +9,7 @@ import type { StagedComparison } from '../stats/staged';
 import { groupFindingsByStatus, getCategoryForFactor } from '../findings';
 import { buildGlossaryPrompt } from '../glossary/buildGlossaryPrompt';
 import type { GlossaryCategory } from '../glossary/types';
+import type { Locale } from '../i18n/types';
 
 /** Stats input for AI context — extends StatsResult with app-level fields */
 export interface AIStatsInput {
@@ -68,6 +69,8 @@ export interface BuildAIContextOptions {
   stagedComparison?: StagedComparison | null;
   /** Maximum token budget for glossary (default 40 terms) */
   maxGlossaryTerms?: number;
+  /** Locale for bilingual glossary and AI response language */
+  locale?: Locale;
 }
 
 /**
@@ -92,6 +95,7 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     teamContributors,
     stagedComparison,
     maxGlossaryTerms = 40,
+    locale,
   } = options;
 
   // Determine relevant glossary categories based on state
@@ -112,7 +116,9 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
     }),
     glossaryFragment: buildGlossaryPrompt(glossaryCategories, maxGlossaryTerms, {
       includeConcepts: true,
+      locale,
     }),
+    locale,
   };
 
   // Derive factorRoles from investigation categories

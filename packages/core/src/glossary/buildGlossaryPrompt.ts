@@ -6,13 +6,27 @@
  * Optionally includes methodology concepts for framework awareness.
  */
 
-import type { GlossaryCategory } from './types';
+import type { GlossaryCategory, GlossaryLocale } from './types';
 import { getTermsByCategory, glossaryTerms } from './terms';
 import { concepts } from './concepts';
+import type { Locale } from '../i18n/types';
+import { deGlossary } from './locales/de';
+import { esGlossary } from './locales/es';
+import { frGlossary } from './locales/fr';
+import { ptGlossary } from './locales/pt';
+
+const localeGlossaryMap: Record<string, GlossaryLocale> = {
+  de: deGlossary,
+  es: esGlossary,
+  fr: frGlossary,
+  pt: ptGlossary,
+};
 
 export interface GlossaryPromptOptions {
   /** Include methodology concepts (Four Lenses, phases, principles) */
   includeConcepts?: boolean;
+  /** Locale for bilingual term rendering */
+  locale?: Locale;
 }
 
 /**
@@ -36,7 +50,19 @@ export function buildGlossaryPrompt(
   const parts: string[] = [];
 
   if (selected.length > 0) {
-    const lines = selected.map(t => `- **${t.label}**: ${t.definition}`);
+    const locale = options?.locale;
+    const localeData = locale && locale !== 'en' ? localeGlossaryMap[locale] : undefined;
+
+    const lines = selected.map(t => {
+      let line = `- **${t.label}**: ${t.definition}`;
+      if (localeData) {
+        const localized = localeData.terms[t.id];
+        if (localized && localized.label !== t.label) {
+          line += `\n  ${locale!.toUpperCase()}: **${localized.label}**: ${localized.definition}`;
+        }
+      }
+      return line;
+    });
     parts.push(`## Terminology\n\n${lines.join('\n')}`);
   }
 

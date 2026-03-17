@@ -310,6 +310,28 @@ describe('buildAIContext', () => {
     });
     expect(ctx.investigation?.phase).toBe('converging');
   });
+
+  it('sets locale on context when provided', () => {
+    const ctx = buildAIContext({ locale: 'de' });
+    expect(ctx.locale).toBe('de');
+  });
+
+  it('does not set locale when not provided', () => {
+    const ctx = buildAIContext({});
+    expect(ctx.locale).toBeUndefined();
+  });
+
+  it('passes locale to glossary prompt for bilingual terms', () => {
+    // Include stats with cpk to trigger capability glossary category (which has German translations)
+    const ctx = buildAIContext({ locale: 'de', stats: mockStats });
+    // German glossary should produce bilingual sub-lines for capability terms
+    expect(ctx.glossaryFragment).toMatch(/DE: \*\*/);
+  });
+
+  it('does not produce bilingual terms for English locale', () => {
+    const ctx = buildAIContext({ locale: 'en', stats: mockStats });
+    expect(ctx.glossaryFragment).not.toMatch(/[A-Z]{2}: \*\*/);
+  });
 });
 
 describe('buildAIContext stagedComparison', () => {

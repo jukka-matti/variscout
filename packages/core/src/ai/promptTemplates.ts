@@ -12,12 +12,23 @@
 import type { AIContext, CoScoutMessage } from './types';
 import type { InsightChartType } from './chartInsights';
 import type { Finding, Hypothesis } from '../findings';
+import type { Locale } from '../i18n/types';
+import { LOCALE_NAMES } from '../i18n/types';
 
 /**
  * Terminology enforcement instruction appended to all AI system prompts.
  * Ensures consistent domain language across narration, CoScout, and chart insights.
  * See docs/05-technical/architecture/aix-design-system.md §1.2
  */
+/**
+ * Build a locale hint to prepend to system prompts.
+ * Returns empty string for English or undefined locale.
+ */
+export function buildLocaleHint(locale?: Locale): string {
+  if (!locale || locale === 'en') return '';
+  return `LANGUAGE: Respond in ${LOCALE_NAMES[locale]}. Use the provided terminology definitions in that language when available.`;
+}
+
 export const TERMINOLOGY_INSTRUCTION = `Terminology rules — always use VariScout terms:
 - Say "Contribution %" not "eta squared" or "effect size".
 - Say "Progressive stratification" not "drill-down".
@@ -28,13 +39,16 @@ export const TERMINOLOGY_INSTRUCTION = `Terminology rules — always use VariSco
  * Build the system prompt for narration.
  * Includes glossary grounding as static prefix for prompt caching.
  */
-export function buildNarrationSystemPrompt(glossaryFragment?: string): string {
-  const parts = [
+export function buildNarrationSystemPrompt(glossaryFragment?: string, locale?: Locale): string {
+  const parts: string[] = [];
+  const hint = buildLocaleHint(locale);
+  if (hint) parts.push(hint);
+  parts.push(
     `You are a quality engineering assistant for VariScout, a variation analysis tool.
 You explain statistical analysis results in clear, actionable language for quality professionals.
 Keep responses concise (1-2 sentences for summaries). Use the provided terminology definitions.
-Never invent data — only describe what is provided in the context.`,
-  ];
+Never invent data — only describe what is provided in the context.`
+  );
 
   if (glossaryFragment) {
     parts.push(glossaryFragment);
@@ -214,8 +228,9 @@ export interface ChartInsightData {
 /**
  * Build the system prompt for chart insight enhancement.
  */
-export function buildChartInsightSystemPrompt(): string {
-  return `You are a quality engineering assistant for VariScout.
+export function buildChartInsightSystemPrompt(locale?: Locale): string {
+  const hint = buildLocaleHint(locale);
+  return `${hint ? hint + '\n\n' : ''}You are a quality engineering assistant for VariScout.
 Enhance the provided deterministic insight with process context.
 Respond in exactly one sentence, under 120 characters.
 Be specific and actionable. Never invent data.
@@ -299,9 +314,13 @@ export function buildCoScoutSystemPrompt(
   investigation?: AIContext['investigation'],
   teamContributors?: AIContext['teamContributors'],
   sampleCount?: number,
-  stagedComparison?: AIContext['stagedComparison']
+  stagedComparison?: AIContext['stagedComparison'],
+  locale?: Locale
 ): string {
-  const parts = [
+  const parts: string[] = [];
+  const hint = buildLocaleHint(locale);
+  if (hint) parts.push(hint);
+  parts.push(
     `You are CoScout, the quality engineering assistant for VariScout — an Exploratory Data Analysis tool for process improvement.
 
 VariScout shows four analytical tools simultaneously with linked filtering:
@@ -319,8 +338,8 @@ Key principles:
 
 Use the provided context (statistics, filters, violations, findings) to ground every answer.
 Keep responses focused and practical — 2-4 sentences unless the user asks for more detail.
-Never invent data or statistics. If the context does not contain enough information to answer, say so.`,
-  ];
+Never invent data or statistics. If the context does not contain enough information to answer, say so.`
+  );
 
   if (glossaryFragment) {
     parts.push(glossaryFragment);
@@ -549,7 +568,8 @@ export function buildCoScoutMessages(
       context.investigation,
       context.teamContributors,
       context.stats?.samples,
-      context.stagedComparison
+      context.stagedComparison,
+      context.locale
     ),
   });
 
@@ -594,8 +614,9 @@ export function buildCoScoutMessages(
 /**
  * Build the system prompt for AI findings report generation.
  */
-export function buildReportSystemPrompt(): string {
-  return `You are a quality engineering report writer for VariScout.
+export function buildReportSystemPrompt(locale?: Locale): string {
+  const hint = buildLocaleHint(locale);
+  return `${hint ? hint + '\n\n' : ''}You are a quality engineering report writer for VariScout.
 Write a structured Markdown report summarizing the investigation findings.
 Be precise and data-driven. Never invent data — only reference what is provided.
 Use professional quality engineering language.`;

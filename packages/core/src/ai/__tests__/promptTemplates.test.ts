@@ -9,6 +9,7 @@ import {
   formatKnowledgeContext,
   buildReportSystemPrompt,
   buildReportPrompt,
+  buildLocaleHint,
 } from '../promptTemplates';
 import type { AIContext, CoScoutMessage } from '../types';
 import type { Finding, Hypothesis } from '../../findings';
@@ -27,6 +28,21 @@ describe('buildNarrationSystemPrompt', () => {
     );
     expect(prompt).toContain('## Terminology');
     expect(prompt).toContain('Cpk');
+  });
+
+  it('includes locale hint when locale is not English', () => {
+    const prompt = buildNarrationSystemPrompt(undefined, 'de');
+    expect(prompt).toContain('LANGUAGE: Respond in Deutsch');
+  });
+
+  it('does not include locale hint for English', () => {
+    const prompt = buildNarrationSystemPrompt(undefined, 'en');
+    expect(prompt).not.toContain('LANGUAGE:');
+  });
+
+  it('does not include locale hint when locale is undefined', () => {
+    const prompt = buildNarrationSystemPrompt();
+    expect(prompt).not.toContain('LANGUAGE:');
   });
 });
 
@@ -943,5 +959,83 @@ describe('buildReportPrompt', () => {
     const prompt = buildReportPrompt(ctx, [findingWithOutcome], []);
     expect(prompt).toContain('Outcome: true');
     expect(prompt).toContain('Cpk after: 1.45');
+  });
+});
+
+describe('buildLocaleHint', () => {
+  it('returns German hint for de locale', () => {
+    const hint = buildLocaleHint('de');
+    expect(hint).toContain('Respond in Deutsch');
+    expect(hint).toContain('terminology definitions');
+  });
+
+  it('returns empty string for en locale', () => {
+    expect(buildLocaleHint('en')).toBe('');
+  });
+
+  it('returns empty string for undefined locale', () => {
+    expect(buildLocaleHint(undefined)).toBe('');
+  });
+
+  it('returns Spanish hint for es locale', () => {
+    const hint = buildLocaleHint('es');
+    expect(hint).toContain('Respond in Español');
+  });
+});
+
+describe('locale wiring in system prompts', () => {
+  it('buildChartInsightSystemPrompt includes locale hint', () => {
+    const prompt = buildChartInsightSystemPrompt('fr');
+    expect(prompt).toContain('Respond in Français');
+    // TERMINOLOGY_INSTRUCTION still present
+    expect(prompt).toContain('Terminology rules');
+  });
+
+  it('buildChartInsightSystemPrompt without locale has no hint', () => {
+    const prompt = buildChartInsightSystemPrompt();
+    expect(prompt).not.toContain('LANGUAGE:');
+  });
+
+  it('buildCoScoutSystemPrompt includes locale hint', () => {
+    const prompt = buildCoScoutSystemPrompt(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      'pt'
+    );
+    expect(prompt).toContain('Respond in Português');
+    expect(prompt).toContain('CoScout');
+  });
+
+  it('buildReportSystemPrompt includes locale hint', () => {
+    const prompt = buildReportSystemPrompt('de');
+    expect(prompt).toContain('Respond in Deutsch');
+    expect(prompt).toContain('Markdown report');
+  });
+
+  it('buildReportSystemPrompt without locale has no hint', () => {
+    const prompt = buildReportSystemPrompt();
+    expect(prompt).not.toContain('LANGUAGE:');
+  });
+
+  it('buildCoScoutMessages passes locale through to system prompt', () => {
+    const ctx: AIContext = {
+      process: {},
+      filters: [],
+      locale: 'es',
+    };
+    const messages = buildCoScoutMessages(ctx, [], 'Hola');
+    expect(messages[0].content).toContain('Respond in Español');
+  });
+
+  it('buildCoScoutMessages without locale has no hint in system prompt', () => {
+    const ctx: AIContext = {
+      process: {},
+      filters: [],
+    };
+    const messages = buildCoScoutMessages(ctx, [], 'Hello');
+    expect(messages[0].content).not.toContain('LANGUAGE:');
   });
 });

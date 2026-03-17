@@ -34,6 +34,7 @@ import {
   type ProcessContext,
   type InsightChartType,
   type StagedStatsResult,
+  type Locale,
 } from '@variscout/core';
 import {
   fetchNarration as fetchNarrationFromAI,
@@ -71,6 +72,7 @@ export interface UseEditorAIOptions {
   stagedStats?: StagedStatsResult | null;
   drillPath: DrillStep[];
   persistedHypotheses?: Hypothesis[];
+  locale?: Locale;
   onOpenCoScout: () => void;
   onOpenFindings: () => void;
 }
@@ -118,6 +120,7 @@ export function useEditorAI({
   stagedStats,
   drillPath,
   persistedHypotheses,
+  locale,
   onOpenCoScout,
   onOpenFindings,
 }: UseEditorAIOptions): UseEditorAIReturn {
@@ -227,6 +230,7 @@ export function useEditorAI({
     focusContext,
     teamContributors: aiTeamContributors,
     stagedComparison,
+    locale,
   });
 
   // AI narration (disabled when per-component toggle is off)
@@ -383,7 +387,10 @@ export function useEditorAI({
     coscout,
     knowledgeSearch,
     suggestedQuestions,
-    fetchChartInsight: aiAvailable && prefs.insights ? fetchChartInsightFromAI : undefined,
+    fetchChartInsight:
+      aiAvailable && prefs.insights
+        ? (userPrompt: string) => fetchChartInsightFromAI(userPrompt, locale)
+        : undefined,
     handleNarrativeAsk,
     handleAskCoScoutFromIdeas,
     handleAskCoScoutFromFinding,

@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import { useEditorAI } from '../hooks/useEditorAI';
+import { useLocale } from '../context/LocaleContext';
 import { useEditorPanels } from '../hooks/useEditorPanels';
 import { useEditorDataFlow } from '../hooks/useEditorDataFlow';
 import { useTeamsShare } from '../hooks/useTeamsShare';
@@ -70,6 +71,7 @@ export const Editor: React.FC<EditorProps> = ({
   initialChart,
 }) => {
   const { syncStatus } = useStorage();
+  const { locale } = useLocale();
   const {
     rawData,
     filteredData,
@@ -458,6 +460,7 @@ export const Editor: React.FC<EditorProps> = ({
     stagedStats,
     drillPath,
     persistedHypotheses,
+    locale,
     onOpenCoScout: () => panels.setIsCoScoutOpen(true),
     onOpenFindings: () => panels.setIsFindingsOpen(true),
   });

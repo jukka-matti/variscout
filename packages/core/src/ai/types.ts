@@ -3,6 +3,7 @@
  */
 
 import type { InsightChartType } from './chartInsights';
+import type { Locale } from '../i18n/types';
 
 /** Target metric type for improvement tracking */
 export type TargetMetric = 'mean' | 'sigma' | 'cpk' | 'yield' | 'passRate';
@@ -161,6 +162,8 @@ export interface AIContext {
     actionsText: string;
     outcomeEffective: boolean | null;
   }>;
+  /** Active locale for AI response language */
+  locale?: Locale;
   /** Documents from Knowledge Base agentic retrieval (SharePoint, SOPs) */
   knowledgeDocuments?: Array<{
     title: string;

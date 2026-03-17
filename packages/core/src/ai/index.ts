@@ -31,6 +31,7 @@ export {
   formatKnowledgeContext,
   buildReportSystemPrompt,
   buildReportPrompt,
+  buildLocaleHint,
 } from './promptTemplates';
 
 export type {
