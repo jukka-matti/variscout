@@ -1,7 +1,15 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Info, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
+import {
+  Info,
+  CheckCircle,
+  XCircle,
+  ExternalLink,
+  Search,
+  Loader2,
+  FolderOpen,
+} from 'lucide-react';
 import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
-import { isKnowledgeBaseAvailable } from '../services/searchService';
+import { isKnowledgeBaseAvailable, searchDocuments } from '../services/searchService';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
 interface StatusRowProps {
@@ -26,10 +34,25 @@ function StatusRow({ label, ok, detail }: StatusRowProps) {
   );
 }
 
+/**
+ * AdminKnowledgeSetup — ADR-026 SharePoint-first Knowledge Base setup.
+ *
+ * Prerequisites:
+ * - Team AI plan
+ * - AI Search endpoint configured
+ * - ≥1 M365 Copilot license in tenant (for Remote SharePoint knowledge sources)
+ *
+ * The Knowledge Base works by:
+ * 1. Publishing reports to the team's SharePoint folder (same as .vrs files)
+ * 2. Creating a Remote SharePoint knowledge source in AI Search
+ * 3. Users search on-demand from CoScout ("💡 Search Knowledge Base?")
+ */
 export function AdminKnowledgeSetup() {
   const [previewEnabled, setPreviewEnabledState] = useState(() =>
     isPreviewEnabled('knowledge-base')
   );
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
+  const [testError, setTestError] = useState<string | null>(null);
 
   const teamAIPlan = useMemo(() => isTeamAIPlan(), []);
   const config = useMemo(() => getRuntimeConfig(), []);
@@ -40,6 +63,23 @@ export function AdminKnowledgeSetup() {
     setPreviewEnabled('knowledge-base', !previewEnabled);
     setPreviewEnabledState(isPreviewEnabled('knowledge-base'));
   }, [previewEnabled]);
+
+  const handleTestSearch = useCallback(async () => {
+    setTestStatus('testing');
+    setTestError(null);
+    try {
+      const results = await searchDocuments('test connectivity check', { top: 1 });
+      // Even empty results mean the service is reachable
+      setTestStatus('success');
+      setTimeout(() => setTestStatus('idle'), 3000);
+      if (results.length > 0) {
+        setTestError(null);
+      }
+    } catch (err) {
+      setTestStatus('error');
+      setTestError(err instanceof Error ? err.message : 'Connection failed');
+    }
+  }, []);
 
   const allReady = teamAIPlan && hasSearchEndpoint && previewEnabled;
 
@@ -52,8 +92,8 @@ export function AdminKnowledgeSetup() {
         </span>
       </div>
       <p className="text-content-secondary mb-8">
-        Search past findings and SharePoint documents across your organization to accelerate
-        investigations with institutional knowledge.
+        Search your team's SharePoint documents from CoScout to accelerate investigations with
+        institutional knowledge — SOPs, fault trees, past 8D reports, and more.
       </p>
 
       {/* Status checks */}
@@ -87,8 +127,8 @@ export function AdminKnowledgeSetup() {
       <section className="mb-8">
         <h3 className="text-lg font-semibold text-content mb-3">Preview Toggle</h3>
         <p className="text-sm text-content-secondary mb-3">
-          Enable or disable the Knowledge Base preview feature. When enabled, CoScout will
-          automatically search past findings and documents when answering questions.
+          Enable or disable the Knowledge Base preview feature. When enabled, CoScout will offer a
+          "Search Knowledge Base?" button after responding — users search on demand.
         </p>
         <button
           onClick={handleTogglePreview}
@@ -103,66 +143,104 @@ export function AdminKnowledgeSetup() {
         </button>
       </section>
 
-      {/* How it works */}
+      {/* How It Works — updated for ADR-026 */}
       <section className="mb-8">
         <h3 className="text-lg font-semibold text-content mb-3">How It Works</h3>
         <ol className="space-y-3 text-sm text-content">
           <li className="flex gap-3">
             <span className="text-blue-400 font-mono shrink-0">1.</span>
             <span>
-              When a user asks CoScout a question, it automatically searches the Knowledge Base for
-              relevant past findings and documents.
+              <strong className="text-content">Publish reports</strong> — when users publish
+              scouting reports, they're saved as Markdown files in the team's SharePoint folder
+              alongside
+              <code className="text-content mx-1">.vrs</code>files.
             </span>
           </li>
           <li className="flex gap-3">
             <span className="text-blue-400 font-mono shrink-0">2.</span>
             <span>
-              Results are injected into the AI context with source labels (e.g., "[From: findings]",
-              "[From: SOPs]") so CoScout can reference institutional knowledge.
+              <strong className="text-content">On-demand search</strong> — when a user asks CoScout
+              a question, a "💡 Search Knowledge Base?" button appears. Clicking it searches
+              SharePoint documents in the team's folder.
             </span>
           </li>
           <li className="flex gap-3">
             <span className="text-blue-400 font-mono shrink-0">3.</span>
             <span>
-              Findings are indexed automatically when projects are saved. SharePoint documents
-              require a one-time setup.
+              <strong className="text-content">Enriched responses</strong> — results appear as
+              document cards with title, snippet, and source link. CoScout cites sources naturally
+              using
+              <code className="text-content mx-1">[Source: name]</code>badges.
             </span>
           </li>
         </ol>
       </section>
 
-      {/* SharePoint setup */}
+      {/* SharePoint setup — updated for Remote SharePoint */}
       <section className="mb-8">
-        <h3 className="text-lg font-semibold text-content mb-3">SharePoint Setup (Optional)</h3>
+        <h3 className="text-lg font-semibold text-content mb-3 flex items-center gap-2">
+          <FolderOpen size={18} />
+          SharePoint Configuration
+        </h3>
         <p className="text-sm text-content-secondary mb-4">
-          Connect SharePoint document libraries (SOPs, procedures, work instructions) to the
-          Knowledge Base so CoScout can reference them during investigations.
+          The Knowledge Base uses Azure AI Search's{' '}
+          <strong className="text-content">Remote SharePoint</strong> knowledge source. Documents
+          are accessed with per-user permissions — users can only search documents they have access
+          to in SharePoint.
         </p>
-        <div className="bg-surface-secondary/50 border border-edge rounded-lg p-4">
+        <div className="bg-surface-secondary/50 border border-edge rounded-lg p-4 space-y-3">
           <div className="flex gap-3">
             <Info size={18} className="text-blue-400 shrink-0 mt-0.5" />
             <div className="text-sm text-content-secondary">
               <p className="mb-2">
-                SharePoint indexing uses Azure AI Search's{' '}
-                <strong className="text-content">Foundry IQ</strong> agentic retrieval with an{' '}
-                <code className="text-content">indexedSharePoint</code> knowledge source.
+                <strong className="text-content">Prerequisites:</strong>
               </p>
-              <p>
-                Run the setup script from the <code className="text-content">infra/scripts/</code>{' '}
-                directory or follow the instructions in{' '}
-                <a
-                  href="https://learn.microsoft.com/en-us/azure/search/agentic-knowledge-source-how-to-sharepoint-indexed"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:underline inline-flex items-center gap-1"
-                >
-                  Microsoft documentation
-                  <ExternalLink size={12} />
-                </a>
-                .
-              </p>
+              <ul className="space-y-1 list-disc list-inside">
+                <li>Azure AI Search service provisioned (included in ARM template)</li>
+                <li>≥1 Microsoft 365 Copilot license in the tenant</li>
+                <li>
+                  Remote SharePoint knowledge source created via{' '}
+                  <a
+                    href="https://learn.microsoft.com/en-us/azure/search/agentic-knowledge-source-how-to-sharepoint-remote"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    API setup
+                    <ExternalLink size={12} />
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
+
+          {/* Test search button */}
+          {allReady && (
+            <div className="pt-2 border-t border-edge">
+              <button
+                onClick={handleTestSearch}
+                disabled={testStatus === 'testing'}
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-surface-tertiary text-content hover:bg-surface-tertiary/80 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {testStatus === 'testing' ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Search size={14} />
+                )}
+                {testStatus === 'testing' ? 'Testing...' : 'Test Search Connectivity'}
+              </button>
+              {testStatus === 'success' && (
+                <p className="text-xs text-green-400 mt-2 flex items-center gap-1">
+                  <CheckCircle size={12} /> Connected successfully
+                </p>
+              )}
+              {testStatus === 'error' && (
+                <p className="text-xs text-red-400 mt-2 flex items-center gap-1">
+                  <XCircle size={12} /> {testError || 'Connection failed'}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -174,8 +252,9 @@ export function AdminKnowledgeSetup() {
             <h4 className="text-sm font-semibold text-content mb-1">Cost Estimate</h4>
             <p className="text-sm text-content-secondary">
               The AI resources (Azure AI Services, AI Search, model deployments) add approximately
-              €65-85/month to the Team AI plan cost. These resources are provisioned by the ARM
-              template and managed within your Azure subscription.
+              €65-85/month to the Team AI plan cost. Remote SharePoint knowledge sources do not
+              incur additional indexer costs — documents are accessed on demand with user
+              credentials.
             </p>
           </div>
         </div>
