@@ -435,6 +435,7 @@ export const Editor: React.FC<EditorProps> = ({
     aiContext,
     narration,
     coscout,
+    knowledgeSearch,
     suggestedQuestions,
     fetchChartInsight: fetchChartInsightFromAI,
     handleNarrativeAsk,
@@ -464,6 +465,14 @@ export const Editor: React.FC<EditorProps> = ({
     onOpenCoScout: () => panels.setIsCoScoutOpen(true),
     onOpenFindings: () => panels.setIsFindingsOpen(true),
   });
+
+  // ADR-026: On-demand knowledge search handler
+  const handleSearchKnowledge = useCallback(() => {
+    const lastUserMsg = [...coscout.messages].reverse().find(m => m.role === 'user');
+    if (lastUserMsg?.content) {
+      knowledgeSearch.search(lastUserMsg.content);
+    }
+  }, [coscout.messages, knowledgeSearch]);
 
   // Pass categories and brief from ColumnMapping into DataContext
   const handleMappingConfirmWithCategories = useCallback(
@@ -974,6 +983,10 @@ export const Editor: React.FC<EditorProps> = ({
                   resizeConfig={COSCOUT_RESIZE_CONFIG}
                   suggestedQuestions={suggestedQuestions}
                   onSuggestedQuestionClick={coscout.send}
+                  knowledgeAvailable={knowledgeSearch.isAvailable}
+                  knowledgeSearching={knowledgeSearch.isSearching}
+                  knowledgeDocuments={knowledgeSearch.documents}
+                  onSearchKnowledge={handleSearchKnowledge}
                 />
               </div>
             ) : (
@@ -992,6 +1005,10 @@ export const Editor: React.FC<EditorProps> = ({
                 resizeConfig={COSCOUT_RESIZE_CONFIG}
                 suggestedQuestions={suggestedQuestions}
                 onSuggestedQuestionClick={coscout.send}
+                knowledgeAvailable={knowledgeSearch.isAvailable}
+                knowledgeSearching={knowledgeSearch.isSearching}
+                knowledgeDocuments={knowledgeSearch.documents}
+                onSearchKnowledge={handleSearchKnowledge}
               />
             )}
             {/* DataPanel: hidden on phone (use DataTableModal instead) */}

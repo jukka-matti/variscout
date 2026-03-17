@@ -43,6 +43,8 @@ export interface UseKnowledgeSearchReturn {
   results: KnowledgeResult[];
   documents: DocumentResult[];
   isSearching: boolean;
+  /** Whether knowledge search is available (enabled + has search function) */
+  isAvailable: boolean;
   search: (query: string, factor?: string) => Promise<KnowledgeResult[]>;
   clear: () => void;
 }
@@ -92,5 +94,12 @@ export function useKnowledgeSearch(
     setDocuments([]);
   }, []);
 
-  return { results, documents, isSearching, search, clear };
+  return {
+    results,
+    documents,
+    isSearching,
+    isAvailable: enabled && (!!searchFn || !!searchDocumentsFn),
+    search,
+    clear,
+  };
 }

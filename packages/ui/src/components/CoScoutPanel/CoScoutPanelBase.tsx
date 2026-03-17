@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import type { CoScoutMessage, CoScoutError } from '@variscout/core';
 import { useResizablePanel, useTranslation } from '@variscout/hooks';
-import { CoScoutMessages } from './CoScoutMessages';
+import { CoScoutMessages, type KnowledgeDocumentResult } from './CoScoutMessages';
 
 export interface CoScoutPanelResizeConfig {
   storageKey: string;
@@ -65,6 +65,11 @@ export interface CoScoutPanelBaseProps {
   aiContextSummary?: AIContextSummary | null;
   /** Customizable color scheme (defaults to defaultCoScoutPanelColorScheme) */
   colorScheme?: Partial<CoScoutPanelColorScheme>;
+  /** ADR-026: On-demand knowledge search */
+  knowledgeAvailable?: boolean;
+  knowledgeSearching?: boolean;
+  knowledgeDocuments?: KnowledgeDocumentResult[];
+  onSearchKnowledge?: () => void;
 }
 
 const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
@@ -86,6 +91,10 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   providerLabel,
   aiContextSummary,
   colorScheme: csOverride,
+  knowledgeAvailable,
+  knowledgeSearching,
+  knowledgeDocuments,
+  onSearchKnowledge,
 }) => {
   const { t } = useTranslation();
   const cs = { ...defaultCoScoutPanelColorScheme, ...csOverride };
@@ -348,6 +357,10 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
           isLoading={isLoading}
           isStreaming={isStreaming}
           onRetry={onRetry}
+          knowledgeAvailable={knowledgeAvailable}
+          knowledgeSearching={knowledgeSearching}
+          knowledgeDocuments={knowledgeDocuments}
+          onSearchKnowledge={onSearchKnowledge}
         />
 
         {/* Suggested question chips */}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronUp, Send, Square } from 'lucide-react';
 import type { CoScoutMessage, CoScoutError, InvestigationPhase } from '@variscout/core';
 import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
-import { CoScoutMessages } from '../CoScoutPanel/CoScoutMessages';
+import { CoScoutMessages, type KnowledgeDocumentResult } from '../CoScoutPanel/CoScoutMessages';
 
 export interface CoScoutInlineProps {
   messages: CoScoutMessage[];
@@ -16,6 +16,11 @@ export interface CoScoutInlineProps {
   suggestedQuestions?: string[];
   isExpanded: boolean;
   onToggleExpand: () => void;
+  /** ADR-026: On-demand knowledge search */
+  knowledgeAvailable?: boolean;
+  knowledgeSearching?: boolean;
+  knowledgeDocuments?: KnowledgeDocumentResult[];
+  onSearchKnowledge?: () => void;
 }
 
 const CoScoutInline: React.FC<CoScoutInlineProps> = ({
@@ -30,6 +35,10 @@ const CoScoutInline: React.FC<CoScoutInlineProps> = ({
   suggestedQuestions,
   isExpanded,
   onToggleExpand,
+  knowledgeAvailable,
+  knowledgeSearching,
+  knowledgeDocuments,
+  onSearchKnowledge,
 }) => {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -139,6 +148,10 @@ const CoScoutInline: React.FC<CoScoutInlineProps> = ({
             isLoading={isLoading}
             isStreaming={isStreaming}
             onRetry={onRetry}
+            knowledgeAvailable={knowledgeAvailable}
+            knowledgeSearching={knowledgeSearching}
+            knowledgeDocuments={knowledgeDocuments}
+            onSearchKnowledge={onSearchKnowledge}
           />
 
           {/* Suggested question chips (expanded) */}
