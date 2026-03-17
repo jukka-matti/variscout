@@ -1,3 +1,9 @@
+---
+title: 'Capability Analysis'
+---
+
+<!-- journey-phase: scout -->
+
 # Capability Analysis
 
 Capability Analysis is VariScout's tool for the **VALUE** lens - comparing process output to customer specifications.

@@ -1,3 +1,7 @@
+---
+title: 'Glossary'
+---
+
 # Glossary
 
 Statistical and quality terms used across VariScout.

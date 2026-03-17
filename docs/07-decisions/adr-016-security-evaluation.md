@@ -1,3 +1,7 @@
+---
+title: 'ADR-016 Security Evaluation: Teams Integration'
+---
+
 # ADR-016 Security Evaluation: Teams Integration
 
 **Status**: Draft

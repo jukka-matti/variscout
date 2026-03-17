@@ -1,3 +1,7 @@
+---
+title: 'Website Content Architecture'
+---
+
 # Website Content Architecture
 
 Technical specification for how content is organized, cross-linked, and rendered on the VariScout website.

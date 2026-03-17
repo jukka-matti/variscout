@@ -1,3 +1,7 @@
+---
+title: 'CHANGE Lens: I-Chart'
+---
+
 # CHANGE Lens: I-Chart
 
 > The Adaptive Lens — look at the same data through time

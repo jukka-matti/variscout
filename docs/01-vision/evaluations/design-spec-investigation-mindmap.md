@@ -1,3 +1,7 @@
+---
+title: 'Design Spec: Investigation Mindmap'
+---
+
 # Design Spec: Investigation Mindmap
 
 > Authoritative design specification for the Mindmap-first investigation UX. Consolidates four concept documents into a three-layer architecture that replaces the Funnel Panel ecosystem with one spatial view.

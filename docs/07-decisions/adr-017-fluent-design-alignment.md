@@ -1,3 +1,7 @@
+---
+title: 'ADR-017: Fluent 2 Design Principle Alignment'
+---
+
 # ADR-017: Fluent 2 Design Principle Alignment
 
 **Status**: Accepted

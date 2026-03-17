@@ -1,3 +1,7 @@
+---
+title: 'Nelson Rules'
+---
+
 # Nelson Rules
 
 Nelson Rules detect special cause variation patterns in control charts. VariScout implements Nelson Rule 2 to identify sustained process shifts.

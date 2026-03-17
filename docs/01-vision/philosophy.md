@@ -1,3 +1,7 @@
+---
+title: 'EDA for Process Improvement'
+---
+
 # EDA for Process Improvement
 
 VariScout is **Exploratory Data Analysis (EDA) for process improvement** — not statistical verification.

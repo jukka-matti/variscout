@@ -1,3 +1,7 @@
+---
+title: 'EDAScout Competitive Benchmark'
+---
+
 # EDAScout Competitive Benchmark
 
 > Competitive intelligence from analysis of EDAScout v4, v6, v7, and v9 codebases.

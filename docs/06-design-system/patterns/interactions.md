@@ -1,3 +1,7 @@
+---
+title: 'Interaction Patterns'
+---
+
 # Interaction Patterns
 
 Design system reference for interactive component behaviors across VariScout.

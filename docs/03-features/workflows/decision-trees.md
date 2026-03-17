@@ -1,3 +1,7 @@
+---
+title: 'Decision Trees'
+---
+
 # Decision Trees
 
 Flowcharts to answer common analyst questions: "Which chart should I use?" and "What do I do next?"

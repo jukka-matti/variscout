@@ -1,3 +1,7 @@
+---
+title: 'ADR-010: Defer Gage R&R from Azure App v1'
+---
+
 # ADR-010: Defer Gage R&R from Azure App v1
 
 **Status:** Superseded

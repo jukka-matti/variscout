@@ -1,3 +1,7 @@
+---
+title: 'Customer Complaint Investigation'
+---
+
 # Customer Complaint Investigation
 
 ## The Problem

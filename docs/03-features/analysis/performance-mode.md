@@ -1,3 +1,7 @@
+---
+title: 'Performance Mode'
+---
+
 # Performance Mode
 
 Performance Mode enables multi-channel analysis for comparing multiple measurement points simultaneously.

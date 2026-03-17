@@ -1,3 +1,7 @@
+---
+title: 'Shared Packages'
+---
+
 # Shared Packages
 
 The monorepo contains several shared packages that provide common functionality across apps.

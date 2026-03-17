@@ -1,3 +1,7 @@
+---
+title: 'Statistics & Mindmap Technical Reference'
+---
+
 # Statistics & Mindmap Technical Reference
 
 Exact formulas, algorithm choices, and implementation notes for the VariScout statistical engine and the Investigation Mindmap.
@@ -67,7 +71,7 @@ MR-bar = (1/(n-1)) Σ MR_i
 
 The constant **d2 = 1.128** is the Hartley unbiasing constant for a moving range with span 2. Since VariScout always uses individual measurements (n = 1), the span is always 2 and d2 is fixed.
 
-**Why two sigmas?** σ_within captures short-term, inherent process variation — the variation between consecutive measurements. It excludes between-subgroup shifts. This makes it the correct denominator for Shewhart control limits and capability indices (Wheeler, _Understanding Variation_). σ_overall includes all sources of variation and is used for ANOVA, where both within-group and between-group variation matter.
+**Why two sigmas?** σ*within captures short-term, inherent process variation — the variation between consecutive measurements. It excludes between-subgroup shifts. This makes it the correct denominator for Shewhart control limits and capability indices (Wheeler, \_Understanding Variation*). σ_overall includes all sources of variation and is used for ANOVA, where both within-group and between-group variation matter.
 
 **Edge case**: when `data.length < 2`, the moving range cannot be computed. The implementation falls back to `d3.deviation(data)` for σ_within and returns `mrBar = 0`.
 

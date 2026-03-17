@@ -1,3 +1,7 @@
+---
+title: 'Variation Decomposition'
+---
+
 # Variation Decomposition
 
 Why VariScout uses different metrics for different questions, and how they relate to one-way ANOVA.

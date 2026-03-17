@@ -1,3 +1,7 @@
+---
+title: 'ADR-013: Architecture Evaluation — DDD and AI Swarms'
+---
+
 # ADR-013: Architecture Evaluation — DDD and AI Swarms
 
 **Status:** Accepted

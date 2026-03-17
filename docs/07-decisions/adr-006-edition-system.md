@@ -1,3 +1,7 @@
+---
+title: 'ADR-006: Edition System'
+---
+
 # ADR-006: Edition System
 
 **Status**: Superseded by [ADR-007](adr-007-azure-marketplace-distribution.md)

@@ -1,3 +1,9 @@
+---
+title: 'Pareto Chart'
+---
+
+<!-- journey-phase: scout -->
+
 # Pareto Chart
 
 The Pareto Chart is VariScout's tool for the **FAILURE** lens - finding where problems concentrate.

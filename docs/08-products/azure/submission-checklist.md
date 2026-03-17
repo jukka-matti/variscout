@@ -1,3 +1,7 @@
+---
+title: 'Azure Marketplace Submission Checklist'
+---
+
 # Azure Marketplace Submission Checklist
 
 Living tracker for Azure Marketplace Managed Application submission. Single source of truth for what's done, what's pending, and what's blocking.

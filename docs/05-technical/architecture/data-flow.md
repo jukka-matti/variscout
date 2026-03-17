@@ -1,3 +1,7 @@
+---
+title: 'Data Flow Architecture'
+---
+
 # Data Flow Architecture
 
 How data moves through VariScout from upload to persistence.
@@ -307,8 +311,10 @@ flowchart LR
 
 ## See Also
 
-- [Component Patterns](component-patterns.md) - Hook integration details
-- [Offline-First](offline-first.md) - Persistence strategy
-- [Shared Packages](shared-packages.md) - Package responsibilities
-- [PWA Storage](../../08-products/pwa/storage.md) - IndexedDB details
-- [OneDrive Sync](../../08-products/azure/onedrive-sync.md) - Cloud sync details
+- [Data Pipeline Map](data-pipeline-map.md) — End-to-end pipeline with TypeScript interfaces at every boundary
+- [System Map](system-map.md) — Package topology and external integrations
+- [Component Patterns](component-patterns.md) — Hook integration details
+- [Offline-First](offline-first.md) — Persistence strategy
+- [Shared Packages](shared-packages.md) — Package responsibilities
+- [PWA Storage](../../08-products/pwa/storage.md) — IndexedDB details
+- [OneDrive Sync](../../08-products/azure/onedrive-sync.md) — Cloud sync details

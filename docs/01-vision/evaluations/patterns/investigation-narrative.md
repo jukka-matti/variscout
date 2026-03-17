@@ -1,3 +1,7 @@
+---
+title: 'Investigation Narrative'
+---
+
 # Investigation Narrative
 
 > A presentation mode that transforms the investigation path into a visual story for stakeholders — showing what was found, in what order, and why it matters.

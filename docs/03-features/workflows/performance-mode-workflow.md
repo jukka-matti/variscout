@@ -1,3 +1,7 @@
+---
+title: 'Performance Mode Workflow'
+---
+
 # Performance Mode Workflow
 
 Multi-channel analysis for production equipment with multiple measurement points.
@@ -123,8 +127,9 @@ Single-channel histogram after drilling down:
 - Default: Cpk (overall assessment)
 - Switch to Cp: See if centering could help
 
-!!! tip "Interpreting the Difference"
+:::tip[Interpreting the Difference]
 If Cp >> Cpk, the process can meet specs if centered. If Cp ≈ Cpk, the process is centered but variation is the issue.
+:::
 
 ## Health Classification
 

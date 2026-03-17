@@ -1,4 +1,10 @@
+---
+title: 'Investigation to Action Workflow'
+---
+
 # Investigation to Action Workflow
+
+<!-- journey-phase: investigate, improve -->
 
 From variation discovery to projected improvement — the analyst workflow.
 

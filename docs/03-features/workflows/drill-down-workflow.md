@@ -1,4 +1,10 @@
+---
+title: 'Drill-Down Analysis Workflow'
+---
+
 # Drill-Down Analysis Workflow
+
+<!-- journey-phase: scout -->
 
 VariScout's signature interaction pattern—progressive stratification using filter chips to isolate variation sources.
 
@@ -104,8 +110,9 @@ The percentage on each chip shows that factor's **contribution to variation**:
 - Shows proportion of variance explained
 - Helps prioritize which factors matter most
 
-!!! info "Cumulative vs Individual"
+:::note[Cumulative vs Individual]
 Each chip shows its individual contribution. The VariationBar and Investigation Mindmap footer show cumulative progress.
+:::
 
 ## Tracking Your Investigation
 

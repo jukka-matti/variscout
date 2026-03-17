@@ -1,3 +1,7 @@
+---
+title: 'Factor Ordering'
+---
+
 # Factor Ordering
 
 > The analyst chooses which factor to drill next --- there's a tension between guided and exploratory interaction.

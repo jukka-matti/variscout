@@ -1,3 +1,7 @@
+---
+title: 'Flow 6: Azure App — First Analysis'
+---
+
 # Flow 6: Azure App — First Analysis
 
 > Green Belt Gary runs his first analysis in the Azure App

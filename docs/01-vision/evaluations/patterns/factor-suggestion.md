@@ -1,3 +1,7 @@
+---
+title: 'Factor Suggestion'
+---
+
 # Factor Suggestion
 
 > After each filter, highlight the next highest-impact factor to reduce analyst guesswork.

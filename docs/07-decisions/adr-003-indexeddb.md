@@ -1,3 +1,7 @@
+---
+title: 'ADR-003: IndexedDB for PWA Storage'
+---
+
 # ADR-003: IndexedDB for PWA Storage
 
 **Status**: Accepted

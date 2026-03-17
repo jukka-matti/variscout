@@ -1,3 +1,7 @@
+---
+title: 'Chart Colors'
+---
+
 # Chart Colors
 
 Data visualization colors for VariScout charts.

@@ -1,3 +1,7 @@
+---
+title: 'Regression Analysis'
+---
+
 # Regression Analysis
 
 Regression is VariScout's tool for exploring relationships between continuous variables.
@@ -42,10 +46,11 @@ Regression answers:
 
 ## Use in VariScout
 
-!!! note
+:::note
 Regression in VariScout serves as a **first step** to visually check if correlation exists. It answers "is there a relationship?" before investing in deeper predictive modeling.
 
 For most variation analysis, the Four Lenses (I-Chart, Boxplot, Pareto, Capability) are sufficient.
+:::
 
 ---
 

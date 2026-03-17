@@ -1,3 +1,7 @@
+---
+title: 'Pricing'
+---
+
 # Pricing
 
 VariScout Azure App pricing structure — two plans differentiated by storage, collaboration, and mobile capabilities.

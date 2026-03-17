@@ -1,3 +1,7 @@
+---
+title: 'Performance Mode Charts'
+---
+
 # Performance Mode Charts
 
 Multi-measure analysis charts for comparing performance across multiple measurement channels.

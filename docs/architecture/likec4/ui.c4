@@ -1,0 +1,267 @@
+/**
+ * @variscout/ui — L3 Component decomposition
+ * 52 shared UI components across 9 categories
+ */
+
+model {
+  extend variscout.ui {
+    // Input (10)
+    columnMapping = component 'ColumnMapping' {
+      description 'Data-rich column mapping cards with type badges'
+      technology 'ColumnMapping/'
+    }
+
+    createFactor = component 'CreateFactorModal' {
+      description 'Modal for creating computed factors'
+      technology 'CreateFactorModal/'
+    }
+
+    measureSel = component 'MeasureColumnSelector' {
+      description 'Measure column selection dropdown'
+      technology 'MeasureColumnSelector/'
+    }
+
+    charType = component 'CharacteristicTypeSelector' {
+      description 'Characteristic type (variable/attribute) selector'
+      technology 'CharacteristicTypeSelector/'
+    }
+
+    manualEntry = component 'ManualEntryBase' {
+      description 'Manual data entry form'
+      technology 'ManualEntryBase/'
+    }
+
+    manualSetup = component 'ManualEntrySetupBase' {
+      description 'Manual entry setup configuration'
+      technology 'ManualEntrySetupBase/'
+    }
+
+    slider = component 'Slider' {
+      description 'Range slider component'
+      technology 'Slider/'
+    }
+
+    specEditor = component 'SpecEditor' {
+      description 'Specification limit editor'
+      technology 'SpecEditor/'
+    }
+
+    specsPopover = component 'SpecsPopover' {
+      description 'Specs display popover'
+      technology 'SpecsPopover/'
+    }
+
+    pasteScreen = component 'PasteScreenBase' {
+      description 'Paste data entry screen'
+      technology 'PasteScreenBase/'
+    }
+
+    // Data Display (4)
+    dataQuality = component 'DataQualityBanner' {
+      description 'Validation summary banner'
+      technology 'DataQualityBanner/'
+    }
+
+    dataTable = component 'DataTableBase' {
+      description 'Shared data table with sorting and filtering'
+      technology 'DataTableBase/'
+    }
+
+    perfDetected = component 'PerformanceDetectedModal' {
+      description 'Wide-format detection modal'
+      technology 'PerformanceDetectedModal/'
+    }
+
+    mobileSheet = component 'MobileCategorySheet' {
+      description 'Bottom action sheet for mobile'
+      technology 'MobileCategorySheet/'
+    }
+
+    // Analysis (8)
+    anova = component 'AnovaResults' {
+      description 'ANOVA results display'
+      technology 'AnovaResults/'
+    }
+
+    statsPanel = component 'StatsPanelBase' {
+      description 'Statistics panel with 4 basic + 3 spec cards'
+      technology 'StatsPanelBase/'
+    }
+
+    variationBar = component 'VariationBar' {
+      description 'Variation contribution bar'
+      technology 'VariationBar/'
+    }
+
+    yAxisPopover = component 'YAxisPopover' {
+      description 'Y-axis configuration popover'
+      technology 'YAxisPopover/'
+    }
+
+    axisEditor = component 'AxisEditor' {
+      description 'Axis range editor'
+      technology 'AxisEditor/'
+    }
+
+    factorSel = component 'FactorSelector' {
+      description 'Factor selection dropdown'
+      technology 'FactorSelector/'
+    }
+
+    investPrompt = component 'InvestigationPrompt' {
+      description 'Investigation guidance prompt'
+      technology 'InvestigationPrompt/'
+    }
+
+    boxplotToggle = component 'BoxplotDisplayToggle' {
+      description 'Boxplot display options (violin, sort, contribution)'
+      technology 'BoxplotDisplayToggle/'
+    }
+
+    // Chart Wrappers (6)
+    annotationLayer = component 'ChartAnnotationLayer' {
+      description 'Draggable text annotation overlay'
+      technology 'ChartAnnotationLayer/'
+    }
+
+    annotationMenu = component 'AnnotationContextMenu' {
+      description 'Right-click menu for annotations'
+      technology 'AnnotationContextMenu/'
+    }
+
+    chartCard = component 'ChartCard' {
+      description 'Chart container card'
+      technology 'ChartCard/'
+    }
+
+    downloadMenu = component 'ChartDownloadMenu' {
+      description 'PNG/SVG download dropdown'
+      technology 'ChartDownloadMenu/'
+    }
+
+    editTitle = component 'EditableChartTitle' {
+      description 'Editable chart title component'
+      technology 'EditableChartTitle/'
+    }
+
+    focusedView = component 'FocusedChartViewBase' {
+      description 'Focused chart view overlay'
+      technology 'FocusedChartViewBase/'
+    }
+
+    // Navigation (4)
+    breadcrumb = component 'FilterBreadcrumb' {
+      description 'Filter chip breadcrumb trail'
+      technology 'FilterBreadcrumb/'
+    }
+
+    chipDropdown = component 'FilterChipDropdown' {
+      description 'Filter chip multi-select dropdown'
+      technology 'FilterChipDropdown/'
+    }
+
+    contextBar = component 'FilterContextBar' {
+      description 'Filter context summary bar'
+      technology 'FilterContextBar/'
+    }
+
+    selectionPanel = component 'SelectionPanel' {
+      description 'Data selection panel'
+      technology 'SelectionPanel/'
+    }
+
+    // Findings (8)
+    findingsLog = component 'FindingsLog' {
+      description 'Findings list view'
+      technology 'FindingsLog/'
+    }
+
+    findingCard = component 'FindingCard' {
+      description 'Individual finding card'
+      technology 'FindingCard/'
+    }
+
+    findingEditor = component 'FindingEditor' {
+      description 'Finding edit form'
+      technology 'FindingEditor/'
+    }
+
+    findingStatus = component 'FindingStatusBadge' {
+      description 'Status badge (observed/investigating/...)'
+      technology 'FindingStatusBadge/'
+    }
+
+    findingComments = component 'FindingComments' {
+      description 'Finding comments thread'
+      technology 'FindingComments/'
+    }
+
+    findingBoard = component 'FindingBoardView' {
+      description 'Horizontal drag-and-drop board'
+      technology 'FindingBoardView/'
+    }
+
+    findingsPanel = component 'FindingsPanel' {
+      description 'Findings side panel (slide-in/inline)'
+      technology 'FindingsPanel/'
+    }
+
+    findingsWindow = component 'FindingsWindow' {
+      description 'Popout findings window'
+      technology 'FindingsWindow/'
+    }
+
+    // Simulation (2)
+    whatIf = component 'WhatIfSimulator' {
+      description 'What-If simulation controls'
+      technology 'WhatIfSimulator/'
+    }
+
+    whatIfPage = component 'WhatIfPageBase' {
+      description 'What-If page layout'
+      technology 'WhatIfPageBase/'
+    }
+
+    // Dashboard (5)
+    dashGrid = component 'DashboardGrid' {
+      description 'Responsive dashboard grid layout'
+      technology 'DashboardGrid/'
+    }
+
+    dashCard = component 'DashboardChartCard' {
+      description 'Dashboard chart card wrapper'
+      technology 'DashboardChartCard/'
+    }
+
+    focusedCard = component 'FocusedChartCard' {
+      description 'Focused chart card (expanded view)'
+      technology 'FocusedChartCard/'
+    }
+
+    focusedOverlay = component 'FocusedViewOverlay' {
+      description 'Full-screen focused view overlay'
+      technology 'FocusedViewOverlay/'
+    }
+
+    settingsPanel = component 'SettingsPanelBase' {
+      description 'Global settings panel'
+      technology 'SettingsPanelBase/'
+    }
+
+    // Utilities (3)
+    helpTooltip = component 'HelpTooltip' {
+      description 'Help tooltip with glossary integration'
+      technology 'HelpTooltip/'
+    }
+
+    upgradePrompt = component 'UpgradePrompt' {
+      description 'Tier upgrade call-to-action'
+      technology 'UpgradePrompt/'
+    }
+
+    errorBoundary = component 'ErrorBoundary' {
+      description 'React error boundary wrapper'
+      technology 'ErrorBoundary/'
+    }
+  }
+}

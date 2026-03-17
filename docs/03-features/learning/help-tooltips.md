@@ -1,3 +1,7 @@
+---
+title: 'Help Tooltips'
+---
+
 # Help Tooltips
 
 Contextual help throughout the VariScout interface.

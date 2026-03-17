@@ -1,3 +1,7 @@
+---
+title: 'Create Factor from Selection - User Guide'
+---
+
 > **ARCHIVED**: This document describes historical implementation details. Do not reference for current work.
 
 # Create Factor from Selection - User Guide

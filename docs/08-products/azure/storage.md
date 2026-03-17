@@ -1,3 +1,7 @@
+---
+title: 'Azure App Storage'
+---
+
 # Azure App Storage
 
 Offline-first persistence with optional OneDrive cloud sync (Team plan).

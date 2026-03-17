@@ -1,3 +1,7 @@
+---
+title: 'ADR-016: Microsoft Teams Integration'
+---
+
 # ADR-016: Microsoft Teams Integration
 
 **Status**: Accepted

@@ -1,3 +1,7 @@
+---
+title: 'Probability Plot'
+---
+
 # Probability Plot
 
 The probability plot assesses whether data follows a normal distribution, which underpins capability analysis and control chart assumptions.

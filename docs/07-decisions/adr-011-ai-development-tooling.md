@@ -1,3 +1,7 @@
+---
+title: 'ADR-011: AI Development Tooling (ruflo)'
+---
+
 # ADR-011: AI Development Tooling (ruflo)
 
 **Status:** Accepted

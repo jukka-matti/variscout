@@ -1,3 +1,7 @@
+---
+title: 'Minitab-Style Brushing Feature'
+---
+
 > **ARCHIVED**: This document describes historical implementation details. Do not reference for current work.
 
 # Minitab-Style Brushing Feature

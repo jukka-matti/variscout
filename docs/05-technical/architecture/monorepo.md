@@ -1,3 +1,7 @@
+---
+title: 'Monorepo Architecture'
+---
+
 # Monorepo Architecture
 
 VariScout uses a pnpm workspaces monorepo to share code across multiple applications.

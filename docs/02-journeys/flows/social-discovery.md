@@ -1,3 +1,7 @@
+---
+title: 'Flow 2: Social Discovery → Case → Product'
+---
+
 # Flow 2: Social Discovery → Case → Product
 
 > Curious Carlos sees a LinkedIn post, explores a case study, discovers VaRiScout

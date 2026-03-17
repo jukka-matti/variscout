@@ -1,3 +1,7 @@
+---
+title: 'Project Persistence'
+---
+
 # Project Persistence
 
 How VariScout saves and restores analyst workflow state.

@@ -1,0 +1,118 @@
+/* VariScout Documentation Custom Styles for Starlight */
+
+:root {
+  --sl-color-accent-low: #1e3a5f;
+  --sl-color-accent: #3b82f6;
+  --sl-color-accent-high: #93c5fd;
+}
+
+/* Status colors for documentation */
+.pass {
+  color: #22c55e;
+}
+
+.fail {
+  color: #ef4444;
+}
+
+.warning {
+  color: #f59e0b;
+}
+
+/* Mermaid diagram sizing */
+.mermaid,
+pre.mermaid {
+  text-align: center;
+}
+
+/* Table styling for better readability */
+table:not([class]) {
+  font-size: 0.85rem;
+}
+
+/* Code block improvements */
+pre > code {
+  font-size: 0.8rem;
+}
+
+/* Process map component (carried over from MkDocs) */
+.process-map {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  overflow-x: auto;
+  padding: 1rem 0 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.process-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 140px;
+  max-width: 180px;
+}
+
+.process-step__box {
+  border: 1px solid var(--sl-color-gray-5);
+  border-left: 4px solid var(--sl-color-gray-4);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  background: var(--sl-color-gray-6);
+  width: 100%;
+  text-align: center;
+}
+
+.process-step__title {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--sl-color-white);
+  line-height: 1.3;
+}
+
+.process-step__detail {
+  font-size: 0.7rem;
+  color: var(--sl-color-gray-3);
+  margin-top: 0.2rem;
+  line-height: 1.3;
+}
+
+.process-arrow {
+  display: flex;
+  align-items: center;
+  padding: 0 0.15rem;
+  flex-shrink: 0;
+  margin-top: 1.2rem;
+}
+
+.process-arrow::after {
+  content: '\2192';
+  color: var(--sl-color-gray-4);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* Color swatch for design system docs */
+.color-swatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-right: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+@media (max-width: 768px) {
+  .process-step {
+    min-width: 120px;
+    max-width: 150px;
+  }
+  .process-step__title {
+    font-size: 0.75rem;
+  }
+  .process-step__detail {
+    font-size: 0.65rem;
+  }
+}

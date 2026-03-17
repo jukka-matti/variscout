@@ -1,3 +1,7 @@
+---
+title: 'Probability Plot'
+---
+
 # Probability Plot
 
 Normality assessment chart with 95% confidence intervals following Minitab conventions.

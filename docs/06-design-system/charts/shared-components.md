@@ -1,3 +1,7 @@
+---
+title: 'Shared Chart Components'
+---
+
 # Shared Chart Components
 
 Reusable components for building consistent charts in `@variscout/charts`.

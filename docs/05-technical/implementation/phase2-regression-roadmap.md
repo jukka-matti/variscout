@@ -1,3 +1,7 @@
+---
+title: 'Phase 2: Regression Re-enablement Roadmap'
+---
+
 # Phase 2: Regression Re-enablement Roadmap
 
 > **Status:** Planned — not started

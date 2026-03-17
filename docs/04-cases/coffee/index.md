@@ -1,3 +1,7 @@
+---
+title: 'Coffee Washing Station Case'
+---
+
 # Coffee Washing Station Case
 
 **Location:** East African coffee washing station

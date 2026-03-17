@@ -1,3 +1,7 @@
+---
+title: 'Investigation Flow Map: Bottleneck Detection'
+---
+
 # Investigation Flow Map: Bottleneck Detection
 
 > A step-by-step walkthrough of a complete variation investigation using the Bottleneck dataset, documenting what exists at each step, what guidance the analyst receives, and where gaps remain. Follows the [Pizza Delivery flow map](investigation-flow-map.md) format.

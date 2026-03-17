@@ -1,3 +1,7 @@
+---
+title: 'Executive Mode'
+---
+
 # Executive Mode
 
 Consulting-grade chart styling for professional reports, following top-tier management consulting standards (McKinsey, Bain, BCG).

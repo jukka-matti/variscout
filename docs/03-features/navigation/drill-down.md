@@ -1,3 +1,7 @@
+---
+title: 'Drill-Down Navigation'
+---
+
 # Drill-Down Navigation
 
 Drill-down is VariScout's core methodology for isolating variation sources through progressive stratification.

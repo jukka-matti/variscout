@@ -1,3 +1,7 @@
+---
+title: 'PWA Session Model'
+---
+
 # PWA Session Model
 
 The PWA is a free training and education tool — data persistence is intentionally not provided.

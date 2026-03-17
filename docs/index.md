@@ -1,3 +1,8 @@
+---
+title: VariScout Documentation
+description: Lightweight, offline-first variation analysis for quality professionals
+---
+
 # VariScout Documentation
 
 **Lightweight, offline-first variation analysis for quality professionals.**
@@ -20,41 +25,10 @@ pnpm --filter @variscout/azure-app dev
 
 ## Core Concepts
 
-<div class="grid cards" markdown>
-
-- :material-chart-line:{ .lg .middle } **Four Lenses**
-
-  ***
-
-  Watson's Four Lenses of Process Knowledge: Change, Flow, Failure, Value
-
-  [:octicons-arrow-right-24: Learn more](01-vision/four-lenses/index.md)
-
-- :material-bullseye:{ .lg .middle } **Two Voices**
-
-  ***
-
-  Understanding control limits (process voice) vs specification limits (customer voice)
-
-  [:octicons-arrow-right-24: Learn more](01-vision/two-voices/index.md)
-
-- :material-filter:{ .lg .middle } **Drill-Down Analysis**
-
-  ***
-
-  Progressive stratification to find where variation hides
-
-  [:octicons-arrow-right-24: Learn more](03-features/navigation/drill-down.md)
-
-- :material-school:{ .lg .middle } **Case Studies**
-
-  ***
-
-  Real-world examples with data files for learning
-
-  [:octicons-arrow-right-24: Browse cases](04-cases/index.md)
-
-</div>
+- **[Four Lenses](01-vision/four-lenses/index.md)** — Watson's Four Lenses of Process Knowledge: Change, Flow, Failure, Value
+- **[Two Voices](01-vision/two-voices/index.md)** — Understanding control limits (process voice) vs specification limits (customer voice)
+- **[Drill-Down Analysis](03-features/navigation/drill-down.md)** — Progressive stratification to find where variation hides
+- **[Case Studies](04-cases/index.md)** — Real-world examples with data files for learning
 
 ---
 
@@ -103,7 +77,7 @@ apps/
 
 A unified design system covers both PWA and Azure App: theme-aware (dark/light), data-focused colors, consistent semantics across platforms, and WCAG AA accessible.
 
-[:octicons-arrow-right-24: Technical documentation](05-technical/index.md) | [:octicons-arrow-right-24: Design system](06-design-system/index.md)
+[Technical documentation](05-technical/index.md) | [Design system](06-design-system/index.md)
 
 ---
 
@@ -113,4 +87,4 @@ This is a private repository. For contribution guidelines, contact the maintaine
 
 ---
 
-_Documentation built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)_
+_Documentation built with [Starlight](https://starlight.astro.build/)_

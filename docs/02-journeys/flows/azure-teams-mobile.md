@@ -1,3 +1,7 @@
+---
+title: 'Azure Teams Mobile Flow'
+---
+
 # Azure Teams Mobile Flow
 
 How quality engineers use VariScout on their phones via the Teams mobile app.

@@ -1,3 +1,7 @@
+---
+title: 'Modals'
+---
+
 # Modals
 
 Modal dialog patterns for PWA.

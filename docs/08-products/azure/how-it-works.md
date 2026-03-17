@@ -1,3 +1,7 @@
+---
+title: 'How It Works'
+---
+
 # How It Works
 
 End-to-end guide to VariScout's Azure architecture — what gets deployed, how users log in, where data lives, and why it's secure.

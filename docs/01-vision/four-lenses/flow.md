@@ -1,3 +1,7 @@
+---
+title: 'FLOW Lens: Boxplot'
+---
+
 # FLOW Lens: Boxplot
 
 > The Structural Lens — look at the same data grouped by factor

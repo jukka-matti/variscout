@@ -1,3 +1,7 @@
+---
+title: 'Flow 3: YouTube/Content → Website → Product'
+---
+
 # Flow 3: YouTube/Content → Website → Product
 
 > Curious Carlos discovers VaRiScout through content, builds trust, converts

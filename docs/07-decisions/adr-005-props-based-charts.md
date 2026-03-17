@@ -1,3 +1,7 @@
+---
+title: 'ADR-005: Props-Based Charts (vs Context)'
+---
+
 # ADR-005: Props-Based Charts (vs Context)
 
 **Status**: Accepted

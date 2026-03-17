@@ -1,3 +1,7 @@
+---
+title: 'VariScout — Product Spec'
+---
+
 # VariScout — Product Spec
 
 **Version:** 1.0  

@@ -1,3 +1,7 @@
+---
+title: 'System Limits'
+---
+
 # System Limits
 
 Comprehensive reference for VariScout's data handling limits, classification thresholds, and display boundaries. All computation runs in-browser JavaScript with no server offload.

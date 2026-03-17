@@ -1,3 +1,7 @@
+---
+title: 'GLM Engine Roadmap'
+---
+
 # GLM Engine Roadmap
 
 > **Note:** Regression UI has been deferred per [ADR-014](../../07-decisions/adr-014-regression-deferral.md). Core math files (regression.ts, multiRegression.ts, interaction.ts, modelReduction.ts, matrix.ts) are preserved in the repository but unexported from `@variscout/core`. This roadmap applies to Phase 2 re-enablement.

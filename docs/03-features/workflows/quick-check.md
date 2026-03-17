@@ -1,4 +1,10 @@
+---
+title: 'Quick Check Workflow'
+---
+
 # Quick Check Workflow
+
+<!-- journey-phase: scout -->
 
 A 5-minute analysis pattern for daily/shift-level monitoring.
 
@@ -110,8 +116,9 @@ The Quick Check is a rapid assessment pattern for routine monitoring. Use it to 
 | 1.0-1.33 | Warning - monitor closely |
 | < 1.0    | Alert - investigate now   |
 
-!!! tip "Baseline Comparison"
+:::tip[Baseline Comparison]
 Know your typical Cpk. A drop from 1.5 to 1.2 is significant even though 1.2 is "OK."
+:::
 
 ### Step 3: Boxplot Scan (1 minute)
 

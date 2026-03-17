@@ -1,3 +1,7 @@
+---
+title: 'Website Design Philosophy'
+---
+
 # Website Design Philosophy
 
 > **"Guided Problem Playground"** — Every page starts with a professional's real problem, proves the solution with a live interactive chart, and offers contextual depth exactly where you need it.

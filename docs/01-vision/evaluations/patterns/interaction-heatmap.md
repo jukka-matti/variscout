@@ -1,3 +1,7 @@
+---
+title: 'Interaction Heatmap'
+---
+
 # Interaction Heatmap
 
 > A small matrix visualization showing factor-by-factor interaction strength before drilling.

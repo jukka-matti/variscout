@@ -1,3 +1,7 @@
+---
+title: 'ADR-015: Investigation Board — Finding Status & Comments'
+---
+
 # ADR-015: Investigation Board — Finding Status & Comments
 
 **Status:** Accepted (revised 2026-02-26)

@@ -1,3 +1,7 @@
+---
+title: 'Layout Patterns'
+---
+
 # Layout Patterns
 
 Page and component layout patterns.

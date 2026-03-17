@@ -1,3 +1,7 @@
+---
+title: 'Case-Based Learning'
+---
+
 # Case-Based Learning
 
 Learning through real-world examples and the 3-act case structure.

@@ -1,0 +1,16 @@
+---
+title: "Landscape view"
+---
+graph TB
+  Analyst@{ shape: rectangle, label: "Quality Analyst" }
+  Variscout@{ shape: rectangle, label: "VariScout" }
+  Azuread@{ shape: rectangle, label: "Azure AD" }
+  Onedrive@{ shape: rectangle, label: "Microsoft OneDrive" }
+  Teams@{ shape: rectangle, label: "Microsoft Teams" }
+  Aisearch@{ shape: rectangle, label: "Azure AI Search" }
+  Variscout -. "`Authenticates via EasyAuth`" .-> Azuread
+  Variscout -. "`Syncs projects (Team plan)`" .-> Onedrive
+  Variscout -. "`Embeds as channel tab, captures photos`" .-> Teams
+  Variscout -. "`Queries for AI-assisted analysis`" .-> Aisearch
+  Analyst -. "`Uploads data, reviews charts, 
+investigates variation`" .-> Variscout

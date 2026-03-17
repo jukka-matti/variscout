@@ -1,0 +1,94 @@
+/**
+ * @variscout/hooks — L3 Component decomposition
+ * Shared React hooks: state, navigation, chart data, export, tracking
+ */
+
+model {
+  extend variscout.hooks {
+    // State
+    dataState = component 'useDataState' {
+      description 'Shared DataContext state management'
+      technology 'useDataState.ts'
+    }
+
+    useTier = component 'useTier' {
+      description 'License tier state and limits'
+      technology 'useTier.ts'
+    }
+
+    // Navigation
+    filterNav = component 'useFilterNavigation' {
+      description 'Filter navigation with multi-select, breadcrumbs'
+      technology 'useFilterNavigation.ts'
+    }
+
+    keyboard = component 'useKeyboardNavigation' {
+      description 'Arrow key focus management'
+      technology 'useKeyboardNavigation.ts'
+    }
+
+    // Chart Data
+    chartScale = component 'useChartScale' {
+      description 'Y-axis scale calculation'
+      technology 'useChartScale.ts'
+    }
+
+    boxplotData = component 'useBoxplotData' {
+      description 'Shared d3 boxplot computation'
+      technology 'useBoxplotData.ts'
+    }
+
+    ichartData = component 'useIChartData' {
+      description 'Shared I-Chart data transform'
+      technology 'useIChartData.ts'
+    }
+
+    margins = component 'useResponsiveChartMargins' {
+      description 'Dynamic chart margins based on container width'
+      technology 'useResponsiveChartMargins.ts'
+    }
+
+    paretoData = component 'useParetoChartData' {
+      description 'Shared Pareto chart data prep'
+      technology 'useParetoChartData.ts'
+    }
+
+    dashboardData = component 'useDashboardComputedData' {
+      description 'Shared dashboard computed stats'
+      technology 'useDashboardComputedData.ts'
+    }
+
+    // Export
+    chartCopy = component 'useChartCopy' {
+      description 'Copy-to-clipboard, PNG download, SVG download'
+      technology 'useChartCopy.ts'
+    }
+
+    // Tracking
+    variationTracking = component 'useVariationTracking' {
+      description 'Cumulative Total SS scope tracking'
+      technology 'useVariationTracking.ts'
+    }
+
+    annotationMode = component 'useAnnotationMode' {
+      description 'Chart annotation state (highlights, text notes)'
+      technology 'useAnnotationMode.ts'
+    }
+
+    controlViolations = component 'useControlViolations' {
+      description 'Control chart violation detection'
+      technology 'useControlViolations.ts'
+    }
+  }
+
+  // Cross-package dependencies to @variscout/core
+  variscout.hooks.dataState -> variscout.core.types 'uses DataRow, AnalysisState'
+  variscout.hooks.dataState -> variscout.core.parser 'invokes parseCSV'
+  variscout.hooks.useTier -> variscout.core.tier 'uses getTier'
+  variscout.hooks.filterNav -> variscout.core.navigation 'uses filter types'
+  variscout.hooks.chartScale -> variscout.core.types 'uses StatsResult'
+  variscout.hooks.boxplotData -> variscout.core.stats 'computes quartiles'
+  variscout.hooks.ichartData -> variscout.core.stats 'computes control limits'
+  variscout.hooks.variationTracking -> variscout.core.variation 'uses contributions'
+  variscout.hooks.controlViolations -> variscout.core.stats 'uses Nelson rules'
+}

@@ -1,3 +1,7 @@
+---
+title: 'ADR-008: Website Content Architecture'
+---
+
 # ADR-008: Website Content Architecture
 
 **Status**: Accepted

@@ -1,3 +1,7 @@
+---
+title: 'Student Sara'
+---
+
 # Student Sara
 
 | Attribute         | Detail                                                        |

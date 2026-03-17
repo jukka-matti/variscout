@@ -1,3 +1,7 @@
+---
+title: 'Features'
+---
+
 # Features
 
 Centralized feature specifications for VariScout.
@@ -35,6 +39,13 @@ The core statistical charts based on Watson's Four Lenses:
 | [Probability Plot](analysis/probability-plot.md) | Normal probability plot for distribution fit |
 
 ---
+
+## Analysis Journey
+
+| Map                                                                     | Description                                          |
+| ----------------------------------------------------------------------- | ---------------------------------------------------- |
+| [Analysis Journey Map](workflows/analysis-journey-map.md)               | 4-phase model: Frame → Scout → Investigate → Improve |
+| [Investigation Lifecycle Map](workflows/investigation-lifecycle-map.md) | IDEOI state diagram for the Investigate phase        |
 
 ## Analyst Workflows
 

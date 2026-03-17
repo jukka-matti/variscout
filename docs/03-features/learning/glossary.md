@@ -1,3 +1,7 @@
+---
+title: 'Glossary Feature'
+---
+
 # Glossary Feature
 
 Contextual term definitions throughout the application.

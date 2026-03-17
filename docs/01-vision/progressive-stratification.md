@@ -1,3 +1,7 @@
+---
+title: 'Progressive Stratification'
+---
+
 # Progressive Stratification
 
 Why VariScout's filter chip drill-down is the right interaction model for variation analysis --- and where it might not be.

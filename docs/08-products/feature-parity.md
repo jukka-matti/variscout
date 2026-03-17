@@ -1,3 +1,7 @@
+---
+title: 'Feature Parity Matrix'
+---
+
 # Feature Parity Matrix
 
 Complete feature availability across VariScout platforms.

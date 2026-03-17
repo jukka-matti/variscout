@@ -1,3 +1,7 @@
+---
+title: 'Patient Wait Time Variation'
+---
+
 # Patient Wait Time Variation
 
 ## The Problem

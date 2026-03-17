@@ -1,3 +1,7 @@
+---
+title: 'Linked Filtering'
+---
+
 # Linked Filtering
 
 Linked filtering connects all charts so clicking one filters all others.

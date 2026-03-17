@@ -1,3 +1,7 @@
+---
+title: 'Buttons'
+---
+
 # Buttons
 
 Button variants for PWA and Website.

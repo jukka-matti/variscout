@@ -1,3 +1,7 @@
+---
+title: 'Chrome Evaluation: Mindmap with Bottleneck & Hospital Ward'
+---
+
 # Chrome Evaluation: Mindmap with Bottleneck & Hospital Ward
 
 > Automated Playwright evaluation (13 tests, all passing) of the Investigation Mindmap panel with both Bottleneck and Hospital Ward case study datasets. Evaluates how the Mindmap contributes to the investigation workflow, documenting working features, UX gaps, and bugs. Screenshots in `apps/pwa/e2e/screenshots/mindmap-eval/`. E2E spec: `apps/pwa/e2e/mindmap-evaluation.spec.ts`.

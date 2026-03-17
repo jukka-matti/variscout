@@ -1,3 +1,7 @@
+---
+title: 'Sidebar Filter Panel'
+---
+
 # Sidebar Filter Panel
 
 > An always-visible panel listing all factors with checkboxes and sliders, Tableau-style.

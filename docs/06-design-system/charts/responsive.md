@@ -1,3 +1,7 @@
+---
+title: 'Responsive Charts'
+---
+
 # Responsive Charts
 
 Charts adapt to container size using responsive utilities.

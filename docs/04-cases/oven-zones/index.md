@@ -1,3 +1,7 @@
+---
+title: 'Multi-Zone Oven Temperature Control Case Study'
+---
+
 # Multi-Zone Oven Temperature Control Case Study
 
 **Difficulty:** Intermediate

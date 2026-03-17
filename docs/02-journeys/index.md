@@ -1,3 +1,7 @@
+---
+title: 'User Journeys'
+---
+
 # User Journeys
 
 How different users find, navigate, and convert on VariScout.

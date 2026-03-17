@@ -1,4 +1,10 @@
+---
+title: 'Deep Dive Workflow'
+---
+
 # Deep Dive Workflow
+
+<!-- journey-phase: scout -->
 
 A 30-minute systematic investigation pattern for problem-solving.
 

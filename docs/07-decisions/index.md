@@ -1,3 +1,7 @@
+---
+title: 'Architecture Decision Records'
+---
+
 # Architecture Decision Records
 
 This section captures key architectural decisions made during VariScout development. Each decision includes context, the decision made, and consequences.
@@ -25,6 +29,65 @@ This section captures key architectural decisions made during VariScout developm
 | [015](adr-015-investigation-board.md)                | Investigation Board                  | Accepted   | 2026-02-26 |
 | [016](adr-016-teams-integration.md)                  | Teams Integration                    | Proposed   | 2026-02-27 |
 | [017](adr-017-fluent-design-alignment.md)            | Fluent 2 Design Principle Alignment  | Accepted   | 2026-03-02 |
+| [018](adr-018-channel-mention-workflow.md)           | Channel @Mention Workflow            | Proposed   | 2026-03-02 |
+
+---
+
+## ADR Dependency Map
+
+```mermaid
+flowchart TB
+    subgraph Architecture["Architecture"]
+        ADR001["001 Monorepo"]
+        ADR004["004 Offline-First"]
+        ADR011["011 AI Tooling"]
+        ADR013["013 DDD/Swarms"]
+        ADR001 --> ADR013
+    end
+
+    subgraph Charts["Charts & UI"]
+        ADR002["002 Visx Charts"]
+        ADR005["005 Props-Based"]
+        ADR009["009 Violin Mode"]
+        ADR017["017 Fluent 2"]
+        ADR002 --> ADR005
+        ADR005 --> ADR009
+    end
+
+    subgraph Storage["Storage"]
+        ADR003["003 IndexedDB"]
+        ADR012["012 PWA Browser-Only"]
+        ADR003 --> ADR004
+        ADR004 --> ADR012
+    end
+
+    subgraph Distribution["Distribution"]
+        ADR006["006 Edition System"]
+        ADR007["007 Azure Marketplace"]
+        ADR008["008 Website Architecture"]
+        ADR006 -.->|superseded| ADR007
+    end
+
+    subgraph Features["Features"]
+        ADR010["010 Gage R&R"]
+        ADR014["014 Regression Deferral"]
+        ADR015["015 Investigation Board"]
+    end
+
+    subgraph Teams["Teams Platform"]
+        ADR016["016 Teams Integration"]
+        ADR018["018 Channel @Mention"]
+        ADR007 --> ADR016
+        ADR015 --> ADR016
+        ADR016 --> ADR018
+        ADR015 --> ADR018
+    end
+
+    style ADR006 fill:#94a3b8,color:#fff
+    style ADR010 fill:#94a3b8,color:#fff
+```
+
+See also: [Documentation Methodology — ADR Dependency Map](../05-technical/documentation-methodology.md#adr-dependency-map) for the full methodology context.
 
 ---
 

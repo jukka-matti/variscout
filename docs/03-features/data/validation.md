@@ -1,3 +1,7 @@
+---
+title: 'Data Validation'
+---
+
 # Data Validation
 
 Quality checks applied to uploaded data.

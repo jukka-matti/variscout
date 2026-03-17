@@ -1,3 +1,7 @@
+---
+title: 'Characteristic Type Awareness'
+---
+
 # Characteristic Type Awareness
 
 Quality characteristics come in three types. VariScout detects the type from specification limits and uses it to provide direction-aware analysis throughout the tool.

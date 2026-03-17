@@ -1,3 +1,7 @@
+---
+title: 'Small Multiples'
+---
+
 # Small Multiples
 
 > Show all factor-by-value combinations as a grid of mini-charts.

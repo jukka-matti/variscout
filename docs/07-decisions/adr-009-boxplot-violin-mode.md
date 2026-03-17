@@ -1,3 +1,7 @@
+---
+title: 'ADR-009: Boxplot Violin Mode'
+---
+
 # ADR-009: Boxplot Violin Mode
 
 **Status:** Accepted

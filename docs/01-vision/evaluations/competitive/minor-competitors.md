@@ -1,3 +1,7 @@
+---
+title: 'Minor Competitor Profiles'
+---
+
 # Minor Competitor Profiles
 
 > Based on public documentation and published feature sets. These competitors appear in only 1–2 pattern evaluations and do not warrant full benchmark documents.

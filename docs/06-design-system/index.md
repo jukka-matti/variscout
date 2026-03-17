@@ -1,3 +1,7 @@
+---
+title: 'VariScout Design System'
+---
+
 # VariScout Design System
 
 A unified design system for VariScout covering PWA and Azure App platforms.

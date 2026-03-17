@@ -1,3 +1,7 @@
+---
+title: 'Vision & Methodology'
+---
+
 # Vision & Methodology
 
 VariScout is built on a philosophy of **EDA for process improvement** — not statistical verification.

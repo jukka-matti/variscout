@@ -1,3 +1,9 @@
+---
+title: 'I-Chart (Individuals Chart)'
+---
+
+<!-- journey-phase: scout -->
+
 # I-Chart (Individuals Chart)
 
 The I-Chart is VariScout's tool for the **CHANGE** lens - analyzing time-based stability.

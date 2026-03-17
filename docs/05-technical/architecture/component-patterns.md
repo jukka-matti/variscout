@@ -1,3 +1,7 @@
+---
+title: 'Component Patterns'
+---
+
 # Component Patterns
 
 How VariScout's shared hooks work together to enable drill-down, filtering, and analysis.

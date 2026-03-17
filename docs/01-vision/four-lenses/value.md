@@ -1,3 +1,7 @@
+---
+title: 'VALUE Lens: Capability Histogram'
+---
+
 # VALUE Lens: Capability Histogram
 
 > The Alignment Lens — a different type of question

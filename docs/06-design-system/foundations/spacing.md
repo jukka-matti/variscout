@@ -1,3 +1,7 @@
+---
+title: 'Spacing'
+---
+
 # Spacing
 
 VariScout uses a 4px base unit spacing scale.

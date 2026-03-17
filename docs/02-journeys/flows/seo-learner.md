@@ -1,3 +1,7 @@
+---
+title: 'Flow 1: SEO Learner → Product'
+---
+
 # Flow 1: SEO Learner → Product
 
 > Green Belt Gary searches Google, finds a tool page, discovers VaRiScout

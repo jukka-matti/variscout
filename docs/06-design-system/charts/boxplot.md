@@ -1,3 +1,7 @@
+---
+title: 'Boxplot Charts'
+---
+
 # Boxplot Charts
 
 Distribution comparison charts for categorical and multi-channel analysis.

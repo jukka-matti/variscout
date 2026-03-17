@@ -1,3 +1,7 @@
+---
+title: 'Avocado Coating Case'
+---
+
 # Avocado Coating Case
 
 **Location:** Post-harvest processing facility

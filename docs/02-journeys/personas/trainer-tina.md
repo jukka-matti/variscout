@@ -1,3 +1,7 @@
+---
+title: 'Trainer Tina'
+---
+
 # Trainer Tina
 
 | Attribute         | Detail                                                             |

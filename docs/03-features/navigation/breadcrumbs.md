@@ -1,3 +1,7 @@
+---
+title: 'Filter Chips Navigation'
+---
+
 # Filter Chips Navigation
 
 Filter chips provide an intuitive way to see and manage active filters with their contribution to total variation.

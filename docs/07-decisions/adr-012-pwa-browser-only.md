@@ -1,3 +1,7 @@
+---
+title: 'ADR-012: PWA Browser-Only, Zero Data Collection'
+---
+
 # ADR-012: PWA Browser-Only, Zero Data Collection
 
 **Status**: Accepted

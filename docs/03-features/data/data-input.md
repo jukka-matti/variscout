@@ -1,4 +1,10 @@
+---
+title: 'Data Input'
+---
+
 # Data Input
+
+<!-- journey-phase: frame -->
 
 How VariScout handles data input — paste (PWA and Azure App) and file upload (Azure App).
 

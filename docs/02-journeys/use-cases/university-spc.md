@@ -1,3 +1,7 @@
+---
+title: 'University SPC Course'
+---
+
 # University SPC Course
 
 ## The Problem

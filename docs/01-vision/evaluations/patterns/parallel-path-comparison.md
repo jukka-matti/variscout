@@ -1,3 +1,7 @@
+---
+title: 'Parallel Path Comparison'
+---
+
 # Parallel Path Comparison
 
 > Show alternative drill paths and whether they converge on the same finding.

@@ -1,3 +1,7 @@
+---
+title: 'What-If Simulator'
+---
+
 # What-If Simulator
 
 Interactive component for exploring process improvement scenarios.

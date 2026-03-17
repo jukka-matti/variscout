@@ -1,3 +1,7 @@
+---
+title: 'Pareto Charts'
+---
+
 # Pareto Charts
 
 Frequency analysis and ranking charts with cumulative percentage lines.

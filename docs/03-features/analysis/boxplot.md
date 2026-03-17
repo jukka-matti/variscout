@@ -1,3 +1,9 @@
+---
+title: 'Boxplot'
+---
+
+<!-- journey-phase: scout -->
+
 # Boxplot
 
 The Boxplot is VariScout's tool for the **FLOW** lens - comparing variation across factors.

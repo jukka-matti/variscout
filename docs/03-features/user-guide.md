@@ -1,3 +1,7 @@
+---
+title: 'VariScout Lite: User Guide'
+---
+
 # VariScout Lite: User Guide
 
 This guide covers advanced features and workflows in VariScout Lite, focusing on interactive customization and specification management.

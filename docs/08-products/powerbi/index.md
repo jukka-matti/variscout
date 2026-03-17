@@ -1,3 +1,7 @@
+---
+title: 'Power BI Custom Visuals'
+---
+
 # Power BI Custom Visuals
 
 VariScout charts as Power BI custom visuals.
