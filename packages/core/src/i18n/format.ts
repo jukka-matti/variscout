@@ -12,6 +12,7 @@ const BCP47: Record<Locale, string> = {
   en: 'en-US',
   de: 'de-DE',
   es: 'es-ES',
+  fi: 'fi-FI',
   fr: 'fr-FR',
   pt: 'pt-PT',
 };
