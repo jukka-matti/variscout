@@ -41,7 +41,7 @@ flowchart LR
         FN[fetchNarration]
         FCI[fetchChartInsight]
         FCR[fetchCoScoutResponse]
-        SRF[searchRelatedFindings]
+        SD[searchDocuments]
     end
 
     subgraph UI["UI Components"]
@@ -67,7 +67,7 @@ flowchart LR
     NR --> FN --> NB
     CI --> FCI --> CIC
     CS --> FCR --> CSP
-    KS --> SRF --> CSP
+    KS --> SD --> CSP
 
     SQ --> ISB
 ```
@@ -90,14 +90,14 @@ flowchart LR
 
 How each AI-powered component behaves across the three modes:
 
-| Component                     | No AI                                                              | AI Enabled                                            | AI + Knowledge Base                                                       |
-| ----------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------- |
-| **NarrativeBar**              | Hidden                                                             | Summary bar with 1-2 sentence narration               | Same (KB doesn't affect narration)                                        |
-| **ChartInsightChip**          | Deterministic insight only                                         | AI-enhanced insight (120 chars)                       | Same (KB doesn't affect chart insights)                                   |
-| **CoScoutPanel**              | Hidden                                                             | Conversational assistant grounded in analysis context | + KB search results injected as system context, source badges on messages |
-| **Investigation Sidebar**     | Suggested questions (deterministic from `buildSuggestedQuestions`) | + AI-generated questions                              | + KB-aware questions referencing past findings                            |
-| **FindingCard "Ask CoScout"** | Hidden                                                             | Opens CoScout with finding focus context              | + Linked hypothesis ideas in question                                     |
-| **Per-action "Ask CoScout"**  | Hidden                                                             | Sends action-specific question to CoScout             | Same                                                                      |
+| Component                     | No AI                                                              | AI Enabled                                            | AI + Knowledge Base                                                |
+| ----------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------ |
+| **NarrativeBar**              | Hidden                                                             | Summary bar with 1-2 sentence narration               | Same (KB doesn't affect narration)                                 |
+| **ChartInsightChip**          | Deterministic insight only                                         | AI-enhanced insight (120 chars)                       | Same (KB doesn't affect chart insights)                            |
+| **CoScoutPanel**              | Hidden                                                             | Conversational assistant grounded in analysis context | + On-demand KB search button, document result cards, source badges |
+| **Investigation Sidebar**     | Suggested questions (deterministic from `buildSuggestedQuestions`) | + AI-generated questions                              | Same (KB search is on-demand, not auto-injected into questions)    |
+| **FindingCard "Ask CoScout"** | Hidden                                                             | Opens CoScout with finding focus context              | + Linked hypothesis ideas in question                              |
+| **Per-action "Ask CoScout"**  | Hidden                                                             | Sends action-specific question to CoScout             | Same                                                               |
 
 ---
 
@@ -134,8 +134,8 @@ flowchart TB
 | `useChartInsights` | `AIContext`, `fetchChartInsight` service fn, chart-specific data                         | `insight`, `isAIEnhanced`, `isLoading`         | `ChartInsightChip` |
 
 > **Deterministic-first pipeline:** `useChartInsights` always runs a **deterministic insight first** — `buildIChartInsight()`, `buildBoxplotInsight()`, `buildParetoInsight()`, or `buildCapabilityInsight()` from `packages/core/src/ai/chartInsights.ts`. These pure functions produce a meaningful text insight from stats alone (violations, contribution %, capability status). If AI is available and the user has insights enabled, the hook then fires a debounced `fetchChartInsight()` call to enhance the deterministic text with process context. The deterministic insight is displayed immediately; the AI enhancement replaces it when ready. This means **chart insights work in all modes**, including PWA (no AI) and offline.
-> | `useAICoScout` | `AIContext`, `fetchCoScoutResponse`, `onBeforeSend` (KB injection) | `messages[]`, `send()`, `isStreaming`, `abort()` | `CoScoutPanel`, `CoScoutInline` |
-> | `useKnowledgeSearch` | `searchFn`, `searchDocumentsFn`, `enabled` flag | `results[]`, `documents[]`, `search()` | Injected into CoScout via `onBeforeSend` |
+> | `useAICoScout` | `AIContext`, `fetchCoScoutResponse` | `messages[]`, `send()`, `isStreaming`, `abort()` | `CoScoutPanel`, `CoScoutInline` |
+> | `useKnowledgeSearch` | `searchDocumentsFn`, `enabled` flag | `results[]`, `documents[]`, `search()`, `isAvailable` | On-demand via CoScout UI button |
 
 ---
 
@@ -194,31 +194,31 @@ User journey through the three modes:
 
 ### Mode 3: AI + Knowledge Base
 
-- `isKnowledgeBaseAvailable()` returns true — AI Search index exists
-- `onBeforeSend` hook in `useAICoScout` triggers **two parallel KB searches** before each message:
-  - `searchRelatedFindings()` — queries the findings index in AI Search for past resolved findings with similar context
-  - `searchDocuments()` — Foundry IQ agentic retrieval for SharePoint documents, SOPs, and work instructions
-  - Results are merged and injected as `knowledgeResults[]` + `knowledgeDocuments[]` in the CoScout system prompt
-- Source badges (`[Source: findings]`, `[Source: SharePoint]`) appear in responses
-- Investigation Sidebar may surface KB-aware suggested questions
+- `isKnowledgeBaseAvailable()` returns true -- AI Search endpoint + Remote SharePoint knowledge source configured
+- Knowledge search is **on-demand**: after CoScout responds, a "Search Knowledge Base?" button appears
+- User clicks the button to trigger `searchDocuments()` -- Foundry IQ agentic retrieval against Remote SharePoint
+- User's delegated token is passed for per-user SharePoint permissions
+- Results appear as document cards (title, snippet, source, link) in the CoScout panel
+- Source badges (`[Source: name]`) appear in enriched responses
+- CoScout re-processes with document context from `formatKnowledgeContext()`
 
 #### Knowledge Accumulation
 
-The Knowledge Base is populated by a feedback loop from resolved findings. `indexFindingsToSearch()` (from `apps/azure/src/services/indexService.ts`) performs debounced (5-second) fire-and-forget indexing of findings to the AI Search index whenever findings are updated. Only findings with sufficient context (status, hypothesis, outcome) are indexed. This is the write path that populates Mode 3 — resolved investigations from one user become searchable knowledge for the next.
+The Knowledge Base is populated by **published scouting reports**. When users click "Publish to SharePoint" in the Report view, the report is rendered as Markdown and uploaded to the team's SharePoint folder (same location as `.vrs` files). These published reports become searchable by future investigations via the Remote SharePoint knowledge source -- no dedicated index or indexer is needed.
 
 ---
 
 ## 6. Mode Transition UX
 
-| Event                    | What Happens                                                                           |
-| ------------------------ | -------------------------------------------------------------------------------------- |
-| **AI toggle on**         | NarrativeBar fades in, chips start enhancing, CoScout becomes available                |
-| **AI toggle off**        | NarrativeBar hidden, chips revert to deterministic, CoScout hidden                     |
-| **Endpoint removed**     | `isAIAvailable()` → false, same as toggle off; no error states                         |
-| **Offline**              | AI service calls fail gracefully → error classification → retry for transient errors   |
-| **KB toggle**            | `isKnowledgeBaseAvailable()` changes, `onBeforeSend` hook activates/deactivates        |
-| **Per-component toggle** | Individual `AIPreferences` flags control narration/insights/coscout independently (T7) |
-| **Rate limited**         | CoScout shows retryable error badge; narration falls back to cached value              |
+| Event                    | What Happens                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------- |
+| **AI toggle on**         | NarrativeBar fades in, chips start enhancing, CoScout becomes available                      |
+| **AI toggle off**        | NarrativeBar hidden, chips revert to deterministic, CoScout hidden                           |
+| **Endpoint removed**     | `isAIAvailable()` → false, same as toggle off; no error states                               |
+| **Offline**              | AI service calls fail gracefully → error classification → retry for transient errors         |
+| **KB toggle**            | `isKnowledgeBaseAvailable()` changes, "Search Knowledge Base?" button shows/hides in CoScout |
+| **Per-component toggle** | Individual `AIPreferences` flags control narration/insights/coscout independently (T7)       |
+| **Rate limited**         | CoScout shows retryable error badge; narration falls back to cached value                    |
 
 ---
 
@@ -240,9 +240,10 @@ How AI context changes across IDEOI investigation phases:
 
 ## See Also
 
-- [AI Architecture](ai-architecture.md) — High-level AI integration strategy and service layer
-- [AI Context Engineering](ai-context-engineering.md) — Prompt design and context assembly patterns
-- [AIX Design System](aix-design-system.md) — Governance, terminology, confidence calibration
-- [Component Patterns](component-patterns.md) — Hook architecture including AI hook layer
-- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Decision record
-- [AI Context Pipeline Reference](ai-context-reference.md) — Module map, function signatures, caching strategy
+- [AI Architecture](ai-architecture.md)
+- [AI Context Engineering](ai-context-engineering.md)
+- [AIX Design System](aix-design-system.md)
+- [Component Patterns](component-patterns.md)
+- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
+- [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
+- [AI Context Pipeline Reference](ai-context-reference.md)

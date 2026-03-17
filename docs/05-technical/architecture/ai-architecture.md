@@ -40,14 +40,15 @@ Technical architecture for optional AI integration in the Azure App.
 │  AZURE (customer's tenant — optional)                │
 │                                                      │
 │  Azure AI Foundry          Azure AI Search            │
-│  (GPT-4o / Claude / etc)   (hybrid + semantic)        │
+│  (GPT-4o / Claude / etc)   (knowledge orchestration)  │
 │                                                      │
 │  SharePoint                OneDrive                   │
-│  (fault trees, SOPs)       (.vrs projects)            │
+│  (published reports,       (.vrs projects)            │
+│   SOPs, fault trees)                                 │
 │                                                      │
 │  Azure Function            ARM Template               │
-│  (findings indexer)        (deploys conditionally)     │
-└──────────────────────────────────────────────────────┘
+│  (OBO token exchange)      (deploys conditionally)    │
+└─────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -132,11 +133,15 @@ The system includes:
 
 CoScout prompts are grounded in VariScout's methodology rather than generic SPC terminology. See [Knowledge Model Architecture](knowledge-model.md) and [AI Context Engineering](ai-context-engineering.md) for details.
 
-### Layer 4 — Team Documents (Azure AI Search, Phase 3)
+### Layer 4 -- Team Documents (SharePoint, ADR-026)
 
-Fault trees, process maps, SOPs, control plans from Teams channel SharePoint. Indexed by Azure AI Search (enhanced by Foundry IQ managed orchestration) and retrieved by the CoScout Panel during conversation.
+Published scouting reports, fault trees, process maps, SOPs, and control plans from the team's SharePoint folder. Accessed on demand via Azure AI Search **Remote SharePoint** knowledge sources with per-user permissions (user token passthrough).
 
-**AI-extracted context from documents:** When team documents are uploaded to SharePoint, an Azure Function can extract structured ProcessContext suggestions (process steps, measurement units) and present them to the user for confirmation. AI suggests, user confirms — never auto-overwrite.
+**On-demand, not auto-fire:** Knowledge search is triggered when the user clicks the "Search Knowledge Base?" button in CoScout, not automatically on every message. This reduces latency and cost.
+
+**Report publishing:** Scouting reports are published as Markdown files to the same SharePoint folder as `.vrs` files, making them searchable by future investigations.
+
+See [ADR-026](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md) for the architecture decision.
 
 ---
 
@@ -212,55 +217,57 @@ The config is fetched once on app startup and merged with environment variables.
 
 ---
 
-## Knowledge Layer: Azure AI Search + Foundry IQ
+## Knowledge Layer: Azure AI Search + Remote SharePoint
 
-> **Status:** Implemented (March 2026). See Implementation Notes in [ADR-019](../../07-decisions/adr-019-ai-integration.md).
+> **Status:** Implemented (March 2026). See [ADR-026](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md).
 
-Azure AI Search is a managed service — not a custom RAG pipeline. No custom embeddings, no vector database, no dedicated infrastructure. **Azure AI Foundry IQ** (late 2025) adds a managed orchestration layer on top that simplifies and enhances the approach:
+Azure AI Search is a managed service -- not a custom RAG pipeline. **Remote SharePoint** knowledge sources access documents on demand with user credentials, requiring no indexer, no crawl schedule, and no additional storage costs.
 
-- **SharePoint Indexed Knowledge Source** — auto-generates data source, skillset (chunking + vectorization), index, indexer from SharePoint connection
-- **Foundry IQ agentic reasoning** — managed query decomposition, parallel sub-queries, semantic reranking, built-in source attribution
-- Use **extractive retrieval mode** (not answer synthesis) for most scenarios — cheaper, more transparent
-- Set `retrieval_reasoning_effort` to "minimal" for Phase 1/2 to control costs
+### Architecture (ADR-026)
 
-### Indexed Content
+```
+Publish Report --> reportExport.ts --> reportUpload.ts --> SharePoint folder
+                                                            |
+CoScout question --> User clicks "Search KB?" --> searchDocuments()
+                                                            |
+                                                  Azure AI Search (Foundry IQ)
+                                                  --> Remote SharePoint knowledge source
+                                                  --> User token passthrough (OBO)
+                                                            |
+                                                  formatKnowledgeContext() --> CoScout prompt
+```
 
-| Source                 | Index Method                                  | Content                                                                                                         |
-| ---------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| VariScout findings     | Azure Function (HTTP trigger, client-called)  | Structured documents: project, title, factor, contribution %, Cpk, suspected cause, corrective actions, outcome |
-| Team quality documents | SharePoint connector (Foundry IQ auto-config) | DOCX, XLSX, PPTX, PDF from Teams channel document libraries                                                     |
-| Process descriptions   | Bundled with findings                         | Per-project context text                                                                                        |
+### Key Design Decisions
 
-### Findings Write Path
+1. **Remote SharePoint (not indexed)**: No indexer, no crawl schedule, no storage duplication. Documents accessed on demand with user credentials. Requires at least 1 M365 Copilot license in tenant.
 
-Azure Function with HTTP trigger (client calls directly after save):
+2. **On-demand search (not auto-fire)**: Knowledge search is triggered by user click, not on every CoScout message. Reduces latency, cost, and noise.
 
-1. Client calls the Function endpoint after a successful `.vrs` file save
-2. Function receives findings payload (structured documents — no raw measurement data)
-3. Batch-replaces the tenant's findings in the Azure AI Search index (consistent state, handles deletions)
-4. Returns index document count on success
+3. **Per-user permissions**: User's delegated token is passed via `x-ms-query-source-authorization` header. Users can only find documents they have access to in SharePoint.
 
-The function uses API keys stored in Function App settings only — the client routes through the Function proxy, never holding Search keys. Batch-replace ensures index consistency and simplifies deletion of stale documents.
+4. **Report publishing**: Scouting reports are published as Markdown to the team's SharePoint folder (same location as `.vrs` files), making them searchable by future investigations.
 
-### Search Capabilities
+5. **Folder-scoped search**: KQL filter limits search to the team's SharePoint folder path, avoiding cross-team results.
 
-- **Hybrid search:** Keyword + semantic ranking (built-in)
-- **Agentic retrieval:** LLM-assisted query decomposition for complex questions (e.g., "Why is Fill Head 3 drifting?" → sub-queries for past findings, fault tree branches, recent corrective actions)
+6. **ExtractedData output mode**: Foundry IQ returns raw chunks rather than synthesized answers. CoScout reasons over the raw context.
 
-### SharePoint Connector
+### Searchable Content
 
-The SharePoint Online indexer is in public preview (March 2026). Foundry IQ's SharePoint Indexed Knowledge Source simplifies configuration by auto-generating the full indexing pipeline. Teams channel files are stored in SharePoint document libraries, so they are accessible. Have a Blob Storage fallback if the SharePoint connector has reliability issues.
-
-**Data Zone Standard:** For EU customers, Azure now offers Data Zone Standard deployments with EU data residency and higher quota than regional. Recommended for GDPR compliance.
+| Source                     | How It Gets There                      | What's Searchable                           |
+| -------------------------- | -------------------------------------- | ------------------------------------------- |
+| Published scouting reports | "Publish to SharePoint" in Report view | Markdown: KPIs, findings, actions, outcomes |
+| SOPs, procedures           | Already in SharePoint folder           | Any document format SharePoint supports     |
+| Fault trees, 8D reports    | Already in SharePoint folder           | Document content with citations             |
+| Past investigation reports | Published by other team members        | Cross-investigation knowledge               |
 
 ### Findings as Knowledge Base
 
-Each resolved finding adds measured, verified, outcome-backed knowledge. The 8-step investigation workflow (detect → locate → problem statement → assign → investigate → suspected cause → derive action → verify) maps directly to where AI adds value:
+When findings are published as scouting reports to SharePoint, they become searchable by future investigations. The 8-step investigation workflow maps directly to where AI adds value:
 
-- **Step 5 (investigate):** AI suggests what to check from past findings + team documents
-- **Step 7 (derive action):** AI suggests actions from past outcomes + SOPs
+- **Step 5 (investigate):** CoScout finds past reports about similar causes
+- **Step 7 (derive action):** CoScout references SOPs and past corrective actions
 
-After 50+ resolved findings, the AI has genuine organizational knowledge that no competitor can match — measurement-backed, closed-loop, and continuously evolving.
+After 50+ published reports, the AI has genuine organizational knowledge -- measurement-backed, closed-loop, and continuously evolving.
 
 ---
 
@@ -273,8 +280,8 @@ All AI resources are conditional on `parameters('enableAI')`:
 | AI Services account        | `Microsoft.CognitiveServices/accounts` (kind: OpenAI, SKU: S0) | Azure AI Foundry host                                 |
 | Fast model deployment      | `Microsoft.CognitiveServices/accounts/deployments`             | Cheap model (e.g., GPT-4o-mini) for narration + chips |
 | Reasoning model deployment | `Microsoft.CognitiveServices/accounts/deployments`             | Capable model (e.g., GPT-4o) for CoScout + reports    |
-| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Knowledge index for findings                          |
-| Azure Function             | `Microsoft.Web/sites`                                          | Findings indexer (HTTP trigger, tenant-isolated)      |
+| AI Search service          | `Microsoft.Search/searchServices` (2025-05-01 API)             | Knowledge base orchestration (Foundry IQ)             |
+| Azure Function             | `Microsoft.Web/sites`                                          | OBO token exchange (SharePoint access)                |
 
 `createUiDefinition.json` additions:
 
@@ -380,13 +387,14 @@ When running in a Teams channel tab (Azure Team plan), the AI context includes t
 
 ## See Also
 
-- [Knowledge Model Architecture](knowledge-model.md) — Unified term + concept registry
-- [AI Context Engineering](ai-context-engineering.md) — Three-tier prompt architecture
-- [VariScout Methodology](../../01-vision/methodology.md) — Human-readable methodology reference
-- [AI Readiness Review](ai-readiness-review.md) — Strategic architecture assessment
-- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Architectural decision
-- [AI-Assisted Analysis Workflow](../../03-features/workflows/ai-assisted-analysis.md) — User-facing workflow
-- [AI Components](../../06-design-system/components/ai-components.md) — Component UX specs
-- [Component Patterns](component-patterns.md) — Hook integration, colorScheme, base patterns
-- [Data Flow](data-flow.md) — Existing data pipeline
-- [AI Context Pipeline Reference](ai-context-reference.md) — Module map, function signatures, caching strategy
+- [Knowledge Model Architecture](knowledge-model.md)
+- [AI Context Engineering](ai-context-engineering.md)
+- [VariScout Methodology](../../01-vision/methodology.md)
+- [AI Readiness Review](ai-readiness-review.md)
+- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
+- [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
+- [AI-Assisted Analysis Workflow](../../03-features/workflows/ai-assisted-analysis.md)
+- [AI Components](../../06-design-system/components/ai-components.md)
+- [Component Patterns](component-patterns.md)
+- [Data Flow](data-flow.md)
+- [AI Context Pipeline Reference](ai-context-reference.md)

@@ -4,9 +4,15 @@ title: 'ADR-022: Knowledge Layer Architecture'
 
 # ADR-022: Knowledge Layer Architecture
 
-**Status**: Accepted
+**Status**: Amended by [ADR-026](adr-026-knowledge-base-sharepoint-first.md)
 **Date**: 2026-03-16
 **Deciders**: Product team
+
+> [!IMPORTANT]
+> **Amended by ADR-026 (2026-03-17)**: The dedicated findings index and indexed SharePoint approach
+> described below has been replaced by a SharePoint-first strategy using Remote SharePoint knowledge
+> sources and report publishing. See [ADR-026](adr-026-knowledge-base-sharepoint-first.md) for the
+> current architecture.
 
 ---
 
@@ -98,5 +104,6 @@ CoScout question → useKnowledgeSearch → searchRelatedFindings() (semantic)
 
 - [AI Architecture](../05-technical/architecture/ai-architecture.md)
 - [ADR-019: AI Integration](adr-019-ai-integration.md)
+- [ADR-026: SharePoint-First Knowledge Base](adr-026-knowledge-base-sharepoint-first.md)
 - [Knowledge Base Search Workflow](../03-features/workflows/knowledge-base-search.md)
 - [ARM Template — AI Services](../08-products/azure/arm-template.md)
