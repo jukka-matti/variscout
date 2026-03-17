@@ -269,6 +269,7 @@ When all corrective actions are completed, assess the outcome. The outcome is ty
 ```typescript
 interface FindingOutcome {
   effective: 'yes' | 'no' | 'partial';
+  cpkBefore?: number; // Baseline Cpk (auto-filled from first stage)
   cpkAfter?: number; // Measured Cpk after corrective action
   notes?: string; // Free-text outcome description
   verifiedAt: number; // When the outcome was verified
@@ -276,7 +277,8 @@ interface FindingOutcome {
 ```
 
 - **Effective** — "Yes" / "No" / "Partial" selector
-- **Cpk after** — Measured capability after the corrective action (compared with original Cpk from `finding.context.stats.cpk`)
+- **Cpk before** — Baseline capability before the corrective action. Auto-filled from the first stage when using staged analysis, or from `finding.context.stats.cpk` as fallback
+- **Cpk after** — Measured capability after the corrective action. Auto-filled from the last stage when using staged analysis
 - **Notes** — Free-text description of the outcome
 
 When all actions are completed AND the outcome is set, the status automatically
@@ -285,7 +287,7 @@ transitions to "resolved."
 If the outcome is "No" or "Partial," consider starting a new PDCA cycle — pin a new
 finding from the current state to investigate further.
 
-> **Verification with Staged Analysis**: The most effective way to verify an improvement is to combine before+after data with a Stage column and use [Staged Analysis](../../03-features/analysis/staged-analysis.md). Today this provides visual comparison (I-Chart stages); [ADR-023](../../07-decisions/adr-023-data-lifecycle.md) designs quantified comparison (Staged Comparison Card, auto-filled cpkBefore/cpkAfter, verification checklist). See [Azure Daily Use — Phase 4](../../02-journeys/flows/azure-daily-use.md#phase-4--verification-proving-the-improvement-worked) for the chart-by-chart verification workflow.
+> **Verification with Staged Analysis**: The most effective way to verify an improvement is to combine before+after data with a Stage column and use [Staged Analysis](../../03-features/analysis/staged-analysis.md). The StagedComparisonCard shows quantified deltas (mean shift, σ change, Cpk delta) between stages. VerificationEvidenceBase in Report Step 5 offers a chart toggle stack for visual verification. `cpkBefore` and `cpkAfter` are auto-filled from staged comparison data. AI components (NarrativeBar, CoScout, ChartInsightChip) are stage-aware and summarize improvement quantitatively. See [ADR-023](../../07-decisions/adr-023-data-lifecycle.md) for the full verification experience design and [Azure Daily Use — Phase 4](../../02-journeys/flows/azure-daily-use.md#phase-4--verification-proving-the-improvement-worked) for the chart-by-chart verification workflow.
 
 ### Knowledge Base Contribution (Azure Team, Phase 2)
 

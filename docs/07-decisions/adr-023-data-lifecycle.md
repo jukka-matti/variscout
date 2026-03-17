@@ -116,16 +116,16 @@ The I-Chart renders staged data correctly:
 
 The analyst's real questions during verification, and how each should be answered:
 
-| Question                                   | Answering Component                    | Available Today?     |
-| ------------------------------------------ | -------------------------------------- | -------------------- |
-| "Did the mean shift toward target?"        | Staged Comparison Card                 | No                   |
-| "Did variation reduce?"                    | Staged Comparison Card / Boxplot       | No (quantified)      |
-| "Did Cpk cross the target?"                | Staged Comparison Card                 | No (comparison)      |
-| "Are there fewer violations?"              | I-Chart violation summary              | No (count not shown) |
-| "Did the specific factor improve?"         | Boxplot dual-stage or ChartInsightChip | Manual only          |
-| "Did anything else get worse?"             | Pareto ranking change / I-Chart        | Manual only          |
-| "Is the change statistically significant?" | Not available                          | No                   |
-| "Summary: did it work?"                    | NarrativeBar / CoScout                 | Not stage-aware      |
+| Question                                   | Answering Component                    | Available Today?                   |
+| ------------------------------------------ | -------------------------------------- | ---------------------------------- |
+| "Did the mean shift toward target?"        | Staged Comparison Card                 | **Yes** (StagedComparisonCard)     |
+| "Did variation reduce?"                    | Staged Comparison Card / Boxplot       | **Yes** (quantified deltas)        |
+| "Did Cpk cross the target?"                | Staged Comparison Card                 | **Yes** (Cpk comparison)           |
+| "Are there fewer violations?"              | I-Chart violation summary              | No (count not surfaced)            |
+| "Did the specific factor improve?"         | Boxplot dual-stage or ChartInsightChip | **ChartInsightChip: Yes** (Tier 3) |
+| "Did anything else get worse?"             | Pareto ranking change / I-Chart        | Manual only                        |
+| "Is the change statistically significant?" | Not available                          | No                                 |
+| "Summary: did it work?"                    | NarrativeBar / CoScout                 | **Yes** (stage-aware, Tier 3)      |
 
 #### Target state — the analyst's verification journey:
 
@@ -138,10 +138,9 @@ Same as today. Stage auto-detected, staged I-Chart renders.
 - Enhancement: **Violation summary** below I-Chart — "Before: 8 violations / After: 0"
 - Enhancement: **ChartInsightChip** detects staged data → "Improvement: 8 violations eliminated, mean shifted -2.1 units"
 
-**Step 3 — Stats: "By how much did it improve?"**
+**Step 3 — Stats: "By how much did it improve?"** ✅ Delivered
 
-- Today: overall stats only
-- Enhancement: **Staged Comparison Card** replaces Stats panel in staged mode
+- **StagedComparisonCard** replaces Stats panel in staged mode, showing per-stage mean, σ, Cpk, pass %, and deltas with trend arrows
 
 The code already supports **N stages** (`StagedStatsResult.stages` is a `Map<string, StatsResult>`, `stageOrder` is an ordered array) — the I-Chart renders any number of stages correctly.
 
@@ -169,25 +168,20 @@ Color-coded: green = improved, red = degraded, amber = marginal change. For 2 st
 - Today: single histogram for current filter
 - Enhancement: When in staged mode, show **Before Cpk vs After Cpk** as header text above histogram. A small comparison badge is simpler than a histogram overlay.
 
-**Step 6 — NarrativeBar: "Summary — did it work?"**
+**Step 6 — NarrativeBar: "Summary — did it work?"** ✅ Delivered (Tier 3)
 
-- Today: not stage-aware
-- Enhancement: When staged data detected, narration says e.g., "Improvement verified. Cpk improved from 0.89 to 1.32 (+48%). Mean shifted 2.1g toward target. Variation reduced 32%. No new violations."
+- NarrativeBar is stage-aware: when staged data is detected, `buildSummaryPrompt()` instructs the model to summarize improvement quantitatively (mean shift, Cpk delta, variation change)
 
-**Step 7 — Record outcome**
+**Step 7 — Record outcome** ✅ Delivered
 
-- Today: manual cpkAfter entry
-- Enhancement: **Auto-fill** cpkBefore (from first stage) and cpkAfter (from last stage) in FindingOutcome. Show the delta. Analyst confirms effectiveness.
+- `cpkBefore` field added to `FindingOutcome` — auto-filled from first stage in ReportView
+- `cpkAfter` auto-filled from last stage. Delta shown to analyst for effectiveness confirmation.
 - With 3+ stages: auto-fill from first and last stage, show full progression in outcome summary.
 
-**Step 8 — CoScout: "What should I check?"**
+**Step 8 — CoScout: "What should I check?"** ✅ Delivered (Tier 3)
 
-- Today: generic acting-phase questions
-- Enhancement: When in staged verification mode, **suggested questions** include verification-specific prompts:
-  - "Did the targeted factor improve specifically?"
-  - "Are there any new violations in the After stage?"
-  - "Is the Cpk improvement statistically significant?"
-  - "What else should I verify before closing this investigation?"
+- When in staged verification mode, CoScout system prompt injects staged comparison metrics and verification coaching
+- `buildSuggestedQuestions()` generates verification-specific prompts ("Did the targeted factor improve?", "Are there new violations?", "Is Cpk above target?") when staged comparison data exists
 
 **Step 9 — InvestigationSidebar: Verification checklist**
 
@@ -230,13 +224,13 @@ The architecture already supports N stages — `calculateStatsByStage()` returns
 - Design auto time re-extraction on append (~5 lines)
 - Document the verification workflow honestly (what's visual-only today)
 
-**Tier 2 — Staged Comparison Metrics (core enhancement):**
+**Tier 2 — Staged Comparison Metrics (core enhancement):** ✅ Implemented (Mar 2026)
 
-- `calculateStagedComparison()` in `@variscout/core/stats/staged.ts` — computes deltas, trend indicators, color coding
-- `StagedComparisonCard` in `@variscout/ui` — replaces Stats panel when staged data is active
-- `cpkBefore` field in `FindingOutcome` + auto-fill from staged data
-- `buildStagedComparisonInsight()` for ChartInsightChip — stage-aware deterministic insights
-- Verification checklist in InvestigationSidebar — phase-aware guidance when staged data is present
+- ✅ `calculateStagedComparison()` in `@variscout/core/stats/staged.ts` — computes deltas, trend indicators, color coding
+- ✅ `StagedComparisonCard` in `@variscout/ui` — replaces Stats panel when staged data is active
+- ✅ `cpkBefore` field in `FindingOutcome` + auto-fill from staged data
+- ✅ `buildStagedComparisonInsight()` for ChartInsightChip — stage-aware deterministic insights
+- Verification checklist in InvestigationSidebar — not yet implemented (generic phase guidance only)
 
 **Tier 3 — AI-enhanced verification (requires AI context changes):** ✅ Implemented (Mar 2026)
 

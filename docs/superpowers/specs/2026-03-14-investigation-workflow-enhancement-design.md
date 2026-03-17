@@ -83,6 +83,8 @@ export interface ActionItem {
 export interface FindingOutcome {
   /** Was the corrective action effective? */
   effective: 'yes' | 'no' | 'partial';
+  /** Baseline Cpk before corrective action (auto-filled from first stage) */
+  cpkBefore?: number;
   /** Cpk measured after corrective action */
   cpkAfter?: number;
   /** Free-text notes about the outcome */
