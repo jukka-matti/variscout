@@ -112,7 +112,7 @@ All AI system prompts stay in English (LLMs perform best with English instructio
 
 #### 3. Prompt templates get locale response hint
 
-- `packages/core/src/ai/promptTemplates.ts` — add `locale?: Locale` parameter to:
+- `packages/core/src/ai/prompts/` — add `locale?: Locale` parameter to (already done in split modules):
   - `buildNarrationSystemPrompt(glossaryFragment, locale)`
   - `buildCoScoutSystemPrompt(..., locale)`
   - `buildChartInsightSystemPrompt(locale)`

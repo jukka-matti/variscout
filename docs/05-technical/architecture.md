@@ -99,16 +99,18 @@ variscout-lite/
 
 Pure TypeScript logic with no React dependencies:
 
-| Module          | Purpose                                                                    |
-| --------------- | -------------------------------------------------------------------------- |
-| `stats/`        | Mean, StdDev, UCL/LCL, Cp, Cpk, conformance, factor grouping, staged stats |
-| `parser/`       | CSV/Excel file parsing, validation, keyword detection                      |
-| `tier.ts`       | Tier configuration (Azure Marketplace licensing, channel limits)           |
-| `navigation.ts` | Navigation types and utilities (FilterAction, BreadcrumbItem)              |
-| `variation/`    | Cumulative variation tracking (η² cascading, drill suggestions)            |
-| `glossary/`     | Glossary terms and type definitions for help tooltips                      |
-| `export.ts`     | CSV export utilities                                                       |
-| `types.ts`      | Shared TypeScript interfaces (StatsResult, LicenseTier, etc.)              |
+| Module          | Purpose                                                                      |
+| --------------- | ---------------------------------------------------------------------------- |
+| `stats/`        | Mean, StdDev, UCL/LCL, Cp, Cpk, conformance, factor grouping, staged stats   |
+| `parser/`       | CSV/Excel file parsing, validation, keyword detection                        |
+| `ai/prompts/`   | Modular prompt builders (shared, narration, coScout, chartInsights, reports) |
+| `ai/`           | AI context, tracing, Responses API client, chart insights                    |
+| `tier.ts`       | Tier configuration (Azure Marketplace licensing, channel limits)             |
+| `navigation.ts` | Navigation types and utilities (FilterAction, BreadcrumbItem)                |
+| `variation/`    | Cumulative variation tracking (η² cascading, drill suggestions)              |
+| `glossary/`     | Glossary terms and type definitions for help tooltips                        |
+| `export.ts`     | CSV export utilities                                                         |
+| `types.ts`      | Shared TypeScript interfaces (StatsResult, LicenseTier, etc.)                |
 
 ### @variscout/charts
 
@@ -655,6 +657,7 @@ app.initialize() → app.getContext()
 | Concept             | Implementation                                                   |
 | ------------------- | ---------------------------------------------------------------- |
 | Context detection   | `initTeams()` — called on app startup, caches result             |
+| Channel type        | `channelType` — detects standard, private, or shared channels    |
 | React hook          | `useTeamsContext()` — provides context + loading state           |
 | SSO token           | `getTeamsSsoToken()` — client-side token (not Graph-ready)       |
 | Tab configuration   | `TeamsTabConfig.tsx` — shown when adding channel tab             |

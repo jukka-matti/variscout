@@ -33,7 +33,7 @@ flowchart LR
 
     subgraph Core["@variscout/core"]
         BAC[buildAIContext]
-        PT[promptTemplates]
+        PT[\"prompts/* modules\"]
         SQ[buildSuggestedQuestions]
     end
 

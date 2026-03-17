@@ -59,6 +59,9 @@ VariScout occupies a unique niche: it is the only analytics tool where AI explai
 
 Heuristic walkthrough of 12 source files (UI components, hooks, prompt templates, AI service) cross-referenced against design system specs (`docs/06-design-system/components/ai-components.md`) and architecture docs (`docs/05-technical/architecture/ai-architecture.md`). All scores are evidence-based with file:line citations.
 
+> [!NOTE]
+> **Post-evaluation refactor (March 17, 2026):** `promptTemplates.ts` was split into 5 focused modules under `packages/core/src/ai/prompts/` (shared, narration, coScout, chartInsights, reports). Line references in the rubric below refer to the pre-refactor file. The `promptTemplates.ts` barrel re-exports all symbols for backward compatibility. Additionally, `responsesApi.ts` and `tracing.ts` modules were added.
+
 ---
 
 ## Dimension 1: Transparency & Explainability (Weight: 1.5x)
@@ -395,14 +398,14 @@ LOW  │
 
 | #    | Gap                                           | Dimension     | Files to Modify                                                                                                                  | Effort                       |
 | ---- | --------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| P0-1 | **Add sample-size-aware hedging**             | Trust (2.1)   | `packages/core/src/ai/promptTemplates.ts` — `buildSummaryPrompt()`, `buildCoScoutSystemPrompt()`                                 | S (prompt text changes only) |
+| P0-1 | **Add sample-size-aware hedging**             | Trust (2.1)   | `packages/core/src/ai/prompts/narration.ts` — `buildSummaryPrompt()`, `prompts/coScout.ts` — `buildCoScoutSystemPrompt()`        | S (prompt text changes only) |
 | P0-2 | **Add feedback buttons on CoScout responses** | Context (6.4) | `packages/ui/src/components/CoScoutPanel/CoScoutMessages.tsx` — add thumbs up/down per assistant message. New `onFeedback` prop. | M (UI + localStorage)        |
 
 ### P1 — High-Value Improvements (Next 2-4 weeks)
 
 | #    | Gap                                                 | Dimension          | Files to Modify                                                                                                         | Effort |
 | ---- | --------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------ |
-| P1-1 | **Surface source attribution in CoScout responses** | Transparency (1.2) | `CoScoutMessages.tsx` — render source citations. `promptTemplates.ts` — instruct AI to include `[Source: ...]` markers. | M      |
+| P1-1 | **Surface source attribution in CoScout responses** | Transparency (1.2) | `CoScoutMessages.tsx` — render source citations. `prompts/coScout.ts` — instruct AI to include `[Source: ...]` markers. | M      |
 | P1-2 | **Add context disclosure card**                     | Transparency (1.3) | `CoScoutPanelBase.tsx` — collapsible "AI sees" card above messages.                                                     | M      |
 | P1-3 | **Per-component AI toggles**                        | Control (3.4)      | `SettingsPanelBase` — add 3 sub-toggles (narration, insights, CoScout).                                                 | M      |
 | P1-4 | **Add NarrativeBar `aria-live="polite"`**           | Accessibility      | `NarrativeBar.tsx:85` — add attribute.                                                                                  | XS     |

@@ -142,15 +142,15 @@ Field quality engineer on shop floor via Teams mobile.
 
 ### Core Package (`@variscout/core`)
 
-| Module                       | Serves Flows                 | Purpose in Journey                           |
-| ---------------------------- | ---------------------------- | -------------------------------------------- |
-| `parseText()`, `parseFile()` | 6, 7, 10                     | Data ingestion at analysis start             |
-| `detectColumns()`            | 6, 7                         | Auto-detect outcome/factor columns           |
-| `calculateStats()`           | All analysis flows           | Compute mean, Cpk, η², etc.                  |
-| `tier.ts`                    | 5 (upgrade), 8 (plan gating) | Feature gating and plan detection            |
-| `ai/buildAIContext()`        | 7, 9                         | Assemble stats-only AI payload               |
-| `ai/promptTemplates`         | 7, 9                         | Structure prompts for narration/CoScout      |
-| `glossary/`                  | All analysis flows           | Term definitions for tooltips + AI grounding |
+| Module                       | Serves Flows                 | Purpose in Journey                                                           |
+| ---------------------------- | ---------------------------- | ---------------------------------------------------------------------------- |
+| `parseText()`, `parseFile()` | 6, 7, 10                     | Data ingestion at analysis start                                             |
+| `detectColumns()`            | 6, 7                         | Auto-detect outcome/factor columns                                           |
+| `calculateStats()`           | All analysis flows           | Compute mean, Cpk, η², etc.                                                  |
+| `tier.ts`                    | 5 (upgrade), 8 (plan gating) | Feature gating and plan detection                                            |
+| `ai/buildAIContext()`        | 7, 9                         | Assemble stats-only AI payload                                               |
+| `ai/prompts/*`               | 7, 9                         | Modular prompt builders (narration, coScout, chartInsights, reports, shared) |
+| `glossary/`                  | All analysis flows           | Term definitions for tooltips + AI grounding                                 |
 
 ### Charts Package (`@variscout/charts`)
 
