@@ -78,6 +78,15 @@ describe('SettingsPanel', () => {
     vi.restoreAllMocks();
     localStorage.clear();
 
+    // jsdom does not implement HTMLDialogElement.showModal / .close; stub them
+    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    });
+    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+      this.removeAttribute('open');
+      this.dispatchEvent(new Event('close'));
+    });
+
     // jsdom does not implement window.matchMedia; stub it for ThemeProvider
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
@@ -96,15 +105,18 @@ describe('SettingsPanel', () => {
   });
 
   it('does not render when isOpen is false', () => {
-    renderPanel(false);
+    const { container } = renderPanel(false);
 
-    expect(screen.queryByText('Settings')).not.toBeInTheDocument();
-    expect(screen.queryByText('Appearance')).not.toBeInTheDocument();
+    // Dialog is rendered but not open (showModal not called)
+    const dialog = container.querySelector('dialog');
+    expect(dialog).toBeTruthy();
+    expect(dialog!.hasAttribute('open')).toBe(false);
   });
 
   it('renders panel content when isOpen is true', () => {
     renderPanel(true);
 
+    // Dialog should be open
     expect(screen.getByText('Settings')).toBeInTheDocument();
     expect(screen.getByText('Appearance')).toBeInTheDocument();
     expect(screen.getByText('Company Accent')).toBeInTheDocument();
@@ -190,10 +202,9 @@ describe('SettingsPanel', () => {
     const onClose = vi.fn();
     const { container } = renderPanel(true, onClose);
 
-    // The backdrop is the first child div with bg-black/40 class
-    const backdrop = container.querySelector('.bg-black\\/40');
-    expect(backdrop).toBeTruthy();
-    fireEvent.click(backdrop!);
+    // Click the <dialog> element directly (backdrop click: target === currentTarget)
+    const dialog = container.querySelector('dialog')!;
+    fireEvent.click(dialog);
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
