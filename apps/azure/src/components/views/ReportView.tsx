@@ -4,6 +4,7 @@
  */
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext';
+import { hasTeamFeatures } from '@variscout/core';
 import {
   ReportViewBase,
   ReportSection,
@@ -32,6 +33,7 @@ import { IChartBase, BoxplotBase, ParetoChartBase } from '@variscout/charts';
 import IChart from '../charts/IChart';
 import Boxplot from '../charts/Boxplot';
 import ParetoChart from '../charts/ParetoChart';
+import { usePublishReport } from '../../hooks/usePublishReport';
 
 interface ReportViewProps {
   onClose: () => void;
@@ -298,6 +300,26 @@ const ReportView: React.FC<ReportViewProps> = ({
 
   // Process name for the report header
   const processName = processContext?.problemStatement || outcome || 'Analysis';
+
+  // Publish to SharePoint (ADR-026)
+  const canPublish = hasTeamFeatures();
+  const {
+    publish,
+    publishReplace,
+    status: publishStatus,
+    error: publishError,
+    reset: publishReset,
+  } = usePublishReport({
+    projectName: processName,
+    processName: processContext?.description,
+    reportType,
+    sections,
+    hypotheses,
+    processContext,
+    stats: stats ?? undefined,
+    sampleCount: filteredData.length,
+    aiNarrative: narrative ?? undefined,
+  });
 
   // Build a lookup map for extended section data
   const sectionMap = useMemo(() => {
@@ -616,6 +638,11 @@ const ReportView: React.FC<ReportViewProps> = ({
         onScrollToSection={handleScrollToSection}
         renderSection={renderSection}
         onShareReport={onShareReport}
+        onPublishToSharePoint={canPublish ? publish : undefined}
+        onPublishReplace={publishReplace}
+        publishStatus={publishStatus}
+        publishError={publishError}
+        onPublishReset={publishReset}
         onClose={onClose}
         canShareViaTeams={canShareViaTeams}
       />

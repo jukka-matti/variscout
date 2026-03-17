@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, FileText, Copy, Share2 } from 'lucide-react';
+import { X, FileText, Copy, Share2, Upload, Loader2, Check, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@variscout/hooks';
 
 export interface ReportViewBaseColorScheme {
@@ -47,6 +47,11 @@ export interface ReportViewBaseProps {
   renderSection: (section: SectionDescriptor) => React.ReactNode;
   onCopyAllCharts?: () => void;
   onShareReport?: () => void;
+  onPublishToSharePoint?: () => void;
+  onPublishReplace?: () => void;
+  publishStatus?: 'idle' | 'rendering' | 'uploading' | 'success' | 'error' | 'exists';
+  publishError?: string | null;
+  onPublishReset?: () => void;
   onClose: () => void;
   canShareViaTeams?: boolean;
   colorScheme?: Partial<ReportViewBaseColorScheme>;
@@ -76,6 +81,11 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   renderSection,
   onCopyAllCharts,
   onShareReport,
+  onPublishToSharePoint,
+  onPublishReplace,
+  publishStatus,
+  publishError,
+  onPublishReset,
   onClose,
   canShareViaTeams,
   colorScheme,
@@ -143,6 +153,66 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
               <Share2 size={14} />
               Share Report
             </button>
+          )}
+          {onPublishToSharePoint && (
+            <>
+              {(!publishStatus || publishStatus === 'idle') && (
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  onClick={onPublishToSharePoint}
+                >
+                  <Upload size={14} />
+                  Publish to SharePoint
+                </button>
+              )}
+              {(publishStatus === 'rendering' || publishStatus === 'uploading') && (
+                <div className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 dark:text-blue-400">
+                  <Loader2 size={14} className="animate-spin" />
+                  {publishStatus === 'rendering' ? 'Rendering report…' : 'Uploading…'}
+                </div>
+              )}
+              {publishStatus === 'success' && (
+                <div className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 dark:text-green-400">
+                  <Check size={14} />
+                  Published to SharePoint
+                </div>
+              )}
+              {publishStatus === 'exists' && onPublishReplace && onPublishReset && (
+                <div className="space-y-1">
+                  <p className="px-3 py-1 text-xs text-amber-600 dark:text-amber-400">
+                    Report already exists in SharePoint.
+                  </p>
+                  <div className="flex gap-1 px-3">
+                    <button
+                      className="flex-1 px-2 py-1 text-xs text-white bg-amber-500 hover:bg-amber-600 rounded transition-colors"
+                      onClick={onPublishReplace}
+                    >
+                      Replace
+                    </button>
+                    <button
+                      className="flex-1 px-2 py-1 text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors"
+                      onClick={onPublishReset}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+              {publishStatus === 'error' && onPublishReset && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 px-3 py-1 text-sm text-red-600 dark:text-red-400">
+                    <AlertCircle size={14} />
+                    {publishError || 'Publish failed'}
+                  </div>
+                  <button
+                    className="w-full px-3 py-1 text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                    onClick={onPublishReset}
+                  >
+                    Try again
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </aside>
