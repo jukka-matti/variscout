@@ -262,8 +262,11 @@ const COSCOUT_HISTORY_LIMIT = 10;
 
 /**
  * Format Knowledge Base results for injection into CoScout system prompt.
- * Shows past findings from other projects as reference context.
- * Optionally includes document results with source attribution.
+ *
+ * ADR-026: Primary path is SharePoint documents via Remote SharePoint knowledge sources.
+ * The findings path is deprecated but kept for backward compatibility (returns empty []).
+ *
+ * Documents include source attribution (folder path, URL) for natural citation.
  */
 export function formatKnowledgeContext(
   results: NonNullable<AIContext['knowledgeResults']>,
@@ -271,6 +274,7 @@ export function formatKnowledgeContext(
 ): string {
   const sections: string[] = [];
 
+  // Legacy findings path (deprecated — ADR-026)
   if (results.length > 0) {
     const lines = results.map((r, i) => {
       const parts = [
@@ -288,10 +292,16 @@ export function formatKnowledgeContext(
     sections.push(lines.join('\n\n'));
   }
 
+  // Document results (ADR-026: primary knowledge path via SharePoint)
   if (documents && documents.length > 0) {
     const docLines = documents.map((d, i) => {
-      const parts = [`${i + 1}. [From: ${d.source}] "${d.title}"`];
-      if (d.snippet) parts.push(`   ${d.snippet.slice(0, 300)}`);
+      const parts = [`${i + 1}. 📄 "${d.title}" [Source: ${d.source}]`];
+      if (d.snippet) {
+        // Truncate but keep enough for meaningful context
+        const truncated = d.snippet.length > 400 ? d.snippet.slice(0, 400) + '…' : d.snippet;
+        parts.push(`   ${truncated}`);
+      }
+      if (d.url) parts.push(`   Link: ${d.url}`);
       return parts.join('\n');
     });
     sections.push(docLines.join('\n\n'));
@@ -299,7 +309,7 @@ export function formatKnowledgeContext(
 
   if (sections.length === 0) return '';
 
-  return `Past findings from the Knowledge Base (similar situations from other projects — reference only, do not present as current data):\n${sections.join('\n\n')}`;
+  return `Knowledge Base documents found (from the team's SharePoint — cite these naturally with [Source: name] when relevant):\n${sections.join('\n\n')}`;
 }
 
 /**
