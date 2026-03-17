@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 type ChartFontScale = 'compact' | 'normal' | 'large';
 
@@ -42,6 +43,7 @@ function SettingsPanelBase<
   extraToggles,
   idPrefix = 'settings',
 }: SettingsPanelBaseProps<T>) {
+  const { t } = useTranslation();
   // Local state for display options — synced on open, applied on change
   const [local, setLocal] = useState<T>(displayOptions);
 
@@ -77,7 +79,7 @@ function SettingsPanelBase<
         <div className="p-5 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-content">Settings</h2>
+            <h2 className="text-lg font-semibold text-content">{t('nav.settings')}</h2>
             <button
               onClick={onClose}
               className="p-1.5 rounded text-content-secondary hover:text-content hover:bg-surface-tertiary transition-colors"
@@ -92,7 +94,7 @@ function SettingsPanelBase<
 
           {/* Display Preferences */}
           <section>
-            <h3 className="text-sm font-medium text-content mb-3">Display Preferences</h3>
+            <h3 className="text-sm font-medium text-content mb-3">{t('display.preferences')}</h3>
             <div className="space-y-3">
               <label
                 htmlFor={`${idPrefix}-lock-y-axis`}
@@ -108,7 +110,7 @@ function SettingsPanelBase<
                 />
                 <div>
                   <span className="text-sm text-content group-hover:text-content transition-colors block">
-                    Lock Y-axis when drilling
+                    {t('display.lockYAxis')}
                   </span>
                   <span className="text-xs text-content-muted">
                     Maintains scale for visual comparison
@@ -129,7 +131,7 @@ function SettingsPanelBase<
                 />
                 <div>
                   <span className="text-sm text-content group-hover:text-content transition-colors block">
-                    Show filter context on charts
+                    {t('display.filterContext')}
                   </span>
                   <span className="text-xs text-content-muted">
                     Display active filter summary below chart headers
@@ -142,21 +144,28 @@ function SettingsPanelBase<
 
           {/* Chart Text Size */}
           <section>
-            <h3 className="text-sm font-medium text-content mb-3">Chart Text Size</h3>
+            <h3 className="text-sm font-medium text-content mb-3">{t('display.chartTextSize')}</h3>
             <div className="flex gap-2">
-              {FONT_SCALE_OPTIONS.map(({ value, label }) => (
-                <button
-                  key={value}
-                  onClick={() => onChartFontScaleChange(value)}
-                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${
-                    chartFontScale === value
-                      ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
-                      : 'bg-surface-secondary border-edge text-content-secondary hover:text-content hover:border-edge-secondary'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+              {FONT_SCALE_OPTIONS.map(({ value }) => {
+                const fontScaleLabels: Record<ChartFontScale, string> = {
+                  compact: t('display.compact'),
+                  normal: t('display.normal'),
+                  large: t('display.large'),
+                };
+                return (
+                  <button
+                    key={value}
+                    onClick={() => onChartFontScaleChange(value)}
+                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${
+                      chartFontScale === value
+                        ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
+                        : 'bg-surface-secondary border-edge text-content-secondary hover:text-content hover:border-edge-secondary'
+                    }`}
+                  >
+                    {fontScaleLabels[value]}
+                  </button>
+                );
+              })}
             </div>
           </section>
         </div>

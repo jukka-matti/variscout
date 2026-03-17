@@ -7,6 +7,7 @@ import {
   type ChartColor,
 } from './colors';
 import type { Locale } from '@variscout/core';
+import { formatStatistic, formatPercent } from '@variscout/core/i18n';
 
 export interface ChartThemeColors {
   /** Whether dark theme is active */
@@ -21,6 +22,10 @@ export interface ChartThemeColors {
   fontScale: number;
   /** Current locale for number formatting in charts */
   locale: Locale;
+  /** Format a statistic value with locale-correct decimal separator */
+  formatStat: (value: number, decimals?: number) => string;
+  /** Format a percentage (0.0-1.0) with locale-correct formatting */
+  formatPct: (value: number, decimals?: number) => string;
 }
 
 /**
@@ -96,6 +101,8 @@ export function useChartTheme(): ChartThemeColors {
       colors: getChartColors(mode),
       fontScale,
       locale,
+      formatStat: (value: number, decimals: number = 2) => formatStatistic(value, locale, decimals),
+      formatPct: (value: number, decimals: number = 1) => formatPercent(value, locale, decimals),
     }),
     [theme, mode, fontScale, locale]
   );

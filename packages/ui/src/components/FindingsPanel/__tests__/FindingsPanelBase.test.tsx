@@ -8,6 +8,12 @@ vi.mock('@variscout/hooks', () => ({
     isDragging: false,
     handleMouseDown: vi.fn(),
   })),
+  useTranslation: () => ({
+    t: (key: string) => key,
+    formatStat: (n: number) => String(n),
+    formatPct: (n: number) => `${n}%`,
+    locale: 'en',
+  }),
 }));
 
 vi.mock('../../FindingsLog', () => ({
@@ -105,7 +111,7 @@ describe('FindingsPanelBase', () => {
   it('renders resize handle and panel when isOpen=true', () => {
     render(<FindingsPanelBase {...defaultProps} />);
     expect(screen.getByTestId('grip')).toBeTruthy();
-    expect(screen.getByText('Findings')).toBeTruthy();
+    expect(screen.getByText('panel.findings')).toBeTruthy();
     expect(screen.getByTestId('findings-log')).toBeTruthy();
   });
 
@@ -118,14 +124,14 @@ describe('FindingsPanelBase', () => {
   it('shows view toggle when findings exist', () => {
     const findings = [makeFinding('1')];
     render(<FindingsPanelBase {...defaultProps} findings={findings} />);
-    expect(screen.getByLabelText('List view')).toBeTruthy();
-    expect(screen.getByLabelText('Board view')).toBeTruthy();
+    expect(screen.getByLabelText('view.list')).toBeTruthy();
+    expect(screen.getByLabelText('view.board')).toBeTruthy();
   });
 
   it('does not show view toggle when no findings', () => {
     render(<FindingsPanelBase {...defaultProps} />);
-    expect(screen.queryByLabelText('List view')).toBeNull();
-    expect(screen.queryByLabelText('Board view')).toBeNull();
+    expect(screen.queryByLabelText('view.list')).toBeNull();
+    expect(screen.queryByLabelText('view.board')).toBeNull();
   });
 
   it('shows copy button feedback and reverts after 2s', async () => {
@@ -180,7 +186,7 @@ describe('FindingsPanelBase', () => {
       />
     );
 
-    expect(screen.getByText('Drill Path')).toBeTruthy();
+    expect(screen.getByText('panel.drillPath')).toBeTruthy();
     expect(screen.getByText('Machine ID')).toBeTruthy();
     expect(screen.getByText('45%')).toBeTruthy();
     expect(screen.getByText('shift')).toBeTruthy();
@@ -194,11 +200,11 @@ describe('FindingsPanelBase', () => {
     );
 
     // Board button should be active (has text-content class)
-    const boardBtn = screen.getByLabelText('Board view');
+    const boardBtn = screen.getByLabelText('view.board');
     expect(boardBtn.className).toContain('text-content');
 
     rerender(<FindingsPanelBase {...defaultProps} findings={findings} viewMode="list" />);
-    const listBtn = screen.getByLabelText('List view');
+    const listBtn = screen.getByLabelText('view.list');
     expect(listBtn.className).toContain('text-content');
   });
 
@@ -206,7 +212,7 @@ describe('FindingsPanelBase', () => {
     const findings = [makeFinding('1')];
     render(<FindingsPanelBase {...defaultProps} findings={findings} />);
 
-    const listBtn = screen.getByLabelText('List view');
+    const listBtn = screen.getByLabelText('view.list');
     expect(listBtn.className).toContain('bg-surface-tertiary');
   });
 
@@ -221,7 +227,7 @@ describe('FindingsPanelBase', () => {
       />
     );
 
-    fireEvent.click(screen.getByLabelText('Board view'));
+    fireEvent.click(screen.getByLabelText('view.board'));
     expect(onViewModeChange).toHaveBeenCalledWith('board');
   });
 

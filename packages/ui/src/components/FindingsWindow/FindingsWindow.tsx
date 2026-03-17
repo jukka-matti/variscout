@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from '@variscout/hooks';
 import { ClipboardCopy, Check, List, LayoutGrid, Copy } from 'lucide-react';
 import type {
   Finding,
@@ -75,6 +76,7 @@ export interface FindingsAction {
  * 3. Edit/delete actions are sent back via FINDINGS_ACTION_KEY
  */
 const FindingsWindow: React.FC = () => {
+  const { formatStat } = useTranslation();
   const [syncData, setSyncData] = useState<FindingsSyncData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -511,7 +513,7 @@ const FindingsWindow: React.FC = () => {
                 className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[11px] rounded-full"
               >
                 {columnAliases?.[step.factor] || step.factor}
-                <span className="text-blue-300/60">{(step.scopeFraction * 100).toFixed(0)}%</span>
+                <span className="text-blue-300/60">{formatStat(step.scopeFraction * 100, 0)}%</span>
                 {i < drillPath.length - 1 && (
                   <span className="text-content-muted ml-0.5">&rarr;</span>
                 )}

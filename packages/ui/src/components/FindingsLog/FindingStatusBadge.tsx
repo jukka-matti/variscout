@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FINDING_STATUSES, FINDING_STATUS_LABELS, type FindingStatus } from '@variscout/core';
+import { FINDING_STATUSES, type FindingStatus } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 
 export interface FindingStatusBadgeProps {
   status: FindingStatus;
@@ -34,8 +35,17 @@ const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({
   onStatusChange,
   maxStatuses,
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  const statusLabels: Record<FindingStatus, string> = {
+    observed: t('findings.observed'),
+    investigating: t('findings.investigating'),
+    analyzed: t('findings.analyzed'),
+    improving: t('findings.improving'),
+    resolved: t('findings.resolved'),
+  };
 
   // Close on outside click
   useEffect(() => {
@@ -78,10 +88,10 @@ const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({
         className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${STATUS_STYLES[status]} ${
           onStatusChange ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
         }`}
-        title={onStatusChange ? 'Change status' : FINDING_STATUS_LABELS[status]}
-        aria-label={`Status: ${FINDING_STATUS_LABELS[status]}`}
+        title={onStatusChange ? 'Change status' : statusLabels[status]}
+        aria-label={`Status: ${statusLabels[status]}`}
       >
-        {FINDING_STATUS_LABELS[status]}
+        {statusLabels[status]}
       </button>
 
       {isOpen && (
@@ -100,7 +110,7 @@ const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({
               }`}
             >
               <span className={`w-2 h-2 rounded-full ${STATUS_DOT_COLORS[s]}`} />
-              {FINDING_STATUS_LABELS[s]}
+              {statusLabels[s]}
             </button>
           ))}
         </div>

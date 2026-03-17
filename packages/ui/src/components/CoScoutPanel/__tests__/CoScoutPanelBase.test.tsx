@@ -9,6 +9,12 @@ vi.mock('@variscout/hooks', () => ({
     isDragging: false,
     handleMouseDown: vi.fn(),
   }),
+  useTranslation: () => ({
+    t: (key: string) => key,
+    formatStat: (n: number) => String(n),
+    formatPct: (n: number) => `${n}%`,
+    locale: 'en',
+  }),
 }));
 
 vi.mock('lucide-react', () => ({
@@ -113,8 +119,8 @@ describe('CoScoutPanelBase', () => {
     ];
     render(<CoScoutPanelBase {...defaultProps} messages={messages} onRetry={onRetry} />);
 
-    expect(screen.getByText('Something went wrong.')).toBeDefined();
-    const retryBtn = screen.getByText('Retry');
+    expect(screen.getByText('coscout.error')).toBeDefined();
+    const retryBtn = screen.getByText('action.retry');
     fireEvent.click(retryBtn);
     expect(onRetry).toHaveBeenCalled();
   });
@@ -131,8 +137,8 @@ describe('CoScoutPanelBase', () => {
     ];
     render(<CoScoutPanelBase {...defaultProps} messages={messages} onRetry={vi.fn()} />);
 
-    expect(screen.getByText('Please wait a moment before asking again.')).toBeDefined();
-    expect(screen.queryByText('Retry')).toBeNull();
+    expect(screen.getByText('coscout.rateLimit')).toBeDefined();
+    expect(screen.queryByText('action.retry')).toBeNull();
   });
 
   it('shows content-filter error text', () => {
@@ -146,7 +152,7 @@ describe('CoScoutPanelBase', () => {
       },
     ];
     render(<CoScoutPanelBase {...defaultProps} messages={messages} />);
-    expect(screen.getByText("I can't answer that question. Try rephrasing.")).toBeDefined();
+    expect(screen.getByText('coscout.contentFilter')).toBeDefined();
   });
 
   it('does not send empty input', () => {
@@ -308,7 +314,7 @@ describe('CoScoutPanelBase', () => {
     it('shows send button when not streaming', () => {
       render(<CoScoutPanelBase {...defaultProps} isStreaming={false} />);
       expect(screen.queryByTestId('coscout-stop-button')).toBeNull();
-      expect(screen.getByLabelText('Send message')).toBeDefined();
+      expect(screen.getByLabelText('coscout.send')).toBeDefined();
     });
 
     it('calls onStopStreaming when stop button clicked', () => {

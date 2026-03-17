@@ -24,8 +24,15 @@ describe('useTranslation', () => {
     expect(result.current.locale).toBe('de');
   });
 
-  it('falls back to English for unknown locale attribute', () => {
+  it('returns Japanese strings when data-locale is ja', () => {
     document.documentElement.setAttribute('data-locale', 'ja');
+    const { result } = renderHook(() => useTranslation());
+    expect(result.current.t('stats.mean')).toBe('平均');
+    expect(result.current.locale).toBe('ja');
+  });
+
+  it('falls back to English for unknown locale attribute', () => {
+    document.documentElement.setAttribute('data-locale', 'xx');
     const { result } = renderHook(() => useTranslation());
     expect(result.current.t('stats.mean')).toBe('Mean');
     expect(result.current.locale).toBe('en');

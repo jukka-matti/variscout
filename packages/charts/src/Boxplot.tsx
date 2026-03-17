@@ -69,7 +69,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     showBranding,
   });
 
-  const { chrome, colors, mode } = useChartTheme();
+  const { chrome, colors, mode, formatStat } = useChartTheme();
   const isExecutive = mode === 'executive';
   const highlightFillColors = getHighlightFillColors(colors);
 
@@ -580,10 +580,10 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           <div>
             <strong>{tooltipData.key}</strong>
           </div>
-          <div>Median: {tooltipData.median.toFixed(2)}</div>
-          <div>Mean: {tooltipData.mean.toFixed(2)}</div>
-          <div>Q1: {tooltipData.q1.toFixed(2)}</div>
-          <div>Q3: {tooltipData.q3.toFixed(2)}</div>
+          <div>Median: {formatStat(tooltipData.median)}</div>
+          <div>Mean: {formatStat(tooltipData.mean)}</div>
+          <div>Q1: {formatStat(tooltipData.q1)}</div>
+          <div>Q3: {formatStat(tooltipData.q3)}</div>
           <div>n: {tooltipData.values.length}</div>
           {categoryContributions && categoryContributions.has(tooltipData.key) && (
             <div style={{ color: '#f87171', fontWeight: 500, marginTop: 4 }}>

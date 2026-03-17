@@ -5,8 +5,20 @@
  * closing the investigation loop in the team channel.
  */
 
-import type { Finding, FindingAssignee } from '@variscout/core';
+import type { Finding, FindingAssignee, Locale } from '@variscout/core';
 import { FINDING_STATUS_LABELS, formatFindingFilters } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
+
+function getDocLocale(): Locale {
+  if (typeof document === 'undefined') return 'en';
+  const locale = document.documentElement.getAttribute('data-locale');
+  if (locale === 'de' || locale === 'es' || locale === 'fr' || locale === 'pt') return locale;
+  return 'en';
+}
+
+function fmtStat(v: number, d: number = 2): string {
+  return formatStatistic(v, getDocLocale(), d);
+}
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -101,7 +113,7 @@ export function buildAnalyzedCard(
   // Stats
   const statsItems: string[] = [];
   if (finding.context.stats?.cpk !== undefined) {
-    statsItems.push(`Cpk ${finding.context.stats.cpk.toFixed(2)}`);
+    statsItems.push(`Cpk ${fmtStat(finding.context.stats.cpk)}`);
   }
   if (finding.context.stats?.samples !== undefined) {
     statsItems.push(`n=${finding.context.stats.samples}`);
@@ -266,10 +278,10 @@ export function buildResolvedCard(finding: Finding, deepLinkUrl: string): Adapti
     const cpkAfter = finding.outcome.cpkAfter;
     if (cpkBefore !== undefined && cpkAfter !== undefined) {
       const delta = cpkAfter - cpkBefore;
-      const deltaStr = delta >= 0 ? `+${delta.toFixed(2)}` : delta.toFixed(2);
+      const deltaStr = delta >= 0 ? `+${fmtStat(delta)}` : fmtStat(delta);
       body.push({
         type: 'TextBlock',
-        text: `**Cpk:** ${cpkBefore.toFixed(2)} → ${cpkAfter.toFixed(2)} (${deltaStr})`,
+        text: `**Cpk:** ${fmtStat(cpkBefore)} → ${fmtStat(cpkAfter)} (${deltaStr})`,
         size: 'small',
       });
     }

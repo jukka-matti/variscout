@@ -6,6 +6,23 @@
  */
 
 import type { KeyboardEvent } from 'react';
+import type { Locale } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
+
+/** Helper to get locale from document attribute (for non-hook contexts) */
+function getDocumentLocale(): Locale {
+  if (typeof document === 'undefined') return 'en';
+  const locale = document.documentElement.getAttribute('data-locale');
+  if (locale === 'de' || locale === 'es' || locale === 'fr' || locale === 'pt') {
+    return locale;
+  }
+  return 'en';
+}
+
+/** Format a number for accessibility labels using current locale */
+function fmtA11y(value: number, decimals: number = 2): string {
+  return formatStatistic(value, getDocumentLocale(), decimals);
+}
 
 /**
  * Props returned by getInteractiveA11yProps for SVG elements
@@ -72,7 +89,7 @@ export function getDataPointA11yProps(
   index: number,
   onClick?: () => void
 ): InteractiveA11yProps {
-  const fullLabel = `${label} ${index + 1}: ${value.toFixed(2)}`;
+  const fullLabel = `${label} ${index + 1}: ${fmtA11y(value)}`;
   return getInteractiveA11yProps(fullLabel, onClick);
 }
 
@@ -119,8 +136,8 @@ export function getBoxplotA11yProps(
   onClick?: () => void
 ): InteractiveA11yProps {
   const label = onClick
-    ? `Select ${key} (median: ${median.toFixed(2)}, n=${n})`
-    : `${key}: median ${median.toFixed(2)}, n=${n}`;
+    ? `Select ${key} (median: ${fmtA11y(median)}, n=${n})`
+    : `${key}: median ${fmtA11y(median)}, n=${n}`;
   return getInteractiveA11yProps(label, onClick);
 }
 
@@ -140,7 +157,7 @@ export function getScatterPointA11yProps(
   onClick?: () => void
 ): InteractiveA11yProps {
   const label = onClick
-    ? `Select point ${index + 1} (x: ${x.toFixed(2)}, y: ${y.toFixed(2)})`
-    : `Point ${index + 1}: x=${x.toFixed(2)}, y=${y.toFixed(2)}`;
+    ? `Select point ${index + 1} (x: ${fmtA11y(x)}, y: ${fmtA11y(y)})`
+    : `Point ${index + 1}: x=${fmtA11y(x)}, y=${fmtA11y(y)}`;
   return getInteractiveA11yProps(label, onClick);
 }

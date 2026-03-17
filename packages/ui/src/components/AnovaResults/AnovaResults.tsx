@@ -1,4 +1,5 @@
 import type { AnovaResult } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
 import { useGlossary } from '../../hooks';
 
@@ -43,12 +44,12 @@ export interface AnovaResultsProps {
 }
 
 /**
- * Format p-value for display
+ * Format p-value for display (accepts a locale-aware formatter)
  */
-function formatPValue(p: number): string {
+function formatPValue(p: number, fmt: (v: number, d?: number) => string): string {
   if (p < 0.001) return '< 0.001';
-  if (p < 0.01) return p.toFixed(3);
-  return p.toFixed(2);
+  if (p < 0.01) return fmt(p, 3);
+  return fmt(p);
 }
 
 /**
@@ -69,6 +70,7 @@ const AnovaResults = ({
   colorScheme = defaultColorScheme,
 }: AnovaResultsProps) => {
   const { getTerm } = useGlossary();
+  const { formatStat } = useTranslation();
 
   if (!result) return null;
 
@@ -92,7 +94,7 @@ const AnovaResults = ({
         {groups.map(group => (
           <span key={group.name} className={colorScheme.contentText}>
             <span className={colorScheme.mutedText}>{group.name}:</span>{' '}
-            <span className="font-mono">{group.mean.toFixed(1)}</span>
+            <span className="font-mono">{formatStat(group.mean, 1)}</span>
             <span className={`${colorScheme.mutedText} ml-1`}>(n={group.n})</span>
           </span>
         ))}
@@ -102,7 +104,7 @@ const AnovaResults = ({
       <div className={`flex items-center gap-4 text-sm mt-2 border-t ${colorScheme.border} pt-2`}>
         <span className={`${colorScheme.secondaryText} flex items-center gap-1`}>
           <span data-testid="anova-significance" className={`font-mono ${colorScheme.contentText}`}>
-            F = {fStatistic.toFixed(2)}, p = {formatPValue(pValue)}
+            F = {formatStat(fStatistic)}, p = {formatPValue(pValue, formatStat)}
           </span>
           <HelpTooltip term={getTerm('fStatistic')} iconSize={12} />
         </span>
@@ -111,7 +113,7 @@ const AnovaResults = ({
             data-testid="anova-eta-squared"
             className={`${colorScheme.mutedText} text-xs flex items-center gap-1`}
           >
-            η² = {etaSquared.toFixed(2)}
+            η² = {formatStat(etaSquared)}
             <HelpTooltip term={getTerm('etaSquared')} iconSize={12} />
           </span>
         )}

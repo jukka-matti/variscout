@@ -87,7 +87,7 @@ describe('ReportViewBase', () => {
   it('calls onClose when close button is clicked', () => {
     const onClose = vi.fn();
     render(<ReportViewBase {...defaultProps({ onClose })} />);
-    const closeBtn = screen.getByRole('button', { name: /close report/i });
+    const closeBtn = screen.getByRole('button', { name: /close/i });
     fireEvent.click(closeBtn);
     expect(onClose).toHaveBeenCalledTimes(1);
   });

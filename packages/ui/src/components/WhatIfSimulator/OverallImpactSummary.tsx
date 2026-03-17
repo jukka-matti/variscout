@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { OverallImpactResult } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import type { WhatIfSimulatorColorScheme } from './WhatIfSimulator';
 import { whatIfSimulatorDefaultColorScheme } from './WhatIfSimulator';
 
@@ -10,16 +11,13 @@ interface OverallImpactSummaryProps {
   colorScheme?: WhatIfSimulatorColorScheme;
 }
 
-function fmt(value: number, decimals: number = 2): string {
-  return value.toFixed(decimals);
-}
-
 export default function OverallImpactSummary({
   impact,
   hasAdjustment,
   cpkTarget = 1.33,
   colorScheme = whatIfSimulatorDefaultColorScheme,
 }: OverallImpactSummaryProps) {
+  const { formatStat: fmt } = useTranslation();
   const c = colorScheme;
 
   const getCpkColor = useMemo(() => {

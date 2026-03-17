@@ -51,7 +51,7 @@ const IChartBase: React.FC<IChartProps> = ({
   showLegend = false,
   legendMode = 'educational',
 }) => {
-  const { chrome, mode } = useChartTheme();
+  const { chrome, mode, formatStat } = useChartTheme();
   const isExecutive = mode === 'executive';
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
     useChartTooltip<{ x: number; y: number; index: number; stage?: string; timeValue?: string }>();
@@ -378,7 +378,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   textAnchor="start"
                   dominantBaseline="middle"
                 >
-                  UCL: {stats.ucl.toFixed(1)}
+                  UCL: {formatStat(stats.ucl, 1)}
                 </text>
               )}
               {/* Mean */}
@@ -398,7 +398,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   textAnchor="start"
                   dominantBaseline="middle"
                 >
-                  Mean: {stats.mean.toFixed(1)}
+                  Mean: {formatStat(stats.mean, 1)}
                 </text>
               )}
               {/* LCL */}
@@ -419,7 +419,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   textAnchor="start"
                   dominantBaseline="middle"
                 >
-                  LCL: {stats.lcl.toFixed(1)}
+                  LCL: {formatStat(stats.lcl, 1)}
                 </text>
               )}
             </>
@@ -453,7 +453,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   )}
                 >
                   {onSpecClick && <title>Click to edit USL</title>}
-                  USL: {specs.usl.toFixed(1)}
+                  USL: {formatStat(specs.usl, 1)}
                 </text>
               )}
             </>
@@ -485,7 +485,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   )}
                 >
                   {onSpecClick && <title>Click to edit LSL</title>}
-                  LSL: {specs.lsl.toFixed(1)}
+                  LSL: {formatStat(specs.lsl, 1)}
                 </text>
               )}
             </>
@@ -516,7 +516,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   )}
                 >
                   {onSpecClick && <title>Click to edit Target</title>}
-                  Tgt: {specs.target.toFixed(1)}
+                  Tgt: {formatStat(specs.target, 1)}
                 </text>
               )}
             </>
@@ -762,7 +762,7 @@ const IChartBase: React.FC<IChartProps> = ({
               </div>
             )}
           </div>
-          <div>Value: {tooltipData.y.toFixed(2)}</div>
+          <div>Value: {formatStat(tooltipData.y)}</div>
           {(() => {
             const reason = getViolationReason(tooltipData.y, tooltipData.index, tooltipData.stage);
             if (reason) {

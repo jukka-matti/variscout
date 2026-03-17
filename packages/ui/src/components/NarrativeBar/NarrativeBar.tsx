@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 export interface NarrativeBarProps {
   /** Narrative text to display */
@@ -34,6 +35,7 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
   isMobile = false,
   dataQualityHint,
 }) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleTextTap = useCallback(() => {
@@ -71,10 +73,10 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
           <button
             onClick={onRetry}
             className="flex items-center gap-1 px-2 py-1 text-[11px] text-content-secondary hover:text-content rounded hover:bg-surface-tertiary transition-colors flex-shrink-0"
-            title="Retry"
+            title={t('action.retry')}
           >
             <RefreshCw size={12} />
-            Retry
+            {t('action.retry')}
           </button>
         )}
       </div>
@@ -110,9 +112,9 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
       >
         {narrative}
         {isCached ? (
-          <span className="ml-1.5 text-[10px] text-content-muted">(cached)</span>
+          <span className="ml-1.5 text-[10px] text-content-muted">({t('status.cached')})</span>
         ) : (
-          <span className="ml-1.5 text-[10px] text-purple-400 font-medium">AI</span>
+          <span className="ml-1.5 text-[10px] text-purple-400 font-medium">{t('status.ai')}</span>
         )}
       </p>
       {onAsk && (
@@ -122,7 +124,7 @@ const NarrativeBar: React.FC<NarrativeBarProps> = ({
           data-testid="narrative-ask-button"
           title="Ask about this analysis"
         >
-          Ask
+          {t('action.ask')}
           <ArrowRight size={12} />
         </button>
       )}

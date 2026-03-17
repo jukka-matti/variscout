@@ -10,6 +10,7 @@ import {
   useNarration,
   useAICoScout,
   useKnowledgeSearch,
+  useTranslation,
   type UseAICoScoutReturn,
   type UseNarrationReturn,
   type UseAIContextReturn,
@@ -124,6 +125,7 @@ export function useEditorAI({
   onOpenCoScout,
   onOpenFindings,
 }: UseEditorAIOptions): UseEditorAIReturn {
+  const { formatStat } = useTranslation();
   const aiAvailable = enabled && isAIAvailable();
 
   // Per-component preferences (default all on)
@@ -371,7 +373,7 @@ export function useEditorAI({
     const ctx = aiContext.context;
     if (!ctx) return null;
     const statsStr = ctx.stats
-      ? `n=${ctx.stats.samples}${ctx.stats.cpk !== undefined ? `, Cpk=${ctx.stats.cpk.toFixed(2)}` : ''}`
+      ? `n=${ctx.stats.samples}${ctx.stats.cpk !== undefined ? `, Cpk=${formatStat(ctx.stats.cpk)}` : ''}`
       : 'No data';
     return {
       stats: statsStr,
@@ -379,7 +381,7 @@ export function useEditorAI({
       findingCount: ctx.findings?.total ?? 0,
       phase: ctx.investigation?.phase,
     };
-  }, [aiContext.context]);
+  }, [aiContext.context, formatStat]);
 
   return {
     aiContext,

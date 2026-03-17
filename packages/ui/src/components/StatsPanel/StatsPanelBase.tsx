@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Pencil } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
 import type { StatsPanelBaseProps, StatsPanelColorScheme } from './types';
@@ -71,6 +72,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
   renderSummaryFooter,
   getTerm,
 }) => {
+  const { t, formatStat } = useTranslation();
   const cs = colorScheme;
   const [activeTab, setActiveTab] = useState<'summary' | 'histogram' | 'normality'>(
     defaultTab || 'summary'
@@ -101,8 +103,8 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
           {hasSpecs && showCpk && (
             <>
               <MetricCard
-                label="Pass Rate"
-                value={(100 - (stats?.outOfSpecPercentage || 0)).toFixed(1)}
+                label={t('stats.passRate')}
+                value={formatStat(100 - (stats?.outOfSpecPercentage || 0), 1)}
                 unit="%"
                 helpTerm={getTerm('passRate')}
                 bgClass={cs.metricCardBg}
@@ -111,7 +113,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
               />
               <MetricCard
                 label="Cp"
-                value={stats?.cp?.toFixed(2) ?? 'N/A'}
+                value={stats?.cp !== undefined && stats?.cp !== null ? formatStat(stats.cp) : 'N/A'}
                 helpTerm={getTerm('cp')}
                 bgClass={cs.metricCardBg}
                 labelClass={cs.metricLabel}
@@ -119,7 +121,9 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
               />
               <MetricCard
                 label="Cpk"
-                value={stats?.cpk?.toFixed(2) ?? 'N/A'}
+                value={
+                  stats?.cpk !== undefined && stats?.cpk !== null ? formatStat(stats.cpk) : 'N/A'
+                }
                 helpTerm={getTerm('cpk')}
                 bgClass={cs.metricCardBg}
                 labelClass={cs.metricLabel}
@@ -128,31 +132,41 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             </>
           )}
           <MetricCard
-            label="Mean"
-            value={stats?.mean?.toFixed(2) ?? 'N/A'}
+            label={t('stats.mean')}
+            value={
+              stats?.mean !== undefined && stats?.mean !== null ? formatStat(stats.mean) : 'N/A'
+            }
             helpTerm={getTerm('mean')}
             bgClass={cs.metricCardBg}
             labelClass={cs.metricLabel}
             valueClass={cs.metricValue}
           />
           <MetricCard
-            label="Median"
-            value={stats?.median?.toFixed(2) ?? 'N/A'}
+            label={t('stats.median')}
+            value={
+              stats?.median !== undefined && stats?.median !== null
+                ? formatStat(stats.median)
+                : 'N/A'
+            }
             helpTerm={getTerm('median')}
             bgClass={cs.metricCardBg}
             labelClass={cs.metricLabel}
             valueClass={cs.metricValue}
           />
           <MetricCard
-            label="Std Dev"
-            value={stats?.stdDev?.toFixed(2) ?? 'N/A'}
+            label={t('stats.stdDev')}
+            value={
+              stats?.stdDev !== undefined && stats?.stdDev !== null
+                ? formatStat(stats.stdDev)
+                : 'N/A'
+            }
             helpTerm={getTerm('stdDev')}
             bgClass={cs.metricCardBg}
             labelClass={cs.metricLabel}
             valueClass={cs.metricValue}
           />
           <MetricCard
-            label="Samples"
+            label={t('stats.samples')}
             value={`n=${filteredData?.length ?? 0}`}
             bgClass={cs.metricCardBg}
             labelClass={cs.metricLabel}

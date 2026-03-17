@@ -8,6 +8,7 @@ import type {
   IdeaImpact,
 } from '@variscout/core';
 import { ChevronRight, ChevronDown } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import HypothesisNode from './HypothesisNode';
 import { HelpTooltip } from '../HelpTooltip';
 import { useGlossary } from '../../hooks';
@@ -105,6 +106,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   onAskCoScout,
 }) => {
   const { getTerm } = useGlossary();
+  const { formatStat } = useTranslation();
 
   // Track which nodes are expanded
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -372,7 +374,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
                         </span>
                         {factorEta !== undefined && (
                           <span className="text-[10px] text-content-muted ml-auto shrink-0">
-                            {factorEta.toFixed(1)}%
+                            {formatStat(factorEta, 1)}%
                           </span>
                         )}
                         <span className="text-[10px] text-content-muted shrink-0">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '@variscout/hooks';
 import { Activity, Layers, X } from 'lucide-react';
 import { EditableChartTitle } from '../EditableChartTitle';
 import { FactorSelector } from '../FactorSelector';
@@ -259,6 +260,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
   boxplotObservationCount,
   paretoObservationCount,
 }) => {
+  const { formatStat } = useTranslation();
   const {
     contextMenu,
     closeContextMenu,
@@ -353,7 +355,7 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
           <span className="text-content-secondary">
             Overall Mean:{' '}
             <span className="text-content font-mono">
-              {stagedStats.overallStats.mean.toFixed(2)}
+              {formatStat(stagedStats.overallStats.mean)}
             </span>
           </span>
         </div>
@@ -361,15 +363,15 @@ const DashboardLayoutBase: React.FC<DashboardLayoutBaseProps> = ({
         controlStats && (
           <div className="flex gap-4 text-sm bg-surface/50 px-3 py-1.5 rounded-lg border border-edge/50">
             <span className="text-content-secondary flex items-center gap-1">
-              UCL: <span className="text-content font-mono">{controlStats.ucl.toFixed(2)}</span>
+              UCL: <span className="text-content font-mono">{formatStat(controlStats.ucl)}</span>
               {getTermUcl && <HelpTooltip term={getTermUcl} iconSize={12} />}
             </span>
             <span className="text-content-secondary flex items-center gap-1">
-              Mean: <span className="text-content font-mono">{controlStats.mean.toFixed(2)}</span>
+              Mean: <span className="text-content font-mono">{formatStat(controlStats.mean)}</span>
               {getTermMean && <HelpTooltip term={getTermMean} iconSize={12} />}
             </span>
             <span className="text-content-secondary flex items-center gap-1">
-              LCL: <span className="text-content font-mono">{controlStats.lcl.toFixed(2)}</span>
+              LCL: <span className="text-content font-mono">{formatStat(controlStats.lcl)}</span>
               {getTermLcl && <HelpTooltip term={getTermLcl} iconSize={12} />}
             </span>
           </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { Locale, MessageCatalog } from '@variscout/core';
-import { getMessage, formatStatistic, formatPercent } from '@variscout/core/i18n';
+import { LOCALES, getMessage, formatStatistic, formatPercent } from '@variscout/core/i18n';
 
 export interface UseTranslationReturn {
   /** Get a translated message by key */
@@ -17,13 +17,13 @@ export interface UseTranslationReturn {
 
 /**
  * Get the current locale from the document attribute.
- * Falls back to 'en' if not set.
+ * Falls back to 'en' if not set or not a valid locale.
  */
 function getDocumentLocale(): Locale {
   if (typeof document === 'undefined') return 'en';
   const locale = document.documentElement.getAttribute('data-locale');
-  if (locale === 'de' || locale === 'es' || locale === 'fr' || locale === 'pt') {
-    return locale;
+  if (locale && (LOCALES as readonly string[]).includes(locale)) {
+    return locale as Locale;
   }
   return 'en';
 }

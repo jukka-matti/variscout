@@ -62,7 +62,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
   cpkTarget = DEFAULT_CPK_TARGET,
   showLegend = false,
 }) => {
-  const { chrome, fontScale } = useChartTheme();
+  const { chrome, fontScale, formatStat } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'ichart', sourceBarHeight);
   const fonts = getScaledFonts(parentWidth, fontScale);
@@ -151,17 +151,17 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
     if (controlLimits) {
       labels.push({
         y: yScale(controlLimits.ucl),
-        text: `UCL: ${controlLimits.ucl.toFixed(2)}`,
+        text: `UCL: ${formatStat(controlLimits.ucl)}`,
         fill: chrome.axisSecondary,
       });
       labels.push({
         y: yScale(controlLimits.mean),
-        text: `Mean: ${controlLimits.mean.toFixed(2)}`,
+        text: `Mean: ${formatStat(controlLimits.mean)}`,
         fill: chartColors.mean,
       });
       labels.push({
         y: yScale(controlLimits.lcl),
-        text: `LCL: ${controlLimits.lcl.toFixed(2)}`,
+        text: `LCL: ${formatStat(controlLimits.lcl)}`,
         fill: chrome.axisSecondary,
       });
     }
@@ -169,7 +169,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
     // Add target label
     labels.push({
       y: yScale(cpkTarget),
-      text: `Target: ${cpkTarget.toFixed(2)}`,
+      text: `Target: ${formatStat(cpkTarget)}`,
       fill: chartColors.target,
     });
 
@@ -196,6 +196,7 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
     chrome.axisSecondary,
     chartColors.mean,
     chartColors.target,
+    formatStat,
   ]);
 
   const xTickCount = getResponsiveTickCount(width, 'x');
@@ -570,13 +571,17 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
             <div>
               Cp:{' '}
               <span style={{ fontFamily: 'monospace' }}>
-                {tooltipData.channel.cp?.toFixed(2) ?? 'N/A'}
+                {tooltipData.channel.cp !== undefined && tooltipData.channel.cp !== null
+                  ? formatStat(tooltipData.channel.cp)
+                  : 'N/A'}
               </span>
             </div>
             <div>
               Cpk:{' '}
               <span style={{ fontFamily: 'monospace' }}>
-                {tooltipData.channel.cpk?.toFixed(2) ?? 'N/A'}
+                {tooltipData.channel.cpk !== undefined && tooltipData.channel.cpk !== null
+                  ? formatStat(tooltipData.channel.cpk)
+                  : 'N/A'}
               </span>
             </div>
             <div>
@@ -584,7 +589,9 @@ export const PerformanceIChartBase: React.FC<PerformanceIChartBaseProps> = ({
             </div>
             <div>
               Mean:{' '}
-              <span style={{ fontFamily: 'monospace' }}>{tooltipData.channel.mean.toFixed(2)}</span>
+              <span style={{ fontFamily: 'monospace' }}>
+                {formatStat(tooltipData.channel.mean)}
+              </span>
             </div>
             {/* Control status */}
             {tooltipData.status && (

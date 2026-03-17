@@ -61,7 +61,7 @@ export const PerformanceCapabilityBase: React.FC<PerformanceCapabilityProps> = (
   specs,
   showBranding = true,
 }) => {
-  const { chrome, fontScale } = useChartTheme();
+  const { chrome, fontScale, formatStat } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'histogram', sourceBarHeight);
   const fonts = getScaledFonts(parentWidth, fontScale);
@@ -223,7 +223,7 @@ export const PerformanceCapabilityBase: React.FC<PerformanceCapabilityProps> = (
             fontSize={fonts.statLabel}
             textAnchor="middle"
           >
-            μ = {mean.toFixed(2)}
+            μ = {formatStat(mean)}
           </text>
 
           {/* X Axis */}
@@ -292,11 +292,11 @@ export const PerformanceCapabilityBase: React.FC<PerformanceCapabilityProps> = (
             n = {n}
           </text>
           <text x={8} y={52} fill={chrome.labelSecondary} fontSize={10}>
-            σ = {stdDev.toFixed(3)}
+            σ = {formatStat(stdDev, 3)}
           </text>
           {cpk !== undefined && (
             <text x={8} y={66} fill={chrome.labelPrimary} fontSize={11} fontWeight="bold">
-              Cpk = {cpk.toFixed(2)}
+              Cpk = {formatStat(cpk)}
             </text>
           )}
         </Group>

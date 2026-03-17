@@ -26,7 +26,7 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
   variationThreshold = 50,
   compact = false,
 }) => {
-  const { isDark } = useChartTheme();
+  const { isDark, formatStat } = useChartTheme();
 
   // Find the row with highest StdDev
   const highestStdDevKey = useMemo(() => {
@@ -134,12 +134,12 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
                 <td
                   className={`${padding} text-right ${textSecondary} border ${borderColor} tabular-nums`}
                 >
-                  {d.mean.toFixed(2)}
+                  {formatStat(d.mean)}
                 </td>
                 <td
                   className={`${padding} text-right ${textSecondary} border ${borderColor} tabular-nums`}
                 >
-                  {d.median.toFixed(2)}
+                  {formatStat(d.median)}
                 </td>
                 <td
                   className={`${padding} text-right border ${borderColor} tabular-nums ${
@@ -147,7 +147,7 @@ const BoxplotStatsTable: React.FC<BoxplotStatsTableProps> = ({
                   }`}
                 >
                   {isHighestStdDev && <span className={`${starColor} mr-1`}>★</span>}
-                  {d.stdDev.toFixed(3)}
+                  {formatStat(d.stdDev, 3)}
                 </td>
                 {showVariation && (
                   <td

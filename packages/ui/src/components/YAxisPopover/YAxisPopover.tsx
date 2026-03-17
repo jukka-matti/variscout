@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { RotateCcw, X } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 /**
  * Color scheme for YAxisPopover component
@@ -110,6 +111,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
   anchorPosition,
   colorScheme = defaultColorScheme,
 }) => {
+  const { formatStat } = useTranslation();
   const [localMin, setLocalMin] = useState<string>('');
   const [localMax, setLocalMax] = useState<string>('');
   const [hasChanges, setHasChanges] = useState(false);
@@ -218,7 +220,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
               Max
             </label>
             <span className={`text-[10px] ${colorScheme.autoValueText}`}>
-              Auto: {autoMax.toFixed(2)}
+              Auto: {formatStat(autoMax)}
             </span>
           </div>
           <input
@@ -228,7 +230,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
             step="any"
             value={localMax}
             onChange={e => setLocalMax(e.target.value)}
-            placeholder={autoMax.toFixed(2)}
+            placeholder={formatStat(autoMax)}
             className={`w-full ${colorScheme.inputBackground} border ${colorScheme.inputBorder} rounded px-2 py-1.5 text-sm text-white text-right outline-none focus:border-blue-500 transition-colors`}
           />
         </div>
@@ -238,7 +240,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
               Min
             </label>
             <span className={`text-[10px] ${colorScheme.autoValueText}`}>
-              Auto: {autoMin.toFixed(2)}
+              Auto: {formatStat(autoMin)}
             </span>
           </div>
           <input
@@ -248,7 +250,7 @@ const YAxisPopover: React.FC<YAxisPopoverProps> = ({
             step="any"
             value={localMin}
             onChange={e => setLocalMin(e.target.value)}
-            placeholder={autoMin.toFixed(2)}
+            placeholder={formatStat(autoMin)}
             className={`w-full ${colorScheme.inputBackground} border ${colorScheme.inputBorder} rounded px-2 py-1.5 text-sm text-white text-right outline-none focus:border-blue-500 transition-colors`}
           />
         </div>

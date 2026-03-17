@@ -1,5 +1,27 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
+vi.mock('@variscout/hooks', async importOriginal => {
+  const actual = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => {
+        const map: Record<string, string> = {
+          'data.pasteData': 'Paste Data',
+          'action.save': 'Save',
+          'action.cancel': 'Cancel',
+        };
+        return map[key] ?? key;
+      },
+      locale: 'en' as const,
+      formatNumber: (v: number, d = 2) => v.toFixed(d),
+      formatStat: (v: number, d = 2) => v.toFixed(d),
+      formatPct: (v: number, d = 1) => `${(v * 100).toFixed(d)}%`,
+    }),
+  };
+});
+
 import PasteScreen from '../data/PasteScreen';
 
 describe('PasteScreen', () => {
@@ -11,7 +33,7 @@ describe('PasteScreen', () => {
 
   it('renders heading and textarea', () => {
     render(<PasteScreen {...defaultProps} />);
-    expect(screen.getByText('Paste Your Data')).toBeInTheDocument();
+    expect(screen.getByText('Paste Data')).toBeInTheDocument();
     expect(
       screen.getByPlaceholderText('Paste rows from Excel, Google Sheets, or a CSV file...')
     ).toBeInTheDocument();

@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, FileText, Copy, Share2 } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 export interface ReportViewBaseColorScheme {
   container: string;
@@ -80,6 +81,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
   colorScheme,
   contentRef,
 }) => {
+  const { t } = useTranslation();
   const scheme: ReportViewBaseColorScheme = {
     ...reportViewBaseDefaultColorScheme,
     ...colorScheme,
@@ -152,7 +154,7 @@ export const ReportViewBase: React.FC<ReportViewBaseProps> = ({
           <button
             onClick={onClose}
             className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
-            aria-label="Close report"
+            aria-label={t('action.close')}
           >
             <X size={18} />
           </button>

@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Target, Beaker } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import type { Hypothesis, ProcessContext } from '@variscout/core';
 import type { TargetMetric } from '@variscout/core';
 
@@ -45,6 +46,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
   projectedValue,
   defaultCollapsed = false,
 }) => {
+  const { t, formatStat } = useTranslation();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   const hasBrief = !!(
@@ -133,7 +135,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
       >
         {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
         <span className="text-sm font-medium text-content truncate flex-1">
-          {processContext?.problemStatement || 'Investigation Brief'}
+          {processContext?.problemStatement || t('investigation.brief')}
         </span>
         {hypotheses.length > 0 && (
           <span className="text-[10px] text-content-muted">
@@ -185,7 +187,7 @@ const BriefHeader: React.FC<BriefHeaderProps> = ({
               </div>
               {currentValue !== undefined && (
                 <span className="text-[10px] text-content-muted">
-                  now {currentValue.toFixed(2)}
+                  now {formatStat(currentValue)}
                 </span>
               )}
             </div>

@@ -13,7 +13,7 @@ import {
   ClipboardCopy,
 } from 'lucide-react';
 import type { CoScoutMessage, CoScoutError } from '@variscout/core';
-import { useResizablePanel } from '@variscout/hooks';
+import { useResizablePanel, useTranslation } from '@variscout/hooks';
 import { CoScoutMessages } from './CoScoutMessages';
 
 export interface CoScoutPanelResizeConfig {
@@ -87,6 +87,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
   aiContextSummary,
   colorScheme: csOverride,
 }) => {
+  const { t } = useTranslation();
   const cs = { ...defaultCoScoutPanelColorScheme, ...csOverride };
   const [input, setInput] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
@@ -264,7 +265,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
                         data-testid="coscout-menu-clear"
                       >
                         <RotateCw size={12} />
-                        Clear conversation
+                        {t('coscout.clear')}
                       </button>
                     )}
                     {onCopyConversation && (
@@ -274,7 +275,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
                         data-testid="coscout-menu-copy-conversation"
                       >
                         {copyConvFeedback ? <Check size={12} /> : <ClipboardCopy size={12} />}
-                        {copyConvFeedback ? 'Copied!' : 'Copy conversation'}
+                        {copyConvFeedback ? 'Copied!' : t('action.copyAll')}
                       </button>
                     )}
                     {onCopyLastResponse && (
@@ -284,7 +285,7 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
                         data-testid="coscout-menu-copy"
                       >
                         {copyFeedback ? <Check size={12} /> : <Copy size={12} />}
-                        {copyFeedback ? 'Copied!' : 'Copy last response'}
+                        {copyFeedback ? 'Copied!' : t('action.copy')}
                       </button>
                     )}
                   </div>
@@ -388,8 +389,8 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
               <button
                 onClick={onStopStreaming}
                 className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors flex-shrink-0"
-                title="Stop"
-                aria-label="Stop streaming"
+                title={t('coscout.stop')}
+                aria-label={t('coscout.stop')}
                 data-testid="coscout-stop-button"
               >
                 <Square size={14} />
@@ -399,8 +400,8 @@ const CoScoutPanelBase: React.FC<CoScoutPanelBaseProps> = ({
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
                 className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-                title="Send"
-                aria-label="Send message"
+                title={t('coscout.send')}
+                aria-label={t('coscout.send')}
               >
                 <Send size={14} />
               </button>

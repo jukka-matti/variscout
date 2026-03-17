@@ -6,9 +6,11 @@
  */
 
 import React from 'react';
+import { useTranslation } from '@variscout/hooks';
 import { useData } from '../context/DataContext';
 
 const PerformanceSummary: React.FC = () => {
+  const { formatStat } = useTranslation();
   const { performanceResult, selectedMeasure, setSelectedMeasure, measureLabel } = useData();
 
   if (!performanceResult) {
@@ -28,7 +30,7 @@ const PerformanceSummary: React.FC = () => {
         </div>
         <div className="text-content-secondary border-l border-edge-secondary pl-4">
           Avg Cpk:{' '}
-          <span className="font-mono font-medium text-content">{overall.meanCpk.toFixed(2)}</span>
+          <span className="font-mono font-medium text-content">{formatStat(overall.meanCpk)}</span>
         </div>
         {needsAttentionCount > 0 && (
           <div className="text-amber-400 border-l border-edge-secondary pl-4">

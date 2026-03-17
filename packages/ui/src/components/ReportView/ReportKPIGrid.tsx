@@ -1,5 +1,6 @@
 import React from 'react';
 import type { StatsResult, SpecLimits } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 
 export interface ReportKPIGridColorScheme {
   container: string;
@@ -36,6 +37,7 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
   cpkTarget = 1.33,
   colorScheme,
 }) => {
+  const { formatStat } = useTranslation();
   const scheme: ReportKPIGridColorScheme = {
     ...reportKPIGridDefaultColorScheme,
     ...colorScheme,
@@ -57,27 +59,27 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
       {/* Mean */}
       <div className={scheme.card}>
         <div className={scheme.label}>Mean</div>
-        <div className={`mt-1 ${scheme.value}`}>{stats.mean.toFixed(2)}</div>
+        <div className={`mt-1 ${scheme.value}`}>{formatStat(stats.mean)}</div>
       </div>
 
       {/* Variation */}
       <div className={scheme.card}>
         <div className={scheme.label}>Variation (σ)</div>
-        <div className={`mt-1 ${scheme.value}`}>{stats.stdDev.toFixed(3)}</div>
+        <div className={`mt-1 ${scheme.value}`}>{formatStat(stats.stdDev, 3)}</div>
       </div>
 
       {/* Cpk */}
       <div className={scheme.card}>
         <div className={scheme.label}>Cpk</div>
         <div className={`mt-1 text-lg font-semibold ${cpkColor}`}>
-          {stats.cpk !== undefined ? stats.cpk.toFixed(2) : '—'}
+          {stats.cpk !== undefined ? formatStat(stats.cpk) : '—'}
         </div>
       </div>
 
       {/* In-Spec % */}
       <div className={scheme.card}>
         <div className={scheme.label}>In-Spec %</div>
-        <div className={`mt-1 ${scheme.value}`}>{inSpecPct.toFixed(1)}%</div>
+        <div className={`mt-1 ${scheme.value}`}>{formatStat(inSpecPct, 1)}%</div>
       </div>
     </div>
   );

@@ -16,6 +16,34 @@ vi.mock('../../../context/DataContext', () => ({
   }),
 }));
 
+vi.mock('@variscout/hooks', async importOriginal => {
+  const actual = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => {
+        const map: Record<string, string> = {
+          'nav.settings': 'Settings',
+          'display.preferences': 'Display Preferences',
+          'display.chartTextSize': 'Chart Text Size',
+          'display.compact': 'Compact',
+          'display.normal': 'Normal',
+          'display.large': 'Large',
+          'display.lockYAxis': 'Lock Y-axis',
+          'display.filterContext': 'Filter context',
+          'display.showSpecs': 'Show specifications',
+          'settings.language': 'Language',
+        };
+        return map[key] ?? key;
+      },
+      locale: 'en' as const,
+      formatNumber: (v: number, d = 2) => v.toFixed(d),
+      formatStat: (v: number, d = 2) => v.toFixed(d),
+      formatPct: (v: number, d = 1) => `${(v * 100).toFixed(d)}%`,
+    }),
+  };
+});
+
 // Import component AFTER mocking its dependencies
 import SettingsPanel from '../SettingsPanel';
 
@@ -87,8 +115,8 @@ describe('SettingsPanel', () => {
     renderPanel(true);
 
     expect(screen.getByText('Display Preferences')).toBeInTheDocument();
-    expect(screen.getByText('Lock Y-axis when drilling')).toBeInTheDocument();
-    expect(screen.getByText('Show filter context on charts')).toBeInTheDocument();
+    expect(screen.getByText('Lock Y-axis')).toBeInTheDocument();
+    expect(screen.getByText('Filter context')).toBeInTheDocument();
     // Removed toggles should not be present
     expect(screen.queryByText('Show specification limits')).not.toBeInTheDocument();
     expect(screen.queryByText('Show Cpk capability')).not.toBeInTheDocument();

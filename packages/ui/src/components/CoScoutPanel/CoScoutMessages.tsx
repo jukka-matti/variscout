@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from '@variscout/hooks';
 import type { CoScoutMessage, CoScoutError } from '@variscout/core';
 
 /**
@@ -33,17 +34,6 @@ function renderWithSourceBadges(text: string): React.ReactNode {
   return parts.length > 0 ? parts : text;
 }
 
-function getErrorText(error: CoScoutError): string {
-  switch (error.type) {
-    case 'rate-limit':
-      return 'Please wait a moment before asking again.';
-    case 'content-filter':
-      return "I can't answer that question. Try rephrasing.";
-    default:
-      return 'Something went wrong.';
-  }
-}
-
 export interface CoScoutMessagesProps {
   messages: CoScoutMessage[];
   isLoading: boolean;
@@ -59,7 +49,19 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   onRetry,
   knowledgeResultCount,
 }) => {
+  const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const getTranslatedErrorText = (error: CoScoutError): string => {
+    switch (error.type) {
+      case 'rate-limit':
+        return t('coscout.rateLimit');
+      case 'content-filter':
+        return t('coscout.contentFilter');
+      default:
+        return t('coscout.error');
+    }
+  };
 
   // Auto-scroll on new messages or streaming content
   const lastMessageContent = messages.length > 0 ? messages[messages.length - 1]?.content : '';
@@ -87,13 +89,13 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
         >
           {msg.error ? (
             <div className="max-w-[90%] bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-              <p className="text-xs text-red-400">{getErrorText(msg.error)}</p>
+              <p className="text-xs text-red-400">{getTranslatedErrorText(msg.error)}</p>
               {msg.error.retryable && onRetry && (
                 <button
                   onClick={onRetry}
                   className="mt-2 text-[11px] text-red-300 hover:text-red-200 underline"
                 >
-                  Retry
+                  {t('action.retry')}
                 </button>
               )}
             </div>

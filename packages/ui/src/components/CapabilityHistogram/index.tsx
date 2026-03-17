@@ -7,6 +7,7 @@
 import React from 'react';
 import { CapabilityHistogramBase } from '@variscout/charts';
 import { shouldShowBranding, getBrandingText, type SpecLimits } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 
 export interface CapabilityHistogramProps {
   parentWidth: number;
@@ -36,6 +37,7 @@ export const CapabilityHistogram = ({
   cpkBefore,
   cpkAfter,
 }: CapabilityHistogramProps) => {
+  const { formatStat } = useTranslation();
   const showBranding = shouldShowBranding();
   const showComparisonBadge = cpkBefore !== undefined && cpkAfter !== undefined;
   const delta = showComparisonBadge ? cpkAfter! - cpkBefore! : 0;
@@ -48,15 +50,15 @@ export const CapabilityHistogram = ({
           data-testid="cpk-comparison-badge"
         >
           <span className="text-slate-400 dark:text-slate-500">
-            Before Cpk: {cpkBefore!.toFixed(2)}
+            Before Cpk: {formatStat(cpkBefore!)}
           </span>
           <span className="text-slate-400 dark:text-slate-500">&rarr;</span>
           <span className="text-slate-400 dark:text-slate-500">
-            After Cpk: {cpkAfter!.toFixed(2)}
+            After Cpk: {formatStat(cpkAfter!)}
           </span>
           <span className={`font-medium ${getCpkDeltaColor(delta)}`}>
             ({delta > 0 ? '+' : ''}
-            {delta.toFixed(2)})
+            {formatStat(delta)})
           </span>
         </div>
       )}

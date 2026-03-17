@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { X, Tag } from 'lucide-react';
 import type { DataRow } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 
 export interface SelectionPanelProps {
   /** Selected point indices in filteredData */
@@ -58,6 +59,7 @@ export const SelectionPanel: React.FC<SelectionPanelProps> = ({
   onClearSelection,
   onCreateFactor,
 }) => {
+  const { formatStat } = useTranslation();
   // Convert Set to sorted array of indices
   const sortedIndices = useMemo(() => {
     return Array.from(selectedIndices).sort((a, b) => a - b);
@@ -84,12 +86,12 @@ export const SelectionPanel: React.FC<SelectionPanelProps> = ({
       return {
         index,
         rowNumber: index + 1, // 1-based for user display
-        value: value !== null && value !== undefined ? Number(value).toFixed(1) : '—',
+        value: value !== null && value !== undefined ? formatStat(Number(value), 1) : '—',
         factors: factorValues,
         time: timeValue,
       };
     });
-  }, [sortedIndices, data, outcome, factors, timeColumn, columnAliases]);
+  }, [sortedIndices, data, outcome, factors, timeColumn, columnAliases, formatStat]);
 
   const remainingCount = sortedIndices.length - 5;
 

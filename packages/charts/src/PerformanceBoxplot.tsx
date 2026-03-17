@@ -67,7 +67,7 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
   cpkThresholds = CPK_THRESHOLDS,
   showViolin = false,
 }) => {
-  const { chrome, fontScale } = useChartTheme();
+  const { chrome, fontScale, formatStat } = useChartTheme();
   const sourceBarHeight = getSourceBarHeight(showBranding);
   const margin = getResponsiveMargins(parentWidth, 'boxplot', sourceBarHeight);
   const fonts = getScaledFonts(parentWidth, fontScale);
@@ -429,22 +429,26 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
               }}
             >
               <span>Max:</span>
-              <span style={{ fontFamily: 'monospace' }}>{tooltipData.stats.max.toFixed(2)}</span>
+              <span style={{ fontFamily: 'monospace' }}>{formatStat(tooltipData.stats.max)}</span>
               <span>Q3:</span>
-              <span style={{ fontFamily: 'monospace' }}>{tooltipData.stats.q3.toFixed(2)}</span>
+              <span style={{ fontFamily: 'monospace' }}>{formatStat(tooltipData.stats.q3)}</span>
               <span>Median:</span>
-              <span style={{ fontFamily: 'monospace' }}>{tooltipData.stats.median.toFixed(2)}</span>
+              <span style={{ fontFamily: 'monospace' }}>
+                {formatStat(tooltipData.stats.median)}
+              </span>
               <span>Mean:</span>
-              <span style={{ fontFamily: 'monospace' }}>{tooltipData.stats.mean.toFixed(2)}</span>
+              <span style={{ fontFamily: 'monospace' }}>{formatStat(tooltipData.stats.mean)}</span>
               <span>Q1:</span>
-              <span style={{ fontFamily: 'monospace' }}>{tooltipData.stats.q1.toFixed(2)}</span>
+              <span style={{ fontFamily: 'monospace' }}>{formatStat(tooltipData.stats.q1)}</span>
               <span>Min:</span>
-              <span style={{ fontFamily: 'monospace' }}>{tooltipData.stats.min.toFixed(2)}</span>
+              <span style={{ fontFamily: 'monospace' }}>{formatStat(tooltipData.stats.min)}</span>
             </div>
             <div style={{ paddingTop: '4px', borderTop: `1px solid ${chrome.gridLine}` }}>
               Cpk:{' '}
               <span style={{ fontFamily: 'monospace' }}>
-                {tooltipData.channel.cpk?.toFixed(2) ?? 'N/A'}
+                {tooltipData.channel.cpk !== undefined && tooltipData.channel.cpk !== null
+                  ? formatStat(tooltipData.channel.cpk)
+                  : 'N/A'}
               </span>
             </div>
           </div>
@@ -547,7 +551,7 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
                       borderBottom: `1px solid ${chrome.gridLine}`,
                     }}
                   >
-                    {stats.mean.toFixed(2)}
+                    {formatStat(stats.mean)}
                   </td>
                   <td
                     style={{
@@ -558,7 +562,9 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
                       borderBottom: `1px solid ${chrome.gridLine}`,
                     }}
                   >
-                    {channel.stdDev?.toFixed(3) ?? '-'}
+                    {channel.stdDev !== undefined && channel.stdDev !== null
+                      ? formatStat(channel.stdDev, 3)
+                      : '-'}
                   </td>
                   <td
                     style={{
@@ -576,7 +582,9 @@ export const PerformanceBoxplotBase: React.FC<PerformanceBoxplotProps> = ({
                       borderBottom: `1px solid ${chrome.gridLine}`,
                     }}
                   >
-                    {channel.cpk?.toFixed(2) ?? '-'}
+                    {channel.cpk !== undefined && channel.cpk !== null
+                      ? formatStat(channel.cpk)
+                      : '-'}
                   </td>
                 </tr>
               ))}
