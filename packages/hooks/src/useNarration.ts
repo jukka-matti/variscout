@@ -5,6 +5,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { AIContext } from '@variscout/core';
+import { djb2Hash } from '@variscout/core';
 
 export type NarrationStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -46,11 +47,7 @@ function hashContext(ctx: AIContext): string {
       ? { d: ctx.stagedComparison.deltas, sn: ctx.stagedComparison.stageNames }
       : null,
   });
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) {
-    hash = ((hash << 5) - hash + key.charCodeAt(i)) | 0;
-  }
-  return String(hash);
+  return djb2Hash(key);
 }
 
 export function useNarration(options: UseNarrationOptions): UseNarrationReturn {

@@ -304,19 +304,30 @@ export function buildChartInsightPrompt(context: AIContext, data: ChartInsightDa
   return parts.join('\n\n');
 }
 
+/** Options for building the CoScout system prompt */
+export interface BuildCoScoutSystemPromptOptions {
+  glossaryFragment?: string;
+  investigation?: AIContext['investigation'];
+  teamContributors?: AIContext['teamContributors'];
+  sampleCount?: number;
+  stagedComparison?: AIContext['stagedComparison'];
+  locale?: Locale;
+}
+
 /**
  * Build the system prompt for conversational CoScout assistant.
  * Includes glossary grounding as static prefix for prompt caching.
  * When investigation context is provided, adds problem statement and hypothesis awareness.
  */
-export function buildCoScoutSystemPrompt(
-  glossaryFragment?: string,
-  investigation?: AIContext['investigation'],
-  teamContributors?: AIContext['teamContributors'],
-  sampleCount?: number,
-  stagedComparison?: AIContext['stagedComparison'],
-  locale?: Locale
-): string {
+export function buildCoScoutSystemPrompt(options: BuildCoScoutSystemPromptOptions = {}): string {
+  const {
+    glossaryFragment,
+    investigation,
+    teamContributors,
+    sampleCount,
+    stagedComparison,
+    locale,
+  } = options;
   const parts: string[] = [];
   const hint = buildLocaleHint(locale);
   if (hint) parts.push(hint);
@@ -563,14 +574,14 @@ export function buildCoScoutMessages(
   // System prompt with glossary (static cacheable prefix) + investigation context
   messages.push({
     role: 'system',
-    content: buildCoScoutSystemPrompt(
-      context.glossaryFragment,
-      context.investigation,
-      context.teamContributors,
-      context.stats?.samples,
-      context.stagedComparison,
-      context.locale
-    ),
+    content: buildCoScoutSystemPrompt({
+      glossaryFragment: context.glossaryFragment,
+      investigation: context.investigation,
+      teamContributors: context.teamContributors,
+      sampleCount: context.stats?.samples,
+      stagedComparison: context.stagedComparison,
+      locale: context.locale,
+    }),
   });
 
   // Context summary — variable per analysis state

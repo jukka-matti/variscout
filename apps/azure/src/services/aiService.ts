@@ -14,6 +14,7 @@ import {
   buildSummaryPrompt,
   buildChartInsightSystemPrompt,
   isTeamAIPlan,
+  djb2Hash,
 } from '@variscout/core';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
@@ -138,16 +139,8 @@ export function getAIProviderLabel(): string | null {
 // Cache helpers
 // ---------------------------------------------------------------------------
 
-/**
- * DJB2 hash for cache keys.
- */
-function hashString(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
-  }
-  return String(hash);
-}
+// DJB2 hash imported from @variscout/core as djb2Hash
+const hashString = djb2Hash;
 
 /**
  * Get the AI endpoint from environment variable.

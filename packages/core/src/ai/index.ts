@@ -7,8 +7,6 @@ export type {
   TargetMetric,
   InvestigationPhase,
   AIContext,
-  NarrationRequest,
-  NarrationResponse,
   AIErrorType,
   CoScoutMessage,
   CoScoutError,
@@ -20,7 +18,7 @@ export {
   type BuildAIContextOptions,
   type AIStatsInput,
 } from './buildAIContext';
-export type { ChartInsightData } from './promptTemplates';
+export type { ChartInsightData, BuildCoScoutSystemPromptOptions } from './promptTemplates';
 export {
   buildNarrationSystemPrompt,
   buildSummaryPrompt,
@@ -49,3 +47,5 @@ export {
 } from './chartInsights';
 
 export { buildSuggestedQuestions, formatForMobile } from './suggestedQuestions';
+
+export { djb2Hash } from './hash';

@@ -152,6 +152,104 @@ focusContext?: {
 
 ---
 
+## Locale-Aware Prompting
+
+VariScout prompts are always written in English, but the response language switches based on the user's locale setting. See [ADR-025](../../07-decisions/adr-025-internationalization.md).
+
+### `buildLocaleHint()`
+
+Prepends a `LANGUAGE: Respond in [locale]...` directive to system prompts. This hint is injected at the very start of the CoScout system message, before the role definition, so the model sees the language instruction first.
+
+- When locale is `en`, no hint is emitted (default behavior)
+- For other locales (e.g., `de`, `fi`, `ja`, `zh`), produces a one-line directive: `LANGUAGE: Respond in German. Use professional quality terminology.`
+- Token impact: ~15 tokens per non-English locale; zero tokens for English
+
+### Bilingual Glossary
+
+`buildGlossaryPrompt({ locale })` produces bilingual sub-lines when a non-English locale is active. Each glossary term includes the English definition followed by a localized line:
+
+```
+**UCL**: Upper Control Limit — 3σ above the process mean
+  DE: **OKG**: Obere Kontrollgrenze — 3σ über dem Prozessmittelwert
+```
+
+- Localized terms are sourced from `@variscout/core/i18n` locale catalogs
+- Token impact: ~30% increase in the glossary section when a non-English locale is active
+- Only terms with available translations in the active locale produce bilingual lines; others remain English-only
+
+### Design Principle
+
+Prompts stay in English to preserve prompt caching (the English prompt prefix remains stable across locales). Only the response language switches. The locale hint is placed before the static prefix so it does not fragment the cacheable region — Azure AI Foundry caches from the first token, and the hint is short enough (~15 tokens) that the remaining static prefix still exceeds the 1,024-token caching threshold.
+
+---
+
+## Staged Comparison Context
+
+When the analysis is in staged/verification mode (before vs. after comparison), additional context fields are injected to ground CoScout in the improvement evidence.
+
+### `stagedComparison` Field (Tier 3 — Dynamic)
+
+```typescript
+stagedComparison?: {
+  stageNames: [string, string];       // e.g., ["Before", "After"]
+  deltas: {
+    mean: number;                      // shift in process mean
+    sigma: number;                     // shift in std deviation
+    cpkBefore: number | null;
+    cpkAfter: number | null;
+    colorCoding: 'improved' | 'degraded' | 'unchanged';
+  };
+}
+```
+
+- **Source:** Computed from `StagedAnalysisResult` in `buildAIContext()` when `stageColumn` is set
+- **Placement:** Tier 3 dynamic system message, alongside stats and filters
+
+### Prompt Overrides
+
+- **`buildSummaryPrompt()`** — When `stagedComparison` is present, the closing instruction switches from the standard "suggest next drill" to a verification-focused directive: summarize what improved, what degraded, and whether the Cpk target is met.
+- **`buildCoScoutSystemPrompt()`** — The acting-phase instruction block is replaced with verification context that references the stage names, delta values, and color coding. CoScout is instructed to interpret the comparison evidence rather than suggest new experiments.
+
+---
+
+## Knowledge Documents Context
+
+When the Knowledge Base is available (Azure Team AI plan), CoScout conversations are enriched with relevant organizational knowledge retrieved at query time.
+
+### `knowledgeDocuments` Field (Tier 3 — Dynamic)
+
+```typescript
+knowledgeDocuments?: Array<{
+  title: string;        // Document or section title
+  snippet: string;      // Relevant excerpt, max 300 characters
+  source: string;       // Origin identifier (e.g., "Quality Manual", "SOP-042")
+  url?: string;         // Optional link to full document
+}>;
+```
+
+### Population Flow
+
+1. User sends a message in CoScout
+2. `onBeforeSend` callback in `useAICoScout` triggers a knowledge search using the user's query
+3. Top matching documents are attached to the `knowledgeDocuments` field before context assembly
+4. The field is included in the Tier 3 dynamic system message
+
+### `formatKnowledgeContext()`
+
+Transforms `knowledgeDocuments` into prompt-ready text. Each entry is formatted as a `[From: <source>]` prefixed block:
+
+```
+ORGANIZATIONAL KNOWLEDGE:
+[From: Quality Manual] Cpk target for filling lines is 1.67...
+[From: SOP-042] When sigma exceeds 0.15ml, check nozzle calibration...
+```
+
+- Snippets are capped at 300 characters to control token usage
+- Empty or undefined `knowledgeDocuments` produces no output (zero tokens)
+- Typical token cost: ~50-150 tokens depending on number of matched documents
+
+---
+
 ## References
 
 - [Effective Context Engineering — Anthropic](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
@@ -159,3 +257,4 @@ focusContext?: {
 - [Knowledge Model Architecture](knowledge-model.md)
 - [AI Architecture](ai-architecture.md)
 - [Methodology Reference](../../01-vision/methodology.md)
+- [AI Context Pipeline Reference](ai-context-reference.md) — Module map, function signatures, data flows

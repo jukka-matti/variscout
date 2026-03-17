@@ -59,6 +59,8 @@ vi.mock('@variscout/core', () => ({
   calculateFactorVariations: vi.fn(() => []),
   getNelsonRule2Sequences: vi.fn(() => []),
   getNelsonRule3Sequences: vi.fn(() => []),
+  calculateStagedComparison: vi.fn(() => null),
+  djb2Hash: vi.fn((str: string) => String(str.length)),
 }));
 
 vi.mock('../../hooks/usePhotoComments', () => ({

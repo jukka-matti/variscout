@@ -160,11 +160,14 @@ AIContext
 │   ├── hypothesisTree[] # Root hypotheses with children (factor, level, ideas, validation)
 │   ├── phase            # Deterministic: initial | diverging | validating | converging | acting
 │   └── categories[]     # Investigation categories for completeness prompting
+├── activeChart          # Currently focused chart type (ichart, boxplot, pareto, capability)
+├── stagedComparison     # Before/After verification metrics (baseline vs current Cpk, mean, etc.)
 ├── focusContext         # From "Ask CoScout about this" (chart, category, or finding with ideas)
 ├── teamContributors     # Teams plan: count + hypothesis areas
 ├── glossaryFragment     # Methodology terms + concepts for grounding
 ├── knowledgeResults[]   # Past findings from AI Search (injected via onBeforeSend)
-└── knowledgeDocuments[] # SharePoint/SOP documents (injected via onBeforeSend)
+├── knowledgeDocuments[] # SharePoint/SOP documents (injected via onBeforeSend)
+└── locale               # Active locale (e.g. 'en', 'fi', 'de') for AI response language
 ```
 
 ---
@@ -242,3 +245,4 @@ How AI context changes across IDEOI investigation phases:
 - [AIX Design System](aix-design-system.md) — Governance, terminology, confidence calibration
 - [Component Patterns](component-patterns.md) — Hook architecture including AI hook layer
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Decision record
+- [AI Context Pipeline Reference](ai-context-reference.md) — Module map, function signatures, caching strategy

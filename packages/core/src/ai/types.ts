@@ -173,22 +173,6 @@ export interface AIContext {
   }>;
 }
 
-/** Request to generate a narration */
-export interface NarrationRequest {
-  context: AIContext;
-  /** Type of narration to generate */
-  type: 'summary' | 'chart-insight' | 'finding-suggestion';
-}
-
-/** Response from narration generation */
-export interface NarrationResponse {
-  text: string;
-  /** Whether this came from cache */
-  cached: boolean;
-  /** Timestamp of generation */
-  generatedAt: number;
-}
-
 /** AI error classification */
 export type AIErrorType =
   | 'auth'
