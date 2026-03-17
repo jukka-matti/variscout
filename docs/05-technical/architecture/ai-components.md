@@ -12,7 +12,7 @@ How each AI component receives and uses the user's locale for multilingual respo
 
 ## NarrativeBar
 
-Locale flows via `AIContext.locale`. The `buildSummaryPrompt()` template in `promptTemplates.ts` receives the locale from the assembled AI context and includes a language instruction so the model responds in the user's language.
+Locale flows via `AIContext.locale`. The `buildSummaryPrompt()` template in `packages/core/src/ai/prompts/narration.ts` receives the locale from the assembled AI context and includes a language instruction so the model responds in the user's language.
 
 - `useNarration` passes the full `AIContext` (which includes `locale`) to the narration fetch.
 - When locale is `undefined` or `'en'`, no extra language instruction is injected (English is the default).

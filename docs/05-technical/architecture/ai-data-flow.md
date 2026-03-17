@@ -82,7 +82,7 @@ flowchart LR
 **Additional service flows** not shown in the diagram above:
 
 - **Streaming:** `fetchCoScoutStreamingResponse()` follows the same data path as `fetchCoScoutResponse()` but delivers tokens incrementally via a chunk callback. `useAICoScout` manages abort control and progressive message assembly.
-- **AI Report:** `fetchFindingsReport()` + `buildReportPrompt()` (from `packages/core/src/ai/promptTemplates.ts`) — a distinct flow for generating a structured findings export. Consumes the full `AIContext` plus all findings, producing a formatted report rather than a conversational response.
+- **AI Report:** `fetchFindingsReport()` + `buildReportPrompt()` (from `packages/core/src/ai/prompts/reports.ts`) — a distinct flow for generating a structured findings export. Consumes the full `AIContext` plus all findings, producing a formatted report rather than a conversational response.
 
 ---
 

@@ -56,7 +56,7 @@ Seven non-negotiable rules governing all AI behavior in VariScout:
 - "Voice of the Process / Voice of the Customer" when explaining control vs spec limits
 - "characteristic" not "measurement" or "variable" when referring to what is being measured
 
-Terminology rules are codified in the `TERMINOLOGY_INSTRUCTION` constant in `packages/core/src/ai/promptTemplates.ts`, which is injected into all AI prompts (narration, chart insights, CoScout).
+Terminology rules are codified in the `TERMINOLOGY_INSTRUCTION` constant in `packages/core/src/ai/prompts/shared.ts`, which is injected into all AI prompts (narration, chart insights, CoScout).
 
 #### What AI Must Never Do
 
@@ -96,7 +96,7 @@ Customer configures model during ARM deployment. Provider auto-detected from end
 #### Prompt Change Process
 
 1. Read this AIX Design System doc for applicable principles
-2. Edit prompt template in `packages/core/src/ai/promptTemplates.ts`
+2. Edit prompt template in the appropriate module under `packages/core/src/ai/prompts/` (narration, coScout, chartInsights, reports, or shared)
 3. Run snapshot tests: `pnpm --filter @variscout/core test`
 4. Verify with sample data (coffee dataset: n=24 — ideal for hedging testing)
 5. Document rationale in commit message
@@ -116,7 +116,7 @@ Customer configures model during ARM deployment. Provider auto-detected from end
 
 **When to hedge:** Apply confidence calibration table (§1.2) based on `context.stats.samples`.
 
-**Implementation:** `buildSummaryPrompt()` and `buildCoScoutSystemPrompt()` in `promptTemplates.ts` inject hedging instructions when sample count falls below thresholds.
+**Implementation:** `buildSummaryPrompt()` in `prompts/narration.ts` and `buildCoScoutSystemPrompt()` in `prompts/coScout.ts` inject hedging instructions when sample count falls below thresholds.
 
 **Visual indicators:**
 
@@ -217,7 +217,7 @@ When the analyst is in the Acting phase **and** staged comparison data is presen
 - **Suggested questions** shift from generic acting-phase prompts to verification-specific: "Did the targeted factor improve?", "Are there new violations in the After stage?", "Is the Cpk improvement sufficient?"
 - All responses are grounded in computed `StagedComparisonResult` data — AI interprets, never invents numbers (Principle 1)
 
-Improvement ideas injected during converging phase when supported hypotheses exist. See `promptTemplates.ts` for implementation.
+Improvement ideas injected during converging phase when supported hypotheses exist. See `prompts/coScout.ts` for implementation.
 
 ---
 
@@ -282,7 +282,8 @@ Improvement ideas injected during converging phase when supported hypotheses exi
 
 ### 4.1 Prompt Maintenance Process
 
-- All templates centralized in `packages/core/src/ai/promptTemplates.ts`
+- All templates modularized under `packages/core/src/ai/prompts/` (shared, narration, chartInsights, coScout, reports)
+- `promptTemplates.ts` is a thin re-export barrel for backward compatibility
 - Snapshot tests validate structure, not exact wording
 - Test with coffee dataset (n=24, multiple factors — triggers hedging)
 - Document prompt changes in commit messages with rationale

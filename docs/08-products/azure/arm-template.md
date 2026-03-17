@@ -18,7 +18,7 @@ The ARM template deploys VariScout to a customer's Azure subscription as a Manag
 
 The customer provides their own App Registration (created before deployment) so that VariScout can authenticate users and access OneDrive via Graph API (Team plan).
 
-**Minimal backend resources** — Standard and Team plans run entirely in the browser. The Team AI plan adds Azure AI Services (model hosting) and Azure AI Search (findings index) for the Knowledge Base feature. An Azure Function handles OBO token exchange (Team/Team AI) and findings indexing (Team AI).
+**Minimal backend resources** — Standard and Team plans run entirely in the browser. The Team AI plan adds Azure AI Services (model hosting), Azure AI Search (findings index), and Azure Key Vault (secure secret storage) for the Knowledge Base feature. An Azure Function handles OBO token exchange (Team/Team AI) and findings indexing (Team AI). The App Service uses a system-assigned managed identity for RBAC-based access to Key Vault.
 
 ### Managed Application Package
 
@@ -120,7 +120,7 @@ Linux B1 plan for hosting the App Service:
 
 ### 2. App Service
 
-Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`. The client secret is stored as an app setting for EasyAuth to use:
+Serves the VariScout build via `WEBSITE_RUN_FROM_PACKAGE`. Uses system-assigned managed identity for Key Vault access (Team AI plan). The client secret is stored as an app setting for EasyAuth to use:
 
 ```json
 {
@@ -381,6 +381,8 @@ The template requests only necessary permissions:
 - The secret is stored as an App Service app setting (server-side, not in client code)
 - The secret is not included in template outputs
 - EasyAuth uses the token store (server-side) for access tokens
+- **Key Vault (Team AI):** API keys stored in Azure Key Vault with RBAC authorization. App Service accesses secrets via managed identity (Key Vault Secrets User role).
+- **AI observability:** `tracing.ts` module records latency, token usage, and error rates for cost monitoring.
 
 ### Customer Data Isolation
 
@@ -403,6 +405,7 @@ The template requests only necessary permissions:
 | 5.1.0   | 2026-02-26 | Fix OpenID issuer (sts.windows.net → login.microsoftonline.com), document ID token requirement  |
 | 6.0.0   | 2026-03-14 | Plan selector (Standard/Team), resource tags, conditional Function App + Storage for Team plan  |
 | 7.0.0   | 2026-03-16 | AI resources (Azure AI Services, AI Search), runtime config endpoint, findings indexer Function |
+| 8.0.0   | 2026-03-17 | Key Vault + RBAC, App Service managed identity, AI tracing module, Responses API client         |
 
 ---
 
