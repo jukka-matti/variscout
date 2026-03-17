@@ -298,7 +298,7 @@ pnpm --filter @variscout/pwa test:e2e
 | `stats-anova.spec.ts`      | Mean/sigma/samples display, ANOVA F-stat/p-value/eta²              |
 | `user-flows.spec.ts`       | End-to-end user journeys, editor navigation, multi-step workflows  |
 | `edge-cases.spec.ts`       | Boundary conditions, empty states, error handling, edge scenarios  |
-| `editor-features.spec.ts`  | CSV export, data panel, save, What-If, mindmap toggle              |
+| `editor-features.spec.ts`  | CSV export, data panel, save, What-If, findings toggle             |
 | `performance-mode.spec.ts` | Performance tab, Cp/Cpk toggle, spec limits, channel count         |
 | `settings-theme.spec.ts`   | Settings panel, light/dark theme, accent colors, chart text size   |
 

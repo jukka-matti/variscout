@@ -179,9 +179,21 @@ The PWA serves as the **feature development sandbox**:
 
 ---
 
+## Session Model
+
+The PWA is a free training and education tool — data persistence is intentionally not provided.
+
+- Data entered via paste lives in React state only
+- No IndexedDB, no localStorage (except theme preference), no `.vrs` files
+- Page refresh = data lost (by design)
+- No save/load functionality
+
+Persistence features (save, load, team sharing, OneDrive sync) are part of the [Azure App](../azure/) value proposition.
+
+---
+
 ## See Also
 
-- [Storage](storage.md) - IndexedDB and session storage details
 - [Azure App (Primary Product)](../azure/index.md) - Production platform
 - [Feature Parity](../feature-parity.md) - Platform comparison
 - [ADR-007: Distribution Strategy](../../07-decisions/adr-007-azure-marketplace-distribution.md)

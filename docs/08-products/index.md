@@ -35,7 +35,7 @@ flowchart LR
 | **[Azure Team](azure/index.md)**     | **PRIMARY** | Azure Marketplace | + Teams, OneDrive, mobile                  | €199/month     |
 | **[Azure Team AI](azure/index.md)**  | **PRIMARY** | Azure Marketplace | + AI Knowledge Base, CoScout, org learning | €279/month     |
 | [PWA](pwa/index.md)                  | Production  | Direct URL        | Training & education                       | FREE (forever) |
-| [Power BI](powerbi/index.md)         | Planned     | AppSource         | Dashboard integration                      | TBD            |
+| Power BI (archived)                  | Shelved     | —                 | Dashboard integration (not in development) | —              |
 | [Website](website/index.md)          | Production  | Public            | Marketing & docs                           | N/A            |
 
 !!! tip "Getting Started"

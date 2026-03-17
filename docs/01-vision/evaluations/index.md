@@ -19,17 +19,17 @@ Product strategy evaluations for the design tensions and alternative patterns id
 
 ### Patterns
 
-| Pattern                                                          | Verdict                             | Tensions Addressed                                                      | Philosophy Fit                   |
-| ---------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------- | -------------------------------- |
-| [Factor Suggestion](patterns/factor-suggestion.md)               | **Pursue**                          | Factor Ordering, Discoverability, When to Stop                          | Good (if optional/subtle)        |
-| [Interaction Heatmap](patterns/interaction-heatmap.md)           | **Pursue**                          | Hierarchy Assumption, Factor Ordering                                   | Strong                           |
-| [Parallel Path Comparison](patterns/parallel-path-comparison.md) | **Defer**                           | Path Dependency, Hierarchy Assumption                                   | Good                             |
-| [Auto-Combination Finder](patterns/auto-combination-finder.md)   | **Defer**                           | Hierarchy Assumption, Factor Ordering, Path Dependency                  | Mixed (conflicts with pedagogy)  |
-| [Small Multiples](patterns/small-multiples.md)                   | **Defer**                           | Factor Ordering, Path Dependency                                        | Good (scaling limits)            |
-| [Factor Map](patterns/factor-map.md)                             | **Defer**                           | All 5 non-mobile tensions                                               | Strong (high complexity)         |
-| [Investigation Mindmap](patterns/investigation-mindmap.md)       | **Primary** (replaces Funnel)       | Hierarchy Assumption, Discoverability, Factor Ordering, Path Dependency | Strong (lighter Factor Map)      |
-| [Investigation Narrative](patterns/investigation-narrative.md)   | **Primary** (absorbed into Mindmap) | When to Stop, Path Dependency, Discoverability                          | Strong                           |
-| [Sidebar Filter Panel](patterns/sidebar-filter-panel.md)         | **Reject**                          | Discoverability                                                         | Poor (undermines differentiator) |
+| Pattern                                                          | Verdict                                            | Tensions Addressed                                                      | Philosophy Fit                   |
+| ---------------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------- |
+| [Factor Suggestion](patterns/factor-suggestion.md)               | **Pursue**                                         | Factor Ordering, Discoverability, When to Stop                          | Good (if optional/subtle)        |
+| [Interaction Heatmap](patterns/interaction-heatmap.md)           | **Pursue**                                         | Hierarchy Assumption, Factor Ordering                                   | Strong                           |
+| [Parallel Path Comparison](patterns/parallel-path-comparison.md) | **Defer**                                          | Path Dependency, Hierarchy Assumption                                   | Good                             |
+| [Auto-Combination Finder](patterns/auto-combination-finder.md)   | **Defer**                                          | Hierarchy Assumption, Factor Ordering, Path Dependency                  | Mixed (conflicts with pedagogy)  |
+| [Small Multiples](patterns/small-multiples.md)                   | **Defer**                                          | Factor Ordering, Path Dependency                                        | Good (scaling limits)            |
+| [Factor Map](patterns/factor-map.md)                             | **Defer**                                          | All 5 non-mobile tensions                                               | Strong (high complexity)         |
+| Investigation Mindmap (archived)                                 | **Primary** (replaced by Findings, Feb 2026)       | Hierarchy Assumption, Discoverability, Factor Ordering, Path Dependency | Strong (lighter Factor Map)      |
+| Investigation Narrative (archived)                               | **Primary** (absorbed into Mindmap, then replaced) | When to Stop, Path Dependency, Discoverability                          | Strong                           |
+| [Sidebar Filter Panel](patterns/sidebar-filter-panel.md)         | **Reject**                                         | Discoverability                                                         | Poor (undermines differentiator) |
 
 ---
 
@@ -57,7 +57,7 @@ The Investigation Mindmap consolidates Factor Suggestion, Interaction Heatmap, a
 3. **Phase C: Narrative Mode + WhatIfSimulator separation** — Reorganizes nodes into a timeline for stakeholder communication. Step annotations, interaction cross-connections, conclusion panel, PNG export. WhatIfSimulator moves to standalone `/whatif` route.
 4. **Phase D: Polish + Azure enhancements** — Split-pane option (Azure, viewport > 1280px), annotations (Azure: OneDrive-synced; PWA: session-only), SVG export (Azure), "Model improvements" → WhatIfSimulator link.
 
-Each phase builds on the previous: B needs A's nodes, C needs A's drill trail + B's edges, D needs all three modes complete. See [Design Spec §12](design-spec-investigation-mindmap.md#12-implementation-phasing) for full infrastructure prerequisites and reuse mapping.
+Each phase builds on the previous: B needs A's nodes, C needs A's drill trail + B's edges, D needs all three modes complete. See [Design Spec §12](../../archive/design-spec-investigation-mindmap.md#12-implementation-phasing) (archived) for full infrastructure prerequisites and reuse mapping.
 
 The sidebar filter panel is rejected as incompatible with VariScout's core differentiator. The auto-combination finder is deferred to the Azure App only, as it conflicts with the PWA's educational mission. Parallel Path Comparison, Small Multiples, and Factor Map are deferred — the Mindmap addresses the tensions they targeted through consolidation rather than additional surfaces.
 
@@ -78,16 +78,16 @@ Content is seeded from [Progressive Stratification](../progressive-stratificatio
 
 Pre-design deliverables that bridge the gap between competitive intelligence and actionable UI/UX design work.
 
-| Document                                                                   | Purpose                                                                                                                                                                                                                              |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Design Spec: Investigation Mindmap](design-spec-investigation-mindmap.md) | **Authoritative spec.** Three-layer architecture (Chart/Navigation/Investigation), three Mindmap modes (Drilldown/Interaction/Narrative), Funnel Panel replacement mapping, progressive disclosure design.                           |
-| [Design Brief](design-brief-guided-investigation.md)                       | Historical: competitive intelligence → statistical methodology → existing UI audit → design principles → design questions for the UI/UX phase.                                                                                       |
-| [Investigation Flow Map](investigation-flow-map.md)                        | Historical: step-by-step walkthrough of a complete investigation using the Pizza Delivery dataset. Documents existing guidance at each step and identifies gaps. The Design Spec Section 8 provides the updated "after" walkthrough. |
-| [Bottleneck Flow Map](bottleneck-flow-map.md)                              | UX flow evaluation: 7-step bottleneck detection journey using the Bottleneck dataset. Demonstrates "variation > mean" — Step 2's high variance vs Step 3's high average. E2E tests: `apps/pwa/e2e/bottleneck-investigation.spec.ts`. |
-| [Hospital Ward Flow Map](hospital-ward-flow-map.md)                        | UX flow evaluation: 7-step aggregation trap discovery using the Hospital Ward dataset. Night 94% crisis + Afternoon 48% waste hidden behind 69% average. E2E tests: `apps/pwa/e2e/hospital-ward-investigation.spec.ts`.              |
-| [Mindmap Chrome Evaluation](mindmap-chrome-evaluation.md)                  | Automated Playwright evaluation of the Mindmap panel with both datasets. Finds contribution metric misleads for dispersion scenarios (Step 2 = 0%), no dead-end signal, and CategoryPopover's pre-drill contrast is the key success. |
+| Document                                             | Purpose                                                                                                                                                                                                                              |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Design Spec: Investigation Mindmap (archived)        | **Historical spec.** Replaced by Findings system (Feb 2026). See `docs/archive/design-spec-investigation-mindmap.md`.                                                                                                                |
+| [Design Brief](design-brief-guided-investigation.md) | Historical: competitive intelligence → statistical methodology → existing UI audit → design principles → design questions for the UI/UX phase.                                                                                       |
+| [Investigation Flow Map](investigation-flow-map.md)  | Historical: step-by-step walkthrough of a complete investigation using the Pizza Delivery dataset. Documents existing guidance at each step and identifies gaps. The Design Spec Section 8 provides the updated "after" walkthrough. |
+| [Bottleneck Flow Map](bottleneck-flow-map.md)        | UX flow evaluation: 7-step bottleneck detection journey using the Bottleneck dataset. Demonstrates "variation > mean" — Step 2's high variance vs Step 3's high average. E2E tests: `apps/pwa/e2e/bottleneck-investigation.spec.ts`. |
+| [Hospital Ward Flow Map](hospital-ward-flow-map.md)  | UX flow evaluation: 7-step aggregation trap discovery using the Hospital Ward dataset. Night 94% crisis + Afternoon 48% waste hidden behind 69% average. E2E tests: `apps/pwa/e2e/hospital-ward-investigation.spec.ts`.              |
+| Mindmap Chrome Evaluation (archived)                 | Historical evaluation. See `docs/archive/mindmap-chrome-evaluation.md`.                                                                                                                                                              |
 
-The [Design Spec](design-spec-investigation-mindmap.md) is the authoritative design document for the Investigation Mindmap feature. It consolidates the Design Brief's statistical methodology, the Flow Map's step-by-step scenario, the Investigation Mindmap's two-mode concept (elevated to three modes), and the Investigation Narrative (absorbed as the Mindmap's third mode) into a single implementable specification. The Design Brief and Flow Map are retained as historical design thinking.
+> **Note**: The Investigation Mindmap feature was replaced by the Findings system (Feb 2026). The Design Spec, Mindmap Chrome Evaluation, Investigation Mindmap pattern, and Investigation Narrative pattern have been moved to `docs/archive/`. The Design Brief and Flow Map are retained here as historical design thinking.
 
 ---
 

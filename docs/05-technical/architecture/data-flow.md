@@ -358,6 +358,6 @@ flowchart LR
 - [Component Patterns](component-patterns.md) - Hook integration details
 - [Offline-First](offline-first.md) - Persistence strategy
 - [Shared Packages](shared-packages.md) - Package responsibilities
-- [PWA Storage](../../08-products/pwa/storage.md) - IndexedDB details
+- [PWA Session Model](../../08-products/pwa/index.md#session-model) - PWA has no persistence
 - [OneDrive Sync](../../08-products/azure/onedrive-sync.md) - Cloud sync details
 - [ADR-023: Verification Experience & Data Lifecycle](../../07-decisions/adr-023-data-lifecycle.md) - Data entry paths, append architecture, staged verification

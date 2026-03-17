@@ -1,3 +1,5 @@
+# HISTORICAL ONLY — Power BI shelved, not in development
+
 # Power BI Custom Visuals
 
 VariScout charts as Power BI custom visuals.

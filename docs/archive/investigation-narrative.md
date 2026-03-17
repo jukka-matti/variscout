@@ -1,3 +1,5 @@
+# HISTORICAL ONLY — Mindmap replaced by Findings system (Feb 2026)
+
 # Investigation Narrative
 
 > A presentation mode that transforms the investigation path into a visual story for stakeholders — showing what was found, in what order, and why it matters.

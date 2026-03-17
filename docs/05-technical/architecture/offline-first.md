@@ -181,4 +181,4 @@ Both Azure plans store data locally in IndexedDB. The Team plan additionally syn
 ## See Also
 
 - [ADR-004: Offline-First Decision](../../07-decisions/adr-004-offline-first.md)
-- [PWA Storage](../../08-products/pwa/storage.md)
+- [PWA Session Model](../../08-products/pwa/index.md#session-model)

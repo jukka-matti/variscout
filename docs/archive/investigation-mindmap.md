@@ -1,3 +1,5 @@
+# HISTORICAL ONLY — Mindmap replaced by Findings system (Feb 2026)
+
 # Investigation Mindmap
 
 > A two-mode companion visualization — drilldown overview and interaction view — that opens on demand in a separate window or panel, showing the investigation state as an interactive node-link diagram.
