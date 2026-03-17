@@ -42,6 +42,9 @@ export type {
 } from './responsesApi';
 export { sendResponsesTurn, streamResponsesTurn, extractResponseText } from './responsesApi';
 
+export type { AIFeature, TraceMetadata, TokenUsage, TraceRecord, TraceStats } from './tracing';
+export { traceAICall, getRecentTraces, clearTraces, getTraceStats } from './tracing';
+
 export type {
   InsightChartType,
   ChipType,
