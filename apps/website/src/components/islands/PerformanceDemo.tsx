@@ -31,12 +31,12 @@ export default function PerformanceDemo({
 
   // Calculate channel performance data
   const performanceData = useMemo(() => {
-    if (!sample || !sample.config.channelColumns || !sample.config.specs) {
+    if (!sample || !sample.config.measureColumns || !sample.config.specs) {
       return null;
     }
 
     const specs: SpecLimits = sample.config.specs;
-    const channels = sample.config.channelColumns;
+    const channels = sample.config.measureColumns;
 
     // Cast to DataRow[] - sample data structure is compatible
     const data = sample.data as DataRow[];

@@ -321,25 +321,29 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   it('includes glossary fragment when provided', () => {
-    const prompt = buildCoScoutSystemPrompt('## Terminology\n\n- **Cp**: Process potential');
+    const prompt = buildCoScoutSystemPrompt({
+      glossaryFragment: '## Terminology\n\n- **Cp**: Process potential',
+    });
     expect(prompt).toContain('## Terminology');
     expect(prompt).toContain('Cp');
   });
 
   it('includes problem statement when investigation context provided', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, {
-      problemStatement: 'Customer complaints up 30%',
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { problemStatement: 'Customer complaints up 30%' },
     });
     expect(prompt).toContain('Customer complaints up 30%');
     expect(prompt).toContain('investigating');
   });
 
   it('includes hypotheses when investigation context has them', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, {
-      allHypotheses: [
-        { text: 'Night shift training gap', status: 'supported' },
-        { text: 'Material batch variation', status: 'untested' },
-      ],
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        allHypotheses: [
+          { text: 'Night shift training gap', status: 'supported' },
+          { text: 'Material batch variation', status: 'untested' },
+        ],
+      },
     });
     expect(prompt).toContain('Night shift training gap');
     expect(prompt).toContain('supported');
@@ -347,11 +351,13 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   it('includes target and progress when investigation has them', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, {
-      targetMetric: 'cpk',
-      targetValue: 1.33,
-      currentValue: 0.95,
-      progressPercent: 42,
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        targetMetric: 'cpk',
+        targetValue: 1.33,
+        currentValue: 0.95,
+        progressPercent: 42,
+      },
     });
     expect(prompt).toContain('cpk');
     expect(prompt).toContain('1.33');
@@ -359,8 +365,8 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   it('includes phase-specific instructions', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, {
-      phase: 'diverging',
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { phase: 'diverging' },
     });
     expect(prompt).toContain('Diverging Phase');
     expect(prompt).toContain('exploring hypotheses');
@@ -389,22 +395,24 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   it('includes improvement ideas when converging with supported hypotheses', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, {
-      phase: 'converging',
-      allHypotheses: [
-        {
-          text: 'Night shift training gap',
-          status: 'supported',
-          ideas: [
-            {
-              text: 'Simplify setup (visual guides)',
-              selected: true,
-              projection: { meanDelta: -0.5, sigmaDelta: -0.1 },
-            },
-            { text: 'Train night shift operators' },
-          ],
-        },
-      ],
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        phase: 'converging',
+        allHypotheses: [
+          {
+            text: 'Night shift training gap',
+            status: 'supported',
+            ideas: [
+              {
+                text: 'Simplify setup (visual guides)',
+                selected: true,
+                projection: { meanDelta: -0.5, sigmaDelta: -0.1 },
+              },
+              { text: 'Train night shift operators' },
+            ],
+          },
+        ],
+      },
     });
     expect(prompt).toContain('Simplify setup (visual guides)');
     expect(prompt).toContain('[selected]');
@@ -414,23 +422,27 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   it('does not include ideas section when no ideas exist', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, {
-      phase: 'converging',
-      allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        phase: 'converging',
+        allHypotheses: [{ text: 'Root cause', status: 'supported' }],
+      },
     });
     expect(prompt).not.toContain('Existing improvement ideas');
   });
 
   it('includes selected finding in investigation context', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, {
-      selectedFinding: {
-        text: 'Head 3 shows high variation',
-        hypothesis: 'Nozzle wear',
-        projection: { meanDelta: -0.5, sigmaDelta: -0.12 },
-        actions: [
-          { text: 'Replace nozzle', status: 'done' },
-          { text: 'Verify Cpk', status: 'pending' },
-        ],
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: {
+        selectedFinding: {
+          text: 'Head 3 shows high variation',
+          hypothesis: 'Nozzle wear',
+          projection: { meanDelta: -0.5, sigmaDelta: -0.12 },
+          actions: [
+            { text: 'Replace nozzle', status: 'done' },
+            { text: 'Verify Cpk', status: 'pending' },
+          ],
+        },
       },
     });
     expect(prompt).toContain('Currently focused finding: "Head 3 shows high variation"');
@@ -443,8 +455,8 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   it('includes selected finding without optional fields', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, {
-      selectedFinding: { text: 'Simple finding' },
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { selectedFinding: { text: 'Simple finding' } },
     });
     expect(prompt).toContain('Currently focused finding: "Simple finding"');
     expect(prompt).not.toContain('hypothesis');
@@ -453,9 +465,8 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   it('includes team collaboration when count > 1', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, undefined, {
-      count: 3,
-      hypothesisAreas: ['Machine', 'Shift'],
+    const prompt = buildCoScoutSystemPrompt({
+      teamContributors: { count: 3, hypothesisAreas: ['Machine', 'Shift'] },
     });
     expect(prompt).toContain('Team collaboration: 3 investigators');
     expect(prompt).toContain('Areas being investigated: Machine, Shift');
@@ -463,18 +474,21 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   it('includes verification instructions when acting + staged data', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, { phase: 'acting' }, undefined, undefined, {
-      stageNames: ['Before', 'After'],
-      deltas: {
-        meanShift: -0.3,
-        variationRatio: 0.7,
-        cpkDelta: 0.5,
-        passRateDelta: null,
-        outOfSpecReduction: 0,
+    const prompt = buildCoScoutSystemPrompt({
+      investigation: { phase: 'acting' },
+      stagedComparison: {
+        stageNames: ['Before', 'After'],
+        deltas: {
+          meanShift: -0.3,
+          variationRatio: 0.7,
+          cpkDelta: 0.5,
+          passRateDelta: null,
+          outOfSpecReduction: 0,
+        },
+        colorCoding: {},
+        cpkBefore: 0.85,
+        cpkAfter: 1.35,
       },
-      colorCoding: {},
-      cpkBefore: 0.85,
-      cpkAfter: 1.35,
     });
     expect(prompt).toContain('Acting Phase with verification data');
     expect(prompt).toContain('mean shift -0.30');
@@ -483,15 +497,14 @@ describe('buildCoScoutSystemPrompt', () => {
   });
 
   it('uses generic acting instructions when no staged data', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, { phase: 'acting' });
+    const prompt = buildCoScoutSystemPrompt({ investigation: { phase: 'acting' } });
     expect(prompt).toContain('Acting Phase');
     expect(prompt).not.toContain('verification data');
   });
 
   it('does not include team collaboration when count is 1', () => {
-    const prompt = buildCoScoutSystemPrompt(undefined, undefined, {
-      count: 1,
-      hypothesisAreas: [],
+    const prompt = buildCoScoutSystemPrompt({
+      teamContributors: { count: 1, hypothesisAreas: [] },
     });
     expect(prompt).not.toContain('Team collaboration');
   });
@@ -949,15 +962,15 @@ describe('buildReportPrompt', () => {
     const findingWithOutcome: Finding = {
       ...mockFinding,
       outcome: {
-        effective: true,
+        effective: 'yes',
         cpkAfter: 1.45,
         notes: 'Calibration fixed',
-        resolvedAt: Date.now(),
+        verifiedAt: Date.now(),
       },
     };
     const ctx: AIContext = { process: {}, filters: [] };
     const prompt = buildReportPrompt(ctx, [findingWithOutcome], []);
-    expect(prompt).toContain('Outcome: true');
+    expect(prompt).toContain('Outcome: yes');
     expect(prompt).toContain('Cpk after: 1.45');
   });
 });
@@ -997,14 +1010,7 @@ describe('locale wiring in system prompts', () => {
   });
 
   it('buildCoScoutSystemPrompt includes locale hint', () => {
-    const prompt = buildCoScoutSystemPrompt(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      'pt'
-    );
+    const prompt = buildCoScoutSystemPrompt({ locale: 'pt' });
     expect(prompt).toContain('Respond in Português');
     expect(prompt).toContain('CoScout');
   });

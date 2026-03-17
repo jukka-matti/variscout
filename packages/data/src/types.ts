@@ -81,7 +81,8 @@ export interface BoxplotGroup {
   median: number;
   q3: number;
   outliers: number[];
-  mean?: number;
+  mean: number;
+  stdDev: number;
   variationPct?: number;
 }
 
@@ -95,7 +96,13 @@ export interface ParetoItem {
 export interface PrecomputedStats {
   n: number;
   mean: number;
+  /** Median (50th percentile) */
+  median: number;
   stdDev: number;
+  /** Within-subgroup standard deviation estimated from moving range (MR̄/d2) */
+  sigmaWithin: number;
+  /** Mean moving range (MR̄ = mean of |x_i - x_{i-1}|) */
+  mrBar: number;
   min: number;
   max: number;
   ucl: number;

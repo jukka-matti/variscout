@@ -66,8 +66,13 @@ export function computeBoxplotData(
 
     // Use the charts helper with correct input format
     const stats = calculateBoxplotStats({ group: key, values });
-    // Calculate mean separately (not included in BoxplotGroupData)
+    // Calculate mean and stdDev separately (not included in BoxplotGroupData)
     const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+    const variance =
+      values.length > 1
+        ? values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / (values.length - 1)
+        : 0;
+    const stdDev = Math.sqrt(variance);
     result.push({
       key: stats.key,
       values: stats.values,
@@ -78,6 +83,7 @@ export function computeBoxplotData(
       q3: stats.q3,
       outliers: stats.outliers,
       mean,
+      stdDev,
     });
   }
 
@@ -131,7 +137,10 @@ export function computeStats(
     return {
       n: 0,
       mean: 0,
+      median: 0,
       stdDev: 0,
+      sigmaWithin: 0,
+      mrBar: 0,
       min: 0,
       max: 0,
       ucl: 0,
@@ -151,7 +160,10 @@ export function computeStats(
   return {
     n,
     mean: stats.mean,
+    median: stats.median,
     stdDev: stats.stdDev,
+    sigmaWithin: stats.sigmaWithin,
+    mrBar: stats.mrBar,
     min,
     max,
     ucl: stats.ucl,

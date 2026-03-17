@@ -59,7 +59,7 @@ describe('useReportSections — report type detection', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'Fix something', status: 'open', createdAt: Date.now() }],
+        actions: [{ id: 'a-1', text: 'Fix something', createdAt: Date.now() }],
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
@@ -70,8 +70,10 @@ describe('useReportSections — report type detection', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'Fix something', status: 'closed', createdAt: Date.now() }],
-        outcome: { summary: 'Process improved', confirmedAt: Date.now() },
+        actions: [
+          { id: 'a-1', text: 'Fix something', completedAt: Date.now(), createdAt: Date.now() },
+        ],
+        outcome: { effective: 'yes', notes: 'Process improved', verifiedAt: Date.now() },
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
@@ -93,8 +95,8 @@ describe('useReportSections — section count', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'action', status: 'closed', createdAt: Date.now() }],
-        outcome: { summary: 'done', confirmedAt: Date.now() },
+        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));
@@ -136,8 +138,8 @@ describe('useReportSections — section status (full-cycle)', () => {
     const findings = [
       makeFinding({
         id: 'f-1',
-        actions: [{ id: 'a-1', text: 'action', status: 'closed', createdAt: Date.now() }],
-        outcome: { summary: 'done', confirmedAt: Date.now() },
+        actions: [{ id: 'a-1', text: 'action', completedAt: Date.now(), createdAt: Date.now() }],
+        outcome: { effective: 'yes', notes: 'done', verifiedAt: Date.now() },
       }),
     ];
     const { result } = renderHook(() => useReportSections({ ...baseOptions, findings }));

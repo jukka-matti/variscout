@@ -75,7 +75,7 @@ export default function GlossaryTooltipIsland({
       className={className}
       websiteUrl={websiteUrl}
     >
-      {children}
+      {children as unknown as React.ReactNode}
     </HelpTooltip>
   );
 }

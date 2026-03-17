@@ -4,6 +4,7 @@ import {
   useKnowledgeSearch,
   type KnowledgeResult,
   type DocumentResult,
+  type UseKnowledgeSearchOptions,
 } from '../useKnowledgeSearch';
 
 const mockResult: KnowledgeResult = {
@@ -20,10 +21,12 @@ const mockResult: KnowledgeResult = {
 };
 
 describe('useKnowledgeSearch', () => {
-  let mockSearchFn: ReturnType<typeof vi.fn>;
+  let mockSearchFn: UseKnowledgeSearchOptions['searchFn'];
 
   beforeEach(() => {
-    mockSearchFn = vi.fn().mockResolvedValue([mockResult]);
+    mockSearchFn = vi
+      .fn()
+      .mockResolvedValue([mockResult]) as unknown as UseKnowledgeSearchOptions['searchFn'];
   });
 
   it('starts with empty results', () => {

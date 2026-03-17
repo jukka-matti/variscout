@@ -18,6 +18,7 @@ const makeGroup = (key: string, mean: number): BoxplotGroupData => ({
   min: mean - 5,
   max: mean + 5,
   outliers: [],
+  stdDev: 5,
 });
 
 const TWO_GROUPS: BoxplotGroupData[] = [makeGroup('A', 20), makeGroup('B', 50)];

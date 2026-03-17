@@ -162,7 +162,16 @@ describe('buildAIContext', () => {
         text: 'Simplify setup',
         effort: 'low',
         selected: true,
-        projection: { meanDelta: -0.5, sigmaDelta: -0.1 },
+        projection: {
+          baselineMean: 10,
+          baselineSigma: 0.5,
+          projectedMean: 9.5,
+          projectedSigma: 0.4,
+          meanDelta: -0.5,
+          sigmaDelta: -0.1,
+          simulationParams: { meanAdjustment: -0.5, variationReduction: 20 },
+          createdAt: '2026-03-15T00:00:00Z',
+        },
         createdAt: '2026-03-15T00:00:00Z',
       },
     ];
@@ -430,5 +439,41 @@ describe('detectInvestigationPhase', () => {
       },
     ];
     expect(detectInvestigationPhase([h], findings)).toBe('acting');
+  });
+
+  it('returns validating when 1 root supported and 1 root untested (no children)', () => {
+    const h1 = createHypothesis('Supported root');
+    h1.status = 'supported';
+    const h2 = createHypothesis('Untested root');
+    // h2 is untested by default
+    expect(detectInvestigationPhase([h1, h2])).toBe('validating');
+  });
+
+  it('returns validating at 50/50 boundary (2 tested + 2 untested, no children)', () => {
+    const h1 = createHypothesis('Tested 1');
+    h1.status = 'supported';
+    const h2 = createHypothesis('Tested 2');
+    h2.status = 'contradicted';
+    const h3 = createHypothesis('Untested 1');
+    const h4 = createHypothesis('Untested 2');
+    // 2 tested vs 2 untested — not strictly more tested, so falls through to validating
+    expect(detectInvestigationPhase([h1, h2, h3, h4])).toBe('validating');
+  });
+
+  it('does not return acting with empty findings array and supported hypotheses', () => {
+    const h = createHypothesis('Test');
+    h.status = 'supported';
+    const phase = detectInvestigationPhase([h], []);
+    expect(phase).not.toBe('acting');
+    // With 1 tested (supported) and 0 untested → converging
+    expect(phase).toBe('converging');
+  });
+
+  it('returns converging when all hypotheses are contradicted', () => {
+    const h1 = createHypothesis('Hypothesis A');
+    h1.status = 'contradicted';
+    const h2 = createHypothesis('Hypothesis B');
+    h2.status = 'contradicted';
+    expect(detectInvestigationPhase([h1, h2])).toBe('converging');
   });
 });

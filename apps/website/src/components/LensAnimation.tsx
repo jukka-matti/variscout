@@ -658,7 +658,7 @@ export default function LensAnimation() {
                     let y: number;
                     let opacity = 1;
                     let size = 6;
-                    let color = LENS_HEX.changeLight;
+                    let color: string = LENS_HEX.changeLight;
 
                     if (phase === 'bars') {
                       // Hidden in bar phase

@@ -19,12 +19,12 @@ describe('useHighlightFade', () => {
   it('sets highlightedRow when externalIndex changes to non-null', () => {
     const { result, rerender } = renderHook(
       ({ index }: { index: number | null }) => useHighlightFade(index),
-      { initialProps: { index: null } }
+      { initialProps: { index: null as number | null } }
     );
 
     expect(result.current.highlightedRow).toBeNull();
 
-    act(() => rerender({ index: 5 }));
+    rerender({ index: 5 });
     expect(result.current.highlightedRow).toBe(5);
   });
 
@@ -62,7 +62,7 @@ describe('useHighlightFade', () => {
 
     expect(result.current.highlightedRow).toBe(2);
 
-    act(() => rerender({ index: 8 }));
+    rerender({ index: 8 });
     expect(result.current.highlightedRow).toBe(8);
   });
 });

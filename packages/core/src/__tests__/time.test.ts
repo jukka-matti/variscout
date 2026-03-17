@@ -7,6 +7,14 @@ import {
   hasTimeComponent,
   type TimeExtractionConfig,
 } from '../time';
+import type { DataCellValue, DataRow } from '../types';
+
+/** Helper: cast a Date to DataCellValue for functions that accept DataCellValue */
+const dcv = (d: Date): DataCellValue => d as unknown as DataCellValue;
+
+/** Helper: cast an array with Date values to DataRow[] */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const asRows = (arr: any[]): DataRow[] => arr as unknown as DataRow[];
 
 describe('parseTimeValue', () => {
   it('parses ISO date strings', () => {
@@ -89,7 +97,7 @@ describe('extractTimeComponents', () => {
 
   it('extracts year', () => {
     const date = new Date(2025, 0, 15); // Jan 15, 2025
-    const components = extractTimeComponents(date, { ...fullConfig, extractYear: true });
+    const components = extractTimeComponents(dcv(date), { ...fullConfig, extractYear: true });
     expect(components.year).toBe('2025');
   });
 
@@ -102,17 +110,17 @@ describe('extractTimeComponents', () => {
     ];
 
     for (const { date, expected } of tests) {
-      const components = extractTimeComponents(date, fullConfig);
+      const components = extractTimeComponents(dcv(date), fullConfig);
       expect(components.month).toBe(expected);
     }
   });
 
   it('extracts ISO week number', () => {
     // Week 1 of 2025 starts Jan 1 (Wednesday is in first week with Thursday)
-    const components1 = extractTimeComponents(new Date(2025, 0, 6), fullConfig); // Monday of week 2
+    const components1 = extractTimeComponents(dcv(new Date(2025, 0, 6)), fullConfig); // Monday of week 2
     expect(components1.week).toBe('W02');
 
-    const components2 = extractTimeComponents(new Date(2025, 0, 15), fullConfig);
+    const components2 = extractTimeComponents(dcv(new Date(2025, 0, 15)), fullConfig);
     expect(components2.week).toBe('W03');
   });
 
@@ -128,28 +136,28 @@ describe('extractTimeComponents', () => {
     ];
 
     for (const { date, expected } of tests) {
-      const components = extractTimeComponents(date, fullConfig);
+      const components = extractTimeComponents(dcv(date), fullConfig);
       expect(components.dayOfWeek).toBe(expected);
     }
   });
 
   it('extracts hour when time component exists', () => {
     const date = new Date(2025, 0, 15, 14, 30); // 2:30 PM
-    const components = extractTimeComponents(date, fullConfig);
+    const components = extractTimeComponents(dcv(date), fullConfig);
     expect(components.hour).toBe('14:00');
   });
 
   it('does not extract hour for date-only (midnight)', () => {
     const date = new Date(2025, 0, 15, 0, 0); // Midnight
-    const components = extractTimeComponents(date, fullConfig);
+    const components = extractTimeComponents(dcv(date), fullConfig);
     expect(components.hour).toBeUndefined();
   });
 
   it('extracts hour for non-midnight times', () => {
-    const components1 = extractTimeComponents(new Date(2025, 0, 15, 0, 30), fullConfig);
+    const components1 = extractTimeComponents(dcv(new Date(2025, 0, 15, 0, 30)), fullConfig);
     expect(components1.hour).toBe('00:00');
 
-    const components2 = extractTimeComponents(new Date(2025, 0, 15, 23, 45), fullConfig);
+    const components2 = extractTimeComponents(dcv(new Date(2025, 0, 15, 23, 45)), fullConfig);
     expect(components2.hour).toBe('23:00');
   });
 
@@ -163,7 +171,7 @@ describe('extractTimeComponents', () => {
     };
 
     const date = new Date(2025, 0, 15, 14, 30);
-    const components = extractTimeComponents(date, config);
+    const components = extractTimeComponents(dcv(date), config);
 
     expect(components.year).toBe('2025');
     expect(components.month).toBeUndefined();
@@ -180,29 +188,29 @@ describe('extractTimeComponents', () => {
 
 describe('formatTimeValue', () => {
   it('formats date-only values', () => {
-    const formatted1 = formatTimeValue(new Date(2025, 0, 15, 0, 0));
+    const formatted1 = formatTimeValue(dcv(new Date(2025, 0, 15, 0, 0)));
     expect(formatted1).toBe('Jan 15, 2025');
 
-    const formatted2 = formatTimeValue(new Date(2025, 11, 25, 0, 0));
+    const formatted2 = formatTimeValue(dcv(new Date(2025, 11, 25, 0, 0)));
     expect(formatted2).toBe('Dec 25, 2025');
   });
 
   it('formats datetime values', () => {
-    const formatted1 = formatTimeValue(new Date(2025, 0, 15, 14, 30));
+    const formatted1 = formatTimeValue(dcv(new Date(2025, 0, 15, 14, 30)));
     expect(formatted1).toBe('Jan 15, 2025 14:30');
 
-    const formatted2 = formatTimeValue(new Date(2025, 0, 15, 9, 5));
+    const formatted2 = formatTimeValue(dcv(new Date(2025, 0, 15, 9, 5)));
     expect(formatted2).toBe('Jan 15, 2025 09:05');
   });
 
   it('formats single-digit days correctly', () => {
-    const formatted = formatTimeValue(new Date(2025, 0, 5, 0, 0));
+    const formatted = formatTimeValue(dcv(new Date(2025, 0, 5, 0, 0)));
     expect(formatted).toBe('Jan 5, 2025');
   });
 
   it('handles Date objects', () => {
     const date = new Date(2025, 0, 15, 14, 30);
-    const formatted = formatTimeValue(date);
+    const formatted = formatTimeValue(dcv(date));
     expect(formatted).toBe('Jan 15, 2025 14:30');
   });
 
@@ -219,12 +227,12 @@ describe('formatTimeValue', () => {
   });
 
   it('does not show time for midnight', () => {
-    const formatted = formatTimeValue(new Date(2025, 0, 15, 0, 0));
+    const formatted = formatTimeValue(dcv(new Date(2025, 0, 15, 0, 0)));
     expect(formatted).toBe('Jan 15, 2025');
   });
 
   it('shows time for non-midnight values', () => {
-    const formatted = formatTimeValue(new Date(2025, 0, 15, 0, 1));
+    const formatted = formatTimeValue(dcv(new Date(2025, 0, 15, 0, 1)));
     expect(formatted).toBe('Jan 15, 2025 00:01');
   });
 });
@@ -244,20 +252,21 @@ describe('augmentWithTimeColumns', () => {
       { Date: new Date(2025, 0, 16, 0, 0), Value: 20 },
     ];
 
-    const result = augmentWithTimeColumns(data, 'Date', fullConfig);
+    const result = augmentWithTimeColumns(asRows(data), 'Date', fullConfig);
 
     expect(result.newColumns).toContain('Date_Year');
     expect(result.newColumns).toContain('Date_Month');
     expect(result.newColumns).toContain('Date_Week');
     expect(result.newColumns).toContain('Date_DayOfWeek');
 
-    expect(data[0].Date_Year).toBe('2025');
-    expect(data[0].Date_Month).toBe('Jan');
-    expect(data[0].Date_DayOfWeek).toBe('Wed');
+    const r = data as Record<string, unknown>[];
+    expect(r[0].Date_Year).toBe('2025');
+    expect(r[0].Date_Month).toBe('Jan');
+    expect(r[0].Date_DayOfWeek).toBe('Wed');
 
-    expect(data[1].Date_Year).toBe('2025');
-    expect(data[1].Date_Month).toBe('Jan');
-    expect(data[1].Date_DayOfWeek).toBe('Thu');
+    expect(r[1].Date_Year).toBe('2025');
+    expect(r[1].Date_Month).toBe('Jan');
+    expect(r[1].Date_DayOfWeek).toBe('Thu');
   });
 
   it('respects configuration flags', () => {
@@ -270,7 +279,7 @@ describe('augmentWithTimeColumns', () => {
       extractHour: false,
     };
 
-    const result = augmentWithTimeColumns(data, 'Date', config);
+    const result = augmentWithTimeColumns(asRows(data), 'Date', config);
 
     expect(result.newColumns).toContain('Date_Year');
     expect(result.newColumns).toContain('Date_DayOfWeek');
@@ -282,21 +291,21 @@ describe('augmentWithTimeColumns', () => {
   it('handles datetime values with hour extraction', () => {
     const data = [{ Timestamp: new Date(2025, 0, 15, 14, 30), Value: 10 }];
 
-    const result = augmentWithTimeColumns(data, 'Timestamp', fullConfig);
+    const result = augmentWithTimeColumns(asRows(data), 'Timestamp', fullConfig);
 
     expect(result.newColumns).toContain('Timestamp_Hour');
     expect(result.hasHourColumn).toBe(true);
-    expect(data[0].Timestamp_Hour).toBe('14:00');
+    expect((data[0] as Record<string, unknown>).Timestamp_Hour).toBe('14:00');
   });
 
   it('does not add hour column for date-only values', () => {
     const data = [{ Date: new Date(2025, 0, 15, 0, 0), Value: 10 }];
 
-    const result = augmentWithTimeColumns(data, 'Date', fullConfig);
+    const result = augmentWithTimeColumns(asRows(data), 'Date', fullConfig);
 
     // Hour column not created because date has no time component
     expect(result.hasHourColumn).toBe(false);
-    expect(data[0].Date_Hour).toBeNull(); // Still added but null
+    expect((data[0] as Record<string, unknown>).Date_Hour).toBeNull(); // Still added but null
   });
 
   it('handles missing/invalid values gracefully', () => {
@@ -306,18 +315,19 @@ describe('augmentWithTimeColumns', () => {
       { Date: null, Value: 30 },
     ];
 
-    augmentWithTimeColumns(data, 'Date', fullConfig);
+    augmentWithTimeColumns(asRows(data), 'Date', fullConfig);
 
-    expect(data[0].Date_Year).toBe('2025');
-    expect(data[1].Date_Year).toBeNull(); // Invalid date
-    expect(data[2].Date_Year).toBeNull(); // Null value
+    const r = data as Record<string, unknown>[];
+    expect(r[0].Date_Year).toBe('2025');
+    expect(r[1].Date_Year).toBeNull(); // Invalid date
+    expect(r[2].Date_Year).toBeNull(); // Null value
   });
 
   it('mutates data in place', () => {
     const data = [{ Date: new Date(2025, 0, 15), Value: 10 }];
     const original = data[0];
 
-    augmentWithTimeColumns(data, 'Date', fullConfig);
+    augmentWithTimeColumns(asRows(data), 'Date', fullConfig);
 
     expect(data[0]).toBe(original); // Same object reference
     expect('Date_Year' in data[0]).toBe(true);
@@ -327,15 +337,15 @@ describe('augmentWithTimeColumns', () => {
     const data1 = [{ Date: new Date(2025, 0, 15) }];
     const data2 = [{ Timestamp: new Date(2025, 0, 15) }];
 
-    augmentWithTimeColumns(data1, 'Date', fullConfig);
-    augmentWithTimeColumns(data2, 'Timestamp', fullConfig);
+    augmentWithTimeColumns(asRows(data1), 'Date', fullConfig);
+    augmentWithTimeColumns(asRows(data2), 'Timestamp', fullConfig);
 
     expect('Date_Year' in data1[0]).toBe(true);
     expect('Timestamp_Year' in data2[0]).toBe(true);
   });
 
   it('handles empty dataset', () => {
-    const data: Record<string, unknown>[] = [];
+    const data: DataRow[] = [];
     const result = augmentWithTimeColumns(data, 'Date', fullConfig);
 
     expect(result.newColumns).toEqual([]);
@@ -350,13 +360,13 @@ describe('hasTimeComponent', () => {
       { Timestamp: new Date(2025, 0, 16, 9, 0) },
     ];
 
-    expect(hasTimeComponent(data, 'Timestamp')).toBe(true);
+    expect(hasTimeComponent(asRows(data), 'Timestamp')).toBe(true);
   });
 
   it('detects date-only values', () => {
     const data = [{ Date: new Date(2025, 0, 15, 0, 0) }, { Date: new Date(2025, 0, 16, 0, 0) }];
 
-    expect(hasTimeComponent(data, 'Date')).toBe(false);
+    expect(hasTimeComponent(asRows(data), 'Date')).toBe(false);
   });
 
   it('samples first 10 rows only', () => {
@@ -368,7 +378,7 @@ describe('hasTimeComponent', () => {
     ];
 
     // Should not detect time because it only samples first 10
-    expect(hasTimeComponent(data, 'Date')).toBe(false);
+    expect(hasTimeComponent(asRows(data), 'Date')).toBe(false);
   });
 
   it('detects time if any sampled row has time component', () => {
@@ -378,24 +388,24 @@ describe('hasTimeComponent', () => {
       { Date: new Date(2025, 0, 17, 14, 30) }, // Third row has time
     ];
 
-    expect(hasTimeComponent(data, 'Date')).toBe(true);
+    expect(hasTimeComponent(asRows(data), 'Date')).toBe(true);
   });
 
   it('handles missing/invalid values', () => {
     const data = [{ Date: null }, { Date: 'invalid' }, { Date: new Date(2025, 0, 15, 0, 0) }];
 
-    expect(hasTimeComponent(data, 'Date')).toBe(false);
+    expect(hasTimeComponent(asRows(data), 'Date')).toBe(false);
   });
 
   it('handles empty dataset', () => {
-    const data: Record<string, unknown>[] = [];
+    const data: DataRow[] = [];
     expect(hasTimeComponent(data, 'Date')).toBe(false);
   });
 
   it('treats midnight as date-only', () => {
     const data = [{ Date: new Date(2025, 0, 15, 0, 0, 0) }];
 
-    expect(hasTimeComponent(data, 'Date')).toBe(false);
+    expect(hasTimeComponent(asRows(data), 'Date')).toBe(false);
   });
 
   it('detects non-midnight times', () => {
@@ -403,6 +413,6 @@ describe('hasTimeComponent', () => {
       { Date: new Date(2025, 0, 15, 0, 1, 0) }, // 1 minute past midnight
     ];
 
-    expect(hasTimeComponent(data, 'Date')).toBe(true);
+    expect(hasTimeComponent(asRows(data), 'Date')).toBe(true);
   });
 });

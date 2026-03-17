@@ -509,7 +509,9 @@ describe('useFindings', () => {
       expect(result.current.findings).toHaveLength(1);
       expect(result.current.findings[0].source).toEqual(source);
       expect(result.current.findings[0].source!.chart).toBe('boxplot');
-      expect(result.current.findings[0].source!.category).toBe('Machine A');
+      expect(
+        (result.current.findings[0].source as { chart: 'boxplot'; category: string }).category
+      ).toBe('Machine A');
       expect(finding!.source).toEqual(source);
     });
 

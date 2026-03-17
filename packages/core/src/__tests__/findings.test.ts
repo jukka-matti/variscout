@@ -338,7 +338,7 @@ describe('createFinding with source', () => {
     );
     expect(f.source).toBeDefined();
     expect(f.source!.chart).toBe('boxplot');
-    expect(f.source!.category).toBe('Machine A');
+    expect((f.source as { chart: 'boxplot'; category: string }).category).toBe('Machine A');
     expect(f.text).toBe('High spread on Machine A');
     expect(f.status).toBe('observed');
   });

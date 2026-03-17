@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import type { DataRow } from '../../types';
+import type { DataRow } from '../types';
 import { loadCsv } from './fixtures/loadCsv';
 import { calculateStats, calculateAnova, getEtaSquared } from '../stats';
 import { applyFilters, calculateDrillVariation, calculateCategoryTotalSS } from '../variation';
