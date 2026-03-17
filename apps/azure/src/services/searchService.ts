@@ -1,9 +1,14 @@
 /**
  * Azure AI Search client for Knowledge Base feature.
- * Searches past findings across the organization.
+ *
+ * ADR-026: SharePoint-first strategy with Remote SharePoint knowledge sources.
+ * - searchDocuments() uses Foundry IQ agentic retrieval with user token passthrough
+ * - searchRelatedFindings() is deprecated (no dedicated findings index)
+ * - Folder-scoped via KQL filter on the channel's SharePoint path
  */
 
 import { isTeamAIPlan, isPreviewEnabled } from '@variscout/core';
+import { getGraphTokenWithScopes } from '../auth/graphToken';
 import { getAccessToken } from '../auth/easyAuth';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
@@ -15,6 +20,7 @@ export interface DocumentResult {
   relevanceScore: number;
 }
 
+/** @deprecated ADR-026: Dedicated findings index replaced by SharePoint reports */
 export interface SearchResult {
   findingId: string;
   projectName: string;
@@ -33,10 +39,6 @@ function getSearchEndpoint(): string | null {
   return getRuntimeConfig()?.aiSearchEndpoint || import.meta.env.VITE_AI_SEARCH_ENDPOINT || null;
 }
 
-function getSearchIndex(): string {
-  return getRuntimeConfig()?.aiSearchIndex || import.meta.env.VITE_AI_SEARCH_INDEX || 'findings';
-}
-
 /**
  * Check if the Knowledge Base feature is available.
  * Requires Team AI plan, configured search endpoint, and preview toggle enabled.
@@ -46,96 +48,77 @@ export function isKnowledgeBaseAvailable(): boolean {
 }
 
 /**
- * Search for related findings in Azure AI Search.
- * Returns empty array on error (soft failure).
+ * @deprecated ADR-026: No longer using a dedicated findings index.
+ * Knowledge comes from SharePoint documents via searchDocuments().
+ * Kept for backward compatibility — returns empty array.
  */
 export async function searchRelatedFindings(
-  query: string,
-  options?: { factor?: string; top?: number }
+  _query: string,
+  _options?: { factor?: string; top?: number }
 ): Promise<SearchResult[]> {
-  const endpoint = getSearchEndpoint();
-  if (!endpoint) return [];
-
-  const token = await getAccessToken();
-  const index = getSearchIndex();
-  const top = options?.top ?? 5;
-
-  const body: Record<string, unknown> = {
-    search: query,
-    queryType: 'semantic',
-    semanticConfiguration: 'findings-semantic',
-    top,
-    select:
-      'finding_id,project_name,factor,status,eta_squared,cpk_before,cpk_after,suspected_cause,actions_text,outcome_effective',
-  };
-
-  if (options?.factor) {
-    const escaped = options.factor.replace(/'/g, "''");
-    body.filter = `factor eq '${escaped}'`;
-  }
-
-  const res = await fetch(`${endpoint}/indexes/${index}/docs/search?api-version=2024-07-01`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    console.warn('[SearchService] Search failed:', res.status);
-    return [];
-  }
-
-  const data = await res.json();
-  return (data.value ?? []).map((doc: Record<string, unknown>) => ({
-    findingId: doc.finding_id,
-    projectName: doc.project_name,
-    factor: doc.factor,
-    status: doc.status,
-    etaSquared: doc.eta_squared ?? null,
-    cpkBefore: doc.cpk_before ?? null,
-    cpkAfter: doc.cpk_after ?? null,
-    suspectedCause: doc.suspected_cause ?? '',
-    actionsText: doc.actions_text ?? '',
-    outcomeEffective: doc.outcome_effective ?? null,
-    score: doc['@search.score'] ?? 0,
-  }));
+  console.warn(
+    '[SearchService] searchRelatedFindings() is deprecated (ADR-026). Use searchDocuments() instead.'
+  );
+  return [];
 }
 
 /**
  * Search documents via Foundry IQ agentic retrieval (Knowledge Base).
- * Uses the 2025-11-01-preview API with ExtractedData output mode.
- * Returns empty array on error (soft failure).
+ *
+ * ADR-026 changes:
+ * - Passes user's delegated token via xMsQuerySourceAuthorization for per-user permissions
+ * - Supports folder-scoped search via KQL filter on SharePoint path
+ * - Uses maxOutputSize and maxRuntimeInSeconds for operational control
  */
 export async function searchDocuments(
   query: string,
-  options?: { top?: number }
+  options?: {
+    top?: number;
+    /** SharePoint folder path for scoped search (KQL filter) */
+    folderScope?: string;
+  }
 ): Promise<DocumentResult[]> {
   if (!isTeamAIPlan() || !isPreviewEnabled('knowledge-base')) return [];
 
   const endpoint = getSearchEndpoint();
   if (!endpoint) return [];
 
-  const token = await getAccessToken();
+  // Get tokens: service token for AI Search, user token for SharePoint passthrough
+  const [serviceToken, userToken] = await Promise.all([
+    getAccessToken(),
+    getGraphTokenWithScopes(['Sites.Read.All']).catch(() => null),
+  ]);
 
-  const body = {
+  const body: Record<string, unknown> = {
     messages: [{ role: 'user', content: [{ type: 'text', text: query }] }],
     outputMode: 'ExtractedData',
     retrievalReasoningEffort: { kind: 'low' },
+    maxOutputSize: 2048,
+    maxRuntimeInSeconds: 15,
     ...(options?.top ? { top: options.top } : {}),
   };
+
+  // Add folder scope filter if provided (KQL filter on SharePoint path)
+  if (options?.folderScope) {
+    body.filter = `path:"${options.folderScope}"`;
+  }
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${serviceToken}`,
+    'Content-Type': 'application/json',
+  };
+
+  // Pass user's delegated token for per-user SharePoint permissions (ADR-026)
+  if (userToken) {
+    headers['x-ms-query-source-authorization'] = `Bearer ${userToken}`;
+  }
 
   try {
     const res = await fetch(
       `${endpoint}/knowledgebases/variscout-kb/retrieve?api-version=2025-11-01-preview`,
       {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(body),
       }
     );

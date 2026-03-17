@@ -42,11 +42,7 @@ import {
   getAIProviderLabel,
 } from '../services/aiService';
 import type { AIPreferences } from '../context/DataContext';
-import {
-  searchRelatedFindings,
-  searchDocuments,
-  isKnowledgeBaseAvailable,
-} from '../services/searchService';
+import { searchDocuments, isKnowledgeBaseAvailable } from '../services/searchService';
 import { updateFindingsPopout } from '@variscout/ui';
 
 export interface UseEditorAIOptions {
@@ -177,13 +173,11 @@ export function useEditorAI({
     fetchNarration: aiAvailable && prefs.narration ? fetchNarrationFromAI : undefined,
   });
 
-  // Knowledge Base search (Team AI preview)
+  // Knowledge Base search — on-demand via CoScout UI (ADR-026)
   const knowledgeSearch = useKnowledgeSearch({
-    searchFn: searchRelatedFindings,
     searchDocumentsFn: searchDocuments,
     enabled: isKnowledgeBaseAvailable(),
   });
-
   // AI CoScout conversation (disabled when per-component toggle is off)
   const coscout = useAICoScout({
     context: aiContext.context,
@@ -191,30 +185,8 @@ export function useEditorAI({
     fetchStreamingResponse:
       aiAvailable && prefs.coscout ? fetchCoScoutStreamingResponse : undefined,
     initialNarrative: narration.narrative,
-    onBeforeSend: isKnowledgeBaseAvailable()
-      ? async (text, ctx) => {
-          const results = await knowledgeSearch.search(text);
-          ctx.knowledgeResults = results.map(r => ({
-            projectName: r.projectName,
-            factor: r.factor,
-            status: r.status,
-            etaSquared: r.etaSquared,
-            cpkBefore: r.cpkBefore,
-            cpkAfter: r.cpkAfter,
-            suspectedCause: r.suspectedCause,
-            actionsText: r.actionsText,
-            outcomeEffective: r.outcomeEffective,
-          }));
-          if (knowledgeSearch.documents.length > 0) {
-            ctx.knowledgeDocuments = knowledgeSearch.documents.map(d => ({
-              title: d.title,
-              snippet: d.snippet,
-              source: d.source,
-              url: d.url,
-            }));
-          }
-        }
-      : undefined,
+    // ADR-026: Knowledge search is now on-demand (user clicks "Search Knowledge Base?")
+    // instead of auto-firing on every message via onBeforeSend.
   });
 
   const suggestedQuestions = useMemo(
