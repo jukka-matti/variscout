@@ -367,6 +367,14 @@ flowchart TB
 
 ---
 
+## Journey Traceability
+
+Bidirectional mapping between user journey steps and implementation components — trace any feature back to a user need or forward from a journey step to code.
+
+[:octicons-arrow-right-24: Traceability Index](traceability.md)
+
+---
+
 ## Architecture Principles
 
 1. **Multiple entry points** — Every page can be a landing page

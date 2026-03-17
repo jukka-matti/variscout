@@ -285,6 +285,7 @@ Features that behave differently on phone (<640px) versus desktop.
 ## See Also
 
 - [Products Overview](index.md)
+- [Tier Philosophy](tier-philosophy.md) — Why features are gated where they are
 - [Azure App](azure/index.md)
 - [PWA (Free Training Tool)](pwa/index.md)
 - [ADR-007: Distribution Strategy](../07-decisions/adr-007-azure-marketplace-distribution.md)

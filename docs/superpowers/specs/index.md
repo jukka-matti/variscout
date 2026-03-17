@@ -6,6 +6,7 @@ Once a feature stabilizes, the ADR is the canonical reference.
 
 | Spec                                                    | Feature                   | ADR     | Status    |
 | ------------------------------------------------------- | ------------------------- | ------- | --------- |
+| 2026-03-17-navigation-audit.md                          | Navigation Audit          | —       | Active    |
 | 2026-03-16-scouting-report-design.md                    | Report View               | ADR-024 | Delivered |
 | 2026-03-16-report-verification-upgrade-design.md        | Staged Verification       | ADR-023 | Delivered |
 | 2026-03-16-ai-integration-evaluation.md                 | AI Integration Evaluation | ADR-019 | Active    |
