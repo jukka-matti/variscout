@@ -64,20 +64,20 @@ flowchart LR
 
 ## Feature Comparison
 
-| Feature          | Azure App | PWA (Free) | Power BI         |
-| ---------------- | --------- | ---------- | ---------------- |
-| I-Chart          | ✓         | ✓          | Planned          |
-| Boxplot          | ✓         | ✓          | Planned          |
-| Pareto           | ✓         | ✓          | Planned          |
-| Capability       | ✓         | ✓          | Planned          |
-| Performance Mode | ✓         | -          | -                |
-| File Upload      | ✓         | -          | -                |
-| Save/Persistence | ✓         | -          | Power BI Service |
-| Drill-Down       | ✓         | ✓          | Native           |
-| Linked Filtering | ✓         | ✓          | Native           |
-| Offline          | Cached    | ✓          | -                |
-| Cloud Sync       | OneDrive  | -          | Power BI Service |
-| SSO              | Microsoft | -          | Microsoft        |
+| Feature          | Azure App | PWA (Free) |
+| ---------------- | --------- | ---------- |
+| I-Chart          | ✓         | ✓          |
+| Boxplot          | ✓         | ✓          |
+| Pareto           | ✓         | ✓          |
+| Capability       | ✓         | ✓          |
+| Performance Mode | ✓         | -          |
+| File Upload      | ✓         | -          |
+| Save/Persistence | ✓         | -          |
+| Drill-Down       | ✓         | ✓          |
+| Linked Filtering | ✓         | ✓          |
+| Offline          | Cached    | ✓          |
+| Cloud Sync       | OneDrive  | -          |
+| SSO              | Microsoft | -          |
 
 ---
 
@@ -127,7 +127,6 @@ This ensures:
 | --------- | -------------------------------------- | --------------------------- | -------------------------------- |
 | Azure App | Managed Application to customer tenant | Customer's Azure + OneDrive | Deployment config (all features) |
 | PWA       | Static hosting (public)                | Browser (session only)      | Free forever (training)          |
-| Power BI  | AppSource                              | Power BI Service            | TBD                              |
 
 ---
 

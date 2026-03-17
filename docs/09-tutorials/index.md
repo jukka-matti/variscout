@@ -2,7 +2,7 @@
 title: Tutorials
 audience: [analyst, engineer]
 category: tutorial
-status: draft
+status: deferred
 related: [getting-started, learning, case-studies]
 ---
 
@@ -11,6 +11,8 @@ related: [getting-started, learning, case-studies]
 Step-by-step guides for learning VariScout through hands-on exercises.
 
 > These tutorials follow the [Diataxis](https://diataxis.fr/) tutorial pattern: learning-oriented, with concrete steps and expected outcomes.
+
+> **Note:** Tutorials will be written once the feature set stabilizes post-v1 launch.
 
 ---
 
