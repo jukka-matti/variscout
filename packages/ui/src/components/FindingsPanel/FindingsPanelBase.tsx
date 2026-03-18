@@ -109,7 +109,14 @@ export interface FindingsPanelBaseProps {
   // Tree view props (passed through to FindingsLog → HypothesisTreeView)
   hypotheses?: import('@variscout/core').Hypothesis[];
   onSelectHypothesis?: (hypothesis: import('@variscout/core').Hypothesis) => void;
-  onAddSubHypothesis?: (parentId: string) => void;
+  onAddSubHypothesis?: (
+    parentId: string,
+    text: string,
+    factor?: string,
+    validationType?: 'data' | 'gemba' | 'expert'
+  ) => void;
+  /** Available factor columns for sub-hypothesis factor picker */
+  factors?: string[];
   getChildrenSummary?: (parentId: string) => {
     supported: number;
     contradicted: number;
@@ -138,6 +145,8 @@ export interface FindingsPanelBaseProps {
   onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
   onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
   onAskCoScout?: (question: string) => void;
+  /** Set cause role on a hypothesis */
+  onSetCauseRole?: (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => void;
   /** Ask CoScout about a specific finding (from FindingCard action button) */
   onAskCoScoutAboutFinding?: (focusContext: {
     finding: { text: string; status: string; hypothesis?: string };
@@ -201,6 +210,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   hypotheses,
   onSelectHypothesis,
   onAddSubHypothesis,
+  factors,
   getChildrenSummary,
   onSetValidationTask,
   onCompleteTask,
@@ -212,6 +222,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
   onSelectIdea,
   onProjectIdea,
   onAskCoScout,
+  onSetCauseRole,
   onAskCoScoutAboutFinding,
   resizeConfig,
   coScoutMessages,
@@ -421,6 +432,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           hypotheses={hypotheses}
           onSelectHypothesis={onSelectHypothesis}
           onAddSubHypothesis={onAddSubHypothesis}
+          factors={factors}
           getChildrenSummary={getChildrenSummary}
           onSetValidationTask={onSetValidationTask}
           onCompleteTask={onCompleteTask}
@@ -441,6 +453,7 @@ const FindingsPanelBase: React.FC<FindingsPanelBaseProps> = ({
           onSelectIdea={onSelectIdea}
           onProjectIdea={onProjectIdea}
           onAskCoScout={onAskCoScout}
+          onSetCauseRole={onSetCauseRole}
           onAskCoScoutAboutFinding={onAskCoScoutAboutFinding}
         />
 

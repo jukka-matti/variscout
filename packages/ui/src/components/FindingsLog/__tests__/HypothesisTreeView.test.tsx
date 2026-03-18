@@ -62,13 +62,17 @@ describe('HypothesisTreeView', () => {
     expect(screen.getByText('2 findings')).toBeTruthy();
   });
 
-  it('shows add sub-hypothesis button on hover', () => {
+  it('shows inline sub-hypothesis form on "+" click and calls onAddSubHypothesis on submit', () => {
     const onAdd = vi.fn();
     const h = makeHypothesis('Root');
     render(<HypothesisTreeView hypotheses={[h]} findings={[]} onAddSubHypothesis={onAdd} />);
     const addBtn = screen.getByTitle('Add sub-hypothesis');
     fireEvent.click(addBtn);
-    expect(onAdd).toHaveBeenCalledWith(h.id);
+    // Inline form should appear
+    const input = screen.getByPlaceholderText('What might cause this?');
+    fireEvent.change(input, { target: { value: 'Sub cause' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onAdd).toHaveBeenCalledWith(h.id, 'Sub cause', undefined, 'data');
   });
 
   it('applies strikethrough to contradicted hypotheses', () => {

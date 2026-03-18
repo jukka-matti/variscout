@@ -1,15 +1,25 @@
 import React, { useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { WhatIfPageBase } from '@variscout/ui';
-import type { FilterAction } from '@variscout/core';
+import type { FilterAction, FindingProjection } from '@variscout/core';
 
 interface WhatIfPageProps {
   onBack: () => void;
   filterCount?: number;
   filterStack?: FilterAction[];
+  /** Context for idea→What-If round-trip */
+  projectionContext?: { ideaText: string; hypothesisText: string };
+  /** Save projection back to idea */
+  onSaveProjection?: (projection: FindingProjection) => void;
 }
 
-const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack, filterCount = 0, filterStack }) => {
+const WhatIfPage: React.FC<WhatIfPageProps> = ({
+  onBack,
+  filterCount = 0,
+  filterStack,
+  projectionContext,
+  onSaveProjection,
+}) => {
   const { filteredData, rawData, outcome, specs, columnAliases, cpkTarget, viewState } = useData();
 
   const filterNames = useMemo(() => {
@@ -33,6 +43,8 @@ const WhatIfPage: React.FC<WhatIfPageProps> = ({ onBack, filterCount = 0, filter
       onBack={onBack}
       cpkTarget={cpkTarget}
       activeFactor={viewState?.boxplotFactor}
+      projectionContext={projectionContext}
+      onSaveProjection={onSaveProjection}
     />
   );
 };

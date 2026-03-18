@@ -52,6 +52,12 @@ HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [Focu
 | CoScout panel             | `CoScoutPanelBase` phase-aware conversation                       | Azure AI | Explicit phase coaching via `InvestigationPhaseBadge`       |
 | Investigation diamond     | `DiamondPhaseMap` (initial → diverging → validating → converging) | Azure    | Visualizes investigation progress                           |
 
+**New UI elements added in INVESTIGATE (2026-03-18):**
+
+- **`HypothesisNode` — inline sub-hypothesis form:** The "+" button on each node expands an inline form (text input + optional factor dropdown + validation type radio buttons) in place of the previous `window.prompt()`. Cancels with Escape; submits with Enter or "Add".
+- **`HypothesisNode` — cause role cycle button:** Supported/partial nodes show a 🎯 button that cycles `none → primary → contributing → none`. Only one primary allowed per root tree; no limit on contributing. `PRIMARY` / `CONTRIBUTING` badges rendered on the node row.
+- **`FindingCard` — "Suspected cause" section:** When any hypothesis carries a causeRole and the finding is `analyzed` or higher, the card renders a "Suspected cause" section listing the primary hypothesis prominently and contributing hypotheses beneath it.
+
 **Entry scenario affects INVESTIGATE:** "Problem to Solve" → full diamond traversal expected. "Hypothesis to Check" → may skip diverging, go straight to validating.
 
 ### IMPROVE (actions exist, PDCA cycle)
@@ -63,6 +69,10 @@ HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [Focu
 | Staged Analysis     | `StagedComparisonCard`, per-stage stats            | Azure | Before/After verification      |
 | Report View         | `ReportViewBase`, 5-step story via `ReportSection` | Azure | Shares investigation narrative |
 | PDCA tracker        | `PDCAProgress` (Plan → Do → Check → Act)           | Azure | Tracks cycle completion        |
+
+**New UI elements added in IMPROVE (2026-03-18):**
+
+- **`WhatIfPageBase` — projection context banner:** When opened via the "P" (Project) button on an improvement idea, the simulator displays a banner identifying the linked finding and idea name. A **"Save to idea"** button captures the current projection (projected mean, σ, Cpk, yield) back onto the idea record, completing the idea → What-If → idea round-trip.
 
 **IMPROVE follows the full PDCA cycle:**
 

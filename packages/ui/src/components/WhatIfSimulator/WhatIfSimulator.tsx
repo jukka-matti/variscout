@@ -117,6 +117,8 @@ export interface WhatIfSimulatorProps {
   complementStats?: { mean: number; stdDev: number; count: number };
   /** Count of the filtered subset (for fraction calculation) */
   subsetCount?: number;
+  /** Called when simulation parameters change (for external capture) */
+  onSimulationChange?: (params: { meanShift: number; variationReduction: number }) => void;
 }
 
 // formatNumber is now provided by useTranslation().formatStat inside the component
@@ -148,6 +150,7 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
       cpkTarget = 1.33,
       complementStats,
       subsetCount,
+      onSimulationChange,
     },
     ref
   ) => {
@@ -194,6 +197,11 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
     // Slider states
     const [meanShift, setMeanShift] = useState(0);
     const [variationReduction, setVariationReduction] = useState(0);
+
+    // Notify parent of simulation parameter changes
+    useEffect(() => {
+      onSimulationChange?.({ meanShift, variationReduction });
+    }, [meanShift, variationReduction, onSimulationChange]);
 
     // Calculate mean slider range
     const meanRange = useMemo(() => {

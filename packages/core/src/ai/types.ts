@@ -128,6 +128,11 @@ export interface AIContext {
     phase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'improving';
     /** Investigation categories for completeness prompting */
     categories?: Array<{ name: string; factorNames: string[] }>;
+    /** Suspected root cause (primary + contributing hypotheses with causeRole) */
+    suspectedCause?: {
+      primary?: { text: string; factor?: string; status: string };
+      contributing: Array<{ text: string; factor?: string; status: string }>;
+    };
   };
   /** Focus context from "Ask CoScout about this" actions */
   focusContext?: {

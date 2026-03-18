@@ -36,7 +36,14 @@ export interface FindingsLogProps {
   /** Callback when a hypothesis node is selected in tree view */
   onSelectHypothesis?: (hypothesis: Hypothesis) => void;
   /** Add a sub-hypothesis under a parent */
-  onAddSubHypothesis?: (parentId: string) => void;
+  onAddSubHypothesis?: (
+    parentId: string,
+    text: string,
+    factor?: string,
+    validationType?: 'data' | 'gemba' | 'expert'
+  ) => void;
+  /** Available factor columns for sub-hypothesis factor picker */
+  factors?: string[];
   /** Get children summary for tree display */
   getChildrenSummary?: (parentId: string) => {
     supported: number;
@@ -126,6 +133,8 @@ export interface FindingsLogProps {
   onSelectIdea?: (hypothesisId: string, ideaId: string, selected: boolean) => void;
   onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
   onAskCoScout?: (question: string) => void;
+  /** Set cause role on a hypothesis */
+  onSetCauseRole?: (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => void;
   /** Ask CoScout about a specific finding (from FindingCard action button) */
   onAskCoScoutAboutFinding?: (focusContext: {
     finding: { text: string; status: string; hypothesis?: string };
@@ -153,6 +162,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   hypotheses,
   onSelectHypothesis,
   onAddSubHypothesis,
+  factors,
   getChildrenSummary,
   onSetFindingStatus,
   onSetFindingTag,
@@ -187,6 +197,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
   onSelectIdea,
   onProjectIdea,
   onAskCoScout,
+  onSetCauseRole,
   onAskCoScoutAboutFinding,
   processContext,
   onGenerateAIReport,
@@ -214,6 +225,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           findings={findings}
           onSelectHypothesis={onSelectHypothesis}
           onAddSubHypothesis={onAddSubHypothesis}
+          factors={factors}
           getChildrenSummary={getChildrenSummary}
           onSetValidationTask={onSetValidationTask}
           onCompleteTask={onCompleteTask}
@@ -225,6 +237,7 @@ const FindingsLog: React.FC<FindingsLogProps> = ({
           onSelectIdea={onSelectIdea}
           onProjectIdea={onProjectIdea}
           onAskCoScout={onAskCoScout}
+          onSetCauseRole={onSetCauseRole}
         />
       </div>
     );

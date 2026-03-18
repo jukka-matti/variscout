@@ -71,10 +71,10 @@ Tree view shows one finding at a time with its full hypothesis tree:
 Hypotheses                                [+ Add]
 
 ● Machine 5 is causing drift               [data]
-  ├── ● Worn nozzle tip                   [gemba]
+  ├── ● Worn nozzle tip                   [gemba]  🎯 PRIMARY
   │     Task: Check nozzle wear           [Done]
   │     "Worn 0.3mm beyond spec"
-  ├── ● Temperature instability             [data]
+  ├── ● Temperature instability             [data]  CONTRIBUTING
   │     Factor: Temperature  eta=23%
   └── ✗ Operator technique variance         [data]
         Factor: Operator  eta=3%
@@ -87,6 +87,40 @@ Progress: 2/3 tested, 1 contradicted
 - **Validation type icons** distinguish data, gemba, and expert hypotheses
 - **Contradicted hypotheses** are dimmed (50% opacity) with strikethrough text — visible but clearly eliminated
 - **Children summaries** show "N children (M supported)" when a node is collapsed
+
+### Inline Sub-Hypothesis Creation
+
+The **"+" button** on a hypothesis node no longer uses `window.prompt()`. Clicking "+" expands an inline form directly within the tree node:
+
+- **Text input** — hypothesis statement (required, 5–200 chars)
+- **Factor dropdown** (optional) — link to a factor column for automatic data validation
+- **Validation type radio buttons** — `data` / `gemba` / `expert` (defaults to `data` when a factor is selected, `gemba` otherwise)
+
+Pressing Enter or clicking "Add" creates the sub-hypothesis and collapses the form. Pressing Escape cancels without saving. Validation errors are shown inline (e.g., "Text is required" or tree depth/width limit warnings).
+
+### Cause Role Marking
+
+When a hypothesis reaches `supported` or `partial` status, a **🎯 button** appears on its `HypothesisNode` row. Clicking it cycles the hypothesis through three cause roles:
+
+```
+none → primary → contributing → none → …
+```
+
+Constraints:
+
+- Only **one primary** is allowed per root hypothesis tree. Marking a second hypothesis as primary automatically demotes the previous primary to `contributing`.
+- `contributing` has no uniqueness limit — any number of hypotheses in the tree can be marked as contributing.
+- The cycle button is only available on supported/partial hypotheses; contradicted hypotheses cannot carry a cause role.
+
+**Visual badges on the node:**
+
+| Role           | Badge                  |
+| -------------- | ---------------------- |
+| `primary`      | `PRIMARY` (blue)       |
+| `contributing` | `CONTRIBUTING` (slate) |
+| _(none)_       | — (no badge)           |
+
+Once any cause role is set and the finding is at `analyzed` status or higher, the **FindingCard** (outside the tree view) renders a "Suspected cause" section showing the primary hypothesis prominently and listing contributing hypotheses beneath it. This surfaces the convergence conclusion without requiring the analyst to expand the full tree.
 
 ### In the Popout Window
 

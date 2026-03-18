@@ -63,12 +63,14 @@ function deriveReportType(findings: Finding[]): ReportType {
   return 'deep-dive';
 }
 
-/** Build the title for the hypotheses section (Step 3), adapting to first hypothesis text. */
+/** Build the title for the hypotheses section (Step 3), adapting to primary cause or first hypothesis text. */
 function buildHypothesesTitle(hypotheses: Hypothesis[]): string {
   if (hypotheses.length === 0) return 'Why is this happening?';
-  const first = hypotheses[0];
-  // Use the hypothesis text trimmed, up to ~60 chars, as the contextual subject
-  const subject = first.text && first.text.trim().length > 0 ? first.text.trim() : null;
+
+  // Prefer the primary cause hypothesis if one is marked
+  const primary = hypotheses.find(h => h.causeRole === 'primary');
+  const subject = primary ? primary.text.trim() : hypotheses[0].text?.trim() || null;
+
   if (!subject) return 'Why is this happening?';
   return `What causes ${subject}?`;
 }

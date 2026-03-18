@@ -36,8 +36,15 @@ export interface HypothesisNodeProps {
   onToggle: (id: string) => void;
   /** Click to filter dashboard to this hypothesis's factor+level */
   onSelect?: (hypothesis: Hypothesis) => void;
-  /** Add a sub-hypothesis */
-  onAddChild?: (parentId: string) => void;
+  /** Add a sub-hypothesis with text, optional factor, and validation type */
+  onAddChild?: (
+    parentId: string,
+    text: string,
+    factor?: string,
+    validationType?: 'data' | 'gemba' | 'expert'
+  ) => void;
+  /** Available factor columns for sub-hypothesis factor picker */
+  factors?: string[];
   /** Children summary for display */
   childrenSummary?: {
     supported: number;
@@ -76,6 +83,8 @@ export interface HypothesisNodeProps {
   onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
   /** Ask CoScout about improvement options */
   onAskCoScout?: (question: string) => void;
+  /** Set cause role on a hypothesis */
+  onSetCauseRole?: (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => void;
 }
 
 // ============================================================================
@@ -435,6 +444,7 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
   onToggle,
   onSelect,
   onAddChild,
+  factors,
   childrenSummary,
   canAddChild,
   showContradicted,
@@ -448,9 +458,42 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
   onSelectIdea,
   onProjectIdea,
   onAskCoScout,
+  onSetCauseRole,
 }) => {
   const isContradicted = hypothesis.status === 'contradicted';
   const dimmed = isContradicted && !showContradicted;
+  const [showAddChild, setShowAddChild] = useState(false);
+  const [childText, setChildText] = useState('');
+  const [childFactor, setChildFactor] = useState('');
+  const [childValidationType, setChildValidationType] = useState<'data' | 'gemba' | 'expert'>(
+    'data'
+  );
+
+  const handleAddChildSubmit = useCallback(() => {
+    const trimmed = childText.trim();
+    if (!trimmed || !onAddChild) return;
+    onAddChild(hypothesis.id, trimmed, childFactor || undefined, childValidationType);
+    setChildText('');
+    setChildFactor('');
+    setChildValidationType('data');
+    setShowAddChild(false);
+  }, [hypothesis.id, childText, childFactor, childValidationType, onAddChild]);
+
+  const handleCycleCauseRole = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!onSetCauseRole) return;
+      const cycle: Array<'primary' | 'contributing' | undefined> = [
+        'primary',
+        'contributing',
+        undefined,
+      ];
+      const idx = cycle.indexOf(hypothesis.causeRole);
+      const next = cycle[(idx + 1) % cycle.length];
+      onSetCauseRole(hypothesis.id, next);
+    },
+    [hypothesis.id, hypothesis.causeRole, onSetCauseRole]
+  );
 
   return (
     <div
@@ -528,6 +571,18 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
               </span>
             )}
 
+            {/* Cause role badge */}
+            {hypothesis.causeRole === 'primary' && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 font-medium">
+                PRIMARY
+              </span>
+            )}
+            {hypothesis.causeRole === 'contributing' && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium">
+                CONTRIBUTING
+              </span>
+            )}
+
             {/* Children summary */}
             {childrenSummary && childrenSummary.total > 0 && (
               <span className="text-[10px] text-content-muted">
@@ -537,13 +592,43 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
           </div>
         </div>
 
+        {/* Cause role button (visible for supported/partial hypotheses) */}
+        {onSetCauseRole &&
+          (hypothesis.status === 'supported' || hypothesis.status === 'partial') && (
+            <button
+              className={`opacity-0 group-hover:opacity-100 touch-show transition-opacity text-xs mt-0.5 flex-shrink-0 ${
+                hypothesis.causeRole === 'primary'
+                  ? 'text-red-400 opacity-100'
+                  : hypothesis.causeRole === 'contributing'
+                    ? 'text-amber-400 opacity-100'
+                    : 'text-content-muted hover:text-content'
+              }`}
+              onClick={handleCycleCauseRole}
+              title={
+                hypothesis.causeRole === 'primary'
+                  ? 'Primary cause (click to change)'
+                  : hypothesis.causeRole === 'contributing'
+                    ? 'Contributing factor (click to change)'
+                    : 'Mark as cause'
+              }
+              aria-label="Set cause role"
+              data-testid={`cause-role-${hypothesis.id}`}
+            >
+              {hypothesis.causeRole === 'primary'
+                ? '\u{1F3AF}'
+                : hypothesis.causeRole === 'contributing'
+                  ? '\u25C7'
+                  : '\u{1F3AF}'}
+            </button>
+          )}
+
         {/* Add child button */}
         {canAddChild && onAddChild && (
           <button
             className="opacity-0 group-hover:opacity-100 touch-show transition-opacity text-xs text-content-muted hover:text-content mt-0.5"
             onClick={e => {
               e.stopPropagation();
-              onAddChild(hypothesis.id);
+              setShowAddChild(true);
             }}
             title="Add sub-hypothesis"
             aria-label="Add sub-hypothesis"
@@ -594,6 +679,89 @@ const HypothesisNode: React.FC<HypothesisNodeProps> = ({
           onAskCoScout={onAskCoScout}
           hypothesisText={hypothesis.text}
         />
+      )}
+
+      {/* Inline sub-hypothesis form */}
+      {showAddChild && (
+        <div
+          className="ml-6 mt-1.5 p-2 rounded border border-edge bg-surface-secondary space-y-1.5"
+          onClick={e => e.stopPropagation()}
+          data-testid={`add-child-form-${hypothesis.id}`}
+        >
+          <input
+            type="text"
+            className="w-full text-xs bg-transparent border-b border-edge text-content placeholder:text-content-muted focus:outline-none focus:border-blue-400 py-0.5"
+            placeholder="What might cause this?"
+            value={childText}
+            onChange={e => setChildText(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && childText.trim()) {
+                e.preventDefault();
+                handleAddChildSubmit();
+              }
+              if (e.key === 'Escape') {
+                setShowAddChild(false);
+                setChildText('');
+              }
+            }}
+            autoFocus
+            data-testid={`add-child-text-${hypothesis.id}`}
+          />
+          <div className="flex items-center gap-2 flex-wrap">
+            {factors && factors.length > 0 && (
+              <select
+                className="text-[11px] bg-transparent border border-edge rounded px-1.5 py-0.5 text-content focus:outline-none focus:border-blue-400"
+                value={childFactor}
+                onChange={e => setChildFactor(e.target.value)}
+                data-testid={`add-child-factor-${hypothesis.id}`}
+              >
+                <option value="">Factor (optional)</option>
+                {factors.map(f => (
+                  <option key={f} value={f}>
+                    {f}
+                  </option>
+                ))}
+              </select>
+            )}
+            <div className="flex items-center gap-1.5 text-[10px]">
+              {(['data', 'gemba', 'expert'] as const).map(vt => (
+                <label
+                  key={vt}
+                  className="flex items-center gap-0.5 text-content-secondary cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name={`vtype-${hypothesis.id}`}
+                    value={vt}
+                    checked={childValidationType === vt}
+                    onChange={() => setChildValidationType(vt)}
+                    className="w-3 h-3"
+                  />
+                  <span className="capitalize">{vt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 justify-end">
+            <button
+              className="text-xs px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 disabled:opacity-50"
+              onClick={handleAddChildSubmit}
+              disabled={!childText.trim()}
+              data-testid={`add-child-submit-${hypothesis.id}`}
+            >
+              Add
+            </button>
+            <button
+              className="text-xs text-content-muted hover:text-content"
+              onClick={() => {
+                setShowAddChild(false);
+                setChildText('');
+              }}
+            >
+              &times;
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

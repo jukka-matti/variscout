@@ -224,6 +224,8 @@ export interface Hypothesis {
   manualNote?: string;
   /** Improvement ideas for supported/partial hypotheses */
   ideas?: ImprovementIdea[];
+  /** Role in root cause analysis — 'primary' (the main cause) or 'contributing' (secondary factor) */
+  causeRole?: 'primary' | 'contributing';
 }
 
 // ============================================================================

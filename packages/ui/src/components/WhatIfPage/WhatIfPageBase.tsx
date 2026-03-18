@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useTranslation } from '@variscout/hooks';
-import { ArrowLeft, Beaker } from 'lucide-react';
+import { ArrowLeft, Beaker, Save } from 'lucide-react';
 import {
   calculateStats,
   toNumericValue,
@@ -10,6 +10,7 @@ import {
   normalCDF,
   type DataRow,
   type SpecLimits,
+  type FindingProjection,
 } from '@variscout/core';
 import { formatStatistic } from '@variscout/core/i18n';
 import WhatIfSimulator from '../WhatIfSimulator/WhatIfSimulator';
@@ -70,6 +71,10 @@ export interface WhatIfPageBaseProps {
   cpkTarget?: number;
   /** Active factor from boxplot (enables category-based presets) */
   activeFactor?: string | null;
+  /** Context for idea→What-If round-trip (shows banner + save button) */
+  projectionContext?: { ideaText: string; hypothesisText: string };
+  /** Save projection back to idea */
+  onSaveProjection?: (projection: FindingProjection) => void;
 }
 
 /**
@@ -271,6 +276,8 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
   simulatorColorScheme,
   cpkTarget,
   activeFactor,
+  projectionContext,
+  onSaveProjection,
 }) => {
   const { formatStat } = useTranslation();
   const c = colorScheme;
@@ -318,6 +325,57 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
     );
     return result.length > 0 ? result : undefined;
   }, [currentStats, specs, filteredData, outcome, activeFactor, formatStat]);
+
+  // Track simulation parameters for save-to-idea (must be before early return)
+  const [simParams, setSimParams] = useState<{ meanShift: number; variationReduction: number }>({
+    meanShift: 0,
+    variationReduction: 0,
+  });
+
+  const handleSimulationChange = useCallback(
+    (params: { meanShift: number; variationReduction: number }) => {
+      setSimParams(params);
+    },
+    []
+  );
+
+  const handleSaveProjection = useCallback(() => {
+    if (!onSaveProjection || !currentStats) return;
+    const projectedMean = currentStats.mean + simParams.meanShift;
+    const projectedSigma = currentStats.stdDev * (1 - simParams.variationReduction);
+
+    let projectedCpk: number | undefined;
+    let baselineCpk: number | undefined;
+    if (specs.usl !== undefined && specs.lsl !== undefined && projectedSigma > 0) {
+      projectedCpk = Math.min(
+        (specs.usl - projectedMean) / (3 * projectedSigma),
+        (projectedMean - specs.lsl) / (3 * projectedSigma)
+      );
+      if (currentStats.stdDev > 0) {
+        baselineCpk = Math.min(
+          (specs.usl - currentStats.mean) / (3 * currentStats.stdDev),
+          (currentStats.mean - specs.lsl) / (3 * currentStats.stdDev)
+        );
+      }
+    }
+
+    const projection: FindingProjection = {
+      baselineMean: currentStats.mean,
+      baselineSigma: currentStats.stdDev,
+      baselineCpk,
+      projectedMean,
+      projectedSigma,
+      projectedCpk,
+      meanDelta: simParams.meanShift,
+      sigmaDelta: projectedSigma - currentStats.stdDev,
+      simulationParams: {
+        meanAdjustment: simParams.meanShift,
+        variationReduction: simParams.variationReduction * 100,
+      },
+      createdAt: new Date().toISOString(),
+    };
+    onSaveProjection(projection);
+  }, [onSaveProjection, currentStats, simParams, specs]);
 
   // Guard: no data or no outcome
   if (!outcome || rawData.length === 0) {
@@ -375,6 +433,32 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
         </div>
       </div>
 
+      {/* Projection context banner */}
+      {projectionContext && (
+        <div
+          className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/30 flex items-center justify-between gap-2"
+          data-testid="projection-context-banner"
+        >
+          <div className="text-xs text-blue-400 flex-1 min-w-0">
+            <span className="font-medium">Projecting:</span>{' '}
+            <span className="text-content-secondary">{projectionContext.ideaText}</span>
+            <span className="text-content-muted"> for </span>
+            <span className="text-content-secondary">{projectionContext.hypothesisText}</span>
+          </div>
+          {onSaveProjection && (
+            <button
+              onClick={handleSaveProjection}
+              className="flex items-center gap-1 px-3 py-1.5 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 text-xs font-medium transition-colors flex-shrink-0"
+              disabled={simParams.meanShift === 0 && simParams.variationReduction === 0}
+              data-testid="save-projection-btn"
+            >
+              <Save size={12} />
+              Save to idea
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Content */}
       <div className="flex-1 overflow-auto p-4">
         <div className="max-w-2xl mx-auto space-y-4">
@@ -394,6 +478,7 @@ const WhatIfPageBase: React.FC<WhatIfPageBaseProps> = ({
               cpkTarget={cpkTarget}
               complementStats={complementStats}
               subsetCount={filteredData.length}
+              onSimulationChange={onSaveProjection ? handleSimulationChange : undefined}
             />
           )}
         </div>

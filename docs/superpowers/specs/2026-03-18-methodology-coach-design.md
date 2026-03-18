@@ -138,3 +138,13 @@ Each finding status now has a tooltip description linking it to the methodology:
 - analyzed: "Suspected cause identified — ready to plan improvements."
 - improving: "Corrective actions in progress. Collect After data to verify."
 - resolved: "Actions complete, outcome verified. Standardize or iterate."
+
+## Suspected Cause in Coach Popover
+
+When a finding's hypothesis tree has a `primary` cause role set (see [investigation-to-action.md § Cause Role Model](../../03-features/workflows/investigation-to-action.md#cause-role-model-azure-only)), the **Converging** and **IMPROVE** phase coaching in the `CoachPopover` references the primary cause by name where available.
+
+For example, instead of the generic "You've identified a suspected cause — move to improvement planning," the popover can say:
+
+> "Suspected cause: _Worn nozzle tip_. Ready to move to improvement planning."
+
+This is a display-only enhancement — the coaching logic reads `finding.hypotheses.find(h => h.causeRole === 'primary')?.text` from the currently selected or most-recently-updated finding and injects it into the coaching text string. If no primary is set, the generic coaching text is used unchanged. The `getCoachingText()` function in `@variscout/hooks` accepts an optional `primaryCause?: string` parameter to support this.

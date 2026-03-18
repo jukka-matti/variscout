@@ -358,10 +358,24 @@ export const Editor: React.FC<EditorProps> = ({
 
   // Build hypothesesMap for FindingCard display
   const hypothesesMap = useMemo(() => {
-    const map: Record<string, { text: string; status: string; factor?: string; level?: string }> =
-      {};
+    const map: Record<
+      string,
+      {
+        text: string;
+        status: string;
+        factor?: string;
+        level?: string;
+        causeRole?: 'primary' | 'contributing';
+      }
+    > = {};
     for (const h of hypothesesState.hypotheses) {
-      map[h.id] = { text: h.text, status: h.status, factor: h.factor, level: h.level };
+      map[h.id] = {
+        text: h.text,
+        status: h.status,
+        factor: h.factor,
+        level: h.level,
+        causeRole: h.causeRole,
+      };
     }
     return map;
   }, [hypothesesState.hypotheses]);
@@ -401,13 +415,46 @@ export const Editor: React.FC<EditorProps> = ({
     return impacts;
   }, [hypothesesState.hypotheses, processContext, stats]);
 
+  // Projection target state for Idea→What-If round-trip
+  const [projectionTarget, setProjectionTarget] = useState<{
+    hypothesisId: string;
+    ideaId: string;
+    ideaText: string;
+    hypothesisText: string;
+  } | null>(null);
+
   // Open What-If pre-loaded for a specific improvement idea
   const handleProjectIdea = useCallback(
-    (_hypothesisId: string, _ideaId: string) => {
-      // Open What-If page — the idea context will be available via hypothesis state
+    (hypothesisId: string, ideaId: string) => {
+      const hypothesis = hypothesesState.getHypothesis(hypothesisId);
+      const idea = hypothesis?.ideas?.find(i => i.id === ideaId);
+      if (hypothesis && idea) {
+        setProjectionTarget({
+          hypothesisId,
+          ideaId,
+          ideaText: idea.text,
+          hypothesisText: hypothesis.text,
+        });
+      }
       panels.setIsWhatIfOpen(true);
     },
-    [panels]
+    [panels, hypothesesState]
+  );
+
+  // Save projection from What-If back to idea
+  const handleSaveIdeaProjection = useCallback(
+    (projection: import('@variscout/core').FindingProjection) => {
+      if (projectionTarget) {
+        hypothesesState.setIdeaProjection(
+          projectionTarget.hypothesisId,
+          projectionTarget.ideaId,
+          projection
+        );
+        setProjectionTarget(null);
+        panels.setIsWhatIfOpen(false);
+      }
+    },
+    [projectionTarget, hypothesesState, panels]
   );
 
   // Idea → Action conversion: when a finding moves to 'improving', convert selected ideas to actions
@@ -624,10 +671,20 @@ export const Editor: React.FC<EditorProps> = ({
     return (
       <WhatIfPage
         onBack={() => {
+          setProjectionTarget(null);
           panels.setIsWhatIfOpen(false);
         }}
         filterCount={filterNav.filterStack.length}
         filterStack={filterNav.filterStack}
+        projectionContext={
+          projectionTarget
+            ? {
+                ideaText: projectionTarget.ideaText,
+                hypothesisText: projectionTarget.hypothesisText,
+              }
+            : undefined
+        }
+        onSaveProjection={projectionTarget ? handleSaveIdeaProjection : undefined}
       />
     );
   }
@@ -868,11 +925,10 @@ export const Editor: React.FC<EditorProps> = ({
                       setFilters({ [h.factor]: [h.level] });
                     }
                   }}
-                  onAddSubHypothesis={parentId => {
-                    // Stub: will be wired to a modal in a future increment
-                    const text = prompt('Sub-hypothesis:');
-                    if (text) hypothesesState.addSubHypothesis(parentId, text);
-                  }}
+                  onAddSubHypothesis={(parentId, text, factor, vType) =>
+                    hypothesesState.addSubHypothesis(parentId, text, factor, undefined, vType)
+                  }
+                  factors={factors}
                   getChildrenSummary={hypothesesState.getChildrenSummary}
                   onSetValidationTask={hypothesesState.setValidationTask}
                   onCompleteTask={hypothesesState.completeTask}
@@ -887,6 +943,7 @@ export const Editor: React.FC<EditorProps> = ({
                   onRemoveIdea={hypothesesState.removeIdea}
                   onSelectIdea={hypothesesState.selectIdea}
                   onProjectIdea={handleProjectIdea}
+                  onSetCauseRole={hypothesesState.setCauseRole}
                   onAskCoScout={handleAskCoScoutFromIdeas}
                   onAskCoScoutAboutFinding={handleAskCoScoutFromFinding}
                   showAuthors={true}
@@ -943,6 +1000,7 @@ export const Editor: React.FC<EditorProps> = ({
                 onRemoveIdea={hypothesesState.removeIdea}
                 onSelectIdea={hypothesesState.selectIdea}
                 onProjectIdea={handleProjectIdea}
+                onSetCauseRole={hypothesesState.setCauseRole}
                 onAskCoScout={handleAskCoScoutFromIdeas}
                 onAskCoScoutAboutFinding={handleAskCoScoutFromFinding}
                 showAuthors={true}

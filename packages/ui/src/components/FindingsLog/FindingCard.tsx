@@ -78,6 +78,7 @@ export interface FindingCardProps {
       factor?: string;
       level?: string;
       ideas?: Array<{ text: string; selected?: boolean }>;
+      causeRole?: 'primary' | 'contributing';
     }
   >;
   /** Callback to add an action item */
@@ -130,6 +131,7 @@ interface HypothesisSectionProps {
       factor?: string;
       level?: string;
       ideas?: Array<{ text: string; selected?: boolean }>;
+      causeRole?: 'primary' | 'contributing';
     }
   >;
   onCreateHypothesis?: (findingId: string, text: string, factor?: string, level?: string) => void;
@@ -481,6 +483,75 @@ const OutcomeSection: React.FC<OutcomeSectionProps> = ({
 };
 
 // ============================================================================
+// Suspected Cause Section (primary + contributing hypotheses)
+// ============================================================================
+
+interface SuspectedCauseSectionProps {
+  hypothesesMap: Record<
+    string,
+    {
+      text: string;
+      status: string;
+      factor?: string;
+      causeRole?: 'primary' | 'contributing';
+    }
+  >;
+}
+
+const SuspectedCauseSection: React.FC<SuspectedCauseSectionProps> = ({ hypothesesMap }) => {
+  const entries = Object.entries(hypothesesMap);
+  const primary = entries.find(([, h]) => h.causeRole === 'primary');
+  const contributing = entries.filter(([, h]) => h.causeRole === 'contributing');
+
+  if (!primary && contributing.length === 0) return null;
+
+  return (
+    <div className="mt-2 border-t border-edge/50 pt-2" data-testid="suspected-cause-section">
+      <div className="flex items-center gap-1 text-[10px] text-content-muted mb-1">
+        <Target size={10} />
+        <span className="font-medium">Suspected cause</span>
+      </div>
+      <div className="space-y-1">
+        {primary && (
+          <div className="flex items-start gap-1.5 text-[11px]">
+            <span className="text-red-400 mt-0.5 flex-shrink-0">{'\u{25CF}'}</span>
+            <div className="flex-1 min-w-0">
+              <span className="text-content-secondary">{primary[1].text}</span>
+              <div className="flex items-center gap-2 text-[10px] mt-0.5">
+                <span className="text-red-400 font-medium">PRIMARY</span>
+                <span
+                  className={HYPOTHESIS_STATUS_COLORS[primary[1].status] ?? 'text-content-muted'}
+                >
+                  {primary[1].status}
+                </span>
+                {primary[1].factor && (
+                  <span className="text-content-muted">{primary[1].factor}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        {contributing.map(([id, h]) => (
+          <div key={id} className="flex items-start gap-1.5 text-[11px]">
+            <span className="text-amber-400 mt-0.5 flex-shrink-0">{'\u25C7'}</span>
+            <div className="flex-1 min-w-0">
+              <span className="text-content-secondary">{h.text}</span>
+              <div className="flex items-center gap-2 text-[10px] mt-0.5">
+                <span className="text-amber-400 font-medium">CONTRIBUTING</span>
+                <span className={HYPOTHESIS_STATUS_COLORS[h.status] ?? 'text-content-muted'}>
+                  {h.status}
+                </span>
+                {h.factor && <span className="text-content-muted">{h.factor}</span>}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
 // Projection Section (What-If improvement projection)
 // ============================================================================
 
@@ -801,6 +872,13 @@ const FindingCard: React.FC<FindingCardProps> = ({
               onCreateHypothesis={onCreateHypothesis}
               readOnly={status === 'resolved'}
             />
+          )}
+
+        {/* Suspected cause (visible when any hypothesis has causeRole and finding is analyzed+) */}
+        {hypothesesMap &&
+          ['analyzed', 'improving', 'resolved'].includes(status) &&
+          Object.values(hypothesesMap).some(h => h.causeRole) && (
+            <SuspectedCauseSection hypothesesMap={hypothesesMap} />
           )}
 
         {/* Projection display (visible when projection exists) */}

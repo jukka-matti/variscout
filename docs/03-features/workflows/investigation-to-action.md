@@ -217,6 +217,21 @@ A hypothesis links to a specific factor and is automatically validated via ANOVA
 
 For structured investigation with multiple competing theories, use the **Hypothesis Investigation Flow** — a diamond pattern of diverge (generate sub-hypotheses), validate (test each), and converge (eliminate contradicted, confirm supported). See [Hypothesis Investigation](hypothesis-investigation.md) for the full workflow.
 
+### Cause Role Model (Azure only)
+
+Once hypotheses are validated, the analyst can mark which hypothesis is the **primary suspected cause** and which are **contributing factors**:
+
+```typescript
+// On the Hypothesis type
+causeRole?: 'primary' | 'contributing'
+```
+
+- **Primary** — the main suspected cause driving the variation. Only one primary is allowed per root hypothesis tree (enforced by `setCauseRole`).
+- **Contributing** — a secondary factor that amplifies or enables the primary cause but is not the main driver.
+- _(none)_ — not yet classified.
+
+The cause role is set from the `HypothesisNode` UI (see [Hypothesis Investigation](hypothesis-investigation.md) for the button interaction). When any hypothesis in the tree carries a causeRole and the finding is at `analyzed` status or higher, the **FindingCard** shows a "Suspected cause" section listing the primary hypothesis prominently, with contributing hypotheses listed beneath it. This makes the convergence conclusion visible directly on the finding card without opening the full tree view.
+
 **"Hypothesis" vs "root cause":** VariScout finds _where_ variation is hiding
 (the key factors), but identifying a factor (Machine A explains 47%) is not proving
 root cause. The investigation diamond converges on a **suspected root cause** — the
@@ -241,6 +256,12 @@ The Improvement Ideas section on a finding unlocks once at least one hypothesis 
 | **Notes**              | Additional context or reasoning                                   |
 
 This is the creative bridge between "we know what causes the problem" and "here is our action plan." By comparing projected impact across ideas, analysts can prioritize the most effective fix before committing resources. Selected ideas flow naturally into the corrective actions list below.
+
+### Idea → What-If Round-Trip
+
+Each improvement idea can be linked directly to a What-If simulation. Clicking the **"P" (Project)** button on an idea opens the What-If Simulator with a context banner identifying the linked finding and idea. Adjusting the sliders and clicking **"Save to idea"** captures the resulting projection (projected mean, σ, Cpk, yield) back onto the idea record — no manual copying required.
+
+This creates a round-trip workflow: ideas live in the finding, projections live in What-If, and the result flows back. Analysts can run multiple scenarios (one per idea) and compare their projected Cpk impact side by side on the FindingCard before selecting which idea to convert into corrective actions.
 
 ### Corrective Actions (Azure only)
 

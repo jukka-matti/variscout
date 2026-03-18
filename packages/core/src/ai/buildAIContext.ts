@@ -280,6 +280,22 @@ export function buildAIContext(options: BuildAIContextOptions): AIContext {
 
       // Detect investigation phase
       context.investigation.phase = detectInvestigationPhase(hypotheses, findings);
+
+      // Build suspected cause from hypotheses with causeRole
+      const primaryH = hypotheses.find(h => h.causeRole === 'primary');
+      const contributingH = hypotheses.filter(h => h.causeRole === 'contributing');
+      if (primaryH || contributingH.length > 0) {
+        context.investigation.suspectedCause = {
+          primary: primaryH
+            ? { text: primaryH.text, factor: primaryH.factor, status: primaryH.status }
+            : undefined,
+          contributing: contributingH.map(h => ({
+            text: h.text,
+            factor: h.factor,
+            status: h.status,
+          })),
+        };
+      }
     }
   }
 

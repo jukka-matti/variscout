@@ -148,6 +148,22 @@ Never invent data or statistics. If the context does not contain enough informat
           'The process is in the improvement phase (PDCA). Tell the user: "You\'re in the improvement cycle — let\'s check whether Cpk is improving and actions are effective."',
       };
 
+      // Override converging/improving with suspected cause context when available
+      if (investigation.suspectedCause) {
+        const sc = investigation.suspectedCause;
+        const primaryText = sc.primary ? `"${sc.primary.text}"` : 'not yet identified';
+        const contribTexts = sc.contributing.map(c => `"${c.text}"`).join(', ');
+        const contribSuffix =
+          sc.contributing.length > 0 ? `, with ${contribTexts} contributing` : '';
+
+        if (investigation.phase === 'converging') {
+          phaseInstructions.converging = `The investigation is narrowing down. Your suspected root cause is ${primaryText}${contribSuffix}. Let's brainstorm improvement ideas targeting the primary cause.`;
+        }
+        if (investigation.phase === 'improving') {
+          phaseInstructions.improving = `The process is in the improvement phase (PDCA). You're addressing ${primaryText}${contribSuffix}. Let's check whether the corrective actions are working and Cpk is improving.`;
+        }
+      }
+
       // Override improving phase with verification-specific instructions when staged data available
       if (investigation.phase === 'improving' && stagedComparison) {
         const sd = stagedComparison.deltas;

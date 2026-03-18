@@ -21,7 +21,14 @@ export interface HypothesisTreeViewProps {
   /** Click a hypothesis node to filter the dashboard */
   onSelectHypothesis?: (hypothesis: Hypothesis) => void;
   /** Add a sub-hypothesis under a parent */
-  onAddSubHypothesis?: (parentId: string) => void;
+  onAddSubHypothesis?: (
+    parentId: string,
+    text: string,
+    factor?: string,
+    validationType?: 'data' | 'gemba' | 'expert'
+  ) => void;
+  /** Available factor columns for sub-hypothesis factor picker */
+  factors?: string[];
   /** Whether to show contradicted hypotheses (default: false) */
   showContradicted?: boolean;
   /** Max depth allowed for new children */
@@ -68,6 +75,8 @@ export interface HypothesisTreeViewProps {
   onProjectIdea?: (hypothesisId: string, ideaId: string) => void;
   /** Ask CoScout about improvement options */
   onAskCoScout?: (question: string) => void;
+  /** Set cause role on a hypothesis */
+  onSetCauseRole?: (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => void;
 }
 
 /** Category group for tree rendering */
@@ -87,6 +96,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   findings,
   onSelectHypothesis,
   onAddSubHypothesis,
+  factors,
   showContradicted = false,
   maxDepth = 3,
   maxChildrenPerParent = 8,
@@ -104,6 +114,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
   onSelectIdea,
   onProjectIdea,
   onAskCoScout,
+  onSetCauseRole,
 }) => {
   const { getTerm } = useGlossary();
   const { formatStat } = useTranslation();
@@ -218,6 +229,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
             onToggle={toggleNode}
             onSelect={onSelectHypothesis}
             onAddChild={onAddSubHypothesis}
+            factors={factors}
             childrenSummary={getChildrenSummary?.(hypothesis.id)}
             canAddChild={canAddChild}
             showContradicted={showContradicted}
@@ -231,6 +243,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
             onSelectIdea={onSelectIdea}
             onProjectIdea={onProjectIdea}
             onAskCoScout={onAskCoScout}
+            onSetCauseRole={onSetCauseRole}
           />
           {isExpanded && visibleChildren.map(child => renderNode(child, extraDepth))}
         </React.Fragment>
@@ -244,6 +257,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
       toggleNode,
       onSelectHypothesis,
       onAddSubHypothesis,
+      factors,
       getChildrenSummary,
       showContradicted,
       maxDepth,
@@ -258,6 +272,7 @@ const HypothesisTreeView: React.FC<HypothesisTreeViewProps> = ({
       onSelectIdea,
       onProjectIdea,
       onAskCoScout,
+      onSetCauseRole,
     ]
   );
 

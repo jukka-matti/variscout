@@ -108,6 +108,8 @@ export interface UseHypothesesReturn {
   setIdeaProjection: (hypothesisId: string, ideaId: string, projection: FindingProjection) => void;
   /** Toggle the selected flag on an idea */
   selectIdea: (hypothesisId: string, ideaId: string, selected: boolean) => void;
+  /** Set cause role on a hypothesis (enforces single primary per root tree) */
+  setCauseRole: (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => void;
 }
 
 /** Eta-squared thresholds for auto-validation */
@@ -557,6 +559,50 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     [update]
   );
 
+  const setCauseRole = useCallback(
+    (hypothesisId: string, role: 'primary' | 'contributing' | undefined) => {
+      update(prev => {
+        // Find the root tree for this hypothesis
+        const target = prev.find(h => h.id === hypothesisId);
+        if (!target) return prev;
+
+        // Walk up to find the root
+        let rootId = target.id;
+        let current: Hypothesis | undefined = target;
+        while (current?.parentId) {
+          rootId = current.parentId;
+          current = prev.find(h => h.id === current!.parentId);
+        }
+
+        // Collect all IDs in this root tree
+        const treeIds = new Set<string>([rootId]);
+        let changed = true;
+        while (changed) {
+          changed = false;
+          for (const h of prev) {
+            if (h.parentId && treeIds.has(h.parentId) && !treeIds.has(h.id)) {
+              treeIds.add(h.id);
+              changed = true;
+            }
+          }
+        }
+
+        const now = new Date().toISOString();
+        return prev.map(h => {
+          if (h.id === hypothesisId) {
+            return { ...h, causeRole: role, updatedAt: now };
+          }
+          // When setting primary, clear any other primary in the same tree
+          if (role === 'primary' && treeIds.has(h.id) && h.causeRole === 'primary') {
+            return { ...h, causeRole: undefined, updatedAt: now };
+          }
+          return h;
+        });
+      });
+    },
+    [update]
+  );
+
   return {
     hypotheses: validatedHypotheses,
     addHypothesis,
@@ -581,5 +627,6 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     removeIdea,
     setIdeaProjection,
     selectIdea,
+    setCauseRole,
   };
 }
