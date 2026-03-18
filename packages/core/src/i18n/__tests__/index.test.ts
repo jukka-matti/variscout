@@ -51,6 +51,15 @@ describe('getMessages', () => {
     expect(messages['empty.noData']).toBe('No data available');
   });
 
+  it('has no empty string values in any locale catalog', () => {
+    for (const locale of LOCALES) {
+      const catalog = getMessages(locale);
+      for (const [key, value] of Object.entries(catalog)) {
+        expect(value, `${locale}.${key} is empty`).not.toBe('');
+      }
+    }
+  });
+
   it('returns a complete catalog for every supported locale', () => {
     const enKeys = Object.keys(getMessages('en'));
     for (const locale of LOCALES) {

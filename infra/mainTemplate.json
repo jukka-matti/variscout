@@ -30,7 +30,7 @@
     "clientSecret": {
       "type": "secureString",
       "metadata": {
-        "description": "Client secret of the Azure AD App Registration. TODO: Store in Key Vault and reference via @Microsoft.KeyVault(SecretUri=...) in app settings instead of passing the raw value to MICROSOFT_PROVIDER_AUTHENTICATION_SECRET and Function App CLIENT_SECRET."
+        "description": "Client secret of the Azure AD App Registration. Stored in Key Vault and referenced via @Microsoft.KeyVault() in app settings."
       }
     },
     "packageUrl": {
@@ -245,7 +245,8 @@
         "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName'))]",
         "[resourceId('Microsoft.Search/searchServices', variables('searchServiceName'))]",
         "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'ai-services-api-key')]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'search-api-key')]"
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'search-api-key')]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('keyVaultName'), 'client-secret')]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionPlanName'))]",
@@ -274,7 +275,7 @@
             },
             {
               "name": "CLIENT_SECRET",
-              "value": "[parameters('clientSecret')]"
+              "value": "[concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=client-secret)')]"
             },
             {
               "name": "TENANT_ID",
@@ -299,6 +300,14 @@
             {
               "name": "SEARCH_INDEX",
               "value": "[variables('aiSearchIndex')]"
+            },
+            {
+              "name": "ALLOWED_ORIGIN",
+              "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('webAppName'))).defaultHostName)]"
+            },
+            {
+              "name": "FUNCTION_KEY",
+              "value": "[concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=function-key)')]"
             }
           ],
           "cors": {
@@ -411,7 +420,7 @@
       }
     },
     {
-      "condition": "[variables('isTeamAI')]",
+      "condition": "[variables('hasTeamFeatures')]",
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2023-07-01",
       "name": "[variables('keyVaultName')]",
@@ -433,7 +442,7 @@
       }
     },
     {
-      "condition": "[variables('isTeamAI')]",
+      "condition": "[variables('hasTeamFeatures')]",
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
       "name": "[guid(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), variables('keyVaultSecretsUserRole'), resourceId('Microsoft.Web/sites', variables('webAppName')))]",
@@ -475,7 +484,30 @@
       }
     },
     {
-      "condition": "[variables('isTeamAI')]",
+      "condition": "[variables('hasTeamFeatures')]",
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2023-07-01",
+      "name": "[concat(variables('keyVaultName'), '/client-secret')]",
+      "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"],
+      "properties": {
+        "value": "[parameters('clientSecret')]"
+      }
+    },
+    {
+      "condition": "[variables('hasTeamFeatures')]",
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2023-07-01",
+      "name": "[concat(variables('keyVaultName'), '/function-key')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]",
+        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+      ],
+      "properties": {
+        "value": "[listKeys(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2024-04-01').functionKeys.default]"
+      }
+    },
+    {
+      "condition": "[variables('hasTeamFeatures')]",
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
       "name": "[guid(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName')), variables('keyVaultSecretsUserRole'), resourceId('Microsoft.Web/sites', variables('functionAppName')))]",

@@ -14,6 +14,7 @@ export interface UseLocaleStateReturn {
 }
 
 const LOCALE_STORAGE_KEY = 'variscout_locale';
+const RTL_LOCALES = new Set<string>(['ar', 'he']);
 
 function loadStoredLocale(): Locale | null {
   try {
@@ -61,6 +62,7 @@ export function useLocaleState({ localeEnabled }: UseLocaleStateOptions): UseLoc
     const root = document.documentElement;
     root.setAttribute('data-locale', locale);
     root.lang = locale;
+    root.dir = RTL_LOCALES.has(locale) ? 'rtl' : 'ltr';
   }, [locale]);
 
   const setLocale = useCallback((newLocale: Locale) => {

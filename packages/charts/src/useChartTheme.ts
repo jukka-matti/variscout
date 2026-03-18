@@ -7,7 +7,7 @@ import {
   type ChartColor,
 } from './colors';
 import type { Locale } from '@variscout/core';
-import { formatStatistic, formatPercent } from '@variscout/core/i18n';
+import { LOCALES, formatStatistic, formatPercent } from '@variscout/core/i18n';
 
 export interface ChartThemeColors {
   /** Whether dark theme is active */
@@ -45,8 +45,8 @@ function getDocumentFontScale(): number {
 function getDocumentLocale(): Locale {
   if (typeof document === 'undefined') return 'en';
   const locale = document.documentElement.getAttribute('data-locale');
-  if (locale === 'de' || locale === 'es' || locale === 'fr' || locale === 'pt') {
-    return locale;
+  if (locale && (LOCALES as readonly string[]).includes(locale)) {
+    return locale as Locale;
   }
   return 'en';
 }

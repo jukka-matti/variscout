@@ -2,21 +2,30 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Copy, Download, Check, ExternalLink, Info } from 'lucide-react';
 import { isInTeams } from '../teams';
 
-// Generate a deterministic GUID from the app URL so reinstalls produce the same ID
+// Generate a stable manifest ID per origin using crypto.randomUUID(), persisted in localStorage.
+// This avoids the weak hash that previously produced non-compliant UUIDs.
 function generateManifestId(origin: string): string {
-  let hash = 0;
-  for (let i = 0; i < origin.length; i++) {
-    hash = ((hash << 5) - hash + origin.charCodeAt(i)) | 0;
+  const key = `variscout_manifest_id_${origin}`;
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) return stored;
+  } catch {
+    /* ignore — localStorage unavailable */
   }
-  const hex = Math.abs(hash).toString(16).padStart(8, '0');
-  return `${hex.slice(0, 8)}-${hex.slice(0, 4)}-4${hex.slice(1, 4)}-a${hex.slice(1, 4)}-${hex.slice(0, 12).padEnd(12, '0')}`;
+  const id = crypto.randomUUID();
+  try {
+    localStorage.setItem(key, id);
+  } catch {
+    /* ignore */
+  }
+  return id;
 }
 
 function buildManifest(origin: string, clientId?: string): object {
   const manifest: Record<string, unknown> = {
     $schema:
-      'https://developer.microsoft.com/en-us/json-schemas/teams/v1.23/MicrosoftTeams.schema.json',
-    manifestVersion: '1.23',
+      'https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json',
+    manifestVersion: '1.19',
     version: '1.1.0',
     id: generateManifestId(origin),
     developer: {

@@ -13,7 +13,7 @@ const PORT = parseInt(process.env.PORT || '8080', 10);
 
 // Build dynamic connect-src to include Azure Function URL for OBO token exchange
 const functionUrl = process.env.FUNCTION_URL || '';
-let connectSrc = "'self' https://graph.microsoft.com";
+let connectSrc = "'self' https://graph.microsoft.com https://*.sharepoint.com https://login.microsoftonline.com";
 if (functionUrl) {
   try {
     connectSrc += ` ${new URL(functionUrl).origin}`;
@@ -39,7 +39,7 @@ const SECURITY_HEADERS = {
     "font-src 'self'",
     `connect-src ${connectSrc}`,
     // Allow Teams to embed the app in an iframe
-    "frame-ancestors 'self' https://teams.microsoft.com https://*.teams.microsoft.com https://*.skype.com",
+    "frame-ancestors 'self' https://teams.microsoft.com https://*.teams.microsoft.com https://*.skype.com https://*.office.com https://*.cloud.microsoft",
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'",

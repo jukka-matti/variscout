@@ -100,7 +100,8 @@ export async function searchDocuments(
 
   // Add folder scope filter if provided (KQL filter on SharePoint path)
   if (options?.folderScope) {
-    body.filter = `path:"${options.folderScope}"`;
+    const escaped = options.folderScope.replace(/"/g, '\\"');
+    body.filter = `path:"${escaped}"`;
   }
 
   const headers: Record<string, string> = {

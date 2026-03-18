@@ -63,7 +63,7 @@ function formatRequest(
     return {
       url: `${endpoint}/anthropic/v1/messages`,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: import.meta.env.VITE_ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
         ...(systemText ? { system: systemText } : {}),
         messages: nonSystemMessages.map(m => ({ role: m.role, content: m.content })),
         max_tokens: options.max_tokens,
@@ -258,7 +258,8 @@ export async function fetchNarration(context: AIContext): Promise<string> {
   let lastError: Error | null = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt > 0) {
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+      const delay = 1000 * Math.pow(2, attempt) * (0.5 + Math.random());
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
 
     try {
@@ -496,7 +497,8 @@ export async function fetchFindingsReport(
   let lastError: Error | null = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt > 0) {
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+      const delay = 1000 * Math.pow(2, attempt) * (0.5 + Math.random());
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
 
     try {

@@ -81,8 +81,10 @@ function buildUrl(config: ResponsesApiConfig): string {
 /** Build auth headers — supports both API key and Entra ID bearer token */
 function buildHeaders(config: ResponsesApiConfig): Record<string, string> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  // Entra ID tokens are JWTs (start with 'ey'), API keys are shorter hex strings
-  if (config.apiKey.startsWith('ey')) {
+  // Entra ID tokens are JWTs (three dot-separated segments starting with 'ey'),
+  // API keys are shorter hex strings without dots.
+  const isJwt = config.apiKey.split('.').length === 3 && config.apiKey.startsWith('ey');
+  if (isJwt) {
     headers['Authorization'] = `Bearer ${config.apiKey}`;
   } else {
     headers['api-key'] = config.apiKey;

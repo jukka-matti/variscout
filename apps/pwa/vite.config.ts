@@ -81,7 +81,7 @@ export default defineConfig(async () => {
     test: {
       globals: true,
       environment: 'jsdom',
-      setupFiles: './src/test/setup.ts',
+      setupFiles: ['../../test/setup.ts', './src/test/setup.ts'],
       exclude: ['**/node_modules/**', '**/e2e/**'],
       pool: 'forks',
       fileParallelism: false,

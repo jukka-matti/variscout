@@ -10,6 +10,10 @@ import { getAccessToken, isLocalDev, AuthError } from './easyAuth';
 import { getTeamsSsoToken, isInTeams } from '../teams/teamsContext';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
 
+function getFunctionKey(): string {
+  return import.meta.env.VITE_FUNCTION_KEY || '';
+}
+
 function getFunctionUrl(): string {
   return getRuntimeConfig()?.functionUrl || import.meta.env.VITE_FUNCTION_URL || '';
 }
@@ -38,9 +42,13 @@ export async function getGraphToken(): Promise<string> {
     const ssoToken = await getTeamsSsoToken();
     if (ssoToken) {
       try {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        const functionKey = getFunctionKey();
+        if (functionKey) headers['x-functions-key'] = functionKey;
+
         const res = await fetch(`${getFunctionUrl()}/api/token-exchange`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ token: ssoToken }),
         });
         if (res.ok) {
@@ -80,9 +88,13 @@ export async function getGraphTokenWithScopes(scopes: string[]): Promise<string>
     const ssoToken = await getTeamsSsoToken();
     if (ssoToken) {
       try {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        const functionKey = getFunctionKey();
+        if (functionKey) headers['x-functions-key'] = functionKey;
+
         const res = await fetch(`${getFunctionUrl()}/api/token-exchange`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ token: ssoToken, scopes }),
         });
         if (res.ok) {

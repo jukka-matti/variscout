@@ -47,6 +47,7 @@ const BCP47: Record<Locale, string> = {
 // Cache formatters per locale+decimals to avoid re-creation
 const numberFormatCache = new Map<string, Intl.NumberFormat>();
 const percentFormatCache = new Map<string, Intl.NumberFormat>();
+const dateFormatCache = new Map<string, Intl.DateTimeFormat>();
 
 function getNumberFormatter(locale: Locale, decimals: number): Intl.NumberFormat {
   const key = `${locale}:${decimals}`;
@@ -120,13 +121,18 @@ export function formatDate(
   locale: Locale = 'en',
   style: 'short' | 'medium' | 'long' = 'medium'
 ): string {
-  const options: Intl.DateTimeFormatOptions = {
-    short: { year: '2-digit', month: 'numeric', day: 'numeric' } as const,
-    medium: { year: 'numeric', month: 'short', day: 'numeric' } as const,
-    long: { year: 'numeric', month: 'long', day: 'numeric' } as const,
-  }[style];
-
-  return new Intl.DateTimeFormat(BCP47[locale], options).format(date);
+  const key = `${locale}:${style}`;
+  let fmt = dateFormatCache.get(key);
+  if (!fmt) {
+    const options: Intl.DateTimeFormatOptions = {
+      short: { year: '2-digit', month: 'numeric', day: 'numeric' } as const,
+      medium: { year: 'numeric', month: 'short', day: 'numeric' } as const,
+      long: { year: 'numeric', month: 'long', day: 'numeric' } as const,
+    }[style];
+    fmt = new Intl.DateTimeFormat(BCP47[locale], options);
+    dateFormatCache.set(key, fmt);
+  }
+  return fmt.format(date);
 }
 
 /**

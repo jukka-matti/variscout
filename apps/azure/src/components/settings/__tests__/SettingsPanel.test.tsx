@@ -78,30 +78,7 @@ describe('SettingsPanel', () => {
     vi.restoreAllMocks();
     localStorage.clear();
 
-    // jsdom does not implement HTMLDialogElement.showModal / .close; stub them
-    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
-      this.setAttribute('open', '');
-    });
-    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
-      this.removeAttribute('open');
-      this.dispatchEvent(new Event('close'));
-    });
-
-    // jsdom does not implement window.matchMedia; stub it for ThemeProvider
-    Object.defineProperty(window, 'matchMedia', {
-      writable: true,
-      configurable: true,
-      value: vi.fn().mockImplementation((query: string) => ({
-        matches: query === '(prefers-color-scheme: dark)',
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      })),
-    });
+    // HTMLDialogElement and matchMedia stubs provided by shared test/setup.ts
   });
 
   it('does not render when isOpen is false', () => {

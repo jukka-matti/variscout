@@ -219,7 +219,9 @@ export function generateReportFilename(
   date: string,
   extension: 'md' = 'md'
 ): string {
+  const RESERVED = /^(CON|PRN|AUX|NUL|COM\d|LPT\d)$/i;
   const safeName = projectName.replace(/[<>:"/\\|?*]/g, '_').trim();
+  const finalName = RESERVED.test(safeName) ? `_${safeName}` : safeName;
   const safeDate = date.replace(/[:/]/g, '-').substring(0, 10);
-  return `VariScout Report — ${safeName} — ${safeDate}.${extension}`;
+  return `VariScout Report — ${finalName} — ${safeDate}.${extension}`;
 }

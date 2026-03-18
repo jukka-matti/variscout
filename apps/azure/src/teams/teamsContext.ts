@@ -129,13 +129,12 @@ async function doInit(): Promise<TeamsContext> {
     const isPersonal = ctx.page?.frameContext === 'content' && !ctx.channel?.id;
 
     // Detect channel membership type for private/shared channel support (Q4)
-    // membershipType is available since Teams JS v2.x but not in older ChannelInfo type
-    const membershipType = (ctx.channel as unknown as Record<string, unknown> | undefined)
-      ?.membershipType as string | undefined;
+    // membershipType is typed as ChannelType enum since @microsoft/teams-js v2.x
+    const membershipType = ctx.channel?.membershipType;
     const channelType =
-      membershipType === 'private'
+      membershipType === 'Private'
         ? 'private'
-        : membershipType === 'shared'
+        : membershipType === 'Shared'
           ? 'shared'
           : isChannel
             ? 'standard'
@@ -165,10 +164,19 @@ async function doInit(): Promise<TeamsContext> {
 
     // Register before-unload handler for data loss prevention.
     // The handler receives readyToUnload callback and returns true if it needs time.
+    // A 5-second timeout ensures the tab unloads even if the save callback hangs.
     try {
       teamsCore.registerBeforeUnloadHandler(readyToUnload => {
         if (beforeUnloadCallback) {
-          beforeUnloadCallback().then(readyToUnload);
+          const timeout = setTimeout(readyToUnload, 5000);
+          beforeUnloadCallback()
+            .catch(() => {
+              /* save failed — still unload */
+            })
+            .finally(() => {
+              clearTimeout(timeout);
+              readyToUnload();
+            });
           return true; // tell Teams we need time
         }
         return false; // unload immediately
