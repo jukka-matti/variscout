@@ -4,6 +4,7 @@
  */
 
 import type { AIContext } from './types';
+import { formatStatistic } from '../i18n/format';
 
 const FALLBACK_QUESTIONS = [
   'What does this analysis tell me?',
@@ -20,14 +21,14 @@ const INVESTIGATION_FALLBACK_QUESTIONS = [
 /** Verification-grounded question templates (metric-aware) */
 const VERIFICATION_QUESTIONS = {
   cpkImproved: (before: number, after: number) =>
-    `Cpk improved from ${before.toFixed(2)} to ${after.toFixed(2)} — is this improvement sustained across categories?`,
+    `Cpk improved from ${formatStatistic(before, 'en', 2)} to ${formatStatistic(after, 'en', 2)} — is this improvement sustained across categories?`,
   variationReduced: (ratio: number) =>
-    `Variation reduced ${((1 - ratio) * 100).toFixed(0)}% — what sustaining controls are needed?`,
+    `Variation reduced ${formatStatistic((1 - ratio) * 100, 'en', 0)}% — what sustaining controls are needed?`,
   newPatterns: 'Are there any new patterns or risks in the After stage?',
   cpkRegressed: (before: number, after: number) =>
-    `Cpk dropped from ${before.toFixed(2)} to ${after.toFixed(2)} — what went wrong?`,
+    `Cpk dropped from ${formatStatistic(before, 'en', 2)} to ${formatStatistic(after, 'en', 2)} — what went wrong?`,
   outOfSpecReduced: (reduction: number) =>
-    `${reduction.toFixed(0)}% fewer out-of-spec — is this enough to meet requirements?`,
+    `${formatStatistic(reduction, 'en', 0)}% fewer out-of-spec — is this enough to meet requirements?`,
 };
 
 /** Phase-specific questions for hypothesis investigation */
@@ -72,7 +73,7 @@ export function buildSuggestedQuestions(context: AIContext): string[] {
 
   // Low Cpk
   if (context.stats?.cpk !== undefined && context.stats.cpk < 1.33) {
-    questions.push(`How can I improve Cpk from ${context.stats.cpk.toFixed(2)}?`);
+    questions.push(`How can I improve Cpk from ${formatStatistic(context.stats.cpk, 'en', 2)}?`);
   }
 
   // Active filters

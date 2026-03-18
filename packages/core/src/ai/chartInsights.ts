@@ -6,6 +6,7 @@
 
 import type { NelsonRule2Sequence, NelsonRule3Sequence } from '../types';
 import type { StagedComparison } from '../stats/staged';
+import { formatStatistic } from '../i18n/format';
 
 export type InsightChartType = 'ichart' | 'boxplot' | 'pareto' | 'capability' | 'stats';
 export type ChipType = 'suggestion' | 'warning' | 'info';
@@ -184,7 +185,7 @@ export function buildStatsInsight(
   // Priority 3: Cpk below target
   if (cpk !== undefined && cpk < cpkTarget) {
     return {
-      text: `Cpk ${cpk.toFixed(2)} — below ${cpkTarget.toFixed(2)} target`,
+      text: `Cpk ${formatStatistic(cpk, 'en', 2)} — below ${formatStatistic(cpkTarget, 'en', 2)} target`,
       chipType: 'warning',
       priority: 3,
     };
@@ -193,7 +194,7 @@ export function buildStatsInsight(
   // Priority 1: Cpk meets target
   if (cpk !== undefined && cpk >= cpkTarget) {
     return {
-      text: `Cpk ${cpk.toFixed(2)} meets ${cpkTarget.toFixed(2)} target`,
+      text: `Cpk ${formatStatistic(cpk, 'en', 2)} meets ${formatStatistic(cpkTarget, 'en', 2)} target`,
       chipType: 'info',
       priority: 1,
     };
@@ -224,14 +225,16 @@ export function buildStagedComparisonInsight(
   // Cpk change
   if (deltas.cpkDelta !== null) {
     const sign = deltas.cpkDelta > 0 ? '+' : '';
-    parts.push(`Cpk ${sign}${deltas.cpkDelta.toFixed(2)}`);
+    parts.push(`Cpk ${sign}${formatStatistic(deltas.cpkDelta, 'en', 2)}`);
   }
 
   // Out-of-spec reduction
   if (deltas.outOfSpecReduction > 0.5) {
-    parts.push(`${deltas.outOfSpecReduction.toFixed(1)}% fewer out-of-spec`);
+    parts.push(`${formatStatistic(deltas.outOfSpecReduction, 'en', 1)}% fewer out-of-spec`);
   } else if (deltas.outOfSpecReduction < -0.5) {
-    parts.push(`${Math.abs(deltas.outOfSpecReduction).toFixed(1)}% more out-of-spec`);
+    parts.push(
+      `${formatStatistic(Math.abs(deltas.outOfSpecReduction), 'en', 1)}% more out-of-spec`
+    );
   }
 
   // Variation change

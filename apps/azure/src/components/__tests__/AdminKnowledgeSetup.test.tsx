@@ -46,6 +46,7 @@ describe('AdminKnowledgeSetup', () => {
       aiEndpoint: '',
       aiSearchEndpoint: 'https://search.example.com',
       aiSearchIndex: 'findings',
+      appInsightsConnectionString: '',
     });
   });
 
@@ -82,6 +83,7 @@ describe('AdminKnowledgeSetup', () => {
       aiEndpoint: '',
       aiSearchEndpoint: '',
       aiSearchIndex: '',
+      appInsightsConnectionString: '',
     });
     // Also clear env var
     import.meta.env.VITE_AI_SEARCH_ENDPOINT = '';

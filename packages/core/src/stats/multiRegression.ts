@@ -7,6 +7,7 @@ import type {
 } from '../types';
 import { transpose, multiply, inverse, multiplyVector, diagonal } from '../matrix';
 import { fDistributionPValue, tDistributionPValue } from './distributions';
+import { formatStatistic } from '../i18n/format';
 
 /**
  * Build dummy variables for a categorical column using reference coding
@@ -356,7 +357,7 @@ function generateMultiRegressionInsight(result: {
   )[0];
 
   const direction = strongest.coefficient > 0 ? 'increases' : 'decreases';
-  const effect = Math.abs(strongest.coefficient).toFixed(2);
+  const effect = formatStatistic(Math.abs(strongest.coefficient), 'en', 2);
 
   let insight = `${strongest.term} ${direction} ${result.yColumn} by ${effect} per unit`;
 

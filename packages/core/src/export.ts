@@ -7,6 +7,7 @@ import type { SpecLimits } from './types';
 import type { Finding, Hypothesis } from './findings';
 import type { ProcessContext } from './ai/types';
 import { FINDING_STATUS_LABELS, FINDING_TAG_LABELS } from './findings';
+import { formatStatistic } from './i18n/format';
 
 export interface ExportOptions {
   includeRowNumbers?: boolean;
@@ -183,9 +184,13 @@ export function generateFindingsCSV(findings: Finding[], hypotheses?: Hypothesis
     const hypothesis = f.hypothesisId ? hypothesisMap.get(f.hypothesisId) : undefined;
     const factor = hypothesis?.factor ?? getFirstFilterFactor(f);
     const etaSquared =
-      f.context.cumulativeScope !== null ? (f.context.cumulativeScope / 100).toFixed(3) : '';
-    const cpkBefore = f.context.stats?.cpk?.toFixed(2) ?? '';
-    const cpkAfter = f.outcome?.cpkAfter?.toFixed(2) ?? '';
+      f.context.cumulativeScope !== null
+        ? formatStatistic(f.context.cumulativeScope / 100, 'en', 3)
+        : '';
+    const cpkBefore =
+      f.context.stats?.cpk !== undefined ? formatStatistic(f.context.stats.cpk, 'en', 2) : '';
+    const cpkAfter =
+      f.outcome?.cpkAfter !== undefined ? formatStatistic(f.outcome.cpkAfter, 'en', 2) : '';
     const actionsStr = f.actions?.map(a => a.text).join('; ') ?? '';
     const outcomeStr = f.outcome
       ? `${f.outcome.effective}${f.outcome.notes ? ': ' + f.outcome.notes : ''}`

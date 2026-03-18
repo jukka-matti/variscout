@@ -103,6 +103,7 @@ describe('getGraphToken', () => {
         aiEndpoint: '',
         aiSearchEndpoint: '',
         aiSearchIndex: '',
+        appInsightsConnectionString: '',
       });
     });
 

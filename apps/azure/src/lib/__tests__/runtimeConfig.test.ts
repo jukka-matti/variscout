@@ -77,6 +77,7 @@ describe('runtimeConfig', () => {
       aiEndpoint: '',
       aiSearchEndpoint: '',
       aiSearchIndex: '',
+      appInsightsConnectionString: '',
     });
   });
 
@@ -92,6 +93,7 @@ describe('runtimeConfig', () => {
       aiEndpoint: '',
       aiSearchEndpoint: '',
       aiSearchIndex: '',
+      appInsightsConnectionString: '',
     });
   });
 
@@ -119,6 +121,7 @@ describe('runtimeConfig', () => {
       aiEndpoint: '',
       aiSearchEndpoint: '',
       aiSearchIndex: '',
+      appInsightsConnectionString: '',
     });
   });
 

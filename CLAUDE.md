@@ -64,6 +64,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Data input / Parser        | docs/03-features/data/, packages/core/src/parser/                                                      |
 | Design system / UI         | docs/06-design-system/                                                                                 |
 | Workflows / Analysis       | docs/03-features/workflows/                                                                            |
+| Mental models / Hierarchy  | docs/05-technical/architecture/mental-model-hierarchy.md                                               |
 | Investigation / Findings   | adr-015, adr-020, docs/03-features/workflows/investigation-to-action.md, hypothesis-investigation.md   |
 | AI integration             | adr-019, docs/05-technical/architecture/ai-architecture.md, ai-data-flow.md, ai-context-engineering.md |
 | Deployment / CI            | docs/05-technical/implementation/deployment.md, .github/workflows/                                     |

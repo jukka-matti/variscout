@@ -1,4 +1,5 @@
 import type { MultiRegressionResult, TermRemovalSuggestion } from '../types';
+import { formatStatistic } from '../i18n/format';
 
 /**
  * Suggest the next term to remove during guided model reduction.
@@ -27,7 +28,7 @@ export function suggestTermRemoval(result: MultiRegressionResult): TermRemovalSu
       term: worst.term,
       pValue: worst.pValue,
       reason: 'high_vif',
-      explanation: `${worst.term} has VIF = ${worst.vif!.toFixed(1)}, indicating severe multicollinearity. Its coefficient estimate is unreliable.`,
+      explanation: `${worst.term} has VIF = ${formatStatistic(worst.vif!, 'en', 1)}, indicating severe multicollinearity. Its coefficient estimate is unreliable.`,
     };
   }
 
@@ -50,7 +51,7 @@ export function suggestTermRemoval(result: MultiRegressionResult): TermRemovalSu
       term: worst.term,
       pValue: worst.pValue,
       reason: 'not_significant',
-      explanation: `${worst.term} has p = ${worst.pValue.toFixed(3)}, not statistically significant. This ${termType} can likely be removed without loss of explanatory power.`,
+      explanation: `${worst.term} has p = ${formatStatistic(worst.pValue, 'en', 3)}, not statistically significant. This ${termType} can likely be removed without loss of explanatory power.`,
     };
   }
 

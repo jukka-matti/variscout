@@ -7,6 +7,7 @@
 import type { AIContext } from '../types';
 import type { Finding, Hypothesis } from '../../findings';
 import type { Locale } from '../../i18n/types';
+import { formatStatistic } from '../../i18n/format';
 import { buildLocaleHint } from './shared';
 
 /**
@@ -42,8 +43,8 @@ export function buildReportPrompt(
   // Stats
   if (context.stats) {
     const s = context.stats;
-    let statsLine = `Mean=${s.mean.toFixed(2)}, StdDev=${s.stdDev.toFixed(3)}, n=${s.samples}`;
-    if (s.cpk !== undefined) statsLine += `, Cpk=${s.cpk.toFixed(2)}`;
+    let statsLine = `Mean=${formatStatistic(s.mean, 'en', 2)}, StdDev=${formatStatistic(s.stdDev, 'en', 3)}, n=${s.samples}`;
+    if (s.cpk !== undefined) statsLine += `, Cpk=${formatStatistic(s.cpk, 'en', 2)}`;
     parts.push(`## Current Statistics\n${statsLine}`);
   }
 
@@ -63,10 +64,12 @@ export function buildReportPrompt(
     const h = f.hypothesisId ? hypothesisMap.get(f.hypothesisId) : undefined;
     let line = `${i + 1}. [${f.status.toUpperCase()}${f.tag ? ` · ${f.tag}` : ''}] ${f.text}`;
     if (h) line += `\n   Hypothesis: "${h.text}" (${h.status})`;
-    if (f.context.stats?.cpk !== undefined) line += `\n   Cpk: ${f.context.stats.cpk.toFixed(2)}`;
+    if (f.context.stats?.cpk !== undefined)
+      line += `\n   Cpk: ${formatStatistic(f.context.stats.cpk, 'en', 2)}`;
     if (f.outcome) {
       line += `\n   Outcome: ${f.outcome.effective}`;
-      if (f.outcome.cpkAfter) line += ` (Cpk after: ${f.outcome.cpkAfter.toFixed(2)})`;
+      if (f.outcome.cpkAfter)
+        line += ` (Cpk after: ${formatStatistic(f.outcome.cpkAfter, 'en', 2)})`;
     }
     if (f.actions?.length) {
       const done = f.actions.filter(a => a.completedAt).length;

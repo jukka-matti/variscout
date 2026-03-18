@@ -7,6 +7,7 @@
 import type { AIContext } from '../types';
 import type { InsightChartType } from '../chartInsights';
 import type { Locale } from '../../i18n/types';
+import { formatStatistic } from '../../i18n/format';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from './shared';
 
 /** Chart-specific data for AI insight enhancement */
@@ -86,7 +87,7 @@ export function buildChartInsightPrompt(context: AIContext, data: ChartInsightDa
     if (d.topCategories.length > 0) {
       line += `. Top: ${d.topCategories
         .slice(0, 3)
-        .map(c => `${c.name} ${c.variationPct.toFixed(0)}%`)
+        .map(c => `${c.name} ${formatStatistic(c.variationPct, 'en', 0)}%`)
         .join(', ')}`;
     }
     if (d.nextDrillFactor) line += `. Suggested drill: ${d.nextDrillFactor}`;
@@ -95,17 +96,17 @@ export function buildChartInsightPrompt(context: AIContext, data: ChartInsightDa
   if (data.pareto) {
     const d = data.pareto;
     parts.push(
-      `Pareto: top 2 = ${d.cumulativeTop2Pct.toFixed(0)}%. Categories: ${d.topCategories
+      `Pareto: top 2 = ${formatStatistic(d.cumulativeTop2Pct, 'en', 0)}%. Categories: ${d.topCategories
         .slice(0, 3)
-        .map(c => `${c.name} ${c.variationPct.toFixed(0)}%`)
+        .map(c => `${c.name} ${formatStatistic(c.variationPct, 'en', 0)}%`)
         .join(', ')}`
     );
   }
   if (data.stats) {
     const d = data.stats;
     let line = `Stats: target Cpk=${d.cpkTarget}`;
-    if (d.cpk !== undefined) line += `, actual Cpk=${d.cpk.toFixed(2)}`;
-    if (d.passRate !== undefined) line += `, pass rate=${d.passRate.toFixed(1)}%`;
+    if (d.cpk !== undefined) line += `, actual Cpk=${formatStatistic(d.cpk, 'en', 2)}`;
+    if (d.passRate !== undefined) line += `, pass rate=${formatStatistic(d.passRate, 'en', 1)}%`;
     parts.push(line);
   }
 

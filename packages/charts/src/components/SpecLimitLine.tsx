@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { Line } from '@visx/shape';
+import { formatStatistic } from '@variscout/core/i18n';
 import type { ChartFonts } from '../types';
 import { chartColors } from '../colors';
 import { useChartTheme } from '../useChartTheme';
@@ -92,7 +93,7 @@ function getDefaultLabel(
 ): string {
   const formattedValue = formatStat
     ? formatStat(value, decimalPlaces)
-    : value.toFixed(decimalPlaces);
+    : formatStatistic(value, 'en', decimalPlaces);
   switch (type) {
     case 'usl':
       return `USL: ${formattedValue}`;

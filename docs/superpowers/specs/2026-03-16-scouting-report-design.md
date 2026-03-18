@@ -87,6 +87,8 @@ The report auto-detects the type based on analysis state:
 
 ### Story Steps (Universal 5-Step Structure)
 
+> **Journey mapping:** These 5 steps map to the 4-phase analysis journey (FRAME → SCOUT → INVESTIGATE → IMPROVE). Steps 1–2 = SCOUT, Step 3 = INVESTIGATE, Steps 4–5 = IMPROVE. FRAME is omitted (setup, not story). See [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) for the full cross-reference.
+
 Each step appears only when relevant. Future steps are dimmed.
 
 #### Step 1: Current Condition — "What does the process look like?"

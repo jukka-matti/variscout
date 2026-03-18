@@ -53,112 +53,23 @@ describe('searchService', () => {
     });
   });
 
-  describe('searchRelatedFindings', () => {
-    const mockSearchResponse = {
-      value: [
-        {
-          finding_id: 'f-1',
-          project_name: 'Coffee Line',
-          factor: 'Machine',
-          status: 'resolved',
-          eta_squared: 0.42,
-          cpk_before: 0.65,
-          cpk_after: 1.45,
-          suspected_cause: 'Worn gasket',
-          actions_text: 'Replaced gasket',
-          outcome_effective: true,
-          '@search.score': 0.92,
-        },
-      ],
-    };
-
-    it('returns mapped results on success', async () => {
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockSearchResponse),
-      });
-
+  describe('searchRelatedFindings (deprecated — ADR-026)', () => {
+    it('returns empty array (deprecated stub)', async () => {
       const results = await searchRelatedFindings('machine variation');
-
-      expect(results).toHaveLength(1);
-      expect(results[0]).toEqual({
-        findingId: 'f-1',
-        projectName: 'Coffee Line',
-        factor: 'Machine',
-        status: 'resolved',
-        etaSquared: 0.42,
-        cpkBefore: 0.65,
-        cpkAfter: 1.45,
-        suspectedCause: 'Worn gasket',
-        actionsText: 'Replaced gasket',
-        outcomeEffective: true,
-        score: 0.92,
-      });
+      expect(results).toEqual([]);
     });
 
-    it('sends correct request with Authorization header', async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ value: [] }),
-      });
+    it('does not make HTTP calls', async () => {
+      const mockFetch = vi.fn();
       globalThis.fetch = mockFetch;
 
       await searchRelatedFindings('test query');
-
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/indexes/findings/docs/search');
-      expect(url).toContain('api-version=2024-07-01');
-      expect(options.method).toBe('POST');
-      expect(options.headers.Authorization).toBe('Bearer mock-token');
-
-      const body = JSON.parse(options.body);
-      expect(body.search).toBe('test query');
-      expect(body.queryType).toBe('semantic');
-      expect(body.top).toBe(5);
+      expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('passes factor filter when provided', async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ value: [] }),
-      });
-      globalThis.fetch = mockFetch;
-
-      await searchRelatedFindings('variation', { factor: 'Machine' });
-
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(body.filter).toBe("factor eq 'Machine'");
-    });
-
-    it('returns empty array on HTTP error', async () => {
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: false,
-        status: 500,
-      });
-
-      const results = await searchRelatedFindings('test');
+    it('returns empty array regardless of options', async () => {
+      const results = await searchRelatedFindings('variation', { factor: 'Machine', top: 10 });
       expect(results).toEqual([]);
-    });
-
-    it('returns empty array when no endpoint configured', async () => {
-      import.meta.env.VITE_AI_SEARCH_ENDPOINT = '';
-
-      const results = await searchRelatedFindings('test');
-      expect(results).toEqual([]);
-    });
-
-    it('respects custom top option', async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ value: [] }),
-      });
-      globalThis.fetch = mockFetch;
-
-      await searchRelatedFindings('test', { top: 10 });
-
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(body.top).toBe(10);
     });
   });
 

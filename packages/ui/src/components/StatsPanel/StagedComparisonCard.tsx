@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import type { StagedComparison, StagedComparisonDeltas, DeltaColor } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
 import { useTranslation } from '@variscout/hooks';
 
 // ============================================================================
@@ -57,14 +58,14 @@ function formatDeltaValue(
 ): string {
   if (value === null) return '—';
   const sign = value > 0 ? '+' : '';
-  const formatted = fmt ? fmt(value, decimals) : value.toFixed(decimals);
+  const formatted = fmt ? fmt(value, decimals) : formatStatistic(value, 'en', decimals);
   return `${sign}${formatted}`;
 }
 
 function formatRatio(value: number, fmt?: (v: number, d?: number) => string): string {
   const pct = (value - 1) * 100;
   const sign = pct > 0 ? '+' : '';
-  const formatted = fmt ? fmt(pct, 0) : pct.toFixed(0);
+  const formatted = fmt ? fmt(pct, 0) : formatStatistic(pct, 'en', 0);
   return `${sign}${formatted}%`;
 }
 

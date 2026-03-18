@@ -529,7 +529,7 @@ describe('formatKnowledgeContext', () => {
         outcomeEffective: true,
       },
     ]);
-    expect(result).toContain('Past findings from the Knowledge Base');
+    expect(result).toContain('Knowledge Base documents found');
     expect(result).toContain('1. [From: findings] "Nozzle blockage" — Coffee Line 3');
     expect(result).toContain('Factor: Machine, Status: resolved');
     expect(result).toContain('η²: 42.0%');
@@ -590,7 +590,7 @@ describe('formatKnowledgeContext', () => {
     expect(result).toContain('Outcome: not effective');
   });
 
-  it('includes [From: findings] prefix on finding entries and [From: <source>] on document entries', () => {
+  it('includes [From: findings] prefix on finding entries and [Source: <source>] on document entries', () => {
     const result = formatKnowledgeContext(
       [
         {
@@ -614,7 +614,7 @@ describe('formatKnowledgeContext', () => {
       ]
     );
     expect(result).toContain('[From: findings]');
-    expect(result).toContain('[From: SOPs]');
+    expect(result).toContain('[Source: SOPs]');
     expect(result).toContain('Nozzle blockage');
     expect(result).toContain('SOP: Nozzle Cleaning');
   });
@@ -631,12 +631,12 @@ describe('formatKnowledgeContext', () => {
       ]
     );
     expect(result).toContain('Knowledge Base');
-    expect(result).toContain('[From: SharePoint]');
+    expect(result).toContain('[Source: SharePoint]');
     expect(result).toContain('Work Instruction: Calibration');
     expect(result).toContain('Calibrate every Monday morning.');
   });
 
-  it('truncates document snippets to 300 chars', () => {
+  it('truncates document snippets to 400 chars', () => {
     const longSnippet = 'A'.repeat(500);
     const result = formatKnowledgeContext(
       [],
@@ -648,9 +648,9 @@ describe('formatKnowledgeContext', () => {
         },
       ]
     );
-    // The snippet in the output should be at most 300 characters
-    expect(result).toContain('A'.repeat(300));
-    expect(result).not.toContain('A'.repeat(301));
+    // The snippet in the output should be at most 400 characters + ellipsis
+    expect(result).toContain('A'.repeat(400));
+    expect(result).not.toContain('A'.repeat(401));
   });
 });
 
@@ -786,7 +786,7 @@ describe('buildCoScoutMessages', () => {
     expect(knowledgeMsg.role).toBe('system');
     expect(knowledgeMsg.content).toContain('Nozzle blockage');
     expect(knowledgeMsg.content).toContain('[From: findings]');
-    expect(knowledgeMsg.content).toContain('[From: SOPs]');
+    expect(knowledgeMsg.content).toContain('[Source: SOPs]');
     expect(knowledgeMsg.content).toContain('SOP: Nozzle Cleaning');
   });
 
@@ -806,7 +806,7 @@ describe('buildCoScoutMessages', () => {
     expect(messages.length).toBe(4);
     const knowledgeMsg = messages[2];
     expect(knowledgeMsg.role).toBe('system');
-    expect(knowledgeMsg.content).toContain('[From: SharePoint]');
+    expect(knowledgeMsg.content).toContain('[Source: SharePoint]');
     expect(knowledgeMsg.content).toContain('Work Instruction: Calibration');
   });
 });

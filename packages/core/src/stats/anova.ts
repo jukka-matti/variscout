@@ -2,6 +2,7 @@ import * as d3 from 'd3-array';
 import type { DataRow, AnovaResult, AnovaGroup } from '../types';
 import { toNumericValue } from '../types';
 import { fDistributionPValue } from './distributions';
+import { formatStatistic } from '../i18n/format';
 
 /**
  * Calculate eta-squared (η²) effect size for one-way ANOVA
@@ -98,9 +99,9 @@ function generateAnovaInsight(
   const lowerIsBetter = /time|defect|error|reject|delay|cost|waste/i.test(outcomeName);
 
   if (lowerIsBetter) {
-    return `${lowest.name} is best (${lowest.mean.toFixed(1)} avg)`;
+    return `${lowest.name} is best (${formatStatistic(lowest.mean, 'en', 1)} avg)`;
   } else {
-    return `${highest.name} is best (${highest.mean.toFixed(1)} avg)`;
+    return `${highest.name} is best (${formatStatistic(highest.mean, 'en', 1)} avg)`;
   }
 }
 

@@ -12,6 +12,7 @@ export interface RuntimeConfig {
   aiEndpoint: string;
   aiSearchEndpoint: string;
   aiSearchIndex: string;
+  appInsightsConnectionString: string;
 }
 
 let cached: RuntimeConfig | null = null;
@@ -59,6 +60,7 @@ export async function loadRuntimeConfig(): Promise<RuntimeConfig> {
     aiEndpoint: '',
     aiSearchEndpoint: '',
     aiSearchIndex: '',
+    appInsightsConnectionString: '',
   };
   return cached;
 }

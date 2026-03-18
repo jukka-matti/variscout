@@ -2,13 +2,15 @@
  * Formatting utilities for statistical display
  */
 
+import { formatStatistic } from './i18n/format';
+
 /**
  * Format p-value for display
  * Shows "< 0.001" for very small values, otherwise 3 decimal places
  */
 export function formatPValue(p: number): string {
   if (p < 0.001) return '< 0.001';
-  return p.toFixed(3);
+  return formatStatistic(p, 'en', 3);
 }
 
 /**

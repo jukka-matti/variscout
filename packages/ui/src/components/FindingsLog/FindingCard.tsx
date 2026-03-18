@@ -24,6 +24,7 @@ import type {
   FindingTag,
 } from '@variscout/core';
 import { getFindingStatus } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
 import { useTranslation } from '@variscout/hooks';
 import FindingEditor from './FindingEditor';
 import FindingStatusBadge from './FindingStatusBadge';
@@ -495,7 +496,9 @@ function formatDelta(
   decimals: number = 1,
   fmt?: (v: number, d?: number) => string
 ): string {
-  const f = fmt ? (v: number) => fmt(v, decimals) : (v: number) => v.toFixed(decimals);
+  const f = fmt
+    ? (v: number) => fmt(v, decimals)
+    : (v: number) => formatStatistic(v, 'en', decimals);
   return `${f(from)}\u2192${f(to)}`;
 }
 

@@ -57,6 +57,7 @@
     "functionPlanName": "[concat(parameters('appName'), '-func-plan')]",
     "hasTeamFeatures": "[or(equals(parameters('variscoutPlan'), 'team'), equals(parameters('variscoutPlan'), 'team-ai'))]",
     "isTeamAI": "[equals(parameters('variscoutPlan'), 'team-ai')]",
+    "appInsightsName": "[concat(parameters('appName'), '-insights')]",
     "aiServicesName": "[concat(parameters('appName'), '-ai')]",
     "searchServiceName": "[concat(parameters('appName'), '-search')]",
     "aiSearchIndex": "findings",
@@ -99,7 +100,8 @@
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
         "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServicesName'))]",
-        "[resourceId('Microsoft.Search/searchServices', variables('searchServiceName'))]"
+        "[resourceId('Microsoft.Search/searchServices', variables('searchServiceName'))]",
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
@@ -142,6 +144,10 @@
             {
               "name": "FUNCTION_URL",
               "value": "[if(variables('hasTeamFeatures'), concat('https://', variables('functionAppName'), '.azurewebsites.net'), '')]"
+            },
+            {
+              "name": "VITE_APPINSIGHTS_CONNECTION_STRING",
+              "value": "[if(variables('isTeamAI'), reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString, '')]"
             }
           ],
           "minTlsVersion": "1.2",
@@ -308,6 +314,10 @@
             {
               "name": "FUNCTION_KEY",
               "value": "[concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=function-key)')]"
+            },
+            {
+              "name": "MSAL_CACHE_LOCATION",
+              "value": "[if(variables('hasTeamFeatures'), '/home/data/msal-cache', '')]"
             }
           ],
           "cors": {
@@ -318,6 +328,25 @@
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled"
         }
+      }
+    },
+    {
+      "condition": "[variables('isTeamAI')]",
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightsName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "product": "VariScout",
+        "plan": "[parameters('variscoutPlan')]",
+        "managedBy": "AzureMarketplace"
+      },
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "RetentionInDays": 30,
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
       }
     },
     {
@@ -542,6 +571,11 @@
       "condition": "[variables('isTeamAI')]",
       "type": "string",
       "value": "[if(variables('isTeamAI'), concat('https://', variables('searchServiceName'), '.search.windows.net'), '')]"
+    },
+    "appInsightsConnectionString": {
+      "condition": "[variables('isTeamAI')]",
+      "type": "string",
+      "value": "[if(variables('isTeamAI'), reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString, '')]"
     }
   }
 }

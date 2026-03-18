@@ -11,6 +11,7 @@ import {
   type DataRow,
   type SpecLimits,
 } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
 import WhatIfSimulator from '../WhatIfSimulator/WhatIfSimulator';
 import type {
   SimulatorPreset,
@@ -80,7 +81,7 @@ function computePresets(
   filteredData: DataRow[],
   outcome: string,
   activeFactor?: string | null,
-  fmt: (v: number, d?: number) => string = (v, d = 2) => v.toFixed(d)
+  fmt: (v: number, d?: number) => string = (v, d = 2) => formatStatistic(v, 'en', d)
 ): SimulatorPreset[] {
   const presets: SimulatorPreset[] = [];
   const type = inferCharacteristicType(specs);

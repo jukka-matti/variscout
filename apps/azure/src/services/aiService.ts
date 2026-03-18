@@ -8,7 +8,7 @@
  *   - *.services.ai.azure.com or paths containing /anthropic → Anthropic Messages API
  */
 
-import type { AIContext, AIErrorType, Locale } from '@variscout/core';
+import type { AIContext, AIErrorType, Locale, ResponsesApiConfig } from '@variscout/core';
 import {
   buildNarrationSystemPrompt,
   buildSummaryPrompt,
@@ -156,6 +156,66 @@ export function getAIEndpoint(): string | null {
  */
 export function isAIAvailable(): boolean {
   return isTeamAIPlan() && getAIEndpoint() !== null;
+}
+
+/**
+ * Check whether the Responses API feature flag is enabled.
+ */
+export function isResponsesApiEnabled(): boolean {
+  return import.meta.env.VITE_USE_RESPONSES_API === 'true';
+}
+
+/**
+ * Build Responses API config when the feature flag is enabled.
+ * Returns undefined when VITE_USE_RESPONSES_API is not 'true',
+ * preserving the existing Chat Completions behaviour.
+ *
+ * Auth: In production, fetches the EasyAuth bearer token.
+ * In dev, falls back to VITE_AI_API_KEY env var.
+ */
+export async function getResponsesApiConfig(): Promise<ResponsesApiConfig | undefined> {
+  if (!isResponsesApiEnabled()) return undefined;
+
+  const endpoint = getAIEndpoint();
+  if (!endpoint) return undefined;
+
+  // Extract base endpoint (strip deployment path if present for Chat Completions URLs)
+  // Chat Completions URL: https://foo.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=...
+  // Responses API needs: https://foo.openai.azure.com
+  let baseEndpoint = endpoint;
+  const deploymentMatch = endpoint.match(/^(https:\/\/[^/]+)/);
+  if (deploymentMatch) {
+    baseEndpoint = deploymentMatch[1];
+  }
+
+  // Deployment name: explicit env var > extract from Chat Completions URL > fallback
+  let deployment = import.meta.env.VITE_RESPONSES_API_DEPLOYMENT || '';
+  if (!deployment) {
+    const pathMatch = endpoint.match(/\/deployments\/([^/]+)/);
+    deployment = pathMatch?.[1] || 'gpt-4o';
+  }
+
+  // Auth: try EasyAuth token first (production), fall back to env var (dev)
+  let apiKey = '';
+  try {
+    const tokenResponse = await fetch('/.auth/me');
+    if (tokenResponse.ok) {
+      const authData = await tokenResponse.json();
+      const accessToken = authData?.[0]?.access_token;
+      if (accessToken) apiKey = accessToken;
+    }
+  } catch {
+    // Dev mode — no EasyAuth available
+  }
+  if (!apiKey) {
+    apiKey = import.meta.env.VITE_AI_API_KEY || '';
+  }
+
+  return {
+    endpoint: baseEndpoint,
+    deployment,
+    apiKey,
+  };
 }
 
 /**

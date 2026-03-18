@@ -10,6 +10,7 @@
 import type { AIContext, CoScoutMessage } from '../types';
 import type { ToolDefinition } from '../responsesApi';
 import type { Locale } from '../../i18n/types';
+import { formatStatistic } from '../../i18n/format';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from './shared';
 import { buildSummaryPrompt } from './narration';
 
@@ -152,10 +153,10 @@ Never invent data or statistics. If the context does not contain enough informat
         const sd = stagedComparison.deltas;
         let verificationContext =
           'Verification data available — the analyst has collected After data.';
-        verificationContext += ` Staged comparison: mean shift ${sd.meanShift.toFixed(2)}`;
-        verificationContext += `, variation ratio ${sd.variationRatio.toFixed(2)}`;
+        verificationContext += ` Staged comparison: mean shift ${formatStatistic(sd.meanShift, 'en', 2)}`;
+        verificationContext += `, variation ratio ${formatStatistic(sd.variationRatio, 'en', 2)}`;
         if (sd.cpkDelta !== null)
-          verificationContext += `, Cpk delta ${sd.cpkDelta > 0 ? '+' : ''}${sd.cpkDelta.toFixed(2)}`;
+          verificationContext += `, Cpk delta ${sd.cpkDelta > 0 ? '+' : ''}${formatStatistic(sd.cpkDelta, 'en', 2)}`;
         verificationContext += '.';
         phaseInstructions.acting = `The investigation is in the Acting Phase with verification data. ${verificationContext} Help assess: Is the improvement real and sustained? Are there new patterns or risks in the After stage? What sustaining controls are needed?`;
       }
@@ -197,7 +198,7 @@ Never invent data or statistics. If the context does not contain enough informat
       let findingLine = `Currently focused finding: "${sf.text}"`;
       if (sf.hypothesis) findingLine += ` (hypothesis: "${sf.hypothesis}")`;
       if (sf.projection) {
-        findingLine += `. Projected impact: mean ${sf.projection.meanDelta > 0 ? '+' : ''}${sf.projection.meanDelta.toFixed(2)}, sigma ${sf.projection.sigmaDelta > 0 ? '+' : ''}${sf.projection.sigmaDelta.toFixed(2)}`;
+        findingLine += `. Projected impact: mean ${sf.projection.meanDelta > 0 ? '+' : ''}${formatStatistic(sf.projection.meanDelta, 'en', 2)}, sigma ${sf.projection.sigmaDelta > 0 ? '+' : ''}${formatStatistic(sf.projection.sigmaDelta, 'en', 2)}`;
       }
       if (sf.actions && sf.actions.length > 0) {
         const done = sf.actions.filter(a => a.status === 'done').length;
@@ -281,9 +282,12 @@ export function formatKnowledgeContext(
         `${i + 1}. [From: findings] "${r.suspectedCause || 'Unknown cause'}" — ${r.projectName}`,
       ];
       parts.push(`   Factor: ${r.factor}, Status: ${r.status}`);
-      if (r.etaSquared !== null) parts.push(`   η²: ${(r.etaSquared * 100).toFixed(1)}%`);
+      if (r.etaSquared !== null)
+        parts.push(`   η²: ${formatStatistic(r.etaSquared * 100, 'en', 1)}%`);
       if (r.cpkBefore !== null && r.cpkAfter !== null)
-        parts.push(`   Cpk: ${r.cpkBefore.toFixed(2)} → ${r.cpkAfter.toFixed(2)}`);
+        parts.push(
+          `   Cpk: ${formatStatistic(r.cpkBefore, 'en', 2)} → ${formatStatistic(r.cpkAfter, 'en', 2)}`
+        );
       if (r.actionsText) parts.push(`   Actions: ${r.actionsText}`);
       if (r.outcomeEffective !== null)
         parts.push(`   Outcome: ${r.outcomeEffective ? 'effective' : 'not effective'}`);

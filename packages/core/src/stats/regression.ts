@@ -1,6 +1,7 @@
 import * as d3 from 'd3-array';
 import type { RegressionResult, LinearFit, QuadraticFit } from '../types';
 import { tDistributionPValue } from './distributions';
+import { formatStatistic } from '../i18n/format';
 
 /**
  * Calculate linear regression fit using least squares
@@ -186,7 +187,7 @@ function generateRegressionInsight(
   // Handle quadratic first (may have weak linear but strong quadratic)
   if (recommendedFit === 'quadratic' && quadratic && quadratic.optimumX !== null) {
     const optType = quadratic.optimumType === 'peak' ? 'maximum' : 'minimum';
-    return `${optType.charAt(0).toUpperCase() + optType.slice(1)} ${yColumn} at ${xColumn} ≈ ${quadratic.optimumX.toFixed(1)}`;
+    return `${optType.charAt(0).toUpperCase() + optType.slice(1)} ${yColumn} at ${xColumn} ≈ ${formatStatistic(quadratic.optimumX, 'en', 1)}`;
   }
 
   if (recommendedFit === 'none') {

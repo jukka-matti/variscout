@@ -9,6 +9,7 @@
 
 import type { AIContext } from '../types';
 import type { Locale } from '../../i18n/types';
+import { formatStatistic } from '../../i18n/format';
 import { buildLocaleHint, TERMINOLOGY_INSTRUCTION } from './shared';
 
 /**
@@ -59,10 +60,11 @@ export function buildSummaryPrompt(context: AIContext): string {
   // Stats
   if (context.stats) {
     const s = context.stats;
-    let statsLine = `Mean=${s.mean.toFixed(2)}, StdDev=${s.stdDev.toFixed(3)}, n=${s.samples}`;
-    if (s.cpk !== undefined) statsLine += `, Cpk=${s.cpk.toFixed(2)}`;
-    if (s.cp !== undefined) statsLine += `, Cp=${s.cp.toFixed(2)}`;
-    if (s.passRate !== undefined) statsLine += `, PassRate=${s.passRate.toFixed(1)}%`;
+    let statsLine = `Mean=${formatStatistic(s.mean, 'en', 2)}, StdDev=${formatStatistic(s.stdDev, 'en', 3)}, n=${s.samples}`;
+    if (s.cpk !== undefined) statsLine += `, Cpk=${formatStatistic(s.cpk, 'en', 2)}`;
+    if (s.cp !== undefined) statsLine += `, Cp=${formatStatistic(s.cp, 'en', 2)}`;
+    if (s.passRate !== undefined)
+      statsLine += `, PassRate=${formatStatistic(s.passRate, 'en', 1)}%`;
     parts.push(`Statistics: ${statsLine}`);
   }
 
@@ -95,7 +97,7 @@ export function buildSummaryPrompt(context: AIContext): string {
     const vcStr = context.variationContributions
       .map(
         vc =>
-          `${vc.factor}${vc.category ? ` (${vc.category})` : ''}: η²=${(vc.etaSquared * 100).toFixed(1)}%`
+          `${vc.factor}${vc.category ? ` (${vc.category})` : ''}: η²=${formatStatistic(vc.etaSquared * 100, 'en', 1)}%`
       )
       .join(', ');
     parts.push(`Variation contributions: ${vcStr}`);
@@ -128,15 +130,15 @@ export function buildSummaryPrompt(context: AIContext): string {
     const sc = context.stagedComparison;
     const d = sc.deltas;
     let stageLine = `Staged comparison (${sc.stageNames.join(' → ')}):`;
-    stageLine += ` Mean shift ${d.meanShift > 0 ? '+' : ''}${d.meanShift.toFixed(2)}`;
-    stageLine += `, Variation ratio ${d.variationRatio.toFixed(2)}`;
+    stageLine += ` Mean shift ${d.meanShift > 0 ? '+' : ''}${formatStatistic(d.meanShift, 'en', 2)}`;
+    stageLine += `, Variation ratio ${formatStatistic(d.variationRatio, 'en', 2)}`;
     if (d.cpkDelta !== null)
-      stageLine += `, Cpk delta ${d.cpkDelta > 0 ? '+' : ''}${d.cpkDelta.toFixed(2)}`;
+      stageLine += `, Cpk delta ${d.cpkDelta > 0 ? '+' : ''}${formatStatistic(d.cpkDelta, 'en', 2)}`;
     if (sc.cpkBefore !== undefined && sc.cpkAfter !== undefined) {
-      stageLine += ` (${sc.cpkBefore.toFixed(2)} → ${sc.cpkAfter.toFixed(2)})`;
+      stageLine += ` (${formatStatistic(sc.cpkBefore, 'en', 2)} → ${formatStatistic(sc.cpkAfter, 'en', 2)})`;
     }
     if (d.outOfSpecReduction !== 0) {
-      stageLine += `, Out-of-spec reduction ${d.outOfSpecReduction > 0 ? '+' : ''}${d.outOfSpecReduction.toFixed(1)}%`;
+      stageLine += `, Out-of-spec reduction ${d.outOfSpecReduction > 0 ? '+' : ''}${formatStatistic(d.outOfSpecReduction, 'en', 1)}%`;
     }
     parts.push(stageLine);
   }
