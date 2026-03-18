@@ -208,9 +208,9 @@ Five investigation phases with distinct AI behavior:
 
 Phase detection is deterministic (`detectInvestigationPhase()` in `buildAIContext.ts`). AI coaching instructions are injected per phase in `buildCoScoutSystemPrompt()`.
 
-#### Verification Sub-pattern (Acting Phase with Staged Data)
+#### Verification Sub-pattern (IMPROVE Phase with Staged Data)
 
-When the analyst is in the Acting phase **and** staged comparison data is present (`stagedComparison` in `AIContext`), AI components switch to verification-specific behavior:
+When the analyst is in the IMPROVE phase **and** staged comparison data is present (`stagedComparison` in `AIContext`), AI components switch to verification-specific behavior:
 
 - **NarrativeBar** summarizes improvement quantitatively: mean shift, Cpk delta, variation change, violation count reduction
 - **CoScout** system prompt includes staged comparison metrics (per-stage stats, deltas, trend indicators) and instructs the model to ground answers in before/after evidence

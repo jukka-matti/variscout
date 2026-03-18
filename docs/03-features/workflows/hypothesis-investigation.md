@@ -3,7 +3,7 @@ title: Hypothesis Investigation Flow
 audience: [analyst, engineer]
 category: workflow
 status: stable
-related: [hypothesis, root-cause, investigation-phases, IDEOI]
+related: [hypothesis, root-cause, investigation-phases, investigation-diamond]
 ---
 
 # Hypothesis Investigation Flow

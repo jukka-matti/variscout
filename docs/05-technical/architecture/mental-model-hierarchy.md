@@ -116,7 +116,7 @@ The diamond is a **structured learning** process — a disciplined way to build 
 - **Source:** `packages/core/src/findings.ts`
 - **In code?** YES — core type, UI board columns, tier gating (PWA: first 3 only)
 - **Relationship to M1:** Spans INVESTIGATE (observed→analyzed) + IMPROVE (improving→resolved)
-- **Relationship to M4:** Parallel track — IDEOI phases drive AI behavior, Finding Status tracks user progress
+- **Relationship to M4:** Parallel track — investigation diamond phases drive AI behavior, Finding Status tracks user progress
 
 ### M6: AI Layers
 
@@ -180,7 +180,7 @@ The diamond is a **structured learning** process — a disciplined way to build 
 
 - **Source:** `packages/core/src/findings.ts`
 - **In code?** YES — `ValidationStatus` type
-- **Relationship to M4:** Lives inside IDEOI's Diverging→Validating→Converging phases
+- **Relationship to M4:** Lives inside the diamond's Diverging→Validating→Converging phases
 
 ### M14: Three Contributions
 
@@ -253,7 +253,7 @@ Both track investigation progress but from different angles: the diamond drives 
 | M10: Experience Spectrum  | YES      | `core/tier.ts`                                                                                     | Product gating                                                                      |
 | M11: Two Speeds           | Partial  | Report auto-detection                                                                              | Not typed                                                                           |
 | M12: Two Entry Paths      | NO       | —                                                                                                  | Implicit in UI flow                                                                 |
-| M13: Hypothesis Lifecycle | YES      | `ValidationStatus` type                                                                            | Inside IDEOI                                                                        |
+| M13: Hypothesis Lifecycle | YES      | `ValidationStatus` type                                                                            | Inside investigation diamond                                                        |
 | M14: Three Contributions  | YES      | Linked filtering, filter chips, hypothesis tree                                                    | Core UX patterns                                                                    |
 | M15: Knowledge Layer      | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup`                                    | Team AI tier only, preview-gated                                                    |
 
@@ -266,7 +266,7 @@ Both track investigation progress but from different angles: the diamond drives 
 The 4-phase journey (M1) is the canonical model but has no code representation — no `JourneyPhase` type, no enum, no constant. This means:
 
 - Report Steps can't reference journey phases
-- AI can't adapt across all phases (only INVESTIGATE via IDEOI)
+- AI can't adapt across all phases (only INVESTIGATE via diamond)
 - UI can't show "you are here"
 - Each feature team independently reinvents phase concepts
 
@@ -276,11 +276,11 @@ Report Steps were designed independently from the journey map and use question-f
 
 ### 3. AI Phase Awareness Covers Only INVESTIGATE
 
-CoScout's phase-aware prompting only adapts for IDEOI phases. During FRAME and SCOUT, the AI has no phase concept — no "you're in the framing phase" or "you're scouting" guidance. AI only "wakes up" when the user starts investigating.
+CoScout's phase-aware prompting only adapts for investigation diamond phases. During FRAME and SCOUT, the AI has no phase concept — no "you're in the framing phase" or "you're scouting" guidance. AI only "wakes up" when the user starts investigating.
 
 **Note:** FRAME having no AI is intentional and correct — there is no analysed data to reason about yet. The gap is specifically about SCOUT, where AI is active but not journey-phase-aware. However, FRAME represents a future AI opportunity — AI could assist with column mapping, characteristic type detection, process context enrichment, or connecting upfront hypotheses to investigation structure.
 
-### 4. IDEOI ↔ Finding Status Not Documented
+### 4. Diamond ↔ Finding Status Not Documented
 
 Both systems track investigation progress from different angles. The implicit mapping in `useAIContext.ts` was never documented. Developers modifying one system might not realize it affects the other. See the mapping table above.
 
@@ -317,7 +317,7 @@ This table is mirrored in [Analysis Journey Map § Entry-Path-Dependent Phase Go
 ## See Also
 
 - [Analysis Journey Map](../../03-features/workflows/analysis-journey-map.md) — canonical journey definition (M1)
-- [Methodology](../../01-vision/methodology.md) — Watson's EDA (M2), Four Lenses (M3), IDEOI (M4), Two Voices (M9), Three Contributions (M14)
+- [Methodology](../../01-vision/methodology.md) — Watson's EDA (M2), Four Lenses (M3), Investigation Diamond (M4), Two Voices (M9), Three Contributions (M14)
 - [AI Experience Narrative](../../03-features/workflows/ai-experience-narrative.md) — AI Layers (M6), Experience Spectrum (M10)
 - [Business Bible](../../01-vision/business-bible.md) — Value Levers (M7)
 - [Scouting Report Design](../../superpowers/specs/2026-03-16-scouting-report-design.md) — Report Steps (M8)

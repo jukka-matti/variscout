@@ -34,7 +34,7 @@ The unified 4-phase model: **FRAME → SCOUT → INVESTIGATE → IMPROVE** with 
 
 ### [Investigation Lifecycle Map](investigation-lifecycle-map.md)
 
-IDEOI state diagram for the Investigate phase — hypothesis diamond, finding status lifecycle, and CoScout behavior at each state.
+Investigation diamond state diagram for the Investigate phase — hypothesis diamond, finding status lifecycle, and CoScout behavior at each state.
 
 ---
 

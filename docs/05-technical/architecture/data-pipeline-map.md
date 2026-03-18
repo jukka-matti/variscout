@@ -306,7 +306,7 @@ flowchart LR
 
 ## 4. AI Pipeline Swim Lane
 
-> **Note**: AI features are shipped behind a preview gate. The pipeline components (NarrativeBar, ChartInsightChips, CoScout) are defined in the knowledge layer but not yet wired to live AI services in the main codebase. See the [investigation lifecycle map](../../03-features/workflows/investigation-lifecycle-map.md) for IDEOI phase definitions and CoScout behavior per phase.
+> **Note**: AI features are shipped behind a preview gate. The pipeline components (NarrativeBar, ChartInsightChips, CoScout) are defined in the knowledge layer but not yet wired to live AI services in the main codebase. See the [investigation lifecycle map](../../03-features/workflows/investigation-lifecycle-map.md) for investigation diamond phase definitions and CoScout behavior per phase.
 
 ```mermaid
 flowchart LR
@@ -315,7 +315,7 @@ flowchart LR
         AR[AnovaResult]
         FA["FilterAction[]"]
         FND["Finding[]"]
-        Phase["IDEOI Phase"]
+        Phase["Investigation Phase"]
     end
 
     subgraph Build["Context Assembly"]
@@ -357,17 +357,18 @@ flowchart LR
     AOAI --> COS
 ```
 
-### IDEOI Phase Mapping
+### Investigation Phase Mapping
 
-The AI layer adapts behavior based on the current investigation phase:
+The AI layer adapts behavior based on the current investigation phase (4-phase diamond):
 
-| IDEOI Phase      | Trigger              | CoScout Behavior                            |
-| ---------------- | -------------------- | ------------------------------------------- |
-| **Initial**      | Data loaded          | Suggests patterns in data                   |
-| **Diverging**    | First finding pinned | Suggests possible hypotheses                |
-| **Evaluating**   | Hypothesis linked    | Challenges assumptions, suggests validation |
-| **Organizing**   | Finding analyzed     | Summarizes root causes, suggests actions    |
-| **Implementing** | Actions defined      | Tracks progress, projects improvement       |
+| Phase          | Trigger              | CoScout Behavior                                      |
+| -------------- | -------------------- | ----------------------------------------------------- |
+| **Initial**    | Data loaded          | Suggests patterns in data                             |
+| **Diverging**  | First finding pinned | Suggests possible hypotheses                          |
+| **Validating** | Hypothesis linked    | Challenges assumptions, provides evidence for/against |
+| **Converging** | Evidence collected   | Summarizes evidence, promotes suspected root cause    |
+
+> **Note:** After the diamond closes (suspected root cause identified), IMPROVE follows the PDCA cycle. During IMPROVE, CoScout shifts to suggesting corrective actions and monitoring Cpk improvement.
 
 ---
 
@@ -498,5 +499,5 @@ sequenceDiagram
 - [Data Flow](data-flow.md) -- detailed input/validation stages and platform-specific flows
 - [System Map](system-map.md) -- package topology and dependency graph
 - [Component Patterns](component-patterns.md) -- hook integration details and DataContext structure
-- [Investigation Lifecycle Map](../../03-features/workflows/investigation-lifecycle-map.md) -- IDEOI phases and CoScout behavior
+- [Investigation Lifecycle Map](../../03-features/workflows/investigation-lifecycle-map.md) -- Investigation diamond phases and CoScout behavior
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) -- findings workflow specification

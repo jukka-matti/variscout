@@ -9,9 +9,11 @@ title: 'Hypothesis Investigation Flow: Diamond Pattern for Root Cause Analysis'
 **Scope:** Extend Hypothesis model with sub-hypotheses, validation types, tree view UI, and CoScout investigation integration
 **Related:** Investigation Workflow Enhancement (2026-03-14), ADR-020, ADR-019 (AI Integration)
 
+> **Note (2026-03-18):** This spec was written before the INVESTIGATE/IMPROVE boundary was redefined. The diamond pattern described here included an "Acting" phase (step 5) which now belongs to the IMPROVE phase (PDCA). The current model has 4 diamond phases (Initial → Diverging → Validating → Converging). See [hypothesis-investigation.md](../../03-features/workflows/hypothesis-investigation.md) for the current model.
+
 ## Context
 
-VariScout's hypothesis system (ADR-020) currently supports flat hypotheses linked to findings with auto-validation via eta-squared. But real-world root cause investigation follows a **diamond pattern**: start with a broad suspected cause, generate multiple sub-hypotheses (diverge), test each against the data (validate), then converge on the confirmed root cause.
+VariScout's hypothesis system (ADR-020) currently supports flat hypotheses linked to findings with auto-validation via eta-squared. But real-world root cause investigation follows a **diamond pattern**: start with a broad suspected cause, generate multiple sub-hypotheses (diverge), test each against the data (validate), then converge on the suspected root cause.
 
 The current flat model cannot represent this investigative reasoning. Analysts need to:
 
@@ -69,7 +71,7 @@ Investigation follows a natural diamond shape:
 2. **Diverging** — Sub-hypotheses being added (the "why" behind the root hypothesis)
 3. **Validating** — Sub-hypotheses being tested (data checks, gemba tasks, expert reviews)
 4. **Converging** — Some contradicted, some supported; root cause candidates emerging
-5. **Acting** — Root cause hypothesis confirmed, corrective actions defined
+5. **Acting** — _(now part of IMPROVE/PDCA)_ Root cause hypothesis confirmed, corrective actions defined
 
 Phase detection is automatic based on tree state (see CoScout Integration section).
 
@@ -154,16 +156,16 @@ Status flows **upward** in the tree:
 
 ### Root Cause Hypothesis Terminology
 
-The journey from hypothesis to confirmed root cause follows deliberate terminology:
+The journey from hypothesis to suspected root cause follows deliberate terminology:
 
-| Stage                      | Term                      | Meaning                                           |
-| -------------------------- | ------------------------- | ------------------------------------------------- |
-| Created                    | **Hypothesis**            | Testable theory about cause                       |
-| Data/gemba/expert supports | **Supported Hypothesis**  | Evidence supports this theory                     |
-| Tree converges on it       | **Root Cause Hypothesis** | Best-supported theory after diamond investigation |
-| Corrective action works    | **Confirmed Root Cause**  | Outcome = effective proves the theory was correct |
+| Stage                      | Term                        | Meaning                                                    |
+| -------------------------- | --------------------------- | ---------------------------------------------------------- |
+| Created                    | **Hypothesis**              | Testable theory about cause                                |
+| Data/gemba/expert supports | **Supported Hypothesis**    | Evidence supports this theory                              |
+| Tree converges on it       | **Suspected Root Cause**    | Best-supported theory after diamond investigation          |
+| Corrective action works    | **Confirmed** (via outcome) | Process improved to target — proves the theory was correct |
 
-VariScout never auto-labels a hypothesis as "root cause" — the analyst explicitly promotes a supported hypothesis to root cause hypothesis status when they are confident enough to act on it. Confirmed root cause only happens at the "Resolved" finding status when the outcome assessment shows the fix was effective.
+VariScout never auto-labels a hypothesis as "root cause" — the analyst explicitly promotes a supported hypothesis to suspected root cause when they are confident enough to act on it. Confirmation is outcome-based: it happens during IMPROVE when the corrective action demonstrably improves the process to target (e.g., Cpk reaches goal).
 
 ## UI Architecture
 

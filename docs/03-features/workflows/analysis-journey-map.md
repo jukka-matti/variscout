@@ -445,6 +445,6 @@ flowchart TD
 - [Quick Check](quick-check.md) -- 5-minute monitoring protocol
 - [Deep Dive](deep-dive.md) -- 30-minute investigation protocol
 - [Investigation to Action](investigation-to-action.md) -- findings and What-If workflow
-- [Investigation Lifecycle Map](investigation-lifecycle-map.md) -- IDEOI state machine detail
+- [Investigation Lifecycle Map](investigation-lifecycle-map.md) -- Investigation diamond state machine detail
 - [Decision Trees](decision-trees.md) -- branching logic for analysis decisions
-- [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) -- how all conceptual frameworks (journey, IDEOI, report steps, lenses) nest together
+- [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) -- how all conceptual frameworks (journey, investigation diamond, report steps, lenses) nest together

@@ -498,7 +498,7 @@ interface HypothesisNodeProps {
 
 ### ImprovementIdeasSection
 
-Collapsible section within HypothesisNode, visible when the hypothesis status is `supported` or `partial`. Allows the analyst to brainstorm and evaluate improvement ideas tied to a confirmed root cause.
+Collapsible section within HypothesisNode, visible when the hypothesis status is `supported` or `partial`. Allows the analyst to brainstorm and evaluate improvement ideas tied to a suspected root cause.
 
 **Source:** `packages/ui/src/components/FindingsLog/HypothesisNode.tsx` (inline section)
 

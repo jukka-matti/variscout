@@ -692,7 +692,7 @@ Hypotheses are organized as a tree structure for structured root cause investiga
 - **CRUD operations**: create, update, delete hypotheses at any tree level
 - **Auto-validation**: η² thresholds determine whether a hypothesis is supported by the data
 - **Ideas**: each hypothesis can have child ideas (`addIdea`, `updateIdea`, `removeIdea`, `setIdeaProjection`, `selectIdea`)
-- **Investigation phases**: initial → diverging → validating → converging → acting (IDEOI pattern)
+- **Investigation phases**: initial → diverging → validating → converging (investigation diamond); improving → resolved (IMPROVE/PDCA)
 
 ### η² Suggestion Logic
 

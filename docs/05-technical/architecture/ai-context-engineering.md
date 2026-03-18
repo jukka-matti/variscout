@@ -56,13 +56,14 @@ Changes on every filter drill or data update. Placed in a separate system messag
 
 The CoScout system prompt includes phase-specific instructions based on deterministic phase detection (`detectInvestigationPhase()`):
 
-| Phase      | Instruction Focus                                                            |
-| ---------- | ---------------------------------------------------------------------------- |
-| Initial    | Help identify which chart to examine first and what patterns to look for     |
-| Diverging  | Encourage exploring hypotheses across different factor categories            |
-| Validating | Help interpret η² — contribution, not causation                              |
-| Converging | Brainstorm improvements. Compare effort vs impact. Reference existing ideas. |
-| Acting     | Check the Capability chart — is Cpk improving?                               |
+| Phase      | Instruction Focus                                                                                                |
+| ---------- | ---------------------------------------------------------------------------------------------------------------- |
+| Initial    | Help identify which chart to examine first and what patterns to look for                                         |
+| Diverging  | Encourage exploring hypotheses across different factor categories                                                |
+| Validating | Help interpret η² — contribution, not causation                                                                  |
+| Converging | Help evaluate suspected root cause. Brainstorm improvements. Compare effort vs impact. Reference existing ideas. |
+
+> **Note:** The code type `InvestigationPhase` includes `'acting'` for the IMPROVE phase. During IMPROVE, CoScout shifts to monitoring Cpk and suggesting corrective actions (PDCA cycle).
 
 When converging with supported hypotheses that have improvement ideas, the prompt includes the existing ideas and instructs CoScout to build on them or suggest alternatives.
 

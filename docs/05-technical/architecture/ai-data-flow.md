@@ -224,15 +224,16 @@ The Knowledge Base is populated by **published scouting reports**. When users cl
 
 ## 7. Investigation Workflow x AI Touch Points
 
-How AI context changes across IDEOI investigation phases:
+How AI context changes across investigation phases:
 
-| Phase          | AI Context Injected                                                       | Suggested Questions                                                    | CoScout Instructions                                                |
-| -------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **Initial**    | Problem statement, basic stats                                            | "What patterns do you see?", "Which chart should I examine first?"     | Help identify which chart to examine first                          |
-| **Diverging**  | Hypothesis tree (roots + children with factor/level/ideas), categories    | "Have you explored [uncovered category]?", "What about [factor]?"      | Encourage exploring across factor categories, cast wide net         |
-| **Validating** | η² contributions, validation status, validation tasks                     | "What does this η² mean for [factor]?", "Should I drill deeper?"       | Help interpret contribution %, prioritize untested hypotheses       |
-| **Converging** | Supported hypotheses with improvement ideas (text, selected, projections) | "What improvement ideas for [hypothesis]?", "Compare effort vs impact" | Help brainstorm ideas, evaluate existing ones, compare alternatives |
-| **Acting**     | Action items (full text + status), projections, outcomes                  | "How should I approach [action]?", "Is Cpk improving?"                 | Check Capability chart, monitor effectiveness                       |
+| Phase          | AI Context Injected                                                       | Suggested Questions                                                    | CoScout Instructions                                                       |
+| -------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **Initial**    | Problem statement, basic stats                                            | "What patterns do you see?", "Which chart should I examine first?"     | Help identify which chart to examine first                                 |
+| **Diverging**  | Hypothesis tree (roots + children with factor/level/ideas), categories    | "Have you explored [uncovered category]?", "What about [factor]?"      | Encourage exploring across factor categories, cast wide net                |
+| **Validating** | η² contributions, validation status, validation tasks                     | "What does this η² mean for [factor]?", "Should I drill deeper?"       | Help interpret contribution %, prioritize untested hypotheses              |
+| **Converging** | Supported hypotheses with improvement ideas (text, selected, projections) | "What improvement ideas for [hypothesis]?", "Compare effort vs impact" | Help evaluate suspected root cause, brainstorm ideas, compare alternatives |
+
+> **Note:** During IMPROVE (PDCA cycle), CoScout shifts to action planning and Cpk monitoring. The code type `InvestigationPhase` includes `'acting'` for this phase. Action items, projections, and outcomes are injected as context. See [AIX Design System § Verification Sub-pattern](aix-design-system.md) for staged comparison behavior.
 
 > **Note:** `buildSuggestedQuestions()` (from `packages/core/src/ai/suggestedQuestions.ts`) is a **pure function** — no AI call is involved. It selects phase-appropriate questions based on the current `AIContext` state (investigation phase, uncovered categories, hypothesis count, action status). These questions appear in the Investigation Sidebar and work in all modes, including when AI is not configured.
 

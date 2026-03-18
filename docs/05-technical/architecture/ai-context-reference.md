@@ -85,7 +85,7 @@ interface BuildCoScoutSystemPromptOptions {
 }
 ```
 
-Builds the system prompt with static glossary prefix (for Azure AI Foundry prompt caching), IDEOI phase-aware instructions, confidence calibration by sample size, team collaboration awareness, and locale hint.
+Builds the system prompt with static glossary prefix (for Azure AI Foundry prompt caching), investigation-phase-aware instructions, confidence calibration by sample size, team collaboration awareness, and locale hint.
 
 ### buildCoScoutMessages
 
