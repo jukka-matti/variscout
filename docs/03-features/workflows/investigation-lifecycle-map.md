@@ -49,7 +49,8 @@ stateDiagram-v2
 
     state Converging {
         [*] --> ReviewingEvidence
-        ReviewingEvidence --> IdentifyingSuspectedCause
+        ReviewingEvidence --> MarkingCauseRoles
+        MarkingCauseRoles --> IdentifyingSuspectedCause
     }
 ```
 
@@ -57,12 +58,12 @@ stateDiagram-v2
 
 Each investigation diamond phase triggers distinct CoScout behavior and UI changes.
 
-| Phase          | Trigger In                   | CoScout Behavior                                   | UI Changes                             | Suggested Questions                                                  |
-| -------------- | ---------------------------- | -------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------- |
-| **Initial**    | Data loaded, scanning charts | Suggests patterns in data                          | Dashboard with Four Lenses             | "What patterns do you see in the I-Chart?"                           |
-| **Diverging**  | First finding pinned         | Suggests possible hypotheses                       | Findings panel opens, hypothesis form  | "Could [factor] be driving this?"                                    |
-| **Validating** | Hypothesis selected          | Provides data evidence for/against                 | Validation checklist, ANOVA highlights | "eta-squared for [factor] is X% — significant?"                      |
-| **Converging** | Evidence collected           | Summarizes evidence, promotes suspected root cause | Finding cards show validation status   | "Evidence points to [factor] as suspected cause — ready to improve?" |
+| Phase          | Trigger In                   | CoScout Behavior                                                               | UI Changes                                                                          | Suggested Questions                                                  |
+| -------------- | ---------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Initial**    | Data loaded, scanning charts | Suggests patterns in data                                                      | Dashboard with Four Lenses                                                          | "What patterns do you see in the I-Chart?"                           |
+| **Diverging**  | First finding pinned         | Suggests possible hypotheses                                                   | Findings panel opens, hypothesis form                                               | "Could [factor] be driving this?"                                    |
+| **Validating** | Hypothesis selected          | Provides data evidence for/against                                             | Validation checklist, ANOVA highlights                                              | "eta-squared for [factor] is X% — significant?"                      |
+| **Converging** | Evidence collected           | Summarizes evidence, promotes suspected root cause, suggests causeRole marking | Finding cards show validation status, suspected cause section with causeRole badges | "Evidence points to [factor] as suspected cause — ready to improve?" |
 
 > **Note:** For CoScout behavior during IMPROVE (suggesting corrective actions, monitoring Cpk), see [Analysis Journey Map § Phase 4](analysis-journey-map.md#phase-4-improve).
 
@@ -113,10 +114,15 @@ flowchart TD
     H --> I
     I --> J{Evidence outcome}
     J -->|Supports| K[Mark hypothesis supported]
-    J -->|Refutes| L[Mark hypothesis refuted]
+    J -->|Refutes| L[Mark hypothesis contradicted]
     J -->|Inconclusive| M[Gather more evidence]
     M --> B
-    K --> N[Update hypothesis status]
+    K --> O{Assign cause role?}
+    O -->|Primary| P[Set causeRole: primary]
+    O -->|Contributing| Q[Set causeRole: contributing]
+    O -->|Skip| N
+    P --> N
+    Q --> N
     L --> N
 ```
 
@@ -132,15 +138,18 @@ flowchart TD
 
 Each investigation concept maps to a specific hook or component in the codebase.
 
-| Concept                       | Hook / Component             | Package            |
-| ----------------------------- | ---------------------------- | ------------------ |
-| Finding CRUD                  | `useFindings`                | `@variscout/hooks` |
-| Hypothesis CRUD               | `useHypotheses`              | `@variscout/hooks` |
-| Investigation phase detection | `detectInvestigationPhase()` | `@variscout/core`  |
-| CoScout phase context         | `getCoScoutPhase()`          | `@variscout/core`  |
-| Finding cards                 | `FindingCard`                | `@variscout/ui`    |
-| Board view                    | `FindingBoardView`           | `@variscout/ui`    |
-| What-If simulator             | `WhatIfSimulator`            | `@variscout/ui`    |
+| Concept                       | Hook / Component                          | Package            |
+| ----------------------------- | ----------------------------------------- | ------------------ |
+| Finding CRUD                  | `useFindings`                             | `@variscout/hooks` |
+| Hypothesis CRUD               | `useHypotheses`                           | `@variscout/hooks` |
+| Investigation phase detection | `detectInvestigationPhase()`              | `@variscout/core`  |
+| CoScout phase context         | `getCoScoutPhase()`                       | `@variscout/core`  |
+| Finding cards                 | `FindingCard`                             | `@variscout/ui`    |
+| Board view                    | `FindingBoardView`                        | `@variscout/ui`    |
+| What-If simulator             | `WhatIfSimulator`                         | `@variscout/ui`    |
+| Cause role management         | `setCauseRole` in `useHypotheses`         | `@variscout/hooks` |
+| Idea→What-If projection       | `WhatIfPageBase` (projectionContext)      | `@variscout/ui`    |
+| Simulation change callback    | `onSimulationChange` in `WhatIfSimulator` | `@variscout/ui`    |
 
 ## Related Documentation
 

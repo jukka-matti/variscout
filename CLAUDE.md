@@ -21,8 +21,7 @@ pnpm build-storybook # Build static Storybook
 
 pnpm docs:dev        # Starlight doc site (localhost:4321)
 pnpm docs:build      # Build static doc site
-pnpm docs:c4         # Export LikeC4 → Mermaid
-pnpm docs:c4:serve   # Interactive C4 browser
+pnpm docs:check      # Diagram health check (export counts, type drift)
 
 npx ruflo@latest security scan --depth full  # OWASP security scan
 npx ruflo@latest security cve --check        # CVE check
@@ -84,7 +83,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Teams integration          | adr-016, docs/08-products/azure/authentication.md                                                           |
 | Platform comparison        | docs/08-products/feature-parity.md                                                                          |
 | Knowledge model / Glossary | docs/05-technical/architecture/knowledge-model.md, packages/core/src/glossary/                              |
-| C4 architecture model      | docs/architecture/likec4/                                                                                   |
+| Diagram health             | scripts/check-diagram-health.sh, docs/05-technical/architecture/component-map.md                            |
 | Documentation site         | apps/docs/ (Astro + Starlight)                                                                              |
 | Methodology Coach          | docs/superpowers/specs/2026-03-18-methodology-coach-design.md, packages/ui/src/components/MethodologyCoach/ |
 

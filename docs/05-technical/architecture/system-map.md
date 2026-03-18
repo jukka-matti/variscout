@@ -119,4 +119,3 @@ flowchart TB
 - [component-patterns.md](component-patterns.md) -- React component conventions and hook patterns
 - [offline-first.md](offline-first.md) -- Storage strategy, sync architecture, conflict resolution
 - [data-pipeline-map.md](data-pipeline-map.md) -- Step-by-step data transformation pipeline
-- [`docs/architecture/likec4/`](../../architecture/likec4/) -- LikeC4 model: canonical source of truth for C4 architecture topology (L1-L3)

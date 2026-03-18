@@ -96,12 +96,12 @@ Orthogonal (apply across phases):
 
 **Initial → Diverging → Validating → Converging**
 
-| Phase      | Purpose                                       | Analyst Activity                                                                  |
-| ---------- | --------------------------------------------- | --------------------------------------------------------------------------------- |
-| Initial    | Variation found, driver identified            | Pin finding; upfront hypothesis (from FRAME) or new observation becomes tree root |
-| Diverging  | Generate possible causes                      | Add sub-hypotheses — the tree grows, break broad cause into testable theories     |
-| Validating | Gather evidence                               | Test each leaf — Data (ANOVA auto-validate), Gemba (go inspect), Expert input     |
-| Converging | Build understanding, identify suspected cause | Prune contradicted branches; promote suspected root cause                         |
+| Phase      | Purpose                                       | Analyst Activity                                                                                 |
+| ---------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Initial    | Variation found, driver identified            | Pin finding; upfront hypothesis (from FRAME) or new observation becomes tree root                |
+| Diverging  | Generate possible causes                      | Add sub-hypotheses — the tree grows, break broad cause into testable theories                    |
+| Validating | Gather evidence                               | Test each leaf — Data (ANOVA auto-validate), Gemba (go inspect), Expert input                    |
+| Converging | Build understanding, identify suspected cause | Prune contradicted branches; mark causeRole (primary/contributing); promote suspected root cause |
 
 The diamond is a **structured learning** process — a disciplined way to build understanding through multiple evidence types. It closes at Converging. Acting/Resolved are now part of IMPROVE (PDCA: Do and Act respectively).
 

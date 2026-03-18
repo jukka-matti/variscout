@@ -310,20 +310,20 @@ Rules codified in [`.claude/rules/documentation.md`](../../.claude/rules/documen
 | **Mermaid**        | Diagrams (30+ across docs) — flowchart, sequence, state, C4                                      | Active |
 | **TypeDoc**        | API reference for @variscout/core (`pnpm --filter @variscout/core docs`)                         | Active |
 | **CLAUDE.md**      | AI agent routing layer (task-to-doc table)                                                       | Active |
-| **LikeC4**         | C4 architecture model (`docs/architecture/likec4/`) — exports to Mermaid via `pnpm docs:c4`      | Active |
+| **Diagram Health** | `pnpm docs:check` — verifies diagram counts and type values match code                           | Active |
 | **Storybook**      | Interactive component catalog (66 components)                                                    | Active |
 
 ---
 
 ## Roadmap
 
-### Phase B — LikeC4 (Architecture as Code) ✓
+### Phase B — Diagram Health Check ✓
 
-Split [`docs/architecture/likec4/`](../architecture/likec4/) model files define the full system at C4 L1/L2/L3:
+Automated script (`pnpm docs:check`) verifies Mermaid diagrams stay in sync with code:
 
-- Source of truth for architecture topology → exports to Mermaid via `pnpm docs:c4`
-- L3 Component views decompose each package into modules
-- `pnpm docs:c4:serve` launches interactive browser; see [component-map.md](architecture/component-map.md)
+- Checks package export counts against `component-map.md`
+- Validates type enum values (FindingStatus, InvestigationPhase, etc.) appear in relevant diagrams
+- Detects stale references to removed tooling
 
 ### Phase C — Storybook (Living Component Docs) ✓
 
@@ -404,7 +404,6 @@ flowchart TB
 - [Diataxis](https://diataxis.fr/) — A systematic approach to technical documentation authoring
 - [C4 Model](https://c4model.com/) — Software architecture diagrams at four zoom levels
 - [Docs-as-Code (Write the Docs)](https://www.writethedocs.org/guide/docs-as-code/) — Treat documentation with the same tools as code
-- [LikeC4](https://likec4.dev/) — Architecture models as code (npm-native, Mermaid export)
 - [Storybook](https://storybook.js.org/docs/writing-docs) — Interactive component documentation
 
 ---

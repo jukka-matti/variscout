@@ -8,7 +8,7 @@ journey-phase: [all]
 
 <!-- journey-phase: [all] -->
 
-L3 component decomposition for each VariScout package. These diagrams are manually maintained Mermaid translations of the canonical architecture model in [`docs/architecture/likec4/`](../../architecture/likec4/).
+L3 component decomposition for each VariScout package. These are architecture component diagrams maintained alongside the codebase.
 
 ## Package Overview
 
@@ -16,7 +16,7 @@ All packages and their internal module counts at a glance.
 
 ```mermaid
 flowchart LR
-    subgraph core["@variscout/core (9 modules)"]
+    subgraph core["@variscout/core (13 modules)"]
         direction TB
         c1["Statistics Engine"]
         c2["CSV/Excel Parser"]
@@ -27,35 +27,41 @@ flowchart LR
         c7["Glossary"]
         c8["Export"]
         c9["Utilities"]
+        c10["AI Context"]
+        c11["Findings"]
+        c12["i18n"]
+        c13["Performance"]
     end
 
-    subgraph charts["@variscout/charts (14 components)"]
+    subgraph charts["@variscout/charts (18 components)"]
         direction TB
-        ch1["6 Standard Charts"]
-        ch2["4 Performance Charts"]
-        ch3["4 Supporting"]
+        ch1["10 Standard Charts"]
+        ch2["8 Performance Charts"]
     end
 
-    subgraph hooks["@variscout/hooks (13 hooks)"]
+    subgraph hooks["@variscout/hooks (35 hooks)"]
         direction TB
-        h1["2 State"]
-        h2["2 Navigation"]
-        h3["6 Chart Data"]
-        h4["1 Export"]
-        h5["3 Tracking"]
+        h1["8 State & Data"]
+        h2["9 Chart & Visualization"]
+        h3["5 UI State"]
+        h4["8 Business Logic & AI"]
+        h5["5 Advanced Composition"]
     end
 
-    subgraph ui["@variscout/ui (52 components)"]
+    subgraph ui["@variscout/ui (60 components)"]
         direction TB
         u1["10 Input"]
         u2["4 Data Display"]
         u3["8 Analysis"]
         u4["6 Chart Wrappers"]
         u5["4 Navigation"]
-        u6["8 Findings"]
+        u6["11 Findings"]
         u7["2 Simulation"]
         u8["5 Dashboard"]
-        u9["3 Utilities"]
+        u9["6 AI & CoScout"]
+        u10["7 Methodology Coach"]
+        u11["6 Report View"]
+        u12["3 Utilities"]
     end
 
     subgraph data["@variscout/data (4 datasets)"]
@@ -204,7 +210,7 @@ flowchart TB
 
 ## @variscout/ui
 
-52 shared UI components across 9 categories. Uses the `colorScheme` pattern with `defaultScheme` semantic tokens. Depends on core, hooks, and charts.
+60 shared UI components across 12 categories. Uses the `colorScheme` pattern with `defaultScheme` semantic tokens. Depends on core, hooks, and charts.
 
 ```mermaid
 flowchart TB
@@ -292,7 +298,7 @@ The UI package composes all three lower-level packages:
 
 ```mermaid
 flowchart LR
-    ui["@variscout/ui<br/>(52 components)"]
+    ui["@variscout/ui<br/>(60 components)"]
     core["@variscout/core<br/>types, tier"]
     hooks["@variscout/hooks<br/>state, navigation, data"]
     charts["@variscout/charts<br/>chart components"]
@@ -386,26 +392,9 @@ flowchart TB
 
 ---
 
-## Source of Truth
+## Diagram Health
 
-The canonical architecture model is defined in **LikeC4**:
-
-```
-docs/architecture/likec4/
-├── model.c4    — L1 context + L2 containers + relationships
-├── core.c4     — L3 @variscout/core components
-├── charts.c4   — L3 @variscout/charts components
-├── hooks.c4    — L3 @variscout/hooks components
-├── ui.c4       — L3 @variscout/ui components
-└── views.c4    — View definitions (L1-L3)
-```
-
-To render or export:
-
-- **Interactive browser:** `pnpm docs:c4:serve`
-- **Export to Mermaid:** `pnpm docs:c4`
-
-The Mermaid diagrams in this file are manually maintained translations. When the LikeC4 model changes, update these diagrams to match.
+Run `pnpm docs:check` to verify that component counts and type values in these diagrams match the current codebase. The script checks package export counts and ensures all enum values (FindingStatus, InvestigationPhase, etc.) appear in the relevant diagrams.
 
 ## See Also
 

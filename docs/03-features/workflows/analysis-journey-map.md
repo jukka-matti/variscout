@@ -217,12 +217,12 @@ The diamond closes at Converging. What follows — improvement ideation, correct
 
 ### Data Shapes
 
-| Type            | Purpose                                                              |
-| --------------- | -------------------------------------------------------------------- |
-| `Finding`       | Core investigation record with status progression                    |
-| `Hypothesis`    | Sub-hypothesis linked to a finding, with validation state            |
-| `FindingStatus` | `observed` / `investigating` / `analyzed` / `improving` / `resolved` |
-| `FindingTag`    | `key-driver` or `low-impact` classification                          |
+| Type            | Purpose                                                                                        |
+| --------------- | ---------------------------------------------------------------------------------------------- |
+| `Finding`       | Core investigation record with status progression                                              |
+| `Hypothesis`    | Sub-hypothesis linked to a finding, with validation state and causeRole (primary/contributing) |
+| `FindingStatus` | `observed` / `investigating` / `analyzed` / `improving` / `resolved`                           |
+| `FindingTag`    | `key-driver` or `low-impact` classification                                                    |
 
 ### Tier Differences
 
@@ -253,7 +253,9 @@ The diamond closes at Converging. What follows — improvement ideation, correct
 
 ```mermaid
 flowchart TD
-    PLAN_I["PLAN: Ideate\nBrainstorm improvements"] --> PLAN_S["PLAN: Select\nCompare projected impact"]
+    PLAN_I["PLAN: Ideate\nBrainstorm improvements"] --> WHATIF["What-If Projection\nModel idea impact"]
+    WHATIF --> PLAN_S["PLAN: Select\nCompare projected impact"]
+    WHATIF -- "Adjust parameters" --> PLAN_I
     PLAN_S --> DO["DO: Execute\nDefine & implement actions"]
     DO --> CHECK["CHECK: Verify\nStaged Analysis\n(before vs after)"]
     CHECK --> CHK{Target\nmet?}
@@ -284,6 +286,7 @@ flowchart TD
 | ------------------------------ | ------------------------------------------ |
 | `ActionItem`                   | Corrective action with owner, date, status |
 | `FindingOutcome`               | Documented result of the improvement       |
+| `FindingProjection`            | Idea→What-If round-trip projection result  |
 | `Finding` (status: `resolved`) | Closed investigation                       |
 
 ### Tier Differences
