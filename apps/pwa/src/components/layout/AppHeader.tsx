@@ -11,6 +11,14 @@ import {
 } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import SharePopover from '../SharePopover';
+import { JourneyPhaseStrip, CoachPopover, MobileCoachSheet, type ScoutHint } from '@variscout/ui';
+import type {
+  JourneyPhase,
+  InvestigationPhase,
+  Finding,
+  Hypothesis,
+  EntryScenario,
+} from '@variscout/core';
 
 interface AppHeaderProps {
   hasData: boolean;
@@ -30,6 +38,17 @@ interface AppHeaderProps {
   onOpenSpecEditor?: () => void;
   onOpenWhatIf?: () => void;
   isWhatIfOpen?: boolean;
+  // Journey phase coaching
+  journeyPhase?: JourneyPhase;
+  entryScenario?: EntryScenario;
+  coachingText?: string;
+  scoutHints?: ScoutHint[];
+  drillSuggestion?: string;
+  investigationPhase?: InvestigationPhase;
+  uncoveredFactors?: Array<{ factor: string; role: string }>;
+  findings?: Finding[];
+  hypotheses?: Hypothesis[];
+  hasStagedData?: boolean;
 }
 
 /**
@@ -58,6 +77,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenSpecEditor,
   onOpenWhatIf,
   isWhatIfOpen = false,
+  journeyPhase,
+  entryScenario,
+  coachingText,
+  scoutHints,
+  drillSuggestion,
+  investigationPhase,
+  uncoveredFactors,
+  findings,
+  hypotheses,
+  hasStagedData,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -120,6 +149,44 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           )}
         </div>
       </button>
+
+      {/* Journey Phase Strip */}
+      {journeyPhase && journeyPhase !== 'frame' && (
+        <JourneyPhaseStrip
+          phase={journeyPhase}
+          entryScenario={entryScenario}
+          renderPopover={({ phase, onClose }) => (
+            <CoachPopover
+              phase={phase}
+              coachingText={coachingText}
+              onClose={onClose}
+              scoutHints={scoutHints}
+              drillSuggestion={drillSuggestion}
+              investigationPhase={investigationPhase}
+              uncoveredFactors={uncoveredFactors}
+              findings={findings}
+              hypotheses={hypotheses}
+              hasStagedData={hasStagedData}
+            />
+          )}
+          renderMobileSheet={({ phase, onClose }) => (
+            <MobileCoachSheet
+              phase={phase}
+              coachingText={coachingText}
+              onClose={onClose}
+              scoutHints={scoutHints}
+              drillSuggestion={drillSuggestion}
+              investigationPhase={investigationPhase}
+              uncoveredFactors={uncoveredFactors}
+              findings={findings}
+              hypotheses={hypotheses}
+              hasStagedData={hasStagedData}
+            />
+          )}
+        />
+      )}
+
+      <div className="flex-1" />
 
       {/* Toolbar */}
       <div className="flex items-center gap-1">

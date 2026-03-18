@@ -390,6 +390,13 @@ export {
   defaultMethodologyCoachColorScheme,
   type MethodologyCoachBaseProps,
   type MethodologyCoachColorScheme,
+  JourneyPhaseStrip,
+  type JourneyPhaseStripProps,
+  CoachPopover,
+  type CoachPopoverProps,
+  type ScoutHint,
+  MobileCoachSheet,
+  type MobileCoachSheetProps,
 } from './components/MethodologyCoach';
 
 // Hooks

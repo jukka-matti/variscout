@@ -39,7 +39,7 @@ packages/
 │              #   useVerificationCharts - Verification chart toggle state + availability
 │              #   useReportSections - Report type detection + section composition
 │              #   useScrollSpy - IntersectionObserver TOC tracking
-│              #   useJourneyPhase - Journey phase detection (frame/scout/investigate/improve)
+│              #   useJourneyPhase - Journey phase detection + coaching text + entry scenario
 │              #   useSnapshotData - Per-finding filtered data + stats
 │              #   copySectionAsHTML - Rich clipboard copy utility
 │              #   useLocaleState - Locale state (localStorage + data-locale attribute)
@@ -65,7 +65,8 @@ packages/
                #   AIOnboardingTooltip, InvestigationSidebar, StagedComparisonCard,
                #   ReportViewBase, ReportSection, ReportStepMarker, ReportKPIGrid,
                #   ReportChartSnapshot, VerificationEvidenceBase,
-               #   MethodologyCoachBase, JourneyPhaseIndicator, DiamondPhaseMap, PDCAProgress,
+               #   MethodologyCoachBase, JourneyPhaseStrip, CoachPopover, MobileCoachSheet,
+               #   JourneyPhaseIndicator, DiamondPhaseMap, PDCAProgress,
                #   useGlossary, useIsMobile, errorService
 
 apps/

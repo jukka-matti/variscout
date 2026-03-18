@@ -97,6 +97,9 @@ vi.mock('@variscout/ui', () => ({
   InvestigationPrompt: () => null,
   CoScoutPanelBase: () => null,
   AIOnboardingTooltip: () => null,
+  JourneyPhaseStrip: () => null,
+  CoachPopover: () => null,
+  MobileCoachSheet: () => null,
   useIsMobile: () => false,
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));

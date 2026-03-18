@@ -23,7 +23,7 @@ import { useDataIngestion } from './hooks/useDataIngestion';
 import { useEmbedMessaging } from './hooks/useEmbedMessaging';
 import { SAMPLES } from '@variscout/data';
 import { type ExclusionReason } from '@variscout/core';
-import { useControlViolations } from '@variscout/hooks';
+import { useControlViolations, useJourneyPhase, getCoachingText } from '@variscout/hooks';
 import { usePasteImportFlow } from './hooks/usePasteImportFlow';
 import { useAppPanels } from './hooks/useAppPanels';
 
@@ -150,6 +150,10 @@ function AppMain() {
   // Findings state
   const findingsState = useFindings();
   const [highlightedFindingId, setHighlightedFindingId] = useState<string | null>(null);
+
+  // Journey phase for AppHeader coaching strip
+  const journeyPhase = useJourneyPhase(rawData.length > 0, findingsState.findings);
+  const coachingText = getCoachingText(journeyPhase);
 
   // Embed mode state
   const [isEmbedMode, setIsEmbedMode] = useState(false);
@@ -416,6 +420,10 @@ function AppMain() {
           onOpenSpecEditor={() => panels.setOpenSpecEditorRequested(true)}
           onOpenWhatIf={rawData.length > 0 ? () => panels.setIsWhatIfPageOpen(true) : undefined}
           isWhatIfOpen={panels.isWhatIfPageOpen}
+          journeyPhase={journeyPhase}
+          coachingText={coachingText}
+          findings={findingsState.findings}
+          hasStagedData={false}
         />
       )}
 

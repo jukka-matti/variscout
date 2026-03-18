@@ -19,7 +19,6 @@ import {
   SelectionPanel,
   CreateFactorModal,
   DashboardLayoutBase,
-  MethodologyCoachBase,
   useIsMobile,
   useGlossary,
   BREAKPOINTS,
@@ -32,7 +31,6 @@ import {
   useChartInsights,
   useFilterHandlers,
   useCreateFactorModal,
-  useJourneyPhase,
 } from '@variscout/hooks';
 import {
   getNelsonRule2Sequences,
@@ -130,7 +128,7 @@ const Dashboard = ({
   onNarrativeAsk,
   onNarrativeRetry,
   onAskCoScoutFromCategory,
-  findings: allFindings,
+  findings: _allFindings,
 }: DashboardProps) => {
   const { onAddChartObservation, chartFindings, onEditFinding, onDeleteFinding } =
     findingsCallbacks ?? {};
@@ -164,10 +162,6 @@ const Dashboard = ({
   } = useData();
   const { getTerm } = useGlossary();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
-
-  // Methodology Coach state (collapsed by default in Azure — professional mode)
-  const [coachCollapsed, setCoachCollapsed] = useState(true);
-  const journeyPhase = useJourneyPhase(!!filteredData.length, allFindings ?? []);
 
   const [activeTab, setActiveTabRaw] = useState<DashboardTab>(
     initialViewState?.activeTab ?? 'analysis'
@@ -832,12 +826,6 @@ const Dashboard = ({
                     />
                   ) : undefined
                 }
-              />
-              <MethodologyCoachBase
-                journeyPhase={journeyPhase}
-                findings={allFindings}
-                collapsed={coachCollapsed}
-                onToggle={() => setCoachCollapsed(c => !c)}
               />
             </div>
           )}

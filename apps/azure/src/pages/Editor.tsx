@@ -17,7 +17,13 @@ import {
   AIOnboardingTooltip,
   type AnalysisBrief,
 } from '@variscout/ui';
-import { useControlViolations, useHypotheses } from '@variscout/hooks';
+import {
+  useControlViolations,
+  useHypotheses,
+  useJourneyPhase,
+  getCoachingText,
+  detectEntryScenario,
+} from '@variscout/hooks';
 import { hasTeamFeatures, computeIdeaImpact } from '@variscout/core';
 import { isAIAvailable } from '../services/aiService';
 import { usePhotoComments } from '../hooks/usePhotoComments';
@@ -429,6 +435,14 @@ export const Editor: React.FC<EditorProps> = ({
   // Control violations for DataPanel annotations
   const controlViolations = useControlViolations(filteredData, outcome, specs);
 
+  // Journey phase detection for toolbar coaching strip
+  const journeyPhase = useJourneyPhase(!!filteredData.length, findingsState.findings);
+  const entryScenario = useMemo(() => detectEntryScenario(processContext), [processContext]);
+  const coachingText = useMemo(
+    () => getCoachingText(journeyPhase, entryScenario),
+    [journeyPhase, entryScenario]
+  );
+
   // AI orchestration (context, narration, CoScout, knowledge search)
   const {
     aiContext,
@@ -653,6 +667,13 @@ export const Editor: React.FC<EditorProps> = ({
           onOpenReport: () => panels.setIsReportOpen(true),
           onOpenPresentation: () => panels.setIsPresentationMode(true),
         }}
+        journeyPhase={journeyPhase}
+        entryScenario={entryScenario}
+        coachingText={coachingText}
+        investigationPhase={aiContext.context?.investigation?.phase}
+        findings={findingsState.findings}
+        hypotheses={hypothesesState.hypotheses}
+        hasStagedData={!!stagedStats}
       />
 
       {/* Hidden file input for append-mode file upload */}

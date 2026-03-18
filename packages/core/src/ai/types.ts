@@ -8,6 +8,9 @@ import type { Locale } from '../i18n/types';
 /** Target metric type for improvement tracking */
 export type TargetMetric = 'mean' | 'sigma' | 'cpk' | 'yield' | 'passRate';
 
+/** What prompted the analyst to start this analysis */
+export type EntryScenario = 'problem' | 'hypothesis' | 'routine';
+
 /** Investigation phase for CoScout context (deterministic detection) */
 export type InvestigationPhase =
   | 'initial'

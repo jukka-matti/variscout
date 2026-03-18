@@ -2,14 +2,14 @@
 title: Methodology Coach Design
 audience: [analyst, engineer]
 category: workflow
-status: draft
-related: [methodology-coach, journey-phase, investigation-diamond, pdca]
+status: stable
+related: [methodology-coach, journey-phase, investigation-diamond, pdca, entry-scenario]
 ---
 
 # Methodology Coach
 
 **Date:** 2026-03-18
-**Status:** Draft
+**Status:** Implemented (sidebar→header pivot completed 2026-03-18)
 
 ## Problem Statement
 
@@ -91,13 +91,35 @@ The existing InvestigationSidebar content moves INTO the INVESTIGATE section of 
 - Verification checklist → moves to IMPROVE section
 - Toggle button → reused by MethodologyCoachBase
 
+## Design Pivot: Sidebar → Header (2026-03-18)
+
+**Problem:** The 280px right-side panel steals chart space, conflicts with FindingsPanel/CoScoutPanel, has no mobile story, and duplicates InvestigationSidebar content.
+
+**Solution:** Replace sidebar with a compact `JourneyPhaseStrip` in the app header:
+
+- **Desktop:** Dots + label in header bar, click opens `CoachPopover` dropdown
+- **Mobile:** Compact pill in header, tap opens `MobileCoachSheet` bottom sheet
+- **Sub-components preserved:** `DiamondPhaseMap`, `PDCAProgress`, `JourneyPhaseIndicator` reused inside popover/sheet
+- **`MethodologyCoachBase` kept** in codebase but removed from dashboard renders
+
+### Entry Scenario Awareness
+
+Added `EntryScenario` type (`'problem' | 'hypothesis' | 'routine'`) that affects coaching text per phase:
+
+- Detected from Azure analysis brief (`ProcessContext` fields)
+- PWA defaults to `'problem'`
+- Coaching text varies by scenario × phase (see `getCoachingText()` in `@variscout/hooks`)
+
+See [journey-phase-screen-mapping.md](../../05-technical/architecture/journey-phase-screen-mapping.md) for the complete phase→screen→component mapping.
+
 ## PWA vs Azure Behavior
 
-| Aspect        | PWA                      | Azure                         |
-| ------------- | ------------------------ | ----------------------------- |
-| Default state | Expanded (teaching mode) | Collapsed (professional mode) |
-| Mobile        | Hidden                   | Hidden                        |
-| Panel width   | 280px                    | 280px                         |
+| Aspect         | PWA                         | Azure                           |
+| -------------- | --------------------------- | ------------------------------- |
+| Location       | AppHeader (next to logo)    | EditorToolbar (next to project) |
+| Desktop        | Dots+label, click → popover | Dots+label, click → popover     |
+| Mobile         | Pill, tap → bottom sheet    | Pill, tap → bottom sheet        |
+| Entry scenario | Default: 'problem'          | Detected from analysis brief    |
 
 ## CoScout Explicit Phase Coaching
 

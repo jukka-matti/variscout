@@ -5,6 +5,7 @@
 export type {
   ProcessContext,
   TargetMetric,
+  EntryScenario,
   InvestigationPhase,
   JourneyPhase,
   AIContext,

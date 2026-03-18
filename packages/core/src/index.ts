@@ -298,6 +298,7 @@ export { hasExifData, stripExifSegments, stripExifFromBlob } from './utils/exifS
 export type {
   ProcessContext,
   TargetMetric,
+  EntryScenario,
   InvestigationPhase,
   JourneyPhase,
   AIContext,

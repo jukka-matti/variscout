@@ -64,7 +64,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Data input / Parser        | docs/03-features/data/, packages/core/src/parser/                                                           |
 | Design system / UI         | docs/06-design-system/                                                                                      |
 | Workflows / Analysis       | docs/03-features/workflows/                                                                                 |
-| Mental models / Hierarchy  | docs/05-technical/architecture/mental-model-hierarchy.md                                                    |
+| Mental models / Hierarchy  | docs/05-technical/architecture/mental-model-hierarchy.md, journey-phase-screen-mapping.md                   |
 | Investigation / Findings   | adr-015, adr-020, docs/03-features/workflows/investigation-to-action.md, hypothesis-investigation.md        |
 | AI integration             | adr-019, docs/05-technical/architecture/ai-architecture.md, ai-data-flow.md, ai-context-engineering.md      |
 | Deployment / CI            | docs/05-technical/implementation/deployment.md, .github/workflows/                                          |
@@ -112,17 +112,17 @@ variscout-lite/
 
 ## Key Entry Points
 
-| Package                                        | Key Files                                                                  | Purpose                                                                          |
-| ---------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `packages/core/src/`                           | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/             | Stats engine (13 modules), parser, types, tier, AI context, glossary, simulation |
-| `packages/charts/src/`                         | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme           | Chart components (see .claude/rules/charts.md)                                   |
-| `packages/hooks/src/`                          | use\*.ts (see .claude/rules/monorepo.md for full list)                     | 40+ shared React hooks                                                           |
-| `packages/ui/src/components/`                  | \*/ (see .claude/rules/monorepo.md for full list)                          | 60+ shared UI components                                                         |
-| `packages/data/src/samples/`                   | coffee, journey, bottleneck, sachets                                       | Sample datasets                                                                  |
-| `apps/pwa/src/`                                | context/DataContext.tsx, components/Dashboard.tsx                          | PWA state + main UI                                                              |
-| `apps/azure/src/`                              | context/DataContext.tsx, services/, auth/, hooks/useEditor\*.ts            | Azure state, storage, auth, AI                                                   |
-| `packages/ui/src/components/MethodologyCoach/` | MethodologyCoachBase, JourneyPhaseIndicator, DiamondPhaseMap, PDCAProgress | Phase-aware coaching panel                                                       |
-| `infra/`                                       | mainTemplate.json, functions/                                              | ARM template, Azure Functions                                                    |
+| Package                                        | Key Files                                                                        | Purpose                                                                          |
+| ---------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `packages/core/src/`                           | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/                   | Stats engine (13 modules), parser, types, tier, AI context, glossary, simulation |
+| `packages/charts/src/`                         | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme                 | Chart components (see .claude/rules/charts.md)                                   |
+| `packages/hooks/src/`                          | use\*.ts (see .claude/rules/monorepo.md for full list)                           | 40+ shared React hooks                                                           |
+| `packages/ui/src/components/`                  | \*/ (see .claude/rules/monorepo.md for full list)                                | 60+ shared UI components                                                         |
+| `packages/data/src/samples/`                   | coffee, journey, bottleneck, sachets                                             | Sample datasets                                                                  |
+| `apps/pwa/src/`                                | context/DataContext.tsx, components/Dashboard.tsx                                | PWA state + main UI                                                              |
+| `apps/azure/src/`                              | context/DataContext.tsx, services/, auth/, hooks/useEditor\*.ts                  | Azure state, storage, auth, AI                                                   |
+| `packages/ui/src/components/MethodologyCoach/` | JourneyPhaseStrip, CoachPopover, MobileCoachSheet, DiamondPhaseMap, PDCAProgress | Phase strip in header + popover coaching                                         |
+| `infra/`                                       | mainTemplate.json, functions/                                                    | ARM template, Azure Functions                                                    |
 
 ## Key Patterns
 

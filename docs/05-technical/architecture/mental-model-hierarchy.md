@@ -166,13 +166,13 @@ The diamond is a **structured learning** process — a disciplined way to build 
 - **In code?** Report auto-detection uses these as report types
 - **Relationship to M1:** Sub-variants of SCOUT phase
 
-### M12: Two Entry Paths
+### M12: Two Entry Paths (now Three)
 
-**Discovery → Hypothesis-Driven**
+**Problem to Solve / Hypothesis to Check / Routine Check**
 
 - **Source:** `docs/03-features/workflows/analysis-journey-map.md` (lines 309–337)
-- **In code?** NO — implicit in UI flow, not typed
-- **Relationship to M1:** Entry variants for SCOUT phase
+- **In code?** YES — `EntryScenario` type in `@variscout/core/ai/types.ts`, detection via `detectEntryScenario()` in `@variscout/hooks`
+- **Relationship to M1:** Entry variants that affect coaching content across all phases. See [journey-phase-screen-mapping.md](./journey-phase-screen-mapping.md) for per-phase impact.
 
 ### M13: Hypothesis Lifecycle
 
@@ -241,7 +241,7 @@ Both track investigation progress but from different angles: the diamond drives 
 
 | Model                     | In Code? | Code Location                                                                                                                                    | Implication                                                     |
 | ------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| M1: Journey Phases        | YES      | `JourneyPhase` type, `useJourneyPhase`, `MethodologyCoachBase`                                                                                   | Journey phases visible in UI via Coach panel                    |
+| M1: Journey Phases        | YES      | `JourneyPhase` type, `useJourneyPhase`, `JourneyPhaseStrip` in header, [screen mapping](./journey-phase-screen-mapping.md)                       | Journey phases visible in header via compact strip + popover    |
 | M2: Watson's EDA          | YES      | Chart components, stats engine                                                                                                                   | Foundation of the product                                       |
 | M3: Four Lenses           | NO       | —                                                                                                                                                | Teaching/marketing only (intentional)                           |
 | M4: Investigation Diamond | YES      | `InvestigationPhase` type (4 diamond phases + `'improving'` for IMPROVE), `InvestigationPhaseBadge`, CoScout prompts, `DiamondPhaseMap` in Coach | AI adapts during INVESTIGATE; Coach houses the diamond phase UI |
@@ -252,7 +252,7 @@ Both track investigation progress but from different angles: the diamond drives 
 | M9: Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                                                                        | Core data model                                                 |
 | M10: Experience Spectrum  | YES      | `core/tier.ts`                                                                                                                                   | Product gating                                                  |
 | M11: Two Speeds           | Partial  | Report auto-detection                                                                                                                            | Not typed                                                       |
-| M12: Two Entry Paths      | NO       | —                                                                                                                                                | Implicit in UI flow                                             |
+| M12: Three Entry Paths    | YES      | `EntryScenario` type, `detectEntryScenario()`, `getCoachingText()`                                                                               | Phase-aware coaching text                                       |
 | M13: Hypothesis Lifecycle | YES      | `ValidationStatus` type                                                                                                                          | Inside investigation diamond                                    |
 | M14: Three Contributions  | YES      | Linked filtering, filter chips, hypothesis tree                                                                                                  | Core UX patterns                                                |
 | M15: Knowledge Layer      | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup`                                                                                  | Team AI tier only, preview-gated                                |

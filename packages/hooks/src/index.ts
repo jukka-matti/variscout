@@ -271,7 +271,7 @@ export {
 } from './useCreateFactorModal';
 
 // Journey Phase (methodology coach)
-export { useJourneyPhase } from './useJourneyPhase';
+export { useJourneyPhase, getCoachingText, detectEntryScenario } from './useJourneyPhase';
 
 // Verification Charts (Report Step 5 staged evidence)
 export {

@@ -19,6 +19,7 @@ import type {
   Hypothesis,
   ProcessContext,
   InvestigationCategory,
+  EntryScenario,
 } from '@variscout/core';
 
 // Re-export for convenience
@@ -230,6 +231,10 @@ export interface AnalysisState {
   // --- AI process context ---
   /** Process description for AI grounding */
   processContext?: ProcessContext;
+
+  // --- Entry scenario ---
+  /** What prompted the analyst to start this analysis */
+  entryScenario?: EntryScenario;
 }
 
 /**
