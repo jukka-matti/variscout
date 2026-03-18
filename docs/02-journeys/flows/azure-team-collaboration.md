@@ -189,9 +189,9 @@ If the admin enabled AI during deployment, all team members have access to AI-as
 | **Document retrieval**  | Team | 3     | CoScoutPanel can reference team SOPs, fault trees, and past investigations via Azure AI Search  |
 | **Shared AI insights**  | Both | 1+    | NarrativeBar and ChartInsightChip content visible to all team members viewing the same analysis |
 
-**Team knowledge base (Phase 2+):** Each resolved finding — with its factor, contribution %, Cpk, corrective action, and measured outcome — is indexed via Azure AI Search. After 50+ resolved findings, the AI has genuine organizational knowledge backed by measurement data. CoScoutPanel can answer questions like "Have we seen this pattern before?" by retrieving past investigations.
+**Team knowledge base (Phase 2+):** Published scouting reports -- with KPIs, findings, corrective actions, and measured outcomes -- are uploaded to the team's SharePoint folder and become searchable via Remote SharePoint knowledge sources. After 50+ published reports, the AI has genuine organizational knowledge backed by measurement data. CoScoutPanel can answer questions like "Have we seen this pattern before?" by retrieving past investigations on demand.
 
-**Document retrieval (Phase 3):** On the Team plan, CoScoutPanel can reference quality documents stored in the Teams channel SharePoint (fault trees, SOPs, control plans). Azure AI Search with Foundry IQ orchestration provides semantic search across these documents.
+**Document retrieval (Phase 3):** On the Team AI plan, CoScoutPanel can reference quality documents stored in the Teams channel SharePoint (fault trees, SOPs, control plans). Users click the "Search Knowledge Base?" button in CoScout to trigger on-demand search with per-user SharePoint permissions.
 
 Each user controls their own AI visibility via the "Show AI assistance" toggle in Settings. AI features are always optional — the app works identically without them.
 

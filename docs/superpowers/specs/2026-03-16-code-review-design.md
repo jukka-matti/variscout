@@ -40,7 +40,7 @@ However, the review surfaces **1 critical security finding**, **several high-pri
 #### CRIT-1: OBO Token Exchange Function — CORS Defaults to Wildcard
 
 - **Category:** Security
-- **Files:** `infra/functions/token-exchange/index.js:68-70,109-117`, `infra/functions/index-findings/index.js:19`
+- **Files:** `infra/functions/token-exchange/index.js:68-70,109-117` _(Note: `index-findings` function deprecated by ADR-026)_
 - **Description:** `getCorsHeaders()` defaults to `ALLOWED_ORIGIN || '*'` when the env var is unset. The function-level auth key guard is also optional (`if (functionKey && ...)`). A deployment without both `ALLOWED_ORIGIN` and `FUNCTION_KEY` configured exposes the OBO token exchange endpoint to any browser origin.
 - **Impact:** Any page on any domain can POST to the function endpoint. Probing attacks (replaying intercepted tokens) become possible without the origin barrier.
 - **Fix:** Make `ALLOWED_ORIGIN` required (throw on startup if missing). Document `FUNCTION_KEY` as mandatory in production.
@@ -174,11 +174,11 @@ However, the review surfaces **1 critical security finding**, **several high-pri
 - **Description:** No `onPaste` handler means rich HTML from clipboard enters the DOM. Currently safe (reads `textContent` on blur), but fragile if refactored.
 - **Fix:** Add `onPaste` handler that inserts plain text only.
 
-#### MED-4: OData Filter Injection in `searchRelatedFindings`
+#### MED-4: OData Filter Injection in `searchDocuments`
 
 - **Category:** Resilience
 - **File:** `apps/azure/src/services/searchService.ts:73`
-- **Description:** Factor name interpolated directly into OData filter. Names with single quotes (e.g., `O'Brien`) break the query.
+- **Description:** Factor name interpolated directly into OData filter. Names with single quotes (e.g., `O'Brien`) break the query. _(Note: `searchRelatedFindings` deprecated by ADR-026; same issue exists in `searchDocuments`.)_
 - **Fix:** Escape single quotes by doubling them.
 
 #### MED-5: Concurrent Sync Flush Race Condition
@@ -318,21 +318,21 @@ However, the review surfaces **1 critical security finding**, **several high-pri
 
 ### Quick Wins (less than 1 hour each)
 
-| #   | Item                                                    | Priority | Files                                                                                | Effort |
-| --- | ------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------ | ------ |
-| Q1  | Add `ALLOWED_ORIGIN` required check in OBO function     | Critical | `infra/functions/token-exchange/index.js`, `infra/functions/index-findings/index.js` | 15 min |
-| Q2  | Add `AbortSignal.timeout(30_000)` to all AI fetch calls | High     | `apps/azure/src/services/aiService.ts`                                               | 20 min |
-| Q3  | Add `reader.releaseLock()` in finally block             | High     | `apps/azure/src/services/aiService.ts`                                               | 10 min |
-| Q4  | Add file size guards in CSV/Excel parsers               | High     | `packages/core/src/parser/csv.ts`, `excel.ts`                                        | 15 min |
-| Q5  | Validate `thumbnailDataUrl` is `data:image/`            | High     | `packages/ui/src/components/FindingsLog/FindingComments.tsx`                         | 10 min |
-| Q6  | Add HTTPS validation for runtime config URLs            | High     | `apps/azure/src/lib/runtimeConfig.ts`                                                | 15 min |
-| Q7  | Escape OData filter values in search service            | Medium   | `apps/azure/src/services/searchService.ts`                                           | 10 min |
-| Q8  | Add CSV formula injection prefix                        | Medium   | `packages/core/src/export.ts`                                                        | 10 min |
-| Q9  | Add `onPaste` plain-text handler to AnnotationBox       | Medium   | `packages/ui/src/components/ChartAnnotationLayer/AnnotationBox.tsx`                  | 10 min |
-| Q10 | Wrap `handleSave` in `useCallback`                      | Medium   | `apps/azure/src/pages/Editor.tsx`                                                    | 10 min |
-| Q11 | Wire `errorService.setNotificationHandler`              | High     | `apps/azure/src/pages/Editor.tsx` or root component                                  | 20 min |
-| Q12 | Add `isSyncingRef` guard to concurrent sync paths       | Medium   | `apps/azure/src/services/storage.ts`                                                 | 20 min |
-| Q13 | Add retry + timeout to `fetchFindingsReport`            | Medium   | `apps/azure/src/services/aiService.ts`                                               | 15 min |
+| #   | Item                                                    | Priority | Files                                                               | Effort |
+| --- | ------------------------------------------------------- | -------- | ------------------------------------------------------------------- | ------ |
+| Q1  | Add `ALLOWED_ORIGIN` required check in OBO function     | Critical | `infra/functions/token-exchange/index.js`                           | 15 min |
+| Q2  | Add `AbortSignal.timeout(30_000)` to all AI fetch calls | High     | `apps/azure/src/services/aiService.ts`                              | 20 min |
+| Q3  | Add `reader.releaseLock()` in finally block             | High     | `apps/azure/src/services/aiService.ts`                              | 10 min |
+| Q4  | Add file size guards in CSV/Excel parsers               | High     | `packages/core/src/parser/csv.ts`, `excel.ts`                       | 15 min |
+| Q5  | Validate `thumbnailDataUrl` is `data:image/`            | High     | `packages/ui/src/components/FindingsLog/FindingComments.tsx`        | 10 min |
+| Q6  | Add HTTPS validation for runtime config URLs            | High     | `apps/azure/src/lib/runtimeConfig.ts`                               | 15 min |
+| Q7  | Escape OData filter values in search service            | Medium   | `apps/azure/src/services/searchService.ts`                          | 10 min |
+| Q8  | Add CSV formula injection prefix                        | Medium   | `packages/core/src/export.ts`                                       | 10 min |
+| Q9  | Add `onPaste` plain-text handler to AnnotationBox       | Medium   | `packages/ui/src/components/ChartAnnotationLayer/AnnotationBox.tsx` | 10 min |
+| Q10 | Wrap `handleSave` in `useCallback`                      | Medium   | `apps/azure/src/pages/Editor.tsx`                                   | 10 min |
+| Q11 | Wire `errorService.setNotificationHandler`              | High     | `apps/azure/src/pages/Editor.tsx` or root component                 | 20 min |
+| Q12 | Add `isSyncingRef` guard to concurrent sync paths       | Medium   | `apps/azure/src/services/storage.ts`                                | 20 min |
+| Q13 | Add retry + timeout to `fetchFindingsReport`            | Medium   | `apps/azure/src/services/aiService.ts`                              | 15 min |
 
 **Total quick wins: ~3 hours**
 
@@ -426,7 +426,7 @@ However, the review surfaces **1 critical security finding**, **several high-pri
 ### Security Surface
 
 - `infra/functions/token-exchange/index.js`
-- `infra/functions/index-findings/index.js`
+- ~~`infra/functions/index-findings/index.js`~~ _(deprecated by ADR-026)_
 - `apps/azure/src/auth/easyAuth.ts`
 - `apps/azure/src/auth/graphToken.ts`
 - `apps/azure/src/lib/runtimeConfig.ts`

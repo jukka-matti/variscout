@@ -82,18 +82,18 @@ Azure AI Foundry hosts both OpenAI and Anthropic models with a unified API. Cust
 
 AI API keys are never exposed in client-side JavaScript. Authentication uses Azure AD (Entra ID) tokens via EasyAuth with a Cognitive Services scope (`https://cognitiveservices.azure.com/.default`). Same auth pattern as Graph API calls.
 
-### Knowledge Layer (Azure AI Search + Foundry IQ)
+### Knowledge Layer (Azure AI Search + Remote SharePoint)
 
-Azure AI Search serves as the managed knowledge service — not a custom RAG pipeline. **Azure AI Foundry IQ** adds managed orchestration (query decomposition, semantic reranking, source attribution) on top.
+Azure AI Search serves as the managed knowledge service -- not a custom RAG pipeline. **Remote SharePoint** knowledge sources access documents on demand with user credentials (ADR-026).
 
-**What gets indexed:**
+**What's searchable:**
 
-- VariScout findings — auto-indexed via Azure Function on OneDrive save (structured documents with project, factor, contribution %, Cpk, corrective action, outcome)
-- Team quality documents — indexed via Foundry IQ SharePoint Indexed Knowledge Source (auto-configures indexing pipeline)
+- Published scouting reports -- published as Markdown to the team's SharePoint folder via Report view
+- Team quality documents -- SOPs, fault trees, control plans already in the SharePoint folder
 
-**Capabilities:** Built-in hybrid search (keyword + semantic ranking), Foundry IQ agentic retrieval for query decomposition. All Azure-native, ARM-deployable, same-tenant data sovereignty.
+**Capabilities:** Built-in hybrid search (keyword + semantic ranking), Foundry IQ agentic retrieval for query decomposition. All Azure-native, ARM-deployable, same-tenant data sovereignty. Per-user permissions via user token passthrough.
 
-**AI-extracted context from documents:** When team documents are uploaded, an Azure Function sends them through AI extraction to suggest ProcessContext updates (process steps, measurement units). AI suggests, user confirms — never auto-overwrites.
+See [ADR-026](adr-026-knowledge-base-sharepoint-first.md) for the full architecture decision.
 
 ### ARM Template Changes
 
@@ -132,7 +132,7 @@ See [AI Readiness Review](../05-technical/architecture/ai-readiness-review.md) f
 
 - **Phase 1:** AI service layer + NarrativeBar + process description field + factor role inference + ARM template
 - **Phase 2:** ChartInsightChip + AI-enhanced Nelson Rule explanations + drill suggestions + optional process wizard
-- **Phase 3:** CoScoutPanel + Azure AI Search (with Foundry IQ orchestration) + SharePoint indexing + report generation + AI-extracted context from documents
+- **Phase 3:** CoScoutPanel + Azure AI Search (with Foundry IQ orchestration) + Remote SharePoint knowledge + report generation + report publishing
 
 ### Cost Controls
 
@@ -167,13 +167,13 @@ See [AI Readiness Review](../05-technical/architecture/ai-readiness-review.md) f
 
 ### Key Risks
 
-| Risk                                | Mitigation                                                                                                   |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| SharePoint indexer stays in preview | Findings indexing works independently (Blob Storage indexer is GA). SharePoint docs are Phase 3 enhancement. |
-| AI costs concern customers          | Default to cheapest model (GPT-4o-mini). Dual-model routing. Response caching.                               |
-| EDAScout-style chatbot backlash     | AI never auto-acts. Always dismissable. Shows stats source alongside explanation.                            |
-| Model quality for SPC domain        | Prompt templates grounded in VariScout glossary. Stats-only context reduces hallucination.                   |
-| Privacy / data sovereignty          | All AI resources in customer tenant. Stats-only payloads. Same EasyAuth + RBAC.                              |
+| Risk                                            | Mitigation                                                                                 |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Remote SharePoint requires M365 Copilot license | Minimum 1 license per tenant. Documented as prerequisite in admin setup.                   |
+| AI costs concern customers                      | Default to cheapest model (GPT-4o-mini). Dual-model routing. Response caching.             |
+| EDAScout-style chatbot backlash                 | AI never auto-acts. Always dismissable. Shows stats source alongside explanation.          |
+| Model quality for SPC domain                    | Prompt templates grounded in VariScout glossary. Stats-only context reduces hallucination. |
+| Privacy / data sovereignty                      | All AI resources in customer tenant. Stats-only payloads. Same EasyAuth + RBAC.            |
 
 ---
 
@@ -188,15 +188,15 @@ Phase 1-3 client-side AI delivered across 5 commits (86f3ccb → 4e5382c, March 
 
 ### Phase 3: Knowledge Layer (March 2026)
 
-Delivered: Azure AI Search for findings indexing, runtime config endpoint for Marketplace deployments, model-agnostic AI service (OpenAI + Claude), findings export (CSV/JSON/AI report), FindingsExportMenu component.
+Delivered: Azure AI Search for knowledge base orchestration, Remote SharePoint knowledge source, runtime config endpoint for Marketplace deployments, model-agnostic AI service (OpenAI + Claude), findings export (CSV/JSON/AI report), FindingsExportMenu component, report publishing to SharePoint.
 
 Key design decisions:
 
-- HTTP trigger over webhook — simpler, no event subscription needed
-- API keys in Function App only — client routes through Function proxy
-- Batch-replace over incremental indexing — consistent state, simpler deletion of stale documents
-- Auto-detect model provider from endpoint URL — no user configuration needed
-- Preview-gated knowledge features — customers opt in via Settings
+- Remote SharePoint over indexed -- no indexer, no crawl schedule, per-user permissions (ADR-026)
+- On-demand knowledge search -- user clicks button, not auto-fire on every message
+- Report publishing as Markdown -- scouting reports become searchable knowledge
+- Auto-detect model provider from endpoint URL -- no user configuration needed
+- Preview-gated knowledge features -- customers opt in via Settings
 
 **Teams AI SDK not applicable:** `@microsoft/teams-ai` is for bot-based apps. VariScout's tab app pattern uses direct Azure AI Foundry calls via EasyAuth, which is the correct architecture for embedded tab applications.
 
@@ -204,8 +204,9 @@ Key design decisions:
 
 ## See Also
 
-- [ADR-015: Investigation Board](adr-015-investigation-board.md) — Closed-loop investigations (prerequisite)
-- [AI Readiness Review](../05-technical/architecture/ai-readiness-review.md) — Strategic architecture assessment
+- [ADR-015: Investigation Board](adr-015-investigation-board.md)
+- [ADR-026: SharePoint-First Knowledge Base](adr-026-knowledge-base-sharepoint-first.md)
+- [AI Readiness Review](../05-technical/architecture/ai-readiness-review.md)
 - [AI-Assisted Analysis Workflow](../03-features/workflows/ai-assisted-analysis.md)
 - [AI Architecture](../05-technical/architecture/ai-architecture.md)
 - [AI Components](../06-design-system/components/ai-components.md)

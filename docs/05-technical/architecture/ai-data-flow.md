@@ -165,8 +165,8 @@ AIContext
 ├── focusContext         # From "Ask CoScout about this" (chart, category, or finding with ideas)
 ├── teamContributors     # Teams plan: count + hypothesis areas
 ├── glossaryFragment     # Methodology terms + concepts for grounding
-├── knowledgeResults[]   # Past findings from AI Search (injected via onBeforeSend)
-├── knowledgeDocuments[] # SharePoint/SOP documents (injected via onBeforeSend)
+├── knowledgeResults[]   # Past findings from AI Search (deprecated, returns empty array)
+├── knowledgeDocuments[] # SharePoint documents (populated on-demand via Search KB button)
 └── locale               # Active locale (e.g. 'en', 'fi', 'de') for AI response language
 ```
 

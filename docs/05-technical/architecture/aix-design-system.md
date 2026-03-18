@@ -185,14 +185,14 @@ Azure AI Search + Foundry IQ integration for organizational learning:
 
 **Search types:**
 
-- Hybrid (keyword + semantic) for findings
-- Agentic (LLM decomposition) for documents
+- Hybrid (keyword + semantic) via Remote SharePoint knowledge source
+- Agentic (LLM decomposition) via Foundry IQ orchestration
 
 **Integration surface:**
 
-- CoScout `onBeforeSend` hook triggers search
-- Results injected as system message via `formatKnowledgeContext()`
-- Source attribution: `[From: findings]` and `[From: {source}]` markers in context
+- On-demand: user clicks "Search Knowledge Base?" button in CoScout
+- Results displayed as document cards via `formatKnowledgeContext()`
+- Source attribution: `[From: {source}]` markers in context
 
 ### 2.7 Investigation Coaching Pattern
 

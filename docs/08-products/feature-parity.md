@@ -121,18 +121,18 @@ All platforms share `@variscout/core` and produce **identical results** for the 
 
 ## AI Features
 
-| Feature                         | Azure Standard | Azure Team | Azure Team AI | PWA (Free) | Notes                                                                  |
-| ------------------------------- | :------------: | :--------: | :-----------: | :--------: | ---------------------------------------------------------------------- |
-| **NarrativeBar**                |    Optional    |  Optional  |   Optional    |     -      | Plain-language analysis summary at dashboard bottom                    |
-| **ChartInsightChip**            |    Optional    |  Optional  |   Optional    |     -      | Per-chart contextual suggestions                                       |
-| **CoScoutPanel**                |    Optional    |  Optional  |   Enhanced    |     -      | Team AI: methodology-grounded, knowledge-base-aware                    |
-| **AI Knowledge Base**           |       -        |     -      |       ✓       |     -      | Azure AI Search index from resolved findings (Team AI only)            |
-| **Organizational learning**     |       -        |     -      |       ✓       |     -      | Resolved findings feed back into knowledge base (Team AI only)         |
-| **Process description field**   |    Optional    |  Optional  |   Optional    |     -      | Free-text process context for AI grounding                             |
-| **AI visibility toggle**        |    Optional    |  Optional  |   Optional    |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists |
-| **Knowledge Base Search**       |       -        |     -      | Yes (preview) |     -      | Azure AI Search index from resolved findings (Team AI only)            |
-| **Findings Export (CSV/JSON)**  |       -        |     ✓      |       ✓       |     -      | Download findings as CSV (Excel-compatible) or structured JSON         |
-| **Findings Export (AI Report)** |       -        |     -      |       ✓       |     -      | AI-generated quality engineering report from findings data             |
+| Feature                         | Azure Standard | Azure Team | Azure Team AI | PWA (Free) | Notes                                                                   |
+| ------------------------------- | :------------: | :--------: | :-----------: | :--------: | ----------------------------------------------------------------------- |
+| **NarrativeBar**                |    Optional    |  Optional  |   Optional    |     -      | Plain-language analysis summary at dashboard bottom                     |
+| **ChartInsightChip**            |    Optional    |  Optional  |   Optional    |     -      | Per-chart contextual suggestions                                        |
+| **CoScoutPanel**                |    Optional    |  Optional  |   Enhanced    |     -      | Team AI: methodology-grounded, knowledge-base-aware                     |
+| **AI Knowledge Base**           |       -        |     -      |       ✓       |     -      | Remote SharePoint knowledge search via Azure AI Search (Team AI only)   |
+| **Organizational learning**     |       -        |     -      |       ✓       |     -      | Published scouting reports feed back into knowledge base (Team AI only) |
+| **Process description field**   |    Optional    |  Optional  |   Optional    |     -      | Free-text process context for AI grounding                              |
+| **AI visibility toggle**        |    Optional    |  Optional  |   Optional    |     -      | Per-user "Show AI assistance" setting; default ON when endpoint exists  |
+| **Knowledge Base Search**       |       -        |     -      | Yes (preview) |     -      | On-demand search via Remote SharePoint knowledge source (Team AI only)  |
+| **Findings Export (CSV/JSON)**  |       -        |     ✓      |       ✓       |     -      | Download findings as CSV (Excel-compatible) or structured JSON          |
+| **Findings Export (AI Report)** |       -        |     -      |       ✓       |     -      | AI-generated quality engineering report from findings data              |
 
 > AI features require customer-deployed Azure AI Foundry resources (optional ARM deployment checkbox). See [ADR-019](../07-decisions/adr-019-ai-integration.md). PWA never has AI.
 
@@ -228,7 +228,7 @@ Features that behave differently on phone (<640px) versus desktop.
 | **Users**         | Unlimited (per-deployment)           | Unlimited (per-deployment)                    | Unlimited (per-deployment)                               | N/A                                                       |
 | **Features**      | All analysis features                | All analysis + Teams + cloud storage + mobile | All Team features + AI Knowledge Base + enhanced CoScout | Core analysis + Green Belt (no Performance Mode, no save) |
 | **Auth**          | EasyAuth / Entra (User.Read)         | EasyAuth + Teams SSO (+ Files, Channels)      | EasyAuth + Teams SSO (+ Files, Channels)                 | None                                                      |
-| **Storage**       | Local files (File System Access API) | + OneDrive + SharePoint channels              | + OneDrive + SharePoint channels + AI Search index       | Session-only                                              |
+| **Storage**       | Local files (File System Access API) | + OneDrive + SharePoint channels              | + OneDrive + SharePoint channels + AI Search             | Session-only                                              |
 | **Admin consent** | None                                 | Required (one-time)                           | Required (one-time)                                      | N/A                                                       |
 
 ---
@@ -263,9 +263,9 @@ Features that behave differently on phone (<640px) versus desktop.
 
 ### Azure Team AI Only (vs Team)
 
-- AI Knowledge Base via Azure AI Search (organizational findings index)
+- AI Knowledge Base via Azure AI Search (Remote SharePoint knowledge source)
 - AI-enhanced CoScout with methodology-grounded assistant
-- Organizational learning from resolved findings
+- Report publishing to SharePoint (searchable by future investigations)
 
 ### PWA Only
 

@@ -104,9 +104,9 @@ Same ARM template is reused across all three plans (Azure Marketplace supports u
 - Mobile Field View route (Team plan only)
 - Photo capture in findings (Team plan only)
 - Admin consent guidance in settings (Team plan only)
-- AI Knowledge Base via Azure AI Search (Team AI plan only)
+- AI Knowledge Base via Remote SharePoint knowledge source (Team AI plan only)
 - AI-enhanced CoScout with methodology grounding (Team AI plan only)
-- Organizational learning from resolved findings (Team AI plan only)
+- Report publishing to SharePoint for organizational learning (Team AI plan only)
 
 See [ADR-016](adr-016-teams-integration.md) for full Teams integration technical design. See [ADR-019](adr-019-ai-integration.md) for AI integration design.
 
@@ -317,10 +317,10 @@ The codebase (`apps/excel-addin/`) was removed. Historical documentation preserv
 ### Phase 6: Team AI Plan (TBD)
 
 - Add third Marketplace plan ("VariScout Team AI" at €279/month)
-- AI Knowledge Base via Azure AI Search (organizational findings index)
+- AI Knowledge Base via Remote SharePoint knowledge source (ADR-026)
 - AI-enhanced CoScout with methodology-grounded assistant
-- Organizational learning from resolved findings
-- See [ADR-019](adr-019-ai-integration.md) for AI integration design
+- Report publishing to SharePoint for organizational learning
+- See [ADR-019](adr-019-ai-integration.md) and [ADR-026](adr-026-knowledge-base-sharepoint-first.md) for design
 
 ---
 

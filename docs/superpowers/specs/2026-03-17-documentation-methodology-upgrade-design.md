@@ -232,8 +232,8 @@ The same dashboard, but three new elements appear:
 Everything above, plus:
 
 4. **Organizational memory**: CoScout says "Last quarter, the packaging team investigated a similar Operator B pattern. They found it was caused by training gaps in the new shift schedule. See Finding #47."
-   - Resolved findings from past investigations are indexed in Azure AI Search
-   - CoScout retrieves relevant past findings automatically
+   - Published scouting reports and team documents are searchable via Remote SharePoint (ADR-026)
+   - CoScout retrieves relevant past investigations on demand when user clicks "Search Knowledge Base?"
    - New analysts benefit from institutional knowledge
 
 5. **AI Report generation**: Export findings as an AI-generated quality engineering report

@@ -233,10 +233,11 @@ knowledgeDocuments?: Array<{
 
 ### Population Flow
 
-1. User sends a message in CoScout
-2. `onBeforeSend` callback in `useAICoScout` triggers a knowledge search using the user's query
-3. Top matching documents are attached to the `knowledgeDocuments` field before context assembly
-4. The field is included in the Tier 3 dynamic system message
+1. CoScout responds to user message
+2. User clicks the "Search Knowledge Base?" button
+3. `searchDocuments()` queries Remote SharePoint via Azure AI Search with user token
+4. Top matching documents are attached to the `knowledgeDocuments` field
+5. The field is included in the Tier 3 dynamic system message for the next CoScout response
 
 ### `formatKnowledgeContext()`
 

@@ -158,13 +158,13 @@ Resizable side panel (same pattern as FindingsPanel and DataPanel). Activated vi
 
 **Why Azure AI Search:** It's Microsoft's managed RAG solution. Fully Azure-native, ARM-deployable, same-tenant data sovereignty. Supports hybrid search (keyword + vector), semantic ranking, and agentic retrieval (LLM-assisted query decomposition).
 
-**What gets indexed:**
+**What's searchable:**
 
-1. **VariScout findings** — auto-indexed on save/sync. Structured documents with project, title, factor, contribution %, Cpk, corrective action, outcome, author.
-2. **Team quality documents** — indexed via SharePoint connector. Fault trees (Word/PDF/Visio), process maps, SOPs, control plans.
-3. **Process context** — per-project descriptions indexed alongside findings.
+1. **Published scouting reports** -- published as Markdown from Report view to the team's SharePoint folder. KPIs, findings, corrective actions, outcomes.
+2. **Team quality documents** -- SOPs, fault trees, control plans already stored in the SharePoint folder.
+3. **Process context** -- embedded in published reports alongside findings.
 
-**SharePoint connector status:** The SharePoint Online indexer is in public preview (March 2026). It indexes document library files (DOCX, XLSX, PPTX, PDF). Teams channel files are stored in SharePoint document libraries, so they are accessible. No separate fallback needed — it works if it works.
+> **Note (ADR-026):** The original plan for findings auto-indexing and SharePoint connector has been replaced by a Remote SharePoint knowledge source. Documents are accessed on demand with user credentials -- no indexer, no crawl schedule, per-user permissions.
 
 **How agentic retrieval helps:** When an analyst asks "Why is Fill Head 3 drifting?", agentic retrieval can decompose into sub-queries: (1) past findings mentioning Fill Head 3, (2) fault tree branches for fill head issues, (3) recent corrective actions. Results merged and ranked semantically.
 
@@ -334,18 +334,20 @@ Debounce: AI requests throttled to max 1 per 5 seconds (prevents rapid-fire on f
 
 ## Findings Indexing Write Path (Phase 3)
 
-VariScout findings are persisted in `.vrs` files on OneDrive (Team plan). To index them in Azure AI Search:
+> **Deprecated by ADR-026:** The findings indexing write path described below has been replaced by report publishing. Instead of indexing individual findings via Azure Function, users publish scouting reports to the team's SharePoint folder. These reports are searchable via Remote SharePoint knowledge sources -- no indexer function, no webhook, no Search SDK in the browser.
 
-**Approach:** Azure Function triggered by OneDrive file changes (Graph webhook). The function:
+~~VariScout findings are persisted in `.vrs` files on OneDrive (Team plan). To index them in Azure AI Search:~~
 
-1. Receives notification of `.vrs` file change
-2. Downloads and parses the file
-3. Extracts findings as structured documents
-4. Pushes to Azure AI Search index via Search SDK
+~~**Approach:** Azure Function triggered by OneDrive file changes (Graph webhook). The function:~~
 
-This keeps the browser free of Search SDK dependencies and uses the existing `infra/functions/` Azure Function infrastructure. The function runs in the customer's tenant with Managed Identity for auth.
+~~1. Receives notification of `.vrs` file change~~
+~~2. Downloads and parses the file~~
+~~3. Extracts findings as structured documents~~
+~~4. Pushes to Azure AI Search index via Search SDK~~
 
-**Sync behavior:** Findings are indexed on save (via OneDrive sync trigger). Deleted findings are removed from the index. Edited findings are updated in-place (upsert by finding ID).
+~~This keeps the browser free of Search SDK dependencies and uses the existing `infra/functions/` Azure Function infrastructure. The function runs in the customer's tenant with Managed Identity for auth.~~
+
+~~**Sync behavior:** Findings are indexed on save (via OneDrive sync trigger). Deleted findings are removed from the index. Edited findings are updated in-place (upsert by finding ID).~~
 
 ## Error Handling
 
@@ -391,13 +393,13 @@ All errors logged to `errorService` (existing in `@variscout/ui`). No user-facin
 
 ## Key Risks
 
-| Risk                                | Mitigation                                                                                                                                         |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SharePoint indexer stays in preview | VariScout findings indexing works independently (Blob Storage indexer is GA). SharePoint docs are a Phase 3 enhancement.                           |
-| AI costs concern customers          | Default to GPT-4o-mini (cheapest). Dual-model routing minimizes CoScout token spend. Response caching reduces repeat queries.                      |
-| EDAScout-style chatbot backlash     | AI never auto-acts. Always dismissable. Shows stats source alongside explanation. Analyst drives, AI assists.                                      |
-| Model quality for SPC domain        | Prompt templates grounded in VariScout's glossary terms. Stats-only context reduces hallucination surface. Semantic grounding via Azure AI Search. |
-| Privacy / data sovereignty          | All AI resources in customer's Azure tenant. Stats-only payloads (no raw data). Same EasyAuth + RBAC.                                              |
+| Risk                                            | Mitigation                                                                                                                                         |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Remote SharePoint requires M365 Copilot license | Minimum 1 license per tenant. Documented as prerequisite in admin setup (ADR-026).                                                                 |
+| AI costs concern customers                      | Default to GPT-4o-mini (cheapest). Dual-model routing minimizes CoScout token spend. Response caching reduces repeat queries.                      |
+| EDAScout-style chatbot backlash                 | AI never auto-acts. Always dismissable. Shows stats source alongside explanation. Analyst drives, AI assists.                                      |
+| Model quality for SPC domain                    | Prompt templates grounded in VariScout's glossary terms. Stats-only context reduces hallucination surface. Semantic grounding via Azure AI Search. |
+| Privacy / data sovereignty                      | All AI resources in customer's Azure tenant. Stats-only payloads (no raw data). Same EasyAuth + RBAC.                                              |
 
 ## Validation Sources
 

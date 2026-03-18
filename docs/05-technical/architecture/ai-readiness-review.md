@@ -123,11 +123,11 @@ This makes auto-inference nearly free to implement — extending an existing pat
 - Confirm/correct auto-inferred factor roles
 - **Value:** AI narration transforms from generic to domain-aware
 
-**Phase 3 (cross-project knowledge — Team plan):**
+**Phase 3 (cross-project knowledge -- Team plan):**
 
-- Azure AI Search indexes accumulated findings across projects
-- Optional: SharePoint document upload for supplementary context (SOPs, process maps, control plans)
-- **Value:** AI references past investigations across projects
+- Published scouting reports searchable via Remote SharePoint knowledge source (ADR-026)
+- Team quality docs (SOPs, fault trees, control plans) already in SharePoint folder are searchable
+- **Value:** AI references past investigations and team documents across projects
 
 ### Context Impact — Concrete Progression
 
@@ -184,11 +184,11 @@ Note: the AIAG-VDA joint FMEA handbook (2019) already eliminated RPN in favor of
 
 ### Two Knowledge Tiers
 
-| Tier                       | Knowledge Source                    | Available For | Cost                             | When                  |
-| -------------------------- | ----------------------------------- | ------------- | -------------------------------- | --------------------- |
-| **Same-project findings**  | Current project's findings[]        | Both plans    | **Free** — already loaded        | AI Phase 1            |
-| **Cross-project findings** | Findings indexed in Azure AI Search | Team plan     | Free tier (50MB) or Basic €67/mo | AI Phase 3            |
-| **Supplementary docs**     | Team docs in SharePoint             | Team plan     | Same AI Search cost              | AI Phase 3 (optional) |
+| Tier                       | Knowledge Source                                   | Available For | Cost                      | When       |
+| -------------------------- | -------------------------------------------------- | ------------- | ------------------------- | ---------- |
+| **Same-project findings**  | Current project's findings[]                       | Both plans    | **Free** — already loaded | AI Phase 1 |
+| **Cross-project findings** | Published reports searchable via Remote SharePoint | Team plan     | Same AI Search cost       | AI Phase 3 |
+| **Supplementary docs**     | Team docs in SharePoint (auto-searchable)          | Team plan     | Same AI Search cost       | AI Phase 3 |
 
 ### Findings as Exportable Knowledge
 
@@ -206,36 +206,36 @@ This is what ISO 9001:2026 auditors want: documented investigation → action �
 
 The existing Azure AI Search-based architecture in ADR-019 is correct. **Azure AI Foundry IQ** (late 2025) adds a managed orchestration layer on top that simplifies Phase 3:
 
-| Aspect              | Current Azure AI Search Plan                   | + Foundry IQ Enhancement                                                                                 |
-| ------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| SharePoint indexing | SharePoint connector (preview) — manual config | **SharePoint Indexed Knowledge Source** — auto-generates data source, skillset, index, indexer           |
-| Query orchestration | Azure AI Search agentic retrieval              | **Foundry IQ agentic reasoning** — managed query decomposition, parallel sub-queries, semantic reranking |
-| Source attribution  | Available via Search API                       | **Built-in source references** in agent responses                                                        |
-| ACL sync            | Configurable                                   | **Auto-synced** from SharePoint                                                                          |
+| Aspect              | Current Azure AI Search Plan      | + Foundry IQ Enhancement                                                                                  |
+| ------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| SharePoint access   | N/A                               | **Remote SharePoint Knowledge Source** -- on-demand access with user credentials (ADR-026)                |
+| Query orchestration | Azure AI Search agentic retrieval | **Foundry IQ agentic reasoning** -- managed query decomposition, parallel sub-queries, semantic reranking |
+| Source attribution  | Available via Search API          | **Built-in source references** in agent responses                                                         |
+| ACL sync            | Configurable                      | **Per-user permissions** via user token passthrough                                                       |
 
 **Foundry IQ implementation notes:**
 
-- Hidden system prompts consume tokens invisibly — budget for this in cost estimates
-- Use **extractive retrieval mode** (not answer synthesis) for most scenarios — cheaper, more transparent
-- Set `retrieval_reasoning_effort` to "minimal" for Phase 1/2 to control costs
-- Have a **Blob Storage fallback** if SharePoint connector (still preview) has reliability issues
-- Foundry IQ has a free tier — good for development and small teams
+- Hidden system prompts consume tokens invisibly -- budget for this in cost estimates
+- Use **extractive retrieval mode** (not answer synthesis) for most scenarios -- cheaper, more transparent
+- Set `retrieval_reasoning_effort` to "minimal" to control costs
+- Remote SharePoint requires at least 1 M365 Copilot license per tenant
+- Foundry IQ has a free tier -- good for development and small teams
 
 ---
 
-## AI-Assisted Context Extraction from Documents (Phase 3)
+## AI-Assisted Context Extraction from Documents (Future)
 
 When team documents are uploaded to the Teams channel SharePoint:
 
-**Level 1 (query-time reference — already planned):** AI CoScout queries Azure AI Search during conversation and references document sections directly. No extraction.
+**Level 1 (query-time reference -- implemented via ADR-026):** AI CoScout queries Remote SharePoint via Azure AI Search during on-demand knowledge search and references document sections directly. No extraction.
 
-**Level 2 (proactive extraction — new capability):** Azure Function triggers on document upload, sends to AI with structured extraction prompt, and **suggests** ProcessContext updates:
+**Level 2 (proactive extraction -- future capability):** Azure Function triggers on document upload, sends to AI with structured extraction prompt, and **suggests** ProcessContext updates:
 
 ```
 Document detected: "Production Control Plan v3.2"
 
 Suggestions extracted:
-- Process steps: mixing → filling → sealing → packaging (Section 2.1)
+- Process steps: mixing -> filling -> sealing -> packaging (Section 2.1)
 - Measurement unit: grams (Section 3.1)
 
 [Apply suggestions] [Review individually] [Dismiss]
@@ -243,11 +243,10 @@ Suggestions extracted:
 
 **Design principles:**
 
-- AI **suggests**, user **confirms** — never auto-overwrite user-entered data
-- One AI call per document upload (~$0.01-0.05) — not per session
-- Same Azure Function infrastructure as findings indexing
+- AI **suggests**, user **confirms** -- never auto-overwrite user-entered data
+- One AI call per document upload (~$0.01-0.05) -- not per session
 - Extraction prompt grounded in ProcessContext schema (structured output)
-- If user has already set values, suggestions show as "Update X → Y?" not overwrite
+- If user has already set values, suggestions show as "Update X -> Y?" not overwrite
 
 ---
 

@@ -191,13 +191,13 @@ Monitor costs in Azure portal under the AI Services resource → Cost Analysis.
 
 AI features are delivered in three phases (see [ADR-019](../../07-decisions/adr-019-ai-integration.md)):
 
-| Phase | Features                                                                              | Deployment                          |
-| ----- | ------------------------------------------------------------------------------------- | ----------------------------------- |
-| 1     | AI service layer, NarrativeBar, process description field, factor role inference, ARM | Marketplace update                  |
-| 2     | ChartInsightChip, AI-enhanced Nelson Rule explanations, drill suggestions             | App update (no ARM changes)         |
-| 3     | CoScoutPanel, Azure AI Search, SharePoint indexing, report generation                 | ARM update (adds Search + Function) |
+| Phase | Features                                                                                   | Deployment                          |
+| ----- | ------------------------------------------------------------------------------------------ | ----------------------------------- |
+| 1     | AI service layer, NarrativeBar, process description field, factor role inference, ARM      | Marketplace update                  |
+| 2     | ChartInsightChip, AI-enhanced Nelson Rule explanations, drill suggestions                  | App update (no ARM changes)         |
+| 3     | CoScoutPanel, Azure AI Search, Remote SharePoint knowledge, report generation + publishing | ARM update (adds Search + Function) |
 
-Each phase is backward compatible. Existing deployments continue working when new features ship. Phase 3 requires a template redeployment to provision Azure AI Search and the findings indexer Function.
+Each phase is backward compatible. Existing deployments continue working when new features ship. Phase 3 requires a template redeployment to provision Azure AI Search and the OBO token exchange Function.
 
 ---
 
