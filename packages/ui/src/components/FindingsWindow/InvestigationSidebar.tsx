@@ -10,7 +10,7 @@ export interface InvestigationSidebarProps {
   suggestedQuestions?: string[];
   collapsed: boolean;
   onToggle: () => void;
-  /** When true and phase is 'acting', shows a verification checklist */
+  /** When true and phase is 'improving', shows a verification checklist */
   hasStagedData?: boolean;
 }
 
@@ -18,8 +18,8 @@ const phaseDescriptions: Record<string, string> = {
   initial: 'Begin by examining charts for patterns. What stands out?',
   diverging: 'Explore multiple hypotheses across factor categories. Cast a wide net.',
   validating: 'Drill into factors to test hypotheses with data. Check contribution %.',
-  converging: 'Synthesize findings into root causes. Brainstorm improvements.',
-  acting: 'Monitor improvement actions. Track Cpk and capability changes.',
+  converging: 'Synthesize findings into a suspected root cause. Brainstorm improvement ideas.',
+  improving: 'IMPROVE phase: monitor corrective actions and verify effectiveness (PDCA).',
 };
 
 /**
@@ -85,7 +85,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
     phase ||
     uncoveredRoles.length > 0 ||
     (suggestedQuestions && suggestedQuestions.length > 0) ||
-    (phase === 'acting' && hasStagedData);
+    (phase === 'improving' && hasStagedData);
 
   return (
     <div
@@ -111,10 +111,10 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
         )}
 
         {/* Verification checklist — shown when acting phase + staged data */}
-        {phase === 'acting' && hasStagedData && (
+        {phase === 'improving' && hasStagedData && (
           <div data-testid="verification-checklist">
             <div className="text-[10px] uppercase tracking-wider text-content-muted font-medium mb-1.5">
-              Verification Checklist
+              PDCA: Check — Verification
             </div>
             <ul className="space-y-1">
               {VERIFICATION_CHECKLIST.map((item, i) => (

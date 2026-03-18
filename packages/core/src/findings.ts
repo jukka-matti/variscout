@@ -122,7 +122,7 @@ export interface FindingOutcome {
 }
 
 // ============================================================================
-// Improvement Idea Types (IDEOI — creative bridge between root cause and actions)
+// Improvement Idea Types (creative bridge between suspected cause and actions)
 // ============================================================================
 
 /** Effort level for an improvement idea (manual human judgment) */
@@ -133,7 +133,7 @@ export type IdeaImpact = 'low' | 'medium' | 'high';
 
 /**
  * An improvement idea attached to a supported/partial hypothesis.
- * Bridges validated root cause (ANALYSOI) and corrective actions (KOKEILE).
+ * Bridges validated suspected cause and corrective actions.
  */
 export interface ImprovementIdea {
   /** Unique identifier */
@@ -213,7 +213,7 @@ export interface Hypothesis {
   taskCompleted?: boolean;
   /** Analyst's note when manually setting status (gemba/expert validation) */
   manualNote?: string;
-  /** Improvement ideas — IDEOI output for supported/partial hypotheses */
+  /** Improvement ideas for supported/partial hypotheses */
   ideas?: ImprovementIdea[];
 }
 

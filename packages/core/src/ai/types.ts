@@ -9,7 +9,12 @@ import type { Locale } from '../i18n/types';
 export type TargetMetric = 'mean' | 'sigma' | 'cpk' | 'yield' | 'passRate';
 
 /** Investigation phase for CoScout context (deterministic detection) */
-export type InvestigationPhase = 'initial' | 'diverging' | 'validating' | 'converging' | 'acting';
+export type InvestigationPhase =
+  | 'initial'
+  | 'diverging'
+  | 'validating'
+  | 'converging'
+  | 'improving';
 
 /** Process context provided by the user for AI grounding */
 export interface ProcessContext {
@@ -114,7 +119,7 @@ export interface AIContext {
       }>;
     }>;
     /** Current investigation phase (deterministic) */
-    phase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'acting';
+    phase?: 'initial' | 'diverging' | 'validating' | 'converging' | 'improving';
     /** Investigation categories for completeness prompting */
     categories?: Array<{ name: string; factorNames: string[] }>;
   };

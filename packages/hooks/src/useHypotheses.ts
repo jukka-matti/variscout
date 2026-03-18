@@ -93,7 +93,7 @@ export interface UseHypothesesReturn {
   getChildrenSummary: (parentId: string) => ChildrenSummary;
   /** Whether the max total hypothesis count has been reached */
   isAtCapacity: boolean;
-  // --- Improvement Ideas (IDEOI) ---
+  // --- Improvement Ideas ---
   /** Add an improvement idea to a hypothesis */
   addIdea: (hypothesisId: string, text: string) => ImprovementIdea | null;
   /** Update an improvement idea */
@@ -466,7 +466,7 @@ export function useHypotheses(options: UseHypothesesOptions = {}): UseHypotheses
     [validatedHypotheses]
   );
 
-  // --- Improvement Ideas (IDEOI) ---
+  // --- Improvement Ideas ---
 
   const addIdea = useCallback(
     (hypothesisId: string, text: string): ImprovementIdea | null => {

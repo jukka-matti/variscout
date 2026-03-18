@@ -130,7 +130,7 @@ Never invent data or statistics. If the context does not contain enough informat
     }
 
     if (investigation.phase) {
-      // Check if there are supported hypotheses for IDEOI-specific instructions
+      // Check if there are supported hypotheses for phase-specific instructions
       const hasSupportedHypotheses =
         investigation.allHypotheses?.some(h => h.status === 'supported') ?? false;
 
@@ -143,13 +143,13 @@ Never invent data or statistics. If the context does not contain enough informat
           'The investigation is in the Validating Phase — help interpret η² (contribution, not causation) and prioritize untested hypotheses.',
         converging: hasSupportedHypotheses
           ? 'The investigation is in the Converging Phase — supported causes found. Help brainstorm improvement ideas. Compare effort vs impact. Suggest alternatives or evaluate existing ideas.'
-          : 'The investigation is in the Converging Phase — help synthesize findings into a coherent root cause story.',
-        acting:
-          'The investigation is in the Acting Phase — check the Capability chart. Is Cpk improving? Help monitor effectiveness.',
+          : 'The investigation is in the Converging Phase — help synthesize findings into a coherent suspected root cause story.',
+        improving:
+          'The process is in the Improvement Phase (PDCA) — check the Capability chart. Is Cpk improving? Help monitor effectiveness.',
       };
 
       // Override acting phase with verification-specific instructions when staged data available
-      if (investigation.phase === 'acting' && stagedComparison) {
+      if (investigation.phase === 'improving' && stagedComparison) {
         const sd = stagedComparison.deltas;
         let verificationContext =
           'Verification data available — the analyst has collected After data.';
@@ -158,7 +158,7 @@ Never invent data or statistics. If the context does not contain enough informat
         if (sd.cpkDelta !== null)
           verificationContext += `, Cpk delta ${sd.cpkDelta > 0 ? '+' : ''}${formatStatistic(sd.cpkDelta, 'en', 2)}`;
         verificationContext += '.';
-        phaseInstructions.acting = `The investigation is in the Acting Phase with verification data. ${verificationContext} Help assess: Is the improvement real and sustained? Are there new patterns or risks in the After stage? What sustaining controls are needed?`;
+        phaseInstructions.improving = `The process is in the Improvement Phase with verification data (PDCA: Check). ${verificationContext} Help assess: Is the improvement real and sustained? Are there new patterns or risks in the After stage? What sustaining controls are needed?`;
       }
 
       if (phaseInstructions[investigation.phase]) {

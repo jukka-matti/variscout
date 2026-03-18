@@ -51,8 +51,8 @@ const PHASE_QUESTIONS: Record<string, string[]> = {
     'What improvement options could reduce this variation?',
     "What's the simplest change to improve process capability?",
   ],
-  acting: [
-    'Are the corrective actions addressing the root cause?',
+  improving: [
+    'Are the corrective actions addressing the suspected cause?',
     'What does the Capability chart show — is Cpk improving?',
   ],
 };
@@ -114,7 +114,7 @@ function buildInvestigationQuestions(context: AIContext): string[] {
   const questions: string[] = [];
 
   // Verification-grounded questions (highest priority when acting + staged data)
-  if (inv.phase === 'acting' && context.stagedComparison) {
+  if (inv.phase === 'improving' && context.stagedComparison) {
     const sc = context.stagedComparison;
     const d = sc.deltas;
 
@@ -161,13 +161,13 @@ function buildInvestigationQuestions(context: AIContext): string[] {
     questions.push(`We're at ${Math.round(inv.progressPercent)}% of the target — what's missing?`);
   }
 
-  // Hypothesis-aware — converging with supported hypotheses gets IDEOI questions
+  // Hypothesis-aware — converging with supported hypotheses gets improvement ideation questions
   if (inv.allHypotheses && inv.allHypotheses.length > 0) {
     const supported = inv.allHypotheses.filter(h => h.status === 'supported');
     const untested = inv.allHypotheses.filter(h => h.status === 'untested');
 
     if (supported.length > 0 && inv.phase === 'converging') {
-      // IDEOI-specific: improvement ideation for supported hypotheses
+      // Improvement ideation for supported hypotheses
       const ideasOnSupported = supported[0].ideas;
       if (ideasOnSupported && ideasOnSupported.length > 0) {
         // Idea-aware questions when ideas exist

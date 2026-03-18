@@ -154,12 +154,12 @@ describe('buildSuggestedQuestions', () => {
       const context: AIContext = {
         ...baseContext,
         investigation: {
-          phase: 'acting',
+          phase: 'improving',
           allHypotheses: [{ text: 'Root cause', status: 'supported' }],
         },
       };
       const result = buildSuggestedQuestions(context);
-      expect(result).toContain('Are the corrective actions addressing the root cause?');
+      expect(result).toContain('Are the corrective actions addressing the suspected cause?');
       // Also check for Capability chart question
       expect(
         result.some(q => q.includes('Capability chart') || q.includes('corrective actions'))
@@ -170,7 +170,7 @@ describe('buildSuggestedQuestions', () => {
       const context: AIContext = {
         ...baseContext,
         investigation: {
-          phase: 'acting',
+          phase: 'improving',
           allHypotheses: [{ text: 'Root cause', status: 'supported' }],
         },
         stagedComparison: {
@@ -197,7 +197,7 @@ describe('buildSuggestedQuestions', () => {
       const context: AIContext = {
         ...baseContext,
         investigation: {
-          phase: 'acting',
+          phase: 'improving',
           allHypotheses: [{ text: 'Root cause', status: 'supported' }],
         },
         stagedComparison: {

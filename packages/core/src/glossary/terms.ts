@@ -406,7 +406,7 @@ export const glossaryTerms: GlossaryTerm[] = [
     definition:
       'Lifecycle stage of a finding: observed, investigating, analyzed, improving, or resolved.',
     description:
-      'The 5-status workflow tracks a finding from initial observation through root cause analysis to verified resolution. Observed: spotted but not yet explored. Investigating: actively being analyzed. Analyzed: root cause identified with suspected cause and tag. Improving: corrective actions in progress. Resolved: actions complete and effectiveness verified.',
+      'The 5-status workflow tracks a finding from initial observation through root cause analysis to verified resolution. Observed: spotted but not yet explored. Investigating: actively being analyzed. Analyzed: suspected root cause identified with classification tag. Improving: corrective actions in progress. Resolved: actions complete and effectiveness verified.',
     category: 'investigation',
     relatedTerms: ['finding', 'actionItem', 'correctiveAction'],
   },

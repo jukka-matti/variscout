@@ -106,7 +106,7 @@ Orthogonal (apply across phases):
 The diamond is a **structured learning** process — a disciplined way to build understanding through multiple evidence types. It closes at Converging. Acting/Resolved are now part of IMPROVE (PDCA: Do and Act respectively).
 
 - **Source:** `docs/01-vision/methodology.md`, `packages/core/src/ai/types.ts`
-- **In code?** YES — `InvestigationPhase` type, `InvestigationPhaseBadge` component, CoScout phase-aware prompts. Note: the code type `InvestigationPhase` still includes `'acting'` as legacy naming — the code handles the full status lifecycle while the conceptual model separates investigation (diamond) from improvement (PDCA).
+- **In code?** YES — `InvestigationPhase` type (4 diamond phases + `'improving'` for IMPROVE), `InvestigationPhaseBadge` component, CoScout phase-aware prompts.
 - **Relationship to M1:** The diamond = the INVESTIGATE phase methodology. IMPROVE follows with PDCA.
 
 ### M5: Finding Status
@@ -233,29 +233,29 @@ Both track investigation progress but from different angles: the diamond drives 
 | _(IMPROVE)_   | improving      | AI prompt selection | Actions assigned (PDCA: Do)                  |
 | _(IMPROVE)_   | resolved       | AI prompt selection | Outcome recorded (PDCA: Act)                 |
 
-**Note:** The `improving` and `resolved` statuses map to IMPROVE's PDCA cycle, not the investigation diamond. The diamond closes at Converging (`analyzed`). The mapping exists implicitly in `useAIContext.ts` (phase detection from hypothesis tree state). The code type `InvestigationPhase` still includes `'acting'` as legacy naming — a developer modifying one system should be aware it affects the other.
+**Note:** The `improving` and `resolved` statuses map to IMPROVE's PDCA cycle, not the investigation diamond. The diamond closes at Converging (`analyzed`). The mapping exists implicitly in `useAIContext.ts` (phase detection from hypothesis tree state). The `InvestigationPhase` type uses `'improving'` for the IMPROVE phase — consistent with the `FindingStatus` value.
 
 ---
 
 ## What's In Code vs Docs Only
 
-| Model                     | In Code? | Code Location                                                                                      | Implication                                                                         |
-| ------------------------- | -------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| M1: Journey Phases        | NO       | —                                                                                                  | Cannot be referenced by other code systems                                          |
-| M2: Watson's EDA          | YES      | Chart components, stats engine                                                                     | Foundation of the product                                                           |
-| M3: Four Lenses           | NO       | —                                                                                                  | Teaching/marketing only (intentional)                                               |
-| M4: Investigation Diamond | YES      | `InvestigationPhase` type (includes legacy `'acting'`), `InvestigationPhaseBadge`, CoScout prompts | AI adapts during INVESTIGATE; `'acting'` phase in code maps to IMPROVE conceptually |
-| M5: Finding Status        | YES      | `FindingStatus` type, board columns, tier gating                                                   | Full lifecycle tracking                                                             |
-| M6: AI Layers             | YES      | NarrativeBar, ChartInsightChip, CoScoutPanel                                                       | Three independent systems                                                           |
-| M7: Value Levers          | Indirect | Tier gating                                                                                        | Business model only                                                                 |
-| M8: Report Steps          | YES      | `useReportSections`, `ReportStepMarker`                                                            | Independent of journey phases                                                       |
-| M9: Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                          | Core data model                                                                     |
-| M10: Experience Spectrum  | YES      | `core/tier.ts`                                                                                     | Product gating                                                                      |
-| M11: Two Speeds           | Partial  | Report auto-detection                                                                              | Not typed                                                                           |
-| M12: Two Entry Paths      | NO       | —                                                                                                  | Implicit in UI flow                                                                 |
-| M13: Hypothesis Lifecycle | YES      | `ValidationStatus` type                                                                            | Inside investigation diamond                                                        |
-| M14: Three Contributions  | YES      | Linked filtering, filter chips, hypothesis tree                                                    | Core UX patterns                                                                    |
-| M15: Knowledge Layer      | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup`                                    | Team AI tier only, preview-gated                                                    |
+| Model                     | In Code? | Code Location                                                                                                        | Implication                                                              |
+| ------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| M1: Journey Phases        | NO       | —                                                                                                                    | Cannot be referenced by other code systems                               |
+| M2: Watson's EDA          | YES      | Chart components, stats engine                                                                                       | Foundation of the product                                                |
+| M3: Four Lenses           | NO       | —                                                                                                                    | Teaching/marketing only (intentional)                                    |
+| M4: Investigation Diamond | YES      | `InvestigationPhase` type (4 diamond phases + `'improving'` for IMPROVE), `InvestigationPhaseBadge`, CoScout prompts | AI adapts during INVESTIGATE; `'improving'` phase maps to IMPROVE (PDCA) |
+| M5: Finding Status        | YES      | `FindingStatus` type, board columns, tier gating                                                                     | Full lifecycle tracking                                                  |
+| M6: AI Layers             | YES      | NarrativeBar, ChartInsightChip, CoScoutPanel                                                                         | Three independent systems                                                |
+| M7: Value Levers          | Indirect | Tier gating                                                                                                          | Business model only                                                      |
+| M8: Report Steps          | YES      | `useReportSections`, `ReportStepMarker`                                                                              | Independent of journey phases                                            |
+| M9: Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                                            | Core data model                                                          |
+| M10: Experience Spectrum  | YES      | `core/tier.ts`                                                                                                       | Product gating                                                           |
+| M11: Two Speeds           | Partial  | Report auto-detection                                                                                                | Not typed                                                                |
+| M12: Two Entry Paths      | NO       | —                                                                                                                    | Implicit in UI flow                                                      |
+| M13: Hypothesis Lifecycle | YES      | `ValidationStatus` type                                                                                              | Inside investigation diamond                                             |
+| M14: Three Contributions  | YES      | Linked filtering, filter chips, hypothesis tree                                                                      | Core UX patterns                                                         |
+| M15: Knowledge Layer      | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup`                                                      | Team AI tier only, preview-gated                                         |
 
 ---
 

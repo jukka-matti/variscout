@@ -8,7 +8,7 @@ const phases: { phase: InvestigationPhase; label: string }[] = [
   { phase: 'diverging', label: 'Diverging' },
   { phase: 'validating', label: 'Validating' },
   { phase: 'converging', label: 'Converging' },
-  { phase: 'acting', label: 'Acting' },
+  { phase: 'improving', label: 'Improving' },
 ];
 
 describe('InvestigationPhaseBadge', () => {

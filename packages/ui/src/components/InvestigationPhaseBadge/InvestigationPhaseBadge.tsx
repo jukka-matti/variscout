@@ -10,7 +10,7 @@ const phaseConfig: Record<InvestigationPhase, { label: string; classes: string }
   diverging: { label: 'Diverging', classes: 'bg-amber-500/20 text-amber-400' },
   validating: { label: 'Validating', classes: 'bg-blue-500/20 text-blue-400' },
   converging: { label: 'Converging', classes: 'bg-purple-500/20 text-purple-400' },
-  acting: { label: 'Acting', classes: 'bg-green-500/20 text-green-400' },
+  improving: { label: 'Improving', classes: 'bg-green-500/20 text-green-400' },
 };
 
 const InvestigationPhaseBadge: React.FC<InvestigationPhaseBadgeProps> = ({ phase }) => {

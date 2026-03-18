@@ -475,7 +475,7 @@ describe('buildCoScoutSystemPrompt', () => {
 
   it('includes verification instructions when acting + staged data', () => {
     const prompt = buildCoScoutSystemPrompt({
-      investigation: { phase: 'acting' },
+      investigation: { phase: 'improving' },
       stagedComparison: {
         stageNames: ['Before', 'After'],
         deltas: {
@@ -490,15 +490,15 @@ describe('buildCoScoutSystemPrompt', () => {
         cpkAfter: 1.35,
       },
     });
-    expect(prompt).toContain('Acting Phase with verification data');
+    expect(prompt).toContain('Improvement Phase with verification data');
     expect(prompt).toContain('mean shift -0.30');
     expect(prompt).toContain('Cpk delta +0.50');
     expect(prompt).toContain('Is the improvement real and sustained');
   });
 
   it('uses generic acting instructions when no staged data', () => {
-    const prompt = buildCoScoutSystemPrompt({ investigation: { phase: 'acting' } });
-    expect(prompt).toContain('Acting Phase');
+    const prompt = buildCoScoutSystemPrompt({ investigation: { phase: 'improving' } });
+    expect(prompt).toContain('Improvement Phase');
     expect(prompt).not.toContain('verification data');
   });
 

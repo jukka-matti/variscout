@@ -311,7 +311,7 @@ export function detectInvestigationPhase(
   const untested = hypotheses.filter(h => h.status === 'untested');
   const hasActions = findings?.some(f => f.actions && f.actions.length > 0) ?? false;
 
-  if (hasActions) return 'acting';
+  if (hasActions) return 'improving';
   if (tested.length > untested.length) return 'converging';
   if (hasChildren && untested.length >= tested.length) return 'diverging';
   if (tested.length > 0 && untested.length > 0) return 'validating';

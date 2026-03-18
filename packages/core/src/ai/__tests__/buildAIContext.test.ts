@@ -438,7 +438,7 @@ describe('detectInvestigationPhase', () => {
         actions: [{ id: 'a1', text: 'Fix it', createdAt: 0 }],
       },
     ];
-    expect(detectInvestigationPhase([h], findings)).toBe('acting');
+    expect(detectInvestigationPhase([h], findings)).toBe('improving');
   });
 
   it('returns validating when 1 root supported and 1 root untested (no children)', () => {
@@ -464,7 +464,7 @@ describe('detectInvestigationPhase', () => {
     const h = createHypothesis('Test');
     h.status = 'supported';
     const phase = detectInvestigationPhase([h], []);
-    expect(phase).not.toBe('acting');
+    expect(phase).not.toBe('improving');
     // With 1 tested (supported) and 0 untested → converging
     expect(phase).toBe('converging');
   });

@@ -145,14 +145,15 @@ export const concepts: readonly Concept[] = [
     id: 'phaseConverging',
     label: 'Converging Phase',
     definition:
-      'Root causes identified. Brainstorm improvement ideas, compare effort vs impact, and select actions.',
+      'Suspected root cause identified. Brainstorm improvement ideas, compare effort vs impact, and select actions.',
     conceptCategory: 'phase',
-    relations: [{ targetId: 'phaseActing', type: 'leads-to' }],
+    relations: [{ targetId: 'phaseImproving', type: 'leads-to' }],
   },
   {
-    id: 'phaseActing',
-    label: 'Acting Phase',
-    definition: 'Corrective actions underway. Monitor capability — is Cpk improving?',
+    id: 'phaseImproving',
+    label: 'Improvement Phase (PDCA)',
+    definition:
+      'IMPROVE phase: corrective actions underway (PDCA). Monitor capability — is Cpk improving?',
     conceptCategory: 'phase',
     relations: [
       { targetId: 'correctiveAction', type: 'uses' },
