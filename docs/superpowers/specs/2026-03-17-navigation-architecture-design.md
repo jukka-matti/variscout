@@ -357,16 +357,14 @@ App Shell (Azure/PWA)
 
 Existing navigation docs need updating alongside the design spec:
 
-| File                                              | Updates                                                                                                                                                                           |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `docs/06-design-system/patterns/navigation.md`    | Add: view navigation (`useNavigation`), phase-based toolbar emphasis, panel hierarchy + z-index strategy, mobile navigation patterns. Restructure to cover all navigation layers. |
-| `docs/03-features/navigation/drill-down.md`       | Add: `historyDelegate` option for shared history with `useNavigation`. Document browser back behavior for drill-downs.                                                            |
-| `docs/03-features/navigation/breadcrumbs.md`      | Update touch target sizes (48px primary, 44px minimum).                                                                                                                           |
-| `docs/03-features/navigation/linked-filtering.md` | Remove Excel/Power BI from platform table (shelved). Update to PWA + Azure only.                                                                                                  |
-| `docs/05-technical/architecture/component-map.md` | Add `ToolbarBase`, `useNavigation` to component inventory.                                                                                                                        |
-| `.claude/rules/monorepo.md`                       | Add `useNavigation` to hooks list.                                                                                                                                                |
-| `CLAUDE.md`                                       | Add navigation task-to-documentation mapping.                                                                                                                                     |
-| `docs/superpowers/specs/index.md`                 | Add this design spec entry.                                                                                                                                                       |
+| File                                                   | Updates                                                                                                                                                                           |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/06-design-system/patterns/navigation.md`         | Add: view navigation (`useNavigation`), phase-based toolbar emphasis, panel hierarchy + z-index strategy, mobile navigation patterns. Restructure to cover all navigation layers. |
+| `docs/03-features/navigation/progressive-filtering.md` | Add: `historyDelegate` option, touch target sizes (48px primary, 44px minimum), remove Excel/Power BI from platform support (shelved).                                            |
+| `docs/05-technical/architecture/component-map.md`      | Add `ToolbarBase`, `useNavigation` to component inventory.                                                                                                                        |
+| `.claude/rules/monorepo.md`                            | Add `useNavigation` to hooks list.                                                                                                                                                |
+| `CLAUDE.md`                                            | Add navigation task-to-documentation mapping.                                                                                                                                     |
+| `docs/superpowers/specs/index.md`                      | Add this design spec entry.                                                                                                                                                       |
 
 ## 16. Implementation Sequence
 

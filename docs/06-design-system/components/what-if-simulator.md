@@ -66,7 +66,7 @@ Uses `simulateDirectAdjustment()` from `@variscout/core` for projection calculat
 
 ### Smart Presets
 
-The simulator auto-computes up to 6 one-click presets based on current stats and [characteristic type](../../../03-features/analysis/characteristic-types.md):
+The simulator auto-computes up to 6 one-click presets based on current stats and [characteristic type](../../03-features/analysis/characteristic-types.md):
 
 | #   | Preset          | Logic                              |
 | --- | --------------- | ---------------------------------- |
@@ -121,4 +121,4 @@ The `WhatIfSimulatorColorScheme` includes `improvementPositive` and `improvement
 ## See Also
 
 - [Variation Bar](variation-funnel.md) - Visual progress of variation in focus
-- [Drill-Down Feature](../../03-features/navigation/drill-down.md)
+- [Progressive Filtering](../../03-features/navigation/progressive-filtering.md)

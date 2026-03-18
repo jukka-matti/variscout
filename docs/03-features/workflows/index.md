@@ -89,6 +89,14 @@ The two-phase analyst workflow: **Investigate → Project**
 1. Findings — drill into factors, pin observations, track investigation status
 2. What-If — scenario modeling for projected improvement
 
+### [Hypothesis Investigation](hypothesis-investigation.md)
+
+The hypothesis tree workflow — form hypotheses, validate with data, track evidence, refine or reject.
+
+### [Knowledge Base Search](knowledge-base-search.md)
+
+Search organizational knowledge from past analyses to accelerate current investigations (Azure Team AI).
+
 ## Time-Boxed Scenarios
 
 ### [Quick Check (5 Minutes)](quick-check.md)

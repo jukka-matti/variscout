@@ -64,14 +64,12 @@ See [Colors](./foundations/colors.md) for the complete mapping.
 
 ### Components
 
-- [Buttons](./components/buttons.md) - Button variants
-- [Cards](./components/cards.md) - Cards and panels
-- [Modals](./components/modals.md) - Modal patterns
-- [Forms](./components/forms.md) - Form elements
+- [Foundational Patterns](./components/foundational-patterns.md) - Buttons, forms, cards, modals
 - [VariationBar](./components/variation-funnel.md) - Variation scope progress bar
 - [What-If Simulator](./components/what-if-simulator.md) - Process improvement exploration
 - [Findings](./components/findings.md) - Investigation findings, board view, actions
 - [AI Components](./components/ai-components.md) - NarrativeBar, ChartInsightChip, CoScoutPanel
+- [Help Tooltip](./components/help-tooltip.md) - Contextual help with glossary integration
 
 ### Patterns
 

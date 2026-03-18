@@ -37,6 +37,6 @@ Whether this is confusing or simply an accurate reflection of how factor contrib
 
 ## Related Patterns
 
-- [Parallel Path Comparison](../patterns/parallel-path-comparison.md) --- Directly addresses this by showing alternative paths and their convergence or divergence.
-- [Auto-Combination Finder](../patterns/auto-combination-finder.md) --- Bypasses path dependency entirely by jumping straight to the optimal combination.
-- [Factor Map](../patterns/factor-map.md) --- Shows all factors simultaneously without imposing a sequence, making path dependency irrelevant for the initial overview.
+- [Parallel Path Comparison](../../../archive/evaluation-patterns/parallel-path-comparison.md) --- Directly addresses this by showing alternative paths and their convergence or divergence.
+- [Auto-Combination Finder](../../../archive/evaluation-patterns/auto-combination-finder.md) --- Bypasses path dependency entirely by jumping straight to the optimal combination.
+- [Factor Map](../../../archive/evaluation-patterns/factor-map.md) --- Shows all factors simultaneously without imposing a sequence, making path dependency irrelevant for the initial overview.

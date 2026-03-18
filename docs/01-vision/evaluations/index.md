@@ -23,17 +23,19 @@ Product strategy evaluations for the design tensions and alternative patterns id
 
 ### Patterns
 
-| Pattern                                                          | Verdict                                            | Tensions Addressed                                                      | Philosophy Fit                   |
-| ---------------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------- |
-| [Factor Suggestion](patterns/factor-suggestion.md)               | **Pursue**                                         | Factor Ordering, Discoverability, When to Stop                          | Good (if optional/subtle)        |
-| [Interaction Heatmap](patterns/interaction-heatmap.md)           | **Pursue**                                         | Hierarchy Assumption, Factor Ordering                                   | Strong                           |
-| [Parallel Path Comparison](patterns/parallel-path-comparison.md) | **Defer**                                          | Path Dependency, Hierarchy Assumption                                   | Good                             |
-| [Auto-Combination Finder](patterns/auto-combination-finder.md)   | **Defer**                                          | Hierarchy Assumption, Factor Ordering, Path Dependency                  | Mixed (conflicts with pedagogy)  |
-| [Small Multiples](patterns/small-multiples.md)                   | **Defer**                                          | Factor Ordering, Path Dependency                                        | Good (scaling limits)            |
-| [Factor Map](patterns/factor-map.md)                             | **Defer**                                          | All 5 non-mobile tensions                                               | Strong (high complexity)         |
-| Investigation Mindmap (archived)                                 | **Primary** (replaced by Findings, Feb 2026)       | Hierarchy Assumption, Discoverability, Factor Ordering, Path Dependency | Strong (lighter Factor Map)      |
-| Investigation Narrative (archived)                               | **Primary** (absorbed into Mindmap, then replaced) | When to Stop, Path Dependency, Discoverability                          | Strong                           |
-| [Sidebar Filter Panel](patterns/sidebar-filter-panel.md)         | **Reject**                                         | Discoverability                                                         | Poor (undermines differentiator) |
+| Pattern                  | Verdict                                            | Tensions Addressed                                                      | Philosophy Fit                   |
+| ------------------------ | -------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------- |
+| Factor Suggestion        | **Pursue**                                         | Factor Ordering, Discoverability, When to Stop                          | Good (if optional/subtle)        |
+| Interaction Heatmap      | **Pursue**                                         | Hierarchy Assumption, Factor Ordering                                   | Strong                           |
+| Parallel Path Comparison | **Defer**                                          | Path Dependency, Hierarchy Assumption                                   | Good                             |
+| Auto-Combination Finder  | **Defer**                                          | Hierarchy Assumption, Factor Ordering, Path Dependency                  | Mixed (conflicts with pedagogy)  |
+| Small Multiples          | **Defer**                                          | Factor Ordering, Path Dependency                                        | Good (scaling limits)            |
+| Factor Map               | **Defer**                                          | All 5 non-mobile tensions                                               | Strong (high complexity)         |
+| Investigation Mindmap    | **Primary** (replaced by Findings, Feb 2026)       | Hierarchy Assumption, Discoverability, Factor Ordering, Path Dependency | Strong (lighter Factor Map)      |
+| Investigation Narrative  | **Primary** (absorbed into Mindmap, then replaced) | When to Stop, Path Dependency, Discoverability                          | Strong                           |
+| Sidebar Filter Panel     | **Reject**                                         | Discoverability                                                         | Poor (undermines differentiator) |
+
+> **Note:** Pattern evaluation files have been archived to `docs/archive/evaluation-patterns/`. The decisions documented here are captured in ADRs and the Findings system implementation. See `docs/archive/evaluation-patterns/` for the original detailed evaluations.
 
 ---
 

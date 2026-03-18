@@ -253,6 +253,8 @@ The Azure app includes a development-only tier switching component at `apps/azur
 - [OneDrive Sync](onedrive-sync.md)
 - [Storage](storage.md) — IndexedDB schema, sync queue, persistence model
 - [Submission Checklist](submission-checklist.md) — Marketplace submission preparation
+- [Certification Guide](certification-guide.md) — Azure Marketplace certification preparation
+- [AI Safety Report](ai-safety-report.md) — CoScout AI safety compliance template
 - [ADR-007: Azure Marketplace Distribution](../../07-decisions/adr-007-azure-marketplace-distribution.md)
 - [ADR-016: Teams Integration](../../07-decisions/adr-016-teams-integration.md)
 - [ADR-021: Security Evaluation](../../07-decisions/adr-021-security-evaluation.md)

@@ -335,7 +335,7 @@ Interactive playground for 52 UI + 14 chart components:
 
 ### Phase D — ADR Visualization ✓
 
-Mermaid dependency graph in [`docs/07-decisions/index.md`](../../07-decisions/index.md):
+Mermaid dependency graph in [`docs/07-decisions/index.md`](../07-decisions/index.md):
 
 - Shows supersedes/extends relationships between 18 ADRs
 - Groups by domain (Architecture, Charts, Storage, Distribution, Features, Teams)

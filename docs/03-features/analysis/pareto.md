@@ -97,7 +97,7 @@ Pareto charts in VariScout use sorted category counts with cumulative percentage
 - [FAILURE Lens](../../01-vision/four-lenses/failure.md) - Problem concentration concepts
 - [Boxplot](boxplot.md) - Previous step: compare variation by factor
 - [Capability](capability.md) - Next step: assess capability of focused subset
-- [Drill-Down](../navigation/drill-down.md) - Navigate into top categories
+- [Progressive Filtering](../navigation/progressive-filtering.md) - Navigate into top categories
 - [Chart Design](../../06-design-system/charts/pareto.md)
 - [Case: Packaging](../../04-cases/packaging/index.md) - Pareto in action
 - [Performance Mode](performance-mode.md) - Multi-channel Cpk ranking

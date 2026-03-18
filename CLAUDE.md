@@ -50,7 +50,6 @@ npx ruflo@latest security cve --check        # CVE check
 | docs/08-products/       | Azure, PWA, website specs, feature-parity matrix                      |
 | docs/09-tutorials/      | Planned step-by-step guides                                           |
 | docs/superpowers/specs/ | Design specs from brainstorming sessions (see index.md)               |
-| docs/architecture/      | LikeC4 model (C4 L1-L3 source of truth)                               |
 | docs/archive/           | HISTORICAL ONLY — removed features, do not reference for current work |
 
 ## Task → Documentation

@@ -141,7 +141,7 @@ Replaces the main content entirely for dedicated workflows.
 
 ### Modal Dialog
 
-Centered overlay for quick confirmations or compact forms. See [Modals](../components/modals.md) for full patterns.
+Centered overlay for quick confirmations or compact forms. See [Foundational Patterns § Modals](../components/foundational-patterns.md#4-modals) for full patterns.
 
 **Fluent 2 equivalent**: `Dialog`
 
@@ -185,7 +185,7 @@ Touch targets on phone use minimum 44×44px dimensions (`minWidth: 44, minHeight
 
 ## Z-Index Scale
 
-Extended from the [Modals](../components/modals.md#z-index-scale) z-index table:
+Extended from the [Foundational Patterns](../components/foundational-patterns.md#backdrop--z-index) z-index table:
 
 | Level              | z-index   | Usage                                | Examples                                   |
 | ------------------ | --------- | ------------------------------------ | ------------------------------------------ |
@@ -264,6 +264,6 @@ Defined in `packages/ui/src/styles/components.css`.
 ## See Also
 
 - [ADR-017: Fluent 2 Design Alignment](../../07-decisions/adr-017-fluent-design-alignment.md) — Decision to adopt principles without library
-- [Modals](../components/modals.md) — Modal dialog patterns, sizing, keyboard handling
+- [Foundational Patterns](../components/foundational-patterns.md) — Buttons, forms, cards, modals
 - [Layout](layout.md) — Page layout patterns, dashboard grid, responsive breakpoints
 - [Interactions](interactions.md) — Inline editing, context menus, drag-and-drop

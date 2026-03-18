@@ -105,12 +105,10 @@ These aren't proposals for implementation --- they're design patterns that addre
 
 This document describes the _why_ behind VariScout's drill-down design. The _what_ and _how_ are documented elsewhere:
 
-| Topic                               | Document                                                                        |
-| ----------------------------------- | ------------------------------------------------------------------------------- |
-| Product philosophy and EDA mindset  | [EDA for Process Improvement](philosophy.md)                                    |
-| Four Lenses drill-down methodology  | [Drill-Down: Progressive Variation Analysis](four-lenses/drilldown.md)          |
-| Drill-down implementation and hooks | [Drill-Down Navigation](../03-features/navigation/drill-down.md)                |
-| Filter chip UI specification        | [Filter Chips Navigation](../03-features/navigation/breadcrumbs.md)             |
-| Linked filtering across charts      | [Linked Filtering](../03-features/navigation/linked-filtering.md)               |
-| Step-by-step drill-down workflow    | [Drill-Down Analysis Workflow](../03-features/workflows/drill-down-workflow.md) |
-| Variation decomposition statistics  | [Variation Decomposition](../03-features/analysis/variation-decomposition.md)   |
+| Topic                              | Document                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------- |
+| Product philosophy and EDA mindset | [EDA for Process Improvement](philosophy.md)                                    |
+| Four Lenses drill-down methodology | [Drill-Down: Progressive Variation Analysis](four-lenses/drilldown.md)          |
+| Progressive filtering system       | [Progressive Filtering](../03-features/navigation/progressive-filtering.md)     |
+| Step-by-step drill-down workflow   | [Drill-Down Analysis Workflow](../03-features/workflows/drill-down-workflow.md) |
+| Variation decomposition statistics | [Variation Decomposition](../03-features/analysis/variation-decomposition.md)   |

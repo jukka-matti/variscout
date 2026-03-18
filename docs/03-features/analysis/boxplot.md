@@ -144,7 +144,7 @@ const etaSq = getEtaSquared(data, 'Machine', 'Weight');
 ## See Also
 
 - [FLOW Lens](../../01-vision/four-lenses/flow.md) - Upstream factor concepts
-- [Drill-Down](../navigation/drill-down.md) - Multi-level factor exploration
+- [Progressive Filtering](../navigation/progressive-filtering.md) - Multi-level factor exploration
 - [I-Chart](i-chart.md) - Previous step: detect instability over time
 - [Pareto](pareto.md) - Next step: rank contribution of factors
 - [Regression (Phase 2, deferred)](../../archive/regression.md) - When to check for interactions

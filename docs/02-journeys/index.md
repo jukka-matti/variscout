@@ -32,6 +32,14 @@ Foundational user research informing persona development and flow design:
 
 ---
 
+## Case-Based Learning
+
+How VariScout uses real-world datasets to teach methodology through hands-on exploration:
+
+[:octicons-arrow-right-24: Case-Based Learning](case-based-learning.md)
+
+---
+
 ## Use Cases
 
 Strategic use cases grounded in VariScout's capabilities — the specific problems that bring searchers in.

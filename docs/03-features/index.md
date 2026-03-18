@@ -55,18 +55,20 @@ The core statistical charts based on Watson's Four Lenses:
 
 How analysts combine VariScout tools to solve real problems. See the [Workflows index](workflows/index.md) for the full guide.
 
-| Workflow                                                        | Description                                |
-| --------------------------------------------------------------- | ------------------------------------------ |
-| [Four Lenses](workflows/four-lenses-workflow.md)                | Foundational CHANGE-FLOW-FAILURE-VALUE     |
-| [Drill-Down](workflows/drill-down-workflow.md)                  | Progressive stratification                 |
-| [Performance Mode](workflows/performance-mode-workflow.md)      | Multi-channel analysis workflow            |
-| [Quick Check](workflows/quick-check.md)                         | 5-minute shift monitoring                  |
-| [Deep Dive](workflows/deep-dive.md)                             | 30-minute systematic investigation         |
-| [Decision Trees](workflows/decision-trees.md)                   | Chart selection flowcharts                 |
-| [Investigation to Action](workflows/investigation-to-action.md) | Investigate, refine, project               |
-| [AI-Assisted Analysis](workflows/ai-assisted-analysis.md)       | AI-enhanced investigation (Azure only)     |
-| [AI Experience Narrative](workflows/ai-experience-narrative.md) | How the experience changes with/without AI |
-| [Process Maps](workflows/process-maps.md)                       | Step-by-step visual action maps            |
+| Workflow                                                          | Description                                    |
+| ----------------------------------------------------------------- | ---------------------------------------------- |
+| [Four Lenses](workflows/four-lenses-workflow.md)                  | Foundational CHANGE-FLOW-FAILURE-VALUE         |
+| [Drill-Down](workflows/drill-down-workflow.md)                    | Progressive stratification                     |
+| [Performance Mode](workflows/performance-mode-workflow.md)        | Multi-channel analysis workflow                |
+| [Quick Check](workflows/quick-check.md)                           | 5-minute shift monitoring                      |
+| [Deep Dive](workflows/deep-dive.md)                               | 30-minute systematic investigation             |
+| [Decision Trees](workflows/decision-trees.md)                     | Chart selection flowcharts                     |
+| [Investigation to Action](workflows/investigation-to-action.md)   | Investigate, refine, project                   |
+| [Hypothesis Investigation](workflows/hypothesis-investigation.md) | Hypothesis tree, validation, evidence tracking |
+| [Knowledge Base Search](workflows/knowledge-base-search.md)       | Organizational knowledge search (Team AI)      |
+| [AI-Assisted Analysis](workflows/ai-assisted-analysis.md)         | AI-enhanced investigation (Azure only)         |
+| [AI Experience Narrative](workflows/ai-experience-narrative.md)   | How the experience changes with/without AI     |
+| [Process Maps](workflows/process-maps.md)                         | Step-by-step visual action maps                |
 
 ---
 
@@ -74,11 +76,9 @@ How analysts combine VariScout tools to solve real problems. See the [Workflows 
 
 How users explore and filter data:
 
-| Feature                                            | Description                |
-| -------------------------------------------------- | -------------------------- |
-| [Drill-Down](navigation/drill-down.md)             | Progressive stratification |
-| [Linked Filtering](navigation/linked-filtering.md) | Cross-chart filtering      |
-| [Breadcrumbs](navigation/breadcrumbs.md)           | Analysis path tracking     |
+| Feature                                                      | Description                                             |
+| ------------------------------------------------------------ | ------------------------------------------------------- |
+| [Progressive Filtering](navigation/progressive-filtering.md) | Drill-down, linked filtering, and filter chips combined |
 
 ---
 
@@ -98,8 +98,8 @@ Data handling and storage:
 
 Educational features:
 
-| Feature                                                | Description               |
-| ------------------------------------------------------ | ------------------------- |
-| [Glossary](learning/glossary.md)                       | Term definitions          |
-| [Help Tooltips](learning/help-tooltips.md)             | Contextual help           |
-| [Case-Based Learning](learning/case-based-learning.md) | Learning through examples |
+| Feature                          | Description      |
+| -------------------------------- | ---------------- |
+| [Glossary](learning/glossary.md) | Term definitions |
+
+> **Moved:** Help Tooltips → [design system](../06-design-system/components/help-tooltip.md) | Case-Based Learning → [journeys](../02-journeys/case-based-learning.md)

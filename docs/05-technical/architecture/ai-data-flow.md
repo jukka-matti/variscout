@@ -247,4 +247,3 @@ How AI context changes across investigation phases:
 - [Component Patterns](component-patterns.md)
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
 - [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
-- [AI Context Pipeline Reference](ai-context-reference.md)

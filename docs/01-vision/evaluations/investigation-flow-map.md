@@ -5,7 +5,7 @@ title: 'Investigation Flow Map: Pizza Delivery'
 # Investigation Flow Map: Pizza Delivery
 
 > **Historical document** — describes the pre-Mindmap investigation flow using FunnelPanel.
-> See [design-spec-investigation-mindmap.md](./design-spec-investigation-mindmap.md) for the current implementation.
+> See [design-spec-investigation-mindmap.md](../../archive/design-spec-investigation-mindmap.md) for the archived design spec (replaced by Findings system, Feb 2026).
 
 > A step-by-step walkthrough of a complete variation investigation using the Pizza Delivery dataset, documenting what exists at each step, what guidance the analyst receives, and where enhanced/new elements would improve the flow.
 
@@ -240,7 +240,6 @@ The drill trail is complete: Start → Store South → Time_Slot: Dinner. Two no
 ## Related Documents
 
 - [Design Brief](design-brief-guided-investigation.md) — Statistical methodology and design principles
-- [Investigation Mindmap](patterns/investigation-mindmap.md) — Pattern evaluation for the companion view
-- [Investigation Narrative](patterns/investigation-narrative.md) — Pattern evaluation for presentation mode
-- [Factor Suggestion](patterns/factor-suggestion.md) — Phase 1 pattern evaluation
-- [Interaction Heatmap](patterns/interaction-heatmap.md) — Phase 2 pattern evaluation
+- [Investigation Mindmap](../../archive/investigation-mindmap.md) — Pattern evaluation (archived)
+- [Factor Suggestion](../../archive/evaluation-patterns/factor-suggestion.md) — Pattern evaluation (archived)
+- [Interaction Heatmap](../../archive/evaluation-patterns/interaction-heatmap.md) — Pattern evaluation (archived)

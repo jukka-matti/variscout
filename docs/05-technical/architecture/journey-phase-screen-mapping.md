@@ -8,7 +8,7 @@ related: [journey-phase, mental-model-hierarchy, analysis-journey-map, methodolo
 
 # Journey Phase → Screen Mapping
 
-Maps the 4-phase analysis journey (FRAME → SCOUT → INVESTIGATE → IMPROVE) to actual screens, components, and features. Complements the conceptual [analysis-journey-map.md](../../../01-vision/analysis-journey-map.md) with concrete code references.
+Maps the 4-phase analysis journey (FRAME → SCOUT → INVESTIGATE → IMPROVE) to actual screens, components, and features. Complements the conceptual [analysis-journey-map.md](../../03-features/workflows/analysis-journey-map.md) with concrete code references.
 
 ## Screen Flow Overview
 
@@ -120,7 +120,7 @@ Phase detection uses `useJourneyPhase` hook from `@variscout/hooks`:
 
 ## Related Documents
 
-- [analysis-journey-map.md](../../../01-vision/analysis-journey-map.md) — Conceptual journey definition
+- [analysis-journey-map.md](../../03-features/workflows/analysis-journey-map.md) — Conceptual journey definition
 - [mental-model-hierarchy.md](./mental-model-hierarchy.md) — M1: Journey Phase model
-- [investigation-to-action.md](../../../03-features/workflows/investigation-to-action.md) — INVESTIGATE/IMPROVE workflow
-- [methodology-coach-design.md](../../../superpowers/specs/2026-03-18-methodology-coach-design.md) — Coach UI design spec
+- [investigation-to-action.md](../../03-features/workflows/investigation-to-action.md) — INVESTIGATE/IMPROVE workflow
+- [methodology-coach-design.md](../../superpowers/specs/2026-03-18-methodology-coach-design.md) — Coach UI design spec

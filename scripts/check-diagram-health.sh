@@ -134,6 +134,110 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# 4. Check for orphaned docs (files not linked from any other .md)
+# ---------------------------------------------------------------------------
+
+echo ""
+echo "=== Orphaned File Checks ==="
+
+ORPHAN_COUNT=0
+while IFS= read -r file; do
+  basename=$(basename "$file")
+  # Skip index files, archive, and known standalone files
+  [[ "$basename" == "index.md" ]] && continue
+  [[ "$file" == *"/archive/"* ]] && continue
+  [[ "$file" == *"/node_modules/"* ]] && continue
+
+  # Get relative path from docs/
+  relpath="${file#$ROOT/docs/}"
+
+  # Check if any other .md file references this file (by filename or relative path)
+  refs=$(grep -rl "$basename\|$relpath" "$ROOT/docs/" "$ROOT/CLAUDE.md" "$ROOT/.claude/rules/" 2>/dev/null | grep -v "$file" | head -1 || true)
+  if [ -z "$refs" ]; then
+    ORPHAN_COUNT=$((ORPHAN_COUNT + 1))
+    if (( ORPHAN_COUNT <= 10 )); then
+      red "ORPHAN: $relpath — not referenced from any other doc"
+    fi
+  fi
+done < <(find "$ROOT/docs" -name "*.md" -not -path "*/node_modules/*" -not -path "*/archive/*" 2>/dev/null)
+
+if (( ORPHAN_COUNT > 0 )); then
+  red "Found $ORPHAN_COUNT orphaned file(s) in docs/"
+  ERRORS=$((ERRORS + 1))
+else
+  green "OK: No orphaned files in docs/"
+fi
+
+# ---------------------------------------------------------------------------
+# 5. Check for broken cross-references
+# ---------------------------------------------------------------------------
+
+echo ""
+echo "=== Broken Cross-Reference Checks ==="
+
+BROKEN_COUNT=0
+while IFS= read -r file; do
+  [[ "$file" == *"/archive/"* ]] && continue
+  [[ "$file" == *"/node_modules/"* ]] && continue
+  dir=$(dirname "$file")
+
+  # Extract markdown links to .md files
+  while IFS= read -r link; do
+    # Skip external URLs, anchors-only, and empty
+    [[ -z "$link" ]] && continue
+    [[ "$link" == http* ]] && continue
+    [[ "$link" == "#"* ]] && continue
+
+    # Strip anchor
+    target="${link%%#*}"
+    [[ -z "$target" ]] && continue
+
+    # Resolve relative path
+    resolved=$(cd "$dir" && realpath -q "$target" 2>/dev/null || echo "")
+    if [ -z "$resolved" ] || [ ! -f "$resolved" ]; then
+      BROKEN_COUNT=$((BROKEN_COUNT + 1))
+      if (( BROKEN_COUNT <= 10 )); then
+        relpath="${file#$ROOT/}"
+        red "BROKEN: $relpath → $link"
+      fi
+    fi
+  done < <(grep -oE '\]\([^)]+\.md[^)]*\)' "$file" 2>/dev/null | sed 's/\](//' | sed 's/)//' || true)
+done < <(find "$ROOT/docs" -name "*.md" -not -path "*/node_modules/*" 2>/dev/null)
+
+if (( BROKEN_COUNT > 0 )); then
+  red "Found $BROKEN_COUNT broken cross-reference(s)"
+  ERRORS=$((ERRORS + 1))
+else
+  green "OK: No broken cross-references"
+fi
+
+# ---------------------------------------------------------------------------
+# 6. Check for missing frontmatter in section index files
+# ---------------------------------------------------------------------------
+
+echo ""
+echo "=== Frontmatter Checks ==="
+
+MISSING_FM=0
+while IFS= read -r file; do
+  [[ "$file" == *"/archive/"* ]] && continue
+  if ! head -1 "$file" | grep -q '^---$'; then
+    MISSING_FM=$((MISSING_FM + 1))
+    if (( MISSING_FM <= 5 )); then
+      relpath="${file#$ROOT/}"
+      red "NO FRONTMATTER: $relpath"
+    fi
+  fi
+done < <(find "$ROOT/docs" -name "index.md" -not -path "*/node_modules/*" -not -path "*/archive/*" 2>/dev/null)
+
+if (( MISSING_FM > 0 )); then
+  red "Found $MISSING_FM index file(s) without frontmatter"
+  ERRORS=$((ERRORS + 1))
+else
+  green "OK: All index files have frontmatter"
+fi
+
+# ---------------------------------------------------------------------------
 # Summary
 # ---------------------------------------------------------------------------
 

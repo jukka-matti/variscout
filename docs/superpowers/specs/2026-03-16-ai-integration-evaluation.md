@@ -1,3 +1,7 @@
+---
+title: 'AI Integration Quality Evaluation'
+---
+
 # AI Integration Quality Evaluation — VariScout
 
 **Date:** 2026-03-16

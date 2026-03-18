@@ -126,7 +126,7 @@ AI quality depends on process context. A `ProcessContext` type on `AnalysisState
 - **processDescription:** Free-text field in Settings for context auto-inference can't capture.
 - **All fields optional** — backward compatible with existing .vrs files.
 
-See [AI Readiness Review](../05-technical/architecture/ai-readiness-review.md) for the full ProcessContext type definition and progressive disclosure strategy.
+See [AI Readiness Review](../archive/ai-readiness-review.md) for the full ProcessContext type definition and progressive disclosure strategy.
 
 ### Phased Delivery
 
@@ -206,7 +206,7 @@ Key design decisions:
 
 - [ADR-015: Investigation Board](adr-015-investigation-board.md)
 - [ADR-026: SharePoint-First Knowledge Base](adr-026-knowledge-base-sharepoint-first.md)
-- [AI Readiness Review](../05-technical/architecture/ai-readiness-review.md)
+- [AI Readiness Review](../archive/ai-readiness-review.md) (archived)
 - [AI-Assisted Analysis Workflow](../03-features/workflows/ai-assisted-analysis.md)
 - [AI Architecture](../05-technical/architecture/ai-architecture.md)
 - [AI Components](../06-design-system/components/ai-components.md)

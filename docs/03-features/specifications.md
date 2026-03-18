@@ -43,7 +43,7 @@ A lightweight, offline variation analysis tool for quality professionals. Fast, 
 | --------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | Data Import                 | CSV, Excel, paste; smart auto-mapping, validation     | [data-input.md](data/data-input.md)                                                                   |
 | Three-Chart Dashboard       | I-Chart, Boxplot, Pareto with linked filtering        | [i-chart.md](analysis/i-chart.md), [boxplot.md](analysis/boxplot.md), [pareto.md](analysis/pareto.md) |
-| Interactive Analysis        | Drill-down, breadcrumbs, factor selection             | [drill-down.md](navigation/drill-down.md), [linked-filtering.md](navigation/linked-filtering.md)      |
+| Interactive Analysis        | Drill-down, breadcrumbs, factor selection             | [progressive-filtering.md](navigation/progressive-filtering.md)                                       |
 | Statistics Panel            | Conformance/Capability modes, Cp/Cpk, η², histogram   | [stats-panel.md](analysis/stats-panel.md)                                                             |
 | Data Table                  | Inline editing, keyboard navigation, spec status      | [data-input.md](data/data-input.md)                                                                   |
 | Save & Load (.vrs)          | Azure App: project persistence + OneDrive sync        | [storage.md](data/storage.md)                                                                         |
@@ -52,7 +52,7 @@ A lightweight, offline variation analysis tool for quality professionals. Fast, 
 | Branding                    | Source bar with sample count; hidden for paid tiers   | —                                                                                                     |
 | Staged Analysis             | Before/after comparison with stage columns            | [staged-analysis.md](analysis/staged-analysis.md)                                                     |
 | Nelson Rules                | Control chart pattern detection                       | [nelson-rules.md](analysis/nelson-rules.md)                                                           |
-| Control Violation Education | Tooltip explanations, glossary terms                  | [help-tooltips.md](learning/help-tooltips.md)                                                         |
+| Control Violation Education | Tooltip explanations, glossary terms                  | [help-tooltip.md](../06-design-system/components/help-tooltip.md)                                     |
 | Embed Mode                  | URL parameters for website case studies               | [embed-messaging.md](../../docs/05-technical/integrations/embed-messaging.md)                         |
 | Dashboard Design            | Scrollable layout, sticky nav, presentation mode      | [dashboard-design.md](../../docs/06-design-system/patterns/dashboard-design.md)                       |
 

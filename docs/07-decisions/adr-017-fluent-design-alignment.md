@@ -69,7 +69,7 @@ Current implementations that already follow Fluent 2 principles:
 | Inline drawer for parallel work | FindingsPanel (findings beside charts)                               | `packages/ui/src/components/FindingsPanel/FindingsPanelBase.tsx` |
 | Overlay drawer for focus        | SettingsPanel (backdrop + slide-in-right)                            | `packages/ui/src/components/SettingsPanel/SettingsPanelBase.tsx` |
 | Full-screen page for workflows  | WhatIfPage (dedicated simulation workspace)                          | `packages/ui/src/components/WhatIfPage/WhatIfPageBase.tsx`       |
-| Dialog for confirmations        | Standard modal (centered, backdrop blur)                             | `docs/06-design-system/components/modals.md`                     |
+| Dialog for confirmations        | Standard modal (centered, backdrop blur)                             | `docs/06-design-system/components/foundational-patterns.md`      |
 | Sheet for mobile                | Phone FindingsPanel (slide-up full-screen)                           | `apps/azure/src/pages/Editor.tsx:1017`                           |
 | Escape-to-dismiss               | All panels and modals                                                | `FindingsPanelBase.tsx:99`, `SettingsPanelBase.tsx:59`           |
 | Backdrop click closes overlay   | SettingsPanel backdrop                                               | `SettingsPanelBase.tsx:73`                                       |
@@ -101,5 +101,5 @@ Current implementations that already follow Fluent 2 principles:
 ## See Also
 
 - [Panels and Drawers](../06-design-system/patterns/panels-and-drawers.md) — Practical decision framework and implementation reference
-- [Modals](../06-design-system/components/modals.md) — Existing modal patterns and z-index scale
+- [Foundational Patterns](../06-design-system/components/foundational-patterns.md) — Buttons, forms, cards, modals, z-index scale
 - [Fluent 2 Drawer documentation](https://fluent2.microsoft.design/components/web/react/drawer)

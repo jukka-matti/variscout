@@ -37,6 +37,6 @@ The current design leans exploratory: eta-squared is displayed but no explicit r
 
 ## Related Patterns
 
-- [Factor Suggestion](../patterns/factor-suggestion.md) --- Directly addresses this by highlighting the recommended next factor.
-- [Auto-Combination Finder](../patterns/auto-combination-finder.md) --- Bypasses factor ordering entirely by starting from the optimal combination.
-- [Factor Map](../patterns/factor-map.md) --- Visual factor sizing by eta-squared makes the recommendation spatial and intuitive rather than numerical.
+- [Factor Suggestion](../../../archive/evaluation-patterns/factor-suggestion.md) --- Directly addresses this by highlighting the recommended next factor.
+- [Auto-Combination Finder](../../../archive/evaluation-patterns/auto-combination-finder.md) --- Bypasses factor ordering entirely by starting from the optimal combination.
+- [Factor Map](../../../archive/evaluation-patterns/factor-map.md) --- Visual factor sizing by eta-squared makes the recommendation spatial and intuitive rather than numerical.

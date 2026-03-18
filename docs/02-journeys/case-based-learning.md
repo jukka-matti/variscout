@@ -53,13 +53,13 @@ Every case follows this narrative arc:
 
 ## Case Library
 
-| Case                                                   | Industry      | Primary Lesson           |
-| ------------------------------------------------------ | ------------- | ------------------------ |
-| [Bottleneck](../../04-cases/bottleneck/index.md)       | Manufacturing | Process flow, drill-down |
-| [Hospital Ward](../../04-cases/hospital-ward/index.md) | Healthcare    | Aggregation trap         |
-| [Coffee](../../04-cases/coffee/index.md)               | Agriculture   | Factor comparison, MSA   |
-| [Packaging](../../04-cases/packaging/index.md)         | Manufacturing | Pareto, capability       |
-| [Avocado](../../04-cases/avocado/index.md)             | Agriculture   | Regression, MSA          |
+| Case                                                | Industry      | Primary Lesson           |
+| --------------------------------------------------- | ------------- | ------------------------ |
+| [Bottleneck](../04-cases/bottleneck/index.md)       | Manufacturing | Process flow, drill-down |
+| [Hospital Ward](../04-cases/hospital-ward/index.md) | Healthcare    | Aggregation trap         |
+| [Coffee](../04-cases/coffee/index.md)               | Agriculture   | Factor comparison, MSA   |
+| [Packaging](../04-cases/packaging/index.md)         | Manufacturing | Pareto, capability       |
+| [Avocado](../04-cases/avocado/index.md)             | Agriculture   | Regression, MSA          |
 
 ---
 
@@ -81,5 +81,5 @@ DRILL-DOWN ANALYSIS → Isolate the root cause
 
 ## See Also
 
-- [Cases](../../04-cases/index.md)
-- [Four Lenses](../../01-vision/four-lenses/index.md)
+- [Cases](../04-cases/index.md)
+- [Four Lenses](../01-vision/four-lenses/index.md)

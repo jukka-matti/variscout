@@ -37,7 +37,7 @@ SigmaXL operates entirely within Excel, adding statistical analysis capabilities
 
 ### Pattern Relevance
 
-SigmaXL appears in the [Auto-Combination Finder](../patterns/auto-combination-finder.md) evaluation only. Its stepwise regression provides automated factor selection but requires the analyst to configure the analysis, interpret model diagnostics, and make decisions about variable inclusion/exclusion. The approach is expert-driven model building, not automated investigation.
+SigmaXL appears in the [Auto-Combination Finder](../../../archive/evaluation-patterns/auto-combination-finder.md) evaluation only. Its stepwise regression provides automated factor selection but requires the analyst to configure the analysis, interpret model diagnostics, and make decisions about variable inclusion/exclusion. The approach is expert-driven model building, not automated investigation.
 
 ### Strategic Assessment
 
@@ -65,7 +65,7 @@ Looker is Google's BI platform, focused on embedded analytics and governed data 
 
 ### Pattern Relevance
 
-Looker appears in the [Sidebar Filter Panel](../patterns/sidebar-filter-panel.md) evaluation only. Its filter bar is the same paradigm as Tableau's sidebar filters and Power BI's slicers — always-visible filter controls that the analyst configures. The LookML-driven approach means filters are defined by data engineers rather than end users, which adds a governance layer but doesn't change the fundamental interaction pattern.
+Looker appears in the [Sidebar Filter Panel](../../../archive/evaluation-patterns/sidebar-filter-panel.md) evaluation only. Its filter bar is the same paradigm as Tableau's sidebar filters and Power BI's slicers — always-visible filter controls that the analyst configures. The LookML-driven approach means filters are defined by data engineers rather than end users, which adds a governance layer but doesn't change the fundamental interaction pattern.
 
 ### Strategic Assessment
 

@@ -38,6 +38,7 @@ VariScout is built on a philosophy of **EDA for process improvement** — not st
 ## Deep Dives
 
 - [Philosophy](philosophy.md) — The EDA-for-process-improvement philosophy that drives VariScout
+- [Methodology](methodology.md) — Watson's EDA methodology, Four Lenses, Investigation Diamond, Two Voices, Three Contributions
 - [Product Overview](product-overview.md) — High-level product positioning and capabilities
 
 ---

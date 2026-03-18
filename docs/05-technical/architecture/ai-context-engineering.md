@@ -1,14 +1,18 @@
 ---
-title: 'AI Context Engineering'
+title: 'AI Context Engineering & Pipeline Reference'
+audience: [developer]
+category: architecture
+status: stable
+related: [ai-architecture, ai-data-flow, aix-design-system]
 ---
 
-# AI Context Engineering
+# AI Context Engineering & Pipeline Reference
 
-How VariScout constructs AI prompts to ground CoScout in the VariScout methodology and current analysis state.
+How VariScout constructs AI prompts and the module-level pipeline that delivers context from analysis state to AI responses.
 
 ---
 
-## Three-Tier Prompt Architecture
+## 1. Three-Tier Prompt Architecture
 
 VariScout structures AI prompts in three tiers, ordered from most static to most dynamic. This aligns with Azure AI Foundry's automatic prompt caching (≥1,024 tokens of static prefix are cached server-side).
 
@@ -52,7 +56,7 @@ Changes on every filter drill or data update. Placed in a separate system messag
 
 ---
 
-## Phase-Aware Context Filtering
+## 2. Phase-Aware Context Filtering
 
 The CoScout system prompt includes phase-specific instructions based on deterministic phase detection (`detectInvestigationPhase()`):
 
@@ -69,7 +73,7 @@ When converging with supported hypotheses that have improvement ideas, the promp
 
 ---
 
-## Token Budget Management
+## 3. Token Budget Management
 
 | Consumer             | Max Context | Model Tier |
 | -------------------- | ----------- | ---------- |
@@ -85,7 +89,7 @@ Budget is managed by:
 
 ---
 
-## Prompt Caching Alignment
+## 4. Prompt Caching Alignment
 
 Azure AI Foundry caches the longest matching prefix of the system prompt. VariScout maximizes cache hits by:
 
@@ -97,42 +101,34 @@ This means the first ~950 tokens of every CoScout request are served from cache 
 
 ---
 
-## Extended Dynamic Context Fields
-
-Fields planned for Tier 3 (Dynamic) and investigation-aware context enrichment.
+## 5. Extended Dynamic Context Fields
 
 ### `activeChart` (Tier 3 — Dynamic)
 
 - **Type:** `'ichart' | 'boxplot' | 'pareto' | 'capability' | 'stats' | undefined`
 - **Source:** Carousel view state (mobile) or focused chart (desktop)
 - **Purpose:** CoScout knows which chart the user is currently viewing/asking about
-- **Placement:** Tier 3 dynamic system message
 
 ### `variationContributions` (Tier 3 — Dynamic)
 
 - **Type:** `Array<{ factor: string; etaSquared: number; category?: string }>`
-- **Source:** `useVariationTracking` output (η² per factor); `category` auto-derived from `InvestigationCategory[]` via `getCategoryForFactor()` in `@variscout/core/ai`
-- **Purpose:** CoScout can answer "Which factor matters most?" with data-backed responses, and understands whether each factor is a machine, material, method, etc.
-- **Placement:** Tier 3 dynamic system message
+- **Source:** `useVariationTracking` output (η² per factor); `category` auto-derived from `InvestigationCategory[]`
+- **Purpose:** CoScout can answer "Which factor matters most?" with data-backed responses
 
 ### `factorRoles` (Tier 3 — Dynamic)
 
 - **Type:** `Array<{ factor: string; role: string }>` (derived, not persisted)
-- **Source:** Built at context-build time by `buildAIContext()` — maps each variation contribution's `category` to a human-readable role label (e.g., "Machine", "Material")
-- **Purpose:** Gives CoScout domain awareness of what each factor represents in the process, enabling more specific questions and hypotheses
-- **Consumer:** `buildSummaryPrompt()` emits a "Factor roles:" line in the context summary; flows to CoScout via the system message
-- **Placement:** Tier 3 dynamic system message (alongside `variationContributions`)
+- **Source:** Built at context-build time by `buildAIContext()`
+- **Purpose:** Gives CoScout domain awareness of what each factor represents in the process
 
 ### `drillPath` (Tier 3 — Dynamic)
 
 - **Type:** `string[]` — ordered factor names from filterStack
-- **Source:** `filterStack.map(f => f.factor)` from AnalysisState
 - **Purpose:** CoScout understands the analyst's reasoning trajectory through the data
-- **Placement:** Tier 3 dynamic system message
 
 ### `focusContext` (Between Tier 2 and Tier 3)
 
-Populated by "Ask CoScout about this" actions in MobileCategorySheet, FindingCard, and HypothesisNode. Injected as an additional system message to preserve Tier 1 prompt caching.
+Populated by "Ask CoScout about this" actions. Injected as an additional system message to preserve Tier 1 prompt caching.
 
 ```typescript
 focusContext?: {
@@ -144,62 +140,57 @@ focusContext?: {
 
 ### `selectedFinding` (Tier 2 — Investigation)
 
-- Already typed in `AIContext.investigation` (types.ts lines 70-75)
-- **Status:** Wiring complete — populated from FindingsPanel active selection
-- **Consumer:** `buildSuggestedQuestions()` uses this field; also rendered in `buildCoScoutSystemPrompt()` to ground conversation in the currently focused finding
+Already typed in `AIContext.investigation`. Populated from FindingsPanel active selection. Used by `buildSuggestedQuestions()` and `buildCoScoutSystemPrompt()`.
 
 ### `teamContributors` (Teams Context)
 
 - **Type:** `{ count: number; hypothesisAreas: string[] }`
-- **Source:** Distinct `finding.assignee` display names + `comment.author` values, combined with hypothesis factor names
-- **Purpose:** CoScout coordinates multi-investigator Teams scenarios (e.g., "Alex already tested Machine A — consider checking Machine B instead")
+- **Purpose:** CoScout coordinates multi-investigator Teams scenarios
 - **Note:** Only populated in Azure Team plan when findings have author metadata
 
 ---
 
-## Locale-Aware Prompting
+## 6. Locale-Aware Prompting
 
-VariScout prompts are always written in English, but the response language switches based on the user's locale setting. See [ADR-025](../../07-decisions/adr-025-internationalization.md).
+Prompts stay in English to preserve prompt caching. Only the response language switches. See [ADR-025](../../07-decisions/adr-025-internationalization.md).
 
 ### `buildLocaleHint()`
 
-Prepends a `LANGUAGE: Respond in [locale]...` directive to system prompts. This hint is injected at the very start of the CoScout system message, before the role definition, so the model sees the language instruction first.
-
-- When locale is `en`, no hint is emitted (default behavior)
-- For other locales (e.g., `de`, `fi`, `ja`, `zh`), produces a one-line directive: `LANGUAGE: Respond in German. Use professional quality terminology.`
-- Token impact: ~15 tokens per non-English locale; zero tokens for English
+Prepends a `LANGUAGE: Respond in [locale]...` directive to system prompts. When locale is `en`, no hint is emitted. Token impact: ~15 tokens per non-English locale.
 
 ### Bilingual Glossary
 
-`buildGlossaryPrompt({ locale })` produces bilingual sub-lines when a non-English locale is active. Each glossary term includes the English definition followed by a localized line:
+`buildGlossaryPrompt({ locale })` produces bilingual sub-lines when a non-English locale is active:
 
 ```
 **UCL**: Upper Control Limit — 3σ above the process mean
   DE: **OKG**: Obere Kontrollgrenze — 3σ über dem Prozessmittelwert
 ```
 
-- Localized terms are sourced from `@variscout/core/i18n` locale catalogs
-- Token impact: ~30% increase in the glossary section when a non-English locale is active
-- Only terms with available translations in the active locale produce bilingual lines; others remain English-only
+Token impact: ~30% increase in the glossary section for non-English locales.
 
-### Design Principle
+### AI Component Locale Behavior
 
-Prompts stay in English to preserve prompt caching (the English prompt prefix remains stable across locales). Only the response language switches. The locale hint is placed before the static prefix so it does not fragment the cacheable region — Azure AI Foundry caches from the first token, and the hint is short enough (~15 tokens) that the remaining static prefix still exceeds the 1,024-token caching threshold.
+| Component        | Locale Flow                                                 |
+| ---------------- | ----------------------------------------------------------- |
+| NarrativeBar     | Via `AIContext.locale` → `buildSummaryPrompt()`             |
+| ChartInsightChip | Explicit `locale` parameter on `fetchChartInsight()`        |
+| CoScout          | Via `buildCoScoutMessages()` → `buildCoScoutSystemPrompt()` |
+
+Deterministic insight builders are locale-unaware (static English strings); only the AI enhancement layer respects locale.
 
 ---
 
-## Staged Comparison Context
+## 7. Staged Comparison Context
 
-When the analysis is in staged/verification mode (before vs. after comparison), additional context fields are injected to ground CoScout in the improvement evidence.
-
-### `stagedComparison` Field (Tier 3 — Dynamic)
+When the analysis is in staged/verification mode:
 
 ```typescript
 stagedComparison?: {
-  stageNames: [string, string];       // e.g., ["Before", "After"]
+  stageNames: [string, string];
   deltas: {
-    mean: number;                      // shift in process mean
-    sigma: number;                     // shift in std deviation
+    mean: number;
+    sigma: number;
     cpkBefore: number | null;
     cpkAfter: number | null;
     colorCoding: 'improved' | 'degraded' | 'unchanged';
@@ -207,52 +198,153 @@ stagedComparison?: {
 }
 ```
 
-- **Source:** Computed from `StagedAnalysisResult` in `buildAIContext()` when `stageColumn` is set
-- **Placement:** Tier 3 dynamic system message, alongside stats and filters
-
-### Prompt Overrides
-
-- **`buildSummaryPrompt()`** — When `stagedComparison` is present, the closing instruction switches from the standard "suggest next drill" to a verification-focused directive: summarize what improved, what degraded, and whether the Cpk target is met.
-- **`buildCoScoutSystemPrompt()`** — The acting-phase instruction block is replaced with verification context that references the stage names, delta values, and color coding. CoScout is instructed to interpret the comparison evidence rather than suggest new experiments.
+- **`buildSummaryPrompt()`** — Switches to verification-focused directive
+- **`buildCoScoutSystemPrompt()`** — Replaces acting-phase instruction with verification context
 
 ---
 
-## Knowledge Documents Context
+## 8. Knowledge Documents Context
 
-When the Knowledge Base is available (Azure Team AI plan), CoScout conversations are enriched with relevant organizational knowledge retrieved at query time.
-
-### `knowledgeDocuments` Field (Tier 3 — Dynamic)
+When the Knowledge Base is available (Azure Team AI plan):
 
 ```typescript
 knowledgeDocuments?: Array<{
-  title: string;        // Document or section title
-  snippet: string;      // Relevant excerpt, max 300 characters
-  source: string;       // Origin identifier (e.g., "Quality Manual", "SOP-042")
-  url?: string;         // Optional link to full document
+  title: string;
+  snippet: string;       // max 300 characters
+  source: string;
+  url?: string;
 }>;
 ```
 
-### Population Flow
+`formatKnowledgeContext()` transforms documents into `[From: <source>]` prefixed blocks. Typical token cost: ~50-150 tokens.
 
-1. CoScout responds to user message
-2. User clicks the "Search Knowledge Base?" button
-3. `searchDocuments()` queries Remote SharePoint via Azure AI Search with user token
-4. Top matching documents are attached to the `knowledgeDocuments` field
-5. The field is included in the Tier 3 dynamic system message for the next CoScout response
+---
 
-### `formatKnowledgeContext()`
-
-Transforms `knowledgeDocuments` into prompt-ready text. Each entry is formatted as a `[From: <source>]` prefixed block:
+## 9. Pipeline Overview
 
 ```
-ORGANIZATIONAL KNOWLEDGE:
-[From: Quality Manual] Cpk target for filling lines is 1.67...
-[From: SOP-042] When sigma exceeds 0.15ml, check nozzle calibration...
+Editor (analysis state)
+  |
+  v
+useAIDerivedState          -- violations, contributions, selected finding, team, staged
+  |
+  v
+useAIContext                -- memoized assembly via buildAIContext()
+  |
+  v
+buildAIContext()            -- structured AIContext with glossary, investigation, staged
+  |
+  +---> useNarration        -- summary narration (debounce + cache + rate limit)
+  +---> useAICoScout        -- conversational CoScout (streaming + KB injection)
+  +---> useChartInsights    -- per-chart insight chips (deterministic + AI enhancement)
+  |
+  v
+prompts/                    -- modular prompt construction (shared, narration, coScout, chartInsights, reports)
+  |
+  v
+aiService                   -- provider detection, auth, fetch, caching
+  |
+  v
+Azure AI Foundry            -- OpenAI or Anthropic (auto-detected from endpoint URL)
 ```
 
-- Snippets are capped at 300 characters to control token usage
-- Empty or undefined `knowledgeDocuments` produces no output (zero tokens)
-- Typical token cost: ~50-150 tokens depending on number of matched documents
+## 10. Module Map
+
+| File                                         | Package                | Responsibility                                                                                       |
+| -------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| `packages/core/src/ai/types.ts`              | `@variscout/core`      | `AIContext`, `CoScoutMessage`, `ProcessContext`, `InvestigationPhase` type definitions               |
+| `packages/core/src/ai/buildAIContext.ts`     | `@variscout/core`      | `buildAIContext()` assembly + `detectInvestigationPhase()`                                           |
+| `packages/core/src/ai/prompts/`              | `@variscout/core`      | Modular prompt builders: `shared.ts`, `narration.ts`, `coScout.ts`, `chartInsights.ts`, `reports.ts` |
+| `packages/core/src/ai/promptTemplates.ts`    | `@variscout/core`      | Thin re-export barrel for backward compatibility                                                     |
+| `packages/core/src/ai/responsesApi.ts`       | `@variscout/core`      | Azure AI Foundry Responses API client                                                                |
+| `packages/core/src/ai/tracing.ts`            | `@variscout/core`      | AI observability: `traceAICall` wrapper, `getTraceStats`                                             |
+| `packages/core/src/ai/chartInsights.ts`      | `@variscout/core`      | Deterministic insight builders per chart type                                                        |
+| `packages/core/src/ai/suggestedQuestions.ts` | `@variscout/core`      | `buildSuggestedQuestions()` — context-aware question generation                                      |
+| `packages/core/src/ai/hash.ts`               | `@variscout/core`      | `djb2Hash()` — shared hash for cache keys and dedup                                                  |
+| `packages/hooks/src/useAIContext.ts`         | `@variscout/hooks`     | React hook wrapping `buildAIContext()` with `useMemo`                                                |
+| `packages/hooks/src/useNarration.ts`         | `@variscout/hooks`     | Narration lifecycle: debounce, rate limit, cache, abort                                              |
+| `packages/hooks/src/useChartInsights.ts`     | `@variscout/hooks`     | Per-chart deterministic + optional AI enhancement                                                    |
+| `packages/hooks/src/useAICoScout.ts`         | `@variscout/hooks`     | CoScout conversation state, streaming, retry, abort                                                  |
+| `apps/azure/src/hooks/useAIDerivedState.ts`  | `@variscout/azure-app` | Violations, variation contributions, selected finding, team, staged                                  |
+| `apps/azure/src/hooks/useEditorAI.ts`        | `@variscout/azure-app` | Top-level AI orchestration — composes all AI hooks                                                   |
+| `apps/azure/src/services/aiService.ts`       | `@variscout/azure-app` | HTTP transport: provider detection, auth, retry, localStorage cache                                  |
+
+## 11. Key Function Signatures
+
+### buildAIContext
+
+```typescript
+function buildAIContext(options: BuildAIContextOptions): AIContext;
+```
+
+Assembles `AIContext` from raw analysis state. Pure function, no side effects.
+
+### buildCoScoutSystemPrompt
+
+```typescript
+function buildCoScoutSystemPrompt(options?: BuildCoScoutSystemPromptOptions): string;
+```
+
+Builds the system prompt with static glossary prefix, investigation-phase-aware instructions, confidence calibration, team awareness, and locale hint.
+
+### buildCoScoutMessages
+
+```typescript
+function buildCoScoutMessages(
+  context: AIContext,
+  history: CoScoutMessage[],
+  userMessage: string
+): Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
+```
+
+Returns system prompt + context summary + KB results + recent history (last 10) + user message.
+
+### detectInvestigationPhase
+
+```typescript
+function detectInvestigationPhase(
+  hypotheses: Hypothesis[],
+  findings?: Finding[]
+): InvestigationPhase;
+// Returns: 'initial' | 'diverging' | 'validating' | 'converging' | 'improving'
+```
+
+## 12. Data Flow Details
+
+### Narration
+
+```
+AIContext changes → hashContext() → cache hit? → display immediately
+                                  → debounce (2s) → rate limit (5s) → fetchNarration()
+                                  → cache result (in-memory + localStorage 24h TTL) → NarrativeBar UI
+```
+
+### CoScout
+
+```
+User message → buildCoScoutMessages() → fetchCoScoutStreamingResponse() (SSE)
+             → onChunk() updates message → CoScoutPanel UI
+```
+
+No caching (conversations are contextual). Single retry on 429.
+
+### Chart Insights
+
+```
+Analysis changes → deterministic insight (sync) → priority ≤ 1? → display only
+                                                → debounce (3s) → fetchChartInsight()
+                                                → error? → fall back to deterministic
+                                                → ChartInsightChip UI
+```
+
+## 13. Caching Strategy
+
+| Layer         | Location      | TTL      | Used By                       |
+| ------------- | ------------- | -------- | ----------------------------- |
+| Hook-level    | In-memory Map | Session  | `useNarration`                |
+| Service-level | localStorage  | 24 hours | `aiService` (narration/chips) |
+
+Cache keys use `djb2Hash` from `@variscout/core`.
 
 ---
 
@@ -260,7 +352,8 @@ ORGANIZATIONAL KNOWLEDGE:
 
 - [Effective Context Engineering — Anthropic](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
 - [Azure AI Foundry Prompt Caching — Microsoft Learn](https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/prompt-caching)
-- [Knowledge Model Architecture](knowledge-model.md)
 - [AI Architecture](ai-architecture.md)
-- [Methodology Reference](../../01-vision/methodology.md)
-- [AI Context Pipeline Reference](ai-context-reference.md) — Module map, function signatures, data flows
+- [AI Data Flow](ai-data-flow.md)
+- [AIX Design System](aix-design-system.md)
+- [Knowledge Model](knowledge-model.md)
+- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)

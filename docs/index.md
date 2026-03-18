@@ -27,8 +27,9 @@ pnpm --filter @variscout/azure-app dev
 
 - **[Four Lenses](01-vision/four-lenses/index.md)** — Watson's Four Lenses of Process Knowledge: Change, Flow, Failure, Value
 - **[Two Voices](01-vision/two-voices/index.md)** — Understanding control limits (process voice) vs specification limits (customer voice)
-- **[Drill-Down Analysis](03-features/navigation/drill-down.md)** — Progressive stratification to find where variation hides
+- **[Progressive Filtering](03-features/navigation/progressive-filtering.md)** — Progressive stratification to find where variation hides
 - **[Case Studies](04-cases/index.md)** — Real-world examples with data files for learning
+- **[Glossary](glossary.md)** — Key terms and definitions used across VariScout
 
 ---
 

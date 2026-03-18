@@ -128,6 +128,5 @@ Mobile uses a hamburger menu with drawer:
 
 ## See Also
 
-- [Drill-Down Feature](../../03-features/navigation/drill-down.md)
-- [Filter Chips](../../03-features/navigation/breadcrumbs.md)
+- [Progressive Filtering](../../03-features/navigation/progressive-filtering.md)
 - [Accessibility](../foundations/accessibility.md)

@@ -385,16 +385,29 @@ When running in a Teams channel tab (Azure Team plan), the AI context includes t
 
 ---
 
+---
+
+## AI Component Locale Behavior
+
+How each AI component receives and uses the user's locale for multilingual responses. See [ADR-025](../../07-decisions/adr-025-internationalization.md) for the internationalization architecture and [AIX Design System](aix-design-system.md) for the full component AIX cards.
+
+- **NarrativeBar:** Locale flows via `AIContext.locale`. The `buildSummaryPrompt()` template receives the locale and includes a language instruction. When locale is `undefined` or `'en'`, no extra instruction is injected.
+- **ChartInsightChip:** Locale passed as explicit parameter on `fetchChartInsight()`. Deterministic insight builders are locale-unaware (static English strings); only the AI enhancement layer respects locale.
+- **CoScout:** Locale flows through `buildCoScoutMessages()`. The system prompt includes a language instruction ensuring the full conversation is in the user's language. Streaming responses respect the language instruction.
+
+---
+
 ## See Also
 
 - [Knowledge Model Architecture](knowledge-model.md)
-- [AI Context Engineering](ai-context-engineering.md)
+- [AI Context Engineering & Pipeline](ai-context-engineering.md)
+- [AI Data Flow](ai-data-flow.md)
+- [AIX Design System](aix-design-system.md)
 - [VariScout Methodology](../../01-vision/methodology.md)
-- [AI Readiness Review](ai-readiness-review.md)
+- [AI Readiness Review](../../archive/ai-readiness-review.md) (archived — assessment complete)
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
 - [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
 - [AI-Assisted Analysis Workflow](../../03-features/workflows/ai-assisted-analysis.md)
 - [AI Components](../../06-design-system/components/ai-components.md)
 - [Component Patterns](component-patterns.md)
 - [Data Flow](data-flow.md)
-- [AI Context Pipeline Reference](ai-context-reference.md)

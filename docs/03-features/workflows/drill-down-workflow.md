@@ -361,6 +361,5 @@ Click "Shift: Night" to remove Operator filter but keep Shift.
 ## Related Documentation
 
 - [Four Lenses Workflow](four-lenses-workflow.md)
-- [Linked Filtering](../navigation/linked-filtering.md)
-- [Breadcrumbs](../navigation/breadcrumbs.md)
+- [Progressive Filtering](../navigation/progressive-filtering.md)
 - [Boxplot Feature](../analysis/boxplot.md)

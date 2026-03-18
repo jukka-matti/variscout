@@ -233,6 +233,6 @@ Each resolved finding adds real, measured, outcome-verified knowledge. After 50+
 
 - [Investigation to Action](investigation-to-action.md) — Investigation workflow that AI enhances
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Architectural decision
-- [AI Readiness Review](../../05-technical/architecture/ai-readiness-review.md) — Strategic architecture assessment
+- [AI Readiness Review](../../archive/ai-readiness-review.md) — Strategic architecture assessment (archived)
 - [AI Architecture](../../05-technical/architecture/ai-architecture.md) — Technical implementation
 - [AI Components](../../06-design-system/components/ai-components.md) — Component UX specs

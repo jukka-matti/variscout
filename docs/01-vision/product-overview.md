@@ -167,7 +167,7 @@ VaRiScout Lite is positioned as a lightweight alternative to Minitab for Lean Si
 | Feature             | Status                                                                          | Purpose                                       |
 | ------------------- | ------------------------------------------------------------------------------- | --------------------------------------------- |
 | ANOVA integration   | **Delivered**                                                                   | Statistical confirmation of group differences |
-| Regression analysis | Deferred to Phase 2 ([ADR-014](../07-decisions/adr-014-regression-analysis.md)) | Multi-factor comparison with auto-fit         |
+| Regression analysis | Deferred to Phase 2 ([ADR-014](../07-decisions/adr-014-regression-deferral.md)) | Multi-factor comparison with auto-fit         |
 
 ---
 

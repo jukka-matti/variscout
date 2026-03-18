@@ -125,40 +125,7 @@ export default defineConfig({
                         },
                       ],
                     },
-                    {
-                      label: 'Patterns',
-                      collapsed: true,
-                      items: [
-                        {
-                          label: 'Factor Suggestion',
-                          slug: '01-vision/evaluations/patterns/factor-suggestion',
-                        },
-                        {
-                          label: 'Auto Combination',
-                          slug: '01-vision/evaluations/patterns/auto-combination-finder',
-                        },
-                        {
-                          label: 'Interaction Heatmap',
-                          slug: '01-vision/evaluations/patterns/interaction-heatmap',
-                        },
-                        {
-                          label: 'Sidebar Filter',
-                          slug: '01-vision/evaluations/patterns/sidebar-filter-panel',
-                        },
-                        {
-                          label: 'Small Multiples',
-                          slug: '01-vision/evaluations/patterns/small-multiples',
-                        },
-                        {
-                          label: 'Factor Map',
-                          slug: '01-vision/evaluations/patterns/factor-map',
-                        },
-                        {
-                          label: 'Parallel Paths',
-                          slug: '01-vision/evaluations/patterns/parallel-path-comparison',
-                        },
-                      ],
-                    },
+                    // Patterns archived to docs/archive/evaluation-patterns/
                     {
                       label: 'Tensions',
                       collapsed: true,
@@ -458,16 +425,8 @@ export default defineConfig({
               label: 'Navigation',
               items: [
                 {
-                  label: 'Drill-Down',
-                  slug: '03-features/navigation/drill-down',
-                },
-                {
-                  label: 'Linked Filtering',
-                  slug: '03-features/navigation/linked-filtering',
-                },
-                {
-                  label: 'Breadcrumbs',
-                  slug: '03-features/navigation/breadcrumbs',
+                  label: 'Progressive Filtering',
+                  slug: '03-features/navigation/progressive-filtering',
                 },
               ],
             },
@@ -492,14 +451,8 @@ export default defineConfig({
                   label: 'Glossary Feature',
                   slug: '03-features/learning/glossary',
                 },
-                {
-                  label: 'Help Tooltips',
-                  slug: '03-features/learning/help-tooltips',
-                },
-                {
-                  label: 'Case-Based Learning',
-                  slug: '03-features/learning/case-based-learning',
-                },
+                // Help Tooltips moved to 06-design-system/components/help-tooltip
+                // Case-Based Learning moved to 02-journeys/case-based-learning
               ],
             },
           ],
@@ -556,10 +509,7 @@ export default defineConfig({
                   label: 'AIX Design System',
                   slug: '05-technical/architecture/aix-design-system',
                 },
-                {
-                  label: 'AI Readiness Review',
-                  slug: '05-technical/architecture/ai-readiness-review',
-                },
+                // AI Readiness Review archived to docs/archive/
                 {
                   label: 'Knowledge Model',
                   slug: '05-technical/architecture/knowledge-model',
@@ -697,20 +647,12 @@ export default defineConfig({
                   collapsed: true,
                   items: [
                     {
-                      label: 'Buttons',
-                      slug: '06-design-system/components/buttons',
+                      label: 'Foundational Patterns',
+                      slug: '06-design-system/components/foundational-patterns',
                     },
                     {
-                      label: 'Cards',
-                      slug: '06-design-system/components/cards',
-                    },
-                    {
-                      label: 'Modals',
-                      slug: '06-design-system/components/modals',
-                    },
-                    {
-                      label: 'Forms',
-                      slug: '06-design-system/components/forms',
+                      label: 'Help Tooltip',
+                      slug: '06-design-system/components/help-tooltip',
                     },
                     {
                       label: 'Variation Funnel',

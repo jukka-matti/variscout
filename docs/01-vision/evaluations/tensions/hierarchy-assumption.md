@@ -39,6 +39,6 @@ VariScout's regression panel handles interaction analysis. The Investigation Min
 
 ## Related Patterns
 
-- [Interaction Heatmap](../patterns/interaction-heatmap.md) --- Directly addresses this by showing factor-by-factor interaction strength before drilling.
-- [Auto-Combination Finder](../patterns/auto-combination-finder.md) --- The regression engine could surface interaction-driven combinations automatically.
-- [Factor Map](../patterns/factor-map.md) --- Network visualization could show interaction links between factors.
+- [Interaction Heatmap](../../../archive/evaluation-patterns/interaction-heatmap.md) --- Directly addresses this by showing factor-by-factor interaction strength before drilling.
+- [Auto-Combination Finder](../../../archive/evaluation-patterns/auto-combination-finder.md) --- The regression engine could surface interaction-driven combinations automatically.
+- [Factor Map](../../../archive/evaluation-patterns/factor-map.md) --- Network visualization could show interaction links between factors.

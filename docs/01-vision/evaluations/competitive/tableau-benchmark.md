@@ -94,25 +94,25 @@ The filter interaction model is fundamentally different from VariScout's progres
 
 ## Feature Comparison
 
-| Capability                          | Tableau                                        | VariScout                                                                |
-| ----------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------ |
-| Visual analytics (general)          | Industry-leading breadth and polish            | Focused on SPC/quality domain                                            |
-| Control charts (I-MR)               | Not available natively                         | Yes (I-Chart)                                                            |
-| Capability analysis (Cp/Cpk)        | Not available                                  | Yes, integrated                                                          |
-| Boxplot                             | Available as chart type                        | Integrated with drill-down filtering                                     |
-| Pareto chart                        | Available (sorted bar chart)                   | Integrated with drill-down filtering                                     |
-| ANOVA                               | Not available                                  | Yes, with eta-squared ranking                                            |
-| Regression                          | Trend line only (no model diagnostics)         | Simple and multiple regression                                           |
-| Gage R&R                            | Not available                                  | Not available                                                            |
-| Small multiples                     | Native (rows/columns shelf)                    | Planned feature                                                          |
-| Sidebar filters                     | Core paradigm (checkboxes, sliders, dropdowns) | Rejected pattern (see [evaluation](../patterns/sidebar-filter-panel.md)) |
-| Cross-filtering                     | Yes (dashboard-level action)                   | Yes (linked filtering, investigation-driven)                             |
-| Linked filtering across chart types | Dashboard actions (configurable)               | Native (core differentiator)                                             |
-| Statistical calculations            | Basic aggregations only                        | SPC-specific (Cpk, ANOVA, eta-squared)                                   |
-| Nelson rules / run tests            | Not available                                  | Yes                                                                      |
-| Dashboard publishing                | Yes (Server/Cloud)                             | Not applicable (analysis tool, not BI)                                   |
-| Browser-based analysis              | Viewer/Explorer roles (view and filter only)   | Full analysis capability                                                 |
-| Price for individual analyst        | $75/month (Creator)                            | Free (PWA) or from €99/month (Azure)                                     |
+| Capability                          | Tableau                                        | VariScout                                                                                         |
+| ----------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Visual analytics (general)          | Industry-leading breadth and polish            | Focused on SPC/quality domain                                                                     |
+| Control charts (I-MR)               | Not available natively                         | Yes (I-Chart)                                                                                     |
+| Capability analysis (Cp/Cpk)        | Not available                                  | Yes, integrated                                                                                   |
+| Boxplot                             | Available as chart type                        | Integrated with drill-down filtering                                                              |
+| Pareto chart                        | Available (sorted bar chart)                   | Integrated with drill-down filtering                                                              |
+| ANOVA                               | Not available                                  | Yes, with eta-squared ranking                                                                     |
+| Regression                          | Trend line only (no model diagnostics)         | Simple and multiple regression                                                                    |
+| Gage R&R                            | Not available                                  | Not available                                                                                     |
+| Small multiples                     | Native (rows/columns shelf)                    | Planned feature                                                                                   |
+| Sidebar filters                     | Core paradigm (checkboxes, sliders, dropdowns) | Rejected pattern (see [evaluation](../../../archive/evaluation-patterns/sidebar-filter-panel.md)) |
+| Cross-filtering                     | Yes (dashboard-level action)                   | Yes (linked filtering, investigation-driven)                                                      |
+| Linked filtering across chart types | Dashboard actions (configurable)               | Native (core differentiator)                                                                      |
+| Statistical calculations            | Basic aggregations only                        | SPC-specific (Cpk, ANOVA, eta-squared)                                                            |
+| Nelson rules / run tests            | Not available                                  | Yes                                                                                               |
+| Dashboard publishing                | Yes (Server/Cloud)                             | Not applicable (analysis tool, not BI)                                                            |
+| Browser-based analysis              | Viewer/Explorer roles (view and filter only)   | Full analysis capability                                                                          |
+| Price for individual analyst        | $75/month (Creator)                            | Free (PWA) or from €99/month (Azure)                                                              |
 
 ---
 
@@ -133,6 +133,6 @@ The filter interaction model is fundamentally different from VariScout's progres
 
 ### What to Avoid Adopting
 
-- **Sidebar filter paradigm**: This is the central point. Tableau's sidebar filters solve discoverability by making everything visible, but they convert analysis into configuration. VariScout's chart-integrated filtering is a deliberate differentiation from this paradigm. See the [Sidebar Filter Panel evaluation](../patterns/sidebar-filter-panel.md).
+- **Sidebar filter paradigm**: This is the central point. Tableau's sidebar filters solve discoverability by making everything visible, but they convert analysis into configuration. VariScout's chart-integrated filtering is a deliberate differentiation from this paradigm. See the [Sidebar Filter Panel evaluation](../../../archive/evaluation-patterns/sidebar-filter-panel.md).
 - **Build-then-view separation**: Tableau's Creator/Viewer split is a BI paradigm where analysts build and stakeholders consume. VariScout treats everyone as an investigator — the same person who sees the data also drills into it.
 - **Breadth over depth**: Tableau's strength is generality — it works with any data for any question. VariScout's strength is specificity — it's designed for variation investigation in quality processes. Generalizing toward a BI tool would lose the domain advantage.

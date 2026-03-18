@@ -136,7 +136,7 @@ Native HTML5 drag-and-drop (no library dependency).
 
 ## See Also
 
-- [Forms](../components/forms.md) — Form element code examples
+- [Foundational Patterns](../components/foundational-patterns.md) — Buttons, forms, cards, modals
 - [Navigation](navigation.md) — Filter breadcrumbs, drill-down patterns
 - [Accessibility](../foundations/accessibility.md) — WCAG AA guidelines
 - [Feedback](feedback.md) — Loading, error, and success states

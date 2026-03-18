@@ -12,17 +12,23 @@ Detailed architecture documents for VariScout's technical design.
 
 ## Documents
 
-| Document                                            | Purpose                                            |
-| --------------------------------------------------- | -------------------------------------------------- |
-| [Offline-First](offline-first.md)                   | Service worker, caching strategy, PWA capabilities |
-| [Monorepo](monorepo.md)                             | pnpm workspaces structure, package boundaries      |
-| [Shared Packages](shared-packages.md)               | Cross-platform code sharing patterns               |
-| [Data Flow](data-flow.md)                           | Data pipeline from input through stats to charts   |
-| [Component Patterns](component-patterns.md)         | colorScheme pattern, Base component extraction     |
-| [AI Architecture](ai-architecture.md)               | AI Foundry integration, prompt templates, phases   |
-| [AI Readiness Review](ai-readiness-review.md)       | Phase 1-3 delivery assessment and readiness        |
-| [Knowledge Model](knowledge-model.md)               | Unified glossary terms + methodology concepts      |
-| [AI Context Engineering](ai-context-engineering.md) | Context assembly for AI prompts and CoScout        |
+| Document                                                        | Purpose                                            |
+| --------------------------------------------------------------- | -------------------------------------------------- |
+| [Offline-First](offline-first.md)                               | Service worker, caching strategy, PWA capabilities |
+| [Monorepo](monorepo.md)                                         | pnpm workspaces structure, package boundaries      |
+| [Shared Packages](shared-packages.md)                           | Cross-platform code sharing patterns               |
+| [Data Flow](data-flow.md)                                       | Data pipeline from input through stats to charts   |
+| [Component Patterns](component-patterns.md)                     | colorScheme pattern, Base component extraction     |
+| [AI Architecture](ai-architecture.md)                           | AI Foundry integration, prompt templates, phases   |
+| [AI Context Engineering](ai-context-engineering.md)             | Context assembly, pipeline reference, module map   |
+| [AI Data Flow](ai-data-flow.md)                                 | End-to-end data flow diagrams for AI features      |
+| [AIX Design System](aix-design-system.md)                       | AI governance, tone, trust, interaction patterns   |
+| [Knowledge Model](knowledge-model.md)                           | Unified glossary terms + methodology concepts      |
+| [Mental Model Hierarchy](mental-model-hierarchy.md)             | Layered mental models from philosophy to UI        |
+| [Journey Phase Screen Mapping](journey-phase-screen-mapping.md) | Phase-to-screen-to-component traceability          |
+| [System Map](system-map.md)                                     | Visual package/app topology (C4 L1)                |
+| [Data Pipeline Map](data-pipeline-map.md)                       | End-to-end data flow with TypeScript interfaces    |
+| [Component Map](component-map.md)                               | L3 component views per package                     |
 
 ## See Also
 

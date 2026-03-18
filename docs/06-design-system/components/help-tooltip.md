@@ -1,7 +1,7 @@
 ---
 title: Help Tooltips
 audience: [analyst, engineer]
-category: learning
+category: components
 status: stable
 related: [glossary, contextual-help, onboarding]
 ---
@@ -68,5 +68,5 @@ import { HelpTooltip } from '@variscout/ui';
 
 ## See Also
 
-- [Glossary Feature](glossary.md)
-- [Design System: HelpTooltip](../../06-design-system/components/modals.md)
+- [Glossary Feature](../../03-features/learning/glossary.md)
+- [Foundational Patterns](foundational-patterns.md)

@@ -98,7 +98,7 @@ Nelson Rule 2 identifies when 9 or more consecutive points fall on the same side
 
 ### Direction Color Semantics
 
-When a [characteristic type](../../../03-features/analysis/characteristic-types.md) is set, control violation colors gain directional meaning:
+When a [characteristic type](../../03-features/analysis/characteristic-types.md) is set, control violation colors gain directional meaning:
 
 - **Green** = favorable signal (process moved toward quality goal)
 - **Red** = harmful signal (process moved away from goal)
