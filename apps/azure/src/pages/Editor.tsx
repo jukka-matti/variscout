@@ -13,7 +13,6 @@ import PasteScreen from '../components/data/PasteScreen';
 import WhatIfPage from '../components/WhatIfPage';
 import {
   ColumnMapping,
-  InvestigationPrompt,
   CoScoutPanelBase,
   AIOnboardingTooltip,
   type AnalysisBrief,
@@ -673,15 +672,6 @@ export const Editor: React.FC<EditorProps> = ({
         </div>
       )}
 
-      {/* First-drill investigation prompt */}
-      {rawData.length > 0 && outcome && factors.length > 0 && (
-        <InvestigationPrompt
-          filterCount={filterNav.filterStack.length}
-          isFindingsOpen={panels.isFindingsOpen}
-          onOpenFindings={() => panels.setIsFindingsOpen(true)}
-        />
-      )}
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0 bg-surface rounded-xl border border-edge overflow-hidden">
         {rawData.length === 0 ? (
@@ -806,6 +796,7 @@ export const Editor: React.FC<EditorProps> = ({
               onNarrativeRetry={narration.refresh}
               onNarrativeAsk={handleNarrativeAsk}
               onAskCoScoutFromCategory={handleAskCoScoutFromCategory}
+              findings={findingsState.findings}
             />
             {/* AI onboarding tooltip — first-time hint for NarrativeBar Ask button */}
             <AIOnboardingTooltip

@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { Finding, FindingSource, FindingStatus, FindingTag } from '@variscout/core';
-import { FINDING_STATUSES, FINDING_STATUS_LABELS, groupFindingsByStatus } from '@variscout/core';
+import {
+  FINDING_STATUSES,
+  FINDING_STATUS_LABELS,
+  FINDING_STATUS_DESCRIPTIONS,
+  groupFindingsByStatus,
+} from '@variscout/core';
 import FindingCard from './FindingCard';
 import { STATUS_DOT_COLORS } from './FindingStatusBadge';
 
@@ -115,8 +120,13 @@ const FindingBoardView: React.FC<FindingBoardViewProps> = ({
                 <ChevronRight size={12} className="text-content-muted flex-shrink-0" />
               )}
               <span className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_DOT_COLORS[status]}`} />
-              <span className="text-xs font-medium text-content flex-1 text-left">
-                {FINDING_STATUS_LABELS[status]}
+              <span className="flex-1 text-left">
+                <span className="text-xs font-medium text-content block">
+                  {FINDING_STATUS_LABELS[status]}
+                </span>
+                <span className="text-[9px] text-content-muted font-normal block leading-tight">
+                  {FINDING_STATUS_DESCRIPTIONS[status]}
+                </span>
               </span>
               <span className="text-[10px] text-content-muted px-1.5 py-0.5 bg-surface-tertiary rounded">
                 {items.length}

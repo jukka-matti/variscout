@@ -158,7 +158,7 @@ AIContext
 │   ├── selectedFinding  # Text, hypothesis, projection, actions (with full text)
 │   ├── allHypotheses[]  # Text, status, contribution, ideas (with projections)
 │   ├── hypothesisTree[] # Root hypotheses with children (factor, level, ideas, validation)
-│   ├── phase            # Deterministic: initial | diverging | validating | converging | acting
+│   ├── phase            # Deterministic: initial | diverging | validating | converging | improving
 │   └── categories[]     # Investigation categories for completeness prompting
 ├── activeChart          # Currently focused chart type (ichart, boxplot, pareto, capability)
 ├── stagedComparison     # Before/After verification metrics (baseline vs current Cpk, mean, etc.)
@@ -233,7 +233,7 @@ How AI context changes across investigation phases:
 | **Validating** | η² contributions, validation status, validation tasks                     | "What does this η² mean for [factor]?", "Should I drill deeper?"       | Help interpret contribution %, prioritize untested hypotheses              |
 | **Converging** | Supported hypotheses with improvement ideas (text, selected, projections) | "What improvement ideas for [hypothesis]?", "Compare effort vs impact" | Help evaluate suspected root cause, brainstorm ideas, compare alternatives |
 
-> **Note:** During IMPROVE (PDCA cycle), CoScout shifts to action planning and Cpk monitoring. The code type `InvestigationPhase` includes `'acting'` for this phase. Action items, projections, and outcomes are injected as context. See [AIX Design System § Verification Sub-pattern](aix-design-system.md) for staged comparison behavior.
+> **Note:** During IMPROVE (PDCA cycle), CoScout shifts to action planning and Cpk monitoring. The code type `InvestigationPhase` includes `'improving'` for this phase. Action items, projections, and outcomes are injected as context. See [AIX Design System § Verification Sub-pattern](aix-design-system.md) for staged comparison behavior.
 
 > **Note:** `buildSuggestedQuestions()` (from `packages/core/src/ai/suggestedQuestions.ts`) is a **pure function** — no AI call is involved. It selects phase-appropriate questions based on the current `AIContext` state (investigation phase, uncovered categories, hypothesis count, action status). These questions appear in the Investigation Sidebar and work in all modes, including when AI is not configured.
 

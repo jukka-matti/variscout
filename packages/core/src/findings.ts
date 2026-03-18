@@ -30,6 +30,15 @@ export const FINDING_STATUS_LABELS: Record<FindingStatus, string> = {
   resolved: 'Resolved',
 };
 
+/** Descriptions for finding statuses (used in tooltips and board column headers) */
+export const FINDING_STATUS_DESCRIPTIONS: Record<FindingStatus, string> = {
+  observed: 'Pattern spotted — not yet investigated.',
+  investigating: 'Actively drilling into data and testing hypotheses.',
+  analyzed: 'Suspected cause identified — ready to plan improvements.',
+  improving: 'Corrective actions in progress. Collect After data to verify.',
+  resolved: 'Actions complete, outcome verified. Standardize or iterate.',
+};
+
 // ============================================================================
 // Finding Tags (classification for analyzed findings)
 // ============================================================================

@@ -41,7 +41,7 @@ Three layers of gaps surfaced during analysis:
 | **NarrativeBar**         | Summarizes current state                                         | Not stage-aware                     |
 | **ChartInsightChip**     | Deterministic insights per chart                                 | Not stage-aware                     |
 | **CoScout**              | Can answer questions about stats                                 | Generic — no verification prompts   |
-| **InvestigationSidebar** | Phase-aware questions (Acting phase)                             | Generic — no verification checklist |
+| **InvestigationSidebar** | Phase-aware questions (Improving phase)                          | Generic — no verification checklist |
 | **FindingsPanel**        | Outcome recording (cpkAfter, effectiveness)                      | No cpkBefore, no auto-fill          |
 
 ### What the analyst actually does (today)
@@ -186,7 +186,7 @@ Color-coded: green = improved, red = degraded, amber = marginal change. For 2 st
 **Step 9 — InvestigationSidebar: Verification checklist**
 
 - Today: generic phase guidance
-- Enhancement: When in acting phase with staged data, show a **checklist**:
+- Enhancement: When in improving phase with staged data, show a **checklist**:
   - ☐ I-Chart: violations reduced?
   - ☐ Boxplot: problem factor improved?
   - ☐ Capability: Cpk above target?

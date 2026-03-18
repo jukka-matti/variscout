@@ -368,8 +368,8 @@ describe('buildCoScoutSystemPrompt', () => {
     const prompt = buildCoScoutSystemPrompt({
       investigation: { phase: 'diverging' },
     });
-    expect(prompt).toContain('Diverging Phase');
-    expect(prompt).toContain('exploring hypotheses');
+    expect(prompt).toContain('exploring possible causes');
+    expect(prompt).toContain('cast a wide net');
   });
 
   it('does not add investigation section when no investigation context', () => {
@@ -496,9 +496,9 @@ describe('buildCoScoutSystemPrompt', () => {
     expect(prompt).toContain('Is the improvement real and sustained');
   });
 
-  it('uses generic acting instructions when no staged data', () => {
+  it('uses generic improving instructions when no staged data', () => {
     const prompt = buildCoScoutSystemPrompt({ investigation: { phase: 'improving' } });
-    expect(prompt).toContain('Improvement Phase');
+    expect(prompt).toContain('improvement cycle');
     expect(prompt).not.toContain('verification data');
   });
 

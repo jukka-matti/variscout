@@ -378,6 +378,20 @@ export {
   type AIOnboardingTooltipProps,
 } from './components/AIOnboardingTooltip';
 
+// Methodology Coach
+export {
+  JourneyPhaseIndicator,
+  type JourneyPhaseIndicatorProps,
+  DiamondPhaseMap,
+  type DiamondPhaseMapProps,
+  PDCAProgress,
+  type PDCAProgressProps,
+  MethodologyCoachBase,
+  defaultMethodologyCoachColorScheme,
+  type MethodologyCoachBaseProps,
+  type MethodologyCoachColorScheme,
+} from './components/MethodologyCoach';
+
 // Hooks
 export {
   useIsMobile,

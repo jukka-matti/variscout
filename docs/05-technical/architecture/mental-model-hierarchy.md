@@ -62,9 +62,9 @@ Orthogonal (apply across phases):
 | IMPROVE     | Purple `#8b5cf6` | Fix the process — PDCA cycle: Plan (ideate, select), Do, Check (staged analysis), Act (standardize or loop)                                  |
 
 - **Source:** `docs/03-features/workflows/analysis-journey-map.md`
-- **In code?** NO — no `JourneyPhase` type, enum, or constant exists
+- **In code?** YES — `JourneyPhase` type in `@variscout/core`, `useJourneyPhase` hook in `@variscout/hooks`, `MethodologyCoachBase` component in `@variscout/ui`
 - **Scope:** The complete user journey through the software
-- **Note:** Canonical in docs, invisible in code and UI. This is the root cause of several drift issues documented below.
+- **Note:** Journey phases are now visible in the UI via the Methodology Coach panel, which provides phase-aware coaching across all 4 phases.
 
 **FRAME in detail:** While no AI is active during FRAME, the phase contains significant deterministic engines: data parsing and validation, column type detection, factor role keyword inference (equipment/temporal/operator/material/location), investigation category auto-grouping, and characteristic type selection. Critically, FRAME captures process context (free text + structured metadata) and analysis brief (Azure only: problem statement, upfront hypotheses, improvement target) that become the AI's grounding context in subsequent phases. See [Analysis Journey Map § Phase 1: FRAME](../../03-features/workflows/analysis-journey-map.md#phase-1-frame) for full detail.
 
@@ -239,46 +239,41 @@ Both track investigation progress but from different angles: the diamond drives 
 
 ## What's In Code vs Docs Only
 
-| Model                     | In Code? | Code Location                                                                                                        | Implication                                                              |
-| ------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| M1: Journey Phases        | NO       | —                                                                                                                    | Cannot be referenced by other code systems                               |
-| M2: Watson's EDA          | YES      | Chart components, stats engine                                                                                       | Foundation of the product                                                |
-| M3: Four Lenses           | NO       | —                                                                                                                    | Teaching/marketing only (intentional)                                    |
-| M4: Investigation Diamond | YES      | `InvestigationPhase` type (4 diamond phases + `'improving'` for IMPROVE), `InvestigationPhaseBadge`, CoScout prompts | AI adapts during INVESTIGATE; `'improving'` phase maps to IMPROVE (PDCA) |
-| M5: Finding Status        | YES      | `FindingStatus` type, board columns, tier gating                                                                     | Full lifecycle tracking                                                  |
-| M6: AI Layers             | YES      | NarrativeBar, ChartInsightChip, CoScoutPanel                                                                         | Three independent systems                                                |
-| M7: Value Levers          | Indirect | Tier gating                                                                                                          | Business model only                                                      |
-| M8: Report Steps          | YES      | `useReportSections`, `ReportStepMarker`                                                                              | Independent of journey phases                                            |
-| M9: Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                                            | Core data model                                                          |
-| M10: Experience Spectrum  | YES      | `core/tier.ts`                                                                                                       | Product gating                                                           |
-| M11: Two Speeds           | Partial  | Report auto-detection                                                                                                | Not typed                                                                |
-| M12: Two Entry Paths      | NO       | —                                                                                                                    | Implicit in UI flow                                                      |
-| M13: Hypothesis Lifecycle | YES      | `ValidationStatus` type                                                                                              | Inside investigation diamond                                             |
-| M14: Three Contributions  | YES      | Linked filtering, filter chips, hypothesis tree                                                                      | Core UX patterns                                                         |
-| M15: Knowledge Layer      | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup`                                                      | Team AI tier only, preview-gated                                         |
+| Model                     | In Code? | Code Location                                                                                                                                    | Implication                                                     |
+| ------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| M1: Journey Phases        | YES      | `JourneyPhase` type, `useJourneyPhase`, `MethodologyCoachBase`                                                                                   | Journey phases visible in UI via Coach panel                    |
+| M2: Watson's EDA          | YES      | Chart components, stats engine                                                                                                                   | Foundation of the product                                       |
+| M3: Four Lenses           | NO       | —                                                                                                                                                | Teaching/marketing only (intentional)                           |
+| M4: Investigation Diamond | YES      | `InvestigationPhase` type (4 diamond phases + `'improving'` for IMPROVE), `InvestigationPhaseBadge`, CoScout prompts, `DiamondPhaseMap` in Coach | AI adapts during INVESTIGATE; Coach houses the diamond phase UI |
+| M5: Finding Status        | YES      | `FindingStatus` type, board columns, tier gating                                                                                                 | Full lifecycle tracking                                         |
+| M6: AI Layers             | YES      | NarrativeBar, ChartInsightChip, CoScoutPanel                                                                                                     | Three independent systems                                       |
+| M7: Value Levers          | Indirect | Tier gating                                                                                                                                      | Business model only                                             |
+| M8: Report Steps          | YES      | `useReportSections`, `ReportStepMarker`                                                                                                          | Independent of journey phases                                   |
+| M9: Two Voices            | YES      | Control limits (calculated) vs spec limits (user-entered)                                                                                        | Core data model                                                 |
+| M10: Experience Spectrum  | YES      | `core/tier.ts`                                                                                                                                   | Product gating                                                  |
+| M11: Two Speeds           | Partial  | Report auto-detection                                                                                                                            | Not typed                                                       |
+| M12: Two Entry Paths      | NO       | —                                                                                                                                                | Implicit in UI flow                                             |
+| M13: Hypothesis Lifecycle | YES      | `ValidationStatus` type                                                                                                                          | Inside investigation diamond                                    |
+| M14: Three Contributions  | YES      | Linked filtering, filter chips, hypothesis tree                                                                                                  | Core UX patterns                                                |
+| M15: Knowledge Layer      | YES      | `searchService.ts`, `useKnowledgeSearch`, `AdminKnowledgeSetup`                                                                                  | Team AI tier only, preview-gated                                |
 
 ---
 
 ## Known Gaps & Drift
 
-### 1. No Journey Phase In Code (Root Cause)
+### 1. ~~No Journey Phase In Code~~ (Resolved)
 
-The 4-phase journey (M1) is the canonical model but has no code representation — no `JourneyPhase` type, no enum, no constant. This means:
-
-- Report Steps can't reference journey phases
-- AI can't adapt across all phases (only INVESTIGATE via diamond)
-- UI can't show "you are here"
-- Each feature team independently reinvents phase concepts
+**Resolved:** `JourneyPhase` type added to `@variscout/core`, `useJourneyPhase` hook detects phase from analysis state. `MethodologyCoachBase` component renders phase-aware coaching across all 4 phases (FRAME setup checklist, SCOUT pattern hints, INVESTIGATE diamond phases, IMPROVE PDCA progress). See [Methodology Coach Design Spec](../../superpowers/specs/2026-03-18-methodology-coach-design.md).
 
 ### 2. Report Steps ≠ Journey Phases (Genuine Drift)
 
 Report Steps were designed independently from the journey map and use question-form labels. Both are valid for their purpose, but they were never cross-referenced until this document. See the mapping table above.
 
-### 3. AI Phase Awareness Covers Only INVESTIGATE
+### 3. ~~AI Phase Awareness Covers Only INVESTIGATE~~ (Resolved)
 
-CoScout's phase-aware prompting only adapts for investigation diamond phases. During FRAME and SCOUT, the AI has no phase concept — no "you're in the framing phase" or "you're scouting" guidance. AI only "wakes up" when the user starts investigating.
+**Resolved:** Methodology Coach provides coaching across all 4 journey phases (FRAME setup checklist, SCOUT pattern hints, INVESTIGATE diamond phases, IMPROVE PDCA progress). CoScout now explicitly references the phase in responses (not just silently adapting). See [Methodology Coach Design Spec](../../superpowers/specs/2026-03-18-methodology-coach-design.md).
 
-**Note:** FRAME having no AI is intentional and correct — there is no analysed data to reason about yet. The gap is specifically about SCOUT, where AI is active but not journey-phase-aware. However, FRAME represents a future AI opportunity — AI could assist with column mapping, characteristic type detection, process context enrichment, or connecting upfront hypotheses to investigation structure.
+**Note:** FRAME having no AI is still intentional and correct — there is no analysed data to reason about yet. The Coach provides a setup checklist during FRAME instead. FRAME remains a future AI opportunity for column mapping assistance and process context enrichment.
 
 ### 4. Diamond ↔ Finding Status Not Documented
 

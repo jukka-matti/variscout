@@ -56,36 +56,37 @@ npx ruflo@latest security cve --check        # CVE check
 
 ## Task → Documentation
 
-| Domain                     | Read First                                                                                             |
-| -------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Statistics / Capability    | docs/03-features/analysis/, packages/core/src/stats/, docs/05-technical/statistics-reference.md        |
-| Charts                     | docs/06-design-system/charts/, .claude/rules/charts.md                                                 |
-| Azure app / Auth / Storage | docs/08-products/azure/                                                                                |
-| Data input / Parser        | docs/03-features/data/, packages/core/src/parser/                                                      |
-| Design system / UI         | docs/06-design-system/                                                                                 |
-| Workflows / Analysis       | docs/03-features/workflows/                                                                            |
-| Mental models / Hierarchy  | docs/05-technical/architecture/mental-model-hierarchy.md                                               |
-| Investigation / Findings   | adr-015, adr-020, docs/03-features/workflows/investigation-to-action.md, hypothesis-investigation.md   |
-| AI integration             | adr-019, docs/05-technical/architecture/ai-architecture.md, ai-data-flow.md, ai-context-engineering.md |
-| Deployment / CI            | docs/05-technical/implementation/deployment.md, .github/workflows/                                     |
-| Architecture / ADRs        | docs/07-decisions/, docs/05-technical/                                                                 |
-| Website                    | docs/08-products/website/, apps/website/                                                               |
-| Methodology / Personas     | docs/01-vision/, docs/02-journeys/                                                                     |
-| Business strategy          | docs/01-vision/business-bible.md                                                                       |
-| Tier philosophy / Pricing  | docs/08-products/tier-philosophy.md, docs/08-products/feature-parity.md                                |
-| AI user experience         | docs/03-features/workflows/ai-experience-narrative.md                                                  |
-| Journey traceability       | docs/02-journeys/traceability.md                                                                       |
-| Internationalization       | adr-025, packages/core/src/i18n/, packages/hooks/src/useLocaleState.ts, useTranslation.ts              |
-| Testing                    | .claude/rules/testing.md, docs/05-technical/implementation/testing.md                                  |
-| Report View / Sharing      | adr-024, docs/superpowers/specs/2026-03-16-scouting-report-design.md                                   |
-| Verification / Staged      | adr-023, docs/03-features/analysis/staged-analysis.md                                                  |
-| Characteristic types       | docs/03-features/analysis/characteristic-types.md, packages/core/src/types.ts                          |
-| Data lifecycle / Append    | adr-023, apps/azure/src/hooks/useEditorDataFlow.ts                                                     |
-| Teams integration          | adr-016, docs/08-products/azure/authentication.md                                                      |
-| Platform comparison        | docs/08-products/feature-parity.md                                                                     |
-| Knowledge model / Glossary | docs/05-technical/architecture/knowledge-model.md, packages/core/src/glossary/                         |
-| C4 architecture model      | docs/architecture/likec4/                                                                              |
-| Documentation site         | apps/docs/ (Astro + Starlight)                                                                         |
+| Domain                     | Read First                                                                                                  |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Statistics / Capability    | docs/03-features/analysis/, packages/core/src/stats/, docs/05-technical/statistics-reference.md             |
+| Charts                     | docs/06-design-system/charts/, .claude/rules/charts.md                                                      |
+| Azure app / Auth / Storage | docs/08-products/azure/                                                                                     |
+| Data input / Parser        | docs/03-features/data/, packages/core/src/parser/                                                           |
+| Design system / UI         | docs/06-design-system/                                                                                      |
+| Workflows / Analysis       | docs/03-features/workflows/                                                                                 |
+| Mental models / Hierarchy  | docs/05-technical/architecture/mental-model-hierarchy.md                                                    |
+| Investigation / Findings   | adr-015, adr-020, docs/03-features/workflows/investigation-to-action.md, hypothesis-investigation.md        |
+| AI integration             | adr-019, docs/05-technical/architecture/ai-architecture.md, ai-data-flow.md, ai-context-engineering.md      |
+| Deployment / CI            | docs/05-technical/implementation/deployment.md, .github/workflows/                                          |
+| Architecture / ADRs        | docs/07-decisions/, docs/05-technical/                                                                      |
+| Website                    | docs/08-products/website/, apps/website/                                                                    |
+| Methodology / Personas     | docs/01-vision/, docs/02-journeys/                                                                          |
+| Business strategy          | docs/01-vision/business-bible.md                                                                            |
+| Tier philosophy / Pricing  | docs/08-products/tier-philosophy.md, docs/08-products/feature-parity.md                                     |
+| AI user experience         | docs/03-features/workflows/ai-experience-narrative.md                                                       |
+| Journey traceability       | docs/02-journeys/traceability.md                                                                            |
+| Internationalization       | adr-025, packages/core/src/i18n/, packages/hooks/src/useLocaleState.ts, useTranslation.ts                   |
+| Testing                    | .claude/rules/testing.md, docs/05-technical/implementation/testing.md                                       |
+| Report View / Sharing      | adr-024, docs/superpowers/specs/2026-03-16-scouting-report-design.md                                        |
+| Verification / Staged      | adr-023, docs/03-features/analysis/staged-analysis.md                                                       |
+| Characteristic types       | docs/03-features/analysis/characteristic-types.md, packages/core/src/types.ts                               |
+| Data lifecycle / Append    | adr-023, apps/azure/src/hooks/useEditorDataFlow.ts                                                          |
+| Teams integration          | adr-016, docs/08-products/azure/authentication.md                                                           |
+| Platform comparison        | docs/08-products/feature-parity.md                                                                          |
+| Knowledge model / Glossary | docs/05-technical/architecture/knowledge-model.md, packages/core/src/glossary/                              |
+| C4 architecture model      | docs/architecture/likec4/                                                                                   |
+| Documentation site         | apps/docs/ (Astro + Starlight)                                                                              |
+| Methodology Coach          | docs/superpowers/specs/2026-03-18-methodology-coach-design.md, packages/ui/src/components/MethodologyCoach/ |
 
 ## Repository Structure
 
@@ -111,16 +112,17 @@ variscout-lite/
 
 ## Key Entry Points
 
-| Package                       | Key Files                                                        | Purpose                                                                          |
-| ----------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `packages/core/src/`          | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/   | Stats engine (13 modules), parser, types, tier, AI context, glossary, simulation |
-| `packages/charts/src/`        | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme | Chart components (see .claude/rules/charts.md)                                   |
-| `packages/hooks/src/`         | use\*.ts (see .claude/rules/monorepo.md for full list)           | 40+ shared React hooks                                                           |
-| `packages/ui/src/components/` | \*/ (see .claude/rules/monorepo.md for full list)                | 60+ shared UI components                                                         |
-| `packages/data/src/samples/`  | coffee, journey, bottleneck, sachets                             | Sample datasets                                                                  |
-| `apps/pwa/src/`               | context/DataContext.tsx, components/Dashboard.tsx                | PWA state + main UI                                                              |
-| `apps/azure/src/`             | context/DataContext.tsx, services/, auth/, hooks/useEditor\*.ts  | Azure state, storage, auth, AI                                                   |
-| `infra/`                      | mainTemplate.json, functions/                                    | ARM template, Azure Functions                                                    |
+| Package                                        | Key Files                                                                  | Purpose                                                                          |
+| ---------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `packages/core/src/`                           | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/             | Stats engine (13 modules), parser, types, tier, AI context, glossary, simulation |
+| `packages/charts/src/`                         | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme           | Chart components (see .claude/rules/charts.md)                                   |
+| `packages/hooks/src/`                          | use\*.ts (see .claude/rules/monorepo.md for full list)                     | 40+ shared React hooks                                                           |
+| `packages/ui/src/components/`                  | \*/ (see .claude/rules/monorepo.md for full list)                          | 60+ shared UI components                                                         |
+| `packages/data/src/samples/`                   | coffee, journey, bottleneck, sachets                                       | Sample datasets                                                                  |
+| `apps/pwa/src/`                                | context/DataContext.tsx, components/Dashboard.tsx                          | PWA state + main UI                                                              |
+| `apps/azure/src/`                              | context/DataContext.tsx, services/, auth/, hooks/useEditor\*.ts            | Azure state, storage, auth, AI                                                   |
+| `packages/ui/src/components/MethodologyCoach/` | MethodologyCoachBase, JourneyPhaseIndicator, DiamondPhaseMap, PDCAProgress | Phase-aware coaching panel                                                       |
+| `infra/`                                       | mainTemplate.json, functions/                                              | ARM template, Azure Functions                                                    |
 
 ## Key Patterns
 

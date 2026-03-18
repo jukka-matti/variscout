@@ -45,7 +45,7 @@ Implement a complete Problem -> Hypothesis -> Evidence -> Projection -> Action -
 
 11. **HypothesisTreeView UI** — When a finding has sub-hypotheses, the flat hypothesis display is replaced by `HypothesisTreeView` — an indented tree with status dots, factor badges, validation type icons, and collapsible children. Contradicted nodes are rendered at 50% opacity with strikethrough text. FindingsLog gains a third view mode (Tree) alongside List and Board. Tree view shows one finding at a time with full hypothesis tree.
 
-12. **CoScout investigation phase detection** — The investigation phase (initial, diverging, validating, converging, acting) is automatically detected from hypothesis tree state and included in `buildAIContext`. CoScout adapts suggested questions to the phase and highlights uncovered factor role categories (equipment, temporal, operator, material, location) to nudge broader investigation. The popout FindingsWindow gains a collapsible CoScout sidebar showing phase and suggestions.
+12. **CoScout investigation phase detection** — The investigation phase (initial, diverging, validating, converging, improving) is automatically detected from hypothesis tree state and included in `buildAIContext`. CoScout adapts suggested questions to the phase and highlights uncovered factor role categories (equipment, temporal, operator, material, location) to nudge broader investigation. The popout FindingsWindow gains a collapsible CoScout sidebar showing phase and suggestions.
 
 13. **Improvement Ideation** — Supported hypotheses unlock an "Improvement Ideas" section on the finding. Ideas are stored as `ImprovementIdea[]` on the Hypothesis entity:
 

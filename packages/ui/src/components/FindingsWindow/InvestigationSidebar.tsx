@@ -110,7 +110,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
           </div>
         )}
 
-        {/* Verification checklist — shown when acting phase + staged data */}
+        {/* Verification checklist — shown when improving phase + staged data */}
         {phase === 'improving' && hasStagedData && (
           <div data-testid="verification-checklist">
             <div className="text-[10px] uppercase tracking-wider text-content-muted font-medium mb-1.5">

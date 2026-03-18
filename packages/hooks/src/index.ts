@@ -270,6 +270,9 @@ export {
   type UseCreateFactorModalReturn,
 } from './useCreateFactorModal';
 
+// Journey Phase (methodology coach)
+export { useJourneyPhase } from './useJourneyPhase';
+
 // Verification Charts (Report Step 5 staged evidence)
 export {
   useVerificationCharts,

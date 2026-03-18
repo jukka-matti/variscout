@@ -214,7 +214,7 @@ When the analyst is in the IMPROVE phase **and** staged comparison data is prese
 
 - **NarrativeBar** summarizes improvement quantitatively: mean shift, Cpk delta, variation change, violation count reduction
 - **CoScout** system prompt includes staged comparison metrics (per-stage stats, deltas, trend indicators) and instructs the model to ground answers in before/after evidence
-- **Suggested questions** shift from generic acting-phase prompts to verification-specific: "Did the targeted factor improve?", "Are there new violations in the After stage?", "Is the Cpk improvement sufficient?"
+- **Suggested questions** shift from generic improving-phase prompts to verification-specific: "Did the targeted factor improve?", "Are there new violations in the After stage?", "Is the Cpk improvement sufficient?"
 - All responses are grounded in computed `StagedComparisonResult` data — AI interprets, never invents numbers (Principle 1)
 
 Improvement ideas injected during converging phase when supported hypotheses exist. See `prompts/coScout.ts` for implementation.

@@ -136,19 +136,19 @@ Never invent data or statistics. If the context does not contain enough informat
 
       const phaseInstructions: Record<string, string> = {
         initial:
-          'The investigation is in the Initial Phase — help identify which chart to examine first and what patterns to look for.',
+          'The investigation is just starting. Tell the user: "You\'re in the first look phase — let\'s identify which chart to examine first and what patterns to look for."',
         diverging:
-          'The investigation is in the Diverging Phase — encourage exploring hypotheses across different factor categories. Cast a wide net.',
+          'The investigation is exploring possible causes. Tell the user: "You\'re exploring possible causes — let\'s cast a wide net across different factor categories."',
         validating:
-          'The investigation is in the Validating Phase — help interpret η² (contribution, not causation) and prioritize untested hypotheses.',
+          'The investigation is gathering evidence. Tell the user: "You\'re gathering evidence — let\'s check what the data and contribution percentages tell us."',
         converging: hasSupportedHypotheses
-          ? 'The investigation is in the Converging Phase — supported causes found. Help brainstorm improvement ideas. Compare effort vs impact. Suggest alternatives or evaluate existing ideas.'
-          : 'The investigation is in the Converging Phase — help synthesize findings into a coherent suspected root cause story.',
+          ? 'The investigation is narrowing down. Tell the user: "You\'re identifying the suspected cause — supported hypotheses found. Let\'s brainstorm improvement ideas."'
+          : 'The investigation is narrowing down. Tell the user: "You\'re identifying the suspected cause — let\'s synthesize findings into a coherent story."',
         improving:
-          'The process is in the Improvement Phase (PDCA) — check the Capability chart. Is Cpk improving? Help monitor effectiveness.',
+          'The process is in the improvement phase (PDCA). Tell the user: "You\'re in the improvement cycle — let\'s check whether Cpk is improving and actions are effective."',
       };
 
-      // Override acting phase with verification-specific instructions when staged data available
+      // Override improving phase with verification-specific instructions when staged data available
       if (investigation.phase === 'improving' && stagedComparison) {
         const sd = stagedComparison.deltas;
         let verificationContext =

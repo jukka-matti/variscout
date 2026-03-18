@@ -468,3 +468,15 @@ Filter to Store C + Weekend, then use What-If:
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Knowledge base dependency
 - [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) — Data lifecycle, staged comparison, verification vision
 - [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) — Dynamic Report View for sharing investigation stories
+- [Methodology Coach Design Spec](../../superpowers/specs/2026-03-18-methodology-coach-design.md) — Phase-aware coaching panel
+
+### Methodology Coach
+
+The **Methodology Coach** panel (right side of the dashboard) surfaces the investigation workflow phases visually, with plain-language labels. It provides phase-aware coaching:
+
+- **FRAME** — Setup checklist (data loaded, outcome selected, factors mapped, specs set)
+- **SCOUT** — Key observation hints + drill suggestions
+- **INVESTIGATE** — Investigation diamond phases (First look → Exploring possible causes → Gathering evidence → Identifying suspected cause) with uncovered factors and suggested questions
+- **IMPROVE** — PDCA progress tracker (Plan → Do → Check → Act) with verification checklist
+
+The Coach uses the `JourneyPhase` type (`frame | scout | investigate | improve`) detected by the `useJourneyPhase` hook. During the INVESTIGATE phase, it also renders the investigation diamond sub-phases via `DiamondPhaseMap`. See [Methodology Coach Design Spec](../../superpowers/specs/2026-03-18-methodology-coach-design.md) for full design details.

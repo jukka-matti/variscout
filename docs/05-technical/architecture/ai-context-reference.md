@@ -106,10 +106,10 @@ function detectInvestigationPhase(
   hypotheses: Hypothesis[],
   findings?: Finding[]
 ): InvestigationPhase;
-// Returns: 'initial' | 'diverging' | 'validating' | 'converging' | 'acting'
+// Returns: 'initial' | 'diverging' | 'validating' | 'converging' | 'improving'
 ```
 
-Deterministic phase detection based on hypothesis tree state: no hypotheses = initial; has children + mostly untested = diverging; some tested + some untested = validating; more tested than untested = converging; any finding has actions = acting.
+Deterministic phase detection based on hypothesis tree state: no hypotheses = initial; has children + mostly untested = diverging; some tested + some untested = validating; more tested than untested = converging; any finding has actions = improving.
 
 ## 4. Data Flow: Narration
 

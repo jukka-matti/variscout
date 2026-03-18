@@ -16,6 +16,9 @@ export type InvestigationPhase =
   | 'converging'
   | 'improving';
 
+/** High-level analysis journey phase (doc-canonical, code-detected) */
+export type JourneyPhase = 'frame' | 'scout' | 'investigate' | 'improve';
+
 /** Process context provided by the user for AI grounding */
 export interface ProcessContext {
   /** Free-text description of the process (max 500 chars) */

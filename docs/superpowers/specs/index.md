@@ -19,3 +19,4 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | 2026-03-15-hypothesis-investigation-design.md           | Investigation Workflow    | ADR-020 | Delivered |
 | 2026-03-14-investigation-workflow-enhancement-design.md | Investigation Enhancement | ADR-020 | Delivered |
 | 2026-03-14-ai-integration-strategy-design.md            | AI Strategy               | ADR-019 | Delivered |
+| 2026-03-18-methodology-coach-design.md                  | Methodology Coach         | —       | Draft     |

@@ -150,7 +150,7 @@ describe('buildSuggestedQuestions', () => {
       expect(result).toContain('Which chart should I examine first?');
     });
 
-    it('returns acting questions when actions exist', () => {
+    it('returns improving questions when actions exist', () => {
       const context: AIContext = {
         ...baseContext,
         investigation: {
@@ -166,7 +166,7 @@ describe('buildSuggestedQuestions', () => {
       ).toBe(true);
     });
 
-    it('returns verification-grounded questions when acting + staged with Cpk improvement', () => {
+    it('returns verification-grounded questions when improving + staged with Cpk improvement', () => {
       const context: AIContext = {
         ...baseContext,
         investigation: {
@@ -220,7 +220,7 @@ describe('buildSuggestedQuestions', () => {
       ).toBe(true);
     });
 
-    it('returns generic acting questions when staged but not in acting phase', () => {
+    it('returns generic improving questions when staged but not in improving phase', () => {
       const context: AIContext = {
         ...baseContext,
         investigation: {

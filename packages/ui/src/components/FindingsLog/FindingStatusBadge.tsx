@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FINDING_STATUSES, type FindingStatus } from '@variscout/core';
+import { FINDING_STATUSES, FINDING_STATUS_DESCRIPTIONS, type FindingStatus } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 
 export interface FindingStatusBadgeProps {
@@ -88,7 +88,7 @@ const FindingStatusBadge: React.FC<FindingStatusBadgeProps> = ({
         className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${STATUS_STYLES[status]} ${
           onStatusChange ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
         }`}
-        title={onStatusChange ? 'Change status' : statusLabels[status]}
+        title={onStatusChange ? 'Change status' : FINDING_STATUS_DESCRIPTIONS[status]}
         aria-label={`Status: ${statusLabels[status]}`}
       >
         {statusLabels[status]}

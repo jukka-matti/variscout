@@ -5,7 +5,6 @@ import { downloadCSV } from './lib/export';
 import { useFilterNavigation } from './hooks/useFilterNavigation';
 import {
   ColumnMapping,
-  InvestigationPrompt,
   FindingsWindow,
   openFindingsPopout,
   updateFindingsPopout,
@@ -446,15 +445,6 @@ function AppMain() {
         </div>
       )}
 
-      {/* First-drill investigation prompt */}
-      {rawData.length > 0 && outcome && !isEmbedMode && (
-        <InvestigationPrompt
-          filterCount={filterNav.filterStack.length}
-          isFindingsOpen={panels.isFindingsPanelOpen}
-          onOpenFindings={panels.handleToggleFindingsPanel}
-        />
-      )}
-
       {/* Main Content */}
       <main id="main-content" className="flex-1 overflow-hidden relative flex">
         {/* Main content area */}
@@ -524,6 +514,7 @@ function AppMain() {
                   onEditFinding: findingsState.editFinding,
                   onDeleteFinding: findingsState.deleteFinding,
                 }}
+                findings={findingsState.findings}
               />
             )}
           </Suspense>

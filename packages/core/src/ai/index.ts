@@ -6,6 +6,7 @@ export type {
   ProcessContext,
   TargetMetric,
   InvestigationPhase,
+  JourneyPhase,
   AIContext,
   AIErrorType,
   CoScoutMessage,

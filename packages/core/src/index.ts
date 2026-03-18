@@ -299,6 +299,7 @@ export type {
   ProcessContext,
   TargetMetric,
   InvestigationPhase,
+  JourneyPhase,
   AIContext,
   AIErrorType,
   CoScoutMessage,
@@ -398,6 +399,7 @@ export type {
 export {
   FINDING_STATUSES,
   FINDING_STATUS_LABELS,
+  FINDING_STATUS_DESCRIPTIONS,
   FINDING_TAGS,
   FINDING_TAG_LABELS,
   HYPOTHESIS_STATUSES,
