@@ -12,16 +12,16 @@ Structured root cause investigation using the diamond pattern — diverge, valid
 
 ## Overview
 
-When you identify a key variation driver through drill-down analysis, the next question is _why_. The Hypothesis Investigation Flow provides a structured way to explore possible causes, test them against data and real-world evidence, and converge on confirmed root causes.
+When you identify a key variation driver through drill-down analysis, the next question is _why_. The Hypothesis Investigation Flow provides a structured way to explore possible causes, test them against data and real-world evidence, and converge on a suspected root cause.
 
-The investigation follows a **diamond pattern**:
+The investigation follows a **diamond pattern** — four phases of structured learning:
 
-1. **Start** with a root hypothesis (your best guess at the cause)
-2. **Diverge** — generate sub-hypotheses (break the broad cause into testable theories)
-3. **Validate** — test each sub-hypothesis using data, gemba inspection, or expert review
-4. **Converge** — eliminate contradicted theories, confirm supported ones
-5. **Ideate** — brainstorm improvement ideas, attach What-If projections, compare impact vs effort
-6. **Act** — select the best idea(s) and define corrective actions
+1. **Initial** — The upfront hypothesis (from FRAME's analysis brief) or a new observation becomes the root node of the hypothesis tree
+2. **Diverge** — The tree grows — break the broad cause into testable sub-hypotheses
+3. **Validate** — Test each leaf — data (ANOVA auto-validate), Gemba (go inspect), expert input
+4. **Converge** — The tree narrows — prune contradicted branches, promote the suspected root cause
+
+The diamond closes at Converging. What follows — improvement ideation, corrective actions, implementation, and verification — belongs to the **IMPROVE** phase (PDCA). See [Analysis Journey Map § Phase 4: IMPROVE](analysis-journey-map.md#phase-4-improve).
 
 This mirrors how experienced quality engineers think: cast a wide net, then narrow down. VariScout structures this natural process so nothing is lost and the reasoning trail is documented.
 
@@ -106,6 +106,14 @@ To keep investigations focused and manageable:
 | Max children | 8     | Per parent. More than 8 sub-hypotheses = too broad                     |
 | Max total    | 30    | Per finding. Hard cap across the entire tree                           |
 
+## Upfront Hypothesis Thread
+
+When the analyst enters with a hypothesis (hypothesis-driven entry path), the analysis brief captures it during FRAME. This upfront hypothesis becomes the root node of the hypothesis tree when investigation begins, creating a continuous thread from initial theory through validated understanding.
+
+For example: "I think Machine 5 has drifted" → captured in FRAME → confirmed in SCOUT (eta-squared shows Machine 5 at 47%) → becomes tree root in INVESTIGATE → diverge into sub-hypotheses (worn nozzle, temperature drift, operator technique) → validate → converge on suspected root cause.
+
+The thread is currently conceptual — the analysis brief captures upfront hypotheses as text, but the hypothesis tree starts fresh. See [Mental Model Hierarchy § Gap #7](../../05-technical/architecture/mental-model-hierarchy.md#known-gaps--drift) for the opportunity to connect them programmatically.
+
 ## CoScout Investigation Prompts
 
 When AI is configured, CoScout adapts its suggestions to the current investigation phase:
@@ -116,7 +124,8 @@ When AI is configured, CoScout adapts its suggestions to the current investigati
 | Diverging  | Suggests additional sub-hypotheses, highlights uncovered factor roles   |
 | Validating | Suggests how to validate untested hypotheses (data checks, gemba tasks) |
 | Converging | Helps evaluate which supported hypotheses are most likely root cause    |
-| Acting     | Suggests corrective actions based on the confirmed root cause           |
+
+> **Note:** CoScout also assists during IMPROVE — suggesting corrective actions, assisting with What-If parameter selection, and summarising before/after comparison — but this is part of the IMPROVE phase's PDCA cycle, not the investigation diamond.
 
 CoScout also checks which factor categories (equipment, temporal, operator, material, location) have been covered by hypotheses and nudges the analyst to consider uncovered categories. For example, if you have equipment and temporal hypotheses but no material hypothesis, CoScout might suggest: "Have you considered whether raw material batch variation could explain the drift?"
 
@@ -146,40 +155,40 @@ Fill weight variation on a packaging line exceeds the +/-2g specification. I-Cha
 
 **4. Converge:**
 
-Two hypotheses supported (worn nozzle + temperature drift), two contradicted. The worn nozzle is the primary root cause hypothesis — it directly explains the mechanical drift and the temperature instability (worn nozzle affects heat transfer).
+Two hypotheses supported (worn nozzle + temperature drift), two contradicted. The worn nozzle is the suspected root cause — it directly explains the mechanical drift and the temperature instability (worn nozzle affects heat transfer). The investigation diamond closes here.
 
-**5. Ideate improvements:**
+**→ IMPROVE phase (PDCA):**
 
-With the supported hypotheses identified, brainstorm improvement ideas before committing to actions. Each idea can carry an effort estimate (low/medium/high) and a What-If projection that computes its expected Cpk impact. For example:
+With the suspected root cause identified, the analyst moves to IMPROVE:
+
+**Plan — Ideate and select:** Brainstorm improvement ideas, each with an effort estimate and What-If projection:
 
 - "Replace nozzle tip weekly" (effort: low, projected Cpk: 1.25)
 - "Install automated nozzle wear sensor" (effort: high, projected Cpk: 1.40)
 - "Tighten temperature controller PID loop" (effort: medium, projected Cpk: 1.15)
 
-Comparing projected impact against effort helps the team select the best option(s) before defining formal actions. Selected ideas flow into the corrective actions list.
-
-**6. Act:**
-
-Mark "Worn nozzle tip" as the root cause hypothesis. Define corrective actions:
+**Do — Execute:** Define and execute corrective actions:
 
 - Replace nozzle tip on Machine 5
 - Add nozzle inspection to weekly PM checklist
 - Calibrate temperature controller after nozzle replacement
 
-After actions are completed and new data confirms Cpk improvement (0.85 to 1.35), the finding is resolved and the root cause is **confirmed**.
+**Check — Verify:** Load new data, staged analysis shows Cpk improved from 0.85 to 1.35.
+
+**Act — Standardize:** Target met → record outcome, resolve finding. The suspected root cause is now **confirmed** — the process improved to target.
 
 ## Terminology
 
 VariScout uses deliberate terminology to maintain the distinction between theory and proof:
 
-| Stage                       | Term                  | Meaning                                       |
-| --------------------------- | --------------------- | --------------------------------------------- |
-| Created                     | Hypothesis            | A testable theory about cause                 |
-| Evidence supports it        | Supported Hypothesis  | Data, gemba, or expert evidence supports this |
-| Tree converges on it        | Root Cause Hypothesis | Best-supported theory after investigation     |
-| Corrective action effective | Confirmed Root Cause  | The fix worked — theory proven correct        |
+| Stage                | Term                        | Meaning                                               |
+| -------------------- | --------------------------- | ----------------------------------------------------- |
+| Created              | **Hypothesis**              | A testable theory about cause                         |
+| Evidence supports it | **Supported Hypothesis**    | Data, gemba, or expert evidence supports this         |
+| Tree converges on it | **Suspected Root Cause**    | Best-supported theory, confident enough to act        |
+| Improvement works    | **Confirmed** (via outcome) | Process improved to target — the theory was effective |
 
-VariScout never auto-labels anything as "root cause." The analyst explicitly promotes a supported hypothesis when they are confident enough to act on it. Confirmation only happens when the outcome assessment at "Resolved" status shows the fix was effective.
+VariScout never auto-labels anything as "root cause." The analyst explicitly promotes a supported hypothesis to **suspected root cause** when they are confident enough to act on it. Confirmation is outcome-based: it only happens when the process improves to target (outcome = effective at "Resolved" status), not when the investigation converges.
 
 ## Platform Availability
 

@@ -83,14 +83,16 @@ Progressive stratification converts a multidimensional variation problem into a 
 
 Once variation drivers are identified through drill-down, the investigation moves into structured root cause exploration. VariScout uses a **diamond pattern**:
 
-| Phase          | Purpose                                           | Analyst Activity                                          |
-| -------------- | ------------------------------------------------- | --------------------------------------------------------- |
-| **Initial**    | Variation found, driver identified                | Pin finding from filter breadcrumb or chart annotation    |
-| **Diverging**  | Generate possible causes                          | Add sub-hypotheses — break the broad cause into theories  |
-| **Validating** | Test each theory                                  | Data (ANOVA auto-validate), Gemba (go inspect), Expert    |
-| **Converging** | Eliminate contradicted theories, confirm the rest | Mark supported/partial/contradicted; prune dead branches  |
-| **Acting**     | Define improvements                               | Attach What-If projections; assign actions with due dates |
-| **Resolved**   | Outcome verified                                  | Record Cpk after, mark outcome effective/partial/no       |
+| Phase          | Purpose                                       | Analyst Activity                                                                   |
+| -------------- | --------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Initial**    | Variation found, driver identified            | Pin finding; upfront hypothesis (from FRAME) or new observation becomes tree root  |
+| **Diverging**  | Generate possible causes                      | Add sub-hypotheses — break the broad cause into testable theories. The tree grows. |
+| **Validating** | Gather evidence                               | Test each theory — Data (ANOVA auto-validate), Gemba (go inspect), Expert input    |
+| **Converging** | Build understanding, identify suspected cause | Prune contradicted branches; promote supported hypothesis as suspected root cause  |
+
+The diamond is a **structured learning** process — a disciplined way to build understanding of the cause through multiple evidence types. It is not pure hypothesis testing; the three validation types (data, Gemba, expert) reflect that understanding comes from statistical evidence, physical observation, and domain knowledge alike. The exit is confidence-based: the analyst has sufficient understanding of the cause to move to improvement.
+
+After the diamond converges, the investigation is complete. What follows — ideating improvements, selecting corrective actions, implementing, and verifying — belongs to the **IMPROVE** phase, which follows PDCA (Plan-Do-Check-Act). See [Analysis Journey Map § Phase 4: IMPROVE](../03-features/workflows/analysis-journey-map.md#phase-4-improve).
 
 **Three validation types** reflect that not every hypothesis can be tested with data:
 
@@ -163,3 +165,4 @@ VariScout is **the first step** — finding where to focus before investing in d
 - [Progressive Stratification](progressive-stratification.md) — Design rationale for filter chip drill-down, tensions, alternative patterns
 - [Investigation to Action](../03-features/workflows/investigation-to-action.md) — Findings panel, What-If Simulator, full analyst workflow
 - [Hypothesis Investigation](../03-features/workflows/hypothesis-investigation.md) — Diamond pattern, validation types, tree view
+- [Mental Model Hierarchy](../05-technical/architecture/mental-model-hierarchy.md) — How all conceptual frameworks (journey, IDEOI, lenses, report steps) relate and nest

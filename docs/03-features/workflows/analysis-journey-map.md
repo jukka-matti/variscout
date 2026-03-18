@@ -170,7 +170,7 @@ See [quick-check.md](quick-check.md) and [deep-dive.md](deep-dive.md) for detail
 
 ## Phase 3: INVESTIGATE
 
-**Purpose:** Move from observations to validated root causes through structured hypothesis testing.
+**Purpose:** Understand why variation exists through structured learning — diverge, validate, converge.
 
 ```mermaid
 stateDiagram-v2
@@ -179,11 +179,11 @@ stateDiagram-v2
     Diverging --> Validating: Select hypothesis to test
     Validating --> Diverging: Needs more hypotheses
     Validating --> Converging: Evidence confirms
-    Converging --> Acting: Root cause identified
-    Acting --> [*]: Ready for Improve phase
+    Converging --> [*]: Suspected cause identified — move to Improve
 
     note right of Diverging
         Brainstorm possible causes
+        The hypothesis tree grows
         (CoScout suggests)
     end note
 
@@ -194,25 +194,26 @@ stateDiagram-v2
     end note
 ```
 
-### IDEOI Phases
+### Investigation Diamond (4 Phases)
 
-The investigation follows the IDEOI lifecycle within each finding:
+The investigation follows the diamond pattern within each finding — a structured learning process:
 
-| Phase          | Status              | Activity                                                                                |
-| -------------- | ------------------- | --------------------------------------------------------------------------------------- |
-| **I**nitial    | `observed`          | Finding pinned from chart, no hypothesis yet                                            |
-| **D**iverging  | `investigating`     | Generate multiple sub-hypotheses, brainstorm causes                                     |
-| **V**alidating | `investigating`     | Test hypotheses against data (eta-squared thresholds), gemba walks, expert consultation |
-| **C**onverging | `analyzed`          | Confirm root cause, tag as key-driver or low-impact                                     |
-| **A**cting     | `improving` (Azure) | Define corrective actions, enter Improve phase                                          |
+| Phase          | Status          | Activity                                                                          |
+| -------------- | --------------- | --------------------------------------------------------------------------------- |
+| **I**nitial    | `observed`      | Pin finding; upfront hypothesis (from FRAME) or new observation becomes tree root |
+| **D**iverging  | `investigating` | Generate sub-hypotheses as a tree — break broad cause into testable theories      |
+| **V**alidating | `investigating` | Test each leaf with evidence (data, Gemba, expert)                                |
+| **C**onverging | `analyzed`      | Prune contradicted branches, promote suspected root cause                         |
+
+The diamond closes at Converging. What follows — improvement ideation, corrective actions, implementation, and verification — belongs to the IMPROVE phase (PDCA).
 
 ### Steps
 
-1. **Formulate hypotheses** -- Based on Scout observations, propose why the variation exists. CoScout can suggest hypotheses grounded in the data.
+1. **Formulate hypotheses** -- Based on Scout observations, propose why the variation exists. The upfront hypothesis from FRAME's analysis brief (if present) seeds the tree root. CoScout can suggest hypotheses grounded in the data.
 2. **Test with data** -- Use ANOVA results and drill-down filtering to validate or reject each hypothesis. Auto-validation uses eta-squared thresholds.
 3. **Gemba observation** -- Go to the process and observe. Azure Team plan supports photo evidence (EXIF-stripped).
 4. **Expert input** -- Add comments and notes from domain experts to findings.
-5. **Converge** -- Select the validated root cause and classify the finding (key-driver vs low-impact).
+5. **Converge** -- Identify the suspected root cause — the analyst has sufficient understanding to move to IMPROVE. Classify the finding (key-driver vs low-impact).
 
 ### Data Shapes
 
@@ -248,32 +249,34 @@ The investigation follows the IDEOI lifecycle within each finding:
 
 ## Phase 4: IMPROVE
 
-**Purpose:** Project improvements, define corrective actions, verify with staged analysis, and record outcomes.
+**Purpose:** Improve the process to target through PDCA — Plan (ideate, select), Do, Check (staged analysis), Act (standardize or loop).
 
 ```mermaid
 flowchart TD
-    ID["Ideas from investigation"] --> WI["What-If Simulator\n(project Cpk/yield)"]
-    WI --> ACT["Define Corrective Actions"]
-    ACT --> IMPL["Implement changes"]
-    IMPL --> STAGE["Staged Analysis\n(before vs after)"]
-    STAGE --> CHK{Verification\npassed?}
-    CHK -- "Yes" --> OUT["Record Outcome\n(report / share)"]
-    CHK -- "No" --> PDCA["PDCA loop\n(back to Frame)"]
-    OUT --> CLOSE["Resolve finding"]
+    PLAN_I["PLAN: Ideate\nBrainstorm improvements"] --> PLAN_S["PLAN: Select\nCompare projected impact"]
+    PLAN_S --> DO["DO: Execute\nDefine & implement actions"]
+    DO --> CHECK["CHECK: Verify\nStaged Analysis\n(before vs after)"]
+    CHECK --> CHK{Target\nmet?}
+    CHK -- "Yes" --> ACT_S["ACT: Standardize\nRecord outcome, close finding"]
+    CHK -- "No" --> LOOP{"New PDCA\ncycle?"}
+    LOOP -- "Yes" --> PLAN_I
+    LOOP -- "Back to Investigate" --> INV["Re-enter INVESTIGATE"]
 
-    style ID fill:#8b5cf6,color:#fff
-    style WI fill:#8b5cf6,color:#fff
-    style OUT fill:#22c55e,color:#fff
-    style PDCA fill:#3b82f6,color:#fff
+    style PLAN_I fill:#8b5cf6,color:#fff
+    style PLAN_S fill:#8b5cf6,color:#fff
+    style DO fill:#8b5cf6,color:#fff
+    style CHECK fill:#8b5cf6,color:#fff
+    style ACT_S fill:#22c55e,color:#fff
+    style INV fill:#f59e0b,color:#fff
 ```
 
-### Steps
+### PDCA Steps
 
-1. **Generate improvement ideas** -- Based on root cause analysis, propose specific changes. Each idea can have a projected impact.
-2. **Model with What-If Simulator** -- Use `directAdjustment` to project how changes would affect Cpk and yield.
-3. **Define corrective actions** -- Create trackable action items with owners, dates, and status.
-4. **Verify with staged analysis** -- Load before-and-after data into staged analysis to confirm the improvement. Compare control limits and Cpk.
-5. **Record outcome** -- Document whether the action resolved the variation source. Mark the finding as resolved.
+1. **Plan: Ideate** -- Brainstorm improvement options based on the suspected root cause. Each idea gets an effort estimate (low/medium/high) and a What-If projection (projected Cpk/yield impact).
+2. **Plan: Select** -- Compare projected impact across ideas. Selected ideas become corrective actions. Use the What-If Simulator (`directAdjustment`) to model scenarios.
+3. **Do** -- Define and execute corrective actions (owners, dates, completion tracking). Implementation happens mostly outside VariScout. When the first action is added, the finding transitions to `improving`.
+4. **Check** -- Load new data into staged analysis. Compare before vs after (control limits, Cpk, mean shift, σ change). Did the process improve to target?
+5. **Act** -- Target met → record outcome, close finding (`resolved`), standardize the fix. Not enough → start a new PDCA cycle (back to Plan) or re-enter Investigate if the suspected cause was wrong.
 
 ### Data Shapes
 
@@ -334,6 +337,20 @@ flowchart TD
 | --------------------- | ------------------------------------- | --------- | ---------------------------------- |
 | **Discovery**         | No prior knowledge                    | 15-30 min | New datasets, exploratory analysis |
 | **Hypothesis-driven** | CoScout suggestion or prior knowledge | 5-10 min  | Known issues, repeat monitoring    |
+
+---
+
+## Entry-Path-Dependent Phase Goals
+
+How the analyst entered the journey shapes what each phase needs to accomplish:
+
+| Entry Scenario                                                 | FRAME Goal                                             | SCOUT Goal                                          | INVESTIGATE Goal                                                            | IMPROVE Goal                             |
+| -------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------- |
+| **Problem to Solve** ("Customer complaint about fill weights") | Define the problem space; capture known constraints    | Find which factors drive the variation              | Understand why — build evidence for suspected root cause                    | Fix the process — Cpk to target          |
+| **Hypothesis to Check** ("I think Machine 5 drifted")          | Load data; record upfront hypothesis in analysis brief | Confirm or refute the hypothesis with data evidence | If confirmed, understand the mechanism; if refuted, diverge to alternatives | Fix the confirmed cause — Cpk to target  |
+| **Routine Check** ("Weekly monitoring of Line 2")              | Load latest data; specs already known                  | Scan for new signals; compare to baseline           | Only if a new signal is found — quick investigation                         | Only if investigation identifies a cause |
+
+The upfront hypothesis (hypothesis-driven path) seeds the hypothesis tree root when investigation begins, creating a continuous thread from initial theory through validated understanding.
 
 ---
 
@@ -430,3 +447,4 @@ flowchart TD
 - [Investigation to Action](investigation-to-action.md) -- findings and What-If workflow
 - [Investigation Lifecycle Map](investigation-lifecycle-map.md) -- IDEOI state machine detail
 - [Decision Trees](decision-trees.md) -- branching logic for analysis decisions
+- [Mental Model Hierarchy](../../05-technical/architecture/mental-model-hierarchy.md) -- how all conceptual frameworks (journey, IDEOI, report steps, lenses) nest together

@@ -143,13 +143,15 @@ As findings accumulate, track their investigation progress. The available status
 
 #### 5-Status Model (Azure Standard and Team)
 
-| Status            | Badge  | Meaning                                     | PDCA Phase |
-| ----------------- | ------ | ------------------------------------------- | ---------- |
-| **Observed**      | Amber  | Pattern spotted, not yet investigated       | Plan       |
-| **Investigating** | Blue   | Actively drilling into this finding         | Plan       |
-| **Analyzed**      | Purple | Suspected cause identified                  | Plan       |
-| **Improving**     | Cyan   | Corrective actions assigned and in progress | Do         |
-| **Resolved**      | Green  | Actions completed, outcome verified         | Check/Act  |
+| Status            | Badge  | Meaning                                     | Journey Phase                               | PDCA Mapping |
+| ----------------- | ------ | ------------------------------------------- | ------------------------------------------- | ------------ |
+| **Observed**      | Amber  | Pattern spotted, not yet investigated       | INVESTIGATE (diamond: Initial)              | —            |
+| **Investigating** | Blue   | Actively drilling into this finding         | INVESTIGATE (diamond: Diverging/Validating) | —            |
+| **Analyzed**      | Purple | Suspected cause identified                  | INVESTIGATE (diamond: Converging)           | —            |
+| **Improving**     | Cyan   | Corrective actions assigned and in progress | IMPROVE                                     | PDCA: Do     |
+| **Resolved**      | Green  | Actions completed, outcome verified         | IMPROVE                                     | PDCA: Act    |
+
+> **Note:** The transition from `analyzed` → `improving` maps to the boundary between INVESTIGATE and IMPROVE. Improvement ideation and action selection happen while the finding is still `analyzed` (PDCA: Plan); the first corrective action triggers the transition to `improving` (PDCA: Do). Confirmation that a root cause is correct only comes when the outcome shows the process improved to target — not when the investigation converges.
 
 #### 3-Status Model (PWA)
 
@@ -217,14 +219,17 @@ For structured investigation with multiple competing theories, use the **Hypothe
 
 **"Hypothesis" vs "root cause":** VariScout finds _where_ variation is hiding
 (the key factors), but identifying a factor (Machine A explains 47%) is not proving
-root cause. True root cause is only confirmed when the corrective action proves
-effective (outcome = effective at "Resolved" status). VariScout uses "hypothesis"
-and "root cause hypothesis" throughout to maintain this distinction. A hypothesis
-becomes a "confirmed root cause" only when the outcome assessment shows the fix was effective.
+root cause. The investigation diamond converges on a **suspected root cause** — the
+best-supported theory, confident enough to act on. True confirmation only comes when
+the process improves to target (outcome = effective at "Resolved" status). VariScout
+uses "hypothesis" and "suspected root cause" throughout to maintain this distinction.
+A suspected root cause becomes **confirmed** only when the outcome shows the fix was effective.
 
 ### Improvement Ideation (Azure only)
 
-When a hypothesis is validated and supported, the next step is not jumping straight to actions — it is brainstorming _how_ to fix the problem. The Improvement Ideas section on a finding unlocks once at least one hypothesis is supported. Analysts can generate multiple improvement ideas, estimate effort (low/medium/high), and attach a What-If projection to each idea to quantify its expected impact on Cpk and yield.
+Improvement ideation is the first step of the **IMPROVE** phase (PDCA: Plan), not the tail end of investigation. Once the investigation diamond converges on a suspected root cause, the focus shifts from "understand the cause" to "fix the process."
+
+The Improvement Ideas section on a finding unlocks once at least one hypothesis is supported. Analysts can generate multiple improvement ideas, estimate effort (low/medium/high), and attach a What-If projection to each idea to quantify its expected impact on Cpk and yield.
 
 | Field                  | Purpose                                                           |
 | ---------------------- | ----------------------------------------------------------------- |
