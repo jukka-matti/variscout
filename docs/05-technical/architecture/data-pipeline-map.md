@@ -193,7 +193,7 @@ interface FilterAction {
 
 ```typescript
 // packages/core/src/findings.ts
-type FindingStatus = 'observed' | 'investigating' | 'analyzed';
+type FindingStatus = 'observed' | 'investigating' | 'analyzed'; // PWA subset; Azure adds 'improving' | 'resolved'
 type FindingTag = 'key-driver' | 'low-impact';
 
 type FindingSource =
@@ -361,14 +361,15 @@ flowchart LR
 
 The AI layer adapts behavior based on the current investigation phase (4-phase diamond):
 
-| Phase          | Trigger              | CoScout Behavior                                      |
-| -------------- | -------------------- | ----------------------------------------------------- |
-| **Initial**    | Data loaded          | Suggests patterns in data                             |
-| **Diverging**  | First finding pinned | Suggests possible hypotheses                          |
-| **Validating** | Hypothesis linked    | Challenges assumptions, provides evidence for/against |
-| **Converging** | Evidence collected   | Summarizes evidence, promotes suspected root cause    |
+| Phase          | Trigger              | CoScout Behavior                                                          |
+| -------------- | -------------------- | ------------------------------------------------------------------------- |
+| **Initial**    | Data loaded          | Suggests patterns in data                                                 |
+| **Diverging**  | First finding pinned | Suggests possible hypotheses                                              |
+| **Validating** | Hypothesis linked    | Challenges assumptions, provides evidence for/against                     |
+| **Converging** | Evidence collected   | Summarizes evidence, promotes suspected root cause with causeRole marking |
+| **Improving**  | Actions planned      | Suggests corrective actions, monitors Cpk improvement                     |
 
-> **Note:** After the diamond closes (suspected root cause identified), IMPROVE follows the PDCA cycle. During IMPROVE, CoScout shifts to suggesting corrective actions and monitoring Cpk improvement.
+> **Note:** The first four phases form the investigation diamond. After the diamond closes (suspected root cause identified), IMPROVE follows the PDCA cycle.
 
 ---
 

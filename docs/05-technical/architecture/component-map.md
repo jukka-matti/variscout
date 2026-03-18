@@ -36,32 +36,35 @@ flowchart LR
     subgraph charts["@variscout/charts (18 components)"]
         direction TB
         ch1["10 Standard Charts"]
-        ch2["8 Performance Charts"]
+        ch2["4 Performance Charts (+ Base)"]
     end
 
-    subgraph hooks["@variscout/hooks (35 hooks)"]
+    subgraph hooks["@variscout/hooks (41+ hooks)"]
         direction TB
         h1["8 State & Data"]
-        h2["9 Chart & Visualization"]
+        h2["9 Chart Data & Visualization"]
         h3["5 UI State"]
         h4["8 Business Logic & AI"]
         h5["5 Advanced Composition"]
+        h6["3 i18n & Theme"]
+        h7["3 Reporting & Export"]
     end
 
-    subgraph ui["@variscout/ui (60 components)"]
+    subgraph ui["@variscout/ui (60+ components)"]
         direction TB
         u1["10 Input"]
         u2["4 Data Display"]
         u3["8 Analysis"]
         u4["6 Chart Wrappers"]
         u5["4 Navigation"]
-        u6["11 Findings"]
+        u6["13 Findings"]
         u7["2 Simulation"]
         u8["5 Dashboard"]
-        u9["6 AI & CoScout"]
+        u9["11 AI & CoScout"]
         u10["7 Methodology Coach"]
         u11["6 Report View"]
-        u12["3 Utilities"]
+        u12["6 Investigation"]
+        u13["3 Utilities"]
     end
 
     subgraph data["@variscout/data (4 datasets)"]
@@ -162,33 +165,66 @@ Shared React hooks organized by concern. Depends on `@variscout/core` for types,
 
 ```mermaid
 flowchart TB
-    subgraph state["State Hooks"]
-        datastate["useDataState<br/><small>Shared DataContext<br/>state management</small>"]
-        usetier["useTier<br/><small>License tier state<br/>and limits</small>"]
+    subgraph state["State & Data (8)"]
+        datastate["useDataState"]
+        usetier["useTier"]
+        dataingestion["useDataIngestion"]
+        columnclass["useColumnClassification"]
+        drillpath["useDrillPath"]
+        projpersist["useProjectPersistence"]
+        filterhandlers["useFilterHandlers"]
+        createfactormodal["useCreateFactorModal"]
     end
 
-    subgraph navigation["Navigation Hooks"]
-        filternav["useFilterNavigation<br/><small>Multi-select filters<br/>breadcrumbs, drill trail</small>"]
-        keyboard["useKeyboardNavigation<br/><small>Arrow key focus<br/>management</small>"]
+    subgraph chartdata["Chart Data & Visualization (9)"]
+        chartscale["useChartScale"]
+        boxplotdata["useBoxplotData"]
+        ichartdata["useIChartData"]
+        margins["useResponsiveChartMargins"]
+        paretodata["useParetoChartData"]
+        dashdata["useDashboardComputedData"]
+        boxplotwrap["useBoxplotWrapperData"]
+        ichartwrap["useIChartWrapperData"]
+        dashcharts["useDashboardChartsBase"]
     end
 
-    subgraph chartdata["Chart Data Hooks"]
-        chartscale["useChartScale<br/><small>Y-axis scale calculation</small>"]
-        boxplotdata["useBoxplotData<br/><small>d3 boxplot computation</small>"]
-        ichartdata["useIChartData<br/><small>I-Chart data transform</small>"]
-        margins["useResponsiveChartMargins<br/><small>Dynamic margins</small>"]
-        paretodata["useParetoChartData<br/><small>Pareto data prep</small>"]
-        dashdata["useDashboardComputedData<br/><small>Dashboard stats</small>"]
+    subgraph uistate["UI State (5)"]
+        filternav["useFilterNavigation"]
+        keyboard["useKeyboardNavigation"]
+        focusednav["useFocusedChartNav"]
+        annotations["useAnnotations"]
+        highlightfade["useHighlightFade"]
     end
 
-    subgraph exporthooks["Export Hooks"]
-        chartcopy["useChartCopy<br/><small>Clipboard, PNG, SVG</small>"]
+    subgraph business["Business Logic & AI (8)"]
+        vartrack["useVariationTracking"]
+        violations["useControlViolations"]
+        findings["useFindings"]
+        hypotheses["useHypotheses"]
+        aicontext["useAIContext"]
+        aicoscout["useAICoScout"]
+        narration["useNarration"]
+        chartinsights["useChartInsights"]
     end
 
-    subgraph tracking["Tracking Hooks"]
-        vartrack["useVariationTracking<br/><small>Cumulative Total SS<br/>scope tracking</small>"]
-        annotation["useAnnotationMode<br/><small>Chart annotation state</small>"]
-        violations["useControlViolations<br/><small>Control chart violation<br/>detection</small>"]
+    subgraph composition["Advanced Composition (5)"]
+        chartcopy["useChartCopy"]
+        knowledgesearch["useKnowledgeSearch"]
+        verifycharts["useVerificationCharts"]
+        journeyphase["useJourneyPhase"]
+        snapshotdata["useSnapshotData"]
+    end
+
+    subgraph i18ntheme["i18n & Theme (3)"]
+        localestate["useLocaleState"]
+        translation["useTranslation"]
+        themestate["useThemeState"]
+    end
+
+    subgraph reporting["Reporting (3)"]
+        reportsections["useReportSections"]
+        scrollspy["useScrollSpy"]
+        copysection["copySectionAsHTML"]
     end
 
     subgraph deps["@variscout/core"]
@@ -199,18 +235,19 @@ flowchart TB
 
     state --> core_types
     state --> core_tier
-    navigation --> core_types
     chartdata --> core_types
     chartdata --> core_stats
-    tracking --> core_types
-    tracking --> core_stats
+    uistate --> core_types
+    business --> core_types
+    business --> core_stats
+    composition --> core_types
 ```
 
 ---
 
 ## @variscout/ui
 
-60 shared UI components across 12 categories. Uses the `colorScheme` pattern with `defaultScheme` semantic tokens. Depends on core, hooks, and charts.
+60+ shared UI components across 14 categories. Uses the `colorScheme` pattern with `defaultScheme` semantic tokens. Depends on core, hooks, and charts.
 
 ```mermaid
 flowchart TB
@@ -234,14 +271,13 @@ flowchart TB
         mobilesheet["MobileCategorySheet"]
     end
 
-    subgraph analysis["Analysis (8)"]
+    subgraph analysis["Analysis (7)"]
         anova["AnovaResults"]
         statspanel["StatsPanelBase"]
         variationbar["VariationBar"]
         yaxispopover["YAxisPopover"]
         axiseditor["AxisEditor"]
         factorsel["FactorSelector"]
-        investprompt["InvestigationPrompt"]
         boxplottoggle["BoxplotDisplayToggle"]
     end
 
@@ -261,15 +297,20 @@ flowchart TB
         selectionpanel["SelectionPanel"]
     end
 
-    subgraph findings["Findings (8)"]
+    subgraph findings["Findings (13)"]
         findingslog["FindingsLog"]
         findingcard["FindingCard"]
         findingeditor["FindingEditor"]
         findingstatus["FindingStatusBadge"]
         findingcomments["FindingComments"]
         findingboard["FindingBoardView"]
-        findingspanel["FindingsPanel"]
+        findingspanel["FindingsPanelBase"]
         findingswindow["FindingsWindow"]
+        findingsexport["FindingsExportMenu"]
+        hypothesistree["HypothesisTreeView"]
+        hypothesisnode["HypothesisNode"]
+        findingdetail["FindingDetailPanel"]
+        briefheader["BriefHeader"]
     end
 
     subgraph simulation["Simulation (2)"]
@@ -285,6 +326,48 @@ flowchart TB
         settingspanel["SettingsPanelBase"]
     end
 
+    subgraph aicoscout["AI & CoScout (11)"]
+        narrativebar["NarrativeBar"]
+        chartinsightchip["ChartInsightChip"]
+        coscoutinline["CoScoutInline"]
+        coscoutmessages["CoScoutMessages"]
+        coscoutpanel["CoScoutPanelBase"]
+        processdesc["ProcessDescriptionField"]
+        aionboarding["AIOnboardingTooltip"]
+        previewbadge["PreviewBadge"]
+        ichartwrapbase["IChartWrapperBase"]
+        boxplotwrapbase["BoxplotWrapperBase"]
+        paretowrapbase["ParetoChartWrapperBase"]
+    end
+
+    subgraph coach["Methodology Coach (7)"]
+        journeystrip["JourneyPhaseStrip"]
+        coachpopover["CoachPopover"]
+        mobilecoach["MobileCoachSheet"]
+        journeyindicator["JourneyPhaseIndicator"]
+        diamondmap["DiamondPhaseMap"]
+        pdcaprogress["PDCAProgress"]
+        methodologybase["MethodologyCoachBase"]
+    end
+
+    subgraph report["Report View (6)"]
+        reportview["ReportViewBase"]
+        reportsection["ReportSection"]
+        reportstep["ReportStepMarker"]
+        reportkpi["ReportKPIGrid"]
+        reportchart["ReportChartSnapshot"]
+        verifevidence["VerificationEvidenceBase"]
+    end
+
+    subgraph investigation["Investigation (6)"]
+        investsidebar["InvestigationSidebar"]
+        stagedcomp["StagedComparisonCard"]
+        investphase["InvestigationPhaseBadge"]
+        presentview["PresentationViewBase"]
+        investprompt2["InvestigationPrompt"]
+        dashlayout["DashboardLayoutBase"]
+    end
+
     subgraph utilities["Utilities (3)"]
         helptooltip["HelpTooltip"]
         upgradeprompt["UpgradePrompt"]
@@ -298,7 +381,7 @@ The UI package composes all three lower-level packages:
 
 ```mermaid
 flowchart LR
-    ui["@variscout/ui<br/>(60 components)"]
+    ui["@variscout/ui<br/>(72+ components)"]
     core["@variscout/core<br/>types, tier"]
     hooks["@variscout/hooks<br/>state, navigation, data"]
     charts["@variscout/charts<br/>chart components"]

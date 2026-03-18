@@ -115,7 +115,7 @@ The percentage on each chip shows that factor's **contribution to variation**:
 - Helps prioritize which factors matter most
 
 :::note[Cumulative vs Individual]
-Each chip shows its individual contribution. The VariationBar and Investigation Mindmap footer show cumulative progress.
+Each chip shows its individual contribution. The VariationBar shows cumulative progress.
 :::
 
 ## Tracking Your Investigation

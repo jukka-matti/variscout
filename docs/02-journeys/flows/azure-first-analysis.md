@@ -221,7 +221,7 @@ Users who graduated from the free PWA will notice key differences:
 - **6 factors** — up to 6 factors, manageable during analysis (PWA: 3, set at start only)
 - **No branding** — charts have no VariScout watermark
 
-The analysis workflow (drill-down, ANOVA, mindmap) is identical — skills transfer directly.
+The analysis workflow (drill-down, ANOVA, findings) is identical — skills transfer directly.
 
 ---
 

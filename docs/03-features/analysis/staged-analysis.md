@@ -184,10 +184,10 @@ VariScout's implementation:
 
 ```typescript
 // From @variscout/core
-import { calculateStagedStats, getStageBoundaries } from '@variscout/core';
+import { calculateStatsByStage, getStageBoundaries } from '@variscout/core';
 
 // Calculate per-stage statistics
-const stagedStats = calculateStagedStats(
+const stagedStats = calculateStatsByStage(
   data, // DataRow[]
   measureColumn, // e.g., 'FillWeight'
   stageColumn, // e.g., 'Period'

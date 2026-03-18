@@ -33,7 +33,6 @@ flowchart TB
     subgraph Analysis["Analysis Engine"]
         E --> F1[Statistics]
         E --> F2[ANOVA]
-        E --> F3[Regression]
         E --> F5[Performance]
     end
 
@@ -42,7 +41,6 @@ flowchart TB
         F2 --> G2[Boxplot]
         F2 --> G3[Pareto]
         F1 --> G4[Capability]
-        F3 --> G5[Scatter]
         F5 --> G7[Performance Dashboard]
     end
 

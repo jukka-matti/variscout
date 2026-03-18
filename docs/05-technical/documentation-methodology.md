@@ -307,7 +307,7 @@ Rules codified in [`.claude/rules/documentation.md`](../../.claude/rules/documen
 | ------------------ | ------------------------------------------------------------------------------------------------ | ------ |
 | **Markdown + Git** | Source of truth for all documentation                                                            | Active |
 | **Starlight**      | Astro-based doc site (`pnpm docs:build`) — Pagefind search, dark/light toggle, Mermaid rendering | Active |
-| **Mermaid**        | Diagrams (30+ across docs) — flowchart, sequence, state, C4                                      | Active |
+| **Mermaid**        | Diagrams (97 across 36 doc files) — flowchart, sequence, state, C4                               | Active |
 | **TypeDoc**        | API reference for @variscout/core (`pnpm --filter @variscout/core docs`)                         | Active |
 | **CLAUDE.md**      | AI agent routing layer (task-to-doc table)                                                       | Active |
 | **Diagram Health** | `pnpm docs:check` — verifies diagram counts and type values match code                           | Active |

@@ -20,14 +20,12 @@ flowchart TD
     B -->|"Which factor causes variation?"| D[Boxplot]
     B -->|"Where do defects concentrate?"| E[Pareto]
     B -->|"Do we meet specs?"| F[Capability]
-    B -->|"Is X related to Y?"| G[Regression]
     B -->|"Compare multiple channels?"| I[Performance Mode]
 
     C --> C1["Shows: Control limits, trends, outliers"]
     D --> D1["Shows: η² contribution, medians, spread"]
     E --> E1["Shows: Ranked categories, 80/20"]
     F --> F1["Shows: Cp, Cpk, histogram vs specs"]
-    G --> G1["Shows: Correlation, R², prediction"]
     I --> I1["Shows: All channels ranked by Cpk"]
 ```
 
@@ -203,7 +201,6 @@ flowchart TD
 | Which factor?     | Boxplot          |
 | Which defects?    | Pareto           |
 | Meet specs?       | Capability       |
-| X vs Y related?   | Regression       |
 | Compare channels? | Performance Mode |
 
 ### Next Steps

@@ -226,12 +226,10 @@ Now Performance view shows all channels, but only Day shift data.
 
 ## Channel Limits
 
-| Tier         | Max Channels |
-| ------------ | ------------ |
-| Demo         | 3            |
-| Starter      | 10           |
-| Professional | 50           |
-| Enterprise   | Unlimited    |
+| Tier       | Max Channels |
+| ---------- | ------------ |
+| Free       | 5            |
+| Enterprise | 1,500        |
 
 ## Common Patterns
 
