@@ -1,6 +1,8 @@
 ---
-title: 'VariScout AI Integration Strategy'
+title: 'VariScout AI Integration Strategy (Archived)'
 ---
+
+> **ARCHIVED** — Design exploration before Phase 1 implementation (March 2026). Decisions captured in [ADR-019](../07-decisions/adr-019-ai-integration.md) and [ADR-026](../07-decisions/adr-026-knowledge-base-sharepoint-first.md). See [AI Journey Integration](../05-technical/architecture/ai-journey-integration.md) for the current AI overview.
 
 # VariScout AI Integration Strategy
 

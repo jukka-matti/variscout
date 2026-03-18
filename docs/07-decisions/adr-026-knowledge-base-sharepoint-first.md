@@ -39,7 +39,7 @@ After analyzing cost, security, user value, and the latest Foundry IQ capabiliti
 
 ### Existing Architecture to Leverage
 
-VariScout already has a natural scope boundary via Teams integration ([ADR-016](adr-016-teams-integration.md)). The [AI Integration Strategy](../superpowers/specs/2026-03-14-ai-integration-strategy-design.md) defines two use cases:
+VariScout already has a natural scope boundary via Teams integration ([ADR-016](adr-016-teams-integration.md)). The [AI Integration Strategy](../archive/ai-integration-strategy-brainstorm.md) defines two use cases:
 
 1. **Improvement Team** — Teams channel for a project. SharePoint folder contains fault trees (FMEA), SOPs, process maps. Knowledge accumulates as findings are added.
 2. **Daily Process Owner** — Standing docs in SharePoint: control plans, FMEA, equipment specs. VariScout detects violations, CoScout references the fault tree.
@@ -257,4 +257,4 @@ Investigation complete → Report View (existing)
 - [ADR-022: Knowledge Layer Architecture](adr-022-knowledge-layer-architecture.md) (amended by this ADR)
 - [ADR-016: Microsoft Teams Integration](adr-016-teams-integration.md) (channel file storage)
 - [ADR-024: Scouting Report](adr-024-scouting-report.md)
-- [AI Integration Strategy](../superpowers/specs/2026-03-14-ai-integration-strategy-design.md) (use cases 1 & 2)
+- [AI Integration Strategy](../archive/ai-integration-strategy-brainstorm.md) (use cases 1 & 2)

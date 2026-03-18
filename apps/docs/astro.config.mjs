@@ -412,8 +412,8 @@ export default defineConfig({
                   slug: '03-features/workflows/hypothesis-investigation',
                 },
                 {
-                  label: 'AI-Assisted Analysis',
-                  slug: '03-features/workflows/ai-assisted-analysis',
+                  label: 'AI Journey Integration',
+                  slug: '05-technical/architecture/ai-journey-integration',
                 },
                 {
                   label: 'Knowledge Base Search',
@@ -498,8 +498,8 @@ export default defineConfig({
                   slug: '05-technical/architecture/ai-architecture',
                 },
                 {
-                  label: 'AI Data Flow',
-                  slug: '05-technical/architecture/ai-data-flow',
+                  label: 'AI Collaborator Evolution',
+                  slug: '07-decisions/adr-027-ai-collaborator-evolution',
                 },
                 {
                   label: 'AI Context Engineering',

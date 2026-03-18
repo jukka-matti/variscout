@@ -1,14 +1,18 @@
 ---
 title: AIX Design System
+scope: Governance reference — principles, tone, confidence calibration, interaction patterns, gap tracker
 audience: [developer]
 category: architecture
 status: stable
-related: [ai-architecture, ai-context-engineering, coscout, narrative-bar, knowledge-base]
+related: [ai-architecture, ai-context-engineering, ai-journey-integration, knowledge-base]
+points_to:
+  - ai-architecture.md (system architecture, data flow, cost controls)
+  - ai-context-engineering.md (prompt tiers, token budgets, caching)
 ---
 
 # AIX Design System
 
-Authoritative reference for VariScout's AI experience. Read this before modifying any AI behavior.
+> **Governance reference** for all AI behavior in VariScout. Read this before modifying any AI prompt, component, or interaction pattern. For the journey-organized overview, see [AI Journey Integration](ai-journey-integration.md).
 
 **Last updated:** March 2026 | **Baseline score:** 3.14/5.0 (40-criteria evaluation)
 
@@ -203,8 +207,9 @@ Five investigation phases with distinct AI behavior:
 | Initial    | Orientation    | Help identify which chart to examine first            |
 | Diverging  | Exploration    | Encourage testing hypotheses across factor categories |
 | Validating | Interpretation | Help interpret η² (contribution, not causation)       |
-| Converging | Synthesis      | Help synthesize root causes, brainstorm improvements  |
-| Acting     | Monitoring     | Check Capability chart, monitor Cpk improvement       |
+| Converging | Synthesis      | Help synthesize suspected causes, suggest next steps  |
+
+IMPROVE/PDCA phase coaching (monitoring, Cpk improvement) is handled separately — see Verification Sub-pattern below.
 
 Phase detection is deterministic (`detectInvestigationPhase()` in `buildAIContext.ts`). AI coaching instructions are injected per phase in `buildCoScoutSystemPrompt()`.
 
@@ -218,6 +223,29 @@ When the analyst is in the IMPROVE phase **and** staged comparison data is prese
 - All responses are grounded in computed `StagedComparisonResult` data — AI interprets, never invents numbers (Principle 1)
 
 Improvement ideas injected during converging phase when supported hypotheses exist. See `prompts/coScout.ts` for implementation.
+
+### 2.8 Actionable Suggestion Pattern (ADR-027)
+
+**Principle:** AI proposes concrete actions; the analyst confirms or rejects before execution. No AI-initiated action ever auto-executes. See [ADR-027](../../07-decisions/adr-027-ai-collaborator-evolution.md).
+
+**Governance rule:** All AI-suggested actions require explicit user confirmation. No auto-execution. This applies to drill suggestions, finding creation, hypothesis seeding, and any future action type.
+
+**Action types:**
+
+| Action           | Trigger                                | Confirmation UX                             |
+| ---------------- | -------------------------------------- | ------------------------------------------- |
+| Drill suggestion | ChartInsightChip with `InsightAction`  | Click arrow icon → filter applied           |
+| Pin as Finding   | CoScout `[Pin as Finding]` pattern     | Review auto-generated text → confirm        |
+| Seed hypothesis  | Upfront hypothesis referenced in SCOUT | Analyst sees suggestion → creates tree node |
+| Knowledge search | CoScout "Search KB?" button            | User clicks → search executes               |
+
+**Design constraints:**
+
+- Actionable chips must be visually distinct (arrow icon, `cursor-pointer`, distinct hover)
+- Actions that modify state (findings, filters) require one explicit click
+- Read-only actions (KB search, question suggestions) can be lower-friction
+- Keyboard accessible: all action triggers must be reachable via Tab + Enter
+- Confirmation fatigue prevention: max 1-2 AI suggestions visible at any time per component
 
 ---
 

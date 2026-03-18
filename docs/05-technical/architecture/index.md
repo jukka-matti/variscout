@@ -21,10 +21,10 @@ Detailed architecture documents for VariScout's technical design.
 | [Component Patterns](component-patterns.md)                     | colorScheme pattern, Base component extraction     |
 | [AI Architecture](ai-architecture.md)                           | AI Foundry integration, prompt templates, phases   |
 | [AI Context Engineering](ai-context-engineering.md)             | Context assembly, pipeline reference, module map   |
-| [AI Data Flow](ai-data-flow.md)                                 | End-to-end data flow diagrams for AI features      |
+| [AI Journey Integration](ai-journey-integration.md)             | AI × journey overview and entry point              |
 | [AIX Design System](aix-design-system.md)                       | AI governance, tone, trust, interaction patterns   |
 | [Knowledge Model](knowledge-model.md)                           | Unified glossary terms + methodology concepts      |
-| [Mental Model Hierarchy](mental-model-hierarchy.md)             | Layered mental models from philosophy to UI        |
+| [The Journey Model](mental-model-hierarchy.md)                  | Journey-as-spine with per-phase methods            |
 | [Journey Phase Screen Mapping](journey-phase-screen-mapping.md) | Phase-to-screen-to-component traceability          |
 | [System Map](system-map.md)                                     | Visual package/app topology (C4 L1)                |
 | [Data Pipeline Map](data-pipeline-map.md)                       | End-to-end data flow with TypeScript interfaces    |

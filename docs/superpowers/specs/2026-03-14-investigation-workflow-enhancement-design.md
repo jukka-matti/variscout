@@ -7,7 +7,7 @@ title: 'Investigation Workflow Enhancement: Root Cause, Actions, Outcome'
 **Date:** 2026-03-14
 **Status:** Draft
 **Scope:** Extend Finding type and UI to capture the full improvement journey
-**Related:** AI Integration Strategy (2026-03-14-ai-integration-strategy-design.md)
+**Related:** AI Integration Strategy (../../archive/ai-integration-strategy-brainstorm.md)
 
 ## Context
 

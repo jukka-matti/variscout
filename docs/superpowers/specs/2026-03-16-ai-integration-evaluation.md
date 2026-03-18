@@ -21,7 +21,7 @@ VariScout's AI integration is architecturally sound and domain-aware, with genui
 
 1. **Graceful degradation (5/5)** — When AI is unavailable, all components hide with zero layout disruption. No placeholders, no error states, no "configure AI" prompts. The dashboard is identical to a non-AI deployment.
 2. **Deterministic primacy (5/5)** — AI enhances computed insights, never replaces them. `useChartInsights` always renders deterministic text first; AI enrichment arrives later as an overlay. Every AI failure falls back silently to deterministic.
-3. **Investigation-phase coaching (4/5)** — The 5-phase system prompt adaptation (`initial` → `diverging` → `validating` → `converging` → `acting`) with idea-aware convergence coaching is genuinely novel in the analytics tool space.
+3. **Investigation-phase coaching (4/5)** — The 4-phase diamond system prompt adaptation (`initial` → `diverging` → `validating` → `converging`) plus IMPROVE/PDCA coaching, with idea-aware convergence guidance, is genuinely novel in the analytics tool space.
 
 ### Top 5 Gaps
 
@@ -257,7 +257,7 @@ Heuristic walkthrough of 12 source files (UI components, hooks, prompt templates
 | 8.1 | Methodology grounding           | 5     | `promptTemplates.ts:244-262` — CoScout system prompt defines Four Lenses, Two Voices, Progressive Stratification, contribution-not-causation. `buildAIContext.ts:93-97` — Glossary categories dynamically selected. | None — deep domain grounding. VariScout methodology is taught to the AI, not just SPC textbook terms.                         |
 | 8.2 | Statistical accuracy guardrails | 4     | Prompt: "Never invent data — only describe what is provided." Deterministic-first design means AI interprets, doesn't compute. Stats values passed with full precision.                                             | No numeric verification (AI could misquote a number from context). No post-hoc check that AI response matches provided stats. |
 | 8.3 | Workflow integration            | 4     | Investigation phase coaching. Drill-down suggestions. Finding-aware context. Knowledge Base search during CoScout. Suggested questions adapt to phase.                                                              | No direct action from AI suggestion (e.g., "Drill Machine A" doesn't create a clickable action).                              |
-| 8.4 | Competitive differentiation     | 4     | Unique: AI explains deterministic analysis, doesn't generate it. 5-phase investigation coaching. Knowledge Base from resolved findings. Glossary + methodology grounding.                                           | No competitor benchmarking built into the product. No "industry average" context.                                             |
+| 8.4 | Competitive differentiation     | 4     | Unique: AI explains deterministic analysis, doesn't generate it. 4-phase diamond + PDCA coaching. Knowledge Base from resolved findings. Glossary + methodology grounding.                                          | No competitor benchmarking built into the product. No "industry average" context.                                             |
 | 8.5 | Domain terminology consistency  | 4     | `buildGlossaryPrompt()` injects ~47 terms + 11 concepts. CoScout uses VariScout-specific language ("contribution, not causation", "progressive stratification").                                                    | Glossary injection is comprehensive but prompt doesn't enforce terminology usage. AI could use textbook SPC terms instead.    |
 
 **Dimension Score: 4.2 / 5.0**
@@ -344,13 +344,13 @@ Heuristic walkthrough of 12 source files (UI components, hooks, prompt templates
 | Feature                            | VariScout                      | Minitab AI              | Power BI Copilot       | Tableau GPT            |
 | ---------------------------------- | ------------------------------ | ----------------------- | ---------------------- | ---------------------- |
 | AI explains deterministic analysis | **Yes (unique)**               | No (generates analysis) | No (generates visuals) | No (generates queries) |
-| Domain methodology grounding       | **5-phase coaching**           | Generic SPC             | Generic BI             | Generic viz            |
+| Domain methodology grounding       | **Phase-aware coaching**       | Generic SPC             | Generic BI             | Generic viz            |
 | Graceful degradation               | **Exemplary**                  | Adequate                | Adequate               | Adequate               |
 | Feedback mechanism                 | Missing                        | Thumbs up/down          | Thumbs up/down         | Thumbs up/down         |
 | Confidence communication           | Missing                        | Partial                 | Partial                | Missing                |
 | Conversation persistence           | Session-only                   | N/A                     | Session                | Session                |
 | Knowledge Base (org learning)      | **Resolved findings**          | None                    | SharePoint             | None                   |
-| Investigation workflow AI          | **5-phase adaptive**           | None                    | None                   | None                   |
+| Investigation workflow AI          | **4-phase diamond + PDCA**     | None                    | None                   | None                   |
 | Source attribution                 | In prompts only                | N/A                     | Citations              | None                   |
 | Offline capability                 | **Full degradation**           | Requires server         | Requires server        | Requires server        |
 | Per-component AI control           | Global toggle                  | N/A                     | Per-feature            | Per-feature            |
@@ -359,7 +359,7 @@ Heuristic walkthrough of 12 source files (UI components, hooks, prompt templates
 ### VariScout Unique Strengths
 
 1. **AI-as-interpreter**: Only tool where AI explains human-computed statistics rather than generating them
-2. **Investigation coaching**: 5-phase adaptive system prompt is unique in analytics AI
+2. **Investigation coaching**: 4-phase diamond + PDCA adaptive system prompt is unique in analytics AI
 3. **Knowledge accumulation**: Resolved findings become organizational knowledge (50+ findings = competitive moat)
 4. **Zero-impact degradation**: AI removal leaves product fully functional
 
@@ -407,28 +407,37 @@ LOW  │
 
 ### P1 — High-Value Improvements (Next 2-4 weeks)
 
-| #    | Gap                                                 | Dimension          | Files to Modify                                                                                                         | Effort |
-| ---- | --------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------ |
-| P1-1 | **Surface source attribution in CoScout responses** | Transparency (1.2) | `CoScoutMessages.tsx` — render source citations. `prompts/coScout.ts` — instruct AI to include `[Source: ...]` markers. | M      |
-| P1-2 | **Add context disclosure card**                     | Transparency (1.3) | `CoScoutPanelBase.tsx` — collapsible "AI sees" card above messages.                                                     | M      |
-| P1-3 | **Per-component AI toggles**                        | Control (3.4)      | `SettingsPanelBase` — add 3 sub-toggles (narration, insights, CoScout).                                                 | M      |
-| P1-4 | **Add NarrativeBar `aria-live="polite"`**           | Accessibility      | `NarrativeBar.tsx:85` — add attribute.                                                                                  | XS     |
-| P1-5 | **Clickable drill suggestions**                     | Domain (8.3)       | `ChartInsightChip` — add `onAction` callback for drill suggestions.                                                     | M      |
-| P1-6 | **CoScout empty state with capabilities**           | Learnability (5.2) | `CoScoutPanelBase.tsx` — show capability list when `messages.length === 0`.                                             | S      |
-| P1-7 | **Add "Report issue" on CoScout responses**         | Control (3.5)      | `CoScoutMessages.tsx` — flag button per assistant message.                                                              | S      |
+| #    | Gap                                                 | Dimension          | Files to Modify                                                                                                           | Effort |
+| ---- | --------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------- | ------ |
+| P1-1 | **Surface source attribution in CoScout responses** | Transparency (1.2) | `CoScoutMessages.tsx` — render source citations. `prompts/coScout.ts` — instruct AI to include `[Source: ...]` markers.   | M      |
+| P1-2 | **Add context disclosure card**                     | Transparency (1.3) | `CoScoutPanelBase.tsx` — collapsible "AI sees" card above messages.                                                       | M      |
+| P1-3 | **Per-component AI toggles**                        | Control (3.4)      | `SettingsPanelBase` — add 3 sub-toggles (narration, insights, CoScout).                                                   | M      |
+| P1-4 | **Add NarrativeBar `aria-live="polite"`**           | Accessibility      | `NarrativeBar.tsx:85` — add attribute.                                                                                    | XS     |
+| P1-5 | **Clickable drill suggestions**                     | Domain (8.3)       | `ChartInsightChip` — `onAction` callback for drill suggestions. **Implemented** (Mar 2026, ADR-027 collaborator roadmap). | M      |
+| P1-6 | **CoScout empty state with capabilities**           | Learnability (5.2) | `CoScoutPanelBase.tsx` — show capability list when `messages.length === 0`. **Implemented** (Mar 2026).                   | S      |
+| P1-7 | **Add "Report issue" on CoScout responses**         | Control (3.5)      | `CoScoutMessages.tsx` — flag button per assistant message.                                                                | S      |
+
+### P1+ — AI Collaborator Capabilities (ADR-027)
+
+| #     | Gap                                 | Dimension    | Description                                                                                     | Effort |
+| ----- | ----------------------------------- | ------------ | ----------------------------------------------------------------------------------------------- | ------ |
+| P1-8  | **AI-suggested findings**           | Domain (8.3) | CoScout proposes "[Pin as Finding]" with auto-generated text; analyst confirms before creation. | M      |
+| P1-9  | **Upfront hypothesis → data check** | Domain (8.3) | Analysis brief hypothesis auto-checked against SCOUT data, seeds investigation tree root.       | M      |
+| P1-10 | **Knowledge Base in SCOUT**         | Domain (8.3) | Remove phase gate on "Search KB?" button — available from SCOUT onward, not just INVESTIGATE+.  | S      |
+| P1-11 | **FRAME setup coaching**            | Domain (8.1) | Optional CoScout guidance during data setup (column mapping, spec entry). Lower priority.       | L      |
 
 ### P2 — Strategic Opportunities (Phase 4+)
 
-| #    | Gap                                 | Dimension          | Files to Modify                                           | Effort |
-| ---- | ----------------------------------- | ------------------ | --------------------------------------------------------- | ------ |
-| P2-1 | Conversation export                 | Control (3.3)      | `CoScoutPanelBase.tsx` — add export to overflow menu.     | S      |
-| P2-2 | Progressive onboarding (3-step)     | Learnability (5.1) | `AIOnboardingTooltip` — expand to multi-step sequence.    | M      |
-| P2-3 | Quiet mode                          | Proactive (7.5)    | Settings toggle to suppress proactive components.         | S      |
-| P2-4 | Model name display                  | Transparency (1.4) | `CoScoutPanelBase.tsx` header — add provider label.       | XS     |
-| P2-5 | Example conversations               | Learnability (5.2) | `CoScoutPanelBase.tsx` — show example Q&A in empty state. | S      |
-| P2-6 | Numeric verification                | Domain (8.2)       | Post-processing layer to validate AI mentions stats.      | L      |
-| P2-7 | Implicit feedback tracking          | Context (6.4)      | Track suggestion → user action correlation.               | L      |
-| P2-8 | Adaptive retry with circuit breaker | Error (4.3)        | `aiService.ts` — rolling error rate + circuit breaker.    | M      |
+| #    | Gap                                 | Dimension          | Files to Modify                                                                   | Effort |
+| ---- | ----------------------------------- | ------------------ | --------------------------------------------------------------------------------- | ------ |
+| P2-1 | Conversation export                 | Control (3.3)      | `CoScoutPanelBase.tsx` — add export to overflow menu. **Implemented** (Mar 2026). | S      |
+| P2-2 | Progressive onboarding (3-step)     | Learnability (5.1) | `AIOnboardingTooltip` — expand to multi-step sequence.                            | M      |
+| P2-3 | Quiet mode                          | Proactive (7.5)    | Subsumed by per-component toggles (P1-3). **Implemented** (Mar 2026).             | S      |
+| P2-4 | Model name display                  | Transparency (1.4) | `CoScoutPanelBase.tsx` header — provider label. **Implemented** (Mar 2026).       | XS     |
+| P2-5 | Example conversations               | Learnability (5.2) | `CoScoutPanelBase.tsx` — show example Q&A in empty state.                         | S      |
+| P2-6 | Numeric verification                | Domain (8.2)       | Post-processing layer to validate AI mentions stats.                              | L      |
+| P2-7 | Implicit feedback tracking          | Context (6.4)      | Track suggestion → user action correlation.                                       | L      |
+| P2-8 | Adaptive retry with circuit breaker | Error (4.3)        | `aiService.ts` — rolling error rate + circuit breaker.                            | M      |
 
 ---
 

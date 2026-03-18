@@ -207,6 +207,6 @@ Key design decisions:
 - [ADR-015: Investigation Board](adr-015-investigation-board.md)
 - [ADR-026: SharePoint-First Knowledge Base](adr-026-knowledge-base-sharepoint-first.md)
 - [AI Readiness Review](../archive/ai-readiness-review.md) (archived)
-- [AI-Assisted Analysis Workflow](../03-features/workflows/ai-assisted-analysis.md)
+- [AI Journey Integration](../05-technical/architecture/ai-journey-integration.md)
 - [AI Architecture](../05-technical/architecture/ai-architecture.md)
 - [AI Components](../06-design-system/components/ai-components.md)

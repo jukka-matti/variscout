@@ -38,6 +38,7 @@ This section captures key architectural decisions made during VariScout developm
 | [024](adr-024-scouting-report.md)                    | Scouting Report — Dynamic Report View    | Accepted   | 2026-03-16 |
 | [025](adr-025-internationalization.md)               | Internationalization Architecture        | Accepted   | 2026-03-17 |
 | [026](adr-026-knowledge-base-sharepoint-first.md)    | Knowledge Base — SharePoint-First        | Accepted   | 2026-03-17 |
+| [027](adr-027-ai-collaborator-evolution.md)          | AI Collaborator Evolution                | Accepted   | 2026-03-19 |
 
 ---
 

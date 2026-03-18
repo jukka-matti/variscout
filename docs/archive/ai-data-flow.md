@@ -1,10 +1,8 @@
 ---
-title: AI Data Flow & Interaction Design
-audience: [developer]
-category: architecture
-status: stable
-related: [ai-architecture, ai-context-engineering, aix-design-system, component-patterns]
+title: 'AI Data Flow & Interaction Design (Archived)'
 ---
+
+> **ARCHIVED** — Content merged into [AI Architecture § Data Flow & Hook Composition](../05-technical/architecture/ai-architecture.md#data-flow--hook-composition). See [AI Architecture](../05-technical/architecture/ai-architecture.md) for the consolidated reference.
 
 # AI Data Flow & Interaction Design
 

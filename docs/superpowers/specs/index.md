@@ -24,7 +24,7 @@ Once a feature stabilizes, the ADR is the canonical reference.
 | [2026-03-16-report-verification-upgrade-design.md](2026-03-16-report-verification-upgrade-design.md)               | Staged Verification       | ADR-023 | Delivered |
 | [2026-03-15-hypothesis-investigation-design.md](2026-03-15-hypothesis-investigation-design.md)                     | Investigation Workflow    | ADR-020 | Delivered |
 | [2026-03-14-investigation-workflow-enhancement-design.md](2026-03-14-investigation-workflow-enhancement-design.md) | Investigation Enhancement | ADR-020 | Delivered |
-| [2026-03-14-ai-integration-strategy-design.md](2026-03-14-ai-integration-strategy-design.md)                       | AI Strategy               | ADR-019 | Delivered |
+| [ai-integration-strategy-brainstorm.md](../../archive/ai-integration-strategy-brainstorm.md)                       | AI Strategy (Archived)    | ADR-019 | Archived  |
 
 ## Lifecycle
 

@@ -487,6 +487,7 @@ Filter to Store C + Weekend, then use What-If:
 - [ADR-015: Investigation Board](../../07-decisions/adr-015-investigation-board.md) — Architectural decisions
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Hypothesis model decisions
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Knowledge base dependency
+- [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md) — AI × investigation phase touch points
 - [ADR-023: Verification Experience](../../07-decisions/adr-023-data-lifecycle.md) — Data lifecycle, staged comparison, verification vision
 - [ADR-024: Scouting Report](../../07-decisions/adr-024-scouting-report.md) — Dynamic Report View for sharing investigation stories
 - [Methodology Coach Design Spec](../../superpowers/specs/2026-03-18-methodology-coach-design.md) — Phase-aware coaching panel

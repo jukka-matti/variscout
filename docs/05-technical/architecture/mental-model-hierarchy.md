@@ -222,11 +222,11 @@ Foundational statistical concept. In code: control limits are calculated; spec l
 
 The journey behaves differently depending on which AI mode is active. Modes are orthogonal to phases — any mode works at any phase.
 
-| Mode                    | Available On                                               | What Changes                                                                               |
-| ----------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| **No AI**               | PWA (always), Azure without AI Foundry, or user toggle OFF | Dashboard shows deterministic insights only. All AI UI hidden with zero layout disruption. |
-| **AI Enabled**          | Azure Standard/Team/Team AI with AI Foundry deployed       | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts.  |
-| **AI + Knowledge Base** | Azure Team AI (€279/month) only                            | Adds organizational document search (Foundry IQ) in CoScout during INVESTIGATE+.           |
+| Mode                    | Available On                                               | What Changes                                                                                                                                                     |
+| ----------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No AI**               | PWA (always), Azure without AI Foundry, or user toggle OFF | Dashboard shows deterministic insights only. All AI UI hidden with zero layout disruption.                                                                       |
+| **AI Enabled**          | Azure Standard/Team/Team AI with AI Foundry deployed       | NarrativeBar + ChartInsightChips + CoScout active from SCOUT onward. Phase-aware prompts. Actionable suggestions (drill, pin finding) with analyst confirmation. |
+| **AI + Knowledge Base** | Azure Team AI (€279/month) only                            | Adds organizational document search (Foundry IQ) in CoScout from SCOUT onward (on-demand). Cross-project knowledge queries.                                      |
 
 **Mode ≠ Tier:** AI is a horizontal capability, not tier-gated. A Standard customer who deploys AI Foundry gets Mode 2. Only the Knowledge Base (Mode 3) is Team AI exclusive.
 
@@ -234,12 +234,12 @@ The journey behaves differently depending on which AI mode is active. Modes are 
 
 #### Four AI Context Layers
 
-| Layer   | What                | Source                                                | When                                  |
-| ------- | ------------------- | ----------------------------------------------------- | ------------------------------------- |
-| Layer 1 | Analysis state      | `buildAIContext()` from DataContext                   | Always (Mode 2+)                      |
-| Layer 2 | Process context     | User-entered description + auto-inferred factor roles | Optional (Mode 2+)                    |
-| Layer 3 | Knowledge grounding | ~47 glossary terms + 11 methodology concepts          | Always (Mode 2+)                      |
-| Layer 4 | Team documents      | Remote SharePoint via Foundry IQ                      | On-demand, INVESTIGATE+ (Mode 3 only) |
+| Layer   | What                | Source                                                | When                            |
+| ------- | ------------------- | ----------------------------------------------------- | ------------------------------- |
+| Layer 1 | Analysis state      | `buildAIContext()` from DataContext                   | Always (Mode 2+)                |
+| Layer 2 | Process context     | User-entered description + auto-inferred factor roles | Optional (Mode 2+)              |
+| Layer 3 | Knowledge grounding | ~47 glossary terms + 11 methodology concepts          | Always (Mode 2+)                |
+| Layer 4 | Team documents      | Remote SharePoint via Foundry IQ                      | On-demand, SCOUT+ (Mode 3 only) |
 
 Layers 1-3 are always in the prompt. Layer 4 is injected only when the user clicks "Search Knowledge Base?" in CoScout.
 
@@ -302,9 +302,9 @@ The Knowledge Layer (Foundry IQ) can search SharePoint docs, but only from INVES
 
 A future enhancement could allow process document references during FRAME, so the AI context includes SOP knowledge from the earliest analysis phases. This was identified in the AI readiness review as a "Level 2 proactive extraction" capability.
 
-### 4. Upfront Hypothesis Not Connected to Tree
+### 4. Upfront Hypothesis → Tree Connection (ADR-027)
 
-The analysis brief captures upfront hypotheses as free text during FRAME, but the hypothesis tree in INVESTIGATE starts fresh. The analyst must manually re-enter their upfront hypothesis as the tree root.
+The analysis brief captures upfront hypotheses during FRAME. With the AI collaborator model (ADR-027), the upfront hypothesis is referenced by AI during SCOUT ("Your hypothesis about Machine A is supported — it accounts for 47% of variation") and can auto-seed the investigation tree root in INVESTIGATE. This closes the gap between the brief and the tree — the analyst no longer needs to manually re-enter their upfront hypothesis.
 
 ---
 
@@ -312,7 +312,7 @@ The analysis brief captures upfront hypotheses as free text during FRAME, but th
 
 - [Analysis Journey Map](../../03-features/workflows/analysis-journey-map.md) — canonical journey definition with decision points and loops
 - [Methodology](../../01-vision/methodology.md) — Watson's EDA, Four Lenses, Investigation Diamond, Two Voices
-- [AI Experience Narrative](../../03-features/workflows/ai-experience-narrative.md) — AI layers and experience spectrum
+- [AI Journey Integration](ai-journey-integration.md) — AI layers and experience spectrum
 - [Business Bible](../../01-vision/business-bible.md) — Value Levers
 - [Scouting Report Design](../../superpowers/specs/2026-03-16-scouting-report-design.md) — Report Steps
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — Finding Status, Hypothesis lifecycle

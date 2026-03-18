@@ -217,7 +217,7 @@ The verification vision adds:
 - **Staged Comparison Card** — replaces Stats panel in staged mode with per-stage mean, σ, Cpk, pass %, and violations with trend indicators (↑↓→)
 - **Auto-filled outcomes** — `cpkBefore` (first stage) and `cpkAfter` (last stage) populate FindingOutcome automatically
 - **Stage-aware AI** — NarrativeBar summarizes improvement quantitatively; ChartInsightChip shows violation reduction and mean shift
-- **Verification checklist** — InvestigationSidebar shows a checklist when in acting phase with staged data
+- **Verification checklist** — InvestigationSidebar shows a checklist when in IMPROVE phase with staged data
 
 The architecture already supports N stages (`calculateStatsByStage()` returns a `Map<string, StatsResult>`). The enhancement is surfacing the comparison in the UI.
 

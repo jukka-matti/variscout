@@ -566,13 +566,13 @@ Azure App only (Standard and Team plans). Requires AI endpoint configured and "S
 
 Shows the auto-detected investigation phase with a brief description:
 
-| Phase      | Label        | Description                                   |
-| ---------- | ------------ | --------------------------------------------- |
-| Initial    | "Starting"   | No sub-hypotheses yet                         |
-| Diverging  | "Diverging"  | Generating sub-hypotheses, most untested      |
-| Validating | "Validating" | Testing sub-hypotheses, some still untested   |
-| Converging | "Converging" | All tested, identifying root cause candidates |
-| Acting     | "Acting"     | Root cause identified, defining actions       |
+| Phase       | Label         | Description                                                         |
+| ----------- | ------------- | ------------------------------------------------------------------- |
+| Initial     | "Starting"    | No sub-hypotheses yet                                               |
+| Diverging   | "Diverging"   | Generating sub-hypotheses, most untested                            |
+| Validating  | "Validating"  | Testing sub-hypotheses, some still untested                         |
+| Converging  | "Converging"  | All tested, identifying root cause candidates                       |
+| _(IMPROVE)_ | _(Improving)_ | _(Suspected cause identified, defining actions — see IMPROVE/PDCA)_ |
 
 Phase label uses `text-content-primary` with the description in `text-content-secondary text-sm`.
 
@@ -586,13 +586,13 @@ Only shown when `processContext.factorRoles` has entries that are not covered by
 
 Phase-aware suggestion chips (same style as CoScoutPanel suggested questions). Clicking a chip opens the full CoScoutPanel with the question pre-filled and investigation context loaded.
 
-| Phase      | Example Chip Text                                           |
-| ---------- | ----------------------------------------------------------- |
-| Initial    | "What causes [problem] in [process]?"                       |
-| Diverging  | "What other factors could cause [root hypothesis]?"         |
-| Validating | "How do I validate [untested hypothesis]?"                  |
-| Converging | "Which supported hypothesis is most likely root cause?"     |
-| Acting     | "What corrective actions work for [root cause hypothesis]?" |
+| Phase       | Example Chip Text                                                        |
+| ----------- | ------------------------------------------------------------------------ |
+| Initial     | "What causes [problem] in [process]?"                                    |
+| Diverging   | "What other factors could cause [root hypothesis]?"                      |
+| Validating  | "How do I validate [untested hypothesis]?"                               |
+| Converging  | "Which supported hypothesis is most likely root cause?"                  |
+| _(IMPROVE)_ | _(Suggested questions come from IMPROVE/PDCA coaching, not the diamond)_ |
 
 ### "Ask CoScout" Button
 
@@ -686,7 +686,7 @@ When `showAI` is false, no AI components render. The dashboard layout is unchang
 
 ## See Also
 
-- [AI-Assisted Analysis Workflow](../../03-features/workflows/ai-assisted-analysis.md) — User-facing workflow
+- [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md) — User-facing workflow
 - [AI Architecture](../../05-technical/architecture/ai-architecture.md) — Technical implementation
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Architectural decision
 - [Findings](findings.md) — Investigation findings system

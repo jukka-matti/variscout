@@ -145,22 +145,24 @@ Each hypothesis has a statement, supporting evidence, invalidation criteria, and
 
 ---
 
-### H8: AI Augments, Never Replaces
+### H8: AI Augments, Never Replaces — Collaborator Model
 
-**Statement:** In the Azure App, AI should explain deterministic conclusions, not generate competing ones. The statistical engine is the authority; AI is the narrator.
+**Statement:** In the Azure App, AI should explain deterministic conclusions AND suggest concrete next actions. The statistical engine is the authority; AI is the collaborator. The analyst always confirms before any action is taken.
 
 **Evidence for:**
 
 - ADR-019: "AI explains deterministic conclusions, it doesn't generate competing ones"
+- ADR-027: Evolution from narrator to collaborator — existing patterns (drill suggestions, investigation coaching) already suggest actions; making them clickable is natural progression
 - Minitab AI (April 2025) adopted the same approach: "AI you can trust"
-- ISO/IEC 42001 human oversight requirements align with this pattern
-- EDAScout rollback validates that auto-acting AI creates user friction
+- ISO/IEC 42001 human oversight requirements align with this pattern — human confirmation satisfies oversight
+- EDAScout rollback validates that auto-acting AI creates user friction; VariScout avoids this by requiring confirmation
+- ChartInsightChip drill suggestions, investigation coaching, and suggested questions already constitute action suggestions — the collaborator model formalizes what exists
 
-**Evidence against:** None.
+**Evidence against:** None. The confirmation requirement prevents the overreach that caused EDAScout's rollback.
 
-**Invalidation criteria:** If users consistently ignore AI narration and request direct AI-driven actions (auto-drill, auto-assign), the augmentation-only model is too passive.
+**Invalidation criteria:** If confirmation fatigue emerges (users clicking "confirm" reflexively without reading), the interaction model needs refinement — perhaps trusted actions that skip confirmation after repeated use.
 
-**Status:** Supported (ADR-019 + competitor validation)
+**Status:** Supported (ADR-019 + ADR-027 + competitor validation + existing implementation evidence)
 
 ---
 
@@ -171,6 +173,7 @@ Each hypothesis has a statement, supporting evidence, invalidation criteria, and
 **Evidence for:**
 
 - ADR-019: "After 50+ resolved findings, the AI has real organizational knowledge"
+- ADR-027: AI collaborator model means knowledge feeds back into actionable suggestions (not just narration) — "last time this happened, nozzle replacement resolved it 90% of the time" becomes a clickable action
 - Traditional FMEA uses subjective RPN scores (1-10 guesses). VariScout findings carry actual Cpk values and verified outcomes.
 - No competitor captures the full PDCA cycle with measurement-backed outcomes
 

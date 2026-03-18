@@ -1,6 +1,8 @@
 ---
-title: 'AI-Assisted Analysis'
+title: 'AI-Assisted Analysis (Archived)'
 ---
+
+> **ARCHIVED** — User-facing AI content absorbed into [AI Journey Integration](../05-technical/architecture/ai-journey-integration.md). Technical details (caching, error states) moved to [AI Architecture](../05-technical/architecture/ai-architecture.md).
 
 # AI-Assisted Analysis
 

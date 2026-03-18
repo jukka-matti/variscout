@@ -1,10 +1,8 @@
 ---
-title: AI Experience Narrative
-audience: [analyst, engineer]
-category: workflow
-status: stable
-related: [ai-integration, narrative-bar, coscout, chart-insights, knowledge-base]
+title: 'AI Experience Narrative (Archived)'
 ---
+
+> **ARCHIVED** — Replaced by [AI Journey Integration](../05-technical/architecture/ai-journey-integration.md), which organizes the same content around the journey spine.
 
 # AI Experience Narrative
 

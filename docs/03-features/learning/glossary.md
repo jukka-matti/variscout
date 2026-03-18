@@ -98,7 +98,7 @@ interface Concept {
 | --------- | ----------------------------------------------------------------------------- |
 | framework | Four Lenses (teaching shorthand), Two Voices, Parallel Views                  |
 | principle | Progressive Stratification, Contribution Not Causation, Iterative Exploration |
-| phase     | Initial, Diverging, Validating, Converging, Acting                            |
+| phase     | Initial, Diverging, Validating, Converging                                    |
 
 ---
 

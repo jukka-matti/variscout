@@ -3,10 +3,13 @@ title: AI Architecture
 audience: [developer]
 category: architecture
 status: stable
-related: [ai-foundry, coscout, narrative-bar, knowledge-base]
+scope: System architecture, packages, auth, ARM, data flow, hook composition, cost controls, testing
+related: [ai-journey-integration, ai-context-engineering, aix-design-system, knowledge-model]
 ---
 
 # AI Architecture
+
+> **Scope:** System architecture — packages, auth, ARM, data flow, hook composition, cost controls, and testing. For the journey-organized AI overview, see [AI Journey Integration](ai-journey-integration.md). For governance and interaction patterns, see [AIX Design System](aix-design-system.md).
 
 Technical architecture for optional AI integration in the Azure App.
 
@@ -355,6 +358,31 @@ When the investigation reaches a converging state — one or more hypotheses are
 
 ---
 
+## AI Collaborator Capabilities (ADR-027)
+
+AI evolved from narrator to collaborator — it suggests concrete actions that the analyst confirms. See [ADR-027](../../07-decisions/adr-027-ai-collaborator-evolution.md) for the decision and [AIX Design System § 2.8](aix-design-system.md#28-actionable-suggestion-pattern-adr-027) for governance.
+
+### CoScout Action Callbacks
+
+CoScout responses can contain action markers that render as interactive elements:
+
+- **`[Pin as Finding]`** — Renders as a button card. Clicking creates a finding with AI-generated text (analyst can edit before confirming).
+- **Drill suggestion** — CoScout can reference a specific category: "Machine A accounts for 47% — try filtering to it." The category name renders as a clickable link.
+
+Action callbacks flow through `CoScoutPanelBase` props (`onPinFinding`, `onDrillSuggestion`) to the app's action handlers.
+
+### Upfront Hypothesis Seeding
+
+When the analyst captures an upfront hypothesis in the analysis brief (FRAME), `buildAIContext()` includes it in the context. During SCOUT:
+
+1. CoScout system prompt references the hypothesis: "The analyst suspects [hypothesis text]"
+2. ChartInsightChips can highlight relevant categories that match the hypothesis
+3. When INVESTIGATE begins, the hypothesis auto-seeds the tree root (analyst confirms)
+
+This closes the gap between FRAME and INVESTIGATE — hypotheses flow through as a continuous thread.
+
+---
+
 ### buildAIContext() Design
 
 The `buildAIContext()` function in `@variscout/core` is the structured bridge between the data layer and AI. Design principles:
@@ -397,17 +425,167 @@ How each AI component receives and uses the user's locale for multilingual respo
 
 ---
 
+---
+
+## Data Flow & Hook Composition
+
+_Merged from ai-data-flow.md._
+
+### Information Flow
+
+```mermaid
+flowchart LR
+    subgraph State["Analysis State"]
+        DC[DataContext]
+        F[Findings]
+        H[Hypotheses]
+        PC[ProcessContext]
+    end
+
+    subgraph Orchestration["useEditorAI"]
+        AC[useAIContext]
+        NR[useNarration]
+        CI[useChartInsights]
+        CS[useAICoScout]
+        KS[useKnowledgeSearch]
+    end
+
+    subgraph Core["@variscout/core"]
+        BAC[buildAIContext]
+        PT[\"prompts/* modules\"]
+        SQ[buildSuggestedQuestions]
+    end
+
+    subgraph Service["AI Service Layer"]
+        FN[fetchNarration]
+        FCI[fetchChartInsight]
+        FCR[fetchCoScoutResponse]
+        SD[searchDocuments]
+    end
+
+    subgraph UI["UI Components"]
+        NB[NarrativeBar]
+        CIC[ChartInsightChip]
+        CSP[CoScoutPanel]
+        ISB[InvestigationSidebar]
+    end
+
+    DC --> AC
+    F --> AC
+    H --> AC
+    PC --> AC
+    AC --> BAC
+    BAC --> PT
+    BAC --> SQ
+
+    AC --> NR
+    AC --> CI
+    AC --> CS
+    AC --> KS
+
+    NR --> FN --> NB
+    CI --> FCI --> CIC
+    CS --> FCR --> CSP
+    KS --> SD --> CSP
+
+    SQ --> ISB
+```
+
+**Data flow summary:**
+
+1. `useEditorAI` composes all AI hooks and provides a single return object to the Editor
+2. `useAIContext` calls `buildAIContext()` to assemble the structured `AIContext` from analysis state
+3. Each hook consumes the context and calls the appropriate AI service function
+4. Service responses flow into UI components via hook return values
+
+**Additional service flows:**
+
+- **Streaming:** `fetchCoScoutStreamingResponse()` delivers tokens incrementally via a chunk callback. `useAICoScout` manages abort control and progressive message assembly.
+- **AI Report:** `fetchFindingsReport()` + `buildReportPrompt()` — a distinct flow for generating a structured findings export.
+
+### AI Hook Composition
+
+| Hook                 | Consumes                                                                                 | Produces                                              | UI Consumer                     |
+| -------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------- |
+| `useAIContext`       | stats, filters, findings, hypotheses, processContext, violations, variationContributions | `AIContext` object                                    | All other AI hooks              |
+| `useNarration`       | `AIContext`, `fetchNarration` service fn                                                 | `narrative`, `isLoading`, `error`, `refresh()`        | `NarrativeBar`                  |
+| `useChartInsights`   | `AIContext`, `fetchChartInsight` service fn, chart-specific data                         | `insight`, `isAIEnhanced`, `isLoading`                | `ChartInsightChip`              |
+| `useAICoScout`       | `AIContext`, `fetchCoScoutResponse`                                                      | `messages[]`, `send()`, `isStreaming`, `abort()`      | `CoScoutPanel`, `CoScoutInline` |
+| `useKnowledgeSearch` | `searchDocumentsFn`, `enabled` flag                                                      | `results[]`, `documents[]`, `search()`, `isAvailable` | On-demand via CoScout UI button |
+
+> **Deterministic-first pipeline:** `useChartInsights` always runs a deterministic insight first — `buildIChartInsight()`, `buildBoxplotInsight()`, `buildParetoInsight()`, or `buildCapabilityInsight()` from `packages/core/src/ai/chartInsights.ts`. If AI is available, the hook fires a debounced `fetchChartInsight()` to enhance the text. The deterministic insight displays immediately; AI enhancement replaces it when ready.
+
+### Context Data Shape
+
+`buildAIContext()` produces an `AIContext` object:
+
+```
+AIContext
+├── process              # User-provided process description, problem statement, factor roles
+├── stats                # mean, stdDev, samples, cpk, cp, passRate
+├── filters[]            # Active drill-down filters with category names
+├── violations           # Out-of-control, above USL, below LSL, Nelson rule counts
+├── variationContributions[]  # Per-factor η² values with category names
+├── drillPath[]          # Ordered factor names from filter stack
+├── findings             # { total, byStatus, keyDrivers[] }
+├── investigation
+│   ├── problemStatement
+│   ├── targetMetric, targetValue, currentValue, progressPercent
+│   ├── selectedFinding  # Text, hypothesis, projection, actions
+│   ├── allHypotheses[]  # Text, status, contribution, ideas
+│   ├── hypothesisTree[] # Root hypotheses with children
+│   ├── phase            # initial | diverging | validating | converging | improving
+│   └── categories[]     # Investigation categories for completeness prompting
+├── activeChart          # Currently focused chart type
+├── stagedComparison     # Before/After verification metrics
+├── focusContext         # From "Ask CoScout about this"
+├── teamContributors     # Teams plan: count + hypothesis areas
+├── glossaryFragment     # Methodology terms + concepts for grounding
+├── knowledgeDocuments[] # SharePoint documents (populated on-demand)
+└── locale               # Active locale for AI response language
+```
+
+---
+
+## Mode Transitions
+
+| Event                    | What Happens                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------- |
+| **AI toggle on**         | NarrativeBar fades in, chips start enhancing, CoScout becomes available                      |
+| **AI toggle off**        | NarrativeBar hidden, chips revert to deterministic, CoScout hidden                           |
+| **Endpoint removed**     | `isAIAvailable()` → false, same as toggle off; no error states                               |
+| **Offline**              | AI service calls fail gracefully → error classification → retry for transient errors         |
+| **KB toggle**            | `isKnowledgeBaseAvailable()` changes, "Search Knowledge Base?" button shows/hides in CoScout |
+| **Per-component toggle** | Individual `AIPreferences` flags control narration/insights/coscout independently            |
+| **Rate limited**         | CoScout shows retryable error badge; narration falls back to cached value                    |
+
+---
+
+## Investigation Workflow × AI Touch Points
+
+How AI context changes across investigation phases:
+
+| Phase          | AI Context Injected                         | Suggested Questions                        | CoScout Instructions                               |
+| -------------- | ------------------------------------------- | ------------------------------------------ | -------------------------------------------------- |
+| **Initial**    | Problem statement, basic stats              | "What patterns do you see?"                | Help identify which chart to examine first         |
+| **Diverging**  | Hypothesis tree, categories                 | "Have you explored [uncovered category]?"  | Encourage exploring across factor categories       |
+| **Validating** | η² contributions, validation status         | "What does this η² mean for [factor]?"     | Help interpret contribution %, prioritize untested |
+| **Converging** | Supported hypotheses with improvement ideas | "What improvement ideas for [hypothesis]?" | Help evaluate suspected cause, brainstorm ideas    |
+
+> **IMPROVE phase:** CoScout shifts to action planning and Cpk monitoring. Action items, projections, and outcomes are injected as context. See [AIX Design System § Verification Sub-pattern](aix-design-system.md).
+
+> **`buildSuggestedQuestions()`** is a pure function — no AI call. It selects phase-appropriate questions from the `AIContext` state. These appear in the Investigation Sidebar and work in all modes.
+
 ## See Also
 
+- [AI Journey Integration](ai-journey-integration.md) — entry point for AI × journey overview
 - [Knowledge Model Architecture](knowledge-model.md)
 - [AI Context Engineering & Pipeline](ai-context-engineering.md)
-- [AI Data Flow](ai-data-flow.md)
 - [AIX Design System](aix-design-system.md)
 - [VariScout Methodology](../../01-vision/methodology.md)
-- [AI Readiness Review](../../archive/ai-readiness-review.md) (archived — assessment complete)
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
 - [ADR-026: SharePoint-First Knowledge Base](../../07-decisions/adr-026-knowledge-base-sharepoint-first.md)
-- [AI-Assisted Analysis Workflow](../../03-features/workflows/ai-assisted-analysis.md)
+- [ADR-027: AI Collaborator Evolution](../../07-decisions/adr-027-ai-collaborator-evolution.md)
 - [AI Components](../../06-design-system/components/ai-components.md)
 - [Component Patterns](component-patterns.md)
 - [Data Flow](data-flow.md)

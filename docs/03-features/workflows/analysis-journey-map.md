@@ -16,7 +16,7 @@ flowchart LR
         direction LR
         F["FRAME\nDefine the problem space"]
         S["SCOUT\nDiscover variation patterns"]
-        I["INVESTIGATE\nFind root causes"]
+        I["INVESTIGATE\nUnderstand suspected causes"]
         IM["IMPROVE\nProject and verify fixes"]
     end
 
@@ -300,7 +300,7 @@ flowchart TD
 
 ### CoScout in Improve
 
-- Suggests corrective actions based on validated root cause
+- Suggests improvement actions based on validated suspected cause
 - Assists with What-If parameter selection
 - Summarises before/after comparison
 
@@ -312,34 +312,43 @@ flowchart TD
 
 ---
 
-## Two Entry Paths into Scout
+## Three Entry Paths
 
-Not every analysis starts the same way. VariScout supports two distinct paths into the Scout phase:
+Not every analysis starts the same way. VariScout supports three distinct entry paths that modify each phase's behavior:
 
 ```mermaid
 flowchart TD
     START["Data loaded\n(Frame complete)"] --> PATH
 
-    PATH --> DISC["Discovery Path"]
-    PATH --> HYPO["Hypothesis-Driven Path"]
+    PATH --> PROB["Problem to Solve"]
+    PATH --> HYPO["Hypothesis to Check"]
+    PATH --> ROUT["Routine Check"]
 
-    DISC --> SCAN["Scan all Four Lenses"]
+    PROB --> SCAN["Scan all Four Lenses"]
     SCAN --> DRILL["Drill into patterns"]
     DRILL --> FIND["Pin findings"]
     FIND --> INV["Move to Investigate"]
 
-    HYPO --> SUGGEST["CoScout suggests pattern"]
-    SUGGEST --> CONFIRM["Confirm with chart evidence"]
-    CONFIRM --> JUMP["Jump directly to Investigate"]
+    HYPO --> CONFIRM["Confirm hypothesis\nwith chart evidence"]
+    CONFIRM --> JUMP["Investigate mechanism\nor diverge if refuted"]
 
-    style DISC fill:#22c55e,color:#fff
+    ROUT --> BASELINE["Scan for new signals\nvs baseline"]
+    BASELINE --> OK{"New signal?"}
+    OK -- "No" --> DONE["Process fine — done"]
+    OK -- "Yes" --> INV
+
+    style PROB fill:#22c55e,color:#fff
     style HYPO fill:#f59e0b,color:#fff
+    style ROUT fill:#8b5cf6,color:#fff
 ```
 
-| Path                  | Starting Point                        | Duration  | Best For                           |
-| --------------------- | ------------------------------------- | --------- | ---------------------------------- |
-| **Discovery**         | No prior knowledge                    | 15-30 min | New datasets, exploratory analysis |
-| **Hypothesis-driven** | CoScout suggestion or prior knowledge | 5-10 min  | Known issues, repeat monitoring    |
+| Path                    | Starting Point                        | Duration  | Best For                                      |
+| ----------------------- | ------------------------------------- | --------- | --------------------------------------------- |
+| **Problem to Solve**    | Customer complaint or Cpk alert       | 15-30 min | New datasets, exploratory analysis            |
+| **Hypothesis to Check** | CoScout suggestion or prior knowledge | 5-10 min  | Known issues, suspected equipment or material |
+| **Routine Check**       | Scheduled monitoring                  | 3-5 min   | Weekly/shift monitoring, trend watching       |
+
+**In code:** `EntryScenario` type in `@variscout/core/ai/types.ts`, detection via `detectEntryScenario()` in `@variscout/hooks`.
 
 ---
 
@@ -394,7 +403,7 @@ Twelve key decision points shape the analysis journey. Each has a clear question
 | 7   | Key Driver or Low Impact?          | Investigate | eta-squared magnitude, Pareto rank     | Tag as key-driver                | Tag as low-impact                    |
 | 8   | Single or multiple hypotheses?     | Investigate | Complexity of problem                  | Test single hypothesis           | Diverge into sub-hypotheses          |
 | 9   | Data, gemba, or expert validation? | Investigate | Available evidence                     | Statistical test (ANOVA)         | Physical observation or consultation |
-| 10  | Converged on root cause?           | Investigate | Hypothesis validation status           | Enter Improve phase              | Generate more hypotheses             |
+| 10  | Converged on suspected cause?      | Investigate | Hypothesis validation status           | Enter Improve phase              | Generate more hypotheses             |
 | 11  | What-If projection effective?      | Improve     | Projected Cpk meets target             | Define corrective actions        | Revise approach                      |
 | 12  | Verification passed?               | Improve     | Staged analysis (before vs after)      | Resolve finding, close           | PDCA loop back to Frame              |
 
@@ -434,7 +443,7 @@ flowchart TD
 | Loop                  | Phase            | Trigger                                            | Exit Condition                              |
 | --------------------- | ---------------- | -------------------------------------------------- | ------------------------------------------- |
 | Drill-down            | Scout            | eta-squared suggests deeper factor                 | >50% variation explained or no more factors |
-| Hypothesis validation | Investigate      | Hypothesis not yet confirmed                       | Root cause validated with evidence          |
+| Hypothesis validation | Investigate      | Hypothesis not yet confirmed                       | Suspected cause validated with evidence     |
 | What-If iteration     | Improve          | Projected Cpk below target                         | Projection meets target or approach revised |
 | PDCA re-entry         | Improve to Frame | Staged verification fails or new improvement cycle | Verification passes                         |
 | Add Data              | Scout to Frame   | Dataset missing factors or insufficient samples    | Data reloaded with additional columns/rows  |

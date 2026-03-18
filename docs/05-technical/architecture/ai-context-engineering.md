@@ -1,12 +1,18 @@
 ---
 title: 'AI Context Engineering & Pipeline Reference'
+scope: Prompt tiers, context layers, token budgets, phase-aware filtering, caching
 audience: [developer]
 category: architecture
 status: stable
-related: [ai-architecture, ai-data-flow, aix-design-system]
+related: [ai-architecture, ai-journey-integration, aix-design-system]
+points_to:
+  - ai-architecture.md (system architecture, data flow, hook composition)
+  - aix-design-system.md (governance, tone, confidence calibration)
 ---
 
 # AI Context Engineering & Pipeline Reference
+
+> **Scope:** Prompt construction, context assembly, token budgets, and caching pipeline. For the journey-organized AI overview, see [AI Journey Integration](ai-journey-integration.md). For confidence calibration and tone rules, see [AIX Design System](aix-design-system.md).
 
 How VariScout constructs AI prompts and the module-level pipeline that delivers context from analysis state to AI responses.
 
@@ -352,8 +358,10 @@ Cache keys use `djb2Hash` from `@variscout/core`.
 
 - [Effective Context Engineering — Anthropic](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
 - [Azure AI Foundry Prompt Caching — Microsoft Learn](https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/prompt-caching)
-- [AI Architecture](ai-architecture.md)
-- [AI Data Flow](ai-data-flow.md)
-- [AIX Design System](aix-design-system.md)
+- [AI Architecture](ai-architecture.md) — system architecture, data flow, hook composition
+- [AI Journey Integration](ai-journey-integration.md) — entry point for AI × journey overview
+- [AIX Design System](aix-design-system.md) — governance, tone, confidence calibration
 - [Knowledge Model](knowledge-model.md)
+- [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)
+- [ADR-027: AI Collaborator Evolution](../../07-decisions/adr-027-ai-collaborator-evolution.md)
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md)

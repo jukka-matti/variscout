@@ -8,7 +8,7 @@ related: [hypothesis, root-cause, investigation-phases, investigation-diamond]
 
 # Hypothesis Investigation Flow
 
-Structured root cause investigation using the diamond pattern — diverge, validate, converge.
+Structured investigation using the diamond pattern — diverge, validate, converge on a suspected cause.
 
 ## Overview
 
@@ -146,7 +146,7 @@ When the analyst enters with a hypothesis (hypothesis-driven entry path), the an
 
 For example: "I think Machine 5 has drifted" → captured in FRAME → confirmed in SCOUT (eta-squared shows Machine 5 at 47%) → becomes tree root in INVESTIGATE → diverge into sub-hypotheses (worn nozzle, temperature drift, operator technique) → validate → converge on suspected root cause.
 
-The thread is currently conceptual — the analysis brief captures upfront hypotheses as text, but the hypothesis tree starts fresh. See [Mental Model Hierarchy § Gap #7](../../05-technical/architecture/mental-model-hierarchy.md#known-gaps--drift) for the opportunity to connect them programmatically.
+The thread is currently conceptual — the analysis brief captures upfront hypotheses as text, but the hypothesis tree starts fresh. See [Journey Model § Known Gaps](../../05-technical/architecture/mental-model-hierarchy.md#known-gaps) for the opportunity to connect them programmatically.
 
 ## CoScout Investigation Prompts
 
@@ -240,6 +240,6 @@ VariScout never auto-labels anything as "root cause." The analyst explicitly pro
 - [Investigation to Action](investigation-to-action.md) — Full investigation workflow (findings, actions, outcomes)
 - [Drill-Down Workflow](drill-down-workflow.md) — ANOVA drill-down mechanics
 - [Deep Dive](deep-dive.md) — 30-minute investigation pattern
-- [AI-Assisted Analysis](ai-assisted-analysis.md) — CoScout and AI features
+- [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md) — CoScout and AI features
 - [Findings Components](../../06-design-system/components/findings.md) — Design system specs
 - [ADR-020: Investigation Workflow](../../07-decisions/adr-020-investigation-workflow.md) — Architectural decisions

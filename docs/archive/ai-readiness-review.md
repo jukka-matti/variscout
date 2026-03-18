@@ -1,6 +1,8 @@
 ---
-title: 'AI Architecture Readiness Review'
+title: 'AI Architecture Readiness Review (Archived)'
 ---
+
+> **ARCHIVED** — Pre-implementation assessment (March 2026). All identified gaps have been resolved. See [AIX Design System](../05-technical/architecture/aix-design-system.md) for current AI standards and [AI Journey Integration](../05-technical/architecture/ai-journey-integration.md) for the AI overview.
 
 # AI Architecture Readiness Review
 
@@ -8,7 +10,7 @@ Strategic review of VariScout's architecture fitness for AI integration, conduct
 
 **Date:** 2026-03-14
 
-**Related:** [ADR-019](../../07-decisions/adr-019-ai-integration.md), [AI Architecture](ai-architecture.md), [AI-Assisted Analysis](../../03-features/workflows/ai-assisted-analysis.md)
+**Related:** [ADR-019](../../07-decisions/adr-019-ai-integration.md), [AI Architecture](ai-architecture.md), [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md)
 
 ---
 
@@ -302,7 +304,7 @@ VariScout's "deterministic-first, AI-explains" architecture aligns with all fram
 
 - [ADR-019: AI Integration](../../07-decisions/adr-019-ai-integration.md) — Architectural decision
 - [AI Architecture](ai-architecture.md) — Technical implementation
-- [AI-Assisted Analysis](../../03-features/workflows/ai-assisted-analysis.md) — User-facing workflow
+- [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md) — User-facing workflow
 - [AI Components](../../06-design-system/components/ai-components.md) — Component UX specs
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — Findings workflow
 - [Data Flow](data-flow.md) — Existing data pipeline
