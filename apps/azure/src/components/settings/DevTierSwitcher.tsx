@@ -16,7 +16,7 @@ import {
   setDevPlanOverride,
   getDevPlanOverrideValue,
   isDevelopmentMode,
-} from '../../lib/edition';
+} from '../../lib/tierConfig';
 
 interface TierOption {
   tier: LicenseTier;
