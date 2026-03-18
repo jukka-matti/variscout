@@ -10,6 +10,8 @@ related: [before-after, stage-column, intervention]
 
 <!-- journey-phase: improve -->
 
+> **Journey phase:** IMPROVE (PDCA: Check) — before/after comparison to verify whether the fix worked.
+
 Staged analysis calculates independent control limits for different time periods, revealing improvements that combined analysis would hide.
 
 ---

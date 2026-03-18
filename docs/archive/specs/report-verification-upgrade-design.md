@@ -9,6 +9,8 @@ related: [adr-024, adr-023, staged-analysis, report-view, tier-4]
 
 # Report Verification Section — Staged Evidence Upgrade
 
+> **ARCHIVED** — Delivered. See [ADR-023](../../07-decisions/adr-023-staged-analysis.md) for the canonical decision.
+
 ## Problem
 
 The Report View's Step 5 (Verification — "Did the actions work?") currently shows only a text callout: _"Before/after comparison data is available. View the full staged analysis in the dashboard."_ This is a placeholder. Meanwhile, ADR-023 Tier 4 has shipped all the visual building blocks for staged before/after comparison:

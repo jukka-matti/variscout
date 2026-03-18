@@ -8,6 +8,10 @@ related: [control-limits, nelson-rules, stability, time-series]
 
 # I-Chart (Individuals Chart)
 
+<!-- journey-phase: scout -->
+
+> **Journey phase:** SCOUT (CHANGE lens) — stability analysis, the first chart in Watson's EDA sequence.
+
 The I-Chart is VariScout's tool for the **CHANGE** lens - analyzing time-based stability.
 
 ---

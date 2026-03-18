@@ -8,6 +8,10 @@ related: [capability, boxplot, specs, conformance]
 
 # Statistics Panel
 
+<!-- journey-phase: scout -->
+
+> **Journey phase:** SCOUT — conformance and capability metrics visible across all phases.
+
 The Statistics Panel provides summary metrics for the current analysis view. It supports two modes depending on the analyst's focus.
 
 ---

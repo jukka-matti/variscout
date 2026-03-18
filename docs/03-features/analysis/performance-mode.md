@@ -8,6 +8,10 @@ related: [multi-channel, cpk-comparison, wide-format]
 
 # Performance Mode
 
+<!-- journey-phase: scout -->
+
+> **Journey phase:** SCOUT — multi-channel analysis for equipment with multiple measurement points.
+
 Performance Mode enables multi-channel analysis for comparing multiple measurement points simultaneously.
 
 ---

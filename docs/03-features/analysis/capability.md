@@ -8,6 +8,10 @@ related: [cpk, cp, normal-distribution, sigma-estimation, specification-limits]
 
 # Capability Analysis
 
+<!-- journey-phase: scout -->
+
+> **Journey phase:** SCOUT (VALUE lens) — specification compliance, the final check in Watson's EDA.
+
 Capability Analysis is VariScout's tool for the **VALUE** lens - comparing process output to customer specifications.
 
 ---

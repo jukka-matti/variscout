@@ -8,6 +8,10 @@ related: [control-chart, i-chart, special-cause, runs]
 
 # Nelson Rules
 
+<!-- journey-phase: scout -->
+
+> **Journey phase:** SCOUT (stability check) — pattern detection rules that trigger investigation.
+
 Nelson Rules detect special cause variation patterns in control charts. VariScout implements Nelson Rule 2 (sustained shift) and Nelson Rule 3 (trend/drift) with distinct visual shapes for each violation type.
 
 ---

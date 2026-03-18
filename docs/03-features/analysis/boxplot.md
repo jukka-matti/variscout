@@ -8,6 +8,10 @@ related: [anova, eta-squared, violin-mode, factor-comparison]
 
 # Boxplot
 
+<!-- journey-phase: scout -->
+
+> **Journey phase:** SCOUT (FLOW lens) — factor comparison to discover where variation concentrates.
+
 The Boxplot is VariScout's tool for the **FLOW** lens - comparing variation across factors.
 
 ---

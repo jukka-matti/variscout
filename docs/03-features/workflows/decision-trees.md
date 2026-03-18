@@ -4,6 +4,7 @@ audience: [analyst]
 category: workflow
 status: stable
 related: [chart-selection, workflow-guidance]
+journey-phase: scout
 ---
 
 # Decision Trees

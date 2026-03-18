@@ -8,6 +8,10 @@ related: [parser, quality-checks, data-input]
 
 # Data Validation
 
+<!-- journey-phase: frame -->
+
+> **Journey phase:** FRAME — data quality checks before analysis begins.
+
 Quality checks applied to uploaded data.
 
 ---

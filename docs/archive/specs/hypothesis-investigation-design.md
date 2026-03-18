@@ -4,6 +4,8 @@ title: 'Hypothesis Investigation Flow: Diamond Pattern for Root Cause Analysis'
 
 # Hypothesis Investigation Flow: Diamond Pattern for Root Cause Analysis
 
+> **ARCHIVED** — Delivered. See [ADR-020](../../07-decisions/adr-020-investigation-workflow.md) for the canonical decision.
+
 **Date:** 2026-03-15
 **Status:** Draft
 **Scope:** Extend Hypothesis model with sub-hypotheses, validation types, tree view UI, and CoScout investigation integration

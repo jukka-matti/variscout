@@ -1,5 +1,6 @@
 ---
 title: 'Knowledge Base Search'
+journey-phase: [scout, investigate, improve]
 ---
 
 # Knowledge Base Search

@@ -8,6 +8,8 @@ related: [hypothesis, root-cause, investigation-phases, investigation-diamond]
 
 # Hypothesis Investigation Flow
 
+> How to use the hypothesis tree and validation UI. For the diamond lifecycle, see [Investigation Lifecycle Map](investigation-lifecycle-map.md). For the narrative walkthrough, see [Analysis Journey Map § INVESTIGATE](analysis-journey-map.md#phase-3-investigate).
+
 Structured investigation using the diamond pattern — diverge, validate, converge on a suspected cause.
 
 ## Overview

@@ -9,6 +9,8 @@ related: [report-view, presentation, qc-story, a3, copy-workflow, teams-sharing]
 
 # Scouting Report: Dynamic Analysis Report View
 
+> **ARCHIVED** — Delivered. See [ADR-024](../../07-decisions/adr-024-scouting-report.md) for the canonical decision.
+
 ## Problem Statement
 
 An analyst (Green Belt Gary, Azure Standard/Team) completes an analysis — from daily stability check to full improvement cycle — and needs to share the story. Today, VariScout has excellent individual-component export (charts as PNG/SVG, findings as CSV/text, CoScout copy) but no unified presentation experience. The analyst must manually assemble charts, stats, and findings into PowerPoint through 5–10 minutes of copy-paste across multiple downloads.

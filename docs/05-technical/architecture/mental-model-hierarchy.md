@@ -8,6 +8,8 @@ related: [methodology, journey, investigation, ai, report]
 
 # The Journey Model
 
+> **Canonical architecture reference** for the journey model. For the analyst-facing visual guide with flowcharts and decision points, see [Analysis Journey Map](../../03-features/workflows/analysis-journey-map.md).
+
 VariScout has **one mental model: the journey**. Each phase has its own method. Everything else is either a method within a phase, an orthogonal dimension, or a product concern.
 
 ---
@@ -314,7 +316,7 @@ The analysis brief captures upfront hypotheses during FRAME. With the AI collabo
 - [Methodology](../../01-vision/methodology.md) — Watson's EDA, Four Lenses, Investigation Diamond, Two Voices
 - [AI Journey Integration](ai-journey-integration.md) — AI layers and experience spectrum
 - [Business Bible](../../01-vision/business-bible.md) — Value Levers
-- [Scouting Report Design](../../superpowers/specs/2026-03-16-scouting-report-design.md) — Report Steps
+- [Scouting Report Design](../../archive/specs/scouting-report-design.md) — Report Steps (archived)
 - [Investigation to Action](../../03-features/workflows/investigation-to-action.md) — Finding Status, Hypothesis lifecycle
 - [Journey Phase → Screen Mapping](./journey-phase-screen-mapping.md) — concrete code references per phase
 - [Methodology Coach Design](../../superpowers/specs/2026-03-18-methodology-coach-design.md) — UI implementation of journey awareness

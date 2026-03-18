@@ -6,6 +6,8 @@ journey-phase: [all]
 
 # Analysis Journey Map
 
+> **Analyst's visual guide** to the 4-phase journey with flowcharts and decision points. For the canonical architecture reference (AI modes, code mappings, known gaps), see [The Journey Model](../../05-technical/architecture/mental-model-hierarchy.md). For AI behavior per phase, see [AI Journey Integration](../../05-technical/architecture/ai-journey-integration.md).
+
 VariScout guides quality analysts through four distinct phases: **Frame**, **Scout**, **Investigate**, and **Improve**. Each phase has a clear purpose, specific data shapes at its boundaries, and defined decision points that move the analyst forward. CoScout, the AI companion, adapts its behaviour at each phase to provide contextually relevant guidance.
 
 ## Journey Overview
@@ -196,6 +198,8 @@ stateDiagram-v2
 
 ### Investigation Diamond (4 Phases)
 
+> **Diamond views:** [Architecture definition](../../05-technical/architecture/mental-model-hierarchy.md#investigation-diamond-4-phases) · [State machine](investigation-lifecycle-map.md) · [Tree UI & validation](hypothesis-investigation.md)
+
 The investigation follows the diamond pattern within each finding — a structured learning process:
 
 | Phase          | Status          | Activity                                                                          |
@@ -354,13 +358,7 @@ flowchart TD
 
 ## Entry-Path-Dependent Phase Goals
 
-How the analyst entered the journey shapes what each phase needs to accomplish:
-
-| Entry Scenario                                                 | FRAME Goal                                             | SCOUT Goal                                          | INVESTIGATE Goal                                                            | IMPROVE Goal                             |
-| -------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------- |
-| **Problem to Solve** ("Customer complaint about fill weights") | Define the problem space; capture known constraints    | Find which factors drive the variation              | Understand why — build evidence for suspected root cause                    | Fix the process — Cpk to target          |
-| **Hypothesis to Check** ("I think Machine 5 drifted")          | Load data; record upfront hypothesis in analysis brief | Confirm or refute the hypothesis with data evidence | If confirmed, understand the mechanism; if refuted, diverge to alternatives | Fix the confirmed cause — Cpk to target  |
-| **Routine Check** ("Weekly monitoring of Line 2")              | Load latest data; specs already known                  | Scan for new signals; compare to baseline           | Only if a new signal is found — quick investigation                         | Only if investigation identifies a cause |
+How the analyst entered the journey shapes what each phase needs to accomplish. See [Entry-Path-Dependent Phase Goals](../../05-technical/architecture/mental-model-hierarchy.md#entry-path-dependent-phase-goals) for the full matrix.
 
 The upfront hypothesis (hypothesis-driven path) seeds the hypothesis tree root when investigation begins, creating a continuous thread from initial theory through validated understanding.
 

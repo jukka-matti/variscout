@@ -8,6 +8,10 @@ related: [normal-distribution, anderson-darling, qq-plot]
 
 # Probability Plot
 
+<!-- journey-phase: scout -->
+
+> **Journey phase:** SCOUT — distribution shape assessment before capability calculations.
+
 The probability plot assesses whether data follows a normal distribution, which underpins capability analysis and control chart assumptions.
 
 ---

@@ -8,6 +8,10 @@ related: [vital-few, contribution-percentage, drill-down]
 
 # Pareto Chart
 
+<!-- journey-phase: scout -->
+
+> **Journey phase:** SCOUT (FAILURE lens) — ranking variation contributors to focus investigation.
+
 The Pareto Chart is VariScout's tool for the **FAILURE** lens - finding where problems concentrate.
 
 ---

@@ -51,7 +51,7 @@ export interface BaseChartProps {
   parentHeight: number;
   /** Show branding footer bar */
   showBranding?: boolean;
-  /** Custom branding text (defaults to edition-based text) */
+  /** Custom branding text (defaults to tier-based text) */
   brandingText?: string;
 }
 
@@ -253,7 +253,7 @@ export interface ChartSourceBarProps {
   brandingText?: string;
   /** Accent color (default blue) */
   accentColor?: string;
-  /** Force show branding (overrides edition check) */
+  /** Force show branding (overrides tier check) */
   forceShow?: boolean;
   /** Font size for branding text (from responsive fonts) */
   fontSize?: number;

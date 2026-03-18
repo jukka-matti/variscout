@@ -10,6 +10,8 @@ related: [parser, csv, excel, paste, file-upload]
 
 <!-- journey-phase: frame -->
 
+> **Journey phase:** FRAME — data loading is the first step in every analysis.
+
 How VariScout handles data input — paste (PWA and Azure App) and file upload (Azure App).
 
 ---

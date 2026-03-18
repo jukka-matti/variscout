@@ -75,7 +75,7 @@ npx ruflo@latest security cve --check        # CVE check
 | Journey traceability       | docs/02-journeys/traceability.md                                                                                 |
 | Internationalization       | adr-025, packages/core/src/i18n/, packages/hooks/src/useLocaleState.ts, useTranslation.ts                        |
 | Testing                    | .claude/rules/testing.md, docs/05-technical/implementation/testing.md                                            |
-| Report View / Sharing      | adr-024, docs/superpowers/specs/2026-03-16-scouting-report-design.md                                             |
+| Report View / Sharing      | adr-024, docs/archive/specs/scouting-report-design.md                                                            |
 | Verification / Staged      | adr-023, docs/03-features/analysis/staged-analysis.md                                                            |
 | Characteristic types       | docs/03-features/analysis/characteristic-types.md, packages/core/src/types.ts                                    |
 | Data lifecycle / Append    | adr-023, apps/azure/src/hooks/useEditorDataFlow.ts                                                               |

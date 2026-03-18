@@ -4,6 +4,8 @@ title: 'Investigation Workflow Enhancement: Root Cause, Actions, Outcome'
 
 # Investigation Workflow Enhancement: Root Cause, Actions, Outcome
 
+> **ARCHIVED** — Delivered. See [ADR-020](../../07-decisions/adr-020-investigation-workflow.md) for the canonical decision.
+
 **Date:** 2026-03-14
 **Status:** Draft
 **Scope:** Extend Finding type and UI to capture the full improvement journey

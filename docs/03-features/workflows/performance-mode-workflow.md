@@ -4,6 +4,7 @@ audience: [analyst]
 category: workflow
 status: stable
 related: [performance-mode, multi-channel, cpk]
+journey-phase: scout
 ---
 
 # Performance Mode Workflow

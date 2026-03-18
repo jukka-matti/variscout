@@ -8,6 +8,10 @@ related: [filter-chips, progressive-stratification, variation-tracking, chart-in
 
 # Progressive Filtering
 
+<!-- journey-phase: scout -->
+
+> **Journey phase:** Primarily SCOUT (drill-down to find variation drivers) and INVESTIGATE (validating hypotheses on filtered subsets).
+
 VariScout's navigation system connects drill-down analysis, linked filtering, and filter chips into one cohesive workflow for isolating variation sources.
 
 ---

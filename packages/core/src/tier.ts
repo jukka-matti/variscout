@@ -181,7 +181,7 @@ export function isUpgradeUrlPlaceholder(): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Branding helpers (migrated from edition.ts)
+// Branding helpers
 // ---------------------------------------------------------------------------
 
 /**
