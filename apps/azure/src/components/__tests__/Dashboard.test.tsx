@@ -288,7 +288,6 @@ vi.mock('@variscout/ui', () => ({
   },
   ChartInsightChip: () => null,
   NarrativeBar: () => null,
-  MethodologyCoachBase: () => <div data-testid="methodology-coach">Coach</div>,
   useIsMobile: () => false,
   BREAKPOINTS: { phone: 640, mobile: 768, desktop: 1024, large: 1280 },
 }));

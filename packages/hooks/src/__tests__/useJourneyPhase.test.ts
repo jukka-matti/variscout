@@ -1,9 +1,9 @@
 /**
- * Tests for useJourneyPhase hook, getCoachingText, detectEntryScenario
+ * Tests for useJourneyPhase hook and detectEntryScenario
  */
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useJourneyPhase, getCoachingText, detectEntryScenario } from '../useJourneyPhase';
+import { useJourneyPhase, detectEntryScenario } from '../useJourneyPhase';
 import type { Finding } from '@variscout/core';
 
 /** Create a minimal Finding for testing */
@@ -73,39 +73,6 @@ describe('useJourneyPhase', () => {
     const findings = [makeFinding({ id: 'f-1' })];
     const { result } = renderHook(() => useJourneyPhase(false, findings));
     expect(result.current).toBe('frame');
-  });
-});
-
-describe('getCoachingText', () => {
-  it('returns problem-specific text for scout phase', () => {
-    const text = getCoachingText('scout', 'problem');
-    expect(text).toContain('variation patterns');
-  });
-
-  it('returns hypothesis-specific text for scout phase', () => {
-    const text = getCoachingText('scout', 'hypothesis');
-    expect(text).toContain('evidence');
-  });
-
-  it('returns routine-specific text for scout phase', () => {
-    const text = getCoachingText('scout', 'routine');
-    expect(text).toContain('signals');
-  });
-
-  it('defaults to problem when no scenario specified', () => {
-    const text = getCoachingText('investigate');
-    expect(text).toContain('evidence');
-  });
-
-  it('returns text for all phase/scenario combinations', () => {
-    const phases = ['frame', 'scout', 'investigate', 'improve'] as const;
-    const scenarios = ['problem', 'hypothesis', 'routine'] as const;
-    for (const phase of phases) {
-      for (const scenario of scenarios) {
-        const text = getCoachingText(phase, scenario);
-        expect(text.length).toBeGreaterThan(0);
-      }
-    }
   });
 });
 

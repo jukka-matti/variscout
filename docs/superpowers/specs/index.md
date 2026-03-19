@@ -12,7 +12,7 @@ Once a feature stabilizes, the ADR is the canonical reference.
 
 | Spec                                                                                                             | Feature                           | ADR     | Status    |
 | ---------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------- | --------- |
-| [2026-03-18-methodology-coach-design.md](2026-03-18-methodology-coach-design.md)                                 | Methodology Coach                 | —       | Draft     |
+| [2026-03-18-methodology-coach-design.md](../../archive/2026-03-18-methodology-coach-design.md)                   | Methodology Coach (removed)       | —       | Archived  |
 | [2026-03-17-navigation-architecture-design.md](2026-03-17-navigation-architecture-design.md)                     | Navigation Architecture           | —       | Draft     |
 | [2026-03-17-navigation-audit.md](2026-03-17-navigation-audit.md)                                                 | Navigation Audit                  | —       | Active    |
 | [2026-03-17-documentation-methodology-upgrade-design.md](2026-03-17-documentation-methodology-upgrade-design.md) | Documentation Upgrade             | —       | Active    |

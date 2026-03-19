@@ -270,8 +270,8 @@ export {
   type UseCreateFactorModalReturn,
 } from './useCreateFactorModal';
 
-// Journey Phase (methodology coach)
-export { useJourneyPhase, getCoachingText, detectEntryScenario } from './useJourneyPhase';
+// Journey Phase (AI tool gating)
+export { useJourneyPhase, detectEntryScenario } from './useJourneyPhase';
 
 // Verification Charts (Report Step 5 staged evidence)
 export {

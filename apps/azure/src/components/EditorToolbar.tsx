@@ -2,14 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { hasTeamFeatures, downloadCSV } from '@variscout/core';
 import type { DataRow, SpecLimits } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
-import type {
-  JourneyPhase,
-  InvestigationPhase,
-  Finding,
-  Hypothesis,
-  EntryScenario,
-} from '@variscout/core';
-import { JourneyPhaseStrip, CoachPopover, MobileCoachSheet, type ScoutHint } from '@variscout/ui';
 import { useIsMobile, BREAKPOINTS } from '@variscout/ui';
 import {
   Upload,
@@ -77,16 +69,6 @@ interface EditorToolbarProps {
   syncState: ToolbarSyncState;
   panelState: ToolbarPanelState;
   dataActions: ToolbarDataActions;
-  journeyPhase?: JourneyPhase;
-  entryScenario?: EntryScenario;
-  coachingText?: string;
-  scoutHints?: ScoutHint[];
-  drillSuggestion?: string;
-  investigationPhase?: InvestigationPhase;
-  uncoveredFactors?: Array<{ factor: string; role: string }>;
-  findings?: Finding[];
-  hypotheses?: Hypothesis[];
-  hasStagedData?: boolean;
 }
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
@@ -113,16 +95,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
     onOpenReport,
     onOpenPresentation,
   },
-  journeyPhase,
-  entryScenario,
-  coachingText,
-  scoutHints,
-  drillSuggestion,
-  investigationPhase,
-  uncoveredFactors,
-  findings,
-  hypotheses,
-  hasStagedData,
 }) => {
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const { t } = useTranslation();
@@ -180,40 +152,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           {projectName}
           {hasUnsavedChanges && <span className="text-amber-400 ml-2">•</span>}
         </h2>
-        {journeyPhase && journeyPhase !== 'frame' && (
-          <JourneyPhaseStrip
-            phase={journeyPhase}
-            entryScenario={entryScenario}
-            renderPopover={({ phase, onClose }) => (
-              <CoachPopover
-                phase={phase}
-                coachingText={coachingText}
-                onClose={onClose}
-                scoutHints={scoutHints}
-                drillSuggestion={drillSuggestion}
-                investigationPhase={investigationPhase}
-                uncoveredFactors={uncoveredFactors}
-                findings={findings}
-                hypotheses={hypotheses}
-                hasStagedData={hasStagedData}
-              />
-            )}
-            renderMobileSheet={({ phase, onClose }) => (
-              <MobileCoachSheet
-                phase={phase}
-                coachingText={coachingText}
-                onClose={onClose}
-                scoutHints={scoutHints}
-                drillSuggestion={drillSuggestion}
-                investigationPhase={investigationPhase}
-                uncoveredFactors={uncoveredFactors}
-                findings={findings}
-                hypotheses={hypotheses}
-                hasStagedData={hasStagedData}
-              />
-            )}
-          />
-        )}
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
         {/* Compact sync icon on phone — Team plan only */}

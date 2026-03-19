@@ -88,7 +88,6 @@ npx ruflo@latest security cve --check        # CVE check
 | Diagram health             | scripts/check-diagram-health.sh, docs/05-technical/architecture/component-map.md                                                                        |
 | Documentation site         | apps/docs/ (Astro + Starlight)                                                                                                                          |
 | IMPROVE Phase / Workspaces | docs/superpowers/specs/2026-03-19-improve-phase-ux-design.md, packages/ui/src/components/ImprovementPlan/                                               |
-| Methodology Coach          | docs/superpowers/specs/2026-03-18-methodology-coach-design.md, packages/ui/src/components/MethodologyCoach/                                             |
 | Navigation / Views         | docs/06-design-system/patterns/navigation.md, apps/pwa/src/hooks/useAppPanels.ts, apps/azure/src/hooks/useEditorPanels.ts                               |
 
 ## Repository Structure
@@ -115,18 +114,17 @@ variscout-lite/
 
 ## Key Entry Points
 
-| Package                                        | Key Files                                                                        | Purpose                                                                          |
-| ---------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `packages/core/src/`                           | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/                   | Stats engine (13 modules), parser, types, tier, AI context, glossary, simulation |
-| `packages/charts/src/`                         | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme                 | Chart components (see .claude/rules/charts.md)                                   |
-| `packages/hooks/src/`                          | use\*.ts (see .claude/rules/monorepo.md for full list)                           | 40+ shared React hooks                                                           |
-| `packages/ui/src/components/`                  | \*/ (see .claude/rules/monorepo.md for full list)                                | 60+ shared UI components                                                         |
-| `packages/data/src/samples/`                   | coffee, journey, bottleneck, sachets                                             | Sample datasets                                                                  |
-| `apps/pwa/src/`                                | context/DataContext.tsx, components/Dashboard.tsx                                | PWA state + main UI                                                              |
-| `apps/azure/src/`                              | context/DataContext.tsx, services/graphFetch.ts, auth/, hooks/useEditor\*.ts     | Azure state, storage, auth, Graph API wrapper                                    |
-| `packages/ui/src/components/MethodologyCoach/` | JourneyPhaseStrip, CoachPopover, MobileCoachSheet, DiamondPhaseMap, PDCAProgress | Phase strip in header + popover coaching                                         |
-| `packages/ui/src/components/ImprovementPlan/`  | ImprovementWorkspaceBase, SynthesisCard, IdeaGroupCard, ImprovementSummaryBar    | Improvement planning workspace (Azure only)                                      |
-| `infra/`                                       | mainTemplate.json, functions/                                                    | ARM template, Azure Functions                                                    |
+| Package                                       | Key Files                                                                     | Purpose                                                                          |
+| --------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `packages/core/src/`                          | stats/, parser/, types.ts, tier.ts, ai/, glossary/, variation/                | Stats engine (13 modules), parser, types, tier, AI context, glossary, simulation |
+| `packages/charts/src/`                        | IChart, Boxplot, Pareto, Performance\*, colors.ts, useChartTheme              | Chart components (see .claude/rules/charts.md)                                   |
+| `packages/hooks/src/`                         | use\*.ts (see .claude/rules/monorepo.md for full list)                        | 40+ shared React hooks                                                           |
+| `packages/ui/src/components/`                 | \*/ (see .claude/rules/monorepo.md for full list)                             | 60+ shared UI components                                                         |
+| `packages/data/src/samples/`                  | coffee, journey, bottleneck, sachets                                          | Sample datasets                                                                  |
+| `apps/pwa/src/`                               | context/DataContext.tsx, components/Dashboard.tsx                             | PWA state + main UI                                                              |
+| `apps/azure/src/`                             | context/DataContext.tsx, services/graphFetch.ts, auth/, hooks/useEditor\*.ts  | Azure state, storage, auth, Graph API wrapper                                    |
+| `packages/ui/src/components/ImprovementPlan/` | ImprovementWorkspaceBase, SynthesisCard, IdeaGroupCard, ImprovementSummaryBar | Improvement planning workspace (Azure only)                                      |
+| `infra/`                                      | mainTemplate.json, functions/                                                 | ARM template, Azure Functions                                                    |
 
 ## Key Patterns
 

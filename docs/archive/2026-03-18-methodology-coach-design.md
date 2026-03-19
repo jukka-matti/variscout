@@ -1,8 +1,8 @@
 ---
-title: Methodology Coach Design
+title: Methodology Coach Design (HISTORICAL ONLY)
 audience: [analyst, engineer]
 category: workflow
-status: stable
+status: deprecated
 related: [methodology-coach, journey-phase, investigation-diamond, pdca, entry-scenario]
 ---
 
