@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Save, Table, Filter, ClipboardPaste } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import DataTableBase from './DataTableBase';
 import type { ExclusionReason, DataRow, DataCellValue, SpecLimits } from '@variscout/core';
 
@@ -32,6 +33,7 @@ const DataTableModalBase: React.FC<DataTableModalBaseProps> = ({
   excludedReasons,
   controlViolations,
 }) => {
+  const { t } = useTranslation();
   const [localData, setLocalData] = useState<DataRow[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [filterExcluded, setFilterExcluded] = useState(initialFilterExcluded);
@@ -142,12 +144,14 @@ const DataTableModalBase: React.FC<DataTableModalBaseProps> = ({
         <div className="flex items-center justify-between p-6 border-b border-edge">
           <div className="flex items-center gap-3">
             <Table size={20} className="text-blue-400" />
-            <h2 className="text-xl font-bold text-content">Data Table</h2>
+            <h2 className="text-xl font-bold text-content">{t('panel.dataTable')}</h2>
             <span className="text-sm text-content-secondary">
               {filterExcluded && excludedRowIndices
                 ? `${excludedRowIndices.size} excluded rows`
                 : `${localData.length} rows`}
-              {hasChanges && <span className="text-amber-400 ml-2">(unsaved changes)</span>}
+              {hasChanges && (
+                <span className="text-amber-400 ml-2">({t('table.unsavedChanges')})</span>
+              )}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -177,7 +181,7 @@ const DataTableModalBase: React.FC<DataTableModalBaseProps> = ({
               className="flex items-center gap-1 px-3 py-1.5 text-sm bg-surface-tertiary hover:bg-surface-tertiary/80 text-content rounded-lg transition-colors"
             >
               <Plus size={16} />
-              Add Row
+              {t('table.addRow')}
             </button>
             <button
               onClick={onClose}
@@ -211,7 +215,7 @@ const DataTableModalBase: React.FC<DataTableModalBaseProps> = ({
             onClick={onClose}
             className="px-4 py-2 text-content-secondary hover:text-content hover:bg-surface-tertiary rounded-lg transition-colors font-medium"
           >
-            Cancel
+            {t('action.cancel')}
           </button>
           <button
             onClick={applyChanges}
@@ -223,7 +227,7 @@ const DataTableModalBase: React.FC<DataTableModalBaseProps> = ({
             }`}
           >
             <Save size={18} />
-            Apply Changes
+            {t('action.apply')}
           </button>
         </div>
       </div>

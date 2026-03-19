@@ -12,6 +12,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { ArrowLeft, ArrowRight, Settings2, Eye, Search } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import { useIsMobile, BREAKPOINTS } from '../../hooks';
 import { DataQualityBanner } from '../DataQualityBanner';
 import { ColumnCard } from './ColumnCard';
@@ -147,6 +148,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
   showBrief = false,
   initialProblemStatement,
 }) => {
+  const { t } = useTranslation();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const [outcome, setOutcome] = useState<string>(initialOutcome || '');
   const [factors, setFactors] = useState<string[]>(initialFactors || []);
@@ -297,7 +299,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             <div className="p-2 bg-blue-600/20 text-blue-400 rounded-lg">
               <Settings2 size={24} />
             </div>
-            <h2 className="text-xl font-bold text-white">Map Your Data</h2>
+            <h2 className="text-xl font-bold text-white">{t('data.mapHeading')}</h2>
           </div>
           <p className="text-slate-400 text-sm">
             Confirm which columns to analyze from <strong>{datasetName}</strong>. You can adjust
@@ -337,8 +339,10 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                 <div className="p-1.5 bg-amber-600/20 text-amber-400 rounded-lg">
                   <Search size={16} />
                 </div>
-                <h3 className="text-sm font-semibold text-slate-200">Analysis Brief</h3>
-                <span className="text-[10px] text-slate-500 ml-1">(optional)</span>
+                <h3 className="text-sm font-semibold text-slate-200">
+                  {t('data.analysisSection')}
+                </h3>
+                <span className="text-[10px] text-slate-500 ml-1">({t('data.optional')})</span>
                 <span className="ml-auto text-slate-500 text-xs">{briefExpanded ? '−' : '+'}</span>
               </button>
 
@@ -349,7 +353,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                     <textarea
                       value={problemStatement}
                       onChange={e => setProblemStatement(e.target.value.slice(0, 500))}
-                      placeholder="What are you investigating? (optional)"
+                      placeholder={t('data.problemPlaceholder')}
                       className="w-full text-sm bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder:text-slate-500 resize-none focus:outline-none focus:border-blue-500/50"
                       rows={2}
                       maxLength={500}
@@ -363,7 +367,9 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                   {/* Hypotheses */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-400">Hypotheses</span>
+                      <span className="text-xs text-slate-400">
+                        {t('investigation.hypotheses')}
+                      </span>
                     </div>
                     {briefHypotheses.map((hyp, idx) => (
                       <div
@@ -424,13 +430,15 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                       type="button"
                       data-testid="brief-add-hypothesis"
                     >
-                      + Add hypothesis
+                      + {t('data.addHypothesis')}
                     </button>
                   </div>
 
                   {/* Target */}
                   <div>
-                    <span className="text-xs text-slate-400 mb-1 block">Improvement Target</span>
+                    <span className="text-xs text-slate-400 mb-1 block">
+                      {t('data.improvementTarget')}
+                    </span>
                     <div className="flex gap-2 items-center">
                       <select
                         value={targetMetric}
@@ -438,7 +446,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                         className="text-xs bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-white focus:outline-none focus:border-blue-500/50"
                         data-testid="brief-target-metric"
                       >
-                        <option value="">Metric</option>
+                        <option value="">{t('data.metric')}</option>
                         <option value="mean">Mean</option>
                         <option value="sigma">Sigma</option>
                         <option value="cpk">Cpk</option>
@@ -495,13 +503,10 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                 Y
               </div>
               <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
-                Select Outcome (Measure)
+                {t('data.selectOutcome')}
               </h3>
             </div>
-            <p className="text-xs text-slate-500 mb-3">
-              Choose the numeric variable you want to improve (e.g., Weight, Diameter, Defect
-              Count).
-            </p>
+            <p className="text-xs text-slate-500 mb-3">{t('data.outcomeDesc')}</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
               {outcomeColumns.map(col => (
@@ -527,8 +532,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
               >
                 <Eye size={12} />
                 {showAllOutcome
-                  ? `Show numeric only (${numericColumns.length})`
-                  : `Show all columns (${columns.length})`}
+                  ? `${t('data.showNumericOnly')} (${numericColumns.length})`
+                  : `${t('data.showAllColumns')} (${columns.length})`}
               </button>
             )}
           </div>
@@ -540,16 +545,13 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                 X
               </div>
               <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
-                Select Factors (Categories)
+                {t('data.selectFactors')}
               </h3>
               <span className="text-xs text-slate-500 ml-auto">
                 {factors.length}/{maxFactors} selected
               </span>
             </div>
-            <p className="text-xs text-slate-500 mb-3">
-              Choose up to {maxFactors} categorical variables to group by (e.g., Machine, Shift,
-              Operator).
-            </p>
+            <p className="text-xs text-slate-500 mb-3">{t('data.factorsDesc')}</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
               {factorColumns.map(col => {
@@ -562,7 +564,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
                     role="factor"
                     selected={factors.includes(col.name)}
                     disabled={isOutcomeCol}
-                    disabledReason="Already selected as outcome"
+                    disabledReason={t('data.alreadyOutcome')}
                     alias={columnAliases?.[col.name]}
                     onSelect={() => toggleFactor(col.name)}
                     onRename={onColumnRename}
@@ -592,8 +594,8 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
               >
                 <Eye size={12} />
                 {showAllFactors
-                  ? `Show categorical/date only (${nonNumericColumns.length})`
-                  : `Show all columns (${columns.length})`}
+                  ? `${t('data.showCategoricalOnly')} (${nonNumericColumns.length})`
+                  : `${t('data.showAllColumns')} (${columns.length})`}
               </button>
             )}
           </div>
@@ -643,7 +645,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm font-medium px-4 py-2 hover:bg-slate-700 rounded-lg transition-colors"
           >
             <ArrowLeft size={16} />
-            <span>Back</span>
+            <span>{t('data.back')}</span>
           </button>
 
           <button
@@ -713,7 +715,7 @@ export const ColumnMapping: React.FC<ColumnMappingProps> = ({
             disabled={!isValid}
             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95"
           >
-            <span>{mode === 'edit' ? 'Apply Changes' : 'Start Analysis'}</span>
+            <span>{mode === 'edit' ? t('data.applyChanges') : t('data.startAnalysis')}</span>
             <ArrowRight size={18} />
           </button>
         </div>

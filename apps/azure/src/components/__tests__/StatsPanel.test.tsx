@@ -1,4 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('@variscout/hooks', async () => {
+  const actual = await vi.importActual('@variscout/hooks');
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => {
+        const msgs: Record<string, string> = {
+          'stats.summary': 'Summary Statistics',
+          'stats.histogram': 'Histogram',
+          'stats.probPlot': 'Probability Plot',
+          'stats.mean': 'Mean',
+          'stats.median': 'Median',
+          'stats.stdDev': 'Std Dev',
+          'stats.samples': 'Samples',
+          'stats.passRate': 'Pass Rate',
+          'stats.editSpecs': 'Edit specifications',
+          'empty.noData': 'No data',
+        };
+        return msgs[key] ?? key;
+      },
+      tf: (key: string, params: Record<string, string | number>) => {
+        let msg = key;
+        for (const [k, v] of Object.entries(params)) {
+          msg = msg.replace(`{${k}}`, String(v));
+        }
+        return msg;
+      },
+      locale: 'en' as const,
+      formatNumber: (v: number) => v.toFixed(2),
+      formatStat: (v: number, d = 2) => v.toFixed(d),
+      formatPct: (v: number) => `${(v * 100).toFixed(1)}%`,
+    }),
+  };
+});
+
 import { render, screen, fireEvent } from '@testing-library/react';
 import StatsPanel from '../StatsPanel';
 
@@ -43,7 +79,7 @@ describe('StatsPanel', () => {
     );
 
     // Summary tab should be active
-    const summaryTab = screen.getByText('Summary');
+    const summaryTab = screen.getByText('Summary Statistics');
     expect(summaryTab).toHaveClass('bg-surface-tertiary');
 
     // Should show pass rate (use getAllByText since HelpTooltip may also contain the term)
@@ -168,7 +204,7 @@ describe('StatsPanel', () => {
     expect(screen.getByText('Samples')).toBeInTheDocument();
   });
 
-  it('shows "Set spec limits" pencil link when onSaveSpecs provided and no specs', () => {
+  it('shows "Edit specifications" pencil link when onSaveSpecs provided and no specs', () => {
     const onSaveSpecs = vi.fn();
     render(
       <StatsPanel
@@ -181,10 +217,10 @@ describe('StatsPanel', () => {
     );
 
     expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
-    expect(screen.getByText('Set spec limits')).toBeInTheDocument();
+    expect(screen.getByText('Edit specifications')).toBeInTheDocument();
   });
 
-  it('shows "Edit spec limits" pencil link when specs exist and onSaveSpecs provided', () => {
+  it('shows "Edit specifications" pencil link when specs exist and onSaveSpecs provided', () => {
     const onSaveSpecs = vi.fn();
     render(
       <StatsPanel
@@ -197,7 +233,7 @@ describe('StatsPanel', () => {
     );
 
     expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
-    expect(screen.getByText('Edit spec limits')).toBeInTheDocument();
+    expect(screen.getByText('Edit specifications')).toBeInTheDocument();
   });
 
   it('does not show pencil link when onSaveSpecs not provided', () => {

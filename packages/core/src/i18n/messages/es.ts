@@ -147,4 +147,198 @@ export const es: MessageCatalog = {
   'status.cached': 'En caché',
   'status.loading': 'Cargando',
   'status.ai': 'IA',
+
+  // Methodology Coach
+  'coach.frame': 'Enmarcar',
+  'coach.scout': 'Explorar',
+  'coach.investigate': 'Investigar',
+  'coach.improve': 'Mejorar',
+  'coach.frameDesc': 'Definir el problema y establecer límites',
+  'coach.scoutDesc': 'Recopilar datos y explorar patrones',
+  'coach.investigateDesc': 'Probar hipótesis y encontrar causas raíz',
+  'coach.improveDesc': 'Implementar cambios y verificar resultados',
+
+  // Report KPIs
+  'report.kpi.samples': 'Muestras',
+  'report.kpi.mean': 'Media',
+  'report.kpi.variation': 'Variación',
+  'report.kpi.cpk': 'Cpk',
+  'report.kpi.passRate': 'Tasa de aprobación',
+
+  // AI Actions
+  'ai.propose': 'Proponer',
+  'ai.applied': 'Aplicado',
+  'ai.dismissed': 'Descartado',
+  'ai.expired': 'Expirado',
+
+  // Staged analysis
+  'staged.before': 'Antes',
+  'staged.after': 'Después',
+  'staged.comparison': 'Comparación',
+
+  // Data input / Column mapping
+  'data.mapHeading': 'Asignar sus datos',
+  'data.confirmColumns': 'Confirmar columnas',
+  'data.selectOutcome': 'Seleccionar resultado',
+  'data.selectFactors': 'Seleccionar factores',
+  'data.analysisSection': 'Resumen de análisis',
+  'data.optional': 'opcional',
+  'data.problemPlaceholder': 'Describa el problema que está investigando…',
+  'data.outcomeDesc': 'La medición que desea analizar',
+  'data.factorsDesc': 'Categorías que podrían influir en el resultado',
+  'data.alreadyOutcome': 'Ya seleccionado como resultado',
+  'data.showNumericOnly': 'Solo numéricos',
+  'data.showCategoricalOnly': 'Solo categóricos',
+  'data.showAllColumns': 'Todas las columnas',
+  'data.improvementTarget': 'Objetivo de mejora',
+  'data.metric': 'Métrica',
+  'data.startAnalysis': 'Iniciar análisis',
+  'data.applyChanges': 'Aplicar cambios',
+  'data.addHypothesis': 'Agregar hipótesis',
+  'data.removeHypothesis': 'Eliminar hipótesis',
+  'data.back': 'Atrás',
+
+  // Paste screen
+  'data.pasteInstructions': 'Pegue sus datos aquí',
+  'data.pasteSubtitle': 'Copie desde Excel, CSV o cualquier hoja de cálculo',
+  'data.useExample': 'Usar datos de ejemplo',
+  'data.analyzing': 'Analizando…',
+  'data.tipWithData': 'Consejo: Incluya los encabezados de columna en la primera fila',
+  'data.tipNoData': 'Consejo: Intente pegar datos desde una hoja de cálculo o archivo CSV',
+
+  // Data quality
+  'quality.allValid': 'Todos los datos son válidos',
+  'quality.rowsReady': '{count} filas listas para el análisis',
+  'quality.rowsExcluded': '{count} filas excluidas',
+  'quality.missingValues': 'Valores faltantes',
+  'quality.nonNumeric': 'Valores no numéricos',
+  'quality.noVariation': 'Sin variación',
+  'quality.emptyColumn': 'Columna vacía',
+  'quality.noVariationWarning': 'Esta columna no tiene variación — todos los valores son idénticos',
+  'quality.viewExcluded': 'Ver excluidos',
+  'quality.viewAll': 'Ver todos',
+
+  // Manual entry
+  'manual.setupTitle': 'Entrada manual de datos',
+  'manual.analysisMode': 'Modo de análisis',
+  'manual.standard': 'Estándar',
+  'manual.standardDesc': 'Una columna de medición con factores opcionales',
+  'manual.performance': 'Rendimiento',
+  'manual.performanceDesc': 'Múltiples canales de medición (cabezales de llenado, cavidades)',
+  'manual.outcome': 'Columna de resultado',
+  'manual.outcomeExample': 'ej. Peso, Longitud, Temperatura',
+  'manual.factors': 'Factores',
+  'manual.addFactor': 'Agregar factor',
+  'manual.measureLabel': 'Etiqueta de medida',
+  'manual.measureExample': 'ej. Cabezal de llenado, Cavidad, Boquilla',
+  'manual.channelCount': 'Número de canales',
+  'manual.channelRange': '{min}–{max} canales',
+  'manual.startEntry': 'Iniciar entrada',
+  'manual.specs': 'Especificaciones',
+  'manual.specsApplyAll': 'Aplicar a todos los canales',
+  'manual.specsHelper': 'Establecer límites de especificación para la columna de resultado',
+
+  // Chart legend
+  'chart.legend.commonCause': 'Causa común',
+  'chart.legend.specialCause': 'Causa especial',
+  'chart.legend.outOfSpec': 'Fuera de especificación',
+  'chart.legend.inControl': 'Bajo control',
+  'chart.legend.randomVariation': 'Variación aleatoria',
+  'chart.legend.defect': 'Defecto del cliente',
+
+  // Chart violations
+  'chart.violation.aboveUsl': 'Sobre LSE ({value})',
+  'chart.violation.belowLsl': 'Bajo LIE ({value})',
+  'chart.violation.aboveUcl': 'Sobre LSC — causa especial',
+  'chart.violation.belowLcl': 'Bajo LIC — causa especial',
+  'chart.violation.aboveUclFavorable': 'Sobre LSC — desplazamiento favorable',
+  'chart.violation.belowLclFavorable': 'Bajo LIC — desplazamiento favorable',
+  'chart.violation.nelson2': 'Regla de Nelson 2 — racha de {count}',
+  'chart.violation.nelson3': 'Regla de Nelson 3 — tendencia de {count}',
+
+  // Investigation sidebar
+  'investigation.phaseInitial': 'Recopilar observaciones iniciales',
+  'investigation.phaseDiverging': 'Explorar múltiples hipótesis',
+  'investigation.phaseValidating': 'Probar y validar hipótesis',
+  'investigation.phaseConverging': 'Identificar la causa raíz',
+  'investigation.phaseImproving': 'Implementar y verificar cambios',
+  'investigation.pdcaTitle': 'Lista de verificación',
+  'investigation.verifyChart': 'Gráfico I estable después del cambio',
+  'investigation.verifyStats': 'Cpk cumple el objetivo',
+  'investigation.verifyBoxplot': 'Dispersión del diagrama de cajas reducida',
+  'investigation.verifySideEffects': 'Sin efectos secundarios observados',
+  'investigation.verifyOutcome': 'Resultado sostenido en el tiempo',
+  'investigation.uninvestigated': 'Factores no investigados',
+
+  // Coach mobile phase titles
+  'coach.frameTitle': 'Enmarcar el problema',
+  'coach.scoutTitle': 'Explorar los datos',
+  'coach.investigateTitle': 'Investigar las causas',
+  'coach.improveTitle': 'Mejorar el proceso',
+
+  // AI action tool labels
+  'ai.tool.applyFilter': 'Aplicar filtro',
+  'ai.tool.clearFilters': 'Limpiar filtros',
+  'ai.tool.switchFactor': 'Cambiar factor',
+  'ai.tool.createFinding': 'Crear hallazgo',
+  'ai.tool.createHypothesis': 'Crear hipótesis',
+  'ai.tool.suggestAction': 'Sugerir acción',
+  'ai.tool.shareFinding': 'Compartir hallazgo',
+  'ai.tool.publishReport': 'Publicar informe',
+  'ai.tool.notifyOwners': 'Notificar a responsables',
+
+  // Report
+  'report.kpi.inSpec': 'Dentro de espec.',
+
+  // Table
+  'table.noData': 'No hay datos para mostrar',
+  'table.page': 'Página {page} de {total}',
+  'table.rowsPerPage': 'Filas por página',
+  'table.editHint': 'Haga clic en una celda para editar',
+  'table.excluded': 'Excluido',
+  'table.deleteRow': 'Eliminar fila',
+  'table.addRow': 'Agregar fila',
+  'table.unsavedChanges': 'Cambios sin guardar',
+
+  // Specs
+  'specs.title': 'Límites de especificación',
+  'specs.advancedSettings': 'Configuración avanzada',
+  'specs.apply': 'Aplicar especificaciones',
+  'specs.noChanges': 'Sin cambios que aplicar',
+  'specs.editTitle': 'Editar especificaciones',
+  'specs.lslLabel': 'Límite inferior de especificación (LIE)',
+  'specs.uslLabel': 'Límite superior de especificación (LSE)',
+
+  // Upgrade
+  'upgrade.title': 'Actualización disponible',
+  'upgrade.limitReached': 'Ha alcanzado el límite para esta función',
+  'upgrade.upgrade': 'Actualizar',
+  'upgrade.viewOptions': 'Ver opciones',
+  'upgrade.featureLimit': '{feature} está limitado a {limit} en este plan',
+
+  // Display toggles
+  'display.violin': 'Diagrama de violín',
+  'display.violinDesc': 'Mostrar forma de la distribución',
+  'display.contribution': 'Contribución',
+  'display.contributionDesc': 'Mostrar contribución a la variación',
+  'display.sort': 'Ordenar',
+  'display.ascending': 'Ascendente',
+  'display.descending': 'Descendente',
+
+  // Stats panel
+  'stats.summary': 'Estadísticas resumidas',
+  'stats.histogram': 'Histograma',
+  'stats.probPlot': 'Diagrama de probabilidad',
+  'stats.editSpecs': 'Editar especificaciones',
+
+  // WhatIf
+  'whatif.adjustMean': 'Ajustar media',
+  'whatif.reduceVariation': 'Reducir variación',
+  'whatif.currentProjected': 'Actual vs. Proyectado',
+  'whatif.resetAdjustments': 'Restablecer ajustes',
+  'whatif.yield': 'Rendimiento proyectado',
+
+  // Parameterized messages
+  'data.rowsLoaded': '{count} filas cargadas',
+  'findings.countLabel': '{count} hallazgos',
 };

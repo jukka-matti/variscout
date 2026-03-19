@@ -1,4 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('@variscout/hooks', async () => {
+  const actual = await vi.importActual('@variscout/hooks');
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => {
+        const msgs: Record<string, string> = {
+          'stats.summary': 'Summary Statistics',
+          'stats.histogram': 'Histogram',
+          'stats.probPlot': 'Probability Plot',
+          'stats.mean': 'Mean',
+          'stats.median': 'Median',
+          'stats.stdDev': 'Std Dev',
+          'stats.samples': 'Samples',
+          'stats.passRate': 'Pass Rate',
+          'stats.editSpecs': 'Edit specifications',
+          'empty.noData': 'No data',
+        };
+        return msgs[key] ?? key;
+      },
+      tf: (key: string, params: Record<string, string | number>) => {
+        let msg = key;
+        for (const [k, v] of Object.entries(params)) {
+          msg = msg.replace(`{${k}}`, String(v));
+        }
+        return msg;
+      },
+      locale: 'en' as const,
+      formatNumber: (v: number) => v.toFixed(2),
+      formatStat: (v: number, d = 2) => v.toFixed(d),
+      formatPct: (v: number) => `${(v * 100).toFixed(1)}%`,
+    }),
+  };
+});
+
 import { render, screen, fireEvent } from '@testing-library/react';
 import StatsPanel from '../StatsPanel';
 import * as DataContextModule from '../../context/DataContext';
@@ -48,7 +84,7 @@ describe('StatsPanel', () => {
     );
 
     // Summary tab should be active (surface-tertiary background)
-    const summaryTab = screen.getByText('Summary');
+    const summaryTab = screen.getByText('Summary Statistics');
     expect(summaryTab).toHaveClass('bg-surface-tertiary');
 
     // Should show pass rate (use getAllByText since HelpTooltip may also contain the term)
@@ -163,7 +199,7 @@ describe('StatsPanel', () => {
     expect(screen.getByText('n=3')).toBeInTheDocument(); // 3 items in mockFilteredData
   });
 
-  it('shows "Set spec limits" pencil link when no specs provided', () => {
+  it('shows "Edit specifications" pencil link when no specs provided', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
     } as unknown as ReturnType<typeof DataContextModule.useData>);
@@ -174,10 +210,10 @@ describe('StatsPanel', () => {
 
     // Should show pencil link to set specs
     expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
-    expect(screen.getByText('Set spec limits')).toBeInTheDocument();
+    expect(screen.getByText('Edit specifications')).toBeInTheDocument();
   });
 
-  it('shows "Edit spec limits" pencil link when specs are set', () => {
+  it('shows "Edit specifications" pencil link when specs are set', () => {
     vi.spyOn(DataContextModule, 'useData').mockReturnValue({
       setSpecs: vi.fn(),
     } as unknown as ReturnType<typeof DataContextModule.useData>);
@@ -192,7 +228,7 @@ describe('StatsPanel', () => {
     );
 
     expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
-    expect(screen.getByText('Edit spec limits')).toBeInTheDocument();
+    expect(screen.getByText('Edit specifications')).toBeInTheDocument();
   });
 
   describe('compact mode', () => {
@@ -212,7 +248,7 @@ describe('StatsPanel', () => {
       );
 
       expect(screen.getByTestId('edit-specs-link')).toBeInTheDocument();
-      expect(screen.getByText('Edit spec limits')).toBeInTheDocument();
+      expect(screen.getByText('Edit specifications')).toBeInTheDocument();
     });
 
     it('shows metrics in compact mode', () => {

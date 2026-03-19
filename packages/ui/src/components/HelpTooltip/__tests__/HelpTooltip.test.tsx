@@ -3,8 +3,21 @@
  */
 
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('@variscout/hooks', () => {
+  const catalog: Record<string, string> = {
+    'action.learnMore': 'Learn more',
+  };
+  return {
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      locale: 'en',
+    }),
+  };
+});
+
 import { HelpTooltip } from '../HelpTooltip';
 import type { GlossaryTerm } from '@variscout/core';
 

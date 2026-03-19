@@ -10,6 +10,7 @@
 
 import React from 'react';
 import { AlertTriangle, CheckCircle, Info, FileText, Eye, Table } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import type { DataQualityReport, ColumnIssue } from '@variscout/core';
 
 export interface DataQualityBannerProps {
@@ -29,6 +30,7 @@ export const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
   onContinue,
   showActions = true,
 }) => {
+  const { t, tf } = useTranslation();
   const { totalRows, validRows, excludedRows, columnIssues } = report;
   const hasIssues = excludedRows.length > 0 || columnIssues.length > 0;
   const excludedCount = excludedRows.length;
@@ -48,13 +50,13 @@ export const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
   const formatIssueType = (type: string): string => {
     switch (type) {
       case 'missing':
-        return 'missing values';
+        return t('quality.missingValues');
       case 'non_numeric':
-        return 'non-numeric values';
+        return t('quality.nonNumeric');
       case 'no_variation':
-        return 'no variation (all values identical)';
+        return t('quality.noVariation');
       case 'all_empty':
-        return 'empty column';
+        return t('quality.emptyColumn');
       default:
         return type;
     }
@@ -76,7 +78,7 @@ export const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
         {!hasIssues && (
           <span className="flex items-center gap-1 text-green-500 text-sm">
             <CheckCircle size={16} />
-            All data valid
+            {t('quality.allValid')}
           </span>
         )}
       </div>
@@ -86,9 +88,7 @@ export const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
         {/* Valid rows count */}
         <div className="flex items-center gap-2">
           <CheckCircle size={18} className="text-green-500" />
-          <span className="text-slate-300">
-            <span className="font-medium text-white">{validRows}</span> rows ready for analysis
-          </span>
+          <span className="text-slate-300">{tf('quality.rowsReady', { count: validRows })}</span>
         </div>
 
         {/* Issues */}
@@ -97,7 +97,7 @@ export const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
             <div className="flex items-center gap-2">
               <AlertTriangle size={18} className="text-amber-500" />
               <span className="text-amber-400">
-                <span className="font-medium">{excludedCount}</span> rows excluded:
+                {tf('quality.rowsExcluded', { count: excludedCount })}:
               </span>
             </div>
             <ul className="ml-7 space-y-1 text-sm text-slate-400">
@@ -121,10 +121,7 @@ export const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
         {columnIssues.some(i => i.type === 'no_variation') && (
           <div className="flex items-center gap-2 text-sm text-slate-400">
             <Info size={16} className="text-blue-400" />
-            <span>
-              Outcome column has no variation - all values are identical. Control charts will show
-              no variation.
-            </span>
+            <span>{t('quality.noVariationWarning')}</span>
           </div>
         )}
       </div>
@@ -138,7 +135,7 @@ export const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 rounded-lg transition-colors"
             >
               <Eye size={16} />
-              View Excluded Rows
+              {t('quality.viewExcluded')}
             </button>
           )}
           {onViewAllData && (
@@ -147,7 +144,7 @@ export const DataQualityBanner: React.FC<DataQualityBannerProps> = ({
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
             >
               <Table size={16} />
-              View All Data
+              {t('quality.viewAll')}
             </button>
           )}
           {onContinue && (

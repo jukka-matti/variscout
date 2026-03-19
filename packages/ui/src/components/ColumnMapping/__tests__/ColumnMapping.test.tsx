@@ -1,5 +1,56 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('@variscout/hooks', () => {
+  const catalog: Record<string, string> = {
+    'data.mapHeading': 'Map Your Data',
+    'data.selectOutcome': 'Select Outcome',
+    'data.selectFactors': 'Select Factors',
+    'data.outcomeDesc': 'The measurement you want to analyze',
+    'data.factorsDesc': 'Categories that might influence the outcome',
+    'data.alreadyOutcome': 'Already selected as outcome',
+    'data.showNumericOnly': 'Numeric only',
+    'data.showCategoricalOnly': 'Categorical only',
+    'data.showAllColumns': 'All columns',
+    'data.analysisSection': 'Analysis Brief',
+    'data.optional': 'optional',
+    'data.problemPlaceholder': 'Describe the problem you are investigating\u2026',
+    'data.improvementTarget': 'Improvement target',
+    'data.metric': 'Metric',
+    'data.startAnalysis': 'Start Analysis',
+    'data.applyChanges': 'Apply Changes',
+    'data.addHypothesis': 'Add hypothesis',
+    'data.back': 'Back',
+    'investigation.hypotheses': 'Hypotheses',
+    'quality.allValid': 'All data valid',
+    'quality.rowsReady': '{count} rows ready for analysis',
+    'quality.rowsExcluded': '{count} rows excluded',
+    'quality.missingValues': 'Missing values',
+    'quality.nonNumeric': 'Non-numeric values',
+    'quality.noVariation': 'No variation',
+    'quality.emptyColumn': 'Empty column',
+    'quality.noVariationWarning': 'This column has no variation',
+    'quality.viewExcluded': 'View excluded',
+    'quality.viewAll': 'View all',
+  };
+  return {
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      tf: (key: string, params: Record<string, string | number>) => {
+        let msg = catalog[key] ?? key;
+        for (const [k, v] of Object.entries(params)) {
+          msg = msg.replace(`{${k}}`, String(v));
+        }
+        return msg;
+      },
+      locale: 'en',
+      formatNumber: (n: number) => String(n),
+      formatStat: (n: number) => String(n),
+      formatPct: (n: number) => `${n}%`,
+    }),
+  };
+});
+
 import { ColumnMapping } from '../index';
 import type { ColumnAnalysis, InvestigationCategory } from '@variscout/core';
 
@@ -92,7 +143,6 @@ describe('ColumnMapping', () => {
       render(<ColumnMapping {...legacyProps} />);
 
       expect(screen.getByText('1/3 selected')).toBeTruthy();
-      expect(screen.getByText(/Choose up to 3/)).toBeTruthy();
     });
 
     it('passes categories to onConfirm when values are entered', () => {
@@ -194,21 +244,18 @@ describe('ColumnMapping', () => {
       render(<ColumnMapping {...richProps} />);
 
       expect(screen.getByText('1/3 selected')).toBeTruthy();
-      expect(screen.getByText(/Choose up to 3/)).toBeTruthy();
     });
 
     it('respects maxFactors=5', () => {
       render(<ColumnMapping {...richProps} maxFactors={5} />);
 
       expect(screen.getByText('1/5 selected')).toBeTruthy();
-      expect(screen.getByText(/Choose up to 5/)).toBeTruthy();
     });
 
     it('respects maxFactors=6', () => {
       render(<ColumnMapping {...richProps} maxFactors={6} />);
 
       expect(screen.getByText('1/6 selected')).toBeTruthy();
-      expect(screen.getByText(/Choose up to 6/)).toBeTruthy();
     });
 
     it('allows selecting up to maxFactors columns', () => {

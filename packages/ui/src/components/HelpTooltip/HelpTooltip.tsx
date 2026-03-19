@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import type { GlossaryTerm } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import './HelpTooltip.css';
 
 export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
@@ -47,6 +48,7 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
   children,
   showLearnMore = true,
 }) => {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isTouchToggled, setIsTouchToggled] = useState(false);
@@ -157,7 +159,7 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
               onClick={handleLearnMoreClick}
               tabIndex={showTooltip ? 0 : -1}
             >
-              Learn more →
+              {t('action.learnMore')} →
             </a>
           )}
         </div>

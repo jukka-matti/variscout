@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 vi.mock('@variscout/hooks', async importOriginal => {
   const actual = (await importOriginal()) as Record<string, unknown>;
@@ -9,10 +8,25 @@ vi.mock('@variscout/hooks', async importOriginal => {
       t: (key: string) => {
         const map: Record<string, string> = {
           'data.pasteData': 'Paste Data',
+          'data.pasteSubtitle': 'Copy from Excel, CSV, or any spreadsheet',
+          'data.pasteInstructions': 'Paste your data here',
+          'data.useExample': 'Use example data',
+          'data.analyzing': 'Analyzing\u2026',
+          'data.startAnalysis': 'Start Analysis',
+          'data.back': 'Back',
+          'data.tipWithData': 'Tip: Include column headers in the first row',
+          'data.tipNoData': 'Tip: Try pasting data from a spreadsheet or CSV file',
           'action.save': 'Save',
           'action.cancel': 'Cancel',
         };
         return map[key] ?? key;
+      },
+      tf: (key: string, params: Record<string, string | number>) => {
+        let msg = key;
+        for (const [k, v] of Object.entries(params)) {
+          msg = msg.replace(`{${k}}`, String(v));
+        }
+        return msg;
       },
       locale: 'en' as const,
       formatNumber: (v: number, d = 2) => v.toFixed(d),
@@ -22,6 +36,7 @@ vi.mock('@variscout/hooks', async importOriginal => {
   };
 });
 
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PasteScreen from '../data/PasteScreen';
 
 describe('PasteScreen', () => {
@@ -34,21 +49,19 @@ describe('PasteScreen', () => {
   it('renders heading and textarea', () => {
     render(<PasteScreen {...defaultProps} />);
     expect(screen.getByText('Paste Data')).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText('Paste rows from Excel, Google Sheets, or a CSV file...')
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Paste your data here')).toBeInTheDocument();
   });
 
   it('disables Analyze button when textarea is empty', () => {
     render(<PasteScreen {...defaultProps} />);
-    const btn = screen.getByRole('button', { name: /analyze data/i });
+    const btn = screen.getByRole('button', { name: /start analysis/i });
     expect(btn).toBeDisabled();
   });
 
   it('enables Analyze button when text is entered', () => {
     render(<PasteScreen {...defaultProps} />);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'A\tB\n1\t2' } });
-    const btn = screen.getByRole('button', { name: /analyze data/i });
+    const btn = screen.getByRole('button', { name: /start analysis/i });
     expect(btn).not.toBeDisabled();
   });
 
@@ -56,7 +69,7 @@ describe('PasteScreen', () => {
     const onAnalyze = vi.fn().mockResolvedValue(undefined);
     render(<PasteScreen {...defaultProps} onAnalyze={onAnalyze} />);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'X\tY\n1\t2' } });
-    fireEvent.click(screen.getByRole('button', { name: /analyze data/i }));
+    fireEvent.click(screen.getByRole('button', { name: /start analysis/i }));
     await waitFor(() => {
       expect(onAnalyze).toHaveBeenCalledWith('X\tY\n1\t2');
     });

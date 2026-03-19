@@ -1,5 +1,36 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('@variscout/hooks', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/hooks')>();
+  const catalog: Record<string, string> = {
+    'table.noData': 'No data to display',
+    'table.page': 'Page {page} of {total}',
+    'table.rowsPerPage': 'rows/page',
+    'table.editHint': 'Click a cell to edit',
+    'table.excluded': 'Excluded',
+    'table.deleteRow': 'Delete row',
+    'table.addRow': 'Add row',
+    'table.unsavedChanges': 'Unsaved changes',
+  };
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      tf: (key: string, params: Record<string, string | number>) => {
+        let msg = catalog[key] ?? key;
+        for (const [k, v] of Object.entries(params)) {
+          msg = msg.replace(`{${k}}`, String(v));
+        }
+        return msg;
+      },
+      formatStat: (n: number) => String(n),
+      formatPct: (n: number) => `${n}%`,
+      locale: 'en',
+    }),
+  };
+});
+
 import { DataTableBase } from '../index';
 
 const mockData = [
@@ -269,7 +300,7 @@ describe('DataTableBase', () => {
       />
     );
 
-    expect(screen.getByText(/No data loaded/i)).toBeTruthy();
+    expect(screen.getByText('No data to display')).toBeTruthy();
   });
 
   it('does not show Status column when no outcome', () => {
@@ -300,7 +331,7 @@ describe('DataTableBase', () => {
       />
     );
 
-    expect(screen.getByText(/Click a cell to edit/)).toBeTruthy();
+    expect(screen.getByText('Click a cell to edit')).toBeTruthy();
   });
 
   describe('ArrowDown/ArrowUp navigation', () => {

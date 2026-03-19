@@ -11,6 +11,7 @@ import type {
   Hypothesis,
   EntryScenario,
 } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import { DiamondPhaseMap } from './DiamondPhaseMap';
 import { PDCAProgress } from './PDCAProgress';
 import type { ScoutHint } from './CoachPopover';
@@ -32,11 +33,11 @@ export interface MobileCoachSheetProps {
   hasStagedData?: boolean;
 }
 
-const PHASE_TITLES: Record<JourneyPhase, string> = {
-  frame: 'Setting Up',
-  scout: 'Exploring Patterns',
-  investigate: 'Investigating Causes',
-  improve: 'Improving Process',
+const PHASE_TITLE_KEYS: Record<JourneyPhase, keyof import('@variscout/core').MessageCatalog> = {
+  frame: 'coach.frameTitle',
+  scout: 'coach.scoutTitle',
+  investigate: 'coach.investigateTitle',
+  improve: 'coach.improveTitle',
 };
 
 const HINT_ICONS: Record<string, string> = {
@@ -57,6 +58,7 @@ const MobileCoachSheet: React.FC<MobileCoachSheetProps> = ({
   hypotheses,
   hasStagedData,
 }) => {
+  const { t } = useTranslation();
   const sheetRef = useRef<HTMLDivElement>(null);
   const [dragY, setDragY] = useState(0);
   const dragStartRef = useRef<number | null>(null);
@@ -100,7 +102,7 @@ const MobileCoachSheet: React.FC<MobileCoachSheetProps> = ({
 
         {/* Header */}
         <div className="flex items-center justify-between px-4 pb-2">
-          <h3 className="text-sm font-semibold text-content">{PHASE_TITLES[phase]}</h3>
+          <h3 className="text-sm font-semibold text-content">{t(PHASE_TITLE_KEYS[phase])}</h3>
           <button
             onClick={onClose}
             className="p-1 text-content-muted hover:text-content transition-colors"
@@ -149,7 +151,7 @@ const MobileCoachSheet: React.FC<MobileCoachSheetProps> = ({
               {uncoveredFactors && uncoveredFactors.length > 0 && (
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-content-muted font-medium mb-1.5">
-                    Uninvestigated Factors
+                    {t('investigation.uninvestigated')}
                   </div>
                   <div className="space-y-1">
                     {uncoveredFactors.map(({ factor, role }) => (

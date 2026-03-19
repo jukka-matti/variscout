@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { Check, X, Filter, FileText, GitBranch, Zap, Share2, FileUp, Bell } from 'lucide-react';
-import type { ActionProposal, ActionToolName, ProposalStatus } from '@variscout/core';
+import type { ActionProposal, ActionToolName, ProposalStatus, Locale } from '@variscout/core';
+import { formatStatistic } from '@variscout/core/i18n';
+import { useTranslation } from '@variscout/hooks';
 
 export interface ActionProposalCardProps {
   proposal: ActionProposal;
@@ -8,20 +10,24 @@ export interface ActionProposalCardProps {
   onDismiss: (proposalId: string) => void;
 }
 
-/** Tool display config */
+/** Tool display config — labels resolved via t() at render time */
 const TOOL_CONFIG: Record<
   ActionToolName,
-  { label: string; icon: React.ElementType; editable: boolean }
+  {
+    labelKey: keyof import('@variscout/core').MessageCatalog;
+    icon: React.ElementType;
+    editable: boolean;
+  }
 > = {
-  apply_filter: { label: 'Apply filter', icon: Filter, editable: false },
-  clear_filters: { label: 'Clear all filters', icon: Filter, editable: false },
-  switch_factor: { label: 'Switch factor', icon: Filter, editable: false },
-  create_finding: { label: 'Record finding', icon: FileText, editable: true },
-  create_hypothesis: { label: 'Add hypothesis', icon: GitBranch, editable: true },
-  suggest_action: { label: 'Suggest action', icon: Zap, editable: true },
-  share_finding: { label: 'Share to Teams', icon: Share2, editable: false },
-  publish_report: { label: 'Publish report', icon: FileUp, editable: false },
-  notify_action_owners: { label: 'Notify action owners', icon: Bell, editable: false },
+  apply_filter: { labelKey: 'ai.tool.applyFilter', icon: Filter, editable: false },
+  clear_filters: { labelKey: 'ai.tool.clearFilters', icon: Filter, editable: false },
+  switch_factor: { labelKey: 'ai.tool.switchFactor', icon: Filter, editable: false },
+  create_finding: { labelKey: 'ai.tool.createFinding', icon: FileText, editable: true },
+  create_hypothesis: { labelKey: 'ai.tool.createHypothesis', icon: GitBranch, editable: true },
+  suggest_action: { labelKey: 'ai.tool.suggestAction', icon: Zap, editable: true },
+  share_finding: { labelKey: 'ai.tool.shareFinding', icon: Share2, editable: false },
+  publish_report: { labelKey: 'ai.tool.publishReport', icon: FileUp, editable: false },
+  notify_action_owners: { labelKey: 'ai.tool.notifyOwners', icon: Bell, editable: false },
 };
 
 /** Format preview data for display */
@@ -102,8 +108,8 @@ function formatPreview(
   return lines;
 }
 
-function formatNum(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(2) : '—';
+function formatNum(n: number, locale: Locale = 'en'): string {
+  return formatStatistic(n, locale, 2);
 }
 
 /** Status-specific styling */
@@ -125,6 +131,7 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
   onExecute,
   onDismiss,
 }) => {
+  const { t } = useTranslation();
   const config = TOOL_CONFIG[proposal.tool];
   const Icon = config.icon;
   const isPending = proposal.status === 'pending';
@@ -150,11 +157,11 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
       <div className="flex items-center gap-1.5 mb-2">
         <Icon size={12} className="text-blue-400 flex-shrink-0" />
         <span className="text-[11px] font-medium text-content-secondary">
-          CoScout suggests: {config.label}
+          CoScout suggests: {t(config.labelKey)}
         </span>
         {proposal.status === 'applied' && <Check size={10} className="text-green-400 ml-auto" />}
         {proposal.status === 'expired' && (
-          <span className="text-[9px] text-amber-400 ml-auto">Expired</span>
+          <span className="text-[9px] text-amber-400 ml-auto">{t('ai.expired')}</span>
         )}
       </div>
 
@@ -187,7 +194,7 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
             data-testid={`action-proposal-apply-${proposal.id}`}
           >
             <Check size={10} />
-            Apply
+            {t('action.apply')}
           </button>
           <button
             onClick={handleDismiss}
@@ -204,13 +211,13 @@ const ActionProposalCard: React.FC<ActionProposalCardProps> = ({
       {proposal.status === 'applied' && (
         <div className="text-[10px] text-green-400 flex items-center gap-1">
           <Check size={10} />
-          Applied
+          {t('ai.applied')}
         </div>
       )}
 
       {/* Dismissed state */}
       {proposal.status === 'dismissed' && (
-        <div className="text-[10px] text-content-muted">Dismissed</div>
+        <div className="text-[10px] text-content-muted">{t('ai.dismissed')}</div>
       )}
     </div>
   );

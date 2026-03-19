@@ -69,7 +69,7 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
     showBranding,
   });
 
-  const { chrome, colors, formatStat } = useChartTheme();
+  const { chrome, colors, formatStat, t } = useChartTheme();
   const highlightFillColors = getHighlightFillColors(colors);
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
@@ -578,15 +578,23 @@ const BoxplotBase: React.FC<BoxplotProps> = ({
           <div>
             <strong>{tooltipData.key}</strong>
           </div>
-          <div>Median: {formatStat(tooltipData.median)}</div>
-          <div>Mean: {formatStat(tooltipData.mean)}</div>
-          <div>Q1: {formatStat(tooltipData.q1)}</div>
-          <div>Q3: {formatStat(tooltipData.q3)}</div>
+          <div>
+            {t('chart.median')}: {formatStat(tooltipData.median)}
+          </div>
+          <div>
+            {t('stats.mean')}: {formatStat(tooltipData.mean)}
+          </div>
+          <div>
+            {t('chart.q1')}: {formatStat(tooltipData.q1)}
+          </div>
+          <div>
+            {t('chart.q3')}: {formatStat(tooltipData.q3)}
+          </div>
           <div>n: {tooltipData.values.length}</div>
           {categoryContributions && categoryContributions.has(tooltipData.key) && (
             <div style={{ color: '#f87171', fontWeight: 500, marginTop: 4 }}>
-              Impact: {Math.round(categoryContributions.get(tooltipData.key) ?? 0)}% of total
-              variation
+              {t('report.kpi.variation')}:{' '}
+              {Math.round(categoryContributions.get(tooltipData.key) ?? 0)}%
             </div>
           )}
         </TooltipWithBounds>

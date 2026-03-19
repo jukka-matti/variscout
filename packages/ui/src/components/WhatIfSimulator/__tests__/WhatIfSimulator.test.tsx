@@ -4,6 +4,27 @@ import { createRef } from 'react';
 import WhatIfSimulator from '../WhatIfSimulator';
 import type { WhatIfSimulatorHandle, SimulatorPreset } from '../WhatIfSimulator';
 
+vi.mock('@variscout/hooks', () => {
+  const catalog: Record<string, string> = {
+    'whatif.adjustMean': 'Adjust mean',
+    'whatif.reduceVariation': 'Reduce variation',
+    'whatif.currentProjected': 'Current vs Projected',
+    'whatif.resetAdjustments': 'Reset adjustments',
+    'action.reset': 'Reset',
+  };
+  return {
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      formatStat: (n: number, decimals?: number) => {
+        if (decimals !== undefined) return n.toFixed(decimals);
+        return n % 1 === 0 ? String(n) : n.toFixed(2);
+      },
+      formatPct: (n: number) => `${n}%`,
+      locale: 'en',
+    }),
+  };
+});
+
 // Mock @variscout/core with deterministic output
 vi.mock('@variscout/core', () => ({
   simulateDirectAdjustment: vi.fn(
@@ -63,20 +84,20 @@ describe('WhatIfSimulator', () => {
     render(<WhatIfSimulator currentStats={defaultStats} />);
     expect(screen.getByText('What-If Simulator')).toBeDefined();
     // Sliders should not be visible when collapsed
-    expect(screen.queryByText('Adjust Mean')).toBeNull();
+    expect(screen.queryByText('Adjust mean')).toBeNull();
   });
 
   it('expands when header is clicked', () => {
     render(<WhatIfSimulator currentStats={defaultStats} />);
     fireEvent.click(screen.getByText('What-If Simulator'));
-    expect(screen.getByText('Adjust Mean')).toBeDefined();
-    expect(screen.getByText('Reduce Variation')).toBeDefined();
+    expect(screen.getByText('Adjust mean')).toBeDefined();
+    expect(screen.getByText('Reduce variation')).toBeDefined();
   });
 
   it('renders expanded when defaultExpanded=true', () => {
     render(<WhatIfSimulator currentStats={defaultStats} defaultExpanded={true} />);
-    expect(screen.getByText('Adjust Mean')).toBeDefined();
-    expect(screen.getByText('Reduce Variation')).toBeDefined();
+    expect(screen.getByText('Adjust mean')).toBeDefined();
+    expect(screen.getByText('Reduce variation')).toBeDefined();
   });
 
   it('shows projection panel with current values', () => {
@@ -140,10 +161,10 @@ describe('WhatIfSimulator', () => {
 
   it('collapses when expanded header is clicked', () => {
     render(<WhatIfSimulator currentStats={defaultStats} defaultExpanded={true} />);
-    expect(screen.getByText('Adjust Mean')).toBeDefined();
+    expect(screen.getByText('Adjust mean')).toBeDefined();
 
     fireEvent.click(screen.getByText('What-If Simulator'));
-    expect(screen.queryByText('Adjust Mean')).toBeNull();
+    expect(screen.queryByText('Adjust mean')).toBeNull();
   });
 
   describe('imperative handle', () => {
@@ -177,13 +198,13 @@ describe('WhatIfSimulator', () => {
       render(<WhatIfSimulator ref={ref} currentStats={defaultStats} />);
 
       // Should be collapsed initially
-      expect(screen.queryByText('Adjust Mean')).toBeNull();
+      expect(screen.queryByText('Adjust mean')).toBeNull();
 
       act(() => {
         ref.current?.expand();
       });
 
-      expect(screen.getByText('Adjust Mean')).toBeDefined();
+      expect(screen.getByText('Adjust mean')).toBeDefined();
     });
   });
 

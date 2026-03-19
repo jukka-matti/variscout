@@ -109,9 +109,7 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
               <h2 className={`text-lg sm:text-xl font-bold ${c.title}`}>
                 {title || t('data.pasteData')}
               </h2>
-              <p className={`text-xs ${c.subtitle}`}>
-                Columns are detected automatically from headers
-              </p>
+              <p className={`text-xs ${c.subtitle}`}>{t('data.pasteSubtitle')}</p>
             </div>
           </div>
         </div>
@@ -125,7 +123,7 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Paste rows from Excel, Google Sheets, or a CSV file..."
+            placeholder={t('data.pasteInstructions')}
             autoFocus
             className={`w-full h-64 sm:h-80 p-4 rounded-xl text-sm font-mono resize-none focus:outline-none focus:ring-2 transition-colors ${c.textarea} ${
               error ? c.textareaError : c.textareaNormal
@@ -136,7 +134,7 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
               onClick={handleUseExample}
               className="absolute bottom-3 right-3 text-xs text-blue-400 hover:text-blue-300 transition-colors"
             >
-              Use example data
+              {t('data.useExample')}
             </button>
           )}
         </div>
@@ -155,7 +153,7 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
             className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors ${c.backButton}`}
           >
             <ArrowLeft size={16} />
-            Back
+            {t('data.back')}
           </button>
 
           <button
@@ -163,14 +161,14 @@ const PasteScreenBase: React.FC<PasteScreenBaseProps> = ({
             disabled={!hasText || isAnalyzing}
             className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl transition-colors ${c.analyzeButton}`}
           >
-            {isAnalyzing ? 'Analyzing...' : submitLabel || 'Analyze Data'}
+            {isAnalyzing ? t('data.analyzing') : submitLabel || t('data.startAnalysis')}
             {!isAnalyzing && <ArrowRight size={16} />}
           </button>
         </div>
 
         {/* Hint */}
         <p className={`text-xs text-center ${c.hint}`}>
-          Tip: {hasText ? 'Press Ctrl+Enter to analyze' : 'Copy rows in Excel, then Ctrl+V here'}
+          {hasText ? t('data.tipWithData') : t('data.tipNoData')}
         </p>
       </div>
     </div>

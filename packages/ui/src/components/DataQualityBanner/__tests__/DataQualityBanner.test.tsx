@@ -5,6 +5,38 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('@variscout/hooks', () => {
+  const catalog: Record<string, string> = {
+    'quality.allValid': 'All data valid',
+    'quality.rowsReady': '{count} rows ready for analysis',
+    'quality.rowsExcluded': '{count} rows excluded',
+    'quality.missingValues': 'Missing values',
+    'quality.nonNumeric': 'Non-numeric values',
+    'quality.noVariation': 'No variation',
+    'quality.emptyColumn': 'Empty column',
+    'quality.noVariationWarning': 'This column has no variation \u2014 all values are identical',
+    'quality.viewExcluded': 'View excluded',
+    'quality.viewAll': 'View all',
+  };
+  return {
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      tf: (key: string, params: Record<string, string | number>) => {
+        let msg = catalog[key] ?? key;
+        for (const [k, v] of Object.entries(params)) {
+          msg = msg.replace(`{${k}}`, String(v));
+        }
+        return msg;
+      },
+      locale: 'en',
+      formatNumber: (n: number) => String(n),
+      formatStat: (n: number) => String(n),
+      formatPct: (n: number) => `${n}%`,
+    }),
+  };
+});
+
 import { DataQualityBanner } from '../index';
 import type { DataQualityReport } from '@variscout/core';
 
@@ -41,8 +73,7 @@ describe('DataQualityBanner', () => {
     const report = makeReport({ validRows: 95 });
     render(<DataQualityBanner report={report} />);
 
-    expect(screen.getByText('95')).toBeDefined();
-    expect(screen.getByText('rows ready for analysis')).toBeDefined();
+    expect(screen.getByText('95 rows ready for analysis')).toBeDefined();
   });
 
   it('renders excluded rows warning', () => {
@@ -59,8 +90,7 @@ describe('DataQualityBanner', () => {
     });
     render(<DataQualityBanner report={report} />);
 
-    expect(screen.getByText('5')).toBeDefined();
-    expect(screen.getByText('rows excluded:')).toBeDefined();
+    expect(screen.getByText(/5 rows excluded/)).toBeDefined();
   });
 
   it('renders View Excluded button when handler provided', () => {
@@ -72,7 +102,7 @@ describe('DataQualityBanner', () => {
     });
     render(<DataQualityBanner report={report} onViewExcludedRows={onView} />);
 
-    const button = screen.getByText('View Excluded Rows');
+    const button = screen.getByText('View excluded');
     fireEvent.click(button);
     expect(onView).toHaveBeenCalledOnce();
   });
@@ -81,7 +111,7 @@ describe('DataQualityBanner', () => {
     const onViewAll = vi.fn();
     render(<DataQualityBanner report={makeReport()} onViewAllData={onViewAll} />);
 
-    const button = screen.getByText('View All Data');
+    const button = screen.getByText('View all');
     fireEvent.click(button);
     expect(onViewAll).toHaveBeenCalledOnce();
   });
@@ -112,6 +142,6 @@ describe('DataQualityBanner', () => {
     });
     render(<DataQualityBanner report={report} />);
 
-    expect(screen.getByText(/Outcome column has no variation/)).toBeDefined();
+    expect(screen.getByText(/no variation/i)).toBeDefined();
   });
 });

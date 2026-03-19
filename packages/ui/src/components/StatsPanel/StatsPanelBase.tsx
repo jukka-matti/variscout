@@ -180,7 +180,7 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
             data-testid="edit-specs-link"
           >
             <Pencil size={12} />
-            <span>{hasSpecs ? 'Edit spec limits' : 'Set spec limits'}</span>
+            <span>{t('stats.editSpecs')}</span>
           </button>
         )}
       </div>
@@ -198,14 +198,14 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     if (histogramData.length > 0 && stats && renderHistogram) {
       return renderHistogram(histogramData, specs, stats.mean);
     }
-    return emptyState('No data available for histogram');
+    return emptyState(t('empty.noData'));
   };
 
   const renderProbPlotContent = () => {
     if (histogramData.length > 0 && stats && renderProbabilityPlot) {
       return renderProbabilityPlot(histogramData, stats.mean, stats.stdDev);
     }
-    return emptyState('No data available for probability plot');
+    return emptyState(t('empty.noData'));
   };
 
   // Tab button component
@@ -235,9 +235,13 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
     return (
       <div className={CONTAINER_COMPACT_CLASS}>
         <div className={`${TAB_BAR_CLASS} mb-4`}>
-          <TabButton tab="summary" label="Summary" />
-          <TabButton tab="histogram" label="Histogram" helpTerm={getTerm('capabilityAnalysis')} />
-          <TabButton tab="normality" label="Prob Plot" />
+          <TabButton tab="summary" label={t('stats.summary')} />
+          <TabButton
+            tab="histogram"
+            label={t('stats.histogram')}
+            helpTerm={getTerm('capabilityAnalysis')}
+          />
+          <TabButton tab="normality" label={t('stats.probPlot')} />
         </div>
 
         <div className="flex-1 min-h-0">
@@ -259,9 +263,13 @@ const StatsPanelBase: React.FC<StatsPanelBaseProps> = ({
       {/* Header / Tab buttons */}
       <div className="flex justify-between items-center border-b border-inherit pb-4">
         <div className={TAB_BAR_CLASS}>
-          <TabButton tab="summary" label="Summary" />
-          <TabButton tab="histogram" label="Histogram" helpTerm={getTerm('capabilityAnalysis')} />
-          <TabButton tab="normality" label="Prob Plot" />
+          <TabButton tab="summary" label={t('stats.summary')} />
+          <TabButton
+            tab="histogram"
+            label={t('stats.histogram')}
+            helpTerm={getTerm('capabilityAnalysis')}
+          />
+          <TabButton tab="normality" label={t('stats.probPlot')} />
         </div>
       </div>
 

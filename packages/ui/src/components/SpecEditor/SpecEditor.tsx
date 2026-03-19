@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Save } from 'lucide-react';
 import { inferCharacteristicType, type CharacteristicType } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import { useIsMobile } from '../../hooks';
 import CharacteristicTypeSelector from '../CharacteristicTypeSelector';
 import type { SpecEditorColorScheme, SpecEditorProps } from './types';
@@ -29,6 +30,7 @@ const SpecEditor = ({
   style,
   colorScheme = specEditorDefaultColorScheme,
 }: SpecEditorProps) => {
+  const { t } = useTranslation();
   const cs = colorScheme;
   const [localSpecs, setLocalSpecs] = useState<{ usl: string; lsl: string; target: string }>({
     usl: specs.usl?.toString() || '',
@@ -135,7 +137,7 @@ const SpecEditor = ({
         className="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium py-3 sm:py-2 rounded flex justify-center items-center gap-2 transition-colors shadow-lg touch-feedback"
         style={{ minHeight: isMobile ? 48 : undefined }}
       >
-        <Save size={16} /> Save Changes
+        <Save size={16} /> {t('action.save')}
       </button>
     </>
   );
@@ -187,7 +189,7 @@ const SpecEditor = ({
 
           {/* Header */}
           <div className={cs.mobileHeaderBorder}>
-            <h3 className="text-base font-bold text-white">Edit Specifications</h3>
+            <h3 className="text-base font-bold text-white">{t('specs.editTitle')}</h3>
             <button
               onClick={onClose}
               className={cs.mobileCloseButton}
@@ -209,7 +211,7 @@ const SpecEditor = ({
   return (
     <div className={cs.desktopContainer} style={style}>
       <div className={cs.desktopHeaderBorder}>
-        <h3 className="text-sm font-bold text-white">Edit Specifications</h3>
+        <h3 className="text-sm font-bold text-white">{t('specs.editTitle')}</h3>
         <button
           onClick={onClose}
           className={cs.desktopCloseButton}

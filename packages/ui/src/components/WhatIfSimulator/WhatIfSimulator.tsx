@@ -154,7 +154,7 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
     },
     ref
   ) => {
-    const { formatStat: formatNumber } = useTranslation();
+    const { t, formatStat: formatNumber } = useTranslation();
     const c = colorScheme;
 
     // Derive slider color scheme from simulator scheme
@@ -322,7 +322,7 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
         {isExpanded && (
           <div className="px-3 pb-3 space-y-4">
             <Slider
-              label="Adjust Mean"
+              label={t('whatif.adjustMean')}
               value={meanShift}
               onChange={setMeanShift}
               min={meanRange.min}
@@ -333,7 +333,7 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
             />
 
             <Slider
-              label="Reduce Variation"
+              label={t('whatif.reduceVariation')}
               value={variationReduction}
               onChange={setVariationReduction}
               min={0}
@@ -374,16 +374,16 @@ const WhatIfSimulator = forwardRef<WhatIfSimulatorHandle, WhatIfSimulatorProps>(
             <div className={`p-3 rounded-lg ${c.projectionBg} border ${c.projectionBorder}`}>
               <div className="flex items-center justify-between mb-2">
                 <span className={`text-xs font-medium ${c.secondaryText}`}>
-                  Current &rarr; Projected
+                  {t('whatif.currentProjected')}
                 </span>
                 {hasAdjustment && (
                   <button
                     onClick={handleReset}
                     className={`flex items-center gap-1 text-[10px] ${c.mutedText} ${c.resetHoverText} transition-colors`}
-                    title="Reset adjustments"
+                    title={t('whatif.resetAdjustments')}
                   >
                     <RotateCcw size={10} />
-                    Reset
+                    {t('action.reset')}
                   </button>
                 )}
               </div>

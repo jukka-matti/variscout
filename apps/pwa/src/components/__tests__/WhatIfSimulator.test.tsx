@@ -1,4 +1,35 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('@variscout/hooks', async () => {
+  const actual = await vi.importActual('@variscout/hooks');
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => {
+        const msgs: Record<string, string> = {
+          'whatif.adjustMean': 'Adjust mean',
+          'whatif.reduceVariation': 'Reduce variation',
+          'whatif.currentProjected': 'Current vs Projected',
+          'whatif.resetAdjustments': 'Reset adjustments',
+          'action.reset': 'Reset',
+        };
+        return msgs[key] ?? key;
+      },
+      tf: (key: string, params: Record<string, string | number>) => {
+        let msg = key;
+        for (const [k, v] of Object.entries(params)) {
+          msg = msg.replace(`{${k}}`, String(v));
+        }
+        return msg;
+      },
+      locale: 'en' as const,
+      formatNumber: (v: number) => v.toFixed(2),
+      formatStat: (v: number, d = 2) => v.toFixed(d),
+      formatPct: (v: number) => `${(v * 100).toFixed(1)}%`,
+    }),
+  };
+});
+
 import { render, screen, fireEvent } from '@testing-library/react';
 import { WhatIfSimulator } from '@variscout/ui';
 import type { SimulatorPreset } from '@variscout/ui';
@@ -44,28 +75,28 @@ describe('WhatIfSimulator', () => {
     render(<WhatIfSimulator currentStats={defaultStats} />);
     expect(screen.getByText('What-If Simulator')).toBeInTheDocument();
     // Sliders should not be visible when collapsed
-    expect(screen.queryByLabelText('Adjust Mean')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Adjust mean')).not.toBeInTheDocument();
   });
 
   it('renders expanded when defaultExpanded={true}', () => {
     render(<WhatIfSimulator currentStats={defaultStats} defaultExpanded={true} />);
-    expect(screen.getByLabelText('Adjust Mean')).toBeInTheDocument();
-    expect(screen.getByLabelText('Reduce Variation')).toBeInTheDocument();
+    expect(screen.getByLabelText('Adjust mean')).toBeInTheDocument();
+    expect(screen.getByLabelText('Reduce variation')).toBeInTheDocument();
   });
 
   it('expands/collapses on header click', () => {
     render(<WhatIfSimulator currentStats={defaultStats} />);
 
     // Initially collapsed
-    expect(screen.queryByLabelText('Adjust Mean')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Adjust mean')).not.toBeInTheDocument();
 
     // Click to expand
     fireEvent.click(screen.getByText('What-If Simulator'));
-    expect(screen.getByLabelText('Adjust Mean')).toBeInTheDocument();
+    expect(screen.getByLabelText('Adjust mean')).toBeInTheDocument();
 
     // Click to collapse
     fireEvent.click(screen.getByText('What-If Simulator'));
-    expect(screen.queryByLabelText('Adjust Mean')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Adjust mean')).not.toBeInTheDocument();
   });
 
   it('displays current stats (mean, sigma)', () => {
@@ -110,7 +141,7 @@ describe('WhatIfSimulator', () => {
     expect(screen.queryByText('Reset')).not.toBeInTheDocument();
 
     // Adjust the mean slider
-    const meanSlider = screen.getByLabelText('Adjust Mean');
+    const meanSlider = screen.getByLabelText('Adjust mean');
     fireEvent.change(meanSlider, { target: { value: '2' } });
 
     // Reset button should appear
@@ -166,7 +197,7 @@ describe('WhatIfSimulator', () => {
     );
 
     // Adjust the mean slider
-    const meanSlider = screen.getByLabelText('Adjust Mean');
+    const meanSlider = screen.getByLabelText('Adjust mean');
     fireEvent.change(meanSlider, { target: { value: '2' } });
 
     // Collapse

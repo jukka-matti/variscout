@@ -8,6 +8,7 @@
 import React from 'react';
 import { AlertTriangle, ArrowRight, Lock, Sparkles } from 'lucide-react';
 import type { LicenseTier } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 
 export interface UpgradePromptProps {
   /** Current license tier */
@@ -44,10 +45,11 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
   onUpgradeClick,
   className = '',
 }) => {
+  const { t } = useTranslation();
   const isFree = tier === 'free';
 
   // Default messages based on context
-  const defaultTitle = isFree ? 'Upgrade to Unlock' : 'Limit Reached';
+  const defaultTitle = isFree ? t('upgrade.title') : t('upgrade.limitReached');
 
   const defaultMessage =
     currentCount !== undefined && maxAllowed !== undefined
@@ -83,7 +85,7 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
           onClick={handleUpgradeClick}
           className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-lg transition-colors flex-shrink-0"
         >
-          Upgrade
+          {t('upgrade.upgrade')}
           <ArrowRight size={12} />
         </a>
       </div>
@@ -119,7 +121,7 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
             className="flex items-center gap-2 px-6 py-2.5 text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition-colors"
           >
             <Sparkles size={16} />
-            View Upgrade Options
+            {t('upgrade.viewOptions')}
             <ArrowRight size={14} />
           </a>
           <span className="text-xs text-slate-500">€150/month with Azure App</span>
@@ -143,7 +145,7 @@ export const UpgradePrompt: React.FC<UpgradePromptProps> = ({
             onClick={handleUpgradeClick}
             className="ml-1 text-blue-400 hover:text-blue-300 underline"
           >
-            Upgrade now
+            {t('upgrade.upgrade')}
           </a>
         )}
       </div>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowRight, Plus, Trash2 } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 
 type EntryMode = 'standard' | 'performance';
 
@@ -43,6 +44,7 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
   onMeasureLabelChange,
   onChannelCountChange,
 }) => {
+  const { t, tf } = useTranslation();
   // Local state for mode toggle if parent doesn't control it
   const [localMode, setLocalMode] = useState<EntryMode>(
     isPerformanceMode ? 'performance' : 'standard'
@@ -92,13 +94,13 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-surface text-content p-8">
       <div className="w-full max-w-lg bg-surface-secondary rounded-xl border border-edge p-8 shadow-2xl">
-        <h2 className="text-2xl font-bold text-content mb-6">Step 1: What are you measuring?</h2>
+        <h2 className="text-2xl font-bold text-content mb-6">{t('manual.setupTitle')}</h2>
 
         {/* Mode Toggle — only shown when enablePerformanceMode is true */}
         {enablePerformanceMode && (
           <div className="mb-6">
             <label className="block text-sm font-semibold text-content-secondary mb-3">
-              Analysis Mode
+              {t('manual.analysisMode')}
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -117,9 +119,9 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
                   >
                     {mode === 'standard' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
                   </div>
-                  <span className="font-semibold text-sm">Standard Analysis</span>
+                  <span className="font-semibold text-sm">{t('manual.standard')}</span>
                 </div>
-                <p className="text-xs text-content-muted pl-6">1 outcome + factors</p>
+                <p className="text-xs text-content-muted pl-6">{t('manual.standardDesc')}</p>
               </button>
               <button
                 onClick={() => handleModeChange('performance')}
@@ -137,9 +139,9 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
                   >
                     {mode === 'performance' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
                   </div>
-                  <span className="font-semibold text-sm">Performance Mode</span>
+                  <span className="font-semibold text-sm">{t('manual.performance')}</span>
                 </div>
-                <p className="text-xs text-content-muted pl-6">Multiple channels</p>
+                <p className="text-xs text-content-muted pl-6">{t('manual.performanceDesc')}</p>
               </button>
             </div>
           </div>
@@ -150,27 +152,27 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
           <>
             <div className="mb-6">
               <label className="block text-sm font-semibold text-content-secondary mb-2">
-                Outcome (Y)
+                {t('manual.outcome')}
               </label>
               <input
                 type="text"
                 className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
                 value={outcomeName}
                 onChange={e => onOutcomeChange(e.target.value)}
-                placeholder="e.g. Weight, Diameter, pH"
+                placeholder={t('manual.outcomeExample')}
               />
             </div>
 
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
                 <label className="block text-sm font-semibold text-content-secondary">
-                  Factors (X)
+                  {t('manual.factors')}
                 </label>
                 <button
                   onClick={addFactor}
                   className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"
                 >
-                  <Plus size={14} /> Add Factor
+                  <Plus size={14} /> {t('manual.addFactor')}
                 </button>
               </div>
               <div className="space-y-3 max-h-32 overflow-y-auto pr-2">
@@ -203,23 +205,21 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
           <>
             <div className="mb-6">
               <label className="block text-sm font-semibold text-content-secondary mb-2">
-                Measure Label
+                {t('manual.measureLabel')}
               </label>
               <input
                 type="text"
                 className="w-full bg-surface border border-edge rounded-lg px-4 py-2 text-content focus:ring-2 focus:ring-blue-500 outline-none"
                 value={measureLabel}
                 onChange={e => onMeasureLabelChange?.(e.target.value)}
-                placeholder="e.g. Head, Nozzle, Cavity"
+                placeholder={t('manual.measureExample')}
               />
-              <p className="text-xs text-content-muted mt-1">
-                This will be used to name your channels
-              </p>
+              <p className="text-xs text-content-muted mt-1">{t('manual.measureLabel')}</p>
             </div>
 
             <div className="mb-6">
               <label className="block text-sm font-semibold text-content-secondary mb-2">
-                Number of Channels
+                {t('manual.channelCount')}
               </label>
               <input
                 type="number"
@@ -229,7 +229,9 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
                 value={channelCount}
                 onChange={e => onChannelCountChange?.(parseInt(e.target.value) || 3)}
               />
-              <p className="text-xs text-content-muted mt-1">Minimum 3, maximum 20 channels</p>
+              <p className="text-xs text-content-muted mt-1">
+                {tf('manual.channelRange', { min: 3, max: 20 })}
+              </p>
             </div>
 
             {/* Column Preview */}
@@ -245,14 +247,12 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
         {/* Spec Limits - shown for both modes */}
         <div className="mb-8">
           <label className="block text-sm font-semibold text-content-secondary mb-2">
-            Spec Limits{' '}
+            {t('manual.specs')}{' '}
             {mode === 'performance' && (
-              <span className="text-content-muted font-normal">(apply to all channels)</span>
+              <span className="text-content-muted font-normal">({t('manual.specsApplyAll')})</span>
             )}
           </label>
-          <p className="text-xs text-content-muted mb-3">
-            Set limits to see pass/fail feedback as you enter data
-          </p>
+          <p className="text-xs text-content-muted mb-3">{t('manual.specsHelper')}</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-content-muted mb-1">Lower (LSL)</label>
@@ -282,14 +282,14 @@ const ManualEntrySetupBase: React.FC<ManualEntrySetupBaseProps> = ({
             onClick={onCancel}
             className="flex-1 px-4 py-3 rounded-lg border border-edge-secondary text-content hover:bg-surface-tertiary transition"
           >
-            Cancel
+            {t('action.cancel')}
           </button>
           <button
             onClick={onContinue}
             disabled={!canContinue}
             className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:bg-surface-tertiary disabled:text-content-muted text-white font-semibold rounded-lg px-4 py-3 flex items-center justify-center gap-2 transition shadow-lg shadow-blue-900/20"
           >
-            Start Entry <ArrowRight size={18} />
+            {t('manual.startEntry')} <ArrowRight size={18} />
           </button>
         </div>
       </div>

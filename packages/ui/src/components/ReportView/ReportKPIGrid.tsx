@@ -37,7 +37,7 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
   cpkTarget = 1.33,
   colorScheme,
 }) => {
-  const { formatStat } = useTranslation();
+  const { t, formatStat } = useTranslation();
   const scheme: ReportKPIGridColorScheme = {
     ...reportKPIGridDefaultColorScheme,
     ...colorScheme,
@@ -50,7 +50,7 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
     <div data-report-kpi className={scheme.container}>
       {/* Samples */}
       <div className={scheme.card}>
-        <div className={scheme.label}>Samples</div>
+        <div className={scheme.label}>{t('report.kpi.samples')}</div>
         <div className={`mt-1 ${scheme.value}`}>
           {sampleCount !== undefined ? sampleCount.toString() : '—'}
         </div>
@@ -58,19 +58,19 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
 
       {/* Mean */}
       <div className={scheme.card}>
-        <div className={scheme.label}>Mean</div>
+        <div className={scheme.label}>{t('report.kpi.mean')}</div>
         <div className={`mt-1 ${scheme.value}`}>{formatStat(stats.mean)}</div>
       </div>
 
       {/* Variation */}
       <div className={scheme.card}>
-        <div className={scheme.label}>Variation (σ)</div>
+        <div className={scheme.label}>{t('report.kpi.variation')} (σ)</div>
         <div className={`mt-1 ${scheme.value}`}>{formatStat(stats.stdDev, 3)}</div>
       </div>
 
       {/* Cpk */}
       <div className={scheme.card}>
-        <div className={scheme.label}>Cpk</div>
+        <div className={scheme.label}>{t('report.kpi.cpk')}</div>
         <div className={`mt-1 text-lg font-semibold ${cpkColor}`}>
           {stats.cpk !== undefined ? formatStat(stats.cpk) : '—'}
         </div>
@@ -78,7 +78,7 @@ export const ReportKPIGrid: React.FC<ReportKPIGridProps> = ({
 
       {/* In-Spec % */}
       <div className={scheme.card}>
-        <div className={scheme.label}>In-Spec %</div>
+        <div className={scheme.label}>{t('report.kpi.inSpec')} %</div>
         <div className={`mt-1 ${scheme.value}`}>{formatStat(inSpecPct, 1)}%</div>
       </div>
     </div>

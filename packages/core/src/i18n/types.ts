@@ -260,4 +260,198 @@ export interface MessageCatalog {
   'status.cached': string;
   'status.loading': string;
   'status.ai': string;
+
+  // Methodology Coach
+  'coach.frame': string;
+  'coach.scout': string;
+  'coach.investigate': string;
+  'coach.improve': string;
+  'coach.frameDesc': string;
+  'coach.scoutDesc': string;
+  'coach.investigateDesc': string;
+  'coach.improveDesc': string;
+
+  // Report KPIs
+  'report.kpi.samples': string;
+  'report.kpi.mean': string;
+  'report.kpi.variation': string;
+  'report.kpi.cpk': string;
+  'report.kpi.passRate': string;
+
+  // AI Actions
+  'ai.propose': string;
+  'ai.applied': string;
+  'ai.dismissed': string;
+  'ai.expired': string;
+
+  // Staged analysis
+  'staged.before': string;
+  'staged.after': string;
+  'staged.comparison': string;
+
+  // Data input / Column mapping
+  'data.mapHeading': string;
+  'data.confirmColumns': string;
+  'data.selectOutcome': string;
+  'data.selectFactors': string;
+  'data.analysisSection': string;
+  'data.optional': string;
+  'data.problemPlaceholder': string;
+  'data.outcomeDesc': string;
+  'data.factorsDesc': string;
+  'data.alreadyOutcome': string;
+  'data.showNumericOnly': string;
+  'data.showCategoricalOnly': string;
+  'data.showAllColumns': string;
+  'data.improvementTarget': string;
+  'data.metric': string;
+  'data.startAnalysis': string;
+  'data.applyChanges': string;
+  'data.addHypothesis': string;
+  'data.removeHypothesis': string;
+  'data.back': string;
+
+  // Paste screen
+  'data.pasteInstructions': string;
+  'data.pasteSubtitle': string;
+  'data.useExample': string;
+  'data.analyzing': string;
+  'data.tipWithData': string;
+  'data.tipNoData': string;
+
+  // Data quality
+  'quality.allValid': string;
+  'quality.rowsReady': string;
+  'quality.rowsExcluded': string;
+  'quality.missingValues': string;
+  'quality.nonNumeric': string;
+  'quality.noVariation': string;
+  'quality.emptyColumn': string;
+  'quality.noVariationWarning': string;
+  'quality.viewExcluded': string;
+  'quality.viewAll': string;
+
+  // Manual entry
+  'manual.setupTitle': string;
+  'manual.analysisMode': string;
+  'manual.standard': string;
+  'manual.standardDesc': string;
+  'manual.performance': string;
+  'manual.performanceDesc': string;
+  'manual.outcome': string;
+  'manual.outcomeExample': string;
+  'manual.factors': string;
+  'manual.addFactor': string;
+  'manual.measureLabel': string;
+  'manual.measureExample': string;
+  'manual.channelCount': string;
+  'manual.channelRange': string;
+  'manual.startEntry': string;
+  'manual.specs': string;
+  'manual.specsApplyAll': string;
+  'manual.specsHelper': string;
+
+  // Chart legend
+  'chart.legend.commonCause': string;
+  'chart.legend.specialCause': string;
+  'chart.legend.outOfSpec': string;
+  'chart.legend.inControl': string;
+  'chart.legend.randomVariation': string;
+  'chart.legend.defect': string;
+
+  // Chart violations
+  'chart.violation.aboveUsl': string;
+  'chart.violation.belowLsl': string;
+  'chart.violation.aboveUcl': string;
+  'chart.violation.belowLcl': string;
+  'chart.violation.aboveUclFavorable': string;
+  'chart.violation.belowLclFavorable': string;
+  'chart.violation.nelson2': string;
+  'chart.violation.nelson3': string;
+
+  // Investigation sidebar
+  'investigation.phaseInitial': string;
+  'investigation.phaseDiverging': string;
+  'investigation.phaseValidating': string;
+  'investigation.phaseConverging': string;
+  'investigation.phaseImproving': string;
+  'investigation.pdcaTitle': string;
+  'investigation.verifyChart': string;
+  'investigation.verifyStats': string;
+  'investigation.verifyBoxplot': string;
+  'investigation.verifySideEffects': string;
+  'investigation.verifyOutcome': string;
+  'investigation.uninvestigated': string;
+
+  // Coach mobile phase titles
+  'coach.frameTitle': string;
+  'coach.scoutTitle': string;
+  'coach.investigateTitle': string;
+  'coach.improveTitle': string;
+
+  // AI action tool labels
+  'ai.tool.applyFilter': string;
+  'ai.tool.clearFilters': string;
+  'ai.tool.switchFactor': string;
+  'ai.tool.createFinding': string;
+  'ai.tool.createHypothesis': string;
+  'ai.tool.suggestAction': string;
+  'ai.tool.shareFinding': string;
+  'ai.tool.publishReport': string;
+  'ai.tool.notifyOwners': string;
+
+  // Report
+  'report.kpi.inSpec': string;
+
+  // Table
+  'table.noData': string;
+  'table.page': string;
+  'table.rowsPerPage': string;
+  'table.editHint': string;
+  'table.excluded': string;
+  'table.deleteRow': string;
+  'table.addRow': string;
+  'table.unsavedChanges': string;
+
+  // Specs
+  'specs.title': string;
+  'specs.advancedSettings': string;
+  'specs.apply': string;
+  'specs.noChanges': string;
+  'specs.editTitle': string;
+  'specs.lslLabel': string;
+  'specs.uslLabel': string;
+
+  // Upgrade
+  'upgrade.title': string;
+  'upgrade.limitReached': string;
+  'upgrade.upgrade': string;
+  'upgrade.viewOptions': string;
+  'upgrade.featureLimit': string;
+
+  // Display toggles
+  'display.violin': string;
+  'display.violinDesc': string;
+  'display.contribution': string;
+  'display.contributionDesc': string;
+  'display.sort': string;
+  'display.ascending': string;
+  'display.descending': string;
+
+  // Stats panel
+  'stats.summary': string;
+  'stats.histogram': string;
+  'stats.probPlot': string;
+  'stats.editSpecs': string;
+
+  // WhatIf
+  'whatif.adjustMean': string;
+  'whatif.reduceVariation': string;
+  'whatif.currentProjected': string;
+  'whatif.resetAdjustments': string;
+  'whatif.yield': string;
+
+  // Parameterized messages
+  'data.rowsLoaded': string;
+  'findings.countLabel': string;
 }

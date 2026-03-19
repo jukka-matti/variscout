@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Trash2, ChevronLeft, ChevronRight, AlertTriangle, AlertCircle } from 'lucide-react';
 import { getSpecStatus } from '@variscout/core';
 import type { DataCellValue, ExclusionReason, SpecLimits } from '@variscout/core';
-import { useDataTablePagination, useHighlightFade } from '@variscout/hooks';
+import { useDataTablePagination, useHighlightFade, useTranslation } from '@variscout/hooks';
 
 const DEFAULT_ROWS_PER_PAGE = 500;
 
@@ -41,6 +41,8 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
   highlightRowIndex,
   rowsPerPage = DEFAULT_ROWS_PER_PAGE,
 }) => {
+  const { t, tf } = useTranslation();
+
   // Editing state
   const [editingCell, setEditingCell] = useState<{ row: number; col: string } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -262,7 +264,7 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-content-muted italic">
-        No data loaded. Import a file or add rows manually.
+        {t('table.noData')}
       </div>
     );
   }
@@ -381,7 +383,7 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
                     <button
                       onClick={() => onDeleteRow(originalIndex)}
                       className="text-content-muted hover:text-red-400 transition-colors p-1"
-                      title="Delete row"
+                      title={t('table.deleteRow')}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -395,10 +397,7 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
 
       {/* Footer with help text and pagination */}
       <div className="px-6 py-3 border-t border-edge flex items-center gap-4">
-        <div className="text-xs text-content-muted">
-          Click a cell to edit. Tab/Enter to navigate. Arrow keys move between rows. Paste to fill
-          multiple cells.
-        </div>
+        <div className="text-xs text-content-muted">{t('table.editHint')}</div>
         {needsPagination && (
           <div className="flex items-center gap-2 text-xs ml-auto">
             <button
@@ -409,7 +408,7 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
               <ChevronLeft size={16} />
             </button>
             <span className="text-content-secondary">
-              Page {currentPage + 1} of {totalPages}
+              {tf('table.page', { page: currentPage + 1, total: totalPages })}
             </span>
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
@@ -418,7 +417,9 @@ const DataTableBase: React.FC<DataTableBaseProps> = ({
             >
               <ChevronRight size={16} />
             </button>
-            <span className="text-content-muted ml-2">({rowsPerPage} rows/page)</span>
+            <span className="text-content-muted ml-2">
+              ({rowsPerPage} {t('table.rowsPerPage')})
+            </span>
           </div>
         )}
       </div>

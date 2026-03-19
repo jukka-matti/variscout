@@ -76,7 +76,7 @@ export interface FindingsAction {
  * 3. Edit/delete actions are sent back via FINDINGS_ACTION_KEY
  */
 const FindingsWindow: React.FC = () => {
-  const { formatStat } = useTranslation();
+  const { t, formatStat } = useTranslation();
   const [syncData, setSyncData] = useState<FindingsSyncData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
@@ -350,7 +350,7 @@ const FindingsWindow: React.FC = () => {
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-semibold text-content">
-              Investigation
+              {t('panel.investigation')}
               {findings.length > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
                   {findings.length}
@@ -371,8 +371,8 @@ const FindingsWindow: React.FC = () => {
                       ? 'bg-surface-tertiary text-content'
                       : 'text-content-muted hover:text-content-secondary'
                   }`}
-                  title="List view"
-                  aria-label="List view"
+                  title={t('view.list')}
+                  aria-label={t('view.list')}
                 >
                   <List size={12} />
                 </button>
@@ -383,8 +383,8 @@ const FindingsWindow: React.FC = () => {
                       ? 'bg-surface-tertiary text-content'
                       : 'text-content-muted hover:text-content-secondary'
                   }`}
-                  title="Board view"
-                  aria-label="Board view"
+                  title={t('view.board')}
+                  aria-label={t('view.board')}
                 >
                   <LayoutGrid size={12} />
                 </button>
@@ -398,8 +398,8 @@ const FindingsWindow: React.FC = () => {
                     ? 'bg-green-500/20 text-green-400'
                     : 'text-content-secondary hover:text-content hover:bg-surface-tertiary'
                 }`}
-                title="Copy all findings to clipboard"
-                aria-label="Copy all findings"
+                title={t('action.copyAll')}
+                aria-label={t('action.copyAll')}
               >
                 {copyFeedback ? <Check size={14} /> : <ClipboardCopy size={14} />}
               </button>
@@ -504,7 +504,7 @@ const FindingsWindow: React.FC = () => {
       {drillPath.length > 0 && (
         <div className="px-4 py-3 border-t border-edge flex-shrink-0">
           <div className="text-[10px] text-content-muted uppercase tracking-wider mb-1.5">
-            Drill Path
+            {t('panel.drillPath')}
           </div>
           <div className="flex flex-wrap gap-1">
             {drillPath.map((step, i) => (

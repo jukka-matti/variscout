@@ -1,5 +1,39 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('@variscout/hooks', async importOriginal => {
+  const actual = await importOriginal<typeof import('@variscout/hooks')>();
+  const catalog: Record<string, string> = {
+    'panel.dataTable': 'Data Table',
+    'table.noData': 'No data to display',
+    'table.page': 'Page {page} of {total}',
+    'table.rowsPerPage': 'rows/page',
+    'table.editHint': 'Click a cell to edit',
+    'table.excluded': 'Excluded',
+    'table.deleteRow': 'Delete row',
+    'table.addRow': 'Add row',
+    'table.unsavedChanges': 'Unsaved changes',
+    'action.cancel': 'Cancel',
+    'action.apply': 'Apply',
+  };
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      tf: (key: string, params: Record<string, string | number>) => {
+        let msg = catalog[key] ?? key;
+        for (const [k, v] of Object.entries(params)) {
+          msg = msg.replace(`{${k}}`, String(v));
+        }
+        return msg;
+      },
+      formatStat: (n: number) => String(n),
+      formatPct: (n: number) => `${n}%`,
+      locale: 'en',
+    }),
+  };
+});
+
 import { DataTableModalBase } from '../index';
 
 const mockData = [
@@ -26,7 +60,7 @@ describe('DataTableModalBase', () => {
 
   it('renders nothing when isOpen is false', () => {
     render(<DataTableModalBase {...defaultProps} isOpen={false} />);
-    expect(screen.queryByText('Data Table')).toBeNull();
+    expect(screen.queryByText('Data Table', { exact: true })).toBeNull();
   });
 
   it('renders table with columns from data', () => {
@@ -49,7 +83,7 @@ describe('DataTableModalBase', () => {
 
   it('Apply button is disabled when no changes', () => {
     render(<DataTableModalBase {...defaultProps} />);
-    expect(screen.getByText('Apply Changes').closest('button')!.disabled).toBe(true);
+    expect(screen.getByText('Apply').closest('button')!.disabled).toBe(true);
   });
 
   it('applies changes on Apply button click', () => {
@@ -61,7 +95,7 @@ describe('DataTableModalBase', () => {
     fireEvent.change(input, { target: { value: 'Modified' } });
     fireEvent.blur(input);
 
-    fireEvent.click(screen.getByText('Apply Changes'));
+    fireEvent.click(screen.getByText('Apply'));
 
     expect(defaultProps.onApply).toHaveBeenCalledTimes(1);
     expect(defaultProps.onApply).toHaveBeenCalledWith(
@@ -102,7 +136,7 @@ describe('DataTableModalBase', () => {
       clipboardData: { getData: () => pasteData },
     });
 
-    fireEvent.click(screen.getByText('Apply Changes'));
+    fireEvent.click(screen.getByText('Apply'));
 
     expect(defaultProps.onApply).toHaveBeenCalledTimes(1);
     const savedData = defaultProps.onApply.mock.calls[0][0];
@@ -116,7 +150,7 @@ describe('DataTableModalBase', () => {
 
   it('shows empty state when rawData is empty', () => {
     render(<DataTableModalBase {...defaultProps} rawData={[]} />);
-    expect(screen.getByText(/No data loaded/i)).toBeTruthy();
+    expect(screen.getByText('No data to display')).toBeTruthy();
   });
 
   it('passes columnAliases to DataTableBase', () => {

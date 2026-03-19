@@ -3,6 +3,22 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('@variscout/hooks', () => {
+  const catalog: Record<string, string> = {
+    'upgrade.title': 'Upgrade Available',
+    'upgrade.limitReached': 'Limit Reached',
+    'upgrade.upgrade': 'Upgrade',
+    'upgrade.viewOptions': 'View options',
+  };
+  return {
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      locale: 'en',
+    }),
+  };
+});
+
 import { UpgradePrompt } from '../index';
 
 const defaultProps = {
@@ -14,7 +30,7 @@ describe('UpgradePrompt', () => {
   describe('inline variant (default)', () => {
     it('renders upgrade title for free tier', () => {
       render(<UpgradePrompt {...defaultProps} />);
-      expect(screen.getByText(/Upgrade to Unlock/)).toBeDefined();
+      expect(screen.getByText(/Upgrade Available/)).toBeDefined();
     });
 
     it('renders limit reached title for paid tier', () => {
@@ -24,13 +40,14 @@ describe('UpgradePrompt', () => {
 
     it('shows upgrade link for free tier', () => {
       render(<UpgradePrompt {...defaultProps} />);
-      const link = screen.getByText('Upgrade now');
+      const link = screen.getByRole('link');
       expect(link.getAttribute('href')).toBe('https://example.com/upgrade');
     });
 
     it('does not show upgrade link for paid tier', () => {
       render(<UpgradePrompt {...defaultProps} tier="enterprise" />);
-      expect(screen.queryByText('Upgrade now')).toBeNull();
+      // Paid tiers don't show inline upgrade link
+      expect(screen.queryByRole('link')).toBeNull();
     });
 
     it('shows channel count in message when provided', () => {
@@ -49,7 +66,7 @@ describe('UpgradePrompt', () => {
   describe('card variant', () => {
     it('renders card with view upgrade options button', () => {
       render(<UpgradePrompt {...defaultProps} variant="card" />);
-      expect(screen.getByText('View Upgrade Options')).toBeDefined();
+      expect(screen.getByText('View options')).toBeDefined();
     });
 
     it('shows free tier limitation text', () => {

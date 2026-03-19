@@ -59,7 +59,7 @@ export const SelectionPanel: React.FC<SelectionPanelProps> = ({
   onClearSelection,
   onCreateFactor,
 }) => {
-  const { formatStat } = useTranslation();
+  const { t, formatStat } = useTranslation();
   // Convert Set to sorted array of indices
   const sortedIndices = useMemo(() => {
     return Array.from(selectedIndices).sort((a, b) => a - b);
@@ -119,7 +119,7 @@ export const SelectionPanel: React.FC<SelectionPanelProps> = ({
             aria-label="Clear selection"
           >
             <X size={14} />
-            <span className="hidden sm:inline">Clear</span>
+            <span className="hidden sm:inline">{t('action.clear')}</span>
           </button>
 
           {/* Create Factor button */}

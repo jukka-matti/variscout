@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SlidersHorizontal, ArrowUpNarrowWide, ArrowDownWideNarrow } from 'lucide-react';
 import type { BoxplotSortBy } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import type { BoxplotDisplayToggleColorScheme, BoxplotDisplayToggleProps } from './types';
 
 export const boxplotDisplayToggleDefaultColorScheme: BoxplotDisplayToggleColorScheme = {
@@ -33,6 +34,7 @@ const BoxplotDisplayToggle: React.FC<BoxplotDisplayToggleProps> = ({
   onSortChange,
   colorScheme = boxplotDisplayToggleDefaultColorScheme,
 }) => {
+  const { t } = useTranslation();
   const cs = colorScheme;
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -117,8 +119,8 @@ const BoxplotDisplayToggle: React.FC<BoxplotDisplayToggleProps> = ({
                 className={`mt-0.5 ${cs.checkbox}`}
               />
               <div>
-                <span className={cs.checkboxLabel}>Distribution shape</span>
-                <span className={`block ${cs.description}`}>Density curves on boxplots</span>
+                <span className={cs.checkboxLabel}>{t('display.violin')}</span>
+                <span className={`block ${cs.description}`}>{t('display.violinDesc')}</span>
               </div>
             </label>
             <label htmlFor="boxplot-contribution" className="flex items-start gap-3 cursor-pointer">
@@ -131,14 +133,16 @@ const BoxplotDisplayToggle: React.FC<BoxplotDisplayToggleProps> = ({
                 className={`mt-0.5 ${cs.checkbox}`}
               />
               <div>
-                <span className={cs.checkboxLabel}>Contribution labels</span>
-                <span className={`block ${cs.description}`}>Impact % below categories</span>
+                <span className={cs.checkboxLabel}>{t('display.contribution')}</span>
+                <span className={`block ${cs.description}`}>{t('display.contributionDesc')}</span>
               </div>
             </label>
 
             {onSortChange && (
               <>
-                <div className={`pt-1 border-t border-edge ${cs.sectionLabel ?? ''}`}>Sort</div>
+                <div className={`pt-1 border-t border-edge ${cs.sectionLabel ?? ''}`}>
+                  {t('display.sort')}
+                </div>
                 <div className="flex items-center gap-1.5">
                   {SORT_OPTIONS.map(opt => (
                     <button
@@ -155,8 +159,12 @@ const BoxplotDisplayToggle: React.FC<BoxplotDisplayToggleProps> = ({
                   <button
                     onClick={() => onSortChange(sortBy, sortDirection === 'asc' ? 'desc' : 'asc')}
                     className={`p-1 rounded transition-colors ${cs.directionButton ?? ''}`}
-                    title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
-                    aria-label={`Sort ${sortDirection === 'asc' ? 'ascending' : 'descending'}`}
+                    title={
+                      sortDirection === 'asc' ? t('display.ascending') : t('display.descending')
+                    }
+                    aria-label={
+                      sortDirection === 'asc' ? t('display.ascending') : t('display.descending')
+                    }
                   >
                     {sortDirection === 'asc' ? (
                       <ArrowUpNarrowWide size={14} />

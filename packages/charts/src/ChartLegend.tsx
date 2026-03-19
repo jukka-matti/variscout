@@ -28,7 +28,7 @@ const ChartLegend: React.FC<ChartLegendProps> = ({
   top,
   show = true,
 }) => {
-  const { chrome, fontScale } = useChartTheme();
+  const { chrome, fontScale, t } = useChartTheme();
 
   if (!show) return null;
 
@@ -40,18 +40,14 @@ const ChartLegend: React.FC<ChartLegendProps> = ({
   const items =
     mode === 'educational'
       ? [
-          { color: chartColors.mean, label: 'Common Cause', description: 'Random variation' },
-          {
-            color: chartColors.fail,
-            label: 'Special Cause',
-            description: 'Requires investigation',
-          },
-          { color: chartColors.spec, label: 'Out-of-Spec', description: 'Customer defect' },
+          { color: chartColors.mean, label: t('chart.legend.commonCause') },
+          { color: chartColors.fail, label: t('chart.legend.specialCause') },
+          { color: chartColors.spec, label: t('chart.legend.outOfSpec') },
         ]
       : [
-          { color: chartColors.mean, label: 'In-Control', description: 'Process stable' },
-          { color: chartColors.fail, label: 'Special Cause', description: 'Investigate' },
-          { color: chartColors.spec, label: 'Out-of-Spec', description: 'Defect' },
+          { color: chartColors.mean, label: t('chart.legend.inControl') },
+          { color: chartColors.fail, label: t('chart.legend.specialCause') },
+          { color: chartColors.spec, label: t('chart.legend.outOfSpec') },
         ];
 
   return (

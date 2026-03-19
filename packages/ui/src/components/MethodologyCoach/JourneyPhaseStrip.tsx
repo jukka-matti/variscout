@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { JourneyPhase, EntryScenario } from '@variscout/core';
 import { useIsMobile, BREAKPOINTS } from '../../hooks';
+import { useTranslation } from '@variscout/hooks';
 
 export interface JourneyPhaseStripProps {
   phase: JourneyPhase;
@@ -15,11 +16,11 @@ export interface JourneyPhaseStripProps {
 
 const PHASES: JourneyPhase[] = ['frame', 'scout', 'investigate', 'improve'];
 
-const PHASE_LABELS: Record<JourneyPhase, string> = {
-  frame: 'Frame',
-  scout: 'Scout',
-  investigate: 'Investigate',
-  improve: 'Improve',
+const PHASE_LABEL_KEYS: Record<JourneyPhase, keyof import('@variscout/core').MessageCatalog> = {
+  frame: 'coach.frame',
+  scout: 'coach.scout',
+  investigate: 'coach.investigate',
+  improve: 'coach.improve',
 };
 
 const PHASE_COLORS: Record<JourneyPhase, { dot: string; text: string }> = {
@@ -39,6 +40,7 @@ const JourneyPhaseStrip: React.FC<JourneyPhaseStripProps> = ({
   renderPopover,
   renderMobileSheet,
 }) => {
+  const { t } = useTranslation();
   const isPhone = useIsMobile(BREAKPOINTS.phone);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
@@ -96,7 +98,7 @@ const JourneyPhaseStrip: React.FC<JourneyPhaseStripProps> = ({
         ref={stripRef}
         onClick={handleClick}
         className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-surface-secondary/50 transition-colors group"
-        aria-label={`Journey phase: ${PHASE_LABELS[phase]}. Click for coaching.`}
+        aria-label={`Journey phase: ${t(PHASE_LABEL_KEYS[phase])}. Click for coaching.`}
         aria-expanded={isPopoverOpen}
         data-testid="journey-phase-strip-button"
       >
@@ -126,7 +128,7 @@ const JourneyPhaseStrip: React.FC<JourneyPhaseStripProps> = ({
 
         {/* Phase label (hidden on very small screens) */}
         <span className={`text-xs font-medium ${colors.text} ${isPhone ? '' : 'hidden sm:inline'}`}>
-          {PHASE_LABELS[phase]}
+          {t(PHASE_LABEL_KEYS[phase])}
         </span>
       </button>
 

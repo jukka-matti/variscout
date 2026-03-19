@@ -29,22 +29,26 @@ export { buildGlossaryPrompt } from './buildGlossaryPrompt';
 // Locale exports
 export { deGlossary } from './locales/de';
 export { esGlossary } from './locales/es';
+export { fiGlossary } from './locales/fi';
 export { frGlossary } from './locales/fr';
 export { ptGlossary } from './locales/pt';
 
+import type { Locale } from '../i18n/types';
 import type { GlossaryTerm, GlossaryLocale } from './types';
 import { getTerm } from './terms';
 import { deGlossary } from './locales/de';
 import { esGlossary } from './locales/es';
+import { fiGlossary } from './locales/fi';
 import { frGlossary } from './locales/fr';
 import { ptGlossary } from './locales/pt';
 
 /**
  * Map of supported locales
  */
-const localeMap: Record<string, GlossaryLocale> = {
+const localeMap: Partial<Record<Locale, GlossaryLocale>> = {
   de: deGlossary,
   es: esGlossary,
+  fi: fiGlossary,
   fr: frGlossary,
   pt: ptGlossary,
 };
@@ -60,7 +64,7 @@ const localeMap: Record<string, GlossaryLocale> = {
  * const term = getLocalizedTerm('cpk', 'de');
  * // Returns Cpk with German definition
  */
-export function getLocalizedTerm(termId: string, locale?: string): GlossaryTerm | undefined {
+export function getLocalizedTerm(termId: string, locale?: Locale): GlossaryTerm | undefined {
   const baseTerm = getTerm(termId);
   if (!baseTerm) return undefined;
 

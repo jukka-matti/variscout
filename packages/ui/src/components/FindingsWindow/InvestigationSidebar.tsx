@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Copy, Check, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import type { Hypothesis, InvestigationPhase } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import { InvestigationPhaseBadge } from '../InvestigationPhaseBadge';
 
 export interface InvestigationSidebarProps {
@@ -14,24 +15,24 @@ export interface InvestigationSidebarProps {
   hasStagedData?: boolean;
 }
 
-const phaseDescriptions: Record<string, string> = {
-  initial: 'Begin by examining charts for patterns. What stands out?',
-  diverging: 'Explore multiple hypotheses across factor categories. Cast a wide net.',
-  validating: 'Drill into factors to test hypotheses with data. Check contribution %.',
-  converging: 'Synthesize findings into a suspected root cause. Brainstorm improvement ideas.',
-  improving: 'IMPROVE phase: monitor corrective actions and verify effectiveness (PDCA).',
+const phaseDescriptionKeys: Record<string, keyof import('@variscout/core').MessageCatalog> = {
+  initial: 'investigation.phaseInitial',
+  diverging: 'investigation.phaseDiverging',
+  validating: 'investigation.phaseValidating',
+  converging: 'investigation.phaseConverging',
+  improving: 'investigation.phaseImproving',
 };
 
 /**
  * Read-only investigation sidebar for the FindingsWindow popout.
  * No API calls — "Ask CoScout" copies question to clipboard.
  */
-const VERIFICATION_CHECKLIST = [
-  'I-Chart: are violations reduced?',
-  'Stats: did Cpk improve toward target?',
-  'Boxplot: did the problem factor improve?',
-  'Side effects: nothing else degraded?',
-  'Outcome: recorded in finding',
+const VERIFICATION_CHECKLIST_KEYS: Array<keyof import('@variscout/core').MessageCatalog> = [
+  'investigation.verifyChart',
+  'investigation.verifyStats',
+  'investigation.verifyBoxplot',
+  'investigation.verifySideEffects',
+  'investigation.verifyOutcome',
 ];
 
 const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
@@ -43,6 +44,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
   onToggle,
   hasStagedData,
 }) => {
+  const { t } = useTranslation();
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const handleCopyQuestion = useCallback((question: string, index: number) => {
@@ -105,7 +107,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
               <InvestigationPhaseBadge phase={phase} />
             </div>
             <p className="text-[11px] text-content-secondary leading-relaxed">
-              {phaseDescriptions[phase]}
+              {t(phaseDescriptionKeys[phase])}
             </p>
           </div>
         )}
@@ -114,16 +116,16 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
         {phase === 'improving' && hasStagedData && (
           <div data-testid="verification-checklist">
             <div className="text-[10px] uppercase tracking-wider text-content-muted font-medium mb-1.5">
-              PDCA: Check — Verification
+              {t('investigation.pdcaTitle')}
             </div>
             <ul className="space-y-1">
-              {VERIFICATION_CHECKLIST.map((item, i) => (
+              {VERIFICATION_CHECKLIST_KEYS.map((key, i) => (
                 <li
                   key={i}
                   className="flex items-start gap-1.5 text-[11px] text-content-secondary leading-relaxed"
                 >
                   <span className="text-content-muted mt-0.5">&#9744;</span>
-                  <span>{item}</span>
+                  <span>{t(key)}</span>
                 </li>
               ))}
             </ul>
@@ -134,7 +136,7 @@ const InvestigationSidebar: React.FC<InvestigationSidebarProps> = ({
         {uncoveredRoles.length > 0 && (
           <div>
             <div className="text-[10px] uppercase tracking-wider text-content-muted font-medium mb-1.5">
-              Uninvestigated Factors
+              {t('investigation.uninvestigated')}
             </div>
             <div className="space-y-1">
               {uncoveredRoles.map(({ factor, role }) => (

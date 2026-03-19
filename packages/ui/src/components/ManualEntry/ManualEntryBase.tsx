@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import type { DataRow, DataCellValue, SpecLimits } from '@variscout/core';
+import { useTranslation } from '@variscout/hooks';
 import ManualEntrySetupBase from './ManualEntrySetupBase';
 import StandardEntryGrid from './StandardEntryGrid';
 import PerformanceEntryGrid from './PerformanceEntryGrid';
@@ -32,6 +33,7 @@ const ManualEntryBase = ({
   existingConfig,
   existingRowCount = 0,
 }: ManualEntryBaseProps) => {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'setup' | 'grid'>('setup');
 
   // Mode State - use existing config if in append mode
@@ -275,7 +277,7 @@ const ManualEntryBase = ({
       setRows([...rows, ...newRows]);
     } catch (err) {
       console.error('Failed to paste:', err);
-      alert('Could not paste from clipboard. Please allow permissions.');
+      alert(t('error.generic'));
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, Settings2 } from 'lucide-react';
+import { useTranslation } from '@variscout/hooks';
 import type { SpecsPopoverColorScheme, SpecsPopoverProps } from './types';
 
 export const specsPopoverDefaultColorScheme: SpecsPopoverColorScheme = {
@@ -33,6 +34,7 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
   className = '',
   colorScheme = specsPopoverDefaultColorScheme,
 }) => {
+  const { t } = useTranslation();
   const cs = colorScheme;
   const [isOpen, setIsOpen] = useState(false);
   const [localSpecs, setLocalSpecs] = useState({
@@ -213,7 +215,7 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
         >
           {/* Header */}
           <div className={cs.headerBorder}>
-            <h4 className={cs.headerText}>Specification Limits</h4>
+            <h4 className={cs.headerText}>{t('specs.title')}</h4>
             {onOpenAdvanced && (
               <button
                 onClick={() => {
@@ -221,7 +223,7 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
                   onOpenAdvanced();
                 }}
                 className={cs.advancedButton}
-                title="Advanced settings"
+                title={t('specs.advancedSettings')}
               >
                 <Settings2 size={14} />
               </button>
@@ -262,7 +264,7 @@ const SpecsPopover: React.FC<SpecsPopoverProps> = ({
                 hasChanges ? cs.applyActive : cs.applyDisabled
               }`}
             >
-              {hasChanges ? 'Apply Changes' : 'No Changes'}
+              {hasChanges ? t('specs.apply') : t('specs.noChanges')}
             </button>
           </div>
         </div>

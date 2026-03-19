@@ -1,5 +1,24 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('@variscout/hooks', () => {
+  const catalog: Record<string, string> = {
+    'display.violin': 'Violin plot',
+    'display.violinDesc': 'Show distribution shape',
+    'display.contribution': 'Contribution',
+    'display.contributionDesc': 'Show variation contribution',
+    'display.sort': 'Sort',
+    'display.ascending': 'Ascending',
+    'display.descending': 'Descending',
+  };
+  return {
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      locale: 'en',
+    }),
+  };
+});
+
 import BoxplotDisplayToggle from '../BoxplotDisplayToggle';
 
 // Mock lucide-react
@@ -34,8 +53,8 @@ describe('BoxplotDisplayToggle', () => {
 
     fireEvent.click(screen.getByLabelText('Boxplot display options'));
 
-    expect(screen.getByText('Distribution shape')).toBeTruthy();
-    expect(screen.getByText('Contribution labels')).toBeTruthy();
+    expect(screen.getByText('Violin plot')).toBeTruthy();
+    expect(screen.getByText('Contribution')).toBeTruthy();
   });
 
   it('closes popover on second click', () => {
@@ -43,10 +62,10 @@ describe('BoxplotDisplayToggle', () => {
 
     const trigger = screen.getByLabelText('Boxplot display options');
     fireEvent.click(trigger);
-    expect(screen.getByText('Distribution shape')).toBeTruthy();
+    expect(screen.getByText('Violin plot')).toBeTruthy();
 
     fireEvent.click(trigger);
-    expect(screen.queryByText('Distribution shape')).toBeNull();
+    expect(screen.queryByText('Violin plot')).toBeNull();
   });
 
   it('renders both toggles with correct checked state', () => {
@@ -134,7 +153,7 @@ describe('BoxplotDisplayToggle', () => {
       render(<BoxplotDisplayToggle {...defaultProps} />);
       fireEvent.click(screen.getByLabelText('Boxplot display options'));
 
-      expect(screen.queryByText('Sort')).toBeNull();
+      expect(screen.queryByText('Sort', { exact: true })).toBeNull();
       expect(screen.queryByText('Name')).toBeNull();
     });
 
@@ -142,7 +161,7 @@ describe('BoxplotDisplayToggle', () => {
       render(<BoxplotDisplayToggle {...sortProps} />);
       fireEvent.click(screen.getByLabelText('Boxplot display options'));
 
-      expect(screen.getByText('Sort')).toBeTruthy();
+      expect(screen.getByText('Sort', { exact: true })).toBeTruthy();
       expect(screen.getByText('Name')).toBeTruthy();
       expect(screen.getByText('Mean')).toBeTruthy();
       expect(screen.getByText('Spread')).toBeTruthy();
@@ -176,7 +195,7 @@ describe('BoxplotDisplayToggle', () => {
       );
       fireEvent.click(screen.getByLabelText('Boxplot display options'));
 
-      const dirButton = screen.getByLabelText('Sort ascending');
+      const dirButton = screen.getByLabelText('Ascending');
       fireEvent.click(dirButton);
 
       expect(onSortChange).toHaveBeenCalledWith('name', 'desc');
@@ -186,7 +205,7 @@ describe('BoxplotDisplayToggle', () => {
       render(<BoxplotDisplayToggle {...sortProps} sortDirection="desc" />);
       fireEvent.click(screen.getByLabelText('Boxplot display options'));
 
-      expect(screen.getByLabelText('Sort descending')).toBeTruthy();
+      expect(screen.getByLabelText('Descending')).toBeTruthy();
     });
   });
 });

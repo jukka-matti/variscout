@@ -5,6 +5,19 @@ vi.mock('../../../hooks', () => ({
   useIsMobile: () => false,
 }));
 
+vi.mock('@variscout/hooks', () => {
+  const catalog: Record<string, string> = {
+    'specs.editTitle': 'Edit Specifications',
+    'action.save': 'Save',
+  };
+  return {
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      locale: 'en',
+    }),
+  };
+});
+
 vi.mock('@variscout/core', () => ({
   inferCharacteristicType: vi.fn(() => 'nominal'),
 }));
@@ -126,7 +139,7 @@ describe('SpecEditor', () => {
     render(<SpecEditor specs={emptySpecs} onSave={onSave} onClose={onClose} />);
 
     fireEvent.click(screen.getByLabelText(/^Nominal/));
-    fireEvent.click(screen.getByText('Save Changes'));
+    fireEvent.click(screen.getByText('Save'));
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ characteristicType: 'nominal' }));
   });
@@ -136,7 +149,7 @@ describe('SpecEditor', () => {
     render(<SpecEditor specs={emptySpecs} onSave={onSave} onClose={onClose} />);
 
     // No icon selected by default
-    fireEvent.click(screen.getByText('Save Changes'));
+    fireEvent.click(screen.getByText('Save'));
 
     expect(onSave).toHaveBeenCalledTimes(1);
     const savedSpecs = onSave.mock.calls[0][0];
@@ -151,7 +164,7 @@ describe('SpecEditor', () => {
     const uslInput = screen.getByLabelText('Upper specification limit');
     fireEvent.change(uslInput, { target: { value: '25.5' } });
 
-    fireEvent.click(screen.getByText('Save Changes'));
+    fireEvent.click(screen.getByText('Save'));
 
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -203,7 +216,7 @@ describe('SpecEditor', () => {
     const lslInput = screen.getByLabelText('Lower specification limit');
     fireEvent.change(lslInput, { target: { value: '' } });
 
-    fireEvent.click(screen.getByText('Save Changes'));
+    fireEvent.click(screen.getByText('Save'));
 
     const savedSpecs = onSave.mock.calls[0][0];
     expect(savedSpecs.lsl).toBeUndefined();
@@ -214,7 +227,7 @@ describe('SpecEditor', () => {
   it('calls onClose after onSave when saving', () => {
     render(<SpecEditor specs={defaultSpecs} onSave={onSave} onClose={onClose} />);
 
-    fireEvent.click(screen.getByText('Save Changes'));
+    fireEvent.click(screen.getByText('Save'));
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);

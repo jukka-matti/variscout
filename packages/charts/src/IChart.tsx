@@ -51,7 +51,7 @@ const IChartBase: React.FC<IChartProps> = ({
   showLegend = false,
   legendMode = 'educational',
 }) => {
-  const { chrome, formatStat } = useChartTheme();
+  const { chrome, formatStat, t } = useChartTheme();
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltipAtCoords, hideTooltip } =
     useChartTooltip<{ x: number; y: number; index: number; stage?: string; timeValue?: string }>();
 
@@ -161,39 +161,49 @@ const IChartBase: React.FC<IChartProps> = ({
   };
 
   // Get violation reason for tooltip display
-  const getViolationReason = (value: number, index: number, stage?: string): string | null => {
+  const getViolationReason = (
+    value: number,
+    index: number,
+    stage?: string
+  ): { text: string; favorable: boolean } | null => {
     // Priority 1: Check spec limit violations
-    if (specs.usl !== undefined && value > specs.usl) return 'Above USL';
-    if (specs.lsl !== undefined && value < specs.lsl) return 'Below LSL';
+    if (specs.usl !== undefined && value > specs.usl)
+      return { text: t('chart.violation.aboveUsl'), favorable: false };
+    if (specs.lsl !== undefined && value < specs.lsl)
+      return { text: t('chart.violation.belowLsl'), favorable: false };
 
     // Priority 2: Check control limit violations (direction-aware)
     const stageStats = getStageStatsForPoint(stage);
     if (stageStats) {
       if (value > stageStats.ucl) {
         const favorable = isFavorableControlViolation('above');
-        return favorable
-          ? 'Special Cause: Above UCL \u2014 favorable signal'
-          : 'Special Cause: Above UCL';
+        return {
+          text: t(favorable ? 'chart.violation.aboveUclFavorable' : 'chart.violation.aboveUcl'),
+          favorable,
+        };
       }
       if (value < stageStats.lcl) {
         const favorable = isFavorableControlViolation('below');
-        return favorable
-          ? 'Special Cause: Below LCL \u2014 favorable signal'
-          : 'Special Cause: Below LCL';
+        return {
+          text: t(favorable ? 'chart.violation.belowLclFavorable' : 'chart.violation.belowLcl'),
+          favorable,
+        };
       }
     }
 
     // Priority 3: Check Nelson Rule 2 violations
     if (nelsonRule2Violations.has(index)) {
-      // Find which sequence this point belongs to
       const sequence = nelsonRule2Sequences.find(
         seq => index >= seq.startIndex && index <= seq.endIndex
       );
       if (sequence) {
         const count = sequence.endIndex - sequence.startIndex + 1;
-        return `Special Cause: Nelson Rule 2 (Points #${sequence.startIndex + 1}-${sequence.endIndex + 1}, ${count} consecutive ${sequence.side} mean)`;
+        return {
+          text: `${t('chart.violation.nelson2')} (#${sequence.startIndex + 1}-${sequence.endIndex + 1}, ${count} ${sequence.side})`,
+          favorable: false,
+        };
       }
-      return 'Special Cause: Nelson Rule 2 (9 consecutive points on same side of mean)';
+      return { text: t('chart.violation.nelson2'), favorable: false };
     }
 
     // Priority 4: Check Nelson Rule 3 violations
@@ -203,9 +213,12 @@ const IChartBase: React.FC<IChartProps> = ({
       );
       if (sequence) {
         const count = sequence.endIndex - sequence.startIndex + 1;
-        return `Special Cause: Nelson Rule 3 (Points #${sequence.startIndex + 1}-${sequence.endIndex + 1}, ${count} consecutive ${sequence.direction})`;
+        return {
+          text: `${t('chart.violation.nelson3')} (#${sequence.startIndex + 1}-${sequence.endIndex + 1}, ${count} ${sequence.direction})`,
+          favorable: false,
+        };
       }
-      return 'Special Cause: Nelson Rule 3 (6+ consecutive increasing or decreasing)';
+      return { text: t('chart.violation.nelson3'), favorable: false };
     }
 
     return null; // In-control
@@ -607,7 +620,7 @@ const IChartBase: React.FC<IChartProps> = ({
                   }
                   onMouseLeave={hideTooltip}
                   {...getDataPointA11yProps(
-                    'Observation',
+                    t('chart.observation'),
                     d.y,
                     i,
                     onPointClick ? () => onPointClick(i, d.originalIndex) : undefined
@@ -687,7 +700,7 @@ const IChartBase: React.FC<IChartProps> = ({
             fontSize={fonts.axisLabel}
             fontWeight={500}
           >
-            Observation
+            {t('chart.observation')}
           </text>
 
           {/* Chart Legend */}
@@ -749,22 +762,25 @@ const IChartBase: React.FC<IChartProps> = ({
           </div>
           <div>Value: {formatStat(tooltipData.y)}</div>
           {(() => {
-            const reason = getViolationReason(tooltipData.y, tooltipData.index, tooltipData.stage);
-            if (reason) {
+            const violation = getViolationReason(
+              tooltipData.y,
+              tooltipData.index,
+              tooltipData.stage
+            );
+            if (violation) {
               // Check if it's a spec violation (orange), favorable (green), or harmful (red)
               const isSpecViolation =
                 (specs.usl !== undefined && tooltipData.y > specs.usl) ||
                 (specs.lsl !== undefined && tooltipData.y < specs.lsl);
-              const isFavorable = reason.includes('favorable signal');
               const color = isSpecViolation
                 ? chartColors.spec
-                : isFavorable
+                : violation.favorable
                   ? chartColors.pass
                   : chartColors.fail;
               return (
                 <div style={{ marginTop: 4, color, fontWeight: 500 }}>
-                  {reason.startsWith('Special Cause') && !isFavorable ? '⚠️ ' : ''}
-                  {reason}
+                  {!isSpecViolation && !violation.favorable ? '⚠️ ' : ''}
+                  {violation.text}
                 </div>
               );
             }

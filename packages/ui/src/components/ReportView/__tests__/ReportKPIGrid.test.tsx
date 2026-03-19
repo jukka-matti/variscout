@@ -27,13 +27,13 @@ const emptySpecs: SpecLimits = {};
 // ---------------------------------------------------------------------------
 
 describe('ReportKPIGrid', () => {
-  it('renders all 5 KPI cards (Samples, Mean, Variation, Cpk, In-Spec %)', () => {
+  it('renders all 5 KPI cards (Samples, Mean, Variation, Cpk, In Spec %)', () => {
     render(<ReportKPIGrid stats={mockStats} specs={emptySpecs} sampleCount={100} />);
     expect(screen.getByText('Samples')).toBeDefined();
     expect(screen.getByText('Mean')).toBeDefined();
     expect(screen.getByText('Variation (σ)')).toBeDefined();
     expect(screen.getByText('Cpk')).toBeDefined();
-    expect(screen.getByText('In-Spec %')).toBeDefined();
+    expect(screen.getByText('In Spec %')).toBeDefined();
   });
 
   it('displays the sample count', () => {

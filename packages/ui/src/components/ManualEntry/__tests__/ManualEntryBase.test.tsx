@@ -1,5 +1,47 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('@variscout/hooks', () => {
+  const catalog: Record<string, string> = {
+    'manual.setupTitle': 'Manual Data Entry',
+    'manual.analysisMode': 'Analysis mode',
+    'manual.standard': 'Standard',
+    'manual.standardDesc': 'Single measurement column with optional factors',
+    'manual.performance': 'Performance',
+    'manual.performanceDesc': 'Multiple measurement channels (fill heads, cavities)',
+    'manual.outcome': 'Outcome column',
+    'manual.outcomeExample': 'e.g. Weight, Length, Temperature',
+    'manual.factors': 'Factors',
+    'manual.addFactor': 'Add factor',
+    'manual.measureLabel': 'Measure label',
+    'manual.measureExample': 'e.g. Fill Head, Cavity, Nozzle',
+    'manual.channelCount': 'Number of channels',
+    'manual.channelRange': '{min}\u2013{max} channels',
+    'manual.startEntry': 'Start Entry',
+    'manual.specs': 'Specifications',
+    'manual.specsApplyAll': 'Apply to all channels',
+    'manual.specsHelper': 'Set specification limits for the outcome column',
+    'action.cancel': 'Cancel',
+    'error.generic': 'Something went wrong',
+  };
+  return {
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      tf: (key: string, params: Record<string, string | number>) => {
+        let msg = catalog[key] ?? key;
+        for (const [k, v] of Object.entries(params)) {
+          msg = msg.replace(`{${k}}`, String(v));
+        }
+        return msg;
+      },
+      locale: 'en',
+      formatNumber: (n: number) => String(n),
+      formatStat: (n: number) => String(n),
+      formatPct: (n: number) => `${n}%`,
+    }),
+  };
+});
+
 import ManualEntryBase from '../ManualEntryBase';
 
 // Mock lucide-react icons used by child components
@@ -28,9 +70,9 @@ describe('ManualEntryBase', () => {
     render(<ManualEntryBase {...defaultProps} />);
 
     // Setup step should show the heading and outcome/factor labels
-    expect(screen.getByText('Step 1: What are you measuring?')).toBeTruthy();
-    expect(screen.getByText('Outcome (Y)')).toBeTruthy();
-    expect(screen.getByText('Factors (X)')).toBeTruthy();
+    expect(screen.getByText('Manual Data Entry')).toBeTruthy();
+    expect(screen.getByText('Outcome column')).toBeTruthy();
+    expect(screen.getByText('Factors')).toBeTruthy();
   });
 
   it('shows default outcome name "Weight"', () => {
@@ -68,22 +110,22 @@ describe('ManualEntryBase', () => {
     expect(screen.getByText('Add Row')).toBeTruthy();
     expect(screen.getByText('Manual Entry')).toBeTruthy();
     // Setup heading should no longer be visible
-    expect(screen.queryByText('Step 1: What are you measuring?')).toBeNull();
+    expect(screen.queryByText('Manual Data Entry')).toBeNull();
   });
 
   it('renders performance mode toggle when enablePerformanceMode is true', () => {
     render(<ManualEntryBase {...defaultProps} enablePerformanceMode={true} />);
 
-    expect(screen.getByText('Analysis Mode')).toBeTruthy();
-    expect(screen.getByText('Standard Analysis')).toBeTruthy();
-    expect(screen.getByText('Performance Mode')).toBeTruthy();
+    expect(screen.getByText('Analysis mode')).toBeTruthy();
+    expect(screen.getByText('Standard')).toBeTruthy();
+    expect(screen.getByText('Performance')).toBeTruthy();
   });
 
   it('does not show performance mode toggle when enablePerformanceMode is false', () => {
     render(<ManualEntryBase {...defaultProps} enablePerformanceMode={false} />);
 
-    expect(screen.queryByText('Analysis Mode')).toBeNull();
-    expect(screen.queryByText('Performance Mode')).toBeNull();
+    expect(screen.queryByText('Analysis mode')).toBeNull();
+    expect(screen.queryByText('Performance')).toBeNull();
   });
 
   it('pre-fills outcome from existingConfig in append mode', () => {
@@ -110,7 +152,7 @@ describe('ManualEntryBase', () => {
     // Component should render some content
     expect(container.innerHTML.length).toBeGreaterThan(0);
     // Setup step should be shown
-    expect(screen.getByText('Step 1: What are you measuring?')).toBeTruthy();
+    expect(screen.getByText('Manual Data Entry')).toBeTruthy();
   });
 
   it('allows changing spec limit values', () => {

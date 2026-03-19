@@ -1,5 +1,39 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('@variscout/hooks', () => {
+  const catalog: Record<string, string> = {
+    'stats.summary': 'Summary Statistics',
+    'stats.histogram': 'Histogram',
+    'stats.probPlot': 'Probability Plot',
+    'stats.editSpecs': 'Edit specifications',
+    'stats.mean': 'Mean',
+    'stats.median': 'Median',
+    'stats.stdDev': 'Std Dev',
+    'stats.samples': 'Samples',
+    'stats.passRate': 'Pass Rate',
+    'empty.noData': 'No data available',
+  };
+  return {
+    useTranslation: () => ({
+      t: (key: string) => catalog[key] ?? key,
+      tf: (key: string, params: Record<string, string | number>) => {
+        let msg = catalog[key] ?? key;
+        for (const [k, v] of Object.entries(params)) {
+          msg = msg.replace(`{${k}}`, String(v));
+        }
+        return msg;
+      },
+      formatStat: (n: number, decimals?: number) => {
+        if (decimals !== undefined) return n.toFixed(decimals);
+        return n % 1 === 0 ? String(n) : n.toFixed(2);
+      },
+      formatPct: (n: number) => `${n}%`,
+      locale: 'en',
+    }),
+  };
+});
+
 import StatsPanelBase from '../StatsPanelBase';
 import type { StatsPanelBaseProps } from '../types';
 
@@ -89,7 +123,7 @@ describe('StatsPanelBase', () => {
       const renderProbPlot = vi.fn().mockReturnValue(<div data-testid="prob-plot">Plot</div>);
       render(<StatsPanelBase {...defaultProps} renderProbabilityPlot={renderProbPlot} />);
 
-      fireEvent.click(screen.getByText('Prob Plot'));
+      fireEvent.click(screen.getByText('Probability Plot'));
       expect(screen.getByTestId('prob-plot')).toBeDefined();
       expect(renderProbPlot).toHaveBeenCalled();
     });
@@ -97,25 +131,25 @@ describe('StatsPanelBase', () => {
     it('shows empty state for histogram when no render function', () => {
       render(<StatsPanelBase {...defaultProps} />);
       fireEvent.click(screen.getByText('Histogram'));
-      expect(screen.getByText('No data available for histogram')).toBeDefined();
+      expect(screen.getByText('No data available')).toBeDefined();
     });
   });
 
   describe('pencil link', () => {
-    it('shows "Set spec limits" when no specs and onEditSpecs provided', () => {
+    it('shows "Edit specifications" when no specs and onEditSpecs provided', () => {
       const onEditSpecs = vi.fn();
       render(<StatsPanelBase {...defaultProps} onEditSpecs={onEditSpecs} />);
       expect(screen.getByTestId('edit-specs-link')).toBeDefined();
-      expect(screen.getByText('Set spec limits')).toBeDefined();
+      expect(screen.getByText('Edit specifications')).toBeDefined();
     });
 
-    it('shows "Edit spec limits" when specs exist and onEditSpecs provided', () => {
+    it('shows "Edit specifications" when specs exist and onEditSpecs provided', () => {
       const onEditSpecs = vi.fn();
       render(
         <StatsPanelBase {...defaultProps} specs={specsWithLimits} onEditSpecs={onEditSpecs} />
       );
       expect(screen.getByTestId('edit-specs-link')).toBeDefined();
-      expect(screen.getByText('Edit spec limits')).toBeDefined();
+      expect(screen.getByText('Edit specifications')).toBeDefined();
     });
 
     it('calls onEditSpecs when pencil link is clicked', () => {
