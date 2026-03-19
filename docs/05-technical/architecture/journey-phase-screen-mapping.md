@@ -75,9 +75,9 @@ HomeScreen → PasteScreen/ManualEntry → ColumnMapping → Dashboard → [Focu
 
 - **`ImprovementWorkspaceBase`** — Full-page improvement planning view. Contains SynthesisCard, Four Directions hint, IdeaGroupCards grouped by hypothesis, and ImprovementSummaryBar. Azure only.
 - **`SynthesisCard`** — Convergence synthesis narrative (editable, max 500 chars). Linked finding badges. Read-only variant for Board view header.
-- **`IdeaGroupCard`** — Ideas grouped by supported/partial hypothesis. Each row has checkbox, category badge, effort dropdown, projection badge, What-If and CoScout buttons.
+- **`IdeaGroupCard`** — Ideas grouped by supported/partial hypothesis. Each row has checkbox, direction badge (Four Ideation Directions), effort dropdown, projection badge, What-If and CoScout buttons.
 - **`ImprovementSummaryBar`** — Sticky bottom bar: selected count, effort breakdown (low/med/high), projected Cpk, "Convert selected → Actions" button.
-- **Category badge on `HypothesisNode` ideas:** Color-coded containment/corrective/preventive badge.
+- **Direction badge on `HypothesisNode` ideas:** Color-coded prevent/detect/simplify/eliminate badge (Four Ideation Directions).
 - **Effort dropdown on `HypothesisNode`:** Inline `<select>` replacing the cycle button, color-coded (green/amber/red).
 - **Projected vs actual on `FindingCard` outcome:** Shows "Projected X.XX → Actual Y.YY (+delta)" with green/red color.
 - **`PDCAProgress.hasSynthesis` prop:** Enables synthesis indicator in the PDCA progress tracker.

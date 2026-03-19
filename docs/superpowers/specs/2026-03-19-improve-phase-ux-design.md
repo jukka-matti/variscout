@@ -385,12 +385,12 @@ The tier gating is:
 The following components and infrastructure have been implemented:
 
 | Component                          | Package           | What It Does                                                                    |
-| ---------------------------------- | ----------------- | ------------------------------------------------------------------------------- | -------- | ---------- | ------------------------------- | --- | --- |
+| ---------------------------------- | ----------------- | ------------------------------------------------------------------------------- |
 | `ProcessContext.synthesis`         | `@variscout/core` | Field on AI context type (max 500 chars)                                        |
 | Synthesis in CoScout prompt        | `@variscout/core` | `coScout.ts` includes synthesis in investigation context with language guidance |
 | Synthesis in narration prompt      | `@variscout/core` | `narration.ts` includes synthesis in summary prompt                             |
 | `ActionItem.ideaId`                | `@variscout/core` | FK field + `createActionItem()` helper accepts ideaId                           |
-| `IdeaDirection` type               | `@variscout/core` | `'prevent'                                                                      | 'detect' | 'simplify' | 'eliminate'`on`ImprovementIdea` |     |     |
+| `IdeaDirection` type               | `@variscout/core` | `'prevent' \| 'detect' \| 'simplify' \| 'eliminate'` on `ImprovementIdea`       |
 | Direction badge on HypothesisNode  | `@variscout/ui`   | Color-coded badge rendering idea direction                                      |
 | Effort dropdown on HypothesisNode  | `@variscout/ui`   | Inline `<select>` replacing cycle button, color-coded                           |
 | Effort in ActionProposalCard       | `@variscout/ui`   | Preview line with effort label and definition                                   |

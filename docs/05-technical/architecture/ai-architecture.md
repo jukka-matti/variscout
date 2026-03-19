@@ -376,7 +376,7 @@ When the investigation reaches a converging state — one or more hypotheses are
 
 **Prompt changes:**
 
-- System prompt adds coaching instructions: guide the analyst toward actionable improvement ideas, ask about constraints (budget, timeline, authority), suggest structured approaches (eliminate, reduce, control)
+- System prompt adds coaching instructions: guide the analyst toward actionable improvement ideas, ask about constraints (budget, timeline, authority), suggest structured approaches using the Four Ideation Directions (prevent, detect, simplify, eliminate)
 - Suggested questions include improvement-focused options (e.g., "What improvements could address this?", "How could we prevent this from recurring?")
 
 **No new AI endpoints.** The converging-phase coaching reuses the existing `fetchCoScoutResponse()` / `fetchCoScoutStreamingResponse()` calls — only the system prompt content changes based on investigation phase.

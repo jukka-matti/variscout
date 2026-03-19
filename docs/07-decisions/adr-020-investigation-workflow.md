@@ -73,6 +73,8 @@ Implement a complete Problem -> Hypothesis -> Evidence -> Projection -> Action -
 - **Azure App:** Full implementation (brief, hypotheses, projections, progress tracking, investigation page)
 - **PWA:** Problem statement only (teaches the discipline of framing before analyzing)
 
+> **Updated 2026-03-19:** `ImprovementIdea` gained a `direction` field (`IdeaDirection`: `'prevent' | 'detect' | 'simplify' | 'eliminate'`) implementing the Four Ideation Directions framework. This replaces the earlier `category` field (`IdeaCategory`: `'containment' | 'corrective' | 'preventive'`).
+
 ## Consequences
 
 ### Positive
