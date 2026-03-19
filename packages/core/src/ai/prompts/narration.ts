@@ -59,6 +59,12 @@ export function buildSummaryPrompt(context: AIContext): string {
   if (context.process?.description) {
     parts.push(`Process: ${context.process.description}`);
   }
+  if (context.process?.product) {
+    parts.push(`Product: ${context.process.product}`);
+  }
+  if (context.process?.measurement) {
+    parts.push(`Measurement: ${context.process.measurement}`);
+  }
 
   // Factor roles
   if (context.process?.factorRoles) {
@@ -149,6 +155,11 @@ export function buildSummaryPrompt(context: AIContext): string {
   // Problem statement
   if (context.process?.problemStatement) {
     parts.push(`Problem statement: ${context.process.problemStatement}`);
+  }
+
+  // Convergence synthesis
+  if (context.process?.synthesis) {
+    parts.push(`Synthesis (suspected cause): ${context.process.synthesis}`);
   }
 
   // Staged comparison (Before/After verification)

@@ -481,13 +481,10 @@ export const ko: MessageCatalog = {
   'admin.manageSubscription': 'Azure에서 구독 관리',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '€99/월',
+  'admin.planStandardPrice': '€79/월',
   'admin.planTeamPrice': '€199/월',
-  'admin.planTeamAIPrice': '€279/월',
-  'admin.planStandardDesc': '전체 분석, 로컬 파일 저장소',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, 모바일',
-  'admin.planTeamAIDesc': 'AI Knowledge Base, 향상된 CoScout',
+  'admin.planStandardDesc': 'CoScout AI 포함 전체 분석',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Knowledge Base',
 
   // Feature names (plan matrix)
   'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
@@ -580,4 +577,42 @@ export const ko: MessageCatalog = {
     'Knowledge Base 검색이 관리자에게는 작동하지만 다른 사용자에게는 작동하지 않습니다.',
   'admin.issue.kbPartialSteps':
     'Remote SharePoint 지식 소스는 사용자별 권한을 사용합니다. 각 사용자는 문서에 대한 SharePoint 접근 권한이 있어야 합니다.\n영향을 받는 사용자가 조건부 접근 정책에 의해 차단되었는지 확인하세요.\nSites.Read.All 위임 권한에 대한 관리자 동의가 부여되었는지 확인하세요.\n영향을 받는 사용자에게 로그아웃한 후 다시 로그인하여 토큰을 새로 고치도록 요청하세요.',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to…',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
+  'improve.convertToActions': 'Convert selected → Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low · {medium} med · {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': 'Δ {delta} to target',
+  'improve.convertedToAction': '→ Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };

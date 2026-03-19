@@ -3,7 +3,7 @@
  *
  * Exports in-memory AI traces from @variscout/core to Azure Application Insights
  * as custom events. Only active when VITE_APPINSIGHTS_CONNECTION_STRING is configured
- * (team-ai tier deployments). Gracefully no-ops otherwise.
+ * (when AI endpoint is configured). Gracefully no-ops otherwise.
  *
  * No PII is sent — only aggregate statistics and anonymized trace metadata
  * (feature name, model, duration, token counts, success/failure).

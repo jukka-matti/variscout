@@ -448,15 +448,18 @@ export const en: MessageCatalog = {
   'coach.problem.frame': 'Set up your data to start investigating the problem.',
   'coach.problem.scout': 'Look for variation patterns that could explain the problem.',
   'coach.problem.investigate': 'Build evidence linking factors to the problem.',
-  'coach.problem.improve': 'Plan and execute improvements using the PDCA cycle.',
+  'coach.problem.improve':
+    'Brainstorm ideas using the Four Directions (Prevent, Detect, Simplify, Eliminate), then plan and execute via PDCA.',
   'coach.hypothesis.frame': 'Set up your data to test your hypothesis.',
   'coach.hypothesis.scout': 'Look for evidence that supports or refutes your hypothesis.',
   'coach.hypothesis.investigate': 'Gather statistical evidence to confirm the suspected cause.',
-  'coach.hypothesis.improve': 'Confirmed cause \u2014 plan corrective actions via PDCA.',
+  'coach.hypothesis.improve':
+    'Confirmed cause \u2014 brainstorm ideas (Prevent, Detect, Simplify, Eliminate), assess feasibility, then execute via PDCA.',
   'coach.routine.frame': 'Set up your data for a routine process check.',
   'coach.routine.scout': 'Scan for new signals, drift, or unexpected patterns.',
   'coach.routine.investigate': 'A signal was found \u2014 drill into potential causes.',
-  'coach.routine.improve': 'Cause identified \u2014 plan corrective actions via PDCA.',
+  'coach.routine.improve':
+    'Signal confirmed \u2014 brainstorm preventive actions and sustaining controls via PDCA.',
 
   // PWA HomeScreen
   'home.heading': 'Explore Variation Analysis',
@@ -522,13 +525,10 @@ export const en: MessageCatalog = {
   'admin.manageSubscription': 'Manage Subscription in Azure',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '\u20ac99/mo',
+  'admin.planStandardPrice': '\u20ac79/mo',
   'admin.planTeamPrice': '\u20ac199/mo',
-  'admin.planTeamAIPrice': '\u20ac279/mo',
-  'admin.planStandardDesc': 'Full analysis, local file storage',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobile',
-  'admin.planTeamAIDesc': 'AI Knowledge Base, enhanced CoScout',
+  'admin.planStandardDesc': 'Full analysis with CoScout AI',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Knowledge Base',
 
   // Feature names (plan matrix)
   'feature.charts': 'I-Chart, Boxplot, Pareto, Stats',
@@ -621,4 +621,42 @@ export const en: MessageCatalog = {
   'admin.issue.kbPartialDesc': 'Knowledge Base search works for admins but not for other users.',
   'admin.issue.kbPartialSteps':
     'Remote SharePoint knowledge sources use per-user permissions. Each user must have SharePoint access to the documents.\nCheck if the affected users are blocked by Conditional Access policies.\nVerify admin consent was granted for the Sites.Read.All delegated permission.\nAsk the affected users to sign out and sign back in to refresh their token.',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to\u2026',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent \u00b7 Detect \u00b7 Simplify \u00b7 Eliminate',
+  'improve.convertToActions': 'Convert selected \u2192 Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low \u00b7 {medium} med \u00b7 {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': '\u0394 {delta} to target',
+  'improve.convertedToAction': '\u2192 Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} \u2192 Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { hasTeamFeatures, isTeamAIPlan } from '@variscout/core';
+import { hasTeamFeatures } from '@variscout/core';
 import { isLocalDev, getAccessToken } from '../auth/easyAuth';
 import { graphFetch, GRAPH_BASE } from '../services/graphFetch';
 import { searchDocuments } from '../services/searchService';
@@ -13,7 +13,7 @@ export interface HealthCheck {
   description: string;
   status: CheckStatus;
   error?: string;
-  plan: 'all' | 'team' | 'team-ai';
+  plan: 'all' | 'team';
 }
 
 export interface UseAdminHealthChecks {
@@ -52,20 +52,19 @@ const CHECK_DEFINITIONS: Omit<HealthCheck, 'status' | 'error'>[] = [
     id: 'ai-endpoint',
     label: 'AI Endpoint',
     description: 'Verify the AI service endpoint is reachable',
-    plan: 'team-ai',
+    plan: 'all',
   },
   {
     id: 'ai-search',
     label: 'AI Search (Knowledge Base)',
     description: 'Verify Azure AI Search connectivity for Knowledge Base',
-    plan: 'team-ai',
+    plan: 'team',
   },
 ];
 
-function isCheckApplicable(checkPlan: 'all' | 'team' | 'team-ai'): boolean {
+function isCheckApplicable(checkPlan: 'all' | 'team'): boolean {
   if (checkPlan === 'all') return true;
   if (checkPlan === 'team') return hasTeamFeatures();
-  if (checkPlan === 'team-ai') return isTeamAIPlan();
   return false;
 }
 

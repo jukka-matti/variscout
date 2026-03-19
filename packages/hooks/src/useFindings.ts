@@ -79,8 +79,14 @@ export interface UseFindingsReturn {
   setProjection: (id: string, projection: FindingProjection) => void;
   /** Clear a finding's projection */
   clearProjection: (id: string) => void;
-  /** Add an action item to a finding */
-  addAction: (id: string, text: string, assignee?: FindingAssignee, dueDate?: string) => void;
+  /** Add an action item to a finding, optionally linked to an improvement idea */
+  addAction: (
+    id: string,
+    text: string,
+    assignee?: FindingAssignee,
+    dueDate?: string,
+    ideaId?: string
+  ) => void;
   /** Update an existing action item */
   updateAction: (
     id: string,
@@ -375,8 +381,8 @@ export function useFindings(options: UseFindingsOptions = {}): UseFindingsReturn
   );
 
   const addAction = useCallback(
-    (id: string, text: string, assignee?: FindingAssignee, dueDate?: string) => {
-      const action = createActionItem(text, assignee, dueDate);
+    (id: string, text: string, assignee?: FindingAssignee, dueDate?: string, ideaId?: string) => {
+      const action = createActionItem(text, assignee, dueDate, ideaId);
       setFindings(prev => {
         const next = prev.map(f => {
           if (f.id !== id) return f;

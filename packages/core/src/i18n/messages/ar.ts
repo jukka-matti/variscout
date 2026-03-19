@@ -516,13 +516,10 @@ export const ar: MessageCatalog = {
   'admin.manageSubscription': 'إدارة الاشتراك في Azure',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '€99/شهر',
+  'admin.planStandardPrice': '€79/شهر',
   'admin.planTeamPrice': '€199/شهر',
-  'admin.planTeamAIPrice': '€279/شهر',
-  'admin.planStandardDesc': 'تحليل كامل، تخزين ملفات محلي',
-  'admin.planTeamDesc': 'Teams، OneDrive، SharePoint، الجوال',
-  'admin.planTeamAIDesc': 'قاعدة معرفة AI، CoScout محسّن',
+  'admin.planStandardDesc': 'تحليل كامل مع CoScout AI',
+  'admin.planTeamDesc': 'Teams، OneDrive، SharePoint، قاعدة المعرفة',
 
   // Feature names
   'feature.charts': 'I-Chart، Boxplot، Pareto، إحصائيات',
@@ -612,4 +609,42 @@ export const ar: MessageCatalog = {
   'admin.issue.kbPartialDesc': 'بحث قاعدة المعرفة يعمل للمسؤولين لكن ليس للمستخدمين الآخرين.',
   'admin.issue.kbPartialSteps':
     'مصادر معرفة Remote SharePoint تستخدم أذونات لكل مستخدم. يجب أن يكون لكل مستخدم وصول SharePoint إلى المستندات.\nتحقق مما إذا كان المستخدمون المتأثرون محظورين بسياسات الوصول المشروط.\nتحقق من منح موافقة المسؤول لإذن Sites.Read.All المفوض.\nاطلب من المستخدمين المتأثرين تسجيل الخروج والدخول مرة أخرى لتحديث الرمز المميز.',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to…',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
+  'improve.convertToActions': 'Convert selected → Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low · {medium} med · {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': 'Δ {delta} to target',
+  'improve.convertedToAction': '→ Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };

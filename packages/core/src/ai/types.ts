@@ -43,6 +43,8 @@ export interface ProcessContext {
   targetDirection?: 'minimize' | 'maximize' | 'target';
   /** Factor role classifications derived from investigation categories */
   factorRoles?: Record<string, string>;
+  /** Convergence synthesis — suspected cause narrative (max 500 chars) */
+  synthesis?: string;
 }
 
 /** Structured AI context assembled from current analysis state */

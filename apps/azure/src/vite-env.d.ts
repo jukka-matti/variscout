@@ -9,7 +9,7 @@ interface ImportMetaEnv {
   readonly VITE_RESPONSES_API_DEPLOYMENT?: string;
   /** API key for Responses API (dev/testing; production uses EasyAuth token) */
   readonly VITE_AI_API_KEY?: string;
-  /** Application Insights connection string for AI telemetry (team-ai tier only) */
+  /** Application Insights connection string for AI telemetry */
   readonly VITE_APPINSIGHTS_CONNECTION_STRING?: string;
 }
 

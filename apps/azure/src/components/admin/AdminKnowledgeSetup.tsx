@@ -8,7 +8,7 @@ import {
   Loader2,
   FolderOpen,
 } from 'lucide-react';
-import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
+import { hasTeamFeatures, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { isKnowledgeBaseAvailable, searchDocuments } from '../../services/searchService';
 import { getRuntimeConfig } from '../../lib/runtimeConfig';
 import { getCachedChannelFolderUrl } from '../../services/channelDrive';
@@ -39,7 +39,7 @@ function StatusRow({ label, ok, detail }: StatusRowProps) {
  * AdminKnowledgeSetup — ADR-026 SharePoint-first Knowledge Base setup.
  *
  * Prerequisites:
- * - Team AI plan
+ * - Team plan
  * - AI Search endpoint configured
  * - ≥1 M365 Copilot license in tenant (for Remote SharePoint knowledge sources)
  *
@@ -55,7 +55,7 @@ export function AdminKnowledgeSetup() {
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testError, setTestError] = useState<string | null>(null);
 
-  const teamAIPlan = useMemo(() => isTeamAIPlan(), []);
+  const teamPlan = useMemo(() => hasTeamFeatures(), []);
   const config = useMemo(() => getRuntimeConfig(), []);
   const searchEndpoint = config?.aiSearchEndpoint || import.meta.env.VITE_AI_SEARCH_ENDPOINT || '';
   const hasSearchEndpoint = !!searchEndpoint;
@@ -82,7 +82,7 @@ export function AdminKnowledgeSetup() {
     }
   }, []);
 
-  const allReady = teamAIPlan && hasSearchEndpoint && previewEnabled;
+  const allReady = teamPlan && hasSearchEndpoint && previewEnabled;
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
@@ -100,11 +100,7 @@ export function AdminKnowledgeSetup() {
       {/* Status checks */}
       <section className="mb-8 bg-surface-secondary/50 border border-edge rounded-lg p-4">
         <h3 className="text-lg font-semibold text-content mb-3">Status</h3>
-        <StatusRow
-          label="Team AI plan"
-          ok={teamAIPlan}
-          detail={teamAIPlan ? 'Active' : 'Required'}
-        />
+        <StatusRow label="Team plan" ok={teamPlan} detail={teamPlan ? 'Active' : 'Required'} />
         <StatusRow
           label="Search endpoint configured"
           ok={hasSearchEndpoint}
@@ -133,7 +129,7 @@ export function AdminKnowledgeSetup() {
         </p>
         <button
           onClick={handleTogglePreview}
-          disabled={!teamAIPlan}
+          disabled={!teamPlan}
           className={`px-5 py-2.5 rounded-lg font-medium transition-colors ${
             previewEnabled
               ? 'bg-purple-600 text-white hover:bg-purple-700'
@@ -288,9 +284,8 @@ export function AdminKnowledgeSetup() {
             <h4 className="text-sm font-semibold text-content mb-1">Cost Estimate</h4>
             <p className="text-sm text-content-secondary">
               The AI resources (Azure AI Services, AI Search, model deployments) add approximately
-              €65-85/month to the Team AI plan cost. Remote SharePoint knowledge sources do not
-              incur additional indexer costs — documents are accessed on demand with user
-              credentials.
+              €65-85/month to the base plan cost. Remote SharePoint knowledge sources do not incur
+              additional indexer costs — documents are accessed on demand with user credentials.
             </p>
           </div>
         </div>

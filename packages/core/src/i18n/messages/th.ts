@@ -471,13 +471,10 @@ export const th: MessageCatalog = {
   'admin.manageSubscription': 'จัดการการสมัครใน Azure',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '€99/เดือน',
+  'admin.planStandardPrice': '€79/เดือน',
   'admin.planTeamPrice': '€199/เดือน',
-  'admin.planTeamAIPrice': '€279/เดือน',
-  'admin.planStandardDesc': 'วิเคราะห์ครบถ้วน เก็บไฟล์ในเครื่อง',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, มือถือ',
-  'admin.planTeamAIDesc': 'ฐานความรู้ AI, CoScout ปรับปรุง',
+  'admin.planStandardDesc': 'วิเคราะห์ครบถ้วนพร้อม CoScout AI',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, ฐานความรู้',
   'feature.charts': 'I-Chart, Boxplot, Pareto, สถิติ',
   'feature.capability': 'การวิเคราะห์ความสามารถ (Cp/Cpk)',
   'feature.performance': 'โหมดประสิทธิภาพ (หลายช่อง)',
@@ -559,4 +556,42 @@ export const th: MessageCatalog = {
   'admin.issue.kbPartialDesc': 'การค้นหาฐานความรู้ทำงานสำหรับผู้ดูแลแต่ไม่ทำงานสำหรับผู้ใช้อื่น',
   'admin.issue.kbPartialSteps':
     'แหล่งความรู้ Remote SharePoint ใช้สิทธิ์ต่อผู้ใช้ ผู้ใช้แต่ละคนต้องมีสิทธิ์เข้าถึง SharePoint ไปยังเอกสาร\nตรวจสอบว่าผู้ใช้ที่ได้รับผลกระทบถูกบล็อกโดยนโยบาย Conditional Access หรือไม่\nตรวจสอบว่าได้ให้ admin consent สำหรับสิทธิ์ delegated Sites.Read.All แล้ว\nขอให้ผู้ใช้ที่ได้รับผลกระทบออกจากระบบและเข้าสู่ระบบอีกครั้งเพื่อรีเฟรช token',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to…',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
+  'improve.convertToActions': 'Convert selected → Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low · {medium} med · {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': 'Δ {delta} to target',
+  'improve.convertedToAction': '→ Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };

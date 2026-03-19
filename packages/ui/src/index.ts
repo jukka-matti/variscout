@@ -391,6 +391,18 @@ export {
   type MobileCoachSheetProps,
 } from './components/MethodologyCoach';
 
+// Improvement Plan workspace
+export {
+  SynthesisCard,
+  type SynthesisCardProps,
+  IdeaGroupCard,
+  type IdeaGroupCardProps,
+  ImprovementSummaryBar,
+  type ImprovementSummaryBarProps,
+  ImprovementWorkspaceBase,
+  type ImprovementWorkspaceBaseProps,
+} from './components/ImprovementPlan';
+
 // Hooks
 export {
   useIsMobile,

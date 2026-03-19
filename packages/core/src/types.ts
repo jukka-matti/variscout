@@ -649,13 +649,13 @@ export type LicenseTier = 'free' | 'enterprise';
 
 /**
  * Marketplace plan for Azure Managed Application
- * - standard: Local file storage, EasyAuth (User.Read only), no cloud sync (€99/month)
- * - team: + OneDrive, SharePoint, Teams SDK, photos, mobile Field View (€299/month)
+ * - standard: Full analysis with CoScout AI, local file storage (€79/month)
+ * - team: + OneDrive, SharePoint, Teams, Knowledge Base (€199/month)
  *
  * Orthogonal to LicenseTier: both plans are 'enterprise' tier (same analysis features).
  * Plan controls collaboration features; tier controls analysis features.
  */
-export type MarketplacePlan = 'standard' | 'team' | 'team-ai';
+export type MarketplacePlan = 'standard' | 'team';
 
 /**
  * Tier-specific limits for feature gating

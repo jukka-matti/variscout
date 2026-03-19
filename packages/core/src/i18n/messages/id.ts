@@ -475,13 +475,10 @@ export const id: MessageCatalog = {
   'admin.manageSubscription': 'Kelola Langganan di Azure',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '€99/bln',
+  'admin.planStandardPrice': '€79/bln',
   'admin.planTeamPrice': '€199/bln',
-  'admin.planTeamAIPrice': '€279/bln',
-  'admin.planStandardDesc': 'Analisis lengkap, penyimpanan file lokal',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobile',
-  'admin.planTeamAIDesc': 'Basis Pengetahuan AI, CoScout yang ditingkatkan',
+  'admin.planStandardDesc': 'Analisis lengkap dengan CoScout AI',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Basis Pengetahuan',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statistik',
   'feature.capability': 'Analisis kapabilitas (Cp/Cpk)',
   'feature.performance': 'Mode Performa (multi-kanal)',
@@ -569,4 +566,42 @@ export const id: MessageCatalog = {
     'Pencarian Basis Pengetahuan berfungsi untuk admin tetapi tidak untuk pengguna lain.',
   'admin.issue.kbPartialSteps':
     'Sumber pengetahuan Remote SharePoint menggunakan izin per pengguna. Setiap pengguna harus memiliki akses SharePoint ke dokumen.\nPeriksa apakah pengguna yang terpengaruh diblokir oleh kebijakan Conditional Access.\nVerifikasi persetujuan admin telah diberikan untuk izin delegasi Sites.Read.All.\nMinta pengguna yang terpengaruh untuk keluar dan masuk kembali untuk menyegarkan token mereka.',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to…',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
+  'improve.convertToActions': 'Convert selected → Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low · {medium} med · {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': 'Δ {delta} to target',
+  'improve.convertedToAction': '→ Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };

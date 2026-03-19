@@ -106,7 +106,7 @@ export {
   configurePlan,
   getPlan,
   hasTeamFeatures,
-  isTeamAIPlan,
+  hasKnowledgeBase,
   isTeamPlan,
 } from './tier';
 

@@ -104,6 +104,15 @@ function formatPreview(
         };
         lines.push(`Category: ${categoryLabels[preview.category as string] ?? preview.category}`);
       }
+      if (params.effort || preview.effort) {
+        const effort = (params.effort ?? preview.effort) as string;
+        const effortLabels: Record<string, string> = {
+          low: 'Low \u2014 existing resources, no approval',
+          medium: 'Medium \u2014 some coordination, minor cost',
+          high: 'High \u2014 investment, cross-team coordination',
+        };
+        lines.push(`Effort: ${effortLabels[effort] ?? effort}`);
+      }
       if (typeof preview.existingIdeasCount === 'number' && preview.existingIdeasCount > 0) {
         lines.push(
           `${preview.existingIdeasCount} existing idea${preview.existingIdeasCount !== 1 ? 's' : ''}`

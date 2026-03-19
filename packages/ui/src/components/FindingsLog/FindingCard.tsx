@@ -89,6 +89,8 @@ export interface FindingCardProps {
   onCompleteAction?: (id: string, actionId: string) => void;
   /** Callback to delete an action item */
   onDeleteAction?: (id: string, actionId: string) => void;
+  /** Projected Cpk from the linked improvement idea (for projected vs actual comparison) */
+  projectedCpk?: number;
   /** Callback to set outcome */
   onSetOutcome?: (
     id: string,
@@ -412,6 +414,7 @@ interface OutcomeSectionProps {
     }
   ) => void;
   readOnly?: boolean;
+  projectedCpk?: number;
 }
 
 const OutcomeSection: React.FC<OutcomeSectionProps> = ({
@@ -419,6 +422,7 @@ const OutcomeSection: React.FC<OutcomeSectionProps> = ({
   outcome,
   onSetOutcome,
   readOnly,
+  projectedCpk,
 }) => {
   const [isOpen, setIsOpen] = useState(!!outcome);
   const { formatStat } = useTranslation();
@@ -469,6 +473,18 @@ const OutcomeSection: React.FC<OutcomeSectionProps> = ({
               {outcome.cpkAfter !== undefined && (
                 <span className="ml-2 text-content-muted">
                   Cpk after: {formatStat(outcome.cpkAfter)}
+                </span>
+              )}
+              {projectedCpk !== undefined && outcome.cpkAfter !== undefined && (
+                <span
+                  className={`ml-2 text-[10px] ${
+                    outcome.cpkAfter >= projectedCpk ? 'text-green-400' : 'text-red-400'
+                  }`}
+                  data-testid={`projected-vs-actual-${findingId}`}
+                >
+                  Projected {formatStat(projectedCpk)} &rarr; Actual {formatStat(outcome.cpkAfter)}{' '}
+                  ({outcome.cpkAfter >= projectedCpk ? '+' : ''}
+                  {formatStat(outcome.cpkAfter - projectedCpk)})
                 </span>
               )}
               {outcome.notes && (
@@ -643,6 +659,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
   onAddAction,
   onCompleteAction,
   onDeleteAction,
+  projectedCpk,
   onSetOutcome,
   onProjectImprovement,
   hasSpecs = false,
@@ -927,6 +944,7 @@ const FindingCard: React.FC<FindingCardProps> = ({
             outcome={finding.outcome}
             onSetOutcome={onSetOutcome}
             readOnly={status === 'resolved'}
+            projectedCpk={projectedCpk}
           />
         )}
 

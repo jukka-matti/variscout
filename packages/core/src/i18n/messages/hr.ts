@@ -518,13 +518,10 @@ export const hr: MessageCatalog = {
   'admin.manageSubscription': 'Upravljanje pretplatom u Azure',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '€99/mj.',
+  'admin.planStandardPrice': '€79/mj.',
   'admin.planTeamPrice': '€199/mj.',
-  'admin.planTeamAIPrice': '€279/mj.',
-  'admin.planStandardDesc': 'Potpuna analiza, lokalno pohranjivanje datoteka',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobilno',
-  'admin.planTeamAIDesc': 'AI baza znanja, poboljšani CoScout',
+  'admin.planStandardDesc': 'Potpuna analiza s CoScout AI',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, baza znanja',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statistika',
@@ -618,4 +615,42 @@ export const hr: MessageCatalog = {
     'Pretraga baze znanja radi za administratore, ali ne i za ostale korisnike.',
   'admin.issue.kbPartialSteps':
     'Udaljeni SharePoint izvori znanja koriste dozvole po korisniku. Svaki korisnik mora imati SharePoint pristup dokumentima.\nProvjerite jesu li pogođeni korisnici blokirani politikama uvjetnog pristupa.\nProvjerite je li dano odobrenje administratora za delegiranu dozvolu Sites.Read.All.\nZamolite pogođene korisnike da se odjave i ponovno prijave za osvježavanje tokena.',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to…',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
+  'improve.convertToActions': 'Convert selected → Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low · {medium} med · {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': 'Δ {delta} to target',
+  'improve.convertedToAction': '→ Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };

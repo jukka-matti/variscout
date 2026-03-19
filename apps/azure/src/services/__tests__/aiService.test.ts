@@ -102,22 +102,22 @@ describe('isAIAvailable', () => {
     (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
   });
 
-  it('returns false when VITE_AI_ENDPOINT is not set', () => {
+  it('returns false when no AI endpoint is configured', () => {
     expect(isAIAvailable()).toBe(false);
   });
 
-  it('returns false for standard plan even if endpoint were set', () => {
+  it('returns true for any plan when endpoint is configured', () => {
+    mockEndpoint(OPENAI_ENDPOINT);
     configurePlan('standard');
-    expect(isAIAvailable()).toBe(false);
-  });
+    expect(isAIAvailable()).toBe(true);
 
-  it('returns false for team plan (AI requires team-ai)', () => {
     configurePlan('team');
-    expect(isAIAvailable()).toBe(false);
+    expect(isAIAvailable()).toBe(true);
   });
 
-  it('returns false for team-ai plan when endpoint not set', () => {
-    configurePlan('team-ai');
+  it('returns false when endpoint not set regardless of plan', () => {
+    (getRuntimeConfig as ReturnType<typeof vi.fn>).mockReturnValue(null);
+    configurePlan('team');
     expect(isAIAvailable()).toBe(false);
   });
 });

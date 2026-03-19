@@ -44,7 +44,7 @@ export interface ToolbarSyncState {
   syncStatus: { status: string; message?: string };
   saveStatus: 'idle' | 'saving' | 'saved' | 'error';
   onSave: () => void;
-  /** Save to a custom SharePoint location (Team/Team AI only, ADR-030) */
+  /** Save to a custom SharePoint location (Team only, ADR-030) */
   onSaveAs?: () => void;
 }
 

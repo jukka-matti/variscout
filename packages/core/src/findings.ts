@@ -115,6 +115,8 @@ export interface ActionItem {
   dueDate?: string; // ISO date string (YYYY-MM-DD)
   completedAt?: number; // Date.now() timestamp
   createdAt: number;
+  /** Link to the ImprovementIdea that spawned this action (for traceability) */
+  ideaId?: string;
 }
 
 // ============================================================================
@@ -504,15 +506,18 @@ export function createFindingComment(text: string, author?: string): FindingComm
 export function createActionItem(
   text: string,
   assignee?: FindingAssignee,
-  dueDate?: string
+  dueDate?: string,
+  ideaId?: string
 ): ActionItem {
-  return {
+  const action: ActionItem = {
     id: generateId(),
     text,
     assignee,
     dueDate,
     createdAt: Date.now(),
   };
+  if (ideaId) action.ideaId = ideaId;
+  return action;
 }
 
 /**

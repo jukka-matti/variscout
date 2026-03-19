@@ -20,7 +20,7 @@ import {
   configurePlan,
   getPlan,
   hasTeamFeatures,
-  isTeamAIPlan,
+  hasKnowledgeBase,
   isTeamPlan,
   type LicenseTier,
   type MarketplacePlan,
@@ -316,44 +316,29 @@ describe('tier module', () => {
         expect(hasTeamFeatures('team')).toBe(true);
       });
 
-      it('should return true for team-ai plan', () => {
-        expect(hasTeamFeatures('team-ai')).toBe(true);
-      });
-
       it('should use current plan when no argument provided', () => {
         configurePlan('standard');
         expect(hasTeamFeatures()).toBe(false);
 
         configurePlan('team');
         expect(hasTeamFeatures()).toBe(true);
-
-        configurePlan('team-ai');
-        expect(hasTeamFeatures()).toBe(true);
       });
     });
 
-    describe('isTeamAIPlan', () => {
+    describe('hasKnowledgeBase', () => {
       it('should return false for standard plan', () => {
-        expect(isTeamAIPlan('standard')).toBe(false);
+        expect(hasKnowledgeBase('standard')).toBe(false);
       });
 
-      it('should return false for team plan', () => {
-        expect(isTeamAIPlan('team')).toBe(false);
+      it('should return true for team plan', () => {
+        expect(hasKnowledgeBase('team')).toBe(true);
       });
 
-      it('should return true for team-ai plan', () => {
-        expect(isTeamAIPlan('team-ai')).toBe(true);
-      });
-
-      it('should use current plan when no argument provided', () => {
-        configurePlan('standard');
-        expect(isTeamAIPlan()).toBe(false);
-
-        configurePlan('team');
-        expect(isTeamAIPlan()).toBe(false);
-
-        configurePlan('team-ai');
-        expect(isTeamAIPlan()).toBe(true);
+      it('should match hasTeamFeatures for all plans', () => {
+        const plans: MarketplacePlan[] = ['standard', 'team'];
+        plans.forEach(plan => {
+          expect(hasKnowledgeBase(plan)).toBe(hasTeamFeatures(plan));
+        });
       });
     });
 
@@ -364,10 +349,6 @@ describe('tier module', () => {
 
       it('should return true for team plan', () => {
         expect(isTeamPlan('team')).toBe(true);
-      });
-
-      it('should return false for team-ai plan (only matches team)', () => {
-        expect(isTeamPlan('team-ai')).toBe(false);
       });
 
       it('should use current plan when no argument provided', () => {
@@ -393,13 +374,6 @@ describe('tier module', () => {
         expect(getPlan()).toBe('team');
         expect(isPaidTier()).toBe(true);
         expect(hasTeamFeatures()).toBe(true);
-
-        configurePlan('team-ai');
-        expect(getTier()).toBe('enterprise');
-        expect(getPlan()).toBe('team-ai');
-        expect(isPaidTier()).toBe(true);
-        expect(hasTeamFeatures()).toBe(true);
-        expect(isTeamAIPlan()).toBe(true);
       });
 
       it('should allow free tier with team plan (for testing)', () => {
@@ -411,13 +385,11 @@ describe('tier module', () => {
     });
 
     it('should correctly map plan to team features', () => {
-      const plans: MarketplacePlan[] = ['standard', 'team', 'team-ai'];
-      const expectedTeamFeatures = [false, true, true];
-      const expectedTeamAI = [false, false, true];
+      const plans: MarketplacePlan[] = ['standard', 'team'];
+      const expectedTeamFeatures = [false, true];
 
       plans.forEach((plan, i) => {
         expect(hasTeamFeatures(plan)).toBe(expectedTeamFeatures[i]);
-        expect(isTeamAIPlan(plan)).toBe(expectedTeamAI[i]);
       });
     });
   });

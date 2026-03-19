@@ -478,13 +478,10 @@ export const zhHant: MessageCatalog = {
   'admin.manageSubscription': '在Azure中管理訂閱',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '€99/月',
+  'admin.planStandardPrice': '€79/月',
   'admin.planTeamPrice': '€199/月',
-  'admin.planTeamAIPrice': '€279/月',
-  'admin.planStandardDesc': '完整分析，本機檔案儲存',
-  'admin.planTeamDesc': 'Teams、OneDrive、SharePoint、行動裝置',
-  'admin.planTeamAIDesc': 'AI知識庫，增強型CoScout',
+  'admin.planStandardDesc': '包含CoScout AI的完整分析',
+  'admin.planTeamDesc': 'Teams、OneDrive、SharePoint、知識庫',
 
   // Feature names
   'feature.charts': 'I-Chart、Boxplot、Pareto、統計',
@@ -570,4 +567,42 @@ export const zhHant: MessageCatalog = {
   'admin.issue.kbPartialDesc': '知識庫搜尋對管理員有效但對其他使用者無效。',
   'admin.issue.kbPartialSteps':
     '遠端SharePoint知識來源使用每位使用者的權限。每位使用者必須擁有對文件的SharePoint存取權限。\n檢查受影響的使用者是否被條件式存取原則封鎖。\n驗證是否已授予Sites.Read.All委派權限的管理員同意。\n要求受影響的使用者登出並重新登入以重新整理其權杖。',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to…',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
+  'improve.convertToActions': 'Convert selected → Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low · {medium} med · {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': 'Δ {delta} to target',
+  'improve.convertedToAction': '→ Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };

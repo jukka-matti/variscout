@@ -15,7 +15,6 @@ import {
   extractResponseText,
   narrationResponseSchema,
   chartInsightResponseSchema,
-  isTeamAIPlan,
   djb2Hash,
   traceAICall,
 } from '@variscout/core';
@@ -57,10 +56,10 @@ export function getAIEndpoint(): string | null {
 
 /**
  * Check if AI features are available.
- * Requires Team AI plan and a configured AI endpoint.
+ * AI is included in all plans — just requires a configured endpoint.
  */
 export function isAIAvailable(): boolean {
-  return isTeamAIPlan() && getAIEndpoint() !== null;
+  return getAIEndpoint() !== null;
 }
 
 /**

@@ -9,7 +9,7 @@
  * command/acknowledge/result protocol.
  *
  * Standard plan users get local file browsing only.
- * Team/Team AI users get SharePoint + OneDrive + local browsing.
+ * Team users get SharePoint + OneDrive + local browsing.
  *
  * @see https://learn.microsoft.com/en-us/onedrive/developer/controls/file-pickers/
  * @see https://learn.microsoft.com/en-us/onedrive/developer/controls/file-pickers/v8-schema

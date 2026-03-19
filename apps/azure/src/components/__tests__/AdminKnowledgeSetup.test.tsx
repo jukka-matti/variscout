@@ -7,7 +7,7 @@ vi.mock('@variscout/core', async () => {
   const actual = await vi.importActual('@variscout/core');
   return {
     ...actual,
-    isTeamAIPlan: vi.fn(),
+    hasTeamFeatures: vi.fn(),
     isPreviewEnabled: vi.fn(),
     setPreviewEnabled: vi.fn(),
   };
@@ -24,11 +24,11 @@ vi.mock('../../lib/runtimeConfig', () => ({
 }));
 
 import { AdminKnowledgeSetup } from '../admin/AdminKnowledgeSetup';
-import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
+import { hasTeamFeatures, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { isKnowledgeBaseAvailable } from '../../services/searchService';
 import { getRuntimeConfig } from '../../lib/runtimeConfig';
 
-const mockIsTeamAIPlan = vi.mocked(isTeamAIPlan);
+const mockHasTeamFeatures = vi.mocked(hasTeamFeatures);
 const mockIsPreviewEnabled = vi.mocked(isPreviewEnabled);
 const mockSetPreviewEnabled = vi.mocked(setPreviewEnabled);
 const mockIsKnowledgeBaseAvailable = vi.mocked(isKnowledgeBaseAvailable);
@@ -37,7 +37,7 @@ const mockGetRuntimeConfig = vi.mocked(getRuntimeConfig);
 describe('AdminKnowledgeSetup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockIsTeamAIPlan.mockReturnValue(true);
+    mockHasTeamFeatures.mockReturnValue(true);
     mockIsPreviewEnabled.mockReturnValue(true);
     mockIsKnowledgeBaseAvailable.mockReturnValue(true);
     mockGetRuntimeConfig.mockReturnValue({
@@ -56,17 +56,17 @@ describe('AdminKnowledgeSetup', () => {
     expect(screen.getByText('Preview')).toBeInTheDocument();
   });
 
-  it('shows Team AI plan active when isTeamAIPlan returns true', () => {
-    mockIsTeamAIPlan.mockReturnValue(true);
+  it('shows Team plan active when hasTeamFeatures returns true', () => {
+    mockHasTeamFeatures.mockReturnValue(true);
     render(<AdminKnowledgeSetup />);
-    expect(screen.getByText('Team AI plan')).toBeInTheDocument();
+    expect(screen.getByText('Team plan')).toBeInTheDocument();
     expect(screen.getByText('(Active)')).toBeInTheDocument();
   });
 
-  it('shows Team AI plan required when isTeamAIPlan returns false', () => {
-    mockIsTeamAIPlan.mockReturnValue(false);
+  it('shows Team plan required when hasTeamFeatures returns false', () => {
+    mockHasTeamFeatures.mockReturnValue(false);
     render(<AdminKnowledgeSetup />);
-    expect(screen.getByText('Team AI plan')).toBeInTheDocument();
+    expect(screen.getByText('Team plan')).toBeInTheDocument();
     expect(screen.getByText('(Required)')).toBeInTheDocument();
   });
 
@@ -108,8 +108,8 @@ describe('AdminKnowledgeSetup', () => {
     expect(mockSetPreviewEnabled).toHaveBeenCalledWith('knowledge-base', true);
   });
 
-  it('disables toggle button when not Team AI plan', () => {
-    mockIsTeamAIPlan.mockReturnValue(false);
+  it('disables toggle button when not Team plan', () => {
+    mockHasTeamFeatures.mockReturnValue(false);
     render(<AdminKnowledgeSetup />);
 
     const toggleButton = screen.getByRole('button', { name: /preview/i });

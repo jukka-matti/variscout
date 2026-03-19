@@ -631,13 +631,10 @@ export interface MessageCatalog {
   'admin.manageSubscription': string;
   'admin.planStandard': string;
   'admin.planTeam': string;
-  'admin.planTeamAI': string;
   'admin.planStandardPrice': string;
   'admin.planTeamPrice': string;
-  'admin.planTeamAIPrice': string;
   'admin.planStandardDesc': string;
   'admin.planTeamDesc': string;
-  'admin.planTeamAIDesc': string;
 
   // Feature names (plan matrix)
   'feature.charts': string;
@@ -714,4 +711,42 @@ export interface MessageCatalog {
   'admin.issue.kbPartial': string;
   'admin.issue.kbPartialDesc': string;
   'admin.issue.kbPartialSteps': string;
+
+  // Workspace navigation
+  'workspace.analysis': string;
+  'workspace.findings': string;
+  'workspace.improvement': string;
+
+  // Synthesis card
+  'synthesis.title': string;
+  'synthesis.placeholder': string;
+  'synthesis.coachNudge': string;
+  'synthesis.maxLength': string;
+
+  // Improvement workspace
+  'improve.title': string;
+  'improve.backToAnalysis': string;
+  'improve.fourDirections': string;
+  'improve.convertToActions': string;
+  'improve.noIdeas': string;
+  'improve.selectedCount': string;
+  'improve.effortBreakdown': string;
+  'improve.projectedCpk': string;
+  'improve.targetDelta': string;
+  'improve.convertedToAction': string;
+
+  // Effort labels
+  'effort.low': string;
+  'effort.medium': string;
+  'effort.high': string;
+  'effort.label': string;
+
+  // Idea category labels
+  'idea.containment': string;
+  'idea.corrective': string;
+  'idea.preventive': string;
+
+  // Projected vs actual
+  'outcome.projectedVsActual': string;
+  'outcome.delta': string;
 }

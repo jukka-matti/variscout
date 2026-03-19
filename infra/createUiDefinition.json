@@ -27,21 +27,17 @@
             "type": "Microsoft.Common.DropDown",
             "label": "VariScout Plan",
             "toolTip": "Select your VariScout subscription plan",
-            "defaultValue": "Standard (€99/month) - Full analysis, local file storage",
+            "defaultValue": "Standard (€79/month) - Full analysis with CoScout AI",
             "constraints": {
               "required": true,
               "allowedValues": [
                 {
-                  "label": "Standard (€99/month) - Full analysis, local file storage",
+                  "label": "Standard (€79/month) - Full analysis with CoScout AI",
                   "value": "standard"
                 },
                 {
-                  "label": "Team (€199/month) - Teams, OneDrive, SharePoint, mobile, photos",
+                  "label": "Team (€199/month) - Teams, OneDrive, SharePoint, Knowledge Base",
                   "value": "team"
-                },
-                {
-                  "label": "Team AI (€279/month) - Team features + AI assistance + Knowledge Base",
-                  "value": "team-ai"
                 }
               ]
             }

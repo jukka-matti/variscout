@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FolderOpen, ExternalLink } from 'lucide-react';
 import { FileBrowseButton, type FilePickerResult } from '../FileBrowseButton';
 import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge } from '@variscout/ui';
-import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
+import { hasTeamFeatures, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
 import ThemeToggle from './ThemeToggle';
@@ -175,7 +175,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
               )}
             </div>
           )}
-          {isTeamAIPlan() && (
+          {hasTeamFeatures() && (
             <div className="space-y-3 pt-3 border-t border-edge">
               <h3 className="text-xs font-semibold text-content-secondary uppercase tracking-wider">
                 Preview Features

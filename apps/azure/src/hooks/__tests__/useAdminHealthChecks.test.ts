@@ -6,9 +6,8 @@ vi.mock('@variscout/core', async () => {
   const actual = await vi.importActual('@variscout/core');
   return {
     ...actual,
-    getPlan: vi.fn(() => 'team-ai'),
+    getPlan: vi.fn(() => 'team'),
     hasTeamFeatures: vi.fn(() => true),
-    isTeamAIPlan: vi.fn(() => true),
   };
 });
 
@@ -34,7 +33,7 @@ vi.mock('../../lib/runtimeConfig', () => ({
 }));
 
 import { useAdminHealthChecks } from '../useAdminHealthChecks';
-import { hasTeamFeatures, isTeamAIPlan } from '@variscout/core';
+import { hasTeamFeatures } from '@variscout/core';
 import { isLocalDev } from '../../auth/easyAuth';
 import { graphFetch } from '../../services/graphFetch';
 import { searchDocuments } from '../../services/searchService';
@@ -43,7 +42,6 @@ describe('useAdminHealthChecks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(hasTeamFeatures).mockReturnValue(true);
-    vi.mocked(isTeamAIPlan).mockReturnValue(true);
     vi.mocked(isLocalDev).mockReturnValue(false);
   });
 
@@ -56,25 +54,13 @@ describe('useAdminHealthChecks', () => {
 
   it('marks team-only checks as na when plan is standard', () => {
     vi.mocked(hasTeamFeatures).mockReturnValue(false);
-    vi.mocked(isTeamAIPlan).mockReturnValue(false);
 
     const { result } = renderHook(() => useAdminHealthChecks());
-    const teamChecks = result.current.checks.filter(c => c.plan === 'team' || c.plan === 'team-ai');
+    const teamChecks = result.current.checks.filter(c => c.plan === 'team');
     expect(teamChecks.every(c => c.status === 'na')).toBe(true);
 
     const allChecks = result.current.checks.filter(c => c.plan === 'all');
     expect(allChecks.every(c => c.status === 'idle')).toBe(true);
-  });
-
-  it('marks team-ai checks as na when plan is team (not team-ai)', () => {
-    vi.mocked(isTeamAIPlan).mockReturnValue(false);
-
-    const { result } = renderHook(() => useAdminHealthChecks());
-    const aiChecks = result.current.checks.filter(c => c.plan === 'team-ai');
-    expect(aiChecks.every(c => c.status === 'na')).toBe(true);
-
-    const teamChecks = result.current.checks.filter(c => c.plan === 'team');
-    expect(teamChecks.every(c => c.status === 'idle')).toBe(true);
   });
 
   it('runOne sets pass on successful auth check', async () => {
@@ -144,8 +130,8 @@ describe('useAdminHealthChecks', () => {
     expect(check?.status).toBe('fail');
   });
 
-  it('runOne skips na checks', async () => {
-    vi.mocked(isTeamAIPlan).mockReturnValue(false);
+  it('runOne skips na checks when plan lacks team features', async () => {
+    vi.mocked(hasTeamFeatures).mockReturnValue(false);
 
     const { result } = renderHook(() => useAdminHealthChecks());
     await act(async () => {

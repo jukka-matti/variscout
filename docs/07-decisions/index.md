@@ -44,6 +44,7 @@ This section captures key architectural decisions made during VariScout developm
 | [030](adr-030-unified-file-picker.md)                | Unified File Picker (OneDrive v8)        | Accepted   | 2026-03-19 |
 | [031](adr-031-report-export.md)                      | Report Export — Print/PDF for All Azure  | Accepted   | 2026-03-19 |
 | [032](adr-032-evidence-communication.md)             | Evidence-Based Statistical Communication | Accepted   | 2026-03-19 |
+| [033](adr-033-pricing-simplification.md)             | Pricing Simplification — 3 to 2 Tiers    | Accepted   | 2026-03-19 |
 
 ---
 

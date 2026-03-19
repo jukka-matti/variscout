@@ -141,7 +141,7 @@ export interface FindingsLogProps {
   }) => void;
   /** Process context for JSON export */
   processContext?: ProcessContext;
-  /** Callback for AI report generation (Team AI only) */
+  /** Callback for AI report generation (requires AI endpoint) */
   onGenerateAIReport?: () => Promise<string>;
 }
 

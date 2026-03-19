@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ArrowLeft, Activity, Cpu, Users, BookOpen, Wrench } from 'lucide-react';
-import { isTeamAIPlan } from '@variscout/core';
+import { hasTeamFeatures } from '@variscout/core';
 import { useTranslation } from '@variscout/hooks';
 import type { AdminGatingMode } from '../../hooks/useAdminAccess';
 import { AdminStatusTab } from './AdminStatusTab';
@@ -35,7 +35,7 @@ function getInitialTab(initialTab?: AdminTab): AdminTab {
     const stored = localStorage.getItem(STORAGE_KEY) as AdminTab | null;
     if (stored && ['status', 'plan', 'teams', 'knowledge', 'troubleshooting'].includes(stored)) {
       // Don't restore to knowledge tab if plan doesn't support it
-      if (stored === 'knowledge' && !isTeamAIPlan()) return 'status';
+      if (stored === 'knowledge' && !hasTeamFeatures()) return 'status';
       return stored;
     }
   } catch {
@@ -57,7 +57,7 @@ export function AdminHub({ initialTab, onBack, gatingMode }: AdminHubProps) {
       id: 'knowledge',
       label: t('admin.knowledge'),
       icon: <BookOpen size={14} />,
-      visible: isTeamAIPlan(),
+      visible: hasTeamFeatures(),
     },
     {
       id: 'troubleshooting',

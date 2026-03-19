@@ -522,13 +522,10 @@ export const de: MessageCatalog = {
   'admin.manageSubscription': 'Abonnement in Azure verwalten',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '€99/Mo.',
+  'admin.planStandardPrice': '€79/Mo.',
   'admin.planTeamPrice': '€199/Mo.',
-  'admin.planTeamAIPrice': '€279/Mo.',
-  'admin.planStandardDesc': 'Vollständige Analyse, lokale Dateispeicherung',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Mobil',
-  'admin.planTeamAIDesc': 'AI-Wissensdatenbank, erweiterter CoScout',
+  'admin.planStandardDesc': 'Vollständige Analyse mit CoScout AI',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, Wissensdatenbank',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statistiken',
@@ -625,4 +622,42 @@ export const de: MessageCatalog = {
     'Wissensdatenbank-Suche funktioniert für Admins, aber nicht für andere Benutzer.',
   'admin.issue.kbPartialSteps':
     'Remote-SharePoint-Wissensquellen verwenden benutzerspezifische Berechtigungen. Jeder Benutzer muss SharePoint-Zugriff auf die Dokumente haben.\nPrüfen Sie, ob die betroffenen Benutzer durch Richtlinien für bedingten Zugriff blockiert werden.\nÜberprüfen Sie, ob die Admin-Zustimmung für die delegierte Berechtigung Sites.Read.All erteilt wurde.\nBitten Sie die betroffenen Benutzer, sich ab- und wieder anzumelden, um ihr Token zu aktualisieren.',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to…',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
+  'improve.convertToActions': 'Convert selected → Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low · {medium} med · {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': 'Δ {delta} to target',
+  'improve.convertedToAction': '→ Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };

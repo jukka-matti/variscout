@@ -261,7 +261,7 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
         type: 'function',
         name: 'suggest_improvement_idea',
         description:
-          'Propose an improvement idea for a supported hypothesis. Ideas bridge root cause analysis and corrective actions. The analyst can edit, run What-If simulation, and select for implementation.',
+          'Propose an improvement idea for a supported hypothesis. Ideas bridge root cause analysis and corrective actions. The analyst can edit, run What-If simulation, and select for implementation. Consider the Four Ideation Directions: Prevent (stop the cause), Detect (catch it sooner), Simplify (reduce complexity), Eliminate (remove the step). Prefer lean improvements — simplest fix that addresses the root cause.',
         parameters: {
           type: 'object',
           properties: {
@@ -280,8 +280,14 @@ export function buildCoScoutTools(options: BuildCoScoutToolsOptions = {}): ToolD
               description:
                 'containment = stop the bleeding, corrective = fix the cause, preventive = prevent recurrence',
             },
+            effort: {
+              type: 'string',
+              enum: ['low', 'medium', 'high'],
+              description:
+                'Estimated effort: low = immediate with existing resources (adjust setting, update SOP), medium = some coordination or minor cost (order part, schedule training), high = investment or cross-team coordination (capital equipment, process redesign)',
+            },
           },
-          required: ['hypothesis_id', 'text', 'category'],
+          required: ['hypothesis_id', 'text', 'category', 'effort'],
           additionalProperties: false,
           strict: true,
         },
@@ -377,6 +383,7 @@ export function buildCoScoutInput(
     entryScenario: context.entryScenario,
     phase: options?.journeyPhase,
     hasActionTools: options?.journeyPhase != null,
+    synthesis: context.process?.synthesis,
   });
 
   const input: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
@@ -429,6 +436,8 @@ export interface BuildCoScoutSystemPromptOptions {
   phase?: JourneyPhase;
   /** Whether action tools are enabled (adds tool routing instructions) */
   hasActionTools?: boolean;
+  /** Convergence synthesis narrative (from ProcessContext) */
+  synthesis?: string;
 }
 
 /**
@@ -480,6 +489,13 @@ Never invent data or statistics. If the context does not contain enough informat
 
     if (investigation.problemStatement) {
       invParts.push(`The analyst is investigating: "${investigation.problemStatement}".`);
+    }
+
+    // Convergence synthesis — the analyst's suspected cause narrative
+    if (options.synthesis) {
+      invParts.push(
+        `Synthesis (suspected cause narrative): "${options.synthesis}". Use this to ground improvement suggestions. Do not say "confirmed" — use "the evidence suggests" or "the evidence points to".`
+      );
     }
 
     if (investigation.allHypotheses && investigation.allHypotheses.length > 0) {
@@ -777,6 +793,7 @@ export function buildCoScoutMessages(
       entryScenario: context.entryScenario,
       phase: options?.journeyPhase,
       hasActionTools: options?.journeyPhase != null,
+      synthesis: context.process?.synthesis,
     }),
   });
 
@@ -888,8 +905,16 @@ PDCA coaching (when investigation phase is 'improving'):
 
 Improvement idea guidance (converging/IMPROVE):
 - Use suggest_improvement_idea when a hypothesis is supported and the analyst needs ideas for what to try.
+- Apply the Four Ideation Directions to generate diverse ideas:
+  - Prevent: stop the cause from occurring (e.g., maintenance schedule, SOP update)
+  - Detect: catch it sooner before it causes defects (e.g., control chart alert, visual inspection)
+  - Simplify: reduce complexity to reduce error opportunities (e.g., fewer steps, visual guides)
+  - Eliminate: remove the step or factor entirely (e.g., automate, redesign)
 - Categorize: containment (immediate containment to stop defects NOW), corrective (address the root cause), preventive (systemic change to prevent recurrence).
 - Prefer corrective over containment. Suggest preventive actions when the root cause is systemic (e.g., training, SOP updates).
+- Always estimate effort: low (existing resources, no approval), medium (some coordination, minor cost), high (investment, cross-team).
+- Prefer lean improvements — the simplest fix that addresses the root cause. Suggest low-effort ideas first.
+- Assess feasibility: Does it remove the root cause? Can the team do it themselves? Can they try small first? Can they measure the result?
 - If Knowledge Base search revealed a past fix for a similar cause, suggest it as an improvement idea with the source cited.
 - suggest_improvement_idea only works on hypotheses with 'supported' or 'partial' status.
 

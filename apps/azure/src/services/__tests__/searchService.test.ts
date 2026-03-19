@@ -10,22 +10,22 @@ vi.mock('@variscout/core', async () => {
   const actual = await vi.importActual('@variscout/core');
   return {
     ...actual,
-    isTeamAIPlan: vi.fn(),
+    hasKnowledgeBase: vi.fn(),
     isPreviewEnabled: vi.fn(),
   };
 });
 
 import { isKnowledgeBaseAvailable, searchDocuments } from '../searchService';
-import { isTeamAIPlan, isPreviewEnabled } from '@variscout/core';
+import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
 
-const mockIsTeamAIPlan = vi.mocked(isTeamAIPlan);
+const mockHasKnowledgeBase = vi.mocked(hasKnowledgeBase);
 const mockIsPreviewEnabled = vi.mocked(isPreviewEnabled);
 
 describe('searchService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Default: all conditions met
-    mockIsTeamAIPlan.mockReturnValue(true);
+    mockHasKnowledgeBase.mockReturnValue(true);
     mockIsPreviewEnabled.mockReturnValue(true);
     // Set env vars
     import.meta.env.VITE_AI_SEARCH_ENDPOINT = 'https://search.example.com';
@@ -37,8 +37,8 @@ describe('searchService', () => {
       expect(isKnowledgeBaseAvailable()).toBe(true);
     });
 
-    it('returns false when not Team AI plan', () => {
-      mockIsTeamAIPlan.mockReturnValue(false);
+    it('returns false when not Team plan', () => {
+      mockHasKnowledgeBase.mockReturnValue(false);
       expect(isKnowledgeBaseAvailable()).toBe(false);
     });
 
@@ -115,8 +115,8 @@ describe('searchService', () => {
       expect(body.outputMode).toBe('ExtractedData');
     });
 
-    it('returns empty array when not Team AI plan', async () => {
-      mockIsTeamAIPlan.mockReturnValue(false);
+    it('returns empty array when not Team plan', async () => {
+      mockHasKnowledgeBase.mockReturnValue(false);
 
       const results = await searchDocuments('test');
       expect(results).toEqual([]);

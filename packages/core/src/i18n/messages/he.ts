@@ -516,13 +516,10 @@ export const he: MessageCatalog = {
   'admin.manageSubscription': 'נהל מנוי ב-Azure',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '€99/חודש',
+  'admin.planStandardPrice': '€79/חודש',
   'admin.planTeamPrice': '€199/חודש',
-  'admin.planTeamAIPrice': '€279/חודש',
-  'admin.planStandardDesc': 'ניתוח מלא, אחסון קבצים מקומי',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, נייד',
-  'admin.planTeamAIDesc': 'בסיס ידע AI, CoScout משופר',
+  'admin.planStandardDesc': 'ניתוח מלא עם CoScout AI',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, בסיס ידע',
 
   // Feature names
   'feature.charts': 'I-Chart, Boxplot, Pareto, סטטיסטיקה',
@@ -611,4 +608,42 @@ export const he: MessageCatalog = {
   'admin.issue.kbPartialDesc': 'חיפוש בסיס הידע עובד למנהלים אך לא למשתמשים אחרים.',
   'admin.issue.kbPartialSteps':
     'מקורות ידע Remote SharePoint משתמשים בהרשאות לכל משתמש. לכל משתמש חייבת להיות גישת SharePoint למסמכים.\nבדוק אם המשתמשים המושפעים חסומים על ידי מדיניות גישה מותנית.\nוודא שניתנה הסכמת מנהל להרשאה המואצלת Sites.Read.All.\nבקש מהמשתמשים המושפעים להתנתק ולהתחבר מחדש כדי לרענן את האסימון שלהם.',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to…',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
+  'improve.convertToActions': 'Convert selected → Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low · {medium} med · {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': 'Δ {delta} to target',
+  'improve.convertedToAction': '→ Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };

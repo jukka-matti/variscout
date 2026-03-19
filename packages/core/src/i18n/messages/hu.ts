@@ -440,13 +440,10 @@ export const hu: MessageCatalog = {
   'admin.manageSubscription': 'Előfizetés kezelése az Azure-ban',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '€99/hó',
+  'admin.planStandardPrice': '€79/hó',
   'admin.planTeamPrice': '€199/hó',
-  'admin.planTeamAIPrice': '€279/hó',
-  'admin.planStandardDesc': 'Teljes elemzés, helyi fájltárolás',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, mobil',
-  'admin.planTeamAIDesc': 'AI tudásbázis, továbbfejlesztett CoScout',
+  'admin.planStandardDesc': 'Teljes elemzés CoScout AI-val',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, tudásbázis',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Statisztikák',
   'feature.capability': 'Képességelemzés (Cp/Cpk)',
   'feature.performance': 'Teljesítménymód (többcsatornás)',
@@ -535,4 +532,42 @@ export const hu: MessageCatalog = {
     'A tudásbázis keresés működik a rendszergazdáknál, de más felhasználóknál nem.',
   'admin.issue.kbPartialSteps':
     'A távoli SharePoint tudásforrások felhasználónkénti engedélyeket használnak. Minden felhasználónak SharePoint hozzáféréssel kell rendelkeznie a dokumentumokhoz.\nEllenőrizze, hogy az érintett felhasználókat nem blokkolják-e feltételes hozzáférési szabályzatok.\nEllenőrizze, hogy megadták-e a rendszergazdai hozzájárulást a Sites.Read.All delegált engedélyhez.\nKérje meg az érintett felhasználókat, hogy jelentkezzenek ki és újra be a tokenjük frissítéséhez.',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to…',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
+  'improve.convertToActions': 'Convert selected → Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low · {medium} med · {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': 'Δ {delta} to target',
+  'improve.convertedToAction': '→ Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };

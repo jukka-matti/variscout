@@ -24,6 +24,7 @@ vi.mock('lucide-react', () => ({
   Share2: (props: Record<string, unknown>) => <span data-testid="share-icon" {...props} />,
   FileUp: (props: Record<string, unknown>) => <span data-testid="fileup-icon" {...props} />,
   Bell: (props: Record<string, unknown>) => <span data-testid="bell-icon" {...props} />,
+  Lightbulb: (props: Record<string, unknown>) => <span data-testid="lightbulb-icon" {...props} />,
 }));
 
 import { CoScoutInline } from '../CoScoutInline';

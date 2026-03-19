@@ -4,6 +4,8 @@ import type { Finding, Hypothesis } from '@variscout/core';
 export interface PDCAProgressProps {
   findings: Finding[];
   hypotheses?: Hypothesis[];
+  /** Whether the convergence synthesis has been written */
+  hasSynthesis?: boolean;
 }
 
 interface PDCAStep {
@@ -12,9 +14,15 @@ interface PDCAStep {
   done: boolean;
   inProgress?: boolean;
   detail?: string;
+  /** Methodology hint shown below the detail line */
+  hint?: string;
 }
 
-const PDCAProgress: React.FC<PDCAProgressProps> = ({ findings, hypotheses: _hypotheses }) => {
+const PDCAProgress: React.FC<PDCAProgressProps> = ({
+  findings,
+  hypotheses: _hypotheses,
+  hasSynthesis,
+}) => {
   const steps = useMemo((): PDCAStep[] => {
     // Plan: at least one finding has a linked hypothesis
     const findingsWithHypothesis = findings.filter(f => f.hypothesisId);
@@ -40,8 +48,9 @@ const PDCAProgress: React.FC<PDCAProgressProps> = ({ findings, hypotheses: _hypo
         description: 'Cause identified',
         done: planDone,
         detail: planDone
-          ? `${findingsWithHypothesis.length} finding${findingsWithHypothesis.length !== 1 ? 's' : ''} linked`
+          ? `${findingsWithHypothesis.length} finding${findingsWithHypothesis.length !== 1 ? 's' : ''} linked${hasSynthesis ? ' \u00b7 Synthesis written' : ''}`
           : undefined,
+        hint: !planDone ? undefined : 'Ideate: Prevent, Detect, Simplify, Eliminate',
       },
       {
         label: 'Do',
@@ -61,7 +70,7 @@ const PDCAProgress: React.FC<PDCAProgressProps> = ({ findings, hypotheses: _hypo
         done: actDone,
       },
     ];
-  }, [findings]);
+  }, [findings, hasSynthesis]);
 
   return (
     <div data-testid="pdca-progress">
@@ -100,6 +109,11 @@ const PDCAProgress: React.FC<PDCAProgressProps> = ({ findings, hypotheses: _hypo
               {step.detail && (
                 <span className="text-[10px] text-content-muted leading-tight block mt-0.5">
                   {step.detail}
+                </span>
+              )}
+              {step.hint && (
+                <span className="text-[10px] text-blue-400 leading-tight block mt-0.5 italic">
+                  {step.hint}
                 </span>
               )}
             </div>

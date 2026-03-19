@@ -24,49 +24,41 @@ const PLANS: PlanCard[] = [
     priceKey: 'admin.planTeamPrice',
     descKey: 'admin.planTeamDesc',
   },
-  {
-    id: 'team-ai',
-    nameKey: 'admin.planTeamAI',
-    priceKey: 'admin.planTeamAIPrice',
-    descKey: 'admin.planTeamAIDesc',
-  },
 ];
 
 interface FeatureRow {
   nameKey: keyof MessageCatalog;
   standard: boolean;
   team: boolean;
-  teamAi: boolean;
 }
 
 const FEATURES: FeatureRow[] = [
-  { nameKey: 'feature.charts', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.capability', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.performance', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.anova', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.findingsWorkflow', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.whatIf', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.csvImport', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.reportExport', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.indexedDb', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.maxFactors', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.maxRows', standard: true, team: true, teamAi: true },
-  { nameKey: 'feature.onedriveSync', standard: false, team: true, teamAi: true },
-  { nameKey: 'feature.sharepointPicker', standard: false, team: true, teamAi: true },
-  { nameKey: 'feature.teamsIntegration', standard: false, team: true, teamAi: true },
-  { nameKey: 'feature.channelCollab', standard: false, team: true, teamAi: true },
-  { nameKey: 'feature.mobileUi', standard: false, team: true, teamAi: true },
-  { nameKey: 'feature.coScoutAi', standard: false, team: false, teamAi: true },
-  { nameKey: 'feature.narrativeBar', standard: false, team: false, teamAi: true },
-  { nameKey: 'feature.chartInsights', standard: false, team: false, teamAi: true },
-  { nameKey: 'feature.knowledgeBase', standard: false, team: false, teamAi: true },
-  { nameKey: 'feature.aiActions', standard: false, team: false, teamAi: true },
+  { nameKey: 'feature.charts', standard: true, team: true },
+  { nameKey: 'feature.capability', standard: true, team: true },
+  { nameKey: 'feature.performance', standard: true, team: true },
+  { nameKey: 'feature.anova', standard: true, team: true },
+  { nameKey: 'feature.findingsWorkflow', standard: true, team: true },
+  { nameKey: 'feature.whatIf', standard: true, team: true },
+  { nameKey: 'feature.csvImport', standard: true, team: true },
+  { nameKey: 'feature.reportExport', standard: true, team: true },
+  { nameKey: 'feature.indexedDb', standard: true, team: true },
+  { nameKey: 'feature.maxFactors', standard: true, team: true },
+  { nameKey: 'feature.maxRows', standard: true, team: true },
+  { nameKey: 'feature.coScoutAi', standard: true, team: true },
+  { nameKey: 'feature.narrativeBar', standard: true, team: true },
+  { nameKey: 'feature.chartInsights', standard: true, team: true },
+  { nameKey: 'feature.aiActions', standard: true, team: true },
+  { nameKey: 'feature.onedriveSync', standard: false, team: true },
+  { nameKey: 'feature.sharepointPicker', standard: false, team: true },
+  { nameKey: 'feature.teamsIntegration', standard: false, team: true },
+  { nameKey: 'feature.channelCollab', standard: false, team: true },
+  { nameKey: 'feature.mobileUi', standard: false, team: true },
+  { nameKey: 'feature.knowledgeBase', standard: false, team: true },
 ];
 
 function featureAvailable(row: FeatureRow, plan: MarketplacePlan): boolean {
   if (plan === 'standard') return row.standard;
-  if (plan === 'team') return row.team;
-  return row.teamAi;
+  return row.team;
 }
 
 export function AdminPlanTab() {
@@ -76,7 +68,7 @@ export function AdminPlanTab() {
   return (
     <div className="max-w-3xl mx-auto">
       {/* Plan cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         {PLANS.map(plan => {
           const isCurrent = plan.id === currentPlan;
           return (

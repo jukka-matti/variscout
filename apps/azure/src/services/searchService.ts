@@ -6,7 +6,7 @@
  * - Folder-scoped via KQL filter on the channel's SharePoint path
  */
 
-import { isTeamAIPlan, isPreviewEnabled } from '@variscout/core';
+import { hasKnowledgeBase, isPreviewEnabled } from '@variscout/core';
 import { getGraphTokenWithScopes } from '../auth/graphToken';
 import { getAccessToken } from '../auth/easyAuth';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
@@ -25,10 +25,10 @@ function getSearchEndpoint(): string | null {
 
 /**
  * Check if the Knowledge Base feature is available.
- * Requires Team AI plan, configured search endpoint, and preview toggle enabled.
+ * Requires Team plan (with KB access), configured search endpoint, and preview toggle enabled.
  */
 export function isKnowledgeBaseAvailable(): boolean {
-  return isTeamAIPlan() && getSearchEndpoint() !== null && isPreviewEnabled('knowledge-base');
+  return hasKnowledgeBase() && getSearchEndpoint() !== null && isPreviewEnabled('knowledge-base');
 }
 
 /**
@@ -64,7 +64,7 @@ export async function searchDocuments(
     folderScope?: string;
   }
 ): Promise<DocumentResult[]> {
-  if (!isTeamAIPlan() || !isPreviewEnabled('knowledge-base')) return [];
+  if (!hasKnowledgeBase() || !isPreviewEnabled('knowledge-base')) return [];
 
   const endpoint = getSearchEndpoint();
   if (!endpoint) return [];

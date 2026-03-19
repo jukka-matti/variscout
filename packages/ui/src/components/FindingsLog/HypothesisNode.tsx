@@ -111,6 +111,12 @@ const EFFORT_COLORS: Record<IdeaEffort, string> = {
   high: 'text-red-400',
 };
 
+const CATEGORY_BADGE_COLORS: Record<string, string> = {
+  containment: 'bg-amber-500/15 text-amber-400',
+  corrective: 'bg-blue-500/15 text-blue-400',
+  preventive: 'bg-purple-500/15 text-purple-400',
+};
+
 interface ImprovementIdeasSectionProps {
   hypothesisId: string;
   ideas: ImprovementIdea[];
@@ -209,15 +215,39 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
                       </span>
                     )}
 
-                    {/* Effort badge */}
-                    {idea.effort && (
+                    {/* Category badge */}
+                    {idea.category && (
                       <span
-                        className={`text-[10px] ${EFFORT_COLORS[idea.effort]}`}
-                        data-testid={`idea-effort-${idea.id}`}
+                        className={`text-[10px] px-1 py-0.5 rounded ${CATEGORY_BADGE_COLORS[idea.category] ?? ''}`}
+                        data-testid={`idea-category-${idea.id}`}
                       >
-                        {idea.effort.toUpperCase()} effort
+                        {idea.category === 'containment'
+                          ? 'Containment'
+                          : idea.category === 'corrective'
+                            ? 'Corrective'
+                            : 'Preventive'}
                       </span>
                     )}
+
+                    {/* Effort dropdown (always visible, color-coded) */}
+                    <select
+                      className={`text-[10px] bg-transparent border border-edge rounded px-1 py-0.5 focus:outline-none focus:border-blue-400 cursor-pointer ${
+                        idea.effort ? EFFORT_COLORS[idea.effort] : 'text-content-muted'
+                      }`}
+                      value={idea.effort ?? ''}
+                      onChange={e => {
+                        const val = e.target.value as IdeaEffort | '';
+                        onUpdateIdea?.(hypothesisId, idea.id, { effort: val || undefined });
+                      }}
+                      onClick={e => e.stopPropagation()}
+                      data-testid={`idea-effort-${idea.id}`}
+                      aria-label="Effort level"
+                    >
+                      <option value="">Effort</option>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
 
                     {/* Projection summary */}
                     {idea.projection && (
@@ -238,25 +268,6 @@ const ImprovementIdeasSection: React.FC<ImprovementIdeasSectionProps> = ({
 
                 {/* Action buttons */}
                 <div className="flex items-center gap-1 opacity-0 group-hover/idea:opacity-100 touch-show transition-opacity flex-shrink-0">
-                  {/* Effort cycle button */}
-                  <button
-                    className="text-[10px] text-content-muted hover:text-content"
-                    onClick={() => {
-                      const cycle: Array<IdeaEffort | undefined> = [
-                        undefined,
-                        'low',
-                        'medium',
-                        'high',
-                      ];
-                      const idx = cycle.indexOf(idea.effort);
-                      const next = cycle[(idx + 1) % cycle.length];
-                      onUpdateIdea?.(hypothesisId, idea.id, { effort: next });
-                    }}
-                    title="Set effort"
-                    aria-label="Set effort level"
-                  >
-                    E
-                  </button>
                   {/* Project button */}
                   {onProjectIdea && (
                     <button

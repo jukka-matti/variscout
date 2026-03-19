@@ -475,13 +475,10 @@ export const vi: MessageCatalog = {
   'admin.manageSubscription': 'Quản lý đăng ký trong Azure',
   'admin.planStandard': 'Standard',
   'admin.planTeam': 'Team',
-  'admin.planTeamAI': 'Team AI',
-  'admin.planStandardPrice': '€99/tháng',
+  'admin.planStandardPrice': '€79/tháng',
   'admin.planTeamPrice': '€199/tháng',
-  'admin.planTeamAIPrice': '€279/tháng',
-  'admin.planStandardDesc': 'Phân tích đầy đủ, lưu trữ tệp cục bộ',
-  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, di động',
-  'admin.planTeamAIDesc': 'Cơ sở tri thức AI, CoScout nâng cao',
+  'admin.planStandardDesc': 'Phân tích đầy đủ với CoScout AI',
+  'admin.planTeamDesc': 'Teams, OneDrive, SharePoint, cơ sở tri thức',
   'feature.charts': 'I-Chart, Boxplot, Pareto, Thống kê',
   'feature.capability': 'Phân tích khả năng (Cp/Cpk)',
   'feature.performance': 'Chế độ hiệu suất (đa kênh)',
@@ -568,4 +565,42 @@ export const vi: MessageCatalog = {
     'Tìm kiếm cơ sở tri thức hoạt động cho quản trị viên nhưng không hoạt động cho người dùng khác.',
   'admin.issue.kbPartialSteps':
     'Nguồn tri thức Remote SharePoint sử dụng quyền theo từng người dùng. Mỗi người dùng phải có quyền truy cập SharePoint vào tài liệu.\nKiểm tra người dùng bị ảnh hưởng có bị chặn bởi chính sách Conditional Access không.\nXác minh đã cấp đồng ý quản trị viên cho quyền ủy quyền Sites.Read.All.\nYêu cầu người dùng bị ảnh hưởng đăng xuất và đăng nhập lại để làm mới token.',
+
+  // Workspace navigation
+  'workspace.analysis': 'Analysis',
+  'workspace.findings': 'Findings',
+  'workspace.improvement': 'Improvement',
+
+  // Synthesis card
+  'synthesis.title': 'Suspected Cause',
+  'synthesis.placeholder': 'The evidence points to…',
+  'synthesis.coachNudge': 'Ready to summarize your understanding?',
+  'synthesis.maxLength': 'Max 500 characters',
+
+  // Improvement workspace
+  'improve.title': 'Improvement Plan',
+  'improve.backToAnalysis': 'Back to Analysis',
+  'improve.fourDirections': 'Think: Prevent · Detect · Simplify · Eliminate',
+  'improve.convertToActions': 'Convert selected → Actions',
+  'improve.noIdeas': 'No improvement ideas yet',
+  'improve.selectedCount': '{count} selected',
+  'improve.effortBreakdown': '{low} low · {medium} med · {high} high',
+  'improve.projectedCpk': 'Projected Cpk: {value}',
+  'improve.targetDelta': 'Δ {delta} to target',
+  'improve.convertedToAction': '→ Action',
+
+  // Effort labels
+  'effort.low': 'Low',
+  'effort.medium': 'Medium',
+  'effort.high': 'High',
+  'effort.label': 'Effort',
+
+  // Idea category labels
+  'idea.containment': 'Containment',
+  'idea.corrective': 'Corrective',
+  'idea.preventive': 'Preventive',
+
+  // Projected vs actual
+  'outcome.projectedVsActual': 'Projected {projected} → Actual {actual}',
+  'outcome.delta': '({sign}{delta})',
 };
