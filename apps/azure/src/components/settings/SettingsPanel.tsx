@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { X, Palette, FolderOpen } from 'lucide-react';
+import { X, Palette, FolderOpen, ExternalLink } from 'lucide-react';
 import { SettingsPanelBase, ProcessDescriptionField, PreviewBadge } from '@variscout/ui';
 import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
 import ThemeToggle from './ThemeToggle';
 import { isAIAvailable } from '../../services/aiService';
+import { getCachedChannelFolderUrl } from '../../services/channelDrive';
 
 const ACCENT_PRESETS = [
   '#3b82f6', // blue (default)
@@ -314,6 +315,20 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                   <p className="text-[11px] text-content-muted">
                     Only documents you have access to will appear in search results.
                   </p>
+                  {(() => {
+                    const folderUrl = knowledgeSearchFolder || getCachedChannelFolderUrl();
+                    return folderUrl ? (
+                      <a
+                        href={folderUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 mt-1"
+                      >
+                        <ExternalLink size={10} />
+                        Open folder in SharePoint
+                      </a>
+                    ) : null;
+                  })()}
                 </div>
               )}
             </div>

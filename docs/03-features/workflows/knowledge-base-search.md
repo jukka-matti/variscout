@@ -21,7 +21,7 @@ The Knowledge Base feature allows CoScout to search your team's SharePoint folde
 
 ## How It Works
 
-1. **Publish reports** — when you publish a scouting report from the Report view, it's saved as a Markdown file in the team's SharePoint folder alongside `.vrs` files
+1. **Publish reports** — when you publish a scouting report from the Report view, it's saved to the team's SharePoint folder alongside `.vrs` files
 2. **On-demand search** — when you ask CoScout a question, a "💡 Search Knowledge Base?" button appears after the response. Click it to search your team's SharePoint documents
 3. **Document results** — results appear as cards with document title, snippet preview, source path, and direct link to the original document
 4. **Enriched responses** — CoScout cites sources naturally with `[Source: name]` badges, combining your analysis data with institutional knowledge
@@ -59,7 +59,7 @@ The custom folder is saved per-project — different analyses can search differe
 
 Documents in the team's SharePoint folder are searchable via Azure AI Search's **Remote SharePoint** knowledge sources:
 
-- Published scouting reports (Markdown)
+- Published scouting reports
 - SOPs, work instructions, procedures
 - Past 8D reports, fault tree documents
 - Any document the user has access to in SharePoint

@@ -40,7 +40,7 @@ Documents reach the searchable scope through two paths:
 
 - "Publish to SharePoint" in Report View (already scaffolded)
 - Onboarding copy: "Add your quality documents to your Teams channel folder to make them searchable by CoScout"
-- Future: "Manage documents" link that opens the channel's SharePoint folder in a browser tab
+- "Open in SharePoint" link in Settings and AdminKnowledgeSetup (built)
 
 ---
 
@@ -134,18 +134,20 @@ No new scopes needed.
 
 ## AIX (AI Experience) Notes
 
-### Intent Detection Refinement
+### Intent Detection Refinement (Built)
+
+Simple keyword heuristic in `CoScoutMessages`: checks last user message for intent keywords (root cause, SOP, procedure, happened before, previous, historical, fault tree, 8D, FMEA, control plan, work instruction, similar, last time, past report, corrective action). Parent can override via `knowledgeIntentDetected` prop.
 
 Show "Search Knowledge Base?" when:
 
 - Last message is assistant response
 - Knowledge Base is available AND enabled
 - No knowledge docs already shown for this exchange
-- CoScout's response mentions uncertainty or external references
+- User's last message contains a knowledge-intent keyword (or parent overrides)
 
 Don't show when:
 
-- Question is purely about current data
+- Question is purely about current data (no intent keywords detected)
 - User is asking CoScout to explain/summarize
 - Knowledge docs already displayed
 
@@ -159,18 +161,20 @@ Don't show when:
 
 ## Component Changes
 
-| Component                     | Change                                                              |
-| ----------------------------- | ------------------------------------------------------------------- |
-| `AnalysisState` (hooks types) | Added `knowledgeSearchFolder?: string`                              |
-| `DataContext` (Azure)         | Added `knowledgeSearchFolder` state + setter                        |
-| `useKnowledgeSearch` (hooks)  | Added `folderScope` option, passes to search function               |
-| `useEditorAI` (Azure)         | Accepts + passes `knowledgeSearchFolder`                            |
-| `Editor.tsx` (Azure)          | Reads `knowledgeSearchFolder` from DataContext, passes to AI hook   |
-| `SettingsPanel` (Azure)       | Added search scope radio (channel/custom) + folder path input       |
-| `AdminKnowledgeSetup` (Azure) | Added consent requirement, search scope info                        |
-| `searchService.ts` (Azure)    | Already accepts `folderScope` — now wired end-to-end                |
-| ADR-026                       | Updated resolved design questions (6-8), "What's New to Build" list |
-| `knowledge-base-search.md`    | Added "Search Scope" section with custom folder docs                |
+| Component                     | Change                                                                               |
+| ----------------------------- | ------------------------------------------------------------------------------------ |
+| `AnalysisState` (hooks types) | Added `knowledgeSearchFolder?: string`                                               |
+| `DataContext` (Azure)         | Added `knowledgeSearchFolder` state + setter                                         |
+| `useKnowledgeSearch` (hooks)  | Added `folderScope` option, passes to search function                                |
+| `useEditorAI` (Azure)         | Accepts + passes `knowledgeSearchFolder`; auto-resolves channel folder               |
+| `channelDrive.ts` (Azure)     | Added `folderWebUrl` to `ChannelDriveInfo`; captures from Graph API                  |
+| `Editor.tsx` (Azure)          | Reads `knowledgeSearchFolder` from DataContext, passes to AI hook                    |
+| `SettingsPanel` (Azure)       | Search scope radio + folder path input + "Open in SharePoint" link                   |
+| `AdminKnowledgeSetup` (Azure) | Consent requirement, search scope info, "Open channel folder" link                   |
+| `CoScoutMessages` (UI)        | Intent keyword detection; "Found N documents" header; `knowledgeIntentDetected` prop |
+| `searchService.ts` (Azure)    | Already accepts `folderScope` — now wired end-to-end                                 |
+| ADR-026                       | Updated format decision (Markdown interim), intent detection + SP links              |
+| `knowledge-base-search.md`    | Added "Search Scope" section; fixed format references                                |
 
 ---
 

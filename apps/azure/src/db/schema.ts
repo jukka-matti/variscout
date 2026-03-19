@@ -23,6 +23,7 @@ export interface ChannelDriveCacheRecord {
   channelId: string;
   driveId: string;
   folderId: string;
+  folderWebUrl?: string;
   resolvedAt: string;
 }
 

@@ -11,6 +11,7 @@ import {
 import { isTeamAIPlan, isPreviewEnabled, setPreviewEnabled } from '@variscout/core';
 import { isKnowledgeBaseAvailable, searchDocuments } from '../services/searchService';
 import { getRuntimeConfig } from '../lib/runtimeConfig';
+import { getCachedChannelFolderUrl } from '../services/channelDrive';
 
 interface StatusRowProps {
   label: string;
@@ -233,6 +234,21 @@ export function AdminKnowledgeSetup() {
               </p>
             </div>
           </div>
+
+          {/* Open channel folder link */}
+          {getCachedChannelFolderUrl() && (
+            <div className="flex gap-3 pt-2 border-t border-edge">
+              <ExternalLink size={16} className="text-blue-400 shrink-0 mt-0.5" />
+              <a
+                href={getCachedChannelFolderUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-400 hover:text-blue-300 hover:underline"
+              >
+                Open channel folder in SharePoint
+              </a>
+            </div>
+          )}
 
           {/* Test search button */}
           {allReady && (

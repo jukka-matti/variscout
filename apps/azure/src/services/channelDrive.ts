@@ -16,6 +16,7 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 export interface ChannelDriveInfo {
   driveId: string;
   folderId: string;
+  folderWebUrl?: string;
 }
 
 // Session-level cache (cleared on page reload)
@@ -51,7 +52,11 @@ async function doResolve(
     if (cached) {
       const age = Date.now() - new Date(cached.resolvedAt).getTime();
       if (age < CACHE_TTL_MS) {
-        cachedDriveInfo = { driveId: cached.driveId, folderId: cached.folderId };
+        cachedDriveInfo = {
+          driveId: cached.driveId,
+          folderId: cached.folderId,
+          folderWebUrl: cached.folderWebUrl,
+        };
         return cachedDriveInfo;
       }
     }
@@ -74,6 +79,7 @@ async function doResolve(
     const info: ChannelDriveInfo = {
       driveId,
       folderId: data.id,
+      folderWebUrl: data.webUrl || undefined,
     };
 
     // 3. Persist to IndexedDB
@@ -82,6 +88,7 @@ async function doResolve(
         channelId,
         driveId: info.driveId,
         folderId: info.folderId,
+        folderWebUrl: info.folderWebUrl,
         resolvedAt: new Date().toISOString(),
       });
     } catch {
@@ -93,6 +100,11 @@ async function doResolve(
   } catch {
     return null;
   }
+}
+
+/** Get the cached channel folder SharePoint URL (if resolved). */
+export function getCachedChannelFolderUrl(): string | undefined {
+  return cachedDriveInfo?.folderWebUrl;
 }
 
 /** Clear all cached channel drive info (session + in-flight) */

@@ -42,6 +42,29 @@ export interface KnowledgeDocumentResult {
   url?: string;
 }
 
+/** Check if a message contains keywords suggesting knowledge base search intent. */
+function detectKnowledgeIntent(text: string): boolean {
+  const INTENT_KEYWORDS = [
+    'root cause',
+    'sop',
+    'procedure',
+    'happened before',
+    'previous',
+    'historical',
+    'fault tree',
+    '8d',
+    'fmea',
+    'control plan',
+    'work instruction',
+    'similar',
+    'last time',
+    'past report',
+    'corrective action',
+  ];
+  const lower = text.toLowerCase();
+  return INTENT_KEYWORDS.some(kw => lower.includes(kw));
+}
+
 export interface CoScoutMessagesProps {
   messages: CoScoutMessage[];
   isLoading: boolean;
@@ -53,6 +76,8 @@ export interface CoScoutMessagesProps {
   knowledgeSearching?: boolean;
   knowledgeDocuments?: KnowledgeDocumentResult[];
   onSearchKnowledge?: () => void;
+  /** Parent can override intent detection (e.g., always show). Falls back to keyword heuristic. */
+  knowledgeIntentDetected?: boolean;
 }
 
 const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
@@ -65,6 +90,7 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
   knowledgeSearching,
   knowledgeDocuments,
   onSearchKnowledge,
+  knowledgeIntentDetected,
 }) => {
   const { t } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -142,14 +168,19 @@ const CoScoutMessages: React.FC<CoScoutMessagesProps> = ({
         </div>
       )}
 
-      {/* ADR-026: On-demand Knowledge Base search button */}
+      {/* ADR-026: On-demand Knowledge Base search button — shown when intent detected or parent overrides */}
       {knowledgeAvailable &&
         !isLoading &&
         !isStreaming &&
         !knowledgeSearching &&
         messages.length > 0 &&
         messages[messages.length - 1]?.role === 'assistant' &&
-        (!knowledgeDocuments || knowledgeDocuments.length === 0) && (
+        (!knowledgeDocuments || knowledgeDocuments.length === 0) &&
+        (knowledgeIntentDetected ??
+          (() => {
+            const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+            return lastUserMsg ? detectKnowledgeIntent(lastUserMsg.content) : true;
+          })()) && (
           <div className="flex justify-start" data-testid="coscout-knowledge-search-action">
             <button
               onClick={onSearchKnowledge}

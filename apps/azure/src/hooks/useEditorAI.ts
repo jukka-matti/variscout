@@ -46,6 +46,8 @@ import {
 } from '../services/aiService';
 import type { AIPreferences } from '../context/DataContext';
 import { searchDocuments, isKnowledgeBaseAvailable } from '../services/searchService';
+import { getChannelDriveInfo } from '../services/channelDrive';
+import { getGraphToken } from '../auth/graphToken';
 import { updateFindingsPopout } from '@variscout/ui';
 
 export interface UseEditorAIOptions {
@@ -96,6 +98,8 @@ export interface UseEditorAIReturn {
   handleAskCoScoutFromCategory: (ctx: AIContext['focusContext']) => void;
   providerLabel: string | null;
   aiContextSummary: AIContextSummary | null;
+  /** Resolved channel folder SharePoint URL (for "Open in SharePoint" links) */
+  resolvedChannelFolderUrl?: string;
 }
 
 export function useEditorAI({
@@ -161,6 +165,31 @@ export function useEditorAI({
     };
   }, [aiAvailable]);
 
+  // Auto-resolve channel folder URL for default knowledge search scope (ADR-026)
+  const [resolvedChannelFolderUrl, setResolvedChannelFolderUrl] = useState<string | undefined>(
+    undefined
+  );
+  useEffect(() => {
+    if (!aiAvailable || knowledgeSearchFolder !== undefined) return;
+    let cancelled = false;
+    getGraphToken()
+      .then(token => getChannelDriveInfo(token))
+      .then(info => {
+        if (!cancelled && info?.folderWebUrl) {
+          setResolvedChannelFolderUrl(info.folderWebUrl);
+        }
+      })
+      .catch(() => {
+        // Non-critical — search will work without folder scope
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [aiAvailable, knowledgeSearchFolder]);
+
+  // Effective folder scope: explicit user setting > auto-resolved channel folder
+  const effectiveFolderScope = knowledgeSearchFolder ?? resolvedChannelFolderUrl;
+
   // Focus context state for "Ask CoScout about this" actions
   const [focusContext, setFocusContext] = useState<AIContext['focusContext']>(undefined);
 
@@ -196,7 +225,7 @@ export function useEditorAI({
   const knowledgeSearch = useKnowledgeSearch({
     searchDocumentsFn: searchDocuments,
     enabled: isKnowledgeBaseAvailable(),
-    folderScope: knowledgeSearchFolder,
+    folderScope: effectiveFolderScope,
   });
   // AI CoScout conversation (disabled when per-component toggle is off)
   // When Responses API is enabled, legacy fetch functions are omitted — the hook
@@ -332,5 +361,6 @@ export function useEditorAI({
     handleAskCoScoutFromCategory,
     providerLabel,
     aiContextSummary,
+    resolvedChannelFolderUrl,
   };
 }
